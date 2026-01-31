@@ -9,11 +9,11 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type DeviceLinkHistoryRepository struct {
@@ -21,9 +21,9 @@ type DeviceLinkHistoryRepository struct {
 	logger           utils.Logger
 }
 
-func NewDeviceLinkHistoryRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.DeviceLinkHistoryRepository {
+func NewDeviceLinkHistoryRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.DeviceLinkHistoryRepository {
 	return &DeviceLinkHistoryRepository{
-		deviceHistoryDal: dal.NewMongoDal[model.DeviceLinkHistroy, model.DeviceLinkHistroy](client,cfg, dbName, collection),
+		deviceHistoryDal: dal.NewMongoDal[model.DeviceLinkHistroy, model.DeviceLinkHistroy](client, cfg, dbName, collection),
 		logger:           logger,
 	}
 }

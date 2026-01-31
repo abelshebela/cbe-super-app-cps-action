@@ -91,6 +91,14 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/customers/action_log/{id}",
+			Handler: handler.GetCustomerActionLogByID,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

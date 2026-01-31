@@ -3,13 +3,12 @@ package core
 import (
 	"time"
 
-	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/imodel"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func MapToServiceUpdate(service imodel.Service, existing imodel.Service) bson.M {
+func MapToServiceUpdate(service model.Service, existing model.Service) bson.M {
 	update := bson.M{
 		"last_modified_at": time.Now(),
 	}
@@ -23,7 +22,7 @@ func MapToServiceUpdate(service imodel.Service, existing imodel.Service) bson.M 
 		update["tiers"] = service.Tiers
 	}
 	update["service_list"] = service.ServiceList
-	if service.Cap != (imodel.Cap{}) {
+	if service.Cap != (model.Cap{}) {
 		update["cap"] = service.Cap
 	}
 

@@ -1,6 +1,7 @@
 package amount_based_auth
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -14,6 +15,8 @@ import (
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.opentelemetry.io/otel/attribute"
+
+	"cbe-super-app-cps-action/internal/constants"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -50,6 +53,19 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 	defer span.End()
 	filterParams := common_util.ExtractFilterParams(r)
 
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := common_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := common_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	customers, err := a.Service.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
 		span.RecordError(err)
@@ -81,6 +97,9 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_util.TraceLogger(r.Context(), "handler", "updateAmountBasedAuth", "handler", "amountBasedAuth")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	method, ok := common_util.GetParam(r, "method")
 	if !ok {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
@@ -97,7 +116,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.RecordError(err)
 		a.logger.Errorf("[UpdateAmountBasedAuth] failed to decode request: %v", err)
-		localization.SendBadRequestResponse(w, localization.ErrorUnexpectedError.Code)
+		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
 	}
 
@@ -126,9 +145,12 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	a.logger.Infof("[UpdateAmountBasedAuth] request sent successfully for id: %s, method: %s", id, method)
-	localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthRequestSent, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthRequestSentSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthRequestSent, nil)
+		a.logger.Infof("[UpdateAmountBasedAuth] request sent successfully for id: %s, method: %s", id, method)
+	}
 }
 
 // RejectAmountBasedAuth godoc

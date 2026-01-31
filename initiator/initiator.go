@@ -2,9 +2,7 @@ package initiator
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"runtime"
 	"time"
 
 	"cbe-super-app-cps-action/cmd/client"
@@ -15,6 +13,8 @@ import (
 
 	mid "cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/platform/telemetry"
+
+	shared_producer "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/producer"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -27,6 +27,7 @@ import (
 func Init(ctx context.Context) {
 	done := make(chan struct{})
 	logger := utils.NewLogger()
+
 	logger.Infof("Initializing configuration...")
 	cfg := InitConfig(logger)
 	logger.Infof("Configuration initialized")
@@ -75,29 +76,30 @@ func Init(ctx context.Context) {
 		if err := http.ListenAndServe(":"+metricsPort, mux); err != nil {
 			logger.Errorf("metrics server failed: %v", err)
 		}
-	}()
+	}() // 5G
 
 	logger.Infof("Initializing MongoDB client...")
-	mongoClient := InitMongo(cfg.MongoDBURI, logger)
+	mongoClient := InitMongo(cfg.MongoDBURI, logger) //23G - 5G = 18G
 	logger.Infof("MongoDB client initialized")
 
 	logger.Infof("Initializing Minio client...")
-	minioClient := InitMinio(*cfg, logger)
+	minioClient := InitMinio(*cfg, logger) // 24G -23G= 1G
 	logger.Infof("Minio client initialized")
 
 	logger.Infof("initializing kafka")
-	notificationProducer, clientOrchestrationProducer := InitKafkaService(cfg, logger)
+	notificationProducer, clientOrchestrationProducer := InitKafkaService(cfg, logger) //27G - 24G= 3G
 	logger.Infof("kafka initialized")
+
+	// Init shared kafka notification producer
+	sharedKafkaProducer, err := shared_producer.NewNotificationProducer(*cfg, logger)
+	if err != nil {
+		logger.Fatalf("Failed to initialize shared Kafka notification producer: %v", err)
+	}
 
 	logger.Infof("Initializing persistence...")
 	notificationApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
 	// merchantApi := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce/cps/merchant/"
 	// merchantXAPIKey := "0e404061ea76caf9536bc7a38369ca38520aac3c"
-	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, notificationApi, *notificationProducer, *clientOrchestrationProducer, cfg, logger)
-	logger.Infof("Persistence initialized")
-
-	// Initialize CPS Action Guard (role_id + action_name authorization with TTL cache)
-	mid.InitCPSActionGuard(persitence.CPSActionApproveIndexPersistence, 5*time.Minute, logger)
 
 	redis := InitRedis(cfg, logger)
 	logger.Infof("Initializing redis...")
@@ -106,6 +108,11 @@ func Init(ctx context.Context) {
 
 	redisRepository := redisStorage.GetRedisRepository()
 
+	persistence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, notificationApi, *notificationProducer, sharedKafkaProducer, *clientOrchestrationProducer, redisRepository, cfg, logger)
+	logger.Infof("Persistence initialized")
+
+	// Initialize CPS Action Guard (role_id + action_name authorization with TTL cache)
+	mid.InitCPSActionGuard(persistence.CPSActionApproveIndexPersistence, 5*time.Minute, logger)
 	oracleDB := InitOracle(cfg.OracleConnectionString, logger)
 	logger.Infof("Oracle database initialized")
 
@@ -116,16 +123,6 @@ func Init(ctx context.Context) {
 	logger.Infof("Initializing SMS service...")
 	smsService := lib.InitNotificationStore(logger, cfg, notificationProducer)
 	logger.Infof("SMS service initialized")
-
-	// sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient(cfg.CommonSvcGrpcAddress, logger)
-	// if err != nil {
-	// 	logger.Fatalf("Failed to initialize gRPC session client: %v", err)
-	// }
-	// defer func() {
-	// 	if cerr := clientStore.Close(); cerr != nil {
-	// 		logger.Errorf("error closing client store: %v", cerr)
-	// 	}
-	// }()
 
 	auth_client, err := client.NewAuthGRPCClient(cfg.CPSAuthSvcGrpcAddress, logger)
 	if err != nil {
@@ -139,14 +136,11 @@ func Init(ctx context.Context) {
 	if err != nil {
 		logger.Fatalf("Failed to initialize gRPC client for sitota: %v", err)
 	}
-	// if cerr := sitotagRPCClient.Close(); cerr != nil {
-	// 	logger.Errorf("Failed to close sitota RPC client: %v", cerr)
-	// }
 
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persitence, OraclePersistence, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService)
+	serviceLayer := InitServiceLayer(mongoClient, persistence, OraclePersistence, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService)
 
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
@@ -161,18 +155,8 @@ func Init(ctx context.Context) {
 	// InitRoute(ctx, r, handlerLayer, nil, logger, cfg)
 	InitRoute(ctx, r, handlerLayer, auth_client.Client, redisRepository, logger, cfg)
 
-	// Walker to log all registered routes
-	// chi.Walk(r, func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
-	// 	logger.Infof("Route registered: %s %s", method, route)
-	// 	return nil
-	// })
-
 	// wrap the router with OpenTelemetry instrumentation handler
 	otlr := telemetry.WrapHandler(r, "cps-action")
-
-	go func() {
-		fmt.Println("Goroutines: ", runtime.NumGoroutine())
-	}()
 
 	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.Services, serviceLayer.Topup, logger)
 	srv := server.NewHTTPServer(cfg, otlr)

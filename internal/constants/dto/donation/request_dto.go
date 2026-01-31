@@ -25,7 +25,7 @@ type DonationCPSRequest struct {
 	EndDate             string                `json:"end_date" bson:"end_date"`
 	StartDate           string                `json:"start_date" bson:"start_date"`
 	ImageIDToDelete     string                `json:"image_id_to_delete,omitempty" bson:"image_id_to_delete,omitempty"`
-	Enabled             bool                  `json:"enabled" bson:"enabled"`
+	Enabled             *bool                 `json:"enabled" bson:"enabled"`
 }
 
 type DonationImageUpdateCPSRequest struct {
@@ -47,7 +47,7 @@ type DonationRequest struct {
 	CoverImage          *multipart.FileHeader   `json:"cover_image,omitempty" bson:"cover_image,omitempty"`
 	EndDate             time.Time               `json:"end_date" bson:"end_date"`
 	StartDate           time.Time               `json:"start_date" bson:"start_date"`
-	Enabled             bool                    `json:"enabled" bson:"enabled"`
+	Enabled             *bool                   `json:"enabled" bson:"enabled"`
 }
 
 type DonationImageUpdateRequest struct {

@@ -2,11 +2,13 @@ package cps_action_role_service
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
-	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
+	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/cps_action_role"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+
+	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
@@ -99,6 +101,7 @@ func (s *cpsActionRoleService) GetByActionCode(ctx context.Context, actionCode s
 func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "CPSActionRole", "Create")
 	defer span.End()
+
 	if req.ActionName == "" {
 		span.AddEvent("action name is empty", trace.WithAttributes(attribute.String("error", "action name is empty")))
 		return errors.New(localization.ErrorActionNameIsRequired.Code)
@@ -112,7 +115,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		return errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
-	existing, err := s.repo.FindByActionName(ctx, req.ActionName)
+	existing, err := s.repo.FindByActionNameAndPortalCard(ctx, req.ActionName, req.PortalCardName)
 	if err == nil && existing != nil {
 		span.AddEvent("action name already exists", trace.WithAttributes(attribute.String("error", "action name already exists")))
 		return errors.New(localization.ErrorActionNameAlreadyExists.Code)
@@ -132,7 +135,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		span.AddEvent("failed to validate unique checker IDs in groups", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
-	if err := s.validateUniqueIDs(req.AssignedAuditorRoles); err != nil {
+	if err := s.validateUniqueIDsInGroups(req.AssignedAuditorRoles); err != nil {
 		span.AddEvent("failed to validate unique auditor IDs", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
@@ -164,12 +167,16 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		}
 	}
 
-	// Auditor
-	auditors := make([]string, 0, len(req.AssignedAuditorRoles))
-	if !req.IsViewOnly {
-		for _, code := range req.AssignedAuditorRoles {
-
-			auditors = append(auditors, code)
+	// Auditors
+	var auditors [][]string
+	if !req.IsMakerOnly && !req.IsViewOnly {
+		auditors = make([][]string, 0, len(req.AssignedAuditorRoles))
+		for _, group := range req.AssignedAuditorRoles {
+			g := make([]string, 0, len(group))
+			for _, code := range group {
+				g = append(g, code)
+			}
+			auditors = append(auditors, g)
 		}
 	}
 
@@ -184,8 +191,10 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		AssignedAuditorRoles: auditors,
 		IsMakerOnly:          req.IsMakerOnly || int32(len(checkers)) == 0,
 		IsViweOnly:           req.IsViewOnly,
+		Version:              1,
 		Enabled:              true,
 		ApproverCount:        int32(len(checkers)),
+		AuditorCount:         int32(len(auditors)),
 	}
 
 	cpsAction := lib.CpsModelBuilder(
@@ -228,8 +237,10 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 
 	if req.AssignedViewersRoles != nil {
 		if err := s.validateUniqueIDs(req.AssignedViewersRoles); err != nil {
-			span.AddEvent("failed to validate unique maker IDs", trace.WithAttributes(attribute.String("error", err.Error())))
-			return err
+			span.AddEvent("failed to validate unique viewer IDs", trace.WithAttributes(attribute.String("error", err.Error())))
+			if err.Error() != localization.ErrorResourceNotFound.Code {
+				return err
+			}
 		}
 	}
 
@@ -246,20 +257,27 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		}
 	}
 	if req.AssignedAuditorRoles != nil {
-		if err := s.validateUniqueIDs(req.AssignedAuditorRoles); err != nil {
+		if err := s.validateUniqueIDsInGroups(req.AssignedAuditorRoles); err != nil {
 			span.AddEvent("failed to validate unique auditor IDs", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
 		}
 	}
 
+	versionUpdated := old.Version
+	if int32(len(req.AssignedCheckerRoles)) != int32(old.ApproverCount) {
+		versionUpdated = old.Version + 1
+	}
+
 	payload := imodel.CPSActionRole{
 		ActionCode:     actionCode,
 		PortalCardName: req.PortalCardName,
+		AuditorCount:   int32(len(req.AssignedCheckerRoles)),
 		ActionName:     local_util.NonEmptyString(req.ActionName, old.ActionName),
 		IsMakerOnly:    req.IsMakerOnly || int32(len(req.AssignedCheckerRoles)) == 0,
 		IsViweOnly:     req.IsViewOnly || (int32(len(req.AssignedViewersRoles)) > 0 && len(req.AssignedViewersRoles) == 0 && len(req.AssignedCheckerRoles) == 0),
 		Enabled:        true,
 		ApproverCount:  int32(len(req.AssignedCheckerRoles)),
+		Version:        versionUpdated,
 	}
 
 	if req.AssignedViewersRoles != nil {
@@ -283,7 +301,7 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		payload.AssignedCheckerRoles = [][]string{}
 	} else if req.IsViewOnly {
 		payload.AssignedMakersRoles = []string{}
-		payload.AssignedAuditorRoles = []string{}
+		payload.AssignedAuditorRoles = [][]string{}
 		payload.AssignedCheckerRoles = [][]string{}
 	} else {
 		if req.AssignedCheckerRoles != nil {
@@ -299,7 +317,7 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		}
 	}
 	if req.AssignedAuditorRoles != nil {
-		auditors := make([]string, 0, len(req.AssignedAuditorRoles))
+		auditors := make([][]string, 0, len(req.AssignedAuditorRoles))
 		for _, code := range req.AssignedAuditorRoles {
 			auditors = append(auditors, code)
 		}
@@ -397,9 +415,12 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
 
-		if err := s.UpdateActionList(ctx, cur.ActionName, true); err != nil {
+		if err := s.UpdateActionList(ctx, cur.ActionName, cur.PortalCardName, true); err != nil {
 			span.AddEvent("failed to update action list", trace.WithAttributes(attribute.String("error", err.Error())))
 			s.logger.Errorf("failed to update action list: %v", err)
+			if err.Error() == localization.ErrorResourceNotFound.Code {
+				return nil, errors.New(localization.ErrorActionNotFound.Code)
+			}
 			return nil, err
 		}
 
@@ -410,15 +431,16 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 
 		if err := s.repo.Create(ctx, &ar); err != nil {
 			span.AddEvent("failed to create action role", trace.WithAttributes(attribute.String("error", err.Error())))
-			if err := s.UpdateActionList(ctx, cur.ActionName, false); err != nil {
+			if err := s.UpdateActionList(ctx, cur.ActionName, cur.PortalCardName, false); err != nil {
 				span.AddEvent("failed to update action list", trace.WithAttributes(attribute.String("error", err.Error())))
 				s.logger.Errorf("failed to update action list: %v", err)
 			}
 			return nil, err
 		}
 
+		IsVersionChanged := false
 		s.logger.Infof("Authorize: Syncing indices for Create. Makers: %d, Checkers: %d, Auditors: %d", len(ar.AssignedMakersRoles), len(ar.AssignedCheckerRoles), len(ar.AssignedAuditorRoles))
-		if err := s.syncIndices(ctx, "", &ar); err != nil {
+		if err := s.syncIndices(ctx, "", ar.PortalCardName, &ar, IsVersionChanged); err != nil {
 			span.AddEvent("failed to sync indices for create", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
@@ -451,8 +473,8 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return nil, err
 		}
 
-		s.logger.Infof("Authorize: Syncing indices for Create. Makers: %d, Checkers: %d, Auditors: %d", len(new.AssignedMakersRoles), len(new.AssignedCheckerRoles), len(new.AssignedAuditorRoles))
-		if err := s.syncIndices(ctx, new.ActionCode, new); err != nil {
+		IsVersionChanged := prev.Version != new.Version
+		if err := s.syncIndices(ctx, new.ActionCode, new.PortalCardName, new, IsVersionChanged); err != nil {
 			span.AddEvent("failed to sync indices for create", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
@@ -463,8 +485,16 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 	}
 }
 
-func (s *cpsActionRoleService) UpdateActionList(ctx context.Context, actionCode string, status bool) error {
-	err := s.repo.UpdateActionList(ctx, actionCode, status)
+func (s *cpsActionRoleService) UpdateActionList(ctx context.Context, actionCode, portalCard string, status bool) error {
+	err := s.repo.UpdateActionList(ctx, actionCode, portalCard, status)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			s.logger.Infof("UpdateActionList: Action %s not found in the list", actionCode)
+			return errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		s.logger.Errorf("UpdateActionList: Failed to update action list: %v", err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
 	return err
 }
 
@@ -509,7 +539,7 @@ func (s *cpsActionRoleService) validateUniqueIDsInGroups(groups [][]string) erro
 	}
 	return nil
 }
-func (s *cpsActionRoleService) syncIndices(ctx context.Context, oldActionName string, role *imodel.CPSActionRole) error {
+func (s *cpsActionRoleService) syncIndices(ctx context.Context, oldActionName string, portalCardName string, role *imodel.CPSActionRole, isVersionChanged bool) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "syncIndices", "CPSActionRole", "syncIndices")
 	defer span.End()
 	span.SetAttributes(attribute.String("old_action_name", oldActionName))
@@ -520,7 +550,7 @@ func (s *cpsActionRoleService) syncIndices(ctx context.Context, oldActionName st
 		return s.indexRepo.SaveIndices(ctx, indices)
 	}
 
-	err := s.indexRepo.SyncIndices(ctx, oldActionName, indices)
+	err := s.indexRepo.SyncIndices(ctx, oldActionName, portalCardName, indices, isVersionChanged)
 	if err != nil {
 		span.AddEvent("failed to sync indices", trace.WithAttributes(attribute.String("error", err.Error())))
 	}
@@ -547,6 +577,7 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 				MakerIndex:     &idx,
 				UpdatedAt:      now,
 				CreatedAt:      now,
+				Version:        role.Version,
 			})
 			span.AddEvent("maker index generated", trace.WithAttributes(attribute.String("role_id", makerID)))
 			s.logger.Infof("generateIndices: Added Maker index for RoleID %s", makerID)
@@ -572,6 +603,7 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 					PortalCardName: role.PortalCardName,
 					ActionName:     role.ActionName,
 					ViewerIndex:    &idx,
+					Version:        role.Version,
 					UpdatedAt:      now,
 					CreatedAt:      now,
 				})
@@ -585,34 +617,35 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 		}
 	}
 
-	// Auditors
-	if len(role.AssignedAuditorRoles) > 0 {
-		for k, auditorID := range role.AssignedAuditorRoles {
-			idx := int64(k + 1)
+	for outer, group := range role.AssignedAuditorRoles {
+		for inner, auditorID := range group {
+			val := float64(outer+1) + float64(inner+1)/10.0
 			found := false
 			for j := range indices {
 				if indices[j].RoleId == auditorID {
-					indices[j].AuditorIndex = &idx
+					indices[j].AuditorIndex = &val
 					found = true
 					break
 				}
 			}
+
 			if !found {
 				indices = append(indices, imodel.CPSActionApproveIndex{
 					ID:             bson.NewObjectID(),
 					RoleId:         auditorID,
 					PortalCardName: role.PortalCardName,
 					ActionName:     role.ActionName,
-					AuditorIndex:   &idx,
+					AuditorIndex:   &val,
+					Version:        role.Version,
 					UpdatedAt:      now,
 					CreatedAt:      now,
 				})
 
-				span.AddEvent("auditor index generated", trace.WithAttributes(attribute.String("role_id", auditorID)))
-				s.logger.Infof("generateIndices: Added Auditor index for RoleID %s", auditorID)
+				span.AddEvent("checker index generated", trace.WithAttributes(attribute.String("role_id", auditorID)))
+				s.logger.Infof("generateIndices: Added Checker index for RoleID %s (val: %f)", auditorID, val)
 			} else {
-				span.AddEvent("auditor index updated", trace.WithAttributes(attribute.String("role_id", auditorID)))
-				s.logger.Infof("generateIndices: Updated Auditor index for RoleID %s", auditorID)
+				span.AddEvent("checker index updated", trace.WithAttributes(attribute.String("role_id", auditorID)))
+				s.logger.Infof("generateIndices: Updated Checker index for RoleID %s (val: %f)", auditorID, val)
 			}
 		}
 	}
@@ -637,14 +670,15 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 						PortalCardName: role.PortalCardName,
 						ActionName:     role.ActionName,
 						CheckerIndex:   &val,
+						Version:        role.Version,
 						UpdatedAt:      now,
 						CreatedAt:      now,
 					})
 
-					span.AddEvent("checker index generated", trace.WithAttributes(attribute.String("role_id", checkerID), attribute.Float64("value", val)))
+					span.AddEvent("checker index generated", trace.WithAttributes(attribute.String("role_id", checkerID)))
 					s.logger.Infof("generateIndices: Added Checker index for RoleID %s (val: %f)", checkerID, val)
 				} else {
-					span.AddEvent("checker index updated", trace.WithAttributes(attribute.String("role_id", checkerID), attribute.Float64("value", val)))
+					span.AddEvent("checker index updated", trace.WithAttributes(attribute.String("role_id", checkerID)))
 					s.logger.Infof("generateIndices: Updated Checker index for RoleID %s (val: %f)", checkerID, val)
 				}
 			}

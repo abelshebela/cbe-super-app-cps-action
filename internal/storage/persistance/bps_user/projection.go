@@ -23,9 +23,9 @@ func BPSUserMapper(data bps_model.BPSUser) bson.M {
 	if data.PhoneNumber != "" {
 		result["phone_number"] = data.PhoneNumber
 	}
-	if data.Role != "" {
-		result["role"] = data.Role
-	}
+	// if data.Role != "" {
+	// 	result["role"] = data.Role
+	// }
 	if len(data.BranchCode) > 0 {
 		result["branch_code"] = data.BranchCode
 	}
@@ -41,7 +41,7 @@ func BPSUserMapper(data bps_model.BPSUser) bson.M {
 		result["job_title"] = data.JobTitle
 	}
 
-	result["role"] = data.Role
+	// result["role"] = data.Role
 	result["enabled"] = data.Enabled
 	return result
 }

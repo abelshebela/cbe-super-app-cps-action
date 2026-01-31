@@ -6,10 +6,13 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"context"
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/handlers/rest/http/donation_company/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"cbe-super-app-cps-action/internal/constants"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -47,6 +50,20 @@ func (d *donationCompanyAdapter) FetchDonationCompany(w http.ResponseWriter, r *
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchDonationCompany", "handler", "donationCompany")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
@@ -116,6 +133,9 @@ func (d *donationCompanyAdapter) FetchDonationCompanyByID(w http.ResponseWriter,
 func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createDonationCompany", "handler", "donationCompany")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
 		span.RecordError(err)
@@ -141,9 +161,12 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	d.logger.Infof("donation company creation request submitted successfully")
-	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyCreateRequestSent, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyCreatedSP, nil)
+	} else {
+		d.logger.Infof("donation company creation request submitted successfully")
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyCreateRequestSent, nil)
+	}
 }
 
 // UpdateDonationCompany godoc
@@ -166,6 +189,9 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateDonationCompany", "handler", "donationCompany")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		d.logger.Errorf("donation company ID is required for update")
@@ -199,9 +225,12 @@ func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	d.logger.Infof("donation company update request submitted successfully", updatedDonationCompany)
-	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyUpdated, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyUpdatedSP, nil)
+	} else {
+		d.logger.Infof("donation company update request submitted successfully", updatedDonationCompany)
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyUpdatedRequestSent, nil)
+	}
 }
 
 func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Request) {
@@ -242,6 +271,9 @@ func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Re
 func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableDonationCompany", "handler", "donationCompany")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		d.logger.Errorf("donation company ID is required for diable")
@@ -256,11 +288,16 @@ func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyEnableRequestSent, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyEnabledSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyEnableRequestSent, nil)
 
+	}
 }
 
 // disableDonationCompany godoc
+//
 //	@Summary		Enable a donation company
 //	@Description	Enable a donation company by ID
 //	@Tags			Donation company
@@ -273,10 +310,12 @@ func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r 
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/donation_company/enable/{id} [patch]
-
 func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDonationCompany", "handler", "donationCompany")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		d.logger.Errorf("donation company ID is required for disable")
@@ -291,6 +330,9 @@ func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyDisableRequestSent, nil)
-
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyDisabledSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyDisableRequestSent, nil)
+	}
 }

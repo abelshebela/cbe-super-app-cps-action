@@ -70,15 +70,16 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (donation.Don
 	}
 
 	if targetStr := r.FormValue("target"); targetStr != "" {
-		if _, err := StringToInt32(targetStr); err != nil {
-			return req, err
-		} else {
-			req.Target = targetStr // or fmt.Sprintf("%d", target) if you want string
+		targetInt, err := strconv.ParseInt(targetStr, 10, 64)
+		if err != nil {
+			return req, errors.New("target must be a valid integer")
 		}
+		req.Target = strconv.FormatInt(targetInt, 10)
 	}
 
 	if enabledStr := r.FormValue("enabled"); enabledStr != "" {
-		req.Enabled = enabledStr == "true"
+		tempval := enabledStr == "true"
+		req.Enabled = &tempval
 	}
 
 	var endDate, startDate time.Time
@@ -128,7 +129,7 @@ func ValidateForUpdate(req donation.DonationRequest) error {
 		),
 		validation.Field(&req.Target,
 			validation.When(req.Target != "",
-				validation.Min(0).Error("donation amount must be greater than or equal to 0"),
+				// validation.Min(0).Error("donation amount must be greater than or equal to 0"),
 				validation.By(validateDonationAmount)),
 		),
 		validation.Field(&req.DonationImages,
@@ -177,19 +178,28 @@ func ExtractIDFromURL(r *http.Request) string {
 }
 
 func validateDonationAmount(value interface{}) error {
-	amount, ok := value.(int32)
-	if !ok {
-		return validation.NewError("validation_amount_invalid", "invalid donation amount")
+	var amount int64
+	switch v := value.(type) {
+	case string:
+		a, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return validation.NewError("validation_amount_invalid", "donation amount must be a valid number")
+		}
+		amount = a
+	case int:
+		amount = int64(v)
+	case int64:
+		amount = v
+	default:
+		return validation.NewError("validation_amount_invalid", "invalid donation amount type")
 	}
 
 	if amount <= 0 {
 		return validation.NewError("validation_amount_zero", "donation amount must be greater than zero")
 	}
-
 	if amount > 100000000 {
 		return validation.NewError("validation_amount_too_large", "donation amount must not exceed 100,000,000")
 	}
-
 	return nil
 }
 
@@ -280,8 +290,8 @@ func validateImage(value interface{}) error {
 		return localization.ErrorMissingOrInvalidImage
 	}
 
-	if file.Size > (15 << 20) {
-		return validation.NewError("logo", localization.MsgFileTooLarge)
+	if file.Size > (10 << 20) {
+		return validation.NewError("logo", "file size exceeds 10MB limit")
 	}
 
 	return nil

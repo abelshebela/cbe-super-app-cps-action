@@ -26,6 +26,17 @@ type BankStorage struct {
 	logger utils.Logger
 }
 
+// FindBIC implements [storage.BankRepository].
+func (b *BankStorage) FindByBIC(ctx context.Context, bic string) (*model.Bank, error) {
+	b.logger.Infof("[FindBIC] fetching bank by BIC: %s", bic)
+	bank, err := b.dal.FindOne(ctx, bson.M{"bic_code": bic, "enabled": true, "is_deleted": false}, nil)
+	if err != nil {
+		b.logger.Errorf("[FindBIC] failed to fetch bank: %v", err)
+		return nil, err
+	}
+	return bank, nil
+}
+
 func NewBankRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.BankRepository {
 	return &BankStorage{
 		dal:    dal.NewMongoDal[model.Bank, model.Bank](client, cfg, dbName, collection),
@@ -147,7 +158,7 @@ func (s *BankStorage) FindByNameOrBIC(
 
 	if bic != "" {
 		conditions = append(conditions, bson.M{
-			"bic": bson.M{"$regex": "^" + regexp.QuoteMeta(bic) + "$", "$options": "i"},
+			"bic_code": bson.M{"$regex": "^" + regexp.QuoteMeta(bic) + "$", "$options": "i"},
 		})
 	}
 
@@ -169,7 +180,7 @@ func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "branch_code", "branch_name", "enabled", "enabled", "is_deleted"}
 
-	if filterParam.Search != "" {
+	if filterParam.Search != "" && filterParam.Search != "enabled" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
 			{"name": searchRegex},
@@ -181,7 +192,9 @@ func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 
 	}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-
+	if filterParam.Search == "enabled" {
+		filter["enabled"] = true
+	}
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

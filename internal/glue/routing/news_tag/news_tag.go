@@ -1,7 +1,6 @@
 package newstag_routing
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	newstag_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_tag"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -18,7 +17,6 @@ func Init(router chi.Router, handler newstag_adaptor.NewsTagAdaptor, authMiddlew
 			Handler: handler.FetchNewsTags,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -27,7 +25,6 @@ func Init(router chi.Router, handler newstag_adaptor.NewsTagAdaptor, authMiddlew
 			Handler: handler.CreateNewsTags,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -36,7 +33,6 @@ func Init(router chi.Router, handler newstag_adaptor.NewsTagAdaptor, authMiddlew
 			Handler: handler.GetNewsTagByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -45,7 +41,6 @@ func Init(router chi.Router, handler newstag_adaptor.NewsTagAdaptor, authMiddlew
 			Handler: handler.DeleteNewsTag,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -54,7 +49,6 @@ func Init(router chi.Router, handler newstag_adaptor.NewsTagAdaptor, authMiddlew
 			Handler: handler.UpdateNewsTag,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 	}

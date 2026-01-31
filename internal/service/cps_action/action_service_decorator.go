@@ -28,15 +28,24 @@ func WithActionRolePolicy(base service.CPSActionService, roles storage.CPSAction
 	return &cpsActionServiceWithRoles{base: base, roles: roles}
 }
 
+func (s *cpsActionServiceWithRoles) IsMakerOnlyForRequest(ctx context.Context, requestAction string) (bool, error) {
+	return s.base.IsMakerOnlyForRequest(ctx, requestAction)
+}
+
 func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsAction *model.CPSAction) error {
 	actType := strings.ToUpper(strings.TrimSpace(cpsAction.ActionType))
 	req := strings.ToUpper(strings.TrimSpace(cpsAction.RequestAction))
+	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 
 	if actType == string(constants.ActionCreate) || actType == string(constants.ActionUpdate) || actType == string(constants.ActionDelete) ||
-		strings.Contains(req, "ENABLE") || strings.Contains(req, "DISABLE") {
+		strings.Contains(req, constants.ENABLE) || strings.Contains(req, constants.DISABLE) {
 
 		if cpsAction.CheckerUsers == nil {
 			cpsAction.CheckerUsers = []model.Checker{}
+		}
+
+		if cpsAction.AuditorUsers == nil {
+			cpsAction.AuditorUsers = []model.Auditor{}
 		}
 
 		cpsAction.CurrentCheckerIndex = 0.0
@@ -44,13 +53,17 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 		if mod, ok := ResolveModuleForRA(RequestAction(cpsAction.RequestAction)); ok && s.roles != nil {
 
 			var role *imodel.CPSActionRole
-			var approverData model.CPSActionApproveIndex
-			roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
+			var approverData imodel.CPSActionApproveIndex
 
 			if r, err := s.roles.FindByActionName(ctx, mod); err == nil && r != nil {
 				role = r
 			}
 
+			if role != nil {
+				ctx = context.WithValue(ctx, constants.ContextKey("is_maker_only"), role.IsMakerOnly)
+				ctx = context.WithValue(ctx, constants.ContextKey("action_name"), mod)
+				types.SetIsMakerOnly(ctx, role.IsMakerOnly)
+			}
 			if approver, err := s.roles.FindApproverByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil {
 				approverData = approver
 			}
@@ -71,6 +84,8 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 				cpsAction.CheckerCount = 0
 			}
 
+			cpsAction.AuditorCount = int32(len(role.AssignedAuditorRoles))
+
 			if err := s.base.CreateCPSAction(ctx, cpsAction); err != nil {
 				return err
 			}
@@ -79,7 +94,9 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 				fmt.Printf("CPS Action created with role policy: %+v\n", role)
 				if role.IsMakerOnly {
 					cpsAction.ActionStatus = string(constants.Approved)
-					s.base.ApproveCPSAction(ctx, cpsAction)
+					if err := s.base.ApproveCPSAction(ctx, cpsAction); err != nil {
+						return err
+					}
 				}
 
 			}
@@ -90,6 +107,19 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 	return nil
 }
 
+func (s *cpsActionServiceWithRoles) AuditorClaim(ctx context.Context, actionCode string, activeGroup int) error {
+	return nil
+}
+func (s *cpsActionServiceWithRoles) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int) error {
+	if err := s.base.AuditorMark(ctx, actionCode, auditor, activeGroup); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *cpsActionServiceWithRoles) GetUserAuthorizerIndex(ctx context.Context, requestAction constants.RequestAction) (imodel.CPSActionApproveIndex, error) {
+	return s.base.GetUserAuthorizerIndex(ctx, requestAction)
+}
 func (s *cpsActionServiceWithRoles) GetUserCheckedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	return s.base.GetUserCheckedActions(ctx, userID, filterParams)
 }
@@ -97,9 +127,18 @@ func (s *cpsActionServiceWithRoles) GetUserCreatedActions(ctx context.Context, u
 	return s.base.GetUserCreatedActions(ctx, userID, filterParams)
 }
 
-//	func (s *cpsActionServiceWithRoles) ReverseCPSAction(ctx context.Context, actionCode string) error {
-//		return s.base.ReverseCPSAction(ctx, actionCode)
-//	}
+func (s *cpsActionServiceWithRoles) GetCPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	return s.base.GetCPSActionsForApprover(ctx, userID, RAList, filterParams)
+}
+
+func (s *cpsActionServiceWithRoles) GetCPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	return s.base.GetCPSActionsForAuditor(ctx, userID, RAList, filterParams)
+}
+
+func (s *cpsActionServiceWithRoles) GetCPSActions(ctx context.Context, userID, role string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	return s.base.GetCPSActions(ctx, userID, role, RAList, filterParams)
+}
+
 func (s *cpsActionServiceWithRoles) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 	return s.base.ApproveCPSAction(ctx, action)
 }

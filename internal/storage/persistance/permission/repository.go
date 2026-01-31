@@ -15,11 +15,11 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type PermissionPersistence struct {
@@ -43,10 +43,10 @@ func InitPermission(
 	logger utils.Logger,
 ) *PermissionPersistence {
 
-	permissionGroupsDal := dal.NewMongoDal[model.PermissionGroup, model.PermissionGroup](client,cfg, dbName, collectionNames[0])
-	permissionCategoryDal := dal.NewMongoDal[model.PermissionCategory, model.PermissionCategory](client,cfg, dbName, collectionNames[1])
-	permissionDal := dal.NewMongoDal[model.Permission, model.Permission](client,cfg, dbName, collectionNames[2])
-	cpsdal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client,cfg, dbName, collectionNames[3])
+	permissionGroupsDal := dal.NewMongoDal[model.PermissionGroup, model.PermissionGroup](client, cfg, dbName, collectionNames[0])
+	permissionCategoryDal := dal.NewMongoDal[model.PermissionCategory, model.PermissionCategory](client, cfg, dbName, collectionNames[1])
+	permissionDal := dal.NewMongoDal[model.Permission, model.Permission](client, cfg, dbName, collectionNames[2])
+	cpsdal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, cfg, dbName, collectionNames[3])
 
 	// build []mongo.Collection
 	var cols []mongo.Collection

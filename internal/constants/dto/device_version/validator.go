@@ -1,6 +1,7 @@
 package deviceversion
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/go-ozzo/ozzo-validation/is"
@@ -19,6 +20,7 @@ func (r CreateDeviceVersionRequest) Validate() error {
 		validation.Field(&r.LatestVersion,
 			validation.Required,
 			validation.Length(1, 50),
+			validation.Match(regexp.MustCompile(`^[0-9.]+$`)).Error("LatestVersion must contain only digits and dots (0-9, .)"),
 		),
 		validation.Field(&r.Platform,
 			validation.Required,

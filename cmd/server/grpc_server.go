@@ -12,8 +12,6 @@ import (
 	"context"
 	"net"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	otelgrpc "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -56,7 +54,14 @@ func (s *server) GetOneBank(ctx context.Context, req *bankpb.GetOneBankRequest) 
 	}
 	return &bankpb.GetOneBankResponse{Bank: s.bankMapper(data)}, nil
 }
-
+func (s *server) GetBankByBIC(ctx context.Context, req *bankpb.GetOneBankByBICRequest) (*bankpb.GetOneBankResponse, error) {
+	data, err := s.bankHandler.GetOneBankByBIC(ctx, req.BicCode)
+	if err != nil {
+		s.logger.Errorf("Failed to get bank by BIC: %v", err)
+		return nil, err
+	}
+	return &bankpb.GetOneBankResponse{Bank: s.bankMapper(data)}, nil
+}
 func (s *server) walletMapper(data *local_model.Wallet) *walletpb.Wallet {
 	return &walletpb.Wallet{
 		Id:          data.ID.Hex(),
@@ -76,6 +81,10 @@ func (s *server) walletMapper(data *local_model.Wallet) *walletpb.Wallet {
 			}
 			return keys
 		}(),
+		Cap: &walletpb.Cap{
+			SingleCap:          data.Cap.SingleCap,
+			MinimumTransferCap: data.Cap.MinimumTransferCap,
+		},
 		IsDeleted: data.IsDeleted,
 		Enabled:   data.Enabled,
 		Services: &walletpb.Services{
@@ -132,6 +141,15 @@ func buildPagination(meta types.PaginationMeta) *bankpb.Meta {
 
 // ///////////////////wallet///////////////////
 func (s *server) GetAllWallet(ctx context.Context, req *walletpb.GetAllWalletRequest) (*walletpb.GetAllWalletResponse, error) {
+	if req.Page < 1 {
+		req.Page = 1
+	}
+	if req.PerPage < 1 {
+		req.PerPage = 10
+	}
+	if req.PerPage > 100 {
+		req.PerPage = 100
+	}
 	data, err := s.walletHandler.GetAllWallet(ctx, types.Filter{Page: int(req.Page), PerPage: int(req.PerPage), Search: req.Search})
 	if err != nil {
 		s.logger.Errorf("Failed to get all wallets: %v", err)
@@ -141,12 +159,12 @@ func (s *server) GetAllWallet(ctx context.Context, req *walletpb.GetAllWalletReq
 }
 
 func (s *server) GetWallet(ctx context.Context, req *walletpb.GetWalletRequest) (*walletpb.GetWalletResponse, error) {
-	// data, err := s.walletHandler.GetWallet(ctx, req.Id)
-	// if err != nil {
-	// 	s.logger.Errorf("Failed to get wallet: %v", err)
-	// 	return nil, err
-	// }
-	return &walletpb.GetWalletResponse{}, nil
+	data, err := s.walletHandler.GetWallet(ctx, req.Id)
+	if err != nil {
+		s.logger.Errorf("Failed to get wallet: %v", err)
+		return nil, err
+	}
+	return &walletpb.GetWalletResponse{Wallet: s.walletMapper(data)}, nil
 }
 
 func buildPaginationWallet(meta types.PaginationMeta) *walletpb.Meta {
@@ -202,14 +220,14 @@ func buildPaginationService(meta types.PaginationMeta) *servicepb.Meta {
 		HasPrevPage: meta.HasPrevPage,
 	}
 }
-func (s *server) serviceListMapper(data []imodel.Service) []*servicepb.ServiceDetails {
+func (s *server) serviceListMapper(data []model.Service) []*servicepb.ServiceDetails {
 	var services []*servicepb.ServiceDetails
 	for i := range data {
 		services = append(services, s.MapServiceDetails(&data[i]))
 	}
 	return services
 }
-func (s *server) MapServiceDetails(data *imodel.Service) *servicepb.ServiceDetails {
+func (s *server) MapServiceDetails(data *model.Service) *servicepb.ServiceDetails {
 	return &servicepb.ServiceDetails{
 		Id:          data.ID.Hex(),
 		ServiceCode: data.ServiceCode,

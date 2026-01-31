@@ -18,24 +18,28 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	notification_dto "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
+	shared_producer "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/producer"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type NotificationStorage struct {
-	dal           dal.MongoDal[model.Notification, model.Notification]
-	client        *mongo.Client
-	kafkaProducer kafka.ClientOrchestrationProducer
-	logger        utils.Logger
+	dal                 dal.MongoDal[model.Notification, model.Notification]
+	client              *mongo.Client
+	kafkaProducer       kafka.ClientOrchestrationProducer
+	sharedKafkaProducer *shared_producer.NotificationProducer
+	logger              utils.Logger
 }
 
-func NewNotificationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.NotificationRepository {
+func NewNotificationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, sharedProducer *shared_producer.NotificationProducer, logger utils.Logger) storage.NotificationRepository {
 	return &NotificationStorage{
-		dal:           dal.NewMongoDal[model.Notification, model.Notification](client, cfg, dbName, collection),
-		client:        client,
-		kafkaProducer: kafkaProducer,
-		logger:        logger,
+		dal:                 dal.NewMongoDal[model.Notification, model.Notification](client, cfg, dbName, collection),
+		client:              client,
+		kafkaProducer:       kafkaProducer,
+		sharedKafkaProducer: sharedProducer,
+		logger:              logger,
 	}
 }
 
@@ -45,7 +49,21 @@ func (n *NotificationStorage) Create(ctx context.Context, notification *model.No
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	n.kafkaProducer.PublishMessage(ctx, newNotification, string(constants.ClientOrchestrationNotificationTopic), string(constants.ClientOrchestrationNotificationTopic), "new notification created")
+
+	inAppMessage := notification_dto.InAppKafkaMessage{
+		Type:    "in_app",
+		Title:   "notification created",
+		Message: "new notification created",
+		Data:    NotificationMapper(newNotification),
+	}
+
+	err = n.sharedKafkaProducer.PublishInAppMessage(ctx, inAppMessage)
+	if err != nil {
+		n.logger.Errorf("[InAppNotification] failed to send in app notification %v", err)
+	}
+	n.logger.Infof("[InAppNotification] notification sent successfully")
+
+	// n.kafkaProducer.PublishMessage(ctx, newNotification, "new_notification_created", "inapp-notifications", "new notification created")
 	return nil
 }
 
@@ -69,7 +87,20 @@ func (n *NotificationStorage) Update(ctx context.Context, id string, notificatio
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	n.kafkaProducer.PublishMessage(ctx, updatedNotification, string(constants.ClientOrchestrationNotificationTopic), string(constants.ClientOrchestrationNotificationTopic), "notification updated")
+	inAppMessage := notification_dto.InAppKafkaMessage{
+		Type:    "in_app",
+		Title:   "notification updated",
+		Message: "notification has been updated",
+		Data:    NotificationMapper(updatedNotification),
+	}
+
+	err = n.sharedKafkaProducer.PublishInAppMessage(ctx, inAppMessage)
+	if err != nil {
+		n.logger.Errorf("[InAppNotification] failed to send notification %v", err)
+	}
+	n.logger.Infof("[InAppNotification] notification sent successfully")
+
+	// n.kafkaProducer.PublishMessage(ctx, updatedNotification, string(constants.ClientOrchestrationNotificationTopic), string(constants.ClientOrchestrationNotificationTopic), "notification updated")
 
 	n.logger.Infof("[Update] notification updated successfully")
 	return nil
@@ -112,7 +143,7 @@ func (n *NotificationStorage) FindByID(ctx context.Context, id string) (*model.N
 
 func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Notification], error) {
 	searchKeys := bson.M{}
-	allowedKeys := []string{"is_public", "notification_type", "notification_code", "for", "seen", "enabled", "title"}
+	allowedKeys := []string{"search", "is_public", "notification_type", "notification_code", "for", "seen", "enabled", "title"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -198,7 +229,25 @@ func (n *NotificationStorage) EnableDisableNotification(ctx context.Context, id 
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	n.kafkaProducer.PublishMessage(ctx, updatedNotification, string(constants.ClientOrchestrationNotificationTopic), string(constants.ClientOrchestrationNotificationTopic), "notification enabled/disabled")
+	status := "disabled"
+	if enable {
+		status = "enabled"
+	}
 
-	return nil, nil
+	inAppMessage := notification_dto.InAppKafkaMessage{
+		Type:    "in_app",
+		Title:   fmt.Sprintf("notification %s", status),
+		Message: "notification has been " + status,
+		Data:    NotificationMapper(updatedNotification),
+	}
+
+	err = n.sharedKafkaProducer.PublishInAppMessage(ctx, inAppMessage)
+	if err != nil {
+		n.logger.Errorf("[InAppNotification] failed to %s notification %v", status, err)
+	}
+	n.logger.Infof("[InAppNotification] notification sent successfully")
+
+	// n.kafkaProducer.PublishMessage(ctx, updatedNotification, string(constants.ClientOrchestrationNotificationTopic), string(constants.ClientOrchestrationNotificationTopic), "notification enabled/disabled")
+
+	return &updatedNotification, nil
 }

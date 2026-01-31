@@ -82,13 +82,22 @@ func (r *CPSActionApproveIndexRepository) SaveIndices(ctx context.Context, indic
 	return nil
 }
 
-func (r *CPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldActionName string, newIndices []imodel.CPSActionApproveIndex) error {
+func (r *CPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldActionName, portalCard string, newIndices []imodel.CPSActionApproveIndex, isVersionChanged bool) error {
 	r.logger.Infof("SyncIndices: Syncing %d indices for oldActionName: %s", len(newIndices), oldActionName)
 
-	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName}); err != nil {
+	// if !isVersionChanged && len(newIndices) > 0 {
+	// 	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "version": newIndices[0].Version, "portal_card_name": portalCard}); err != nil {
+	// 		return err
+	// 	}
+	// } else {
+	// 	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "portal_card_name": portalCard}); err != nil {
+	// 		return err
+	// 	}
+	// }
+
+	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "portal_card_name": portalCard}); err != nil {
 		return err
 	}
-
 	if err := r.SaveIndices(ctx, newIndices); err != nil {
 		return err
 	}
@@ -367,19 +376,20 @@ func (r *CPSActionApproveIndexRepository) InsertAll(ctx context.Context, new mod
 		}
 	}
 
-	// Auditors: 1-based index
-	for i, auditorId := range new.AssignedAuditorRoles {
-		idx := int64(i + 1)
-		indices = append(indices, imodel.CPSActionApproveIndex{
-			ID:           bson.NewObjectID(),
-			RoleId:       auditorId,
-			ActionName:   new.ActionName,
-			MakerIndex:   nil,
-			CheckerIndex: nil,
-			AuditorIndex: &idx,
-			UpdatedAt:    now,
-			CreatedAt:    now,
-		})
+	for i, auditorGroup := range new.AssignedAuditorRoles {
+		for j, auditorId := range auditorGroup {
+			idx := float64(i+1) + float64(j+1)*0.1
+			indices = append(indices, imodel.CPSActionApproveIndex{
+				ID:           bson.NewObjectID(),
+				RoleId:       auditorId,
+				ActionName:   new.ActionName,
+				MakerIndex:   nil,
+				CheckerIndex: nil,
+				AuditorIndex: &idx,
+				UpdatedAt:    now,
+				CreatedAt:    now,
+			})
+		}
 	}
 
 	if len(indices) == 0 {

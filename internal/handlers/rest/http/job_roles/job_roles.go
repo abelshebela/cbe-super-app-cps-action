@@ -1,6 +1,7 @@
 package job_roles
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -16,6 +17,9 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/go-chi/chi/v5"
+
+	"cbe-super-app-cps-action/internal/constants"
+	types "cbe-super-app-cps-action/internal/constants/types"
 )
 
 type JobRoleHandler struct {
@@ -31,14 +35,30 @@ func NewJobRoleHandler(service service.JobRoleService, logger utils.Logger) inbo
 }
 
 func (j *JobRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	filter := common_utils.ExtractFilterParams(r)
-	resp, err := j.service.FindAllWithPagination(r.Context(), *filter)
+
+	filterParams := common_utils.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := common_utils.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := common_utils.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	resp, err := j.service.FindAllWithPagination(r.Context(), *filterParams)
 	if err != nil {
 		j.logger.Errorf("[Roles][GetAll] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessGetAllBanks, resp)
+
+	localization.SendSuccessResponse(w, localization.SuccessJobRolesFetchedSuccessfully, resp)
 }
 
 func (j *JobRoleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -53,10 +73,14 @@ func (j *JobRoleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessGetOneBank, role)
+	localization.SendSuccessResponse(w, localization.SuccessJobRoleFetchedSuccessfully, role)
 }
 
 func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
+
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
 	var body roles_dto.RequestRolesCreate
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -75,14 +99,23 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		CreatedAt: time.Now(),
 	}
 
-	if err := j.service.Create(r.Context(), role); err != nil {
+	if err := j.service.Create(ctx, role); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessJobRoleCreatedRequestSent, nil)
+
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessJobRoleCreatedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessJobRoleCreatedRequestSent, nil)
+	}
 }
 
 func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
+
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if strings.TrimSpace(id) == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -110,9 +143,13 @@ func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		updated.Role = strings.TrimSpace(body.Role)
 	}
 
-	if err := j.service.Update(r.Context(), id, updated); err != nil {
+	if err := j.service.Update(ctx, id, updated); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessJobRoleUpdatedRequestSent, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessJobRoleUpdatedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessJobRoleUpdatedRequestSent, nil)
+	}
 }

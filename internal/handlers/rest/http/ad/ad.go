@@ -3,6 +3,7 @@ package ad
 import (
 	"cbe-super-app-cps-action/internal/handlers/rest/http/ad/core"
 	"cbe-super-app-cps-action/internal/service"
+	"context"
 	"net/http"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -13,6 +14,8 @@ import (
 	advertInbound "cbe-super-app-cps-action/internal/constants/interfaces/ad"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
+
+	"cbe-super-app-cps-action/internal/constants"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -50,6 +53,8 @@ func InitAdvertAdapter(advertApplication service.AdvertService, logger utils.Log
 func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createAdvert", "handler", "advert")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	req, err := core.ParseBannerImage(r, true)
 	if err != nil {
@@ -84,8 +89,12 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.logger.Infof("[CreateAdvert] request sent successfully for title: %s", req.Title)
-	localization.SendSuccessResponse(w, localization.SuccessAdvertCreateRequestSent, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessAdvertCreatedSP, nil)
+	} else {
+		a.logger.Infof("[CreateAdvert] request sent successfully for title: %s", req.Title)
+		localization.SendSuccessResponse(w, localization.SuccessAdvertCreateRequestSent, nil)
+	}
 
 }
 
@@ -111,6 +120,20 @@ func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchAdverts", "handler", "advert")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	list, err := a.advertApplication.FetchAdverts(ctx, *filterParams)
 	if err != nil {
 		span.RecordError(err)
@@ -188,6 +211,9 @@ func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) 
 func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateAdvert", "handler", "advert")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
 		span.RecordError(err)
@@ -228,9 +254,13 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessAdvertUpdatedSP, nil)
+	} else {
+		a.logger.Infof("[UpdateAdvert] request sent successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessAdvertUpdateRequestSent, nil)
+	}
 
-	a.logger.Infof("[UpdateAdvert] request sent successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessAdvertUpdateRequestSent, nil)
 }
 
 // DeleteAdvert godoc
@@ -250,13 +280,15 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteAdvert", "handler", "advert")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
 	span.SetAttributes(attribute.String("advert.id", id))
 
 	err = a.advertApplication.DeleteAdvert(ctx, id)
@@ -266,8 +298,12 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	a.logger.Infof("[DeleteAdvert] request sent successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessAdvertDeleteRequestSent, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessAdvertDeletedSP, nil)
+	} else {
+		a.logger.Infof("[DeleteAdvert] request sent successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessAdvertDeleteRequestSent, nil)
+	}
 }
 
 // EnableAdvert godoc
@@ -287,6 +323,9 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableAdvert", "handler", "advert")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
 		span.RecordError(err)
@@ -303,9 +342,13 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessAdvertEnabledSP, nil)
+	} else {
+		a.logger.Infof("[EnableAdvert] request sent successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessAdvertEnableRequestSent, nil)
+	}
 
-	a.logger.Infof("[EnableAdvert] request sent successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessAdvertEnableRequestSent, nil)
 }
 
 // DisableAdvert godoc
@@ -325,6 +368,10 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableAdvert", "handler", "advert")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
 		span.RecordError(err)
@@ -341,7 +388,11 @@ func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	if md.IsMakerOnly {
 
-	a.logger.Infof("[DisableAdvert] request sent successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessAdvertDisableRequestSent, nil)
+		localization.SendSuccessResponse(w, localization.SuccessAdvertDisabledSP, nil)
+	} else {
+		a.logger.Infof("[DisableAdvert] request sent successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessAdvertDisableRequestSent, nil)
+	}
 }

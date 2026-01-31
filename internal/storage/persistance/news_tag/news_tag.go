@@ -12,11 +12,11 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type NewsTagRepository struct {
@@ -26,8 +26,8 @@ type NewsTagRepository struct {
 	logger        utils.Logger
 }
 
-func NewNewsTagRepository(client *mongo.Client,cfg *config.VaultConfig, database string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.NewsTagRepository {
-	mongoDal := dal.NewMongoDal[model.NewsTag, model.NewsTag](client,cfg, database, collection)
+func NewNewsTagRepository(client *mongo.Client, cfg *config.VaultConfig, database string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.NewsTagRepository {
+	mongoDal := dal.NewMongoDal[model.NewsTag, model.NewsTag](client, cfg, database, collection)
 	return &NewsTagRepository{
 		client:        client,
 		mongoDal:      mongoDal,

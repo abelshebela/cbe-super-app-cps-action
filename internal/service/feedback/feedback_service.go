@@ -73,6 +73,37 @@ func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.Feedback
 	return feedback, nil
 }
 
+// CreateSurveyFeedback implements [service.FeedbackService].
+func (f *feedbackService) CreateSurveyFeedback(ctx context.Context, surveyFeedback fbdto.SurveyFeedbackReq) (*local_model.SurveyFeedback, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "CreateSurveyFeedback", "Feedback", "CreateSurveyFeedback")
+	defer span.End()
+
+	// Validate the request
+	if err := surveyFeedback.Validate(); err != nil {
+		f.logger.Errorf("[CreateSurveyFeedback] invalid survey feedback request: %v", err)
+		span.AddEvent("Invalid feedback request", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_id", surveyFeedback.UserID),
+		))
+		return nil, err
+	}
+
+	surveyFeedbackEntity := core.BuildSurveyFeedbackEntity(surveyFeedback)
+
+	// Call the Create method with the Feedback object
+	err := f.repo.CreateSurveyFeedback(ctx, surveyFeedbackEntity)
+	if err != nil {
+		f.logger.Errorf("[CreateSurveyFeedback] failed to create survey feedback: %v", err)
+		span.AddEvent("Failed to create survey feedback", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_id", surveyFeedback.UserID),
+		))
+		return nil, err
+	}
+
+	f.logger.Infof("[CreateSurveyFeedback] survey feedback created successfully")
+	return surveyFeedbackEntity, nil
+}
 func (f *feedbackService) GetFeedbackByID(ctx context.Context, id string) (*fbdto.FeedbackResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetFeedbackByID", "Feedback", "GetFeedbackByID")
 	defer span.End()

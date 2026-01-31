@@ -16,6 +16,9 @@ const specialChars = "`~!@#$%^&*()-_=+[]{}\\|;:'\",<.>/?"
 func (w WalletRequest) IsEmpty() bool {
 	return strings.TrimSpace(w.Name) == "" &&
 		strings.TrimSpace(w.UniqueCode) == "" &&
+		w.Self == nil &&
+		w.Other == nil &&
+		w.Agent == nil &&
 		w.Avatar == nil
 }
 
@@ -74,8 +77,8 @@ func validateAvatar(file *multipart.FileHeader) error {
 	if !utils.IsValidImage(file) {
 		return errors.New(localization.ErrorWalletAvatarInvalidType.Code)
 	}
-	if file.Size > (15 << 20) { // 15 MB limit
-		return validation.NewError("avatar", localization.MsgFileTooLarge)
+	if file.Size > (10 << 20) {
+		return validation.NewError("logo", "file size exceeds 10MB limit")
 	}
 	return nil
 }

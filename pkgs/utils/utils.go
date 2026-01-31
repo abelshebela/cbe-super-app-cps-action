@@ -54,7 +54,33 @@ func IsValidImage(fileHeader *multipart.FileHeader) bool {
 		"image/webp": true,
 	}
 
-	if fileHeader.Size > 10*1024*1024 { // optional size limit
+	file, err := fileHeader.Open()
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+
+	buffer := make([]byte, 512)
+	_, err = file.Read(buffer)
+	if err != nil {
+		return false
+	}
+
+	contentType := http.DetectContentType(buffer)
+
+	return allowedMIMETypes[contentType]
+}
+
+func IsValidVideo(fileHeader *multipart.FileHeader) bool {
+	var allowedMIMETypes = map[string]bool{
+		"video/mp4":        true,
+		"video/x-msvideo":  true, // avi
+		"video/quicktime":  true, // mov
+		"video/x-matroska": true, // mkv
+		"video/webm":       true,
+	}
+
+	if fileHeader.Size > 50*1024*1024 { // 50MB limit for video
 		return false
 	}
 
@@ -263,7 +289,7 @@ func RandomGenerator(length uint8) string {
 	return string(result)
 }
 
-var allowedChars = "a-zA-Z0-9\\s._-"
+var allowedChars = "a-zA-Z0-9\\s._@-"
 
 func NoSpecialChars(value any) error {
 	var str string
@@ -291,32 +317,54 @@ func NoSpecialChars(value any) error {
 	return nil
 }
 
-func FormatPhoneNumber(phoneNumber string) string {
-	phoneNumber = strings.TrimSpace(phoneNumber)
+func NormalizePhoneNumberOrReturnInput(input string) string {
+	phone := strings.TrimSpace(input)
 
-	// Remove all non-digit and non-plus characters
-	re := regexp.MustCompile(`[^\d\+]`)
-	phoneNumber = re.ReplaceAllString(phoneNumber, "")
+	re := regexp.MustCompile(`\D`)
+	phone = re.ReplaceAllString(phone, "")
 
-	if strings.HasPrefix(phoneNumber, "+2510") {
-		phoneNumber = "+251" + phoneNumber[5:]
-	} else if strings.HasPrefix(phoneNumber, "2510") {
-		phoneNumber = "+251" + phoneNumber[4:]
-	} else if strings.HasPrefix(phoneNumber, "0") && len(phoneNumber) == 10 {
-		phoneNumber = "+251" + phoneNumber[1:]
-	} else if strings.HasPrefix(phoneNumber, "9") && len(phoneNumber) == 9 {
-		phoneNumber = "+251" + phoneNumber
-	} else if strings.HasPrefix(phoneNumber, "7") && len(phoneNumber) == 9 {
-		phoneNumber = "+251" + phoneNumber
-	} else if strings.HasPrefix(phoneNumber, "251") {
-		phoneNumber = "+" + phoneNumber
+	switch {
+	case len(phone) == 10 && phone[0] == '0':
+		phone = "251" + phone[1:]
+	case len(phone) == 9 && (phone[0] == '9' || phone[0] == '7'):
+		phone = "251" + phone
+	case len(phone) == 12 && strings.HasPrefix(phone, "251"):
+	case len(phone) == 13 && strings.HasPrefix(phone, "2510"):
+		phone = "251" + phone[4:]
+	default:
+		return input
 	}
 
-	if strings.HasPrefix(phoneNumber, "+251") && len(phoneNumber) == 13 {
-		return phoneNumber
+	if len(phone) != 12 || !strings.HasPrefix(phone, "251") {
+		return input
 	}
 
-	return ""
+	return phone
+}
+
+func FormatPhoneNumber(phone string) string {
+	phone = strings.TrimSpace(phone)
+
+	re := regexp.MustCompile(`\D`)
+	phone = re.ReplaceAllString(phone, "")
+
+	switch {
+	case len(phone) == 10 && phone[0] == '0':
+		phone = "251" + phone[1:]
+	case len(phone) == 9 && (phone[0] == '9' || phone[0] == '7'):
+		phone = "251" + phone
+	case len(phone) == 12 && strings.HasPrefix(phone, "251"):
+	case len(phone) == 13 && strings.HasPrefix(phone, "2510"):
+		phone = "251" + phone[4:]
+	default:
+		return ""
+	}
+
+	if len(phone) != 12 || !strings.HasPrefix(phone, "251") {
+		return ""
+	}
+
+	return phone
 }
 
 func ThreeNamesMinLength(value interface{}) error {
@@ -339,7 +387,7 @@ func ThreeNamesMinLength(value interface{}) error {
 	}
 
 	for _, p := range parts {
-		if len(p) <= 3 {
+		if len(p) < 3 {
 			return errors.New("each of first, middle, and last name must be longer than 3 characters")
 		}
 	}
@@ -514,6 +562,8 @@ func LocalEncryptPassword(password string, dataType string, userSalt string, act
 	if dataType == constants.Password {
 		salt, _ = GenerateSalt(20)
 		signedPass, _ = SignWithHS256(password, salt)
+	} else if dataType == constants.Cred {
+		signedPass, _ = SignWithHS256(password, cfg.JwtSecretKey)
 	} else {
 		signedPass = password
 	}

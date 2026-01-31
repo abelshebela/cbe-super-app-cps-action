@@ -10,6 +10,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/wallet/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -57,7 +58,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 	defer span.End()
 	s.logger.Infof("CreateWallet called", "wallet_name", req.Name)
 
-	exist, err := s.repo.Find(ctx, "WAL-"+req.UniqueCode, req.Name)
+	exist, err := s.repo.Find(ctx, req.UniqueCode, req.Name)
 	if err != nil {
 		span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
@@ -68,17 +69,13 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		if exist.Name == req.Name {
 			return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
 		}
-		if exist.UniqueCode == "WAL-"+req.UniqueCode {
+		if exist.UniqueCode == req.UniqueCode {
 			return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
 		}
 		return errors.New(localization.ErrorWalletServiceIDAlreadyExists.Code)
 	}
 
-	code, err := core.GeneratePrefixedName("WAL", req.UniqueCode, s.logger)
-	if err != nil {
-		span.AddEvent("GeneratePrefixedName error", trace.WithAttributes(attribute.String("error", err.Error())))
-		return errors.New(localization.ErrorUnhandledServer.Code)
-	}
+	code := strings.ToUpper(req.UniqueCode)
 
 	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, string(constants.WalletFolderName), *s.cfg, "", s.logger)
 	if err != nil {
@@ -232,11 +229,11 @@ func (s *walletService) GetWallet(ctx context.Context, id string) (*local_model.
 }
 
 func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error) {
-	return s.repo.FindAllWithPagination(ctx, filterParams)
+	return s.repo.FindAllWithPaginationForGRPC(ctx, filterParams)
 }
 
 // GetAllWalletForGRPC implements service.WalletService.
-func (s *walletService) GetAllWalletForGRPC(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.GRPCWallet], error) {
+func (s *walletService) GetAllWalletForGRPC(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error) {
 	return s.repo.FindAllWithPaginationForGRPC(ctx, filterParams)
 }
 

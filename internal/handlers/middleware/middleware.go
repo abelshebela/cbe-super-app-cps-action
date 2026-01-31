@@ -15,6 +15,7 @@ import (
 	// "time"
 
 	"github.com/go-chi/cors"
+
 	// "google.golang.org/grpc/metadata"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -219,13 +220,13 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		ctx := a.setUserPayload(r.Context(), userPayload)
 		// now := time.Now().Unix()
 
-		remainTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutesRemain)
+		remainTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutes)
 		if err != nil || remainTime == 0 {
 			remainTime = 120
 		} else {
 			remainTime *= 60
 		}
-		// deviceID, err := a.redisRepository.Get(r.Context(), fmt.Sprintf("cps:auth:device:%s", userPayload.UserID))
+		// deviceID, err := a.redisRepository.Get(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID))
 		// if err != nil {
 		// 	a.logger.Warnf("failed to get device id from redis: %v", err)
 		// 	localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)

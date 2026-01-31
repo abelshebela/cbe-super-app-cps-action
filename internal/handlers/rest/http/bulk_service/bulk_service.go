@@ -56,6 +56,20 @@ func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.
 	ctx, span := util.TraceLogger(r.Context(), "handler", "getAllBulkServices", "handler", "bulkService")
 	defer span.End()
 	filter_params := util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	bulk_services, err := h.bulkService.GetAllBulkServices(ctx, filter_params)
 	if err != nil {
 		span.RecordError(err)

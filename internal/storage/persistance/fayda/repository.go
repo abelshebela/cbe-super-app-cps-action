@@ -6,12 +6,12 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type FaydaStorage struct {
@@ -20,9 +20,9 @@ type FaydaStorage struct {
 	logger utils.Logger
 }
 
-func InitFaydaAccountPersistence(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.FaydaRepository {
+func InitFaydaAccountPersistence(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.FaydaRepository {
 	return &FaydaStorage{
-		dal:    dal.NewMongoDal[member.User, member.User](client, cfg,dbName, collection),
+		dal:    dal.NewMongoDal[member.User, member.User](client, cfg, dbName, collection),
 		client: client,
 		logger: logger,
 	}

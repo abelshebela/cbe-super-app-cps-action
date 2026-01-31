@@ -1,10 +1,12 @@
 package unlink
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"context"
 	"net/http"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -54,6 +56,20 @@ func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) 
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "unlink", "unlinkAdapter", "GetArchivedUser")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
 		span.AddEvent("Invalid pagination params", trace.WithAttributes(attribute.Int("page", filterParams.Page), attribute.Int("per_page", filterParams.PerPage)))
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
@@ -126,6 +142,8 @@ func (a *unlinkAdapter) UnlinkUserCif(w http.ResponseWriter, r *http.Request) {
 
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "unlink", "unlinkAdapter", "UnlinkUserCif")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
 		span.AddEvent("Missing user_code param")
@@ -139,6 +157,14 @@ func (a *unlinkAdapter) UnlinkUserCif(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[UnlinkUserCif] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessUnlinkCif, nil)
+		return
+	}
+
 	span.AddEvent("UnlinkUserCif request sent", trace.WithAttributes(attribute.String("user_code", userCode)))
 	a.logger.Infof("[UnlinkUserCif] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessUnlinkCifRequestSent, nil)

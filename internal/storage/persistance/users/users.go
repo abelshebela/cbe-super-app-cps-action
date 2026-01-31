@@ -8,12 +8,12 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type userRepository struct {
@@ -25,9 +25,9 @@ type userRepository struct {
 	kafkaProducer kafka.ClientOrchestrationProducer
 }
 
-func NewUserRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.UserRepository {
+func NewUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.UserRepository {
 	return &userRepository{
-		userDal:       dal.NewMongoDal[member.User, member.User](client,cfg, dbName, collection),
+		userDal:       dal.NewMongoDal[member.User, member.User](client, cfg, dbName, collection),
 		logger:        logger,
 		client:        client,
 		dbName:        dbName,

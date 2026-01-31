@@ -30,7 +30,6 @@ func MapCPSActionToApproval(existingAction *model.CPSAction, userData *types.Use
 		PreviousAction:   existingAction.PreviousAction,
 		CurrentAction:    existingAction.CurrentAction,
 		ActionType:       existingAction.ActionType,
-		Department:       existingAction.Department,
 		CreatedAt:        existingAction.CreatedAt,
 		LastModifiedAt:   existingAction.LastModifiedAt,
 		MakerActionTime:  existingAction.MakerActionTime,

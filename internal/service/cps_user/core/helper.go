@@ -7,6 +7,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
+	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
@@ -90,6 +91,7 @@ func ConvertToResponseDTO(portalCard []string, user *cpsuser.CpsUserPopulatedRes
 			Code: user.Role.Code,
 			Name: user.Role.Name,
 		},
+		RoleCode:           user.RoleCode,
 		Gender:             user.Gender,
 		PhoneNumber:        user.PhoneNumber,
 		Email:              user.Email,
@@ -120,6 +122,7 @@ func CPSUModel(req cpsuser.CreateUserRequest) imodel.CPSUser {
 		PasswordDisable:  false,
 		IsFirstTimeLogin: true,
 		Enabled:          true,
+		CreatedAt:        time.Now(),
 	}
 }
 

@@ -24,16 +24,18 @@ import (
 type FeedbackStorage struct {
 	dal                 dal.MongoDal[model.Feedback, model.Feedback]
 	customerFeedbackDal dal.MongoDal[local_model.CustomerFeedback, local_model.CustomerFeedback]
+	surveyFeedbackDal   dal.MongoDal[local_model.SurveyFeedback, local_model.SurveyFeedback]
 	client              *mongo.Client
 	feedbackCollection  *mongo.Collection
 	customerCollection  *mongo.Collection
 	logger              utils.Logger
 }
 
-func NewFeedbackRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, feedbackCollection, customerFeedbackCollection string, logger utils.Logger) storage.FeedbackRepository {
+func NewFeedbackRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, feedbackCollection, customerFeedbackCollection, surveyFeedbackCollection string, logger utils.Logger) storage.FeedbackRepository {
 	return &FeedbackStorage{
 		dal:                 dal.NewMongoDal[model.Feedback, model.Feedback](client, cfg, dbName, feedbackCollection),
 		customerFeedbackDal: dal.NewMongoDal[local_model.CustomerFeedback, local_model.CustomerFeedback](client, cfg, dbName, customerFeedbackCollection),
+		surveyFeedbackDal:   dal.NewMongoDal[local_model.SurveyFeedback, local_model.SurveyFeedback](client, cfg, dbName, surveyFeedbackCollection),
 		client:              client,
 		feedbackCollection:  client.Database(dbName).Collection(feedbackCollection),
 		customerCollection:  client.Database(dbName).Collection(customerFeedbackCollection),
@@ -43,12 +45,24 @@ func NewFeedbackRepository(client *mongo.Client, cfg *config.VaultConfig, dbName
 
 func (f *FeedbackStorage) Create(ctx context.Context, feedback *model.Feedback) error {
 	f.logger.Infof("[Create] creating feedback")
-	_, err := f.dal.InsertOne(ctx, *feedback)
+	feed, err := f.dal.InsertOne(ctx, *feedback)
 	if err != nil {
 		f.logger.Errorf("[Create] failed to create feedback: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	f.logger.Infof("[Create] feedback created successfully")
+	f.logger.Infof("[Create] feedback created successfully", feed, feed.UserID)
+
+	return nil
+}
+func (f *FeedbackStorage) CreateSurveyFeedback(ctx context.Context, surveyFeedback *local_model.SurveyFeedback) error {
+	f.logger.Infof("[CreateSurveyFeedback] creating survey feedback")
+	feed, err := f.surveyFeedbackDal.InsertOne(ctx, *surveyFeedback)
+	if err != nil {
+		f.logger.Errorf("[CreateSurveyFeedback] failed to create survey feedback: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	f.logger.Infof("[CreateSurveyFeedback] survey feedback created successfully", feed, feed.UserID)
+
 	return nil
 }
 
@@ -127,7 +141,15 @@ func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam
 				bson.D{{Key: "$skip", Value: skip}},
 				bson.D{{Key: "$limit", Value: limit}},
 				bson.D{{Key: "$addFields", Value: bson.D{
-					{Key: "user_id_obj", Value: bson.D{{Key: "$toObjectId", Value: "$user_id"}}},
+					// {Key: "user_id_obj", Value: bson.D{{Key: "$toObjectId", Value: "$user_id"}}},
+					{Key: "user_id_obj", Value: bson.D{
+						{Key: "$convert", Value: bson.D{
+							{Key: "input", Value: "$user_id"},
+							{Key: "to", Value: "objectId"},
+							{Key: "onError", Value: nil},
+							{Key: "onNull", Value: nil},
+						}},
+					}},
 				}}},
 				bson.D{{Key: "$lookup", Value: bson.D{
 					{Key: "from", Value: "members"},
@@ -144,6 +166,7 @@ func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam
 					{Key: "responses", Value: 1},
 					{Key: "created_at", Value: 1},
 					{Key: "updated_at", Value: 1},
+					{Key: "rate", Value: "$responses.user_experience.answer"},
 					{Key: "user", Value: bson.D{
 						{Key: "_id", Value: bson.M{"$toString": "$user._id"}},
 						{Key: "user_code", Value: "$user.user_code"},

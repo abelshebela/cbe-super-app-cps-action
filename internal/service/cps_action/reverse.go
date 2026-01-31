@@ -63,12 +63,13 @@ func (ca *cpsActionService) ReverseCPSAction(ctx context.Context, actionCode str
 		payload = orig.PreviousAction
 	}
 
+	roleCode := ctx.Value(constants.ContextKey("role_code")).(string)
 	// 3) Dispatch the reverse operation via module Authorize
 	rev := &model.CPSAction{
 		RequestAction: reversedReq,
 		UniqueId:      orig.UniqueId,
 		CurrentAction: payload,
-		Department:    orig.Department,
+		RoleCode:      roleCode,
 	}
 
 	// Ensure a valid UniqueId for modules that require it (e.g., UPDATE/DELETE/ENABLE/DISABLE)

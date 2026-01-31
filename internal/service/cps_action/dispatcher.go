@@ -89,7 +89,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "AMOUNTBASEDAUTH"):
 		return d.app.AmountBasedAuthContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "BULKSERVICE"):
+	case IsActionInGroup(RequestAction(action), "BULKSERVICEALLUSER"):
 		return d.app.BulkServiceContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "EVENT"):
@@ -98,8 +98,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "NOTIFICATION"):
 		return d.app.NotificationService.Authorize(ctx, cpsAction)
 
-	// case IsActionInGroup(RequestAction(action), "PRODUCTCODE"):
-	// 	return d.app.ProductCodeService.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "USSDMERCHANT"):
+		return d.app.UssdMerchantContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "BPSUSER"):
 		return d.app.BPSUserContainer.Authorize(ctx, cpsAction)
@@ -161,6 +161,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.EcommerceMerchantContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "CPSROLE"):
 		return d.app.CPSRolesContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "CUSTOMERKYC"):
+		return d.app.CustomerKYCContainer.Authorize(ctx, cpsAction)
 
 	default:
 		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))

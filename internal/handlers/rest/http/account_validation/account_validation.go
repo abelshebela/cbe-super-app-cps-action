@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 	"encoding/json"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -14,6 +15,8 @@ import (
 	"net/http"
 
 	"go.opentelemetry.io/otel/attribute"
+
+	constants "cbe-super-app-cps-action/internal/constants"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -89,6 +92,10 @@ func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Reque
 func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateAccountValidation", "handler", "accountValidation")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 
 	// ─── Parse Request Body ───────────────────────────────────────────────
@@ -125,10 +132,14 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	if md.IsMakerOnly {
+		h.logger.Infof("[Update] validation rule update request sent successfully for id: %s", id)
+		// ─── Success Response ────────────────────────────────────────────────
+		localization.SendSuccessResponse(w, localization.SuccessValidationRuleApproved, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessValidationRuleApprovedSP, nil)
 
-	h.logger.Infof("[Update] validation rule update request sent successfully for id: %s", id)
-	// ─── Success Response ────────────────────────────────────────────────
-	localization.SendSuccessResponse(w, localization.SuccessValidationRuleApproved, nil)
+	}
 }
 
 // FindAllWithPagination godoc
@@ -152,6 +163,19 @@ func (s *accountValidationAdapter) FindAllWithPagination(w http.ResponseWriter, 
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
+		return
+	}
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
