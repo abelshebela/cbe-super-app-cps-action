@@ -127,12 +127,12 @@ func (s *cpsActionServiceWithRoles) GetUserCreatedActions(ctx context.Context, u
 	return s.base.GetUserCreatedActions(ctx, userID, filterParams)
 }
 
-func (s *cpsActionServiceWithRoles) GetCPSActionsForApprover(ctx context.Context, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
-	return s.base.GetCPSActionsForApprover(ctx, RAList, filterParams)
+func (s *cpsActionServiceWithRoles) GetCPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	return s.base.GetCPSActionsForApprover(ctx, userID, RAList, filterParams)
 }
 
-func (s *cpsActionServiceWithRoles) GetCPSActionsForAuditor(ctx context.Context, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
-	return s.base.GetCPSActionsForAuditor(ctx, RAList, filterParams)
+func (s *cpsActionServiceWithRoles) GetCPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	return s.base.GetCPSActionsForAuditor(ctx, userID, RAList, filterParams)
 }
 
 func (s *cpsActionServiceWithRoles) GetCPSActions(ctx context.Context, userID, role string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {

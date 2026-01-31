@@ -60,6 +60,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 		dto := erp_merchant_update_dto.ERPUpdateRequest{
 			MainAccountNumber: merchant.BankAccountNumber,
 			CpsEnabled:        &enabled,
+			Branches:          []erp_merchant_update_dto.ERPBranch{},
 		}
 		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
 			e.logger.Errorf("Failed to update ERP after creating event merchant: %v", err)
