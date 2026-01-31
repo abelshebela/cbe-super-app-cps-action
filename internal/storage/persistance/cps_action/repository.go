@@ -1,7 +1,6 @@
 package cps_action
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -286,7 +285,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 	}
 
 	var finalMatch bson.M
-	if filterParam.Filters["action_status"] == constants.Pending {
+	if filterParam.Filters["action_status"] == "PENDING" {
 		finalMatch = filter
 	} else {
 		finalMatch = bson.M{
@@ -485,11 +484,16 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 		userFilter = bson.M{"auditor_users.auditor_id": userID}
 	}
 
-	finalMatch := bson.M{
-		"$and": []bson.M{
-			filter,
-			userFilter,
-		},
+	var finalMatch bson.M
+	if role == "checker" && filterParam.Filters["action_status"] == "PENDING" {
+		finalMatch = filter
+	} else {
+		finalMatch = bson.M{
+			"$and": []bson.M{
+				filter,
+				userFilter,
+			},
+		}
 	}
 
 	pipeline := mongo.Pipeline{
