@@ -3,7 +3,6 @@ package Topup
 import (
 	"context"
 	"errors"
-	"regexp"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
@@ -169,24 +168,8 @@ func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topu
 
 	return doc, nil
 }
-func (b *TopupStorage) FindByOr(ctx context.Context, name, code string) (model.Topup, error) {
+func (b *TopupStorage) FindByOr(ctx context.Context, filter bson.M) (model.Topup, error) {
 
-	// Build conditions dynamically, only for non-empty parameters
-	conditions := []bson.M{}
-
-	if name != "" {
-		conditions = append(conditions, bson.M{
-			"name": bson.M{"$regex": "^" + regexp.QuoteMeta(name) + "$", "$options": "i"},
-		})
-	}
-
-	if code != "" {
-		conditions = append(conditions, bson.M{
-			"code": bson.M{"$regex": "^" + regexp.QuoteMeta(code) + "$", "$options": "i"},
-		})
-	}
-
-	filter := bson.M{"$or": conditions}
 	data, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

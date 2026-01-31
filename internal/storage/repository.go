@@ -500,7 +500,7 @@ type TopupRepository interface {
 	FindByKeyValue(ctx context.Context, key string, value string) (*model.Topup, error)
 
 	FindByID(ctx context.Context, id string) (*model.Topup, error)
-	FindByOr(ctx context.Context, name, code string) (model.Topup, error)
+	FindByOr(ctx context.Context, filter bson.M) (model.Topup, error)
 	Find(ctx context.Context, key, value string) (*model.Topup, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Topup], error)
 }
