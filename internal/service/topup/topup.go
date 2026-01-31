@@ -128,9 +128,7 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 				return err
 			}
 		}
-	}
-
-	if req.Code != "" {
+	} else if req.Code != "" {
 		existing, err = s.repo.FindByOr(ctx, bson.M{"code": req.Code})
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
