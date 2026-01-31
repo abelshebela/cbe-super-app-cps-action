@@ -118,20 +118,17 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 		return errors.New(localization.ErrorTopupNotFound.Code)
 	}
 
-	exist, err := s.repo.Find(ctx, req.Code, req.Name)
+	existing, err := s.repo.FindByOr(ctx, req.Name, req.Code)
 	if err != nil {
-		span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
-		return errors.New(localization.ErrorUnhandledServer.Code)
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			s.logger.Errorf("[UpdateBPSUser] error whil checking existing information error: %v", err)
+			return err
+		}
 	}
 
-	if exist != nil && strings.EqualFold(exist.Name, req.Name) && exist.ID.Hex() != id {
-		span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-		return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
-	}
-
-	if exist != nil && strings.EqualFold(exist.Code, req.Code) && exist.Code != req.Code {
-		span.AddEvent("Topup code already exists", trace.WithAttributes(attribute.String("code", req.Code)))
-		return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
+	if err := core.ExistingIdentifierForUpdate(existing, id, req); err != nil {
+		s.logger.Infof("[UpdateBPSUser] the entered data is already existed error: %v", err)
+		return err
 	}
 
 	var avatarURL string
