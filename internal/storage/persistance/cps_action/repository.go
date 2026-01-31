@@ -279,14 +279,22 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 	filter["request_action"] = bson.M{"$in": RAList}
 
 	userFilter := bson.M{
-		"checker_users.checker_id": userID,
+		"$or": []bson.M{
+			{"maker_id": userID},
+			{"checker_users.checker_id": userID},
+		},
 	}
 
-	finalMatch := bson.M{
-		"$and": []bson.M{
-			filter,
-			userFilter,
-		},
+	var finalMatch bson.M
+	if filterParam.Filters["action_status"] == constants.Pending {
+		finalMatch = filter
+	} else {
+		finalMatch = bson.M{
+			"$and": []bson.M{
+				filter,
+				userFilter,
+			},
+		}
 	}
 
 	pipeline := mongo.Pipeline{
@@ -325,7 +333,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 	}, nil
 }
 
-func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.Context, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	r.logger.Infof("Finding all CPSActions with pagination. Department: %s, Filter: %+v", RAList, filterParam)
 	// 1. Base filter (only active records)
 	baseFilter := bson.M{
@@ -364,12 +372,21 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 	}
 	filter["request_action"] = bson.M{"$in": RAList}
 
-	if filter["action_status"] == "" || filter["action_status"] == constants.Pending {
-		filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
+	// if filter["action_status"] == "" || filter["action_status"] == constants.Pending {
+	// 	filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
+	// }
+
+	userFilter := bson.M{"auditor_users.auditor_id": userID}
+
+	finalMatch := bson.M{
+		"$and": []bson.M{
+			filter,
+			userFilter,
+		},
 	}
-	// filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
+
 	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: filter}},
+		{{Key: "$match", Value: finalMatch}},
 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
@@ -387,7 +404,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 	if err := cur.All(ctx, &results); err != nil {
 		return nil, err
 	}
-	total, err := r.dal.TotalCount(ctx, filter)
+	total, err := r.dal.TotalCount(ctx, finalMatch)
 	if err != nil {
 		r.logger.Errorf("Error counting total CPSActions: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
