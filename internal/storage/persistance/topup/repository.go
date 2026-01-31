@@ -138,12 +138,10 @@ func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topu
 		"is_deleted": false,
 	}
 
-	var orFilters []bson.M
+	orFilters := make([]bson.M, 0)
 
 	if code != "" {
-		orFilters = append(orFilters, bson.M{
-			"code": code,
-		})
+		orFilters = append(orFilters, bson.M{"code": code})
 	}
 
 	if name != "" {
@@ -162,7 +160,7 @@ func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topu
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			w.logger.Warnf("No Topup found with %s: %s", code, name)
+			w.logger.Warnf("No Topup found with code=%s name=%s", code, name)
 			return nil, nil
 		}
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -170,6 +168,44 @@ func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topu
 
 	return doc, nil
 }
+
+// func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topup, error) {
+// 	filter := bson.M{
+// 		"is_deleted": false,
+// 	}
+
+// 	var orFilters []bson.M
+
+// 	if code != "" {
+// 		orFilters = append(orFilters, bson.M{
+// 			"code": code,
+// 		})
+// 	}
+
+// 	if name != "" {
+// 		orFilters = append(orFilters, bson.M{
+// 			"name": bson.M{
+// 				"$regex":   name,
+// 				"$options": "i",
+// 			},
+// 		})
+// 	}
+
+// 	if len(orFilters) > 0 {
+// 		filter["$or"] = orFilters
+// 	}
+
+// 	doc, err := w.dal.FindOne(ctx, filter, nil)
+// 	if err != nil {
+// 		if errors.Is(err, mongo.ErrNoDocuments) {
+// 			w.logger.Warnf("No Topup found with %s: %s", code, name)
+// 			return nil, nil
+// 		}
+// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+// 	}
+
+// 	return doc, nil
+// }
 
 func (e *TopupStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Topup], error) {
 	allowedKeys := []string{"name", "code", "enabled"}
