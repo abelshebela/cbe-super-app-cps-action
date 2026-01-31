@@ -1,6 +1,7 @@
 package cps_action
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -284,11 +285,16 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 		},
 	}
 
-	finalMatch := bson.M{
-		"$and": []bson.M{
-			filter,
-			userFilter,
-		},
+	var finalMatch bson.M
+	if filterParam.Filters["action_status"] == constants.Pending {
+		finalMatch = filter
+	} else {
+		finalMatch = bson.M{
+			"$and": []bson.M{
+				filter,
+				userFilter,
+			},
+		}
 	}
 
 	pipeline := mongo.Pipeline{
