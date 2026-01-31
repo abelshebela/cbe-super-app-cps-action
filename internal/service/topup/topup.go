@@ -10,6 +10,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/topup/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"fmt"
 	"path"
 	"strings"
 
@@ -125,6 +126,10 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 			return err
 		}
 	}
+
+	fmt.Println("****************existing")
+	fmt.Println(existing)
+	fmt.Println("****************existing")
 
 	if err := core.ExistingIdentifierForUpdate(existing, id, req); err != nil {
 		s.logger.Infof("[Updateopup] the entered data is already existed error: %v", err)
