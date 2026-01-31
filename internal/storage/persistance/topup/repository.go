@@ -182,7 +182,7 @@ func (b *TopupStorage) FindByOr(ctx context.Context, name, code string) (model.T
 
 	if code != "" {
 		conditions = append(conditions, bson.M{
-			"code": bson.M{"$regex": "^" + regexp.QuoteMeta(code) + "$", "$options": "i"},
+			"code": regexp.QuoteMeta(code),
 		})
 	}
 

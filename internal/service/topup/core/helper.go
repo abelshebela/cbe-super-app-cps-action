@@ -65,9 +65,9 @@ func ExistingIdentifierForUpdate(existing model.Topup, id string, req topupDto.T
 	}
 
 	fmt.Println(normalizedCode)
-	fmt.Println("*******************normalizedName")
 	fmt.Println(existingID != id)
 	fmt.Println(existingID)
+	fmt.Println("*******************normalizedName")
 	fmt.Println(id)
 	fmt.Println(normalizedName)
 	fmt.Println(existing.Name)
