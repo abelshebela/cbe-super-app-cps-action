@@ -116,7 +116,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.RecordError(err)
 		a.logger.Errorf("[UpdateAmountBasedAuth] failed to decode request: %v", err)
-		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Code)
 		return
 	}
 
