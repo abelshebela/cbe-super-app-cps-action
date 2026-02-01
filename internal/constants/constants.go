@@ -871,6 +871,7 @@ const (
 	ClientOrchestrationNewsTagTopic              KafkaTopic = "news_tag.sync.cps"
 	ClientOrchestrationNotificationTopic         KafkaTopic = "notification.sync.cps"
 	ClientOrchestrationServicesTopic             KafkaTopic = "services.sync.cps"
+	AccessListSegmentationTopic                  KafkaTopic = "customer_segmentation"
 )
 
 type FinancialInstitutionType string

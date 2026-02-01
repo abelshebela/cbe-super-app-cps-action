@@ -72,6 +72,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		if strings.TrimSpace(exist.UniqueCode) == strings.TrimSpace(req.UniqueCode) {
 			return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
 		}
+		s.logger.Errorf("wallet already exists wallet: %v", exist)
 		return errors.New(localization.ErrorWalletServiceIDAlreadyExists.Code)
 	}
 
