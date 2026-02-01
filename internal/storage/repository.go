@@ -661,8 +661,8 @@ type BPSActionApproveIndexRepository interface {
 	FindByRoleAndAction(ctx context.Context, roleID string, actionName string) (*imodel.BPSActionApproveIndex, error)
 	DeleteMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
 	InsertMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
-	DeleteAll(ctx context.Context, prev imodel.CPSActionRoleResposne) error
-	InsertAll(ctx context.Context, new imodel.CPSActionRole) error
+	DeleteAll(ctx context.Context, prev imodel.BPSActionApproveIndex) error
+	InsertAll(ctx context.Context, new imodel.BPSActionApproveIndex) error
 }
 
 type SitotaRepository interface {

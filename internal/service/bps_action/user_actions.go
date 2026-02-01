@@ -18,7 +18,7 @@ var _ = utils.Logger(nil)
 var _ = storage.CPSActionRepository(nil)
 
 // GetUserApprovedCPSActions returns approved CPS actions created by a specific user (maker)
-func (ca *bpsActionService) GetUserApprovedCPSActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
+func (ba *bpsActionService) GetUserApprovedCPSActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetUserApprovedCPSActions", "CPSAction", "GetUserApprovedCPSActions")
 	defer span.End()
 
@@ -34,27 +34,6 @@ func (ca *bpsActionService) GetUserApprovedCPSActions(ctx context.Context, userI
 	result, err := ba.repo.SanitizedFindAllWithPagination(ctx, *filterParams, "")
 	if err != nil {
 		span.AddEvent("failed to find approved cps actions by user", trace.WithAttributes(attribute.String("error", err.Error())))
-		return nil, err
-	}
-	return result, nil
-}
-
-// GetUserPendingCPSActions returns pending CPS actions created by a specific user (maker)
-func (ca *bpsActionService) GetUserPendingCPSActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
-	ctx, span := local_util.TraceLogger(ctx, "service", "GetUserPendingCPSActions", "CPSAction", "GetUserPendingCPSActions")
-	defer span.End()
-	if filterParams == nil {
-		filterParams = &types.Filter{}
-	}
-	if filterParams.Filters == nil {
-		filterParams.Filters = map[string]interface{}{}
-	}
-	filterParams.Filters["maker_id"] = userID
-	filterParams.Filters["action_status"] = string(constants.Pending)
-
-	result, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterParams, "")
-	if err != nil {
-		span.AddEvent("failed to find pending cps actions by user", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
 	}
 	return result, nil

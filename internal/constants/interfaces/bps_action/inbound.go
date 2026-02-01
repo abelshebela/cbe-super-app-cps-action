@@ -1,15 +1,14 @@
-package cps_action
+package bps_action
 
 import "net/http"
 
 type BPSActionAdapter interface {
-	ApproveCPSAction(w http.ResponseWriter, r *http.Request)
-	RejectCPSAction(w http.ResponseWriter, r *http.Request)
-	GetCPSActionsByDepartment(w http.ResponseWriter, r *http.Request)
-	GetUserCreatedActions(w http.ResponseWriter, r *http.Request)
+	ApproveBPSAction(w http.ResponseWriter, r *http.Request)
+	RejectBPSAction(w http.ResponseWriter, r *http.Request)
+	GetBPSActionsByDepartment(w http.ResponseWriter, r *http.Request)
 	GetUserCheckedActions(w http.ResponseWriter, r *http.Request)
-	GetCPSActionByID(w http.ResponseWriter, r *http.Request)
-	GetCPSActionByActionCode(w http.ResponseWriter, r *http.Request)
+	GetBPSActionByID(w http.ResponseWriter, r *http.Request)
+	GetBPSActionByActionCode(w http.ResponseWriter, r *http.Request)
 	GetActionCounts(w http.ResponseWriter, r *http.Request)
 	GetUserAuditorActions(w http.ResponseWriter, r *http.Request)
 	GetAuthorizerIndex(w http.ResponseWriter, r *http.Request)

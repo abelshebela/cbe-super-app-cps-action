@@ -91,6 +91,9 @@ const (
 	Reversed                            = "REVERSED"
 	Canceled                            = "CANCELED"
 	ContextKeyMetadata       ContextKey = "context_metadata"
+	BPSApproveTopic                     = "bps.action.approve"
+	BPSRejectTopic                      = "bps.action.reject"
+	BPSAuditorClaimTopic                = "bps.action.auditor_claim"
 )
 
 const (

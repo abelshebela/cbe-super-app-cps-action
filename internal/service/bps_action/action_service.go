@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	mid "cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/service"
 	"strings"
 
@@ -22,6 +23,13 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
+
+type bpsActionPublishPayload struct {
+	Action   *bps_model.BPSAction `json:"action"`
+	RoleCode string               `json:"role_code"`
+	UserData types.UserContext    `json:"user_data"`
+	Reason   string               `json:"reason,omitempty"`
+}
 
 type bpsActionService struct {
 	repo       storage.BPSActionRepository
@@ -55,24 +63,26 @@ func (ba *bpsActionService) IsMakerOnlyForRequest(ctx context.Context, requestAc
 func (ba *bpsActionService) AuditorClaim(ctx context.Context, actionCode string, activeGroup int) error {
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "AuditorClaim", "CPSAction", "AuditorClaim")
 	defer span.End()
-	// act, err := ba.repo.SanitizedFindOne(ctx, bson.M{"action_code": actionCode})
-	// if err != nil || act == nil {
-	// 	return errors.New(localization.ErrorResourceNotFound.Code)
-	// }
-	// // compute active group from record
-	// current := int64(0)
-	// if act.Au > 0 {
-	// 	current = int64(act.CurrentAuditorIndex)
-	// }
+	producer := mid.GetClientOrchestrationProducer()
+	if producer == nil {
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
 
-	// expected := int64(activeGroup)
-	// if current != 0 && current != expected {
-	// 	return errors.New(localization.ErrorOperationNotAllowed.Code)
-	// }
-	// // idempotent move to INPROGRESS
-	// upd := bps_model.BPSAction{ActionCode: actionCode}
-	// upd.AuditorStatus = "INPROGRESS"
-	// _, err = ba.repo.Update(ctx, actionCode, upd)
+	rawRoleID, _ := ctx.Value(constants.ContextKey("role_code")).(string)
+	if strings.TrimSpace(rawRoleID) == "" {
+		return errors.New(localization.ErrorOperationNotAllowed.Code)
+	}
+	userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
+
+	action, err := ba.GetBPSActionByActionCode(ctx, actionCode, "")
+	if err != nil || action == nil {
+		return errors.New(localization.ErrorActionNotFound.Code)
+	}
+
+	payload := bpsActionPublishPayload{Action: action, RoleCode: rawRoleID, UserData: userData}
+	if err := producer.PublishMessage(ctx, payload, "bps.auditor.claim", constants.BPSAuditorClaimTopic, "BPS_AUDITOR_CLAIM"); err != nil {
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
 	return nil
 }
 
@@ -115,40 +125,44 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 func (ba *bpsActionService) ApproveBPSAction(ctx context.Context, action *bps_model.BPSAction) error {
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "ApproveCPSAction", "CPSAction", "ApproveCPSAction")
 	defer span.End()
+	producer := mid.GetClientOrchestrationProducer()
+	if producer == nil {
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	rawRoleID, _ := ctx.Value(constants.ContextKey("role_code")).(string)
+	if strings.TrimSpace(rawRoleID) == "" {
+		return errors.New(localization.ErrorOperationNotAllowed.Code)
+	}
+	userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
 
-	// data, err := ba.repo.Update(ctx, action.ActionCode, *action)
-	// if err != nil {
-	// 	span.AddEvent("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
-	// 	return err
-	// }
-
-	// if action.ActionStatus != string(constants.Approved) {
-	// 	return nil
-	// }
-	// approve, err := ba.dispatcher.Authorize(ctx, data)
-	// if err != nil && approve == nil {
-	// 	span.AddEvent("failed to authorize cps action", trace.WithAttributes(attribute.String("error", err.Error())))
-	// 	RollErr := ba.RollBack(ctx, action)
-	// 	if err.Error() == localization.ErrorTimeoutError.Code {
-	// 		return err
-	// 	}
-	// 	if RollErr != nil {
-	// 		span.AddEvent("failed to roll back cps action", trace.WithAttributes(attribute.String("error", RollErr.Error())))
-	// 		return RollErr
-	// 	}
-	// 	return err
-	// }
+	payload := bpsActionPublishPayload{Action: action, RoleCode: rawRoleID, UserData: userData}
+	if err := producer.PublishMessage(ctx, payload, "bps.approve", constants.BPSApproveTopic, "BPS_APPROVE"); err != nil {
+		span.AddEvent("failed to publish bps approve", trace.WithAttributes(attribute.String("error", err.Error())))
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
 	return nil
 
 }
 func (ba *bpsActionService) RejectBPSAction(ctx context.Context, action_code string, action *bps_model.BPSAction) error {
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "RejectCPSAction", "CPSAction", "RejectCPSAction")
 	defer span.End()
-	// _, err := ba.repo.Update(ctx, action_code, *action)
-	// if err != nil {
-	// 	span.AddEvent("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
-	// 	return err
-	// }
+	producer := mid.GetClientOrchestrationProducer()
+	if producer == nil {
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	rawRoleID, _ := ctx.Value(constants.ContextKey("role_code")).(string)
+	if strings.TrimSpace(rawRoleID) == "" {
+		return errors.New(localization.ErrorOperationNotAllowed.Code)
+	}
+	userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
+	reason, _ := ctx.Value(constants.ContextKey("rejection_reason")).(string)
+
+	_ = action_code
+	payload := bpsActionPublishPayload{Action: action, RoleCode: rawRoleID, UserData: userData, Reason: reason}
+	if err := producer.PublishMessage(ctx, payload, "bps.reject", constants.BPSRejectTopic, "BPS_REJECT"); err != nil {
+		span.AddEvent("failed to publish bps reject", trace.WithAttributes(attribute.String("error", err.Error())))
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
 	return nil
 }
 func (ba *bpsActionService) GetBPSActionsByDepartment(ctx context.Context, department string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
