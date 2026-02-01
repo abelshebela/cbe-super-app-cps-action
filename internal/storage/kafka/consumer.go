@@ -312,8 +312,13 @@ func (h *ConsumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession,
 				// Continue processing other messages but don't mark as processed
 				continue
 			}
-		case "survey-feedback":
-
+		case "survey-feedback-events":
+			// Use session context instead of Background
+			if err := h.consumer.handleSurveyFeedbackMessage(session.Context(), message); err != nil {
+				h.consumer.logger.Errorf("Failed to process survey feedback message: %v", err)
+				// Continue processing other messages but don't mark as processed
+				continue
+			}
 		}
 
 		// Mark message as processed only if successful
