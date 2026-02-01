@@ -10,6 +10,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	access_list_segmentation_dto "cbe-super-app-cps-action/internal/constants/dto/access_list_segmentation"
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
+	bpsActionDto "cbe-super-app-cps-action/internal/constants/dto/bps_action"
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	cps_actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/cps_action_role"
 	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
@@ -212,7 +213,19 @@ type BPSUserRepository interface {
 	FindByOr(ctx context.Context, phone, email, username string) (*bps_model.BPSUser, error)
 }
 type BPSActionRepository interface {
-	GetBPSActionByUserID(ctx context.Context, userID string, filter types.Filter) (types.PaginatedResponse[[]bps_model.BPSAction], error)
+	Save(ctx context.Context, cpsAction *bps_model.BPSAction) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (types.PaginatedResponse[[]bps_model.BPSAction], error)
+	FindOne(ctx context.Context, filter bson.M) (*bps_model.BPSAction, error)
+	SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
+	SanitizedFindAllWithPaginationForApprover(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
+	SanitizedFindAllWithPaginationForAuditor(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
+	SanitizedFindAllWithPaginationCPSActions(ctx context.Context, userID, role string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
+	SanitizedFindOne(ctx context.Context, filter bson.M) (*bps_model.BPSAction, error)
+	Update(ctx context.Context, actionCode string, update bps_model.BPSAction) (*bps_model.BPSAction, error)
+	UpdateByActionCode(ctx context.Context, actionCode string, update bps_model.BPSAction) (*bps_model.BPSAction, error)
+	UpdateCustome(ctx context.Context, filter, update bson.M) error
+	Delete(ctx context.Context, id string) error
+	GetCountByDepartment(ctx context.Context, department string) (*bpsActionDto.BPSActionCountResponse, error)
 }
 
 type BudgetCategoryRepository interface {
