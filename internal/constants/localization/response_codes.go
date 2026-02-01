@@ -579,6 +579,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberValidationFailed,
 	ErrorAccountNumberNotActive,
 	ErrorAccountNumberNotFound,
+	ErrorAccountNumberNotValid,
 	ErrorDonationCompanyIdRequired,
 	ErrorDonationAlreadyEnabled,
 	ErrorDonationAlreadyDisabled,
@@ -6042,6 +6043,14 @@ var (
 		Message:    MsgAccountNotFound,
 		Type:       "error",
 	}
+
+	ErrorAccountNumberNotValid = ResponseCode{
+		Code:       "ERROR_ACCOUNT_NUMBER_NOT_VALID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountNotValid,
+		Type:       "error",
+	}
+
 	ErrorAccountNumberNotActive = ResponseCode{
 		Code:       "ERROR_ACCOUNT_NUMBER_NOT_ACTIVE",
 		StatusCode: StatusBadRequest,
