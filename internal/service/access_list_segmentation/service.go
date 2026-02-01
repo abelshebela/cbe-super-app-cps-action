@@ -49,10 +49,12 @@ func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction
 				return nil, err
 			}
 		} else {
-			if err := a.repo.CreateAccountSegment(ctx, *action); err != nil {
+			err := a.repo.CreateAccountSegment(ctx, *action)
+			if err != nil {
 				a.logger.Errorf("[Authorize] failed to create access list segmentation: %v", err)
 				return nil, err
 			}
+			// publish to kafka
 
 		}
 	case string(constants.RequestUpdateAccessListSegmentation):
@@ -80,6 +82,7 @@ func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction
 			a.logger.Errorf("[Authorize] failed to enable or disable access list segmentation: %v", err)
 			return nil, err
 		}
+		// publish to kafka
 	default:
 		a.logger.Errorf("[Authorize] unknown request action: %s", cpsAction.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
