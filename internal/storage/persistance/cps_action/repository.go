@@ -496,6 +496,17 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 		}
 	}
 
+	if role == "auditor" && filterParam.Filters["auditor_status"] == "PENDING" {
+		finalMatch = filter
+	} else {
+		finalMatch = bson.M{
+			"$and": []bson.M{
+				filter,
+				userFilter,
+			},
+		}
+	}
+
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: finalMatch}},
 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
