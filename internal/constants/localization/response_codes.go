@@ -1431,10 +1431,24 @@ var (
 		Type:       "success",
 	}
 
+	// BPS Action related success response codes
+	SuccessBPSActionsRetrieved = ResponseCode{
+		Code:       "SUCCESS_BPS_ACTIONS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgBPSActionsRetrievedSuccessfully,
+		Type:       "success",
+	}
+
 	SuccessCPSActionCount = ResponseCode{
 		Code:       "SUCCESS_CPS_ACTION_COUNT",
 		StatusCode: StatusOK,
 		Message:    MsgCPSActionCountSuccessfully,
+		Type:       "success",
+	}
+	SuccessBPSActionCount = ResponseCode{
+		Code:       "SUCCESS_BPS_ACTION_COUNT",
+		StatusCode: StatusOK,
+		Message:    MsgBPSActionCountSuccessfully,
 		Type:       "success",
 	}
 
@@ -1444,11 +1458,23 @@ var (
 		Message:    MsgCPSActionAuthorizedSuccessfully,
 		Type:       "success",
 	}
+	SuccessBPSActionAuthorized = ResponseCode{
+		Code:       "SUCCESS_BPS_ACTION_AUTHORIZED",
+		StatusCode: StatusOK,
+		Message:    MsgBPSActionAuthorizedSuccessfully,
+		Type:       "success",
+	}
 
 	SuccessCPSActionChecked = ResponseCode{
 		Code:       "SUCCESS_CPS_ACTION_CHECKED",
 		StatusCode: StatusOK,
 		Message:    MsgCPSActionCheckedSuccessfully,
+		Type:       "success",
+	}
+	SuccessBPSActionChecked = ResponseCode{
+		Code:       "SUCCESS_BPS_ACTION_CHECKED",
+		StatusCode: StatusOK,
+		Message:    MsgBPSActionCheckedSuccessfully,
 		Type:       "success",
 	}
 
@@ -1463,6 +1489,12 @@ var (
 		Code:       "SUCCESS_CPS_ACTION_REJECTED",
 		StatusCode: StatusOK,
 		Message:    MsgCPSActionRejectedSuccessfully,
+		Type:       "success",
+	}
+	SuccessBPSActionRejected = ResponseCode{
+		Code:       "SUCCESS_BPS_ACTION_REJECTED",
+		StatusCode: StatusOK,
+		Message:    MsgBPSActionRejectedSuccessfully,
 		Type:       "success",
 	}
 	SuccessCPSActionCanceled = ResponseCode{
@@ -3335,6 +3367,12 @@ var (
 		Code:       "SUCCESS_CPS_ACTION_FETCHED",
 		StatusCode: StatusOK,
 		Message:    MsgCPSActionFetchedSuccessfully,
+		Type:       "success",
+	}
+	SuccessBPSActionFetched = ResponseCode{
+		Code:       "SUCCESS_BPS_ACTION_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgBPSActionFetchedSuccessfully,
 		Type:       "success",
 	}
 
