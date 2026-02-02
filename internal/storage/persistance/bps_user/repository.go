@@ -97,10 +97,6 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	if enabledVal, ok := filterParam.Filters["enabled"]; ok {
 		match["enabled"] = enabledVal
 	}
-	// Search filters
-	if enabledVal, ok := filterParam.Filters["enabled"]; ok {
-		match["enabled"] = enabledVal
-	}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -116,41 +112,25 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		// Match stage
 		bson.D{{Key: "$match", Value: match}},
 
-		// Lookup stage
-		bson.D{{
-			Key: "$lookup",
-			Value: bson.D{
-				{Key: "from", Value: "roles"},
-				{Key: "localField", Value: "job_title"},
-				{Key: "foreignField", Value: "job_title"},
-				{Key: "as", Value: "roles"},
-			},
-		}},
+		// Lookup roles
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "roles"},
+			{Key: "localField", Value: "job_title"},
+			{Key: "foreignField", Value: "job_title"},
+			{Key: "as", Value: "roles"},
+		}}},
 
-		// Unwind roles
-		bson.D{{
-			Key: "$unwind",
-			Value: bson.D{
-				{Key: "path", Value: "$roles"},
-				{Key: "preserveNullAndEmptyArrays", Value: true},
-			},
-		}},
-
-		// Add role_name field
-		bson.D{{
-			Key: "$addFields",
-			Value: bson.D{
-				{Key: "user_role", Value: "$roles.role"},
-			},
-		}},
+		// Extract ONLY ONE role
+		bson.D{{Key: "$addFields", Value: bson.D{
+			{Key: "user_role", Value: bson.D{
+				{Key: "$arrayElemAt", Value: bson.A{"$roles.role", 0}},
+			}},
+		}}},
 
 		// Remove roles array
-		bson.D{{
-			Key: "$project",
-			Value: bson.D{
-				{Key: "roles", Value: 0},
-			},
-		}},
+		bson.D{{Key: "$project", Value: bson.D{
+			{Key: "roles", Value: 0},
+		}}},
 
 		// Pagination
 		bson.D{{Key: "$skip", Value: filterParam.PerPage * (filterParam.Page - 1)}},
@@ -188,52 +168,6 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		Meta: meta,
 	}, nil
 }
-
-// func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]bps_model.BPSUser], error) {
-// 	// 1. Base filter (only active records)
-// 	filter := bson.M{"is_deleted": false}
-// 	searchKeys := bson.M{}
-
-// 	// 2. Allowed filterable/searchable fields
-// 	allowedKeys := []string{"branch_code", "branch_name", "enabled", "role", "first_password_set", "full_name", "user_code", "phone_number", "username", "branch_code"}
-
-// 	// 3. Add search (if provided)
-// 	if filterParam.Search != "" {
-// 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-// 		searchKeys["$or"] = []bson.M{
-// 			{"full_name": searchRegex},
-// 			{"username": searchRegex},
-// 			{"user_code": searchRegex},
-// 			{"phone_number": searchRegex},
-// 		}
-// 	}
-// 	// 4. Build filter, skip, limit
-// 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-
-// 	// 5. Fetch data
-// 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
-// 	if err != nil {
-// 		s.logger.Errorf("[FindAllWithPagination] failed to fetch BPS users: %v", err)
-// 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
-// 	}
-
-// 	// 6. Count total
-// 	total, err := s.dal.TotalCount(ctx, filter)
-// 	if err != nil {
-// 		s.logger.Errorf("[FindAllWithPagination] failed to count BPS users: %v", err)
-// 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
-// 	}
-
-// 	// 7. Build pagination metadata
-// 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-// 	s.logger.Infof("[FindAllWithPagination] retrieved %d BPS users", len(data))
-
-// 	// 8. Return standard paginated response
-// 	return &types.PaginatedResponse[[]bps_model.BPSUser]{
-// 		Data: data,
-// 		Meta: meta,
-// 	}, nil
-// }
 
 func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *bps_model.BPSUser) error {
 	b.logger.Infof("[Update] updating BPS user")
