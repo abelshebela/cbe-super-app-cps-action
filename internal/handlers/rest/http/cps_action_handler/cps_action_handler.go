@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"slices"
+	"strconv"
 
 	"strings"
 	"time"
@@ -1345,4 +1346,51 @@ func (a *cpsActionAdapter) ApproverAuditorAllocations(w http.ResponseWriter, r *
 		"statuses":          []string{"PENDING", "APPROVED", "REJECTED"},
 	}
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, resp)
+}
+
+func (a *cpsActionAdapter) GetAutorizersLevel(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "rejectCpsAction", "handler", "cpsAction")
+	defer span.End()
+
+	requestAction := r.URL.Query().Get("request_action")
+	actionVersion := r.URL.Query().Get("action_version")
+	parsedVersion, err := strconv.ParseInt(actionVersion, 10, 64)
+	if err != nil {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+	}
+
+	actionName := ""
+	var idxDoc *imodel.CPSActionApproveIndex
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(requestAction)); ok {
+		actionName = mod
+	}
+
+	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
+		roleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+		if roleID == "" {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+
+		uppercasedActionName := strings.ToUpper(actionName)
+		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, uppercasedActionName, parsedVersion)
+		if err != nil {
+			span.RecordError(err)
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+
+		if idxDoc == nil || idxDoc.CheckerIndex == nil {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+	}
+
+	autorizersLevel := cpsactionDto.AutorizersLevelResponse{
+		MakerIndex:   int(*idxDoc.MakerIndex),
+		CheckerIndex: int(*idxDoc.CheckerIndex),
+		AuditorIndex: int(*idxDoc.AuditorIndex),
+	}
+
+	localization.SendSuccessResponse(w, localization.AutorizersLevelFetchedSuccessfully, autorizersLevel)
 }

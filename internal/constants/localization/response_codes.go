@@ -174,6 +174,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDisableCities,
 	SuccessDisableCitiesRequestSent,
 
+	AutorizersLevelFetchedSuccessfully,
+
 	// department related success response
 	SuccessGetAllDepartments,
 	SuccessDepartmentCreateRequestCreated,
@@ -1427,6 +1429,13 @@ var (
 		Code:       "SUCCESS_CPS_ACTIONS_RETRIEVED",
 		StatusCode: StatusOK,
 		Message:    MsgCPSActionsRetrievedSuccessfully,
+		Type:       "success",
+	}
+
+	AutorizersLevelFetchedSuccessfully = ResponseCode{
+		Code:       "AUTORIZERS_LEVEL_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgAuthorizersLevelFetchedSuccessfully,
 		Type:       "success",
 	}
 
