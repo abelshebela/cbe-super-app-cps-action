@@ -115,6 +115,35 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	currentIndex := action.CurrentAuditorIndex
+
+	Current_role_level := *idxDoc.AuditorIndex
+	expected := int32(*idxDoc.AuditorIndex)
+	ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.AuditorIndex)
+	ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
+	r = r.WithContext(ctx)
+	if currentIndex == float64(Current_role_level) {
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionApprovedByThisRole)
+		return
+	}
+
+	if int64(currentIndex)+1 < int64(Current_role_level) {
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
+		return
+	}
+
+	if action.MakerID == userData.UserID {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+
+	for _, au := range action.AuditorUsers {
+		if au.RoleID == rawRoleID || au.AuditorID == userData.UserID {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+	}
+
 	// Parse request to decide claim vs mark
 	var reqBody cps_actionrole_dto.AuditorMarkRequest
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
