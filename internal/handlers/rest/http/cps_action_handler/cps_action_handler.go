@@ -1382,11 +1382,12 @@ func (a *cpsActionAdapter) GetAutorizersLevel(w http.ResponseWriter, r *http.Req
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "rejectCpsAction", "handler", "cpsAction")
 	defer span.End()
 
-	requestAction := r.URL.Query().Get("request_action")
-	actionVersion := r.URL.Query().Get("action_version")
+	requestAction := chi.URLParam(r, "request_action")
+	actionVersion := chi.URLParam(r, "action_version")
 	parsedVersion, err := strconv.ParseInt(actionVersion, 10, 64)
 	if err != nil {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
 	}
 
 	actionName := ""
@@ -1396,14 +1397,14 @@ func (a *cpsActionAdapter) GetAutorizersLevel(w http.ResponseWriter, r *http.Req
 	}
 
 	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
-		roleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
-		if roleID == "" {
+		role, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+		if role == "" {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
 
 		uppercasedActionName := strings.ToUpper(actionName)
-		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, uppercasedActionName, parsedVersion)
+		idxDoc, err = repo.FindByRoleAndAction(ctx, role, uppercasedActionName, parsedVersion)
 		if err != nil {
 			span.RecordError(err)
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
