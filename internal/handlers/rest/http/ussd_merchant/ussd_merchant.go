@@ -95,8 +95,9 @@ func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.
 
 	var req ussd_merchant_dto.UpdateUssdMerchantRequest
 
-	_, logo, _ := r.FormFile("logo")
-	if &logo != nil {
+	// logo is optional on update; only parse/validate when the multipart file is provided
+	_, _, formFileErr := r.FormFile("logo")
+	if formFileErr == nil {
 		file, fileHeader, err = core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), u.Logger)
 		if err != nil {
 			span.RecordError(err)
@@ -106,6 +107,11 @@ func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.
 		}
 		defer file.Close()
 		req.Logo = fileHeader
+	} else if formFileErr != http.ErrMissingFile {
+		span.RecordError(formFileErr)
+		u.Logger.Errorf("[UpdateUssdMerchantHandler] error reading form file: %v", formFileErr)
+		localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
+		return
 	}
 	// file, fileHeader, err = core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), u.Logger)
 	// if err != nil {
