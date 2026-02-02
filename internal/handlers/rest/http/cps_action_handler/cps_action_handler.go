@@ -444,6 +444,8 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	currentIndex := action.CurrentCheckerIndex
+
 	//---------------------------------------------------
 	// Validate approver role's checker_index via cps_action_approver_index (grouped: 0.* -> 1.*, 1.* -> 2.*)
 	actionName := ""
@@ -471,6 +473,33 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		if idxDoc == nil || idxDoc.CheckerIndex == nil {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
+		}
+
+		Current_role_level := *idxDoc.CheckerIndex
+		expected := int32(*idxDoc.CheckerIndex)
+		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
+		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
+		r = r.WithContext(ctx)
+		if currentIndex == float64(Current_role_level) {
+			localization.SendBadRequestResponse(w, localization.MsgCPSActionApprovedByThisRole)
+			return
+		}
+
+		if int64(currentIndex)+1 < int64(Current_role_level) {
+			localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
+			return
+		}
+
+		if action.MakerID == makerData.UserID {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+
+		for _, cu := range action.CheckerUsers {
+			if cu.RoleID == roleID || cu.CheckerID == makerData.UserID {
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+				return
+			}
 		}
 
 	}
