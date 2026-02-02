@@ -1,5 +1,7 @@
 package bps_action
 
+import "strings"
+
 type ActionStatus string
 
 const (
@@ -29,11 +31,15 @@ const (
 
 func IsValidActionType(actionType string) bool {
 	switch ActionType(actionType) {
-	case ActionCreate, ActionUpdate, ActionDelete:
+	case ActionCreate, ActionUpdate, ActionDelete, ActionEnable, ActionDisable:
 		return true
 	default:
 		return false
 	}
+}
+
+func NormalizeRequestAction(requestAction string) RequestAction {
+	return RequestAction(strings.ToUpper(strings.TrimSpace(requestAction)))
 }
 
 type RequestAction string
@@ -674,7 +680,7 @@ var validRequestActions = map[RequestAction]struct{}{
 }
 
 func IsValidRequestAction(requestAction string) bool {
-	_, ok := validRequestActions[RequestAction(requestAction)]
+	_, ok := validRequestActions[NormalizeRequestAction(requestAction)]
 	return ok
 }
 

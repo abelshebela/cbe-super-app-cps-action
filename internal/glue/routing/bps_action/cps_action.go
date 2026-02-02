@@ -15,7 +15,7 @@ func Init(router chi.Router, handler bpsaction.BPSActionAdapter, authMiddleware 
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPatch,
-			Path:    "/actions/{action_code}/approve",
+			Path:    "/bps_actions/{action_code}/approve",
 			Handler: handler.ApproveBPSAction,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -23,7 +23,7 @@ func Init(router chi.Router, handler bpsaction.BPSActionAdapter, authMiddleware 
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/actions/{action_code}/reject",
+			Path:    "/bps_actions/{action_code}/reject",
 			Handler: handler.RejectBPSAction,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -31,7 +31,7 @@ func Init(router chi.Router, handler bpsaction.BPSActionAdapter, authMiddleware 
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/actions/",
+			Path:    "/bps_actions/",
 			Handler: handler.GetBPSActionsByDepartment,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -39,7 +39,7 @@ func Init(router chi.Router, handler bpsaction.BPSActionAdapter, authMiddleware 
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/actions/user/checked/actions",
+			Path:    "/bps_actions/user/checked/actions",
 			Handler: handler.GetUserCheckedActions,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -47,7 +47,7 @@ func Init(router chi.Router, handler bpsaction.BPSActionAdapter, authMiddleware 
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/actions/by-id/{action_id}",
+			Path:    "/bps_actions/by-id/{action_id}",
 			Handler: handler.GetBPSActionByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -55,7 +55,7 @@ func Init(router chi.Router, handler bpsaction.BPSActionAdapter, authMiddleware 
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/actions/by-action-code/{action_code}",
+			Path:    "/bps_actions/by-action-code/{action_code}",
 			Handler: handler.GetBPSActionByActionCode,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -63,7 +63,7 @@ func Init(router chi.Router, handler bpsaction.BPSActionAdapter, authMiddleware 
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/actions/counts",
+			Path:    "/bps_actions/counts",
 			Handler: handler.GetActionCounts,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -71,7 +71,7 @@ func Init(router chi.Router, handler bpsaction.BPSActionAdapter, authMiddleware 
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/actions/approver/checker/actions",
+			Path:    "/bps_actions/approver/checker/actions",
 			Handler: handler.GetUserApproverActions,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -79,7 +79,7 @@ func Init(router chi.Router, handler bpsaction.BPSActionAdapter, authMiddleware 
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/actions/auditor/checker/actions",
+			Path:    "/bps_actions/auditor/checker/actions",
 			Handler: handler.GetUserAuditorActions,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -87,7 +87,15 @@ func Init(router chi.Router, handler bpsaction.BPSActionAdapter, authMiddleware 
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/actions/{action_code}/auditor",
+			Path:    "/bps_actions/{action_code}/auditor",
+			Handler: handler.AuditorAction,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/bps_actions/{action_code}/auditor",
 			Handler: handler.AuditorAction,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

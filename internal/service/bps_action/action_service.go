@@ -28,6 +28,7 @@ type bpsActionPublishPayload struct {
 	Action   *bps_model.BPSAction `json:"action"`
 	RoleCode string               `json:"role_code"`
 	UserData types.UserContext    `json:"user_data"`
+	Auditor  *model.Auditor       `json:"auditor,omitempty"`
 	Reason   string               `json:"reason,omitempty"`
 }
 
@@ -35,7 +36,6 @@ type bpsActionService struct {
 	repo       storage.BPSActionRepository
 	roles      storage.BPSActionRoleRepository
 	logger     utils.Logger
-	dispatcher Dispatcher
 }
 
 func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, logger utils.Logger, dispatcher Dispatcher) service.BPSActionService {
@@ -43,7 +43,6 @@ func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPS
 		repo:       repo,
 		logger:     logger,
 		roles:      roles,
-		dispatcher: dispatcher,
 	}
 }
 
@@ -63,6 +62,13 @@ func (ba *bpsActionService) IsMakerOnlyForRequest(ctx context.Context, requestAc
 func (ba *bpsActionService) AuditorClaim(ctx context.Context, actionCode string, activeGroup int) error {
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "AuditorClaim", "CPSAction", "AuditorClaim")
 	defer span.End()
+	return nil
+}
+
+// AuditorMark records an auditor's mark and advances to the next group or finishes.
+func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int) error {
+	ctx, span := lobal_util.TraceLogger(ctx, "service", "AuditorMark", "CPSAction", "AuditorMark")
+	defer span.End()
 	producer := mid.GetClientOrchestrationProducer()
 	if producer == nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -79,46 +85,11 @@ func (ba *bpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 		return errors.New(localization.ErrorActionNotFound.Code)
 	}
 
-	payload := bpsActionPublishPayload{Action: action, RoleCode: rawRoleID, UserData: userData}
-	if err := producer.PublishMessage(ctx, payload, "bps.auditor.claim", constants.BPSAuditorClaimTopic, "BPS_AUDITOR_CLAIM"); err != nil {
+	_ = activeGroup
+	payload := bpsActionPublishPayload{Action: action, RoleCode: rawRoleID, UserData: userData, Auditor: &auditor}
+	if err := producer.PublishMessage(ctx, payload, "bps.auditor.mark", constants.BPSAuditorMarkTopic, "BPS_AUDITOR_MARK"); err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return nil
-}
-
-// AuditorMark records an auditor's mark and advances to the next group or finishes.
-func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int) error {
-	ctx, span := lobal_util.TraceLogger(ctx, "service", "AuditorMark", "CPSAction", "AuditorMark")
-	defer span.End()
-
-	// act, err := ba.repo.SanitizedFindOne(ctx, bson.M{"action_code": actionCode})
-	// if err != nil || act == nil {
-	// 	ba.logger.Errorf("failed to find action", trace.WithAttributes(attribute.String("error", err.Error())))
-	// 	return errors.New(localization.ErrorActionNotFound.Code)
-	// }
-	// // prevent multiple marks within the same group (any-one quorum)
-	// grp := int(activeGroup)
-	// for _, au := range act.AuditorUsers {
-	// 	if int(au.AuditorIndex) == grp {
-	// 		return errors.New(localization.ErrorOperationNotAllowed.Code)
-	// 	}
-	// }
-
-	// // append this auditor
-	// nextUsers := append(act.AuditorUsers, auditor)
-
-	// upd := model.CPSAction{ActionCode: actionCode}
-	// upd.AuditorUsers = nextUsers
-
-	// // advance group or finish
-	// if act.AuditorCount > 0 && int32(activeGroup) >= act.AuditorCount {
-	// 	upd.AuditorStatus = model.AuditorStatus(constants.AUDITORCHECKED)
-	// 	upd.CurrentAuditorIndex = float64(activeGroup)
-	// } else {
-	// 	upd.AuditorStatus = model.AuditorStatus(constants.AUDITORINPROGRESS)
-	// 	upd.CurrentAuditorIndex = float64(activeGroup + 1)
-	// }
-	// _, err = ba.repo.UpdateByActionCode(ctx, actionCode, upd)
 	return nil
 }
 

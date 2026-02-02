@@ -94,6 +94,7 @@ const (
 	BPSApproveTopic                     = "bps.action.approve"
 	BPSRejectTopic                      = "bps.action.reject"
 	BPSAuditorClaimTopic                = "bps.action.auditor_claim"
+	BPSAuditorMarkTopic                 = "bps.action.auditor_mark"
 )
 
 const (

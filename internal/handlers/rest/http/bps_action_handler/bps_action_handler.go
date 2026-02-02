@@ -3,7 +3,7 @@ package bps_action_handler
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	bpsactionDto "cbe-super-app-cps-action/internal/constants/dto/bps_action"
-	cps_actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/bps_action_role"
+	bps_actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/bps_action_role"
 	bpsaction "cbe-super-app-cps-action/internal/constants/interfaces/bps_action"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -13,10 +13,12 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"slices"
 
 	"strings"
+	"time"
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -79,10 +81,12 @@ func (a *bpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Parse request to decide claim vs mark
-	var reqBody cps_actionrole_dto.AuditorMarkRequest
-	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
-		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
-		return
+	var reqBody bps_actionrole_dto.AuditorMarkRequest
+	if r.Body != nil {
+		if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil && err != io.EOF {
+			localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
+			return
+		}
 	}
 
 	if action.MakerID == userData.UserID {
@@ -90,31 +94,24 @@ func (a *bpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if strings.TrimSpace(reqBody.Mark) == "" {
-		ctx = context.WithValue(ctx, constants.ContextKey("user_data"), userData)
-		if err := a.bpsActionApplication.AuditorClaim(ctx, actionCode, 0); err != nil {
-			span.RecordError(err)
-			localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
-			return
-		}
-		localization.SendSuccessResponse(w, localization.SuccessCPSActionChecked, nil)
+	// Publish via AuditorMark (claim is not used)
+	auditor := model.Auditor{
+		AuditorID:          userData.UserID,
+		RoleID:             rawRoleID,
+		AuditorIndex:       0,
+		AuditorName:        userData.FullName,
+		AuditorPhoneNumber: userData.PhoneNumber,
+		AuditorReason:      reqBody.Reason,
+		AuditorMark:        model.AuditorMark(strings.ToUpper(strings.TrimSpace(reqBody.Mark))),
+		ApprovedAt:         time.Now(),
+	}
+	ctx = context.WithValue(ctx, constants.ContextKey("user_data"), userData)
+	if err := a.bpsActionApplication.AuditorMark(ctx, actionCode, auditor, 0); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	// Mark path -> record auditor mark and advance group/finish
-	// auditor := model.Auditor{
-	// 	AuditorID:          userData.UserID,
-	// 	RoleID:             rawRoleID,
-	// 	AuditorIndex:       0,
-	// 	AuditorName:        userData.FullName,
-	// 	AuditorPhoneNumber: userData.PhoneNumber,
-	// 	AuditorReason:      reqBody.Reason,
-	// 	AuditorMark:        model.AuditorMark(strings.ToUpper(strings.TrimSpace(reqBody.Mark))),
-	// 	ApprovedAt:         time.Now(),
-	// }
-
-	// Auditor mark publishing is not enabled by requirement; only claim publishes.
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionChecked, nil)
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionChecked, nil)
 }
 
 // ApproveCPSAction approves a CPS action
@@ -166,7 +163,7 @@ func (a *bpsActionAdapter) ApproveBPSAction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionAuthorized, nil)
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionAuthorized, nil)
 }
 
 // RejectCPSAction rejects a CPS action
@@ -221,7 +218,7 @@ func (a *bpsActionAdapter) RejectBPSAction(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionRejected, nil)
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionRejected, nil)
 }
 
 // GetCPSActionsByDepartment retrieves CPS actions by department
@@ -272,7 +269,7 @@ func (a *bpsActionAdapter) GetBPSActionsByDepartment(w http.ResponseWriter, r *h
 	}
 
 	span.SetAttributes(attribute.String("cps_action.department", userData.Department))
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, actions)
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, actions)
 }
 
 func (a *bpsActionAdapter) GetUserCheckedActions(w http.ResponseWriter, r *http.Request) {
@@ -301,7 +298,7 @@ func (a *bpsActionAdapter) GetUserCheckedActions(w http.ResponseWriter, r *http.
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, res)
 }
 
 // GetCPSActionByID retrieves a CPS action by ID
@@ -345,7 +342,7 @@ func (a *bpsActionAdapter) GetBPSActionByID(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionFetched, action)
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionFetched, action)
 }
 
 // GetCPSActionByActionCode retrieves a BPS action by action code with history
@@ -388,7 +385,7 @@ func (a *bpsActionAdapter) GetBPSActionByActionCode(w http.ResponseWriter, r *ht
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionFetched, action)
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionFetched, action)
 }
 
 func (a *bpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http.Request) {
@@ -433,7 +430,7 @@ func (a *bpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 	}
 
 	if checkerActions == nil {
-		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{})
+		localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, map[string]interface{}{})
 		return
 	}
 
@@ -471,7 +468,7 @@ func (a *bpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, res)
 }
 
 func (a *bpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.Request) {
@@ -515,7 +512,7 @@ func (a *bpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	}
 
 	if auditorAllocations == nil {
-		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{})
+		localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, map[string]interface{}{})
 		return
 	}
 
@@ -550,7 +547,7 @@ func (a *bpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, res)
 }
 
 func (a *bpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter, r *http.Request) {
@@ -624,7 +621,7 @@ func (a *bpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, res)
 }
 
 func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Request) {
@@ -670,7 +667,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			Inprogress: 0,
 			Completed:  0,
 		}
-		localization.SendSuccessResponse(w, localization.SuccessCPSActionCount, resp)
+		localization.SendSuccessResponse(w, localization.SuccessBPSActionCount, resp)
 		return
 	}
 
@@ -735,7 +732,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			Inprogress: 0,
 			Completed:  0,
 		}
-		localization.SendSuccessResponse(w, localization.SuccessCPSActionCount, resp)
+		localization.SendSuccessResponse(w, localization.SuccessBPSActionCount, resp)
 		return
 	}
 
@@ -821,7 +818,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		Completed:  completedAuditCount,
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionCount, resp)
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionCount, resp)
 }
 
 func (a *bpsActionAdapter) GetAuthorizerIndex(w http.ResponseWriter, r *http.Request) {
@@ -842,7 +839,7 @@ func (a *bpsActionAdapter) GetAuthorizerIndex(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, authorizerIndex)
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, authorizerIndex)
 
 }
 
@@ -927,7 +924,7 @@ func (a *bpsActionAdapter) ApproverCheckerAllocations(w http.ResponseWriter, r *
 		"by_module_checker": checkerMap,
 		"statuses":          []string{"PENDING", "APPROVED", "REJECTED"},
 	}
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, resp)
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, resp)
 }
 
 // ApproverAuditorAllocations returns auditor allocations for the caller's role,
@@ -1011,5 +1008,5 @@ func (a *bpsActionAdapter) ApproverAuditorAllocations(w http.ResponseWriter, r *
 		"by_module_auditor": auditorMap,
 		"statuses":          []string{"PENDING", "APPROVED", "REJECTED"},
 	}
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, resp)
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, resp)
 }

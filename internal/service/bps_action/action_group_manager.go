@@ -87,7 +87,7 @@ func (m *actionGroupManager) ListModules() []string {
 
 // ResolveModuleFor resolves a request action string to a parent module name.
 func ResolveModuleFor(action string) (string, bool) {
-	return ResolveModuleForRA(RequestAction(action))
+	return ResolveModuleForRA(NormalizeRequestAction(action))
 }
 
 // ResolveModuleForRA resolves a RequestAction to a parent module name.
