@@ -656,6 +656,7 @@ const (
 	MsgLogoIsRequired                    = "Company logo is required"
 	MsgAccountNumberValidationFailed     = "Account number validation failed"
 	MsgAccountNotFound                   = "Account number not found"
+	MsgAccountNotValid                   = "Account number not valid"
 	MsgAccountNotActive                  = "Account number is not active"
 	MsgDonationIconRequired              = "Icon is required"
 	MsgDonationLogoRequired              = "Logo is required"
