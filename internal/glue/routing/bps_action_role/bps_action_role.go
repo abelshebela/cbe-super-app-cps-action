@@ -1,4 +1,4 @@
-package bps_actionrole_routing
+package cps_actionrole_routing
 
 import (
 	actionrole_inbound "cbe-super-app-cps-action/internal/constants/interfaces/action_role"
@@ -68,5 +68,6 @@ func Init(router chi.Router, handler actionrole_inbound.BPSActionRoleHandler, au
 			},
 		},
 	}
+
 	glue.RegisterRoutes(router, routes)
 }

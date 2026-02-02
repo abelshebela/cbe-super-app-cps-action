@@ -322,10 +322,24 @@ func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 func (a *walletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllWallets", "handler", "wallet")
 	defer span.End()
-	filter := local_util.ExtractFilterParams(r)
+	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	a.logger.Infof("fetching wallets with filter: %+v", filter)
 
-	list, err := a.walletApp.GetAllWallet(ctx, *filter)
+	list, err := a.walletApp.GetAllWallet(ctx, *filterParams)
 	if err != nil {
 		span.RecordError(err)
 		a.logger.Errorf("failed to fetch wallets: %v", err)

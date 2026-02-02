@@ -9,6 +9,7 @@ import (
 
 	"cbe-super-app-cps-action/config"
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"github.com/IBM/sarama"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -18,6 +19,7 @@ import (
 // FeedbackRepository interface for database operations
 type FeedbackRepository interface {
 	CreateFeedback(ctx context.Context, req feedback.FeedbackRequest, userID string) (*model.Feedback, error)
+	CreateSurveyFeedback(ctx context.Context, surveyFeedback feedback.SurveyFeedbackReq) (*imodel.SurveyFeedback, error)
 }
 
 // DeadLetterQueue interface for handling failed messages
@@ -170,6 +172,71 @@ func (fc *FeedbackConsumer) handleFeedbackMessage(ctx context.Context, message *
 
 	return fmt.Errorf("failed to process message after %d retries: %w", fc.maxRetries, lastErr)
 }
+func (fc *FeedbackConsumer) handleSurveyFeedbackMessage(ctx context.Context, message *sarama.ConsumerMessage) error {
+	fc.logger.Infof("Received message from topic %s, partition %d, offset %d",
+		message.Topic, message.Partition, message.Offset)
+
+	// Parse the Kafka message wrapper first
+	var kafkaMsg model.KafkaMessage
+	if err := json.Unmarshal(message.Value, &kafkaMsg); err != nil {
+		fc.logger.Errorf("Failed to unmarshal Kafka message wrapper: %v", err)
+		return fmt.Errorf("invalid message wrapper format: %w", err)
+	}
+
+	// Validate the message type
+	if kafkaMsg.Type != "survey_feedback" {
+		fc.logger.Errorf("Unexpected message type: %s, expected: survey_feedback", kafkaMsg.Type)
+		return fmt.Errorf("unexpected message type: %s", kafkaMsg.Type)
+	}
+
+	// Parse the payload into FeedbackKafkaMessage
+	var feedbackMsg feedback.SurveyFeedbackReq
+	if err := json.Unmarshal(kafkaMsg.Payload, &feedbackMsg); err != nil {
+		fc.logger.Errorf("Failed to unmarshal feedback payload: %v", err)
+		return fmt.Errorf("invalid survey feedback payload format: %w", err)
+	}
+
+	// Validate the message
+	if err := fc.validateSurveyFeedbackMessage(&feedbackMsg); err != nil {
+		fc.logger.Errorf("Message validation failed: %v", err)
+		return fmt.Errorf("message validation failed: %w", err)
+	}
+
+	fc.logger.Infof("Processing survey feedback message - UserID: %s, FeedbackID: %s",
+		feedbackMsg.UserID, feedbackMsg.FeedbackID)
+
+	// Save to database using the feedback repository with retry logic
+	var lastErr error
+	for retry := 0; retry < fc.maxRetries; retry++ {
+		feedback, err := fc.feedbackRepo.CreateSurveyFeedback(ctx, feedbackMsg)
+		if err != nil {
+			lastErr = err
+			fc.logger.Errorf("Failed to save feedback to database (attempt %d/%d): %v", retry+1, fc.maxRetries, err)
+
+			// If this is the last retry, break and handle as permanent failure
+			if retry == fc.maxRetries-1 {
+				break
+			}
+
+			// Wait before retry with exponential backoff
+			backoff := time.Duration(retry+1) * time.Second
+			time.Sleep(backoff)
+			continue
+		}
+
+		fc.logger.Infof("Successfully saved feedback to database - ID: %s", feedback.ID.Hex())
+		return nil
+	}
+
+	// If all retries failed, send to dead letter queue
+	if fc.deadLetterQ != nil {
+		if err := fc.deadLetterQ.SendToDeadLetterQueue(message.Topic, message, lastErr); err != nil {
+			fc.logger.Errorf("Failed to send message to dead letter queue: %v", err)
+		}
+	}
+
+	return fmt.Errorf("failed to process message after %d retries: %w", fc.maxRetries, lastErr)
+}
 
 // validateFeedbackMessage validates the feedback message structure
 func (fc *FeedbackConsumer) validateFeedbackMessage(msg *model.FeedbackKafkaMessage) error {
@@ -198,6 +265,23 @@ func (fc *FeedbackConsumer) validateFeedbackMessage(msg *model.FeedbackKafkaMess
 	return nil
 }
 
+func (fc *FeedbackConsumer) validateSurveyFeedbackMessage(msg *feedback.SurveyFeedbackReq) error {
+	if msg == nil {
+		return fmt.Errorf("survey message is nil")
+	}
+	if msg.UserID == "" {
+		return fmt.Errorf("user_id is required")
+	}
+	if msg.FeedbackID == "" {
+		return fmt.Errorf("feedback_id is required")
+	}
+	if msg.StarRating < 1 || msg.StarRating > 5 {
+		return fmt.Errorf("star_rating must be between 1 and 5")
+	}
+
+	return nil
+}
+
 // ConsumerGroupHandler implements sarama.ConsumerGroupHandler
 type ConsumerGroupHandler struct {
 	consumer *FeedbackConsumer
@@ -220,12 +304,21 @@ func (h *ConsumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession,
 	for message := range claim.Messages() {
 		h.consumer.logger.Infof("Processing message: topic=%s partition=%d offset=%d",
 			message.Topic, message.Partition, message.Offset)
-
-		// Use session context instead of Background
-		if err := h.consumer.handleFeedbackMessage(session.Context(), message); err != nil {
-			h.consumer.logger.Errorf("Failed to process message: %v", err)
-			// Continue processing other messages but don't mark as processed
-			continue
+		switch message.Topic {
+		case "feedback-events":
+			// Use session context instead of Background
+			if err := h.consumer.handleFeedbackMessage(session.Context(), message); err != nil {
+				h.consumer.logger.Errorf("Failed to process message: %v", err)
+				// Continue processing other messages but don't mark as processed
+				continue
+			}
+		case "survey-feedback-events":
+			// Use session context instead of Background
+			if err := h.consumer.handleSurveyFeedbackMessage(session.Context(), message); err != nil {
+				h.consumer.logger.Errorf("Failed to process survey feedback message: %v", err)
+				// Continue processing other messages but don't mark as processed
+				continue
+			}
 		}
 
 		// Mark message as processed only if successful

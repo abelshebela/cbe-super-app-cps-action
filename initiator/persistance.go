@@ -1,8 +1,11 @@
 package initiator
 
 import (
+	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 	"cbe-super-app-cps-action/internal/storage/kafka"
+
+	shared_producer "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/producer"
 
 	"cbe-super-app-cps-action/internal/storage/persistance"
 	"cbe-super-app-cps-action/internal/storage/persistance/access_list"
@@ -14,6 +17,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/auth_tier"
 	"cbe-super-app-cps-action/internal/storage/persistance/avatar"
 	"cbe-super-app-cps-action/internal/storage/persistance/bank"
+	"cbe-super-app-cps-action/internal/storage/persistance/bps_action"
 	actionrole_repo "cbe-super-app-cps-action/internal/storage/persistance/bps_action_role"
 	"cbe-super-app-cps-action/internal/storage/persistance/bps_user"
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_action"
@@ -62,6 +66,8 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/bulk_service"
 	cps_roles "cbe-super-app-cps-action/internal/storage/persistance/cps_roles"
 	"cbe-super-app-cps-action/internal/storage/persistance/customer"
+	persistence_kyc "cbe-super-app-cps-action/internal/storage/persistance/customer_kyc"
+	ussd_merchant_repo "cbe-super-app-cps-action/internal/storage/persistance/ussd_merchant"
 
 	"github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -70,7 +76,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, notificationApi string, notificationProducer kafka.NotificationProducer, clientOrchestrationProducer kafka.ClientOrchestrationProducer, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
+func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, notificationApi string, notificationProducer kafka.NotificationProducer, sharedKafkaProducer *shared_producer.NotificationProducer, clientOrchestrationProducer kafka.ClientOrchestrationProducer, accessListSegmentationProducer kafka.AccessListSegmentationProducer, redisRepository storage.RedisRepository, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
 
 	data := persistance.Persistence{
 		JobRolePersistence:              job_repo.NewJobRoleRepository(client, cfg, dbName, JobRolesCollection, logger),
@@ -99,22 +105,23 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		BudgetCategoryPersistence:         budget_category.NewBudgetCategoryRepository(client, cfg, dbName, BudgetCategoryCollection, clientOrchestrationProducer, logger),
 		BulkService:                       bulk_service.InitBulkServicePersistence(client, cfg, dbName, []string{CPSActionsCollection, AccessListCollection}, logger),
 		CustomerService:                   customer.InitCustomerDetail(client, cfg, dbName, []string{MembersCollection, LinkedAccountsCollection}, clientOrchestrationProducer, logger),
-		CpsUserPersistence:                cps_user.NewCPSUserRepository(client, cfg, dbName, CPSUsersCollection, []string{DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection, RolesCollection, JobRolesCollection}, logger),
+		CpsUserPersistence:                cps_user.NewCPSUserRepository(client, redisRepository, cfg, dbName, CPSUsersCollection, []string{DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection, RolesCollection, JobRolesCollection}, logger),
 		DonationPersistence:               donation.NewDonationRepository(client, cfg, dbName, DonationsCollection, clientOrchestrationProducer, logger),
 		DonationCategoryPersistence:       donation_category.NewDonationCategoryRepository(client, cfg, dbName, DonationCategoriesCollection, clientOrchestrationProducer, logger),
 		ArchivedUserPersistence:           archived_user.NewArchivedUserRepository(client, cfg, dbName, ArchievedUsersCollection, logger),
 		DonationCompanyPersistence:        donation_company.NewDonationCompanyRepository(client, cfg, dbName, DonationCompaniesCollection, clientOrchestrationProducer, logger),
 		EventPersistence:                  event.NewEventRepository(client, cfg, dbName, EventsCollection, logger),
 		PasswordRulePersistent:            password.NewPasswordRuleRepository(client, cfg, dbName, PasswordRulesCollection, logger),
-		FeedbackPersistence:               feedback.NewFeedbackRepository(client, cfg, dbName, FeedbackCollection, CustomerFeedbackCollection, logger),
+		FeedbackPersistence:               feedback.NewFeedbackRepository(client, cfg, dbName, FeedbackCollection, CustomerFeedbackCollection, SurveyFeedbackCollection, logger),
 		IconPersistence:                   icon.NewIconRepository(client, cfg, dbName, IconsCollection, logger),
 		LinkedAccountPersistence:          linked_account.NewLinkedAccountRepository(client, cfg, dbName, LinkedAccountsCollection, clientOrchestrationProducer, logger),
 		EcommerceMerchantPersistence:      ecommerce_merchant.NewEcommerceMerchantRepository(client, cfg, dbName, EcommerceMerchantCollection, logger),
-		NotificationPersistence:           notification.NewNotificationRepository(client, cfg, dbName, NotificationsCollection, clientOrchestrationProducer, logger),
+		NotificationPersistence:           notification.NewNotificationRepository(client, cfg, dbName, NotificationsCollection, clientOrchestrationProducer, sharedKafkaProducer, logger),
 		PasswordRulePersistence:           password.NewPasswordRuleRepository(client, cfg, dbName, PasswordRulesCollection, logger),
 		ServicesPersistence:               services_repo.NewServicesRepository(client, cfg, dbName, ServicesCollection, clientOrchestrationProducer, logger),
 		ValidationRulePersistence:         accountvalidation.NewAccountValidationStore(client, cfg, dbName, ValidationRulesCollection, clientOrchestrationProducer, logger),
 		WalletPersistence:                 wallet.NewWalletRepository(client, cfg, dbName, WalletsCollection, ServicesCollection, logger),
+		BpsActionPersistence:              bps_action.NewBPSActionRepository(client, dbName, BPSActionsCollection, logger, cfg),
 		TopupPersistence:                  Topup.NewTopupRepository(client, cfg, dbName, TopUpsCollection, logger),
 		DepartmentPersistence:             department.NewDepartmentRepository(client, cfg, dbName, DepartmentsCollection, logger),
 		FaydaPersistence:                  fayda.InitFaydaAccountPersistence(client, cfg, dbName, MembersCollection, logger),
@@ -126,7 +133,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		NewsCategoryPersistence:           newscategory_repo.NewNewsCategoryRepository(client, cfg, dbName, NewsCategoryCollection, clientOrchestrationProducer, logger),
 		KYCVerifierPersistence:            kyc_repo.NewKYCVerifierRepository(client, cfg, dbName, CustomersKYCCollection, clientOrchestrationProducer, logger),
 		NewsTagsServiceContainer:          media.NewNewsTagsRepository(logger, client, cfg, dbName, NewsTagsCollection),
-		BPSActionRolePersistence:          actionrole_repo.NewBPSActionRoleRepository(client, cfg, dbName, []string{BPSActionRolesCollection, BPSActionListCollection}, logger),
+		BPSActionRolePersistence:          actionrole_repo.NewBPSActionRoleRepository(client, cfg, dbName, []string{BPSActionRolesCollection, BPSActionListCollection, BPSActionApproveIndexCollection}, logger),
 		BPSActionApproveIndexPersistence:  actionrole_repo.NewBPSActionApproveIndexRepository(client, dbName, BPSActionApproveIndexCollection, logger),
 		RolePersistence:                   role_repo.NewRoleRepository(client, cfg, dbName, []string{RolesCollection, JobRolesCollection}, logger),
 		MiniAppCategoryPersistence:        mini_app.NewMiniAppCategoryRepository(logger, client, cfg, dbName, MiniAppCategoryCollection),
@@ -134,11 +141,13 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		CPSActionApproveIndexPersistence:  cps_actionrole_repo.NewCPSActionApproveIndexRepository(client, dbName, CPSActionApproveIndexCollection, logger),
 		EventMerchantPersistence:          event_merchant_repository.NewEventMerchantRepository(client, cfg, dbName, EventMerchantsCollection, logger),
 		MiniAppProductCodePersistence:     mini_app.NewMiniAppProdutCodeRepository(logger, client, cfg, dbName, MiniAppProductCodes),
-		AccessListSegmentationPersistence: access_list_segmentation_repository.NewAccessListSegmentationRepository(client, cfg, dbName, AccessListSegmentationCollection, logger),
+		AccessListSegmentationPersistence: access_list_segmentation_repository.NewAccessListSegmentationRepository(client, cfg, dbName, AccessListSegmentationCollection, accessListSegmentationProducer, logger),
 		MiniAppMerchant:                   mini_app.NewMiniAppMerchantRepository(client, cfg, dbName, MiniAppMerchantCollection, logger),
 		CustomerSegmentation:              customer_segmentation_repo.NewCustomerSegmentationRepository(client, cfg, dbName, CustomerSegmentationCollection, logger),
 		CPSRoles:                          cps_roles.NewCPSRolesStorage(client, cfg, dbName, CPSRolesCollection, logger),
 		LogisticsMerchantPersistence:      logistics_merchant_repository.NewLogisticsMerchantRepository(client, cfg, dbName, LogisticsMerchantsCollection, logger),
+		CustomerKYCPersistence:            persistence_kyc.NewCustomerKYCRepository(client, cfg, dbName, FaydaKYCollection, logger),
+		UssdMerchantPersistence:           ussd_merchant_repo.NewUssdMerchant(*client, dbName, UssdMerchantCollection, cfg, logger),
 	}
 
 	return data

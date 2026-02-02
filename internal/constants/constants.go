@@ -8,8 +8,31 @@ import (
 
 type ContextKey string
 type Platform string
+type SettlementMethod string
+type AuditorStatus string
+type AuditorMark string
 
 const (
+	MARKEDASRIGHT AuditorMark = "MARKEDASRIGHT"
+	MARKEDASWRONG AuditorMark = "MARKEDASWRONG"
+)
+
+const (
+	AUDITORNOTCHECKED AuditorStatus = "NOTCHECKED"
+	AUDITORINPROGRESS AuditorStatus = "INPROGRESS"
+	AUDITORCHECKED    AuditorStatus = "CHECKED"
+)
+
+const (
+	SettlementMethodDirect       SettlementMethod = "DIRECT"
+	SettlementMethodGL           SettlementMethod = "GL"
+	SettlementMethodMultiAccount SettlementMethod = "MULTI_ACCOUNT"
+)
+
+const (
+	// Unique Separator
+
+	UssdMerchant = "USSDM_"
 	// MESSAGE GROUP
 	UpdateApp           = "Update your app"
 	DeviceFound         = "Device Successfuly Found"
@@ -20,51 +43,58 @@ const (
 	PINResetSuccess     = "OTP verified for PIN reset"
 
 	// constant
-	Android                  Platform = "ANDROID"
-	Ios                      Platform = "IOS"
-	Prelogin                          = "PRE_LOGIN"
-	OTPLength                         = 6
-	DEV                               = "dev"
-	UAT                               = "uat"
-	Password                          = "PASSWORD"
-	Login                             = "LOGIN"
-	Change                            = "CHANGE"
-	Checker                           = "CHECKER"
-	IFBChecker                        = "IFB_CHECKER"
-	Maker                             = "MAKER"
-	IFBMaker                          = "IFBMAKER"
-	Permanent                         = "PERMANENT"
-	TokenType                         = "TOKEN_TYPE"
-	Token                             = "TOKEN"
-	OTP                               = "OTP"
-	VerifyOtp                         = "VERIFY_OTP"
-	DeviceLookUp                      = "DEVICE_LOOKUP"
-	Register                          = "REGISTER"
-	Empty                             = ""
-	SetPin                            = "SET_PIN"
-	Pin                               = "PIN"
-	OTPForRegistration                = "REGISTRATION"
-	Incomplete                        = "INCOMPLETE"
-	ForgetPinVerifyOtp                = "FORGET_PIN_VERIFY_OTP"
-	ResetPin                          = "RESET_PIN"
-	Completed                         = "COMPLETED"
-	ProfileTemp                       = "PROFILE-*.TMP"
-	BucketUserProfilePicture          = "USER-PROFILE-PICTURES"
-	OtpExpirationTime                 = 3 * time.Minute
-	ActionCode                        = "action_code"
-	Avatar                            = "avatar"
-	DonationIcon                      = "donation_icon"
-	CampanyLogo                       = "company_logo"
-	DonationImage                     = "donation_image"
-	DonationCoverImage                = "donation_cover_image"
-	BudgetCategoryIcon                = "budget_category_icon"
-	ActionID                          = "action_id"
-	ActionStatus                      = "action_status"
-	IncompleteUserInfo                = "incomplete user info"
-	Approved                          = "APPROVED"
-	Rejected                          = "REJECTED"
-	Reversed                          = "REVERSED"
-	Canceled                          = "CANCELED"
+	Android                  Platform   = "ANDROID"
+	Ios                      Platform   = "IOS"
+	Prelogin                            = "PRE_LOGIN"
+	OTPLength                           = 6
+	DEV                                 = "dev"
+	UAT                                 = "uat"
+	Cred                                = "Credential"
+	Password                            = "PASSWORD"
+	Login                               = "LOGIN"
+	Change                              = "CHANGE"
+	Checker                             = "CHECKER"
+	IFBChecker                          = "IFB_CHECKER"
+	Maker                               = "MAKER"
+	IFBMaker                            = "IFBMAKER"
+	Permanent                           = "PERMANENT"
+	TokenType                           = "TOKEN_TYPE"
+	Token                               = "TOKEN"
+	OTP                                 = "OTP"
+	VerifyOtp                           = "VERIFY_OTP"
+	DeviceLookUp                        = "DEVICE_LOOKUP"
+	Register                            = "REGISTER"
+	Empty                               = ""
+	SetPin                              = "SET_PIN"
+	Pin                                 = "PIN"
+	OTPForRegistration                  = "REGISTRATION"
+	Incomplete                          = "INCOMPLETE"
+	ForgetPinVerifyOtp                  = "FORGET_PIN_VERIFY_OTP"
+	ResetPin                            = "RESET_PIN"
+	Completed                           = "COMPLETED"
+	ProfileTemp                         = "PROFILE-*.TMP"
+	BucketUserProfilePicture            = "USER-PROFILE-PICTURES"
+	OtpExpirationTime                   = 3 * time.Minute
+	ActionCode                          = "action_code"
+	Avatar                              = "avatar"
+	DonationIcon                        = "donation_icon"
+	CampanyLogo                         = "company_logo"
+	DonationImage                       = "donation_image"
+	DonationCoverImage                  = "donation_cover_image"
+	BudgetCategoryIcon                  = "budget_category_icon"
+	ActionID                            = "action_id"
+	ActionStatus                        = "action_status"
+	AuditorStatusDBFieldName            = "auditor_status"
+	IncompleteUserInfo                  = "incomplete user info"
+	Approved                            = "APPROVED"
+	Rejected                            = "REJECTED"
+	Reversed                            = "REVERSED"
+	Canceled                            = "CANCELED"
+	ContextKeyMetadata       ContextKey = "context_metadata"
+	BPSApproveTopic                     = "bps.action.approve"
+	BPSRejectTopic                      = "bps.action.reject"
+	BPSAuditorClaimTopic                = "bps.action.auditor_claim"
+	BPSAuditorMarkTopic                 = "bps.action.auditor_mark"
 )
 
 const (
@@ -224,9 +254,11 @@ const (
 )
 
 const (
-	UPDATE = "UPDATE"
-	DELETE = "DELETE"
-	CREATE = "CREATE"
+	UPDATE  = "UPDATE"
+	ENABLE  = "ENABLE"
+	DISABLE = "DISABLE"
+	DELETE  = "DELETE"
+	CREATE  = "CREATE"
 )
 
 type RequestAction string
@@ -249,6 +281,13 @@ const (
 	RequestDeleteRole  string = "DELETE_ROLE"
 	RequestEnableRole  string = "ENABLE_ROLE"
 	RequestDisableRole string = "DISABLE_ROLE"
+
+	// USSD
+	RequestCreateUssdMerchant  string = "CREATE_USSD_MERCHANT"
+	RequestUpdateUssdMerchant  string = "UPDATE_USSD_MERCHANT"
+	RequestDeleteUssdMerchant  string = "DELETE_USSD_MERCHANT"
+	RequestEnableUssdMerchant  string = "ENABLE_USSD_MERCHANT"
+	RequestDisableUssdMerchant string = "DISABLE_USSD_MERCHANT"
 
 	// Ecommerce
 	RequestCreateEcommerceMerchant  RequestAction = "CREATE_ECOMMERCE_MERCHANT"
@@ -559,6 +598,10 @@ const (
 	RequestCreateAccessListSegmentation        RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION"
 	RequestUpdateAccessListSegmentation        RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION"
 	RequestEnableDisableAccessListSegmentation RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION"
+
+	RequestCreateCustomerKYC RequestAction = "CREATE_CUSTOMER_KYC"
+	RequestUpdateCustomerKYC RequestAction = "UPDATE_CUSTOMER_KYC"
+	RequestDeleteCustomerKYC RequestAction = "DELETE_CUSTOMER_KYC"
 )
 
 type RegistrationType string
@@ -832,6 +875,7 @@ const (
 	ClientOrchestrationNewsTagTopic              KafkaTopic = "news_tag.sync.cps"
 	ClientOrchestrationNotificationTopic         KafkaTopic = "notification.sync.cps"
 	ClientOrchestrationServicesTopic             KafkaTopic = "services.sync.cps"
+	AccessListSegmentationTopic                  KafkaTopic = "customer_segmentation"
 )
 
 type FinancialInstitutionType string
@@ -852,6 +896,7 @@ type ImageFolderName string
 
 const (
 	BankFolderName               ImageFolderName = "banks"
+	UssdMerchantFolderName       ImageFolderName = "ussd_merchant"
 	WalletFolderName             ImageFolderName = "wallets"
 	AdFolderName                 ImageFolderName = "ads"
 	AvatarFolderName             ImageFolderName = "avatars"
@@ -862,4 +907,10 @@ const (
 	EventFolderName              ImageFolderName = "events"
 	TopupFolderName              ImageFolderName = "topups"
 	VaultGroupCategoryFolderName ImageFolderName = "vault_group_categories"
+	CustomerKYCFolderName        ImageFolderName = "customer_kyc"
+)
+
+// redis key prefixes
+const (
+	RedisCPSUserDeviceIDPrefix = "cps:auth:device"
 )

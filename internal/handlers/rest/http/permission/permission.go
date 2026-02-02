@@ -100,6 +100,20 @@ func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.R
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "GetPermissionGroups")
 	defer span.End()
 	filterparams := common_utils.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := common_utils.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := common_utils.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	permissionGroups, err := h.PermissionService.GetPermissionGroups(ctx, filterparams)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))

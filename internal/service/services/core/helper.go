@@ -4,17 +4,15 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"log"
 	"strconv"
 	"time"
-	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func formatFloatPointer(f *float64) string {
@@ -41,54 +39,22 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 	return nil
 }
 
-func ValidateCreate(req service_dto.CreateServiceRequest, service storage.ServicesRepository) error {
-	if req.ServiceCode == "" || req.ServiceName == "" {
-		return localization.ErrorRequiredFieldMissing
-	}
-
-	filterCode := types.Filter{
-		Filters: map[string]interface{}{
-			"service_code": req.ServiceCode,
-		},
-	}
-	serviceDocCode, err := service.FindAllWithPagination(context.Background(), filterCode)
-	if err != nil {
-		return err
-	}
-	if len(serviceDocCode.Data) > 0 {
-		return localization.ErrorServiceExists
-	}
-
-	filterName := types.Filter{
-		Filters: map[string]interface{}{
-			"service_name": req.ServiceName,
-		},
-	}
-	serviceDocName, err := service.FindAllWithPagination(context.Background(), filterName)
-	if err != nil {
-		return err
-	}
-	if len(serviceDocName.Data) > 0 {
-		return localization.ErrorServiceExists
-	}
-
-	return nil
-}
-func MapToServiceModel(req service_dto.CreateServiceRequest) imodel.Service {
-	mapped := imodel.Service{
+func MapToServiceModel(req service_dto.CreateServiceRequest) model.Service {
+	mapped := model.Service{
 		ServiceCode:      req.ServiceCode,
 		ServiceKey:       req.ServiceKey,
 		ServiceName:      req.ServiceName,
 		ProductGlAccount: req.ProductGlAccount,
-		Cap: imodel.Cap{
+		Cap: model.Cap{
 			SingleCap:          formatFloatPointer(req.Cap.SingleCap),
 			MinimumTransferCap: formatFloatPointer(req.Cap.MinimumTransferCap),
 		},
-		Tiers: func() []imodel.Tier {
-			tiers := make([]imodel.Tier, 0, len(req.Tiers))
+		Tiers: func() []model.Tier {
+			tiers := make([]model.Tier, 0, len(req.Tiers))
 			for _, t := range req.Tiers {
-				tiers = append(tiers, imodel.Tier{
-					FeeType:   imodel.FeeType(service_dto.StringPointer(t.FeeType, "")),
+				tiers = append(tiers, model.Tier{
+					// FeeType:   model.FeeType(service_dto.StringPointer(t.FeeType, "")),
+					FeeType:   shared_constants.FeeType(service_dto.StringPointer(t.FeeType, string(*t.FeeType))),
 					FeeAmount: formatFloatPointer(t.FeeAmount),
 					Min:       formatFloatPointer(t.Min),
 					Max:       formatFloatPointer(t.Max),
@@ -96,28 +62,29 @@ func MapToServiceModel(req service_dto.CreateServiceRequest) imodel.Service {
 			}
 			return tiers
 		}(),
-		ServiceList: func() []imodel.ServiceLists {
-			lists := make([]imodel.ServiceLists, 0, len(req.ServiceList))
+		ServiceList: func() []model.ServiceList {
+			lists := make([]model.ServiceList, 0, len(req.ServiceList))
 			for _, sl := range req.ServiceList {
-				lists = append(lists, imodel.ServiceLists{
+				lists = append(lists, model.ServiceList{
 					ServiceName:             service_dto.StringPointer(sl.ServiceName, ""),
 					ServiceKey:              service_dto.StringPointer(sl.ServiceKey, ""),
 					OverideProductGlAccount: service_dto.StringPointer(sl.OverideProductGlAccount, ""),
 					IsEnabled:               service_dto.BoolPointer(sl.IsEnabled, true),
-					OverideCap: func() imodel.Cap {
+					OverideCap: func() model.Cap {
 						if sl.OverideCap == nil {
-							return imodel.Cap{}
+							return model.Cap{}
 						}
-						return imodel.Cap{
+						return model.Cap{
 							SingleCap:          formatFloatPointer(sl.OverideCap.SingleCap),
 							MinimumTransferCap: formatFloatPointer(sl.OverideCap.MinimumTransferCap),
 						}
 					}(),
-					OverideTiers: func() []imodel.Tier {
-						tiers := make([]imodel.Tier, 0, len(sl.OverideTiers))
+					OverideTiers: func() []model.Tier {
+						tiers := make([]model.Tier, 0, len(sl.OverideTiers))
 						for _, t := range sl.OverideTiers {
-							tiers = append(tiers, imodel.Tier{
-								FeeType:   imodel.FeeType(service_dto.StringPointer(t.FeeType, "")),
+							tiers = append(tiers, model.Tier{
+								// FeeType:   model.FeeType(service_dto.StringPointer(t.FeeType, "")),
+								FeeType:   shared_constants.FeeType(service_dto.StringPointer(t.FeeType, string(*t.FeeType))),
 								FeeAmount: formatFloatPointer(t.FeeAmount),
 								Min:       formatFloatPointer(t.Min),
 								Max:       formatFloatPointer(t.Max),
@@ -137,25 +104,26 @@ func MapToServiceModel(req service_dto.CreateServiceRequest) imodel.Service {
 	return mapped
 }
 
-func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing imodel.Service) imodel.Service {
+func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing model.Service) model.Service {
 	existing.ServiceCode = service_dto.StringPointer(req.ServiceCode, existing.ServiceCode)
 	existing.ServiceKey = service_dto.StringPointer(req.ServiceKey, existing.ServiceKey)
 	existing.ServiceName = service_dto.StringPointer(req.ServiceName, existing.ServiceName)
 	existing.ProductGlAccount = service_dto.StringPointer(req.ProductGlAccount, existing.ProductGlAccount)
 
 	if req.Cap != nil {
-		existing.Cap = imodel.Cap{
+		existing.Cap = model.Cap{
 			SingleCap:          formatFloatPointer(req.Cap.SingleCap),
 			MinimumTransferCap: formatFloatPointer(req.Cap.MinimumTransferCap),
 		}
 	}
 
-	if len(req.Tiers) > 0 {
-		existing.Tiers = func() []imodel.Tier {
-			tiers := make([]imodel.Tier, 0, len(req.Tiers))
+	if req.Tiers != nil {
+		existing.Tiers = func() []model.Tier {
+			tiers := make([]model.Tier, 0, len(req.Tiers))
 			for _, t := range req.Tiers {
-				tiers = append(tiers, imodel.Tier{
-					FeeType:   imodel.FeeType(service_dto.StringPointer(t.FeeType, string(existing.Tiers[0].FeeType))), // Use existing or first tier if matching is complex
+				tiers = append(tiers, model.Tier{
+					// FeeType:   model.FeeType(service_dto.StringPointer(t.FeeType, string(existing.Tiers[0].FeeType))), // Use existing or first tier if matching is complex
+					FeeType:   shared_constants.FeeType(service_dto.StringPointer(t.FeeType, string(*t.FeeType))),
 					FeeAmount: formatFloatPointer(t.FeeAmount),
 					Min:       formatFloatPointer(t.Min),
 					Max:       formatFloatPointer(t.Max),
@@ -165,28 +133,29 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing imod
 		}()
 	}
 
-	if len(req.ServiceList) > 0 {
-		existing.ServiceList = func() []imodel.ServiceLists {
-			lists := make([]imodel.ServiceLists, 0, len(req.ServiceList))
+	if req.ServiceList != nil {
+		existing.ServiceList = func() []model.ServiceList {
+			lists := make([]model.ServiceList, 0, len(req.ServiceList))
 			for _, sl := range req.ServiceList {
-				lists = append(lists, imodel.ServiceLists{
+				lists = append(lists, model.ServiceList{
 					ServiceName:             service_dto.StringPointer(sl.ServiceName, ""),
 					ServiceKey:              service_dto.StringPointer(sl.ServiceKey, ""),
 					OverideProductGlAccount: service_dto.StringPointer(sl.OverideProductGlAccount, ""),
-					OverideCap: func() imodel.Cap {
+					OverideCap: func() model.Cap {
 						if sl.OverideCap == nil {
-							return imodel.Cap{}
+							return model.Cap{}
 						}
-						return imodel.Cap{
+						return model.Cap{
 							SingleCap:          formatFloatPointer(sl.OverideCap.SingleCap),
 							MinimumTransferCap: formatFloatPointer(sl.OverideCap.MinimumTransferCap),
 						}
 					}(),
-					OverideTiers: func() []imodel.Tier {
-						tiers := make([]imodel.Tier, 0, len(sl.OverideTiers))
+					OverideTiers: func() []model.Tier {
+						tiers := make([]model.Tier, 0, len(sl.OverideTiers))
 						for _, t := range sl.OverideTiers {
-							tiers = append(tiers, imodel.Tier{
-								FeeType:   imodel.FeeType(service_dto.StringPointer(t.FeeType, "")),
+							tiers = append(tiers, model.Tier{
+								// FeeType:   model.FeeType(service_dto.StringPointer(t.FeeType, "")),
+								FeeType:   shared_constants.FeeType(service_dto.StringPointer(t.FeeType, string(*t.FeeType))),
 								FeeAmount: formatFloatPointer(t.FeeAmount),
 								Min:       formatFloatPointer(t.Min),
 								Max:       formatFloatPointer(t.Max),
@@ -200,8 +169,8 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing imod
 			}
 			return lists
 		}()
+		existing.Enabled = true
 	}
-	existing.Enabled = true
 
 	return existing
 }

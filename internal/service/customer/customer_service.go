@@ -28,21 +28,43 @@ import (
 type customerService struct {
 	repo       storage.CustomerRepository
 	redis      storage.RedisRepository
+	bpsRepo    storage.BPSActionRepository
 	cpsService service.CPSActionService
 	cfg        *config.VaultConfig
 	logger     utils.Logger
 	smsService *lib.NotificationStore
 }
 
-func NewCustomerService(repo storage.CustomerRepository, cpsService service.CPSActionService, redis storage.RedisRepository, smsService *lib.NotificationStore, cfg *config.VaultConfig, logger utils.Logger) service.CustomerService {
+func NewCustomerService(repo storage.CustomerRepository, bpsRepo storage.BPSActionRepository, cpsService service.CPSActionService, redis storage.RedisRepository, smsService *lib.NotificationStore, cfg *config.VaultConfig, logger utils.Logger) service.CustomerService {
 	return &customerService{
 		repo:       repo,
+		bpsRepo:    bpsRepo,
 		cpsService: cpsService,
 		redis:      redis,
 		cfg:        cfg,
 		logger:     logger,
 		smsService: smsService,
 	}
+}
+
+// GetCustomerActionLogByID implements [service.CustomerService].
+func (s *customerService) GetCustomerActionLogByID(ctx context.Context, id string, filterParams types.Filter) (types.PaginatedResponse[[]customer_dto.CustomerActionLogResponse], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetCustomerActionLog", "Customer", "GetCustomerActionLog")
+	defer span.End()
+
+	cus, err := s.bpsRepo.GetBPSActionByUserID(ctx, id, filterParams)
+	if err != nil {
+		span.AddEvent("Failed to fetch customer", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return types.PaginatedResponse[[]customer_dto.CustomerActionLogResponse]{}, err
+	}
+	response := MapBpsActionToCustomerLog(cus.Data)
+	return types.PaginatedResponse[[]customer_dto.CustomerActionLogResponse]{
+		Data: response,
+		Meta: cus.Meta,
+	}, nil
 }
 
 func (c *customerService) GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error) {
@@ -60,20 +82,20 @@ func (c *customerService) GetCustomersDetail(ctx context.Context, filterParams *
 	return customers, nil
 }
 
-func (s *customerService) GetCustomerByID(ctx context.Context, id string) (*member.User, error) {
+func (s *customerService) GetCustomerByID(ctx context.Context, id string) (customer.FindCustomerByIDResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCustomerByID", "Customer", "GetCustomerByID")
 	defer span.End()
 
-	customer, err := s.repo.FindByID(ctx, id)
+	cus, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		span.AddEvent("Failed to fetch customer", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		return nil, err
+		return customer.FindCustomerByIDResponse{}, err
 	}
-
-	return customer, nil
+	response := MapToDto(cus)
+	return response, nil
 }
 
 func (s *customerService) GetLinkedAccount(ctx context.Context, id string) ([]model.LinkedAccount, error) {
@@ -433,6 +455,7 @@ func (d *customerService) SearchCustomerByCIForAccountNumber(ctx context.Context
 	defer span.End()
 	d.logger.Infof("[SearchCustomerByCIForAccountNumber] searching customer by value: %s", number)
 
+	number = local_util.NormalizePhoneNumberOrReturnInput(number)
 	customer, err := d.repo.SearchCustomerByCIForAccountNumber(ctx, number)
 	if err != nil {
 		span.AddEvent("Failed to fetch customer by CI", trace.WithAttributes(

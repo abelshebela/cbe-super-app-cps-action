@@ -11,8 +11,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 )
 
-// cpsActionRegistry maps METHOD + " " + RoutePattern to CPS action name
-// Only write/approval routes should be included here
 var cpsActionRegistry = map[string]string{
 	// Notification
 	"POST notifications":   "NOTIFICATIONS",
@@ -175,9 +173,11 @@ var cpsActionRegistry = map[string]string{
 	"PATCH services": "SERVICE",
 
 	// Topup
-	"POST topups":   "TOPUP",
-	"PATCH topups":  "TOPUP",
-	"DELETE topups": "TOPUP",
+	"POST topups":                     "TOPUP",
+	"PATCH topups":                    "TOPUP",
+	"DELETE topups":                   "TOPUP",
+	"PATCH topups/{topup_id}/disable": "TOPUP",
+	"PATCH topups/{topup_id}/enable":  "TOPUP",
 
 	// UnlinkDevice
 	"PATCH unlink": "UNLINKDEVICE",

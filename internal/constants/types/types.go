@@ -7,31 +7,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-// type KYCInformation struct {
-// 	Name  string `json:"name" bson:"name"`
-// 	Email string `json:"email" bson:"email"`
-// 	Phone string `json:"phone" bson:"phone"`
-// }
-
-// type KYC struct {
-// 	Status         KYCStatus      `json:"status" bson:"status"`
-// 	Representative KYCInformation `json:"representative" bson:"representative"`
-// }
-
-// type BranchInformation struct {
-// 	BranchCode          string `json:"branch_code"`
-// 	BranchName          string `json:"branch_name"`
-// 	BranchAddress       string `json:"branch_address"`
-// 	BranchOwner         string `json:"branch_owner"`
-// 	BranchAccountNumber string `json:"branch_account_number"`
-// }
-
-// type MiniApps struct {
-// 	ID        string `json:"id" bson:"id"`
-// 	Enabled   bool   `json:"enabled" bson:"enabled"`
-// 	IsDeleted bool   `json:"is_deleted" bson:"is_deleted"`
-// }
-
 type CheckMiniAppMerchant struct {
 	BankAccountNumber string `json:"bank_account_number"`
 	Email             string `json:"email"`
@@ -41,7 +16,16 @@ type CheckMiniAppMerchant struct {
 type MiniAppMerchantExistOptions struct {
 	ExcludeID string
 }
-
+type Auditor struct {
+	AuditorID          string                `bson:"auditor_id" json:"auditor_id,omitempty"`
+	RoleID             string                `bson:"role_id" json:"role_id,omitempty"`
+	AuditorIndex       int32                 `bson:"auditor_index" json:"auditor_index,omitempty"`
+	AuditorName        string                `bson:"auditor_name" json:"auditor_name,omitempty"`
+	AuditorPhoneNumber string                `bson:"auditor_phone_number" json:"auditor_phone_number,omitempty"`
+	AuditorReason      string                `bson:"auditor_reason" json:"auditor_reason"`
+	AuditorMark        constants.AuditorMark `bson:"auditor_mark" json:"auditor_mark,omitempty"`
+	ApprovedAt         time.Time             `bson:"approved_at" json:"approved_at,omitempty"`
+}
 type BakerOptions struct {
 	Sequential bool
 	UseMutex   bool
@@ -224,15 +208,6 @@ type Checker struct {
 	CheckerIndex       int32     `bson:"checker_index" json:"checker_index,omitempty"`
 	CheckerName        string    `bson:"checker_name" json:"checker_name,omitempty"`
 	CheckerPhoneNumber string    `bson:"checker_phone_number" json:"checker_phone_number,omitempty"`
-	ApprovedAt         time.Time `bson:"approved_at" json:"approved_at,omitempty"`
-}
-
-type Auditor struct {
-	AuditorID          string    `bson:"auditor_id" json:"auditor_id,omitempty"`
-	RoleID             string    `bson:"role_id" json:"role_id,omitempty"`
-	AuditorIndex       int32     `bson:"auditor_index" json:"auditor_index,omitempty"`
-	AuditorName        string    `bson:"auditor_name" json:"auditor_name,omitempty"`
-	AuditorPhoneNumber string    `bson:"auditor_phone_number" json:"auditor_phone_number,omitempty"`
 	ApprovedAt         time.Time `bson:"approved_at" json:"approved_at,omitempty"`
 }
 

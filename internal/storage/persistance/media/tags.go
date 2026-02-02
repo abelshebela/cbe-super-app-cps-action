@@ -9,11 +9,11 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 var (
@@ -26,10 +26,10 @@ type newsTags struct {
 	client      *mongo.Client
 }
 
-func NewNewsTagsRepository(logger shared_utils.Logger, client *mongo.Client,cfg *config.VaultConfig, dbName, collectionName string) storage.NewsTagsRepository {
+func NewNewsTagsRepository(logger shared_utils.Logger, client *mongo.Client, cfg *config.VaultConfig, dbName, collectionName string) storage.NewsTagsRepository {
 	return &newsTags{
 		logger:      logger,
-		newsTagsDal: dal.NewMongoDal[model.NewsTags, model.NewsTags](client,cfg, dbName, collectionName),
+		newsTagsDal: dal.NewMongoDal[model.NewsTags, model.NewsTags](client, cfg, dbName, collectionName),
 		client:      client,
 	}
 }

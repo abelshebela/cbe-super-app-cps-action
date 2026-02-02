@@ -267,7 +267,7 @@ func (s *cpsUserService) DisableUser(ctx context.Context, userCode string) error
 		return errors.New(localization.ErrorUserAlreadyDisabled.Code)
 	}
 
-	updated := prev
+	updated := *prev
 	updated.Enabled = false
 	updated.PasswordDisable = true
 
@@ -306,7 +306,7 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 		return nil, err
 	}
 
-	makerAlloc, checkerAlloc, auditorAlloc, portalCard, err := s.approverRepo.PopulateUserApproverAllocations(ctx, roles.ID.Hex())
+	makerAlloc, checkerAlloc, auditorAlloc, portalCard, err := s.approverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
 	if err != nil {
 		span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err

@@ -15,9 +15,9 @@ import (
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -30,9 +30,9 @@ type AccountBlockStorage struct {
 	logger        utils.Logger
 }
 
-func NewAccountBlockRepository(client *mongo.Client, cfg *config.VaultConfig,dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.AccountBlockRepository {
+func NewAccountBlockRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.AccountBlockRepository {
 	return &AccountBlockStorage{
-		accountBlock:  dal.NewMongoDal[model.AccountBlock, model.AccountBlock](client,cfg, dbName, collection),
+		accountBlock:  dal.NewMongoDal[model.AccountBlock, model.AccountBlock](client, cfg, dbName, collection),
 		client:        client,
 		dbName:        dbName,
 		kafkaProducer: kafkaProducer,
@@ -118,9 +118,9 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
-			{"name": searchRegex},
+			{"name": bson.M{"$regex": "^" + filterParam.Search + "$", "$options": "i"}},
 			{"code": searchRegex},
-			{"address": searchRegex},
+			// {"address": searchRegex},
 			{"city_id": searchRegex},
 			{"district_id": searchRegex},
 			{"region_id": searchRegex},
@@ -183,8 +183,17 @@ func (a *AccountBlockStorage) EnableOrDisableBranches(ctx context.Context, ids [
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	return nil
+	updatedBranches, err := a.GetBranchesByIds(ctx, ids)
 
+	a.kafkaProducer.PublishMessage(
+		ctx,
+		updatedBranches,
+		string(constants.ClientOrchestrationServicesTopic),
+		"account-block-updated",
+		"account block enable status updated",
+	)
+
+	return nil
 }
 
 func (a *AccountBlockStorage) GetBranchesByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error) {

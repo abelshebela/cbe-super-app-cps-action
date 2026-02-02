@@ -8,7 +8,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/services/core"
@@ -30,8 +29,25 @@ func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionSe
 }
 
 func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServiceRequest) error {
-	if err := core.ValidateCreate(req, s.repo); err != nil {
+	exist, err := s.repo.CheckServiceExistence(ctx, req.ServiceCode, req.ServiceKey, req.ServiceName)
+	if err != nil {
 		return err
+	}
+	if exist {
+		return errors.New(localization.ErrorServiceExists.Code)
+	}
+
+	for _, service := range req.ServiceList {
+		if service.ServiceKey == nil || service.ServiceName == nil {
+			break
+		}
+		listExists, err := s.repo.CheckServiceExistence(ctx, "", *service.ServiceKey, *service.ServiceName)
+		if err != nil {
+			return err
+		}
+		if listExists {
+			return errors.New(localization.ErrorChildServiceExists.Code)
+		}
 	}
 
 	mapped := core.MapToServiceModel(req)
@@ -76,7 +92,7 @@ func (s *servicesService) Enable(ctx context.Context, id string) error {
 	if prev.Enabled {
 		return localization.ErrorAlreadyEnabled
 	}
-	payload := imodel.Service{Enabled: true}
+	payload := model.Service{Enabled: true}
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestEnableService, payload, prev, constants.ActionUpdate)
 }
 
@@ -91,24 +107,24 @@ func (s *servicesService) Disable(ctx context.Context, id string) error {
 	if !prev.Enabled {
 		return localization.ErrorAlreadyDisabled
 	}
-	payload := imodel.Service{Enabled: false}
+	payload := model.Service{Enabled: false}
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDisableService, payload, prev, constants.ActionUpdate)
 }
 
-func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.Service], error) {
+func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.Service], error) {
 	return s.repo.FindAllWithPagination(ctx, filter)
 }
 
-func (s *servicesService) GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.ServiceList], error) {
+func (s *servicesService) GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error) {
 	return s.repo.FindAllServiceListWithPagination(ctx, filter)
 }
 
-func (s *servicesService) GetByID(ctx context.Context, id string) (*imodel.Service, error) {
+func (s *servicesService) GetByID(ctx context.Context, id string) (*model.Service, error) {
 	return s.repo.FindByID(ctx, id)
 }
 
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	serviceDoc, err := local_util.JsonUnmarshal[imodel.Service](action.CurrentAction)
+	serviceDoc, err := local_util.JsonUnmarshal[model.Service](action.CurrentAction)
 	if err != nil {
 		return nil, localization.ErrorInvalidActionData
 	}

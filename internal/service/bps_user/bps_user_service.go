@@ -20,6 +20,8 @@ import (
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
@@ -150,7 +152,7 @@ func (b *bpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 }
 
 // GetAllBPSUsers implements service.BPSUserService.
-func (b *bpsUserService) GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]bps_model.BPSUser], error) {
+func (b *bpsUserService) GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]bpsUserDto.BPSUserResposenDTO], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllBPSUsers", "BPS User", "GetAllBPSUsers")
 	defer span.End()
 
@@ -230,32 +232,20 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 	defer span.End()
 	makerData := local_util.ExtractUserFromContext(ctx)
 
-	b.logger.Infof("[CreateBPSUser] creating BPS user with user_code: %s", req.UserCode)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
-	// Check if user already exists by user_code
-	//have to be optimize in one db call
-	existingUser, err := b.repo.FindByFilterKey(ctx, "username", req.Username)
-	if err == nil && existingUser != nil {
-		b.logger.Errorf("[CreateBPSUser] user already exists: %s", req.Username)
-		return errors.New(localization.ErrorUsernameAlreadyExists.Code)
-	}
-
-	// Check if email already exists
-	// dev in using shated 46 so i dont validate eamil for now
-	if req.Email != "" {
-		emailUser, err := b.repo.FindByFilterKey(ctx, "email", req.Email)
-		if err == nil && emailUser != nil {
-			b.logger.Errorf("[CreateBPSUser] email already exists: %s", req.Email)
-			return errors.New(localization.ErrorExistEmail.Code)
+	existing, err := b.repo.FindByOr(ctx, req.PhoneNumber, req.Email, req.Username)
+	if err != nil {
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			b.logger.Errorf("[UpdateBPSUser] error whil checking existing information error: %v", err)
+			return err
 		}
 	}
-	// Check if phone number already exists
-	if req.PhoneNumber != "" {
-		phoneUser, err := b.repo.FindByFilterKey(ctx, "phone_number", req.PhoneNumber)
-		if err == nil && phoneUser != nil {
-			b.logger.Errorf("[CreateBPSUser] phone number already exists: %s", req.PhoneNumber)
-			return errors.New(localization.ErrorExistPhoneNumber.Code)
-		}
+
+	if err := bps_user_core.ExistingIdentifier(existing, req); err != nil {
+		b.logger.Infof("[UpdateBPSUser] the entered data is already existed error: %v", err)
+		return err
 	}
 
 	roles, err := b.roles_repo.FindByFilterKey(ctx, "job_title", req.JobTitle)
@@ -267,8 +257,8 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		b.logger.Errorf("[CreateBPSUser] role not found or invalid for job_title: %s", req.JobTitle)
 		return errors.New(localization.ErrorRoleNotFound.Code)
 	}
-	// req.Role = roles.Role
-	req.UserCode = local_util.GenerateBPSUserCode()
+
+	req.UserCode = local_util.UniqueIdGenerator()
 	// Build CPS action model for create
 	cpsActionModel := lib.CpsModelBuilder(
 		"",                                     // unique id
@@ -288,65 +278,37 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		b.logger.Errorf("[CreateBPSUser] failed to create CPS action: %v", err)
 		return err
 	}
+	if md.IsMakerOnly {
 
+	} else {
+
+	}
 	b.logger.Infof("[CreateBPSUser] CPS action created successfully for user_code: %s", req.UserCode)
 	return nil
 }
 
-func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userCode string, updatedUser bps_model.BPSUser) error {
+func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updatedUser bps_model.BPSUser) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateBPSUser", "BPS User", "UpdateBPSUser")
 	defer span.End()
 	makerData := local_util.ExtractUserFromContext(ctx)
 
-	b.logger.Infof("[UpdateBPSUser] updating BPS user with user_code: %s", userCode)
-
-	// Fetch the existing user
-	existingUser, err := b.repo.FindByFilterKey(ctx, "id", userCode)
+	existing, err := b.repo.FindByOr(ctx, updatedUser.PhoneNumber, updatedUser.Email, updatedUser.Username)
 	if err != nil {
-		span.AddEvent("[UpdateBPSUser] failed to fetch BPS user", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("user_code", userCode),
-		))
-		b.logger.Errorf("[UpdateBPSUser] failed to fetch BPS user: %v", err)
-		return err
-	}
-
-	if existingUser == nil {
-		span.AddEvent("[UpdateBPSUser] BPS user not found", trace.WithAttributes(attribute.String("user_code", userCode)))
-		b.logger.Errorf("[UpdateBPSUser] BPS user not found: %s", userCode)
-		return errors.New(localization.ErrorUserNotFound.Code)
-	}
-
-	// Optionally, check for unique constraints (e.g., phone number)
-	if updatedUser.PhoneNumber != "" && updatedUser.PhoneNumber != existingUser.PhoneNumber {
-		phoneUser, err := b.repo.FindByFilterKey(ctx, "phone_number", updatedUser.PhoneNumber)
-		if err == nil && phoneUser != nil {
-			b.logger.Errorf("[UpdateBPSUser] phone number already exists: %s", updatedUser.PhoneNumber)
-			return errors.New(localization.ErrorExistPhoneNumber.Code)
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			b.logger.Errorf("[UpdateBPSUser] error whil checking existing information error: %v", err)
+			return err
 		}
 	}
 
-	roles, err := b.roles_repo.FindByFilterKey(ctx, "job_title", updatedUser.JobTitle)
-	// Build CPS action model for updateroles, err := b.roles_repo.FindByFilterKey(ctx, "job_title", updatedUser.HomeBranch)
-	if err != nil {
-		b.logger.Errorf("[UpdateBPSUser] error finding role for job_title: %s, err: %v", updatedUser.HomeBranch, err)
-		return errors.New(localization.ErrorRoleNotFound.Code)
-	}
-
-	existingUserByEmail, err := b.repo.FindByFilterKey(ctx, "email", updatedUser.Email)
-	if existingUserByEmail != nil {
-		b.logger.Errorf("[UpdateBPSUser] existing user with given user name: %s", updatedUser.Email)
-		return errors.New(localization.ErrorExistEmail.Code)
-	}
-
-	if roles == nil {
-		return errors.New(localization.ErrorRoleNotExistWithGivenJobTitle.Code)
+	if err := bps_user_core.ExistingIdentifierForUpdate(*existing, userID, updatedUser); err != nil {
+		b.logger.Infof("[UpdateBPSUser] the entered data is already existed error: %v", err)
+		return err
 	}
 	// updatedUser.Role = roles.Role
 	cpsActionModel := lib.CpsModelBuilder(
-		existingUser.ID.Hex(),                  // unique id
+		existing.ID.Hex(),                      // unique id
 		makerData,                              // maker data
-		existingUser,                           // old data
+		existing,                               // old data
 		updatedUser,                            // new data
 		string(constants.RequestBpsUserUpdate), // request action
 		constants.UPDATE,                       // action type
@@ -356,12 +318,12 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userCode string, upd
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
 		span.AddEvent("[UpdateBPSUser] failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
-			attribute.String("user_code", userCode),
+			attribute.String("user_code", userID),
 		))
 		b.logger.Errorf("[UpdateBPSUser] failed to create CPS action: %v", err)
 		return err
 	}
 
-	b.logger.Infof("[UpdateBPSUser] CPS action created successfully for user_code: %s", userCode)
+	b.logger.Infof("[UpdateBPSUser] CPS action created successfully for user_code: %s", userID)
 	return nil
 }

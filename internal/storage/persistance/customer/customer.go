@@ -458,9 +458,10 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 	}
 
 	pipeline := mongo.Pipeline{
+		// 1. Match by _id
 		{{Key: "$match", Value: bson.D{{Key: "_id", Value: objID}}}},
 
-		// 1. Lookup Linked Accounts (Returns Array)
+		// 2. Lookup linked accounts
 		{{Key: "$lookup", Value: bson.D{
 			{Key: "from", Value: "linked_account"},
 			{Key: "localField", Value: "_id"},
@@ -468,54 +469,59 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 			{Key: "as", Value: "linked_accounts_raw"},
 		}}},
 
-		// 2. Lookup Members (Returns Array)
+		// 3. Unwind linked_accounts_raw to process each linked account
+		{{Key: "$unwind", Value: bson.D{
+			{Key: "path", Value: "$linked_accounts_raw"},
+			{Key: "preserveNullAndEmptyArrays", Value: true},
+		}}},
+
+		// 4. Lookup account_block for each linked account's branch_code
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "account_block"},
+			{Key: "localField", Value: "linked_accounts_raw.account_branch_code"},
+			{Key: "foreignField", Value: "code"},
+			{Key: "as", Value: "account_block_info"},
+		}}},
+
+		// 5. Lookup member_info (single, not array)
 		{{Key: "$lookup", Value: bson.D{
 			{Key: "from", Value: "members"},
 			{Key: "localField", Value: "_id"},
 			{Key: "foreignField", Value: "_id"},
 			{Key: "as", Value: "member_info"},
 		}}},
-
-		// 3. Lookup KYC Data (Returns Array)
-		{{Key: "$lookup", Value: bson.D{
-			{Key: "from", Value: "customer_kyc"},
-			{Key: "let", Value: bson.D{{Key: "id_str", Value: bson.D{{Key: "$toString", Value: "$_id"}}}}},
-			{Key: "pipeline", Value: mongo.Pipeline{
-				{{Key: "$match", Value: bson.D{{Key: "$expr", Value: bson.D{{Key: "$eq", Value: bson.A{"$user_id", "$$id_str"}}}}}}},
-			}},
-			{Key: "as", Value: "kyc_root"},
+		{{Key: "$unwind", Value: bson.D{
+			{Key: "path", Value: "$member_info"},
+			{Key: "preserveNullAndEmptyArrays", Value: true},
 		}}},
 
-		// 4. Flatten the single-match arrays
-		{{Key: "$unwind", Value: bson.D{{Key: "path", Value: "$member_info"}, {Key: "preserveNullAndEmptyArrays", Value: true}}}},
-		{{Key: "$unwind", Value: bson.D{{Key: "path", Value: "$kyc_root"}, {Key: "preserveNullAndEmptyArrays", Value: true}}}},
-
-		// 5. Final Projection
-		{{Key: "$project", Value: bson.D{
-			{Key: "_id", Value: 1},
-			{Key: "linked_account", Value: bson.D{{Key: "$map", Value: bson.D{
-				{Key: "input", Value: bson.D{{Key: "$ifNull", Value: bson.A{"$linked_accounts_raw", bson.A{}}}}},
-				{Key: "as", Value: "acc"},
-				{Key: "in", Value: bson.D{
-					{Key: "account_number", Value: "$$acc.account_number"},
-					{Key: "account_holder_name", Value: "$$acc.account_holder_name"},
-					{Key: "account_type", Value: "$$acc.account_type"},
-					{Key: "account_branch_code", Value: "$$acc.account_branch_code"},
-					{Key: "is_active", Value: "$$acc.is_active"},
-					// Accessing flattened member_info
-					{Key: "account_branch_name", Value: "$member_info.account_branch_name"},
-				}},
+		// 6. Group back to customer document, collect linked accounts with branch name
+		{{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: "$_id"},
+			{Key: "linked_account", Value: bson.D{{Key: "$push", Value: bson.D{
+				{Key: "account_number", Value: "$linked_accounts_raw.account_number"},
+				{Key: "account_holder_name", Value: "$linked_accounts_raw.account_holder_name"},
+				{Key: "account_type", Value: "$linked_accounts_raw.account_type"},
+				{Key: "account_branch_code", Value: "$linked_accounts_raw.account_branch_code"},
+				{Key: "is_active", Value: "$linked_accounts_raw.linked_status"},
+				{Key: "account_branch_name", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$account_block_info.name", 0}}}},
 			}}}},
-			{Key: "personal_info", Value: bson.D{
-				// Using your double nested path here
-				{Key: "full_name", Value: "$kyc_root.kyc_data.full_name"},
-				{Key: "gender", Value: "$kyc_root.kyc_data.gender"},
-				{Key: "phone_number", Value: "$kyc_root.kyc_data.phone_number"},
-				{Key: "date_of_birth", Value: "$kyc_root.kyc_data.birth_date"},
-				// Corrected email path (from members collection)
+			{Key: "personal_info", Value: bson.D{{Key: "$first", Value: bson.D{
+				{Key: "full_name", Value: "$member_info.full_name"},
+				{Key: "gender", Value: "$member_info.gender"},
+				{Key: "phone_number", Value: "$member_info.phone_number"},
+				{Key: "date_of_birth", Value: "$member_info.birth_date"},
 				{Key: "email", Value: "$member_info.email"},
 				{Key: "customer_number", Value: "$member_info.customer_number"},
-			}},
+				{Key: "is_activated", Value: "$member_info.linked_status"},
+			}}}},
+		}}},
+
+		// 7. Final projection
+		{{Key: "$project", Value: bson.D{
+			{Key: "_id", Value: 1},
+			{Key: "linked_account", Value: 1},
+			{Key: "personal_info", Value: 1},
 		}}},
 	}
 
@@ -534,6 +540,7 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 			AccountType       string `bson:"account_type"`
 			AccountBranchCode string `bson:"account_branch_code"`
 			IsActive          bool   `bson:"is_active"`
+			AccountBranchName string `bson:"account_branch_name"`
 		} `bson:"linked_account"`
 		PersonalInfo struct {
 			FullName       string `bson:"full_name"`
@@ -541,6 +548,7 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 			PhoneNumber    string `bson:"phone_number"`
 			Email          string `bson:"email"`
 			CustomerNumber string `bson:"customer_number"`
+			IsActivated    bool   `bson:"is_activated"`
 			DateOfBirth    string `bson:"date_of_birth"`
 		} `bson:"personal_info"`
 	}
@@ -565,7 +573,8 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 			AccountType:       acc.AccountType,
 			AccountBranchCode: acc.AccountBranchCode,
 			IsActive:          acc.IsActive,
-			// AccountBranchName: to be filled when linked_account model supports it
+			AccountBranchName: acc.AccountBranchName,
+			// to be filled when linked_account model supports it
 		}
 	}
 
@@ -578,6 +587,7 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 			PhoneNumber:    res.PersonalInfo.PhoneNumber,
 			Email:          res.PersonalInfo.Email,
 			CustomerNumber: res.PersonalInfo.CustomerNumber,
+			IsActivated:    res.PersonalInfo.IsActivated,
 			DateOfBirth:    res.PersonalInfo.DateOfBirth,
 		},
 	}
@@ -641,6 +651,13 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 			{Key: "as", Value: "accounts"},
 		}}},
 
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "members"},
+			{Key: "localField", Value: "_id"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "member_info"},
+		}}},
+
 		// 2. MULTI-FIELD MATCH
 		// This stage checks the current member document AND the joined 'accounts' array simultaneously.
 		{{Key: "$match", Value: bson.D{
@@ -648,6 +665,7 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 				bson.M{"phone_number": number},             // Search in 'members'
 				bson.M{"accounts.customer_number": number}, // Search in joined 'linked_account' array
 				bson.M{"accounts.account_number": number},  // Search in joined 'linked_account' array
+				bson.M{"member_info.user_code": number},    // Search in joined 'linked_account' array
 			}},
 		}}},
 
@@ -661,7 +679,7 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 			{Key: "_id", Value: 1},
 			{Key: "user_id", Value: bson.M{"$toString": "$_id"}},
 			{Key: "user_code", Value: 1},
-			{Key: "full_name", Value: 1},
+			{Key: "customer_number", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$member_info.customer_number", 0}}}}, {Key: "full_name", Value: 1},
 			{Key: "phone_number", Value: 1},
 			{Key: "branch_code", Value: 1},
 			{Key: "gender", Value: 1},
@@ -680,16 +698,17 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 	defer cursor.Close(ctx)
 
 	var results []struct {
-		ID            bson.ObjectID `bson:"_id"`
-		UserID        string        `bson:"user_id"`
-		UserCode      string        `bson:"user_code"`
-		AccountNumber string        `bson:"account_number"`
-		FullName      string        `bson:"full_name"`
-		PhoneNumber   string        `bson:"phone_number"`
-		BranchCode    string        `bson:"branch_code"`
-		Gender        string        `bson:"gender"`
-		CreatedAt     time.Time     `bson:"created_at"`
-		IsBlocked     bool          `bson:"is_blocked"`
+		ID             bson.ObjectID `bson:"_id"`
+		UserID         string        `bson:"user_id"`
+		UserCode       string        `bson:"user_code"`
+		CustomerNumber string        `bson:"customer_number"`
+		AccountNumber  string        `bson:"account_number"`
+		FullName       string        `bson:"full_name"`
+		PhoneNumber    string        `bson:"phone_number"`
+		BranchCode     string        `bson:"branch_code"`
+		Gender         string        `bson:"gender"`
+		CreatedAt      time.Time     `bson:"created_at"`
+		IsBlocked      bool          `bson:"is_blocked"`
 	}
 
 	if err = cursor.All(ctx, &results); err != nil {
@@ -702,16 +721,17 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 
 	res := results[0]
 	return &customer_dto.CustomerListResponse{
-		ID:            res.ID.Hex(),
-		UserID:        res.UserID,
-		UserCode:      res.UserCode,
-		FullName:      res.FullName,
-		PhoneNumber:   res.PhoneNumber,
-		BranchCode:    res.BranchCode,
-		Gender:        res.Gender,
-		CreatedAt:     res.CreatedAt.Format(time.RFC3339),
-		IsBlocked:     res.IsBlocked,
-		AccountNumber: res.AccountNumber,
+		ID:             res.ID.Hex(),
+		UserID:         res.UserID,
+		UserCode:       res.UserCode,
+		CustomerNumber: res.CustomerNumber,
+		FullName:       res.FullName,
+		PhoneNumber:    res.PhoneNumber,
+		BranchCode:     res.BranchCode,
+		Gender:         res.Gender,
+		CreatedAt:      res.CreatedAt.Format(time.RFC3339),
+		IsBlocked:      res.IsBlocked,
+		AccountNumber:  res.AccountNumber,
 	}, nil
 }
 

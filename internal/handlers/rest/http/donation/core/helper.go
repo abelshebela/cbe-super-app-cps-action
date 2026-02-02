@@ -78,7 +78,8 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (donation.Don
 	}
 
 	if enabledStr := r.FormValue("enabled"); enabledStr != "" {
-		req.Enabled = enabledStr == "true"
+		tempval := enabledStr == "true"
+		req.Enabled = &tempval
 	}
 
 	var endDate, startDate time.Time
@@ -289,8 +290,8 @@ func validateImage(value interface{}) error {
 		return localization.ErrorMissingOrInvalidImage
 	}
 
-	if file.Size > (15 << 20) {
-		return validation.NewError("logo", localization.MsgFileTooLarge)
+	if file.Size > (10 << 20) {
+		return validation.NewError("logo", "file size exceeds 10MB limit")
 	}
 
 	return nil

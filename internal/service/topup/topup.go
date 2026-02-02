@@ -13,6 +13,7 @@ import (
 	"path"
 	"strings"
 
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
@@ -53,7 +54,7 @@ func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupReques
 	defer span.End()
 	s.logger.Infof("Createtopup called", "topup_name", req.Name)
 
-	exist, err := s.repo.Find(ctx, "TOP-"+req.Code, req.Name)
+	exist, err := s.repo.Find(ctx, req.Code, req.Name)
 	if err != nil {
 		span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorUnhandledServer.Code)
@@ -64,18 +65,18 @@ func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupReques
 		return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
 	}
 
-	if exist != nil && strings.EqualFold(exist.Code, "TOP-"+req.Code) {
-		span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-		return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
-	}
+	// if exist != nil && strings.EqualFold(exist.Code, "TOP-"+req.Code) {
+	// 	span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
+	// 	return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
+	// }
 
-	code, err := core.GeneratePrefixedName("TOP", req.Code, s.logger)
-	if err != nil {
-		span.AddEvent("GeneratePrefixedName error", trace.WithAttributes(attribute.String("error", err.Error())))
-		return errors.New(localization.ErrorUnhandledServer.Code)
-	}
+	// code, err := core.GeneratePrefixedName("TOP", req.Code, s.logger)
+	// if err != nil {
+	// 	span.AddEvent("GeneratePrefixedName error", trace.WithAttributes(attribute.String("error", err.Error())))
+	// 	return errors.New(localization.ErrorUnhandledServer.Code)
+	// }
 
-	req.Code = code
+	// req.Code = code
 
 	existCode, err := s.repo.Find(ctx, "code", req.Code)
 	if err != nil {
@@ -93,7 +94,7 @@ func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupReques
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	topup := core.ToCreateTopupDoc(req.Name, code, URL, req.Self, req.Other, req.Agent)
+	topup := core.ToCreateTopupDoc(req.Name, req.Code, URL, req.Self, req.Other, req.Agent)
 	topup.Enabled = false
 	//here since the unique id is nil 000.. use other unique id like the code
 	// if err := core.HandleCPSAction(ctx, s.cpsService, topup.ID.Hex(), constants.RequestCreatetopup, topup, nil, constants.ActionCreate); err != nil {
@@ -111,7 +112,8 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateTopup", "topupService", "topupService")
 	defer span.End()
 	s.logger.Infof("Updatetopup called", "topup_id", id)
-
+	var existing model.Topup
+	var err error
 	prevtopup, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		span.AddEvent("FindByID error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
@@ -119,42 +121,26 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 	}
 
 	if req.Name != "" {
-		exist, err := s.repo.Find(ctx, "TOP-"+req.Code, req.Name)
+		existing, err = s.repo.FindByOr(ctx, bson.M{"name": req.Name})
 		if err != nil {
-			span.AddEvent("Repo find by name error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("name", req.Name)))
-			return errors.New(localization.ErrorUnhandledServer.Code)
-		}
-		existingStringID := exist.ID.Hex()
-		if existingStringID != id {
-			if exist != nil && strings.EqualFold(exist.Name, req.Name) {
-				span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-				return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
+			if err.Error() != localization.ErrorResourceNotFound.Code {
+				s.logger.Errorf("[UpdateTopup] error whil checking existing information error: %v", err)
+				return err
 			}
-
-			if exist != nil && strings.EqualFold(exist.Code, "TOP-"+req.Code) {
-				span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-				return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
+		}
+	} else if req.Code != "" {
+		existing, err = s.repo.FindByOr(ctx, bson.M{"code": req.Code})
+		if err != nil {
+			if err.Error() != localization.ErrorResourceNotFound.Code {
+				s.logger.Errorf("[UpdateTopup] error whil checking existing information error: %v", err)
+				return err
 			}
 		}
 	}
 
-	if req.Code != "" {
-		code, err := core.GeneratePrefixedName("TOP", req.Code, s.logger)
-		if err != nil {
-			span.AddEvent("GeneratePrefixedName error", trace.WithAttributes(attribute.String("error", err.Error())))
-			return errors.New(localization.ErrorUnhandledServer.Code)
-		}
-		req.Code = code
-
-		exist, err := s.repo.FindByKeyValue(ctx, "code", req.Code)
-		if err != nil {
-			span.AddEvent("Repo find by code error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("code", req.Code)))
-			return errors.New(localization.ErrorUnhandledServer.Code)
-		}
-		if exist != nil && exist.ID.Hex() != id {
-			span.AddEvent("Topup code already exists", trace.WithAttributes(attribute.String("code", req.Code)))
-			return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
-		}
+	if err := core.ExistingIdentifierForUpdate(existing, id, req); err != nil {
+		s.logger.Infof("[Updateopup] the entered data is already existed error: %v", err)
+		return err
 	}
 
 	var avatarURL string

@@ -2,6 +2,8 @@ package logistics_merchant_service
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	erp_merchant_update_dto "cbe-super-app-cps-action/internal/constants/dto/erp_merchant_update"
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -94,7 +96,10 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			return nil, errors.New(localization.ErrorServiceUnhandledServerError.Code)
 		}
 		if prevMerchant.BankAccountNumber != merchant.BankAccountNumber {
-			if err := core.UpdateERP(ctx, e.cfg, merchant.BankAccountNumber, merchant.MerchantID, e.logger); err != nil {
+			dto := erp_merchant_update_dto.ERPUpdateRequest{
+				MainAccountNumber: merchant.BankAccountNumber,
+			}
+			if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
 				e.logger.Errorf("Failed to update ERP after creating logistics merchant: %v", err)
 				span.AddEvent("Failed to update ERP", trace.WithAttributes(
 					attribute.String("error", err.Error()),
@@ -113,6 +118,19 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			))
 			return nil, err
 		}
+		enabled := false
+		dto := erp_merchant_update_dto.ERPUpdateRequest{
+			CpsEnabled: &enabled,
+		}
+		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+			e.logger.Errorf("Failed to Disable ERP after delete request for logistics merchant: %v", err)
+			span.AddEvent("Failed to update ERP", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			// return nil, err
+
+		}
 	case string(constants.RequestEnableLogisticsMerchant):
 		err = e.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
 		if err != nil {
@@ -122,6 +140,19 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			))
 			return nil, err
 		}
+		enabled := true
+		dto := erp_merchant_update_dto.ERPUpdateRequest{
+			CpsEnabled: &enabled,
+		}
+		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+			e.logger.Errorf("Failed to Enable ERP after creating logistics merchant: %v", err)
+			span.AddEvent("Failed to update ERP", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			// return nil, err
+
+		}
 	case string(constants.RequestDisableLogisticsMerchant):
 		err = e.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
 		if err != nil {
@@ -130,6 +161,19 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			return nil, err
+		}
+		enabled := false
+		dto := erp_merchant_update_dto.ERPUpdateRequest{
+			CpsEnabled: &enabled,
+		}
+		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+			e.logger.Errorf("Failed to Disable ERP for logistics merchant: %v", err)
+			span.AddEvent("Failed to update ERP", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			// return nil, err
+
 		}
 	default:
 		e.logger.Errorf("Unsupported action requested, action: %s", cpsAction.RequestAction)
@@ -155,6 +199,7 @@ func (e *LogisticsMerchantService) Create(ctx context.Context, LogisticsMerchant
 
 	exist, err := core.CheckMerchantExists(ctx, e.repo, &types.CheckMiniAppMerchant{
 		BankAccountNumber: LogisticsMerchant.BankAccountNumber,
+		MerchantCode:      LogisticsMerchant.MerchantID,
 	}, nil)
 	if err != nil && err.Error() != localization.ErrorLogisticMerchantNotFound.Code {
 		e.logger.Errorf("Failed to check merchant existence: %v", err)

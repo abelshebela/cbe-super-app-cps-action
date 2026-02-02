@@ -14,10 +14,12 @@ type CPSActionRole struct {
 	AssignedViewersRoles []string      `json:"assigned_viewers_roles" bson:"assigned_viewers_roles"`
 	AssignedMakersRoles  []string      `json:"assigned_makers_roles" bson:"assigned_makers_roles"`
 	AssignedCheckerRoles [][]string    `json:"assigned_checkers_roles" bson:"assigned_checkers_roles"`
-	AssignedAuditorRoles []string      `json:"assigned_auditor_roles" bson:"assigned_auditor_roles"`
+	AssignedAuditorRoles [][]string    `json:"assigned_auditor_roles" bson:"assigned_auditor_roles"`
+	AuditorCount         int32         `json:"auditor_count" bson:"auditor_count"`
 	ApproverCount        int32         `json:"approver_count" bson:"approver_count"`
 	IsMakerOnly          bool          `json:"is_maker_only" bson:"is_maker_only"`
 	IsViweOnly           bool          `json:"is_view_only" bson:"is_view_only"`
+	Version              int64         `json:"version" bson:"version"`
 	Enabled              bool          `json:"enabled" bson:"enabled"`
 	UpdatedAt            time.Time     `json:"updated_at" bson:"updated_at"`
 	CreatedAt            time.Time     `json:"created_at" bson:"created_at"`

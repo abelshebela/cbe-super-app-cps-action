@@ -1,6 +1,7 @@
 package cps_user
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -27,15 +28,17 @@ type CPSUserStorage struct {
 	cpsAction         dal.MongoDal[imodel.CPSAction, imodel.CPSAction]
 	client            *mongo.Client
 	collection        *mongo.Collection
+	redisRepository   storage.RedisRepository
 	relatedCollection []string
 	logger            utils.Logger
 }
 
-func NewCPSUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, relatedCollection []string, logger utils.Logger) storage.CpsUserRepository {
+func NewCPSUserRepository(client *mongo.Client, redisRepository storage.RedisRepository, cfg *config.VaultConfig, dbName string, collection string, relatedCollection []string, logger utils.Logger) storage.CpsUserRepository {
 	return &CPSUserStorage{
 		dal:               dal.NewMongoDal[imodel.CPSUser, imodel.CPSUser](client, cfg, dbName, collection),
 		cpsAction:         dal.NewMongoDal[imodel.CPSAction, imodel.CPSAction](client, cfg, dbName, "cps_actions"),
 		client:            client,
+		redisRepository:   redisRepository,
 		collection:        client.Database(dbName).Collection(collection),
 		relatedCollection: relatedCollection,
 		logger:            logger,
@@ -93,6 +96,16 @@ func (r *CPSUserStorage) EnableOrDisable(ctx context.Context, userCode string, e
 	if err != nil {
 		r.logger.Errorf("[EnableOrDisable] failed to enable/disable CPS user: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	// remove user device id from redis
+	user, err := r.FindByID(ctx, userCode)
+	if err == nil {
+		if !enable {
+			objID := user.ID.Hex()
+			if err := r.redisRepository.Delete(ctx, fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, objID)); err != nil {
+				r.logger.Errorf("[EnableOrDisable] failed to delete user device id from redis: %v", err)
+			}
+		}
 	}
 	r.logger.Infof("[EnableOrDisable] CPS user enable/disable completed successfully")
 	return nil
@@ -154,7 +167,7 @@ func (r *CPSUserStorage) FindByID(ctx context.Context, id string) (*imodel.CPSUs
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			r.logger.Errorf("[FindByID] CPS user not found")
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
 		r.logger.Errorf("[FindByID] failed to find CPS user: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
@@ -183,7 +196,7 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},
-		bson.D{{Key: "$sort", Value: bson.D{{Key: "date_joined", Value: -1}}}},
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
 		bson.D{{Key: "$project", Value: bson.M{
 			"_id":           1,
 			"user_code":     1,
@@ -202,29 +215,26 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		}}},
 
 		bson.D{{Key: "$lookup", Value: bson.M{
-			"from":         "department",
-			"localField":   "department",
-			"foreignField": "_id",
-			"as":           "department_info",
+			"from":         "roles",
+			"localField":   "job_title",
+			"foreignField": "job_title",
+			"as":           "role_info",
 			"pipeline": mongo.Pipeline{
 				bson.D{{Key: "$project", Value: bson.M{
-					"_id":        1,
-					"department": 1,
+					"_id":  1,
+					"role": 1,
 				}}},
 			},
 		}}},
 		bson.D{{Key: "$unwind", Value: bson.M{
-			"path":                       "$department_info",
+			"path":                       "$role_info",
 			"preserveNullAndEmptyArrays": true,
 		}}},
 		bson.D{{Key: "$addFields", Value: bson.M{
-			"department": bson.M{
-				"id":   "$department_info._id",
-				"name": "$department_info.department",
-			},
+			"role": "$role_info.role",
 		}}},
 		bson.D{{Key: "$project", Value: bson.M{
-			"department_info": 0,
+			"role_info": 0,
 		}}},
 
 		// Use $facet for concurrent data fetching and counting
@@ -294,7 +304,7 @@ func (r *CPSUserStorage) GetPopulatedByID(ctx context.Context, userCode string) 
 
 	if !cursor.Next(ctx) {
 		r.logger.Errorf("[GetPopulatedByID] CPS user not found")
-		return nil, errors.New(localization.ErrorFileNotFound.Code)
+		return nil, errors.New(localization.ErrorUserNotFound.Code)
 	}
 
 	var resp cpsuser.CpsUserResponse
@@ -331,7 +341,7 @@ func (r *CPSUserStorage) GetPopulatedWithRole(ctx context.Context, userCode stri
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
-	fmt.Println("Decoded CPS User Response:", resp)
+	fmt.Println("Decoded CPS User Response:", resp.RoleCode)
 	r.logger.Infof("[GetPopulatedByID] populated CPS user retrieved successfully")
 	return &resp, nil
 }

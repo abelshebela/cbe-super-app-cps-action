@@ -15,8 +15,10 @@ import (
 	amountBasedAuth "cbe-super-app-cps-action/internal/glue/routing/amount_based_auth"
 	avatar "cbe-super-app-cps-action/internal/glue/routing/avatar"
 	"cbe-super-app-cps-action/internal/glue/routing/bank"
+	bps_action "cbe-super-app-cps-action/internal/glue/routing/bps_action"
 	bps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/bps_action_role"
 	cps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/cps_action_role"
+	customerkyc "cbe-super-app-cps-action/internal/glue/routing/customer_kyc"
 	device_version "cbe-super-app-cps-action/internal/glue/routing/device_version"
 	ecommerce_merchant "cbe-super-app-cps-action/internal/glue/routing/ecommerce-merchant"
 	event_merchant_routing "cbe-super-app-cps-action/internal/glue/routing/event_merchant"
@@ -62,6 +64,8 @@ import (
 	vaultAmountTier "cbe-super-app-cps-action/internal/glue/routing/vault_amount_tier"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
 
+	ussd_merchant_rout "cbe-super-app-cps-action/internal/glue/routing/ussd_merchant"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -103,6 +107,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	authMiddleware := customeMiddleware.InitAuthMiddleware(client, redisRepository, cfg.JwtSecretKey, cfg.Key, cfg.IV, *cfg, logger)
 
 	cpsaction.Init(r, handlerLayer.CpsActionHandler, authMiddleware)
+	bps_action.Init(r, handlerLayer.BpsActionHandler, authMiddleware)
 	budgetCategory.Init(r, handlerLayer.BudgetCategoryHandler, authMiddleware)
 	avatar.Init(r, handlerLayer.AvatarHandler, authMiddleware)
 	unlink.Init(r, handlerLayer.UnlinkHandler, authMiddleware)
@@ -114,7 +119,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	jobRole.Init(r, handlerLayer.jobRoleHandler, authMiddleware)
 	customer.Init(r, handlerLayer.customerHandler, authMiddleware)
 	bulk_service.Init(r, handlerLayer.bulkServiceHandler, authMiddleware)
-
+	ussd_merchant_rout.Init(r, handlerLayer.UssdMerchantHandler, authMiddleware)
 	password.Init(r, handlerLayer.PasswordHandler, authMiddleware)
 
 	feedback.Init(r, handlerLayer.FeedbackHandler, authMiddleware)
@@ -154,48 +159,9 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	customer_seg.Init(r, handlerLayer.CustomerSegmentationHandler, authMiddleware)
 	cps_roles.Init(r, handlerLayer.CPSRolesHandler, authMiddleware)
 	logistic_merchant_router.Init(r, handlerLayer.LogisticsMerchantHandler, authMiddleware)
+	customerkyc.Init(r, handlerLayer.CustomerKYCHandler, authMiddleware)
 
 	roles.Init(r, handlerLayer.RoleHandler, authMiddleware)
-	// router.Mount("/api/v1/cbesuperapp/cps_action", r)
-
-	// // Mini App Proxy Routes
-	// miniAppProxyHandler := miniapp.CreateMiniAppProxyHandler(logger, cfg)
-	// if miniAppProxyHandler == nil {
-	// 	logger.Fatalf("Failed to create mini-app proxy handler")
-	// }
-
-	// r.Route("/mini-apps", func(r chi.Router) {
-	// 	r.Use(authMiddleware.AuthenticateToken)
-	// 	r.Handle("/*", miniAppProxyHandler)
-	// })
-
-	// Mini App Category Proxy Routes
-	// miniAppCategoryProxyHandler := miniapp.CreateMiniAppCategoryProxyHandler(logger, cfg)
-	// if miniAppProxyHandler == nil {
-	// 	logger.Fatalf("Failed to create mini-app proxy handler")
-	// }
-
-	// r.Route("/mini-apps/categories", func(r chi.Router) {
-	// 	r.Use(authMiddleware.AuthenticateToken)
-	// 	r.Handle("/*", miniAppCategoryProxyHandler)
-	// })
-
-	// Public routes for password_rule
-
-	// Wrap all CPS routes in a secured router that authenticates first, then applies the central guard
-	// secured := chi.NewRouter()
-
-	// secured.Use("/password_rule", r.HandleFunc("/",handlerLayer.PasswordHandler.GetPasswordRule))
-
-	// secured.Use(authMiddleware.AuthenticateToken)
-	// // Central CPS Action Guard (Option B): authorize by role_id + action_name with cache.
-	// // Whitelist CPSAction endpoints under /actions (approve/reject/list...), allow them all.
-
-	// secured.Use(customeMiddleware.CPSActionRouteGuard([]string{"/password_rule", "/actions", "/actions/{action_code}/approve", "/actions/{action_code}/reject"}))
-
-	// // router.Mount("/api/v1/cbesuperapp/cps_action", public)
-	// router.Mount("/api/v1/cbesuperapp/cps_action", secured)
-	// // router.Use(customeMiddleware.ChiCORS())
 
 	secured := chi.NewRouter()
 
@@ -203,7 +169,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 		r.Get("/", handlerLayer.PasswordHandler.GetPasswordRule)
 		r.Group(func(r chi.Router) {
 			r.Use(authMiddleware.AuthenticateToken)
-			r.Use(customeMiddleware.CPSActionRouteGuard([]string{}))
+			// r.Use(customeMiddleware.CPSActionRouteGuard([]string{}))
 			r.Patch("/{id}", handlerLayer.PasswordHandler.RequestPasswordRuleUpdate)
 		})
 	})

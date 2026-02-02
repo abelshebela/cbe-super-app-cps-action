@@ -1,13 +1,16 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 
+	"cbe-super-app-cps-action/internal/constants"
 	servicesdto "cbe-super-app-cps-action/internal/constants/dto/services"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/services"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -54,6 +57,8 @@ func decodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}, log
 func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "createService", "handler", "services")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	var req servicesdto.CreateServiceRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -73,7 +78,15 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionCreated, nil)
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceCreated, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceCreateRequestSubmitted, nil)
 }
 
 // Update godoc
@@ -92,6 +105,8 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "updateService", "handler", "services")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("service ID is required"))
@@ -117,7 +132,15 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionCreated, nil)
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[Update] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceUpdated, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceUpdateRequestSubmitted, nil)
 }
 
 // Enable godoc
@@ -135,6 +158,8 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "enableService", "handler", "services")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("service ID is required for enable"))
@@ -154,7 +179,15 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionCreated, nil)
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceEnabled, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceEnableRequestSubmitted, nil)
 }
 
 // Disable godoc
@@ -172,6 +205,8 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "disableService", "handler", "services")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("service ID is required for disable"))
@@ -191,7 +226,15 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionCreated, nil)
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceDisabled, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceDisableRequestSubmitted, nil)
 }
 
 // GetAll godoc
@@ -216,8 +259,22 @@ func (a *servicesAdapter) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllServices", "handler", "services")
 	defer span.End()
 
-	filter := local_util.ExtractFilterParams(r)
-	list, err := a.app.GetAll(ctx, *filter)
+	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	list, err := a.app.GetAll(ctx, *filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -249,8 +306,22 @@ func (a *servicesAdapter) GetAllServiceList(w http.ResponseWriter, r *http.Reque
 	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllServicesList", "handler", "servicesList")
 	defer span.End()
 
-	filter := local_util.ExtractFilterParams(r)
-	list, err := a.app.GetAllServiceList(ctx, *filter)
+	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	list, err := a.app.GetAllServiceList(ctx, *filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())

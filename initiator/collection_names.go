@@ -2,13 +2,14 @@ package initiator
 
 // MongoDB Collection Names
 var (
-	DeviceVersionControllCollection  = "device_version_control"
-	MembersCollection                = "members"
-	HQCollection                     = "hq"
-	OTPsCollection                   = "otps"
-	MemberDevicesHistoryCollection   = "member_device_histories"
-	PINResetsCollection              = "pin_reset_sessions"
-	CPSActionsCollection             = "cps_actions"
+	DeviceVersionControllCollection = "device_version_control"
+	MembersCollection               = "members"
+	HQCollection                    = "hq"
+	OTPsCollection                  = "otps"
+	MemberDevicesHistoryCollection  = "member_device_histories"
+	PINResetsCollection             = "pin_reset_sessions"
+	CPSActionsCollection            = "cps_actions"
+	// CPSActionsCollection             = "cps_actions_qa"
 	AuthTierCollection               = "auth_tier"
 	AccountBlockCollection           = "account_block"
 	CardsCollection                  = "portal_cards"
@@ -52,11 +53,8 @@ var (
 	BPSActionListCollection          = "bps_action_list"
 	CPSActionListCollection          = "cps_action_list"
 	RolesCollection                  = "roles"
-
-	BPSActionApproveIndexCollection = "bps_action_approver_index"
-
-	MiniAppCategoryCollection = "mini_app_categories"
-
+	BPSActionApproveIndexCollection  = "bps_action_approver_index"
+	MiniAppCategoryCollection        = "mini_app_categories"
 	CPSActionRolesCollection         = "cps_action_roles"
 	CPSActionApproveIndexCollection  = "cps_action_approver_index"
 	EventMerchantsCollection         = "event_merchants"
@@ -66,6 +64,10 @@ var (
 	CustomerSegmentationCollection   = "customer_segmentations"
 	CPSRolesCollection               = "cps_roles"
 	CustomerFeedbackCollection       = "customer_feedbacks"
+	FaydaKYCollection                = "fayda_kyc"
+	UssdMerchantCollection           = "ussd_merchants"
+	BPSActionsCollection             = "bps_actions"
+	SurveyFeedbackCollection         = "survey_feedbacks"
 )
 
 // Minio Bucket Names

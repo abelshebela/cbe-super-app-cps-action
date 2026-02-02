@@ -68,12 +68,12 @@ func ToUpdateWalletDoc(existing local_model.Wallet, req walletDto.WalletRequest,
 		wallet.Services.Self = *req.Self
 	}
 
-	if req.Other != nil && existing.Services.Other {
+	if req.Other != nil && *req.Other != existing.Services.Other {
 		changeCount++
 		wallet.Services.Other = *req.Other
 	}
 
-	if req.Agent != nil && existing.Services.Agent {
+	if req.Agent != nil && *req.Agent != existing.Services.Agent {
 		changeCount++
 		wallet.Services.Agent = *req.Agent
 	}

@@ -115,7 +115,8 @@ type CpsUserPopulatedResponse struct {
 	ID                 bson.ObjectID             `json:"id" bson:"_id"` // use primitive.ObjectID instead of bson.ObjectID
 	UserCode           string                    `json:"user_code" bson:"user_code"`
 	FullName           string                    `json:"full_name" bson:"full_name"`
-	Role               RoleResponse              `json:"role,omitempty" bson:"role"`   // optional, can keep empty
+	Role               RoleResponse              `json:"role,omitempty" bson:"role"` // optional, can keep empty
+	RoleCode           string                    `json:"role_code" bson:"role_code"`
 	Department         *DepartmentResponse       `json:"department" bson:"department"` // populated via $lookup
 	JobTitle           string                    `json:"job_title" bson:"job_title"`
 	Gender             string                    `json:"gender" bson:"gender"`
@@ -151,7 +152,7 @@ type CPSUserWithDepartment struct {
 	Email        string        `json:"email,omitempty" bson:"email"`
 	UserName     string        `json:"username,omitempty" bson:"username"`
 	JobTitle     string        `json:"job_title,omitempty" bson:"job_title"`
-	Enabled      bool          `json:"enabled,omitempty" bson:"enabled"`
+	Enabled      bool          `json:"enabled" bson:"enabled"`
 	DateJoined   *time.Time    `json:"date_joined,omitempty" bson:"date_joined"`
 	LastModified *time.Time    `json:"last_modified,omitempty" bson:"last_modified"`
 	Country      string        `json:"country,omitempty" bson:"country"`

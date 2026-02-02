@@ -12,6 +12,7 @@ import (
 
 func InitMongo(mongoUri string, logger utils.Logger) *mongo.Client {
 	// Create client options with OpenTelemetry monitor and connection pool settings
+
 	opts := options.Client().
 		ApplyURI(mongoUri).
 		SetMonitor(otelmongo.NewMonitor()).
@@ -31,7 +32,7 @@ func InitMongo(mongoUri string, logger utils.Logger) *mongo.Client {
 
 	if err := mongoClient.Ping(ctx, nil); err != nil {
 		logger.Fatalf("failed to ping mongo: %v", err)
-	}
+	} //14G
 
 	return mongoClient
 }

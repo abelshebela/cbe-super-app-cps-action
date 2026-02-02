@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -19,6 +18,25 @@ import (
 
 var counter uint64
 var reHex24 = regexp.MustCompile(`(?i)[0-9a-f]{24}`)
+
+func RemoveDuplicates(slice []string) []string {
+	if slice == nil {
+		return nil
+	}
+
+	seen := make(map[string]struct{}, len(slice)) // track seen elements
+	result := make([]string, 0, len(slice))       // pre-allocate result
+
+	for _, s := range slice {
+		if _, ok := seen[s]; ok {
+			continue // skip duplicates
+		}
+		seen[s] = struct{}{}
+		result = append(result, s)
+	}
+
+	return result
+}
 
 func isHex(s string) bool {
 	for _, c := range s {
@@ -142,7 +160,7 @@ func ExtractFilterParams(r *http.Request) *types.Filter {
 
 	perPage := constants.DefaultPerPage
 	if v := query.Get("per_page"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 && n <= 100 {
 			perPage = n
 		} else {
 			perPage = 10
@@ -315,23 +333,11 @@ func StringToObjectID(id string) (bson.ObjectID, bool) {
 
 // GenerateActionCode generates a unique action code of length 20 with prefix "CBE_"
 func GenerateActionCode() string {
-	const (
-		prefix  = "BANK_"
-		codeLen = 20
-		charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	)
+	const prefix = "BANK_"
 
-	randomPart := codeLen - len(prefix)
-	b := make([]byte, randomPart)
+	timestamp := time.Now().Format("20060102150405")
 
-	// Seed once with high-resolution time
-	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-	for i := range b {
-		b[i] = charset[rnd.Intn(len(charset))]
-	}
-
-	return prefix + string(b)
+	return prefix + timestamp
 }
 
 func HandleMongoError(err error) (string, string) {
@@ -349,42 +355,26 @@ func HandleMongoError(err error) (string, string) {
 }
 
 func GenerateCPSUserCode() string {
-	const (
-		prefix  = "BANKCPSUSER_"
-		codeLen = 15
-		charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	)
+	const prefix = "BANKCPSUSER_"
 
-	randomPart := codeLen - len(prefix)
-	b := make([]byte, randomPart)
+	timestamp := time.Now().Format("20060102150405")
 
-	// Seed once with high-resolution time
-	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-	for i := range b {
-		b[i] = charset[rnd.Intn(len(charset))]
-	}
-
-	return prefix + string(b)
+	return prefix + timestamp
 }
 func GenerateBPSUserCode() string {
-	const (
-		prefix  = "BANKBPSUSER_"
-		codeLen = 15
-		charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	)
+	const prefix = "BANKBPSUSER_"
 
-	randomPart := codeLen - len(prefix)
-	b := make([]byte, randomPart)
+	timestamp := time.Now().Format("20060102150405")
 
-	// Seed once with high-resolution time
-	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
+	return prefix + timestamp
+}
 
-	for i := range b {
-		b[i] = charset[rnd.Intn(len(charset))]
-	}
+func GenerateCustomerCode() string {
+	const prefix = "CUST-"
 
-	return prefix + string(b)
+	timestamp := time.Now().Format("20060102150405")
+
+	return prefix + timestamp
 }
 
 func ParseDateString(dateStr string) (time.Time, error) {
@@ -405,4 +395,12 @@ func ParseDateString(dateStr string) (time.Time, error) {
 	}
 
 	return time.Time{}, fmt.Errorf("unable to parse date: %s", dateStr)
+}
+
+func ToInterfaceSlice(strs []string) []interface{} {
+	res := make([]interface{}, len(strs))
+	for i, v := range strs {
+		res[i] = v
+	}
+	return res
 }

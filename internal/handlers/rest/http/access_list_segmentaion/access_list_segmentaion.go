@@ -1,11 +1,14 @@
 package accesslistsegmentaion
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	access_list_segmentation_dto "cbe-super-app-cps-action/internal/constants/dto/access_list_segmentation"
 	accesslistsegmentation "cbe-super-app-cps-action/internal/constants/interfaces/access_list_segmentation"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -20,6 +23,11 @@ type accessListSegmentation struct {
 
 // CreateAccessListSegmentation implements accesslistsegmentation.AccessListSegmentationHandler.
 func (a *accessListSegmentation) CreateAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "CreateAccessListSegmentation", "handler", "accessListSegmentation")
+	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	var req access_list_segmentation_dto.CreateAccessListSegmentationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		a.logger.Errorf("[CreateAccessListSegmentation] failed to decode request body: %v", err)
@@ -31,9 +39,13 @@ func (a *accessListSegmentation) CreateAccessListSegmentation(w http.ResponseWri
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	if err := a.service.CreateAccessListSegmentation(r.Context(), req); err != nil {
+	if err := a.service.CreateAccessListSegmentation(ctx, req); err != nil {
 		a.logger.Errorf("[CreateAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationCreatedSP, nil)
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationCreated, nil)
@@ -65,6 +77,7 @@ func (a *accessListSegmentation) DisableAccessListSegmentation(w http.ResponseWr
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationDisabled, nil)
 }
 
@@ -104,6 +117,19 @@ func (a *accessListSegmentation) GetAccessListSegmentationByID(w http.ResponseWr
 // GetAllAccessListSegmentation implements accesslistsegmentation.AccessListSegmentationHandler.
 func (a *accessListSegmentation) GetAllAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	accessListSegmentations, err := a.service.GetAllAccessListSegmentation(r.Context(), *filterParams)
 	if err != nil {

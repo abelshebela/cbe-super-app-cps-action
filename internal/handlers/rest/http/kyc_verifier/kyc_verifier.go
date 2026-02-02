@@ -5,6 +5,7 @@ import (
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/kyc_verifier"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -14,6 +15,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	"cbe-super-app-cps-action/internal/constants"
+	types "cbe-super-app-cps-action/internal/constants/types"
 )
 
 type kycAdapter struct {
@@ -48,6 +52,20 @@ func (h *kycAdapter) GetKYCList(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getKycList", "handler", "kyc")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
@@ -111,6 +129,9 @@ func (h *kycAdapter) GetKYCByID(w http.ResponseWriter, r *http.Request) {
 func (h *kycAdapter) UpdateKYC(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateKyc", "handler", "kyc")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	var req kyc_verifier.UpdateKYCRequest
 	id := chi.URLParam(r, "id")
 
@@ -130,7 +151,13 @@ func (h *kycAdapter) UpdateKYC(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessKYCUpdatedRequestSent, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessKYCUpdatedSP, nil)
+
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessKYCUpdatedRequestSent, nil)
+
+	}
 }
 
 // ApproveKYC

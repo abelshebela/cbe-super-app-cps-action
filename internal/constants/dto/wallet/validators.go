@@ -66,6 +66,8 @@ func (w WalletRequest) Validate(isCreate bool) error {
 	if len(errs) > 0 {
 		return errs
 	}
+	w.Name = strings.TrimSpace(w.Name)
+	w.UniqueCode = strings.TrimSpace(w.UniqueCode)
 
 	return nil
 }
@@ -77,8 +79,8 @@ func validateAvatar(file *multipart.FileHeader) error {
 	if !utils.IsValidImage(file) {
 		return errors.New(localization.ErrorWalletAvatarInvalidType.Code)
 	}
-	if file.Size > (15 << 20) { // 15 MB limit
-		return validation.NewError("avatar", localization.MsgFileTooLarge)
+	if file.Size > (10 << 20) {
+		return validation.NewError("logo", "file size exceeds 10MB limit")
 	}
 	return nil
 }

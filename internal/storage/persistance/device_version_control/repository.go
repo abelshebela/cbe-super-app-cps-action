@@ -14,11 +14,11 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type DeviceVersionControlRepository struct {
@@ -28,9 +28,9 @@ type DeviceVersionControlRepository struct {
 	logger        utils.Logger
 }
 
-func NewDeviceVersionControlRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DeviceVersionControlRepository {
+func NewDeviceVersionControlRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DeviceVersionControlRepository {
 	return &DeviceVersionControlRepository{
-		deviceDal:     dal.NewMongoDal[model.DeviceVersionControl, model.DeviceVersionControl](client, cfg,dbName, collection),
+		deviceDal:     dal.NewMongoDal[model.DeviceVersionControl, model.DeviceVersionControl](client, cfg, dbName, collection),
 		client:        client,
 		kafkaProducer: kafkaProducer,
 		logger:        logger,
@@ -113,10 +113,10 @@ func (d *DeviceVersionControlRepository) EnableOrDisable(ctx context.Context, id
 	return nil
 }
 
-func (d *DeviceVersionControlRepository) FindByID(ctx context.Context, id string) (*model.DeviceVersionControl, error) {
+func (d *DeviceVersionControlRepository) FindByID(ctx context.Context, id string) (model.DeviceVersionControl, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, errors.New(localization.ErrorInvalidID.Code)
+		return model.DeviceVersionControl{}, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
 
@@ -125,13 +125,13 @@ func (d *DeviceVersionControlRepository) FindByID(ctx context.Context, id string
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			d.logger.Errorf("[FindByID] device version control not found")
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+			return model.DeviceVersionControl{}, errors.New(localization.ErrorResourceNotFound.Code)
 		}
 		d.logger.Errorf("[FindByID] failed to find device version control: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.DeviceVersionControl{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	d.logger.Infof("[FindByID] device version control retrieved successfully")
-	return result, nil
+	return *result, nil
 }
 
 func (d *DeviceVersionControlRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]model.DeviceVersionControl], error) {
@@ -161,7 +161,7 @@ func (d *DeviceVersionControlRepository) FindAllWithPagination(ctx context.Conte
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
 	// 5. Fetch data
-	data, err := d.deviceDal.FindAllWithPaginationN(ctx, filter, bson.M{}, skip, limit)
+	data, err := d.deviceDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		d.logger.Errorf("[FindAllWithPagination] failed to fetch device version controls: %v", err)
 		return types.PaginatedResponse[[]model.DeviceVersionControl]{}, errors.New(localization.ErrorUnexpectedError.Message)
@@ -185,7 +185,8 @@ func (d *DeviceVersionControlRepository) FindAllWithPagination(ctx context.Conte
 	}, nil
 }
 
-func (d *DeviceVersionControlRepository) FindOne(ctx context.Context, filter bson.M) (model.DeviceVersionControl, error) {
+func (d *DeviceVersionControlRepository) FindOne(ctx context.Context, platform, lastVersion string) (model.DeviceVersionControl, error) {
+	filter := bson.M{"platform": platform, "latest_version": lastVersion}
 	result, err := d.deviceDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

@@ -138,12 +138,10 @@ func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topu
 		"is_deleted": false,
 	}
 
-	var orFilters []bson.M
+	orFilters := make([]bson.M, 0)
 
 	if code != "" {
-		orFilters = append(orFilters, bson.M{
-			"code": code,
-		})
+		orFilters = append(orFilters, bson.M{"code": code})
 	}
 
 	if name != "" {
@@ -162,13 +160,26 @@ func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topu
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			w.logger.Warnf("No Topup found with %s: %s", code, name)
+			w.logger.Warnf("No Topup found with code=%s name=%s", code, name)
 			return nil, nil
 		}
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return doc, nil
+}
+func (b *TopupStorage) FindByOr(ctx context.Context, filter bson.M) (model.Topup, error) {
+
+	data, err := b.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			b.logger.Infof("[FindByOr] no topup found matching the criteria")
+			return model.Topup{}, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		b.logger.Errorf("[FindByOr] failed to find topup: %v", err)
+		return model.Topup{}, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return *data, nil
 }
 
 func (e *TopupStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Topup], error) {

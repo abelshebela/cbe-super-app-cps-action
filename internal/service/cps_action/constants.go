@@ -39,11 +39,22 @@ func IsValidActionType(actionType string) bool {
 type RequestAction string
 
 const (
+	// Customer KYC
+	RequestCreateCustomerKYC RequestAction = "CREATE_CUSTOMER_KYC"
+	RequestUpdateCustomerKYC RequestAction = "UPDATE_CUSTOMER_KYC"
+	RequestDeleteCustomerKYC RequestAction = "DELETE_CUSTOMER_KYC"
+
 	RequestCreateCpsRole  RequestAction = "CREATE_CPS_ROLE"
 	RequestUpdateCpsRole  RequestAction = "UPDATE_CPS_ROLE"
 	RequestDeleteCpsRole  RequestAction = "DELETE_CPS_ROLE"
 	RequestEnableCpsRole  RequestAction = "ENABLE_CPS_ROLE"
 	RequestDisableCpsRole RequestAction = "DISABLE_CPS_ROLE"
+
+	RequestCreateUssdMerchant  RequestAction = "CREATE_USSD_MERCHANT"
+	RequestUpdateUssdMerchant  RequestAction = "UPDATE_USSD_MERCHANT"
+	RequestDeleteUssdMerchant  RequestAction = "DELETE_USSD_MERCHANT"
+	RequestEnableUssdMerchant  RequestAction = "ENABLE_USSD_MERCHANT"
+	RequestDisableUssdMerchant RequestAction = "DISABLE_USSD_MERCHANT"
 
 	RequestCreateCustomerSegmentation  RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
 	RequestUpdateCustomerSegmentation  RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
@@ -656,6 +667,10 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateAccessListSegmentation:        {},
 	RequestUpdateAccessListSegmentation:        {},
 	RequestEnableDisableAccessListSegmentation: {},
+
+	RequestCreateCustomerKYC: {},
+	RequestUpdateCustomerKYC: {},
+	RequestDeleteCustomerKYC: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -727,14 +742,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableService,
 		RequestDisableService,
 	},
-	// "ACCOUNTVALIDATION": {
-	// 	RequestUser,
-	// 	RequestUpdateAccountValidation,
-	// 	RequestEnableUser,
-	// 	RequestDisableUser,
-	// 	RequestUpdateUser,
-	// 	RequestArchiveUser,
-	// },
+	"USSDMERCHANT": {
+		RequestCreateUssdMerchant,
+		RequestUpdateUssdMerchant,
+		RequestDeleteUssdMerchant,
+		RequestEnableUssdMerchant,
+		RequestDisableUssdMerchant,
+	},
 	"EVENT": {
 		RequestCreateEvent,
 		RequestDeleteEvent,
@@ -926,7 +940,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCpsUserEnable,
 		RequestCpsUserDisable,
 	},
-	"BULKSERVICE": {
+	"BULKSERVICEALLUSER": {
 		RequestBulkServiceEnable,
 		RequestBulkServiceDisable,
 	},
@@ -1104,6 +1118,11 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteCpsRole,
 		RequestEnableCpsRole,
 		RequestDisableCpsRole,
+	},
+	"CUSTOMERKYC": {
+		RequestCreateCustomerKYC,
+		RequestUpdateCustomerKYC,
+		RequestDeleteCustomerKYC,
 	},
 }
 

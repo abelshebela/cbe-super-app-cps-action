@@ -3,7 +3,6 @@ package eventhandler
 import (
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/constants"
 	event "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -20,7 +19,6 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.CreateEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -29,7 +27,6 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.UpdateEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -38,7 +35,6 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.EnableEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -47,7 +43,6 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.DisableEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -56,7 +51,6 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.DeleteEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -65,7 +59,6 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.FetchEventByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker, constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -74,7 +67,6 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.FetchEvents,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker, constants.Maker, constants.IFBMaker}),
 			},
 		},
 	}

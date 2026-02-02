@@ -8,6 +8,7 @@ import (
 
 	feedbackConfig "cbe-super-app-cps-action/config"
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 
@@ -25,7 +26,9 @@ type feedbackServiceAdapter struct {
 func (a *feedbackServiceAdapter) CreateFeedback(ctx context.Context, req feedback.FeedbackRequest, userID string) (*model.Feedback, error) {
 	return a.svc.CreateFeedback(ctx, req, userID)
 }
-
+func (a *feedbackServiceAdapter) CreateSurveyFeedback(ctx context.Context, surveyFeedback feedback.SurveyFeedbackReq) (*imodel.SurveyFeedback, error) {
+	return a.svc.CreateSurveyFeedback(ctx, surveyFeedback)
+}
 func InitFeedbackConsumer(feedbackSvc service.FeedbackService, cfg *config.VaultConfig, logger utils.Logger) error {
 	kafkaConfig := feedbackConfig.LoadKafkaConfig(cfg, logger)
 	if kafkaConfig.Brokers == "" {

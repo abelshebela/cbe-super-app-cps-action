@@ -85,4 +85,7 @@ type Persistence struct {
 	CustomerSegmentation              storage.CustomerSegmentationRepository
 	CPSRoles                          storage.CPSRolesRepository
 	LogisticsMerchantPersistence      storage.LogisticsMerchantRepository
+	CustomerKYCPersistence            storage.CustomerKYCRepository
+	UssdMerchantPersistence           storage.UssdMerchantRepository
+	BpsActionPersistence              storage.BPSActionRepository
 }
