@@ -437,6 +437,11 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 	var req cpsactionDto.ActionRequest
 	makerData := local_util.ExtractUserFromContext(ctx)
 
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+		return
+	}
 	// Fetch action and attach checker_index context for this approver
 	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, "")
 	if err != nil {
