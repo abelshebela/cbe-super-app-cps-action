@@ -1378,7 +1378,7 @@ func (a *cpsActionAdapter) ApproverAuditorAllocations(w http.ResponseWriter, r *
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, resp)
 }
 
-func (a *cpsActionAdapter) GetAutorizersLevel(w http.ResponseWriter, r *http.Request) {
+func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "rejectCpsAction", "handler", "cpsAction")
 	defer span.End()
 
