@@ -10,6 +10,7 @@ import (
 	avatarHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/avatar"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
 	bankvaultInterface "cbe-super-app-cps-action/internal/constants/interfaces/bankvault"
+	bpsActionInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_action"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	budgetCategory "cbe-super-app-cps-action/internal/constants/interfaces/budget_category"
 	bulk_service_inbound "cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
@@ -70,6 +71,7 @@ import (
 	avatarHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/avatar"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
 	bankvaulthandler "cbe-super-app-cps-action/internal/handlers/rest/http/bankvault"
+	bpsActionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_action_handler"
 	actionrole_handler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_action_role"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
 	budgetCategoryHandler "cbe-super-app-cps-action/internal/handlers/rest/http/budget_category"
@@ -115,6 +117,7 @@ type Handler struct {
 	RoleHandler                   roleInbound.RolesInbound
 	jobRoleHandler                job_role_interface.RolesInbound
 	CpsActionHandler              actionInbound.CPSActionAdapter
+	BpsActionHandler              bpsActionInbound.BPSActionAdapter
 	UnlinkHandler                 unlinkInbound.UnlinkAdapter
 	EventHandler                  eventInbound.EventAdapter
 	WalletHandler                 walletInbound.WalletAdapter
@@ -173,6 +176,7 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		BpsHandler:                bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
 		BankHandler:               bankHandler.InitBankAdapter(serviceLayer.Bank, logger),
 		CpsActionHandler:          cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
+		BpsActionHandler:          bpsActionHandler.InitBPSActionAdapter(serviceLayer.BPSActionService, logger),
 		EventHandler:              eventhandler.InitEventAdapter(serviceLayer.EventService, logger),
 		FeedbackHandler:           feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
 		PortalCardHander:          portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),

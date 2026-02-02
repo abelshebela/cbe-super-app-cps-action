@@ -8,3 +8,8 @@ type CPSActionCountResponse struct {
 	Inprogress int `json:"total_inprogress_audit"`
 	Completed  int `json:"total_completed_audit"`
 }
+
+type AutorizersLevelResponse struct {
+	CheckerIndex int64 `json:"checker_index"`
+	AuditorIndex int64 `json:"auditor_index"`
+}
