@@ -1396,6 +1396,7 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 		actionName = mod
 	}
 
+	var checkerIdx, auditorIdx int64
 	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
 		role, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 		if role == "" {
@@ -1415,11 +1416,18 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
+
+		if idxDoc.CheckerIndex != nil {
+			checkerIdx = int64(*idxDoc.CheckerIndex)
+		}
+		if idxDoc.AuditorIndex != nil {
+			auditorIdx = int64(*idxDoc.AuditorIndex)
+		}
 	}
 
 	autorizersLevel := cpsactionDto.AutorizersLevelResponse{
-		CheckerIndex: int64(*idxDoc.CheckerIndex),
-		AuditorIndex: int64(*idxDoc.AuditorIndex),
+		CheckerIndex: checkerIdx,
+		AuditorIndex: auditorIdx,
 	}
 
 	localization.SendSuccessResponse(w, localization.AutorizersLevelFetchedSuccessfully, autorizersLevel)
