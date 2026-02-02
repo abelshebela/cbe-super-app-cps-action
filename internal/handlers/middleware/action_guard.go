@@ -9,6 +9,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -44,9 +45,11 @@ func (c *allowCache) set(key string, val allowEntry) {
 }
 
 var (
-	cpsApproveRepo storage.CPSActionApproveIndexRepository
-	cpsGuardCache  = &allowCache{data: make(map[string]allowEntry), ttl: 5 * time.Minute}
-	guardLogger    utils.Logger
+	cpsApproveRepo              storage.CPSActionApproveIndexRepository
+	bpsApproveRepo              storage.BPSActionApproveIndexRepository
+	clientOrchestrationProducer *kafka.ClientOrchestrationProducer
+	cpsGuardCache               = &allowCache{data: make(map[string]allowEntry), ttl: 5 * time.Minute}
+	guardLogger                 utils.Logger
 )
 
 func InitCPSActionGuard(repo storage.CPSActionApproveIndexRepository, ttl time.Duration, logger utils.Logger) {
@@ -55,6 +58,10 @@ func InitCPSActionGuard(repo storage.CPSActionApproveIndexRepository, ttl time.D
 		cpsGuardCache.ttl = ttl
 	}
 	guardLogger = logger
+}
+
+func InitClientOrchestrationProducer(producer *kafka.ClientOrchestrationProducer) {
+	clientOrchestrationProducer = producer
 }
 
 func RequireCPSAction(actionName string) func(http.Handler) http.Handler {
