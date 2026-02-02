@@ -10,7 +10,6 @@ type CPSActionCountResponse struct {
 }
 
 type AutorizersLevelResponse struct {
-	MakerIndex   int `json:"maker_index"`
-	CheckerIndex int `json:"checker_index"`
-	AuditorIndex int `json:"auditor_index"`
+	CheckerIndex float64 `json:"checker_index"`
+	AuditorIndex float64 `json:"auditor_index"`
 }
