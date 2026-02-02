@@ -1418,9 +1418,8 @@ func (a *cpsActionAdapter) GetAutorizersLevel(w http.ResponseWriter, r *http.Req
 	}
 
 	autorizersLevel := cpsactionDto.AutorizersLevelResponse{
-		MakerIndex:   int(*idxDoc.MakerIndex),
-		CheckerIndex: int(*idxDoc.CheckerIndex),
-		AuditorIndex: int(*idxDoc.AuditorIndex),
+		CheckerIndex: float64(*idxDoc.CheckerIndex),
+		AuditorIndex: float64(*idxDoc.AuditorIndex),
 	}
 
 	localization.SendSuccessResponse(w, localization.AutorizersLevelFetchedSuccessfully, autorizersLevel)
