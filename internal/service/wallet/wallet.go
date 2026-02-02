@@ -66,10 +66,10 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 
 	if exist != nil {
 		span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-		if strings.TrimSpace(exist.Name) == strings.TrimSpace(req.Name) {
+		if strings.EqualFold(strings.TrimSpace(exist.Name), strings.TrimSpace(req.Name)) {
 			return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
 		}
-		if strings.TrimSpace(exist.UniqueCode) == strings.TrimSpace(req.UniqueCode) {
+		if strings.EqualFold(strings.TrimSpace(exist.UniqueCode), strings.TrimSpace(req.UniqueCode)) {
 			return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
 		}
 		s.logger.Errorf("wallet already exists wallet: %v", exist)
@@ -115,11 +115,11 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
 		if exist != nil && exist.ID.Hex() != id {
-			if exist.Name == req.Name {
+			if strings.EqualFold(strings.TrimSpace(exist.Name), strings.TrimSpace(req.Name)) {
 				span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
 				return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
 			}
-			if exist.UniqueCode == req.UniqueCode {
+			if strings.EqualFold(strings.TrimSpace(exist.UniqueCode), strings.TrimSpace(req.UniqueCode)) {
 				span.AddEvent("Wallet code already exists", trace.WithAttributes(attribute.String("unique_code", req.UniqueCode)))
 				return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
 			}
