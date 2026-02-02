@@ -87,8 +87,11 @@ func Init(ctx context.Context) {
 	logger.Infof("Minio client initialized")
 
 	logger.Infof("initializing kafka")
-	notificationProducer, clientOrchestrationProducer := InitKafkaService(cfg, logger) //27G - 24G= 3G
+	notificationProducer, clientOrchestrationProducer, accessListSegmentationProducer := InitKafkaService(cfg, logger) //27G - 24G= 3G
 	logger.Infof("kafka initialized")
+
+	// Expose orchestration producer to handler/middleware layer for BPS action publishing.
+	mid.InitClientOrchestrationProducer(clientOrchestrationProducer)
 
 	// Init shared kafka notification producer
 	sharedKafkaProducer, err := shared_producer.NewNotificationProducer(*cfg, logger)
@@ -108,7 +111,7 @@ func Init(ctx context.Context) {
 
 	redisRepository := redisStorage.GetRedisRepository()
 
-	persistence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, notificationApi, *notificationProducer, sharedKafkaProducer, *clientOrchestrationProducer, redisRepository, cfg, logger)
+	persistence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, notificationApi, *notificationProducer, sharedKafkaProducer, *clientOrchestrationProducer, *accessListSegmentationProducer, redisRepository, cfg, logger)
 	logger.Infof("Persistence initialized")
 
 	// Initialize CPS Action Guard (role_id + action_name authorization with TTL cache)

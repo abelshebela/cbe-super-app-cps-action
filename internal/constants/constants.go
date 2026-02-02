@@ -91,6 +91,10 @@ const (
 	Reversed                            = "REVERSED"
 	Canceled                            = "CANCELED"
 	ContextKeyMetadata       ContextKey = "context_metadata"
+	BPSApproveTopic                     = "bps.action.approve"
+	BPSRejectTopic                      = "bps.action.reject"
+	BPSAuditorClaimTopic                = "bps.action.auditor_claim"
+	BPSAuditorMarkTopic                 = "bps.action.auditor_mark"
 )
 
 const (
@@ -871,6 +875,7 @@ const (
 	ClientOrchestrationNewsTagTopic              KafkaTopic = "news_tag.sync.cps"
 	ClientOrchestrationNotificationTopic         KafkaTopic = "notification.sync.cps"
 	ClientOrchestrationServicesTopic             KafkaTopic = "services.sync.cps"
+	AccessListSegmentationTopic                  KafkaTopic = "customer_segmentation"
 )
 
 type FinancialInstitutionType string

@@ -66,6 +66,8 @@ func (w WalletRequest) Validate(isCreate bool) error {
 	if len(errs) > 0 {
 		return errs
 	}
+	w.Name = strings.TrimSpace(w.Name)
+	w.UniqueCode = strings.TrimSpace(w.UniqueCode)
 
 	return nil
 }

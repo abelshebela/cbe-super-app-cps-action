@@ -10,6 +10,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	access_list_segmentation_dto "cbe-super-app-cps-action/internal/constants/dto/access_list_segmentation"
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
+	bpsActionDto "cbe-super-app-cps-action/internal/constants/dto/bps_action"
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	cps_actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/cps_action_role"
 	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
@@ -212,6 +213,19 @@ type BPSUserRepository interface {
 	FindByOr(ctx context.Context, phone, email, username string) (*bps_model.BPSUser, error)
 }
 type BPSActionRepository interface {
+	Save(ctx context.Context, cpsAction *bps_model.BPSAction) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (types.PaginatedResponse[[]bps_model.BPSAction], error)
+	FindOne(ctx context.Context, filter bson.M) (*bps_model.BPSAction, error)
+	SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
+	SanitizedFindAllWithPaginationForApprover(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
+	SanitizedFindAllWithPaginationForAuditor(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
+	SanitizedFindAllWithPaginationCPSActions(ctx context.Context, userID, role string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
+	SanitizedFindOne(ctx context.Context, filter bson.M) (*bps_model.BPSAction, error)
+	Update(ctx context.Context, actionCode string, update bps_model.BPSAction) (*bps_model.BPSAction, error)
+	UpdateByActionCode(ctx context.Context, actionCode string, update bps_model.BPSAction) (*bps_model.BPSAction, error)
+	UpdateCustome(ctx context.Context, filter, update bson.M) error
+	Delete(ctx context.Context, id string) error
+	GetCountByDepartment(ctx context.Context, department string) (*bpsActionDto.BPSActionCountResponse, error)
 	GetBPSActionByUserID(ctx context.Context, userID string, filter types.Filter) (types.PaginatedResponse[[]bps_model.BPSAction], error)
 }
 
@@ -500,6 +514,7 @@ type TopupRepository interface {
 	FindByKeyValue(ctx context.Context, key string, value string) (*model.Topup, error)
 
 	FindByID(ctx context.Context, id string) (*model.Topup, error)
+	FindByOr(ctx context.Context, filter bson.M) (model.Topup, error)
 	Find(ctx context.Context, key, value string) (*model.Topup, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Topup], error)
 }
@@ -647,8 +662,8 @@ type BPSActionApproveIndexRepository interface {
 	FindByRoleAndAction(ctx context.Context, roleID string, actionName string) (*imodel.BPSActionApproveIndex, error)
 	DeleteMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
 	InsertMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
-	DeleteAll(ctx context.Context, prev imodel.CPSActionRoleResposne) error
-	InsertAll(ctx context.Context, new imodel.CPSActionRole) error
+	DeleteAll(ctx context.Context, prev imodel.BPSActionApproveIndex) error
+	InsertAll(ctx context.Context, new imodel.BPSActionApproveIndex) error
 }
 
 type SitotaRepository interface {

@@ -503,7 +503,7 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 				{Key: "account_holder_name", Value: "$linked_accounts_raw.account_holder_name"},
 				{Key: "account_type", Value: "$linked_accounts_raw.account_type"},
 				{Key: "account_branch_code", Value: "$linked_accounts_raw.account_branch_code"},
-				{Key: "is_active", Value: "$linked_accounts_raw.is_active"},
+				{Key: "is_active", Value: "$linked_accounts_raw.linked_status"},
 				{Key: "account_branch_name", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$account_block_info.name", 0}}}},
 			}}}},
 			{Key: "personal_info", Value: bson.D{{Key: "$first", Value: bson.D{
@@ -513,7 +513,7 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 				{Key: "date_of_birth", Value: "$member_info.birth_date"},
 				{Key: "email", Value: "$member_info.email"},
 				{Key: "customer_number", Value: "$member_info.customer_number"},
-				{Key: "is_activated", Value: "$member_info.is_activated"},
+				{Key: "is_activated", Value: "$member_info.linked_status"},
 			}}}},
 		}}},
 

@@ -15,6 +15,7 @@ import (
 	amountBasedAuth "cbe-super-app-cps-action/internal/glue/routing/amount_based_auth"
 	avatar "cbe-super-app-cps-action/internal/glue/routing/avatar"
 	"cbe-super-app-cps-action/internal/glue/routing/bank"
+	bps_action "cbe-super-app-cps-action/internal/glue/routing/bps_action"
 	bps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/bps_action_role"
 	cps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/cps_action_role"
 	customerkyc "cbe-super-app-cps-action/internal/glue/routing/customer_kyc"
@@ -106,6 +107,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	authMiddleware := customeMiddleware.InitAuthMiddleware(client, redisRepository, cfg.JwtSecretKey, cfg.Key, cfg.IV, *cfg, logger)
 
 	cpsaction.Init(r, handlerLayer.CpsActionHandler, authMiddleware)
+	bps_action.Init(r, handlerLayer.BpsActionHandler, authMiddleware)
 	budgetCategory.Init(r, handlerLayer.BudgetCategoryHandler, authMiddleware)
 	avatar.Init(r, handlerLayer.AvatarHandler, authMiddleware)
 	unlink.Init(r, handlerLayer.UnlinkHandler, authMiddleware)

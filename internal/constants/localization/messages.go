@@ -166,6 +166,14 @@ const (
 	MsgCPSActionCanceledSuccessfully       = "CPS Action Canceled Successfully"
 	MsgCPSActionsRetrieved                 = "CPS actions retrieved successfully"
 
+	// BPS Action related success messages
+	MsgBPSActionsRetrievedSuccessfully = "BPS Actions retrieved successfully"
+	MsgBPSActionCountSuccessfully      = "BPS Actions count retrieved successfully"
+	MsgBPSActionAuthorizedSuccessfully = "BPS Action authorized successfully"
+	MsgBPSActionCheckedSuccessfully    = "BPS Action checked successfully"
+	MsgBPSActionRejectedSuccessfully   = "BPS Action rejected successfully"
+	MsgBPSActionsRetrieved             = "BPS actions retrieved successfully"
+
 	// Wallet related success messages
 	MsgWalletCreationRequestSent    = "Wallet creation request sent successfully"
 	MsgWalletUpdateRequestSent      = "Wallet update request sent successfully"
@@ -355,6 +363,7 @@ const (
 	MsgCPSActionUpdatedSuccessfully       = "CPS action updated successfully"
 	MsgCPSActionStatusUpdatedSuccessfully = "CPS action status updated successfully"
 	MsgCPSActionFetchedSuccessfully       = "CPS action fetched successfully"
+	MsgBPSActionFetchedSuccessfully       = "BPS action fetched successfully"
 
 	// Ad related success messages
 	MsgAdvertCreatedSuccessfully     = "Advert created successfully"
@@ -648,6 +657,7 @@ const (
 	MsgLogoIsRequired                    = "Company logo is required"
 	MsgAccountNumberValidationFailed     = "Account number validation failed"
 	MsgAccountNotFound                   = "Account number not found"
+	MsgAccountNotValid                   = "Account number not valid"
 	MsgAccountNotActive                  = "Account number is not active"
 	MsgDonationIconRequired              = "Icon is required"
 	MsgDonationLogoRequired              = "Logo is required"

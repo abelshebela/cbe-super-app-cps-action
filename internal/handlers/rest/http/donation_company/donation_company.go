@@ -243,7 +243,13 @@ func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	if !local_util.IsValidCBEAccountNumber(accountNumber) {
+		d.logger.Errorf("account nmumber is not valid")
+		localization.SendBadRequestResponse(w, localization.ErrorAccountNumberNotValid.Message)
+		return
+	}
 	span.SetAttributes(attribute.String("donation_company.account_number", accountNumber))
+
 	accountInfo, err := d.donationCompanyApp.AccountLookup(ctx, accountNumber)
 	if err != nil {
 		span.RecordError(err)
