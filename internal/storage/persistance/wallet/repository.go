@@ -156,7 +156,7 @@ func (w *WalletStorage) Find(ctx context.Context, code, name string) (*local_mod
 	if name != "" {
 		orFilters = append(orFilters, bson.M{
 			"name": bson.M{
-				"$regex":   "^" + name + "$",
+				"$regex":   name,
 				"$options": "i",
 			},
 		})
