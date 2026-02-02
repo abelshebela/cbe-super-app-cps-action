@@ -109,10 +109,9 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	}
 
 	pipeline := mongo.Pipeline{
-		// Match stage
+
 		bson.D{{Key: "$match", Value: match}},
 
-		// Lookup roles
 		bson.D{{Key: "$lookup", Value: bson.D{
 			{Key: "from", Value: "roles"},
 			{Key: "localField", Value: "job_title"},
@@ -120,19 +119,31 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			{Key: "as", Value: "roles"},
 		}}},
 
-		// Extract ONLY ONE role
 		bson.D{{Key: "$addFields", Value: bson.D{
-			{Key: "user_role", Value: bson.D{
-				{Key: "$arrayElemAt", Value: bson.A{"$roles.role", 0}},
+			{Key: "role_code", Value: bson.D{
+				{Key: "$arrayElemAt", Value: bson.A{"$roles.role", 0}}, // Make sure field is "role" not "code"
 			}},
 		}}},
 
-		// Remove roles array
-		bson.D{{Key: "$project", Value: bson.D{
-			{Key: "roles", Value: 0},
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "job_roles"},
+			{Key: "localField", Value: "role_code"}, // MUST use the extracted role_code
+			{Key: "foreignField", Value: "code"},    // matches job_roles.code
+			{Key: "as", Value: "job_roles"},
 		}}},
 
-		// Pagination
+		bson.D{{Key: "$addFields", Value: bson.D{
+			{Key: "user_role", Value: bson.D{
+				{Key: "$arrayElemAt", Value: bson.A{"$job_roles.name", 0}},
+			}},
+		}}},
+
+		bson.D{{Key: "$project", Value: bson.D{
+			{Key: "roles", Value: 0},
+			{Key: "job_roles", Value: 0},
+			{Key: "role_code", Value: 0},
+		}}},
+
 		bson.D{{Key: "$skip", Value: filterParam.PerPage * (filterParam.Page - 1)}},
 		bson.D{{Key: "$limit", Value: filterParam.PerPage}},
 	}
