@@ -605,7 +605,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 	}
 
 	var finalMatch bson.M
-	if role == "checker" && filterParam.Filters["action_status"] == "PENDING" {
+	if role == "checker" && filterParam.Filters["action_status"] == "PENDING" || role == "auditor" {
 		finalMatch = filter
 	} else {
 		finalMatch = bson.M{
