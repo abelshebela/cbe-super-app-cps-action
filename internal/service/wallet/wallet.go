@@ -114,7 +114,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
-		if exist != nil && exist.ID.Hex() != id {
+		if exist != nil && local_util.FirstHex24(exist.ID.Hex()) != id {
 			if strings.EqualFold(strings.TrimSpace(exist.Name), strings.TrimSpace(req.Name)) {
 				span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
 				return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
