@@ -63,6 +63,15 @@ type bpsActionRepository struct {
 	logger     utils.Logger
 }
 
+func NewBPSActionRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger, cfg *config.VaultConfig) storage.BPSActionRepository {
+	return &bpsActionRepository{
+		client:     client,
+		actionDal:  dal.NewMongoDal[bps_action.BPSAction, bps_action.BPSAction](client, cfg, dbName, collection),
+		collection: client.Database(dbName).Collection(collection),
+		logger:     logger,
+	}
+}
+
 // GetBPSActionByUserID implements [storage.BPSActionRepository].
 func (b *bpsActionRepository) GetBPSActionByUserID(ctx context.Context, userID string, filterParam types.Filter) (types.PaginatedResponse[[]bps_action.BPSAction], error) {
 	b.logger.Infof("[GetBPSActionByUserID] fetching BPS actions for user ID: %s", userID)
@@ -260,24 +269,24 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(ctx cont
 	filter := dynamicFilter
 	filter["request_action"] = bson.M{"$in": RAList}
 
-	userFilter := bson.M{
-		"$or": []bson.M{
-			{"maker_id": userID},
-			{"checker_users.checker_id": userID},
-		},
-	}
+	// userFilter := bson.M{
+	// 	"$or": []bson.M{
+	// 		{"maker_id": userID},
+	// 		{"checker_users.checker_id": userID},
+	// 	},
+	// }
 
-	var finalMatch bson.M
-	if filterParam.Filters != nil && filterParam.Filters["action_status"] == "PENDING" {
-		finalMatch = filter
-	} else {
-		finalMatch = bson.M{"$and": []bson.M{filter, userFilter}}
-	}
+	// var finalMatch bson.M
+	// if filterParam.Filters != nil && filterParam.Filters["action_status"] == "PENDING" {
+	// 	finalMatch = filter
+	// } else {
+	// 	finalMatch = bson.M{}
+	// }
 
 	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
 
 	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: finalMatch}},
+		{{Key: "$match", Value: filter}},
 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
@@ -296,7 +305,7 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(ctx cont
 		return nil, err
 	}
 
-	total, err := b.actionDal.TotalCount(ctx, finalMatch)
+	total, err := b.actionDal.TotalCount(ctx, filter)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
@@ -545,13 +554,4 @@ func (b *bpsActionRepository) GetCountByDepartment(ctx context.Context, departme
 	}
 
 	return &bpsActionDto.BPSActionCountResponse{Approved: 0, Rejected: 0, Inprogress: 0, Completed: 0}, nil
-}
-
-func NewBPSActionRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger, cfg *config.VaultConfig) storage.BPSActionRepository {
-	return &bpsActionRepository{
-		client:     client,
-		actionDal:  dal.NewMongoDal[bps_action.BPSAction, bps_action.BPSAction](client, cfg, dbName, collection),
-		collection: client.Database(dbName).Collection(collection),
-		logger:     logger,
-	}
 }
