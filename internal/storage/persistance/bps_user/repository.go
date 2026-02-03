@@ -144,6 +144,9 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			{Key: "role_code", Value: 0},
 		}}},
 
+		bson.D{{Key: "$sort", Value: bson.D{
+			{Key: "created_at", Value: -1},
+		}}},
 		bson.D{{Key: "$skip", Value: filterParam.PerPage * (filterParam.Page - 1)}},
 		bson.D{{Key: "$limit", Value: filterParam.PerPage}},
 	}
