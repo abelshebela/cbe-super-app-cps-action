@@ -8,4 +8,5 @@ type FeedbackAdapter interface {
 	GetFeedbackByID(w http.ResponseWriter, r *http.Request)
 	GetAllCustomerFeedbacks(w http.ResponseWriter, r *http.Request)
 	GetCustomerFeedback(w http.ResponseWriter, r *http.Request)
+	GetAllSurveyFeedbacks(w http.ResponseWriter, r *http.Request)
 }

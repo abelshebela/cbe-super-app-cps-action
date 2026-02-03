@@ -23,6 +23,11 @@ type feedbackService struct {
 	logger utils.Logger
 }
 
+// GetSurveyFeedback implements [service.FeedbackService].
+func (f *feedbackService) GetSurveyFeedback(ctx context.Context, id string) (*local_model.SurveyFeedback, error) {
+	panic("unimplemented")
+}
+
 func NewFeedbackService(repo storage.FeedbackRepository, logger utils.Logger) service.FeedbackService {
 	return &feedbackService{
 		repo:   repo,
@@ -149,6 +154,20 @@ func (f *feedbackService) GetAllCustomerFeedbacks(ctx context.Context, filterPar
 	}
 
 	f.logger.Infof("[GetAllCustomerFeedbacks] retrieved %d customer feedbacks", len(feedbacks.Data))
+	return feedbacks, nil
+}
+func (f *feedbackService) GetAllSurveyFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]local_model.SurveyFeedback], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllSurveyFeedbacks", "Feedback", "GetAllSurveyFeedbacks")
+	defer span.End()
+
+	feedbacks, err := f.repo.FindAllSurveyFeedbacks(ctx, *filterParams)
+	if err != nil {
+		f.logger.Errorf("[GetAllSurveyFeedbacks] failed to fetch survey feedbacks: %v", err)
+		span.RecordError(err)
+		return nil, err
+	}
+
+	f.logger.Infof("[GetAllSurveyFeedbacks] retrieved %d survey feedbacks", len(feedbacks.Data))
 	return feedbacks, nil
 }
 
