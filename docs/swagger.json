@@ -13659,73 +13659,53 @@
                     "200": {
                         "description": "Device version disable request submitted",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Device version disable request submitted",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Device version not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Device version not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -13827,58 +13807,104 @@
                     "200": {
                         "description": "Device versions retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "items": {
-                                                "$ref": "#/definitions/model.DeviceVersionControl"
-                                            },
-                                            "type": "array"
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "created_at": "0001-01-01T00:00:00Z",
+                                            "created_by": "",
+                                            "enabled": true,
+                                            "force_update": false,
+                                            "id": "68e7595cee545724543e9a4e",
+                                            "last_modified_at": "2025-10-08T12:00:00Z",
+                                            "latest_version": "",
+                                            "platform": "",
+                                            "release_notes": "Initial release of the application.",
+                                            "updated_at": "0001-01-01T00:00:00Z",
+                                            "updated_by": ""
+                                        },
+                                        {
+                                            "created_at": "2025-11-11T06:30:00Z",
+                                            "created_by": "admin_user",
+                                            "enabled": true,
+                                            "force_update": true,
+                                            "id": "67326b97f6a22b4a2d15d902",
+                                            "last_modified_at": "2025-11-11T07:45:00Z",
+                                            "latest_version": "1.0",
+                                            "platform": "ANDROID",
+                                            "release_notes": "Performance improvements, new UI, and bug fixes for notifications.",
+                                            "updated_at": "2025-11-11T07:45:00Z",
+                                            "updated_by": "release_manager"
+                                        },
+                                        {
+                                            "created_at": "2025-11-11T06:30:00Z",
+                                            "created_by": "admin_user",
+                                            "enabled": true,
+                                            "force_update": true,
+                                            "id": "6912dfcb2f52c3265064a568",
+                                            "last_modified_at": "2025-11-11T07:45:00Z",
+                                            "latest_version": "1.0",
+                                            "platform": "IOS",
+                                            "release_notes": "Performance improvements, new UI, and bug fixes for notifications.",
+                                            "updated_at": "2025-11-11T07:45:00Z",
+                                            "updated_by": "release_manager"
+                                        },
+                                        {
+                                            "created_at": "2025-11-10T06:30:00Z",
+                                            "created_by": "admin_user",
+                                            "enabled": false,
+                                            "force_update": true,
+                                            "id": "6913191d2f52c3265064a569",
+                                            "last_modified_at": "2025-11-11T07:45:00Z",
+                                            "latest_version": "1.1",
+                                            "platform": "ANDROID",
+                                            "release_notes": "Performance improvements, new UI, and bug fixes for notifications.",
+                                            "updated_at": "2025-11-11T07:45:00Z",
+                                            "updated_by": "release_manager"
                                         }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                    ],
+                                    "meta": {
+                                        "has_next_page": false,
+                                        "has_prev_page": false,
+                                        "limit": 10,
+                                        "page": 1,
+                                        "paging_counter": 1,
+                                        "total_docs": 4,
+                                        "total_pages": 1
+                                    }
+                                },
+                                "message": "Device versions fetched",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-11-11T23:25:58.2303727+03:00"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -13915,55 +13941,40 @@
                     "200": {
                         "description": "Device version created successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Device version create request submitted",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -14000,73 +14011,53 @@
                     "200": {
                         "description": "Device version enable request submitted",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Device version enable request submitted",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Device version not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Device version not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -14103,73 +14094,65 @@
                     "200": {
                         "description": "Device version retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
+                            "example": {
+                                "data": {
+                                    "created_at": "2025-11-10T06:30:00Z",
+                                    "created_by": "admin_user",
+                                    "enabled": false,
+                                    "force_update": true,
+                                    "id": "6913191d2f52c3265064a569",
+                                    "last_modified_at": "2025-11-11T07:45:00Z",
+                                    "latest_version": "1.1",
+                                    "platform": "ANDROID",
+                                    "release_notes": "Performance improvements, new UI, and bug fixes for notifications.",
+                                    "updated_at": "2025-11-11T07:45:00Z",
+                                    "updated_by": "release_manager"
                                 },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/model.DeviceVersionControl"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                "message": "Device version fetched",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-11-11T23:27:35.4399351+03:00"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Device version not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Device version not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -14213,55 +14196,40 @@
                     "200": {
                         "description": "Device version update request submitted",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Device version update request submitted",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2025-11-11T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },

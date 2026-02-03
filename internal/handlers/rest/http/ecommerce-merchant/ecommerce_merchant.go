@@ -19,7 +19,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
-// EcommerceMerchantRequest mirrors miniappmerchant.EcommerceMerchant for Swagger @Param only 
+// EcommerceMerchantRequest mirrors miniappmerchant.EcommerceMerchant for Swagger @Param only
 type EcommerceMerchantRequest struct {
 	MerchantName     string `json:"merchant_name"`
 	MerchantCode     string `json:"merchant_code"`
