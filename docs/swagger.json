@@ -6746,37 +6746,69 @@
                     "200": {
                         "description": "Fetched successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/amount_based_auth.paginated_auth_tier_resp"
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "created_at": "0001-01-01T00:00:00Z",
+                                            "enabled": true,
+                                            "id": "6857c34bef805346f0c3be6d",
+                                            "is_deleted": false,
+                                            "last_modified": "2025-10-01T14:54:12.122Z",
+                                            "max_amount": 7000,
+                                            "method": "OPEN",
+                                            "min_amount": 0
+                                        },
+                                        {
+                                            "created_at": "0001-01-01T00:00:00Z",
+                                            "enabled": true,
+                                            "id": "6857c452ef805346f0c3be6e",
+                                            "is_deleted": false,
+                                            "last_modified": "2025-10-01T14:53:59.479Z",
+                                            "max_amount": 10000,
+                                            "method": "PIN",
+                                            "min_amount": 7000
+                                        },
+                                        {
+                                            "created_at": "0001-01-01T00:00:00Z",
+                                            "enabled": true,
+                                            "id": "6857c495ef805346f0c3be6f",
+                                            "is_deleted": false,
+                                            "last_modified": "2025-10-01T14:54:25.039Z",
+                                            "max_amount": 0,
+                                            "method": "OTP_PIN",
+                                            "min_amount": 10000
                                         }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                    ],
+                                    "meta": {
+                                        "has_next_page": false,
+                                        "has_prev_page": false,
+                                        "limit": 10,
+                                        "page": 1,
+                                        "paging_counter": 1,
+                                        "total_docs": 3,
+                                        "total_pages": 1
+                                    }
+                                },
+                                "message": "User retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T07:52:52.055643911Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2025-10-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -6822,37 +6854,27 @@
                     "200": {
                         "description": "Rejected",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/model.CPSAction"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Amount-based auth rejection processed successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Invalid input",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Invalid input",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2025-10-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -6910,73 +6932,52 @@
                     "200": {
                         "description": "Update request sent",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "Amount-based authentication update request sent successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T07:55:09.925558946Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Invalid parameters or payload",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Invalid parameters or payload",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2025-10-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Tier not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Tier not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2025-10-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2025-10-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
