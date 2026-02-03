@@ -36,11 +36,11 @@ func NewEcommerceMerchantdapter(srv service.EcommerceMerchantService, logger sha
 	return &ecommerceMerchantAdapter{srv: srv, logger: logger}
 }
 
-// Create Mini App Merchant
+// Create Ecommerce Merchant
 //
-//	@Summary		Create Mini App Merchant
-//	@Description	Creates a new mini app merchant
-//	@Tags			EcommerceMerchant
+//	@Summary		Create  Ecommerce Merchant
+//	@Description	Creates a new  Ecommerce Merchant
+//	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
@@ -100,11 +100,11 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreatedSuccessfully, nil)
 }
 
-// Update Mini App Merchant
+// Update  Ecommerce Merchant
 //
-//	@Summary		Update Mini App Merchant
-//	@Description	Updates an existing mini app merchant
-//	@Tags			EcommerceMerchant
+//	@Summary		Update  Ecommerce Merchant
+//	@Description	Updates an existing  Ecommerce Merchant
+//	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
@@ -170,11 +170,11 @@ func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request
 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantUpdatedSuccessfully, nil)
 }
 
-// Delete Mini App Merchant
+// Delete  Ecommerce Merchant
 //
-//	@Summary		Delete Mini App Merchant
+//	@Summary		Delete  Ecommerce Merchant
 //	@Description	Deletes a mini app merchant by ID
-//	@Tags			EcommerceMerchant
+//	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			id				path		string	true	"Merchant ID"
@@ -221,11 +221,11 @@ func (h *ecommerceMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request
 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDeletedSuccessfully, nil)
 }
 
-// Enable Mini App Merchant
+// Enable  Ecommerce Merchant
 //
-//	@Summary		Enable Mini App Merchant
+//	@Summary		Enable  Ecommerce Merchant
 //	@Description	Enables a mini app merchant by ID
-//	@Tags			EcommerceMerchant
+//	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			id				path		string	true	"Merchant ID"
@@ -268,11 +268,11 @@ func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request
 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantEnableSuccessfully, nil)
 }
 
-// Disable Mini App Merchant
+// Disable  Ecommerce Merchant
 //
-//	@Summary		Disable Mini App Merchant
+//	@Summary		Disable  Ecommerce Merchant
 //	@Description	Disables a mini app merchant by ID
-//	@Tags			EcommerceMerchant
+//	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			id				path		string	true	"Merchant ID"
@@ -323,11 +323,11 @@ func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Reques
 //   "message": "User is not authorized"
 // }
 
-// Get Mini App Merchant by ID
+// Get  Ecommerce Merchant by ID
 //
-//	@Summary		Get Mini App Merchant by ID
+//	@Summary		Get  Ecommerce Merchant by ID
 //	@Description	Retrieves a mini app merchant by ID
-//	@Tags			EcommerceMerchant
+//	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			id				path		string	true	"Merchant ID"
@@ -354,11 +354,11 @@ func (h *ecommerceMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Reque
 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantFetchedSuccessfully, result)
 }
 
-// List Mini App Merchants with Pagination
+// List  Ecommerce Merchants with Pagination
 //
-//	@Summary		List Mini App Merchants
-//	@Description	Retrieves a paginated list of mini app merchants
-//	@Tags			EcommerceMerchant
+//	@Summary		List  Ecommerce Merchants
+//	@Description	Retrieves a paginated list of  Ecommerce Merchants
+//	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			page		query		int	false	"Page number"
@@ -408,7 +408,7 @@ func (h *ecommerceMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, 
 // Merchant Lookup
 // @Summary Merchant Lookup
 // @Description Retrieves a merchant by ID
-// @Tags EcommerceMerchant
+// @Tags ecommerce-merchant
 // @Security BearerAuth
 // @Produce json
 // @Param merchant_id path string true "Merchant ID"

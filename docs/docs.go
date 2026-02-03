@@ -7798,6 +7798,24 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "CPS users retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
                     "400": {
                         "description": "Bad request",
                         "schema": {
@@ -7867,8 +7885,26 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "CPS user creation request submitted successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "201": {
+                        "description": "CPS user created successfully (maker only)",
                         "schema": {
                             "allOf": [
                                 {
@@ -8355,6 +8391,24 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "CPS user retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
                     "400": {
                         "description": "Bad request - User code required",
                         "schema": {
@@ -9494,6 +9548,224 @@ const docTemplate = `{
                 }
             }
         },
+        "/customers/account_lookup/{number}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves customer information by searching with CIF (Customer Information File) or account number",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Search customer by CIF or account number",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CIF or Account Number",
+                        "name": "number",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Customer found successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Number parameter required",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Customer not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/action_log/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a paginated list of action logs for a specific customer by their ID. Includes pagination support.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Get customer action log",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Customer action logs retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Customer ID required",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Customer not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/customers/blocked": {
             "get": {
                 "security": [
@@ -9585,6 +9857,109 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/detail/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves comprehensive customer details including personal information, linked accounts, and other customer data by their ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Get customer detail by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Customer details retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/customer.CustomerDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Customer ID required",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Customer not found",
                         "schema": {
                             "allOf": [
                                 {
@@ -9723,7 +10098,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Enables a customer by their ID using OTP",
+                "description": "Initiates enabling a customer session by generating an OTP for the customer",
                 "consumes": [
                     "application/json"
                 ],
@@ -9733,7 +10108,92 @@ const docTemplate = `{
                 "tags": [
                     "Customers"
                 ],
-                "summary": "Enable customer",
+                "summary": "Initiate enable customer session",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Customer ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OTP generated successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/customer.CustomerEnableSessionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Customer ID required",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/enable_otp_verify/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Enables a customer by their ID using OTP verification. This endpoint verifies the OTP sent to the customer and enables their account.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Enable customer with OTP verification",
                 "parameters": [
                     {
                         "type": "string",
@@ -9743,7 +10203,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Enable customer payload",
+                        "description": "Enable customer payload (user_otp)",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -9772,7 +10232,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad request - Customer ID required or invalid body",
+                        "description": "Bad request - Customer ID required or invalid OTP",
                         "schema": {
                             "allOf": [
                                 {
@@ -9811,7 +10271,7 @@ const docTemplate = `{
             }
         },
         "/customers/fayda/enable/{id}": {
-            "post": {
+            "patch": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -9837,7 +10297,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Fayda approval payload",
+                        "description": "Fayda approval payload (risk_level: LOW, MEDIUM, HIGH)",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -10499,91 +10959,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Customer not found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/customers/{id}/enable-session": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Initiates enabling a customer session by generating an OTP for the customer",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Customers"
-                ],
-                "summary": "Initiate enable customer session",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Customer ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OTP generated successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/customer.CustomerEnableSessionResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request - Customer ID required",
                         "schema": {
                             "allOf": [
                                 {
@@ -13763,7 +14138,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "EcommerceMerchant"
+                    "ecommerce-merchant"
                 ],
                 "summary": "List Mini App Merchants",
                 "parameters": [
@@ -13869,7 +14244,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "EcommerceMerchant"
+                    "ecommerce-merchant"
                 ],
                 "summary": "Create Mini App Merchant",
                 "parameters": [
@@ -13989,7 +14364,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "EcommerceMerchant"
+                    "ecommerce-merchant"
                 ],
                 "summary": "Disable Mini App Merchant",
                 "parameters": [
@@ -14095,7 +14470,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "EcommerceMerchant"
+                    "ecommerce-merchant"
                 ],
                 "summary": "Enable Mini App Merchant",
                 "parameters": [
@@ -14201,7 +14576,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "EcommerceMerchant"
+                    "ecommerce-merchant"
                 ],
                 "summary": "Merchant Lookup",
                 "parameters": [
@@ -14319,7 +14694,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "EcommerceMerchant"
+                    "ecommerce-merchant"
                 ],
                 "summary": "Get Mini App Merchant by ID",
                 "parameters": [
@@ -14435,7 +14810,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "EcommerceMerchant"
+                    "ecommerce-merchant"
                 ],
                 "summary": "Delete Mini App Merchant",
                 "parameters": [
@@ -14542,7 +14917,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "EcommerceMerchant"
+                    "ecommerce-merchant"
                 ],
                 "summary": "Update Mini App Merchant",
                 "parameters": [
@@ -15935,7 +16310,89 @@ const docTemplate = `{
                 }
             }
         },
-        "/feedback/{id}": {
+        "/feedback-surveys/create": {
+            "post": {
+                "description": "Creates a new feedback survey entry. Can be submitted anonymously or by authenticated users. Supports both maker-only and regular feedback creation.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Feedback"
+                ],
+                "summary": "Create feedback survey",
+                "parameters": [
+                    {
+                        "description": "Feedback request with responses map",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/feedback.FeedbackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Feedback created successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid request body or validation failed",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/feedback-surveys/{id}": {
             "get": {
                 "security": [
                     {
@@ -25075,6 +25532,23 @@ const docTemplate = `{
                 }
             }
         },
+        "customer.CustomerDetailResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "linked_account": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/customer.LinkedAccount"
+                    }
+                },
+                "personal_info": {
+                    "$ref": "#/definitions/customer.PersonalInfo"
+                }
+            }
+        },
         "customer.CustomerDisableDTO": {
             "type": "object",
             "properties": {
@@ -25107,6 +25581,68 @@ const docTemplate = `{
             "properties": {
                 "risk_level": {
                     "$ref": "#/definitions/constants.RiskLevel"
+                }
+            }
+        },
+        "customer.LinkedAccount": {
+            "type": "object",
+            "properties": {
+                "account_branch_code": {
+                    "description": "linked_account",
+                    "type": "string"
+                },
+                "account_branch_name": {
+                    "description": "members",
+                    "type": "string"
+                },
+                "account_holder_name": {
+                    "description": "linked_account",
+                    "type": "string"
+                },
+                "account_number": {
+                    "description": "linked_account",
+                    "type": "string"
+                },
+                "account_type": {
+                    "description": "linked_account",
+                    "type": "string"
+                },
+                "is_active": {
+                    "description": "/ linked_account",
+                    "type": "boolean"
+                }
+            }
+        },
+        "customer.PersonalInfo": {
+            "type": "object",
+            "properties": {
+                "customer_number": {
+                    "description": "members",
+                    "type": "string"
+                },
+                "date_of_birth": {
+                    "description": "customer_kyc.kyc_data",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "members",
+                    "type": "string"
+                },
+                "full_name": {
+                    "description": "customer_kyc.kyc_data",
+                    "type": "string"
+                },
+                "gender": {
+                    "description": "customer_kyc.kyc_data",
+                    "type": "string"
+                },
+                "is_activated": {
+                    "description": "customer_kyc.is_activated",
+                    "type": "boolean"
+                },
+                "phone_number": {
+                    "description": "customer_kyc.kyc_data",
+                    "type": "string"
                 }
             }
         },
@@ -25556,6 +26092,9 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "feedback.FeedbackRequest": {
+            "type": "object"
         },
         "hqDto.UpdateArchiveTimeRequest": {
             "type": "object",

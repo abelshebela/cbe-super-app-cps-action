@@ -638,6 +638,17 @@ definitions:
         example: john.doe.updated
         type: string
     type: object
+  customer.CustomerDetailResponse:
+    properties:
+      id:
+        type: string
+      linked_account:
+        items:
+          $ref: '#/definitions/customer.LinkedAccount'
+        type: array
+      personal_info:
+        $ref: '#/definitions/customer.PersonalInfo'
+    type: object
   customer.CustomerDisableDTO:
     properties:
       disable_reason:
@@ -659,6 +670,51 @@ definitions:
     properties:
       risk_level:
         $ref: '#/definitions/constants.RiskLevel'
+    type: object
+  customer.LinkedAccount:
+    properties:
+      account_branch_code:
+        description: linked_account
+        type: string
+      account_branch_name:
+        description: members
+        type: string
+      account_holder_name:
+        description: linked_account
+        type: string
+      account_number:
+        description: linked_account
+        type: string
+      account_type:
+        description: linked_account
+        type: string
+      is_active:
+        description: / linked_account
+        type: boolean
+    type: object
+  customer.PersonalInfo:
+    properties:
+      customer_number:
+        description: members
+        type: string
+      date_of_birth:
+        description: customer_kyc.kyc_data
+        type: string
+      email:
+        description: members
+        type: string
+      full_name:
+        description: customer_kyc.kyc_data
+        type: string
+      gender:
+        description: customer_kyc.kyc_data
+        type: string
+      is_activated:
+        description: customer_kyc.is_activated
+        type: boolean
+      phone_number:
+        description: customer_kyc.kyc_data
+        type: string
     type: object
   customer.customers_paginated_resp:
     type: object
@@ -957,6 +1013,8 @@ definitions:
     properties:
       encryption:
         type: string
+    type: object
+  feedback.FeedbackRequest:
     type: object
   hqDto.UpdateArchiveTimeRequest:
     properties:
@@ -6532,6 +6590,15 @@ paths:
       produces:
       - application/json
       responses:
+        "200":
+          description: CPS users retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "400":
           description: Bad request
           schema:
@@ -6569,6 +6636,15 @@ paths:
       produces:
       - application/json
       responses:
+        "200":
+          description: CPS user retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "400":
           description: Bad request - User code required
           schema:
@@ -6616,8 +6692,17 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
+        "200":
           description: CPS user creation request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "201":
+          description: CPS user created successfully (maker only)
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -7514,32 +7599,41 @@ paths:
       summary: Get customer by ID
       tags:
       - Customers
-  /customers/{id}/enable-session:
-    post:
+  /customers/account_lookup/{number}:
+    get:
       consumes:
       - application/json
-      description: Initiates enabling a customer session by generating an OTP for
-        the customer
+      description: Retrieves customer information by searching with CIF (Customer
+        Information File) or account number
       parameters:
-      - description: Customer ID
+      - description: CIF or Account Number
         in: path
-        name: id
+        name: number
         required: true
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OTP generated successfully
+          description: Customer found successfully
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/customer.CustomerEnableSessionResponse'
+                  type: object
               type: object
         "400":
-          description: Bad request - Customer ID required
+          description: Bad request - Number parameter required
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Customer not found
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -7558,7 +7652,71 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: Initiate enable customer session
+      summary: Search customer by CIF or account number
+      tags:
+      - Customers
+  /customers/action_log/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a paginated list of action logs for a specific customer
+        by their ID. Includes pagination support.
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Customer action logs retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - Customer ID required
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Customer not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get customer action log
       tags:
       - Customers
   /customers/blocked:
@@ -7637,6 +7795,62 @@ paths:
       summary: Get blocked customers
       tags:
       - Customers
+  /customers/detail/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves comprehensive customer details including personal information,
+        linked accounts, and other customer data by their ID
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Customer details retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/customer.CustomerDetailResponse'
+              type: object
+        "400":
+          description: Bad request - Customer ID required
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Customer not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get customer detail by ID
+      tags:
+      - Customers
   /customers/disable/{id}:
     patch:
       consumes:
@@ -7693,33 +7907,28 @@ paths:
     patch:
       consumes:
       - application/json
-      description: Enables a customer by their ID using OTP
+      description: Initiates enabling a customer session by generating an OTP for
+        the customer
       parameters:
       - description: Customer ID
         in: path
         name: id
         required: true
         type: string
-      - description: Enable customer payload
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/customer.CustomerEnableDTO'
       produces:
       - application/json
       responses:
         "200":
-          description: Customer enabled successfully
+          description: OTP generated successfully
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  type: object
+                  $ref: '#/definitions/customer.CustomerEnableSessionResponse'
               type: object
         "400":
-          description: Bad request - Customer ID required or invalid body
+          description: Bad request - Customer ID required
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -7738,11 +7947,64 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: Enable customer
+      summary: Initiate enable customer session
+      tags:
+      - Customers
+  /customers/enable_otp_verify/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Enables a customer by their ID using OTP verification. This endpoint
+        verifies the OTP sent to the customer and enables their account.
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Enable customer payload (user_otp)
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/customer.CustomerEnableDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Customer enabled successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - Customer ID required or invalid OTP
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Enable customer with OTP verification
       tags:
       - Customers
   /customers/fayda/enable/{id}:
-    post:
+    patch:
       consumes:
       - application/json
       description: Approves a customer's Fayda application by updating their Fayda
@@ -7753,7 +8015,7 @@ paths:
         name: id
         required: true
         type: string
-      - description: Fayda approval payload
+      - description: 'Fayda approval payload (risk_level: LOW, MEDIUM, HIGH)'
         in: body
         name: body
         required: true
@@ -9887,7 +10149,7 @@ paths:
       - BearerAuth: []
       summary: List Mini App Merchants
       tags:
-      - EcommerceMerchant
+      - ecommerce-merchant
     post:
       consumes:
       - application/json
@@ -9951,7 +10213,7 @@ paths:
       - BearerAuth: []
       summary: Create Mini App Merchant
       tags:
-      - EcommerceMerchant
+      - ecommerce-merchant
   /ecommerce-merchant/{id}:
     delete:
       description: Deletes a mini app merchant by ID
@@ -10008,7 +10270,7 @@ paths:
       - BearerAuth: []
       summary: Delete Mini App Merchant
       tags:
-      - EcommerceMerchant
+      - ecommerce-merchant
     get:
       description: Retrieves a mini app merchant by ID
       parameters:
@@ -10069,7 +10331,7 @@ paths:
       - BearerAuth: []
       summary: Get Mini App Merchant by ID
       tags:
-      - EcommerceMerchant
+      - ecommerce-merchant
     patch:
       consumes:
       - application/json
@@ -10142,7 +10404,7 @@ paths:
       - BearerAuth: []
       summary: Update Mini App Merchant
       tags:
-      - EcommerceMerchant
+      - ecommerce-merchant
   /ecommerce-merchant/disable/{id}:
     patch:
       description: Disables a mini app merchant by ID
@@ -10199,7 +10461,7 @@ paths:
       - BearerAuth: []
       summary: Disable Mini App Merchant
       tags:
-      - EcommerceMerchant
+      - ecommerce-merchant
   /ecommerce-merchant/enable/{id}:
     patch:
       description: Enables a mini app merchant by ID
@@ -10256,7 +10518,7 @@ paths:
       - BearerAuth: []
       summary: Enable Mini App Merchant
       tags:
-      - EcommerceMerchant
+      - ecommerce-merchant
   /ecommerce-merchant/merchant-lookup/{merchant_id}:
     get:
       description: Retrieves a merchant by ID
@@ -10318,7 +10580,7 @@ paths:
       - BearerAuth: []
       summary: Merchant Lookup
       tags:
-      - EcommerceMerchant
+      - ecommerce-merchant
   /encryption/encrypt:
     post:
       consumes:
@@ -11069,7 +11331,7 @@ paths:
       summary: Get list of feedbacks
       tags:
       - Feedback
-  /feedback/{id}:
+  /feedback-surveys/{id}:
     get:
       consumes:
       - application/json
@@ -11102,6 +11364,52 @@ paths:
       security:
       - BearerAuth: []
       summary: Get feedback by ID
+      tags:
+      - Feedback
+  /feedback-surveys/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new feedback survey entry. Can be submitted anonymously
+        or by authenticated users. Supports both maker-only and regular feedback creation.
+      parameters:
+      - description: Feedback request with responses map
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/feedback.FeedbackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Feedback created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - Invalid request body or validation failed
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Create feedback survey
       tags:
       - Feedback
   /hq/archive_time:
