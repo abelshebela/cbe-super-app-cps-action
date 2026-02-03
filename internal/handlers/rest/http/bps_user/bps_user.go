@@ -232,7 +232,7 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 //	@Tags			BPS Users
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		bps_user_dto.BPSUserCreateRequest						true	"BPS user create request"
+//	@Param			request	body		bpsuser.BPSUserCreateRequest	true	"BPS user create request"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}					"BPS user created successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}					"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}					"Internal server error"
@@ -295,7 +295,7 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			user_code	path		string											true	"User Code"
-//	@Param			request		body		bps_user_dto.BPSUserUpdateRequest				true	"BPS user update request"
+//	@Param			request		body		bpsuser.BPSUserUpdateRequest	true	"BPS user update request"
 //	@Success		200			{object}	localization.StandardResponse{data=nil}			"BPS user updated successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}			"Bad request"
 //	@Failure		404			{object}	localization.StandardResponse{data=nil}			"User not found"

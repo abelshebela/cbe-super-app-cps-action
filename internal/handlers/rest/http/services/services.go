@@ -19,11 +19,6 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
-type (
-	_servicesCreateReqForSwagger = servicesdto.CreateServiceRequest
-	_servicesUpdateReqForSwagger = servicesdto.UpdateServiceRequest
-)
-
 type servicesAdapter struct {
 	app    service.ServicesService
 	logger utils.Logger
@@ -49,7 +44,7 @@ func decodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}, log
 //	@Tags			Services
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		servicesdto.CreateServiceRequest		true	"Service payload"
+//	@Param			request	body		services.CreateServiceRequest	true	"Service payload"
 //	@Success		201		{object}	localization.StandardResponse{data=nil}	"CPS action created"
 //	@Failure		400,500	{object}	localization.StandardResponse{data=nil}
 //	@Security		BearerAuth
@@ -97,7 +92,7 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			id			path		string									true	"Service ID"
-//	@Param			request		body		servicesdto.UpdateServiceRequest		true	"Service update payload"
+//	@Param			request		body		services.UpdateServiceRequest	true	"Service update payload"
 //	@Success		200			{object}	localization.StandardResponse{data=nil}	"CPS action created"
 //	@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Security		BearerAuth
@@ -251,7 +246,7 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 //	@Param			service_type	query		string	false	"Filter by service_type"
 //	@Param			enabled			query		bool	false	"Filter by enabled status"
 //	@Param			search			query		string	false	"Search term (service_name, service_code, service_type)"
-//	@Success		200				{object}	localization.StandardResponse{data=types.PaginatedResponse}
+//	@Success		200				{object}	localization.StandardResponse{data=object}
 //	@Failure		500				{object}	localization.StandardResponse{data=nil}
 //	@Security		BearerAuth
 //	@Router			/services [get]
@@ -298,7 +293,7 @@ func (a *servicesAdapter) GetAll(w http.ResponseWriter, r *http.Request) {
 //	@Param			service_type	query		string	false	"Filter by service_type"
 //	@Param			enabled			query		bool	false	"Filter by enabled status"
 //	@Param			search			query		string	false	"Search term (service_name, service_code, service_type)"
-//	@Success		200				{object}	localization.StandardResponse{data=types.PaginatedResponse}
+//	@Success		200				{object}	localization.StandardResponse{data=object}
 //	@Failure		500				{object}	localization.StandardResponse{data=nil}
 //	@Security		BearerAuth
 //	@Router			/services/list [get]
@@ -339,7 +334,7 @@ func (a *servicesAdapter) GetAllServiceList(w http.ResponseWriter, r *http.Reque
 //	@Accept			json
 //	@Produce		json
 //	@Param			id			path		string	true	"Service ID"
-//	@Success		200			{object}	localization.StandardResponse{data=entities.Services}
+//	@Success		200			{object}	localization.StandardResponse{data=object}
 //	@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Security		BearerAuth
 //	@Router			/services/{id} [get]

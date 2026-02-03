@@ -73,7 +73,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 
-	_ "cbe-super-app-cps-action/docs" // Import generated docs
+	"cbe-super-app-cps-action/docs" 
 )
 
 func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, client cps_auth.CpsAuthServiceClient, redisRepository storage.RedisRepository, logger utils.Logger, cfg *config.VaultConfig) {
@@ -185,15 +185,33 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 		// r.Mount("/", r)
 
 	})
+	// Serve doc.json from embedded docs.SwaggerJSONBytes (merged spec with examples).
+	// Build after: swag init -g cmd/main.go -o docs && go run scripts/merge_swagger_examples.go
+	secured.Get("/swagger/doc.json", serveSwaggerDocEmbedded())
+	secured.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/api/v1/cbesuperapp/cps_action/swagger/doc.json"),
+	))
+	secured.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/api/v1/cbesuperapp/cps_action/swagger/index.html", http.StatusMovedPermanently)
+	})
+
 	secured.Mount("/", r)
 	// Mount
 	router.Mount("/api/v1/cbesuperapp/cps_action", secured)
+}
 
-	// Swagger documentation routes
-	router.Get("/api/v1/cbesuperapp/cps_action/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("/api/v1/cbesuperapp/cps_action/swagger/doc.json"),
-	))
-	router.Get("/api/v1/cbesuperapp/cps_action/docs", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/api/v1/cbesuperapp/cps_action/swagger/index.html", http.StatusMovedPermanently)
-	})
+// serveSwaggerDocEmbedded serves the embedded docs.SwaggerJSONBytes (run merge script before build to include examples).
+func serveSwaggerDocEmbedded() http.HandlerFunc {
+	data := docs.SwaggerJSONBytes
+	return func(w http.ResponseWriter, r *http.Request) {
+		if len(data) == 0 {
+			http.Error(w, "Swagger spec not found", http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
+		_, _ = w.Write(data)
+	}
 }

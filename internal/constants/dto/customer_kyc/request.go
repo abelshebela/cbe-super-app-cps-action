@@ -76,7 +76,7 @@ type AddressUpdateRequest struct {
 }
 
 type LivenessCheckRequest struct {
-	IDCardFront        *multipart.FileHeader `json:"id_card_front,omitempty"`
-	IDCardBack         *multipart.FileHeader `json:"id_card_back,omitempty"`
-	LivenessCheckVideo *multipart.FileHeader `json:"liveness_video,omitempty"`
+	IDCardFront        *multipart.FileHeader `json:"id_card_front,omitempty" swaggertype:"string"`
+	IDCardBack         *multipart.FileHeader `json:"id_card_back,omitempty" swaggertype:"string"`
+	LivenessCheckVideo *multipart.FileHeader `json:"liveness_video,omitempty" swaggertype:"string"`
 }

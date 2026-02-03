@@ -34,7 +34,7 @@ func NewVaultAmountTierHandler(service service.VaultAmountBasedTierService, logg
 //	@Tags			Vault Amount Tier
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		amount_tier.VaultAmountTierRequest	true	"Vault Amount Tier Request"
+//	@Param			request	body		vaultamounttier.VaultAmountTierRequest	true	"Vault Amount Tier Request"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}
@@ -90,7 +90,7 @@ func (h *VaultAmountTierHandler) CreateAmountTier(w http.ResponseWriter, r *http
 //	@Param			page		query		int		false	"Page number"		default(1)
 //	@Param			per_page	query		int		false	"Items per page"	default(10)
 //	@Param			search		query		string	false	"Search term"
-//	@Success		200			{object}	localization.StandardResponse{data=[]amount_tier.VaultAmountTierResponse}
+//	@Success		200			{object}	localization.StandardResponse{data=object}
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}
 //	@Security		BearerAuth
 //	@Router			/vault-amount-tier/find-all [get]
@@ -133,7 +133,7 @@ func (h *VaultAmountTierHandler) FindAllAmountTiers(w http.ResponseWriter, r *ht
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string	true	"Amount Tier ID"
-//	@Success		200	{object}	localization.StandardResponse{data=amount_tier.VaultAmountTierResponse}
+//	@Success		200	{object}	localization.StandardResponse{data=object}
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}
 //	@Failure		404	{object}	localization.StandardResponse{data=nil}
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}
@@ -170,7 +170,7 @@ func (h *VaultAmountTierHandler) GetAmountTier(w http.ResponseWriter, r *http.Re
 //	@Accept			json
 //	@Produce		json
 //	@Param			id		path		string										true	"Amount Tier ID"
-//	@Param			request	body		amount_tier.UpdateVaultAmountTierRequest	true	"Update Amount Tier Request"
+//	@Param			request	body		vaultamounttier.UpdateVaultAmountTierRequest	true	"Update Amount Tier Request"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}

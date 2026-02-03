@@ -274,7 +274,7 @@ func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string												true	"Wallet ID"
-//	@Success		200	{object}	localization.StandardResponse{data=local_model.Wallet}	"Wallet retrieved successfully"
+//	@Success		200	{object}	localization.StandardResponse{data=model.Wallet}	"Wallet retrieved successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}				"Bad request"
 //	@Failure		404	{object}	localization.StandardResponse{data=nil}				"Wallet not found"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}				"Internal server error"

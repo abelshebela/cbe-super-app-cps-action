@@ -19,7 +19,6 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
-type customer_resp *member.User
 type customers_paginated_resp *types.PaginatedResponse[[]*member.User]
 
 type customerAdapter struct {
@@ -104,7 +103,7 @@ func (c *customerAdapter) SetEnableCustomerSession(w http.ResponseWriter, r *htt
 //
 //	@Produce		json
 //	@Param			id		path		string									true	"Customer ID"
-//	@Param			body	body		dto.CustomerDisableDTO					true	" body (fields: is_temporary, disable_reason)"
+//	@Param			body	body		customer.CustomerDisableDTO	true	"Body (fields: is_temporary, disable_reason)"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Customer disabled successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Customer ID required"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -158,8 +157,7 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 //	@Accept			json
 //	@Produce		json
 //	@Param			id		path		string									true	"Customer ID"
-//	@Param			body	body		dto.CustomerDisableDTO					true	" body (fields: is_temporary, disable_reason)"
-//	@Param			body	body		customer.CustomerEnableDTO				true	"Enable customer payload"
+//	@Param			body	body		customer.CustomerEnableDTO	true	"Enable customer payload"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Customer enabled successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Customer ID required or invalid body"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -254,7 +252,7 @@ func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Reques
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string												true	"Customer ID"
-//	@Success		200	{object}	localization.StandardResponse{data=customer_resp}	"Customer details retrieved successfully"
+//	@Success		200	{object}	localization.StandardResponse{data=model.User}	"Customer details retrieved successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}				"Bad request - Customer ID required"
 //	@Failure		404	{object}	localization.StandardResponse{data=nil}				"Customer not found"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}				"Internal server error"
