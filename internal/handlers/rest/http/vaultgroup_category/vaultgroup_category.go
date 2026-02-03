@@ -29,9 +29,11 @@ func InitVaultGroupCategoryHandler(svc service.VaultGroupCategoryService, logger
 //	@Summary		Create Vault Group Category
 //	@Description	Create a new vault group category with the provided information
 //	@Tags			Vault Group Category
-//	@Accept			json
+//	@Accept			multipart/form-data
 //	@Produce		json
-//	@Param			request	body		vaultgroupcategory.CreateVaultGroupCategoryRequest	true	"Vault group category request"
+//	@Param			name			formData	string									true	"Category name"
+//	@Param			category_type	formData	string									true	"Category type (GROUP or PERSONAL)"
+//	@Param			cover_image		formData	file									true	"Cover image file"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}				"Vault group category creation request submitted successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}				"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}				"Internal server error"
@@ -82,7 +84,7 @@ func (h *handler) CreateVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 //	@Accept			json
 //	@Produce		json
 //	@Param			filters	query		string									false	"Filters"
-//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Vault group categories retrieved successfully"
+//	@Success		200		{object}	localization.StandardResponse{data=object}	"Vault group categories retrieved successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
@@ -124,7 +126,7 @@ func (h *handler) FindAllVaultGroupCategories(w http.ResponseWriter, r *http.Req
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string									true	"Vault group category ID"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Vault group category retrieved successfully"
+//	@Success		200	{object}	localization.StandardResponse{data=vaultgroupcategory.VaultGroupCategoryResponse}	"Vault group category retrieved successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
@@ -275,6 +277,7 @@ func (h *handler) DeleteVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 //	@Summary		Disable Vault Group Category
 //	@Description	Disable a vault group category by the provided ID
 //	@Tags			Vault Group Category
+//	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string									true	"Vault group category ID"
 //	@Success		200	{object}	localization.StandardResponse{data=nil}	"Vault group category disable request submitted successfully"

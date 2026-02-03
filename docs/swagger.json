@@ -226,6 +226,62 @@
             },
             "type": "object"
         },
+        "actionrole_dto.GetActionRoleByActionCodeRes": {
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "action_code": {
+                    "type": "string"
+                },
+                "action_name": {
+                    "type": "string"
+                },
+                "approver_count": {
+                    "type": "integer"
+                },
+                "assigned_auditor_roles": {
+                    "items": {
+                        "$ref": "#/definitions/model.JobRole"
+                    },
+                    "type": "array"
+                },
+                "assigned_checkers_roles": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/definitions/model.JobRole"
+                        },
+                        "type": "array"
+                    },
+                    "type": "array"
+                },
+                "assigned_makers_roles": {
+                    "items": {
+                        "$ref": "#/definitions/model.JobRole"
+                    },
+                    "type": "array"
+                },
+                "assigned_viewers_roles": {
+                    "items": {
+                        "$ref": "#/definitions/model.JobRole"
+                    },
+                    "type": "array"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "is_maker_only": {
+                    "type": "boolean"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
         "actionrole_dto.UpdateActionRoleRequest": {
             "properties": {
                 "action_name": {
@@ -368,6 +424,56 @@
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "bankvault.BankVaultProductResponse": {
+            "properties": {
+                "apply_interest_on_early_unlock": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "frequency": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "interest": {
+                    "type": "number"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "lock_period": {
+                    "type": "number"
+                },
+                "max_amount": {
+                    "type": "number"
+                },
+                "method": {
+                    "type": "string"
+                },
+                "min_amount": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             },
@@ -2075,6 +2181,32 @@
             },
             "type": "object"
         },
+        "model.JobRole": {
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "portal_cards": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
         "model.MaritalStatus": {
             "enum": [
                 "MARRIED",
@@ -3226,7 +3358,39 @@
             },
             "type": "object"
         },
-        "vaultgroupcategory.CreateVaultGroupCategoryRequest": {
+        "vaultgroupcategory.VaultGroupCategoryResponse": {
+            "properties": {
+                "category_type": {
+                    "type": "string"
+                },
+                "cover_image": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "category_type"
+            ],
             "type": "object"
         },
         "wallet.PaginatedWalletResponse": {
@@ -9205,6 +9369,495 @@
                 "summary": "Update bank logo (maker)",
                 "tags": [
                     "Banks"
+                ]
+            }
+        },
+        "/bps-action-list": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Retrieve all action list with pagination and optional search",
+                "parameters": [
+                    {
+                        "default": 1,
+                        "description": "Page number",
+                        "in": "query",
+                        "name": "page",
+                        "type": "integer"
+                    },
+                    {
+                        "default": 10,
+                        "description": "Items per page",
+                        "in": "query",
+                        "name": "per_page",
+                        "type": "integer"
+                    },
+                    {
+                        "description": "Search term",
+                        "in": "query",
+                        "name": "search",
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Action list retrieved successfully",
+                        "schema": {
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "action_code": "CREATE_USER",
+                                            "action_name": "Create User"
+                                        },
+                                        {
+                                            "action_code": "UPDATE_USER",
+                                            "action_name": "Update User"
+                                        }
+                                    ],
+                                    "meta": {
+                                        "has_next_page": true,
+                                        "has_prev_page": false,
+                                        "limit": 10,
+                                        "next_page": 2,
+                                        "page": 1,
+                                        "paging_counter": 1,
+                                        "total_docs": 25,
+                                        "total_pages": 3
+                                    }
+                                },
+                                "message": "Action list retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get all action list",
+                "tags": [
+                    "BPS Action Role"
+                ]
+            }
+        },
+        "/bps-action-roles/{code}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Retrieve a BPS action role by action code",
+                "parameters": [
+                    {
+                        "description": "Action Code",
+                        "in": "path",
+                        "name": "code",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BPS action role retrieved successfully",
+                        "schema": {
+                            "example": {
+                                "data": {
+                                    "_id": "60b8d295f1e3c5001c5c2b01",
+                                    "action_code": "CREATE_USER",
+                                    "action_name": "Create User",
+                                    "approver_count": 2,
+                                    "assigned_auditor_roles": [
+                                        {
+                                            "_id": "60b8d295f1e3c5001c5c2b95",
+                                            "code": "AUDITOR_ROLE",
+                                            "name": "Auditor Role"
+                                        }
+                                    ],
+                                    "assigned_checkers_roles": [
+                                        [
+                                            {
+                                                "_id": "60b8d295f1e3c5001c5c2b97",
+                                                "code": "CHECKER_ROLE_1",
+                                                "name": "Checker Role 1"
+                                            }
+                                        ],
+                                        [
+                                            {
+                                                "_id": "60b8d295f1e3c5001c5c2b96",
+                                                "code": "CHECKER_ROLE_2",
+                                                "name": "Checker Role 2"
+                                            }
+                                        ]
+                                    ],
+                                    "assigned_makers_roles": [
+                                        {
+                                            "_id": "60b8d295f1e3c5001c5c2b98",
+                                            "code": "MAKER_ROLE",
+                                            "name": "Maker Role"
+                                        }
+                                    ],
+                                    "assigned_viewers_roles": [
+                                        {
+                                            "_id": "60b8d295f1e3c5001c5c2b99",
+                                            "code": "VIEWER_ROLE",
+                                            "name": "Viewer Role"
+                                        }
+                                    ],
+                                    "created_at": "2024-01-15T08:00:00Z",
+                                    "enabled": true,
+                                    "is_maker_only": false,
+                                    "updated_at": "2025-09-30T13:18:37.489Z"
+                                },
+                                "message": "BPS action role retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get BPS action role by code",
+                "tags": [
+                    "BPS Action Role"
+                ]
+            },
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Update a BPS action role by action code",
+                "parameters": [
+                    {
+                        "description": "Action Code",
+                        "in": "path",
+                        "name": "code",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "description": "Update BPS action role request",
+                        "in": "body",
+                        "name": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/actionrole_dto.UpdateActionRoleRequest"
+                        }
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BPS action role update request submitted successfully",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "BPS action role update request submitted successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Update BPS action role",
+                "tags": [
+                    "BPS Action Role"
+                ]
+            }
+        },
+        "/bps-action-roles/{code}/disable": {
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Disable a BPS action role by action code",
+                "parameters": [
+                    {
+                        "description": "Action Code",
+                        "in": "path",
+                        "name": "code",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BPS action role disable request submitted successfully",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "BPS action role disable request submitted successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Disable BPS action role",
+                "tags": [
+                    "BPS Action Role"
+                ]
+            }
+        },
+        "/bps-action-roles/{code}/enable": {
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Enable a BPS action role by action code",
+                "parameters": [
+                    {
+                        "description": "Action Code",
+                        "in": "path",
+                        "name": "code",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BPS action role enable request submitted successfully",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "BPS action role enable request submitted successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Enable BPS action role",
+                "tags": [
+                    "BPS Action Role"
                 ]
             }
         },
@@ -24791,55 +25444,78 @@
                     "200": {
                         "description": "Locked bank vaults retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "account_holder_name": "John Doe",
+                                            "apply_interest_on_early_unlock": false,
+                                            "closed_at": null,
+                                            "created_at": "2024-01-15T08:00:00Z",
+                                            "customer_id": "60b8d295f1e3c5001c5c2b99",
+                                            "deleted_at": null,
+                                            "frequency": "365",
+                                            "id": "60b8d295f1e3c5001c5c2b01",
+                                            "interest": "6.5",
+                                            "linked_account": "1234567890123",
+                                            "lock_period": 180,
+                                            "maturity_date": "2024-07-15T08:00:00Z",
+                                            "max_amount": "500000",
+                                            "method": "COMPOUND",
+                                            "min_amount": "1000",
+                                            "principal": "50000",
+                                            "product_id": "60b8d295f1e3c5001c5c2b01",
+                                            "start_date": "2024-01-15T08:00:00Z",
+                                            "status": "ACTIVE",
+                                            "terms_accepted_at": "2024-01-15T08:00:00Z",
+                                            "terms_version": "1.0",
+                                            "transaction_reference": "TXN123456789",
+                                            "updated_at": "2025-09-30T13:18:37.489Z"
                                         }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                    ],
+                                    "meta": {
+                                        "has_next_page": true,
+                                        "has_prev_page": false,
+                                        "limit": 10,
+                                        "next_page": 2,
+                                        "page": 1,
+                                        "paging_counter": 1,
+                                        "total_docs": 50,
+                                        "total_pages": 5
+                                    }
+                                },
+                                "message": "Locked bank vaults retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -24849,93 +25525,6 @@
                     }
                 ],
                 "summary": "Get All Locked Bank Vaults",
-                "tags": [
-                    "Bank Vault"
-                ]
-            }
-        },
-        "/vault/create": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "description": "Create a new bank vault with the provided information",
-                "parameters": [
-                    {
-                        "description": "Bank vault request",
-                        "in": "body",
-                        "name": "request",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/bankvault.CreateBankVaultProductRequest"
-                        }
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Bank vault creation request submitted successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "summary": "Create Bank Vault",
                 "tags": [
                     "Bank Vault"
                 ]
@@ -24980,55 +25569,74 @@
                     "200": {
                         "description": "Group vaults retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "admin_user_id": "60b8d295f1e3c5001c5c2b99",
+                                            "collected_amount": "45000",
+                                            "created_at": "2024-01-15T08:00:00Z",
+                                            "deleted_at": null,
+                                            "end_date": "2024-12-31T23:59:59Z",
+                                            "id": "60b8d295f1e3c5001c5c2b01",
+                                            "member_count": 5,
+                                            "next_run": "2024-02-01T00:00:00Z",
+                                            "occ_version": 1,
+                                            "purpose": "Education fund",
+                                            "recurrence": "MONTHLY",
+                                            "reminder": true,
+                                            "status": "ACTIVE",
+                                            "target_amount": "100000",
+                                            "tc_version": "1.0",
+                                            "updated_at": "2025-09-30T13:18:37.489Z",
+                                            "vault_category": "FAMILY",
+                                            "vault_name": "Family Savings",
+                                            "vault_type": "GROUP"
                                         }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                    ],
+                                    "meta": {
+                                        "has_next_page": true,
+                                        "has_prev_page": false,
+                                        "limit": 10,
+                                        "next_page": 2,
+                                        "page": 1,
+                                        "paging_counter": 1,
+                                        "total_docs": 20,
+                                        "total_pages": 2
+                                    }
+                                },
+                                "message": "Group vaults retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -25082,55 +25690,87 @@
                     "200": {
                         "description": "Bank vaults retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "apply_interest_on_early_unlock": false,
+                                            "created_at": "2024-01-15T08:00:00Z",
+                                            "currency": "ETB",
+                                            "deleted_at": null,
+                                            "frequency": 365,
+                                            "id": "60b8d295f1e3c5001c5c2b01",
+                                            "interest": "6.5",
+                                            "is_active": true,
+                                            "is_deleted": false,
+                                            "lock_period": 0.5,
+                                            "max_amount": "500000",
+                                            "method": "COMPOUND",
+                                            "min_amount": "1000",
+                                            "name": "Diaspora Fixed Deposit",
+                                            "updated_at": "2025-09-30T13:18:37.489Z"
+                                        },
+                                        {
+                                            "apply_interest_on_early_unlock": true,
+                                            "created_at": "2024-02-20T08:00:00Z",
+                                            "currency": "USD",
+                                            "deleted_at": null,
+                                            "frequency": 30,
+                                            "id": "60b8d295f1e3c5001c5c2b02",
+                                            "interest": "4.2",
+                                            "is_active": false,
+                                            "is_deleted": false,
+                                            "lock_period": 1,
+                                            "max_amount": "100000",
+                                            "method": "SIMPLE",
+                                            "min_amount": "500",
+                                            "name": "Premium Savings",
+                                            "updated_at": "2025-09-25T10:30:00.000Z"
                                         }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                    ],
+                                    "meta": {
+                                        "has_next_page": true,
+                                        "has_prev_page": false,
+                                        "limit": 10,
+                                        "next_page": 2,
+                                        "page": 1,
+                                        "paging_counter": 1,
+                                        "total_docs": 15,
+                                        "total_pages": 2
+                                    }
+                                },
+                                "message": "Bank vaults retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -25140,6 +25780,78 @@
                     }
                 ],
                 "summary": "Find All Bank Vaults",
+                "tags": [
+                    "Bank Vault"
+                ]
+            }
+        },
+        "/vault/products/create": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Create a new bank vault with the provided information",
+                "parameters": [
+                    {
+                        "description": "Bank vault request",
+                        "in": "body",
+                        "name": "request",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/bankvault.CreateBankVaultProductRequest"
+                        }
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bank vault creation request submitted successfully",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Bank vault creation request submitted successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Create Bank Vault",
                 "tags": [
                     "Bank Vault"
                 ]
@@ -25167,55 +25879,40 @@
                     "200": {
                         "description": "Bank vault delete request submitted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bank vault delete request submitted successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -25252,55 +25949,40 @@
                     "200": {
                         "description": "Bank vault disable request submitted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bank vault disable request submitted successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -25337,55 +26019,40 @@
                     "200": {
                         "description": "Bank vault enable request submitted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bank vault enable request submitted successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -25431,55 +26098,40 @@
                     "200": {
                         "description": "Bank vault update request submitted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bank vault update request submitted successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -25516,55 +26168,56 @@
                     "200": {
                         "description": "Bank vault retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
+                            "example": {
+                                "data": {
+                                    "apply_interest_on_early_unlock": false,
+                                    "created_at": "2024-01-15T08:00:00Z",
+                                    "currency": "ETB",
+                                    "deleted_at": null,
+                                    "frequency": 365,
+                                    "id": "60b8d295f1e3c5001c5c2b01",
+                                    "interest": "6.5",
+                                    "is_active": true,
+                                    "is_deleted": false,
+                                    "lock_period": 0.5,
+                                    "max_amount": "500000",
+                                    "method": "COMPOUND",
+                                    "min_amount": "1000",
+                                    "name": "Diaspora Fixed Deposit",
+                                    "updated_at": "2025-09-30T13:18:37.489Z"
                                 },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                "message": "Bank vault retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -25600,55 +26253,75 @@
                     "200": {
                         "description": "Vault group categories retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "category_type": "GROUP",
+                                            "cover_image": "https://example.com/images/family-savings.jpg",
+                                            "created_at": "2024-01-15T08:00:00Z",
+                                            "deleted_at": null,
+                                            "id": "60b8d295f1e3c5001c5c2b01",
+                                            "is_active": true,
+                                            "is_deleted": false,
+                                            "name": "Family Savings",
+                                            "updated_at": "2025-09-30T13:18:37.489Z"
+                                        },
+                                        {
+                                            "category_type": "PERSONAL",
+                                            "cover_image": "https://example.com/images/personal-goals.jpg",
+                                            "created_at": "2024-02-20T08:00:00Z",
+                                            "deleted_at": null,
+                                            "id": "60b8d295f1e3c5001c5c2b02",
+                                            "is_active": false,
+                                            "is_deleted": false,
+                                            "name": "Personal Goals",
+                                            "updated_at": "2025-09-25T10:30:00.000Z"
                                         }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                    ],
+                                    "meta": {
+                                        "has_next_page": true,
+                                        "has_prev_page": false,
+                                        "limit": 10,
+                                        "next_page": 2,
+                                        "page": 1,
+                                        "paging_counter": 1,
+                                        "total_docs": 12,
+                                        "total_pages": 2
+                                    }
+                                },
+                                "message": "Vault group categories retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -25666,18 +26339,30 @@
         "/vaultgroupcategory/create": {
             "post": {
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "description": "Create a new vault group category with the provided information",
                 "parameters": [
                     {
-                        "description": "Vault group category request",
-                        "in": "body",
-                        "name": "request",
+                        "description": "Category name",
+                        "in": "formData",
+                        "name": "name",
                         "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/vaultgroupcategory.CreateVaultGroupCategoryRequest"
-                        }
+                        "type": "string"
+                    },
+                    {
+                        "description": "Category type (GROUP or PERSONAL)",
+                        "in": "formData",
+                        "name": "category_type",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "description": "Cover image file",
+                        "in": "formData",
+                        "name": "cover_image",
+                        "required": true,
+                        "type": "file"
                     }
                 ],
                 "produces": [
@@ -25687,55 +26372,40 @@
                     "200": {
                         "description": "Vault group category creation request submitted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Vault group category creation request submitted successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -25772,55 +26442,40 @@
                     "200": {
                         "description": "Vault group category delete request submitted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Vault group category delete request submitted successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -25837,6 +26492,9 @@
         },
         "/vaultgroupcategory/disable/{id}": {
             "patch": {
+                "consumes": [
+                    "application/json"
+                ],
                 "description": "Disable a vault group category by the provided ID",
                 "parameters": [
                     {
@@ -25854,55 +26512,40 @@
                     "200": {
                         "description": "Vault group category disable request submitted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Vault group category disable request submitted successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -25939,55 +26582,40 @@
                     "200": {
                         "description": "Vault group category enable request submitted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Vault group category enable request submitted successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -26036,55 +26664,40 @@
                     "200": {
                         "description": "Vault group category update request submitted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Vault group category update request submitted successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -26121,55 +26734,50 @@
                     "200": {
                         "description": "Vault group category retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
+                            "example": {
+                                "data": {
+                                    "category_type": "GROUP",
+                                    "cover_image": "https://example.com/images/family-savings.jpg",
+                                    "created_at": "2024-01-15T08:00:00Z",
+                                    "deleted_at": null,
+                                    "id": "60b8d295f1e3c5001c5c2b01",
+                                    "is_active": true,
+                                    "is_deleted": false,
+                                    "name": "Family Savings",
+                                    "updated_at": "2025-09-30T13:18:37.489Z"
                                 },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                "message": "Vault group category retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },

@@ -152,6 +152,43 @@ definitions:
       portal_card_name:
         type: string
     type: object
+  actionrole_dto.GetActionRoleByActionCodeRes:
+    properties:
+      _id:
+        type: string
+      action_code:
+        type: string
+      action_name:
+        type: string
+      approver_count:
+        type: integer
+      assigned_auditor_roles:
+        items:
+          $ref: '#/definitions/model.JobRole'
+        type: array
+      assigned_checkers_roles:
+        items:
+          items:
+            $ref: '#/definitions/model.JobRole'
+          type: array
+        type: array
+      assigned_makers_roles:
+        items:
+          $ref: '#/definitions/model.JobRole'
+        type: array
+      assigned_viewers_roles:
+        items:
+          $ref: '#/definitions/model.JobRole'
+        type: array
+      created_at:
+        type: string
+      enabled:
+        type: boolean
+      is_maker_only:
+        type: boolean
+      updated_at:
+        type: string
+    type: object
   actionrole_dto.UpdateActionRoleRequest:
     properties:
       action_name:
@@ -248,6 +285,39 @@ definitions:
         type: string
     type: object
   bankHandler.paginatedBankResp:
+    type: object
+  bankvault.BankVaultProductResponse:
+    properties:
+      apply_interest_on_early_unlock:
+        type: boolean
+      created_at:
+        type: string
+      currency:
+        type: string
+      deleted_at:
+        type: string
+      frequency:
+        type: integer
+      id:
+        type: string
+      interest:
+        type: number
+      is_active:
+        type: boolean
+      is_deleted:
+        type: boolean
+      lock_period:
+        type: number
+      max_amount:
+        type: number
+      method:
+        type: string
+      min_amount:
+        type: number
+      name:
+        type: string
+      updated_at:
+        type: string
     type: object
   bankvault.CreateBankVaultProductRequest:
     properties:
@@ -1412,6 +1482,23 @@ definitions:
       ticketStatistics:
         $ref: '#/definitions/types.TicketStatistics'
     type: object
+  model.JobRole:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      portal_cards:
+        items:
+          type: string
+        type: array
+      updated_at:
+        type: string
+    type: object
   model.MaritalStatus:
     enum:
     - MARRIED
@@ -2176,7 +2263,28 @@ definitions:
       vault_category_id:
         type: string
     type: object
-  vaultgroupcategory.CreateVaultGroupCategoryRequest:
+  vaultgroupcategory.VaultGroupCategoryResponse:
+    properties:
+      category_type:
+        type: string
+      cover_image:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      is_deleted:
+        type: boolean
+      name:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - category_type
     type: object
   wallet.PaginatedWalletResponse:
     type: object
@@ -5681,6 +5789,286 @@ paths:
       summary: Update bank logo (maker)
       tags:
       - Banks
+  /bps-action-list:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all action list with pagination and optional search
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Action list retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get all action list
+      tags:
+      - BPS Action Role
+  /bps-action-roles/{code}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a BPS action role by action code
+      parameters:
+      - description: Action Code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: BPS action role retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/actionrole_dto.GetActionRoleByActionCodeRes'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get BPS action role by code
+      tags:
+      - BPS Action Role
+    patch:
+      consumes:
+      - application/json
+      description: Update a BPS action role by action code
+      parameters:
+      - description: Action Code
+        in: path
+        name: code
+        required: true
+        type: string
+      - description: Update BPS action role request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/actionrole_dto.UpdateActionRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: BPS action role update request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update BPS action role
+      tags:
+      - BPS Action Role
+  /bps-action-roles/{code}/disable:
+    patch:
+      consumes:
+      - application/json
+      description: Disable a BPS action role by action code
+      parameters:
+      - description: Action Code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: BPS action role disable request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Disable BPS action role
+      tags:
+      - BPS Action Role
+  /bps-action-roles/{code}/enable:
+    patch:
+      consumes:
+      - application/json
+      description: Enable a BPS action role by action code
+      parameters:
+      - description: Action Code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: BPS action role enable request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Enable BPS action role
+      tags:
+      - BPS Action Role
   /bps_users/:
     get:
       parameters:
@@ -14477,53 +14865,6 @@ paths:
       summary: Get All Locked Bank Vaults
       tags:
       - Bank Vault
-  /vault/create:
-    post:
-      consumes:
-      - application/json
-      description: Create a new bank vault with the provided information
-      parameters:
-      - description: Bank vault request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/bankvault.CreateBankVaultProductRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Bank vault creation request submitted successfully
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "400":
-          description: Bad request
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal server error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Create Bank Vault
-      tags:
-      - Bank Vault
   /vault/group-vaults:
     get:
       consumes:
@@ -14659,7 +15000,7 @@ paths:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  type: object
+                  $ref: '#/definitions/bankvault.BankVaultProductResponse'
               type: object
         "400":
           description: Bad request
@@ -14682,6 +15023,53 @@ paths:
       security:
       - BearerAuth: []
       summary: Get Bank Vault
+      tags:
+      - Bank Vault
+  /vault/products/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new bank vault with the provided information
+      parameters:
+      - description: Bank vault request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/bankvault.CreateBankVaultProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bank vault creation request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create Bank Vault
       tags:
       - Bank Vault
   /vault/products/delete/{id}:
@@ -14940,7 +15328,7 @@ paths:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  type: object
+                  $ref: '#/definitions/vaultgroupcategory.VaultGroupCategoryResponse'
               type: object
         "400":
           description: Bad request
@@ -14968,15 +15356,24 @@ paths:
   /vaultgroupcategory/create:
     post:
       consumes:
-      - application/json
+      - multipart/form-data
       description: Create a new vault group category with the provided information
       parameters:
-      - description: Vault group category request
-        in: body
-        name: request
+      - description: Category name
+        in: formData
+        name: name
         required: true
-        schema:
-          $ref: '#/definitions/vaultgroupcategory.CreateVaultGroupCategoryRequest'
+        type: string
+      - description: Category type (GROUP or PERSONAL)
+        in: formData
+        name: category_type
+        required: true
+        type: string
+      - description: Cover image file
+        in: formData
+        name: cover_image
+        required: true
+        type: file
       produces:
       - application/json
       responses:
@@ -15060,6 +15457,8 @@ paths:
       - Vault Group Category
   /vaultgroupcategory/disable/{id}:
     patch:
+      consumes:
+      - application/json
       description: Disable a vault group category by the provided ID
       parameters:
       - description: Vault group category ID

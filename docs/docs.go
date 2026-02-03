@@ -6254,6 +6254,523 @@ const docTemplate = `{
                 }
             }
         },
+        "/bps-action-list": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve all action list with pagination and optional search",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "BPS Action Role"
+                ],
+                "summary": "Get all action list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search term",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Action list retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/bps-action-roles/{code}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a BPS action role by action code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "BPS Action Role"
+                ],
+                "summary": "Get BPS action role by code",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Action Code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BPS action role retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/actionrole_dto.GetActionRoleByActionCodeRes"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update a BPS action role by action code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "BPS Action Role"
+                ],
+                "summary": "Update BPS action role",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Action Code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update BPS action role request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/actionrole_dto.UpdateActionRoleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BPS action role update request submitted successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/bps-action-roles/{code}/disable": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Disable a BPS action role by action code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "BPS Action Role"
+                ],
+                "summary": "Disable BPS action role",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Action Code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BPS action role disable request submitted successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/bps-action-roles/{code}/enable": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Enable a BPS action role by action code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "BPS Action Role"
+                ],
+                "summary": "Enable BPS action role",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Action Code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "BPS action role enable request submitted successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/bps_users/": {
             "get": {
                 "security": [
@@ -22075,93 +22592,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/vault/create": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Create a new bank vault with the provided information",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Bank Vault"
-                ],
-                "summary": "Create Bank Vault",
-                "parameters": [
-                    {
-                        "description": "Bank vault request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/bankvault.CreateBankVaultProductRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Bank vault creation request submitted successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
         "/vault/group-vaults": {
             "get": {
                 "security": [
@@ -22311,6 +22741,93 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "Bank vaults retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/vault/products/create": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new bank vault with the provided information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bank Vault"
+                ],
+                "summary": "Create Bank Vault",
+                "parameters": [
+                    {
+                        "description": "Bank vault request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/bankvault.CreateBankVaultProductRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bank vault creation request submitted successfully",
                         "schema": {
                             "allOf": [
                                 {
@@ -22754,7 +23271,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "object"
+                                            "$ref": "#/definitions/bankvault.BankVaultProductResponse"
                                         }
                                     }
                                 }
@@ -22893,7 +23410,7 @@ const docTemplate = `{
                 ],
                 "description": "Create a new vault group category with the provided information",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -22904,13 +23421,25 @@ const docTemplate = `{
                 "summary": "Create Vault Group Category",
                 "parameters": [
                     {
-                        "description": "Vault group category request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/vaultgroupcategory.CreateVaultGroupCategoryRequest"
-                        }
+                        "type": "string",
+                        "description": "Category name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Category type (GROUP or PERSONAL)",
+                        "name": "category_type",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Cover image file",
+                        "name": "cover_image",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -23064,6 +23593,9 @@ const docTemplate = `{
                     }
                 ],
                 "description": "Disable a vault group category by the provided ID",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -23359,7 +23891,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "object"
+                                            "$ref": "#/definitions/vaultgroupcategory.VaultGroupCategoryResponse"
                                         }
                                     }
                                 }
@@ -24383,6 +24915,62 @@ const docTemplate = `{
                 }
             }
         },
+        "actionrole_dto.GetActionRoleByActionCodeRes": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "action_code": {
+                    "type": "string"
+                },
+                "action_name": {
+                    "type": "string"
+                },
+                "approver_count": {
+                    "type": "integer"
+                },
+                "assigned_auditor_roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.JobRole"
+                    }
+                },
+                "assigned_checkers_roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/model.JobRole"
+                        }
+                    }
+                },
+                "assigned_makers_roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.JobRole"
+                    }
+                },
+                "assigned_viewers_roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.JobRole"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "is_maker_only": {
+                    "type": "boolean"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "actionrole_dto.UpdateActionRoleRequest": {
             "type": "object",
             "properties": {
@@ -24526,6 +25114,56 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "bankvault.BankVaultProductResponse": {
+            "type": "object",
+            "properties": {
+                "apply_interest_on_early_unlock": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "frequency": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "interest": {
+                    "type": "number"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "lock_period": {
+                    "type": "number"
+                },
+                "max_amount": {
+                    "type": "number"
+                },
+                "method": {
+                    "type": "string"
+                },
+                "min_amount": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
@@ -26232,6 +26870,32 @@ const docTemplate = `{
                 }
             }
         },
+        "model.JobRole": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "portal_cards": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "model.MaritalStatus": {
             "type": "string",
             "enum": [
@@ -27383,8 +28047,40 @@ const docTemplate = `{
                 }
             }
         },
-        "vaultgroupcategory.CreateVaultGroupCategoryRequest": {
-            "type": "object"
+        "vaultgroupcategory.VaultGroupCategoryResponse": {
+            "type": "object",
+            "required": [
+                "category_type"
+            ],
+            "properties": {
+                "category_type": {
+                    "type": "string"
+                },
+                "cover_image": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
         },
         "wallet.PaginatedWalletResponse": {
             "type": "object"

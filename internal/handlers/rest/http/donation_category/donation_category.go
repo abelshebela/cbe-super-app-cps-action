@@ -294,7 +294,6 @@ func (d *donationCategoryAdapter) DisableDonationCategory(w http.ResponseWriter,
 	defer span.End()
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
-
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("donation category ID is required for disable"))
