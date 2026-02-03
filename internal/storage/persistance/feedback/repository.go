@@ -289,6 +289,69 @@ func (f *FeedbackStorage) FindAllCustomerFeedbacks(ctx context.Context, filterPa
 	}, nil
 }
 
+func (f *FeedbackStorage) FindAllSurveyFeedbacks(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.SurveyFeedback], error) {
+	searchKeys := bson.M{}
+	allowedKeys := []string{"search"}
+
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		searchKeys["$or"] = []bson.M{
+			{"customer_name": searchRegex},
+			{"email": searchRegex},
+			{"phone_number": searchRegex},
+			{"account_number": searchRegex},
+			{"message": searchRegex},
+		}
+	}
+
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+	f.logger.Infof("[FindAllSurveyFeedbacks] fetching survey feedbacks with pagination")
+	data, err := f.surveyFeedbackDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
+	if err != nil {
+		f.logger.Errorf("[FindAllSurveyFeedbacks] failed to fetch survey feedbacks: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	total, err := f.surveyFeedbackDal.TotalCount(ctx, filter)
+	if err != nil {
+		f.logger.Errorf("[FindAllSurveyFeedbacks] failed to count survey feedbacks: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	f.logger.Infof("[FindAllSurveyFeedbacks] retrieved %d survey feedbacks", len(data))
+
+	return &types.PaginatedResponse[[]local_model.SurveyFeedback]{
+		Data: data,
+		Meta: meta,
+	}, nil
+}
+
+func (f *FeedbackStorage) FindSurveyFeedbackByID(ctx context.Context, id string) (*local_model.SurveyFeedback, error) {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		f.logger.Errorf("[FindSurveyFeedbackByID] invalid id: %s", id)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"_id": objID}
+	f.logger.Infof("[FindSurveyFeedbackByID] fetching survey feedback by id: %s", id)
+
+	result, err := f.surveyFeedbackDal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			f.logger.Warnf("[FindSurveyFeedbackByID] survey feedback not found for id: %s", id)
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		f.logger.Errorf("[FindSurveyFeedbackByID] failed to find survey feedback: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	f.logger.Infof("[FindSurveyFeedbackByID] survey feedback retrieved successfully for id: %s", id)
+	return result, nil
+}
+
 func (f *FeedbackStorage) FindCustomerFeedbackByID(ctx context.Context, id string) (*local_model.CustomerFeedback, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {

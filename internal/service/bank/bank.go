@@ -495,12 +495,12 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		}
 	}
 	if result != nil && result.ID.Hex() != id {
-		if bank_request.BICCode != "" && result.BICCode != "" && result.BICCode == bank_request.BICCode {
+		if bank_request.BICCode != "" && result.BICCode != "" && result.BICCode == bank_request.BICCode && result.ID.Hex() != id {
 			b.logger.Errorf("[UpdateOneBank] bank with BIC already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
 		}
 
-		if bank_request.Name != "" && result.Name != "" && result.Name == bank_request.Name {
+		if bank_request.Name != "" && result.Name != "" && result.Name == bank_request.Name && result.ID.Hex() != id {
 			b.logger.Errorf("[UpdateOneBank] bank with name already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
 		}
