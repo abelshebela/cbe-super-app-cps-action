@@ -178,10 +178,10 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 		return errors.New(localization.ErrorNoChangesDetected.Code)
 	}
 
-	if !(Updatetopup.Services.Agent || Updatetopup.Services.Self || Updatetopup.Services.Other) {
-		span.AddEvent("No service option selected", trace.WithAttributes(attribute.String("id", id)))
-		return errors.New(localization.ErrorTopupServiceOption.Code)
-	}
+	// if !(Updatetopup.Services.Agent || Updatetopup.Services.Self || Updatetopup.Services.Other) {
+	// 	span.AddEvent("No service option selected", trace.WithAttributes(attribute.String("id", id)))
+	// 	return errors.New(localization.ErrorTopupServiceOption.Code)
+	// }
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestUpdateTopup, Updatetopup, *prevtopup, constants.ActionUpdate); err != nil {
 		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("code", Updatetopup.Code)))

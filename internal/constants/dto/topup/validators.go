@@ -44,7 +44,7 @@ func (w TopupRequest) Validate(isCreate bool) error {
 				&w.Code,
 				validation.Required.Error(localization.ErrorTopupCodeRequired.Code),
 				validation.By(utils.TrimWhiteSpace),
-				validation.By(utils.NoSpecialChars),
+				// validation.By(utils.NoSpecialChars),
 			),
 		)
 	} else {
@@ -52,7 +52,7 @@ func (w TopupRequest) Validate(isCreate bool) error {
 			validation.Field(
 				&w.Code,
 				validation.When(w.Code != "", validation.By(utils.TrimWhiteSpace)),
-				validation.By(utils.NoSpecialChars),
+				// validation.By(utils.NoSpecialChars),
 			),
 		)
 	}

@@ -115,6 +115,35 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	currentIndex := action.CurrentAuditorIndex
+
+	Current_role_level := *idxDoc.AuditorIndex
+	expected := int32(*idxDoc.AuditorIndex)
+	ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.AuditorIndex)
+	ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
+	r = r.WithContext(ctx)
+	if currentIndex == float64(Current_role_level) {
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionApprovedByThisRole)
+		return
+	}
+
+	if int64(currentIndex)+1 < int64(Current_role_level) {
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
+		return
+	}
+
+	if action.MakerID == userData.UserID {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+
+	for _, au := range action.AuditorUsers {
+		if au.RoleID == rawRoleID || au.AuditorID == userData.UserID {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+	}
+
 	// Parse request to decide claim vs mark
 	var reqBody cps_actionrole_dto.AuditorMarkRequest
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
@@ -437,6 +466,11 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 	var req cpsactionDto.ActionRequest
 	makerData := local_util.ExtractUserFromContext(ctx)
 
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+		return
+	}
 	// Fetch action and attach checker_index context for this approver
 	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, "")
 	if err != nil {
@@ -1396,6 +1430,7 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 		actionName = mod
 	}
 
+	var checkerIdx, auditorIdx int64
 	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
 		role, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 		if role == "" {
@@ -1415,11 +1450,18 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
+
+		if idxDoc.CheckerIndex != nil {
+			checkerIdx = int64(*idxDoc.CheckerIndex)
+		}
+		if idxDoc.AuditorIndex != nil {
+			auditorIdx = int64(*idxDoc.AuditorIndex)
+		}
 	}
 
 	autorizersLevel := cpsactionDto.AutorizersLevelResponse{
-		CheckerIndex: float64(*idxDoc.CheckerIndex),
-		AuditorIndex: float64(*idxDoc.AuditorIndex),
+		CheckerIndex: checkerIdx,
+		AuditorIndex: auditorIdx,
 	}
 
 	localization.SendSuccessResponse(w, localization.AutorizersLevelFetchedSuccessfully, autorizersLevel)

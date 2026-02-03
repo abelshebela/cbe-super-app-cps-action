@@ -37,18 +37,18 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 		return errors.New(localization.ErrorServiceExists.Code)
 	}
 
-	for _, service := range req.ServiceList {
-		if service.ServiceKey == nil || service.ServiceName == nil {
-			break
-		}
-		listExists, err := s.repo.CheckServiceExistence(ctx, "", *service.ServiceKey, *service.ServiceName)
-		if err != nil {
-			return err
-		}
-		if listExists {
-			return errors.New(localization.ErrorChildServiceExists.Code)
-		}
-	}
+	// for _, service := range req.ServiceList {
+	// 	if service.ServiceKey == nil || service.ServiceName == nil {
+	// 		break
+	// 	}
+	// 	listExists, err := s.repo.CheckServiceExistence(ctx, "", *service.ServiceKey, *service.ServiceName)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	if listExists {
+	// 		return errors.New(localization.ErrorChildServiceExists.Code)
+	// 	}
+	// }
 
 	mapped := core.MapToServiceModel(req)
 
