@@ -8478,55 +8478,119 @@
                     "200": {
                         "description": "BPS users retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/bpsmakerhandler.paginated_resp"
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "UserName": "johndoe",
+                                            "branch_code": [
+                                                "BR001"
+                                            ],
+                                            "branch_name": "BR",
+                                            "created_at": "0001-01-01T00:00:00Z",
+                                            "enabled": true,
+                                            "first_password_set": false,
+                                            "full_name": "john doe",
+                                            "home_branch": "HR",
+                                            "id": "64d3f9e8c2b9a3b1a1a1a1a1",
+                                            "is_deleted": false,
+                                            "is_first_time_login": false,
+                                            "last_login": "2025-10-02T08:54:07.323Z",
+                                            "last_login_attempt": "2025-10-02T08:54:07.323Z",
+                                            "last_modifed_at": "2025-06-01T12:00:00Z",
+                                            "login_attempt_count": 0,
+                                            "next_login_attempt": "0001-01-01T00:00:00Z",
+                                            "otp_last_tried_at": "0001-01-01T00:00:00Z",
+                                            "otp_last_verified_at": "0001-01-01T00:00:00Z",
+                                            "otp_verfy_count": 0,
+                                            "password": {
+                                                "current_password": "99a95aec96574e3c5f8f26d7b550d4b58f2648e0cea27fa6053c21c0f48a2e4768d9ab7b2468a27f4d29a7f67516e9b4db5bddda6022ce7ceefa0628106aa7b637e502dfb1a7246e2622d42f747edd88",
+                                                "old_password": [],
+                                                "password_changed_at": "0001-01-01T00:00:00Z",
+                                                "salt": "dbc1bfb8465613505042ed0d1d07b5866d7d37ba"
+                                            },
+                                            "permission_group": null,
+                                            "permissions": null,
+                                            "phone_number": "251967792762",
+                                            "role": "MAKER",
+                                            "user_code": "USR12345"
+                                        },
+                                        {
+                                            "UserName": "daniel",
+                                            "branch_code": null,
+                                            "branch_name": "",
+                                            "created_at": "0001-01-01T00:00:00Z",
+                                            "enabled": true,
+                                            "first_password_set": false,
+                                            "full_name": "",
+                                            "home_branch": "",
+                                            "id": "665e21f14f1c000001000abc",
+                                            "is_deleted": false,
+                                            "is_first_time_login": false,
+                                            "last_login": "2025-07-11T07:43:34.276Z",
+                                            "last_login_attempt": "2025-07-11T07:43:34.276Z",
+                                            "last_modifed_at": "2025-06-06T09:00:00Z",
+                                            "login_attempt_count": 0,
+                                            "next_login_attempt": "0001-01-01T00:00:00Z",
+                                            "otp_last_tried_at": "0001-01-01T00:00:00Z",
+                                            "otp_last_verified_at": "0001-01-01T00:00:00Z",
+                                            "otp_verfy_count": 0,
+                                            "password": {
+                                                "current_password": "e62d529c9dbf8dd19510209a7c5e2fd30eee831462779af60f99aeac3b8b697b67a8160dadc3247d84eadebe789b18cbccfd0fa0898749058a101b21e868d9e355bdd707e3013d6cf4f168b1f24f088b",
+                                                "old_password": [],
+                                                "password_changed_at": "0001-01-01T00:00:00Z",
+                                                "salt": "9f0aed34a0fb223201cf342df025222c1512704f"
+                                            },
+                                            "permission_group": null,
+                                            "permissions": null,
+                                            "phone_number": "",
+                                            "role": "CHECKER",
+                                            "user_code": ""
                                         }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                    ],
+                                    "meta": {
+                                        "has_next_page": true,
+                                        "has_prev_page": false,
+                                        "limit": 10,
+                                        "next_page": 2,
+                                        "page": 1,
+                                        "paging_counter": 1,
+                                        "total_docs": 23,
+                                        "total_pages": 3
+                                    }
+                                },
+                                "message": "User retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T08:57:10.64656624Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -8559,55 +8623,40 @@
                     "200": {
                         "description": "BPS user created successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "BPS user created successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -8644,76 +8693,53 @@
                     "200": {
                         "description": "BPS user disabled successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "additionalProperties": {
-                                                "type": "string"
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": {},
+                                "message": "Bank disable request sent successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:02:50.466603712Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request - User code required",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request - User code required",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "User not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -8750,76 +8776,53 @@
                     "200": {
                         "description": "BPS user enabled successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "additionalProperties": {
-                                                "type": "string"
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": {},
+                                "message": "Bank enable request sent successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:08:07.821268839Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request - User code required",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request - User code required",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "User not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -8856,73 +8859,86 @@
                     "200": {
                         "description": "BPS user retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/bpsmakerhandler.bps_user_resp"
-                                        }
+                            "example": {
+                                "data": {
+                                    "UserName": "johndoe",
+                                    "branch_code": [
+                                        "BR001"
+                                    ],
+                                    "branch_name": "BR",
+                                    "created_at": "0001-01-01T00:00:00Z",
+                                    "enabled": true,
+                                    "first_password_set": false,
+                                    "full_name": "john doe",
+                                    "home_branch": "HR",
+                                    "id": "64d3f9e8c2b9a3b1a1a1a1a1",
+                                    "is_deleted": false,
+                                    "is_first_time_login": false,
+                                    "last_login": "2025-10-02T08:54:07.323Z",
+                                    "last_login_attempt": "2025-10-02T08:54:07.323Z",
+                                    "last_modifed_at": "2025-06-01T12:00:00Z",
+                                    "login_attempt_count": 0,
+                                    "next_login_attempt": "0001-01-01T00:00:00Z",
+                                    "otp_last_tried_at": "0001-01-01T00:00:00Z",
+                                    "otp_last_verified_at": "0001-01-01T00:00:00Z",
+                                    "otp_verfy_count": 0,
+                                    "password": {
+                                        "current_password": "99a95aec96574e3c5f8f26d7b550d4b58f2648e0cea27fa6053c21c0f48a2e4768d9ab7b2468a27f4d29a7f67516e9b4db5bddda6022ce7ceefa0628106aa7b637e502dfb1a7246e2622d42f747edd88",
+                                        "old_password": [],
+                                        "password_changed_at": "0001-01-01T00:00:00Z",
+                                        "salt": "dbc1bfb8465613505042ed0d1d07b5866d7d37ba"
                                     },
-                                    "type": "object"
-                                }
-                            ]
+                                    "permission_group": null,
+                                    "permissions": null,
+                                    "phone_number": "251967792762",
+                                    "role": "MAKER",
+                                    "user_code": "USR12345"
+                                },
+                                "message": "User retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T08:58:11.912967234Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request - User code required",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request - User code required",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "User not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -8966,73 +8982,53 @@
                     "200": {
                         "description": "BPS user updated successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "BPS user updated successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "User not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -9092,58 +9088,80 @@
                     "200": {
                         "description": "Budget categories retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "items": {
-                                                "$ref": "#/definitions/budget_category.BudgetCategoryResponse"
-                                            },
-                                            "type": "array"
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "color": "#F54925",
+                                            "created_at": "2025-10-22T11:42:46Z",
+                                            "enabled": true,
+                                            "icon": "https://assetscbedev.eaglelionsystems.com/icon/budget_category_icon-1761134757803287099-1.png",
+                                            "id": "68f8c3ba25dd67ffb0794a93",
+                                            "name": "Delicious Food",
+                                            "updated_at": "2025-12-08T11:14:13Z"
+                                        },
+                                        {
+                                            "color": "#F54927",
+                                            "created_at": "2025-10-22T12:34:50Z",
+                                            "enabled": true,
+                                            "icon": "https://assetscbedev.eaglelionsystems.com/icon/budget_category_icon-1761136489685977156-1.png",
+                                            "id": "68f8cfbc4cc5993ba05ad990",
+                                            "name": "house",
+                                            "updated_at": "2025-10-22T12:34:50Z"
+                                        },
+                                        {
+                                            "color": "#F54925",
+                                            "created_at": "2025-10-23T07:36:21Z",
+                                            "enabled": true,
+                                            "icon": "https://assetscbedev.eaglelionsystems.com/icon/budget_category_icon-1761206639240581812-guzogo.jpeg",
+                                            "id": "68f9ddaa152b04448361cea3",
+                                            "name": "lloool",
+                                            "updated_at": "2025-12-02T05:10:57Z"
                                         }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                    ],
+                                    "meta": {
+                                        "has_next_page": true,
+                                        "has_prev_page": false,
+                                        "limit": 10,
+                                        "next_page": 2,
+                                        "page": 1,
+                                        "paging_counter": 1,
+                                        "total_docs": 14,
+                                        "total_pages": 2
+                                    }
+                                },
+                                "message": "Budget categories fetched successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T14:07:39.2238046+03:00"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -9192,55 +9210,39 @@
                     "200": {
                         "description": "Budget category created successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "Budget category creation request submitted for approval",
+                                "ok": true,
+                                "status": 201,
+                                "timestamp": "2026-02-02T14:10:04.7452476+03:00"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -9277,55 +9279,39 @@
                     "200": {
                         "description": "Budget category disable request submitted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "Budget category disable request submitted for approval",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T14:12:24.8898684+03:00"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -9362,55 +9348,40 @@
                     "200": {
                         "description": "Budget category enable request submitted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Budget category enable request submitted successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -9447,55 +9418,40 @@
                     "200": {
                         "description": "Budget category delete request submitted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Budget category delete request submitted successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -9530,73 +9486,61 @@
                     "200": {
                         "description": "Budget category retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
+                            "example": {
+                                "data": {
+                                    "color": "#F54925",
+                                    "created_at": "2025-10-22T11:42:46Z",
+                                    "enabled": true,
+                                    "icon": "https://assetscbedev.eaglelionsystems.com/icon/budget_category_icon-1761134757803287099-1.png",
+                                    "id": "68f8c3ba25dd67ffb0794a93",
+                                    "name": "food",
+                                    "updated_at": "2025-10-22T12:05:58Z"
                                 },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/budget_category.BudgetCategoryResponse"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                "message": "Budget category fetched successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-22T08:16:42.291599311-04:00"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Budget category not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Budget category not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -9651,55 +9595,39 @@
                     "200": {
                         "description": "Budget category update request submitted successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "Budget category update request submitted for approval",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T14:11:35.095035+03:00"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -9761,55 +9689,88 @@
                     "200": {
                         "description": "Bulk services retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/bulk_service.bulk_services_paginated_resp"
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "access_list_name": "",
+                                            "enabled": false,
+                                            "key": "transfertodashen",
+                                            "sub_access_list": null,
+                                            "ussd_enabled": false
+                                        },
+                                        {
+                                            "access_list_name": "",
+                                            "enabled": false,
+                                            "key": "transfertootherbank",
+                                            "sub_access_list": null,
+                                            "ussd_enabled": true
+                                        },
+                                        {
+                                            "access_list_name": "",
+                                            "enabled": true,
+                                            "key": "ips",
+                                            "sub_access_list": null,
+                                            "ussd_enabled": true
+                                        },
+                                        {
+                                            "access_list_name": "",
+                                            "enabled": true,
+                                            "key": "wallet",
+                                            "sub_access_list": null,
+                                            "ussd_enabled": false
+                                        },
+                                        {
+                                            "access_list_name": "",
+                                            "enabled": true,
+                                            "key": "topup",
+                                            "sub_access_list": null,
+                                            "ussd_enabled": false
                                         }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                    ],
+                                    "meta": {
+                                        "has_next_page": true,
+                                        "has_prev_page": false,
+                                        "limit": 10,
+                                        "next_page": 2,
+                                        "page": 1,
+                                        "paging_counter": 1,
+                                        "total_docs": 19,
+                                        "total_pages": 2
+                                    }
+                                },
+                                "message": "Bulk service(s) fetched successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:25:34.156721382Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -9848,55 +9809,40 @@
                     "200": {
                         "description": "Bulk services disabled successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bulk service disable request processed successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request - Invalid input",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request - Invalid input",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -9935,55 +9881,39 @@
                     "200": {
                         "description": "Bulk services enabled successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "Bulk service enable request processed successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:32:10.804655878Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request - Invalid input",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request - Invalid input",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
