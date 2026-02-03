@@ -18,6 +18,7 @@ import (
 	topupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -69,7 +70,6 @@ func ExistingIdentifierForUpdate(existing model.Topup, id string, req topupDto.T
 	return nil
 }
 
-// func ToCreateTopupDoc(name, code, URL string, self, other, agent bool) *model.Topup {
 func ToCreateTopupDoc(name, code, URL string) *model.Topup {
 	return &model.Topup{
 		Name:   name,
