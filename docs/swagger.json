@@ -7033,37 +7033,89 @@
                     "200": {
                         "description": "Avatars retrieved",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/avatar.paginatedAvatarResp"
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "avatar": "https://devapisuperapp.cbe.com.et/api/v1/cbesuperapp/files/avatar-1765632838270732448-profileimage.jpg",
+                                            "created_at": "2025-12-13T13:33:58.296Z",
+                                            "deleted_at": null,
+                                            "enable": true,
+                                            "id": "693d6b92aa77bdab9be9af5a",
+                                            "is_deleted": false,
+                                            "label": "human face",
+                                            "last_modified_at": "0001-01-01T00:00:00Z"
+                                        },
+                                        {
+                                            "avatar": "https://devapisuperapp.cbe.com.et/api/v1/cbesuperapp/files/avatar-1765661526162272359-bank image.jpg",
+                                            "created_at": "2025-12-13T21:32:06.188Z",
+                                            "deleted_at": null,
+                                            "enable": true,
+                                            "id": "693ddb9faa77bdab9be9af8c",
+                                            "is_deleted": true,
+                                            "label": "test advert",
+                                            "last_modified_at": "0001-01-01T00:00:00Z"
+                                        },
+                                        {
+                                            "avatar": "https://devapisuperapp.cbe.com.et/api/v1/cbesuperapp/files/avatar-1765785136563861692-image profile.png",
+                                            "created_at": "2025-12-15T07:52:16.589Z",
+                                            "deleted_at": null,
+                                            "enable": true,
+                                            "id": "693fbe62aa77bdab9be9afac",
+                                            "is_deleted": false,
+                                            "label": "test avatar",
+                                            "last_modified_at": "0001-01-01T00:00:00Z"
+                                        },
+                                        {
+                                            "avatar": "https://devapisuperapp.cbe.com.et/api/v1/cbesuperapp/files/avatar-1765868826922688917-avatar1.jpg",
+                                            "created_at": "2025-12-16T07:07:06.94Z",
+                                            "deleted_at": null,
+                                            "enable": true,
+                                            "id": "6941051bace3434361c5966a",
+                                            "is_deleted": false,
+                                            "label": "avatarAloneonaWideWideSea",
+                                            "last_modified_at": "0001-01-01T00:00:00Z"
+                                        },
+                                        {
+                                            "avatar": "https://devapisuperapp.cbe.com.et/api/v1/cbesuperapp/files/avatar-1765873307197911946-avatar1.jpg",
+                                            "created_at": "2025-12-16T08:21:47.212Z",
+                                            "deleted_at": null,
+                                            "enable": true,
+                                            "id": "6941169cace3434361c596b0",
+                                            "is_deleted": false,
+                                            "label": "avatarNineCoachesWaiting",
+                                            "last_modified_at": "0001-01-01T00:00:00Z"
                                         }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                    ],
+                                    "meta": {
+                                        "has_next_page": false,
+                                        "has_prev_page": false,
+                                        "limit": 10,
+                                        "page": 1,
+                                        "paging_counter": 1,
+                                        "total_docs": 5,
+                                        "total_pages": 1
+                                    }
+                                },
+                                "message": "Avatar retrieved successfully",
+                                "ok": true,
+                                "status": 201,
+                                "timestamp": "2026-02-02T13:26:47.723447686Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -7106,55 +7158,40 @@
                     "200": {
                         "description": "Avatar create request sent",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Avatar create request sent",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Invalid input",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Operation not allowed",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T13:33:38.9062895+03:00"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -7191,73 +7228,51 @@
                     "200": {
                         "description": "Avatar disabled",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Avatar disabled",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Invalid ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "Avatar already disabled",
+                                "ok": true,
+                                "status": 400,
+                                "timestamp": "2025-10-02T08:13:48.27831647Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Avatar not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "file not found",
+                                "ok": true,
+                                "status": 404,
+                                "timestamp": "2025-10-02T08:12:25.228421109Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -7294,73 +7309,51 @@
                     "200": {
                         "description": "Avatar enabled",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "Avatar enable request sent successfully",
+                                "ok": true,
+                                "status": 202,
+                                "timestamp": "2025-10-02T08:11:13.957329554Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Invalid ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Invalid ID",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Avatar not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "file not found",
+                                "ok": true,
+                                "status": 404,
+                                "timestamp": "2025-10-02T08:19:34.092476394Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -7397,73 +7390,53 @@
                     "200": {
                         "description": "Avatar delete request sent",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Avatar delete request sent",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Invalid ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Invalid ID",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Avatar not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Avatar not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -7498,73 +7471,62 @@
                     "200": {
                         "description": "Avatar retrieved",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
+                            "example": {
+                                "data": {
+                                    "avatar": "https://devapisuperapp.cbe.com.et/api/v1/cbesuperapp/files/avatar-1765632838270732448-profileimage.jpg",
+                                    "created_at": "2025-12-13T13:33:58.296Z",
+                                    "deleted_at": null,
+                                    "enable": true,
+                                    "id": "693d6b92aa77bdab9be9af5a",
+                                    "is_deleted": false,
+                                    "label": "human face",
+                                    "last_modified_at": "0001-01-01T00:00:00Z"
                                 },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/model.Avatar"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                "message": "Avatar enable request sent successfully",
+                                "ok": true,
+                                "status": 202,
+                                "timestamp": "2026-02-02T13:27:43.901690534Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Invalid ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Invalid ID",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Avatar not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Avatar not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -7612,73 +7574,52 @@
                     "200": {
                         "description": "Avatar update request sent",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Avatar update request sent",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Invalid input",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Invalid input",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Avatar not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "file not found",
+                                "ok": true,
+                                "status": 404,
+                                "timestamp": "2025-10-02T08:21:56.838281117Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -7734,37 +7675,69 @@
                     "200": {
                         "description": "Banks fetched",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/bankHandler.paginatedBankResp"
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "bic": "Merrwa",
+                                            "code": "MKMKy123",
+                                            "enabled": true,
+                                            "id": "687905e07aef9ff545f3fb12",
+                                            "is_deleted": true,
+                                            "last_modified_at": "2025-08-22T07:07:20.46Z",
+                                            "logo": "banks/bank-1752761597313938683-Screenshot from 2025-07-17 11-26-31.png",
+                                            "name": "merewa bank  update test"
+                                        },
+                                        {
+                                            "bic": "CBETETTA",
+                                            "code": "CP123",
+                                            "enabled": true,
+                                            "id": "68790a0c84508f7baf3ede85",
+                                            "is_deleted": false,
+                                            "last_modified_at": "2025-07-22T06:49:00.735Z",
+                                            "logo": "banks/bank-1752762891545535739-Screenshot from 2025-07-17 11-26-31.png",
+                                            "name": "UPDATED NEWBank "
+                                        },
+                                        {
+                                            "bic": "CWETETAA",
+                                            "code": "CP123",
+                                            "enabled": true,
+                                            "id": "687becc0ba33262441196846",
+                                            "is_deleted": false,
+                                            "logo": "banks/bank-1752951997522319300-Screenshot from 2025-07-18 18-44-55.png",
+                                            "name": "CapsNeO"
                                         }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                    ],
+                                    "meta": {
+                                        "has_next_page": true,
+                                        "has_prev_page": false,
+                                        "limit": 3,
+                                        "next_page": 2,
+                                        "page": 1,
+                                        "paging_counter": 1,
+                                        "total_docs": 11,
+                                        "total_pages": 4
+                                    }
+                                },
+                                "message": "Successfully banks retrived",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T08:24:39.806796807Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -7831,73 +7804,83 @@
                     "200": {
                         "description": "Bank create request sent",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
+                            "example": {
+                                "data": {
+                                    "_id": "686e5cc0342b321e43ee897f",
+                                    "action_code": "PCkILwC8YhJehFV03vr3",
+                                    "action_status": "PENDING",
+                                    "action_type": "CREATE",
+                                    "checker_action_time": "0001-01-01T00:00:00Z",
+                                    "checker_id": "",
+                                    "checker_name": "",
+                                    "checker_phone_number": "",
+                                    "created_at": "0001-01-01T00:00:00Z",
+                                    "current_action": {
+                                        "bic": "AWETETAA",
+                                        "code": "AW123",
+                                        "enabled": false,
+                                        "is_deleted": false,
+                                        "logo": "banks/bank-1752063168515775484-download (6).png",
+                                        "name": "awash"
                                     },
-                                    "type": "object"
-                                }
-                            ]
+                                    "department": "684eafae9d97e395eba3003e",
+                                    "last_modified_at": "0001-01-01T00:00:00Z",
+                                    "maker_action_time": "2025-07-09T15:12:48.720868064+03:00",
+                                    "maker_id": "USR-12345",
+                                    "maker_name": "John Doe",
+                                    "maker_phone_number": "+251934567890",
+                                    "previous_action": null,
+                                    "rejection_reason": "",
+                                    "request_action": "CREATE_BANK",
+                                    "unique_id": ""
+                                },
+                                "message": "Bank createing successfully",
+                                "status": 200
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Invalid input or logo",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
+                            "example": {
+                                "data": {
+                                    "code": "GEN_113"
                                 },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                "errors": {
+                                    "code": "Bank code is required.",
+                                    "name": "Bank name is required."
+                                },
+                                "message": "One or more required fields are invalid.",
+                                "status": 400
+                            },
+                            "type": "object"
                         }
                     },
                     "409": {
                         "description": "Duplicate",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
+                            "example": {
+                                "data": {
+                                    "code": "GEN_034"
                                 },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                "message": "You have a pending request for this action.",
+                                "status": 409
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
+                            "example": {
+                                "data": {
+                                    "code": "GEN_004"
                                 },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                "message": "An unexpected server error occurred.",
+                                "status": 500
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -7934,73 +7917,52 @@
                     "200": {
                         "description": "Delete request created",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "Delete request successfully created",
+                                "ok": true,
+                                "status": 201,
+                                "timestamp": "2025-10-02T08:33:08.545588799Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Invalid ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Invalid ID",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Bank not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bank not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -8035,73 +7997,62 @@
                     "200": {
                         "description": "Bank fetched",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
+                            "example": {
+                                "data": {
+                                    "bic": "Merrwa",
+                                    "code": "MKMKy123",
+                                    "enabled": true,
+                                    "id": "687905e07aef9ff545f3fb12",
+                                    "is_deleted": true,
+                                    "last_modified_at": "2025-08-22T07:07:20.46Z",
+                                    "logo": "banks/bank-1752761597313938683-Screenshot from 2025-07-17 11-26-31.png",
+                                    "name": "merewa bank  update test"
                                 },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/bank_dto.BankResponse"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                "message": "Successfully bank retrived",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T08:29:43.710809828Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Invalid ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Invalid ID",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Bank not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bank not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -8145,73 +8096,52 @@
                     "200": {
                         "description": "Bank update request sent",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "Bank updated request sent successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T08:31:01.638514952Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Invalid input",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Invalid input",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Bank not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bank not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -8248,73 +8178,52 @@
                     "200": {
                         "description": "Bank disable request created",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bank disable request created",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Invalid ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "Validation failed",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2025-10-02T08:36:45.507799366Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Bank not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bank not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -8351,73 +8260,52 @@
                     "200": {
                         "description": "Bank enable request created",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bank enable request created",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Invalid ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "Validation failed",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2025-10-02T08:34:43.918750522Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Bank not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bank not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -8461,73 +8349,53 @@
                     "200": {
                         "description": "Logo uploaded",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Logo uploaded",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Invalid logo",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Invalid logo",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Bank not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bank not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
