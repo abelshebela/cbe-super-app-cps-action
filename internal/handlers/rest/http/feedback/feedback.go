@@ -230,6 +230,36 @@ func (f *feedbackAdapter) GetAllCustomerFeedbacks(w http.ResponseWriter, r *http
 	f.logger.Infof("[GetAllCustomerFeedbacks] retrieved %d customer feedbacks", len(feedbacks.Data))
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedbacks)
 }
+func (f *feedbackAdapter) GetAllSurveyFeedbacks(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllSurveyFeedbacks", "handler", "feedback")
+	defer span.End()
+	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	feedbacks, err := f.feedbackApplication.GetAllSurveyFeedbacks(ctx, filterParams)
+	if err != nil {
+		span.RecordError(err)
+		f.logger.Errorf("[GetAllSurveyFeedbacks] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	span.SetAttributes(attribute.Int("feedback.count", len(feedbacks.Data)))
+	f.logger.Infof("[GetAllSurveyFeedbacks] retrieved %d survey feedbacks", len(feedbacks.Data))
+	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedbacks)
+}
 
 // GetCustomerFeedback godoc
 //
