@@ -4715,55 +4715,78 @@
                     "200": {
                         "description": "Validation rules retrieved",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/accountvalidation.paginated_resp"
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "created_at": "2024-10-18T14:49:47.483Z",
+                                            "enabled": true,
+                                            "entity_type": "Bank",
+                                            "id": "6712758b9b81f19c3b301a62",
+                                            "identifier": "Dr. Carmela Littel",
+                                            "is_deleted": false,
+                                            "last_modified_at": "2025-09-30T21:42:29.425Z",
+                                            "max_length": 16,
+                                            "min_length": 7,
+                                            "service_id": "Speech",
+                                            "validation_for": "The Beach Boys"
+                                        },
+                                        {
+                                            "created_at": "2024-10-18T14:49:47.483Z",
+                                            "enabled": true,
+                                            "entity_type": "Telebirr",
+                                            "id": "68dbcaf097c0e2c43102f460",
+                                            "identifier": "67890plmnk",
+                                            "is_deleted": false,
+                                            "last_modified_at": "2025-09-30T12:18:51.257Z",
+                                            "max_length": 16,
+                                            "min_length": 7,
+                                            "service_id": "Humor",
+                                            "validation_for": "telebirr"
                                         }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                    ],
+                                    "meta": {
+                                        "has_next_page": false,
+                                        "has_prev_page": false,
+                                        "limit": 10,
+                                        "page": 1,
+                                        "paging_counter": 1,
+                                        "total_docs": 2,
+                                        "total_pages": 1
+                                    }
+                                },
+                                "message": "Account fetched successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T07:47:10.588230779Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2025-10-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2025-10-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -4809,73 +4832,53 @@
                     "200": {
                         "description": "Validation rule updated",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Validation rule updated",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Validation failed",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Validation failed",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2025-10-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2025-10-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2025-10-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -4912,73 +4915,65 @@
                     "200": {
                         "description": "Validation rule retrieved",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
+                            "example": {
+                                "data": {
+                                    "created_at": "2024-10-18T14:49:47.483Z",
+                                    "enabled": true,
+                                    "entity_type": "Telebirr",
+                                    "id": "68dbcaf097c0e2c43102f460",
+                                    "identifier": "67890plmnk",
+                                    "is_deleted": false,
+                                    "last_modified_at": "2025-09-30T12:18:51.257Z",
+                                    "max_length": 16,
+                                    "min_length": 7,
+                                    "service_id": "Humor",
+                                    "validation_for": "telebirr"
                                 },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/accountvalidation.ValidationRuleDTO"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                "message": "Account fetched successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T07:48:29.256085149Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2025-10-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2025-10-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2025-10-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
