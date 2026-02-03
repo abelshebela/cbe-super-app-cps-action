@@ -66,10 +66,10 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 
 	if exist != nil {
 		span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-		if strings.TrimSpace(exist.Name) == strings.TrimSpace(req.Name) {
+		if strings.EqualFold(strings.TrimSpace(exist.Name), strings.TrimSpace(req.Name)) {
 			return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
 		}
-		if strings.TrimSpace(exist.UniqueCode) == strings.TrimSpace(req.UniqueCode) {
+		if strings.EqualFold(strings.TrimSpace(exist.UniqueCode), strings.TrimSpace(req.UniqueCode)) {
 			return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
 		}
 		s.logger.Errorf("wallet already exists wallet: %v", exist)
@@ -108,21 +108,34 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 		return err
 	}
 
-	if req.Name != "" || req.UniqueCode != "" {
-		exist, err := s.repo.Find(ctx, req.UniqueCode, req.Name)
+	if req.Name != "" {
+		exist, err := s.repo.Find(ctx, "", req.Name)
 		if err != nil {
 			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
-		if exist != nil && exist.ID.Hex() != id {
-			if exist.Name == req.Name {
+		if exist != nil && local_util.FirstHex24(exist.ID.Hex()) != id {
+			if strings.EqualFold(strings.TrimSpace(exist.Name), strings.TrimSpace(req.Name)) {
 				span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
 				return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
 			}
-			if exist.UniqueCode == req.UniqueCode {
+		} else {
+			s.logger.Infof("No conflicting wallet name found for update", "wallet_name", req.Name)
+		}
+	}
+	if req.UniqueCode != "" {
+		exist, err := s.repo.Find(ctx, req.UniqueCode, "")
+		if err != nil {
+			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
+			return errors.New(localization.ErrorUnhandledServer.Code)
+		}
+		if exist != nil && local_util.FirstHex24(exist.ID.Hex()) != id {
+			if strings.EqualFold(strings.TrimSpace(exist.UniqueCode), strings.TrimSpace(req.UniqueCode)) {
 				span.AddEvent("Wallet code already exists", trace.WithAttributes(attribute.String("unique_code", req.UniqueCode)))
 				return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
 			}
+		} else {
+			s.logger.Infof("No conflicting wallet code found for update", "wallet_code", req.UniqueCode)
 		}
 	}
 
