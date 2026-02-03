@@ -1502,6 +1502,109 @@ const docTemplate = `{
                 }
             }
         },
+        "/account_lookup/{account_number}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lookup account information by account number for donation company",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Donation Company"
+                ],
+                "summary": "Account lookup for donation company",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account number",
+                        "name": "account_number",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Account information retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Account not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/account_validation": {
             "get": {
                 "security": [
@@ -13801,14 +13904,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/donation_company/enable/{id}": {
+        "/donation_company/disable/{id}": {
             "patch": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Enable a donation company by ID",
+                "description": "Disable a donation company by ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -13816,9 +13919,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Donation company"
+                    "Donation Company"
                 ],
-                "summary": "Enable a donation company",
+                "summary": "Disable a donation company",
                 "parameters": [
                     {
                         "type": "string",
@@ -13830,7 +13933,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Donation company enable request sent successfully",
+                        "description": "Donation company disable request sent successfully",
                         "schema": {
                             "allOf": [
                                 {
@@ -13866,7 +13969,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Donation not found",
+                        "description": "Donation company not found",
                         "schema": {
                             "allOf": [
                                 {
@@ -14133,14 +14236,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieves a paginated list of mini app merchants",
+                "description": "Retrieves a paginated list of  Ecommerce Merchants",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "ecommerce-merchant"
                 ],
-                "summary": "List Mini App Merchants",
+                "summary": "List  Ecommerce Merchants",
                 "parameters": [
                     {
                         "type": "integer",
@@ -14236,7 +14339,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Creates a new mini app merchant",
+                "description": "Creates a new  Ecommerce Merchant",
                 "consumes": [
                     "application/json"
                 ],
@@ -14246,7 +14349,7 @@ const docTemplate = `{
                 "tags": [
                     "ecommerce-merchant"
                 ],
-                "summary": "Create Mini App Merchant",
+                "summary": "Create  Ecommerce Merchant",
                 "parameters": [
                     {
                         "description": "Mini App Merchant (see miniappmerchant.EcommerceMerchant)",
@@ -14366,7 +14469,7 @@ const docTemplate = `{
                 "tags": [
                     "ecommerce-merchant"
                 ],
-                "summary": "Disable Mini App Merchant",
+                "summary": "Disable  Ecommerce Merchant",
                 "parameters": [
                     {
                         "type": "string",
@@ -14472,7 +14575,7 @@ const docTemplate = `{
                 "tags": [
                     "ecommerce-merchant"
                 ],
-                "summary": "Enable Mini App Merchant",
+                "summary": "Enable  Ecommerce Merchant",
                 "parameters": [
                     {
                         "type": "string",
@@ -14696,7 +14799,7 @@ const docTemplate = `{
                 "tags": [
                     "ecommerce-merchant"
                 ],
-                "summary": "Get Mini App Merchant by ID",
+                "summary": "Get  Ecommerce Merchant by ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -14812,7 +14915,7 @@ const docTemplate = `{
                 "tags": [
                     "ecommerce-merchant"
                 ],
-                "summary": "Delete Mini App Merchant",
+                "summary": "Delete  Ecommerce Merchant",
                 "parameters": [
                     {
                         "type": "string",
@@ -14909,7 +15012,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Updates an existing mini app merchant",
+                "description": "Updates an existing  Ecommerce Merchant",
                 "consumes": [
                     "application/json"
                 ],
@@ -14919,7 +15022,7 @@ const docTemplate = `{
                 "tags": [
                     "ecommerce-merchant"
                 ],
-                "summary": "Update Mini App Merchant",
+                "summary": "Update  Ecommerce Merchant",
                 "parameters": [
                     {
                         "type": "string",
@@ -18950,7 +19053,7 @@ const docTemplate = `{
             }
         },
         "/password_rule/{id}": {
-            "put": {
+            "patch": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -19024,559 +19127,6 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/permissions": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves a paginated list of permission groups. Searchable field: group_name.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Permission"
-                ],
-                "summary": "Get Permission Groups",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Items per page",
-                        "name": "per_page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Filter by enabled status",
-                        "name": "enabled",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Filter by deleted status",
-                        "name": "is_deleted",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by department ID",
-                        "name": "department_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by role",
-                        "name": "role",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by realm",
-                        "name": "realm",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by group name",
-                        "name": "group_name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Search term (searches group_name)",
-                        "name": "search",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/permission.PaginatedPermissionGroupResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Creates a new permission group",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Permission"
-                ],
-                "summary": "Create Permission Group",
-                "parameters": [
-                    {
-                        "description": "Create Permission Group",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/permission.CreatePermissionGroupRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/permissions/by_id/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves a permission  by ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Permission"
-                ],
-                "summary": "Get Permission Group by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID",
-                        "name": "ID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/permission.PermissionCategoryResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/permissions/categories": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves all permission categories with their permissions",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Permission"
-                ],
-                "summary": "Get All Permission Categories With Permissions",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/permission.PaginatedPermissionGroupResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/permissions/{group_name}": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Updates an existing permission group",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Permission"
-                ],
-                "summary": "Update Permission Group",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Group Name",
-                        "name": "group_name",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Update Permission Group DTO",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/permission.UpdatePermissionGroupRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "allOf": [
                                 {
@@ -27292,90 +26842,6 @@ const docTemplate = `{
                             "type": "boolean"
                         }
                     }
-                }
-            }
-        },
-        "permission.CreatePermissionGroupRequest": {
-            "type": "object",
-            "properties": {
-                "department_id": {
-                    "type": "string"
-                },
-                "group_name": {
-                    "type": "string"
-                },
-                "permission_category_list": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "role": {
-                    "type": "string"
-                }
-            }
-        },
-        "permission.PaginatedPermissionGroupResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/permission.PermissionCategoryResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/types.PaginationMeta"
-                }
-            }
-        },
-        "permission.PermissionCategoryResponse": {
-            "type": "object",
-            "properties": {
-                "access": {
-                    "type": "string"
-                },
-                "categoryName": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "isDeleted": {
-                    "type": "boolean"
-                },
-                "permissions": {},
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "permission.UpdatePermissionGroupRequest": {
-            "type": "object",
-            "properties": {
-                "department_id": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "new_group_name": {
-                    "type": "string"
-                },
-                "permission_category_list": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "role": {
-                    "type": "string"
                 }
             }
         },

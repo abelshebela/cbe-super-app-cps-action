@@ -1819,61 +1819,6 @@ definitions:
             type: boolean
         type: object
     type: object
-  permission.CreatePermissionGroupRequest:
-    properties:
-      department_id:
-        type: string
-      group_name:
-        type: string
-      permission_category_list:
-        items:
-          type: string
-        type: array
-      role:
-        type: string
-    type: object
-  permission.PaginatedPermissionGroupResponse:
-    properties:
-      docs:
-        items:
-          $ref: '#/definitions/permission.PermissionCategoryResponse'
-        type: array
-      meta:
-        $ref: '#/definitions/types.PaginationMeta'
-    type: object
-  permission.PermissionCategoryResponse:
-    properties:
-      access:
-        type: string
-      categoryName:
-        type: string
-      createdAt:
-        type: string
-      enabled:
-        type: boolean
-      id:
-        type: string
-      isDeleted:
-        type: boolean
-      permissions: {}
-      updatedAt:
-        type: string
-    type: object
-  permission.UpdatePermissionGroupRequest:
-    properties:
-      department_id:
-        type: string
-      id:
-        type: string
-      new_group_name:
-        type: string
-      permission_category_list:
-        items:
-          type: string
-        type: array
-      role:
-        type: string
-    type: object
   portalcard.PortalCardPaginatedResponse:
     type: object
   services.CapRequest:
@@ -3072,6 +3017,61 @@ paths:
       summary: Enable multiple regions
       tags:
       - Account Block - Regions
+  /account_lookup/{account_number}:
+    get:
+      consumes:
+      - application/json
+      description: Lookup account information by account number for donation company
+      parameters:
+      - description: Account number
+        in: path
+        name: account_number
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Account information retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Account not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Account lookup for donation company
+      tags:
+      - Donation Company
   /account_validation:
     get:
       consumes:
@@ -10039,11 +10039,11 @@ paths:
       summary: Update a donation company
       tags:
       - Donation Company
-  /donation_company/enable/{id}:
+  /donation_company/disable/{id}:
     patch:
       consumes:
       - application/json
-      description: Enable a donation company by ID
+      description: Disable a donation company by ID
       parameters:
       - description: Donation company ID
         in: path
@@ -10054,7 +10054,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Donation company enable request sent successfully
+          description: Donation company disable request sent successfully
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -10072,7 +10072,7 @@ paths:
                   type: object
               type: object
         "404":
-          description: Donation not found
+          description: Donation company not found
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -10091,12 +10091,12 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: Enable a donation company
+      summary: Disable a donation company
       tags:
-      - Donation company
+      - Donation Company
   /ecommerce-merchant:
     get:
-      description: Retrieves a paginated list of mini app merchants
+      description: Retrieves a paginated list of  Ecommerce Merchants
       parameters:
       - description: Page number
         in: query
@@ -10147,13 +10147,13 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: List Mini App Merchants
+      summary: List  Ecommerce Merchants
       tags:
       - ecommerce-merchant
     post:
       consumes:
       - application/json
-      description: Creates a new mini app merchant
+      description: Creates a new  Ecommerce Merchant
       parameters:
       - description: Mini App Merchant (see miniappmerchant.EcommerceMerchant)
         in: body
@@ -10211,7 +10211,7 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: Create Mini App Merchant
+      summary: Create  Ecommerce Merchant
       tags:
       - ecommerce-merchant
   /ecommerce-merchant/{id}:
@@ -10268,7 +10268,7 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: Delete Mini App Merchant
+      summary: Delete  Ecommerce Merchant
       tags:
       - ecommerce-merchant
     get:
@@ -10329,13 +10329,13 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: Get Mini App Merchant by ID
+      summary: Get  Ecommerce Merchant by ID
       tags:
       - ecommerce-merchant
     patch:
       consumes:
       - application/json
-      description: Updates an existing mini app merchant
+      description: Updates an existing  Ecommerce Merchant
       parameters:
       - description: Merchant ID
         in: path
@@ -10402,7 +10402,7 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: Update Mini App Merchant
+      summary: Update  Ecommerce Merchant
       tags:
       - ecommerce-merchant
   /ecommerce-merchant/disable/{id}:
@@ -10459,7 +10459,7 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: Disable Mini App Merchant
+      summary: Disable  Ecommerce Merchant
       tags:
       - ecommerce-merchant
   /ecommerce-merchant/enable/{id}:
@@ -10516,7 +10516,7 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: Enable Mini App Merchant
+      summary: Enable  Ecommerce Merchant
       tags:
       - ecommerce-merchant
   /ecommerce-merchant/merchant-lookup/{merchant_id}:
@@ -12737,7 +12737,7 @@ paths:
       tags:
       - PasswordRule
   /password_rule/{id}:
-    put:
+    patch:
       consumes:
       - application/json
       description: Requests an update to a password rule
@@ -12876,307 +12876,6 @@ paths:
       summary: Check Password Rule
       tags:
       - PasswordRule
-  /permissions:
-    get:
-      description: 'Retrieves a paginated list of permission groups. Searchable field:
-        group_name.'
-      parameters:
-      - description: Page number
-        in: query
-        name: page
-        type: integer
-      - description: Items per page
-        in: query
-        name: per_page
-        type: integer
-      - description: Filter by enabled status
-        in: query
-        name: enabled
-        type: boolean
-      - description: Filter by deleted status
-        in: query
-        name: is_deleted
-        type: boolean
-      - description: Filter by department ID
-        in: query
-        name: department_id
-        type: string
-      - description: Filter by role
-        in: query
-        name: role
-        type: string
-      - description: Filter by realm
-        in: query
-        name: realm
-        type: string
-      - description: Filter by group name
-        in: query
-        name: group_name
-        type: string
-      - description: Search term (searches group_name)
-        in: query
-        name: search
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/permission.PaginatedPermissionGroupResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Get Permission Groups
-      tags:
-      - Permission
-    post:
-      consumes:
-      - application/json
-      description: Creates a new permission group
-      parameters:
-      - description: Create Permission Group
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/permission.CreatePermissionGroupRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "422":
-          description: Unprocessable Entity
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Create Permission Group
-      tags:
-      - Permission
-  /permissions/{group_name}:
-    put:
-      consumes:
-      - application/json
-      description: Updates an existing permission group
-      parameters:
-      - description: Group Name
-        in: path
-        name: group_name
-        required: true
-        type: string
-      - description: Update Permission Group DTO
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/permission.UpdatePermissionGroupRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "404":
-          description: Not Found
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "422":
-          description: Unprocessable Entity
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Update Permission Group
-      tags:
-      - Permission
-  /permissions/by_id/{id}:
-    get:
-      description: Retrieves a permission  by ID
-      parameters:
-      - description: ID
-        in: path
-        name: ID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/permission.PermissionCategoryResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "404":
-          description: Not Found
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Get Permission Group by ID
-      tags:
-      - Permission
-  /permissions/categories:
-    get:
-      description: Retrieves all permission categories with their permissions
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/permission.PaginatedPermissionGroupResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Get All Permission Categories With Permissions
-      tags:
-      - Permission
   /portal_cards:
     get:
       description: Retrieves all portal cards with pagination

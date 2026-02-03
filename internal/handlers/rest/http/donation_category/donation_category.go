@@ -275,19 +275,19 @@ func (d *donationCategoryAdapter) EnableDonationCategory(w http.ResponseWriter, 
 	}
 }
 
-// disableDonation godoc
-//	@Summary		Enable a donation category
-//	@Description	Enable a donation category by ID
+// DisableDonationCategory godoc
+//	@Summary		Disable a donation category
+//	@Description	Disable a donation category by ID
 //	@Tags			Donation Category
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string									true	"Donation category ID"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Donation enable request sent successfully"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Donation category disable request sent successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Donation not found"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Donation category not found"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/donation_category/enable/{id} [patch]
+//	@Router			/donation_category/disable/{id} [patch]
 
 func (d *donationCategoryAdapter) DisableDonationCategory(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDonationCategory", "handler", "donationCategory")
