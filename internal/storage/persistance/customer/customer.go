@@ -513,7 +513,7 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 				{Key: "date_of_birth", Value: "$member_info.birth_date"},
 				{Key: "email", Value: "$member_info.email"},
 				{Key: "customer_number", Value: "$member_info.customer_number"},
-				{Key: "is_activated", Value: "$member_info.linked_status"},
+				{Key: "is_activated", Value: "$member_info.is_activated"},
 			}}}},
 		}}},
 

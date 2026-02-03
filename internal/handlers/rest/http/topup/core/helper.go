@@ -31,7 +31,6 @@ func ParseTopupRequestFromMultipartForm(r *http.Request, isCreate bool) (TopupDt
 
 	}
 	req.Avatar = fileHeader
-
 	return req, nil
 }
 
