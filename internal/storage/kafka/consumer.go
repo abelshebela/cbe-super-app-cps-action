@@ -71,7 +71,7 @@ func NewFeedbackConsumer(cfg config.KafkaConfig, logger utils.Logger, feedbackRe
 func (fc *FeedbackConsumer) Start(ctx context.Context) error {
 	fc.logger.Infof("Starting Kafka consumer for topic: %s", fc.config.FeedbackTopic)
 
-	topics := []string{fc.config.FeedbackTopic}
+	topics := []string{fc.config.FeedbackTopic, fc.config.SurveyFeedbackTopic}
 	handler := &ConsumerGroupHandler{
 		consumer: fc,
 	}
