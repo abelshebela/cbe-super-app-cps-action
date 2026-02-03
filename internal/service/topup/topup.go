@@ -94,7 +94,7 @@ func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupReques
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	topup := core.ToCreateTopupDoc(req.Name, req.Code, URL, req.Self, req.Other, req.Agent)
+	topup := core.ToCreateTopupDoc(req.Name, req.Code, URL)
 	topup.Enabled = false
 	//here since the unique id is nil 000.. use other unique id like the code
 	// if err := core.HandleCPSAction(ctx, s.cpsService, topup.ID.Hex(), constants.RequestCreatetopup, topup, nil, constants.ActionCreate); err != nil {
@@ -128,13 +128,22 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 				return err
 			}
 		}
-	} else if req.Code != "" {
-		existing, err = s.repo.FindByOr(ctx, bson.M{"code": req.Code})
+		if existing.Name != "" {
+			span.AddEvent("Topup name  already exists", trace.WithAttributes(attribute.String("name", req.Name)))
+			return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
+		}
+	}
+	if req.Code != "" {
+		topupByCode, err := s.repo.FindByOr(ctx, bson.M{"code": req.Code})
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
 				s.logger.Errorf("[UpdateTopup] error whil checking existing information error: %v", err)
 				return err
 			}
+		}
+		if topupByCode.Code == req.Code {
+			span.AddEvent("Topup code already exists", trace.WithAttributes(attribute.String("code", req.Code)))
+			return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
 		}
 	}
 
