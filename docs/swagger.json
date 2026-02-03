@@ -729,11 +729,45 @@
                 "Verigram"
             ]
         },
+        "cps_actionrole_dto.AuditorMarkRequest": {
+            "properties": {
+                "mark": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
         "cpsaction.ActionRequest": {
             "properties": {
                 "rejection_reason": {
                     "example": "Insufficient documentation provided",
                     "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "cpsaction.CPSActionCountResponse": {
+            "properties": {
+                "total_approved": {
+                    "type": "integer"
+                },
+                "total_canceled": {
+                    "type": "integer"
+                },
+                "total_completed_audit": {
+                    "type": "integer"
+                },
+                "total_inprogress_audit": {
+                    "type": "integer"
+                },
+                "total_pending": {
+                    "type": "integer"
+                },
+                "total_rejected": {
+                    "type": "integer"
                 }
             },
             "type": "object"
@@ -5295,55 +5329,71 @@
                     "200": {
                         "description": "CPS actions retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/cpsactionhandler.cps_actions_paginated_resp"
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "action_code": "BANK_7KOVE1URNFBMQ2W",
+                                            "action_status": "APPROVED",
+                                            "action_type": "CREATE",
+                                            "checker_action_time": "2025-10-02T07:43:37.69Z",
+                                            "checker_id": "654321098765432109876544",
+                                            "checker_name": "Jane Smith",
+                                            "checker_phone_number": "+0987654321",
+                                            "created_at": "0001-01-01T00:00:00Z",
+                                            "department": "",
+                                            "id": "68de29b73face806c7891b4e",
+                                            "last_modified_at": "0001-01-01T00:00:00Z",
+                                            "maker_action_time": "2025-10-02T07:28:55.752Z",
+                                            "maker_id": "68a5f8464eb84e8dc9bb1003",
+                                            "maker_name": "Mohammed Yusuf",
+                                            "maker_phone_number": "+251933445566",
+                                            "request_action": "CREATE VAULT GROUP CATEGORY"
                                         }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                    ],
+                                    "meta": {
+                                        "has_next_page": true,
+                                        "has_prev_page": false,
+                                        "limit": 10,
+                                        "next_page": 2,
+                                        "page": 1,
+                                        "paging_counter": 1,
+                                        "total_docs": 25,
+                                        "total_pages": 3
+                                    }
+                                },
+                                "message": "CPS Actions retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:36:56.700547753Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -5353,6 +5403,284 @@
                     }
                 ],
                 "summary": "Get CPS actions by department",
+                "tags": [
+                    "CPS Actions"
+                ]
+            }
+        },
+        "/actions/approver/checker/actions": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Retrieves a paginated list of CPS actions that are pending approval for the current user's approver/checker role",
+                "parameters": [
+                    {
+                        "default": 1,
+                        "description": "Page number",
+                        "in": "query",
+                        "name": "page",
+                        "type": "integer"
+                    },
+                    {
+                        "default": 10,
+                        "description": "Items per page",
+                        "in": "query",
+                        "name": "per_page",
+                        "type": "integer"
+                    },
+                    {
+                        "description": "Search term",
+                        "in": "query",
+                        "name": "search",
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CPS actions retrieved successfully",
+                        "schema": {
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "action_code": "BANK_7KOVE1URNFBMQ2W",
+                                            "action_status": "PENDING",
+                                            "action_type": "CREATE",
+                                            "created_at": "0001-01-01T00:00:00Z",
+                                            "department": "",
+                                            "id": "68de29b73face806c7891b4e",
+                                            "maker_id": "68a5f8464eb84e8dc9bb1003",
+                                            "maker_name": "Mohammed Yusuf",
+                                            "request_action": "CREATE VAULT GROUP CATEGORY"
+                                        }
+                                    ],
+                                    "meta": {
+                                        "limit": 10,
+                                        "page": 1,
+                                        "total_docs": 8,
+                                        "total_pages": 1
+                                    }
+                                },
+                                "message": "CPS Actions retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:36:56.700547753Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get approver checker actions",
+                "tags": [
+                    "CPS Actions"
+                ]
+            }
+        },
+        "/actions/auditor/checker/actions": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Retrieves a paginated list of CPS actions that are pending audit for the current user's auditor role",
+                "parameters": [
+                    {
+                        "default": 1,
+                        "description": "Page number",
+                        "in": "query",
+                        "name": "page",
+                        "type": "integer"
+                    },
+                    {
+                        "default": 10,
+                        "description": "Items per page",
+                        "in": "query",
+                        "name": "per_page",
+                        "type": "integer"
+                    },
+                    {
+                        "description": "Search term",
+                        "in": "query",
+                        "name": "search",
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CPS actions retrieved successfully",
+                        "schema": {
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "action_code": "BANK_7KOVE1URNFBMQ2W",
+                                            "action_status": "APPROVED",
+                                            "action_type": "CREATE",
+                                            "created_at": "0001-01-01T00:00:00Z",
+                                            "department": "",
+                                            "id": "68de29b73face806c7891b4e",
+                                            "maker_id": "68a5f8464eb84e8dc9bb1003",
+                                            "maker_name": "Mohammed Yusuf",
+                                            "request_action": "CREATE VAULT GROUP CATEGORY"
+                                        }
+                                    ],
+                                    "meta": {
+                                        "limit": 10,
+                                        "page": 1,
+                                        "total_docs": 6,
+                                        "total_pages": 1
+                                    }
+                                },
+                                "message": "CPS Actions retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:36:56.700547753Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get auditor checker actions",
+                "tags": [
+                    "CPS Actions"
+                ]
+            }
+        },
+        "/actions/authorizer/index/{request_action}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Retrieves the authorizer index configuration for a specific request action type",
+                "parameters": [
+                    {
+                        "description": "Request Action (e.g., CREATE_BANK, UPDATE_BANK)",
+                        "in": "path",
+                        "name": "request_action",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Authorizer index retrieved successfully",
+                        "schema": {
+                            "example": {
+                                "data": {
+                                    "authorizer_index": 1
+                                },
+                                "message": "CPS Actions retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:36:56.700547753Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid request action",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Bad request - Invalid request action",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get authorizer index",
                 "tags": [
                     "CPS Actions"
                 ]
@@ -5380,73 +5708,67 @@
                     "200": {
                         "description": "CPS action with history retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
+                            "example": {
+                                "data": {
+                                    "action_code": "BANK_7KOVE1URNFBMQ2W",
+                                    "action_status": "APPROVED",
+                                    "action_type": "CREATE",
+                                    "checker_id": "654321098765432109876544",
+                                    "checker_name": "Jane Smith",
+                                    "created_at": "0001-01-01T00:00:00Z",
+                                    "department": "",
+                                    "id": "68de29b73face806c7891b4e",
+                                    "last_modified_at": "2025-10-02T07:43:37.69Z",
+                                    "maker_id": "68a5f8464eb84e8dc9bb1003",
+                                    "maker_name": "Mohammed Yusuf",
+                                    "maker_phone_number": "+251933445566",
+                                    "request_action": "CREATE VAULT GROUP CATEGORY"
                                 },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/cpsactionhandler.cps_action_resp"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                "message": "CPS Action fetched successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:36:56.700547753Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request - Invalid action code",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request - Invalid action code",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Action not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Action not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -5483,73 +5805,67 @@
                     "200": {
                         "description": "CPS action retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
+                            "example": {
+                                "data": {
+                                    "action_code": "BANK_7KOVE1URNFBMQ2W",
+                                    "action_status": "APPROVED",
+                                    "action_type": "CREATE",
+                                    "checker_id": "654321098765432109876544",
+                                    "checker_name": "Jane Smith",
+                                    "created_at": "0001-01-01T00:00:00Z",
+                                    "department": "",
+                                    "id": "68de29b73face806c7891b4e",
+                                    "last_modified_at": "2025-10-02T07:43:37.69Z",
+                                    "maker_id": "68a5f8464eb84e8dc9bb1003",
+                                    "maker_name": "Mohammed Yusuf",
+                                    "maker_phone_number": "+251933445566",
+                                    "request_action": "CREATE VAULT GROUP CATEGORY"
                                 },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/cpsactionhandler.cps_action_resp"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                                "message": "CPS Action fetched successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:36:56.700547753Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request - Invalid action ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request - Invalid action ID",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Action not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Action not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -5559,6 +5875,298 @@
                     }
                 ],
                 "summary": "Get CPS action by ID",
+                "tags": [
+                    "CPS Actions"
+                ]
+            }
+        },
+        "/actions/counts": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Retrieves counts of CPS actions by status (pending, approved, rejected, canceled, inprogress, completed) for the current user's role (maker/checker/auditor)",
+                "parameters": [
+                    {
+                        "description": "Role type: maker, checker, or auditor",
+                        "in": "query",
+                        "name": "role",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Action counts retrieved successfully",
+                        "schema": {
+                            "example": {
+                                "data": {
+                                    "approved": 10,
+                                    "canceled": 2,
+                                    "completed": 8,
+                                    "inprogress": 1,
+                                    "pending": 5,
+                                    "rejected": 3
+                                },
+                                "message": "CPS Action count retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:36:56.700547753Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get action counts",
+                "tags": [
+                    "CPS Actions"
+                ]
+            }
+        },
+        "/actions/user/checked/actions": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Retrieves a paginated list of CPS actions that have been checked (approved/rejected) by the current user",
+                "parameters": [
+                    {
+                        "default": 1,
+                        "description": "Page number",
+                        "in": "query",
+                        "name": "page",
+                        "type": "integer"
+                    },
+                    {
+                        "default": 10,
+                        "description": "Items per page",
+                        "in": "query",
+                        "name": "per_page",
+                        "type": "integer"
+                    },
+                    {
+                        "description": "Search term",
+                        "in": "query",
+                        "name": "search",
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CPS actions retrieved successfully",
+                        "schema": {
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "action_code": "BANK_7KOVE1URNFBMQ2W",
+                                            "action_status": "APPROVED",
+                                            "action_type": "CREATE",
+                                            "checker_action_time": "2025-10-02T07:43:37.69Z",
+                                            "checker_id": "654321098765432109876544",
+                                            "checker_name": "Jane Smith",
+                                            "created_at": "0001-01-01T00:00:00Z",
+                                            "department": "",
+                                            "id": "68de29b73face806c7891b4e",
+                                            "maker_id": "68a5f8464eb84e8dc9bb1003",
+                                            "maker_name": "Mohammed Yusuf",
+                                            "request_action": "CREATE VAULT GROUP CATEGORY"
+                                        }
+                                    ],
+                                    "meta": {
+                                        "limit": 10,
+                                        "page": 1,
+                                        "total_docs": 5,
+                                        "total_pages": 1
+                                    }
+                                },
+                                "message": "CPS Actions retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:36:56.700547753Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get user checked actions",
+                "tags": [
+                    "CPS Actions"
+                ]
+            }
+        },
+        "/actions/user/created/actions": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Retrieves a paginated list of CPS actions created by the current user",
+                "parameters": [
+                    {
+                        "default": 1,
+                        "description": "Page number",
+                        "in": "query",
+                        "name": "page",
+                        "type": "integer"
+                    },
+                    {
+                        "default": 10,
+                        "description": "Items per page",
+                        "in": "query",
+                        "name": "per_page",
+                        "type": "integer"
+                    },
+                    {
+                        "description": "Search term",
+                        "in": "query",
+                        "name": "search",
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CPS actions retrieved successfully",
+                        "schema": {
+                            "example": {
+                                "data": {
+                                    "docs": [
+                                        {
+                                            "action_code": "BANK_7KOVE1URNFBMQ2W",
+                                            "action_status": "APPROVED",
+                                            "action_type": "CREATE",
+                                            "created_at": "0001-01-01T00:00:00Z",
+                                            "department": "",
+                                            "id": "68de29b73face806c7891b4e",
+                                            "last_modified_at": "0001-01-01T00:00:00Z",
+                                            "maker_action_time": "2025-10-02T07:28:55.752Z",
+                                            "maker_id": "68a5f8464eb84e8dc9bb1003",
+                                            "maker_name": "Mohammed Yusuf",
+                                            "maker_phone_number": "+251933445566",
+                                            "request_action": "CREATE VAULT GROUP CATEGORY"
+                                        }
+                                    ],
+                                    "meta": {
+                                        "has_next_page": false,
+                                        "has_prev_page": false,
+                                        "limit": 10,
+                                        "page": 1,
+                                        "paging_counter": 1,
+                                        "total_docs": 10,
+                                        "total_pages": 1
+                                    }
+                                },
+                                "message": "CPS Actions retrieved successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:36:56.700547753Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get user created actions",
                 "tags": [
                     "CPS Actions"
                 ]
@@ -5586,73 +6194,52 @@
                     "200": {
                         "description": "CPS action approved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "CPS Action authorized successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:54:25.783782164Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request - Invalid action code",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request - Invalid action code",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Action not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Action not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -5662,6 +6249,179 @@
                     }
                 ],
                 "summary": "Approve CPS action",
+                "tags": [
+                    "CPS Actions"
+                ]
+            }
+        },
+        "/actions/{action_code}/auditor": {
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Allows an auditor to claim (start) or mark (complete) an audit for a CPS action. Send empty mark to claim, or include mark (APPROVED/REJECTED) and reason to complete.",
+                "parameters": [
+                    {
+                        "description": "Action Code",
+                        "in": "path",
+                        "name": "action_code",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "description": "Auditor mark request (empty mark to claim, or mark + reason to complete)",
+                        "in": "body",
+                        "name": "request",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cps_actionrole_dto.AuditorMarkRequest"
+                        }
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Auditor action processed successfully",
+                        "schema": {
+                            "example": {
+                                "message": "CPS Action checked successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2026-01-27T15:50:40.6322449+03:00"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Invalid input or operation not allowed",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Bad request - Invalid input or operation not allowed",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Action not found",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Action not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Auditor action (claim or mark)",
+                "tags": [
+                    "CPS Actions"
+                ]
+            }
+        },
+        "/actions/{action_code}/cancel": {
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "description": "Cancels a PENDING CPS action. Only the maker who created the action can cancel it, and only if no checker has approved it yet.",
+                "parameters": [
+                    {
+                        "description": "Action Code",
+                        "in": "path",
+                        "name": "action_code",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CPS action canceled successfully",
+                        "schema": {
+                            "example": {
+                                "message": "CPS Action canceled successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:54:25.783782164Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - Action cannot be canceled",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Bad request - Action cannot be canceled",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Action not found",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Action not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Cancel CPS action",
                 "tags": [
                     "CPS Actions"
                 ]
@@ -5698,73 +6458,51 @@
                     "200": {
                         "description": "CPS action rejected successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "CPS Action rejected successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:54:25.783782164Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request - Invalid input or missing rejection reason",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request - Invalid input or missing rejection reason",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Action not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "Resource not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2025-10-02T09:55:14.27982168Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },
@@ -5801,91 +6539,64 @@
                     "200": {
                         "description": "CPS action reversed successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "CPS Action reversed successfully",
+                                "ok": true,
+                                "status": 200,
+                                "timestamp": "2025-10-02T09:54:25.783782164Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Bad request",
+                                "ok": false,
+                                "status": 400,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "message": "Invalid token",
+                                "ok": false,
+                                "status": 403,
+                                "timestamp": "2025-10-02T09:52:51.672589853Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "404": {
                         "description": "Action not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Action not found",
+                                "ok": false,
+                                "status": 404,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                            "example": {
+                                "data": null,
+                                "message": "Internal server error",
+                                "ok": false,
+                                "status": 500,
+                                "timestamp": "2026-02-02T12:00:00.000Z"
+                            },
+                            "type": "object"
                         }
                     }
                 },

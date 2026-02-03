@@ -505,11 +505,33 @@ definitions:
     x-enum-varnames:
     - Fayda
     - Verigram
+  cps_actionrole_dto.AuditorMarkRequest:
+    properties:
+      mark:
+        type: string
+      reason:
+        type: string
+    type: object
   cpsaction.ActionRequest:
     properties:
       rejection_reason:
         example: Insufficient documentation provided
         type: string
+    type: object
+  cpsaction.CPSActionCountResponse:
+    properties:
+      total_approved:
+        type: integer
+      total_canceled:
+        type: integer
+      total_completed_audit:
+        type: integer
+      total_inprogress_audit:
+        type: integer
+      total_pending:
+        type: integer
+      total_rejected:
+        type: integer
     type: object
   cpsactionhandler.cps_action_resp:
     properties:
@@ -3448,6 +3470,126 @@ paths:
       summary: Approve CPS action
       tags:
       - CPS Actions
+  /actions/{action_code}/auditor:
+    patch:
+      consumes:
+      - application/json
+      description: Allows an auditor to claim (start) or mark (complete) an audit
+        for a CPS action. Send empty mark to claim, or include mark (APPROVED/REJECTED)
+        and reason to complete.
+      parameters:
+      - description: Action Code
+        in: path
+        name: action_code
+        required: true
+        type: string
+      - description: Auditor mark request (empty mark to claim, or mark + reason to
+          complete)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/cps_actionrole_dto.AuditorMarkRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Auditor action processed successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - Invalid input or operation not allowed
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Action not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Auditor action (claim or mark)
+      tags:
+      - CPS Actions
+  /actions/{action_code}/cancel:
+    patch:
+      consumes:
+      - application/json
+      description: Cancels a PENDING CPS action. Only the maker who created the action
+        can cancel it, and only if no checker has approved it yet.
+      parameters:
+      - description: Action Code
+        in: path
+        name: action_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: CPS action canceled successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - Action cannot be canceled
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Action not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Cancel CPS action
+      tags:
+      - CPS Actions
   /actions/{action_code}/reject:
     patch:
       consumes:
@@ -3574,6 +3716,165 @@ paths:
       summary: Reverse CPS action (auditor only)
       tags:
       - CPS Actions
+  /actions/approver/checker/actions:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a paginated list of CPS actions that are pending approval
+        for the current user's approver/checker role
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: CPS actions retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cpsactionhandler.cps_actions_paginated_resp'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get approver checker actions
+      tags:
+      - CPS Actions
+  /actions/auditor/checker/actions:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a paginated list of CPS actions that are pending audit
+        for the current user's auditor role
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: CPS actions retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cpsactionhandler.cps_actions_paginated_resp'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get auditor checker actions
+      tags:
+      - CPS Actions
+  /actions/authorizer/index/{request_action}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the authorizer index configuration for a specific request
+        action type
+      parameters:
+      - description: Request Action (e.g., CREATE_BANK, UPDATE_BANK)
+        in: path
+        name: request_action
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Authorizer index retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - Invalid request action
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get authorizer index
+      tags:
+      - CPS Actions
   /actions/by-action-code/{action_code}:
     get:
       consumes:
@@ -3683,6 +3984,165 @@ paths:
       security:
       - BearerAuth: []
       summary: Get CPS action by ID
+      tags:
+      - CPS Actions
+  /actions/counts:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves counts of CPS actions by status (pending, approved, rejected,
+        canceled, inprogress, completed) for the current user's role (maker/checker/auditor)
+      parameters:
+      - description: 'Role type: maker, checker, or auditor'
+        in: query
+        name: role
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Action counts retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cpsaction.CPSActionCountResponse'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get action counts
+      tags:
+      - CPS Actions
+  /actions/user/checked/actions:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a paginated list of CPS actions that have been checked
+        (approved/rejected) by the current user
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: CPS actions retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cpsactionhandler.cps_actions_paginated_resp'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get user checked actions
+      tags:
+      - CPS Actions
+  /actions/user/created/actions:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a paginated list of CPS actions created by the current
+        user
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: CPS actions retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cpsactionhandler.cps_actions_paginated_resp'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get user created actions
       tags:
       - CPS Actions
   /advert/{id}:
