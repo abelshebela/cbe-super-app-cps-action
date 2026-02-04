@@ -34,6 +34,21 @@ func NewJobRoleHandler(service service.JobRoleService, logger utils.Logger) inbo
 	}
 }
 
+// GetAll godoc
+//
+//	@Summary		Get all job roles
+//	@Description	Retrieve all job roles with pagination and optional search
+//	@Tags			Job Title with Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int									false	"Page number"		default(1)
+//	@Param			per_page	query		int									false	"Items per page"	default(10)
+//	@Param			search		query		string								false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"Job roles retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/job_roles [get]
 func (j *JobRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	filterParams := common_utils.ExtractFilterParams(r)
@@ -61,6 +76,20 @@ func (j *JobRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessJobRolesFetchedSuccessfully, resp)
 }
 
+// GetByID godoc
+//
+//	@Summary		Get job role by ID
+//	@Description	Retrieve a job role by its ID
+//	@Tags			Job Title with Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Job role ID"
+//	@Success		200	{object}	localization.StandardResponse{data=object}	"Job role retrieved successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}		"Not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/job_roles/{id} [get]
 func (j *JobRoleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if strings.TrimSpace(id) == "" {
@@ -76,6 +105,19 @@ func (j *JobRoleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessJobRoleFetchedSuccessfully, role)
 }
 
+// Create godoc
+//
+//	@Summary		Create job role
+//	@Description	Create a new job role with job title and role
+//	@Tags			Job Title with Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		roles.RequestRolesCreate	true	"Create job role request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}		"Job role creation request submitted successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/job_roles [post]
 func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
@@ -111,6 +153,21 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Update godoc
+//
+//	@Summary		Update job role
+//	@Description	Update a job role by its ID
+//	@Tags			Job Title with Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string									true	"Job role ID"
+//	@Param			body	body		roles.RequestRolesUpdate	true	"Update job role request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}		"Job role update request submitted successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		404		{object}	localization.StandardResponse{data=nil}		"Not found"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/job_roles/{id} [patch]
 func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
