@@ -120,7 +120,7 @@ func (fc *FeedbackConsumer) handleFeedbackMessage(ctx context.Context, message *
 		fc.logger.Errorf("Failed to unmarshal feedback payload: %v", err)
 		return fmt.Errorf("invalid feedback payload format: %w", err)
 	}
-
+	fc.logger.Infof("Feedback message parsed: %+v", feedbackMsg)
 	// Validate the message
 	if err := fc.validateFeedbackMessage(&feedbackMsg); err != nil {
 		fc.logger.Errorf("Message validation failed: %v", err)
@@ -132,7 +132,7 @@ func (fc *FeedbackConsumer) handleFeedbackMessage(ctx context.Context, message *
 
 	// Create feedback request from Kafka message
 	feedbackRequest := feedback.FeedbackRequest{
-		Rating:   feedbackMsg.Rating,
+		Rating:   feedbackMsg.StarRating,
 		Comment:  feedbackMsg.Comment,
 		UserCode: feedbackMsg.UserID,
 	}
@@ -197,7 +197,7 @@ func (fc *FeedbackConsumer) handleSurveyFeedbackMessage(ctx context.Context, mes
 		fc.logger.Errorf("Failed to unmarshal feedback payload: %v", err)
 		return fmt.Errorf("invalid survey feedback payload format: %w", err)
 	}
-
+	fc.logger.Infof("Survey feedback message parsed: %+v", feedbackMsg)
 	// Validate the message
 	if err := fc.validateSurveyFeedbackMessage(&feedbackMsg); err != nil {
 		fc.logger.Errorf("Message validation failed: %v", err)
@@ -277,7 +277,7 @@ func (fc *FeedbackConsumer) validateFeedbackMessage(msg *imodel.FeedbackKafkaMes
 	if msg.FeedbackID == "" {
 		return fmt.Errorf("feedback_id is required")
 	}
-	if msg.Rating < 1 || msg.Rating > 5 {
+	if msg.StarRating < 1 || msg.StarRating > 5 {
 		return fmt.Errorf("star_rating must be between 1 and 5")
 	}
 
