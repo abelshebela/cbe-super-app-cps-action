@@ -247,13 +247,14 @@ type FeedbackService interface {
 	CreateFeedback(ctx context.Context, req fbdto.FeedbackRequest, userID string) (*imodel.Feedback, error)
 	CreateSurveyFeedback(ctx context.Context, surveyFeedback fbdto.SurveyFeedbackReq) (*imodel.SurveyFeedback, error)
 	GetFeedbackByID(ctx context.Context, id string) (*fbdto.FeedbackResponse, error)
-	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponseForFeedback[[]*fbdto.FeedbackResponse], error)
+
+	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]local_model.Feedback], error)
 
 	GetAllCustomerFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.CustomerFeedback], error)
 	GetCustomerFeedback(ctx context.Context, id string) (*imodel.CustomerFeedback, error)
 
 	GetAllSurveyFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.SurveyFeedback], error)
-	GetSurveyFeedback(ctx context.Context, id string) (*imodel.SurveyFeedback, error)
+	GetSurveyFeedbackByID(ctx context.Context, id string) (*imodel.SurveyFeedback, error)
 }
 
 type HQService interface {

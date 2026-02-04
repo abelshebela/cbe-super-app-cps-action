@@ -25,11 +25,6 @@ type feedbackService struct {
 	logger     utils.Logger
 }
 
-// GetSurveyFeedback implements [service.FeedbackService].
-func (f *feedbackService) GetSurveyFeedback(ctx context.Context, id string) (*local_model.SurveyFeedback, error) {
-	panic("unimplemented")
-}
-
 func NewFeedbackService(repo storage.FeedbackRepository, memberRepo storage.CustomerRepository, logger utils.Logger) service.FeedbackService {
 	return &feedbackService{
 		repo:       repo,
@@ -147,7 +142,7 @@ func (f *feedbackService) GetFeedbackByID(ctx context.Context, id string) (*fbdt
 	return feedback, nil
 }
 
-func (f *feedbackService) GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponseForFeedback[[]*fbdto.FeedbackResponse], error) {
+func (f *feedbackService) GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]local_model.Feedback], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetFeedbacks", "Feedback", "GetFeedbacks")
 	defer span.End()
 
@@ -190,6 +185,24 @@ func (f *feedbackService) GetAllSurveyFeedbacks(ctx context.Context, filterParam
 
 	f.logger.Infof("[GetAllSurveyFeedbacks] retrieved %d survey feedbacks", len(feedbacks.Data))
 	return feedbacks, nil
+}
+
+// GetSurveyFeedbackByID implements [service.FeedbackService].
+func (f *feedbackService) GetSurveyFeedbackByID(ctx context.Context, id string) (*local_model.SurveyFeedback, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetSurveyFeedbackByID", "Feedback", "GetSurveyFeedbackByID")
+	defer span.End()
+
+	feedback, err := f.repo.FindSurveyFeedbackByID(ctx, id)
+	if err != nil {
+		f.logger.Errorf("[GetSurveyFeedbackByID] failed to get survey feedback: %v", err)
+		span.AddEvent("Failed to get feedback", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return nil, err
+	}
+	f.logger.Infof("[GetSurveyFeedbackByID] survey feedback retrieved successfully for id: %s", id)
+	return feedback, nil
 }
 
 func (f *feedbackService) GetCustomerFeedback(ctx context.Context, id string) (*local_model.CustomerFeedback, error) {
