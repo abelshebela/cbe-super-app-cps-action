@@ -543,6 +543,7 @@ type CustomerRepository interface {
 	FindCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)
 	SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error)
 	FindCustomerByIDs(ctx context.Context, ids []string) ([]member.User, error)
+	FindCustomerByID(ctx context.Context, id string) (*member.User, error)
 }
 
 type BulkServiceRepository interface {
