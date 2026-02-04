@@ -30,16 +30,19 @@ func NewCPSActionRoleHandler(svc service.CPSActionRoleService, logger utils.Logg
 
 // GetAllActionList godoc
 //
-//	@Summary	List of Action for Cps
-//	@Tags		ActionList
-//	@Accept		json
-//	@Produce	json
-//	@Param		page		query		int		false	"Page"
-//	@Param		per_page	query		int		false	"Per Page"
-//	@Param		search		query		string	false	"Search"
-//	@Success	200			{object}	localization.StandardResponse
-//	@Security	BearerAuth
-//	@Router		/action-roles/action-list [get]
+//	@Summary		Get all CPS action list
+//	@Description	Retrieve all CPS actions with pagination and optional search
+//	@Tags			CPS Action Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int									false	"Page number"		default(1)
+//	@Param			per_page	query		int									false	"Items per page"	default(10)
+//	@Param			search		query		string								false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"Action list retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/cps-action-list [get]
 func (h *CPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCpsActionRoles", "handler", "cpsActionRole")
 	defer span.End()
@@ -72,16 +75,19 @@ func (h *CPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.R
 
 // GetAll godoc
 //
-//	@Summary	List action roles
-//	@Tags		ActionRole
-//	@Accept		json
-//	@Produce	json
-//	@Param		page		query		int		false	"Page"
-//	@Param		per_page	query		int		false	"Per Page"
-//	@Param		search		query		string	false	"Search"
-//	@Success	200			{object}	localization.StandardResponse
-//	@Security	BearerAuth
-//	@Router		/action-roles [get]
+//	@Summary		Get all CPS action roles
+//	@Description	Retrieve all CPS action roles with pagination and optional search
+//	@Tags			CPS Action Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int									false	"Page number"		default(1)
+//	@Param			per_page	query		int									false	"Items per page"	default(10)
+//	@Param			search		query		string								false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"Action roles retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/cps-action-roles [get]
 func (h *CPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCpsActionRoles", "handler", "cpsActionRole")
 	defer span.End()
@@ -113,13 +119,18 @@ func (h *CPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 // GetByActionCode godoc
 //
-//	@Summary	Get action role by code
-//	@Tags		ActionRole
-//	@Produce	json
-//	@Param		code	path		string	true	"Action Code"
-//	@Success	200		{object}	localization.StandardResponse
-//	@Security	BearerAuth
-//	@Router		/action-roles/{code} [get]
+//	@Summary		Get CPS action role by code
+//	@Description	Retrieve a single CPS action role by its action code
+//	@Tags			CPS Action Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			code	path		string													true	"Action Code"
+//	@Success		200		{object}	localization.StandardResponse{data=actionrole_dto.GetActionRoleByActionCodeRes}	"Action role retrieved successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}					"Bad request"
+//	@Failure		404		{object}	localization.StandardResponse{data=nil}					"Action role not found"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}					"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/cps-action-roles/{code} [get]
 func (h *CPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionRoleByCode", "handler", "cpsActionRole")
 	defer span.End()
@@ -141,14 +152,17 @@ func (h *CPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 
 // Create godoc
 //
-//	@Summary	Create action role (maker)
-//	@Tags		ActionRole
-//	@Accept		json
-//	@Produce	json
-//	@Param		body	body		actionrole_dto.CreateActionRoleRequest	true	"Create"
-//	@Success	201		{object}	localization.StandardResponse
-//	@Security	BearerAuth
-//	@Router		/action-roles [post]
+//	@Summary		Create CPS action role (maker)
+//	@Description	Create a new CPS action role with assigned roles for viewers, makers, checkers, and auditors
+//	@Tags			CPS Action Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		actionrole_dto.CreateActionRoleRequest	true	"Create action role request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Action role creation request submitted successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/cps-action-roles [post]
 func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
@@ -200,15 +214,19 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 // Update godoc
 //
-//	@Summary	Update action role (maker)
-//	@Tags		ActionRole
-//	@Accept		json
-//	@Produce	json
-//	@Param		code	path		string									true	"Action Code"
-//	@Param		body	body		actionrole_dto.UpdateActionRoleRequest	true	"Update"
-//	@Success	201		{object}	localization.StandardResponse
-//	@Security	BearerAuth
-//	@Router		/action-roles/{code} [patch]
+//	@Summary		Update CPS action role (maker)
+//	@Description	Update an existing CPS action role by action code. Provide only fields to change.
+//	@Tags			CPS Action Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			code	path		string									true	"Action Code"
+//	@Param			body	body		actionrole_dto.UpdateActionRoleRequest	true	"Update action role request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Action role update request submitted successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404		{object}	localization.StandardResponse{data=nil}	"Action role not found"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/cps-action-roles/{code} [patch]
 func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
@@ -252,13 +270,18 @@ func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 // Enable godoc
 //
-//	@Summary	Enable action role (maker)
-//	@Tags		ActionRole
-//	@Produce	json
-//	@Param		code	path		string	true	"Action Code"
-//	@Success	201		{object}	localization.StandardResponse
-//	@Security	BearerAuth
-//	@Router		/action-roles/{code}/enable [patch]
+//	@Summary		Enable CPS action role (checker)
+//	@Description	Approve enable request for a CPS action role by action code
+//	@Tags			CPS Action Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			code	path		string									true	"Action Code"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Action role enable request submitted successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404		{object}	localization.StandardResponse{data=nil}	"Action role not found"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/cps-action-roles/{code}/enable [patch]
 func (h *CPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
@@ -287,13 +310,18 @@ func (h *CPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 
 // Disable godoc
 //
-//	@Summary	Disable action role (maker)
-//	@Tags		ActionRole
-//	@Produce	json
-//	@Param		code	path		string	true	"Action Code"
-//	@Success	201		{object}	localization.StandardResponse
-//	@Security	BearerAuth
-//	@Router		/action-roles/{code}/disable [patch]
+//	@Summary		Disable CPS action role (checker)
+//	@Description	Approve disable request for a CPS action role by action code
+//	@Tags			CPS Action Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			code	path		string									true	"Action Code"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Action role disable request submitted successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404		{object}	localization.StandardResponse{data=nil}	"Action role not found"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/cps-action-roles/{code}/disable [patch]
 func (h *CPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()

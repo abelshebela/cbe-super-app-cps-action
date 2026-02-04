@@ -1,5 +1,82 @@
 basePath: /api/v1/cbesuperapp/cps_action
 definitions:
+  access_list_segmentation_dto.AccessListSegmentationResponse:
+    properties:
+      access_list_key:
+        type: string
+      access_list_name:
+        type: string
+      created_at:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: string
+      segment_code:
+        type: string
+      segment_name:
+        type: string
+      segment_type:
+        type: string
+      segmented_id:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  access_list_segmentation_dto.CreateAccessListSegmentationRequest:
+    properties:
+      access_list_keys:
+        description: 'the service which is being segmented NB: we actually work on
+          a separate collection called access_list_segmentation rather than services'
+        items:
+          type: string
+        type: array
+      access_list_names:
+        description: the service names which is being segmented
+        items:
+          type: string
+        type: array
+      segment_code:
+        description: for type account or by account type
+        type: string
+      segment_name:
+        description: for type account or by account type
+        type: string
+      segment_type:
+        enum:
+        - Account
+        - Block
+        type: string
+      segmented_id:
+        description: id of the region, district, country,branch
+        type: string
+      type:
+        enum:
+        - R
+        - D
+        - C
+        - B
+        type: string
+    required:
+    - access_list_keys
+    - access_list_names
+    - segment_code
+    - segment_name
+    - segment_type
+    - segmented_id
+    - type
+    type: object
+  access_list_segmentation_dto.EnableDisableAccessListSegmentationRequest:
+    properties:
+      access_list_keys:
+        items:
+          type: string
+        type: array
+    required:
+    - access_list_keys
+    type: object
   accountblock.AccountBlockResponse:
     properties:
       address:
@@ -379,8 +456,6 @@ definitions:
         type: string
       username:
         type: string
-    type: object
-  bpsmakerhandler.paginated_resp:
     type: object
   bpsuser.BPSUserCreateRequest:
     properties:
@@ -1084,6 +1159,60 @@ definitions:
       encryption:
         type: string
     type: object
+  event_merchant_dto.CreateEventMerchantRequest:
+    properties:
+      bank_account_number:
+        type: string
+      merchant_id:
+        type: string
+      merchant_name:
+        type: string
+      merchant_type:
+        type: string
+      settlement_method:
+        type: string
+    type: object
+  event_merchant_dto.EventMerchantResponse:
+    properties:
+      bank_account_number:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      enabled:
+        description: |-
+          Email             string    `json:"email" bson:"email"`
+          PhoneNumber       string    `json:"phone_number" bson:"phone_number"`
+        type: boolean
+      id:
+        type: string
+      is_deleted:
+        type: boolean
+      merchant_id:
+        type: string
+      merchant_name:
+        type: string
+      merchant_type:
+        type: string
+      settlement_method:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  event_merchant_dto.UpdateEventMerchantRequest:
+    properties:
+      bank_account_number:
+        type: string
+      merchant_id:
+        type: string
+      merchant_name:
+        type: string
+      merchant_type:
+        type: string
+      settlement_method:
+        type: string
+    type: object
   feedback.FeedbackRequest:
     type: object
   hqDto.UpdateArchiveTimeRequest:
@@ -1164,6 +1293,60 @@ definitions:
       status:
         type: integer
       timestamp:
+        type: string
+    type: object
+  logistics_merchant_dto.CreateLogisticsMerchantRequest:
+    properties:
+      bank_account_number:
+        type: string
+      merchant_id:
+        type: string
+      merchant_name:
+        type: string
+      merchant_type:
+        type: string
+      settlement_method:
+        type: string
+    type: object
+  logistics_merchant_dto.LogisticsMerchantResponse:
+    properties:
+      bank_account_number:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      enabled:
+        description: |-
+          Email             string    `json:"email" bson:"email"`
+          PhoneNumber       string    `json:"phone_number" bson:"phone_number"`
+        type: boolean
+      id:
+        type: string
+      is_deleted:
+        type: boolean
+      merchant_id:
+        type: string
+      merchant_name:
+        type: string
+      merchant_type:
+        type: string
+      settlement_method:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  logistics_merchant_dto.UpdateLogisticsMerchantRequest:
+    properties:
+      bank_account_number:
+        type: string
+      merchant_id:
+        type: string
+      merchant_name:
+        type: string
+      merchant_type:
+        type: string
+      settlement_method:
         type: string
     type: object
   model.AccountBlock:
@@ -1908,6 +2091,42 @@ definitions:
     type: object
   portalcard.PortalCardPaginatedResponse:
     type: object
+  roles.RequestRolesCreate:
+    properties:
+      job_title:
+        type: string
+      role:
+        type: string
+    type: object
+  roles.RequestRolesUpdate:
+    properties:
+      job_title:
+        type: string
+      role:
+        type: string
+    type: object
+  roles_dto.CreateJobRoleRequest:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+      portal_cards:
+        items:
+          type: string
+        type: array
+    type: object
+  roles_dto.UpdateJobRoleRequest:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+      portal_cards:
+        items:
+          type: string
+        type: array
+    type: object
   services.CapRequest:
     properties:
       minimum_transfer_cap:
@@ -2015,9 +2234,7 @@ definitions:
     type: object
   topup.PaginatedTopupResponse:
     type: object
-  transaction_handler.paginated_transaction_resp:
-    type: object
-  transaction_handler.transaction_by_id:
+  transaction_dto.FullTransaction:
     properties:
       amount:
         type: string
@@ -2297,6 +2514,281 @@ info:
   title: CPS Action API
   version: 1.0.0
 paths:
+  /access_list_segmentation:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all access list segmentations with pagination and optional
+        search
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Access list segmentations retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get all access list segmentations
+      tags:
+      - Access List Segmentation
+    post:
+      consumes:
+      - application/json
+      description: Create a new access list segmentation with the provided information
+      parameters:
+      - description: Create access list segmentation request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/access_list_segmentation_dto.CreateAccessListSegmentationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Access list segmentation created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create access list segmentation
+      tags:
+      - Access List Segmentation
+  /access_list_segmentation/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a single access list segmentation by its identifier
+      parameters:
+      - description: Access list segmentation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Access list segmentation retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/access_list_segmentation_dto.AccessListSegmentationResponse'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Access list segmentation not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get access list segmentation by ID
+      tags:
+      - Access List Segmentation
+  /access_list_segmentation/all/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all access list segmentations and access lists filtered
+        by segment ID or segment code
+      parameters:
+      - description: Segment ID or Segment Code
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Access list segmentations retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get all access list segmentations by segment ID or code
+      tags:
+      - Access List Segmentation
+  /access_list_segmentation/disable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Disable an access list segmentation by ID with optional access
+        list keys
+      parameters:
+      - description: Access list segmentation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Disable request with access list keys
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/access_list_segmentation_dto.EnableDisableAccessListSegmentationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Access list segmentation disabled successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Access list segmentation not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Disable access list segmentation
+      tags:
+      - Access List Segmentation
   /account_block/branches:
     get:
       consumes:
@@ -3410,122 +3902,6 @@ paths:
       summary: Create action role (maker)
       tags:
       - ActionRole
-  /action-roles/{code}:
-    get:
-      parameters:
-      - description: Action Code
-        in: path
-        name: code
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/localization.StandardResponse'
-      security:
-      - BearerAuth: []
-      summary: Get action role by code
-      tags:
-      - ActionRole
-    patch:
-      consumes:
-      - application/json
-      parameters:
-      - description: Action Code
-        in: path
-        name: code
-        required: true
-        type: string
-      - description: Update
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/actionrole_dto.UpdateActionRoleRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/localization.StandardResponse'
-      security:
-      - BearerAuth: []
-      summary: Update action role (maker)
-      tags:
-      - ActionRole
-  /action-roles/{code}/disable:
-    patch:
-      parameters:
-      - description: Action Code
-        in: path
-        name: code
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/localization.StandardResponse'
-      security:
-      - BearerAuth: []
-      summary: Disable action role (maker)
-      tags:
-      - ActionRole
-  /action-roles/{code}/enable:
-    patch:
-      parameters:
-      - description: Action Code
-        in: path
-        name: code
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/localization.StandardResponse'
-      security:
-      - BearerAuth: []
-      summary: Enable action role (maker)
-      tags:
-      - ActionRole
-  /action-roles/action-list:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: Page
-        in: query
-        name: page
-        type: integer
-      - description: Per Page
-        in: query
-        name: per_page
-        type: integer
-      - description: Search
-        in: query
-        name: search
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/localization.StandardResponse'
-      security:
-      - BearerAuth: []
-      summary: List of Action for Cps
-      tags:
-      - ActionList
   /actions/:
     get:
       consumes:
@@ -6120,7 +6496,7 @@ paths:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/bpsmakerhandler.paginated_resp'
+                  type: object
               type: object
         "400":
           description: Bad request
@@ -6157,7 +6533,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: BPS user created successfully
+          description: BPS user creation request submitted successfully
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -6186,6 +6562,67 @@ paths:
       security:
       - BearerAuth: []
       summary: Create BPS user
+      tags:
+      - BPS Users
+  /bps_users/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Updates an existing BPS user account
+      parameters:
+      - description: BPS User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: BPS user update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/bpsuser.BPSUserUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: BPS user update request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: User not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update BPS user
       tags:
       - BPS Users
   /bps_users/{user_code}:
@@ -6241,66 +6678,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Get BPS user by user code
-      tags:
-      - BPS Users
-    put:
-      consumes:
-      - application/json
-      description: Updates an existing BPS user account
-      parameters:
-      - description: User Code
-        in: path
-        name: user_code
-        required: true
-        type: string
-      - description: BPS user update request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/bpsuser.BPSUserUpdateRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: BPS user updated successfully
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "400":
-          description: Bad request
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "404":
-          description: User not found
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal server error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Update BPS user
       tags:
       - BPS Users
   /bps_users/disable/{user_code}:
@@ -6943,6 +7320,389 @@ paths:
       summary: Enable bulk services
       tags:
       - Bulk Services
+  /cps-action-list:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all CPS actions with pagination and optional search
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Action list retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get all CPS action list
+      tags:
+      - CPS Action Role
+  /cps-action-roles:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all CPS action roles with pagination and optional search
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Action roles retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get all CPS action roles
+      tags:
+      - CPS Action Role
+    post:
+      consumes:
+      - application/json
+      description: Create a new CPS action role with assigned roles for viewers, makers,
+        checkers, and auditors
+      parameters:
+      - description: Create action role request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/actionrole_dto.CreateActionRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Action role creation request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create CPS action role (maker)
+      tags:
+      - CPS Action Role
+  /cps-action-roles/{code}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a single CPS action role by its action code
+      parameters:
+      - description: Action Code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Action role retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/actionrole_dto.GetActionRoleByActionCodeRes'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Action role not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get CPS action role by code
+      tags:
+      - CPS Action Role
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing CPS action role by action code. Provide only
+        fields to change.
+      parameters:
+      - description: Action Code
+        in: path
+        name: code
+        required: true
+        type: string
+      - description: Update action role request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/actionrole_dto.UpdateActionRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Action role update request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Action role not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update CPS action role (maker)
+      tags:
+      - CPS Action Role
+  /cps-action-roles/{code}/disable:
+    patch:
+      consumes:
+      - application/json
+      description: Approve disable request for a CPS action role by action code
+      parameters:
+      - description: Action Code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Action role disable request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Action role not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Disable CPS action role (checker)
+      tags:
+      - CPS Action Role
+  /cps-action-roles/{code}/enable:
+    patch:
+      consumes:
+      - application/json
+      description: Approve enable request for a CPS action role by action code
+      parameters:
+      - description: Action Code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Action role enable request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Action role not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Enable CPS action role (checker)
+      tags:
+      - CPS Action Role
   /cps_users:
     get:
       consumes:
@@ -7419,7 +8179,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Paginated list (data.docs and data.meta)
+          description: Customer segmentations retrieved successfully
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -7428,7 +8188,7 @@ paths:
                   type: object
               type: object
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -7446,7 +8206,7 @@ paths:
                   type: object
               type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -7474,7 +8234,7 @@ paths:
       - application/json
       responses:
         "201":
-          description: Created
+          description: Customer segmentation creation request submitted successfully
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -7483,7 +8243,7 @@ paths:
                   type: object
               type: object
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -7501,7 +8261,7 @@ paths:
                   type: object
               type: object
         "422":
-          description: Unprocessable Entity
+          description: Validation error
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -7510,7 +8270,7 @@ paths:
                   type: object
               type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -7597,7 +8357,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Customer segmentation retrieved successfully
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -7606,7 +8366,7 @@ paths:
                   type: object
               type: object
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -7624,7 +8384,7 @@ paths:
                   type: object
               type: object
         "404":
-          description: Not Found
+          description: Customer segmentation not found
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -7633,7 +8393,7 @@ paths:
                   type: object
               type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -11017,6 +11777,388 @@ paths:
       summary: Encrypt user password
       tags:
       - Encryption
+  /event_merchant/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an event merchant by ID
+      parameters:
+      - description: Event merchant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event merchant deleted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Event merchant not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Delete event merchant
+      tags:
+      - Event Merchant
+  /event_merchants:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all event merchants with pagination and optional search
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event merchants retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get all event merchants
+      tags:
+      - Event Merchant
+    post:
+      consumes:
+      - application/json
+      description: Create a new event merchant with the provided information
+      parameters:
+      - description: Create event merchant request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/event_merchant_dto.CreateEventMerchantRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event merchant created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create event merchant
+      tags:
+      - Event Merchant
+  /event_merchants/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a single event merchant by its identifier
+      parameters:
+      - description: Event merchant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event merchant retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/event_merchant_dto.EventMerchantResponse'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Event merchant not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get event merchant by ID
+      tags:
+      - Event Merchant
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing event merchant by ID. Provide only fields to
+        change.
+      parameters:
+      - description: Event merchant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update event merchant request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/event_merchant_dto.UpdateEventMerchantRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event merchant updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Event merchant not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update event merchant
+      tags:
+      - Event Merchant
+  /event_merchants/disable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Disable an event merchant by ID
+      parameters:
+      - description: Event merchant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event merchant disabled successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Event merchant not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Disable event merchant
+      tags:
+      - Event Merchant
+  /event_merchants/enable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Enable an event merchant by ID
+      parameters:
+      - description: Event merchant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event merchant enabled successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Event merchant not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Enable event merchant
+      tags:
+      - Event Merchant
   /events:
     get:
       consumes:
@@ -11956,6 +13098,222 @@ paths:
       summary: Update HQ password expiry
       tags:
       - HQ
+  /job_roles:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all job roles with pagination and optional search
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Job roles retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get all job roles
+      tags:
+      - Job Title with Role
+    post:
+      consumes:
+      - application/json
+      description: Create a new job role with job title and role
+      parameters:
+      - description: Create job role request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/roles.RequestRolesCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Job role creation request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create job role
+      tags:
+      - Job Title with Role
+  /job_roles/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a job role by its ID
+      parameters:
+      - description: Job role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Job role retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get job role by ID
+      tags:
+      - Job Title with Role
+    patch:
+      consumes:
+      - application/json
+      description: Update a job role by its ID
+      parameters:
+      - description: Job role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update job role request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/roles.RequestRolesUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Job role update request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update job role
+      tags:
+      - Job Title with Role
   /kyc_verifier:
     get:
       consumes:
@@ -12001,9 +13359,7 @@ paths:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  items:
-                    $ref: '#/definitions/kyc_verifier.KYCVerifierResponse'
-                  type: array
+                  type: object
               type: object
         "400":
           description: Invalid query params
@@ -12187,6 +13543,277 @@ paths:
       summary: Update KYC
       tags:
       - KYC Verifier
+  /logistics_merchants:
+    post:
+      consumes:
+      - application/json
+      description: Create a new logistics merchant with the provided information
+      parameters:
+      - description: Create logistics merchant request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/logistics_merchant_dto.CreateLogisticsMerchantRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logistics merchant created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create logistics merchant
+      tags:
+      - Logistics Merchant
+  /logistics_merchants/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a logistics merchant by ID
+      parameters:
+      - description: Logistics Merchant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logistics merchant deleted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Logistics merchant not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Delete logistics merchant
+      tags:
+      - Logistics Merchant
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a single logistics merchant by its identifier
+      parameters:
+      - description: Logistics Merchant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logistics merchant retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/logistics_merchant_dto.LogisticsMerchantResponse'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Logistics merchant not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get logistics merchant by ID
+      tags:
+      - Logistics Merchant
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing logistics merchant by ID
+      parameters:
+      - description: Logistics Merchant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update logistics merchant request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/logistics_merchant_dto.UpdateLogisticsMerchantRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logistics merchant updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Logistics merchant not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update logistics merchant
+      tags:
+      - Logistics Merchant
+  /logistics_merchants/disable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Disable a logistics merchant by ID
+      parameters:
+      - description: Logistics Merchant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logistics merchant disabled successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Logistics merchant not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Disable logistics merchant
+      tags:
+      - Logistics Merchant
   /news/category:
     get:
       consumes:
@@ -13311,6 +14938,223 @@ paths:
       summary: Get All Portal Cards
       tags:
       - PortalCard
+  /roles:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all roles with pagination and optional search
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Roles retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get all roles
+      tags:
+      - Roles
+    post:
+      consumes:
+      - application/json
+      description: Create a new role with name and optional portal cards
+      parameters:
+      - description: Create role request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/roles_dto.CreateJobRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Role creation request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create role (maker)
+      tags:
+      - Roles
+  /roles/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a single role by its identifier
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Role retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.JobRole'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Role not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get role by ID
+      tags:
+      - Roles
+    patch:
+      consumes:
+      - application/json
+      description: Update an existing role by ID. Provide only fields to change. At
+        least one field must be provided.
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update role request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/roles_dto.UpdateJobRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Role update request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Role not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update role (maker)
+      tags:
+      - Roles
   /services:
     get:
       consumes:
@@ -13351,7 +15195,16 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Services retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13360,7 +15213,7 @@ paths:
                   type: object
               type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13388,7 +15241,7 @@ paths:
       - application/json
       responses:
         "201":
-          description: CPS action created
+          description: Service creation request submitted successfully
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13397,7 +15250,7 @@ paths:
                   type: object
               type: object
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13406,7 +15259,7 @@ paths:
                   type: object
               type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13434,7 +15287,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Service retrieved successfully
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13443,7 +15296,7 @@ paths:
                   type: object
               type: object
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13452,7 +15305,7 @@ paths:
                   type: object
               type: object
         "404":
-          description: Not Found
+          description: Service not found
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13461,7 +15314,7 @@ paths:
                   type: object
               type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13494,7 +15347,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: CPS action created
+          description: Service update request submitted successfully
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13503,7 +15356,7 @@ paths:
                   type: object
               type: object
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13512,7 +15365,7 @@ paths:
                   type: object
               type: object
         "404":
-          description: Not Found
+          description: Service not found
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13521,7 +15374,7 @@ paths:
                   type: object
               type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13549,7 +15402,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: CPS action created
+          description: Service enabled successfully
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13558,7 +15411,7 @@ paths:
                   type: object
               type: object
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13567,7 +15420,7 @@ paths:
                   type: object
               type: object
         "404":
-          description: Not Found
+          description: Service not found
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13576,7 +15429,7 @@ paths:
                   type: object
               type: object
         "409":
-          description: Conflict
+          description: Service already enabled
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13585,7 +15438,7 @@ paths:
                   type: object
               type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13613,7 +15466,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: CPS action created
+          description: Service enabled successfully
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13622,7 +15475,7 @@ paths:
                   type: object
               type: object
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13631,7 +15484,7 @@ paths:
                   type: object
               type: object
         "404":
-          description: Not Found
+          description: Service not found
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13640,7 +15493,7 @@ paths:
                   type: object
               type: object
         "409":
-          description: Conflict
+          description: Service already enabled
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13649,7 +15502,7 @@ paths:
                   type: object
               type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13662,7 +15515,7 @@ paths:
       summary: Enable Service
       tags:
       - Services
-  /services/list:
+  /services_list:
     get:
       consumes:
       - application/json
@@ -13702,7 +15555,16 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Services retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -13711,7 +15573,7 @@ paths:
                   type: object
               type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -14225,36 +16087,55 @@ paths:
         in: query
         name: type
         type: string
-      - description: Page number
+      - default: 1
+        description: Page number
         in: query
         name: page
         type: integer
-      - description: Items per page
+      - default: 10
+        description: Items per page
         in: query
         name: per_page
         type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Transactions retrieved successfully
           schema:
-            $ref: '#/definitions/transaction_handler.paginated_transaction_resp'
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
       summary: Get all transactions
       tags:
-      - transactions
+      - Transactions
   /transactions/{id}:
     get:
       consumes:
@@ -14270,24 +16151,102 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Transaction retrieved successfully
           schema:
-            $ref: '#/definitions/transaction_handler.transaction_by_id'
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/transaction_dto.FullTransaction'
+              type: object
         "400":
-          description: Bad Request
+          description: Bad request
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "404":
-          description: Not Found
+          description: Transaction not found
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
       summary: Get transaction by ID
       tags:
-      - transactions
+      - Transactions
+  /transactions/search/{identifier}:
+    get:
+      consumes:
+      - application/json
+      description: Search for transactions using CIF number, account number, or FT
+        (Fund Transfer) number
+      parameters:
+      - description: CIF number, account number, or FT number
+        in: path
+        name: identifier
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/transaction_dto.FullTransaction'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Transaction not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Search transaction by CIF, account number, or FT number
+      tags:
+      - Transactions
   /unlink/archived_user:
     get:
       consumes:
@@ -14469,6 +16428,275 @@ paths:
       summary: Unlink user CIF
       tags:
       - Unlink
+  /ussd_merchant:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all USSD merchants with pagination and optional search
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: USSD merchants retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get all USSD merchants
+      tags:
+      - USSD Merchant
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create a new USSD merchant with the provided information. Requires
+        multipart/form-data with logo image.
+      parameters:
+      - description: Settlement method
+        in: formData
+        name: settlement_method
+        required: true
+        type: string
+      - description: Merchant name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Phone number
+        in: formData
+        name: phone_number
+        required: true
+        type: string
+      - description: Email address
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Service
+        in: formData
+        name: service
+        required: true
+        type: string
+      - description: Account number
+        in: formData
+        name: account_number
+        required: true
+        type: string
+      - description: Logo image (<=10MB; jpeg/png/gif/webp)
+        in: formData
+        name: logo
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: USSD merchant created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create USSD merchant
+      tags:
+      - USSD Merchant
+  /ussd_merchant/{id}:
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Update an existing USSD merchant by ID. Logo is optional. Requires
+        multipart/form-data.
+      parameters:
+      - description: USSD Merchant ID
+        in: path
+        name: id
+        type: string
+      - description: Settlement method
+        in: formData
+        name: settlement_method
+        type: string
+      - description: Merchant name
+        in: formData
+        name: name
+        type: string
+      - description: Phone number
+        in: formData
+        name: phone_number
+        type: string
+      - description: Email address
+        in: formData
+        name: email
+        type: string
+      - description: Service
+        in: formData
+        name: service
+        type: string
+      - description: Account number
+        in: formData
+        name: account_number
+        type: string
+      - description: Logo image (<=10MB; jpeg/png/gif/webp)
+        in: formData
+        name: logo
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: USSD merchant updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: USSD merchant not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update USSD merchant
+      tags:
+      - USSD Merchant
+  /ussd_merchant/disable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Disable a USSD merchant by ID
+      parameters:
+      - description: USSD Merchant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: USSD merchant disabled successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: USSD merchant not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Disable USSD merchant
+      tags:
+      - USSD Merchant
   /vault-amount-tier/{id}:
     get:
       consumes:
@@ -14663,7 +16891,7 @@ paths:
       tags:
       - Vault Amount Tier
   /vault-amount-tier/{id}/update:
-    put:
+    patch:
       consumes:
       - application/json
       description: Update amount tier with the provided information
@@ -14683,7 +16911,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Amount tier update request submitted successfully
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -14692,7 +16920,16 @@ paths:
                   type: object
               type: object
         "400":
-          description: Bad Request
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Amount tier not found
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -14701,7 +16938,7 @@ paths:
                   type: object
               type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -14731,7 +16968,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Amount tier update request submitted successfully
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -14740,7 +16977,16 @@ paths:
                   type: object
               type: object
         "400":
-          description: Bad Request
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Amount tier not found
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -14749,7 +16995,7 @@ paths:
                   type: object
               type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -14786,7 +17032,16 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Amount tiers retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -14795,7 +17050,7 @@ paths:
                   type: object
               type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'

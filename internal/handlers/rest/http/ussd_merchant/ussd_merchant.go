@@ -30,6 +30,25 @@ func NewUssdMerchantHandler(ussdMerchantService service.UssdMerchantService, log
 	}
 }
 
+// CreateUssdMerchant godoc
+//
+//	@Summary		Create USSD merchant
+//	@Description	Create a new USSD merchant with the provided information. Requires multipart/form-data with logo image.
+//	@Tags			USSD Merchant
+//	@Accept			mpfd
+//	@Produce		json
+//	@Param			settlement_method	formData	string	true	"Settlement method"
+//	@Param			name				formData	string	true	"Merchant name"
+//	@Param			phone_number		formData	string	true	"Phone number"
+//	@Param			email				formData	string	true	"Email address"
+//	@Param			service				formData	string	true	"Service"
+//	@Param			account_number		formData	string	true	"Account number"
+//	@Param			logo				formData	file	true	"Logo image (<=10MB; jpeg/png/gif/webp)"
+//	@Success		200					{object}	localization.StandardResponse{data=nil}	"USSD merchant created successfully"
+//	@Failure		400					{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500					{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/ussd_merchant [post]
 func (u *UssdMerchantHandler) CreateUssdMerchant(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "CreateUssdMerchantHandler", "handler", "ussdMerchant")
 	defer span.End()
@@ -77,6 +96,27 @@ func (u *UssdMerchantHandler) CreateUssdMerchant(w http.ResponseWriter, r *http.
 	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantRequestCreated, "Ussd merchant created successfully")
 }
 
+// UpdateUssdMerchant godoc
+//
+//	@Summary		Update USSD merchant
+//	@Description	Update an existing USSD merchant by ID. Logo is optional. Requires multipart/form-data.
+//	@Tags			USSD Merchant
+//	@Accept			mpfd
+//	@Produce		json
+//	@Param			id					path		string	false	"USSD Merchant ID"
+//	@Param			settlement_method	formData	string	false	"Settlement method"
+//	@Param			name				formData	string	false	"Merchant name"
+//	@Param			phone_number		formData	string	false	"Phone number"
+//	@Param			email				formData	string	false	"Email address"
+//	@Param			service				formData	string	false	"Service"
+//	@Param			account_number		formData	string	false	"Account number"
+//	@Param			logo				formData	file	false	"Logo image (<=10MB; jpeg/png/gif/webp)"
+//	@Success		200					{object}	localization.StandardResponse{data=nil}	"USSD merchant updated successfully"
+//	@Failure		400					{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404					{object}	localization.StandardResponse{data=nil}	"USSD merchant not found"
+//	@Failure		500					{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/ussd_merchant/{id} [patch]
 func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateUssdMerchantHandler", "handler", "ussdMerchant")
 	defer span.End()
@@ -182,6 +222,20 @@ func (u *UssdMerchantHandler) EnableUssdMerchant(w http.ResponseWriter, r *http.
 	u.Logger.Infof("[EnableUssdMerchantHandler] successfully updated ussd merchant")
 	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantEnableRequestCreated, nil)
 }
+// DisableUssdMerchant godoc
+//
+//	@Summary		Disable USSD merchant
+//	@Description	Disable a USSD merchant by ID
+//	@Tags			USSD Merchant
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"USSD Merchant ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"USSD merchant disabled successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"USSD merchant not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/ussd_merchant/disable/{id} [patch]
 func (u *UssdMerchantHandler) DisableUssdMerchant(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "DisableUssdMerchantHandler", "handler", "ussdMerchant")
 	defer span.End()
@@ -231,6 +285,21 @@ func (u *UssdMerchantHandler) GetUssdMerchant(w http.ResponseWriter, r *http.Req
 
 	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantFetched, result)
 }
+// GetAllUssdMerchant godoc
+//
+//	@Summary		Get all USSD merchants
+//	@Description	Retrieve all USSD merchants with pagination and optional search
+//	@Tags			USSD Merchant
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int		false	"Page number"		default(1)
+//	@Param			per_page	query		int		false	"Items per page"	default(10)
+//	@Param			search		query		string	false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"USSD merchants retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/ussd_merchant [get]
 func (u *UssdMerchantHandler) GetAllUssdMerchant(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "GetAllUssdMerchantHandler", "handler", "ussdMerchant")
 	defer span.End()

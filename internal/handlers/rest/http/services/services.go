@@ -45,8 +45,9 @@ func decodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}, log
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		services.CreateServiceRequest	true	"Service payload"
-//	@Success		201		{object}	localization.StandardResponse{data=nil}	"CPS action created"
-//	@Failure		400,500	{object}	localization.StandardResponse{data=nil}
+//	@Success		201		{object}	localization.StandardResponse{data=nil}	"Service creation request submitted successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/services [post]
 func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
@@ -93,8 +94,10 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 //	@Produce		json
 //	@Param			id			path		string									true	"Service ID"
 //	@Param			request		body		services.UpdateServiceRequest	true	"Service update payload"
-//	@Success		200			{object}	localization.StandardResponse{data=nil}	"CPS action created"
-//	@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Success		200			{object}	localization.StandardResponse{data=nil}	"Service update request submitted successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404			{object}	localization.StandardResponse{data=nil}	"Service not found"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/services/{id} [patch]
 func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
@@ -146,8 +149,11 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			id				path		string									true	"Service ID"
-//	@Success		200				{object}	localization.StandardResponse{data=nil}	"CPS action created"
-//	@Failure		400,404,409,500	{object}	localization.StandardResponse{data=nil}
+//	@Success		200				{object}	localization.StandardResponse{data=nil}	"Service enabled successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404				{object}	localization.StandardResponse{data=nil}	"Service not found"
+//	@Failure		409				{object}	localization.StandardResponse{data=nil}	"Service already enabled"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/services/{id}/enable [patch]
 func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
@@ -193,8 +199,11 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			id				path		string									true	"Service ID"
-//	@Success		200				{object}	localization.StandardResponse{data=nil}	"CPS action created"
-//	@Failure		400,404,409,500	{object}	localization.StandardResponse{data=nil}
+//	@Success		200				{object}	localization.StandardResponse{data=nil}	"Service enabled successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404				{object}	localization.StandardResponse{data=nil}	"Service not found"
+//	@Failure		409				{object}	localization.StandardResponse{data=nil}	"Service already enabled"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/services/{id}/disable [patch]
 func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
@@ -246,8 +255,9 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 //	@Param			service_type	query		string	false	"Filter by service_type"
 //	@Param			enabled			query		bool	false	"Filter by enabled status"
 //	@Param			search			query		string	false	"Search term (service_name, service_code, service_type)"
-//	@Success		200				{object}	localization.StandardResponse{data=object}
-//	@Failure		500				{object}	localization.StandardResponse{data=nil}
+//	@Success		200				{object}	localization.StandardResponse{data=object}	"Services retrieved successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/services [get]
 func (a *servicesAdapter) GetAll(w http.ResponseWriter, r *http.Request) {
@@ -293,10 +303,11 @@ func (a *servicesAdapter) GetAll(w http.ResponseWriter, r *http.Request) {
 //	@Param			service_type	query		string	false	"Filter by service_type"
 //	@Param			enabled			query		bool	false	"Filter by enabled status"
 //	@Param			search			query		string	false	"Search term (service_name, service_code, service_type)"
-//	@Success		200				{object}	localization.StandardResponse{data=object}
-//	@Failure		500				{object}	localization.StandardResponse{data=nil}
+//	@Success		200				{object}	localization.StandardResponse{data=object}	"Services retrieved successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/services/list [get]
+//	@Router			/services_list [get]
 func (a *servicesAdapter) GetAllServiceList(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllServicesList", "handler", "servicesList")
 	defer span.End()
@@ -334,8 +345,10 @@ func (a *servicesAdapter) GetAllServiceList(w http.ResponseWriter, r *http.Reque
 //	@Accept			json
 //	@Produce		json
 //	@Param			id			path		string	true	"Service ID"
-//	@Success		200			{object}	localization.StandardResponse{data=object}
-//	@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"Service retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		404			{object}	localization.StandardResponse{data=nil}		"Service not found"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/services/{id} [get]
 func (a *servicesAdapter) GetByID(w http.ResponseWriter, r *http.Request) {
