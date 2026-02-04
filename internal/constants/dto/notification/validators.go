@@ -1,11 +1,53 @@
 package notification
 
 import (
-	"cbe-super-app-cps-action/pkgs/utils"
+	"regexp"
 	"strings"
+	"unicode"
 
-	validation "github.com/go-ozzo/ozzo-validation"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"golang.org/x/text/unicode/norm"
 )
+
+// var safePattern = regexp.MustCompile(`^[\p{L}\p{M}\p{N}\s._@'-]+$`)
+var safePattern = regexp.MustCompile(`^[\p{L}\p{M}\p{N}\p{P}\s@_]+$`)
+
+func noDangerousChars(value any) error {
+	var str string
+
+	switch v := value.(type) {
+	case string:
+		str = v
+	case *string:
+		if v == nil {
+			return nil
+		}
+		str = *v
+	default:
+		return validation.NewError("validation", "invalid type")
+	}
+
+	// Normalize Unicode (prevents homoglyph tricks)
+	str = norm.NFKC.String(str)
+
+	str = strings.TrimSpace(str)
+	if str == "" {
+		return nil
+	}
+
+	if !safePattern.MatchString(str) {
+		return validation.NewError("validation", "contains invalid characters")
+	}
+
+	// Block hidden/control chars
+	for _, r := range str {
+		if unicode.IsControl(r) && !unicode.IsSpace(r) {
+			return validation.NewError("validation", "contains control characters")
+		}
+	}
+
+	return nil
+}
 
 var allowedNotificationFor = []string{"IFB", "CB", "ALL"}
 
@@ -16,26 +58,26 @@ func (r NotificationRequest) Validate(isCreate bool) error {
 
 	if isCreate {
 		fieldRules = []*validation.FieldRules{
-			validation.Field(&r.NotificationType, validation.Required.Error("notification_type is required"), validation.By(utils.NoSpecialChars)),
+			validation.Field(&r.NotificationType, validation.Required.Error("notification_type is required"), validation.By(noDangerousChars)),
 			validation.Field(&r.NotificationBody,
 				validation.Required.Error("notification_body is required"),
-				validation.By(utils.NoSpecialChars),
+				validation.By(noDangerousChars),
 				validation.Length(1, 50),
 			),
-			validation.Field(&r.Title, validation.Required.Error("title is required"), validation.By(utils.NoSpecialChars)),
+			validation.Field(&r.Title, validation.Required.Error("title is required"), validation.By(noDangerousChars)),
 			validation.Field(&r.For,
 				validation.Required.Error("for is required"),
-				validation.By(utils.NoSpecialChars),
+				validation.By(noDangerousChars),
 				validation.In(enumValues...).Error("invalid value for 'for'"),
 			),
 		}
 	} else {
 		fieldRules = []*validation.FieldRules{
-			validation.Field(&r.NotificationType, validation.By(utils.NoSpecialChars)),
-			validation.Field(&r.NotificationBody, validation.By(utils.NoSpecialChars)),
-			validation.Field(&r.Title, validation.By(utils.NoSpecialChars)),
+			validation.Field(&r.NotificationType, validation.By(noDangerousChars)),
+			validation.Field(&r.NotificationBody, validation.By(noDangerousChars)),
+			validation.Field(&r.Title, validation.By(noDangerousChars)),
 			validation.Field(&r.For,
-				validation.By(utils.NoSpecialChars),
+				validation.By(noDangerousChars),
 				validation.In(enumValues...).Error("invalid value for 'for'"),
 			),
 		}

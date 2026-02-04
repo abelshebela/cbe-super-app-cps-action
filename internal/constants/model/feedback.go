@@ -42,7 +42,7 @@ type KafkaMessage struct {
 type FeedbackKafkaMessage struct {
 	UserID     string                 `json:"user_id"`
 	FeedbackID string                 `json:"feedback_id"`
-	Rating     int                    `json:"rating"`
+	StarRating int                    `json:"star_rating"`
 	Comment    string                 `json:"comment"`
 	CreatedAt  time.Time              `json:"created_at"`
 	Metadata   map[string]interface{} `json:"metadata,omitempty"`
