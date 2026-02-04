@@ -425,7 +425,9 @@ type FeedbackRepository interface {
 	Create(ctx context.Context, feedback *imodel.Feedback) error
 	CreateSurveyFeedback(ctx context.Context, surveyFeedback *local_model.SurveyFeedback) error
 	FindByID(ctx context.Context, id string) (*feedback.FeedbackResponse, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponseForFeedback[[]*feedback.FeedbackResponse], error)
+
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.Feedback], error)
+
 	FindAllCustomerFeedbacks(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerFeedback], error)
 	FindCustomerFeedbackByID(ctx context.Context, id string) (*imodel.CustomerFeedback, error)
 	FindAllSurveyFeedbacks(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.SurveyFeedback], error)

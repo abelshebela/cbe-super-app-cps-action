@@ -147,7 +147,7 @@ func (f *feedbackService) GetFeedbackByID(ctx context.Context, id string) (*fbdt
 	return feedback, nil
 }
 
-func (f *feedbackService) GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponseForFeedback[[]*fbdto.FeedbackResponse], error) {
+func (f *feedbackService) GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]local_model.Feedback], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetFeedbacks", "Feedback", "GetFeedbacks")
 	defer span.End()
 
