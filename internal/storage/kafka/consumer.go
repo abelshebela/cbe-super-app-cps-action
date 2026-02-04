@@ -98,7 +98,8 @@ func (fc *FeedbackConsumer) Stop() error {
 
 // handleFeedbackMessage processes a feedback message from Kafka with retry logic
 func (fc *FeedbackConsumer) handleFeedbackMessage(ctx context.Context, message *sarama.ConsumerMessage) error {
-	fc.logger.Infof("Received message from topic %s with body %v", message.Topic, message)
+	fc.logger.Infof("Received message from topic %s, partition %d, offset %d",
+		message.Topic, message.Partition, message.Offset)
 
 	// Parse the Kafka message wrapper first
 	var kafkaMsg model.KafkaMessage
@@ -174,7 +175,8 @@ func (fc *FeedbackConsumer) handleFeedbackMessage(ctx context.Context, message *
 	return fmt.Errorf("failed to process message after %d retries: %w", fc.maxRetries, lastErr)
 }
 func (fc *FeedbackConsumer) handleSurveyFeedbackMessage(ctx context.Context, message *sarama.ConsumerMessage) error {
-	fc.logger.Infof("Received message from topic %s with body %v", message.Topic, message)
+	fc.logger.Infof("Received message from topic %s, partition %d, offset %d",
+		message.Topic, message.Partition, message.Offset)
 
 	// Parse the Kafka message wrapper first
 	var kafkaMsg model.KafkaMessage
@@ -307,16 +309,15 @@ func (h *ConsumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession,
 		switch message.Topic {
 		case "feedback-events":
 			// Use session context instead of Background
-			if err := h.consumer.handleSurveyFeedbackMessage(session.Context(), message); err != nil {
-				h.consumer.logger.Errorf("Failed to process survey feedback message: %v", err)
+			if err := h.consumer.handleFeedbackMessage(session.Context(), message); err != nil {
+				h.consumer.logger.Errorf("Failed to process message: %v", err)
 				// Continue processing other messages but don't mark as processed
 				continue
 			}
 		case "survey-feedback-events":
-
 			// Use session context instead of Background
-			if err := h.consumer.handleFeedbackMessage(session.Context(), message); err != nil {
-				h.consumer.logger.Errorf("Failed to process message: %v", err)
+			if err := h.consumer.handleSurveyFeedbackMessage(session.Context(), message); err != nil {
+				h.consumer.logger.Errorf("Failed to process survey feedback message: %v", err)
 				// Continue processing other messages but don't mark as processed
 				continue
 			}
