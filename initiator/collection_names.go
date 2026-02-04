@@ -66,7 +66,7 @@ var (
 	CustomerFeedbackCollection       = "customer_feedbacks"
 	FaydaKYCollection                = "fayda_kyc"
 	UssdMerchantCollection           = "ussd_merchants"
-	BPSActionsCollection             = "bps_action"
+	BPSActionsCollection             = "bps_actions"
 	SurveyFeedbackCollection         = "survey_feedbacks"
 )
 

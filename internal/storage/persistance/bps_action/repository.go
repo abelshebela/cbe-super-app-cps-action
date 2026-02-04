@@ -239,14 +239,115 @@ func (b *bpsActionRepository) SanitizedFindAllWithPagination(ctx context.Context
 	}, nil
 }
 
-func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*bps_action.BPSAction], error) {
+func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(
+	ctx context.Context,
+	userID string,
+	filterParam types.Filter,
+	RAList []string,
+) (*types.PaginatedResponse[[]*bps_action.BPSAction], error) {
+
+	if strings.TrimSpace(userID) == "" {
+		meta := local_util.BuildPaginationMeta(0, filterParam.Page, filterParam.PerPage)
+		return &types.PaginatedResponse[[]*bps_action.BPSAction]{
+			Data: []*bps_action.BPSAction{},
+			Meta: meta,
+		}, nil
+	}
+
+	filter := bson.M{}
+
+	if len(RAList) > 0 {
+		filter["request_action"] = bson.M{"$in": RAList}
+	}
+
+	if strings.TrimSpace(filterParam.Search) != "" {
+		regex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		filter["$or"] = []bson.M{
+			{"maker_name": regex},
+			{"maker_phone_number": regex},
+			{"action_status": regex},
+			{"auditor_status": regex},
+			{"action_type": regex},
+			{"request_action": regex},
+		}
+	}
+
+	allowedKeys := []string{
+		"action_status",
+		"action_type",
+		"request_action",
+		"maker_phone_number",
+		"checker_phone_number",
+		"maker_name",
+		"checker_name",
+		"auditor_status",
+	}
+
+	dynamicFilter, skip, limit := lib.FilterBuilder(filterParam, nil, allowedKeys)
+
+	for k, v := range dynamicFilter {
+		if k != "created_at" { // avoid broken range leftovers
+			filter[k] = v
+		}
+	}
+
+	exclude := []string{
+		"password",
+		"first_password_set",
+		"login_attempt_count",
+		"is_deleted",
+		"otp_verfy_count",
+		"otp_last_tried_at",
+		"otp_last_verified_at",
+		"permission_group",
+		"permissions",
+		"last_login_attempt",
+		"next_login_attempt",
+		"is_first_time_login",
+		"last_login",
+	}
+
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: filter}},
+		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+		{{Key: "$skip", Value: skip}},
+		{{Key: "$limit", Value: limit}},
+		{{Key: "$project", Value: Projection}},
+		bps_action_core.SanitizePipeline(exclude),
+	}
+
+	fmt.Println("filter", filter)
+	cur, err := b.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	var results []*bps_action.BPSAction
+	if err := cur.All(ctx, &results); err != nil {
+		return nil, err
+	}
+
+	total, err := b.actionDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	return &types.PaginatedResponse[[]*bps_action.BPSAction]{
+		Data: results,
+		Meta: meta,
+	}, nil
+}
+
+func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*bps_action.BPSAction], error) {
 	if strings.TrimSpace(userID) == "" {
 		meta := local_util.BuildPaginationMeta(0, filterParam.Page, filterParam.PerPage)
 		return &types.PaginatedResponse[[]*bps_action.BPSAction]{Data: []*bps_action.BPSAction{}, Meta: meta}, nil
 	}
 
-	baseFilter := bson.M{"is_deleted": false}
-	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status"}
+	baseFilter := bson.M{}
+	allowedKeys := []string{"status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "checker_name", "checker_phone_number", "checker_id", "auditor_status", "home_branch", "branch_code"}
 	searchKeys := bson.M{}
 
 	if filterParam.Search != "" {
@@ -254,10 +355,11 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(ctx cont
 		baseFilter["$or"] = []bson.M{
 			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
-			{"action_status": searchRegex},
-			{"auditor_status": searchRegex},
+			{"status": searchRegex},
 			{"action_type": searchRegex},
 			{"request_action": searchRegex},
+			{"home_branch": searchRegex},
+			{"branch_code": searchRegex},
 		}
 	}
 
@@ -269,22 +371,9 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(ctx cont
 	filter := dynamicFilter
 	filter["request_action"] = bson.M{"$in": RAList}
 
-	// userFilter := bson.M{
-	// 	"$or": []bson.M{
-	// 		{"maker_id": userID},
-	// 		{"checker_users.checker_id": userID},
-	// 	},
-	// }
-
-	// var finalMatch bson.M
-	// if filterParam.Filters != nil && filterParam.Filters["action_status"] == "PENDING" {
-	// 	finalMatch = filter
-	// } else {
-	// 	finalMatch = bson.M{}
-	// }
-
 	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
 
+	fmt.Println("filter", filter)
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
@@ -306,70 +395,6 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(ctx cont
 	}
 
 	total, err := b.actionDal.TotalCount(ctx, filter)
-	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
-	}
-
-	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	return &types.PaginatedResponse[[]*bps_action.BPSAction]{Data: results, Meta: meta}, nil
-}
-
-func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*bps_action.BPSAction], error) {
-	if strings.TrimSpace(userID) == "" {
-		meta := local_util.BuildPaginationMeta(0, filterParam.Page, filterParam.PerPage)
-		return &types.PaginatedResponse[[]*bps_action.BPSAction]{Data: []*bps_action.BPSAction{}, Meta: meta}, nil
-	}
-
-	baseFilter := bson.M{"is_deleted": false}
-	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "checker_name", "checker_phone_number", "checker_id", "auditor_status"}
-	searchKeys := bson.M{}
-
-	if filterParam.Search != "" {
-		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		baseFilter["$or"] = []bson.M{
-			{"maker_name": searchRegex},
-			{"maker_phone_number": searchRegex},
-			{"action_status": searchRegex},
-			{"auditor_status": searchRegex},
-			{"action_type": searchRegex},
-			{"request_action": searchRegex},
-		}
-	}
-
-	dynamicFilter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-	for k, v := range baseFilter {
-		dynamicFilter[k] = v
-	}
-	delete(dynamicFilter, "created_at")
-	filter := dynamicFilter
-	filter["request_action"] = bson.M{"$in": RAList}
-
-	userFilter := bson.M{"auditor_users.auditor_id": userID}
-	finalMatch := bson.M{"$and": []bson.M{filter, userFilter}}
-
-	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
-
-	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: finalMatch}},
-		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
-		{{Key: "$skip", Value: skip}},
-		{{Key: "$limit", Value: limit}},
-		{{Key: "$project", Value: Projection}},
-		bps_action_core.SanitizePipeline(exclude),
-	}
-
-	cur, err := b.collection.Aggregate(ctx, pipeline)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = cur.Close(ctx) }()
-
-	var results []*bps_action.BPSAction
-	if err := cur.All(ctx, &results); err != nil {
-		return nil, err
-	}
-
-	total, err := b.actionDal.TotalCount(ctx, finalMatch)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
