@@ -246,7 +246,7 @@ type FeedbackService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateFeedback(ctx context.Context, req fbdto.FeedbackRequest, userID string) (*imodel.Feedback, error)
 	CreateSurveyFeedback(ctx context.Context, surveyFeedback fbdto.SurveyFeedbackReq) (*imodel.SurveyFeedback, error)
-	GetFeedbackByID(ctx context.Context, id string) (*fbdto.FeedbackResponse, error)
+	GetFeedbackByID(ctx context.Context, id string) (*local_model.Feedback, error)
 
 	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]local_model.Feedback], error)
 

@@ -125,11 +125,11 @@ func (f *feedbackService) CreateSurveyFeedback(ctx context.Context, surveyFeedba
 	f.logger.Infof("[CreateSurveyFeedback] survey feedback created successfully")
 	return surveyFeedbackEntity, nil
 }
-func (f *feedbackService) GetFeedbackByID(ctx context.Context, id string) (*fbdto.FeedbackResponse, error) {
+func (f *feedbackService) GetFeedbackByID(ctx context.Context, id string) (*local_model.Feedback, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetFeedbackByID", "Feedback", "GetFeedbackByID")
 	defer span.End()
 
-	feedback, err := f.repo.FindByID(ctx, id)
+	feedback, err := f.repo.FindFeedbackByID(ctx, id)
 	if err != nil {
 		f.logger.Errorf("[GetFeedbackByID] failed to get feedback: %v", err)
 		span.AddEvent("Failed to get feedback", trace.WithAttributes(
