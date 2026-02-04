@@ -18,7 +18,7 @@ type AuthGRPCClient struct {
 
 func NewAuthGRPCClient(serverAddress string, logger utils.Logger) (*AuthGRPCClient, error) {
 	address := strings.Split(serverAddress, ":")
-	conn, err := grpc.Dial(address[0]+":"+address[1], grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(address[0]+":"+address[1], grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logger.Errorf("Failed to connect to gRPC server at:%s err:%v", serverAddress, err)
 		return nil, fmt.Errorf("GRPC_CONNECTION_FAILED")
