@@ -758,3 +758,24 @@ func (p *CustomerRepository) FindCustomerByIDs(ctx context.Context, ids []string
 	}
 	return customers, nil
 }
+
+func (p *CustomerRepository) FindCustomerByID(ctx context.Context, id string) (*member.User, error) {
+	p.logger.Infof("[FindCustomerByID] fetching customer by id: %s", id)
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		p.logger.Errorf("[FindCustomerByID] invalid object id: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+	filter := bson.M{"_id": objID}
+	user, err := p.mongoDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		code, _ := local_util.HandleMongoError(err)
+		if code == localization.ErrorResourceNotFound.Code {
+			p.logger.Errorf("[FindCustomerByID] customer not found")
+			return nil, fmt.Errorf("%s", code)
+		}
+		p.logger.Errorf("[FindCustomerByID] failed to fetch customer: %v", err)
+		return nil, err
+	}
+	return user, nil
+}
