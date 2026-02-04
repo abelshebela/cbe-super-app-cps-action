@@ -679,6 +679,7 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 			{Key: "_id", Value: 1},
 			{Key: "user_id", Value: bson.M{"$toString": "$_id"}},
 			{Key: "user_code", Value: 1},
+			{Key: "email", Value: 1},
 			{Key: "customer_number", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$member_info.customer_number", 0}}}}, {Key: "full_name", Value: 1},
 			{Key: "phone_number", Value: 1},
 			{Key: "branch_code", Value: 1},
@@ -701,6 +702,7 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 		ID             bson.ObjectID `bson:"_id"`
 		UserID         string        `bson:"user_id"`
 		UserCode       string        `bson:"user_code"`
+		Email          string        `bson:"email"`
 		CustomerNumber string        `bson:"customer_number"`
 		AccountNumber  string        `bson:"account_number"`
 		FullName       string        `bson:"full_name"`
@@ -724,6 +726,7 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 		ID:             res.ID.Hex(),
 		UserID:         res.UserID,
 		UserCode:       res.UserCode,
+		Email:          res.Email,
 		CustomerNumber: res.CustomerNumber,
 		FullName:       res.FullName,
 		PhoneNumber:    res.PhoneNumber,
