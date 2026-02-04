@@ -13,7 +13,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -180,7 +179,7 @@ func (s *bankVaultService) DeleteBankVault(ctx context.Context, id string) (stri
 	if local_util.IsIncomplete(maker) {
 		span.AddEvent("[DeleteBankVault] incomplete user context", trace.WithAttributes(attribute.String("id", id)))
 		s.logger.Errorf("[DeleteBankVault] incomplete user context")
-		return "", fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
+		return "", errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	// Convert to MongoDB-safe format
 	mongoSafeExist := helper.ConvertBankVaultToMongoSafe(exist)
