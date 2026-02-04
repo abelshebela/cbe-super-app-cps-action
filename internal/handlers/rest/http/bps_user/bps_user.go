@@ -103,7 +103,7 @@ func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Reque
 // @Param		phone_number		query		string												false	"Phone number filter"
 // @Param		username			query		string												false	"Username filter"
 // @Param		search				query		string												false	"searchable fieldes (full_name,username,user_code,phone_number)"
-// @Success	200					{object}	localization.StandardResponse{data=paginated_resp}	"BPS users retrieved successfully"
+// @Success	200					{object}	localization.StandardResponse{data=object}	"BPS users retrieved successfully"
 // @Failure	400					{object}	localization.StandardResponse{data=nil}				"Bad request"
 // @Failure	500					{object}	localization.StandardResponse{data=nil}				"Internal server error"
 // @Security	BearerAuth
@@ -232,8 +232,8 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 //	@Tags			BPS Users
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		bps_user_dto.BPSUserCreateRequest						true	"BPS user create request"
-//	@Success		200		{object}	localization.StandardResponse{data=nil}					"BPS user created successfully"
+//	@Param			request	body		bpsuser.BPSUserCreateRequest	true	"BPS user create request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}					"BPS user creation request submitted successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}					"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}					"Internal server error"
 //	@Security		BearerAuth
@@ -294,14 +294,14 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 //	@Tags			BPS Users
 //	@Accept			json
 //	@Produce		json
-//	@Param			user_code	path		string											true	"User Code"
-//	@Param			request		body		bps_user_dto.BPSUserUpdateRequest				true	"BPS user update request"
-//	@Success		200			{object}	localization.StandardResponse{data=nil}			"BPS user updated successfully"
+//	@Param			id			path		string											true	"BPS User ID"
+//	@Param			request		body		bpsuser.BPSUserUpdateRequest	true	"BPS user update request"
+//	@Success		200			{object}	localization.StandardResponse{data=nil}			"BPS user update request submitted successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}			"Bad request"
 //	@Failure		404			{object}	localization.StandardResponse{data=nil}			"User not found"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}			"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/bps_users/{user_code} [put]
+//	@Router			/bps_users/{id} [patch]
 func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)

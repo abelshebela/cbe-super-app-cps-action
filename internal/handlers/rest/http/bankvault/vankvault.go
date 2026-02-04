@@ -37,7 +37,7 @@ func InitBankVaultHandler(svc service.BankVaultService, logger utils.Logger) *ha
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/vault/create [post]
+//	@Router			/vault/products/create [post]
 func (h *handler) CreateBankVault(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createBankVault", "handler", "bankVault")
 	defer span.End()
@@ -87,7 +87,7 @@ func (h *handler) CreateBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Param			is_deleted	query		bool									false	"true or false"
 //	@Param			is_active	query		bool									false	"true or false"
 //	@Param			currency	query		string									false	"ETB ,USD"
-//	@Success		200			{object}	localization.StandardResponse{data=nil}	"Bank vaults retrieved successfully"
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"Bank vaults retrieved successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
@@ -130,7 +130,7 @@ func (h *handler) FindAllBankVaults(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string									true	"Bank vault ID"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Bank vault retrieved successfully"
+//	@Success		200	{object}	localization.StandardResponse{data=bankvault.BankVaultProductResponse}	"Bank vault retrieved successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
@@ -386,7 +386,7 @@ func (h *handler) EnableBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Param			per_page	query		int										false	"Items per page"
 //	@Param			search		query		string									false	"Search keyword"
 //	@Param			filters		query		string									false	"Additional filters as JSON string"
-//	@Success		200			{object}	localization.StandardResponse{data=nil}	"Locked bank vaults retrieved successfully"
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"Locked bank vaults retrieved successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
@@ -456,7 +456,7 @@ func (h *handler) GetAllLockedBankVaults(w http.ResponseWriter, r *http.Request)
 //	@Param			per_page	query		int										false	"Items per page"
 //	@Param			search		query		string									false	"Search keyword"
 //	@Param			filters		query		string									false	"Additional filters as JSON string"
-//	@Success		200			{object}	localization.StandardResponse{data=nil}	"Group vaults retrieved successfully"
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"Group vaults retrieved successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth

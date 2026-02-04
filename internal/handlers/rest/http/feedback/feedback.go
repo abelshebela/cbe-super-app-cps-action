@@ -37,6 +37,18 @@ func InitFeedbackAdapter(feedbackApplication service.FeedbackService, logger uti
 	}
 }
 
+// CreateFeedback creates a new feedback survey entry
+//
+//	@Summary		Create feedback survey
+//	@Description	Creates a new feedback survey entry. Can be submitted anonymously or by authenticated users. Supports both maker-only and regular feedback creation.
+//	@Tags			Feedback
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		feedback.FeedbackRequest	true	"Feedback request with responses map"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Feedback created successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Invalid request body or validation failed"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Router			/feedback-surveys/create [post]
 func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createFeedback", "handler", "feedback")
 	defer span.End()
@@ -160,7 +172,7 @@ func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 //	@Failure		404	{object}	localization.ResponseCode	"Feedback not found"
 //	@Failure		500	{object}	localization.ResponseCode	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/feedback/{id} [get]
+//	@Router			/feedback-surveys/{id} [get]
 func (f *feedbackAdapter) GetFeedbackByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getFeedbackById", "handler", "feedback")
 	defer span.End()
