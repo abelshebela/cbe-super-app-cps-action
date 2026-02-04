@@ -348,11 +348,12 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 	}
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "auditor_status", "auditor_users.auditor_id"}
+	allowedKeys := []string{"action_code", "action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "auditor_status", "auditor_users.auditor_id"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
+			{"action_code": searchRegex},
 			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
@@ -600,9 +601,9 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 			},
 		}
 	}
-	if role == "auditor" {
-		userFilter = bson.M{"auditor_users.auditor_id": userID}
-	}
+	// if role == "auditor" {
+	// 	userFilter = bson.M{"auditor_users.auditor_id": userID}
+	// }
 
 	var finalMatch bson.M
 	if role == "checker" && filterParam.Filters["action_status"] == "PENDING" || role == "auditor" {

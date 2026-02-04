@@ -156,14 +156,23 @@ const (
 	MsgDonationDisabledSuccessfullySP = "Donation disabled successfully"
 
 	// CPS Action related success messages
-	MsgCPSActionsRetrievedSuccessfully = "CPS Actions retrieved successfully"
-	MsgCPSActionCountSuccessfully      = "CPS Actions count retrieved successfully"
-	MsgCPSActionAuthorizedSuccessfully = "CPS Action authorized successfully"
-	MsgCPSActionCheckedSuccessfully    = "CPS Action checked successfully"
-	MsgCPSActionReversedSuccessfully   = "CPS Action reversed successfully"
-	MsgCPSActionRejectedSuccessfully   = "CPS Action rejected successfully"
-	MsgCPSActionCanceledSuccessfully   = "CPS Action Canceled Successfully"
-	MsgCPSActionsRetrieved             = "CPS actions retrieved successfully"
+	MsgCPSActionsRetrievedSuccessfully     = "CPS Actions retrieved successfully"
+	MsgAuthorizersLevelFetchedSuccessfully = "CPS autorizers level fetched successfully"
+	MsgCPSActionCountSuccessfully          = "CPS Actions count retrieved successfully"
+	MsgCPSActionAuthorizedSuccessfully     = "CPS Action authorized successfully"
+	MsgCPSActionCheckedSuccessfully        = "CPS Action checked successfully"
+	MsgCPSActionReversedSuccessfully       = "CPS Action reversed successfully"
+	MsgCPSActionRejectedSuccessfully       = "CPS Action rejected successfully"
+	MsgCPSActionCanceledSuccessfully       = "CPS Action Canceled Successfully"
+	MsgCPSActionsRetrieved                 = "CPS actions retrieved successfully"
+
+	// BPS Action related success messages
+	MsgBPSActionsRetrievedSuccessfully = "BPS Actions retrieved successfully"
+	MsgBPSActionCountSuccessfully      = "BPS Actions count retrieved successfully"
+	MsgBPSActionAuthorizedSuccessfully = "BPS Action authorized successfully"
+	MsgBPSActionCheckedSuccessfully    = "BPS Action checked successfully"
+	MsgBPSActionRejectedSuccessfully   = "BPS Action rejected successfully"
+	MsgBPSActionsRetrieved             = "BPS actions retrieved successfully"
 
 	// Wallet related success messages
 	MsgWalletCreationRequestSent    = "Wallet creation request sent successfully"
@@ -354,6 +363,7 @@ const (
 	MsgCPSActionUpdatedSuccessfully       = "CPS action updated successfully"
 	MsgCPSActionStatusUpdatedSuccessfully = "CPS action status updated successfully"
 	MsgCPSActionFetchedSuccessfully       = "CPS action fetched successfully"
+	MsgBPSActionFetchedSuccessfully       = "BPS action fetched successfully"
 
 	// Ad related success messages
 	MsgAdvertCreatedSuccessfully     = "Advert created successfully"

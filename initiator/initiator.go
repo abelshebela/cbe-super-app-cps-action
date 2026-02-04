@@ -90,6 +90,9 @@ func Init(ctx context.Context) {
 	notificationProducer, clientOrchestrationProducer, accessListSegmentationProducer := InitKafkaService(cfg, logger) //27G - 24G= 3G
 	logger.Infof("kafka initialized")
 
+	// Expose orchestration producer to handler/middleware layer for BPS action publishing.
+	mid.InitClientOrchestrationProducer(clientOrchestrationProducer)
+
 	// Init shared kafka notification producer
 	sharedKafkaProducer, err := shared_producer.NewNotificationProducer(*cfg, logger)
 	if err != nil {

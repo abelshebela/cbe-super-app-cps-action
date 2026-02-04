@@ -137,6 +137,10 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	filter["is_deleted"] = false
 
+	if filterParam.Filters["is_enabled"] != nil {
+		filter["is_enabled"] = filterParam.Filters["is_enabled"]
+	}
+
 	data, err := r.dal.FindAllWithPaginationE(ctx, filter, projection, skip, limit)
 	if err != nil {
 		r.logger.Errorf("[FindAllWithPagination] failed to fetch customer segmentations: %v", err)

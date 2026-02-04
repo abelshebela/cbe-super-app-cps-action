@@ -94,7 +94,7 @@ func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupReques
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	topup := core.ToCreateTopupDoc(req.Name, req.Code, URL, req.Self, req.Other, req.Agent)
+	topup := core.ToCreateTopupDoc(req.Name, req.Code, URL)
 	topup.Enabled = false
 	//here since the unique id is nil 000.. use other unique id like the code
 	// if err := core.HandleCPSAction(ctx, s.cpsService, topup.ID.Hex(), constants.RequestCreatetopup, topup, nil, constants.ActionCreate); err != nil {
@@ -120,7 +120,7 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 		return errors.New(localization.ErrorTopupNotFound.Code)
 	}
 
-	if req.Name != "" {
+	if req.Name != "" && prevtopup.Name != req.Name {
 		existing, err = s.repo.FindByOr(ctx, bson.M{"name": req.Name})
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
@@ -128,13 +128,22 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 				return err
 			}
 		}
-	} else if req.Code != "" {
-		existing, err = s.repo.FindByOr(ctx, bson.M{"code": req.Code})
+		if existing.Name != "" {
+			span.AddEvent("Topup name  already exists", trace.WithAttributes(attribute.String("name", req.Name)))
+			return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
+		}
+	}
+	if req.Code != "" && prevtopup.Code != req.Code {
+		topupByCode, err := s.repo.FindByOr(ctx, bson.M{"code": req.Code})
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
 				s.logger.Errorf("[UpdateTopup] error whil checking existing information error: %v", err)
 				return err
 			}
+		}
+		if topupByCode.Code == req.Code {
+			span.AddEvent("Topup code already exists", trace.WithAttributes(attribute.String("code", req.Code)))
+			return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
 		}
 	}
 
@@ -169,10 +178,10 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 		return errors.New(localization.ErrorNoChangesDetected.Code)
 	}
 
-	if !(Updatetopup.Services.Agent || Updatetopup.Services.Self || Updatetopup.Services.Other) {
-		span.AddEvent("No service option selected", trace.WithAttributes(attribute.String("id", id)))
-		return errors.New(localization.ErrorTopupServiceOption.Code)
-	}
+	// if !(Updatetopup.Services.Agent || Updatetopup.Services.Self || Updatetopup.Services.Other) {
+	// 	span.AddEvent("No service option selected", trace.WithAttributes(attribute.String("id", id)))
+	// 	return errors.New(localization.ErrorTopupServiceOption.Code)
+	// }
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestUpdateTopup, Updatetopup, *prevtopup, constants.ActionUpdate); err != nil {
 		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("code", Updatetopup.Code)))

@@ -10,13 +10,14 @@ import (
 
 // KafkaConfig holds Kafka configuration
 type KafkaConfig struct {
-	Brokers           string `json:"brokers"`
-	FeedbackTopic     string `json:"feedback_topic"`
-	ConsumerGroup     string `json:"consumer_group"`
-	RequiredAcks      int    `json:"required_acks"`
-	RetryMax          int    `json:"retry_max"`
-	SessionTimeout    int    `json:"session_timeout"`
-	HeartbeatInterval int    `json:"heartbeat_interval"`
+	Brokers             string `json:"brokers"`
+	FeedbackTopic       string `json:"feedback_topic"`
+	SurveyFeedbackTopic string `json:"survey_feedback_topic"`
+	ConsumerGroup       string `json:"consumer_group"`
+	RequiredAcks        int    `json:"required_acks"`
+	RetryMax            int    `json:"retry_max"`
+	SessionTimeout      int    `json:"session_timeout"`
+	HeartbeatInterval   int    `json:"heartbeat_interval"`
 }
 
 func LoadKafkaConfig(cfg *config.VaultConfig, logger utils.Logger) *KafkaConfig {
@@ -33,13 +34,14 @@ func loadKafkaConfigFromEnv(cfg *config.VaultConfig, logger utils.Logger) *Kafka
 	heartbeatInterval, _ := strconv.Atoi(getEnv("KAFKA_HEARTBEAT_INTERVAL", "3000", logger))
 
 	return &KafkaConfig{
-		Brokers:           cfg.KafkaBrokers,
-		FeedbackTopic:     "feedback-events",
-		ConsumerGroup:     "cps-action-service",
-		RequiredAcks:      requiredAcks,
-		RetryMax:          retryMax,
-		SessionTimeout:    sessionTimeout,
-		HeartbeatInterval: heartbeatInterval,
+		Brokers:             cfg.KafkaBrokers,
+		FeedbackTopic:       "feedback-events",
+		SurveyFeedbackTopic: "survey-feedback-events",
+		ConsumerGroup:       "cps-action-service",
+		RequiredAcks:        requiredAcks,
+		RetryMax:            retryMax,
+		SessionTimeout:      sessionTimeout,
+		HeartbeatInterval:   heartbeatInterval,
 	}
 }
 

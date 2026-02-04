@@ -333,6 +333,7 @@ func (h *CPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
+
 	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	if err := h.service.Disable(ctx, code); err != nil {
 		span.RecordError(err)

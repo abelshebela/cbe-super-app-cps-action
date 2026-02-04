@@ -179,7 +179,7 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 	if local_util.IsIncomplete(makerData) {
 		span.AddEvent("[CreateOneBank] incomplete user data")
 		b.logger.Errorf("[CreateOneBank] incomplete user data")
-		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, string(constants.BankFolderName), *b.cfg, "", b.logger)
@@ -245,7 +245,7 @@ func (b *BankService) DeleteOneBank(ctx context.Context, id string) error {
 	if local_util.IsIncomplete(makerData) {
 		span.AddEvent("[DeleteOneBank] incomplete user data", trace.WithAttributes(attribute.String("id", id)))
 		b.logger.Errorf("[DeleteOneBank] incomplete user data")
-		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	bank, err := b.repo.FindByID(ctx, id)
 
@@ -285,7 +285,7 @@ func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enable
 	if local_util.IsIncomplete(makerData) {
 		span.AddEvent("[EnableOrDisableBank] incomplete user data", trace.WithAttributes(attribute.String("id", id)))
 		b.logger.Errorf("[EnableOrDisableBank] incomplete user data")
-		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	bank, err := b.repo.FindByID(ctx, id)
@@ -373,7 +373,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 	if local_util.IsIncomplete(makerData) {
 		span.AddEvent("[UpdateLogo] incomplete user data", trace.WithAttributes(attribute.String("id", id)))
 		b.logger.Errorf("[UpdateLogo] incomplete user data")
-		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	bank, err := b.repo.FindByID(ctx, id)
@@ -432,7 +432,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	if local_util.IsIncomplete(makerData) {
 		span.AddEvent("[UpdateOneBank] incomplete user data", trace.WithAttributes(attribute.String("id", id)))
 		b.logger.Errorf("[UpdateOneBank] incomplete user data")
-		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	bank, err := b.repo.FindByID(ctx, id)
@@ -495,12 +495,12 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		}
 	}
 	if result != nil && result.ID.Hex() != id {
-		if bank_request.BICCode != "" && result.BICCode != "" && result.BICCode == bank_request.BICCode {
+		if bank_request.BICCode != "" && result.BICCode != "" && result.BICCode == bank_request.BICCode && result.ID.Hex() != id {
 			b.logger.Errorf("[UpdateOneBank] bank with BIC already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
 		}
 
-		if bank_request.Name != "" && result.Name != "" && result.Name == bank_request.Name {
+		if bank_request.Name != "" && result.Name != "" && result.Name == bank_request.Name && result.ID.Hex() != id {
 			b.logger.Errorf("[UpdateOneBank] bank with name already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
 		}

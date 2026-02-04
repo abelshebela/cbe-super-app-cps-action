@@ -16,9 +16,9 @@ func ParseTopupRequestFromMultipartForm(r *http.Request, isCreate bool) (TopupDt
 	var req TopupDto.TopupRequest
 	req.Name = r.FormValue("name")
 	req.Code = r.FormValue("code")
-	req.Self = r.FormValue("self") == "true"
-	req.Other = r.FormValue("other") == "true"
-	req.Agent = r.FormValue("agent") == "true"
+	// req.Self = r.FormValue("self") == "true"
+	// req.Other = r.FormValue("other") == "true"
+	// req.Agent = r.FormValue("agent") == "true"
 	_, fileHeader, err := utils.ParseMultipartFormFile(r, "avatar", 20<<20)
 	if err != nil {
 		if isCreate {
@@ -31,7 +31,6 @@ func ParseTopupRequestFromMultipartForm(r *http.Request, isCreate bool) (TopupDt
 
 	}
 	req.Avatar = fileHeader
-
 	return req, nil
 }
 

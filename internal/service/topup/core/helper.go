@@ -18,7 +18,7 @@ import (
 	topupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
+	// shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -70,16 +70,16 @@ func ExistingIdentifierForUpdate(existing model.Topup, id string, req topupDto.T
 	return nil
 }
 
-func ToCreateTopupDoc(name, code, URL string, self, other, agent bool) *model.Topup {
+func ToCreateTopupDoc(name, code, URL string) *model.Topup {
 	return &model.Topup{
 		Name:   name,
 		Code:   code,
 		Avatar: URL,
-		Services: shared_types.Services{
-			Self:  self,
-			Other: other,
-			Agent: agent,
-		},
+		// Services: shared_types.Services{
+		// 	Self:  self,
+		// 	Other: other,
+		// 	Agent: agent,
+		// },
 	}
 }
 
@@ -90,24 +90,24 @@ func ToUpdateTopupDoc(existing model.Topup, req TopupDto.TopupRequest) (*model.T
 	Topup.LastModifiedAt = time.Now()
 
 	change_count := 0
-	if req.Agent == existing.Services.Agent {
-		Topup.Services.Agent = existing.Services.Agent
-	} else {
-		change_count++
-		Topup.Services.Agent = req.Agent
-	}
-	if req.Other == existing.Services.Other {
-		Topup.Services.Other = existing.Services.Other
-	} else {
-		change_count++
-		Topup.Services.Other = req.Other
-	}
-	if req.Self == existing.Services.Self {
-		Topup.Services.Self = existing.Services.Self
-	} else {
-		change_count++
-		Topup.Services.Self = req.Self
-	}
+	// if req.Agent == existing.Services.Agent {
+	// 	Topup.Services.Agent = existing.Services.Agent
+	// } else {
+	// 	change_count++
+	// 	Topup.Services.Agent = req.Agent
+	// }
+	// if req.Other == existing.Services.Other {
+	// 	Topup.Services.Other = existing.Services.Other
+	// } else {
+	// 	change_count++
+	// 	Topup.Services.Other = req.Other
+	// }
+	// if req.Self == existing.Services.Self {
+	// 	Topup.Services.Self = existing.Services.Self
+	// } else {
+	// 	change_count++
+	// 	Topup.Services.Self = req.Self
+	// }
 	if req.Name != "" {
 		if req.Name == existing.Name {
 			Topup.Name = existing.Name

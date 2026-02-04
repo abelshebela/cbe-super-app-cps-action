@@ -10,11 +10,17 @@ import (
 )
 
 type Feedback struct {
-	ID        bson.ObjectID             `json:"id" bson:"_id,omitempty"`
-	UserID    string                    `json:"user_id" bson:"user_id"`
-	Responses map[string]types.Response `json:"responses" bson:"responses"`
-	CreatedAt time.Time                 `json:"created_at" bson:"created_at"`
-	UpdatedAt time.Time                 `json:"updated_at" bson:"updated_at"`
+	ID            bson.ObjectID `json:"id" bson:"_id,omitempty"`
+	UserID        string        `json:"user_id" bson:"user_id"`
+	Email         string        `json:"email" bson:"email"`
+	CustomerName  string        `json:"customer_name" bson:"customer_name"`
+	PhoneNumber   string        `json:"phone_number" bson:"phone_number"`
+	SendAt        time.Time     `json:"sent_at" bson:"sent_at"`
+	AccountNumber string        `json:"account_number" bson:"account_number"`
+	Rating        int           `json:"rating" bson:"rating"`
+	Comment       string        `json:"comment" bson:"comment"`
+	CreatedAt     time.Time     `json:"created_at" bson:"created_at"`
+	UpdatedAt     time.Time     `json:"updated_at" bson:"updated_at"`
 }
 
 type FeedbackResponse struct {
@@ -34,11 +40,12 @@ type KafkaMessage struct {
 }
 
 type FeedbackKafkaMessage struct {
-	UserID     string                    `json:"user_id"`
-	FeedbackID string                    `json:"feedback_id"`
-	Responses  map[string]types.Response `json:"responses"`
-	CreatedAt  time.Time                 `json:"created_at"`
-	Metadata   map[string]interface{}    `json:"metadata,omitempty"`
+	UserID     string                 `json:"user_id"`
+	FeedbackID string                 `json:"feedback_id"`
+	StarRating int                    `json:"star_rating"`
+	Comment    string                 `json:"comment"`
+	CreatedAt  time.Time              `json:"created_at"`
+	Metadata   map[string]interface{} `json:"metadata,omitempty"`
 }
 
 type Response struct {
@@ -82,10 +89,14 @@ type CustomerFeedback struct {
 }
 
 type SurveyFeedback struct {
-	ID         bson.ObjectID          `json:"id" bson:"_id,omitempty"`
-	UserID     string                 `json:"user_id"`
-	StarRating int                    `json:"star_rating"`
-	Comment    string                 `json:"comment"`
-	CreatedAt  time.Time              `json:"created_at"`
-	Metadata   map[string]interface{} `json:"metadata,omitempty"`
+	ID            bson.ObjectID             `json:"id" bson:"_id,omitempty"`
+	UserID        string                    `json:"user_id" bson:"user_id"`
+	Email         string                    `json:"email" bson:"email"`
+	CustomerName  string                    `json:"customer_name" bson:"customer_name"`
+	PhoneNumber   string                    `json:"phone_number" bson:"phone_number"`
+	SentAt        time.Time                 `json:"sent_at" bson:"sent_at"`
+	AccountNumber string                    `json:"account_number" bson:"account_number"`
+	Responses     map[string]types.Response `json:"responses" bson:"responses"`
+	CreatedAt     time.Time                 `json:"created_at" bson:"created_at"`
+	Metadata      map[string]interface{}    `json:"metadata,omitempty" bson:"metadata,omitempty"`
 }

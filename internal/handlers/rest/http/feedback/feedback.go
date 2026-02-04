@@ -2,6 +2,7 @@ package feedback
 
 import (
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
+	feedback_adapter "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
@@ -24,7 +25,12 @@ type feedbackAdapter struct {
 	feedbackApplication service.FeedbackService
 }
 
-func InitFeedbackAdapter(feedbackApplication service.FeedbackService, logger utils.Logger) *feedbackAdapter {
+// GetSurveyFeedbacksByID implements [feedback.FeedbackAdapter].
+func (f *feedbackAdapter) GetSurveyFeedbacksByID(w http.ResponseWriter, r *http.Request) {
+	panic("unimplemented")
+}
+
+func InitFeedbackAdapter(feedbackApplication service.FeedbackService, logger utils.Logger) feedback_adapter.FeedbackAdapter {
 	return &feedbackAdapter{
 		logger:              logger,
 		feedbackApplication: feedbackApplication,
@@ -240,6 +246,36 @@ func (f *feedbackAdapter) GetAllCustomerFeedbacks(w http.ResponseWriter, r *http
 
 	span.SetAttributes(attribute.Int("feedback.count", len(feedbacks.Data)))
 	f.logger.Infof("[GetAllCustomerFeedbacks] retrieved %d customer feedbacks", len(feedbacks.Data))
+	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedbacks)
+}
+func (f *feedbackAdapter) GetAllSurveyFeedbacks(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllSurveyFeedbacks", "handler", "feedback")
+	defer span.End()
+	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	feedbacks, err := f.feedbackApplication.GetAllSurveyFeedbacks(ctx, filterParams)
+	if err != nil {
+		span.RecordError(err)
+		f.logger.Errorf("[GetAllSurveyFeedbacks] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	span.SetAttributes(attribute.Int("feedback.count", len(feedbacks.Data)))
+	f.logger.Infof("[GetAllSurveyFeedbacks] retrieved %d survey feedbacks", len(feedbacks.Data))
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedbacks)
 }
 
