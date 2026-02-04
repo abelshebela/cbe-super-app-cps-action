@@ -422,7 +422,7 @@ type EventRepository interface {
 }
 
 type FeedbackRepository interface {
-	Create(ctx context.Context, feedback *model.Feedback) error
+	Create(ctx context.Context, feedback *imodel.Feedback) error
 	CreateSurveyFeedback(ctx context.Context, surveyFeedback *local_model.SurveyFeedback) error
 	FindByID(ctx context.Context, id string) (*feedback.FeedbackResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponseForFeedback[[]*feedback.FeedbackResponse], error)

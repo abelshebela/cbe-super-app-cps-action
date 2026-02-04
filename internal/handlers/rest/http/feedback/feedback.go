@@ -2,6 +2,7 @@ package feedback
 
 import (
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
+	feedback_adapter "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
@@ -24,7 +25,12 @@ type feedbackAdapter struct {
 	feedbackApplication service.FeedbackService
 }
 
-func InitFeedbackAdapter(feedbackApplication service.FeedbackService, logger utils.Logger) *feedbackAdapter {
+// GetSurveyFeedbacksByID implements [feedback.FeedbackAdapter].
+func (f *feedbackAdapter) GetSurveyFeedbacksByID(w http.ResponseWriter, r *http.Request) {
+	panic("unimplemented")
+}
+
+func InitFeedbackAdapter(feedbackApplication service.FeedbackService, logger utils.Logger) feedback_adapter.FeedbackAdapter {
 	return &feedbackAdapter{
 		logger:              logger,
 		feedbackApplication: feedbackApplication,

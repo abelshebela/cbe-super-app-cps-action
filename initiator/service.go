@@ -81,7 +81,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	mediaProducer := media.CreateKafkaProducer(logger, cfg)
 	accountLookupAdapter := account_lookup.NewCoreAccountLookupAdapter(persistence.AccountLookup, cfg.CbeCoreUrl, time.Duration(cfg.ServerTimeout))
-	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
+	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, persistence.CustomerService, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
 	avatarService := avatar.NewAvatarService(persistence.AvatarPersistence, nil, logger, minioClient, cfg.S3BucketName, minioPubUrl, *cfg)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, nil, logger)
