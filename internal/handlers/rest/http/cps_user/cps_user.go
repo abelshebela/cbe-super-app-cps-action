@@ -37,7 +37,8 @@ func InitCPSUserHandler(svc service.CPSUserService, logger utils.Logger) *handle
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		cpsuser.CreateUserRequest				true	"CPS user creation request"
-//	@Success		201		{object}	localization.StandardResponse{data=nil}	"CPS user creation request submitted successfully"
+//	@Success		200		{object}	localization.StandardResponse{data=object}	"CPS user creation request submitted successfully"
+//	@Success		201		{object}	localization.StandardResponse{data=object}	"CPS user created successfully (maker only)"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Invalid input"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
@@ -159,9 +160,7 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			user_code	path		string									true	"User Code"
-//
-// // @Success 200 {object} localization.StandardResponse{data=cps_user_resp} "CPS user retrieved successfully"
-//
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"CPS user retrieved successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request - User code required"
 //	@Failure		404			{object}	localization.StandardResponse{data=nil}	"User not found"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -203,7 +202,7 @@ func (h *handler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
 //	@Param			enabled		query		bool									false	"true or false"
 //	@Param			department	query		string									false	"CPS user department"
 //	@Param			role		query		string									false	"CPS user department"
-//	//  @Success 200 {object} localization.StandardResponse{data=cps_users_paginated_resp} "CPS users retrieved successfully"
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"CPS users retrieved successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth

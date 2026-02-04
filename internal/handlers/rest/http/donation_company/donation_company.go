@@ -233,6 +233,20 @@ func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r 
 	}
 }
 
+// AccountLookup godoc
+//
+//	@Summary		Account lookup for donation company
+//	@Description	Lookup account information by account number for donation company
+//	@Tags			Donation Company
+//	@Accept			json
+//	@Produce		json
+//	@Param			account_number	path		string									true	"Account number"
+//	@Success		200				{object}	localization.StandardResponse{data=object}	"Account information retrieved successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		404				{object}	localization.StandardResponse{data=nil}		"Account not found"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/account_lookup/{account_number} [get]
 func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "donationCompanyAccountLookup", "handler", "donationCompany")
 	defer span.End()
@@ -302,20 +316,20 @@ func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r 
 	}
 }
 
-// disableDonationCompany godoc
+// DisableDonationCompany godoc
 //
-//	@Summary		Enable a donation company
-//	@Description	Enable a donation company by ID
-//	@Tags			Donation company
+//	@Summary		Disable a donation company
+//	@Description	Disable a donation company by ID
+//	@Tags			Donation Company
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string									true	"Donation company ID"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Donation company enable request sent successfully"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Donation company disable request sent successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Donation not found"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Donation company not found"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/donation_company/enable/{id} [patch]
+//	@Router			/donation_company/disable/{id} [patch]
 func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDonationCompany", "handler", "donationCompany")
 	defer span.End()

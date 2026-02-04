@@ -23,7 +23,20 @@ type TransactionHandler struct {
 	logger  utils.Logger
 }
 
-// FindTransactionByCifOrAccountNumberOrFT implements transaction.TransactionInterface.
+// FindTransactionByCifOrAccountNumberOrFT godoc
+//
+//	@Summary		Search transaction by CIF, account number, or FT number
+//	@Description	Search for transactions using CIF number, account number, or FT (Fund Transfer) number
+//	@Tags			Transactions
+//	@Accept			json
+//	@Produce		json
+//	@Param			identifier	path		string													true	"CIF number, account number, or FT number"
+//	@Success		200			{object}	localization.StandardResponse{data=transaction_dto.FullTransaction}	"Transaction retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}					"Bad request"
+//	@Failure		404			{object}	localization.StandardResponse{data=nil}					"Transaction not found"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}					"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/transactions/search/{identifier} [get]
 func (t *TransactionHandler) FindTransactionByCifOrAccountNumberOrFT(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_utils.TraceLogger(r.Context(), "handler", "transaction", "TransactionHandler", "FindTransactionByCifOrAccountNumberOrFT")
 	defer span.End()
@@ -48,15 +61,18 @@ func (t *TransactionHandler) FindTransactionByCifOrAccountNumberOrFT(w http.Resp
 //
 //	@Summary		Get all transactions
 //	@Description	Returns a paginated list of transactions. Supports filtering by status and type.
-//	@Tags			transactions
+//	@Tags			Transactions
 //	@Accept			json
 //	@Produce		json
-//	@Param			status		query		string	false	"Transaction status (failed, pending, paid)"
-//	@Param			type		query		string	false	"Transaction type (cbe, topup, money_request)"
-//	@Param			page		query		int		false	"Page number"
-//	@Param			per_page	query		int		false	"Items per page"
-//	@Success		200			{object}	paginated_transaction_resp
-//	@Failure		400,404,500	{object}	localization.ResponseCode
+//	@Param			status		query		string								false	"Transaction status (failed, pending, paid)"
+//	@Param			type		query		string								false	"Transaction type (cbe, topup, money_request)"
+//	@Param			page		query		int									false	"Page number"		default(1)
+//	@Param			per_page	query		int									false	"Items per page"	default(10)
+//	@Param			search		query		string								false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"Transactions retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
 //	@Router			/transactions [get]
 //
 // FetchAllTransactions implements transaction.TransactionInterface.
@@ -93,12 +109,15 @@ func (t *TransactionHandler) FetchAllTransactions(w http.ResponseWriter, r *http
 //
 //	@Summary		Get transaction by ID
 //	@Description	Returns a single transaction by its ID.
-//	@Tags			transactions
+//	@Tags			Transactions
 //	@Accept			json
 //	@Produce		json
-//	@Param			id			path		string	true	"Transaction ID"
-//	@Success		200			{object}	transaction_by_id
-//	@Failure		400,404,500	{object}	localization.ResponseCode
+//	@Param			id		path		string													true	"Transaction ID"
+//	@Success		200		{object}	localization.StandardResponse{data=transaction_dto.FullTransaction}	"Transaction retrieved successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}					"Bad request"
+//	@Failure		404		{object}	localization.StandardResponse{data=nil}					"Transaction not found"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}					"Internal server error"
+//	@Security		BearerAuth
 //	@Router			/transactions/{id} [get]
 //
 // FetchTransactionByID implements transaction.TransactionInterface.
