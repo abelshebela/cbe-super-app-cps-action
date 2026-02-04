@@ -13,7 +13,7 @@ import (
 func BuildFeedbackEntity(userID string, req fbdto.FeedbackRequest, user *member.User) *imodel.Feedback {
 	now := time.Now()
 	fb := &imodel.Feedback{
-		UserCode: userID,
+		UserCode: user.UserCode,
 		// AccountNumber: user.AccountNumber,
 		CustomerName: user.FullName,
 		PhoneNumber:  user.PhoneNumber,
@@ -28,7 +28,7 @@ func BuildFeedbackEntity(userID string, req fbdto.FeedbackRequest, user *member.
 }
 func BuildSurveyFeedbackEntity(surveyFeedback fbdto.SurveyFeedbackReq, user *member.User) *imodel.SurveyFeedback {
 	return &imodel.SurveyFeedback{
-		UserCode:     surveyFeedback.UserID,
+		UserCode:     user.UserCode,
 		Email:        user.Email,
 		CustomerName: user.FullName,
 		PhoneNumber:  user.PhoneNumber,
