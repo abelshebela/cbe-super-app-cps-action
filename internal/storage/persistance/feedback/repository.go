@@ -47,7 +47,7 @@ func (f *FeedbackStorage) Create(ctx context.Context, feedback *local_model.Feed
 		f.logger.Errorf("[Create] failed to create feedback: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	f.logger.Infof("[Create] feedback created successfully", feed, feed.UserID)
+	f.logger.Infof("[Create] feedback created successfully", feed, feed.UserCode)
 
 	return nil
 }
@@ -59,7 +59,7 @@ func (f *FeedbackStorage) CreateSurveyFeedback(ctx context.Context, surveyFeedba
 		f.logger.Errorf("[CreateSurveyFeedback] failed to create survey feedback: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	f.logger.Infof("[CreateSurveyFeedback] survey feedback created successfully", feed, feed.UserID)
+	f.logger.Infof("[CreateSurveyFeedback] survey feedback created successfully", feed, feed.UserCode)
 
 	return nil
 }
@@ -248,6 +248,7 @@ func (f *FeedbackStorage) FindByID(ctx context.Context, id string) (*feedback.Fe
 //			AverageRatings: averages,
 //		}, nil
 //	}
+
 func (f *FeedbackStorage) FindAllCustomerFeedbacks(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.CustomerFeedback], error) {
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search"}
@@ -325,6 +326,32 @@ func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam
 		Meta: meta,
 	}, nil
 }
+
+// FindFeedbackByID implements [storage.FeedbackRepository].
+func (f *FeedbackStorage) FindFeedbackByID(ctx context.Context, id string) (*local_model.Feedback, error) {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		f.logger.Errorf("[FindFeedbackByID] invalid id: %s", id)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"_id": objID}
+	f.logger.Infof("[FindFeedbackByID] fetching feedback by id: %s", id)
+
+	result, err := f.dal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			f.logger.Warnf("[FindFeedbackByID] feedback not found for id: %s", id)
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		f.logger.Errorf("[FindFeedbackByID] failed to find feedback: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	f.logger.Infof("[FindFeedbackByID] feedback retrieved successfully for id: %s", id)
+	return result, nil
+}
+
 func (f *FeedbackStorage) FindAllSurveyFeedbacks(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.SurveyFeedback], error) {
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search"}

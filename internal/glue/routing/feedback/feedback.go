@@ -20,7 +20,7 @@ func Init(router chi.Router, feedbackHandler feedback.FeedbackAdapter, authMiddl
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/feedback-surveys",
+			Path:    "/feedback",
 			Handler: feedbackHandler.GetFeedbacks,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -28,7 +28,7 @@ func Init(router chi.Router, feedbackHandler feedback.FeedbackAdapter, authMiddl
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/feedback-surveys/{id}",
+			Path:    "/feedback/{id}",
 			Handler: feedbackHandler.GetFeedbackByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -61,7 +61,7 @@ func Init(router chi.Router, feedbackHandler feedback.FeedbackAdapter, authMiddl
 		{
 			Method:  http.MethodGet,
 			Path:    "/survey-feedbacks/{id}",
-			Handler: feedbackHandler.GetAllSurveyFeedbacks,
+			Handler: feedbackHandler.GetSurveyFeedbacksByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},

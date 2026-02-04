@@ -254,7 +254,7 @@ type FeedbackService interface {
 	GetCustomerFeedback(ctx context.Context, id string) (*imodel.CustomerFeedback, error)
 
 	GetAllSurveyFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.SurveyFeedback], error)
-	GetSurveyFeedback(ctx context.Context, id string) (*imodel.SurveyFeedback, error)
+	GetSurveyFeedbackByID(ctx context.Context, id string) (*imodel.SurveyFeedback, error)
 }
 
 type HQService interface {

@@ -25,11 +25,6 @@ type feedbackAdapter struct {
 	feedbackApplication service.FeedbackService
 }
 
-// GetSurveyFeedbacksByID implements [feedback.FeedbackAdapter].
-func (f *feedbackAdapter) GetSurveyFeedbacksByID(w http.ResponseWriter, r *http.Request) {
-	panic("unimplemented")
-}
-
 func InitFeedbackAdapter(feedbackApplication service.FeedbackService, logger utils.Logger) feedback_adapter.FeedbackAdapter {
 	return &feedbackAdapter{
 		logger:              logger,
@@ -265,6 +260,32 @@ func (f *feedbackAdapter) GetAllSurveyFeedbacks(w http.ResponseWriter, r *http.R
 	span.SetAttributes(attribute.Int("feedback.count", len(feedbacks.Data)))
 	f.logger.Infof("[GetAllSurveyFeedbacks] retrieved %d survey feedbacks", len(feedbacks.Data))
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedbacks)
+}
+
+// GetSurveyFeedbacksByID implements [feedback.FeedbackAdapter].
+func (f *feedbackAdapter) GetSurveyFeedbacksByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getSurveyFeedbackByID", "handler", "surveyFeedback")
+	defer span.End()
+	id := chi.URLParam(r, "id")
+
+	// Enhanced ID validation
+	if id == "" {
+		f.logger.Errorf("empty survey feedback ID provided")
+		localization.SendErrorByCodeResponse(w, localization.ErrorFeedbackIDRequired.Code)
+		return
+	}
+
+	span.SetAttributes(attribute.String("surveyFeedback.id", id))
+	SurveyFeedback, err := f.feedbackApplication.GetSurveyFeedbackByID(ctx, id)
+	if err != nil {
+		span.RecordError(err)
+		f.logger.Errorf("[GetSurveyFeedbackByID] service error for id %s: %v", id, err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	f.logger.Infof("[GetSurveyFeedbackByID] feedback retrieved successfully for id: %s", id)
+	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, SurveyFeedback)
 }
 
 // GetCustomerFeedback godoc

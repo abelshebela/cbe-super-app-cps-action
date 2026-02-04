@@ -427,6 +427,7 @@ type FeedbackRepository interface {
 	FindByID(ctx context.Context, id string) (*feedback.FeedbackResponse, error)
 
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.Feedback], error)
+	FindFeedbackByID(ctx context.Context, id string) (*local_model.Feedback, error)
 
 	FindAllCustomerFeedbacks(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerFeedback], error)
 	FindCustomerFeedbackByID(ctx context.Context, id string) (*imodel.CustomerFeedback, error)

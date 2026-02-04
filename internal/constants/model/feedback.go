@@ -11,7 +11,7 @@ import (
 
 type Feedback struct {
 	ID            bson.ObjectID `json:"id" bson:"_id,omitempty"`
-	UserID        string        `json:"user_id" bson:"user_id"`
+	UserCode      string        `json:"user_code" bson:"user_code"`
 	Email         string        `json:"email" bson:"email"`
 	CustomerName  string        `json:"customer_name" bson:"customer_name"`
 	PhoneNumber   string        `json:"phone_number" bson:"phone_number"`
@@ -90,7 +90,7 @@ type CustomerFeedback struct {
 
 type SurveyFeedback struct {
 	ID            bson.ObjectID             `json:"id" bson:"_id,omitempty"`
-	UserID        string                    `json:"user_id" bson:"user_id"`
+	UserCode      string                    `json:"user_code" bson:"user_code"`
 	Email         string                    `json:"email" bson:"email"`
 	CustomerName  string                    `json:"customer_name" bson:"customer_name"`
 	PhoneNumber   string                    `json:"phone_number" bson:"phone_number"`
