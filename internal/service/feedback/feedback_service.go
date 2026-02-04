@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/feedback/core"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
+	"errors"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -19,8 +20,9 @@ import (
 )
 
 type feedbackService struct {
-	repo   storage.FeedbackRepository
-	logger utils.Logger
+	repo       storage.FeedbackRepository
+	memberRepo storage.CustomerRepository
+	logger     utils.Logger
 }
 
 // GetSurveyFeedback implements [service.FeedbackService].
@@ -28,10 +30,11 @@ func (f *feedbackService) GetSurveyFeedback(ctx context.Context, id string) (*lo
 	panic("unimplemented")
 }
 
-func NewFeedbackService(repo storage.FeedbackRepository, logger utils.Logger) service.FeedbackService {
+func NewFeedbackService(repo storage.FeedbackRepository, memberRepo storage.CustomerRepository, logger utils.Logger) service.FeedbackService {
 	return &feedbackService{
-		repo:   repo,
-		logger: logger,
+		repo:       repo,
+		memberRepo: memberRepo,
+		logger:     logger,
 	}
 }
 
@@ -47,7 +50,7 @@ func (f *feedbackService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 	return cpsAction, nil
 }
 
-func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.FeedbackRequest, userID string) (*model.Feedback, error) {
+func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.FeedbackRequest, userCode string) (*local_model.Feedback, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateFeedback", "Feedback", "CreateFeedback")
 	defer span.End()
 
@@ -56,20 +59,29 @@ func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.Feedback
 		f.logger.Errorf("[CreateFeedback] invalid feedback request: %v", err)
 		span.AddEvent("Invalid feedback request", trace.WithAttributes(
 			attribute.String("error", err.Error()),
-			attribute.String("user_id", userID),
+			attribute.String("user_id", userCode),
 		))
 		return nil, err
 	}
 
-	feedback := core.BuildFeedbackEntity(userID, req)
+	user, err := f.memberRepo.SearchCustomerByCIForAccountNumber(ctx, userCode)
+	if err != nil {
+		f.logger.Errorf("[CreateFeedback] failed to find user by code %s: %v", userCode, err)
+		span.AddEvent("Failed to find user", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_id", userCode),
+		))
+		return nil, errors.New("user not found")
+	}
+	feedback := core.BuildFeedbackEntity(userCode, req, user)
 
 	// Call the Create method with the Feedback object
-	err := f.repo.Create(ctx, feedback)
+	err = f.repo.Create(ctx, feedback)
 	if err != nil {
 		f.logger.Errorf("[CreateFeedback] failed to create feedback: %v", err)
 		span.AddEvent("Failed to create feedback", trace.WithAttributes(
 			attribute.String("error", err.Error()),
-			attribute.String("user_id", userID),
+			attribute.String("user_id", userCode),
 		))
 		return nil, err
 	}
@@ -88,20 +100,29 @@ func (f *feedbackService) CreateSurveyFeedback(ctx context.Context, surveyFeedba
 		f.logger.Errorf("[CreateSurveyFeedback] invalid survey feedback request: %v", err)
 		span.AddEvent("Invalid feedback request", trace.WithAttributes(
 			attribute.String("error", err.Error()),
-			attribute.String("user_id", surveyFeedback.UserID),
+			attribute.String("user_code", surveyFeedback.UserID),
 		))
 		return nil, err
 	}
+	user, err := f.memberRepo.SearchCustomerByCIForAccountNumber(ctx, surveyFeedback.UserID)
+	if err != nil {
+		f.logger.Errorf("[CreateFeedback] failed to find user by code %s: %v", surveyFeedback.UserID, err)
+		span.AddEvent("Failed to find user", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_id", surveyFeedback.UserID),
+		))
+		return nil, errors.New("user not found")
+	}
 
-	surveyFeedbackEntity := core.BuildSurveyFeedbackEntity(surveyFeedback)
+	surveyFeedbackEntity := core.BuildSurveyFeedbackEntity(surveyFeedback, user)
 
 	// Call the Create method with the Feedback object
-	err := f.repo.CreateSurveyFeedback(ctx, surveyFeedbackEntity)
+	err = f.repo.CreateSurveyFeedback(ctx, surveyFeedbackEntity)
 	if err != nil {
 		f.logger.Errorf("[CreateSurveyFeedback] failed to create survey feedback: %v", err)
 		span.AddEvent("Failed to create survey feedback", trace.WithAttributes(
 			attribute.String("error", err.Error()),
-			attribute.String("user_id", surveyFeedback.UserID),
+			attribute.String("user_code", surveyFeedback.UserID),
 		))
 		return nil, err
 	}

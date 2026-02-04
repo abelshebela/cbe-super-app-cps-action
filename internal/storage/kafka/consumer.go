@@ -18,7 +18,7 @@ import (
 
 // FeedbackRepository interface for database operations
 type FeedbackRepository interface {
-	CreateFeedback(ctx context.Context, req feedback.FeedbackRequest, userID string) (*model.Feedback, error)
+	CreateFeedback(ctx context.Context, req feedback.FeedbackRequest, userID string) (*imodel.Feedback, error)
 	CreateSurveyFeedback(ctx context.Context, surveyFeedback feedback.SurveyFeedbackReq) (*imodel.SurveyFeedback, error)
 }
 
@@ -115,7 +115,7 @@ func (fc *FeedbackConsumer) handleFeedbackMessage(ctx context.Context, message *
 	}
 
 	// Parse the payload into FeedbackKafkaMessage
-	var feedbackMsg model.FeedbackKafkaMessage
+	var feedbackMsg imodel.FeedbackKafkaMessage
 	if err := json.Unmarshal(kafkaMsg.Payload, &feedbackMsg); err != nil {
 		fc.logger.Errorf("Failed to unmarshal feedback payload: %v", err)
 		return fmt.Errorf("invalid feedback payload format: %w", err)
@@ -132,7 +132,9 @@ func (fc *FeedbackConsumer) handleFeedbackMessage(ctx context.Context, message *
 
 	// Create feedback request from Kafka message
 	feedbackRequest := feedback.FeedbackRequest{
-		Responses: feedbackMsg.Responses,
+		Rating:   feedbackMsg.Rating,
+		Comment:  feedbackMsg.Comment,
+		UserCode: feedbackMsg.UserID,
 	}
 
 	// Validate the feedback request
@@ -239,7 +241,7 @@ func (fc *FeedbackConsumer) handleSurveyFeedbackMessage(ctx context.Context, mes
 }
 
 // validateFeedbackMessage validates the feedback message structure
-func (fc *FeedbackConsumer) validateFeedbackMessage(msg *model.FeedbackKafkaMessage) error {
+func (fc *FeedbackConsumer) validateSurveyFeedbackMessage(msg *feedback.SurveyFeedbackReq) error {
 	if msg == nil {
 		return fmt.Errorf("message is nil")
 	}
@@ -265,7 +267,7 @@ func (fc *FeedbackConsumer) validateFeedbackMessage(msg *model.FeedbackKafkaMess
 	return nil
 }
 
-func (fc *FeedbackConsumer) validateSurveyFeedbackMessage(msg *feedback.SurveyFeedbackReq) error {
+func (fc *FeedbackConsumer) validateFeedbackMessage(msg *imodel.FeedbackKafkaMessage) error {
 	if msg == nil {
 		return fmt.Errorf("survey message is nil")
 	}
@@ -275,7 +277,7 @@ func (fc *FeedbackConsumer) validateSurveyFeedbackMessage(msg *feedback.SurveyFe
 	if msg.FeedbackID == "" {
 		return fmt.Errorf("feedback_id is required")
 	}
-	if msg.StarRating < 1 || msg.StarRating > 5 {
+	if msg.Rating < 1 || msg.Rating > 5 {
 		return fmt.Errorf("star_rating must be between 1 and 5")
 	}
 

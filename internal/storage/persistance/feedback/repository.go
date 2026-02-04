@@ -12,8 +12,6 @@ import (
 	"errors"
 	"math"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -22,7 +20,7 @@ import (
 )
 
 type FeedbackStorage struct {
-	dal                 dal.MongoDal[model.Feedback, model.Feedback]
+	dal                 dal.MongoDal[local_model.Feedback, local_model.Feedback]
 	customerFeedbackDal dal.MongoDal[local_model.CustomerFeedback, local_model.CustomerFeedback]
 	surveyFeedbackDal   dal.MongoDal[local_model.SurveyFeedback, local_model.SurveyFeedback]
 	client              *mongo.Client
@@ -33,7 +31,7 @@ type FeedbackStorage struct {
 
 func NewFeedbackRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, feedbackCollection, customerFeedbackCollection, surveyFeedbackCollection string, logger utils.Logger) storage.FeedbackRepository {
 	return &FeedbackStorage{
-		dal:                 dal.NewMongoDal[model.Feedback, model.Feedback](client, cfg, dbName, feedbackCollection),
+		dal:                 dal.NewMongoDal[local_model.Feedback, local_model.Feedback](client, cfg, dbName, feedbackCollection),
 		customerFeedbackDal: dal.NewMongoDal[local_model.CustomerFeedback, local_model.CustomerFeedback](client, cfg, dbName, customerFeedbackCollection),
 		surveyFeedbackDal:   dal.NewMongoDal[local_model.SurveyFeedback, local_model.SurveyFeedback](client, cfg, dbName, surveyFeedbackCollection),
 		client:              client,
@@ -43,7 +41,7 @@ func NewFeedbackRepository(client *mongo.Client, cfg *config.VaultConfig, dbName
 	}
 }
 
-func (f *FeedbackStorage) Create(ctx context.Context, feedback *model.Feedback) error {
+func (f *FeedbackStorage) Create(ctx context.Context, feedback *local_model.Feedback) error {
 	f.logger.Infof("[Create] creating feedback")
 	feed, err := f.dal.InsertOne(ctx, *feedback)
 	if err != nil {
@@ -54,6 +52,7 @@ func (f *FeedbackStorage) Create(ctx context.Context, feedback *model.Feedback) 
 
 	return nil
 }
+
 func (f *FeedbackStorage) CreateSurveyFeedback(ctx context.Context, surveyFeedback *local_model.SurveyFeedback) error {
 	f.logger.Infof("[CreateSurveyFeedback] creating survey feedback")
 	feed, err := f.surveyFeedbackDal.InsertOne(ctx, *surveyFeedback)
