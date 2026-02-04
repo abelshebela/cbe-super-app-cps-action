@@ -147,7 +147,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		CPSRoles:                          cps_roles.NewCPSRolesStorage(client, cfg, dbName, CPSRolesCollection, logger),
 		LogisticsMerchantPersistence:      logistics_merchant_repository.NewLogisticsMerchantRepository(client, cfg, dbName, LogisticsMerchantsCollection, logger),
 		CustomerKYCPersistence:            persistence_kyc.NewCustomerKYCRepository(client, cfg, dbName, FaydaKYCollection, logger),
-		UssdMerchantPersistence:           ussd_merchant_repo.NewUssdMerchant(*client, dbName, UssdMerchantCollection, cfg, logger),
+		UssdMerchantPersistence:           ussd_merchant_repo.NewUssdMerchant(client, dbName, UssdMerchantCollection, cfg, logger),
 	}
 
 	return data
