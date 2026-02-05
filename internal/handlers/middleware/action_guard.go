@@ -52,8 +52,9 @@ var (
 	guardLogger                 utils.Logger
 )
 
-func InitCPSActionGuard(repo storage.CPSActionApproveIndexRepository, ttl time.Duration, logger utils.Logger) {
-	cpsApproveRepo = repo
+func InitCPSActionGuard(cpsRepo storage.CPSActionApproveIndexRepository, bpsRepo storage.BPSActionApproveIndexRepository, ttl time.Duration, logger utils.Logger) {
+	cpsApproveRepo = cpsRepo
+	bpsApproveRepo = bpsRepo
 	if ttl > 0 {
 		cpsGuardCache.ttl = ttl
 	}
