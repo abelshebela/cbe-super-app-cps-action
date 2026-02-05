@@ -293,6 +293,7 @@ func (ca *cpsActionService) GetCPSActionByForUpdate(ctx context.Context) (*model
 			if strings.Contains(key, constants.CREATE) {
 				continue
 			}
+
 			seen[key] = struct{}{}
 			reqs = append(reqs, key)
 		}
