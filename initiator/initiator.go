@@ -115,7 +115,7 @@ func Init(ctx context.Context) {
 	logger.Infof("Persistence initialized")
 
 	// Initialize CPS Action Guard (role_id + action_name authorization with TTL cache)
-	mid.InitCPSActionGuard(persistence.CPSActionApproveIndexPersistence, 5*time.Minute, logger)
+	mid.InitCPSActionGuard(persistence.CPSActionApproveIndexPersistence, persistence.BPSActionApproveIndexPersistence, 5*time.Minute, logger)
 	oracleDB := InitOracle(cfg.OracleConnectionString, logger)
 	logger.Infof("Oracle database initialized")
 
