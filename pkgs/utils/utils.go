@@ -45,6 +45,21 @@ import (
 
 const alphanumberic string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
+func IsValidCBEAccountNumber(acc string) bool {
+	if acc == "" {
+		return false
+	}
+
+	for _, r := range acc {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+
+	l := len(acc)
+	return (l >= 8 && l <= 10) || (l >= 13 && l <= 16)
+}
+
 func IsValidImage(fileHeader *multipart.FileHeader) bool {
 	var allowedMIMETypes = map[string]bool{
 		"image/jpg":  true,
