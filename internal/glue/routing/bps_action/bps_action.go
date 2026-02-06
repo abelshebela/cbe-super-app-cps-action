@@ -1,4 +1,4 @@
-package cpsaction
+package bps_action
 
 import (
 	"net/http"
