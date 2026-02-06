@@ -654,15 +654,16 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	makerActions, checkerActions, auditorActions, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	_, checkerActions, auditorActions, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if makerActions == nil && checkerActions == nil && auditorActions == nil {
+	if checkerActions == nil && auditorActions == nil {
 		resp := &bpsactionDto.BPSActionCountResponse{
+			Pending:    0,
 			Approved:   0,
 			Rejected:   0,
 			Inprogress: 0,
@@ -675,23 +676,6 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	// resolve action_names -> request_actions (same as GetUserApproverActions)
 	var reqs []string
 	seen := map[string]struct{}{}
-
-	if makerActions != nil && requestedRole == "maker" {
-		for _, mod := range makerActions {
-			upper := strings.ToUpper(strings.TrimSpace(mod))
-			if lst, ok := bpsactionsvc.RequestActionGroups[upper]; ok {
-				for _, ra := range lst {
-					key := string(ra)
-					if _, ok := seen[key]; ok {
-						continue
-					}
-					seen[key] = struct{}{}
-					reqs = append(reqs, key)
-				}
-			}
-		}
-
-	}
 
 	if checkerActions != nil && requestedRole == "checker" {
 		for _, mod := range checkerActions {
@@ -728,6 +712,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	// If no mapped request actions, return zero counts
 	if len(reqs) == 0 {
 		resp := &bpsactionDto.BPSActionCountResponse{
+			Pending:    0,
 			Approved:   0,
 			Rejected:   0,
 			Inprogress: 0,
@@ -753,7 +738,18 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return f
 	}
 
-	var approvedCount, rejectedCount, inprogressAuditCount, completedAuditCount int
+	var pendingCount, approvedCount, rejectedCount, inprogressAuditCount, completedAuditCount int
+
+	// Pending
+	if checkerActions != nil && requestedRole == "checker" {
+		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(constants.Pending), "")); err != nil {
+			span.RecordError(err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		} else if res != nil && res.Meta.TotalDocs > 0 {
+			pendingCount = int(res.Meta.TotalDocs)
+		}
+	}
 
 	// Approved
 	if auditorActions != nil && requestedRole == "auditor" {
@@ -795,24 +791,29 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Audior's Inprogress Count
-	if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(model.AUDITORINPROGRESS), "")); err != nil {
-		span.RecordError(err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	} else if res != nil && res.Meta.TotalDocs > 0 {
-		inprogressAuditCount = int(res.Meta.TotalDocs)
+	if auditorActions != nil && requestedRole == "auditor" {
+		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(model.AUDITORINPROGRESS), "")); err != nil {
+			span.RecordError(err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		} else if res != nil && res.Meta.TotalDocs > 0 {
+			inprogressAuditCount = int(res.Meta.TotalDocs)
+		}
 	}
 
 	// Audior's Completed Count
-	if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(model.AUDITORNOTCHECKED), "")); err != nil {
-		span.RecordError(err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	} else if res != nil && res.Meta.TotalDocs > 0 {
-		completedAuditCount = int(res.Meta.TotalDocs)
+	if auditorActions != nil && requestedRole == "auditor" {
+		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(model.AUDITORNOTCHECKED), "")); err != nil {
+			span.RecordError(err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		} else if res != nil && res.Meta.TotalDocs > 0 {
+			completedAuditCount = int(res.Meta.TotalDocs)
+		}
 	}
 
 	resp := &bpsactionDto.BPSActionCountResponse{
+		Pending:    pendingCount,
 		Approved:   approvedCount,
 		Rejected:   rejectedCount,
 		Inprogress: inprogressAuditCount,
