@@ -131,6 +131,34 @@ func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 	localization.SendSuccessResponse(w, localization.SuccessActionRoleFetched, res)
 }
 
+// GetByActionName godoc
+//
+//	@Summary	Get action role by name
+//	@Tags		ActionRole
+//	@Produce	json
+//	@Param		name	path		string	true	"Action Name"
+//	@Success	200		{object}	localization.StandardResponse
+//	@Security	BearerAuth
+//	@Router		/action-roles/name/{name} [get]
+func (h *BPSActionRoleHandler) GetByActionNameCode(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionRoleByCode", "handler", "cpsActionRole")
+	defer span.End()
+	name := chi.URLParam(r, "name")
+	if name == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+		return
+	}
+	span.SetAttributes(attribute.String("cps_action_role.name", name))
+	res, err := h.service.GetByActionNameCode(ctx, name)
+	if err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("get action role error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessActionRoleFetched, res)
+}
+
 // Create godoc
 //
 //	@Summary	Create action role (maker)

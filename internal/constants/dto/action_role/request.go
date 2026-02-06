@@ -45,3 +45,16 @@ type GetActionRoleByActionCodeRes struct {
 	UpdatedAt            time.Time         `json:"updated_at" bson:"updated_at"`
 	CreatedAt            time.Time         `json:"created_at" bson:"created_at"`
 }
+
+type GetActionRoleByActionNameRes struct {
+	ID                   bson.ObjectID `json:"_id" bson:"_id"`
+	ActionCode           string        `json:"action_code" bson:"action_code"`
+	ActionName           string        `json:"action_name" bson:"action_name"`
+	AssignedViewersRoles []string      `json:"assigned_viewers_roles" bson:"assigned_viewers_roles"`
+	AssignedMakersRoles  []string      `json:"assigned_makers_roles" bson:"assigned_makers_roles"`
+	AssignedCheckerRoles [][]string    `json:"assigned_checkers_roles" bson:"assigned_checkers_roles"`
+	AssignedAuditorRoles []string      `json:"assigned_auditor_roles" bson:"assigned_auditor_roles"`
+	ApproverCount        int64         `json:"approver_count" bson:"approver_count"`
+	IsMakerOnly          bool          `json:"is_maker_only" bson:"is_maker_only"`
+	Enabled              bool          `json:"enabled" bson:"enabled"`
+}
