@@ -1,4 +1,4 @@
-package bps_actionrole_handler
+package bps_action_role_handler
 
 import (
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
@@ -18,6 +18,7 @@ import (
 	constants "cbe-super-app-cps-action/internal/constants"
 	types "cbe-super-app-cps-action/internal/constants/types"
 )
+
 type BPSActionRoleHandler struct {
 	service service.BPSActionRoleService
 	logger  utils.Logger
@@ -122,6 +123,34 @@ func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 	}
 	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	res, err := h.service.GetByActionCode(ctx, code)
+	if err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("get action role error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessActionRoleFetched, res)
+}
+
+// GetByActionName godoc
+//
+//	@Summary	Get action role by name
+//	@Tags		ActionRole
+//	@Produce	json
+//	@Param		name	path		string	true	"Action Name"
+//	@Success	200		{object}	localization.StandardResponse
+//	@Security	BearerAuth
+//	@Router		/action-roles/name/{name} [get]
+func (h *BPSActionRoleHandler) GetByActionNameCode(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionRoleByCode", "handler", "cpsActionRole")
+	defer span.End()
+	name := chi.URLParam(r, "name")
+	if name == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+		return
+	}
+	span.SetAttributes(attribute.String("cps_action_role.name", name))
+	res, err := h.service.GetByActionNameCode(ctx, name)
 	if err != nil {
 		span.RecordError(err)
 		h.logger.Errorf("get action role error: %v", err)
@@ -236,7 +265,6 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleUpdateRequestCreated, nil)
 	}
 }
-
 
 // Enable godoc
 //

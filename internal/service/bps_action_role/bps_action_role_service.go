@@ -96,6 +96,27 @@ func (s *bpsActionRoleService) GetByActionCode(ctx context.Context, actionCode s
 	return res, nil
 }
 
+// GetByActionName implements service.bpsActionRoleService.
+func (s *bpsActionRoleService) GetByActionNameCode(ctx context.Context, actionName string) (*imodel.BPSActionRole, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetByActionName", "BPSActionRole", "GetByActionName")
+	defer span.End()
+	if actionName == "" {
+		span.AddEvent("action name is empty", trace.WithAttributes(attribute.String("error", "action name is empty")))
+		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+	}
+
+	res, err := s.repo.FindByActionName(ctx, actionName)
+	if err != nil {
+		span.AddEvent("failed to find by action name", trace.WithAttributes(attribute.String("error", err.Error())))
+		code, _ := local_util.HandleMongoError(err)
+		if code == localization.ErrorResourceNotFound.Code {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		return nil, err
+	}
+	return res, nil
+}
+
 // Create implements service.bpsActionRoleService.
 func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "BPSActionRole", "Create")
