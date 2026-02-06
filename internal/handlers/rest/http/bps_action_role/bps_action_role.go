@@ -1,4 +1,4 @@
-package bps_actionrole_handler
+package bps_action_role_handler
 
 import (
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
@@ -18,6 +18,7 @@ import (
 	constants "cbe-super-app-cps-action/internal/constants"
 	types "cbe-super-app-cps-action/internal/constants/types"
 )
+
 type BPSActionRoleHandler struct {
 	service service.BPSActionRoleService
 	logger  utils.Logger
@@ -264,7 +265,6 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleUpdateRequestCreated, nil)
 	}
 }
-
 
 // Enable godoc
 //

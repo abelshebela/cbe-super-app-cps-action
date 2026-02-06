@@ -37,7 +37,7 @@ func Init(router chi.Router, handler actionrole_inbound.BPSActionRoleHandler, au
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/bps-action-roles/name/{code}",
+			Path:    "/bps-action-roles/name/{name}",
 			Handler: handler.GetByActionNameCode,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
