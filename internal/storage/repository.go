@@ -219,7 +219,7 @@ type BPSActionRepository interface {
 	SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
 	SanitizedFindAllWithPaginationForApprover(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
 	SanitizedFindAllWithPaginationForAuditor(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
-	SanitizedFindAllWithPaginationCPSActions(ctx context.Context, userID, role string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
+	SanitizedFindAllWithPaginationBPSActions(ctx context.Context, userID, role string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
 	SanitizedFindOne(ctx context.Context, filter bson.M) (*bps_model.BPSAction, error)
 	Update(ctx context.Context, actionCode string, update bps_model.BPSAction) (*bps_model.BPSAction, error)
 	UpdateByActionCode(ctx context.Context, actionCode string, update bps_model.BPSAction) (*bps_model.BPSAction, error)
