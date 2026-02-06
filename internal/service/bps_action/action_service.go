@@ -33,16 +33,16 @@ type bpsActionPublishPayload struct {
 }
 
 type bpsActionService struct {
-	repo       storage.BPSActionRepository
-	roles      storage.BPSActionRoleRepository
-	logger     utils.Logger
+	repo   storage.BPSActionRepository
+	roles  storage.BPSActionRoleRepository
+	logger utils.Logger
 }
 
 func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, logger utils.Logger, dispatcher Dispatcher) service.BPSActionService {
 	return &bpsActionService{
-		repo:       repo,
-		logger:     logger,
-		roles:      roles,
+		repo:   repo,
+		logger: logger,
+		roles:  roles,
 	}
 }
 
@@ -173,7 +173,7 @@ func (ba *bpsActionService) GetBPSActions(ctx context.Context, userID, role stri
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetCPSActions", "CPSAction", "GetCPSActions")
 	defer span.End()
 
-	result, err := ba.repo.SanitizedFindAllWithPaginationCPSActions(ctx, userID, role, *filterParams, RAList)
+	result, err := ba.repo.SanitizedFindAllWithPaginationBPSActions(ctx, userID, role, *filterParams, RAList)
 	if err != nil {
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
