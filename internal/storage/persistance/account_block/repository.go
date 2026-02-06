@@ -23,6 +23,7 @@ import (
 )
 
 type AccountBlockStorage struct {
+	cfg           *config.VaultConfig
 	accountBlock  dal.MongoDal[model.AccountBlock, model.AccountBlock]
 	client        *mongo.Client
 	dbName        string
@@ -32,6 +33,7 @@ type AccountBlockStorage struct {
 
 func NewAccountBlockRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.AccountBlockRepository {
 	return &AccountBlockStorage{
+		cfg:           cfg,
 		accountBlock:  dal.NewMongoDal[model.AccountBlock, model.AccountBlock](client, cfg, dbName, collection),
 		client:        client,
 		dbName:        dbName,
@@ -189,7 +191,7 @@ func (a *AccountBlockStorage) EnableOrDisableBranches(ctx context.Context, ids [
 		ctx,
 		updatedBranches,
 		string(constants.ClientOrchestrationServicesTopic),
-		"account-block-updated",
+		a.cfg.AccountBlockUpdate,
 		"account block enable status updated",
 	)
 
