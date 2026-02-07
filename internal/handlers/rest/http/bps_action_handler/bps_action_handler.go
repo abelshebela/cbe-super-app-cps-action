@@ -742,7 +742,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 
 	// Pending
 	if checkerActions != nil && requestedRole == "checker" {
-		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(constants.Pending), "")); err != nil {
+		if res, err := a.bpsActionApplication.GetBPSActions(ctx, "", requestedRole, reqs, buildFilter(string(constants.Pending), "")); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
