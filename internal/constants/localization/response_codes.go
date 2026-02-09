@@ -573,6 +573,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCompanyNameAlreadyExists,
 	ErrorCompanyCodeAlreadyExists,
 	ErrorAccountNumberAlreadyExists,
+	ErrorAccountRestricted,
+	ErrorAccountCurrencyNotSupported,
 	ErrorMerchantCodeAlreadyExists,
 	ErrorEmailAlreadyExist,
 	ErrorPhonenumberAlreadyExist,
@@ -6027,6 +6029,18 @@ var (
 		Code:       "ERROR_ACCOUNT_NUMBER_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccountNumberAlreadyExists,
+		Type:       "error",
+	}
+	ErrorAccountCurrencyNotSupported = ResponseCode{
+		Code:       "ERROR_ACCOUNT_CURRENCY_NOT_SUPPORTED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountCurrencyNotSupported,
+		Type:       "error",
+	}
+	ErrorAccountRestricted= ResponseCode{
+		Code:       "ERROR_ACCOUNT_RESTRICTED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountRestricted,
 		Type:       "error",
 	}
 

@@ -57,6 +57,13 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 	if err != nil {
 		return nil, err
 	}
+	if accountDetail.Restriction =="YES"{
+		return nil, errors.New(localization.ErrorAccountRestricted.Code)
+	}
+	if accountDetail.Currency!="ETB"{
+		return nil, errors.New(localization.ErrorAccountCurrencyNotSupported.Code)
+	}
+	
 
 	if accountDetail == nil {
 		return nil, err
