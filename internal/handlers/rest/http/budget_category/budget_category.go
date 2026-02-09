@@ -8,6 +8,7 @@ import (
 	common_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"net/http"
+	"strings"
 
 	"cbe-super-app-cps-action/internal/constants/types"
 
@@ -72,7 +73,7 @@ func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *h
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
 	}
-
+	req.Name = strings.TrimSpace(req.Name)
 	err = b.budgetCategoryApplication.CreateBudgetCategory(ctx, req)
 	if err != nil {
 		span.RecordError(err)
@@ -141,7 +142,7 @@ func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *h
 	}
 
 	span.SetAttributes(attribute.String("budget_category.id", id))
-
+	req.Name = strings.TrimSpace(req.Name)
 	err = b.budgetCategoryApplication.UpdateBudgetCategory(ctx, id, req)
 	if err != nil {
 		span.RecordError(err)
