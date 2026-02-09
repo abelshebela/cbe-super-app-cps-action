@@ -34,7 +34,7 @@ var Projection = bson.M{
 	"current_checker_index": 1,
 	"action_description":    1,
 	"action_type":           1,
-	"action_status":         1,
+	"status":                1,
 	"auditor_status":        1,
 	"auditor_users":         1,
 	"auditor_count":         1,
@@ -123,7 +123,7 @@ func (b *bpsActionRepository) FindAllWithPagination(ctx context.Context, filterP
 		"department": department,
 	}
 	searchKeys := bson.M{}
-	allowedKeys := []string{"unique_id", "action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
+	allowedKeys := []string{"unique_id", "status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -134,7 +134,7 @@ func (b *bpsActionRepository) FindAllWithPagination(ctx context.Context, filterP
 			{"checker_phone_number": searchRegex},
 			{"action_type": searchRegex},
 			{"request_action": searchRegex},
-			{"action_status": searchRegex},
+			{"status": searchRegex},
 		}
 	}
 
@@ -183,7 +183,7 @@ func (b *bpsActionRepository) SanitizedFindAllWithPagination(ctx context.Context
 		baseFilter["department"] = department
 	}
 
-	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "auditor_status"}
+	allowedKeys := []string{"status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "auditor_status"}
 	searchKeys := bson.M{}
 
 	if filterParam.Search != "" {
@@ -191,7 +191,7 @@ func (b *bpsActionRepository) SanitizedFindAllWithPagination(ctx context.Context
 		baseFilter["$or"] = []bson.M{
 			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
-			{"action_status": searchRegex},
+			{"status": searchRegex},
 			{"auditor_status": searchRegex},
 			{"action_type": searchRegex},
 			{"request_action": searchRegex},
@@ -265,7 +265,7 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(
 		filter["$or"] = []bson.M{
 			{"maker_name": regex},
 			{"maker_phone_number": regex},
-			{"action_status": regex},
+			{"status": regex},
 			{"auditor_status": regex},
 			{"action_type": regex},
 			{"request_action": regex},
@@ -273,7 +273,7 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(
 	}
 
 	allowedKeys := []string{
-		"action_status",
+		"status",
 		"action_type",
 		"request_action",
 		"maker_phone_number",
@@ -373,7 +373,6 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 
 	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
 
-	fmt.Println("filter", filter)
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
@@ -403,7 +402,7 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 	return &types.PaginatedResponse[[]*bps_action.BPSAction]{Data: results, Meta: meta}, nil
 }
 
-func (b *bpsActionRepository) SanitizedFindAllWithPaginationCPSActions(ctx context.Context, userID, role string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*bps_action.BPSAction], error) {
+func (b *bpsActionRepository) SanitizedFindAllWithPaginationBPSActions(ctx context.Context, userID, role string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*bps_action.BPSAction], error) {
 	if strings.TrimSpace(userID) == "" {
 		meta := local_util.BuildPaginationMeta(0, filterParam.Page, filterParam.PerPage)
 		return &types.PaginatedResponse[[]*bps_action.BPSAction]{Data: []*bps_action.BPSAction{}, Meta: meta}, nil
@@ -411,14 +410,14 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationCPSActions(ctx conte
 
 	baseFilter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
-	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status"}
+	allowedKeys := []string{"status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
 			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
-			{"action_status": searchRegex},
+			{"status": searchRegex},
 			{"auditor_status": searchRegex},
 			{"action_type": searchRegex},
 			{"request_action": searchRegex},
@@ -434,18 +433,12 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationCPSActions(ctx conte
 	filter["request_action"] = bson.M{"$in": RAList}
 
 	var userFilter bson.M
-	if role == "maker" {
-		userFilter = bson.M{"maker_id": userID}
-	}
-	if role == "checker" {
-		userFilter = bson.M{"$or": []bson.M{{"maker_id": userID}, {"checker_users.checker_id": userID}}}
-	}
 	if role == "auditor" {
 		userFilter = bson.M{"auditor_users.auditor_id": userID}
 	}
 
 	var finalMatch bson.M
-	if role == "checker" && filterParam.Filters != nil && filterParam.Filters["action_status"] == "PENDING" {
+	if role == "checker" && filterParam.Filters != nil && filterParam.Filters["status"] == "PENDING" {
 		finalMatch = filter
 	} else {
 		finalMatch = bson.M{"$and": []bson.M{filter, userFilter}}
@@ -557,8 +550,8 @@ func (b *bpsActionRepository) GetCountByDepartment(ctx context.Context, departme
 		{{Key: "$match", Value: bson.M{"is_deleted": false, "department": department}}},
 		{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: nil},
-			{Key: "Approved", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$action_status", "APPROVED"}}}, 1, 0}}}}}},
-			{Key: "Rejected", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$action_status", "REJECTED"}}}, 1, 0}}}}}},
+			{Key: "Approved", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", "APPROVED"}}}, 1, 0}}}}}},
+			{Key: "Rejected", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", "REJECTED"}}}, 1, 0}}}}}},
 			{Key: "Inprogress", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", "INPROGRESS"}}}, 1, 0}}}}}},
 			{Key: "Completed", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", "AUDITORNOTCHECKED"}}}, 1, 0}}}}}},
 		}}},
