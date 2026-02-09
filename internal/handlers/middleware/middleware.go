@@ -273,7 +273,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			}
 
 		} else {
-			a.logger.Warnf("session has expired")
+			a.logger.Errorf("unauthorized access device_id_from_redis%s device_id_from_payload:%s user_expiration_session:%s remaining_time_from_env:%d", deviceID, userPayload.DeviceID, userPayload.SessionExp, remainTime)
 			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 			return
 		}
