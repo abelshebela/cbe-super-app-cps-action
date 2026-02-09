@@ -223,7 +223,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		ctx := a.setUserPayload(r.Context(), userPayload)
 		now := time.Now().Unix()
 
-		remainTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutes)
+		remainTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutesRemain)
 		if err != nil || remainTime == 0 {
 			remainTime = 120
 		} else {
@@ -254,7 +254,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 				return
 			} else if userPayload.SessionExp-now < int64(remainTime) {
 				// Less than 1 minute left, refresh token
-				a.logger.Infof("session expiring soon, refreshing token")
+				a.logger.Infof("session expiring soon, refreshing token, remaining_time_from_env in %d remaining time from subtraction from user expiration time %d", remainTime, userPayload.SessionExp-now)
 				// Inject Bearer token and user_id from context into gRPC metadata
 				md := metadata.New(map[string]string{
 					"authorization": "Bearer " + tokenString,
@@ -266,6 +266,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 					a.logger.Errorf("failed to refresh token: %v", err)
 				}
 				if refresh_response != nil {
+					a.logger.Infof("token refreshed successfully, setting X-Refreshed-Token header")
 					w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
 				} else {
 					a.logger.Errorf("refresh token response from grpc is nil")
