@@ -912,5 +912,5 @@ const (
 
 // redis key prefixes
 const (
-	RedisCPSUserDeviceIDPrefix = "cps:auth:device:"
+	RedisCPSUserDeviceIDPrefix = "cps:auth:device"
 )
