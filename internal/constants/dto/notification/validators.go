@@ -10,7 +10,9 @@ import (
 )
 
 // var safePattern = regexp.MustCompile(`^[\p{L}\p{M}\p{N}\s._@'-]+$`)
-var safePattern = regexp.MustCompile(`^[\p{L}\p{M}\p{N}\p{P}\s@_]+$`)
+var safePattern = regexp.MustCompile(
+	`^[\p{L}\p{N}\p{P}\p{Zs}\n\r\t]+$`,
+)
 
 func noDangerousChars(value any) error {
 	var str string
@@ -27,7 +29,7 @@ func noDangerousChars(value any) error {
 		return validation.NewError("validation", "invalid type")
 	}
 
-	// Normalize Unicode (prevents homoglyph tricks)
+	// Normalize Unicode (blocks homoglyph / confusable tricks)
 	str = norm.NFKC.String(str)
 
 	str = strings.TrimSpace(str)
@@ -35,11 +37,12 @@ func noDangerousChars(value any) error {
 		return nil
 	}
 
+	// Allow letters, numbers, punctuation, spaces, and newlines
 	if !safePattern.MatchString(str) {
 		return validation.NewError("validation", "contains invalid characters")
 	}
 
-	// Block hidden/control chars
+	// Explicitly block hidden / control characters (except whitespace)
 	for _, r := range str {
 		if unicode.IsControl(r) && !unicode.IsSpace(r) {
 			return validation.NewError("validation", "contains control characters")
@@ -62,7 +65,7 @@ func (r NotificationRequest) Validate(isCreate bool) error {
 			validation.Field(&r.NotificationBody,
 				validation.Required.Error("notification_body is required"),
 				validation.By(noDangerousChars),
-				validation.Length(1, 50),
+				validation.Length(1, 200),
 			),
 			validation.Field(&r.Title, validation.Required.Error("title is required"), validation.By(noDangerousChars)),
 			validation.Field(&r.For,

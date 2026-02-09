@@ -56,7 +56,7 @@ func (r *BPSUserCreateRequest) Validate() error {
 		validation.Field(&r.UserID, validation.Required, validation.Length(3, 10)),
 		validation.Field(&r.FullName, validation.Required),
 		validation.Field(&r.PhoneNumber, validation.Required, validation.Match(phoneRegex).Error("must be a valid Ethiopian phone number (+2519xxxxxxxx or +2517xxxxxxxx)")),
-		validation.Field(&r.Email, validation.Required, is.Email, validation.Match(regexp.MustCompile(`^[A-Za-z0-9._%+-]+@cbe\.com\.et$`)).Error("must be a valid @cbe.com.et email")),
+		validation.Field(&r.Email, validation.Required, is.Email, validation.Match(regexp.MustCompile(`^[A-Za-z0-9._-]+@cbe\.com\.et$`)).Error("must be a valid @cbe.com.et email")),
 		validation.Field(&r.JobTitle, validation.Required),
 		validation.Field(&r.BranchCode, validation.Required),
 	)
@@ -84,7 +84,7 @@ func (r *BPSUserUpdateRequest) Validate() error {
 		validation.Field(&r.UserID, validation.Required, validation.Length(3, 10)),
 		validation.Field(&r.FullName, validation.Required),
 		validation.Field(&r.PhoneNumber, validation.Required, validation.Match(phoneRegex).Error("must be a valid Ethiopian phone number (+2519xxxxxxxx or +2517xxxxxxxx)")),
-		validation.Field(&r.Email, validation.Required, is.Email, validation.Match(regexp.MustCompile(`^[A-Za-z0-9._%+-]+@cbe\.com\.et$`)).Error("must be a valid @cbe.com.et email")),
+		validation.Field(&r.Email, validation.Required, is.Email, validation.Match(regexp.MustCompile(`^[A-Za-z0-9._-]+@cbe\.com\.et$`)).Error("must be a valid @cbe.com.et email")),
 		validation.Field(&r.JobTitle, validation.Required),
 		validation.Field(&r.BranchCode, validation.Required),
 	)
