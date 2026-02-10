@@ -127,12 +127,15 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 	// 	result.CompanyCode = existing.CompanyCode
 	// }
 	result.CompanyCode = existing.CompanyCode
-
+	if donationCompany.CompanyDescription != ""{
+		result.CompanyDescription=donationCompany.CompanyDescription
+	}
 	if donationCompany.AccountNumber != existing.AccountNumber {
 		result.AccountNumber = donationCompany.AccountNumber
 	} else {
 		result.AccountNumber = existing.AccountNumber
 	}
+	
 
 	if donationCompany.PhoneNumber != "" && donationCompany.PhoneNumber != existing.PhoneNumber {
 		result.PhoneNumber = donationCompany.PhoneNumber
@@ -170,7 +173,9 @@ func IsDataSimilar(request dto.DonationCompanyRequest, existing *model.DonationC
 	if request.CompanyName != "" && request.CompanyName != existing.CompanyName {
 		return false
 	}
-
+	if request.CompanyDescription != "" && request.CompanyDescription != existing.CompanyDescription{
+		return false
+	}
 	if request.CompanyCode != "" && request.CompanyCode != existing.CompanyCode {
 		return false
 	}
