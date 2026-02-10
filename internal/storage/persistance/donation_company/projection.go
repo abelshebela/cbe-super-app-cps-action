@@ -16,6 +16,7 @@ func MapToDonationCompanyListResponse(company *model.DonationCompany) *dto.Donat
 		CompanyCode:       company.CompanyCode,
 		CompanyLogo:       company.CompanyLogo,
 		AccountNumber:     company.AccountNumber,
+		CompanyDescription: company.CompanyDescription,
 		AccountHolderName: company.AccountHolderName,
 		PhoneNumber:       company.PhoneNumber,
 		Email:             company.Email,
