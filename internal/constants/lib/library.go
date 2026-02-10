@@ -176,6 +176,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 			"debit_allowed",
 			"credit_allowed",
 			"has_restriction",
+			"advert_for",
 		}
 		for _, key := range includedKeys {
 			for _, allowedKey := range allowedKeys {
