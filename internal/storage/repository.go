@@ -739,6 +739,8 @@ type AccessListSegmentationRepository interface {
 	FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]local_model.AccessListSegmentation, error)
 	FindAllBySegmentIDorSegmentCodeAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
 	BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error
+
+	FindParentChildRelationship(ctx context.Context) ([]local_model.AccessItemRelation, error)
 }
 
 type MiniAppMerchant interface {
