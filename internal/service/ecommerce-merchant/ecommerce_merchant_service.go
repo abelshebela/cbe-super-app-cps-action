@@ -480,8 +480,8 @@ func (m *miniAppMerchantService) MerchantLookup(ctx context.Context, merchantID 
 	ctx, span := local_util.TraceLogger(ctx, "service", "MerchantLookup", "MiniAppMerchant", "MerchantLookup")
 	defer span.End()
 
-	// base := strings.TrimRight(m.cfg.OddoEcommerceBaseUrl, "/")
-	base := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce"
+	base := strings.TrimRight(m.cfg.OddoEcommerceBaseUrl, "/")
+	// base := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce"
 	url := base + "/cps/merchant/"
 	xAPIKey := m.cfg.ApiKey
 
