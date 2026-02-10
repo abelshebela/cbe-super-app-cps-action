@@ -355,7 +355,7 @@ func (a *AccessListSegmentationService) CheckALLIdsExist(ctx context.Context, t 
 	return nil
 }
 
-func (a *AccessListSegmentationService) GetAllAccessListSegmentationBySegmentIDorSegmentCode(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []local_model.AccessListSegmentation, error) {
+func (a *AccessListSegmentationService) GetAllAccessListSegmentationBySegmentIDorSegmentCode(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error) {
 	accessListSegmentation, err := a.repo.FindAllBySegmentIDorSegmentCode(ctx, segmentIdentifier)
 	if err != nil {
 		a.logger.Errorf("[GetAllAccessListSegmentationBySegmentIDorSegmentCode] failed to get access list segmentation: %v", err)
@@ -364,7 +364,15 @@ func (a *AccessListSegmentationService) GetAllAccessListSegmentationBySegmentIDo
 
 	accessList := access_list_segmentation_core.FindNoneSegmentedAccessList(ctx, a.accessListServiceRepo, accessListSegmentation)
 
-	return accessList, accessListSegmentation, nil
+	realtions, err := a.repo.FindParentChildRelationship(ctx)
+	if err != nil {
+		a.logger.Errorf("[GetAllAccessListSegmentationBySegmentIDorSegmentCode] failed to get parent child relationship: %v", err)
+		return nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	accessList, segmentedAccessList := access_list_segmentation_core.MapParentChildRelationship(accessListSegmentation, realtions, &accessList)
+
+	return accessList, segmentedAccessList, nil
 }
 
 func NewAccessListSegmentationService(repo storage.AccessListSegmentationRepository, cpsAction service.CPSActionService, accessListServiceRepo storage.AppAccessListRepository, accBlock storage.AccountBlockRepository, memberRepo storage.CustomerRepository, customerSeg storage.CustomerSegmentationRepository, logger utils.Logger) service.AccessListSegmentationService {
