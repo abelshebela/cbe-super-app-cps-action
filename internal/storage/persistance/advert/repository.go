@@ -133,7 +133,7 @@ func (a *AdvertStorage) FindByID(ctx context.Context, id string) (*model.Advert,
 
 func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Advert], error) {
 
-	allowedKeys := []string{"title", "description", "enabled"}
+	allowedKeys := []string{"title", "description", "enabled","advert_for"}
 
 	// Build search keys for $or search on title & description
 	searchKeys := bson.M{}
