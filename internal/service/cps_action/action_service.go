@@ -49,7 +49,7 @@ func (ca *cpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 	if err != nil || act == nil {
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
-	// compute active group from record
+
 	current := int64(0)
 	if act.CurrentAuditorIndex > 0 {
 		current = int64(act.CurrentAuditorIndex)
@@ -59,9 +59,9 @@ func (ca *cpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 	if current != 0 && current != expected {
 		return errors.New(localization.ErrorOperationNotAllowed.Code)
 	}
-	// idempotent move to INPROGRESS
+
 	upd := model.CPSAction{ActionCode: actionCode}
-	upd.AuditorStatus = "INPROGRESS"
+	upd.AuditorStatus = model.AuditorStatus(constants.AUDITORINPROGRESS)
 	_, err = ca.repo.Update(ctx, actionCode, upd)
 	return err
 }
