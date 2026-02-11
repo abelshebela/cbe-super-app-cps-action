@@ -125,6 +125,20 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*model.CPSRol
 	return result, nil
 }
 
+func (m *cpsRoleStorage) FindByName(ctx context.Context, name string) (*model.CPSRoles, error) {
+	filter := bson.M{"name": name}
+	result, err := m.dal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			m.logger.Warnf("[FindByName] cps role not found, name: %s", name)
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		m.logger.Errorf("[FindByName] failed to find cps role, name: %s, error: %v", name, err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return result, nil
+}
+
 func (m *cpsRoleStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
