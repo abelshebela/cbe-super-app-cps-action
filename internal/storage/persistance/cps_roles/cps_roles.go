@@ -146,3 +146,17 @@ func (m *cpsRoleStorage) EnableOrDisable(ctx context.Context, id string, enable 
 	}
 	return nil
 }
+
+func (m *cpsRoleStorage) FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*model.CPSRoles, error) {
+	filter := bson.M{"name": customerSegment, "enabled": true}
+	result, err := m.dal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			m.logger.Warnf("[FindByCustomerSegmentation] cps role not found for customer segment: %s", customerSegment)
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		m.logger.Errorf("[FindByCustomerSegmentation] failed to find cps role for customer segment: %s, error: %v", customerSegment, err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return result, nil
+}

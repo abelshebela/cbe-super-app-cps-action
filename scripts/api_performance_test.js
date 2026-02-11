@@ -12,14 +12,19 @@ const path = require('path');
 // ─── Configuration ───────────────────────────────────────────────────────────
 const BASE_URL = 'http://localhost:8080/api/v1/cbesuperapp';
 const POSTMAN_FILE = path.join(__dirname, '..', 'NEW FULL CPS ACTION.postman_collection.json');
-const TIMEOUT_MS = 10000;
+const TIMEOUT_MS = 3000;
 const CONCURRENCY = 1; // Sequential to avoid overwhelming the server
 
-// Parse --token argument
+// Parse --token argument or read from .auth_token file
 let AUTH_TOKEN = '';
 const tokenIdx = process.argv.indexOf('--token');
 if (tokenIdx !== -1 && process.argv[tokenIdx + 1]) {
   AUTH_TOKEN = process.argv[tokenIdx + 1];
+} else {
+  const tokenFile = path.join(__dirname, '.auth_token');
+  if (fs.existsSync(tokenFile)) {
+    AUTH_TOKEN = fs.readFileSync(tokenFile, 'utf8').trim();
+  }
 }
 
 // ─── Variable Mapping ────────────────────────────────────────────────────────

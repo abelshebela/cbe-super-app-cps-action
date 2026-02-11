@@ -563,8 +563,8 @@ const (
 	MsgActionNameIsRequired         = "Action name is required"
 	MsgInvalidEmail                 = "Invalid email format"
 	MsgInvalidPhoneNumber           = "Invalid phone number format"
-	MsgExistEmail                   = "BPS user with this email already exist"
-	MsgExistUser                    = "BPS user with this already exist"
+	MsgExistEmail                   = "user with this email already exist"
+	MsgExistUser                    = "user with this already exist"
 
 	MsgExistEmailBpsUser = "BPS user with this email already exist"
 
