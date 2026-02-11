@@ -592,3 +592,15 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 
 	return action, nil
 }
+
+func (s *accountBlockService) GetAccountBlockDetails(ctx context.Context, id string) ([]*model.CPSAction, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetAccountBlockDetails", "BlockAccount", "GetAccountBlockDetails")
+	defer span.End()
+
+	result, err := s.repo.GetAccountBlockDetails(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}

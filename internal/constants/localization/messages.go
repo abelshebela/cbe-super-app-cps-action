@@ -648,8 +648,8 @@ const (
 	MsgCompanyCodeAlreadyExists          = "Company code already exists"
 	MsgDonationTitleAlreadyExists        = "Donation title already exists"
 	MsgAccountNumberAlreadyExists        = "company with this account number already exists"
-	MsgAccountCurrencyNotSupported = "Currency not supported for this account"
-	MsgAccountRestricted = "Account number is restricted "
+	MsgAccountCurrencyNotSupported       = "Currency not supported for this account"
+	MsgAccountRestricted                 = "Account number is restricted "
 	MsgMerchantCodeAlreadyExists         = "Merchant code already exist"
 	MsgPhonenumberAlreadyExists          = "Phone number already exists"
 	MsgUsernameAlreadyExists             = "Username already exists"
@@ -1179,6 +1179,7 @@ const (
 	MsgRegionAlreadyEnabled              = "Region already enabled"
 	MsgRegionAlreadyDisabled             = "Region already disabled"
 	MsgCityCodeRequired                  = "City id is required"
+	MsgCodeIsRequired                    = "code is required"
 	MsgCityAlreadyEnabled                = "City already enabled"
 	MsgCityAlreadyDisabled               = "City already disabled"
 
