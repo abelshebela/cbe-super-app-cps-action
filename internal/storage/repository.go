@@ -342,6 +342,7 @@ type CpsUserRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*cps_user_dto.CPSUserWithDepartment], error)
 	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*imodel.CPSUser, error)
 	FindByEmail(ctx context.Context, email string) (*imodel.CPSUser, error)
+	FindByEmailOrPhoneNumberOrUserName(ctx context.Context, email string, phoneNumber string, username string) (*imodel.CPSUser, error)
 }
 
 type BankVaultRepository interface {
