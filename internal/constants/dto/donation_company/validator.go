@@ -54,8 +54,7 @@ func (d DonationCompanyRequest) Validate() error {
 			validation.By(utils.NoSpecialChars),
 		),
 		validation.Field(&d.CompanyDescription,
-		validation.Length(10, 500).Error("description must be between 10 and 500 characters"),
-
+			validation.Length(10, 500).Error("description must be between 10 and 500 characters"),
 		),
 		validation.Field(&d.CompanyLogo,
 			validation.Required.Error("company logo is required"),

@@ -1,7 +1,6 @@
 package deviceversioncontrol
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -42,8 +41,7 @@ func (d *DeviceVersionControlRepository) Save(ctx context.Context, deviceVersion
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
-	d.kafkaProducer.PublishMessage(ctx, newDeviceVersion, string(constants.ClientOrchestrationDeviceVersionControlTopic), string(constants.ClientOrchestrationDeviceVersionControlTopic), "new device version control created")
+	_ = newDeviceVersion
 
 	return nil
 }
@@ -68,8 +66,7 @@ func (d *DeviceVersionControlRepository) Update(ctx context.Context, id string, 
 		d.logger.Errorf("[Update] failed to update device version control: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
-	d.kafkaProducer.PublishMessage(ctx, updatedDeviceVersion, string(constants.ClientOrchestrationDeviceVersionControlTopic), string(constants.ClientOrchestrationDeviceVersionControlTopic), "update device version control")
+	_ = updatedDeviceVersion
 
 	d.logger.Infof("[Update] device version control updated successfully")
 	return nil
@@ -107,7 +104,7 @@ func (d *DeviceVersionControlRepository) EnableOrDisable(ctx context.Context, id
 		d.logger.Errorf("[EnableOrDisable] failed to enable/disable device version control: %v", err)
 		return err
 	}
-	d.kafkaProducer.PublishMessage(ctx, updatedDeviceVersion, string(constants.ClientOrchestrationDeviceVersionControlTopic), string(constants.ClientOrchestrationDeviceVersionControlTopic), "update device version control enable/disable")
+	_ = updatedDeviceVersion
 
 	d.logger.Infof("[EnableOrDisable] device version control enable/disable completed successfully")
 	return nil
