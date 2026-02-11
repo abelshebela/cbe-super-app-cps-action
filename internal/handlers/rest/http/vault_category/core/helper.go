@@ -1,7 +1,7 @@
 package core
 
 import (
-	helper "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
+	helper "cbe-super-app-cps-action/internal/constants/dto/vault_category"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"fmt"
 	"mime"
@@ -15,19 +15,19 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func ToDomainCreateVaultGroupCategoryRequest(req helper.CreateVaultGroupCategoryRequest) *model.VaultCategory {
+func ToDomainCreateVaultGroupCategoryRequest(req helper.CreateCategoryRequest) *model.VaultCategory {
 	return &model.VaultCategory{
 		Name:     req.Name,
 		IsActive: false,
 	}
 }
 
-func ToDomainUpdateVaultGroupCategoryRequest(req helper.UpdateVaultGroupCategoryRequest) *model.VaultCategory {
+func ToDomainUpdateVaultGroupCategoryRequest(req helper.UpdateCategoryRequest) *model.VaultCategory {
 	return &model.VaultCategory{
 		Name: func() string {
-			if req.Name != "" {
-				return req.Name
-			}
+			// if req.Name != "" {
+			// 	return req.Name
+			// }
 			return ""
 		}(),
 		UpdatedAt: time.Now().UTC(),

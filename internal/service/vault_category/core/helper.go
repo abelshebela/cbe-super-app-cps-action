@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	vaultgroup_category "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
+	vaultgroup_category "cbe-super-app-cps-action/internal/constants/dto/vault_category"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )

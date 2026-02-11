@@ -356,12 +356,12 @@ type BankVaultRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
 
-type VaultGroupCategoryRepository interface {
-	Create(ctx context.Context, vaultGroupCategory *model.VaultCategory) (string, error)
+type VaultCategoryRepository interface {
+	Create(ctx context.Context, vaultCategory *model.VaultCategory) (string, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultCategory], error)
 	FindByID(ctx context.Context, id string) (*model.VaultCategory, error)
-	GetGroupcategoryByName(ctx context.Context, groupName string) (*model.VaultCategory, error)
-	Update(ctx context.Context, id string, vaultGroupCategory *model.VaultCategory) error
+	FindByName(ctx context.Context, groupName string) (*model.VaultCategory, error)
+	Update(ctx context.Context, id string, vaultCategory *model.VaultCategory) error
 	Delete(ctx context.Context, id string) (string, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }

@@ -2,12 +2,12 @@ package vaultgroupcategory
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
-	vaultgroup_category "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
+	vaultgroup_category "cbe-super-app-cps-action/internal/constants/dto/vault_category"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	helperr "cbe-super-app-cps-action/internal/service/vaultgroup_category/core"
+	helperr "cbe-super-app-cps-action/internal/service/vault_category/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
@@ -29,8 +29,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type vaultgroupCategoryService struct {
-	repo        storage.VaultGroupCategoryRepository
+type vaultCategoryService struct {
+	repo        storage.VaultCategoryRepository
 	cpsService  service.CPSActionService
 	logger      shared_utils.Logger
 	minio       *s3.Client
@@ -39,8 +39,8 @@ type vaultgroupCategoryService struct {
 	cfg         *config.VaultConfig
 }
 
-func NewVaultGroupCategoryService(re storage.VaultGroupCategoryRepository, cpsS service.CPSActionService, logger shared_utils.Logger, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig) *vaultgroupCategoryService {
-	return &vaultgroupCategoryService{
+func NewVaultCategoryService(re storage.VaultCategoryRepository, cpsS service.CPSActionService, logger shared_utils.Logger, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig) *vaultCategoryService {
+	return &vaultCategoryService{
 		repo:        re,
 		cpsService:  cpsS,
 		logger:      logger,
@@ -51,10 +51,10 @@ func NewVaultGroupCategoryService(re storage.VaultGroupCategoryRepository, cpsS 
 	}
 }
 
-func (s *vaultgroupCategoryService) CreateVaultGroupCategory(ctx context.Context, req *vaultgroup_category.CreateVaultGroupCategoryRequest) (string, error) {
-	ctx, span := local_util.TraceLogger(ctx, "service", "CreateVaultGroupCategory", "vaultgroupCategoryService", "vaultgroupCategoryService")
+func (s *vaultCategoryService) CreateVaultCategory(ctx context.Context, req *vaultgroup_category.CreateCategoryRequest) (string, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "CreateVaultGroupCategory", "vaultCategoryService", "vaultCategoryService")
 	defer span.End()
-	_, err := s.repo.GetGroupcategoryByName(ctx, req.Name)
+	_, err := s.repo.FindByName(ctx, req.Name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			makerData := local_util.ExtractUserFromContext(ctx)
@@ -66,10 +66,9 @@ func (s *vaultgroupCategoryService) CreateVaultGroupCategory(ctx context.Context
 			}
 
 			req_data := &model.VaultCategory{
-				Name:         req.Name,
-				CategoryType: req.CategoryType,
-				CoverImage:   coverImageUrl,
-				IsActive:     false,
+				Name:       req.Name,
+				CoverImage: coverImageUrl,
+				IsActive:   false,
 			}
 
 			cpsActionModel := lib.CpsModelBuilder("", makerData, nil, req_data, string(constants.RequestCreateVaultGroupCategory), string(constants.CREATE))
@@ -88,8 +87,8 @@ func (s *vaultgroupCategoryService) CreateVaultGroupCategory(ctx context.Context
 	return "", errors.New(localization.ErrorDuplicateGroupVaultCategory.Code)
 }
 
-func (s *vaultgroupCategoryService) FindAllVaultGroupCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*vaultgroup_category.VaultGroupCategoryResponse], error) {
-	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllVaultGroupCategories", "vaultgroupCategoryService", "vaultgroupCategoryService")
+func (s *vaultCategoryService) FindAllVaultCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*vaultgroup_category.VaultGroupCategoryResponse], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllVaultGroupCategories", "vaultCategoryService", "vaultCategoryService")
 	defer span.End()
 
 	if filterParams == nil {
@@ -114,8 +113,8 @@ func (s *vaultgroupCategoryService) FindAllVaultGroupCategories(ctx context.Cont
 	}, nil
 }
 
-func (s *vaultgroupCategoryService) GetVaultGroupCategory(ctx context.Context, id string) (*vaultgroup_category.VaultGroupCategoryResponse, error) {
-	ctx, span := local_util.TraceLogger(ctx, "service", "GetVaultGroupCategory", "vaultgroupCategoryService", "vaultgroupCategoryService")
+func (s *vaultCategoryService) GetVaultCategory(ctx context.Context, id string) (*vaultgroup_category.VaultGroupCategoryResponse, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetVaultGroupCategory", "vaultCategoryService", "vaultCategoryService")
 	defer span.End()
 	entity, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -129,8 +128,8 @@ func (s *vaultgroupCategoryService) GetVaultGroupCategory(ctx context.Context, i
 	}
 	return helperr.MapVaultGroupCategoryToResponse(entity), nil
 }
-func (s *vaultgroupCategoryService) UpdateVaultGroupCategory(ctx context.Context, id string, req *vaultgroup_category.UpdateVaultGroupCategoryRequest) (string, error) {
-	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateVaultGroupCategory", "vaultgroupCategoryService", "vaultgroupCategoryService")
+func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id string, req *vaultgroup_category.UpdateCategoryRequest) (string, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateVaultGroupCategory", "vaultCategoryService", "vaultCategoryService")
 	defer span.End()
 
 	prev, err := s.repo.FindByID(ctx, id)
@@ -148,13 +147,13 @@ func (s *vaultgroupCategoryService) UpdateVaultGroupCategory(ctx context.Context
 	updatedCover := prev.CoverImage
 	updatedCategoryType := prev.CategoryType
 
-	if req.Name != "" {
-		updatedName = req.Name
-	}
+	// if req.Name != "" {
+	// 	updatedName = req.Name
+	// }
 
-	if req.CategoryType != "" {
-		updatedCategoryType = req.CategoryType
-	}
+	// if req.CategoryType != "" {
+	// 	updatedCategoryType = req.CategoryType
+	// }
 
 	var coverImageUrl string
 	if req.CoverImage != nil {
@@ -191,8 +190,8 @@ func (s *vaultgroupCategoryService) UpdateVaultGroupCategory(ctx context.Context
 	return id, nil
 }
 
-func (s *vaultgroupCategoryService) DeleteVaultGroupCategory(ctx context.Context, id string) (string, error) {
-	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteVaultGroupCategory", "vaultgroupCategoryService", "vaultgroupCategoryService")
+func (s *vaultCategoryService) DeleteVaultCategory(ctx context.Context, id string) (string, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteVaultGroupCategory", "vaultCategoryService", "vaultCategoryService")
 	defer span.End()
 	s.logger.Infof("Deleting vault group category with ID: %s", id)
 	if id == "" {
@@ -246,8 +245,8 @@ func (s *vaultgroupCategoryService) DeleteVaultGroupCategory(ctx context.Context
 	span.AddEvent("VaultGroupCategory deleted", trace.WithAttributes(attribute.String("id", id)))
 	return id, nil
 }
-func (s *vaultgroupCategoryService) EnableVaultGroupCategory(ctx context.Context, id string) error {
-	ctx, span := local_util.TraceLogger(ctx, "service", "EnableVaultGroupCategory", "vaultgroupCategoryService", "vaultgroupCategoryService")
+func (s *vaultCategoryService) EnableVaultCategory(ctx context.Context, id string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "EnableVaultGroupCategory", "vaultCategoryService", "vaultCategoryService")
 	defer span.End()
 
 	s.logger.Infof("Enabling vault group category with ID: %s", id)
@@ -294,8 +293,8 @@ func (s *vaultgroupCategoryService) EnableVaultGroupCategory(ctx context.Context
 	return s.cpsService.CreateCPSAction(ctx, &cpsActionModel)
 }
 
-func (s *vaultgroupCategoryService) DisableVaultGroupCategory(ctx context.Context, id string) error {
-	ctx, span := local_util.TraceLogger(ctx, "service", "DisableVaultGroupCategory", "vaultgroupCategoryService", "vaultgroupCategoryService")
+func (s *vaultCategoryService) DisableVaultCategory(ctx context.Context, id string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "DisableVaultGroupCategory", "vaultCategoryService", "vaultCategoryService")
 	defer span.End()
 	s.logger.Infof("Disabling vault group category with ID: %s", id)
 	if id == "" {
@@ -338,8 +337,8 @@ func (s *vaultgroupCategoryService) DisableVaultGroupCategory(ctx context.Contex
 	return s.cpsService.CreateCPSAction(ctx, &cpsActionModel)
 }
 
-func (s *vaultgroupCategoryService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	ctx, span := local_util.TraceLogger(ctx, "service", "AuthorizeVaultGroupCategory", "vaultgroupCategoryService", "vaultgroupCategoryService")
+func (s *vaultCategoryService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "AuthorizeVaultGroupCategory", "vaultCategoryService", "vaultCategoryService")
 	defer span.End()
 	var actionMap interface{}
 	marshaled, err := json.Marshal(cpsAction.CurrentAction)

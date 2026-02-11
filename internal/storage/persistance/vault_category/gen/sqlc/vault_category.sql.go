@@ -14,65 +14,65 @@ func generateUUID() string {
 	return uuid.New().String()
 }
 
-const activateVaultGroupCategory = `-- name: ActivateVaultGroupCategory :one
+const activateVaultCategory = `-- name: ActivateVaultCategory :one
 UPDATE vault_categories
 SET is_active = 1, updated_at = SYSTIMESTAMP
 WHERE id = :1 AND is_deleted = 0
 RETURNING id INTO :result`
 
-func (q *Queries) ActivateVaultGroupCategory(ctx context.Context, id string) (string, error) {
+func (q *Queries) ActivateVaultCategory(ctx context.Context, id string) (string, error) {
 	var result string
-	res, err := q.db.ExecContext(ctx, activateVaultGroupCategory, id, sql.Out{Dest: &result})
+	res, err := q.db.ExecContext(ctx, activateVaultCategory, id, sql.Out{Dest: &result})
 	if err != nil {
-		return "", fmt.Errorf("failed to activate vault group category: %w", err)
+		return "", fmt.Errorf("failed to activate vault  category: %w", err)
 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
-		return "", fmt.Errorf("no vault group category found with id %s", id)
+		return "", fmt.Errorf("no vault  category found with id %s", id)
 	}
 	return result, nil
 }
 
-const deactivateVaultGroupCategory = `-- name: DeactivateVaultGroupCategory :one
+const deactivateVaultCategory = `-- name: DeactivateVaultCategory :one
 UPDATE vault_categories
 SET is_active = 0, updated_at = SYSTIMESTAMP
 WHERE id = :1 AND is_deleted = 0
 RETURNING id INTO :result`
 
-func (q *Queries) DeactivateVaultGroupCategory(ctx context.Context, id string) (string, error) {
+func (q *Queries) DeactivateVaultCategory(ctx context.Context, id string) (string, error) {
 	var result string
-	res, err := q.db.ExecContext(ctx, deactivateVaultGroupCategory, id, sql.Out{Dest: &result})
+	res, err := q.db.ExecContext(ctx, deactivateVaultCategory, id, sql.Out{Dest: &result})
 	if err != nil {
-		return "", fmt.Errorf("failed to deactivate vault group category: %w", err)
+		return "", fmt.Errorf("failed to deactivate vault  category: %w", err)
 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
-		return "", fmt.Errorf("no vault group category found with id %s", id)
+		return "", fmt.Errorf("no vault  category found with id %s", id)
 	}
 	return result, nil
 }
 
-const deleteVaultGroupCategory = `-- name: DeleteVaultGroupCategory :one
+const deleteVaultCategory = `-- name: DeleteVaultCategory :one
 UPDATE vault_categories
 SET is_deleted = 1, deleted_at = SYSTIMESTAMP, updated_at = SYSTIMESTAMP
 WHERE id = :1
 RETURNING id INTO :result`
 
-func (q *Queries) DeleteVaultGroupCategory(ctx context.Context, id string) (string, error) {
+func (q *Queries) DeleteVaultCategory(ctx context.Context, id string) (string, error) {
 	var result string
 	fmt.Println("===============", id)
-	res, err := q.db.ExecContext(ctx, deleteVaultGroupCategory, id, sql.Out{Dest: &result})
+	res, err := q.db.ExecContext(ctx, deleteVaultCategory, id, sql.Out{Dest: &result})
 	if err != nil {
-		return "", fmt.Errorf("failed to delete vault group category: %w", err)
+		return "", fmt.Errorf("failed to delete vault  category: %w", err)
 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
-		return "", fmt.Errorf("no vault group category found with id %s", id)
+		return "", fmt.Errorf("no vault  category found with id %s", id)
 	}
 	return result, nil
 }
 
-const findVaultGroupCategory = `-- name: FindVaultGroupCategory :many
+const findVaultCategory = `-- name: FindVaultCategory :many
 SELECT
   id,
   name,
@@ -90,14 +90,14 @@ ORDER BY created_at DESC
 OFFSET NVL(:offset, 0) ROWS
 FETCH NEXT NVL(:limit, 50) ROWS ONLY`
 
-type FindVaultGroupCategoryParams struct {
+type FindVaultCategoryParams struct {
 	IsActive  sql.NullBool   `json:"is_active"`
 	NameQuery sql.NullString `json:"name"`
 	Page      sql.NullInt64  `json:"page"`
 	Limit     sql.NullInt64  `json:"limit"`
 }
 
-// type FindVaultGroupCategoryRow struct {
+// type FindVaultCategoryRow struct {
 // 	ID         string       `json:"id"`
 // 	Name       string       `json:"name"`
 // 	CoverImage string       `json:"cover_image"`
@@ -109,12 +109,12 @@ type FindVaultGroupCategoryParams struct {
 // 	TotalCount int64        `json:"total_count"`
 // }
 
-func (q *Queries) FindVaultGroupCategory(ctx context.Context, arg FindVaultGroupCategoryParams) ([]VaultCategory, error) {
+func (q *Queries) FindVaultCategory(ctx context.Context, arg FindVaultCategoryParams) ([]VaultCategory, error) {
 	namePtr := utils.NullStringToPtrLike(arg.NameQuery)
 	limitPtr := utils.NullInt64ToPtr(arg.Limit)
 	offsetPtr := (arg.Page.Int64 - 1) * arg.Limit.Int64
 
-	rows, err := q.db.QueryContext(ctx, findVaultGroupCategory,
+	rows, err := q.db.QueryContext(ctx, findVaultCategory,
 		sql.Named("is_active", arg.IsActive),
 		sql.Named("name", namePtr),
 		sql.Named("offset", offsetPtr),
@@ -147,7 +147,7 @@ func (q *Queries) FindVaultGroupCategory(ctx context.Context, arg FindVaultGroup
 	return items, nil
 }
 
-const findVaultGroupCategoryById = `-- name: FindVaultGroupCategoryById :one
+const findVaultCategoryById = `-- name: FindVaultCategoryById :one
 SELECT
   id,
   name,
@@ -159,8 +159,8 @@ SELECT
 FROM vault_categories
 WHERE id = :1 AND deleted_at IS NULL`
 
-func (q *Queries) FindVaultGroupCategoryById(ctx context.Context, id string) (VaultCategory, error) {
-	row := q.db.QueryRowContext(ctx, findVaultGroupCategoryById, id)
+func (q *Queries) FindVaultCategoryById(ctx context.Context, id string) (VaultCategory, error) {
+	row := q.db.QueryRowContext(ctx, findVaultCategoryById, id)
 	var i VaultCategory
 	err := row.Scan(
 		&i.ID,
@@ -175,13 +175,13 @@ func (q *Queries) FindVaultGroupCategoryById(ctx context.Context, id string) (Va
 	return i, err
 }
 
-const findVaultGroupCategoryByName = `-- name: FindVaultGroupCategoryByName :one
+const findVaultCategoryByName = `-- name: FindVaultCategoryByName :one
 SELECT id, name, is_active, is_deleted, created_at, updated_at, deleted_at
 FROM vault_categories
 WHERE UPPER(name) = UPPER(:name)`
 
-func (q *Queries) FindVaultGroupCategoryByName(ctx context.Context, name string) (VaultCategory, error) {
-	row := q.db.QueryRowContext(ctx, findVaultGroupCategoryByName, sql.Named("name", name))
+func (q *Queries) FindVaultCategoryByName(ctx context.Context, name string) (VaultCategory, error) {
+	row := q.db.QueryRowContext(ctx, findVaultCategoryByName, sql.Named("name", name))
 	var i VaultCategory
 	err := row.Scan(
 		&i.ID,
@@ -195,7 +195,7 @@ func (q *Queries) FindVaultGroupCategoryByName(ctx context.Context, name string)
 	return i, err
 }
 
-const saveVaultGroupCategory = `-- name: SaveVaultGroupCategory :one
+const saveVaultCategory = `-- name: SaveVaultCategory :one
 INSERT INTO vault_categories (
   id,
   name,
@@ -211,16 +211,17 @@ INSERT INTO vault_categories (
 )
 RETURNING id INTO :result`
 
-type SaveVaultGroupCategoryParams struct {
+type SaveVaultCategoryParams struct {
+	ID           string       `json:"id"`
 	Name         string       `json:"name"`
 	CategoryType string       `json:"category_type"`
 	CoverImage   string       `json:"cover_image"`
 	IsActive     sql.NullBool `json:"is_active"`
 }
 
-func (q *Queries) SaveVaultGroupCategory(ctx context.Context, arg SaveVaultGroupCategoryParams) (string, error) {
+func (q *Queries) SaveVaultCategory(ctx context.Context, arg SaveVaultCategoryParams) (string, error) {
 	var id string
-	_, err := q.db.ExecContext(ctx, saveVaultGroupCategory,
+	_, err := q.db.ExecContext(ctx, saveVaultCategory,
 		generateUUID(),
 		strings.ToUpper(arg.Name),
 		arg.CategoryType,
@@ -229,12 +230,12 @@ func (q *Queries) SaveVaultGroupCategory(ctx context.Context, arg SaveVaultGroup
 		sql.Out{Dest: &id},
 	)
 	if err != nil {
-		return "", fmt.Errorf("failed to save vault group category: %w", err)
+		return "", fmt.Errorf("failed to save vault  category: %w", err)
 	}
 	return id, nil
 }
 
-const updateVaultGroupCategory = `-- name: UpdateVaultGroupCategory :one
+const updateVaultCategory = `-- name: UpdateVaultCategory :one
 UPDATE vault_categories
 SET
   name 				  = COALESCE(UPPER(:1), name),
@@ -243,26 +244,26 @@ SET
 WHERE id = :3 AND is_deleted = 0
 RETURNING id INTO :result`
 
-type UpdateVaultGroupCategoryParams struct {
+type UpdateVaultCategoryParams struct {
 	Name       sql.NullString `json:"name"`
 	CoverImage sql.NullString `json:"cover_image"`
 	ID         string         `json:"id"`
 }
 
-func (q *Queries) UpdateVaultGroupCategory(ctx context.Context, arg UpdateVaultGroupCategoryParams) (string, error) {
+func (q *Queries) UpdateVaultCategory(ctx context.Context, arg UpdateVaultCategoryParams) (string, error) {
 	var id string
-	res, err := q.db.ExecContext(ctx, updateVaultGroupCategory,
+	res, err := q.db.ExecContext(ctx, updateVaultCategory,
 		arg.Name,
 		arg.CoverImage,
 		arg.ID,
 		sql.Out{Dest: &id},
 	)
 	if err != nil {
-		return "", fmt.Errorf("failed to update vault group category: %w", err)
+		return "", fmt.Errorf("failed to update vault  category: %w", err)
 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
-		return "", fmt.Errorf("vault group category not found or already deleted")
+		return "", fmt.Errorf("vault  category not found or already deleted")
 	}
 	return id, nil
 }
