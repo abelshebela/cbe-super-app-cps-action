@@ -33,6 +33,30 @@ type CPSUserStorage struct {
 	logger            utils.Logger
 }
 
+// FindByEmailOrPhoneNumberOrUserName implements [storage.CpsUserRepository].
+func (r *CPSUserStorage) FindByEmailOrPhoneNumberOrUserName(ctx context.Context, email string, phoneNumber string, username string) (*imodel.CPSUser, error) {
+	var orFilters []bson.M
+	if email != "" {
+		orFilters = append(orFilters, bson.M{"email": email})
+	}
+	if phoneNumber != "" {
+		orFilters = append(orFilters, bson.M{"phone_number": phoneNumber})
+	}
+	if username != "" {
+		orFilters = append(orFilters, bson.M{"username": username})
+	}
+	if len(orFilters) == 0 {
+		return nil, errors.New("at least one of email, phoneNumber, or username must be provided")
+	}
+	filter := bson.M{"$or": orFilters}
+
+	result, err := r.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func NewCPSUserRepository(client *mongo.Client, redisRepository storage.RedisRepository, cfg *config.VaultConfig, dbName string, collection string, relatedCollection []string, logger utils.Logger) storage.CpsUserRepository {
 	return &CPSUserStorage{
 		dal:               dal.NewMongoDal[imodel.CPSUser, imodel.CPSUser](client, cfg, dbName, collection),
