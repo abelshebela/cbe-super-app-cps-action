@@ -24,7 +24,7 @@ import (
 type AccessListSegmentationService struct {
 	repo                  storage.AccessListSegmentationRepository
 	accBlock              storage.AccountBlockRepository
-	customerSeg           storage.CustomerSegmentationRepository
+	customerSeg           storage.CPSRolesRepository
 	memberRepo            storage.CustomerRepository
 	accessListServiceRepo storage.AppAccessListRepository
 	cpsAction             service.CPSActionService
@@ -133,21 +133,11 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 			a.logger.Errorf("[Create] access list segmentation already exists with segmented id and service id: %v", err)
 			return errors.New(localization.ErrorCustomerSegmentationCodeNotFound.Code)
 		}
-		if len(seg.CustomerSubSegments) == 0 {
-			a.logger.Errorf("[Create] no customer sub segments found for segment code: %s", req.SegmentCode)
-			return errors.New(localization.ErrorCustomerSegmentationCodeNotFound.Code)
-		}
+
 		if seg, err := a.repo.FindByAccountSegmentationAndAccessListKeys(ctx, req.SegmentCode, req.AccessListKeys); err != nil || seg != nil {
 			a.logger.Errorf("[Create] access list segmentation already exists with segmentation code and service id: %v", err)
 			return errors.New(localization.ErrorAccessListSegmentationNameAlreadyExists.Code)
 		}
-		for _, seg := range seg.CustomerSubSegments {
-			if seg.CustomerSegment == req.SegmentCode {
-				req.SegmentName = seg.CustomerGroup
-				break
-			}
-		}
-		// req.SegmentName = seg.CustomerSubSegments[0].CustomerGroup
 	}
 	cpsAction := lib.CpsModelBuilder("", makerData, nil, req, string(constants.RequestCreateAccessListSegmentation), constants.CREATE)
 
@@ -375,7 +365,7 @@ func (a *AccessListSegmentationService) GetAllAccessListSegmentationBySegmentIDo
 	return accessList, segmentedAccessList, nil
 }
 
-func NewAccessListSegmentationService(repo storage.AccessListSegmentationRepository, cpsAction service.CPSActionService, accessListServiceRepo storage.AppAccessListRepository, accBlock storage.AccountBlockRepository, memberRepo storage.CustomerRepository, customerSeg storage.CustomerSegmentationRepository, logger utils.Logger) service.AccessListSegmentationService {
+func NewAccessListSegmentationService(repo storage.AccessListSegmentationRepository, cpsAction service.CPSActionService, accessListServiceRepo storage.AppAccessListRepository, accBlock storage.AccountBlockRepository, memberRepo storage.CustomerRepository, customerSeg storage.CPSRolesRepository, logger utils.Logger) service.AccessListSegmentationService {
 	return &AccessListSegmentationService{
 		repo:                  repo,
 		cpsAction:             cpsAction,

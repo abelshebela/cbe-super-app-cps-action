@@ -769,6 +769,7 @@ type CPSRolesRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.CPSRoles], error)
 	FindById(ctx context.Context, id string) (*model.CPSRoles, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*model.CPSRoles, error)
 }
 
 type CustomerKYCRepository interface {
