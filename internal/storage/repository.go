@@ -20,9 +20,8 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
-	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
-
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
+	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage/external_call"
 
@@ -272,6 +271,7 @@ type AccountBlockRepository interface {
 	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 	EnableOrDisableDistricts(ctx context.Context, ids []string, reason string, enabled bool) error
 	GetDistrictsByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
+	GetAccountBlockDetails(ctx context.Context, id string) ([]*model.CPSAction, error)
 }
 
 type AdvertRepository interface {

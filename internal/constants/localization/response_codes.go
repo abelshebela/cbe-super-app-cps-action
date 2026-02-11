@@ -435,6 +435,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDistrictCodeRequired,
 	ErrorRegionCodeRequired,
 	ErrorCityCodeRequired,
+	ErrorCodeRequired,
 
 	SuccessDonationCategoryCreatedSP,
 
@@ -6037,7 +6038,7 @@ var (
 		Message:    MsgAccountCurrencyNotSupported,
 		Type:       "error",
 	}
-	ErrorAccountRestricted= ResponseCode{
+	ErrorAccountRestricted = ResponseCode{
 		Code:       "ERROR_ACCOUNT_RESTRICTED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccountRestricted,
@@ -6709,7 +6710,14 @@ var (
 
 	ErrorCityCodeRequired = ResponseCode{
 		Code:       "ERROR_CITY_CODE_REQUIRED",
-		StatusCode: StatusConflict,
+		StatusCode: StatusBadRequest,
+		Message:    MsgCityCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorCodeRequired = ResponseCode{
+		Code:       "ERROR_CODE_IS_REQUIRED",
+		StatusCode: StatusBadRequest,
 		Message:    MsgCityCodeRequired,
 		Type:       "error",
 	}
