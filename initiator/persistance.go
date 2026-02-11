@@ -89,7 +89,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		ResetSessionPersistence:         reset_session.NewResetSessionRepository(client, cfg, dbName, PINResetsCollection, logger),
 		CPSAction:                       cps_action.NewCPSActionRepository(client, cfg, dbName, CPSActionsCollection, logger),
 		AmountBasedAuthPersistence:      amount_based_auth.NewAmountBasedAuthRepository(client, cfg, dbName, AuthTierCollection, logger),
-		AccountBlockPersistence:         account_block.NewAccountBlockRepository(client, cfg, dbName, AccountBlockCollection, clientOrchestrationProducer, logger),
+		AccountBlockPersistence:         account_block.NewAccountBlockRepository(client, cfg, dbName, AccountBlockCollection, CPSActionsCollection, clientOrchestrationProducer, logger),
 		PortalCardPersistence:           portal_card.NewPortalCardRepository(client, cfg, dbName, CardsCollection, logger),
 		MiniAppPersistence:              mini_app.NewMiniAppRepository(client, cfg, dbName, MiniAppsCollection, logger),
 		MerchantLookup:                  *merchant_lookup.NewMerchantLookupAdapter(*cfg, logger),
