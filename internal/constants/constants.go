@@ -12,6 +12,38 @@ type SettlementMethod string
 type AuditorStatus string
 type AuditorMark string
 
+type CustomerStatus string
+type EmploymentStatus string
+
+const (
+	CustomerActive  CustomerStatus = "ACTIVE"
+	CustomerPending CustomerStatus = "PENDING"
+	CustomerExpired CustomerStatus = "EXPIRED"
+)
+
+const (
+	ConventionalAccount AccountType = "CONVENTIONAL"
+	CBENoor             AccountType = "CBENOOR"
+)
+
+const (
+	MaritalMarried  MaritalStatus = "MARRIED"
+	MaritalDivorced MaritalStatus = "DIVORCED"
+	MaritalSingle   MaritalStatus = "SINGLE"
+	MaritalWidowed  MaritalStatus = "WIDOWED"
+)
+
+const (
+	EmploymentStatusAgent      EmploymentStatus = "AGENT"
+	EmploymentStatusEmployed   EmploymentStatus = "EMPLOYED"
+	EmploymentStatusForeigner  EmploymentStatus = "FOREIGNER"
+	EmploymentStatusMinor      EmploymentStatus = "MINOR"
+	EmploymentStatusPensioner  EmploymentStatus = "PENSIONER"
+	EmploymentStatusCBEStaff   EmploymentStatus = "STAFF_OF_CBE"
+	EmploymentStatusUnemployed EmploymentStatus = "UNEMPLOYED"
+	EmploymentStatusOther      EmploymentStatus = "OTHER_INDIVIDUALS"
+)
+
 const (
 	MARKEDASRIGHT AuditorMark = "MARKEDASRIGHT"
 	MARKEDASWRONG AuditorMark = "MARKEDASWRONG"

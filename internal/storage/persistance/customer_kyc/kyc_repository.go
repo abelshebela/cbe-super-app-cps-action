@@ -1,6 +1,7 @@
 package customer
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
@@ -37,7 +38,7 @@ func (r *customerKYCRepository) Create(ctx context.Context, kyc *imodel.Customer
 	kyc.CreatedAt = time.Now()
 	kyc.UpdatedAt = time.Now()
 	kyc.KYCStatus = "PENDING"
-	kyc.CustomerStatus = imodel.CustomerPending
+	kyc.CustomerStatus = constants.CustomerPending
 
 	if _, err := r.dal.InsertOne(ctx, *kyc); err != nil {
 		r.logger.Errorf("[CustomerKYCRepository.Create] failed to create kyc: %v", err)

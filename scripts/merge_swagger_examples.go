@@ -20,7 +20,7 @@ const (
 	applicationJSON = "application/json"
 )
 
-func main() {
+func main1() {
 	baseDir := "."
 	if len(os.Args) > 1 {
 		baseDir = os.Args[1]

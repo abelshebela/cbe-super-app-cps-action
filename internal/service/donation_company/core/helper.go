@@ -57,13 +57,12 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 	if err != nil {
 		return nil, err
 	}
-	if accountDetail.Restriction =="YES"{
+	if accountDetail.Restriction == "YES" {
 		return nil, errors.New(localization.ErrorAccountRestricted.Code)
 	}
-	if accountDetail.Currency!="ETB"{
+	if accountDetail.Currency != "ETB" {
 		return nil, errors.New(localization.ErrorAccountCurrencyNotSupported.Code)
 	}
-	
 
 	if accountDetail == nil {
 		return nil, err
@@ -83,18 +82,18 @@ func BindAction(source any, target any) error {
 // MapToDonationCompanyResponse creates a response DTO from request DTO and logo URL
 func MapToDonationCompanyResponse(donationCompany dto.DonationCompanyRequest, logoURL string) dto.DonationCompanyResponse {
 	return dto.DonationCompanyResponse{
-		CompanyName:    donationCompany.CompanyName,
-		CompanyCode:    donationCompany.CompanyCode,
+		CompanyName:        donationCompany.CompanyName,
+		CompanyCode:        donationCompany.CompanyCode,
 		CompanyDescription: donationCompany.CompanyDescription,
-		CompanyLogo:    logoURL,
-		AccountNumber:  donationCompany.AccountNumber,
-		PhoneNumber:    donationCompany.PhoneNumber,
-		Email:          donationCompany.Email,
-		Address:        donationCompany.Address,
-		Enabled:        true,
-		IsDeleted:      false,
-		CreatedAt:      time.Now().Format(time.RFC3339),
-		LastModifiedAt: time.Now().Format(time.RFC3339),
+		CompanyLogo:        logoURL,
+		AccountNumber:      donationCompany.AccountNumber,
+		PhoneNumber:        donationCompany.PhoneNumber,
+		Email:              donationCompany.Email,
+		Address:            donationCompany.Address,
+		Enabled:            true,
+		IsDeleted:          false,
+		CreatedAt:          time.Now().Format(time.RFC3339),
+		LastModifiedAt:     time.Now().Format(time.RFC3339),
 	}
 }
 
@@ -127,7 +126,9 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 	// 	result.CompanyCode = existing.CompanyCode
 	// }
 	result.CompanyCode = existing.CompanyCode
-
+	if donationCompany.CompanyDescription != "" {
+		result.CompanyDescription = donationCompany.CompanyDescription
+	}
 	if donationCompany.AccountNumber != existing.AccountNumber {
 		result.AccountNumber = donationCompany.AccountNumber
 	} else {
@@ -170,7 +171,9 @@ func IsDataSimilar(request dto.DonationCompanyRequest, existing *model.DonationC
 	if request.CompanyName != "" && request.CompanyName != existing.CompanyName {
 		return false
 	}
-
+	if request.CompanyDescription != "" && request.CompanyDescription != existing.CompanyDescription {
+		return false
+	}
 	if request.CompanyCode != "" && request.CompanyCode != existing.CompanyCode {
 		return false
 	}
