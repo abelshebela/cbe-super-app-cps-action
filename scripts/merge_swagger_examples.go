@@ -11,13 +11,13 @@ import (
 )
 
 const (
-	swaggerPath      = "docs/swagger.json"
-	examplesPath     = "docs/swagger.examples.json"
-	pathsKey         = "paths"
-	responsesKey     = "responses"
-	schemaKey        = "schema"
-	exampleKey       = "example"
-	applicationJSON  = "application/json"
+	swaggerPath     = "docs/swagger.json"
+	examplesPath    = "docs/swagger.examples.json"
+	pathsKey        = "paths"
+	responsesKey    = "responses"
+	schemaKey       = "schema"
+	exampleKey      = "example"
+	applicationJSON = "application/json"
 )
 
 func main() {
@@ -72,6 +72,7 @@ func main() {
 		if pathSpec == nil {
 			continue
 		}
+
 		for method, methodExamples := range pathExamples {
 			methodSpec, _ := pathSpec[method].(map[string]interface{})
 			if methodSpec == nil {
@@ -93,7 +94,7 @@ func main() {
 				// Replace schema with a simple type:object + example so Swagger UI displays it.
 				// allOf + schema.example is often ignored by Swagger UI; a plain schema with example is shown.
 				responseSpec[schemaKey] = map[string]interface{}{
-					"type":    "object",
+					"type":     "object",
 					exampleKey: exampleBody,
 				}
 				injected++

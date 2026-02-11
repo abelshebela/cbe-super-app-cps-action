@@ -865,6 +865,7 @@ const (
 	ClientOrchestrationAccountBlockTopic         KafkaTopic = "account_block.sync.cps"
 	ClientOrchestrationAccountValidationTopic    KafkaTopic = "account_validation.sync.cps"
 	ClientOrchestrationDeviceVersionControlTopic KafkaTopic = "device_version_control.sync.cps"
+	DeviceVersionControlTopic                    KafkaTopic = "device_version_control"
 	ClientOrchestrationDonationTopic             KafkaTopic = "donation.sync.cps"
 	ClientOrchestrationDonationCategoryTopic     KafkaTopic = "donation_category.sync.cps"
 	ClientOrchestrationDonationCompanyTopic      KafkaTopic = "donation_company.sync.cps"

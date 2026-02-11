@@ -143,7 +143,7 @@ func Init(ctx context.Context) {
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persistence, OraclePersistence, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService)
+	serviceLayer := InitServiceLayer(mongoClient, persistence, OraclePersistence, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService, clientOrchestrationProducer)
 
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
