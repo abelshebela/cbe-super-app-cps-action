@@ -915,3 +915,31 @@ func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Reque
 
 	localization.SendSuccessResponse(w, localization.SuccessDisableCitiesRequestSent, nil)
 }
+
+func (a *accountBlockAdapter) GetAccountBlockDetails(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "GetAccountBlockDetails", "handler", "accountBlock")
+	defer span.End()
+
+	id, ok := local_util.GetParam(r, "id")
+	if !ok {
+		a.logger.Errorf("Failed to get code from the param")
+		localization.SendBadRequestResponse(w, localization.ErrorCodeRequired.Code)
+		return
+	}
+	if err := local_util.ValidateMongoID(id); err != nil {
+		a.logger.Errorf("invalid id: %s used", id)
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
+
+	data, err := a.accountBlockApplication.GetAccountBlockDetails(ctx, id)
+	if err != nil {
+		span.RecordError(err)
+		a.logger.Errorf("[GetAccountBlockDetails] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	a.logger.Infof("[GetAccountBlockDetails] account block data successfully fetched id: %s", id)
+	localization.SendSuccessResponse(w, localization.SuccessCityRetrieved, data)
+}
