@@ -2,6 +2,7 @@ package vaultcategory
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance/vault_category/gen/sqlc"
@@ -11,8 +12,9 @@ import (
 	"fmt"
 	"strings"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -29,7 +31,7 @@ func NewVaultCategoryRepository(db *sql.DB, logger shared_utils.Logger) storage.
 }
 
 // Create creates a new vault category in Oracle and returns its ID
-func (r *VaultCategoryRepository) Create(ctx context.Context, entity *model.VaultCategory) (string, error) {
+func (r *VaultCategoryRepository) Create(ctx context.Context, entity *imodel.VaultCategory) (string, error) {
 	q := sqlc.New(r.db)
 	if _, err := q.FindVaultCategoryByName(ctx, entity.Name); err == nil {
 		return "", errors.New(localization.ErrorDuplicateGroupVaultCategory.Code)
@@ -38,11 +40,10 @@ func (r *VaultCategoryRepository) Create(ctx context.Context, entity *model.Vaul
 	}
 
 	params := sqlc.SaveVaultCategoryParams{
-		ID:           strings.ToUpper(entity.ID),
-		Name:         strings.ToUpper(entity.Name),
-		CategoryType: entity.CategoryType,
-		CoverImage:   entity.CoverImage,
-		IsActive:     sql.NullBool{Bool: entity.IsActive, Valid: true},
+		ID:         strings.ToUpper(entity.ID),
+		Name:       strings.ToUpper(entity.Name),
+		CoverImage: entity.CoverImageURL,
+		IsActive:   sql.NullBool{Bool: entity.IsActive, Valid: true},
 	}
 	id, err := q.SaveVaultCategory(ctx, params)
 	if err != nil {
@@ -52,7 +53,7 @@ func (r *VaultCategoryRepository) Create(ctx context.Context, entity *model.Vaul
 }
 
 // FindAllWithPagination lists categories with filters and pagination, including deleted ones
-func (r *VaultCategoryRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultCategory], error) {
+func (r *VaultCategoryRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.VaultCategory], error) {
 	q := sqlc.New(r.db)
 	params := sqlc.FindVaultCategoryParams{}
 	if v, ok := filterParam.Filters["is_active"].(bool); ok {
@@ -81,15 +82,12 @@ func (r *VaultCategoryRepository) FindAllWithPagination(ctx context.Context, fil
 	var total int64
 	for _, rrow := range rows {
 		e := &model.VaultCategory{
-			ID:           rrow.ID,
-			Name:         rrow.Name,
-			CategoryType: rrow.CategoryType,
-			CoverImage:   rrow.CoverImage,
-			IsActive:     rrow.IsActive,
-			IsDeleted:    rrow.IsDeleted,
-			CreatedAt:    rrow.CreatedAt,
-			UpdatedAt:    rrow.UpdatedAt,
-			DeletedAt:    rrow.DeletedAt,
+			ID:            rrow.ID,
+			Name:          rrow.Name,
+			CoverImageURL: rrow.CoverImage,
+			IsActive:      rrow.IsActive,
+			CreatedAt:     rrow.CreatedAt,
+			UpdatedAt:     rrow.UpdatedAt,
 		}
 		total = rrow.TotalCount
 		list = append(list, e)
@@ -117,7 +115,7 @@ func (r *VaultCategoryRepository) FindAllWithPagination(ctx context.Context, fil
 }
 
 // FindByID fetches a single category by id, including deleted ones
-func (r *VaultCategoryRepository) FindByID(ctx context.Context, id string) (*model.VaultCategory, error) {
+func (r *VaultCategoryRepository) FindByID(ctx context.Context, id string) (*imodel.VaultCategory, error) {
 	q := sqlc.New(r.db)
 	rrow, err := q.FindVaultCategoryById(ctx, id)
 	if err != nil {
@@ -127,58 +125,49 @@ func (r *VaultCategoryRepository) FindByID(ctx context.Context, id string) (*mod
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	e := &model.VaultCategory{
-		ID:           rrow.ID,
-		Name:         rrow.Name,
-		CategoryType: rrow.CategoryType,
-		CoverImage:   rrow.CoverImage,
-		IsActive:     rrow.IsActive,
-		IsDeleted:    rrow.IsDeleted,
-		CreatedAt:    rrow.CreatedAt,
-		UpdatedAt:    rrow.UpdatedAt,
-		DeletedAt:    rrow.DeletedAt,
+		ID:            rrow.ID,
+		Name:          rrow.Name,
+		CoverImageURL: rrow.CoverImage,
+		IsActive:      rrow.IsActive,
+		CreatedAt:     rrow.CreatedAt,
+		UpdatedAt:     rrow.UpdatedAt,
 	}
 	return e, nil
 }
 
-func (r *VaultCategoryRepository) FindByName(ctx context.Context, name string) (*model.VaultCategory, error) {
+func (r *VaultCategoryRepository) FindByName(ctx context.Context, name string) (*imodel.VaultCategory, error) {
 	q := sqlc.New(r.db)
 	category, err := q.FindVaultCategoryByName(ctx, name)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+			return nil, err
 		}
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	vc := &model.VaultCategory{
-		ID:           category.ID,
-		Name:         category.Name,
-		CategoryType: category.CategoryType,
-		CoverImage:   category.CoverImage,
-		IsActive:     category.IsActive,
-		IsDeleted:    category.IsDeleted,
-		CreatedAt:    category.CreatedAt,
-		UpdatedAt:    category.UpdatedAt,
-		DeletedAt:    category.DeletedAt,
+		ID:            category.ID,
+		Name:          category.Name,
+		CoverImageURL: category.CoverImage,
+		IsActive:      category.IsActive,
+		CreatedAt:     category.CreatedAt,
+		UpdatedAt:     category.UpdatedAt,
 	}
 
 	return vc, nil
 }
 
 // Update updates name/description; prevents updates on deleted records
-func (r *VaultCategoryRepository) Update(ctx context.Context, id string, entity *model.VaultCategory) error {
+func (r *VaultCategoryRepository) Update(ctx context.Context, id string, entity *imodel.VaultCategory) error {
 	// Ensure not deleted
-	current, err := r.FindByID(ctx, id)
+	_, err := r.FindByID(ctx, id)
 	if err != nil {
 		return err
-	}
-	if current.IsDeleted {
-		return fmt.Errorf("CANNOT_UPDATE_DELETED_VAULT_CATEGORY %s", id)
 	}
 
 	params := sqlc.UpdateVaultCategoryParams{
 		Name:       sql.NullString{String: entity.Name, Valid: entity.Name != ""},
-		CoverImage: sql.NullString{String: entity.CoverImage, Valid: entity.CoverImage != ""},
+		CoverImage: sql.NullString{String: entity.CoverImageURL, Valid: entity.CoverImageURL != ""},
 		ID:         id,
 	}
 	_, err = sqlc.New(r.db).UpdateVaultCategory(ctx, params)
@@ -187,12 +176,9 @@ func (r *VaultCategoryRepository) Update(ctx context.Context, id string, entity 
 
 // Delete performs a soft delete; prevents double delete
 func (r *VaultCategoryRepository) Delete(ctx context.Context, id string) (string, error) {
-	current, err := r.FindByID(ctx, id)
+	_, err := r.FindByID(ctx, id)
 	if err != nil {
 		return "", err
-	}
-	if current.IsDeleted {
-		return "", fmt.Errorf("VAULT_CATEGORY_ALREADY_DELETED %s", id)
 	}
 	q := sqlc.New(r.db)
 	ret, err := q.DeleteVaultCategory(ctx, id)
@@ -207,12 +193,9 @@ func (r *VaultCategoryRepository) Delete(ctx context.Context, id string) (string
 
 // EnableOrDisable toggles active state; prevents toggling deleted records
 func (r *VaultCategoryRepository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	current, err := r.FindByID(ctx, id)
+	_, err := r.FindByID(ctx, id)
 	if err != nil {
 		return err
-	}
-	if current.IsDeleted {
-		return fmt.Errorf("CANNOT_ENABLE_DISABLE_DELETED_VAULT_CATEGORY %s", id)
 	}
 	q := sqlc.New(r.db)
 	if enable {

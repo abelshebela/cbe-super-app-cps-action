@@ -4,28 +4,23 @@ import (
 	"encoding/json"
 	"time"
 
-	vaultgroup_category "cbe-super-app-cps-action/internal/constants/dto/vault_category"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
-func CategoryMapper(action map[string]interface{}) model.VaultCategory {
-	category := model.VaultCategory{}
+func CategoryMapper(action map[string]interface{}) imodel.VaultCategory {
+	category := imodel.VaultCategory{}
 
 	if v, ok := action["name"]; ok {
 		if name, ok := v.(string); ok {
 			category.Name = name
 		}
 	}
-	if v, ok := action["category_type"]; ok {
-		if categoryType, ok := v.(string); ok {
-			category.CategoryType = categoryType
-		}
-	}
 
 	if v, ok := action["cover_image"]; ok {
 		if img, ok := v.(string); ok {
-			category.CoverImage = img
+			category.CoverImageURL = img
 		}
 	}
 	return category
@@ -48,16 +43,14 @@ func CategoryMapper(action map[string]interface{}) model.VaultCategory {
 // 	return result
 // }
 
-func MapVaultGroupCategoryToResponse(vaultGroupCategory *model.VaultCategory) *vaultgroup_category.VaultGroupCategoryResponse {
-	return &vaultgroup_category.VaultGroupCategoryResponse{
-		ID:         vaultGroupCategory.ID,
-		Name:       vaultGroupCategory.Name,
-		CoverImage: vaultGroupCategory.CoverImage,
-		IsActive:   vaultGroupCategory.IsActive,
-		IsDeleted:  vaultGroupCategory.IsDeleted,
-		CreatedAt:  vaultGroupCategory.CreatedAt,
-		UpdatedAt:  vaultGroupCategory.UpdatedAt,
-		DeletedAt:  vaultGroupCategory.DeletedAt,
+func MapVaultGroupCategoryToResponse(vaultGroupCategory *model.VaultCategory) *imodel.VaultCategory {
+	return &imodel.VaultCategory{
+		ID:            vaultGroupCategory.ID,
+		Name:          vaultGroupCategory.Name,
+		CoverImageURL: vaultGroupCategory.CoverImage,
+		IsActive:      vaultGroupCategory.IsActive,
+		CreatedAt:     vaultGroupCategory.CreatedAt,
+		UpdatedAt:     vaultGroupCategory.UpdatedAt,
 	}
 }
 

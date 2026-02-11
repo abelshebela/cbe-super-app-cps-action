@@ -11,8 +11,9 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
-	"fmt"
 	"strings"
+
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -87,7 +88,7 @@ func (s *vaultCategoryService) CreateVaultCategory(ctx context.Context, req *vau
 	return "", errors.New(localization.ErrorDuplicateGroupVaultCategory.Code)
 }
 
-func (s *vaultCategoryService) FindAllVaultCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*vaultgroup_category.VaultGroupCategoryResponse], error) {
+func (s *vaultCategoryService) FindAllVaultCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.VaultCategory], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllVaultGroupCategories", "vaultCategoryService", "vaultCategoryService")
 	defer span.End()
 
@@ -102,18 +103,19 @@ func (s *vaultCategoryService) FindAllVaultCategories(ctx context.Context, filte
 		s.logger.Errorf("failed to fetch vault group categories | err=%v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	resp := make([]*vaultgroup_category.VaultGroupCategoryResponse, 0, len(entities.Data))
+	resp := make([]*imodel.VaultCategory, 0, len(entities.Data))
 	for _, en := range entities.Data {
 		span.AddEvent("Mapping vault group category to response", trace.WithAttributes(attribute.String("id", en.ID)))
-		resp = append(resp, helperr.MapVaultGroupCategoryToResponse(en))
+		// resp = append(resp, helperr.MapVaultGroupCategoryToResponse(en))
+		resp = append(resp, en)
 	}
-	return &types.PaginatedResponse[[]*vaultgroup_category.VaultGroupCategoryResponse]{
+	return &types.PaginatedResponse[[]*imodel.VaultCategory]{
 		Data: resp,
 		Meta: entities.Meta,
 	}, nil
 }
 
-func (s *vaultCategoryService) GetVaultCategory(ctx context.Context, id string) (*vaultgroup_category.VaultGroupCategoryResponse, error) {
+func (s *vaultCategoryService) GetVaultCategory(ctx context.Context, id string) (*imodel.VaultCategory, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetVaultGroupCategory", "vaultCategoryService", "vaultCategoryService")
 	defer span.End()
 	entity, err := s.repo.FindByID(ctx, id)
@@ -126,7 +128,8 @@ func (s *vaultCategoryService) GetVaultCategory(ctx context.Context, id string) 
 		s.logger.Errorf("failed to fetch vault group category by id | err=%v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return helperr.MapVaultGroupCategoryToResponse(entity), nil
+	return entity, nil
+	// return helperr.MapVaultGroupCategoryToResponse(entity), nil
 }
 func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id string, req *vaultgroup_category.UpdateCategoryRequest) (string, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateVaultGroupCategory", "vaultCategoryService", "vaultCategoryService")
@@ -144,8 +147,7 @@ func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id strin
 	}
 
 	updatedName := strings.ToUpper(prev.Name)
-	updatedCover := prev.CoverImage
-	updatedCategoryType := prev.CategoryType
+	updatedCover := prev.CoverImageURL
 
 	// if req.Name != "" {
 	// 	updatedName = req.Name
@@ -167,11 +169,10 @@ func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id strin
 	}
 
 	req_data := &model.VaultCategory{
-		Name:         updatedName,
-		CategoryType: updatedCategoryType,
-		CoverImage:   updatedCover,
-		UpdatedAt:    time.Now(),
-		IsActive:     prev.IsActive,
+		Name:       updatedName,
+		CoverImage: updatedCover,
+		UpdatedAt:  time.Now(),
+		IsActive:   prev.IsActive,
 	}
 
 	makerData := local_util.ExtractUserFromContext(ctx)
@@ -214,11 +215,11 @@ func (s *vaultCategoryService) DeleteVaultCategory(ctx context.Context, id strin
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	if exist.IsDeleted {
-		span.AddEvent("Already deleted", trace.WithAttributes(attribute.String("id", id)))
-		s.logger.Errorf("vault group category already deleted with id: %s", id)
-		return "", errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
-	}
+	// if exist.IsDeleted {
+	// 	span.AddEvent("Already deleted", trace.WithAttributes(attribute.String("id", id)))
+	// 	s.logger.Errorf("vault group category already deleted with id: %s", id)
+	// 	return "", errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+	// }
 	if exist.IsActive {
 		span.AddEvent("Cannot delete active", trace.WithAttributes(attribute.String("id", id)))
 		s.logger.Errorf("cannot delete active vault group category with id: %s", id)
@@ -265,11 +266,11 @@ func (s *vaultCategoryService) EnableVaultCategory(ctx context.Context, id strin
 		}
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	if exist.IsDeleted {
-		span.AddEvent("Already deleted", trace.WithAttributes(attribute.String("id", id)))
-		s.logger.Errorf("vault group category already deleted with id: %s", id)
-		return localization.ErrorVaultGroupCategooryAlreadyDeleted
-	}
+	// if exist.IsDeleted {
+	// 	span.AddEvent("Already deleted", trace.WithAttributes(attribute.String("id", id)))
+	// 	s.logger.Errorf("vault group category already deleted with id: %s", id)
+	// 	return localization.ErrorVaultGroupCategooryAlreadyDeleted
+	// }
 	if exist.IsActive {
 		span.AddEvent("Already enabled", trace.WithAttributes(attribute.String("id", id)))
 		s.logger.Errorf("vault group category already enabled with id: %s", id)
@@ -360,7 +361,6 @@ func (s *vaultCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateVaultGroupCategory):
 		span.AddEvent("RequestCreateVaultGroupCategory", trace.WithAttributes(attribute.String("id", cpsAction.UniqueId)))
-		fmt.Println("========ACTION DATA NAME========", actionData.CategoryType)
 		_, err := s.repo.Create(ctx, &actionData)
 		if err != nil {
 			span.AddEvent("Failed to create vault group category", trace.WithAttributes(attribute.String("error", err.Error())))

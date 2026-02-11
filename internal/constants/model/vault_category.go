@@ -4,17 +4,43 @@ import (
 	"time"
 )
 
+type VaultTiers struct {
+	ID           string  `json:"id" bson:"_id,omitempty" gorm:"primaryKey"`
+	Name         string  `json:"name" bson:"name"`
+	TierInterest float64 `json:"tier_interest" bson:"tier_interest"`
+	MinAmount    float64 `json:"min" bson:"min"`
+	MaxAmount    float64 `json:"max" bson:"max"`
+}
+
 type VaultCategory struct {
-	ID           string     `json:"id" bson:"id"`
-	Name         string     `json:"name" bson:"name"`
-	CategoryType string     `json:"category_type" bson:"category_type"`
-	CoverImage   string     `json:"cover_image" bson:"cover_image"`
-	InterestType string     `json:"interest_type" bson:"interest_type"`
-	Interest     string     `json:"interest" bson:"interest"`
-	Deadlock     bool       `json:"deadlock" bson:"deadlock"`
-	IsActive     bool       `json:"is_active" bson:"is_active"`
-	IsDeleted    bool       `json:"is_deleted" bson:"is_deleted"`
-	CreatedAt    time.Time  `json:"created_at" bson:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at" bson:"updated_at"`
-	DeletedAt    *time.Time `json:"deleted_at,omitempty" bson:"deleted_at,omitempty"`
+	ID               string       `json:"id" bson:"_id,omitempty" gorm:"primaryKey"`
+	Name             string       `json:"name" bson:"name"`
+	CoverImageURL    string       `json:"cover_image_url" bson:"cover_image_url"`
+	InterestType     string       `json:"interest_type" bson:"interest_type"`
+	CategoryInterest float64      `json:"category_interest" bson:"category_interest"`
+	Deadlock         bool         `json:"deadlock" bson:"deadlock"`
+	Tiers            []VaultTiers `json:"tiers" bson:"tiers"`
+	IsActive         bool         `json:"is_active" bson:"is_active"`
+	CreatedAt        time.Time    `json:"created_at" bson:"created_at"`
+	UpdatedAt        time.Time    `json:"updated_at" bson:"updated_at"`
+}
+
+type Withdrawal struct {
+	ID string `json:"id" bson:"_id,omitempty" gorm:"primaryKey"`
+
+	LockedVaultID         string    `json:"locked_vault_id" bson:"locked_vault_id"`
+	Amount                float64   `json:"amount" bson:"amount"`
+	WithdrawerName        string    `json:"withdrawer_name" bson:"withdrawer_name"`
+	WithdrawerPhoneNumber string    `json:"withdrawer_phone_number" bson:"withdrawer_phone_number"`
+	Status                string    `json:"status" bson:"status"`
+	IsActive              bool      `json:"is_active" bson:"is_active"`
+	CreatedAt             time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt             time.Time `json:"updated_at" bson:"updated_at"`
+}
+
+type WithdrawalStatusHistory struct {
+	ID           string    `json:"id" bson:"_id,omitempty" gorm:"primaryKey"`
+	WithdrawalID string    `json:"withdrawal_id" bson:"withdrawal_id"`
+	Status       string    `json:"status" bson:"status"`
+	CreatedAt    time.Time `json:"created_at" bson:"created_at"`
 }

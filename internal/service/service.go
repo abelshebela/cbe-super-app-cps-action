@@ -685,8 +685,8 @@ type BankVaultService interface {
 type VaultCategoryService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateVaultCategory(ctx context.Context, req *vault_dto.CreateCategoryRequest) (string, error)
-	FindAllVaultCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*vault_dto.VaultGroupCategoryResponse], error)
-	GetVaultCategory(ctx context.Context, id string) (*vault_dto.VaultGroupCategoryResponse, error)
+	FindAllVaultCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.VaultCategory], error)
+	GetVaultCategory(ctx context.Context, id string) (*imodel.VaultCategory, error)
 	UpdateVaultCategory(ctx context.Context, id string, req *vault_dto.UpdateCategoryRequest) (string, error)
 	DeleteVaultCategory(ctx context.Context, id string) (string, error)
 	EnableVaultCategory(ctx context.Context, id string) error
