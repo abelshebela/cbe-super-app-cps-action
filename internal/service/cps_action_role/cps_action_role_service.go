@@ -530,13 +530,14 @@ func (s *cpsActionRoleService) validateUniqueIDsInGroups(groups [][]string) erro
 			allIDs = append(allIDs, id)
 		}
 	}
-	// Check existence in DB
-	exists, err := s.roleRepo.ExistsMany(context.Background(), allIDs)
+
+	distinctIDs := local_util.Distinct(allIDs)
+	exists, err := s.roleRepo.ExistsMany(context.Background(), distinctIDs)
 	if err != nil {
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	if !exists {
-		return errors.New(localization.ErrorResourceNotFound.Code)
+		return errors.New(localization.ErrorRoleNotFound.Code)
 	}
 	return nil
 }
