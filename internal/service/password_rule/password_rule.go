@@ -13,6 +13,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"unicode"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -151,6 +152,23 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		}
 		if !hasSpecial {
 			return false, "password must contain at least one special character"
+		}
+	}
+	if rule.AllowSequentialNumbers != nil && *rule.AllowSequentialNumbers == false {
+		for i := 1; i < len(password); i++ {
+			if unicode.IsDigit(rune(password[i])) && unicode.IsDigit(rune(password[i-1])) {
+				x := int(password[i] - '0')
+				y := int(password[i-1] - '0')
+				if x == y+1 {
+					return false, "password must not contain sequential numbers"
+				}
+			}
+		}
+	}
+
+	if rule.IsSpacedAllowed != nil && *rule.IsSpacedAllowed == false {
+		if strings.Contains(password, " ") {
+			return false, "password must not contain spaces"
 		}
 	}
 	return true, "Password is valid"
