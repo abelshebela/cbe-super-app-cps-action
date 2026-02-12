@@ -23,7 +23,7 @@ import (
 	"time"
 
 	bankvault "cbe-super-app-cps-action/internal/service/bankvault"
-	vaultGroupCategory "cbe-super-app-cps-action/internal/service/vaultgroup_category"
+	vault_category "cbe-super-app-cps-action/internal/service/vault_category"
 
 	bps_action_role_service "cbe-super-app-cps-action/internal/service/bps_action_role"
 	budgetCategorySvc "cbe-super-app-cps-action/internal/service/budget_category"
@@ -129,7 +129,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	transactionService := transaction.NewTransactionService(oracle.Transaction, logger)
 	encryptionService := encryption_service.NewEncryptionService(cfg, logger)
 	bankVaultProductService := bankvault.NewBankVaultService(oracle.BankVault, nil, logger)
-	vaultGroupCategoryService := vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, nil, logger, minioClient, minioPubUrl, VaultCategoryBucketName, cfg)
+	vaultCategoryService := vault_category.NewVaultCategoryService(oracle.vaultCategory, nil, logger, minioClient, minioPubUrl, VaultCategoryBucketName, cfg)
 	bpsActionRoleService := bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.JobRolePersistence, nil, logger)
 	miniAppCategory := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
 	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, nil, logger)
@@ -190,7 +190,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		NewsTagsServiceContainer:          newsTagsService,
 		EncryptionContainer:               encryptionService,
 		BankProductContainer:              bankVaultProductService,
-		VaultCategoryContainer:            vaultGroupCategoryService,
+		VaultCategoryContainer:            vaultCategoryService,
 		BPSActionRoleContainer:            bpsActionRoleService,
 		MiniAppCategoryContainer:          miniAppCategory,
 		CPSActionRoleContainer:            cpsActionRoleService,
@@ -290,7 +290,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	articleService = media.NewMediaService(persistence.ArticlePersistence, redis, logger)
 	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, persistence.AccountBlockPersistence, cpsActionService, logger)
 	bankVaultProductService = bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
-	vaultGroupCategoryService = vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, cpsActionService, logger, minioClient, minioPubUrl, cfg.S3BucketName, cfg)
+	vaultCategoryService = vault_category.NewVaultCategoryService(oracle.vaultCategory, cpsActionService, logger, minioClient, minioPubUrl, cfg.S3BucketName, cfg)
 	eventMerchantService = event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, cpsActionService, accountLookupAdapter, cfg, logger)
 
 	logisticsMerchantService = logistics_merchant_service.NewLogisticsMerchantService(persistence.LogisticsMerchantPersistence, cpsActionService, accountLookupAdapter, cfg, logger)
@@ -351,7 +351,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		DeviceVersion:                 deviceVersionService,
 		Encryption:                    encryptionService,
 		BankVault:                     bankVaultProductService,
-		VaultGroupCategory:            vaultGroupCategoryService,
+		VaultCategoryService:          vaultCategoryService,
 		BPSActionRole:                 bpsActionRoleService,
 		MiniAppCategory:               miniAppCategory,
 		CPSActionRole:                 cpsActionRoleService,

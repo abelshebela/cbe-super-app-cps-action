@@ -20,7 +20,7 @@ import (
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	"cbe-super-app-cps-action/internal/constants/dto/customer"
 	topupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
-	vaultgroup "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
+	vault_dto "cbe-super-app-cps-action/internal/constants/dto/vault_category"
 
 	notify "cbe-super-app-cps-action/internal/constants/dto/notification"
 
@@ -34,7 +34,6 @@ import (
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 	vault_amount_dto "cbe-super-app-cps-action/internal/constants/dto/vault_amount_tier"
-	vaultCategory_dto "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -557,7 +556,7 @@ type ServiceLayer struct {
 	Services                      ServicesService
 	AccountValidation             AccountValidationService
 	BankVault                     BankVaultService
-	VaultGroupCategory            VaultGroupCategoryService
+	VaultCategoryService          VaultCategoryService
 	DonationCategory              DonationCategoryService
 	DonationCompany               DonationCompanyService
 	Donation                      DonationService
@@ -638,7 +637,7 @@ type ServiceContainer struct {
 	NewsTagsServiceContainer           NewsTagsService
 	EncryptionContainer                EncryptionService
 	BankProductContainer               BankVaultService
-	VaultCategoryContainer             VaultGroupCategoryService
+	VaultCategoryContainer             VaultCategoryService
 	BPSActionRoleContainer             BPSActionRoleService
 	TransactionContainer               TransactionService
 	MiniAppCategoryContainer           MiniAppCategoryService
@@ -683,15 +682,15 @@ type BankVaultService interface {
 	FindAllGroupVaultsWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.GroupVault], error)
 	// GetGroupVault(ctx context.Context, id string) (*bankvault.GroupVaultResponse, error)
 }
-type VaultGroupCategoryService interface {
+type VaultCategoryService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	CreateVaultGroupCategory(ctx context.Context, req *vaultCategory_dto.CreateVaultGroupCategoryRequest) (string, error)
-	FindAllVaultGroupCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*vaultgroup.VaultGroupCategoryResponse], error)
-	GetVaultGroupCategory(ctx context.Context, id string) (*vaultgroup.VaultGroupCategoryResponse, error)
-	UpdateVaultGroupCategory(ctx context.Context, id string, req *vaultCategory_dto.UpdateVaultGroupCategoryRequest) (string, error)
-	DeleteVaultGroupCategory(ctx context.Context, id string) (string, error)
-	EnableVaultGroupCategory(ctx context.Context, id string) error
-	DisableVaultGroupCategory(ctx context.Context, id string) error
+	CreateVaultCategory(ctx context.Context, req *vault_dto.CreateCategoryRequest) (string, error)
+	FindAllVaultCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.VaultCategory], error)
+	GetVaultCategory(ctx context.Context, id string) (*imodel.VaultCategory, error)
+	UpdateVaultCategory(ctx context.Context, id string, req *vault_dto.UpdateCategoryRequest) (string, error)
+	DeleteVaultCategory(ctx context.Context, id string) (string, error)
+	EnableVaultCategory(ctx context.Context, id string) error
+	DisableVaultCategory(ctx context.Context, id string) error
 }
 type VaultAmountBasedTierService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)

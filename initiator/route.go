@@ -41,7 +41,7 @@ import (
 	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
 	"cbe-super-app-cps-action/internal/glue/routing/notification"
 	"cbe-super-app-cps-action/internal/glue/routing/topup"
-	vaultgroupcategory "cbe-super-app-cps-action/internal/glue/routing/vaultgroup_category"
+	vaultcategory "cbe-super-app-cps-action/internal/glue/routing/vault_category"
 	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
 	cps_roles "cbe-super-app-cps-action/internal/glue/routing/cps_roles"
@@ -75,7 +75,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 
-	"cbe-super-app-cps-action/docs" 
+	"cbe-super-app-cps-action/docs"
 )
 
 func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, client cps_auth.CpsAuthServiceClient, redisRepository storage.RedisRepository, logger utils.Logger, cfg *config.VaultConfig) {
@@ -136,7 +136,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
 	device_version.Init(r, handlerLayer.DeviceVersionHandler, authMiddleware)
 	bankvaultroutes.Init(r, handlerLayer.BankVaultHandler, authMiddleware)
-	vaultgroupcategory.Init(r, handlerLayer.VaultGroupCategoryHandler, authMiddleware)
+	vaultcategory.Init(r, handlerLayer.VaultCategoryHandler, authMiddleware)
 
 	donation.Init(r, handlerLayer.DonationHandler, authMiddleware)
 	donation_category.Init(r, handlerLayer.DonationCategoryHandler, authMiddleware)

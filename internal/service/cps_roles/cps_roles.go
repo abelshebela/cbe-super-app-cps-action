@@ -31,6 +31,12 @@ func NewCPSRoleService(repo storage.CPSRolesRepository, cpsService service.CPSAc
 func (r *cpsRoleService) Create(ctx context.Context, req cps_role_dto.CreateCPSRoleRequest) error {
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
+	cpsRole, _ := r.repo.FindByName(ctx, req.Name)
+	if cpsRole != nil {
+		r.logger.Errorf("[Create] CPS role already exists")
+		return errors.New("CPS role already exists")
+	}
+
 	enabled := true
 	role := model.CPSRoles{
 		Name:      req.Name,

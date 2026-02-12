@@ -357,12 +357,12 @@ type BankVaultRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
 
-type VaultGroupCategoryRepository interface {
-	Create(ctx context.Context, vaultGroupCategory *model.VaultCategory) (string, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultCategory], error)
-	FindByID(ctx context.Context, id string) (*model.VaultCategory, error)
-	GetGroupcategoryByName(ctx context.Context, groupName string) (*model.VaultCategory, error)
-	Update(ctx context.Context, id string, vaultGroupCategory *model.VaultCategory) error
+type VaultCategoryRepository interface {
+	Create(ctx context.Context, vaultCategory *imodel.VaultCategory) (string, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.VaultCategory], error)
+	FindByID(ctx context.Context, id string) (*imodel.VaultCategory, error)
+	FindByName(ctx context.Context, groupName string) (*imodel.VaultCategory, error)
+	Update(ctx context.Context, id string, vaultCategory *imodel.VaultCategory) error
 	Delete(ctx context.Context, id string) (string, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
@@ -769,6 +769,7 @@ type CPSRolesRepository interface {
 	Update(ctx context.Context, id string, req model.CPSRoles) error
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.CPSRoles], error)
 	FindById(ctx context.Context, id string) (*model.CPSRoles, error)
+	FindByName(ctx context.Context, name string) (*model.CPSRoles, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*model.CPSRoles, error)
 }
