@@ -1,24 +1,24 @@
 package customerkyc
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants"
 	"mime/multipart"
 )
 
 type CreateCustomerKYCRequest struct {
-	AccountType          model.AccountType      `json:"account_type" validate:"required"`
-	CustomerName         CustomerInfoRequest    `json:"customer_name" validate:"required"`
-	Address              AddressRequest         `json:"address" validate:"required"`
-	Nationality          string                 `json:"nationality" validate:"required"`
-	MaritalStatus        model.MaritalStatus    `json:"marital_status" validate:"required"`
-	EmploymentStatus     model.EmploymentStatus `json:"employment_status" validate:"required"`
-	Occupation           string                 `json:"occupation,omitempty"`
-	AverageMonthlyIncome string                 `json:"average_monthly_income,omitempty"`
-	EducationStatus      string                 `json:"education_status,omitempty"`
-	SourceOfFund         string                 `json:"source_of_fund,omitempty"`
-	TermsAndConditions   string                 `json:"terms_and_conditions" validate:"required"`
-	LivenessCheck        LivenessCheckRequest   `json:"liveness_video"`
-	VerificationResult   VerificationResult     `json:"verification_result"`
+	AccountType          constants.AccountType      `json:"account_type" validate:"required"`
+	CustomerName         CustomerInfoRequest        `json:"customer_name" validate:"required"`
+	Address              AddressRequest             `json:"address" validate:"required"`
+	Nationality          string                     `json:"nationality" validate:"required"`
+	MaritalStatus        constants.MaritalStatus    `json:"marital_status" validate:"required"`
+	EmploymentStatus     constants.EmploymentStatus `json:"employment_status" validate:"required"`
+	Occupation           string                     `json:"occupation,omitempty"`
+	AverageMonthlyIncome string                     `json:"average_monthly_income,omitempty"`
+	EducationStatus      string                     `json:"education_status,omitempty"`
+	SourceOfFund         string                     `json:"source_of_fund,omitempty"`
+	TermsAndConditions   string                     `json:"terms_and_conditions" validate:"required"`
+	LivenessCheck        LivenessCheckRequest       `json:"liveness_video"`
+	VerificationResult   VerificationResult         `json:"verification_result"`
 }
 
 type CustomerInfoRequest struct {

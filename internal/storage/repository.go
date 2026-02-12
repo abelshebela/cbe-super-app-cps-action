@@ -342,6 +342,7 @@ type CpsUserRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*cps_user_dto.CPSUserWithDepartment], error)
 	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*imodel.CPSUser, error)
 	FindByEmail(ctx context.Context, email string) (*imodel.CPSUser, error)
+	FindByEmailOrPhoneNumberOrUserName(ctx context.Context, email string, phoneNumber string, username string) (*imodel.CPSUser, error)
 }
 
 type BankVaultRepository interface {
@@ -768,7 +769,9 @@ type CPSRolesRepository interface {
 	Update(ctx context.Context, id string, req model.CPSRoles) error
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.CPSRoles], error)
 	FindById(ctx context.Context, id string) (*model.CPSRoles, error)
+	FindByName(ctx context.Context, name string) (*model.CPSRoles, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*model.CPSRoles, error)
 }
 
 type CustomerKYCRepository interface {
