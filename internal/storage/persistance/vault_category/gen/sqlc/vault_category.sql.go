@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+
 	"github.com/google/uuid"
 )
 
@@ -176,7 +178,14 @@ func (q *Queries) FindVaultCategoryById(ctx context.Context, id string) (VaultCa
 }
 
 const findVaultCategoryByName = `-- name: FindVaultCategoryByName :one
-SELECT id, name, is_active, is_deleted, created_at, updated_at, deleted_at
+SELECT
+  id,
+  name,
+  category_type,
+  cover_image,
+  is_active,
+  created_at,
+  updated_at
 FROM vault_categories
 WHERE UPPER(name) = UPPER(:name)`
 
@@ -197,42 +206,75 @@ func (q *Queries) FindVaultCategoryByName(ctx context.Context, name string) (Vau
 
 const saveVaultCategory = `-- name: SaveVaultCategory :one
 INSERT INTO vault_categories (
-  id,
-  name,
-  category_type,
-  cover_image,
-  is_active
+    id,
+    name,
+    cover_image_url,
+    interest_type,
+    category_interest,
+    deadlock,
+    is_active,
+    created_at,
+    updated_at
 ) VALUES (
-  UPPER(:1),
-  :2,
-  :3,
-  :4,
-  :5
+    :1, :2, :3, :4, :5, :6, :7, SYSTIMESTAMP, SYSTIMESTAMP
 )
-RETURNING id INTO :result`
+RETURNING id INTO :8`
 
-type SaveVaultCategoryParams struct {
-	ID           string       `json:"id"`
-	Name         string       `json:"name"`
-	CategoryType string       `json:"category_type"`
-	CoverImage   string       `json:"cover_image"`
-	IsActive     sql.NullBool `json:"is_active"`
-}
+const saveVaultTier = `-- name: SaveVaultTier :exec
+INSERT INTO vault_tiers (
+    id,
+    category_id,
+    name,
+    tier_interest,
+    min_amount,
+    max_amount
+) VALUES (
+    :1, :2, :3, :4, :5, :6
+)`
 
-func (q *Queries) SaveVaultCategory(ctx context.Context, arg SaveVaultCategoryParams) (string, error) {
-	var id string
-	_, err := q.db.ExecContext(ctx, saveVaultCategory,
-		generateUUID(),
+func (q *Queries) SaveVaultCategory(ctx context.Context, arg *imodel.VaultCategory) (string, error) {
+	categoryID := generateUUID()
+
+	// Insert category
+	_, err := q.db.ExecContext(
+		ctx,
+		saveVaultCategory,
+		categoryID,
 		strings.ToUpper(arg.Name),
-		arg.CategoryType,
-		arg.CoverImage,
-		utils.NullBoolToInt(arg.IsActive),
-		sql.Out{Dest: &id},
+		arg.CoverImageURL,
+		arg.InterestType,
+		arg.CategoryInterest,
+		arg.Deadlock,
+		arg.IsActive,
+		sql.Out{Dest: &categoryID},
 	)
 	if err != nil {
-		return "", fmt.Errorf("failed to save vault  category: %w", err)
+		return "", fmt.Errorf("insert category failed: %w", err)
 	}
-	return id, nil
+
+	return categoryID, nil
+}
+
+func (q *Queries) SaveVaultTiers(ctx context.Context, categoryID string, arg *imodel.VaultCategory) error {
+	for _, tier := range arg.Tiers {
+		tierID := generateUUID()
+
+		_, err := q.db.ExecContext(
+			ctx,
+			saveVaultTier,
+			tierID,
+			categoryID,
+			tier.Name,
+			tier.TierInterest,
+			tier.MinAmount,
+			tier.MaxAmount,
+		)
+
+		if err != nil {
+			return fmt.Errorf("insert tier failed: %w", err)
+		}
+	}
+	return nil
 }
 
 const updateVaultCategory = `-- name: UpdateVaultCategory :one

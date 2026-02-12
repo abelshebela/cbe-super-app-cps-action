@@ -47,12 +47,6 @@ func CategoryMapper(action map[string]interface{}) imodel.VaultCategory {
 		}
 	}
 
-	if v, ok := action["tiers"]; ok {
-		if tiersRaw, ok := v.([]interface{}); ok {
-			category.Tiers = TiersMapper(tiersRaw)
-		}
-	}
-
 	return category
 }
 
@@ -104,7 +98,6 @@ func MapVaultCategoryToResponse(vaultCategory *imodel.VaultCategory) *imodel.Vau
 		InterestType:     vaultCategory.InterestType,
 		CategoryInterest: vaultCategory.CategoryInterest,
 		Deadlock:         vaultCategory.Deadlock,
-		Tiers:            vaultCategory.Tiers,
 		IsActive:         vaultCategory.IsActive,
 		CreatedAt:        vaultCategory.CreatedAt,
 		UpdatedAt:        vaultCategory.UpdatedAt,
@@ -145,12 +138,6 @@ func MapCamelCaseToVaultCategory(jsonBytes []byte) (imodel.VaultCategory, error)
 	result.IsActive = getBool(data, "is_active")
 	result.CreatedAt = getTime(data, "created_at")
 	result.UpdatedAt = getTime(data, "updated_at")
-
-	if v, ok := data["tiers"]; ok {
-		if tiersRaw, ok := v.([]interface{}); ok {
-			result.Tiers = TiersMapper(tiersRaw)
-		}
-	}
 
 	return result, nil
 }

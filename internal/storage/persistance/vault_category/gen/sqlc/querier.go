@@ -5,6 +5,7 @@
 package sqlc
 
 import (
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"context"
 )
 
@@ -15,7 +16,7 @@ type Querier interface {
 	FindVaultCategory(ctx context.Context, arg FindVaultCategoryParams) ([]VaultCategory, error)
 	FindVaultCategoryById(ctx context.Context, id string) (VaultCategory, error)
 	FindVaultCategoryByName(ctx context.Context, name string) (VaultCategory, error)
-	SaveVaultCategory(ctx context.Context, arg SaveVaultCategoryParams) (string, error)
+	SaveVaultCategory(ctx context.Context, arg *imodel.VaultCategory) (string, error)
 	UpdateVaultCategory(ctx context.Context, arg UpdateVaultCategoryParams) (string, error)
 }
 

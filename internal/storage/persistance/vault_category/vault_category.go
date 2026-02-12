@@ -39,17 +39,29 @@ func (r *VaultCategoryRepository) Create(ctx context.Context, entity *imodel.Vau
 		return "", err
 	}
 
-	params := sqlc.SaveVaultCategoryParams{
-		ID:         strings.ToUpper(entity.ID),
-		Name:       strings.ToUpper(entity.Name),
-		CoverImage: entity.CoverImageURL,
-		IsActive:   sql.NullBool{Bool: entity.IsActive, Valid: true},
-	}
-	id, err := q.SaveVaultCategory(ctx, params)
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return "", err
 	}
-	return strings.ToUpper(id), nil
+	defer tx.Rollback()
+
+	qtx := q.WithTx(tx)
+
+	categoryID, err := qtx.SaveVaultCategory(ctx, entity)
+	if err != nil {
+		return "", err
+	}
+
+	err = qtx.SaveVaultTiers(ctx, categoryID, entity)
+	if err != nil {
+		return "", err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return "", err
+	}
+
+	return strings.ToUpper(categoryID), nil
 }
 
 // FindAllWithPagination lists categories with filters and pagination, including deleted ones
