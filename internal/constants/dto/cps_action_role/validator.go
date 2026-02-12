@@ -8,6 +8,14 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
+func (c *CancelRequest) Validate() error {
+	return validation.ValidateStruct(&c,
+		validation.Field(&c.Reason,
+			validation.Required.Error("Reason is required"),
+		),
+	)
+}
+
 func (r CreateActionRoleRequest) Validate() error {
 	err := validation.ValidateStruct(&r,
 		validation.Field(&r.ActionName,

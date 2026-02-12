@@ -218,6 +218,17 @@ func (a *cpsActionAdapter) CancelCPSAction(w http.ResponseWriter, r *http.Reques
 	defer span.End()
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
 
+	var req cps_actionrole_dto.CancelRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
 	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, "")
 	if err != nil {
 		span.RecordError(err)
@@ -241,6 +252,7 @@ func (a *cpsActionAdapter) CancelCPSAction(w http.ResponseWriter, r *http.Reques
 	}
 
 	action.ActionStatus = string(constants.Canceled)
+	action.RejectionReason = string(req.Reason)
 
 	if err := a.cpsActionApplication.RejectCPSAction(ctx, actionCode, action); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())

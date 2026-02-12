@@ -35,6 +35,11 @@ type AuditorMarkRequest struct {
 	Mark   string `json:"mark"`
 	Reason string `json:"reason"`
 }
+
+type CancelRequest struct {
+	Reason string `json:"reason"`
+}
+
 type GetActionRoleByActionCodeRes struct {
 	ID                   bson.ObjectID     `json:"_id" bson:"_id"`
 	ActionCode           string            `json:"action_code" bson:"action_code"`
