@@ -9,6 +9,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/device_version/core"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
 	"fmt"
@@ -26,13 +27,15 @@ import (
 type DeviceVersionService struct {
 	deviceVersionRepo storage.DeviceVersionControlRepository
 	cpsService        service.CPSActionService
+	kafkaProducer     *kafka.ClientOrchestrationProducer
 	logger            utils.Logger
 }
 
-func NewDeviceVersionService(deviceVersionRepo storage.DeviceVersionControlRepository, cpsService service.CPSActionService, logger utils.Logger) service.DeviceVersionServiceSrv {
+func NewDeviceVersionService(deviceVersionRepo storage.DeviceVersionControlRepository, cpsService service.CPSActionService, kafkaProducer *kafka.ClientOrchestrationProducer, logger utils.Logger) service.DeviceVersionServiceSrv {
 	return &DeviceVersionService{
 		deviceVersionRepo: deviceVersionRepo,
 		cpsService:        cpsService,
+		kafkaProducer:     kafkaProducer,
 		logger:            logger,
 	}
 
@@ -74,6 +77,27 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 			))
 			return nil, err
 		}
+
+		createdDeviceVersion, err := d.deviceVersionRepo.FindOne(ctx, actionData.Platform, actionData.LatestVersion)
+		if err != nil {
+			d.logger.Errorf("[Authorize] failed to fetch created device version for kafka publish: %v", err)
+			span.AddEvent("Failed to fetch created device version for kafka publish", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("platform", actionData.Platform),
+				attribute.String("version", actionData.LatestVersion),
+			))
+		} else {
+			if d.kafkaProducer != nil {
+				if err := d.kafkaProducer.PublishMessage(ctx, createdDeviceVersion, string(constants.DeviceVersionControlTopic), string(constants.DeviceVersionControlTopic), "new device version control created"); err != nil {
+					d.logger.Errorf("[Authorize] kafka publish failed for created device version: %v", err)
+					span.AddEvent("Kafka publish failed for created device version", trace.WithAttributes(
+						attribute.String("error", err.Error()),
+						attribute.String("platform", actionData.Platform),
+						attribute.String("version", actionData.LatestVersion),
+					))
+				}
+			}
+		}
 		d.logger.Infof("[Authorize] device version created successfully for platform: %s", actionData.Platform)
 	case string(constants.RequestUpdateDeviceVersion), string(constants.RequestEnableDisableDeviceVersion):
 		updateData, err := core.UpdateDeviceVersionBsonForDb(*actionData, cpsAction.MakerName)
@@ -92,6 +116,25 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			return nil, err
+		}
+
+		updatedDeviceVersion, err := d.deviceVersionRepo.FindByID(ctx, cpsAction.UniqueId)
+		if err != nil {
+			d.logger.Errorf("[Authorize] failed to fetch updated device version for kafka publish: %v", err)
+			span.AddEvent("Failed to fetch updated device version for kafka publish", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+		} else {
+			if d.kafkaProducer != nil {
+				if err := d.kafkaProducer.PublishMessage(ctx, updatedDeviceVersion, string(constants.DeviceVersionControlTopic), string(constants.DeviceVersionControlTopic), "update device version control"); err != nil {
+					d.logger.Errorf("[Authorize] kafka publish failed for updated device version: %v", err)
+					span.AddEvent("Kafka publish failed for updated device version", trace.WithAttributes(
+						attribute.String("error", err.Error()),
+						attribute.String("unique_id", cpsAction.UniqueId),
+					))
+				}
+			}
 		}
 		d.logger.Infof("[Authorize] device version updated successfully for id: %s", cpsAction.UniqueId)
 

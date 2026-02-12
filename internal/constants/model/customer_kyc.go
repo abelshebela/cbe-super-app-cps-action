@@ -1,43 +1,10 @@
 package model
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
-)
-
-type AccountType string
-type CustomerStatus string
-type MaritalStatus string
-type EmploymentStatus string
-
-const (
-	CustomerActive  CustomerStatus = "ACTIVE"
-	CustomerPending CustomerStatus = "PENDING"
-	CustomerExpired CustomerStatus = "EXPIRED"
-)
-
-const (
-	ConventionalAccount AccountType = "CONVENTIONAL"
-	CBENoor             AccountType = "CBENOOR"
-)
-
-const (
-	MaritalMarried  MaritalStatus = "MARRIED"
-	MaritalDivorced MaritalStatus = "DIVORCED"
-	MaritalSingle   MaritalStatus = "SINGLE"
-	MaritalWidowed  MaritalStatus = "WIDOWED"
-)
-
-const (
-	EmploymentStatusAgent      EmploymentStatus = "AGENT"
-	EmploymentStatusEmployed   EmploymentStatus = "EMPLOYED"
-	EmploymentStatusForeigner  EmploymentStatus = "FOREIGNER"
-	EmploymentStatusMinor      EmploymentStatus = "MINOR"
-	EmploymentStatusPensioner  EmploymentStatus = "PENSIONER"
-	EmploymentStatusCBEStaff   EmploymentStatus = "STAFF_OF_CBE"
-	EmploymentStatusUnemployed EmploymentStatus = "UNEMPLOYED"
-	EmploymentStatusOther      EmploymentStatus = "OTHER_INDIVIDUALS"
 )
 
 type CustomerInfo struct {
@@ -74,24 +41,24 @@ type VerificationResult struct {
 }
 
 type CustomerKYC struct {
-	ID                   bson.ObjectID      `json:"id" bson:"_id,omitempty"`
-	CustomerCode         string             `json:"customer_code" bson:"customer_code"`
-	AccountType          AccountType        `json:"account_type" bson:"account_type"`
-	CustomerName         CustomerInfo       `json:"customer_name" bson:"customer_name"`
-	Address              Address            `json:"address" bson:"address"`
-	Nationality          string             `json:"nationality" bson:"nationality"`
-	MaritalStatus        MaritalStatus      `json:"marital_status" bson:"marital_status"`
-	CustomerStatus       CustomerStatus     `json:"customer_status" bson:"customer_status"`
-	EmploymentStatus     EmploymentStatus   `json:"employment_status" bson:"employment_status"`
-	Occupation           string             `json:"occupation" bson:"occupation"`
-	AverageMonthlyIncome string             `json:"average_monthly_income" bson:"average_monthly_income"`
-	EducationStatus      string             `json:"education_status" bson:"education_status"`
-	SourceOfFund         string             `json:"source_of_fund" bson:"source_of_fund"`
-	KYCStatus            string             `json:"kyc_status" bson:"kyc_status"`
-	LivenessCheck        LivenessCheck      `json:"liveness_check" bson:"liveness_check"`
-	VerificationResult   VerificationResult `json:"verification_result" bson:"verification_result"`
-	MoneyLaunderingFree  bool               `json:"money_laundering_free" bson:"money_laundering_free"`
-	TermsAndConditions   string             `json:"terms_and_conditions" bson:"terms_and_conditions"`
-	CreatedAt            time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt            time.Time          `json:"updated_at" bson:"updated_at"`
+	ID                   bson.ObjectID              `json:"id" bson:"_id,omitempty"`
+	CustomerCode         string                     `json:"customer_code" bson:"customer_code"`
+	AccountType          constants.AccountType      `json:"account_type" bson:"account_type"`
+	CustomerName         CustomerInfo               `json:"customer_name" bson:"customer_name"`
+	Address              Address                    `json:"address" bson:"address"`
+	Nationality          string                     `json:"nationality" bson:"nationality"`
+	MaritalStatus        constants.MaritalStatus    `json:"marital_status" bson:"marital_status"`
+	CustomerStatus       constants.CustomerStatus   `json:"customer_status" bson:"customer_status"`
+	EmploymentStatus     constants.EmploymentStatus `json:"employment_status" bson:"employment_status"`
+	Occupation           string                     `json:"occupation" bson:"occupation"`
+	AverageMonthlyIncome string                     `json:"average_monthly_income" bson:"average_monthly_income"`
+	EducationStatus      string                     `json:"education_status" bson:"education_status"`
+	SourceOfFund         string                     `json:"source_of_fund" bson:"source_of_fund"`
+	KYCStatus            string                     `json:"kyc_status" bson:"kyc_status"`
+	LivenessCheck        LivenessCheck              `json:"liveness_check" bson:"liveness_check"`
+	VerificationResult   VerificationResult         `json:"verification_result" bson:"verification_result"`
+	MoneyLaunderingFree  bool                       `json:"money_laundering_free" bson:"money_laundering_free"`
+	TermsAndConditions   string                     `json:"terms_and_conditions" bson:"terms_and_conditions"`
+	CreatedAt            time.Time                  `json:"created_at" bson:"created_at"`
+	UpdatedAt            time.Time                  `json:"updated_at" bson:"updated_at"`
 }
