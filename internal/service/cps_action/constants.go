@@ -303,11 +303,13 @@ const (
 	RequestDisAbleBankVault RequestAction = "DISABLE_VAULT_BANK"
 
 	// for vault group category
-	RequestCreateVaultGroupCategory  RequestAction = "CREATE_VAULT_GROUP_CATEGORY"
-	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE_VAULT_GROUP_CATEGORY"
-	RequestDeleteVaultGroupCategory  RequestAction = "DELETE_VAULT_GROUP_CATEGORY"
-	RequestEnableVaultGroupCategory  RequestAction = "ENABLE_VAULT_GROUP_CATEGORY"
-	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE_VAULT_GROUP_CATEGORY"
+	RequestCreateVaultCategory  RequestAction = "CREATE_VAULT_CATEGORY"
+	RequestUpdateVaultCategory  RequestAction = "UPDATE_VAULT_CATEGORY"
+	RequestDeleteVaultCategory  RequestAction = "DELETE_VAULT_CATEGORY"
+	RequestEnableVaultCategory  RequestAction = "ENABLE_VAULT_CATEGORY"
+	RequestDisAbleVaultCategory RequestAction = "DISABLE_VAULT_CATEGORY"
+	RequestCreateWithdrawal     RequestAction = "CREATE_LOCKED_VAULT_WITHDRAWAL"
+	RequestUpdateWithdrawal     RequestAction = "UPDATE_LOCKED_VAULT_WITHDRAWAL"
 
 	RequestCreateVaultAmountTier  RequestAction = "CREATE_VAULT_AMOUNT_TIER"
 	RequestUpdateVaultAmountTier  RequestAction = "UPDATE_VAULT_AMOUNT_TIER"
@@ -401,11 +403,13 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDisableCpsRole: {},
 
 	// for vault group category
-	RequestCreateVaultGroupCategory:  {},
-	RequestUpdateVaultGroupCategory:  {},
-	RequestDeleteVaultGroupCategory:  {},
-	RequestEnableVaultGroupCategory:  {},
-	RequestDisAbleVaultGroupCategory: {},
+	RequestCreateVaultCategory:  {},
+	RequestUpdateVaultCategory:  {},
+	RequestDeleteVaultCategory:  {},
+	RequestEnableVaultCategory:  {},
+	RequestDisAbleVaultCategory: {},
+	RequestCreateWithdrawal:     {},
+	RequestUpdateWithdrawal:     {},
 
 	RequestBpsUserCreate:  {},
 	RequestBpsUserUpdate:  {},
@@ -739,12 +743,14 @@ var RequestActionGroups = map[string][]RequestAction{
 	"PASSWORDRULE": {
 		RequestUpdatePasswordRule,
 	},
-	"VAULTCATEGORY": {
-		RequestCreateVaultGroupCategory,
-		RequestUpdateVaultGroupCategory,
-		RequestDeleteVaultGroupCategory,
-		RequestEnableVaultGroupCategory,
-		RequestDisAbleVaultGroupCategory,
+	"VAULT": {
+		RequestCreateVaultCategory,
+		RequestUpdateVaultCategory,
+		RequestDeleteVaultCategory,
+		RequestEnableVaultCategory,
+		RequestDisAbleVaultCategory,
+		RequestCreateWithdrawal,
+		RequestUpdateWithdrawal,
 	},
 
 	// Legacy/operational modules (kept as requested)
@@ -1001,13 +1007,6 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateDonationCompany,
 		RequestEnableDonationCompany,
 		RequestDisableDonationCompany,
-	},
-	"VAULTGROUPCATEGORY": {
-		RequestCreateVaultGroupCategory,
-		RequestUpdateVaultGroupCategory,
-		RequestDeleteVaultGroupCategory,
-		RequestEnableVaultGroupCategory,
-		RequestDisAbleVaultGroupCategory,
 	},
 	"KYCVERIFIER": {
 		RequestUpdateKYCVerifier,
