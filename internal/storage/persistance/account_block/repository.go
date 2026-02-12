@@ -403,12 +403,7 @@ func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	filter["type"] = "D"
 
-	if regionId, ok := filterParam.Filters["region_id"].(string); ok && regionId != "" {
-		objID, err := bson.ObjectIDFromHex(regionId)
-		if err == nil {
-			filter["region_id"] = objID
-		}
-	}
+	ApplyIDFilter(filter, filterParam.Filters, "region_id")
 
 	collection := a.client.Database(a.dbName).Collection("account_block")
 	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)
