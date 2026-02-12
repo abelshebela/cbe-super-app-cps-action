@@ -459,6 +459,9 @@ const (
 	RequestEnableVaultCategory  RequestAction = "ENABLE_VAULT_CATEGORY"
 	RequestDisAbleVaultCategory RequestAction = "DISABLE_VAULT_CATEGORY"
 
+	RequestCreateWithdrawal RequestAction = "CREATE_LOCKED_VAULT_WITHDRAWAL"
+	RequestUpdateWithdrawal RequestAction = "UPDATE_LOCKED_VAULT_WITHDRAWAL"
+
 	// Newly added for block_account
 	// Branch
 	RequestEnableBranches  RequestAction = "REQUEST_ENABLE_BRANCHES"

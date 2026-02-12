@@ -308,6 +308,8 @@ const (
 	RequestDeleteVaultCategory  RequestAction = "DELETE_VAULT_CATEGORY"
 	RequestEnableVaultCategory  RequestAction = "ENABLE_VAULT_CATEGORY"
 	RequestDisAbleVaultCategory RequestAction = "DISABLE_VAULT_CATEGORY"
+	RequestCreateWithdrawal     RequestAction = "CREATE_LOCKED_VAULT_WITHDRAWAL"
+	RequestUpdateWithdrawal     RequestAction = "UPDATE_LOCKED_VAULT_WITHDRAWAL"
 
 	RequestCreateVaultAmountTier  RequestAction = "CREATE_VAULT_AMOUNT_TIER"
 	RequestUpdateVaultAmountTier  RequestAction = "UPDATE_VAULT_AMOUNT_TIER"
@@ -406,6 +408,8 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteVaultCategory:  {},
 	RequestEnableVaultCategory:  {},
 	RequestDisAbleVaultCategory: {},
+	RequestCreateWithdrawal:     {},
+	RequestUpdateWithdrawal:     {},
 
 	RequestBpsUserCreate:  {},
 	RequestBpsUserUpdate:  {},
@@ -733,6 +737,8 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteVaultCategory,
 		RequestEnableVaultCategory,
 		RequestDisAbleVaultCategory,
+		RequestCreateWithdrawal,
+		RequestUpdateWithdrawal,
 	},
 
 	// Legacy/operational modules (kept as requested)
