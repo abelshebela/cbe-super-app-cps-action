@@ -1,12 +1,13 @@
-package core
+package vaultcategory
 
 import (
 	"encoding/json"
+	"fmt"
+	"strconv"
 	"time"
 
 	imodel "cbe-super-app-cps-action/internal/constants/model"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func CategoryMapper(action map[string]interface{}) imodel.VaultCategory {
@@ -18,124 +19,144 @@ func CategoryMapper(action map[string]interface{}) imodel.VaultCategory {
 		}
 	}
 
-	if v, ok := action["cover_image"]; ok {
+	if v, ok := action["cover_image_url"]; ok {
 		if img, ok := v.(string); ok {
 			category.CoverImageURL = img
 		}
 	}
+
+	if v, ok := action["interest_type"]; ok {
+		if it, ok := v.(string); ok {
+			category.InterestType = it
+		}
+	}
+
+	if v, ok := action["category_interest"]; ok {
+		category.CategoryInterest = getAnyAsString(v)
+	}
+
+	if v, ok := action["deadlock"]; ok {
+		if d, ok := v.(bool); ok {
+			category.Deadlock = d
+		}
+	}
+
+	if v, ok := action["is_active"]; ok {
+		if ia, ok := v.(bool); ok {
+			category.IsActive = ia
+		}
+	}
+
+	if v, ok := action["tiers"]; ok {
+		if tiersRaw, ok := v.([]interface{}); ok {
+			category.Tiers = TiersMapper(tiersRaw)
+		}
+	}
+
 	return category
 }
 
-// ConvertVaultGroupCategoryToMongoSafe converts VaultGroupCategory to a MongoDB-safe format
-// by converting decimal.Decimal fields to float64 for proper serialization
-// func ConvertVaultGroupCategoryToMongoSafe(vaultGroupCategory *model.VaultGroupCategory) map[string]interface{} {
-// 	result := map[string]interface{}{
-// 		"id":        vaultGroupCategory.ID,
-// 		"name":      vaultGroupCategory.Name,
-// 		"isactive":  vaultGroupCategory.IsActive,
-// 		"createdat": vaultGroupCategory.CreatedAt,
-// 		"updatedat": vaultGroupCategory.UpdatedAt,
-// 		"deletedat": vaultGroupCategory.DeletedAt,
-// 		"createdby": vaultGroupCategory.CreatedBy,
-// 		"updatedby": vaultGroupCategory.UpdatedBy,
-// 		"isdeleted": vaultGroupCategory.IsDeleted,
-// 	}
-// 	return result
-// }
+func TiersMapper(tiersRaw []interface{}) []imodel.VaultTiers {
+	tiers := make([]imodel.VaultTiers, 0, len(tiersRaw))
+	for _, tr := range tiersRaw {
+		if tMap, ok := tr.(map[string]interface{}); ok {
+			tier := imodel.VaultTiers{}
+			if v, ok := tMap["name"]; ok {
+				if name, ok := v.(string); ok {
+					tier.Name = name
+				}
+			}
+			if v, ok := tMap["tier_interest"]; ok {
+				tier.TierInterest = getAnyAsString(v)
+			}
+			if v, ok := tMap["min"]; ok {
+				tier.MinAmount = getAnyAsString(v)
+			}
+			if v, ok := tMap["max"]; ok {
+				tier.MaxAmount = getAnyAsString(v)
+			}
+			tiers = append(tiers, tier)
+		}
+	}
+	return tiers
+}
 
-func MapVaultGroupCategoryToResponse(vaultGroupCategory *model.VaultCategory) *imodel.VaultCategory {
-	return &imodel.VaultCategory{
-		ID:            vaultGroupCategory.ID,
-		Name:          vaultGroupCategory.Name,
-		CoverImageURL: vaultGroupCategory.CoverImage,
-		IsActive:      vaultGroupCategory.IsActive,
-		CreatedAt:     vaultGroupCategory.CreatedAt,
-		UpdatedAt:     vaultGroupCategory.UpdatedAt,
+func getAnyAsString(v interface{}) string {
+	switch val := v.(type) {
+	case string:
+		return val
+	case float64:
+		return strconv.FormatFloat(val, 'f', -1, 64)
+	case int64:
+		return strconv.FormatInt(val, 10)
+	case int:
+		return strconv.Itoa(val)
+	default:
+		return fmt.Sprintf("%v", v)
 	}
 }
 
-// func BuildUpdateVaultGroupCategory(prev *model.VaultGroupCategory, req *model.VaultGroupCategory) *model.VaultGroupCategory {
-// 	if req.Name != "" && req.Name != prev.Name {
-// 		req.Name = req.Name
-// 	}
-// 	if req.CoverImage != "" && req.CoverImage != prev.CoverImage {
-// 		req.CoverImage = req.CoverImage
-// 	}
+func MapVaultCategoryToResponse(vaultCategory *imodel.VaultCategory) *imodel.VaultCategory {
+	return &imodel.VaultCategory{
+		ID:               vaultCategory.ID,
+		Name:             vaultCategory.Name,
+		CoverImageURL:    vaultCategory.CoverImageURL,
+		InterestType:     vaultCategory.InterestType,
+		CategoryInterest: vaultCategory.CategoryInterest,
+		Deadlock:         vaultCategory.Deadlock,
+		Tiers:            vaultCategory.Tiers,
+		IsActive:         vaultCategory.IsActive,
+		CreatedAt:        vaultCategory.CreatedAt,
+		UpdatedAt:        vaultCategory.UpdatedAt,
+	}
+}
 
-// 	return req
-// }
-
-func BindVaultGroupCategoryFromCPSAction(current interface{}) (model.VaultCategory, error) {
-	var VaultGroupCategory model.VaultCategory
-	if v, ok := current.(model.VaultCategory); ok {
+func BindVaultCategoryFromCPSAction(current interface{}) (imodel.VaultCategory, error) {
+	var category imodel.VaultCategory
+	if v, ok := current.(imodel.VaultCategory); ok {
 		return v, nil
 	}
 	if s, ok := current.(string); ok {
-		if err := json.Unmarshal([]byte(s), &VaultGroupCategory); err == nil {
-			return VaultGroupCategory, nil
+		if err := json.Unmarshal([]byte(s), &category); err == nil {
+			return category, nil
 		}
 	}
 	bytes, err := json.Marshal(current)
 	if err != nil {
-		return VaultGroupCategory, err
+		return category, err
 	}
-	return MapCamelCaseToVaultGroupCategory(bytes)
+	return MapCamelCaseToVaultCategory(bytes)
 }
 
-func MapCamelCaseToVaultGroupCategory(jsonBytes []byte) (model.VaultCategory, error) {
-	var result model.VaultCategory
+func MapCamelCaseToVaultCategory(jsonBytes []byte) (imodel.VaultCategory, error) {
+	var result imodel.VaultCategory
 
 	var data map[string]interface{}
 	if err := json.Unmarshal(jsonBytes, &data); err != nil {
 		return result, err
 	}
 
-	// map camelcase fields to snake_case fields
-
 	result.ID = getString(data, "id")
 	result.Name = getString(data, "name")
+	result.CoverImageURL = getString(data, "cover_image_url")
+	result.InterestType = getString(data, "interest_type")
+	result.CategoryInterest = getAnyAsString(data["category_interest"])
+	result.Deadlock = getBool(data, "deadlock")
 	result.IsActive = getBool(data, "is_active")
-	result.IsDeleted = getBool(data, "is_deleted")
 	result.CreatedAt = getTime(data, "created_at")
 	result.UpdatedAt = getTime(data, "updated_at")
-	result.DeletedAt = getTimePtr(data, "deleted_at")
-	return result, nil
-}
 
-func BindVaultGroupCategoryUpdateFromCPSAction(current interface{}) (model.VaultCategory, error) {
-	var BV model.VaultCategory
-	if v, ok := current.(model.VaultCategory); ok {
-		return v, nil
-	}
-
-	// If stored as JSON string
-	if s, ok := current.(string); ok {
-		if err := json.Unmarshal([]byte(s), &BV); err == nil {
-			return BV, nil
+	if v, ok := data["tiers"]; ok {
+		if tiersRaw, ok := v.([]interface{}); ok {
+			result.Tiers = TiersMapper(tiersRaw)
 		}
 	}
 
-	// Generic path: marshal then unmarshal
-	bytes, err := json.Marshal(current)
-	if err != nil {
-		return BV, err
-	}
-
-	// Use custom mapping function to handle camelCase -> UpdateBankVault conversion
-	return MapCamelCaseToUpdateaultGroupCategory(bytes)
-}
-func MapCamelCaseToUpdateaultGroupCategory(jsonBytes []byte) (model.VaultCategory, error) {
-	var result model.VaultCategory
-	var data map[string]interface{}
-	if err := json.Unmarshal(jsonBytes, &result); err != nil {
-		return result, err
-	}
-
-	// map camelcase fields to snake_case fields
-	if desc, ok := data["name"].(string); ok && desc != "" {
-		result.Name = desc
-	}
 	return result, nil
+}
+
+func BindVaultCategoryUpdateFromCPSAction(current interface{}) (imodel.VaultCategory, error) {
+	return BindVaultCategoryFromCPSAction(current)
 }
 
 func getString(data map[string]interface{}, key string) string {
@@ -160,20 +181,3 @@ func getTime(data map[string]interface{}, key string) time.Time {
 	}
 	return time.Time{}
 }
-
-func getTimePtr(data map[string]interface{}, key string) *time.Time {
-	if val, ok := data[key].(string); ok {
-		if t, err := time.Parse(time.RFC3339, val); err == nil {
-			return &t
-		}
-	}
-	return nil
-}
-
-// func VaultGroupCategoryUpdate(req *model.VaultGroupCategory) model.VaultGroupCategory {
-// 	result := model.VaultGroupCategory{}
-// 	if req.Name != "" {
-// 		result.Name = req.Name
-// 	}
-// 	return result
-// }

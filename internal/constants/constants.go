@@ -453,11 +453,11 @@ const (
 	RequestDisAbleVaultAmountTier RequestAction = "DISABLE_VAULT_AMOUNT_TIER"
 
 	// for vault group category
-	RequestCreateVaultGroupCategory  RequestAction = "CREATE_VAULT_GROUP_CATEGORY"
-	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE_VAULT_GROUP_CATEGORY"
-	RequestDeleteVaultGroupCategory  RequestAction = "DELETE_VAULT_GROUP_CATEGORY"
-	RequestEnableVaultGroupCategory  RequestAction = "ENABLE_VAULT_GROUP_CATEGORY"
-	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE_VAULT_GROUP_CATEGORY"
+	RequestCreateVaultCategory  RequestAction = "CREATE_VAULT_CATEGORY"
+	RequestUpdateVaultCategory  RequestAction = "UPDATE_VAULT_CATEGORY"
+	RequestDeleteVaultCategory  RequestAction = "DELETE_VAULT_CATEGORY"
+	RequestEnableVaultCategory  RequestAction = "ENABLE_VAULT_CATEGORY"
+	RequestDisAbleVaultCategory RequestAction = "DISABLE_VAULT_CATEGORY"
 
 	// Newly added for block_account
 	// Branch

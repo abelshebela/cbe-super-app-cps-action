@@ -5,11 +5,11 @@ import (
 )
 
 type VaultTiers struct {
-	ID           string  `json:"id" bson:"_id,omitempty" gorm:"primaryKey"`
-	Name         string  `json:"name" bson:"name"`
-	TierInterest float64 `json:"tier_interest" bson:"tier_interest"`
-	MinAmount    float64 `json:"min" bson:"min"`
-	MaxAmount    float64 `json:"max" bson:"max"`
+	ID           string `json:"id" bson:"_id,omitempty" gorm:"primaryKey"`
+	Name         string `json:"name" bson:"name"`
+	TierInterest string `json:"tier_interest" bson:"tier_interest"`
+	MinAmount    string `json:"min" bson:"min"`
+	MaxAmount    string `json:"max" bson:"max"`
 }
 
 type VaultCategory struct {
@@ -17,7 +17,7 @@ type VaultCategory struct {
 	Name             string       `json:"name" bson:"name"`
 	CoverImageURL    string       `json:"cover_image_url" bson:"cover_image_url"`
 	InterestType     string       `json:"interest_type" bson:"interest_type"`
-	CategoryInterest float64      `json:"category_interest" bson:"category_interest"`
+	CategoryInterest string       `json:"category_interest" bson:"category_interest"`
 	Deadlock         bool         `json:"deadlock" bson:"deadlock"`
 	Tiers            []VaultTiers `json:"tiers" bson:"tiers"`
 	IsActive         bool         `json:"is_active" bson:"is_active"`
@@ -29,7 +29,7 @@ type Withdrawal struct {
 	ID string `json:"id" bson:"_id,omitempty" gorm:"primaryKey"`
 
 	LockedVaultID         string    `json:"locked_vault_id" bson:"locked_vault_id"`
-	Amount                float64   `json:"amount" bson:"amount"`
+	Amount                string    `json:"amount" bson:"amount"`
 	WithdrawerName        string    `json:"withdrawer_name" bson:"withdrawer_name"`
 	WithdrawerPhoneNumber string    `json:"withdrawer_phone_number" bson:"withdrawer_phone_number"`
 	Status                string    `json:"status" bson:"status"`

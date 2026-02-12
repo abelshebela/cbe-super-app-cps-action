@@ -207,7 +207,7 @@ func validateCreateTiers(interestType string, tiers []CreateTierDTO) error {
 					return fmt.Errorf("tier %d: interest must be a valid number", i+1)
 				}
 				if !v.IsZero() {
-					return fmt.Errorf("tier %d: interest must be empty or 0 when interest_type is 'flat'", i+1)
+					return fmt.Errorf("tier %d: tier_interest must be empty or 0 when interest_type is 'flat'", i+1)
 				}
 			}
 		} else { // DYNAMIC
