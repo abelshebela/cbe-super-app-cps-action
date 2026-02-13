@@ -15,6 +15,7 @@ import (
 	"path"
 	"time"
 
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -121,7 +122,7 @@ func (d *DonationCategory) CreateDonationCategory(ctx context.Context, donationC
 		))
 		return err
 	}
-	result := model.DonationCategory{
+	result := donation_model.DonationCategory{
 		CategoryName:   donationCategory.CategoryName,
 		Icon:           url,
 		Enabled:        true,
@@ -171,7 +172,7 @@ func (d *DonationCategory) UpdateDonationCategory(ctx context.Context, id string
 	}
 
 	// Convert DTO to model for similarity check
-	existingModel := &model.DonationCategory{
+	existingModel := &donation_model.DonationCategory{
 		CategoryName: existingCategory.CategoryName,
 		Icon:         existingCategory.Icon,
 		IsDeleted:    existingCategory.IsDeleted,
@@ -255,7 +256,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 		))
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
-	var donationCPS *model.DonationCategory
+	var donationCPS *donation_model.DonationCategory
 	bindErr := core.BindAction(action.CurrentAction, &donationCPS)
 	if bindErr != nil {
 		d.logger.Errorf("failed to bind current action to donation Category: %v", bindErr)

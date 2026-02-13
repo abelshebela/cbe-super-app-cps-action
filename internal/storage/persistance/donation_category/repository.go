@@ -2,6 +2,9 @@ package donation_category
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
+
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -13,8 +16,6 @@ import (
 	"errors"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -23,7 +24,7 @@ import (
 )
 
 type DonationCategoryStorage struct {
-	dal           dal.MongoDal[model.DonationCategory, model.DonationCategory]
+	dal           dal.MongoDal[donation_model.DonationCategory, donation_model.DonationCategory]
 	client        *mongo.Client
 	kafkaProducer kafka.ClientOrchestrationProducer
 	logger        utils.Logger
@@ -31,14 +32,14 @@ type DonationCategoryStorage struct {
 
 func NewDonationCategoryRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationCategoryRepository {
 	return &DonationCategoryStorage{
-		dal:           dal.NewMongoDal[model.DonationCategory, model.DonationCategory](client, cfg, dbName, collection),
+		dal:           dal.NewMongoDal[donation_model.DonationCategory, donation_model.DonationCategory](client, cfg, dbName, collection),
 		client:        client,
 		kafkaProducer: kafkaProducer,
 		logger:        logger,
 	}
 }
 
-func (s *DonationCategoryStorage) Create(ctx context.Context, details *model.DonationCategory) error {
+func (s *DonationCategoryStorage) Create(ctx context.Context, details *donation_model.DonationCategory) error {
 	s.logger.Infof("[Create] creating donation category")
 	newDonationCategory, err := s.dal.InsertOne(ctx, *details)
 	if err != nil {
@@ -52,7 +53,7 @@ func (s *DonationCategoryStorage) Create(ctx context.Context, details *model.Don
 	return nil
 }
 
-func (s *DonationCategoryStorage) Update(ctx context.Context, id string, details *model.DonationCategory) error {
+func (s *DonationCategoryStorage) Update(ctx context.Context, id string, details *donation_model.DonationCategory) error {
 	s.logger.Infof("[Update] updating donation category for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {

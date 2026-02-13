@@ -5,6 +5,9 @@ import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
+
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
+
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"context"
@@ -111,8 +114,8 @@ func MapToDonationCompanyCPSRequest(id string, donationCompany dto.DonationCompa
 	}
 }
 
-func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationCompanyListResponse, donationCompany dto.DonationCompanyRequest, logoURL string) *model.DonationCompany {
-	result := &model.DonationCompany{}
+func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationCompanyListResponse, donationCompany dto.DonationCompanyRequest, logoURL string) *donation_model.DonationCompany {
+	result := &donation_model.DonationCompany{}
 
 	if donationCompany.CompanyName != "" && donationCompany.CompanyName != existing.CompanyName {
 		result.CompanyName = donationCompany.CompanyName
@@ -167,7 +170,7 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 	return result
 }
 
-func IsDataSimilar(request dto.DonationCompanyRequest, existing *model.DonationCompany) bool {
+func IsDataSimilar(request dto.DonationCompanyRequest, existing *donation_model.DonationCompany) bool {
 	if request.CompanyName != "" && request.CompanyName != existing.CompanyName {
 		return false
 	}
@@ -204,7 +207,7 @@ func IsDataSimilar(request dto.DonationCompanyRequest, existing *model.DonationC
 // CheckDataSimilarityAndValidation checks if data is similar and validates uniqueness
 func CheckDataSimilarityAndValidation(ctx context.Context, request dto.DonationCompanyRequest, existing *dto.DonationCompanyListResponse, donationCompanyRepo storage.DonationCompanyRepository, accountLookupService account_lookup.Account) error {
 	// Convert existing DTO to model for similarity check
-	existingModel := &model.DonationCompany{
+	existingModel := &donation_model.DonationCompany{
 		CompanyName:   existing.CompanyName,
 		CompanyCode:   existing.CompanyCode,
 		CompanyLogo:   existing.CompanyLogo,

@@ -4,12 +4,12 @@ import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func MapToDonationCompanyListResponse(company *model.DonationCompany) *dto.DonationCompanyListResponse {
+func MapToDonationCompanyListResponse(company *donation_model.DonationCompany) *dto.DonationCompanyListResponse {
 	return &dto.DonationCompanyListResponse{
 		ID:                 company.ID.Hex(),
 		CompanyName:        company.CompanyName,
@@ -28,7 +28,7 @@ func MapToDonationCompanyListResponse(company *model.DonationCompany) *dto.Donat
 	}
 }
 
-func MapToDonationCompanyListResponses(companies []model.DonationCompany) []dto.DonationCompanyListResponse {
+func MapToDonationCompanyListResponses(companies []donation_model.DonationCompany) []dto.DonationCompanyListResponse {
 	responses := make([]dto.DonationCompanyListResponse, len(companies))
 	for i := range companies {
 		responses[i] = *MapToDonationCompanyListResponse(&companies[i])
@@ -36,7 +36,7 @@ func MapToDonationCompanyListResponses(companies []model.DonationCompany) []dto.
 	return responses
 }
 
-func DonationCompanyMapper(company model.DonationCompany) bson.M {
+func DonationCompanyMapper(company donation_model.DonationCompany) bson.M {
 	return bson.M{
 		"company_name":        company.CompanyName,
 		"company_description": company.CompanyDescription,

@@ -17,6 +17,8 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants/lib"
 
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -26,8 +28,8 @@ import (
 
 type DonationStorage struct {
 	dal                 dal.MongoDal[imodel.Donation, imodel.Donation]
-	donationCompanyDal  dal.MongoDal[imodel.DonationCompany, imodel.DonationCompany]
-	donationCategoryDal dal.MongoDal[imodel.DonationCategory, imodel.DonationCategory]
+	donationCompanyDal  dal.MongoDal[donation_model.DonationCompany, donation_model.DonationCompany]
+	donationCategoryDal dal.MongoDal[donation_model.DonationCategory, donation_model.DonationCategory]
 	client              *mongo.Client
 	kafkaProducer       kafka.ClientOrchestrationProducer
 	logger              utils.Logger
@@ -36,8 +38,8 @@ type DonationStorage struct {
 func NewDonationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationRepository {
 	return &DonationStorage{
 		dal:                 dal.NewMongoDal[imodel.Donation, imodel.Donation](client, cfg, dbName, collection),
-		donationCompanyDal:  dal.NewMongoDal[imodel.DonationCompany, imodel.DonationCompany](client, cfg, dbName, "donation_companies"),
-		donationCategoryDal: dal.NewMongoDal[imodel.DonationCategory, imodel.DonationCategory](client, cfg, dbName, "donation_categories"),
+		donationCompanyDal:  dal.NewMongoDal[donation_model.DonationCompany, donation_model.DonationCompany](client, cfg, dbName, "donation_companies"),
+		donationCategoryDal: dal.NewMongoDal[donation_model.DonationCategory, donation_model.DonationCategory](client, cfg, dbName, "donation_categories"),
 		client:              client,
 		kafkaProducer:       kafkaProducer,
 		logger:              logger,
