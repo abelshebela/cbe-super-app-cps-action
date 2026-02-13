@@ -41,6 +41,8 @@ import (
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
+
 	cps_role_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	customer_kyc_dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
@@ -211,7 +213,7 @@ type DonationCompanyService interface {
 	CreateDonationCompany(ctx context.Context, donationCompany donationComp_dto.DonationCompanyRequest) error
 	FetchDonationCompany(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]donationComp_dto.DonationCompanyListResponse], error)
 	FetchDonationCompanyByID(ctx context.Context, id string) (*donationComp_dto.DonationCompanyListResponse, error)
-	UpdateDonationCompany(ctx context.Context, id string, donationCompany donationComp_dto.DonationCompanyRequest) (*model.DonationCompany, error)
+	UpdateDonationCompany(ctx context.Context, id string, donationCompany donationComp_dto.DonationCompanyRequest) (*donation_model.DonationCompany, error)
 	AccountLookup(ctx context.Context, accountNumber string) (*model.AccountDetail, error)
 	EnableDonationCompany(ctx context.Context, id string) error
 	DisableDonationCompany(ctx context.Context, id string) error
@@ -495,6 +497,7 @@ type JobRoleService interface {
 	Create(ctx context.Context, jobs model.Role) error
 	Update(ctx context.Context, id string, update model.Role) error
 	FindById(ctx context.Context, id string) (*model.Role, error)
+	FindAll(ctx context.Context) (*[]model.Role, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Role], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
@@ -503,6 +506,7 @@ type RoleService interface {
 	Create(ctx context.Context, jobs imodel.JobRole) error
 	Update(ctx context.Context, id string, update imodel.JobRole) error
 	FindById(ctx context.Context, id string) (*imodel.JobRole, error)
+	FindAll(ctx context.Context) (*[]imodel.JobRole, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

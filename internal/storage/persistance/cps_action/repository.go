@@ -68,6 +68,8 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
 			{"unique_id": searchRegex},
+			{"current_action": searchRegex},
+			{"previous_action": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"checker_name": searchRegex},
 			{"checker_phone_number": searchRegex},

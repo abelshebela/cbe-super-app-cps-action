@@ -20,6 +20,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -161,7 +162,7 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 	return nil
 }
 
-func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, donationCompany dto.DonationCompanyRequest) (*model.DonationCompany, error) {
+func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, donationCompany dto.DonationCompanyRequest) (*donation_model.DonationCompany, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateDonationCompany", "DonationCompany", "UpdateDonationCompany")
 	defer span.End()
 
@@ -264,7 +265,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
 
-	donationCompoany, err := local_util.JsonUnmarshal[model.DonationCompany](action.CurrentAction)
+	donationCompoany, err := local_util.JsonUnmarshal[donation_model.DonationCompany](action.CurrentAction)
 	if err != nil {
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),

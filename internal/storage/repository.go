@@ -30,6 +30,7 @@ import (
 	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -50,6 +51,7 @@ type RoleRepository interface {
 	FindByName(ctx context.Context, name string) (*model.Role, error)
 	FindByCode(ctx context.Context, code string) (*model.Role, error)
 	FindByRole(ctx context.Context, jobTitle string) (*model.Role, error)
+	FindAll(ctx context.Context) (*[]model.Role, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Role], error)
 	FindByFilterKey(ctx context.Context, field string, value string) (*model.Role, error)
 }
@@ -61,6 +63,7 @@ type JobRoleRepository interface {
 	FindByID(ctx context.Context, id string) (*imodel.JobRole, error)
 	FindByCode(ctx context.Context, code string) (*imodel.JobRole, error)
 	Find(ctx context.Context, filter bson.M) (*imodel.JobRole, error)
+	FindAll(ctx context.Context) (*[]imodel.JobRole, error)
 	FindByName(ctx context.Context, name string) (*imodel.JobRole, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error)
 }
@@ -385,8 +388,8 @@ type DonationRepository interface {
 }
 
 type DonationCategoryRepository interface {
-	Create(ctx context.Context, donationCategory *model.DonationCategory) error
-	Update(ctx context.Context, id string, donationCategory *model.DonationCategory) error
+	Create(ctx context.Context, donationCategory *donation_model.DonationCategory) error
+	Update(ctx context.Context, id string, donationCategory *donation_model.DonationCategory) error
 	EnableDisable(ctx context.Context, id string, enable bool) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation_category.DonationCategoryListResponse, error)
@@ -395,12 +398,12 @@ type DonationCategoryRepository interface {
 }
 
 type DonationCompanyRepository interface {
-	Create(ctx context.Context, donationCompany *model.DonationCompany) error
-	Update(ctx context.Context, id string, donationCompany *model.DonationCompany) error
+	Create(ctx context.Context, donationCompany *donation_model.DonationCompany) error
+	Update(ctx context.Context, id string, donationCompany *donation_model.DonationCompany) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation_company.DonationCompanyListResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_company.DonationCompanyListResponse], error)
-	FindByAccountNumber(ctx context.Context, accountNumber string) (*model.DonationCompany, error)
+	FindByAccountNumber(ctx context.Context, accountNumber string) (*donation_model.DonationCompany, error)
 }
 
 type MiniAppRepository interface {

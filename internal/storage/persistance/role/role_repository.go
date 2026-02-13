@@ -158,6 +158,17 @@ func (r *RoleRepository) FindByCode(ctx context.Context, code string) (*model.Ro
 	return result, nil
 }
 
+func (r *RoleRepository) FindAll(ctx context.Context) (*[]model.Role, error) {
+	data, err := r.mongoDal.FindAll(ctx, bson.M{}, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		r.logger.Errorf("[Role Repository][FindAll] failed to find: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return &data, nil
+}
 func (r *RoleRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Role], error) {
 	searchKeys := bson.M{}
 	if filterParam.Search != "" {

@@ -5423,6 +5423,13 @@ var (
 		Type:       "error",
 	}
 
+	// ErrorRoleAlreadyExists = ResponseCode{
+	// 	Code:       "ERROR_ROLE_ALREADY_EXISTS",
+	// 	StatusCode: StatusNotFound,
+	// 	Message:    MsgRoleAlreadyExists,
+	// 	Type:       "error",
+	// }
+
 	ErrorActionListNameNotFound = ResponseCode{
 		Code:       "ERROR_ACTION_LIST_NAME_NOT_FOUND",
 		StatusCode: StatusNotFound,

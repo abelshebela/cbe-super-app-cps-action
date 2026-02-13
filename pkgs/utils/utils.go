@@ -286,6 +286,18 @@ func BindAction(source any, target any) error {
 	return json.Unmarshal(bytes, target)
 }
 
+// Check existence in DB
+func Distinct(allIDs []string) []string {
+	var uniqueList string
+	var seen []string
+	for _, id := range allIDs {
+		if !strings.Contains(uniqueList, id) {
+			uniqueList += id + ","
+			seen = append(seen, id)
+		}
+	}
+	return seen
+}
 func RandomGenerator(length uint8) string {
 	if length <= 0 {
 		panic("length must be greater than 0")
