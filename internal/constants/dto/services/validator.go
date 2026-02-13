@@ -147,6 +147,10 @@ func (r CreateServiceRequest) Validate() error {
 		return err
 	}
 
+	if err := validateCap(r.Cap); err != nil {
+		return err
+	}
+
 	// if r.HaveATier {
 	// 	err := validation.ValidateStruct(&r,
 	// 		validation.Field(&r.Cap, validation.Required),
@@ -184,6 +188,12 @@ func (r UpdateServiceRequest) Validate() error {
 	)
 	if err != nil {
 		return err
+	}
+
+	if r.Cap != nil && (r.Cap.SingleCap != nil || r.Cap.MinimumTransferCap != nil) {
+		if err := validateCap(*r.Cap); err != nil {
+			return err
+		}
 	}
 
 	// if BoolPointer(r.HaveATier, false) {

@@ -13,11 +13,13 @@ type Querier interface {
 	ActivateVaultCategory(ctx context.Context, id string) (string, error)
 	DeactivateVaultCategory(ctx context.Context, id string) (string, error)
 	DeleteVaultCategory(ctx context.Context, id string) (string, error)
-	FindVaultCategory(ctx context.Context, arg FindVaultCategoryParams) ([]VaultCategory, error)
-	FindVaultCategoryById(ctx context.Context, id string) (VaultCategory, error)
-	FindVaultCategoryByName(ctx context.Context, name string) (VaultCategory, error)
+	FindVaultCategories(ctx context.Context, arg FindVaultCategoryParams) ([]VaultCategory, error)
+	FindVaultCategoryWithTiers(ctx context.Context, id string) (*imodel.VaultCategory, []imodel.VaultTiers, error)
+	FindVaultCategoryByName(ctx context.Context, name string) (*imodel.VaultCategory, error)
 	SaveVaultCategory(ctx context.Context, arg *imodel.VaultCategory) (string, error)
-	UpdateVaultCategory(ctx context.Context, arg UpdateVaultCategoryParams) (string, error)
+	SaveVaultTiers(ctx context.Context, categoryID string, arg *imodel.VaultCategory) error
+	UpdateVaultCategory(ctx context.Context, id string, arg *imodel.VaultCategory) (string, error)
+	UpdateVaultTiers(ctx context.Context, categoryID string, arg *imodel.VaultCategory) error
 }
 
 var _ Querier = (*Queries)(nil)

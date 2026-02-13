@@ -14,7 +14,7 @@ func Init(router chi.Router, handler bankgroupcategory.VaultCategoryHandler, aut
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,
-			Path:    "/vault/category/create",
+			Path:    "/vault/categories/create",
 			Handler: handler.CreateVaultCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -22,7 +22,7 @@ func Init(router chi.Router, handler bankgroupcategory.VaultCategoryHandler, aut
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/vault/category",
+			Path:    "/vault/categories",
 			Handler: handler.FindAllVaultCategories,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -30,7 +30,7 @@ func Init(router chi.Router, handler bankgroupcategory.VaultCategoryHandler, aut
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/vault/category/{id}",
+			Path:    "/vault/categories/{id}",
 			Handler: handler.GetVaultCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -38,23 +38,23 @@ func Init(router chi.Router, handler bankgroupcategory.VaultCategoryHandler, aut
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/vault/category/update/{id}",
+			Path:    "/vault/categories/update/{id}",
 			Handler: handler.UpdateVaultCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},
 		},
-		{
-			Method:  http.MethodDelete,
-			Path:    "/vault/category/delete/{id}",
-			Handler: handler.DeleteVaultCategory,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-			},
-		},
+		// {
+		// 	Method:  http.MethodDelete,
+		// 	Path:    "/vault/categories/delete/{id}",
+		// 	Handler: handler.DeleteVaultCategory,
+		// 	Middlewares: []func(next http.Handler) http.Handler{
+		// 		authMiddleware.AuthenticateToken,
+		// 	},
+		// },
 		{
 			Method:  http.MethodPatch,
-			Path:    "/vault/category/enable/{id}",
+			Path:    "/vault/categories/enable/{id}",
 			Handler: handler.EnableVaultCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -62,7 +62,7 @@ func Init(router chi.Router, handler bankgroupcategory.VaultCategoryHandler, aut
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/vault/category/disable/{id}",
+			Path:    "/vault/categories/disable/{id}",
 			Handler: handler.DisableVaultCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

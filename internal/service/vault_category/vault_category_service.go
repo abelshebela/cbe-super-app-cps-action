@@ -58,15 +58,16 @@ func (s *vaultCategoryService) CreateVaultCategory(ctx context.Context, req *vau
 	vCategory, _ := s.repo.FindByName(ctx, req.Name)
 	if vCategory != nil {
 		span.AddEvent("Duplicate vault category", trace.WithAttributes(attribute.String("name", req.Name)))
-		return "", errors.New(localization.ErrorDuplicateGroupVaultCategory.Code)
+		return "", errors.New(localization.ErrorDuplicateVaultCategory.Code)
 
 	}
 
-	coverImageUrl, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, string(constants.VaultGroupCategoryFolderName), *s.cfg, "", s.logger)
-	if err != nil {
-		span.AddEvent("File upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf(localization.ErrorFileUploadFailed.Code)
-	}
+	coverImageUrl := "http://example.com"
+	// coverImageUrl, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, string(constants.VaultGroupCategoryFolderName), *s.cfg, "", s.logger)
+	// if err != nil {
+	// 	span.AddEvent("File upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
+	// 	s.logger.Errorf(localization.ErrorFileUploadFailed.Code)
+	// }
 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	var tiers []imodel.VaultTiers
@@ -114,13 +115,8 @@ func (s *vaultCategoryService) FindAllVaultCategories(ctx context.Context, filte
 		s.logger.Errorf("failed to fetch vault categories | err=%v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	resp := make([]*imodel.VaultCategory, 0, len(entities.Data))
-	for _, en := range entities.Data {
-		span.AddEvent("Mapping vault category to response", trace.WithAttributes(attribute.String("id", en.ID)))
-		resp = append(resp, helperr.MapVaultCategoryToResponse(en))
-	}
 	return &types.PaginatedResponse[[]*imodel.VaultCategory]{
-		Data: resp,
+		Data: entities.Data,
 		Meta: entities.Meta,
 	}, nil
 }
@@ -132,13 +128,13 @@ func (s *vaultCategoryService) GetVaultCategory(ctx context.Context, id string) 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, mongo.ErrNoDocuments) {
 			span.AddEvent("Not found", trace.WithAttributes(attribute.String("id", id)))
-			return nil, errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		s.logger.Errorf("failed to fetch vault category by id | err=%v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return helperr.MapVaultCategoryToResponse(entity), nil
+	return entity, nil
 }
 
 func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id string, req *vault_category_dto.UpdateCategoryRequest) (string, error) {
@@ -146,14 +142,20 @@ func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id strin
 	defer span.End()
 
 	prev, err := s.repo.FindByID(ctx, id)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) || errors.Is(err, sql.ErrNoRows) {
+	if err != nil || prev == nil {
+		if errors.Is(err, mongo.ErrNoDocuments) || errors.Is(err, sql.ErrNoRows) || prev == nil {
 			span.AddEvent("Not found", trace.WithAttributes(attribute.String("id", id)))
-			return "", errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+			return "", errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
 		span.AddEvent("FindByID error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		s.logger.Errorf("failed to fetch vault category by id | err=%v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if req.Name != nil {
+		if strings.EqualFold(prev.Name, *req.Name) {
+			return "", errors.New(localization.ErrorDuplicateVaultCategory.Code)
+		}
 	}
 
 	updatedName := strings.ToUpper(prev.Name)
@@ -163,16 +165,16 @@ func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id strin
 		updatedName = strings.ToUpper(*req.Name)
 	}
 
-	var coverImageUrl string
-	if req.CoverImage != nil {
-		coverImageUrl, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, string(constants.VaultGroupCategoryFolderName), *s.cfg, "", s.logger)
-		if err != nil {
-			span.AddEvent("File upload failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
-			s.logger.Errorf(localization.ErrorFileUploadFailed.Code)
-			return "", errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		updatedCover = coverImageUrl
-	}
+	// var coverImageUrl string
+	// if req.CoverImage != nil {
+	// 	coverImageUrl, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, string(constants.VaultGroupCategoryFolderName), *s.cfg, "", s.logger)
+	// 	if err != nil {
+	// 		span.AddEvent("File upload failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
+	// 		s.logger.Errorf(localization.ErrorFileUploadFailed.Code)
+	// 		return "", errors.New(localization.ErrorUnexpectedError.Code)
+	// 	}
+	// 	updatedCover = coverImageUrl
+	// }
 
 	interestType := prev.InterestType
 	if req.InterestType != nil {
@@ -189,13 +191,50 @@ func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id strin
 		deadlock = *req.Deadlock
 	}
 
+	tiers := prev.Tiers
+	if req.Tiers != nil {
+		mapped := make([]imodel.VaultTiers, 0, len(req.Tiers))
+		for i, t := range req.Tiers {
+			var name, tierInterest, min, max string
+			var id string
+			if i < len(prev.Tiers) {
+				// preserve existing values as defaults
+				id = prev.Tiers[i].ID
+				name = prev.Tiers[i].Name
+				tierInterest = prev.Tiers[i].TierInterest
+				min = prev.Tiers[i].MinAmount
+				max = prev.Tiers[i].MaxAmount
+			}
+			if t.Name != nil {
+				name = *t.Name
+			}
+			if t.TierInterest != nil {
+				tierInterest = *t.TierInterest
+			}
+			if t.Min != nil {
+				min = *t.Min
+			}
+			if t.Max != nil {
+				max = *t.Max
+			}
+			mapped = append(mapped, imodel.VaultTiers{
+				ID:           id,
+				Name:         name,
+				TierInterest: tierInterest,
+				MinAmount:    min,
+				MaxAmount:    max,
+			})
+		}
+		tiers = mapped
+	}
+
 	req_data := &imodel.VaultCategory{
 		Name:             updatedName,
 		CoverImageURL:    updatedCover,
 		InterestType:     interestType,
 		CategoryInterest: categoryInterest,
 		Deadlock:         deadlock,
-		Tiers:            prev.Tiers,
+		Tiers:            tiers,
 		UpdatedAt:        time.Now(),
 		IsActive:         prev.IsActive,
 	}
@@ -229,7 +268,7 @@ func (s *vaultCategoryService) DeleteVaultCategory(ctx context.Context, id strin
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, mongo.ErrNoDocuments) {
 			span.AddEvent("Not found", trace.WithAttributes(attribute.String("id", id)))
-			return "", errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+			return "", errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
 		span.AddEvent("FindByID error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		s.logger.Errorf("failed to fetch vault category by id | err=%v", err)
@@ -278,7 +317,7 @@ func (s *vaultCategoryService) EnableVaultCategory(ctx context.Context, id strin
 		s.logger.Errorf("failed to fetch vault category by id | err=%v", err)
 		if errors.Is(err, mongo.ErrNoDocuments) || errors.Is(err, sql.ErrNoRows) {
 			span.AddEvent("Not found", trace.WithAttributes(attribute.String("id", id)))
-			return errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+			return errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -319,7 +358,7 @@ func (s *vaultCategoryService) DisableVaultCategory(ctx context.Context, id stri
 		s.logger.Errorf("failed to fetch vault category by id | err=%v", err)
 		if errors.Is(err, mongo.ErrNoDocuments) || errors.Is(err, sql.ErrNoRows) {
 			span.AddEvent("Not found", trace.WithAttributes(attribute.String("id", id)))
-			return errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+			return errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
 		span.AddEvent("Unexpected error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -378,6 +417,10 @@ func (s *vaultCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 		span.AddEvent("RequestUpdateVaultCategory", trace.WithAttributes(attribute.String("id", cpsAction.UniqueId)))
 		if err := s.repo.Update(ctx, cpsAction.UniqueId, &actionData); err != nil {
 			span.AddEvent("Failed to update vault category", trace.WithAttributes(attribute.String("error", err.Error())))
+			if err.Error() == localization.ErrorDuplicateVaultCategory.Code {
+				return nil, err
+			}
+			s.logger.Errorf("failed to update vault category: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 	case string(constants.RequestDeleteVaultCategory):

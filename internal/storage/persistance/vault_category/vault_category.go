@@ -34,7 +34,7 @@ func NewVaultCategoryRepository(db *sql.DB, logger shared_utils.Logger) storage.
 func (r *VaultCategoryRepository) Create(ctx context.Context, entity *imodel.VaultCategory) (string, error) {
 	q := sqlc.New(r.db)
 	if _, err := q.FindVaultCategoryByName(ctx, entity.Name); err == nil {
-		return "", errors.New(localization.ErrorDuplicateGroupVaultCategory.Code)
+		return "", errors.New(localization.ErrorDuplicateVaultCategory.Code)
 	} else if !errors.Is(err, sql.ErrNoRows) {
 		return "", err
 	}
@@ -64,85 +64,135 @@ func (r *VaultCategoryRepository) Create(ctx context.Context, entity *imodel.Vau
 	return strings.ToUpper(categoryID), nil
 }
 
-// FindAllWithPagination lists categories with filters and pagination, including deleted ones
 func (r *VaultCategoryRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.VaultCategory], error) {
 	q := sqlc.New(r.db)
+
 	params := sqlc.FindVaultCategoryParams{}
-	if v, ok := filterParam.Filters["is_active"].(bool); ok {
-		params.IsActive = sql.NullBool{Bool: v, Valid: true}
-	}
-	if v, ok := filterParam.Filters["name"].(string); ok && v != "" {
-		params.NameQuery = sql.NullString{String: v, Valid: true}
-	}
-	if filterParam.Page > 0 && filterParam.PerPage > 0 {
-		params.Page = sql.NullInt64{Int64: int64(filterParam.Page), Valid: true}
-		params.Limit = sql.NullInt64{Int64: int64(filterParam.PerPage), Valid: true}
-	} else if filterParam.PerPage > 0 {
-		params.Page = sql.NullInt64{Int64: 1, Valid: true}
-		params.Limit = sql.NullInt64{Int64: int64(filterParam.PerPage), Valid: true}
+
+	if filterParam.Filters != nil {
+		if v, ok := filterParam.Filters["is_active"].(bool); ok {
+			params.IsActive = sql.NullBool{Bool: v, Valid: true}
+		}
+		if v, ok := filterParam.Filters["name"].(string); ok && v != "" {
+			params.NameQuery = sql.NullString{String: v, Valid: true}
+		}
 	}
 
-	rows, err := q.FindVaultCategory(ctx, params)
+	if filterParam.PerPage > 0 {
+		params.Limit = sql.NullInt64{Int64: int64(filterParam.PerPage), Valid: true}
+	} else {
+		params.Limit = sql.NullInt64{Int64: 50, Valid: true}
+	}
+
+	if filterParam.Page > 0 {
+		params.Page = sql.NullInt64{Int64: int64(filterParam.Page), Valid: true}
+	} else {
+		params.Page = sql.NullInt64{Int64: 1, Valid: true}
+	}
+
+	rows, err := q.FindVaultCategories(ctx, params)
 	if err != nil {
+		r.logger.Errorf("failed to find vault categories: %v", err)
 		if err == sql.ErrNoRows {
-			return nil, errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	list := make([]*model.VaultCategory, 0, len(rows))
+	categories := make([]*imodel.VaultCategory, 0, len(rows))
 	var total int64
-	for _, rrow := range rows {
-		e := &model.VaultCategory{
-			ID:            rrow.ID,
-			Name:          rrow.Name,
-			CoverImageURL: rrow.CoverImage,
-			IsActive:      rrow.IsActive,
-			CreatedAt:     rrow.CreatedAt,
-			UpdatedAt:     rrow.UpdatedAt,
+
+	for _, row := range rows {
+		c := &imodel.VaultCategory{
+			ID:               row.ID,
+			Name:             row.Name,
+			CoverImageURL:    row.CoverImageURL,
+			InterestType:     row.InterestType,
+			CategoryInterest: row.CategoryInterest,
+			Deadlock:         row.Deadlock,
+			Tiers:            row.Tiers,
+			IsActive:         row.IsActive,
+			CreatedAt:        row.CreatedAt,
+			UpdatedAt:        row.UpdatedAt,
 		}
-		total = rrow.TotalCount
-		list = append(list, e)
+
+		total = row.TotalCount
+		categories = append(categories, c)
 	}
 
 	limit := int(params.Limit.Int64)
-	if limit == 0 {
+	if limit <= 0 {
 		limit = 50
 	}
 	page := int(params.Page.Int64)
-	if page == 0 {
+	if page <= 0 {
 		page = 1
 	}
 
-	resp := types.PaginatedResponse[[]*model.VaultCategory]{
-		Data: list,
+	totalPages := 0
+	if limit > 0 && total > 0 {
+		totalPages = int((total + int64(limit) - 1) / int64(limit))
+	}
+
+	pagingCounter := 0
+	if total > 0 {
+		pagingCounter = (page-1)*limit + 1
+	}
+
+	hasPrevPage := page > 1
+	hasNextPage := int64(page*limit) < total
+
+	var prevPage *int
+	var nextPage *int
+	if hasPrevPage {
+		p := page - 1
+		prevPage = &p
+	}
+	if hasNextPage {
+		n := page + 1
+		nextPage = &n
+	}
+
+	resp := types.PaginatedResponse[[]*imodel.VaultCategory]{
+		Data: categories,
 		Meta: types.PaginationMeta{
-			TotalDocs:  total,
-			Limit:      limit,
-			Page:       page,
-			TotalPages: 0,
+			TotalDocs:     total,
+			Limit:         limit,
+			TotalPages:    totalPages,
+			Page:          page,
+			PagingCounter: pagingCounter,
+			HasPrevPage:   hasPrevPage,
+			HasNextPage:   hasNextPage,
+			PrevPage:      prevPage,
+			NextPage:      nextPage,
 		},
 	}
+
 	return &resp, nil
 }
 
 // FindByID fetches a single category by id, including deleted ones
 func (r *VaultCategoryRepository) FindByID(ctx context.Context, id string) (*imodel.VaultCategory, error) {
 	q := sqlc.New(r.db)
-	rrow, err := q.FindVaultCategoryById(ctx, id)
+	category, tiers, err := q.FindVaultCategoryWithTiers(ctx, id)
 	if err != nil {
+		r.logger.Errorf("failed to find vault category with it's tier: %v", err)
 		if err == sql.ErrNoRows {
-			return nil, errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	e := &model.VaultCategory{
-		ID:            rrow.ID,
-		Name:          rrow.Name,
-		CoverImageURL: rrow.CoverImage,
-		IsActive:      rrow.IsActive,
-		CreatedAt:     rrow.CreatedAt,
-		UpdatedAt:     rrow.UpdatedAt,
+	e := &imodel.VaultCategory{
+		ID:               category.ID,
+		Name:             category.Name,
+		CoverImageURL:    category.CoverImageURL,
+		InterestType:     category.InterestType,
+		CategoryInterest: category.CategoryInterest,
+		Deadlock:         category.Deadlock,
+		Tiers:            tiers,
+		IsActive:         category.IsActive,
+		CreatedAt:        category.CreatedAt,
+		UpdatedAt:        category.UpdatedAt,
 	}
 	return e, nil
 }
@@ -160,7 +210,7 @@ func (r *VaultCategoryRepository) FindByName(ctx context.Context, name string) (
 	vc := &model.VaultCategory{
 		ID:            category.ID,
 		Name:          category.Name,
-		CoverImageURL: category.CoverImage,
+		CoverImageURL: category.CoverImageURL,
 		IsActive:      category.IsActive,
 		CreatedAt:     category.CreatedAt,
 		UpdatedAt:     category.UpdatedAt,
@@ -169,21 +219,34 @@ func (r *VaultCategoryRepository) FindByName(ctx context.Context, name string) (
 	return vc, nil
 }
 
-// Update updates name/description; prevents updates on deleted records
 func (r *VaultCategoryRepository) Update(ctx context.Context, id string, entity *imodel.VaultCategory) error {
-	// Ensure not deleted
-	_, err := r.FindByID(ctx, id)
+	q := sqlc.New(r.db)
+
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback()
 
-	params := sqlc.UpdateVaultCategoryParams{
-		Name:       sql.NullString{String: entity.Name, Valid: entity.Name != ""},
-		CoverImage: sql.NullString{String: entity.CoverImageURL, Valid: entity.CoverImageURL != ""},
-		ID:         id,
+	qtx := q.WithTx(tx)
+
+	_, err = qtx.UpdateVaultCategory(ctx, id, entity)
+	if err != nil {
+		r.logger.Errorf("[Persistence]failed to update vault category on transaction: %v", err)
+		return err
 	}
-	_, err = sqlc.New(r.db).UpdateVaultCategory(ctx, params)
-	return err
+
+	err = qtx.UpdateVaultTiers(ctx, id, entity)
+	if err != nil {
+		r.logger.Errorf("[Persistence]failed to update vault tiers on transaction: %v", err)
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Delete performs a soft delete; prevents double delete

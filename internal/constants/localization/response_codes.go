@@ -640,10 +640,12 @@ var ResponseCodesList = []ResponseCode{
 	//bps error
 	ErrorExistBpsUserEmail,
 	// Vault related
-	SuccessVaultGroupCategoryCreationRequestSubmitted,
+	SuccessVaultCategoryCreationRequestSubmitted,
+	SuccessVaultCategoryCreatedSuccessfully,
 	SuccessVaultGroupCategoriesRetrieved,
 	SuccessVaultGroupCategoryRetrieved,
 	SuccessVaultGroupCategoryUpdateRequestSubmitted,
+	SuccessVaultCategoryUpdatedSuccessfully,
 	SuccessVaultGroupCategoryDeleteRequestSubmitted,
 	SuccessVaultGroupCategoryEnableRequestSubmitted,
 	SuccessVaultGroupCategoryDisableRequestSubmitted,
@@ -664,14 +666,14 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAuditorActionOnThisActionCompleted,
 	ErrorAuditorActionWaitForPreviousAuditor,
 	ErrorDuplicateBankProduct,
-	ErrorVaultGroupCategoryNotFound,
+	ErrorVaultCategoryNotFound,
 	ErrorGroupVaultNotFound,
 	ErrorCannotDeleteActiveVaultGroupCategory,
 	ErrorNoBankProductFound,
 	ErrorCannotDeletedBankProduct,
 	ErrorCannotEnableOrDisable,
 	ErrorBankVaultProductAlreadyDeleted,
-	ErrorDuplicateGroupVaultCategory,
+	ErrorDuplicateVaultCategory,
 	ErrorBankVaultAlreadyEnabled,
 	ErrorBankVaultAlreadyDisabled,
 	ErrorVaultGroupAlreadyEnabled,
@@ -1969,12 +1971,19 @@ var (
 		Type:       "success",
 	}
 	// vaultgroup category related
-	SuccessVaultGroupCategoryCreationRequestSubmitted = ResponseCode{
-		Code:       "SUCCESS_VAULTGROUPCATEGORY_CREATION_REQUEST_SUBMITTED",
+	SuccessVaultCategoryCreationRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_CATEGORY_CREATION_REQUEST_SUBMITTED",
 		StatusCode: StatusCreated,
-		Message:    MsgVaultGroupCategoryCreationRequestSubmitted,
+		Message:    MsgVaultCategoryCreationRequestSubmitted,
 		Type:       "success",
 	}
+	SuccessVaultCategoryCreatedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_VAULT_CATEGORY_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgVaultCategoryCreatedSuccessfully,
+		Type:       "success",
+	}
+
 	SuccessVaultGroupCategoriesRetrieved = ResponseCode{
 		Code:       "SUCCESS_VAULTGROUPCATEGORIES_RETRIEVED",
 		StatusCode: StatusOK,
@@ -1991,6 +2000,12 @@ var (
 		Code:       "SUCCESS_VAULTGROUPCATEGORY_UPDATE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
 		Message:    MsgVaultGroupCategoryUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultCategoryUpdatedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_VAULT_UPDATE_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgVaultCategoryUpdateUpdatedSuccessfully,
 		Type:       "success",
 	}
 	SuccessVaultGroupCategoryDeleteRequestSubmitted = ResponseCode{
@@ -7164,10 +7179,10 @@ var (
 		Message:    "no changes detected to update",
 		Type:       "error",
 	}
-	ErrorVaultGroupCategoryNotFound = ResponseCode{
+	ErrorVaultCategoryNotFound = ResponseCode{
 		Code:       "ERROR_VAULT_GROUP_CATEGORY_NOT_FOUND",
 		StatusCode: StatusNotFound,
-		Message:    "Vault group category not found.",
+		Message:    "Vault category not found.",
 		Type:       "error",
 	}
 	ErrorGroupVaultNotFound = ResponseCode{
@@ -7230,10 +7245,10 @@ var (
 		Type:       "error",
 	}
 
-	ErrorDuplicateGroupVaultCategory = ResponseCode{
-		Code:       "ERROR_DUPLICATE_GROUP_VAULT_CATEGORY",
+	ErrorDuplicateVaultCategory = ResponseCode{
+		Code:       "ERROR_DUPLICATE_VAULT_CATEGORY",
 		StatusCode: StatusBadRequest,
-		Message:    MsgDuplicateGroupVaultCategory,
+		Message:    MsgDuplicateVaultCategory,
 		Type:       "error",
 	}
 

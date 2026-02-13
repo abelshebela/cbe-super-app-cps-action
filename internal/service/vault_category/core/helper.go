@@ -47,6 +47,25 @@ func CategoryMapper(action map[string]interface{}) imodel.VaultCategory {
 		}
 	}
 
+	if v, ok := action["tiers"]; ok {
+		switch val := v.(type) {
+		case []interface{}:
+			category.Tiers = TiersMapper(val)
+		case string:
+			var raw []interface{}
+			if err := json.Unmarshal([]byte(val), &raw); err == nil {
+				category.Tiers = TiersMapper(raw)
+			}
+		default:
+			if bytes, err := json.Marshal(val); err == nil {
+				var raw []interface{}
+				if err := json.Unmarshal(bytes, &raw); err == nil {
+					category.Tiers = TiersMapper(raw)
+				}
+			}
+		}
+	}
+
 	return category
 }
 
@@ -55,6 +74,11 @@ func TiersMapper(tiersRaw []interface{}) []imodel.VaultTiers {
 	for _, tr := range tiersRaw {
 		if tMap, ok := tr.(map[string]interface{}); ok {
 			tier := imodel.VaultTiers{}
+			if v, ok := tMap["id"]; ok {
+				tier.ID = getAnyAsString(v)
+			} else if v, ok := tMap["_id"]; ok {
+				tier.ID = getAnyAsString(v)
+			}
 			if v, ok := tMap["name"]; ok {
 				if name, ok := v.(string); ok {
 					tier.Name = name

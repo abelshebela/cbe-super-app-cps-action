@@ -26,8 +26,7 @@ type VaultCategory struct {
 }
 
 type Withdrawal struct {
-	ID string `json:"id" bson:"_id,omitempty" gorm:"primaryKey"`
-
+	ID                    string    `json:"id" bson:"_id,omitempty" gorm:"primaryKey"`
 	LockedVaultID         string    `json:"locked_vault_id" bson:"locked_vault_id"`
 	Amount                string    `json:"amount" bson:"amount"`
 	WithdrawerName        string    `json:"withdrawer_name" bson:"withdrawer_name"`

@@ -1,11 +1,14 @@
 package vaultgroupcategory
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
+	"cbe-super-app-cps-action/internal/constants"
 	vault_category_dto "cbe-super-app-cps-action/internal/constants/dto/vault_category"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/vault_category/core"
 	"cbe-super-app-cps-action/internal/service"
@@ -43,6 +46,10 @@ func InitVaultCategoryHandler(svc service.VaultCategoryService, logger utils.Log
 func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	var req vault_category_dto.CreateCategoryRequest
 
 	file, fileHeader, err := core.ParseMultipartFormFile(r, "cover_image", 10<<20, true, h.logger)
@@ -99,8 +106,16 @@ func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessVaultCategoryCreatedSuccessfully, nil)
+		return
+	}
+
 	h.logger.Infof("Vault group category created with ID: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessVaultGroupCategoryCreationRequestSubmitted, nil)
+	localization.SendSuccessResponse(w, localization.SuccessVaultCategoryCreationRequestSubmitted, nil)
 }
 
 // FindAllVaultGroupCategories
@@ -119,6 +134,7 @@ func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
 func (h *handler) FindAllVaultCategories(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "findAllVaultGroupCategories", "handler", "vaultGroupCategory")
 	defer span.End()
+
 	params := common_utils.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -141,6 +157,7 @@ func (h *handler) FindAllVaultCategories(w http.ResponseWriter, r *http.Request)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	span.SetAttributes(attribute.Int("vault_group_category.count", len(result.Data)))
 	localization.SendSuccessResponse(w, localization.SuccessVaultGroupCategoriesRetrieved, result)
 }
@@ -205,6 +222,10 @@ func (h *handler) GetVaultCategory(w http.ResponseWriter, r *http.Request) {
 func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
 		appErr := middleware.NewValidationError("vault group category id is required", map[string]interface{}{}).WithService("vault_group_category").
@@ -231,10 +252,42 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 		req.CoverImage = fileHeader
 	}
+	name := r.FormValue("name")
+	intType := r.FormValue("interest_type")
+	cateInt := r.FormValue("category_interest")
+	deadlockStr := r.FormValue("deadlock")
+	tiersStr := r.FormValue("tiers")
 
-	// if name := r.FormValue("name"); name != "" {
-	// 	req.Name = name
-	// }
+	if name != "" {
+		req.Name = &name
+	}
+	if intType != "" {
+		req.InterestType = &intType
+	}
+	if cateInt != "" {
+		req.CategoryInterest = &cateInt
+	}
+
+	if deadlockStr != "" {
+		var deadlockBool bool
+		if deadlockStr == "true" || deadlockStr == "1" {
+			deadlockBool = true
+		} else {
+			deadlockBool = false
+		}
+		req.Deadlock = &deadlockBool
+	}
+
+	if tiersStr != "" {
+		var tier []vault_category_dto.UpdateTierDTO
+		if err := json.Unmarshal([]byte(tiersStr), &tier); err != nil {
+			span.RecordError(err)
+			h.logger.Errorf("[UpdateVaultCategory] parse tiers: %v", err)
+			localization.SendBadRequestResponse(w, "Invalid tiers format")
+			return
+		}
+		req.Tiers = tier
+	}
 
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
@@ -242,8 +295,7 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	// updateData := core.ToDomainUpdateVaultGroupCategoryRequest(req)
-	span.SetAttributes(attribute.String("vault_group_category.id", id))
+
 	_, err = h.service.UpdateVaultCategory(ctx, id, &req)
 	if err != nil {
 		span.RecordError(err)
@@ -251,6 +303,14 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessVaultCategoryUpdatedSuccessfully, nil)
+		return
+	}
+
 	h.logger.Infof("Vault group category updated with ID: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessVaultGroupCategoryUpdateRequestSubmitted, nil)
 }
