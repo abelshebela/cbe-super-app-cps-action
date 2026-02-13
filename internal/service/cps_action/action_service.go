@@ -410,6 +410,7 @@ func (ca *cpsActionService) GetUserAuthorizerIndex(ctx context.Context, requestA
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 	var approverData imodel.CPSActionApproveIndex
 
+	ca.logger.Infof("[GetUserAuthorizerIndex] role code: %s and request action: %s", roleCode, requestAction)
 	if mod, ok := ResolveModuleForRA(RequestAction(requestAction)); ok && ca.roles != nil {
 		if approver, err := ca.roles.FindApproverByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil {
 			approverData = approver

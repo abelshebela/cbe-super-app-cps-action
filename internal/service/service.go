@@ -495,6 +495,7 @@ type JobRoleService interface {
 	Create(ctx context.Context, jobs model.Role) error
 	Update(ctx context.Context, id string, update model.Role) error
 	FindById(ctx context.Context, id string) (*model.Role, error)
+	FindAll(ctx context.Context) (*[]model.Role, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Role], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
@@ -503,6 +504,7 @@ type RoleService interface {
 	Create(ctx context.Context, jobs imodel.JobRole) error
 	Update(ctx context.Context, id string, update imodel.JobRole) error
 	FindById(ctx context.Context, id string) (*imodel.JobRole, error)
+	FindAll(ctx context.Context) (*[]imodel.JobRole, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

@@ -13,8 +13,16 @@ func Init(router chi.Router, handler inbound.RolesInbound, auth middleware.AuthM
 	routes := []glue.Route{
 		{
 			Method:  http.MethodGet,
-			Path:    "/job_roles",
+			Path:    "/job_roles/all",
 			Handler: handler.GetAll,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/job_roles",
+			Handler: handler.GetAllWithPagination,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
 			},

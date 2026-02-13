@@ -85,6 +85,19 @@ func (s *JobRoleStorage) FindByID(ctx context.Context, id string) (*imodel.JobRo
 	return res, nil
 }
 
+func (s *JobRoleStorage) FindAll(ctx context.Context) (*[]imodel.JobRole, error) {
+
+	data, err := s.dal.FindAll(ctx, bson.M{}, bson.M{})
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		s.logger.Errorf("[JobRole/FindAll] failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return &data, nil
+}
+
 func (r *JobRoleStorage) ExistsMany(ctx context.Context, codes []string) (bool, error) {
 	if len(codes) == 0 {
 		return true, nil

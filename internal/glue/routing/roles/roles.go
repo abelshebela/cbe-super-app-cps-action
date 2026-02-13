@@ -14,6 +14,14 @@ func Init(router chi.Router, handler inbound.RolesInbound, auth middleware.AuthM
 		{
 			Method:  http.MethodGet,
 			Path:    "/roles",
+			Handler: handler.FindAllWithPagination,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/roles/all",
 			Handler: handler.FindAll,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,

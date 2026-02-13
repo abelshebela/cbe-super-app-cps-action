@@ -331,13 +331,17 @@ func StringToObjectID(id string) (bson.ObjectID, bool) {
 	return objID, true
 }
 
-// GenerateActionCode generates a unique action code of length 20 with prefix "CBE_"
+// GenerateActionCode generates a unique action code in the format: SRM + YY + DDD + HHMMSS
+// Example: SRM26216_143025 (year 2026, 216th day, 14:30:25)
 func GenerateActionCode() string {
-	const prefix = "BANK_"
+	const prefix = "SRM"
 
-	timestamp := time.Now().Format("20060102150405")
+	now := time.Now()
+	year := now.Format("06")                        // last 2 digits of year
+	dayOfYear := fmt.Sprintf("%03d", now.YearDay()) // day of year zero-padded to 3 digits
+	timeStr := now.Format("150405")                 // HHMMSS
 
-	return prefix + timestamp
+	return prefix + year + dayOfYear + "_" + timeStr
 }
 
 func HandleMongoError(err error) (string, string) {
