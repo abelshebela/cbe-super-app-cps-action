@@ -61,6 +61,10 @@ func (j *jobRoleService) Create(ctx context.Context, role sharedmodel.Role) erro
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 
+func (j *jobRoleService) FindAll(ctx context.Context) (*[]sharedmodel.Role, error) {
+	return j.roleRepository.FindAll(ctx)
+}
+
 func (j *jobRoleService) Update(ctx context.Context, id string, update sharedmodel.Role) error {
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {

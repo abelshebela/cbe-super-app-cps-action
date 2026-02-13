@@ -56,6 +56,10 @@ func (j *RoleService) Create(ctx context.Context, role imodel.JobRole) error {
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 
+func (j *RoleService) FindAll(ctx context.Context) (*[]imodel.JobRole, error) {
+	return j.roleRepository.FindAll(ctx)
+}
+
 func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRole) error {
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
