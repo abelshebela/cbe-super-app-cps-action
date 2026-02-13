@@ -1,4 +1,4 @@
-package vaultgroupcategory
+package vaultcategory
 
 import (
 	"context"
@@ -28,23 +28,22 @@ func InitVaultCategoryHandler(svc service.VaultCategoryService, logger utils.Log
 	return &handler{service: svc, logger: logger}
 }
 
-// CreateVaultGroupCatagory
+// CreateVaultCatagory
 //
-//	@Summary		Create Vault Group Category
-//	@Description	Create a new vault group category with the provided information
-//	@Tags			Vault Group Category
+//	@Summary		Create Vault Category
+//	@Description	Create a new vault category with the provided information
+//	@Tags			Vault Category
 //	@Accept			multipart/form-data
 //	@Produce		json
 //	@Param			name			formData	string									true	"Category name"
-//	@Param			category_type	formData	string									true	"Category type (GROUP or PERSONAL)"
 //	@Param			cover_image		formData	file									true	"Cover image file"
-//	@Success		200		{object}	localization.StandardResponse{data=nil}				"Vault group category creation request submitted successfully"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}				"Vault category creation request submitted successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}				"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}				"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/vaultgroupcategory/create [post]
+//	@Router			/vaultcategory/create [post]
 func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createVaultCategory", "handler", "vaultCategory")
 	defer span.End()
 
 	md := &types.ContextMetadata{}
@@ -55,7 +54,7 @@ func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	file, fileHeader, err := core.ParseMultipartFormFile(r, "cover_image", 10<<20, true, h.logger)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[CreateVaultGroupCategory] parse multipart form file: %v", err)
+		h.logger.Errorf("[CreateVaultCategory] parse multipart form file: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorVaultCoverImageMissedOrInvalid, nil, nil)
 		return
 	}
@@ -84,7 +83,7 @@ func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
 		var tiers []vault_category_dto.CreateTierDTO
 		if err := json.Unmarshal([]byte(tiersStr), &tiers); err != nil {
 			span.RecordError(err)
-			h.logger.Errorf("[CreateVaultGroupCategory] parse tiers: %v", err)
+			h.logger.Errorf("[CreateVaultCategory] parse tiers: %v", err)
 			localization.SendBadRequestResponse(w, "Invalid tiers format")
 			return
 		}
@@ -93,16 +92,16 @@ func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
 
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[CreateVaultGroupCategory] validation: %v", err)
+		h.logger.Errorf("[CreateVaultCategory] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	// product := core.ToDomainCreateVaultGroupCategoryRequest(req)
-	span.SetAttributes(attribute.String("vault_group_category.name", req.Name))
+	// product := core.ToDomainCreateVaultCategoryRequest(req)
+	span.SetAttributes(attribute.String("vault_category.name", req.Name))
 	id, err := h.service.CreateVaultCategory(ctx, &req)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[CreateVaultGroupCategory] service: %v", err)
+		h.logger.Errorf("[CreateVaultCategory] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -114,25 +113,25 @@ func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Infof("Vault group category created with ID: %s", id)
+	h.logger.Infof("Vault category created with ID: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessVaultCategoryCreationRequestSubmitted, nil)
 }
 
-// FindAllVaultGroupCategories
+// FindAllVaultCategories
 //
-//	@Summary		Find All Vault Group Categories
-//	@Description	Find all vault group categories with the provided filters
-//	@Tags			Vault Group Category
+//	@Summary		Find All Vault Categories
+//	@Description	Find all vault categories with the provided filters
+//	@Tags			Vault Category
 //	@Accept			json
 //	@Produce		json
 //	@Param			filters	query		string									false	"Filters"
-//	@Success		200		{object}	localization.StandardResponse{data=object}	"Vault group categories retrieved successfully"
+//	@Success		200		{object}	localization.StandardResponse{data=object}	"Vault categories retrieved successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/vaultgroupcategory [get]
+//	@Router			/vaultcategory [get]
 func (h *handler) FindAllVaultCategories(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "findAllVaultGroupCategories", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "findAllVaultCategories", "handler", "vaultCategory")
 	defer span.End()
 
 	params := common_utils.ExtractFilterParams(r)
@@ -153,74 +152,74 @@ func (h *handler) FindAllVaultCategories(w http.ResponseWriter, r *http.Request)
 	result, err := h.service.FindAllVaultCategories(ctx, params)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[FindAllVaultGroupCategories] service: %v", err)
+		h.logger.Errorf("[FindAllVaultCategories] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	span.SetAttributes(attribute.Int("vault_group_category.count", len(result.Data)))
-	localization.SendSuccessResponse(w, localization.SuccessVaultGroupCategoriesRetrieved, result)
+	span.SetAttributes(attribute.Int("vault_category.count", len(result.Data)))
+	localization.SendSuccessResponse(w, localization.SuccessVaultCategoriesRetrieved, result)
 }
 
-// GetVaultGroupCategory
+// GetVaultCategory
 //
-//	@Summary		Get Vault Group Category
-//	@Description	Get a vault group category by the provided ID
-//	@Tags			Vault Group Category
+//	@Summary		Get Vault Category
+//	@Description	Get a vault category by the provided ID
+//	@Tags			Vault Category
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		string									true	"Vault group category ID"
-//	@Success		200	{object}	localization.StandardResponse{data=vaultgroupcategory.VaultGroupCategoryResponse}	"Vault group category retrieved successfully"
+//	@Param			id	path		string									true	"Vault category ID"
+//	@Success		200	{object}	localization.StandardResponse{data=vaultcategory.VaultCategoryResponse}	"Vault category retrieved successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/vaultgroupcategory/{id} [get]
+//	@Router			/vaultcategory/{id} [get]
 func (h *handler) GetVaultCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getVaultCategory", "handler", "vaultCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
-		appErr := middleware.NewValidationError("vault group category id is required", map[string]interface{}{}).WithService("bankvault_product").
+		appErr := middleware.NewValidationError("vault category id is required", map[string]interface{}{}).WithService("bankvault_product").
 			WithOperation("GetBankVault")
 		localization.SendErrorByCodeResponse(w, appErr.Error())
 		return
 	}
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[GetVaultGroupCategory] extract id: %v", err)
+		h.logger.Errorf("[GetVaultCategory] extract id: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	span.SetAttributes(attribute.String("vault_group_category.id", id))
+	span.SetAttributes(attribute.String("vault_category.id", id))
 	result, err := h.service.GetVaultCategory(ctx, id)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[GetVaultGroupCategory] service: %v", err)
+		h.logger.Errorf("[GetVaultCategory] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("Vault group category retrieved with ID: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessVaultGroupCategoryRetrieved, result)
+	h.logger.Infof("Vault category retrieved with ID: %s", id)
+	localization.SendSuccessResponse(w, localization.SuccessVaultCategoryRetrieved, result)
 
 }
 
-// UpdateVaultGroupCategory
+// UpdateVaultCategory
 //
-//	@Summary		Update Vault Group Category
-//	@Description	Update a vault group category by the provided ID. Expects multipart/form-data (optional file "cover_image" and form field "name").
-//	@Tags			Vault Group Category
+//	@Summary		Update Vault Category
+//	@Description	Update a vault category by the provided ID. Expects multipart/form-data (optional file "cover_image" and form field "name").
+//	@Tags			Vault Category
 //	@Accept			multipart/form-data
 //	@Produce		json
-//	@Param			id			path		string									true	"Vault group category ID"
+//	@Param			id			path		string									true	"Vault category ID"
 //	@Param			cover_image	formData	file									false	"Cover image file"
 //	@Param			name		formData	string									false	"Name"
-//	@Success		200			{object}	localization.StandardResponse{data=nil}	"Vault group category update request submitted successfully"
+//	@Success		200			{object}	localization.StandardResponse{data=nil}	"Vault category update request submitted successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/vaultgroupcategory/update/{id} [patch]
+//	@Router			/vaultcategory/update/{id} [patch]
 func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateVaultCategory", "handler", "vaultCategory")
 	defer span.End()
 
 	md := &types.ContextMetadata{}
@@ -228,14 +227,14 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
-		appErr := middleware.NewValidationError("vault group category id is required", map[string]interface{}{}).WithService("vault_group_category").
-			WithOperation("UpdateVaultGroupCategory")
+		appErr := middleware.NewValidationError("vault category id is required", map[string]interface{}{}).WithService("vault_category").
+			WithOperation("UpdateVaultCategory")
 		localization.SendErrorByCodeResponse(w, appErr.Error())
 		return
 	}
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[UpdateVaultGroupCategory] extract id: %v", err)
+		h.logger.Errorf("[UpdateVaultCategory] extract id: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -244,7 +243,7 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	file, fileHeader, err := core.ParseMultipartFormFile(r, "cover_image", 10<<20, false, h.logger)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[CreateVaultGroupCategory] parse multipart form file: %v", err)
+		h.logger.Errorf("[CreateVaultCategory] parse multipart form file: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorVaultCoverImageMissedOrInvalid, nil, nil)
 		return
 	}
@@ -291,7 +290,7 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[UpdateVaultGroupCategory] validation: %v", err)
+		h.logger.Errorf("[UpdateVaultCategory] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -299,7 +298,7 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	_, err = h.service.UpdateVaultCategory(ctx, id, &req)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[UpdateVaultGroupCategory] service: %v", err)
+		h.logger.Errorf("[UpdateVaultCategory] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -311,72 +310,76 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Infof("Vault group category updated with ID: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessVaultGroupCategoryUpdateRequestSubmitted, nil)
+	h.logger.Infof("Vault category updated with ID: %s", id)
+	localization.SendSuccessResponse(w, localization.SuccessVaultCategoryUpdateRequestSubmitted, nil)
 }
 
-// DeleteVaultGroupCategory
+// DeleteVaultCategory
 //
-//	@Summary		Delete Vault Group Category
-//	@Description	Delete a vault group category by the provided ID
-//	@Tags			Vault Group Category
+//	@Summary		Delete Vault Category
+//	@Description	Delete a vault category by the provided ID
+//	@Tags			Vault Category
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		string									true	"Vault group category ID"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Vault group category delete request submitted successfully"
+//	@Param			id	path		string									true	"Vault category ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Vault category delete request submitted successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/vaultgroupcategory/delete/{id} [delete]
+//	@Router			/vaultcategory/delete/{id} [delete]
 func (h *handler) DeleteVaultCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteVaultCategory", "handler", "vaultCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
-		appErr := middleware.NewValidationError("vault group category id is required", map[string]interface{}{}).WithService("vault_group_category").
-			WithOperation("DeleteVaultGroupCategory")
+		appErr := middleware.NewValidationError("vault category id is required", map[string]interface{}{}).WithService("vault_category").
+			WithOperation("DeleteVaultCategory")
 		span.RecordError(appErr)
 		localization.SendErrorByCodeResponse(w, appErr.Error())
 		return
 	}
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[DeleteVaultGroupCategory] extract id: %v", err)
+		h.logger.Errorf("[DeleteVaultCategory] extract id: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	span.SetAttributes(attribute.String("vault_group_category.id", id))
+	span.SetAttributes(attribute.String("vault_category.id", id))
 	_, err = h.service.DeleteVaultCategory(ctx, id)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[DeleteVaultGroupCategory] service: %v", err)
+		h.logger.Errorf("[DeleteVaultCategory] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("Vault group category deleted with ID: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessVaultGroupCategoryDeleteRequestSubmitted, nil)
+	h.logger.Infof("Vault category deleted with ID: %s", id)
+	localization.SendSuccessResponse(w, localization.SuccessVaultCategoryDeleteRequestSubmitted, nil)
 }
 
 // DisableVaultCategory
 //
-//	@Summary		Disable Vault Group Category
-//	@Description	Disable a vault group category by the provided ID
-//	@Tags			Vault Group Category
+//	@Summary		Disable Vault Category
+//	@Description	Disable a vault category by the provided ID
+//	@Tags			Vault Category
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		string									true	"Vault group category ID"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Vault group category disable request submitted successfully"
+//	@Param			id	path		string									true	"Vault category ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Vault category disable request submitted successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/vaultgroupcategory/disable/{id} [patch]
+//	@Router			/vaultcategory/disable/{id} [patch]
 func (h *handler) DisableVaultCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableVaultCategory", "handler", "vaultCategory")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
-		appErr := middleware.NewValidationError("vault group category id is required", map[string]interface{}{}).
-			WithService("vault_group_category").
+		appErr := middleware.NewValidationError("vault category id is required", map[string]interface{}{}).
+			WithService("vault_category").
 			WithOperation("DisableBankVault")
 		span.RecordError(appErr)
 		localization.SendErrorByCodeResponse(w, appErr.Error())
@@ -384,42 +387,54 @@ func (h *handler) DisableVaultCategory(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[DisableVaultGroupCategory] extract ID: %v", err)
+		h.logger.Errorf("[DisableVaultCategory] extract ID: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	span.SetAttributes(attribute.String("vault_group_category.id", id))
+	span.SetAttributes(attribute.String("vault_category.id", id))
 	err = h.service.DisableVaultCategory(ctx, id)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[DisableVaultGroupCategory] service: %v", err)
+		h.logger.Errorf("[DisableVaultCategory] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("Vault group category disabled with ID: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessVaultGroupCategoryDisableRequestSubmitted, nil)
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessVaultCategoryDisabledSuccessfully, nil)
+		return
+	}
+
+	h.logger.Infof("Vault category disabled with ID: %s", id)
+	localization.SendSuccessResponse(w, localization.SuccessVaultCategoryDisableRequestSubmitted, nil)
 }
 
-// EnableVaultGroupCategory
+// EnableVaultCategory
 //
-//	@Summary		Enable Vault Group Category
-//	@Description	Enable a vault group category by the provided ID
-//	@Tags			Vault Group Category
+//	@Summary		Enable Vault Category
+//	@Description	Enable a vault category by the provided ID
+//	@Tags			Vault Category
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		string									true	"Vault group category ID"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Vault group category enable request submitted successfully"
+//	@Param			id	path		string									true	"Vault category ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Vault category enable request submitted successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/vaultgroupcategory/enable/{id} [patch]
+//	@Router			/vaultcategory/enable/{id} [patch]
 func (h *handler) EnableVaultCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableVaultCategory", "handler", "vaultCategory")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
-		appErr := middleware.NewValidationError("vault group category id is required", map[string]interface{}{}).
-			WithService("vault_group_category").
+		appErr := middleware.NewValidationError("vault category id is required", map[string]interface{}{}).
+			WithService("vault_category").
 			WithOperation("EnableBankVault")
 		span.RecordError(appErr)
 		localization.SendErrorByCodeResponse(w, appErr.Error())
@@ -427,18 +442,26 @@ func (h *handler) EnableVaultCategory(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[EnableVaultGroupCategory] extract ID: %v", err)
+		h.logger.Errorf("[EnableVaultCategory] extract ID: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	span.SetAttributes(attribute.String("vault_group_category.id", id))
+	span.SetAttributes(attribute.String("vault_category.id", id))
 	err = h.service.EnableVaultCategory(ctx, id)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[EnableVaultGroupCategory] service: %v", err)
+		h.logger.Errorf("[EnableVaultCategory] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("Vault group category enabled with ID: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessVaultGroupCategoryEnableRequestSubmitted, nil)
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessVaultCategoryEnabledSuccessfully, nil)
+		return
+	}
+
+	h.logger.Infof("Vault category enabled with ID: %s", id)
+	localization.SendSuccessResponse(w, localization.SuccessVaultCategoryEnableRequestSubmitted, nil)
 }

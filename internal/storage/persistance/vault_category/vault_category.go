@@ -182,6 +182,7 @@ func (r *VaultCategoryRepository) FindByID(ctx context.Context, id string) (*imo
 		}
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
 	e := &imodel.VaultCategory{
 		ID:               category.ID,
 		Name:             category.Name,

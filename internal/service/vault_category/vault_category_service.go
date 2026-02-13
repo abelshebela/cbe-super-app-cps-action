@@ -62,12 +62,11 @@ func (s *vaultCategoryService) CreateVaultCategory(ctx context.Context, req *vau
 
 	}
 
-	coverImageUrl := "http://example.com"
-	// coverImageUrl, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, string(constants.VaultGroupCategoryFolderName), *s.cfg, "", s.logger)
-	// if err != nil {
-	// 	span.AddEvent("File upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
-	// 	s.logger.Errorf(localization.ErrorFileUploadFailed.Code)
-	// }
+	coverImageUrl, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, string(constants.VaultCategoryFolderName), *s.cfg, "", s.logger)
+	if err != nil {
+		span.AddEvent("File upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
+		s.logger.Errorf(localization.ErrorFileUploadFailed.Code)
+	}
 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	var tiers []imodel.VaultTiers
@@ -126,7 +125,7 @@ func (s *vaultCategoryService) GetVaultCategory(ctx context.Context, id string) 
 	defer span.End()
 	entity, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, mongo.ErrNoDocuments) {
+		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorVaultCategoryNotFound.Code {
 			span.AddEvent("Not found", trace.WithAttributes(attribute.String("id", id)))
 			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
@@ -165,16 +164,16 @@ func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id strin
 		updatedName = strings.ToUpper(*req.Name)
 	}
 
-	// var coverImageUrl string
-	// if req.CoverImage != nil {
-	// 	coverImageUrl, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, string(constants.VaultGroupCategoryFolderName), *s.cfg, "", s.logger)
-	// 	if err != nil {
-	// 		span.AddEvent("File upload failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
-	// 		s.logger.Errorf(localization.ErrorFileUploadFailed.Code)
-	// 		return "", errors.New(localization.ErrorUnexpectedError.Code)
-	// 	}
-	// 	updatedCover = coverImageUrl
-	// }
+	var coverImageUrl string
+	if req.CoverImage != nil {
+		coverImageUrl, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, string(constants.VaultCategoryFolderName), *s.cfg, "", s.logger)
+		if err != nil {
+			span.AddEvent("File upload failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
+			s.logger.Errorf(localization.ErrorFileUploadFailed.Code)
+			return "", errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		updatedCover = coverImageUrl
+	}
 
 	interestType := prev.InterestType
 	if req.InterestType != nil {
@@ -278,7 +277,7 @@ func (s *vaultCategoryService) DeleteVaultCategory(ctx context.Context, id strin
 	if exist.IsActive {
 		span.AddEvent("Cannot delete active", trace.WithAttributes(attribute.String("id", id)))
 		s.logger.Errorf("cannot delete active vault category with id: %s", id)
-		return "", errors.New(localization.ErrorCannotDeleteActiveVaultGroupCategory.Code)
+		return "", errors.New(localization.ErrorCannotDeleteActiveVaultCategory.Code)
 	}
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
@@ -325,7 +324,7 @@ func (s *vaultCategoryService) EnableVaultCategory(ctx context.Context, id strin
 	if exist.IsActive {
 		span.AddEvent("Already enabled", trace.WithAttributes(attribute.String("id", id)))
 		s.logger.Errorf("vault category already enabled with id: %s", id)
-		return errors.New(localization.ErrorVaultGroupAlreadyEnabled.Code)
+		return errors.New(localization.ErrorVaultAlreadyEnabled.Code)
 	}
 	updated := *exist
 	updated.IsActive = true
@@ -356,7 +355,7 @@ func (s *vaultCategoryService) DisableVaultCategory(ctx context.Context, id stri
 	if err != nil {
 		span.AddEvent("FindByID error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		s.logger.Errorf("failed to fetch vault category by id | err=%v", err)
-		if errors.Is(err, mongo.ErrNoDocuments) || errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, mongo.ErrNoDocuments) || errors.Is(err, sql.ErrNoRows) || err.Error() == localization.ErrorVaultCategoryNotFound.Code {
 			span.AddEvent("Not found", trace.WithAttributes(attribute.String("id", id)))
 			return errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
@@ -366,7 +365,7 @@ func (s *vaultCategoryService) DisableVaultCategory(ctx context.Context, id stri
 	if !exist.IsActive {
 		span.AddEvent("Already disabled", trace.WithAttributes(attribute.String("id", id)))
 		s.logger.Errorf("vault category already disabled with id: %s", id)
-		return errors.New(localization.ErrorVaultGroupAlreadyDisabled.Code)
+		return errors.New(localization.ErrorVaultAlreadyDisabled.Code)
 	}
 	updated := *exist
 	updated.IsActive = false

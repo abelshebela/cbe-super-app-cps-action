@@ -20,12 +20,11 @@ func generateUUID() string {
 const activateVaultCategory = `-- name: ActivateVaultCategory :one
 UPDATE vault_categories
 SET is_active = 1, updated_at = SYSTIMESTAMP
-WHERE id = :1 AND is_deleted = 0
-RETURNING id INTO :result`
+WHERE id = :1`
 
 func (q *Queries) ActivateVaultCategory(ctx context.Context, id string) (string, error) {
 	var result string
-	res, err := q.db.ExecContext(ctx, activateVaultCategory, id, sql.Out{Dest: &result})
+	res, err := q.db.ExecContext(ctx, activateVaultCategory, id)
 	if err != nil {
 		return "", fmt.Errorf("failed to activate vault  category: %w", err)
 	}
@@ -39,12 +38,11 @@ func (q *Queries) ActivateVaultCategory(ctx context.Context, id string) (string,
 const deactivateVaultCategory = `-- name: DeactivateVaultCategory :one
 UPDATE vault_categories
 SET is_active = 0, updated_at = SYSTIMESTAMP
-WHERE id = :1 AND is_deleted = 0
-RETURNING id INTO :result`
+WHERE id = :1`
 
 func (q *Queries) DeactivateVaultCategory(ctx context.Context, id string) (string, error) {
 	var result string
-	res, err := q.db.ExecContext(ctx, deactivateVaultCategory, id, sql.Out{Dest: &result})
+	res, err := q.db.ExecContext(ctx, deactivateVaultCategory, id)
 	if err != nil {
 		return "", fmt.Errorf("failed to deactivate vault  category: %w", err)
 	}
@@ -81,7 +79,6 @@ SELECT
 FROM vault_categories
 WHERE (:is_active IS NULL OR is_active = :is_active)
 	AND (:name IS NULL OR UPPER(name) LIKE :name)
-	AND is_active = 1
 ORDER BY created_at DESC
 OFFSET NVL(:offset, 0) ROWS
 FETCH NEXT NVL(:limit, 50) ROWS ONLY`
@@ -172,8 +169,7 @@ SELECT
 FROM vault_categories c
 LEFT JOIN vault_tiers t
   ON c.id = t.category_id
-WHERE c.id = :1
-  AND c.is_active = 1`
+WHERE c.id = :1`
 
 func (q *Queries) FindVaultCategoryWithTiers(ctx context.Context, id string) (*imodel.VaultCategory, []imodel.VaultTiers, error) {
 
@@ -185,8 +181,7 @@ func (q *Queries) FindVaultCategoryWithTiers(ctx context.Context, id string) (*i
 
 	var category imodel.VaultCategory
 	var tiers []imodel.VaultTiers
-
-	first := true
+	found := false
 
 	for rows.Next() {
 
@@ -214,9 +209,8 @@ func (q *Queries) FindVaultCategoryWithTiers(ctx context.Context, id string) (*i
 			return nil, nil, err
 		}
 
-		if first {
-			first = false
-		}
+		// mark that we have at least one row (category exists)
+		found = true
 
 		if t.ID != "" {
 			tiers = append(tiers, t)
@@ -225,6 +219,10 @@ func (q *Queries) FindVaultCategoryWithTiers(ctx context.Context, id string) (*i
 
 	if err := rows.Err(); err != nil {
 		return nil, nil, err
+	}
+
+	if !found {
+		return nil, nil, sql.ErrNoRows
 	}
 
 	return &category, tiers, nil
@@ -340,7 +338,7 @@ SET
     category_interest = COALESCE(:4, category_interest),
     deadlock          = COALESCE(:5, deadlock),
     updated_at        = COALESCE(:8, updated_at)
-WHERE id = :9 AND is_active = 1`
+WHERE id = :9`
 
 const updateVaultTier = `-- name: UpdateVaultTier :exec
 UPDATE vault_tiers

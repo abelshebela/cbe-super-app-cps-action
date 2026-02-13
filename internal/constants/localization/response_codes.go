@@ -642,13 +642,15 @@ var ResponseCodesList = []ResponseCode{
 	// Vault related
 	SuccessVaultCategoryCreationRequestSubmitted,
 	SuccessVaultCategoryCreatedSuccessfully,
-	SuccessVaultGroupCategoriesRetrieved,
-	SuccessVaultGroupCategoryRetrieved,
-	SuccessVaultGroupCategoryUpdateRequestSubmitted,
+	SuccessVaultCategoriesRetrieved,
+	SuccessVaultCategoryRetrieved,
+	SuccessVaultCategoryUpdateRequestSubmitted,
 	SuccessVaultCategoryUpdatedSuccessfully,
-	SuccessVaultGroupCategoryDeleteRequestSubmitted,
-	SuccessVaultGroupCategoryEnableRequestSubmitted,
-	SuccessVaultGroupCategoryDisableRequestSubmitted,
+	SuccessVaultCategoryDeleteRequestSubmitted,
+	SuccessVaultCategoryEnableRequestSubmitted,
+	SuccessVaultCategoryDisableRequestSubmitted,
+	SuccessVaultCategoryDisabledSuccessfully,
+	SuccessVaultCategoryEnabledSuccessfully,
 	SuccessVaultAmountTierCreationRequestSubmitted,
 	SuccessVaultAmountTierFetchedSuccessfully,
 	SuccessVaultAmountTierUpdateRequestSubmitted,
@@ -668,7 +670,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDuplicateBankProduct,
 	ErrorVaultCategoryNotFound,
 	ErrorGroupVaultNotFound,
-	ErrorCannotDeleteActiveVaultGroupCategory,
+	ErrorCannotDeleteActiveVaultCategory,
 	ErrorNoBankProductFound,
 	ErrorCannotDeletedBankProduct,
 	ErrorCannotEnableOrDisable,
@@ -676,8 +678,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDuplicateVaultCategory,
 	ErrorBankVaultAlreadyEnabled,
 	ErrorBankVaultAlreadyDisabled,
-	ErrorVaultGroupAlreadyEnabled,
-	ErrorVaultGroupAlreadyDisabled,
+	ErrorVaultAlreadyEnabled,
+	ErrorVaultAlreadyDisabled,
 	ErrorBankAlreadyEnabled,
 	ErrorBankAlreadyDisabled,
 	ErrorBankWithNameAlreadyExists,
@@ -1961,13 +1963,13 @@ var (
 	SuccessGroupVaultsRetrievedSuccessfully = ResponseCode{
 		Code:       "SUCCESS_GROUP_VAULTS_RETRIEVED_SUCCESSFULLY",
 		StatusCode: StatusOK,
-		Message:    MsgGroupVaultsRetrievedSuccessfully,
+		Message:    MsgVaultsRetrievedSuccessfully,
 		Type:       "success",
 	}
 	SuccessGroupVaultRetrievedSuccessfully = ResponseCode{
 		Code:       "SUCCESS_GROUP_VAULT_RETRIEVED_SUCCESSFULLY",
 		StatusCode: StatusOK,
-		Message:    MsgGroupVaultRetrievedSuccessfully,
+		Message:    MsgVaultRetrievedSuccessfully,
 		Type:       "success",
 	}
 	// vaultgroup category related
@@ -1984,22 +1986,22 @@ var (
 		Type:       "success",
 	}
 
-	SuccessVaultGroupCategoriesRetrieved = ResponseCode{
+	SuccessVaultCategoriesRetrieved = ResponseCode{
 		Code:       "SUCCESS_VAULTGROUPCATEGORIES_RETRIEVED",
 		StatusCode: StatusOK,
-		Message:    MsgVaultGroupCategoriesRetrieved,
+		Message:    MsgVaultCategoriesRetrieved,
 		Type:       "success",
 	}
-	SuccessVaultGroupCategoryRetrieved = ResponseCode{
+	SuccessVaultCategoryRetrieved = ResponseCode{
 		Code:       "SUCCESS_VAULTGROUPCATEGORY_RETRIEVED",
 		StatusCode: StatusOK,
-		Message:    MsgVaultGroupCategoryRetrieved,
+		Message:    MsgVaultCategoryRetrieved,
 		Type:       "success",
 	}
-	SuccessVaultGroupCategoryUpdateRequestSubmitted = ResponseCode{
+	SuccessVaultCategoryUpdateRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_VAULTGROUPCATEGORY_UPDATE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    MsgVaultGroupCategoryUpdateRequestSubmitted,
+		Message:    MsgVaultCategoryUpdateRequestSubmitted,
 		Type:       "success",
 	}
 	SuccessVaultCategoryUpdatedSuccessfully = ResponseCode{
@@ -2008,24 +2010,37 @@ var (
 		Message:    MsgVaultCategoryUpdateUpdatedSuccessfully,
 		Type:       "success",
 	}
-	SuccessVaultGroupCategoryDeleteRequestSubmitted = ResponseCode{
+	SuccessVaultCategoryDeleteRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_VAULTGROUPCATEGORY_DELETE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    MsgVaultGroupCategoryDeleteRequestSubmitted,
+		Message:    MsgVaultCategoryDeleteRequestSubmitted,
 		Type:       "success",
 	}
-	SuccessVaultGroupCategoryEnableRequestSubmitted = ResponseCode{
+	SuccessVaultCategoryEnableRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_VAULTGROUPCATEGORY_ENABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    MsgVaultGroupCategoryEnableRequestSubmitted,
+		Message:    MsgVaultCategoryEnableRequestSubmitted,
 		Type:       "success",
 	}
-	SuccessVaultGroupCategoryDisableRequestSubmitted = ResponseCode{
+	SuccessVaultCategoryDisableRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_VAULTGROUPCATEGORY_DISABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    MsgVaultGroupCategoryDisableRequestSubmitted,
+		Message:    MsgVaultCategoryDisableRequestSubmitted,
 		Type:       "success",
 	}
+	SuccessVaultCategoryDisabledSuccessfully = ResponseCode{
+		Code:       "SUCCESS_VAULT_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgVaultCategoryDisabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessVaultCategoryEnabledSuccessfully = ResponseCode{
+		Code:       "SUCCESS_VAULT_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgVaultCategoryEnabledSuccessfully,
+		Type:       "success",
+	}
+
 	SuccessVaultAmountTierCreationRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_VAULT_AMOUNT_TIER_CREATED",
 		StatusCode: StatusCreated,
@@ -4711,16 +4726,16 @@ var (
 		Type:       "error",
 	}
 
-	ErrorVaultGroupAlreadyEnabled = ResponseCode{
+	ErrorVaultAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_VAULT_GROUP_ALREADY_ENABLED",
 		StatusCode: StatusConflict,
-		Message:    MsgVaultGroupAlreadyEnabled,
+		Message:    MsgVaultAlreadyEnabled,
 		Type:       "error",
 	}
-	ErrorVaultGroupAlreadyDisabled = ResponseCode{
-		Code:       "ERROR_VAULT_GROUP_ALREADY_DISABLED",
+	ErrorVaultAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_VAULT_ALREADY_DISABLED",
 		StatusCode: StatusConflict,
-		Message:    MsgVaultGroupAlreadyDisabled,
+		Message:    MsgVaultAlreadyDisabled,
 		Type:       "error",
 	}
 
@@ -7180,27 +7195,27 @@ var (
 		Type:       "error",
 	}
 	ErrorVaultCategoryNotFound = ResponseCode{
-		Code:       "ERROR_VAULT_GROUP_CATEGORY_NOT_FOUND",
+		Code:       "ERROR_VAULT_CATEGORY_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    "Vault category not found.",
 		Type:       "error",
 	}
 	ErrorGroupVaultNotFound = ResponseCode{
-		Code:       "ERROR_GROUP_VAULT_NOT_FOUND",
+		Code:       "ERROR_VAULT_NOT_FOUND",
 		StatusCode: StatusNotFound,
-		Message:    "Group vault not found",
+		Message:    "Vault not found",
 		Type:       "error",
 	}
-	ErrorCannotDeleteActiveVaultGroupCategory = ResponseCode{
-		Code:       "ERROR_CANNOT_DELETE_ACTIVE_VAULT_GROUP_CATEGORY",
+	ErrorCannotDeleteActiveVaultCategory = ResponseCode{
+		Code:       "ERROR_CANNOT_DELETE_ACTIVE_VAULT_CATEGORY",
 		StatusCode: StatusBadRequest,
-		Message:    "Cannot delete an active vault group category.",
+		Message:    "Cannot delete an active vault category.",
 		Type:       "error",
 	}
-	ErrorVaultGroupCategooryAlreadyDeleted = ResponseCode{
-		Code:       "ERROR_VAULT_GROUP_CATEGORY_ALREADY_DELETED",
+	ErrorVaultCategooryAlreadyDeleted = ResponseCode{
+		Code:       "ERROR_VAULT_CATEGORY_ALREADY_DELETED",
 		StatusCode: StatusBadRequest,
-		Message:    "Vault group category is already deleted.",
+		Message:    "Vault category is already deleted.",
 		Type:       "error",
 	}
 	ErrorVaultCoverImageMissedOrInvalid = ResponseCode{
