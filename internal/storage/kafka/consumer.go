@@ -109,7 +109,7 @@ func (fc *FeedbackConsumer) handleFeedbackMessage(ctx context.Context, message *
 	}
 
 	// Validate the message type
-	if kafkaMsg.Type != "survey_feedback" {
+	if kafkaMsg.Type != "feedback" {
 		fc.logger.Errorf("Unexpected message type: %s, expected: feedback", kafkaMsg.Type)
 		return fmt.Errorf("unexpected message type: %s", kafkaMsg.Type)
 	}
@@ -186,7 +186,7 @@ func (fc *FeedbackConsumer) handleSurveyFeedbackMessage(ctx context.Context, mes
 	}
 
 	// Validate the message type
-	if kafkaMsg.Type != "feedback" {
+	if kafkaMsg.Type != "survey_feedback" {
 		fc.logger.Errorf("Unexpected message type: %s, expected: survey_feedback", kafkaMsg.Type)
 		return fmt.Errorf("unexpected message type: %s", kafkaMsg.Type)
 	}
@@ -309,16 +309,16 @@ func (h *ConsumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession,
 		switch message.Topic {
 		case "feedback-events":
 			// Use session context instead of Background
-			if err := h.consumer.handleSurveyFeedbackMessage(session.Context(), message); err != nil {
-				h.consumer.logger.Errorf("Failed to process survey feedback message: %v", err)
+			if err := h.consumer.handleFeedbackMessage(session.Context(), message); err != nil {
+				h.consumer.logger.Errorf("Failed to process message: %v", err)
 				// Continue processing other messages but don't mark as processed
 				continue
 			}
 
 		case "survey-feedback-events":
 			// Use session context instead of Background
-			if err := h.consumer.handleFeedbackMessage(session.Context(), message); err != nil {
-				h.consumer.logger.Errorf("Failed to process message: %v", err)
+			if err := h.consumer.handleSurveyFeedbackMessage(session.Context(), message); err != nil {
+				h.consumer.logger.Errorf("Failed to process survey feedback message: %v", err)
 				// Continue processing other messages but don't mark as processed
 				continue
 			}
