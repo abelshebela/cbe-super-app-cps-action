@@ -50,7 +50,7 @@ func NewRoleHandler(service service.RoleService, logger utils.Logger) inbound.Ro
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/roles [get]
-func (j *RoleHandler) FindAll(w http.ResponseWriter, r *http.Request) {
+func (j *RoleHandler) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_utils.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -73,6 +73,18 @@ func (j *RoleHandler) FindAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessGetAllBanks, resp)
+}
+
+func (j *RoleHandler) FindAll(w http.ResponseWriter, r *http.Request) {
+
+	data, err := j.service.FindAll(r.Context())
+	if err != nil {
+		j.logger.Errorf("[Roles][GetAll] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	j.logger.Infof("[Roles][GetAll] fetched %d roles", len(*data))
+	localization.SendSuccessResponse(w, localization.SuccessCPSRoleFetched, data)
 }
 
 // FindById godoc

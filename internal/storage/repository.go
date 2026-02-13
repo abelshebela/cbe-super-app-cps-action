@@ -50,6 +50,7 @@ type RoleRepository interface {
 	FindByName(ctx context.Context, name string) (*model.Role, error)
 	FindByCode(ctx context.Context, code string) (*model.Role, error)
 	FindByRole(ctx context.Context, jobTitle string) (*model.Role, error)
+	FindAll(ctx context.Context) (*[]model.Role, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Role], error)
 	FindByFilterKey(ctx context.Context, field string, value string) (*model.Role, error)
 }
@@ -61,6 +62,7 @@ type JobRoleRepository interface {
 	FindByID(ctx context.Context, id string) (*imodel.JobRole, error)
 	FindByCode(ctx context.Context, code string) (*imodel.JobRole, error)
 	Find(ctx context.Context, filter bson.M) (*imodel.JobRole, error)
+	FindAll(ctx context.Context) (*[]imodel.JobRole, error)
 	FindByName(ctx context.Context, name string) (*imodel.JobRole, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error)
 }

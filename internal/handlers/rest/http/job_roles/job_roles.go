@@ -49,7 +49,7 @@ func NewJobRoleHandler(service service.JobRoleService, logger utils.Logger) inbo
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/job_roles [get]
-func (j *JobRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+func (j *JobRoleHandler) GetAllWithPagination(w http.ResponseWriter, r *http.Request) {
 
 	filterParams := common_utils.ExtractFilterParams(r)
 
@@ -74,6 +74,17 @@ func (j *JobRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessJobRolesFetchedSuccessfully, resp)
+}
+
+func (j *JobRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	data, err := j.service.FindAll(r.Context())
+	if err != nil {
+		j.logger.Errorf("[Roles][GetAll] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	j.logger.Infof("[Roles][GetAll] data: %v", data)
+	localization.SendSuccessResponse(w, localization.SuccessJobRolesFetchedSuccessfully, data)
 }
 
 // GetByID godoc
