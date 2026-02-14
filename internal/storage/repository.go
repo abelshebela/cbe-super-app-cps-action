@@ -30,6 +30,7 @@ import (
 	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -391,8 +392,8 @@ type DonationRepository interface {
 }
 
 type DonationCategoryRepository interface {
-	Create(ctx context.Context, donationCategory *model.DonationCategory) error
-	Update(ctx context.Context, id string, donationCategory *model.DonationCategory) error
+	Create(ctx context.Context, donationCategory *donation_model.DonationCategory) error
+	Update(ctx context.Context, id string, donationCategory *donation_model.DonationCategory) error
 	EnableDisable(ctx context.Context, id string, enable bool) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation_category.DonationCategoryListResponse, error)
@@ -401,12 +402,12 @@ type DonationCategoryRepository interface {
 }
 
 type DonationCompanyRepository interface {
-	Create(ctx context.Context, donationCompany *model.DonationCompany) error
-	Update(ctx context.Context, id string, donationCompany *model.DonationCompany) error
+	Create(ctx context.Context, donationCompany *donation_model.DonationCompany) error
+	Update(ctx context.Context, id string, donationCompany *donation_model.DonationCompany) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation_company.DonationCompanyListResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_company.DonationCompanyListResponse], error)
-	FindByAccountNumber(ctx context.Context, accountNumber string) (*model.DonationCompany, error)
+	FindByAccountNumber(ctx context.Context, accountNumber string) (*donation_model.DonationCompany, error)
 }
 
 type MiniAppRepository interface {
@@ -775,7 +776,7 @@ type CPSRolesRepository interface {
 	Update(ctx context.Context, id string, req model.CPSRoles) error
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.CPSRoles], error)
 	FindById(ctx context.Context, id string) (*model.CPSRoles, error)
-	FindByName(ctx context.Context, name string) (*model.CPSRoles, error)
+	FindByNameOrRoleCode(ctx context.Context, name, roleCode string) (*model.CPSRoles, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*model.CPSRoles, error)
 }

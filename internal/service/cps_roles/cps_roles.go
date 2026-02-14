@@ -31,18 +31,26 @@ func NewCPSRoleService(repo storage.CPSRolesRepository, cpsService service.CPSAc
 func (r *cpsRoleService) Create(ctx context.Context, req cps_role_dto.CreateCPSRoleRequest) error {
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
-	cpsRole, _ := r.repo.FindByName(ctx, req.Name)
+	cpsRole, _ := r.repo.FindByNameOrRoleCode(ctx, req.Name, req.RoleCode)
 	if cpsRole != nil {
-		r.logger.Errorf("[Create] CPS role already exists")
-		return errors.New("CPS role already exists")
+		if cpsRole.Name == req.Name {
+			r.logger.Warnf("[Create] CPS role with the same name already exists, name: %s", req.Name)
+			return errors.New(localization.ErrorCPSRoleNameAlreadyExists.Code)
+		}
+		if cpsRole.RoleCode == req.RoleCode {
+			r.logger.Warnf("[Create] CPS role with the same role code already exists, roleCode: %s", req.RoleCode)
+			return errors.New(localization.ErrorCPSRoleCodeAlreadyExists.Code)
+		}
 	}
 
 	enabled := true
 	role := model.CPSRoles{
-		Name:      req.Name,
-		Enabled:   &enabled,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		Name:        req.Name,
+		RoleCode:    req.RoleCode,
+		Description: req.Description,
+		Enabled:     &enabled,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 
 	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, role, string(constants.RequestCreateCpsRole), constants.CREATE)
@@ -69,9 +77,32 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 		return err
 	}
 
+	cpsRole, err := r.repo.FindByNameOrRoleCode(ctx, req.Name, req.RoleCode)
+	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+		r.logger.Errorf("[Update] failed to check existing cps role by name or role code: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if cpsRole != nil {
+		if cpsRole.Name == req.Name && existing.Name != req.Name {
+			r.logger.Warnf("[Update] CPS role with the same name already exists, name: %s", req.Name)
+			return errors.New(localization.ErrorCPSRoleNameAlreadyExists.Code)
+		}
+		if cpsRole.RoleCode == req.RoleCode && existing.RoleCode != req.RoleCode {
+			r.logger.Warnf("[Update] CPS role with the same role code already exists, roleCode: %s", req.RoleCode)
+			return errors.New(localization.ErrorCPSRoleCodeAlreadyExists.Code)
+		}
+	}
+
 	updated := *existing
 	if req.Name != "" {
 		updated.Name = req.Name
+	}
+	if req.RoleCode != "" {
+		updated.RoleCode = req.RoleCode
+	}
+	if req.Description != "" {
+		updated.Description = req.Description
 	}
 	updated.UpdatedAt = time.Now()
 

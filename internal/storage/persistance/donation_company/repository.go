@@ -10,9 +10,10 @@ import (
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
-	"errors"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
+
+	"errors"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -22,7 +23,7 @@ import (
 )
 
 type DonationCompanyStorage struct {
-	dal           dal.MongoDal[model.DonationCompany, model.DonationCompany]
+	dal           dal.MongoDal[donation_model.DonationCompany, donation_model.DonationCompany]
 	client        *mongo.Client
 	kafkaProducer kafka.ClientOrchestrationProducer
 	logger        utils.Logger
@@ -30,14 +31,14 @@ type DonationCompanyStorage struct {
 
 func NewDonationCompanyRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationCompanyRepository {
 	return &DonationCompanyStorage{
-		dal:           dal.NewMongoDal[model.DonationCompany, model.DonationCompany](client, cfg, dbName, collection),
+		dal:           dal.NewMongoDal[donation_model.DonationCompany, donation_model.DonationCompany](client, cfg, dbName, collection),
 		client:        client,
 		kafkaProducer: kafkaProducer,
 		logger:        logger,
 	}
 }
 
-func (s *DonationCompanyStorage) Create(ctx context.Context, details *model.DonationCompany) error {
+func (s *DonationCompanyStorage) Create(ctx context.Context, details *donation_model.DonationCompany) error {
 	s.logger.Infof("[Create] creating donation company")
 	newDonationCompany, err := s.dal.InsertOne(ctx, *details)
 	if err != nil {
@@ -51,7 +52,7 @@ func (s *DonationCompanyStorage) Create(ctx context.Context, details *model.Dona
 	return nil
 }
 
-func (s *DonationCompanyStorage) Update(ctx context.Context, id string, details *model.DonationCompany) error {
+func (s *DonationCompanyStorage) Update(ctx context.Context, id string, details *donation_model.DonationCompany) error {
 	s.logger.Infof("[Update] updating donation company for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -97,7 +98,7 @@ func (s *DonationCompanyStorage) FindByID(ctx context.Context, id string) (*dona
 	return MapToDonationCompanyListResponse(result), nil
 }
 
-func (s *DonationCompanyStorage) FindByAccountNumber(ctx context.Context, accountNumber string) (*model.DonationCompany, error) {
+func (s *DonationCompanyStorage) FindByAccountNumber(ctx context.Context, accountNumber string) (*donation_model.DonationCompany, error) {
 	s.logger.Infof("[FindByAccountNumber] searching for donation company by account number")
 	filter := bson.M{
 		"account_number": accountNumber,
