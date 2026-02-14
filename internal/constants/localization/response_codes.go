@@ -345,6 +345,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBankAlreadyDisabled,
 	ErrorHealthCheck,
 	ErrorActionAlreadyExists,
+	ErrorActionAlreadyDisabled,
 	ErrorNoDataProvidedForCreate,
 	ErrorNoDataProvidedForUpdate,
 	ErrorNoDataProvidedForBankUpdate,
@@ -803,9 +804,15 @@ var ResponseCodesList = []ResponseCode{
 
 	SuccessJobRoleCreatedSP,
 	SuccessJobRoleUpdatedSP,
+	SuccessJobRoleEnabledSP,
+	SuccessJobRoleDisabledSP,
+	SuccessJobRoleDeletedSP,
 
 	SuccessRoleUpdatedSP,
 	SuccessRoleCreatedSP,
+	SuccessRoleEnabledSP,
+	SuccessRoleDisabledSP,
+	SuccessRoleDeletedSP,
 
 	SuccessNotificationEnabledSP,
 	SuccessNotificationDisabledSP,
@@ -1044,6 +1051,49 @@ var (
 		Message:    MsgRoleUpdatedSP,
 		Type:       "success",
 	}
+
+	SuccessRoleEnabledRequestSent = ResponseCode{
+		Code:       "SUCCESS_ROLE_ENABLED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgRoleEnabledRequestSent,
+		Type:       "success",
+	}
+
+	SuccessRoleDisabledRequestSent = ResponseCode{
+		Code:       "SUCCESS_ROLE_DISABLED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgRoleDisabledRequestSent,
+		Type:       "success",
+	}
+
+	SuccessRoleEnabledSP = ResponseCode{
+		Code:       "SUCCESS_ROLE_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgRoleEnabledSP,
+		Type:       "success",
+	}
+
+	SuccessRoleDisabledSP = ResponseCode{
+		Code:       "SUCCESS_ROLE_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgRoleDisabledSP,
+		Type:       "success",
+	}
+
+	SuccessRoleDeletedRequestSent = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELETED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgRoleDeletedRequestSent,
+		Type:       "success",
+	}
+
+	SuccessRoleDeletedSP = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgRoleDeletedSP,
+		Type:       "success",
+	}
+
 	SuccessJobRolesFetchedSuccessfully = ResponseCode{
 		Code:       "SUCCESS_JOB_ROLRS_FETCHED_SUCCEESSFULLY",
 		StatusCode: StatusCreated,
@@ -1080,6 +1130,48 @@ var (
 		Code:       "SUCCESS_JOB_ROLE_UPDATED",
 		StatusCode: StatusCreated,
 		Message:    MsgJobRoleUpdatedSP,
+		Type:       "success",
+	}
+
+	SuccessJobRoleEnabledRequestSent = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_ENABLED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgJobRoleEnabledRequestSent,
+		Type:       "success",
+	}
+
+	SuccessJobRoleDisabledRequestSent = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_DISABLED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgJobRoleDisabledRequestSent,
+		Type:       "success",
+	}
+
+	SuccessJobRoleEnabledSP = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgJobRoleEnabledSP,
+		Type:       "success",
+	}
+
+	SuccessJobRoleDisabledSP = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgJobRoleDisabledSP,
+		Type:       "success",
+	}
+
+	SuccessJobRoleDeletedRequestSent = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_DELETED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgJobRoleDeletedRequestSent,
+		Type:       "success",
+	}
+
+	SuccessJobRoleDeletedSP = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgJobRoleDeletedSP,
 		Type:       "success",
 	}
 
@@ -4518,6 +4610,14 @@ var (
 		Message:    MsgActionAlreadyExists,
 		Type:       "error",
 	}
+
+	ErrorActionAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_ACTION_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActionAlreadyDisabled,
+		Type:       "error",
+	}
+
 	ErrorDuplicateColorExists = ResponseCode{
 		Code:       "ERROR_DUPLICATE_COLOR",
 		StatusCode: StatusBadRequest,

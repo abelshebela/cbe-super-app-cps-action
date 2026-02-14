@@ -143,6 +143,7 @@ type UserContext struct {
 	UserID       string
 	FullName     string
 	PhoneNumber  string
+	UserName     string
 	Department   string
 	BranchCode   []string
 	UserRole     string

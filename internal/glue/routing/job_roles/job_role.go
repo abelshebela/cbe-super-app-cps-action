@@ -51,6 +51,30 @@ func Init(router chi.Router, handler inbound.RolesInbound, auth middleware.AuthM
 				auth.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/job_roles/{id}/enable",
+			Handler: handler.Enable,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/job_roles/{id}/disable",
+			Handler: handler.Disable,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/job_roles/{id}",
+			Handler: handler.Delete,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
 	}
 	glue.RegisterRoutes(router, routes)
 }

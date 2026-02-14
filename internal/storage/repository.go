@@ -46,6 +46,8 @@ type RoleRepository interface {
 	ExistsMany(ctx context.Context, ids []string) (bool, error)
 	Create(ctx context.Context, role *model.Role) error
 	Update(ctx context.Context, id string, role *model.Role) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	SoftDelete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*model.Role, error)
 	FindByName(ctx context.Context, name string) (*model.Role, error)
 	FindByCode(ctx context.Context, code string) (*model.Role, error)
@@ -58,6 +60,8 @@ type RoleRepository interface {
 type JobRoleRepository interface {
 	Create(ctx context.Context, role *imodel.JobRole) error
 	Update(ctx context.Context, id string, role *imodel.JobRole) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	SoftDelete(ctx context.Context, id string) error
 	ExistsMany(ctx context.Context, codes []string) (bool, error)
 	FindByID(ctx context.Context, id string) (*imodel.JobRole, error)
 	FindByCode(ctx context.Context, code string) (*imodel.JobRole, error)

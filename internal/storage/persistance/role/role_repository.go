@@ -8,6 +8,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -97,6 +98,50 @@ func (r *RoleRepository) Update(ctx context.Context, id string, role *model.Role
 			return errors.New(localization.ErrorResourceNotFound.Code)
 		}
 		r.logger.Errorf("[Role Repository][Update] failed to update: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
+}
+
+func (r *RoleRepository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		r.logger.Errorf("[Role Repository][EnableOrDisable] invalid object id: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"_id": objID}
+	update := bson.M{"enabled": enable, "updated_at": time.Now()}
+
+	_, err = r.mongoDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			r.logger.Warnf("[Role Repository][EnableOrDisable] role not found, id: %s", id)
+			return errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		r.logger.Errorf("[Role Repository][EnableOrDisable] failed to enable/disable role, id: %s, error: %v", id, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
+}
+
+func (r *RoleRepository) SoftDelete(ctx context.Context, id string) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		r.logger.Errorf("[Role Repository][SoftDelete] invalid object id: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	update := bson.M{"is_deleted": true, "deleted_at": time.Now()}
+
+	_, err = r.mongoDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			r.logger.Warnf("[Role Repository][SoftDelete] role not found, id: %s", id)
+			return errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		r.logger.Errorf("[Role Repository][SoftDelete] failed to soft delete role, id: %s, error: %v", id, err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil

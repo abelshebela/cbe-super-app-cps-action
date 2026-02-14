@@ -494,6 +494,8 @@ type MiniAppMerchant interface {
 type JobRoleService interface {
 	Create(ctx context.Context, jobs model.Role) error
 	Update(ctx context.Context, id string, update model.Role) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	Delete(ctx context.Context, id string) error
 	FindById(ctx context.Context, id string) (*model.Role, error)
 	FindAll(ctx context.Context) (*[]model.Role, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Role], error)
@@ -503,6 +505,8 @@ type JobRoleService interface {
 type RoleService interface {
 	Create(ctx context.Context, jobs imodel.JobRole) error
 	Update(ctx context.Context, id string, update imodel.JobRole) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	Delete(ctx context.Context, id string) error
 	FindById(ctx context.Context, id string) (*imodel.JobRole, error)
 	FindAll(ctx context.Context) (*[]imodel.JobRole, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error)

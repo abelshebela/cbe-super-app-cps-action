@@ -743,7 +743,7 @@ func (a *cpsActionAdapter) GetUserCreatedActions(w http.ResponseWriter, r *http.
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserCreatedActions", "handler", "cpsAction")
 	defer span.End()
 
-	userID := userData.UserID
+	userID := userData.UserName
 	res, err := a.cpsActionApplication.GetUserCreatedActions(ctx, userID, filterParams)
 	if err != nil {
 		span.RecordError(err)

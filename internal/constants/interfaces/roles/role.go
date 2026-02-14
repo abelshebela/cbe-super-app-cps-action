@@ -8,4 +8,7 @@ type RolesInbound interface {
 	FindAll(w http.ResponseWriter, r *http.Request)
 	FindAllWithPagination(w http.ResponseWriter, r *http.Request)
 	FindById(w http.ResponseWriter, r *http.Request)
+	Enable(w http.ResponseWriter, r *http.Request)
+	Disable(w http.ResponseWriter, r *http.Request)
+	Delete(w http.ResponseWriter, r *http.Request)
 }
