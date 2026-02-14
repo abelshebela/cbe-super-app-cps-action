@@ -107,6 +107,7 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 }
 
 func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*model.CPSRoles, error) {
+	m.logger.Infof("[FindById] fetching cps role by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		m.logger.Errorf("[FindById] invalid id format: %s, error: %v", id, err)
@@ -123,7 +124,7 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*model.CPSRol
 		m.logger.Errorf("[FindById] failed to find cps role, id: %s, error: %v", id, err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
+	m.logger.Infof("[FindById] cps role retrieved successfully, id: %s, result: %v", id, result)
 	// Use MongoDB pipeline to group action_names by maker/checker/auditor index
 	approverCol := m.client.Database(m.dbName).Collection("cps_action_approver_index")
 	pipeline := mongo.Pipeline{
@@ -155,6 +156,7 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*model.CPSRol
 		m.logger.Errorf("Error decoding facet result: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	m.logger.Infof("Facet aggregation result: %v", facetResult)
 	var maker, checker, auditor []string
 	if len(facetResult) > 0 {
 		if arr, ok := facetResult[0]["maker"].([]any); ok && len(arr) > 0 {
