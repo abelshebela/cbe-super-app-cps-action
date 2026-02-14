@@ -124,6 +124,7 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRo
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	m.logger.Infof("[FindById] cps role retrieved successfully, id: %s, result: %v", id, result)
+
 	// Use MongoDB pipeline to group action_names by maker/checker/auditor index
 	approverCol := m.client.Database(m.dbName).Collection("cps_action_approver_index")
 	pipeline := mongo.Pipeline{
@@ -150,52 +151,33 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRo
 	}
 	defer cursor.Close(ctx)
 
-	var facetResult []bson.M
-	if err := cursor.All(ctx, &facetResult); err != nil {
+	type actionGroup struct {
+		Actions []string `bson:"actions"`
+	}
+
+	type facetActions struct {
+		Maker   []actionGroup `bson:"maker"`
+		Checker []actionGroup `bson:"checker"`
+		Auditor []actionGroup `bson:"auditor"`
+	}
+	var aggResult []facetActions
+
+	if err := cursor.All(ctx, &aggResult); err != nil {
 		m.logger.Errorf("Error decoding facet result: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	m.logger.Infof("Facet aggregation result: %v", facetResult)
+	m.logger.Infof("Facet aggregation result: %v", aggResult)
+
 	var maker, checker, auditor []string
-	if len(facetResult) > 0 {
-		if arr, ok := facetResult[0]["maker"].([]any); ok && len(arr) > 0 {
-			if doc, ok := arr[0].(bson.M); ok {
-				if actions, ok := doc["actions"].([]string); ok {
-					maker = actions
-				} else if actions, ok := doc["actions"].([]any); ok {
-					for _, a := range actions {
-						if s, ok := a.(string); ok {
-							maker = append(maker, s)
-						}
-					}
-				}
-			}
+	if len(aggResult) > 0 {
+		if len(aggResult[0].Maker) > 0 {
+			maker = aggResult[0].Maker[0].Actions
 		}
-		if arr, ok := facetResult[0]["checker"].([]any); ok && len(arr) > 0 {
-			if doc, ok := arr[0].(bson.M); ok {
-				if actions, ok := doc["actions"].([]string); ok {
-					checker = actions
-				} else if actions, ok := doc["actions"].([]any); ok {
-					for _, a := range actions {
-						if s, ok := a.(string); ok {
-							checker = append(checker, s)
-						}
-					}
-				}
-			}
+		if len(aggResult[0].Checker) > 0 {
+			checker = aggResult[0].Checker[0].Actions
 		}
-		if arr, ok := facetResult[0]["auditor"].([]any); ok && len(arr) > 0 {
-			if doc, ok := arr[0].(bson.M); ok {
-				if actions, ok := doc["actions"].([]string); ok {
-					auditor = actions
-				} else if actions, ok := doc["actions"].([]any); ok {
-					for _, a := range actions {
-						if s, ok := a.(string); ok {
-							auditor = append(auditor, s)
-						}
-					}
-				}
-			}
+		if len(aggResult[0].Auditor) > 0 {
+			auditor = aggResult[0].Auditor[0].Actions
 		}
 	} else {
 		m.logger.Warnf("No approver index found for role_id: %s", result.RoleCode)
