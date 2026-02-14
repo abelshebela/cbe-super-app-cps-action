@@ -10,4 +10,7 @@ type VaultCategoryHandler interface {
 	DeleteVaultCategory(w http.ResponseWriter, r *http.Request)
 	DisableVaultCategory(w http.ResponseWriter, r *http.Request)
 	EnableVaultCategory(w http.ResponseWriter, r *http.Request)
+
+	// Transaction
+	GetVaultTransactions(w http.ResponseWriter, r *http.Request)
 }

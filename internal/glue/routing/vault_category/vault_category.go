@@ -68,6 +68,16 @@ func Init(router chi.Router, handler bankgroupcategory.VaultCategoryHandler, aut
 				authMiddleware.AuthenticateToken,
 			},
 		},
+
+		// VAULT TRANSACTION
+		{
+			Method:  http.MethodGet,
+			Path:    "/vault/transactions",
+			Handler: handler.GetVaultTransactions,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 	glue.RegisterRoutes(router, routes)
 

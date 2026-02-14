@@ -695,6 +695,9 @@ type VaultCategoryService interface {
 	DeleteVaultCategory(ctx context.Context, id string) (string, error)
 	EnableVaultCategory(ctx context.Context, id string) error
 	DisableVaultCategory(ctx context.Context, id string) error
+
+	// Transaction
+	// FindAllVaultTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.VaultCategory], error)
 }
 type VaultAmountBasedTierService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)

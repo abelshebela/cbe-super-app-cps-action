@@ -43,3 +43,33 @@ type WithdrawalStatusHistory struct {
 	Status       string    `json:"status" bson:"status"`
 	CreatedAt    time.Time `json:"created_at" bson:"created_at"`
 }
+
+type VaultTransaction struct {
+	ID                      int64     `json:"id"`
+	Amount                  float64   `json:"amount"`
+	BalanceAfter            *float64  `json:"balance_after,omitempty"`
+	CreatedAt               time.Time `json:"created_at"`
+	CreditAccountHolderName *string   `json:"credit_account_holder_name,omitempty"`
+	CreditAccountNumber     *string   `json:"credit_account_number,omitempty"`
+	Currency                string    `json:"currency"`
+	DebitAccountHolderName  *string   `json:"debit_account_holder_name,omitempty"`
+	DebitAccountNumber      *string   `json:"debit_account_number,omitempty"`
+	DebitUserID             *string   `json:"debit_user_id,omitempty"`
+	ExternalReference       *string   `json:"external_reference,omitempty"`
+	FTNumber                *string   `json:"ft_number,omitempty"`
+	InterestDelta           *float64  `json:"interest_delta,omitempty"`
+	IsIFB                   int64     `json:"is_ifb"`
+	PaidAmount              float64   `json:"paid_amount"`
+	PrincipalDelta          *float64  `json:"principal_delta,omitempty"`
+	ReceiptLink             *string   `json:"receipt_link,omitempty"`
+	ReferenceID             *string   `json:"reference_id,omitempty"`
+	ReferenceType           *string   `json:"reference_type,omitempty"`
+	ServiceFee              float64   `json:"service_fee"`
+	TotalAmount             float64   `json:"total_amount"`
+	TransactionID           string    `json:"transaction_id"`
+	TransactionReason       *string   `json:"transaction_reason,omitempty"`
+	TransactionType         string    `json:"transaction_type"`
+	VAT                     float64   `json:"vat"`
+	VaultID                 *int64    `json:"vault_id,omitempty"`
+	VaultTxType             *string   `json:"vault_tx_type,omitempty"`
+}
