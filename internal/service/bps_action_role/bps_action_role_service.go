@@ -460,6 +460,22 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		return action, nil
 
 	case string(constants.UPDATE):
+		// Handle enable/disable separately to avoid corrupting data with partial payload
+		if action.RequestAction == string(constants.RequestEnableActionRole) {
+			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, true); err != nil {
+				span.AddEvent("failed to enable action role", trace.WithAttributes(attribute.String("error", err.Error())))
+				return nil, err
+			}
+			return action, nil
+		}
+		if action.RequestAction == string(constants.RequestDisableActionRole) {
+			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, false); err != nil {
+				span.AddEvent("failed to disable action role", trace.WithAttributes(attribute.String("error", err.Error())))
+				return nil, err
+			}
+			return action, nil
+		}
+
 		prev, err := local_util.JsonUnmarshal[imodel.BPSActionRoleResposne](action.PreviousAction)
 		if err != nil {
 			span.AddEvent("failed to unmarshal action", trace.WithAttributes(attribute.String("error", err.Error())))

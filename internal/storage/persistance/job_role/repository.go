@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"time"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -64,6 +65,50 @@ func (s *JobRoleStorage) Update(ctx context.Context, id string, role *imodel.Job
 			return errors.New(localization.ErrorResourceNotFound.Code)
 		}
 		s.logger.Errorf("[JobRole/Update] failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
+}
+
+func (s *JobRoleStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		s.logger.Errorf("[JobRole/EnableOrDisable] invalid object id: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"_id": objID}
+	update := bson.M{"enabled": enable, "updated_at": time.Now()}
+
+	_, err = s.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			s.logger.Warnf("[JobRole/EnableOrDisable] role not found, id: %s", id)
+			return errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		s.logger.Errorf("[JobRole/EnableOrDisable] failed, id: %s, error: %v", id, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
+}
+
+func (s *JobRoleStorage) SoftDelete(ctx context.Context, id string) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		s.logger.Errorf("[JobRole/SoftDelete] invalid object id: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	update := bson.M{"is_deleted": true, "deleted_at": time.Now()}
+
+	_, err = s.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			s.logger.Warnf("[JobRole/SoftDelete] role not found, id: %s", id)
+			return errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		s.logger.Errorf("[JobRole/SoftDelete] failed, id: %s, error: %v", id, err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
