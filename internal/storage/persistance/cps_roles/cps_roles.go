@@ -23,6 +23,7 @@ type cpsRoleStorage struct {
 	client     *mongo.Client
 	dbName     string
 	collection string
+	col        *mongo.Collection
 	logger     utils.Logger
 }
 
@@ -122,18 +123,104 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*model.CPSRol
 		m.logger.Errorf("[FindById] failed to find cps role, id: %s, error: %v", id, err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	// Use MongoDB pipeline to group action_names by maker/checker/auditor index
+	approverCol := m.client.Database(m.dbName).Collection("cps_action_approver_index")
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.D{{"role_id", result.RoleCode}}}},
+		bson.D{{Key: "$facet", Value: bson.M{
+			"maker": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.D{{"maker_index", bson.D{{"$ne", nil}}}}}},
+				bson.D{{Key: "$group", Value: bson.D{{"_id", nil}, {"actions", bson.D{{"$addToSet", "$action_name"}}}}}},
+			},
+			"checker": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.D{{"checker_index", bson.D{{"$ne", nil}}}}}},
+				bson.D{{Key: "$group", Value: bson.D{{"_id", nil}, {"actions", bson.D{{"$addToSet", "$action_name"}}}}}},
+			},
+			"auditor": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.D{{"auditor_index", bson.D{{"$ne", nil}}}}}},
+				bson.D{{Key: "$group", Value: bson.D{{"_id", nil}, {"actions", bson.D{{"$addToSet", "$action_name"}}}}}},
+			},
+		}}},
+	}
+	cursor, err := approverCol.Aggregate(ctx, pipeline)
+	if err != nil {
+		m.logger.Errorf("Error aggregating cps_action_approver_index: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer cursor.Close(ctx)
+
+	var facetResult []bson.M
+	if err := cursor.All(ctx, &facetResult); err != nil {
+		m.logger.Errorf("Error decoding facet result: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	var maker, checker, auditor []string
+	if len(facetResult) > 0 {
+		if arr, ok := facetResult[0]["maker"].([]any); ok && len(arr) > 0 {
+			if doc, ok := arr[0].(bson.M); ok {
+				if actions, ok := doc["actions"].([]string); ok {
+					maker = actions
+				} else if actions, ok := doc["actions"].([]any); ok {
+					for _, a := range actions {
+						if s, ok := a.(string); ok {
+							maker = append(maker, s)
+						}
+					}
+				}
+			}
+		}
+		if arr, ok := facetResult[0]["checker"].([]any); ok && len(arr) > 0 {
+			if doc, ok := arr[0].(bson.M); ok {
+				if actions, ok := doc["actions"].([]string); ok {
+					checker = actions
+				} else if actions, ok := doc["actions"].([]any); ok {
+					for _, a := range actions {
+						if s, ok := a.(string); ok {
+							checker = append(checker, s)
+						}
+					}
+				}
+			}
+		}
+		if arr, ok := facetResult[0]["auditor"].([]any); ok && len(arr) > 0 {
+			if doc, ok := arr[0].(bson.M); ok {
+				if actions, ok := doc["actions"].([]string); ok {
+					auditor = actions
+				} else if actions, ok := doc["actions"].([]any); ok {
+					for _, a := range actions {
+						if s, ok := a.(string); ok {
+							auditor = append(auditor, s)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	result.MakerActions = maker
+	result.CheckerActions = checker
+	result.AuditorActions = auditor
+
 	return result, nil
 }
 
-func (m *cpsRoleStorage) FindByName(ctx context.Context, name string) (*model.CPSRoles, error) {
-	filter := bson.M{"name": name}
-	result, err := m.dal.FindOne(ctx, filter, bson.M{})
+func (m *cpsRoleStorage) FindByNameOrRoleCode(ctx context.Context, name, roleCode string) (*model.CPSRoles, error) {
+	filter := []bson.M{}
+	if roleCode == "" {
+		filter = append(filter, bson.M{"name": bson.M{"$regex": "^" + name, "$options": "i"}})
+	}
+	if name == "" {
+		filter = append(filter, bson.M{"role_code": bson.M{"$regex": "^" + roleCode, "$options": "i"}})
+	}
+	orFilter := bson.M{"$or": filter}
+	result, err := m.dal.FindOne(ctx, orFilter, bson.M{})
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Warnf("[FindByName] cps role not found, name: %s", name)
+			m.logger.Warnf("[FindByNameOrRoleCode] cps role not found, name: %s, roleCode: %s", name, roleCode)
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
-		m.logger.Errorf("[FindByName] failed to find cps role, name: %s, error: %v", name, err)
+		m.logger.Errorf("[FindByNameOrRoleCode] failed to find cps role, name: %s, roleCode: %s, error: %v", name, roleCode, err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return result, nil

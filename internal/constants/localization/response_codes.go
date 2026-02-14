@@ -615,6 +615,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidEmail,
 	ErrorCPSRoleAlreadyEnabled,
 	ErrorCPSRoleAlreadyDisabled,
+	ErrorCPSRoleCodeAlreadyExists,
+	ErrorCPSRoleNameAlreadyExists,
 
 	// OTP related error codes
 	ErrorOTPExpired,
@@ -5775,6 +5777,19 @@ var (
 		Code:       "ERROR_CPS_ROLE_ALREADY_DISABLED",
 		StatusCode: StatusConflict,
 		Message:    MsgCpsRoleAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorCPSRoleCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_CPS_ROLE_CODE_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgCpsRoleCodeAlreadyExists,
+		Type:       "error",
+	}
+
+	ErrorCPSRoleNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_CPS_ROLE_NAME_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgCpsRoleNameAlreadyExists,
 		Type:       "error",
 	}
 
