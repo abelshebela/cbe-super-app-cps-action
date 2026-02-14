@@ -196,6 +196,8 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*model.CPSRol
 				}
 			}
 		}
+	} else {
+		m.logger.Warnf("No approver index found for role_id: %s", result.RoleCode)
 	}
 
 	result.MakerActions = maker
