@@ -169,6 +169,33 @@ func (r *cpsRoleService) FindById(ctx context.Context, id string) (*imodel.CPSRo
 	return r.repo.FindById(ctx, id)
 }
 
+func (r *cpsRoleService) EnableServiceAccess(ctx context.Context, roleID string, req cps_role_dto.ToggleServiceAccessRequest) error {
+	if err := r.repo.EnableServiceAccess(ctx, roleID, req.AccessListKeys); err != nil {
+		r.logger.Errorf("[EnableServiceAccess] failed to enable service access for role %s: %v", roleID, err)
+		return err
+	}
+	r.logger.Infof("[EnableServiceAccess] service access enabled for role %s, keys: %v", roleID, req.AccessListKeys)
+	return nil
+}
+
+func (r *cpsRoleService) DisableServiceAccess(ctx context.Context, roleID string, req cps_role_dto.ToggleServiceAccessRequest) error {
+	if err := r.repo.DisableServiceAccess(ctx, roleID, req.AccessListKeys); err != nil {
+		r.logger.Errorf("[DisableServiceAccess] failed to disable service access for role %s: %v", roleID, err)
+		return err
+	}
+	r.logger.Infof("[DisableServiceAccess] service access disabled for role %s, keys: %v", roleID, req.AccessListKeys)
+	return nil
+}
+
+func (r *cpsRoleService) Delete(ctx context.Context, id string) error {
+	if err := r.repo.Delete(ctx, id); err != nil {
+		r.logger.Errorf("[Delete] failed to delete cps role %s: %v", id, err)
+		return err
+	}
+	r.logger.Infof("[Delete] cps role %s deleted successfully", id)
+	return nil
+}
+
 func (r *cpsRoleService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	r.logger.Infof("[Authorize] authorizing cps role action: %s", action.RequestAction)
 

@@ -45,3 +45,12 @@ func (r UpdateCPSRoleRequest) Validate() error {
 		),
 	)
 }
+
+func (r ToggleServiceAccessRequest) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.AccessListKeys,
+			validation.Required,
+			validation.Length(1, 0),
+		),
+	)
+}

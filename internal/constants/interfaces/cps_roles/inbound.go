@@ -9,4 +9,7 @@ type CPSRolesAdapter interface {
 	GetCPSRole(w http.ResponseWriter, r *http.Request)
 	EnableCPSRole(w http.ResponseWriter, r *http.Request)
 	DisableCPSRole(w http.ResponseWriter, r *http.Request)
+	EnableServiceAccess(w http.ResponseWriter, r *http.Request)
+	DisableServiceAccess(w http.ResponseWriter, r *http.Request)
+	DeleteCPSRole(w http.ResponseWriter, r *http.Request)
 }

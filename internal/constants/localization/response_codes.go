@@ -119,6 +119,9 @@ var ResponseCodesList = []ResponseCode{
 	SuccessCPSRoleFetched,
 	SuccessCPSRoleEnabled,
 	SuccessCPSRoleDisabled,
+	SuccessCPSRoleServiceEnabled,
+	SuccessCPSRoleServiceDisabled,
+	SuccessCPSRoleDeleted,
 
 	// Ad related success response codes
 	SuccessAdvertCreatedSP,
@@ -825,6 +828,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessCPSRoleEnabledSP,
 	SuccessCPSRoleUpdatedSP,
 	SuccessCPSRoleCreatedSP,
+	SuccessCPSRoleDeletedSP,
 }
 
 // Success Response Codes
@@ -1795,6 +1799,34 @@ var (
 		Code:       "SUCCESS_CPS_ROLE_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgCpsRoleDisabledSP,
+		Type:       "success",
+	}
+
+	SuccessCPSRoleServiceEnabled = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_SERVICE_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleServiceEnabled,
+		Type:       "success",
+	}
+
+	SuccessCPSRoleServiceDisabled = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_SERVICE_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleServiceDisabled,
+		Type:       "success",
+	}
+
+	SuccessCPSRoleDeleted = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_DELETE_REQUEST_SEND_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleDeleted,
+		Type:       "success",
+	}
+
+	SuccessCPSRoleDeletedSP = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleDeletedSP,
 		Type:       "success",
 	}
 

@@ -779,6 +779,9 @@ type CPSRolesRepository interface {
 	FindByNameOrRoleCode(ctx context.Context, name, roleCode string) (*imodel.CPSRoles, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CPSRoles, error)
+	EnableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error
+	DisableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error
+	Delete(ctx context.Context, id string) error
 }
 
 type CustomerKYCRepository interface {

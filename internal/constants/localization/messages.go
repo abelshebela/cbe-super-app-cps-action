@@ -483,6 +483,11 @@ const (
 	MsgCpsRoleEnabledSP  = "CPS role enabled successfully"
 	MsgCpsRoleDisabledSP = "CPS role disabled successfully"
 
+	MsgCpsRoleServiceEnabled  = "Service access enabled for CPS role successfully"
+	MsgCpsRoleServiceDisabled = "Service access disabled for CPS role successfully"
+	MsgCpsRoleDeleted         = "CPS role delete request submitted successfully"
+	MsgCpsRoleDeletedSP       = "CPS role deleted successfully"
+
 	// Feedback Handler related success messages
 	MsgFeedbackCreatedSuccessfullySP = "Feedback created successfully"
 	MsgFeedbackCreatedSuccessfully   = "Feedback create request send successfully"
