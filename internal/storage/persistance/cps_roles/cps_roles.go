@@ -3,6 +3,7 @@ package cpsroles
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -12,14 +13,13 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type cpsRoleStorage struct {
-	dal        dal.MongoDal[model.CPSRoles, model.CPSRoles]
+	dal        dal.MongoDal[imodel.CPSRoles, imodel.CPSRoles]
 	client     *mongo.Client
 	dbName     string
 	collection string
@@ -29,7 +29,7 @@ type cpsRoleStorage struct {
 
 func NewCPSRolesStorage(client *mongo.Client, cfg *config.VaultConfig, dbName, collection string, logger utils.Logger) storage.CPSRolesRepository {
 	return &cpsRoleStorage{
-		dal:        dal.NewMongoDal[model.CPSRoles, model.CPSRoles](client, cfg, dbName, collection),
+		dal:        dal.NewMongoDal[imodel.CPSRoles, imodel.CPSRoles](client, cfg, dbName, collection),
 		client:     client,
 		dbName:     dbName,
 		collection: collection,
@@ -37,7 +37,7 @@ func NewCPSRolesStorage(client *mongo.Client, cfg *config.VaultConfig, dbName, c
 	}
 }
 
-func (m *cpsRoleStorage) Create(ctx context.Context, req model.CPSRoles) error {
+func (m *cpsRoleStorage) Create(ctx context.Context, req imodel.CPSRoles) error {
 	_, err := m.dal.InsertOne(ctx, req)
 	if err != nil {
 		m.logger.Errorf("[Create] failed to create cps role: %v", err)
@@ -46,7 +46,7 @@ func (m *cpsRoleStorage) Create(ctx context.Context, req model.CPSRoles) error {
 	return nil
 }
 
-func (m *cpsRoleStorage) Update(ctx context.Context, id string, req model.CPSRoles) error {
+func (m *cpsRoleStorage) Update(ctx context.Context, id string, req imodel.CPSRoles) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		m.logger.Errorf("[Update] invalid id format: %s, error: %v", id, err)
@@ -73,7 +73,7 @@ func (m *cpsRoleStorage) Update(ctx context.Context, id string, req model.CPSRol
 	return nil
 }
 
-func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.CPSRoles], error) {
+func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]imodel.CPSRoles], error) {
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "enabled"}
 
@@ -100,13 +100,13 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]model.CPSRoles]{
+	return &types.PaginatedResponse[[]imodel.CPSRoles]{
 		Data: data,
 		Meta: meta,
 	}, nil
 }
 
-func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*model.CPSRoles, error) {
+func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRoles, error) {
 	m.logger.Infof("[FindById] fetching cps role by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -209,7 +209,7 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*model.CPSRol
 	return result, nil
 }
 
-func (m *cpsRoleStorage) FindByNameOrRoleCode(ctx context.Context, name, roleCode string) (*model.CPSRoles, error) {
+func (m *cpsRoleStorage) FindByNameOrRoleCode(ctx context.Context, name, roleCode string) (*imodel.CPSRoles, error) {
 	filter := []bson.M{}
 	if roleCode == "" {
 		filter = append(filter, bson.M{"name": bson.M{"$regex": "^" + name, "$options": "i"}})
@@ -252,7 +252,7 @@ func (m *cpsRoleStorage) EnableOrDisable(ctx context.Context, id string, enable 
 	return nil
 }
 
-func (m *cpsRoleStorage) FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*model.CPSRoles, error) {
+func (m *cpsRoleStorage) FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CPSRoles, error) {
 	filter := bson.M{"name": customerSegment, "enabled": true}
 	result, err := m.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {

@@ -768,13 +768,13 @@ type CustomerSegmentationRepository interface {
 }
 
 type CPSRolesRepository interface {
-	Create(ctx context.Context, req model.CPSRoles) error
-	Update(ctx context.Context, id string, req model.CPSRoles) error
-	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.CPSRoles], error)
-	FindById(ctx context.Context, id string) (*model.CPSRoles, error)
-	FindByNameOrRoleCode(ctx context.Context, name, roleCode string) (*model.CPSRoles, error)
+	Create(ctx context.Context, req imodel.CPSRoles) error
+	Update(ctx context.Context, id string, req imodel.CPSRoles) error
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]imodel.CPSRoles], error)
+	FindById(ctx context.Context, id string) (*imodel.CPSRoles, error)
+	FindByNameOrRoleCode(ctx context.Context, name, roleCode string) (*imodel.CPSRoles, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*model.CPSRoles, error)
+	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CPSRoles, error)
 }
 
 type CustomerKYCRepository interface {
