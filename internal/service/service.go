@@ -528,8 +528,8 @@ type CustomerSegmentationService interface {
 type CPSRolesService interface {
 	Create(ctx context.Context, req cps_role_dto.CreateCPSRoleRequest) error
 	Update(ctx context.Context, id string, req cps_role_dto.UpdateCPSRoleRequest) error
-	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.CPSRoles], error)
-	FindById(ctx context.Context, id string) (*model.CPSRoles, error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]imodel.CPSRoles], error)
+	FindById(ctx context.Context, id string) (*imodel.CPSRoles, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
