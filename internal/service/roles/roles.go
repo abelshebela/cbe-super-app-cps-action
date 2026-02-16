@@ -180,6 +180,7 @@ func (j *RoleService) FindById(ctx context.Context, id string) (*imodel.JobRole,
 	role.CheckerActions = checkerActions
 	role.AuditorActions = auditorActions
 
+	j.logger.Infof("[Role Service][FindById] role: %v", role)
 	return role, nil
 }
 
