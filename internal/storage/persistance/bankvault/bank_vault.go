@@ -220,7 +220,7 @@ func (r *bankVaultRepositary) FindAllGroupVaultWithPagination(ctx context.Contex
 	rows, err := r.queries.GetAllGroupVaults(ctx, params)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
 		r.logger.Errorf("failed to get group vaults: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)

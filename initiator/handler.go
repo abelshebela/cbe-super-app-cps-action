@@ -44,7 +44,7 @@ import (
 	servicesInbound "cbe-super-app-cps-action/internal/constants/interfaces/services"
 	TopupInbound "cbe-super-app-cps-action/internal/constants/interfaces/topup"
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
-	vaultCategory "cbe-super-app-cps-action/internal/constants/interfaces/vault_category"
+	vaultCategory "cbe-super-app-cps-action/internal/constants/interfaces/vault"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
 	"cbe-super-app-cps-action/internal/service"
 
@@ -106,8 +106,8 @@ import (
 	TopupHandler "cbe-super-app-cps-action/internal/handlers/rest/http/topup"
 	transaction_handler "cbe-super-app-cps-action/internal/handlers/rest/http/transaction"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
+	vaultcategoryhandler "cbe-super-app-cps-action/internal/handlers/rest/http/vault"
 	amount_tier_handler "cbe-super-app-cps-action/internal/handlers/rest/http/vault_amount_tier"
-	vaultcategoryhandler "cbe-super-app-cps-action/internal/handlers/rest/http/vault_category"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

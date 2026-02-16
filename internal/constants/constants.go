@@ -931,19 +931,19 @@ const (
 type ImageFolderName string
 
 const (
-	BankFolderName               ImageFolderName = "banks"
-	UssdMerchantFolderName       ImageFolderName = "ussd_merchant"
-	WalletFolderName             ImageFolderName = "wallets"
-	AdFolderName                 ImageFolderName = "ads"
-	AvatarFolderName             ImageFolderName = "avatars"
-	BudgetCategoryFolderName     ImageFolderName = "budget_categories"
-	DonationFolderName           ImageFolderName = "donations"
-	DonationCategoryFolderName   ImageFolderName = "donation_categories"
-	DonationCompanyFolderName    ImageFolderName = "donation_companies"
-	EventFolderName              ImageFolderName = "events"
-	TopupFolderName              ImageFolderName = "topups"
-	VaultGroupCategoryFolderName ImageFolderName = "vault_group_categories"
-	CustomerKYCFolderName        ImageFolderName = "customer_kyc"
+	BankFolderName             ImageFolderName = "banks"
+	UssdMerchantFolderName     ImageFolderName = "ussd_merchant"
+	WalletFolderName           ImageFolderName = "wallets"
+	AdFolderName               ImageFolderName = "ads"
+	AvatarFolderName           ImageFolderName = "avatars"
+	BudgetCategoryFolderName   ImageFolderName = "budget_categories"
+	DonationFolderName         ImageFolderName = "donations"
+	DonationCategoryFolderName ImageFolderName = "donation_categories"
+	DonationCompanyFolderName  ImageFolderName = "donation_companies"
+	EventFolderName            ImageFolderName = "events"
+	TopupFolderName            ImageFolderName = "topups"
+	VaultCategoryFolderName    ImageFolderName = "vault_categories"
+	CustomerKYCFolderName      ImageFolderName = "customer_kyc"
 )
 
 // redis key prefixes
