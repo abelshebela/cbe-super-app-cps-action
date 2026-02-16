@@ -1,4 +1,4 @@
-package vaultgroupcategory
+package vault
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -125,11 +125,11 @@ func (r *CreateCategoryRequest) Validate() error {
 	// Cross-field parent vs tier interest logic
 	if it == "FLAT" {
 		if categoryInterest.LessThanOrEqual(decimal.Zero) {
-			return errors.New("interest must be > 0 when interest_type is 'flat'")
+			return errors.New("category_interest must be > 0 when interest_type is 'flat'")
 		}
 	} else { // DYNAMIC
 		if categoryInterest.GreaterThan(decimal.Zero) {
-			return errors.New("interest must be empty or 0 when interest_type is 'dynamic'")
+			return errors.New("category_interest must be empty or 0 when interest_type is 'dynamic'")
 		}
 	}
 
@@ -212,18 +212,18 @@ func validateCreateTiers(interestType string, tiers []CreateTierDTO) error {
 			}
 		} else { // DYNAMIC
 			if tierInterest == "" {
-				return fmt.Errorf("tier %d: interest is required when interest_type is 'dynamic'", i+1)
+				return fmt.Errorf("tier %d: tier_interest is required when interest_type is 'dynamic'", i+1)
 			}
 			clean := strings.TrimSpace(strings.TrimSuffix(tierInterest, "%"))
 			if clean == "" {
-				return fmt.Errorf("tier %d: interest must be a valid number", i+1)
+				return fmt.Errorf("tier %d: tier_interest must be a valid number", i+1)
 			}
 			v, err := decimal.NewFromString(clean)
 			if err != nil {
-				return fmt.Errorf("tier %d: interest must be a valid number", i+1)
+				return fmt.Errorf("tier %d: tier_interest must be a valid number", i+1)
 			}
 			if v.LessThanOrEqual(decimal.Zero) {
-				return fmt.Errorf("tier %d: interest must be > 0", i+1)
+				return fmt.Errorf("tier %d: tier_interest must be > 0", i+1)
 			}
 		}
 	}
@@ -238,7 +238,6 @@ func (r *CreateWithdrawalRequest) Validate() error {
 	}
 
 	r.LockedVaultID = strings.TrimSpace(r.LockedVaultID)
-	r.WithdrawalAmount = strings.TrimSpace(r.WithdrawalAmount)
 	r.WithdrawerName = strings.TrimSpace(r.WithdrawerName)
 	r.WithdrawerPhoneNumber = strings.TrimSpace(r.WithdrawerPhoneNumber)
 
@@ -263,12 +262,14 @@ func (r *UpdateWithdrawalStatusRequest) Validate() error {
 		return errors.New("request is required")
 	}
 
-	r.WithdrawalID = strings.TrimSpace(r.WithdrawalID)
+	// r.WithdrawalID = strings.TrimSpace(r.WithdrawalID)
 	r.WithdrawalStatus = strings.TrimSpace(r.WithdrawalStatus)
 
 	return validation.ValidateStruct(r,
-		validation.Field(&r.WithdrawalID, validation.Required.Error("withdrawal_id is required")),
-		validation.Field(&r.WithdrawalStatus, validation.Required.Error("withdrawal_status is required")),
+		// validation.Field(&r.WithdrawalID, validation.Required.Error("withdrawal_id is required")),
+		validation.Field(&r.WithdrawalStatus, validation.Required.Error("withdrawal_status is required"),
+			validation.In("APPROVED", "REJECTED").Error("withdrawal status should be 'APPROVED' or 'REJECTED'"),
+		),
 	)
 }
 
@@ -325,7 +326,7 @@ func (r *UpdateCategoryRequest) Validate() error {
 				return nil
 			}
 			if _, err := decimal.NewFromString(*ptr); err != nil {
-				return errors.New("interest must be a valid decimal number")
+				return errors.New("category_interest must be a valid decimal number")
 			}
 			return nil
 		})),
@@ -349,15 +350,15 @@ func (r *UpdateCategoryRequest) Validate() error {
 	if it != "" && r.CategoryInterest != nil && *r.CategoryInterest != "" {
 		parent, err := decimal.NewFromString(*r.CategoryInterest)
 		if err != nil {
-			return errors.New("interest must be a valid decimal number")
+			return errors.New("category_interest must be a valid decimal number")
 		}
 		if it == "FLAT" {
 			if parent.LessThanOrEqual(decimal.Zero) {
-				return errors.New("interest must be > 0 when interest_type is 'flat'")
+				return errors.New("category_interest must be > 0 when interest_type is 'flat'")
 			}
 		} else if it == "DYNAMIC" {
 			if parent.GreaterThan(decimal.Zero) {
-				return errors.New("interest must be empty or 0 when interest_type is 'dynamic'")
+				return errors.New("category_interest must be empty or 0 when interest_type is 'dynamic'")
 			}
 		}
 	}
@@ -372,64 +373,66 @@ func (r *UpdateCategoryRequest) Validate() error {
 	return nil
 }
 
-func validateUpdateTier(t *UpdateTierDTO, interestType string) error {
-	if t == nil {
+func validateUpdateTier(tiers []UpdateTierDTO, interestType string) error {
+	if tiers == nil {
 		return nil
 	}
 
 	// Validate provided numeric fields
-	var min, max *decimal.Decimal
-	if t.Min != nil && strings.TrimSpace(*t.Min) != "" {
-		v, err := decimal.NewFromString(strings.TrimSpace(*t.Min))
-		if err != nil {
-			return errors.New("tiers.min must be a valid number")
-		}
-		if v.LessThanOrEqual(decimal.Zero) {
-			return errors.New("tiers.min must be > 0")
-		}
-		min = &v
-	}
-	if t.Max != nil && strings.TrimSpace(*t.Max) != "" {
-		v, err := decimal.NewFromString(strings.TrimSpace(*t.Max))
-		if err != nil {
-			return errors.New("tiers.max must be a valid number")
-		}
-		if v.LessThanOrEqual(decimal.Zero) {
-			return errors.New("tiers.max must be > 0")
-		}
-		max = &v
-	}
-
-	if min != nil && max != nil && !max.GreaterThan(*min) {
-		return errors.New("tiers.max must be greater than tiers.min")
-	}
-
-	if t.TierInterest != nil && strings.TrimSpace(*t.TierInterest) != "" {
-		raw := strings.TrimSpace(*t.TierInterest)
-		clean := strings.TrimSpace(strings.TrimSuffix(raw, "%"))
-		if clean == "" {
-			return errors.New("tiers.interest must be a valid number")
-		}
-		v, err := decimal.NewFromString(clean)
-		if err != nil {
-			return errors.New("tiers.interest must be a valid number")
-		}
-
-		switch strings.ToUpper(interestType) {
-		case "FLAT":
-			// In flat mode, tier interest must be empty or 0; reaching here means provided and parsed.
-			if !v.IsZero() {
-				return errors.New("tiers.interest must be empty or 0 when interest_type is 'flat'")
+	for _, t := range tiers {
+		var min, max *decimal.Decimal
+		if t.Min != nil && strings.TrimSpace(*t.Min) != "" {
+			v, err := decimal.NewFromString(strings.TrimSpace(*t.Min))
+			if err != nil {
+				return errors.New("tiers.min must be a valid number")
 			}
-		case "DYNAMIC":
-			// In dynamic mode, when provided it must be > 0
 			if v.LessThanOrEqual(decimal.Zero) {
-				return errors.New("tiers.interest must be > 0 when interest_type is 'dynamic'")
+				return errors.New("tiers.min must be > 0")
 			}
-		default:
-			// Generic rule if we somehow don't know the type.
-			if v.LessThan(decimal.Zero) {
-				return errors.New("tiers.interest must be >= 0")
+			min = &v
+		}
+		if t.Max != nil && strings.TrimSpace(*t.Max) != "" {
+			v, err := decimal.NewFromString(strings.TrimSpace(*t.Max))
+			if err != nil {
+				return errors.New("tiers.max must be a valid number")
+			}
+			if v.LessThanOrEqual(decimal.Zero) {
+				return errors.New("tiers.max must be > 0")
+			}
+			max = &v
+		}
+
+		if min != nil && max != nil && !max.GreaterThan(*min) {
+			return errors.New("tiers.max must be greater than tiers.min")
+		}
+
+		if t.TierInterest != nil && strings.TrimSpace(*t.TierInterest) != "" {
+			raw := strings.TrimSpace(*t.TierInterest)
+			clean := strings.TrimSpace(strings.TrimSuffix(raw, "%"))
+			if clean == "" {
+				return errors.New("tiers.interest must be a valid number")
+			}
+			v, err := decimal.NewFromString(clean)
+			if err != nil {
+				return errors.New("tiers.interest must be a valid number")
+			}
+
+			switch strings.ToUpper(interestType) {
+			case "FLAT":
+				// In flat mode, tier interest must be empty or 0; reaching here means provided and parsed.
+				if !v.IsZero() {
+					return errors.New("tiers.interest must be empty or 0 when interest_type is 'flat'")
+				}
+			case "DYNAMIC":
+				// In dynamic mode, when provided it must be > 0
+				if v.LessThanOrEqual(decimal.Zero) {
+					return errors.New("tiers.interest must be > 0 when interest_type is 'dynamic'")
+				}
+			default:
+				// Generic rule if we somehow don't know the type.
+				if v.LessThan(decimal.Zero) {
+					return errors.New("tiers.interest must be >= 0")
+				}
 			}
 		}
 	}

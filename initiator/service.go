@@ -23,7 +23,7 @@ import (
 	"time"
 
 	bankvault "cbe-super-app-cps-action/internal/service/bankvault"
-	vault_category "cbe-super-app-cps-action/internal/service/vault_category"
+	vault_category "cbe-super-app-cps-action/internal/service/vault"
 
 	bps_action_role_service "cbe-super-app-cps-action/internal/service/bps_action_role"
 	budgetCategorySvc "cbe-super-app-cps-action/internal/service/budget_category"

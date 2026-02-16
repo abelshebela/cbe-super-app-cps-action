@@ -1,38 +1,14 @@
 package core
 
 import (
-	helper "cbe-super-app-cps-action/internal/constants/dto/vault_category"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"fmt"
 	"mime"
 	"mime/multipart"
 	"net/http"
 
-	"time"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
-
-func ToDomainCreateVaultGroupCategoryRequest(req helper.CreateCategoryRequest) *model.VaultCategory {
-	return &model.VaultCategory{
-		Name:     req.Name,
-		IsActive: false,
-	}
-}
-
-func ToDomainUpdateVaultGroupCategoryRequest(req helper.UpdateCategoryRequest) *model.VaultCategory {
-	return &model.VaultCategory{
-		Name: func() string {
-			// if req.Name != "" {
-			// 	return req.Name
-			// }
-			return ""
-		}(),
-		UpdatedAt: time.Now().UTC(),
-	}
-}
 
 func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64, isRequired bool, logger utils.Logger) (multipart.File, *multipart.FileHeader, error) {
 	contentType := r.Header.Get("Content-Type")

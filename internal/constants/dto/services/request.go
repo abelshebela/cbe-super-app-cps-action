@@ -7,6 +7,7 @@ package services
 // }
 
 type CapRequest struct {
+	Currency           *string  `json:"currency" example:"ETB"`
 	SingleCap          *float64 `json:"single_cap" example:"1000000"`
 	MinimumTransferCap *float64 `json:"minimum_transfer_cap" example:"10"`
 }
@@ -35,7 +36,7 @@ type CreateServiceRequest struct {
 	ServiceCode      string `json:"service_code" example:"JKSJBDJB"`
 	ProductGlAccount string `json:"cbe_gl_product_account" example:"234353354"`
 	// ServiceList      []ServiceList `bson:"service_list" json:"service_list"`
-	Cap CapRequest `json:"cap"`
+	Cap []CapRequest `json:"cap"`
 	// Tiers            []TierRequest `json:"tiers"`
 	// HaveATier  bool  `json:"have_a_tier"`
 	// HaveAChild bool  `json:"have_a_child"`
@@ -49,7 +50,7 @@ type UpdateServiceRequest struct {
 	ServiceCode      *string `json:"service_code" example:"JKSJBDJB"`
 	ProductGlAccount *string `json:"cbe_gl_product_account" example:"234353354"`
 	// ServiceList      []ServiceList `bson:"service_list" json:"service_list"`
-	Cap *CapRequest `json:"cap"`
+	Cap []CapRequest `json:"cap"`
 	// Tiers            []TierRequest `json:"tiers"`
 	// HaveATier  *bool `json:"have_a_tier"`
 	// HaveAChild *bool `json:"have_a_child"`

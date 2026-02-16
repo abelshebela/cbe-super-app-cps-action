@@ -1,16 +1,19 @@
 package cpsroles
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"time"
 
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -20,20 +23,24 @@ import (
 )
 
 type cpsRoleStorage struct {
-	dal        dal.MongoDal[imodel.CPSRoles, imodel.CPSRoles]
-	client     *mongo.Client
-	dbName     string
-	collection string
-	logger     utils.Logger
+	cfg           *config.VaultConfig
+	dal           dal.MongoDal[imodel.CPSRoles, imodel.CPSRoles]
+	client        *mongo.Client
+	dbName        string
+	collection    string
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
-func NewCPSRolesStorage(client *mongo.Client, cfg *config.VaultConfig, dbName, collection string, logger utils.Logger) storage.CPSRolesRepository {
+func NewCPSRolesStorage(client *mongo.Client, cfg *config.VaultConfig, dbName, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.CPSRolesRepository {
 	return &cpsRoleStorage{
-		dal:        dal.NewMongoDal[imodel.CPSRoles, imodel.CPSRoles](client, cfg, dbName, collection),
-		client:     client,
-		dbName:     dbName,
-		collection: collection,
-		logger:     logger,
+		cfg:           cfg,
+		dal:           dal.NewMongoDal[imodel.CPSRoles, imodel.CPSRoles](client, cfg, dbName, collection),
+		client:        client,
+		dbName:        dbName,
+		collection:    collection,
+		kafkaProducer: kafkaProducer,
+		logger:        logger,
 	}
 }
 
@@ -60,7 +67,7 @@ func (m *cpsRoleStorage) Update(ctx context.Context, id string, req imodel.CPSRo
 		"updated_at": time.Now(),
 	}
 
-	_, err = m.dal.UpdateOne(ctx, filter, update)
+	updatedCPSRole, err := m.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			m.logger.Warnf("[Update] cps role not found, id: %s", id)
@@ -69,6 +76,14 @@ func (m *cpsRoleStorage) Update(ctx context.Context, id string, req imodel.CPSRo
 		m.logger.Errorf("[Update] failed to update cps role, id: %s, error: %v", id, err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	m.kafkaProducer.PublishMessage(
+		ctx,
+		updatedCPSRole,
+		string(constants.ClientOrchestrationServicesTopic),
+		"cps-customer-role-updated",
+		"cps customer role updated",
+	)
 
 	return nil
 }

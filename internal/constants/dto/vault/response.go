@@ -1,4 +1,4 @@
-package vaultgroupcategory
+package vault
 
 import "time"
 
