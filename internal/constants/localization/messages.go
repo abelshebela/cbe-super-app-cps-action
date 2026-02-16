@@ -40,6 +40,7 @@ const (
 	MsgInvalidJSONPayload            = "Invalid json payload"
 	MSGUserCodeIsRequired            = "User code is required"
 	MsgActionAlreadyExists           = "Action already requested wait for checker approval"
+	MsgActionAlreadyDisabled         = "Action already disabled"
 	// OTP related success messages
 	MsgOTPSentSuccessfully     = "OTP sent successfully"
 	MsgOTPVerifiedSuccessfully = "OTP verified successfully"
@@ -81,15 +82,26 @@ const (
 	MsgJobRolesFetchedSuccess = "Job roles fetched successfully"
 	MsgJobRoleFetchedSuccess  = "Job role fetched successfully"
 
-	MsgJobRoleCreatedRequestSent = "Job role created request sent successfully"
-	MsgJobRoleUpdateRequestSent  = "Job role updated request sent successfully"
-	MsgJobRoleCreatedSP          = "Job role created successfully"
-	MsgJobRoleUpdatedSP          = "Job role updated successfully"
-	MsgRoleCreatedRequestSent    = "Rule created request sent successfully"
-	MsgRoleUpdatedRequestSent    = "Rule updated request sent successfully"
-
-	MsgRoleCreatedSP = "Rule created request sent successfully"
-	MsgRoleUpdatedSP = "Rule updated request sent successfully"
+	MsgJobRoleCreatedRequestSent  = "Job role created request sent successfully"
+	MsgJobRoleUpdateRequestSent   = "Job role updated request sent successfully"
+	MsgJobRoleEnabledRequestSent  = "Job role enable request sent successfully"
+	MsgJobRoleDisabledRequestSent = "Job role disable request sent successfully"
+	MsgJobRoleCreatedSP           = "Job role created successfully"
+	MsgJobRoleUpdatedSP           = "Job role updated successfully"
+	MsgJobRoleEnabledSP           = "Job role enabled successfully"
+	MsgJobRoleDisabledSP          = "Job role disabled successfully"
+	MsgJobRoleDeletedRequestSent  = "Job role delete request sent successfully"
+	MsgJobRoleDeletedSP           = "Job role deleted successfully"
+	MsgRoleCreatedRequestSent     = "Rule created request sent successfully"
+	MsgRoleUpdatedRequestSent     = "Rule updated request sent successfully"
+	MsgRoleEnabledRequestSent     = "Role enable request sent successfully"
+	MsgRoleDisabledRequestSent    = "Role disable request sent successfully"
+	MsgRoleCreatedSP              = "Rule created request sent successfully"
+	MsgRoleUpdatedSP              = "Rule updated request sent successfully"
+	MsgRoleEnabledSP              = "Role enabled successfully"
+	MsgRoleDisabledSP             = "Role disabled successfully"
+	MsgRoleDeletedRequestSent     = "Role delete request sent successfully"
+	MsgRoleDeletedSP              = "Role deleted successfully"
 
 	// Donation related success messages
 	MsgDonationCategoryCreateRequestSent = "Donation category create request submitted successfully"
@@ -470,6 +482,11 @@ const (
 	MsgCpsRoleUpdatedSP  = "CPS role updated successfully"
 	MsgCpsRoleEnabledSP  = "CPS role enabled successfully"
 	MsgCpsRoleDisabledSP = "CPS role disabled successfully"
+
+	MsgCpsRoleServiceEnabled  = "Service access enabled for CPS role successfully"
+	MsgCpsRoleServiceDisabled = "Service access disabled for CPS role successfully"
+	MsgCpsRoleDeleted         = "CPS role delete request submitted successfully"
+	MsgCpsRoleDeletedSP       = "CPS role deleted successfully"
 
 	// Feedback Handler related success messages
 	MsgFeedbackCreatedSuccessfullySP = "Feedback created successfully"

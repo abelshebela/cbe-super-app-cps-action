@@ -94,6 +94,65 @@ func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRo
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 
+func (j *RoleService) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	makerUser := local_util.ExtractUserFromContext(ctx)
+	if local_util.IsIncomplete(makerUser) {
+		j.logger.Errorf("[Role Service][EnableOrDisable] maker data is incomplete")
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+
+	existing, err := j.roleRepository.FindByID(ctx, id)
+	if err != nil {
+		j.logger.Errorf("[Role Service][EnableOrDisable] failed to find existing role: %v", err)
+		return err
+	}
+
+	updated := *existing
+	updated.UpdatedAt = time.Now()
+
+	var requestType string
+	if enable {
+		requestType = string(constants.RequestEnableRole)
+	} else {
+		requestType = string(constants.RequestDisableRole)
+	}
+
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, existing, updated, requestType, constants.UPDATE)
+
+	if err := j.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+		j.logger.Errorf("[Role Service][EnableOrDisable] failed to create CPS action: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (j *RoleService) Delete(ctx context.Context, id string) error {
+	makerUser := local_util.ExtractUserFromContext(ctx)
+	if local_util.IsIncomplete(makerUser) {
+		j.logger.Errorf("[Role Service][Delete] maker data is incomplete")
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+
+	existing, err := j.roleRepository.FindByID(ctx, id)
+	if err != nil {
+		j.logger.Errorf("[Role Service][Delete] failed to find existing role: %v", err)
+		return err
+	}
+
+	updated := *existing
+	updated.UpdatedAt = time.Now()
+
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, existing, updated, string(constants.RequestDeleteRole), constants.DELETE)
+
+	if err := j.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+		j.logger.Errorf("[Role Service][Delete] failed to create CPS action: %v", err)
+		return err
+	}
+
+	return nil
+}
+
 func (j *RoleService) FindById(ctx context.Context, id string) (*imodel.JobRole, error) {
 	return j.roleRepository.FindByID(ctx, id)
 }
@@ -136,6 +195,18 @@ func (j *RoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.CPSA
 	case string(constants.RequestUpdateRole):
 		role.UpdatedAt = time.Now()
 		if err := j.roleRepository.Update(ctx, role.ID.Hex(), &role); err != nil {
+			return nil, err
+		}
+	case string(constants.RequestEnableRole):
+		if err := j.roleRepository.EnableOrDisable(ctx, cpsAction.UniqueId, true); err != nil {
+			return nil, err
+		}
+	case string(constants.RequestDisableRole):
+		if err := j.roleRepository.EnableOrDisable(ctx, cpsAction.UniqueId, false); err != nil {
+			return nil, err
+		}
+	case string(constants.RequestDeleteRole):
+		if err := j.roleRepository.SoftDelete(ctx, cpsAction.UniqueId); err != nil {
 			return nil, err
 		}
 	default:

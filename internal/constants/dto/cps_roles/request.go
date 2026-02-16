@@ -11,3 +11,7 @@ type UpdateCPSRoleRequest struct {
 	RoleCode    string `json:"role_code,omitempty"`
 	Description string `json:"description,omitempty"`
 }
+
+type ToggleServiceAccessRequest struct {
+	AccessListKeys []string `json:"access_list_keys"`
+}

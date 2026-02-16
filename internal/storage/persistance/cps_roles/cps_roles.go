@@ -16,6 +16,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type cpsRoleStorage struct {
@@ -23,7 +24,6 @@ type cpsRoleStorage struct {
 	client     *mongo.Client
 	dbName     string
 	collection string
-	col        *mongo.Collection
 	logger     utils.Logger
 }
 
@@ -188,7 +188,80 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRo
 	result.CheckerActions = checker
 	result.AuditorActions = auditor
 
+	// Fetch enabled/disabled service lists for this role
+	enabledServices, disabledServices, err := m.fetchServiceAccessLists(ctx, result.ID)
+	if err != nil {
+		m.logger.Warnf("[FindById] failed to fetch service access lists for role %s: %v", id, err)
+	}
+	result.EnabledServices = enabledServices
+	result.DisabledServices = disabledServices
+
 	return result, nil
+}
+
+// fetchServiceAccessLists retrieves enabled and disabled service lists for a CPS role.
+//   - Enabled: services in access_list (enabled=true) NOT blocked for this role
+//     (i.e., not in access_list_segmentation, or in segmentation with enabled=false)
+//   - Disabled: services in access_list (enabled=true) that ARE blocked for this role
+//     (i.e., in access_list_segmentation with enabled=true)
+func (m *cpsRoleStorage) fetchServiceAccessLists(ctx context.Context, roleID bson.ObjectID) ([]imodel.ServiceAccessInfo, []imodel.ServiceAccessInfo, error) {
+	// 1. Fetch all globally enabled services from access_list
+	accessListCol := m.client.Database(m.dbName).Collection("access_list")
+	alCursor, err := accessListCol.Find(ctx, bson.M{"enabled": true})
+	if err != nil {
+		return nil, nil, err
+	}
+	defer alCursor.Close(ctx)
+
+	type accessListDoc struct {
+		Key            string `bson:"key"`
+		AccessListName string `bson:"access_list_name"`
+	}
+	var allServices []accessListDoc
+	if err := alCursor.All(ctx, &allServices); err != nil {
+		return nil, nil, err
+	}
+
+	// 2. Fetch segmentation entries for this role from access_list_segmentation
+	segCol := m.client.Database(m.dbName).Collection("access_list_segmentation")
+	segCursor, err := segCol.Find(ctx, bson.M{"segmented_id": roleID})
+	if err != nil {
+		return nil, nil, err
+	}
+	defer segCursor.Close(ctx)
+
+	type segDoc struct {
+		AccessListKey string `bson:"access_list_key"`
+		Enabled       bool   `bson:"enabled"`
+	}
+	var segEntries []segDoc
+	if err := segCursor.All(ctx, &segEntries); err != nil {
+		return nil, nil, err
+	}
+
+	// 3. Build a map of blocked keys (segmentation enabled=true means disabled for this role)
+	blockedKeys := make(map[string]bool, len(segEntries))
+	for _, seg := range segEntries {
+		if seg.Enabled {
+			blockedKeys[seg.AccessListKey] = true
+		}
+	}
+
+	// 4. Categorize services
+	var enabledServices, disabledServices []imodel.ServiceAccessInfo
+	for _, svc := range allServices {
+		info := imodel.ServiceAccessInfo{
+			Key:            svc.Key,
+			AccessListName: svc.AccessListName,
+		}
+		if blockedKeys[svc.Key] {
+			disabledServices = append(disabledServices, info)
+		} else {
+			enabledServices = append(enabledServices, info)
+		}
+	}
+
+	return enabledServices, disabledServices, nil
 }
 
 func (m *cpsRoleStorage) FindByNameOrRoleCode(ctx context.Context, name, roleCode string) (*imodel.CPSRoles, error) {
@@ -229,6 +302,127 @@ func (m *cpsRoleStorage) EnableOrDisable(ctx context.Context, id string, enable 
 			return errors.New(localization.ErrorResourceNotFound.Code)
 		}
 		m.logger.Errorf("[EnableOrDisable] failed to enable/disable cps role, id: %s, error: %v", id, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
+}
+
+// EnableServiceAccess removes the block for the given access list keys on this role.
+// It deletes segmentation entries with enabled=true, or sets them to enabled=false.
+func (m *cpsRoleStorage) EnableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error {
+	objID, err := bson.ObjectIDFromHex(roleID)
+	if err != nil {
+		m.logger.Errorf("[EnableServiceAccess] invalid role id: %s, error: %v", roleID, err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	segCol := m.client.Database(m.dbName).Collection("access_list_segmentation")
+	filter := bson.M{
+		"segmented_id":    objID,
+		"access_list_key": bson.M{"$in": accessListKeys},
+		"enabled":         true,
+	}
+	update := bson.M{"$set": bson.M{"enabled": false, "updated_at": time.Now()}}
+
+	_, err = segCol.UpdateMany(ctx, filter, update)
+	if err != nil {
+		m.logger.Errorf("[EnableServiceAccess] failed to enable services for role %s: %v", roleID, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
+}
+
+// DisableServiceAccess blocks the given access list keys for this role.
+// It upserts segmentation entries with enabled=true.
+func (m *cpsRoleStorage) DisableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error {
+	objID, err := bson.ObjectIDFromHex(roleID)
+	if err != nil {
+		m.logger.Errorf("[DisableServiceAccess] invalid role id: %s, error: %v", roleID, err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	// Fetch the role to get name for segmentation_name
+	role, err := m.dal.FindOne(ctx, bson.M{"_id": objID}, bson.M{})
+	if err != nil {
+		m.logger.Errorf("[DisableServiceAccess] role not found: %s, error: %v", roleID, err)
+		return errors.New(localization.ErrorResourceNotFound.Code)
+	}
+
+	// Fetch access list names for the given keys
+	accessListCol := m.client.Database(m.dbName).Collection("access_list")
+	alCursor, err := accessListCol.Find(ctx, bson.M{"key": bson.M{"$in": accessListKeys}})
+	if err != nil {
+		m.logger.Errorf("[DisableServiceAccess] failed to fetch access list: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer alCursor.Close(ctx)
+
+	type alDoc struct {
+		Key            string `bson:"key"`
+		AccessListName string `bson:"access_list_name"`
+	}
+	var alDocs []alDoc
+	if err := alCursor.All(ctx, &alDocs); err != nil {
+		m.logger.Errorf("[DisableServiceAccess] failed to decode access list: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	alNameMap := make(map[string]string, len(alDocs))
+	for _, doc := range alDocs {
+		alNameMap[doc.Key] = doc.AccessListName
+	}
+
+	segCol := m.client.Database(m.dbName).Collection("access_list_segmentation")
+	for _, key := range accessListKeys {
+		filter := bson.M{
+			"segmented_id":    objID,
+			"access_list_key": key,
+		}
+		update := bson.M{
+			"$set": bson.M{
+				"enabled":    true,
+				"updated_at": time.Now(),
+			},
+			"$setOnInsert": bson.M{
+				"_id":               bson.NewObjectID(),
+				"type":              "block",
+				"segmentation_type": "cps_role",
+				"access_list_key":   key,
+				"access_list_name":  alNameMap[key],
+				"segmented_id":      objID,
+				"segmentation_code": role.RoleCode,
+				"segmentation_name": role.Name,
+				"created_at":        time.Now(),
+			},
+		}
+		opts := options.UpdateOne().SetUpsert(true)
+		_, err := segCol.UpdateOne(ctx, filter, update, opts)
+		if err != nil {
+			m.logger.Errorf("[DisableServiceAccess] failed to upsert segmentation for key %s: %v", key, err)
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+	}
+
+	return nil
+}
+
+func (m *cpsRoleStorage) Delete(ctx context.Context, id string) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		m.logger.Errorf("[Delete] invalid id format: %s, error: %v", id, err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	update := bson.M{"is_deleted": true, "deleted_at": time.Now()}
+
+	_, err = m.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			m.logger.Warnf("[Delete] cps role not found, id: %s", id)
+			return errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		m.logger.Errorf("[Delete] failed to soft delete cps role, id: %s, error: %v", id, err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
