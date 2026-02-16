@@ -22,7 +22,7 @@ type CPSRoles struct {
 	AuditorActions   []string            `json:"auditor" bson:"auditor"`
 	EnabledServices  []ServiceAccessInfo `json:"enabled_services" bson:"-"`
 	DisabledServices []ServiceAccessInfo `json:"disabled_services" bson:"-"`
-	IsDeleted        bool                `json:"is_deleted" bson:"is_deleted"`
+	IsDeleted        time.Time           `json:"is_deleted" bson:"is_deleted"`
 	CreatedAt        time.Time           `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	UpdatedAt        time.Time           `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 	DeletedAt        *time.Time          `json:"deleted_at,omitempty" bson:"deleted_at,omitempty"`

@@ -188,11 +188,30 @@ func (r *cpsRoleService) DisableServiceAccess(ctx context.Context, roleID string
 }
 
 func (r *cpsRoleService) Delete(ctx context.Context, id string) error {
-	if err := r.repo.Delete(ctx, id); err != nil {
-		r.logger.Errorf("[Delete] failed to delete cps role %s: %v", id, err)
+	makerUser := local_util.ExtractUserFromContext(ctx)
+
+	existing, err := r.repo.FindById(ctx, id)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			r.logger.Errorf("[Delete] Resource not found")
+			return errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		r.logger.Errorf("[Delete] failed to find existing cps role: %v", err)
 		return err
 	}
-	r.logger.Infof("[Delete] cps role %s deleted successfully", id)
+
+	updated := *existing
+	updated.IsDeleted = time.Now()
+
+	requestType := string(constants.RequestDeleteCpsRole)
+
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, existing, updated, requestType, constants.DELETE)
+
+	if err := r.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+		r.logger.Errorf("[Delete] failed to create CPS action: %v", err)
+		return err
+	}
+
 	return nil
 }
 

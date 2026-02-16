@@ -171,7 +171,6 @@ func (j *RoleService) FindAllWithPagination(ctx context.Context, filterParam typ
 }
 
 func (j *RoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.CPSAction) (*sharedmodel.CPSAction, error) {
-	// Turn CurrentAction into Role, attach ID from UniqueId (if present), apply action
 	var asAny any
 	raw, err := json.Marshal(cpsAction.CurrentAction)
 	if err != nil {
