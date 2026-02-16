@@ -98,7 +98,7 @@ func CpsModelBuilder(unique string, makerUser types.UserContext, prevAction, cur
 	return model.CPSAction{
 		ActionCode:       local_util.GenerateActionCode(),
 		UniqueId:         unique,
-		MakerID:          makerUser.UserID,
+		MakerID:          makerUser.UserName,
 		MakerName:        makerUser.FullName,
 		MakerPhoneNumber: makerUser.PhoneNumber,
 		PreviousAction:   prevAction,
@@ -157,6 +157,63 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 
 	if filterParam.Filters != nil {
 
+		// --- date range filters ---
+		// For each allowed key, check if _from / _to variants exist in the filters.
+		allowedSet := make(map[string]bool, len(allowedKeys))
+		for _, k := range allowedKeys {
+			allowedSet[k] = true
+		}
+
+		for _, ak := range allowedKeys {
+			fromKey := ak + "_from"
+			toKey := ak + "_to"
+			dateFilter := bson.M{}
+
+			// exact date match: ?created_at=2026-01-05 → full day range
+			if raw, ok := filterParam.Filters[ak]; ok {
+				if str, ok := raw.(string); ok && str != "" {
+					if t, err := parseDateInput(str); err == nil {
+						if !strings.Contains(str, "T") {
+							// date-only → match the whole day
+							dateFilter["$gte"] = t
+							dateFilter["$lte"] = t.Add(24*time.Hour - time.Millisecond)
+						} else {
+							// exact datetime
+							dateFilter["$eq"] = t
+						}
+						delete(filterParam.Filters, ak)
+					}
+				}
+			}
+
+			// range: ?created_at_from=...&created_at_to=...
+			if raw, ok := filterParam.Filters[fromKey]; ok {
+				if str, ok := raw.(string); ok && str != "" {
+					if t, err := parseDateInput(str); err == nil {
+						dateFilter["$gte"] = t
+					}
+				}
+				delete(filterParam.Filters, fromKey)
+			}
+
+			if raw, ok := filterParam.Filters[toKey]; ok {
+				if str, ok := raw.(string); ok && str != "" {
+					if t, err := parseDateInput(str); err == nil {
+						// if date-only (no time component), set to end of day
+						if !strings.Contains(str, "T") {
+							t = t.Add(24*time.Hour - time.Millisecond)
+						}
+						dateFilter["$lte"] = t
+					}
+				}
+				delete(filterParam.Filters, toKey)
+			}
+
+			if len(dateFilter) > 0 {
+				filter[ak] = dateFilter
+			}
+		}
+
 		handler := map[string]func(interface{}) interface{}{}
 		includedKeys := []string{
 			"enabled",
@@ -201,6 +258,25 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 	limit = int64(filterParam.PerPage)
 
 	return filter, skip, limit
+}
+
+// parseDateInput parses a date string that can be either date-only ("2026-01-05")
+// or full ISO datetime ("2026-01-05T07:10:33.695+00:00", "2026-01-05T07:10:33").
+func parseDateInput(s string) (time.Time, error) {
+	formats := []string{
+		time.RFC3339,                    // 2026-01-05T07:10:33+00:00
+		"2006-01-02T15:04:05.000Z07:00", // 2026-01-05T07:10:33.695+00:00
+		"2006-01-02T15:04:05.999Z07:00", // milliseconds variant
+		"2006-01-02T15:04:05Z07:00",     // without millis
+		"2006-01-02T15:04:05",           // no timezone
+		"2006-01-02",                    // date only
+	}
+	for _, f := range formats {
+		if t, err := time.Parse(f, s); err == nil {
+			return t, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("unable to parse date: %s", s)
 }
 
 // func UploadFileToMinio(
