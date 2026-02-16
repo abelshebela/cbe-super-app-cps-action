@@ -14,9 +14,12 @@ import (
 // }
 
 type MerchantLookupAPIResponse struct {
-	Status  int                      `json:"status"`
-	Message string                   `json:"message"`
-	Data    []MerchantLookUpResponse `json:"data"`
+	Status      int                      `json:"status"`
+	Message     string                   `json:"message"`
+	Data        []MerchantLookUpResponse `json:"data"`
+	IsOrganizer bool                     `json:"is_organizer"`
+	IsDelivery  bool                     `json:"is_delivery"`
+	IsEcommerce bool                     `json:"is_ecommerce"`
 }
 
 type Branch struct {
