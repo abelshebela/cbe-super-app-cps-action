@@ -14,12 +14,9 @@ import (
 // }
 
 type MerchantLookupAPIResponse struct {
-	Status      int                      `json:"status"`
-	Message     string                   `json:"message"`
-	Data        []MerchantLookUpResponse `json:"data"`
-	IsOrganizer bool                     `json:"is_organizer"`
-	IsDelivery  bool                     `json:"is_delivery"`
-	IsEcommerce bool                     `json:"is_ecommerce"`
+	Status  int                      `json:"status"`
+	Message string                   `json:"message"`
+	Data    []MerchantLookUpResponse `json:"data"`
 }
 
 type Branch struct {
@@ -47,6 +44,9 @@ type MerchantLookUpResponse struct {
 	Name          string   `json:"name"`
 	Street        string   `json:"street"`
 	Branches      []Branch `json:"branches"`
+	IsOrganizer   bool     `json:"is_organizer"`
+	IsDelivery    bool     `json:"is_delivery"`
+	IsEcommerce   bool     `json:"is_ecommerce"`
 }
 
 type MiniAppMerchantResponseDTO struct {
