@@ -192,7 +192,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 	}
 
 	bpsUser, err := s.bpsRepo.FindByOr(ctx, req.PhoneNumber, req.Email, "")
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to find user by email, phone number, or username", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -425,7 +425,7 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 	}
 
 	var makerAlloc, checkerAlloc, auditorAlloc, portalCard []string
-	var roles *model.Role
+	var roles *imodel.Role
 	if populated.JobTitle != "" {
 		roles, err = s.roleRepo.FindByName(ctx, populated.JobTitle)
 		if err != nil {

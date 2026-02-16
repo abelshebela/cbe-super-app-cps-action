@@ -3,11 +3,10 @@ package core
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func CheckRoleExistent(ctx context.Context, role string, roleRepo storage.JobRoleRepository) error {
@@ -18,7 +17,7 @@ func CheckRoleExistent(ctx context.Context, role string, roleRepo storage.JobRol
 	}
 	return nil
 }
-func CheckJobTitleExistent(ctx context.Context, prev model.Role, jobTitle string, roleRepo storage.RoleRepository) error {
+func CheckJobTitleExistent(ctx context.Context, prev imodel.Role, jobTitle string, roleRepo storage.RoleRepository) error {
 
 	data, err := roleRepo.FindByName(ctx, jobTitle)
 	if err != nil {

@@ -226,3 +226,114 @@ func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
+
+// Enable godoc
+//
+//	@Summary		Enable role
+//	@Description	Enable a role by its ID
+//	@Tags			Roles
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Role ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Role enabled successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/roles/{id}/enable [patch]
+func (j *RoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
+	id := chi.URLParam(r, "id")
+	if strings.TrimSpace(id) == "" {
+		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
+		return
+	}
+
+	if err := j.service.EnableOrDisable(ctx, id, true); err != nil {
+		j.logger.Errorf("[RoleHandler][Enable] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessRoleEnabledSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessRoleEnabledRequestSent, nil)
+	}
+}
+
+// Disable godoc
+//
+//	@Summary		Disable role
+//	@Description	Disable a role by its ID
+//	@Tags			Roles
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Role ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Role disabled successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/roles/{id}/disable [patch]
+func (j *RoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
+	id := chi.URLParam(r, "id")
+	if strings.TrimSpace(id) == "" {
+		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
+		return
+	}
+
+	if err := j.service.EnableOrDisable(ctx, id, false); err != nil {
+		j.logger.Errorf("[RoleHandler][Disable] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessRoleDisabledSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessRoleDisabledRequestSent, nil)
+	}
+}
+
+// Delete godoc
+//
+//	@Summary		Delete role
+//	@Description	Soft delete a role by its ID
+//	@Tags			Roles
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Role ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Role deleted successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/roles/{id} [delete]
+func (j *RoleHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
+	id := chi.URLParam(r, "id")
+	if strings.TrimSpace(id) == "" {
+		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
+		return
+	}
+
+	if err := j.service.Delete(ctx, id); err != nil {
+		j.logger.Errorf("[RoleHandler][Delete] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessRoleDeletedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessRoleDeletedRequestSent, nil)
+	}
+}

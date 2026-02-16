@@ -175,3 +175,83 @@ func (c *cpsRolesHandler) DisableCPSRole(w http.ResponseWriter, r *http.Request)
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleDisabled, nil)
 	}
 }
+
+func (c *cpsRolesHandler) EnableServiceAccess(w http.ResponseWriter, r *http.Request) {
+	id, err := local_util.ExtractID(w, r)
+	if err != nil {
+		c.logger.Errorf("[EnableServiceAccess] extractID: %v", err)
+		return
+	}
+
+	var req dto.ToggleServiceAccessRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.logger.Errorf("[EnableServiceAccess] failed to decode request body: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		c.logger.Errorf("[EnableServiceAccess] validation error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := c.svc.EnableServiceAccess(r.Context(), id, req); err != nil {
+		c.logger.Errorf("[EnableServiceAccess] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessCPSRoleServiceEnabled, nil)
+}
+
+func (c *cpsRolesHandler) DisableServiceAccess(w http.ResponseWriter, r *http.Request) {
+	id, err := local_util.ExtractID(w, r)
+	if err != nil {
+		c.logger.Errorf("[DisableServiceAccess] extractID: %v", err)
+		return
+	}
+
+	var req dto.ToggleServiceAccessRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.logger.Errorf("[DisableServiceAccess] failed to decode request body: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		c.logger.Errorf("[DisableServiceAccess] validation error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := c.svc.DisableServiceAccess(r.Context(), id, req); err != nil {
+		c.logger.Errorf("[DisableServiceAccess] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessCPSRoleServiceDisabled, nil)
+}
+
+func (c *cpsRolesHandler) DeleteCPSRole(w http.ResponseWriter, r *http.Request) {
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
+	id, err := local_util.ExtractID(w, r)
+	if err != nil {
+		c.logger.Errorf("[DeleteCPSRole] extractID: %v", err)
+		return
+	}
+
+	if err := c.svc.Delete(ctx, id); err != nil {
+		c.logger.Errorf("[DeleteCPSRole] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessCPSRoleDeletedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessCPSRoleDeleted, nil)
+	}
+}
