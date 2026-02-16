@@ -107,7 +107,16 @@ func (j *RoleService) EnableOrDisable(ctx context.Context, id string, enable boo
 		return err
 	}
 
+	if existing.Enable == enable && enable {
+		j.logger.Errorf("[Role Service][EnableOrDisable] role is already %v", enable)
+		return errors.New(localization.ErrorAlreadyEnabled.Code)
+	} else if existing.Enable == enable && !enable {
+		j.logger.Errorf("[Role Service][EnableOrDisable] role is already %v", enable)
+		return errors.New(localization.ErrorAlreadyDisabled.Code)
+	}
+
 	updated := *existing
+	updated.Enable = enable
 	updated.UpdatedAt = time.Now()
 
 	var requestType string

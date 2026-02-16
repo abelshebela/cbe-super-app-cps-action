@@ -192,7 +192,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 	}
 
 	bpsUser, err := s.bpsRepo.FindByOr(ctx, req.PhoneNumber, req.Email, "")
-	if err != nil && !errors.Is(err, localization.ErrorResourceNotFound) {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to find user by email, phone number, or username", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
