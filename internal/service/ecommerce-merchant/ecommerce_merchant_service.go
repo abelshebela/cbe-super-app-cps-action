@@ -2,7 +2,7 @@ package miniappmerchant
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
-	constant_lib "cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
@@ -359,7 +359,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 		// 	m.logger.Errorf("Failed to update ERP for merchant creation: %v", err)
 		// }
 		// Convert []model.BranchInformation to []erp_merchant_update_dto.ERPBranch
-		constant_lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.ID.Hex(), m.logger)
+		// constant_lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.ID.Hex(), m.logger)
 
 		_, err = m.repo.Create(ctx, merchant)
 		if err != nil {
@@ -369,12 +369,19 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
+		if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, m.logger); err != nil {
+			m.logger.Errorf("Failed to update ERP after creating ecommerce merchant: %v", err)
+			span.AddEvent("Failed to update ERP", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+		}
 	case string(constants.RequestUpdateEcommerceMerchant):
 		// err = m.updateERP(ctx, merchant)
 		// if err != nil {
 		// 	m.logger.Errorf("Failed to update ERP for merchant creation: %v", err)
 		// }
-		constant_lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.ID.Hex(), m.logger)
+		// constant_lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.ID.Hex(), m.logger)
 
 		err = m.repo.Update(ctx, cpsAction.UniqueId, merchant)
 		if err != nil {
@@ -383,6 +390,13 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			return nil, err
+		}
+		if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, m.logger); err != nil {
+			m.logger.Errorf("Failed to update ERP after updating ecommerce merchant: %v", err)
+			span.AddEvent("Failed to update ERP", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
 		}
 	case string(constants.RequestDeleteEcommerceMerchant):
 		err = m.repo.Delete(ctx, cpsAction.UniqueId)
@@ -402,6 +416,13 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
+		if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, m.logger); err != nil {
+			m.logger.Errorf("Failed to update ERP after enabling ecommerce merchant: %v", err)
+			span.AddEvent("Failed to update ERP", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+		}
 	case string(constants.RequestDisableEcommerceMerchant):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
 		if err != nil {
@@ -411,12 +432,15 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
+		if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, m.logger); err != nil {
+			m.logger.Errorf("Failed to update ERP after disabling ecommerce merchant: %v", err)
+			span.AddEvent("Failed to update ERP", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+		}
 	default:
 		m.logger.Errorf("Unsupported action requested, action: %s", cpsAction.RequestAction)
-		span.AddEvent("Unsupported action", trace.WithAttributes(
-			attribute.String("error", localization.ErrorUnsupportedAction.Code),
-			attribute.String("request_action", string(cpsAction.RequestAction)),
-		))
 		span.AddEvent("Unsupported action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
