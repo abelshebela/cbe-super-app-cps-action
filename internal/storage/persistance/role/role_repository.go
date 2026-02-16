@@ -3,14 +3,13 @@ package role_repo
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"time"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -21,7 +20,7 @@ import (
 
 type RoleRepository struct {
 	client     *mongo.Client
-	mongoDal   dal.MongoDal[model.Role, model.Role]
+	mongoDal   dal.MongoDal[imodel.Role, imodel.Role]
 	logger     utils.Logger
 	collection *mongo.Collection
 }
@@ -29,7 +28,7 @@ type RoleRepository struct {
 func NewRoleRepository(client *mongo.Client, cfg *config.VaultConfig, database string, collection []string, logger utils.Logger) storage.RoleRepository {
 	return &RoleRepository{
 		client:     client,
-		mongoDal:   dal.NewMongoDal[model.Role, model.Role](client, cfg, database, collection[0]),
+		mongoDal:   dal.NewMongoDal[imodel.Role, imodel.Role](client, cfg, database, collection[0]),
 		logger:     logger,
 		collection: client.Database(database).Collection(collection[1]),
 	}
@@ -63,7 +62,7 @@ func (r *RoleRepository) ExistsMany(ctx context.Context, ids []string) (bool, er
 	return count == int64(len(ids)), nil
 }
 
-func (r *RoleRepository) Create(ctx context.Context, role *model.Role) error {
+func (r *RoleRepository) Create(ctx context.Context, role *imodel.Role) error {
 	role.ID = bson.NewObjectID()
 	_, err := r.mongoDal.InsertOne(ctx, *role)
 	if err != nil {
@@ -73,7 +72,7 @@ func (r *RoleRepository) Create(ctx context.Context, role *model.Role) error {
 	return nil
 }
 
-func (r *RoleRepository) Update(ctx context.Context, id string, role *model.Role) error {
+func (r *RoleRepository) Update(ctx context.Context, id string, role *imodel.Role) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		r.logger.Errorf("[Role Repository][Update] invalid object id: %v", err)
@@ -87,8 +86,8 @@ func (r *RoleRepository) Update(ctx context.Context, id string, role *model.Role
 	if role.Role != "" {
 		update["role"] = role.Role
 	}
-	if !role.UpdatedAt.IsZero() {
-		update["updated_at"] = role.UpdatedAt
+	if !role.UpdateAt.IsZero() {
+		update["updated_at"] = role.UpdateAt
 	}
 
 	filter := bson.M{"_id": objID}
@@ -147,7 +146,7 @@ func (r *RoleRepository) SoftDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *RoleRepository) FindByID(ctx context.Context, id string) (*model.Role, error) {
+func (r *RoleRepository) FindByID(ctx context.Context, id string) (*imodel.Role, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		r.logger.Errorf("[Role Repository][FindByID] invalid object id: %v", err)
@@ -165,7 +164,7 @@ func (r *RoleRepository) FindByID(ctx context.Context, id string) (*model.Role, 
 	return result, nil
 }
 
-func (r *RoleRepository) FindByName(ctx context.Context, name string) (*model.Role, error) {
+func (r *RoleRepository) FindByName(ctx context.Context, name string) (*imodel.Role, error) {
 	filter := bson.M{"job_title": bson.M{"$regex": "^" + name + "$", "$options": "i"}}
 	result, err := r.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -177,7 +176,7 @@ func (r *RoleRepository) FindByName(ctx context.Context, name string) (*model.Ro
 	}
 	return result, nil
 }
-func (r *RoleRepository) FindByRole(ctx context.Context, name string) (*model.Role, error) {
+func (r *RoleRepository) FindByRole(ctx context.Context, name string) (*imodel.Role, error) {
 	filter := bson.M{"role": bson.M{"$regex": "^" + name + "$", "$options": "i"}}
 	result, err := r.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -190,7 +189,7 @@ func (r *RoleRepository) FindByRole(ctx context.Context, name string) (*model.Ro
 	return result, nil
 }
 
-func (r *RoleRepository) FindByCode(ctx context.Context, code string) (*model.Role, error) {
+func (r *RoleRepository) FindByCode(ctx context.Context, code string) (*imodel.Role, error) {
 	filter := bson.M{"code": code}
 	result, err := r.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -203,7 +202,7 @@ func (r *RoleRepository) FindByCode(ctx context.Context, code string) (*model.Ro
 	return result, nil
 }
 
-func (r *RoleRepository) FindAll(ctx context.Context) (*[]model.Role, error) {
+func (r *RoleRepository) FindAll(ctx context.Context) (*[]imodel.Role, error) {
 	data, err := r.mongoDal.FindAll(ctx, bson.M{}, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -214,7 +213,7 @@ func (r *RoleRepository) FindAll(ctx context.Context) (*[]model.Role, error) {
 	}
 	return &data, nil
 }
-func (r *RoleRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Role], error) {
+func (r *RoleRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Role], error) {
 	searchKeys := bson.M{}
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -243,13 +242,13 @@ func (r *RoleRepository) FindAllWithPagination(ctx context.Context, filterParam 
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	return &types.PaginatedResponse[[]model.Role]{
+	return &types.PaginatedResponse[[]imodel.Role]{
 		Data: data,
 		Meta: meta,
 	}, nil
 }
 
-func (r *RoleRepository) FindByFilterKey(ctx context.Context, field string, value string) (*model.Role, error) {
+func (r *RoleRepository) FindByFilterKey(ctx context.Context, field string, value string) (*imodel.Role, error) {
 	var filter bson.M
 
 	if field == "id" || field == "_id" {

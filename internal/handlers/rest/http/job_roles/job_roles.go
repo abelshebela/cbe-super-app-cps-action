@@ -10,10 +10,10 @@ import (
 	roles_dto "cbe-super-app-cps-action/internal/constants/dto/job_role"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/job_role"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	service "cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 
-	sharedmodel "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/go-chi/chi/v5"
@@ -146,7 +146,7 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role := sharedmodel.Role{
+	role := imodel.Role{
 		JobTitle:  strings.TrimSpace(body.JobTitle),
 		Role:      strings.TrimSpace(body.Role),
 		CreatedAt: time.Now(),
@@ -201,8 +201,8 @@ func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updated := sharedmodel.Role{
-		UpdatedAt: time.Now(),
+	updated := imodel.Role{
+		UpdateAt: time.Now(),
 	}
 	if body.JobTitle != "" {
 		updated.JobTitle = strings.TrimSpace(body.JobTitle)

@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/job_role/core"
@@ -38,7 +39,7 @@ func NewJobRoleService(jobRole storage.JobRoleRepository, roleRepo storage.RoleR
 	}
 }
 
-func (j *jobRoleService) Create(ctx context.Context, role sharedmodel.Role) error {
+func (j *jobRoleService) Create(ctx context.Context, role imodel.Role) error {
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		j.logger.Errorf("[JobRole Service][Create] maker data is incomplete")
@@ -61,11 +62,11 @@ func (j *jobRoleService) Create(ctx context.Context, role sharedmodel.Role) erro
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 
-func (j *jobRoleService) FindAll(ctx context.Context) (*[]sharedmodel.Role, error) {
+func (j *jobRoleService) FindAll(ctx context.Context) (*[]imodel.Role, error) {
 	return j.roleRepository.FindAll(ctx)
 }
 
-func (j *jobRoleService) Update(ctx context.Context, id string, update sharedmodel.Role) error {
+func (j *jobRoleService) Update(ctx context.Context, id string, update imodel.Role) error {
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		j.logger.Errorf("[JobRole Service][Update] maker data is incomplete")
@@ -91,16 +92,8 @@ func (j *jobRoleService) Update(ctx context.Context, id string, update sharedmod
 	if update.Role != "" {
 		newRole.Role = update.Role
 	}
-	if update.BranchGrade != "" {
-		newRole.BranchGrade = update.BranchGrade
-	}
-	if update.Department != "" {
-		newRole.Department = update.Department
-	}
-	if update.Position != "" {
-		newRole.Position = update.Position
-	}
-	newRole.UpdatedAt = time.Now()
+
+	newRole.UpdateAt = time.Now()
 
 	cpsModel := lib.CpsModelBuilder(id, maker, prev, newRole, constants.RequestUpdateJobRole, constants.UPDATE)
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
@@ -120,7 +113,7 @@ func (j *jobRoleService) EnableOrDisable(ctx context.Context, id string, enable 
 	}
 
 	updated := *existing
-	updated.UpdatedAt = time.Now()
+	updated.UpdateAt = time.Now()
 
 	var requestType string
 	if enable {
@@ -153,7 +146,7 @@ func (j *jobRoleService) Delete(ctx context.Context, id string) error {
 	}
 
 	updated := *existing
-	updated.UpdatedAt = time.Now()
+	updated.UpdateAt = time.Now()
 
 	cpsActionData := lib.CpsModelBuilder(id, makerUser, existing, updated, constants.RequestDeleteJobRole, constants.DELETE)
 
@@ -165,11 +158,11 @@ func (j *jobRoleService) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (j *jobRoleService) FindById(ctx context.Context, id string) (*sharedmodel.Role, error) {
+func (j *jobRoleService) FindById(ctx context.Context, id string) (*imodel.Role, error) {
 	return j.roleRepository.FindByID(ctx, id)
 }
 
-func (j *jobRoleService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]sharedmodel.Role], error) {
+func (j *jobRoleService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Role], error) {
 	return j.roleRepository.FindAllWithPagination(ctx, filterParam)
 }
 
@@ -187,7 +180,7 @@ func (j *jobRoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.C
 	}
 
 	raw2, _ := json.Marshal(asAny)
-	var role sharedmodel.Role
+	var role imodel.Role
 	if err := json.Unmarshal(raw2, &role); err != nil {
 		j.logger.Errorf("[JobRole Service][Authorize] map to Role failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -205,7 +198,7 @@ func (j *jobRoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.C
 			return nil, err
 		}
 	case string(constants.RequestUpdateJobRole):
-		role.UpdatedAt = time.Now()
+		role.UpdateAt = time.Now()
 		if err := j.roleRepository.Update(ctx, role.ID.Hex(), &role); err != nil {
 			return nil, err
 		}

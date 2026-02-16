@@ -45,17 +45,17 @@ import (
 type RoleRepository interface {
 	Exists(ctx context.Context, id string) (bool, error)
 	ExistsMany(ctx context.Context, ids []string) (bool, error)
-	Create(ctx context.Context, role *model.Role) error
-	Update(ctx context.Context, id string, role *model.Role) error
+	Create(ctx context.Context, role *imodel.Role) error
+	Update(ctx context.Context, id string, role *imodel.Role) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	SoftDelete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*model.Role, error)
-	FindByName(ctx context.Context, name string) (*model.Role, error)
-	FindByCode(ctx context.Context, code string) (*model.Role, error)
-	FindByRole(ctx context.Context, jobTitle string) (*model.Role, error)
-	FindAll(ctx context.Context) (*[]model.Role, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Role], error)
-	FindByFilterKey(ctx context.Context, field string, value string) (*model.Role, error)
+	FindByID(ctx context.Context, id string) (*imodel.Role, error)
+	FindByName(ctx context.Context, name string) (*imodel.Role, error)
+	FindByCode(ctx context.Context, code string) (*imodel.Role, error)
+	FindByRole(ctx context.Context, jobTitle string) (*imodel.Role, error)
+	FindAll(ctx context.Context) (*[]imodel.Role, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Role], error)
+	FindByFilterKey(ctx context.Context, field string, value string) (*imodel.Role, error)
 }
 
 type JobRoleRepository interface {
