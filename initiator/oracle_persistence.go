@@ -7,8 +7,8 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/bankvault"
 	"cbe-super-app-cps-action/internal/storage/persistance/sitota"
 	transaction_repo "cbe-super-app-cps-action/internal/storage/persistance/transaction"
+	vaultCategory "cbe-super-app-cps-action/internal/storage/persistance/vault"
 	vaultamounttiers "cbe-super-app-cps-action/internal/storage/persistance/vault_amount_tiers"
-	vaultCategory "cbe-super-app-cps-action/internal/storage/persistance/vault_category"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

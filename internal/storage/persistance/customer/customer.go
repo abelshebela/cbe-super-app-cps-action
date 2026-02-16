@@ -779,3 +779,18 @@ func (p *CustomerRepository) FindCustomerByID(ctx context.Context, id string) (*
 	}
 	return user, nil
 }
+
+func (p *CustomerRepository) FindCustomerByUserCode(ctx context.Context, userCode string) (*member.User, error) {
+	p.logger.Infof("[FindCustomerByUserCode] fetching customer by user code: %s", userCode)
+	filter := bson.M{"user_code": userCode}
+	user, err := p.mongoDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if code, _ := local_util.HandleMongoError(err); code == localization.ErrorResourceNotFound.Code {
+			p.logger.Errorf("[FindCustomerByUserCode] customer not found for user code: %s", userCode)
+			return nil, fmt.Errorf("%s", code)
+		}
+		p.logger.Errorf("[FindCustomerByUserCode] failed to find customer by user code: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+	return user, nil
+}

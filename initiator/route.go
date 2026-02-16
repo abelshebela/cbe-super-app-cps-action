@@ -41,7 +41,7 @@ import (
 	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
 	"cbe-super-app-cps-action/internal/glue/routing/notification"
 	"cbe-super-app-cps-action/internal/glue/routing/topup"
-	vaultcategory "cbe-super-app-cps-action/internal/glue/routing/vault_category"
+	vaultcategory "cbe-super-app-cps-action/internal/glue/routing/vault"
 	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
 	cps_roles "cbe-super-app-cps-action/internal/glue/routing/cps_roles"

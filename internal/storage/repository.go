@@ -372,6 +372,15 @@ type VaultCategoryRepository interface {
 	Update(ctx context.Context, id string, vaultCategory *imodel.VaultCategory) error
 	Delete(ctx context.Context, id string) (string, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+
+	// Transaction
+	FindAllTransactionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.VaultTransaction], error)
+
+	// withdrawal request
+	CreateWithdrawalRequest(ctx context.Context, withdrawal *imodel.Withdrawal) error
+	UpdateWithdrawalRequest(ctx context.Context, id string, status string) error
+	GetAllWithdrawalRequests(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Withdrawal], error)
+	GetWithdrawalRequest(ctx context.Context, id string) (*imodel.Withdrawal, error)
 }
 
 type VaultAmountTierRepository interface {
@@ -555,6 +564,7 @@ type CustomerRepository interface {
 	SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error)
 	FindCustomerByIDs(ctx context.Context, ids []string) ([]member.User, error)
 	FindCustomerByID(ctx context.Context, id string) (*member.User, error)
+	FindCustomerByUserCode(ctx context.Context, usercode string) (*member.User, error)
 }
 
 type BulkServiceRepository interface {
