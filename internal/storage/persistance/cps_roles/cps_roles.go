@@ -13,6 +13,7 @@ import (
 	"errors"
 	"time"
 
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -23,7 +24,7 @@ import (
 
 type cpsRoleStorage struct {
 	cfg           *config.VaultConfig
-	dal           dal.MongoDal[model.CPSRoles, model.CPSRoles]
+	dal           dal.MongoDal[imodel.CPSRoles, imodel.CPSRoles]
 	client        *mongo.Client
 	dbName        string
 	collection    string
@@ -34,7 +35,7 @@ type cpsRoleStorage struct {
 func NewCPSRolesStorage(client *mongo.Client, cfg *config.VaultConfig, dbName, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.CPSRolesRepository {
 	return &cpsRoleStorage{
 		cfg:           cfg,
-		dal:           dal.NewMongoDal[model.CPSRoles, model.CPSRoles](client, cfg, dbName, collection),
+		dal:           dal.NewMongoDal[imodel.CPSRoles, imodel.CPSRoles](client, cfg, dbName, collection),
 		client:        client,
 		dbName:        dbName,
 		collection:    collection,
