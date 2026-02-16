@@ -2113,6 +2113,45 @@ var (
 		Type:       "success",
 	}
 
+	// Vault withdrawal request
+	SuccessVaultWithdrawalRequestSubmitted = ResponseCode{
+		Code:       "VAULT_WITHDRAWAL_REQUEST_SUBMITTED",
+		StatusCode: StatusCreated,
+		Message:    "Vault withdrawal request submitted successfully",
+		Type:       "success",
+	}
+	SuccessVaultWithdrawalRequest = ResponseCode{
+		Code:       "VAULT_WITHDRAWAL_REQUEST_SUCCESSFULL",
+		StatusCode: StatusCreated,
+		Message:    "Vault withdrawal request created successfully",
+		Type:       "success",
+	}
+
+	SuccessVaultWithdrawalUpdateSubmitted = ResponseCode{
+		Code:       "VAULT_WITHDRAWAL_UPDATED_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Vault withdrawal update request submitted successfully",
+		Type:       "success",
+	}
+	SuccessVaultWithdrawalUpdateRequest = ResponseCode{
+		Code:       "VAULT_WITHDRAWAL_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    "Vault withdrawal request updated successfully",
+		Type:       "success",
+	}
+	SuccessVaultWithdrawalRequestsFetchedSuccessfully = ResponseCode{
+		Code:       "VAULT_WITHDRAWAL_REQUESTS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Vault withdrawal request retrieved successfully",
+		Type:       "success",
+	}
+	SuccessVaultWithdrawalRequestFetchedSuccessfully = ResponseCode{
+		Code:       "VAULT_WITHDRAWAL_REQUEST_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Vault withdrawal request retrieved successfully",
+		Type:       "success",
+	}
+
 	// Event related error response codes for bankvault
 	ErrorEventNameRequired = ResponseCode{
 		Code:       "ERROR_EVENT_NAME_REQUIRED",

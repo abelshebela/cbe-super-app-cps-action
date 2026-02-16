@@ -1,4 +1,4 @@
-package vaultgroupcategory
+package vault
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -238,7 +238,6 @@ func (r *CreateWithdrawalRequest) Validate() error {
 	}
 
 	r.LockedVaultID = strings.TrimSpace(r.LockedVaultID)
-	r.WithdrawalAmount = strings.TrimSpace(r.WithdrawalAmount)
 	r.WithdrawerName = strings.TrimSpace(r.WithdrawerName)
 	r.WithdrawerPhoneNumber = strings.TrimSpace(r.WithdrawerPhoneNumber)
 
@@ -263,12 +262,14 @@ func (r *UpdateWithdrawalStatusRequest) Validate() error {
 		return errors.New("request is required")
 	}
 
-	r.WithdrawalID = strings.TrimSpace(r.WithdrawalID)
+	// r.WithdrawalID = strings.TrimSpace(r.WithdrawalID)
 	r.WithdrawalStatus = strings.TrimSpace(r.WithdrawalStatus)
 
 	return validation.ValidateStruct(r,
-		validation.Field(&r.WithdrawalID, validation.Required.Error("withdrawal_id is required")),
-		validation.Field(&r.WithdrawalStatus, validation.Required.Error("withdrawal_status is required")),
+		// validation.Field(&r.WithdrawalID, validation.Required.Error("withdrawal_id is required")),
+		validation.Field(&r.WithdrawalStatus, validation.Required.Error("withdrawal_status is required"),
+			validation.In("APPROVED", "REJECTED").Error("withdrawal status should be 'APPROVED' or 'REJECTED'"),
+		),
 	)
 }
 

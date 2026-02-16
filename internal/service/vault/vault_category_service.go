@@ -1,16 +1,17 @@
-package vaultcategory
+package vault
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
-	vault_category_dto "cbe-super-app-cps-action/internal/constants/dto/vault_category"
+	vault_category_dto "cbe-super-app-cps-action/internal/constants/dto/vault"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	helperr "cbe-super-app-cps-action/internal/service/vault_category/core"
+	helperr "cbe-super-app-cps-action/internal/service/vault/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	imodel "cbe-super-app-cps-action/internal/constants/model"
@@ -394,18 +395,19 @@ func (s *vaultCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
-	err = json.Unmarshal(marshaled, &actionMap)
-	if err != nil {
-		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("failed to unmarshal CurrentAction: %v\n", err)
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
-	}
-
-	actionData := helperr.CategoryMapper(actionMap.(map[string]interface{}))
-
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateVaultCategory):
 		span.AddEvent("RequestCreateVaultCategory", trace.WithAttributes(attribute.String("id", cpsAction.UniqueId)))
+
+		err = json.Unmarshal(marshaled, &actionMap)
+		if err != nil {
+			span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(attribute.String("error", err.Error())))
+			s.logger.Errorf("failed to unmarshal CurrentAction: %v\n", err)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		}
+
+		actionData := helperr.CategoryMapper(actionMap.(map[string]interface{}))
+
 		_, err := s.repo.Create(ctx, &actionData)
 		if err != nil {
 			span.AddEvent("Failed to create vault category", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -414,6 +416,16 @@ func (s *vaultCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 		}
 	case string(constants.RequestUpdateVaultCategory):
 		span.AddEvent("RequestUpdateVaultCategory", trace.WithAttributes(attribute.String("id", cpsAction.UniqueId)))
+
+		err = json.Unmarshal(marshaled, &actionMap)
+		if err != nil {
+			span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(attribute.String("error", err.Error())))
+			s.logger.Errorf("failed to unmarshal CurrentAction: %v\n", err)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		}
+
+		actionData := helperr.CategoryMapper(actionMap.(map[string]interface{}))
+
 		if err := s.repo.Update(ctx, cpsAction.UniqueId, &actionData); err != nil {
 			span.AddEvent("Failed to update vault category", trace.WithAttributes(attribute.String("error", err.Error())))
 			if err.Error() == localization.ErrorDuplicateVaultCategory.Code {
@@ -446,6 +458,46 @@ func (s *vaultCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 		}
 		return cpsAction, nil
 
+	case string(constants.RequestCreateWithdrawal):
+		span.AddEvent("RequestCreateWithdrawal", trace.WithAttributes(attribute.String("id", cpsAction.UniqueId)))
+
+		err = json.Unmarshal(marshaled, &actionMap)
+		if err != nil {
+			span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(attribute.String("error", err.Error())))
+			s.logger.Errorf("failed to unmarshal CurrentAction: %v\n", err)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		}
+
+		actionData := helperr.WithdrawalMapper(actionMap.(map[string]interface{}))
+
+		if err := s.AuthorizeWithdrawalCreate(ctx, &actionData); err != nil {
+			span.AddEvent("Failed to create withdrawal request", trace.WithAttributes(attribute.String("error", err.Error())))
+			s.logger.Errorf("[Vault Withdrawal Authorize] failed to create withdrawal request %v", err)
+			return nil, err
+		}
+		return cpsAction, nil
+
+	case string(constants.RequestUpdateWithdrawal):
+		span.AddEvent("RequestUpdateWithdrawal", trace.WithAttributes(attribute.String("id", cpsAction.UniqueId)))
+
+		err = json.Unmarshal(marshaled, &actionMap)
+		if err != nil {
+			span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(attribute.String("error", err.Error())))
+			s.logger.Errorf("failed to unmarshal CurrentAction: %v\n", err)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		}
+
+		status := helperr.WithdrawalStatusMapper(actionMap.(map[string]interface{}))
+		if status == "" {
+			return cpsAction, fmt.Errorf("withdrawal status required")
+		}
+
+		if err := s.AuthorizeWithdrawalUpdate(ctx, cpsAction.UniqueId, status); err != nil {
+			span.AddEvent("Failed to update withdrawal request", trace.WithAttributes(attribute.String("error", err.Error())))
+			s.logger.Errorf("[Vault Withdrawal Authorize] failed to update withdrawal request %v", err)
+			return nil, err
+		}
+		return cpsAction, nil
 	}
 	return cpsAction, nil
 }

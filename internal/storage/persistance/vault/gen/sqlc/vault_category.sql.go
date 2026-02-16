@@ -442,3 +442,52 @@ func (q *Queries) UpdateVaultTiers(ctx context.Context, categoryID string, arg *
 
 	return nil
 }
+
+const findVaultTransactions = `-- name: FindVaultCategory :many
+SELECT
+	id,
+	COUNT(*) OVER() AS total_count
+FROM vault_categories
+WHERE (:is_active IS NULL OR is_active = :is_active)
+	AND (:name IS NULL OR UPPER(name) LIKE :name)
+ORDER BY created_at DESC
+OFFSET NVL(:offset, 0) ROWS
+FETCH NEXT NVL(:limit, 50) ROWS ONLY`
+
+func (q *Queries) FindVaultTransactions(ctx context.Context, arg FindVaultCategoryParams) ([]VaultTransaction, error) {
+	limitPtr := utils.NullInt64ToPtr(arg.Limit)
+	var offsetPtr *int64
+	if arg.Page.Valid && arg.Limit.Valid {
+		off := (arg.Page.Int64 - 1) * arg.Limit.Int64
+		offsetPtr = &off
+	}
+
+	rows, err := q.db.QueryContext(ctx, findVaultTransactions,
+		sql.Named("offset", offsetPtr),
+		sql.Named("limit", limitPtr),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := []VaultTransaction{}
+
+	for rows.Next() {
+		var id string
+		var totalCount int64
+		if err := rows.Scan(&id, &totalCount); err != nil {
+			return nil, err
+		}
+
+		vc := VaultTransaction{}
+
+		items = append(items, vc)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}

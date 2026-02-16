@@ -1,7 +1,7 @@
-package vaultgroupcategory
+package vault
 
 import (
-	bankgroupcategory "cbe-super-app-cps-action/internal/constants/interfaces/vault_category"
+	bankgroupcategory "cbe-super-app-cps-action/internal/constants/interfaces/vault"
 
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -74,6 +74,64 @@ func Init(router chi.Router, handler bankgroupcategory.VaultCategoryHandler, aut
 			Method:  http.MethodGet,
 			Path:    "/vault/transactions",
 			Handler: handler.GetVaultTransactions,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/vault/transactions/{transaction_id}",
+			Handler: handler.GetVaultTransaction,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+
+		// VAULT WITHDRAWAL REQUEST
+		{
+			Method:  http.MethodPost,
+			Path:    "/vault/withdrawals/create",
+			Handler: handler.CreateWithdrawalRequest,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/vault/withdrawals/{id}/cancel",
+			Handler: handler.UpdateWithDrawalRequest,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/vault/withdrawals/{id}/approve",
+			Handler: handler.UpdateWithDrawalRequest,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/vault/withdrawals/{id}/reject",
+			Handler: handler.UpdateWithDrawalRequest,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/vault/withdrawals",
+			Handler: handler.GetAllWithdrawalRequests,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/vault/withdrawals/{id}",
+			Handler: handler.GetWithdrawalRequestById,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},

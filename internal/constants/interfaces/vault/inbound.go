@@ -1,4 +1,4 @@
-package vaultcategory
+package vault
 
 import "net/http"
 
@@ -13,4 +13,11 @@ type VaultCategoryHandler interface {
 
 	// Transaction
 	GetVaultTransactions(w http.ResponseWriter, r *http.Request)
+	GetVaultTransaction(w http.ResponseWriter, r *http.Request)
+
+	// Withdrawal Request
+	CreateWithdrawalRequest(w http.ResponseWriter, r *http.Request)
+	UpdateWithDrawalRequest(w http.ResponseWriter, r *http.Request)
+	GetAllWithdrawalRequests(w http.ResponseWriter, r *http.Request)
+	GetWithdrawalRequestById(w http.ResponseWriter, r *http.Request)
 }

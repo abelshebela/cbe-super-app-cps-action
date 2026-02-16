@@ -1,4 +1,4 @@
-package vaultgroupcategory
+package vault
 
 import "mime/multipart"
 
@@ -32,15 +32,14 @@ type CreateCategoryRequest struct {
 }
 
 type CreateWithdrawalRequest struct {
-	LockedVaultID         string `json:"locked_vault_id" validate:"required"`
-	WithdrawalAmount      string `json:"withdrawal_amount" validate:"required"`
-	WithdrawerName        string `json:"withdrawer_name" validate:"required"`
-	WithdrawerPhoneNumber string `json:"withdrawer_phone_number" validate:"required"`
+	LockedVaultID         string  `json:"locked_vault_id" validate:"required"`
+	WithdrawalAmount      float64 `json:"withdrawal_amount" validate:"required"`
+	WithdrawerName        string  `json:"withdrawer_name" validate:"required"`
+	WithdrawerPhoneNumber string  `json:"withdrawer_phone_number" validate:"required"`
 }
 
 // Update request
 type UpdateWithdrawalStatusRequest struct {
-	WithdrawalID     string `json:"withdrawal_id" validate:"required"`
 	WithdrawalStatus string `json:"withdrawal_status" validate:"required"`
 }
 

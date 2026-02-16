@@ -20,7 +20,7 @@ import (
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	"cbe-super-app-cps-action/internal/constants/dto/customer"
 	topupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
-	vault_dto "cbe-super-app-cps-action/internal/constants/dto/vault_category"
+	vault_dto "cbe-super-app-cps-action/internal/constants/dto/vault"
 
 	notify "cbe-super-app-cps-action/internal/constants/dto/notification"
 
@@ -697,7 +697,13 @@ type VaultCategoryService interface {
 	DisableVaultCategory(ctx context.Context, id string) error
 
 	// Transaction
-	// FindAllVaultTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.VaultCategory], error)
+	FindAllVaultTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.VaultTransaction], error)
+
+	// Withdrawal Request
+	CreateWithdrawalRequest(ctx context.Context, req *vault_dto.CreateWithdrawalRequest) error
+	UpdateWithdrawalRequest(ctx context.Context, id string, req *vault_dto.UpdateWithdrawalStatusRequest) error
+	GetAllWithdrawalRequests(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.Withdrawal], error)
+	GetWithdrawalRequest(ctx context.Context, id string) (*imodel.Withdrawal, error)
 }
 type VaultAmountBasedTierService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)

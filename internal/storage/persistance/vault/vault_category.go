@@ -1,11 +1,11 @@
-package vaultcategory
+package vault
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/storage/persistance/vault_category/gen/sqlc"
+	"cbe-super-app-cps-action/internal/storage/persistance/vault/gen/sqlc"
 	"context"
 	"database/sql"
 	"errors"
