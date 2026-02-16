@@ -5,10 +5,12 @@ import (
 	"fmt"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
 func (c CapRequest) Validate() error {
 	return validation.ValidateStruct(&c,
+		validation.Field(&c.Currency, validation.NotNil, is.CurrencyCode),
 		validation.Field(&c.SingleCap, validation.NotNil, validation.Min(0.0)),
 		validation.Field(&c.MinimumTransferCap, validation.NotNil, validation.Min(0.0), validation.By(func(value interface{}) error {
 			if c.SingleCap == nil || c.MinimumTransferCap == nil {
@@ -147,6 +149,12 @@ func (r CreateServiceRequest) Validate() error {
 		return err
 	}
 
+	for _, c := range r.Cap {
+		if err := validateCap(c); err != nil {
+			return err
+		}
+	}
+
 	// if r.HaveATier {
 	// 	err := validation.ValidateStruct(&r,
 	// 		validation.Field(&r.Cap, validation.Required),
@@ -184,6 +192,16 @@ func (r UpdateServiceRequest) Validate() error {
 	)
 	if err != nil {
 		return err
+	}
+
+	if r.Cap != nil {
+		for _, c := range r.Cap {
+			if c.SingleCap != nil || c.MinimumTransferCap != nil {
+				if err := validateCap(c); err != nil {
+					return err
+				}
+			}
+		}
 	}
 
 	// if BoolPointer(r.HaveATier, false) {

@@ -44,10 +44,19 @@ func MapToServiceModel(req service_dto.CreateServiceRequest) model.Service {
 		ServiceKey:       req.ServiceKey,
 		ServiceName:      req.ServiceName,
 		ProductGlAccount: req.ProductGlAccount,
-		Cap: model.Cap{
-			SingleCap:          formatFloatPointer(req.Cap.SingleCap),
-			MinimumTransferCap: formatFloatPointer(req.Cap.MinimumTransferCap),
-		},
+		Cap: func() []model.Cap {
+			caps := make([]model.Cap, 0, len(req.Cap))
+
+			for _, c := range req.Cap {
+				caps = append(caps, model.Cap{
+					Currency:           service_dto.StringPointer(c.Currency, ""),
+					SingleCap:          formatFloatPointer(c.SingleCap),
+					MinimumTransferCap: formatFloatPointer(c.MinimumTransferCap),
+				})
+			}
+
+			return caps
+		}(),
 		// Tiers: func() []model.Tier {
 		// 	tiers := make([]model.Tier, 0, len(req.Tiers))
 		// 	for _, t := range req.Tiers {
@@ -110,10 +119,19 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing mode
 	existing.ProductGlAccount = service_dto.StringPointer(req.ProductGlAccount, existing.ProductGlAccount)
 
 	if req.Cap != nil {
-		existing.Cap = model.Cap{
-			SingleCap:          formatFloatPointer(req.Cap.SingleCap),
-			MinimumTransferCap: formatFloatPointer(req.Cap.MinimumTransferCap),
-		}
+		existing.Cap = func() []model.Cap {
+			caps := make([]model.Cap, 0, len(req.Cap))
+
+			for _, c := range req.Cap {
+				caps = append(caps, model.Cap{
+					Currency:           service_dto.StringPointer(c.Currency, ""),
+					SingleCap:          formatFloatPointer(c.SingleCap),
+					MinimumTransferCap: formatFloatPointer(c.MinimumTransferCap),
+				})
+			}
+
+			return caps
+		}()
 	}
 
 	// if req.Tiers != nil {

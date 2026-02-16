@@ -276,23 +276,27 @@ const (
 	MsgBankVaultRetrievedSuccessfully        = "Bank vault retrieved successfully"
 	MsgBankLockedVaultsRetrievedSuccessfully = "Bank locked vaults retrieved successfully"
 	MsgBankLockedVaultRetrievedSuccessfully  = "Bank locked vault retrieved successfully"
-	MsgGroupVaultsRetrievedSuccessfully      = "Group vaults retrieved successfully"
-	MsgGroupVaultRetrievedSuccessfully       = "Group vault retrieved successfully"
+	MsgVaultsRetrievedSuccessfully           = "Vaults retrieved successfully"
+	MsgVaultRetrievedSuccessfully            = "Vault retrieved successfully"
 
-	// vault group category sucess messages
-	MsgVaultGroupCategoryCreationRequestSubmitted = "Vault group category creation request submitted successfully"
-	MsgVaultGroupCategoriesRetrieved              = "Vault group categories retrieved successfully"
-	MsgVaultGroupCategoryRetrieved                = "Vault group category retrieved successfully"
-	MsgVaultGroupCategoryUpdateRequestSubmitted   = "Vault group category update request submitted successfully"
-	MsgVaultGroupCategoryDeleteRequestSubmitted   = "Vault group category deleted  request submitted successfully"
-	MsgVaultGroupCategoryEnableRequestSubmitted   = "Vault group category enabled request submitted successfully"
-	MsgVaultGroupCategoryDisableRequestSubmitted  = "Vault group category disabled request submitted successfully"
-	MsgBudgetCategoryUpdatedSuccessfully          = "Budget category updated successfully"
-	MsgBudgetCategoryCreatedSuccessfullySP        = "Budget category created successfully"
-	MsgBudgetCategoryUpdatedSuccessfullySP        = "Budget category updated successfully"
-	MsgBudgetCategoryDeletedSuccessfullySP        = "Budget category deleted successfully "
-	MsgBudgetCategoryEnabledSuccessfullySP        = "Budget category enabled successfully"
-	MsgBudgetCategoryDisabledSuccessfullySP       = "Budget category disabled successfully"
+	// vault category sucess messages
+	MsgVaultCategoryCreationRequestSubmitted  = "Vault category creation request submitted successfully"
+	MsgVaultCategoryCreatedSuccessfully       = "Vault category created successfully"
+	MsgVaultCategoriesRetrieved               = "Vault categories retrieved successfully"
+	MsgVaultCategoryRetrieved                 = "Vault category retrieved successfully"
+	MsgVaultCategoryUpdateRequestSubmitted    = "Vault category update request submitted successfully"
+	MsgVaultCategoryUpdateUpdatedSuccessfully = "Vault category updated successfully"
+	MsgVaultCategoryDeleteRequestSubmitted    = "Vault category deleted  request submitted successfully"
+	MsgVaultCategoryEnableRequestSubmitted    = "Vault category enabled request submitted successfully"
+	MsgVaultCategoryDisableRequestSubmitted   = "Vault category disabled request submitted successfully"
+	MsgVaultCategoryDisabledSuccessfully      = "Vault category disabled successfully"
+	MsgVaultCategoryEnabledSuccessfully       = "Vault category enabled successfully"
+	MsgBudgetCategoryUpdatedSuccessfully      = "Budget category updated successfully"
+	MsgBudgetCategoryCreatedSuccessfullySP    = "Budget category created successfully"
+	MsgBudgetCategoryUpdatedSuccessfullySP    = "Budget category updated successfully"
+	MsgBudgetCategoryDeletedSuccessfullySP    = "Budget category deleted successfully "
+	MsgBudgetCategoryEnabledSuccessfullySP    = "Budget category enabled successfully"
+	MsgBudgetCategoryDisabledSuccessfullySP   = "Budget category disabled successfully"
 
 	MsgVaultAmountTierCreated                 = "Vault amount tier creation request submitted successfully"
 	MsgVaultAmountTierFetchedSuccessfully     = "Vault amount tier retrieved successfully"
@@ -848,8 +852,8 @@ const (
 	Msg
 
 	// vault group category related error messages
-	MsgVaultGroupAlreadyEnabled  = "Vault group category already enabled"
-	MsgVaultGroupAlreadyDisabled = "Vault group category already disabled"
+	MsgVaultAlreadyEnabled  = "Vault category already enabled"
+	MsgVaultAlreadyDisabled = "Vault category already disabled"
 
 	// Ad related error messages
 	MsgAdNotFound       = "Ad not found"
@@ -1227,7 +1231,7 @@ const (
 	MsgNoBankProductFound                      = "No bank Product found"
 	MsgCannotDeleteBankProduct                 = "Cannot delete bank product"
 	MsgcannotEnableOrDisableDeletedBankProduct = "Cannot enable or disable deleted bank product"
-	MsgDuplicateGroupVaultCategory             = "There is an existing group vault category"
+	MsgDuplicateVaultCategory                  = "There is an existing vault category"
 
 	// Fayda Account
 	MsgFaydaAccountEnableCreatedSuccessfully  = "Fayda Account enable action submitted successfully"
