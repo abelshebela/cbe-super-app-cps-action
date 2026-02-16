@@ -70,7 +70,7 @@ func (b *BPSUserStorage) FindByOr(ctx context.Context, phone, email, username st
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			b.logger.Infof("[FindByOr] no bps user found matching the criteria")
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+			return nil, localization.ErrorResourceNotFound
 		}
 		b.logger.Errorf("[FindByOr] failed to find bps user: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -105,7 +105,7 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			{"username": searchRegex},
 			{"user_code": searchRegex},
 			{"phone_number": searchRegex},
-			{"email":searchRegex},
+			{"email": searchRegex},
 		}
 	}
 
