@@ -59,7 +59,7 @@ func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.Feedback
 		return nil, err
 	}
 
-	user, err := f.memberRepo.FindCustomerByID(ctx, userCode)
+	user, err := f.memberRepo.FindByID(ctx, userCode)
 	if err != nil {
 		f.logger.Errorf("[CreateFeedback] failed to find user by code %s: %v", userCode, err)
 		span.AddEvent("Failed to find user", trace.WithAttributes(
