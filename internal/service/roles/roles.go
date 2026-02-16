@@ -23,20 +23,22 @@ import (
 )
 
 type RoleService struct {
-	cpsService     service.CPSActionService
-	portalCardRepo storage.PortalCardRepository
-	roleRepository storage.JobRoleRepository
-	cfg            config.VaultConfig
-	logger         utils.Logger
+	cpsService       service.CPSActionService
+	portalCardRepo   storage.PortalCardRepository
+	roleRepository   storage.JobRoleRepository
+	approveIndexRepo storage.CPSActionApproveIndexRepository
+	cfg              config.VaultConfig
+	logger           utils.Logger
 }
 
-func NewRoleService(roleRepo storage.JobRoleRepository, portalCard storage.PortalCardRepository, cpsService service.CPSActionService, cfg config.VaultConfig, logger utils.Logger) service.RoleService {
+func NewRoleService(roleRepo storage.JobRoleRepository, portalCard storage.PortalCardRepository, approveIndexRepo storage.CPSActionApproveIndexRepository, cpsService service.CPSActionService, cfg config.VaultConfig, logger utils.Logger) service.RoleService {
 	return &RoleService{
-		cpsService:     cpsService,
-		portalCardRepo: portalCard,
-		roleRepository: roleRepo,
-		cfg:            cfg,
-		logger:         logger,
+		cpsService:       cpsService,
+		portalCardRepo:   portalCard,
+		roleRepository:   roleRepo,
+		approveIndexRepo: approveIndexRepo,
+		cfg:              cfg,
+		logger:           logger,
 	}
 }
 
@@ -163,7 +165,22 @@ func (j *RoleService) Delete(ctx context.Context, id string) error {
 }
 
 func (j *RoleService) FindById(ctx context.Context, id string) (*imodel.JobRole, error) {
-	return j.roleRepository.FindByID(ctx, id)
+	role, err := j.roleRepository.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	makerActions, checkerActions, auditorActions, _, err := j.approveIndexRepo.PopulateUserApproverAllocations(ctx, role.ID.Hex())
+	if err != nil {
+		j.logger.Errorf("[Role Service][FindById] failed to populate approver allocations: %v", err)
+		return role, nil
+	}
+
+	role.MakerActions = makerActions
+	role.CheckerActions = checkerActions
+	role.AuditorActions = auditorActions
+
+	return role, nil
 }
 
 func (j *RoleService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error) {
