@@ -92,6 +92,7 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	filter["is_deleted"] = false
 	total, err := m.dal.TotalCount(ctx, filter)
 	if err != nil {
 		m.logger.Errorf("[FindAllWithPagination] failed to count total cps roles: %v", err)
