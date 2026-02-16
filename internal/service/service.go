@@ -704,7 +704,8 @@ type VaultCategoryService interface {
 	DisableVaultCategory(ctx context.Context, id string) error
 
 	// Transaction
-	FindAllVaultTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.VaultTransaction], error)
+	FindAllVaultTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.VaultTransaction], error)
+	FindVaultTransaction(ctx context.Context, id string) (*imodel.VaultTransaction, error)
 
 	// Withdrawal Request
 	CreateWithdrawalRequest(ctx context.Context, req *vault_dto.CreateWithdrawalRequest) error

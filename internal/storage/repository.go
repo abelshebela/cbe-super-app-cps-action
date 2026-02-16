@@ -374,7 +374,8 @@ type VaultCategoryRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 
 	// Transaction
-	FindAllTransactionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.VaultTransaction], error)
+	FindAllTransactionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.VaultTransaction], error)
+	FindVaultTransaction(ctx context.Context, id string) (*imodel.VaultTransaction, error)
 
 	// withdrawal request
 	CreateWithdrawalRequest(ctx context.Context, withdrawal *imodel.Withdrawal) error

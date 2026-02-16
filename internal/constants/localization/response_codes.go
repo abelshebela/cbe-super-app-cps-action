@@ -2239,6 +2239,19 @@ var (
 		Type:       "success",
 	}
 
+	SuccessVaultTransactionsRetrievedS = ResponseCode{
+		Code:       "VAULT_TRANSACTIONS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    "Vault transactions retrieved successfully",
+		Type:       "success",
+	}
+	SuccessVaultTransactionRetrievedS = ResponseCode{
+		Code:       "VAULT_TRANSACTION_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    "Vault transaction retrieved successfully",
+		Type:       "success",
+	}
+
 	// Vault withdrawal request
 	SuccessVaultWithdrawalRequestSubmitted = ResponseCode{
 		Code:       "VAULT_WITHDRAWAL_REQUEST_SUBMITTED",
