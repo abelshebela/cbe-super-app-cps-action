@@ -170,7 +170,7 @@ func (j *RoleService) FindById(ctx context.Context, id string) (*imodel.JobRole,
 		return nil, err
 	}
 
-	makerActions, checkerActions, auditorActions, _, err := j.approveIndexRepo.PopulateUserApproverAllocations(ctx, role.ID.Hex())
+	makerActions, checkerActions, auditorActions, _, err := j.approveIndexRepo.PopulateUserApproverAllocations(ctx, role.Code)
 	if err != nil {
 		j.logger.Errorf("[Role Service][FindById] failed to populate approver allocations: %v", err)
 		return role, nil
