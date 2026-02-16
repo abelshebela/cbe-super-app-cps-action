@@ -425,7 +425,7 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 	}
 
 	var makerAlloc, checkerAlloc, auditorAlloc, portalCard []string
-	var roles *model.Role
+	var roles *imodel.Role
 	if populated.JobTitle != "" {
 		roles, err = s.roleRepo.FindByName(ctx, populated.JobTitle)
 		if err != nil {
