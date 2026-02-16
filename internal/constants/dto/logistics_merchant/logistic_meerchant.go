@@ -19,21 +19,23 @@ type LogisticsMerchantResponse struct {
 }
 
 type CreateLogisticsMerchantRequest struct {
-	MerchantID        string `json:"merchant_id" bson:"merchant_id"`
-	MerchantType      string `json:"merchant_type" bson:"merchant_type"`
-	SettlementMethod  string `json:"settlement_method" bson:"settlement_method"`
-	MerchantName      string `json:"merchant_name" bson:"merchant_name"`
-	BankAccountNumber string `json:"bank_account_number" bson:"bank_account_number"`
+	MerchantID          string `json:"merchant_id" bson:"merchant_id"`
+	MerchantType        string `json:"merchant_type" bson:"merchant_type"`
+	SettlementMethod    string `json:"settlement_method" bson:"settlement_method"`
+	MerchantName        string `json:"merchant_name" bson:"merchant_name"`
+	BankAccountNumber   string `json:"bank_account_number" bson:"bank_account_number"`
+	IsLogisticsMerchant *bool  `json:"is_logistics_merchant" bson:"is_logistics_merchant"`
 	// Email             string `json:"email" bson:"email"`
 	// PhoneNumber       string `json:"phone_number" bson:"phone_number"`
 }
 
 type UpdateLogisticsMerchantRequest struct {
-	MerchantID        string `json:"merchant_id" bson:"merchant_id"`
-	MerchantType      string `json:"merchant_type" bson:"merchant_type"`
-	SettlementMethod  string `json:"settlement_method" bson:"settlement_method"`
-	MerchantName      string `json:"merchant_name" bson:"merchant_name"`
-	BankAccountNumber string `json:"bank_account_number" bson:"bank_account_number"`
+	MerchantID          string `json:"merchant_id" bson:"merchant_id"`
+	MerchantType        string `json:"merchant_type" bson:"merchant_type"`
+	SettlementMethod    string `json:"settlement_method" bson:"settlement_method"`
+	MerchantName        string `json:"merchant_name" bson:"merchant_name"`
+	BankAccountNumber   string `json:"bank_account_number" bson:"bank_account_number"`
+	IsLogisticsMerchant *bool  `json:"is_logistics_merchant" bson:"is_logistics_merchant"`
 	// Email             string `json:"email" bson:"email"`
 	// PhoneNumber       string `json:"phone_number" bson:"phone_number"`
 }
