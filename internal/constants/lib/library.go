@@ -593,6 +593,7 @@ func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, bo
 		logger.Errorf("ERP update failed api key: %s", cfg.ApiKey)
 		return errors.New("ERP update failed")
 	}
-	logger.Infof("ERP update successful for merchant %s with response  %d", merchantID, resp)
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	logger.Infof("ERP update successful for merchant %s with response status %d, response body: %s", merchantID, resp.StatusCode, string(bodyBytes))
 	return nil
 }
