@@ -252,7 +252,7 @@ func (a *cpsActionAdapter) CancelCPSAction(w http.ResponseWriter, r *http.Reques
 	}
 
 	action.ActionStatus = string(constants.Canceled)
-	action.RejectionReason = string(req.Reason)
+	action.CanceledReason = string(req.CancelReason)
 
 	if err := a.cpsActionApplication.RejectCPSAction(ctx, actionCode, action); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -1554,31 +1554,33 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 	}
 
 	var checkerIdx, auditorIdx int64
-	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
-		role, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
-		if role == "" {
-			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-			return
-		}
+	if actionName != "CPSACTIONROLE" {
+		if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
+			role, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+			if role == "" {
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+				return
+			}
 
-		uppercasedActionName := strings.ToUpper(actionName)
-		idxDoc, err = repo.FindByRoleAndAction(ctx, role, uppercasedActionName, parsedVersion)
-		if err != nil {
-			span.RecordError(err)
-			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-			return
-		}
+			uppercasedActionName := strings.ToUpper(actionName)
+			idxDoc, err = repo.FindByRoleAndAction(ctx, role, uppercasedActionName, parsedVersion)
+			if err != nil {
+				span.RecordError(err)
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+				return
+			}
 
-		if idxDoc == nil || idxDoc.CheckerIndex == nil {
-			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-			return
-		}
+			if idxDoc == nil || idxDoc.CheckerIndex == nil {
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+				return
+			}
 
-		if idxDoc.CheckerIndex != nil {
-			checkerIdx = int64(*idxDoc.CheckerIndex)
-		}
-		if idxDoc.AuditorIndex != nil {
-			auditorIdx = int64(*idxDoc.AuditorIndex)
+			if idxDoc.CheckerIndex != nil {
+				checkerIdx = int64(*idxDoc.CheckerIndex)
+			}
+			if idxDoc.AuditorIndex != nil {
+				auditorIdx = int64(*idxDoc.AuditorIndex)
+			}
 		}
 	}
 
