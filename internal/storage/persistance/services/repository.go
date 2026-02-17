@@ -58,7 +58,13 @@ func (s *ServicesStorage) Create(ctx context.Context, service *model.Service) er
 		s.logger.Errorf("insert service failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	s.kafkaProducer.PublishMessage(ctx, createService, string(constants.ClientOrchestrationServicesTopic), string(constants.ClientOrchestrationServicesTopic), "new service created")
+	s.kafkaProducer.PublishMessage(
+		ctx,
+		createService,
+		string(constants.ClientOrchestrationServicesTopic),
+		s.cfg.CPSServiceUpdate,
+		"service authorized and updated",
+	)
 	return nil
 }
 
@@ -138,7 +144,13 @@ func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	s.kafkaProducer.PublishMessage(ctx, updatedService, string(constants.ClientOrchestrationServicesTopic), string(constants.ClientOrchestrationServicesTopic), "service enabled/disabled")
+	s.kafkaProducer.PublishMessage(
+		ctx,
+		updatedService,
+		string(constants.ClientOrchestrationServicesTopic),
+		s.cfg.CPSServiceUpdate,
+		"service authorized and updated",
+	)
 
 	return nil
 }
@@ -242,21 +254,31 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 }
 
 func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error) {
-	filter := bson.M{
-		"$or": []bson.M{
-			{"service_key": serviceKey},
-			{"service_code": serviceCode},
-			{"service_name": bson.M{"$regex": serviceName, "$options": "i"}},
-			{"service_list.service_key": serviceKey},
-			{"service_list.service_name": bson.M{"$regex": serviceName, "$options": "i"}},
-		},
+	orConditions := make([]bson.M, 0, 3)
+	if serviceKey != "" {
+		orConditions = append(orConditions, bson.M{"service_key": serviceKey})
+	}
+	// if serviceCode != "" {
+	// 	orConditions = append(orConditions, bson.M{"service_code": serviceCode})
+	// }
+	if serviceName != "" {
+		orConditions = append(orConditions, bson.M{"service_name": serviceName})
 	}
 
-	count, err := s.dal.TotalCount(ctx, filter)
+	if len(orConditions) == 0 {
+		return false, nil
+	}
+
+	filter := bson.M{"$or": orConditions}
+
+	_, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return false, nil
+		}
 		s.logger.Errorf("failed to check service existence in services: %v", err)
 		return false, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	return count > 0, nil
+	return true, nil
 }
