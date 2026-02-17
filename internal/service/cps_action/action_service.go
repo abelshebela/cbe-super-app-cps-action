@@ -115,6 +115,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	defer span.End()
 	var existing *model.CPSAction
 	var err error
+	ca.logger.Infof("CreateCPSAction: %+v", cpsAction)
 
 	roleCode := ctx.Value(constants.ContextKey("role_code")).(string)
 	actionName, _ := ctx.Value(constants.ContextKey("action_name")).(string)
