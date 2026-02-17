@@ -34,7 +34,7 @@ type Wallet struct {
 	ServiceKey       string                 `protobuf:"bytes,9,opt,name=service_key,json=serviceKey,proto3" json:"service_key,omitempty"`
 	ServiceId        string                 `protobuf:"bytes,10,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
 	ChildServiceKeys []*ChildServiceKey     `protobuf:"bytes,11,rep,name=child_service_keys,json=childServiceKeys,proto3" json:"child_service_keys,omitempty"`
-	Cap              *Cap                   `protobuf:"bytes,12,opt,name=cap,proto3" json:"cap,omitempty"`
+	Cap              []*Cap                 `protobuf:"bytes,12,rep,name=cap,proto3" json:"cap,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -146,7 +146,7 @@ func (x *Wallet) GetChildServiceKeys() []*ChildServiceKey {
 	return nil
 }
 
-func (x *Wallet) GetCap() *Cap {
+func (x *Wallet) GetCap() []*Cap {
 	if x != nil {
 		return x.Cap
 	}
@@ -269,6 +269,7 @@ type Cap struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
 	SingleCap          string                 `protobuf:"bytes,1,opt,name=single_cap,json=singleCap,proto3" json:"single_cap,omitempty"`
 	MinimumTransferCap string                 `protobuf:"bytes,2,opt,name=minimum_transfer_cap,json=minimumTransferCap,proto3" json:"minimum_transfer_cap,omitempty"`
+	Currency           string                 `protobuf:"bytes,3,opt,name=currency,proto3" json:"currency,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -313,6 +314,13 @@ func (x *Cap) GetSingleCap() string {
 func (x *Cap) GetMinimumTransferCap() string {
 	if x != nil {
 		return x.MinimumTransferCap
+	}
+	return ""
+}
+
+func (x *Cap) GetCurrency() string {
+	if x != nil {
+		return x.Currency
 	}
 	return ""
 }
@@ -675,7 +683,7 @@ const file_wallet_proto_rawDesc = "" +
 	"service_id\x18\n" +
 	" \x01(\tR\tserviceId\x12E\n" +
 	"\x12child_service_keys\x18\v \x03(\v2\x17.wallet.ChildServiceKeyR\x10childServiceKeys\x12\x1d\n" +
-	"\x03cap\x18\f \x01(\v2\v.wallet.CapR\x03cap\"U\n" +
+	"\x03cap\x18\f \x03(\v2\v.wallet.CapR\x03cap\"U\n" +
 	"\x0fChildServiceKey\x12\x1f\n" +
 	"\vservice_key\x18\x01 \x01(\tR\n" +
 	"serviceKey\x12!\n" +
@@ -683,11 +691,12 @@ const file_wallet_proto_rawDesc = "" +
 	"\bServices\x12\x12\n" +
 	"\x04self\x18\x01 \x01(\bR\x04self\x12\x14\n" +
 	"\x05other\x18\x02 \x01(\bR\x05other\x12\x14\n" +
-	"\x05agent\x18\x03 \x01(\bR\x05agent\"V\n" +
+	"\x05agent\x18\x03 \x01(\bR\x05agent\"r\n" +
 	"\x03Cap\x12\x1d\n" +
 	"\n" +
 	"single_cap\x18\x01 \x01(\tR\tsingleCap\x120\n" +
-	"\x14minimum_transfer_cap\x18\x02 \x01(\tR\x12minimumTransferCap\"0\n" +
+	"\x14minimum_transfer_cap\x18\x02 \x01(\tR\x12minimumTransferCap\x12\x1a\n" +
+	"\bcurrency\x18\x03 \x01(\tR\bcurrency\"0\n" +
 	"\x04docs\x12(\n" +
 	"\awallets\x18\x01 \x03(\v2\x0e.wallet.WalletR\awallets\"\"\n" +
 	"\x10GetWalletRequest\x12\x0e\n" +
