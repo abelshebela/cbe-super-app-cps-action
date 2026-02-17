@@ -278,7 +278,7 @@ type AccountBlockRepository interface {
 	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 	EnableOrDisableDistricts(ctx context.Context, ids []string, reason string, enabled bool) error
 	GetDistrictsByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
-	GetAccountBlockDetails(ctx context.Context, id string) ([]*model.CPSAction, error)
+	GetAccountBlockDetails(ctx context.Context, id string) ([]model.CPSAction, error)
 }
 
 type AdvertRepository interface {

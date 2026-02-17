@@ -612,7 +612,7 @@ func (a *AccountBlockStorage) GetCitiesByIds(ctx context.Context, ids []string) 
 
 }
 
-func (a *AccountBlockStorage) GetAccountBlockDetails(ctx context.Context, id string) ([]*model.CPSAction, error) {
+func (a *AccountBlockStorage) GetAccountBlockDetails(ctx context.Context, id string) ([]model.CPSAction, error) {
 	a.logger.Infof("[GetAccountBlockDetails] fetching CPS actions for account block id: %s", id)
 
 	if _, err := bson.ObjectIDFromHex(id); err != nil {
@@ -649,7 +649,7 @@ func (a *AccountBlockStorage) GetAccountBlockDetails(ctx context.Context, id str
 	}
 	defer func() { _ = cur.Close(ctx) }()
 
-	var results []*model.CPSAction
+	var results []model.CPSAction
 	if err := cur.All(ctx, &results); err != nil {
 		a.logger.Errorf("[GetAccountBlockDetails] failed to decode CPS actions: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
