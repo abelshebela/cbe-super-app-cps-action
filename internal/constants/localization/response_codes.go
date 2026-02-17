@@ -457,6 +457,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorAlreadyEnabled,
 	ErrorAlreadyDisabled,
+	ErrorRoleHasActiveJobs,
 	ErrorInvalidBulkServiceKey,
 	ErrorInvalidRequiredAction,
 	ErrorFailToUpdateParent,
@@ -2237,6 +2238,19 @@ var (
 		Code:       "VAULT_AMOUNT_TIER_DISABLED",
 		StatusCode: StatusCreated,
 		Message:    MsgVaultAmountTierDisabledSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessVaultTransactionsRetrievedS = ResponseCode{
+		Code:       "VAULT_TRANSACTIONS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    "Vault transactions retrieved successfully",
+		Type:       "success",
+	}
+	SuccessVaultTransactionRetrievedS = ResponseCode{
+		Code:       "VAULT_TRANSACTION_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    "Vault transaction retrieved successfully",
 		Type:       "success",
 	}
 
@@ -7045,6 +7059,13 @@ var (
 		Code:       "ERROR_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorRoleHasActiveJobs = ResponseCode{
+		Code:       "ERROR_ROLE_HAS_ACTIVE_JOBS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleHasActiveJobs,
 		Type:       "error",
 	}
 

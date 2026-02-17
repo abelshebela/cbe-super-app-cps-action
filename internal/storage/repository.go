@@ -374,7 +374,8 @@ type VaultCategoryRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 
 	// Transaction
-	FindAllTransactionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.VaultTransaction], error)
+	FindAllTransactionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.VaultTransaction], error)
+	FindVaultTransaction(ctx context.Context, id string) (*imodel.VaultTransaction, error)
 
 	// withdrawal request
 	CreateWithdrawalRequest(ctx context.Context, withdrawal *imodel.Withdrawal) error
@@ -673,6 +674,7 @@ type CPSActionApproveIndexRepository interface {
 	InsertMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
 	DeleteAll(ctx context.Context, prev imodel.CPSActionRoleResposne) error
 	InsertAll(ctx context.Context, new imodel.CPSActionRole) error
+	HasActiveActionRoles(ctx context.Context, roleCode string) (bool, error)
 }
 
 type BPSActionApproveIndexRepository interface {

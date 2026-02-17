@@ -117,6 +117,18 @@ func (j *RoleService) EnableOrDisable(ctx context.Context, id string, enable boo
 		return errors.New(localization.ErrorAlreadyDisabled.Code)
 	}
 
+	if !enable {
+		hasActive, err := j.approveIndexRepo.HasActiveActionRoles(ctx, existing.Code)
+		if err != nil {
+			j.logger.Errorf("[Role Service][EnableOrDisable] failed to check active action roles: %v", err)
+			return err
+		}
+		if hasActive {
+			j.logger.Errorf("[Role Service][EnableOrDisable] role %s has active jobs, cannot disable", existing.Code)
+			return errors.New(localization.ErrorRoleHasActiveJobs.Code)
+		}
+	}
+
 	updated := *existing
 	updated.Enable = enable
 	updated.UpdatedAt = time.Now()
