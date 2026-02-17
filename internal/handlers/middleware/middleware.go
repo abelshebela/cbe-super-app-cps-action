@@ -243,13 +243,9 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		deviceID = strings.Trim(deviceID, "\"")
 		if userPayload.SessionExp != 0 && (userPayload.DeviceID == deviceID || deviceID == "") {
 			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now, userPayload.SessionExp-now)
-			if userPayload.SessionExp < now {
-				a.logger.Warnf("session has expired")
-				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
-				return
-			}
 
-			if userPayload.SessionExp-now <= 0 {
+			if userPayload.SessionExp <= now {
+				a.logger.Warnf("session has expired")
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
 			} else if userPayload.SessionExp-now < int64(remainTime) {
