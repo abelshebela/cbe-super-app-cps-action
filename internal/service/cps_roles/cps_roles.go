@@ -201,7 +201,7 @@ func (r *cpsRoleService) Delete(ctx context.Context, id string) error {
 	}
 
 	updated := *existing
-	updated.IsDeleted = time.Now()
+	updated.DeletedAt = time.Now()
 
 	requestType := string(constants.RequestDeleteCpsRole)
 
