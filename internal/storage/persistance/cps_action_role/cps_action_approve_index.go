@@ -35,11 +35,26 @@ func (r *CPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx co
 	var auditorAllocations []string
 	var portalCard []string
 
-	cursor, err := r.collection.Find(ctx, bson.M{
-		"role_id": role_id,
-	})
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{
+			"role_id": role_id,
+		}}},
+		{{Key: "$lookup", Value: bson.M{
+			"from":         "cps_action_roles",
+			"localField":   "action_name",
+			"foreignField": "action_name",
+			"as":           "action_role_info",
+		}}},
+		{{Key: "$match", Value: bson.M{
+			"action_role_info": bson.M{
+				"$elemMatch": bson.M{"enabled": true},
+			},
+		}}},
+	}
+
+	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		r.logger.Errorf("PopulateUserApproverAllocations: Find failed: %v", err)
+		r.logger.Errorf("PopulateUserApproverAllocations: Aggregate failed: %v", err)
 		return nil, nil, nil, nil, err
 	}
 	defer cursor.Close(ctx)
