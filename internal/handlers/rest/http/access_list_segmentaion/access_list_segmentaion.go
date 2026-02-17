@@ -21,7 +21,19 @@ type accessListSegmentation struct {
 	logger  utils.Logger
 }
 
-// CreateAccessListSegmentation implements accesslistsegmentation.AccessListSegmentationHandler.
+// CreateAccessListSegmentation godoc
+//
+//	@Summary		Create access list segmentation
+//	@Description	Create a new access list segmentation with the provided information
+//	@Tags			Access List Segmentation
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		access_list_segmentation_dto.CreateAccessListSegmentationRequest	true	"Create access list segmentation request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Access list segmentation created successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/access_list_segmentation [post]
 func (a *accessListSegmentation) CreateAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "CreateAccessListSegmentation", "handler", "accessListSegmentation")
 	defer span.End()
@@ -51,7 +63,21 @@ func (a *accessListSegmentation) CreateAccessListSegmentation(w http.ResponseWri
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationCreated, nil)
 }
 
-// DisableAccessListSegmentation implements accesslistsegmentation.AccessListSegmentationHandler.
+// DisableAccessListSegmentation godoc
+//
+//	@Summary		Disable access list segmentation
+//	@Description	Disable an access list segmentation by ID with optional access list keys
+//	@Tags			Access List Segmentation
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string															true	"Access list segmentation ID"
+//	@Param			body	body		access_list_segmentation_dto.EnableDisableAccessListSegmentationRequest	true	"Disable request with access list keys"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Access list segmentation disabled successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404		{object}	localization.StandardResponse{data=nil}	"Access list segmentation not found"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/access_list_segmentation/disable/{id} [patch]
 func (a *accessListSegmentation) DisableAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -97,7 +123,20 @@ func (a *accessListSegmentation) EnableAccessListSegmentation(w http.ResponseWri
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationEnabled, nil)
 }
 
-// GetAccessListSegmentationByID implements accesslistsegmentation.AccessListSegmentationHandler.
+// GetAccessListSegmentationByID godoc
+//
+//	@Summary		Get access list segmentation by ID
+//	@Description	Retrieve a single access list segmentation by its identifier
+//	@Tags			Access List Segmentation
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string																	true	"Access list segmentation ID"
+//	@Success		200	{object}	localization.StandardResponse{data=access_list_segmentation_dto.AccessListSegmentationResponse}	"Access list segmentation retrieved successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}								"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}								"Access list segmentation not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}								"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/access_list_segmentation/{id} [get]
 func (a *accessListSegmentation) GetAccessListSegmentationByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -114,7 +153,21 @@ func (a *accessListSegmentation) GetAccessListSegmentationByID(w http.ResponseWr
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationRetrieved, accessListSegmentation)
 }
 
-// GetAllAccessListSegmentation implements accesslistsegmentation.AccessListSegmentationHandler.
+// GetAllAccessListSegmentation godoc
+//
+//	@Summary		Get all access list segmentations
+//	@Description	Retrieve all access list segmentations with pagination and optional search
+//	@Tags			Access List Segmentation
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int									false	"Page number"		default(1)
+//	@Param			per_page	query		int									false	"Items per page"	default(10)
+//	@Param			search		query		string								false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"Access list segmentations retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/access_list_segmentation [get]
 func (a *accessListSegmentation) GetAllAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 
@@ -168,6 +221,20 @@ func (a *accessListSegmentation) UpdateAccessListSegmentation(w http.ResponseWri
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationUpdated, nil)
 }
 
+// GetAllAccessListSegmentationBySegmentIDorSegmentCode godoc
+//
+//	@Summary		Get all access list segmentations by segment ID or code
+//	@Description	Retrieve all access list segmentations and access lists filtered by segment ID or segment code
+//	@Tags			Access List Segmentation
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Segment ID or Segment Code"
+//	@Success		200	{object}	localization.StandardResponse{data=object}	"Access list segmentations retrieved successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}		"Not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/access_list_segmentation/all/{id} [get]
 func (a *accessListSegmentation) GetAllAccessListSegmentationBySegmentIDorSegmentCode(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {

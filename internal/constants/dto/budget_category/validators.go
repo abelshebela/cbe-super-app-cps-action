@@ -5,25 +5,24 @@ import (
 	"cbe-super-app-cps-action/pkgs/utils"
 	"mime/multipart"
 	"regexp"
-	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 var hexColorRegex = regexp.MustCompile(`^#?([a-fA-F\d]{2}){3}$`)
 
-func hasAllowedExtension(filename string, allowed []string) bool {
-	if filename == "" {
-		return false
-	}
-	filename = strings.ToLower(strings.TrimSpace(filename))
-	for _, ext := range allowed {
-		if strings.HasSuffix(filename, strings.ToLower(ext)) {
-			return true
-		}
-	}
-	return false
-}
+// func hasAllowedExtension(filename string, allowed []string) bool {
+// 	if filename == "" {
+// 		return false
+// 	}
+// 	filename = strings.ToLower(strings.TrimSpace(filename))
+// 	for _, ext := range allowed {
+// 		if strings.HasSuffix(filename, strings.ToLower(ext)) {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
 func validateBudgetIcon(value interface{}) error {
 	file, ok := value.(*multipart.FileHeader)

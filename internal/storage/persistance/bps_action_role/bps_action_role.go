@@ -113,12 +113,10 @@ func (r *BPSActionRoleRepository) FindByActionCode(
 
 	pipeline := mongo.Pipeline{
 
-		// 1️⃣ Match action
 		{{Key: "$match", Value: bson.M{
 			"action_code": actionCode,
 		}}},
 
-		// 2️⃣ Normalize arrays (safety)
 		{{Key: "$addFields", Value: bson.M{
 			"assigned_viewers_roles": bson.M{
 				"$cond": bson.A{
@@ -149,8 +147,6 @@ func (r *BPSActionRoleRepository) FindByActionCode(
 				},
 			},
 		}}},
-
-		// 3️⃣ Lookup MAKERS (by code) + FORCE projection
 
 		{{
 			Key: "$lookup",

@@ -3,13 +3,13 @@ package donation_category
 import (
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // DonationCategoryMapper maps DonationCategory model to BSON for database operations
-func DonationCategoryMapper(data model.DonationCategory) bson.M {
+func DonationCategoryMapper(data donation_model.DonationCategory) bson.M {
 	result := bson.M{}
 	if data.CategoryName != "" {
 		result["category_name"] = data.CategoryName
@@ -24,7 +24,7 @@ func DonationCategoryMapper(data model.DonationCategory) bson.M {
 }
 
 // MapToDonationCategoryListResponse maps model to DTO response
-func MapToDonationCategoryListResponse(category *model.DonationCategory) *donation_category.DonationCategoryListResponse {
+func MapToDonationCategoryListResponse(category *donation_model.DonationCategory) *donation_category.DonationCategoryListResponse {
 	return &donation_category.DonationCategoryListResponse{
 		ID:             category.ID.Hex(),
 		CategoryName:   category.CategoryName,
@@ -37,7 +37,7 @@ func MapToDonationCategoryListResponse(category *model.DonationCategory) *donati
 }
 
 // MapToDonationCategoryListResponses maps slice of models to slice of DTO responses
-func MapToDonationCategoryListResponses(categories []model.DonationCategory) []donation_category.DonationCategoryListResponse {
+func MapToDonationCategoryListResponses(categories []donation_model.DonationCategory) []donation_category.DonationCategoryListResponse {
 	var responses []donation_category.DonationCategoryListResponse
 	for i := range categories {
 		responses = append(responses, *MapToDonationCategoryListResponse(&categories[i]))

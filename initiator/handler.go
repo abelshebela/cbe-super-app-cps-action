@@ -44,7 +44,7 @@ import (
 	servicesInbound "cbe-super-app-cps-action/internal/constants/interfaces/services"
 	TopupInbound "cbe-super-app-cps-action/internal/constants/interfaces/topup"
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
-	vaultgroupcategory "cbe-super-app-cps-action/internal/constants/interfaces/vaultgroup_category"
+	vaultCategory "cbe-super-app-cps-action/internal/constants/interfaces/vault"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
 	"cbe-super-app-cps-action/internal/service"
 
@@ -106,8 +106,8 @@ import (
 	TopupHandler "cbe-super-app-cps-action/internal/handlers/rest/http/topup"
 	transaction_handler "cbe-super-app-cps-action/internal/handlers/rest/http/transaction"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
+	vaultcategoryhandler "cbe-super-app-cps-action/internal/handlers/rest/http/vault"
 	amount_tier_handler "cbe-super-app-cps-action/internal/handlers/rest/http/vault_amount_tier"
-	vaultgroupcategoryhandler "cbe-super-app-cps-action/internal/handlers/rest/http/vaultgroup_category"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -146,7 +146,7 @@ type Handler struct {
 	DonationCompanyHandler        donation_company.DonationCompanyAdapter
 	NotificationHandler           notificationInbound.NotificationHandler
 	BankVaultHandler              bankvaultInterface.BankVaultHandler
-	VaultGroupCategoryHandler     vaultgroupcategory.VaultGroupCategoryHandler
+	VaultCategoryHandler          vaultCategory.VaultCategoryHandler
 	NewsCategoryHandler           newscategory_adaptor.NewsCategoryAdaptor
 	NewsTagHandler                newstag_adaptor.NewsTagAdaptor
 	SitotaHandler                 sitotaInbound.SitotaAdapter
@@ -169,52 +169,52 @@ type Handler struct {
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler {
 	return Handler{
-		RoleHandler:               roles.NewRoleHandler(serviceLayer.RoleService, logger),
-		jobRoleHandler:            jobRoleHandler.NewJobRoleHandler(serviceLayer.JobRoleService, logger),
-		BudgetCategoryHandler:     budgetCategoryHandler.InitBudgetCategoryAdapter(serviceLayer.BudgetCategory, logger),
-		UnlinkHandler:             unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
-		BpsHandler:                bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
-		BankHandler:               bankHandler.InitBankAdapter(serviceLayer.Bank, logger),
-		CpsActionHandler:          cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
-		BpsActionHandler:          bpsActionHandler.InitBPSActionAdapter(serviceLayer.BPSActionService, logger),
-		EventHandler:              eventhandler.InitEventAdapter(serviceLayer.EventService, logger),
-		FeedbackHandler:           feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
-		PortalCardHander:          portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),
-		AdvertHandler:             advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
-		AvatarHandler:             avatarHandlerImpl.InitAvatarAdapter(serviceLayer.Avatar, logger),
-		WalletHandler:             walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
-		TopupHandler:              TopupHandler.InitTopupAdapter(serviceLayer.Topup, logger),
-		PasswordHandler:           passwordHandler.InitPasswordRuleHandler(serviceLayer.PasswordRule, logger),
-		AccountValidation:         accountValidation.NewHttpAccountValidation(serviceLayer.AccountValidation, logger),
-		AccountBlockHandler:       accountBlockHandler.InitAccountBlockAdapter(serviceLayer.AccountBlock, logger),
-		DepartmentHandler:         department.NewDepartmentHandler(serviceLayer.Department, logger),
-		HqHandler:                 hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
-		bulkServiceHandler:        bulkServiceHandler.InitBulkServiceAdapter(serviceLayer.BulkService, logger),
-		customerHandler:           CustomerHandler.InitCustomerAdapter(serviceLayer.CustomerService, logger),
-		FaydaHandler:              faydaHandler.InitFaydaHandler(serviceLayer.Fayda, logger),
-		Permission:                permissionHandler.InitPermissionHandler(serviceLayer.Permission, logger),
-		CPSUser:                   cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
-		NotificationHandler:       notificationHandler.InitNotificationHandler(serviceLayer.NotificationService, logger),
-		BankVaultHandler:          bankvaulthandler.InitBankVaultHandler(serviceLayer.BankVault, logger),
-		VaultGroupCategoryHandler: vaultgroupcategoryhandler.InitVaultGroupCategoryHandler(serviceLayer.VaultGroupCategory, logger),
-		AmountBasedAuthHandler:    amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
-		ServicesHandler:           services_http.InitServicesAdapter(serviceLayer.Services, logger),
-		DonationHandler:           donationHandler.NewDonationAdapter(serviceLayer.Donation, logger),
-		DonationCategoryHandler:   donationCategoryHandler.InitDonationCategoryAdapter(serviceLayer.DonationCategory, logger),
-		DonationCompanyHandler:    donationCompanyHandler.InitDonationCompanyAdapter(serviceLayer.DonationCompany, logger),
-		NewsCategoryHandler:       newscategory_handler.NewNewsCategoryHandler(serviceLayer.NewsCategoryService, logger),
-		NewsTagHandler:            newstag_handler.NewNewsTagHandler(serviceLayer.NewsTagService, logger),
-		SitotaHandler:             sitotaHandler.InitSitotaHandler(serviceLayer.Sitota, logger),
-		KYCVerifierHandler:        kyc_handler.InitKYCAdapter(serviceLayer.KYCVerifier, logger),
-		EncryptionHandler:         encryptionHandler.InitEncryption(serviceLayer.Encryption, logger),
-		DeviceVersionHandler:      deviceversionhandler.InitDeviceVersionAdapter(serviceLayer.DeviceVersion, logger),
-		BPSActionRoleHandler:      actionrole_handler.NewBPSActionRoleHandler(serviceLayer.BPSActionRole, logger),
-		CPSActionRoleHandler:      cps_actionrole_handler.NewCPSActionRoleHandler(serviceLayer.CPSActionRole, logger),
-		TransactionHandler:        transaction_handler.NewTransactionHandler(serviceLayer.TransactionService, logger),
-		EventMerchantHandler:      event_merchant_handler.NewEventMerchantHandler(serviceLayer.EventMerchantService, logger),
-		LogisticsMerchantHandler:  logistics_merchant_handler.NewLogisticsMerchantHandler(serviceLayer.LogisticsMerchantService, logger),
-		AmountTierHandler:         amount_tier_handler.NewVaultAmountTierHandler(serviceLayer.VaultAmountTierService, logger),
-		EcommerceMerchantHandler:  ecommerce_handler.NewEcommerceMerchantdapter(serviceLayer.EcommerceMerchant, logger),
+		RoleHandler:              roles.NewRoleHandler(serviceLayer.RoleService, logger),
+		jobRoleHandler:           jobRoleHandler.NewJobRoleHandler(serviceLayer.JobRoleService, logger),
+		BudgetCategoryHandler:    budgetCategoryHandler.InitBudgetCategoryAdapter(serviceLayer.BudgetCategory, logger),
+		UnlinkHandler:            unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
+		BpsHandler:               bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
+		BankHandler:              bankHandler.InitBankAdapter(serviceLayer.Bank, logger),
+		CpsActionHandler:         cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
+		BpsActionHandler:         bpsActionHandler.InitBPSActionAdapter(serviceLayer.BPSActionService, logger),
+		EventHandler:             eventhandler.InitEventAdapter(serviceLayer.EventService, logger),
+		FeedbackHandler:          feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
+		PortalCardHander:         portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),
+		AdvertHandler:            advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
+		AvatarHandler:            avatarHandlerImpl.InitAvatarAdapter(serviceLayer.Avatar, logger),
+		WalletHandler:            walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
+		TopupHandler:             TopupHandler.InitTopupAdapter(serviceLayer.Topup, logger),
+		PasswordHandler:          passwordHandler.InitPasswordRuleHandler(serviceLayer.PasswordRule, logger),
+		AccountValidation:        accountValidation.NewHttpAccountValidation(serviceLayer.AccountValidation, logger),
+		AccountBlockHandler:      accountBlockHandler.InitAccountBlockAdapter(serviceLayer.AccountBlock, logger),
+		DepartmentHandler:        department.NewDepartmentHandler(serviceLayer.Department, logger),
+		HqHandler:                hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
+		bulkServiceHandler:       bulkServiceHandler.InitBulkServiceAdapter(serviceLayer.BulkService, logger),
+		customerHandler:          CustomerHandler.InitCustomerAdapter(serviceLayer.CustomerService, logger),
+		FaydaHandler:             faydaHandler.InitFaydaHandler(serviceLayer.Fayda, logger),
+		Permission:               permissionHandler.InitPermissionHandler(serviceLayer.Permission, logger),
+		CPSUser:                  cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
+		NotificationHandler:      notificationHandler.InitNotificationHandler(serviceLayer.NotificationService, logger),
+		BankVaultHandler:         bankvaulthandler.InitBankVaultHandler(serviceLayer.BankVault, logger),
+		VaultCategoryHandler:     vaultcategoryhandler.InitVaultCategoryHandler(serviceLayer.VaultCategoryService, logger),
+		AmountBasedAuthHandler:   amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
+		ServicesHandler:          services_http.InitServicesAdapter(serviceLayer.Services, logger),
+		DonationHandler:          donationHandler.NewDonationAdapter(serviceLayer.Donation, logger),
+		DonationCategoryHandler:  donationCategoryHandler.InitDonationCategoryAdapter(serviceLayer.DonationCategory, logger),
+		DonationCompanyHandler:   donationCompanyHandler.InitDonationCompanyAdapter(serviceLayer.DonationCompany, logger),
+		NewsCategoryHandler:      newscategory_handler.NewNewsCategoryHandler(serviceLayer.NewsCategoryService, logger),
+		NewsTagHandler:           newstag_handler.NewNewsTagHandler(serviceLayer.NewsTagService, logger),
+		SitotaHandler:            sitotaHandler.InitSitotaHandler(serviceLayer.Sitota, logger),
+		KYCVerifierHandler:       kyc_handler.InitKYCAdapter(serviceLayer.KYCVerifier, logger),
+		EncryptionHandler:        encryptionHandler.InitEncryption(serviceLayer.Encryption, logger),
+		DeviceVersionHandler:     deviceversionhandler.InitDeviceVersionAdapter(serviceLayer.DeviceVersion, logger),
+		BPSActionRoleHandler:     actionrole_handler.NewBPSActionRoleHandler(serviceLayer.BPSActionRole, logger),
+		CPSActionRoleHandler:     cps_actionrole_handler.NewCPSActionRoleHandler(serviceLayer.CPSActionRole, logger),
+		TransactionHandler:       transaction_handler.NewTransactionHandler(serviceLayer.TransactionService, logger),
+		EventMerchantHandler:     event_merchant_handler.NewEventMerchantHandler(serviceLayer.EventMerchantService, logger),
+		LogisticsMerchantHandler: logistics_merchant_handler.NewLogisticsMerchantHandler(serviceLayer.LogisticsMerchantService, logger),
+		AmountTierHandler:        amount_tier_handler.NewVaultAmountTierHandler(serviceLayer.VaultAmountTierService, logger),
+		EcommerceMerchantHandler: ecommerce_handler.NewEcommerceMerchantdapter(serviceLayer.EcommerceMerchant, logger),
 
 		AccessLostSegmentationHandler: accesslistsegmentaion.InitAccessListSegmentationAdapter(serviceLayer.AccessListSegmentationService, logger),
 		CustomerSegmentationHandler:   customer_hand.NewCustomerSegmentation(serviceLayer.CustomerSegmentation, logger),

@@ -33,7 +33,7 @@ func NewCustomerKYCAdapter(kycService service.CustomerKYCService, logger utils.L
 //	@Tags			Customer KYC
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		dto.CreateCustomerKYCRequest	true	"Create KYC Request"
+//	@Param			request	body		customerkyc.CreateCustomerKYCRequest	true	"Create KYC Request"
 //	@Success		201		{object}	localization.StandardResponse{data=nil}	"KYC request created successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -77,7 +77,7 @@ func (c *customerKYCAdapter) CreateCustomerKYC(w http.ResponseWriter, r *http.Re
 //	@Param			per_page	query		int		false	"Items per page"
 //	@Param			sort_by		query		string	false	"Field to sort by"
 //	@Param			order		query		string	false	"Sort order (asc/desc)"
-//	@Success		200			{object}	localization.StandardResponse{data=types.PaginatedResponse[[]imodel.CustomerKYC]}	"KYC requests fetched successfully"
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"KYC requests fetched successfully (data: paginated list with docs and meta)"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}											"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/customers/kyc [get]
@@ -118,7 +118,7 @@ func (c *customerKYCAdapter) GetAllKYCRequests(w http.ResponseWriter, r *http.Re
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string																	true	"KYC Request ID"
-//	@Success		200	{object}	localization.StandardResponse{data=imodel.CustomerKYC}					"KYC request fetched successfully"
+//	@Success		200	{object}	localization.StandardResponse{data=object}	"KYC request fetched successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}									"Bad request - ID required"
 //	@Failure		404	{object}	localization.StandardResponse{data=nil}									"KYC request not found"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}									"Internal server error"
@@ -184,7 +184,7 @@ func (c *customerKYCAdapter) DeleteKYCRequest(w http.ResponseWriter, r *http.Req
 //	@Accept			json
 //	@Produce		json
 //	@Param			id		path		string							true	"KYC Request ID"
-//	@Param			request	body		dto.UpdateKYCStatusRequest		true	"Update KYC Status Request"
+//	@Param			request	body		customerkyc.UpdateKYCStatusRequest	true	"Update KYC Status Request"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"KYC status update initiated"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"

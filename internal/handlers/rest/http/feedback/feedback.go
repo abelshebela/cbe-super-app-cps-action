@@ -2,6 +2,7 @@ package feedback
 
 import (
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
+	feedback_adapter "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
@@ -24,13 +25,25 @@ type feedbackAdapter struct {
 	feedbackApplication service.FeedbackService
 }
 
-func InitFeedbackAdapter(feedbackApplication service.FeedbackService, logger utils.Logger) *feedbackAdapter {
+func InitFeedbackAdapter(feedbackApplication service.FeedbackService, logger utils.Logger) feedback_adapter.FeedbackAdapter {
 	return &feedbackAdapter{
 		logger:              logger,
 		feedbackApplication: feedbackApplication,
 	}
 }
 
+// CreateFeedback creates a new feedback survey entry
+//
+//	@Summary		Create feedback survey
+//	@Description	Creates a new feedback survey entry. Can be submitted anonymously or by authenticated users. Supports both maker-only and regular feedback creation.
+//	@Tags			Feedback
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		feedback.FeedbackRequest	true	"Feedback request with responses map"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Feedback created successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Invalid request body or validation failed"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Router			/feedback-surveys/create [post]
 func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createFeedback", "handler", "feedback")
 	defer span.End()
@@ -154,7 +167,7 @@ func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 //	@Failure		404	{object}	localization.ResponseCode	"Feedback not found"
 //	@Failure		500	{object}	localization.ResponseCode	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/feedback/{id} [get]
+//	@Router			/feedback-surveys/{id} [get]
 func (f *feedbackAdapter) GetFeedbackByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getFeedbackById", "handler", "feedback")
 	defer span.End()
@@ -259,6 +272,32 @@ func (f *feedbackAdapter) GetAllSurveyFeedbacks(w http.ResponseWriter, r *http.R
 	span.SetAttributes(attribute.Int("feedback.count", len(feedbacks.Data)))
 	f.logger.Infof("[GetAllSurveyFeedbacks] retrieved %d survey feedbacks", len(feedbacks.Data))
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedbacks)
+}
+
+// GetSurveyFeedbacksByID implements [feedback.FeedbackAdapter].
+func (f *feedbackAdapter) GetSurveyFeedbacksByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getSurveyFeedbackByID", "handler", "surveyFeedback")
+	defer span.End()
+	id := chi.URLParam(r, "id")
+
+	// Enhanced ID validation
+	if id == "" {
+		f.logger.Errorf("empty survey feedback ID provided")
+		localization.SendErrorByCodeResponse(w, localization.ErrorFeedbackIDRequired.Code)
+		return
+	}
+
+	span.SetAttributes(attribute.String("surveyFeedback.id", id))
+	SurveyFeedback, err := f.feedbackApplication.GetSurveyFeedbackByID(ctx, id)
+	if err != nil {
+		span.RecordError(err)
+		f.logger.Errorf("[GetSurveyFeedbackByID] service error for id %s: %v", id, err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	f.logger.Infof("[GetSurveyFeedbackByID] feedback retrieved successfully for id: %s", id)
+	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, SurveyFeedback)
 }
 
 // GetCustomerFeedback godoc

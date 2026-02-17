@@ -3,6 +3,7 @@ package merchant_lookup
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"context"
+	"errors"
 	"net/http"
 	"time"
 
@@ -33,12 +34,12 @@ func (m *MerchantLookupAdapter) LookupMerchant(ctx context.Context, merchantID, 
 	res, merchantInfo, err := ThreeClickMerchantLookup(ctx, m.client, xAPIKey, url, merchantID, m.logger)
 	if err != nil {
 		m.logger.Errorf("failed to lookup merchant data from third party API: %v", err)
-		return merchantDto.MerchantLookUpResponse{}, err
+		return merchantDto.MerchantLookUpResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return merchantDto.MerchantLookUpResponse{}, localization.ErrorUnexpectedError
+		return merchantDto.MerchantLookUpResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return merchantInfo, nil
@@ -54,7 +55,7 @@ func (m *MerchantLookupAdapter) UpdateMerchant(ctx context.Context, merchantID s
 
 	if res.StatusCode != http.StatusOK {
 		m.logger.Errorf("unexpected status code from third party API: %d", res.StatusCode)
-		return localization.ErrorUnexpectedError
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return nil

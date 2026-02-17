@@ -100,7 +100,7 @@ func (s *customerKYCService) Create(ctx context.Context, req dto.CreateCustomerK
 
 	kyc := &imodel.CustomerKYC{
 		CustomerCode: local_util.GenerateCustomerCode(),
-		AccountType:  imodel.AccountType(req.AccountType),
+		AccountType:  constants.AccountType(req.AccountType),
 		CustomerName: imodel.CustomerInfo{
 			FirstName:   req.CustomerName.FirstName,
 			MiddleName:  req.CustomerName.MiddleName,
@@ -121,9 +121,9 @@ func (s *customerKYCService) Create(ctx context.Context, req dto.CreateCustomerK
 			HouseNumber: req.Address.HouseNumber,
 		},
 		Nationality:          req.Nationality,
-		MaritalStatus:        imodel.MaritalStatus(req.MaritalStatus),
-		CustomerStatus:       imodel.CustomerPending,
-		EmploymentStatus:     imodel.EmploymentStatus(req.EmploymentStatus),
+		MaritalStatus:        constants.MaritalStatus(req.MaritalStatus),
+		CustomerStatus:       constants.CustomerPending,
+		EmploymentStatus:     constants.EmploymentStatus(req.EmploymentStatus),
 		Occupation:           req.Occupation,
 		AverageMonthlyIncome: req.AverageMonthlyIncome,
 		EducationStatus:      req.EducationStatus,

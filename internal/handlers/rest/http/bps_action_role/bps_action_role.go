@@ -1,4 +1,4 @@
-package cps_actionrole_handler
+package bps_action_role_handler
 
 import (
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
@@ -30,16 +30,19 @@ func NewBPSActionRoleHandler(svc service.BPSActionRoleService, logger utils.Logg
 
 // GetAllActionList godoc
 //
-//	@Summary	List of Action for Cps
-//	@Tags		ActionList
+//	@Summary	Get all action list
+//	@Description	Retrieve all action list with pagination and optional search
+//	@Tags		BPS Action Role
 //	@Accept		json
 //	@Produce	json
-//	@Param		page		query		int		false	"Page"
-//	@Param		per_page	query		int		false	"Per Page"
-//	@Param		search		query		string	false	"Search"
-//	@Success	200			{object}	localization.StandardResponse
+//	@Param		page		query		int									false	"Page number"		default(1)
+//	@Param		per_page	query		int									false	"Items per page"	default(10)
+//	@Param		search		query		string								false	"Search term"
+//	@Success	200			{object}	localization.StandardResponse{data=object}	"Action list retrieved successfully"
+//	@Failure	400			{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure	500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security	BearerAuth
-//	@Router		/action-roles/action-list [get]
+//	@Router		/bps-action-list [get]
 func (h *BPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllBpsActionRoles", "handler", "bpsActionRole")
 	defer span.End()
@@ -98,13 +101,18 @@ func (h *BPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 // GetByActionCode godoc
 //
-//	@Summary	Get action role by code
-//	@Tags		ActionRole
+//	@Summary	Get BPS action role by code
+//	@Description	Retrieve a BPS action role by action code
+//	@Tags		BPS Action Role
+//	@Accept		json
 //	@Produce	json
-//	@Param		code	path		string	true	"Action Code"
-//	@Success	200		{object}	localization.StandardResponse
+//	@Param		code	path		string									true	"Action Code"
+//	@Success	200		{object}	localization.StandardResponse{data=actionrole_dto.GetActionRoleByActionCodeRes}	"BPS action role retrieved successfully"
+//	@Failure	400		{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure	404		{object}	localization.StandardResponse{data=nil}		"Not found"
+//	@Failure	500		{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security	BearerAuth
-//	@Router		/action-roles/{code} [get]
+//	@Router		/bps-action-roles/{code} [get]
 func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionRoleByCode", "handler", "cpsActionRole")
 	defer span.End()
@@ -115,6 +123,34 @@ func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 	}
 	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	res, err := h.service.GetByActionCode(ctx, code)
+	if err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("get action role error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessActionRoleFetched, res)
+}
+
+// GetByActionName godoc
+//
+//	@Summary	Get action role by name
+//	@Tags		ActionRole
+//	@Produce	json
+//	@Param		name	path		string	true	"Action Name"
+//	@Success	200		{object}	localization.StandardResponse
+//	@Security	BearerAuth
+//	@Router		/action-roles/name/{name} [get]
+func (h *BPSActionRoleHandler) GetByActionNameCode(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionRoleByCode", "handler", "cpsActionRole")
+	defer span.End()
+	name := chi.URLParam(r, "name")
+	if name == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+		return
+	}
+	span.SetAttributes(attribute.String("cps_action_role.name", name))
+	res, err := h.service.GetByActionNameCode(ctx, name)
 	if err != nil {
 		span.RecordError(err)
 		h.logger.Errorf("get action role error: %v", err)
@@ -181,15 +217,19 @@ func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 // Update godoc
 //
-//	@Summary	Update action role (maker)
-//	@Tags		ActionRole
+//	@Summary	Update BPS action role
+//	@Description	Update a BPS action role by action code
+//	@Tags		BPS Action Role
 //	@Accept		json
 //	@Produce	json
 //	@Param		code	path		string									true	"Action Code"
-//	@Param		body	body		actionrole_dto.UpdateActionRoleRequest	true	"Update"
-//	@Success	201		{object}	localization.StandardResponse
+//	@Param		body	body		actionrole_dto.UpdateActionRoleRequest	true	"Update BPS action role request"
+//	@Success	200		{object}	localization.StandardResponse{data=nil}		"BPS action role update request submitted successfully"
+//	@Failure	400		{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure	404		{object}	localization.StandardResponse{data=nil}		"Not found"
+//	@Failure	500		{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security	BearerAuth
-//	@Router		/action-roles/{code} [patch]
+//	@Router		/bps-action-roles/{code} [patch]
 func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
@@ -228,13 +268,18 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 // Enable godoc
 //
-//	@Summary	Enable action role (maker)
-//	@Tags		ActionRole
+//	@Summary	Enable BPS action role
+//	@Description	Enable a BPS action role by action code
+//	@Tags		BPS Action Role
+//	@Accept		json
 //	@Produce	json
-//	@Param		code	path		string	true	"Action Code"
-//	@Success	201		{object}	localization.StandardResponse
+//	@Param		code	path		string									true	"Action Code"
+//	@Success	200		{object}	localization.StandardResponse{data=nil}		"BPS action role enable request submitted successfully"
+//	@Failure	400		{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure	404		{object}	localization.StandardResponse{data=nil}		"Not found"
+//	@Failure	500		{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security	BearerAuth
-//	@Router		/action-roles/{code}/enable [patch]
+//	@Router		/bps-action-roles/{code}/enable [patch]
 func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
@@ -263,13 +308,18 @@ func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 
 // Disable godoc
 //
-//	@Summary	Disable action role (maker)
-//	@Tags		ActionRole
+//	@Summary	Disable BPS action role
+//	@Description	Disable a BPS action role by action code
+//	@Tags		BPS Action Role
+//	@Accept		json
 //	@Produce	json
-//	@Param		code	path		string	true	"Action Code"
-//	@Success	201		{object}	localization.StandardResponse
+//	@Param		code	path		string									true	"Action Code"
+//	@Success	200		{object}	localization.StandardResponse{data=nil}		"BPS action role disable request submitted successfully"
+//	@Failure	400		{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure	404		{object}	localization.StandardResponse{data=nil}		"Not found"
+//	@Failure	500		{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security	BearerAuth
-//	@Router		/action-roles/{code}/disable [patch]
+//	@Router		/bps-action-roles/{code}/disable [patch]
 func (h *BPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()

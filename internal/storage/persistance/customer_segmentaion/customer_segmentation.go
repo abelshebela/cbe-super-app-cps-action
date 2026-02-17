@@ -1,10 +1,12 @@
 package customersegmentaion
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
 	"time"
@@ -21,20 +23,24 @@ import (
 )
 
 type customerStorage struct {
-	dal        dal.MongoDal[imodel.CustomerSegmentation, imodel.CustomerSegmentation]
-	client     *mongo.Client
-	dbName     string
-	collection string
-	logger     utils.Logger
+	cfg           *config.VaultConfig
+	dal           dal.MongoDal[imodel.CustomerSegmentation, imodel.CustomerSegmentation]
+	client        *mongo.Client
+	dbName        string
+	collection    string
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
-func NewCustomerSegmentationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collection string, logger utils.Logger) storage.CustomerSegmentationRepository {
+func NewCustomerSegmentationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.CustomerSegmentationRepository {
 	return &customerStorage{
-		dal:        dal.NewMongoDal[imodel.CustomerSegmentation, imodel.CustomerSegmentation](client, cfg, dbName, collection),
-		client:     client,
-		dbName:     dbName,
-		collection: collection,
-		logger:     logger,
+		cfg:           cfg,
+		dal:           dal.NewMongoDal[imodel.CustomerSegmentation, imodel.CustomerSegmentation](client, cfg, dbName, collection),
+		client:        client,
+		dbName:        dbName,
+		collection:    collection,
+		kafkaProducer: kafkaProducer,
+		logger:        logger,
 	}
 }
 
@@ -55,11 +61,20 @@ func (r *customerStorage) Update(ctx context.Context, id string, seg *imodel.Cus
 
 	filter := bson.M{"_id": obj}
 	update := MapToCustomerSegUpdate(seg)
-	_, err = r.dal.UpdateOne(ctx, filter, update)
+	updatedCustomerSegmentation, err := r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		r.logger.Errorf("Unable to update customer segmentation with error: %s", err)
 		return err
 	}
+
+	r.kafkaProducer.PublishMessage(
+		ctx,
+		updatedCustomerSegmentation,
+		string(constants.ClientOrchestrationServicesTopic),
+		"customer-segmentation-updated",
+		"customer segmentation updated",
+	)
+
 	return nil
 }
 
@@ -137,9 +152,14 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	filter["is_deleted"] = false
 
-	if filterParam.Filters["is_enabled"] != nil {
-		filter["is_enabled"] = filterParam.Filters["is_enabled"]
+	if val, ok := filterParam.Filters["is_enabled"]; ok {
+		if val != nil && val != "" {
+			filter["is_enabled"] = val
+		} else {
+			delete(filter, "is_enabled")
+		}
 	}
+	local_util.PrintJSON(filter)
 
 	data, err := r.dal.FindAllWithPaginationE(ctx, filter, projection, skip, limit)
 	if err != nil {

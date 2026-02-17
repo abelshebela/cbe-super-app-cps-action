@@ -46,7 +46,7 @@ func InitWalletAdapter(walletApp service.WalletService, logger utils.Logger) wal
 //	@Param			self	formData	bool									false	"self"
 //	@Param			other	formData	bool									false	"other"
 //	@Param			agent	formData	bool									false	"agent"
-//	@Param			avatar	formData	file									fale	"Avatar image file"
+//	@Param			avatar	formData	file									false	"Avatar image file"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Wallet creation request sent successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -103,7 +103,7 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 //	@Param			self	formData	bool									false	"self"
 //	@Param			other	formData	bool									false	"other"
 //	@Param			agent	formData	bool									false	"agent"
-//	@Param			avatar	formData	file									fale	"Avatar image file"
+//	@Param			avatar	formData	file									false	"Avatar image file"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Wallet update request sent successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -274,7 +274,7 @@ func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string												true	"Wallet ID"
-//	@Success		200	{object}	localization.StandardResponse{data=local_model.Wallet}	"Wallet retrieved successfully"
+//	@Success		200	{object}	localization.StandardResponse{data=model.Wallet}	"Wallet retrieved successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}				"Bad request"
 //	@Failure		404	{object}	localization.StandardResponse{data=nil}				"Wallet not found"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}				"Internal server error"

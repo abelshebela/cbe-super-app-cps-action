@@ -352,7 +352,7 @@ func (s *cpsActionRoleService) Enable(ctx context.Context, actionCode string) er
 		span.AddEvent("action code is empty", trace.WithAttributes(attribute.String("error", "action code is empty")))
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
-	old, err := s.repo.FindByActionName(ctx, actionCode)
+	old, err := s.repo.FindByActionCode(ctx, actionCode)
 	if err != nil {
 		span.AddEvent("failed to find by action code", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorResourceNotFound.Code)
@@ -371,6 +371,7 @@ func (s *cpsActionRoleService) Enable(ctx context.Context, actionCode string) er
 		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
+
 	return nil
 }
 
@@ -381,7 +382,7 @@ func (s *cpsActionRoleService) Disable(ctx context.Context, actionCode string) e
 		span.AddEvent("action code is empty", trace.WithAttributes(attribute.String("error", "action code is empty")))
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
-	old, err := s.repo.FindByActionName(ctx, actionCode)
+	old, err := s.repo.FindByActionCode(ctx, actionCode)
 	if err != nil {
 		span.AddEvent("failed to find by action code", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorResourceNotFound.Code)
@@ -455,7 +456,23 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		return action, nil
 
 	case string(constants.UPDATE):
-		prev, err := local_util.JsonUnmarshal[model.CPSActionRoleResposne](action.PreviousAction)
+		// Handle enable/disable separately to avoid corrupting data with partial payload
+		if action.RequestAction == string(constants.RequestEnableActionRole) {
+			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, true); err != nil {
+				span.AddEvent("failed to enable action role", trace.WithAttributes(attribute.String("error", err.Error())))
+				return nil, err
+			}
+			return action, nil
+		}
+		if action.RequestAction == string(constants.RequestDisableActionRole) {
+			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, false); err != nil {
+				span.AddEvent("failed to disable action role", trace.WithAttributes(attribute.String("error", err.Error())))
+				return nil, err
+			}
+			return action, nil
+		}
+
+		prev, err := local_util.JsonUnmarshal[imodel.CPSActionRole](action.PreviousAction)
 		if err != nil {
 			span.AddEvent("failed to unmarshal action", trace.WithAttributes(attribute.String("error", err.Error())))
 			s.logger.Errorf("failed to unmarshal action: %v", err)
@@ -530,13 +547,14 @@ func (s *cpsActionRoleService) validateUniqueIDsInGroups(groups [][]string) erro
 			allIDs = append(allIDs, id)
 		}
 	}
-	// Check existence in DB
-	exists, err := s.roleRepo.ExistsMany(context.Background(), allIDs)
+
+	distinctIDs := local_util.Distinct(allIDs)
+	exists, err := s.roleRepo.ExistsMany(context.Background(), distinctIDs)
 	if err != nil {
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	if !exists {
-		return errors.New(localization.ErrorResourceNotFound.Code)
+		return errors.New(localization.ErrorRoleNotFound.Code)
 	}
 	return nil
 }

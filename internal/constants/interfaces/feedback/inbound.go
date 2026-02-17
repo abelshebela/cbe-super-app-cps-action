@@ -4,9 +4,13 @@ import "net/http"
 
 type FeedbackAdapter interface {
 	CreateFeedback(w http.ResponseWriter, r *http.Request)
+
 	GetFeedbacks(w http.ResponseWriter, r *http.Request)
 	GetFeedbackByID(w http.ResponseWriter, r *http.Request)
+
 	GetAllCustomerFeedbacks(w http.ResponseWriter, r *http.Request)
 	GetCustomerFeedback(w http.ResponseWriter, r *http.Request)
+
 	GetAllSurveyFeedbacks(w http.ResponseWriter, r *http.Request)
+	GetSurveyFeedbacksByID(w http.ResponseWriter, r *http.Request)
 }

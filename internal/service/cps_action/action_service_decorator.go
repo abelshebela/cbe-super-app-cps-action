@@ -59,6 +59,9 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 				role = r
 			}
 
+			if role != nil && !role.Enabled {
+				return localization.ErrorActionAlreadyDisabled
+			}
 			if role != nil {
 				ctx = context.WithValue(ctx, constants.ContextKey("is_maker_only"), role.IsMakerOnly)
 				ctx = context.WithValue(ctx, constants.ContextKey("action_name"), mod)

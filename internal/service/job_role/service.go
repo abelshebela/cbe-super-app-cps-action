@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/job_role/core"
@@ -38,7 +39,7 @@ func NewJobRoleService(jobRole storage.JobRoleRepository, roleRepo storage.RoleR
 	}
 }
 
-func (j *jobRoleService) Create(ctx context.Context, role sharedmodel.Role) error {
+func (j *jobRoleService) Create(ctx context.Context, role imodel.Role) error {
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		j.logger.Errorf("[JobRole Service][Create] maker data is incomplete")
@@ -61,7 +62,11 @@ func (j *jobRoleService) Create(ctx context.Context, role sharedmodel.Role) erro
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 
-func (j *jobRoleService) Update(ctx context.Context, id string, update sharedmodel.Role) error {
+func (j *jobRoleService) FindAll(ctx context.Context) (*[]imodel.Role, error) {
+	return j.roleRepository.FindAll(ctx)
+}
+
+func (j *jobRoleService) Update(ctx context.Context, id string, update imodel.Role) error {
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		j.logger.Errorf("[JobRole Service][Update] maker data is incomplete")
@@ -87,26 +92,77 @@ func (j *jobRoleService) Update(ctx context.Context, id string, update sharedmod
 	if update.Role != "" {
 		newRole.Role = update.Role
 	}
-	if update.BranchGrade != "" {
-		newRole.BranchGrade = update.BranchGrade
-	}
-	if update.Department != "" {
-		newRole.Department = update.Department
-	}
-	if update.Position != "" {
-		newRole.Position = update.Position
-	}
-	newRole.UpdatedAt = time.Now()
+
+	newRole.UpdateAt = time.Now()
 
 	cpsModel := lib.CpsModelBuilder(id, maker, prev, newRole, constants.RequestUpdateJobRole, constants.UPDATE)
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 
-func (j *jobRoleService) FindById(ctx context.Context, id string) (*sharedmodel.Role, error) {
+func (j *jobRoleService) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	makerUser := local_util.ExtractUserFromContext(ctx)
+	if local_util.IsIncomplete(makerUser) {
+		j.logger.Errorf("[JobRole Service][EnableOrDisable] maker data is incomplete")
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+
+	existing, err := j.roleRepository.FindByID(ctx, id)
+	if err != nil {
+		j.logger.Errorf("[JobRole Service][EnableOrDisable] failed to find existing job role: %v", err)
+		return err
+	}
+
+	updated := *existing
+	updated.UpdateAt = time.Now()
+
+	var requestType string
+	if enable {
+		requestType = constants.RequestEnableJobRole
+	} else {
+		requestType = constants.RequestDisableJobRole
+	}
+
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, existing, updated, requestType, constants.UPDATE)
+
+	if err := j.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+		j.logger.Errorf("[JobRole Service][EnableOrDisable] failed to create CPS action: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (j *jobRoleService) Delete(ctx context.Context, id string) error {
+	makerUser := local_util.ExtractUserFromContext(ctx)
+	if local_util.IsIncomplete(makerUser) {
+		j.logger.Errorf("[JobRole Service][Delete] maker data is incomplete")
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+
+	existing, err := j.roleRepository.FindByID(ctx, id)
+	if err != nil {
+		j.logger.Errorf("[JobRole Service][Delete] failed to find existing job role: %v", err)
+		return err
+	}
+
+	updated := *existing
+	updated.UpdateAt = time.Now()
+
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, existing, updated, constants.RequestDeleteJobRole, constants.DELETE)
+
+	if err := j.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+		j.logger.Errorf("[JobRole Service][Delete] failed to create CPS action: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (j *jobRoleService) FindById(ctx context.Context, id string) (*imodel.Role, error) {
 	return j.roleRepository.FindByID(ctx, id)
 }
 
-func (j *jobRoleService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]sharedmodel.Role], error) {
+func (j *jobRoleService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Role], error) {
 	return j.roleRepository.FindAllWithPagination(ctx, filterParam)
 }
 
@@ -124,7 +180,7 @@ func (j *jobRoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.C
 	}
 
 	raw2, _ := json.Marshal(asAny)
-	var role sharedmodel.Role
+	var role imodel.Role
 	if err := json.Unmarshal(raw2, &role); err != nil {
 		j.logger.Errorf("[JobRole Service][Authorize] map to Role failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -142,8 +198,20 @@ func (j *jobRoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.C
 			return nil, err
 		}
 	case string(constants.RequestUpdateJobRole):
-		role.UpdatedAt = time.Now()
+		role.UpdateAt = time.Now()
 		if err := j.roleRepository.Update(ctx, role.ID.Hex(), &role); err != nil {
+			return nil, err
+		}
+	case constants.RequestEnableJobRole:
+		if err := j.roleRepository.EnableOrDisable(ctx, cpsAction.UniqueId, true); err != nil {
+			return nil, err
+		}
+	case constants.RequestDisableJobRole:
+		if err := j.roleRepository.EnableOrDisable(ctx, cpsAction.UniqueId, false); err != nil {
+			return nil, err
+		}
+	case constants.RequestDeleteJobRole:
+		if err := j.roleRepository.SoftDelete(ctx, cpsAction.UniqueId); err != nil {
 			return nil, err
 		}
 	default:

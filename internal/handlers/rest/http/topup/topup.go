@@ -24,6 +24,15 @@ import (
 
 type PaginatedTopupResponse types.PaginatedResponse[[]*model.Topup]
 
+// TopupRequestForm mirrors topupDto.TopupRequest for Swagger formData only (topupDto.TopupRequest has *multipart.FileHeader which swag cannot parse).
+type TopupRequestForm struct {
+	Name  string `form:"name" json:"name"`
+	Code  string `form:"code" json:"code"`
+	Self  bool   `form:"self" json:"self"`
+	Other bool   `form:"other" json:"other"`
+	Agent bool   `form:"agent" json:"agent"`
+}
+
 type topupAdapter struct {
 	topupApp service.TopupService
 	logger   utils.Logger
@@ -43,8 +52,8 @@ func InitTopupAdapter(topupApp service.TopupService, logger utils.Logger) topupI
 //	@Tags			Topup
 //	@Accept			multipart/form-data
 //	@Produce		json
-//	@Param			data	formData	topup.TopupRequest						false	"Topup update data"
-//	@Param			avatar	formData	file									fale	"Avatar image file"
+//	@Param			data	formData	topup.TopupRequestForm	false	"Topup form data (see topupDto.TopupRequest)"
+//	@Param			avatar	formData	file					false	"Avatar image file"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Topup creation request sent successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -98,8 +107,8 @@ func (a *topupAdapter) CreateTopup(w http.ResponseWriter, r *http.Request) {
 //	@Accept			multipart/form-data
 //	@Produce		json
 //	@Param			id		path		string									true	"Topup ID"
-//	@Param			data	formData	topup.TopupRequest						false	"Topup update data"
-//	@Param			avatar	formData	file									fale	"Avatar image file"
+//	@Param			data	formData	topup.TopupRequestForm	false	"Topup form data (see topupDto.TopupRequest)"
+//	@Param			avatar	formData	file					false	"Avatar image file"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Topup update request sent successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"

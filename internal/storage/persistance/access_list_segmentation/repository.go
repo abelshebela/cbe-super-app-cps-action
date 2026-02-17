@@ -31,6 +31,26 @@ type AccessListSegmentation struct {
 	logger         utils.Logger
 }
 
+// FindParentChildRelationship implements [storage.AccessListSegmentationRepository].
+func (a *AccessListSegmentation) FindParentChildRelationship(ctx context.Context) ([]local_model.AccessItemRelation, error) {
+	collection := a.client.Database(a.dbName).Collection("access_items_relation")
+	cursor, err := collection.Aggregate(ctx, mongo.Pipeline{})
+
+	if err != nil {
+		a.logger.Errorf("[FindParentChildRelationship] failed to aggregate: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer cursor.Close(ctx)
+
+	var relations []local_model.AccessItemRelation
+	if err := cursor.All(ctx, &relations); err != nil {
+		a.logger.Errorf("[FindParentChildRelationship] failed to decode: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return relations, nil
+}
+
 // FindBySegmentIDAndAccessListKeys implements [storage.AccessListSegmentationRepository].
 func (a *AccessListSegmentation) FindBySegmentIDAndAccessListKeys(ctx context.Context, id string, keys []string) (*local_model.AccessListSegmentation, error) {
 	objID, err := bson.ObjectIDFromHex(id)

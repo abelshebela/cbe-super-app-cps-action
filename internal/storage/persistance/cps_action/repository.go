@@ -62,12 +62,14 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 	}
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"unique_id", "action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
+	allowedKeys := []string{"unique_id", "action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "created_at"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
 			{"unique_id": searchRegex},
+			{"current_action": searchRegex},
+			{"previous_action": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"checker_name": searchRegex},
 			{"checker_phone_number": searchRegex},
@@ -662,7 +664,7 @@ func (r *CPSActionStorage) SanitizedFindOne(ctx context.Context, filter bson.M) 
 
 	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, fmt.Errorf("aggregation failed: %w", err)
+		return nil, errors.New(localization.ErrorActionNotFound.Code)
 	}
 	defer func() {
 		_ = cur.Close(ctx)

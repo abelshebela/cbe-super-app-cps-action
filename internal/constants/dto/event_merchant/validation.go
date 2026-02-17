@@ -10,19 +10,22 @@ func Validation(v any) error {
 	switch req := v.(type) {
 	case CreateEventMerchantRequest:
 		if strings.TrimSpace(req.MerchantID) == "" {
-			return errors.New(localization.ErrorEventMerchantInvalidMerchantID.Message)
+			return errors.New(localization.ErrorEventMerchantInvalidMerchantID.Code)
 		}
 		if strings.TrimSpace(req.MerchantType) == "" {
-			return errors.New(localization.ErrorEventMerchantInvalidMerchantType.Message)
+			return errors.New(localization.ErrorEventMerchantInvalidMerchantType.Code)
 		}
 		if strings.TrimSpace(req.SettlementMethod) == "" {
-			return errors.New(localization.ErrorEventMerchantInvalidSettlementMethod.Message)
+			return errors.New(localization.ErrorEventMerchantInvalidSettlementMethod.Code)
 		}
 		if strings.TrimSpace(req.MerchantName) == "" {
-			return errors.New(localization.ErrorEventMerchantInvalidMerchantName.Message)
+			return errors.New(localization.ErrorEventMerchantInvalidMerchantName.Code)
 		}
 		if strings.TrimSpace(req.BankAccountNumber) == "" {
-			return errors.New(localization.ErrorEventMerchantInvalidBankAccountNumber.Message)
+			return errors.New(localization.ErrorEventMerchantInvalidBankAccountNumber.Code)
+		}
+		if req.IsEventMerchant == nil || *req.IsEventMerchant == false {
+			return errors.New(localization.ErrorEventMerchantInvalidIsEventMerchant.Code)
 		}
 		// if strings.TrimSpace(req.Email) == "" {
 		// 	return errors.New(localization.ErrorEventMerchantInvalidEmail.Message)
@@ -36,6 +39,9 @@ func Validation(v any) error {
 		// 	return errors.New(localization.ErrorEventMerchantInvalidPhoneNumber.Message)
 		// }
 	case UpdateEventMerchantRequest:
+		if req.IsEventMerchant == nil || *req.IsEventMerchant == false {
+			return errors.New(localization.ErrorEventMerchantInvalidIsEventMerchant.Code)
+		}
 		// if strings.TrimSpace(req.Email) != "" {
 		// 	return errors.New(localization.ErrorEventMerchantInvalidEmail.Message)
 		// } else {

@@ -15,7 +15,7 @@ import (
 // ConnectRedis establishes connection to Redis
 func ConnectRedis(ctx context.Context, cfg *config.VaultConfig, logger utils.Logger) (*redis.Client, error) {
 	tr := otel.Tracer("redis-client")
-	ctx, span := tr.Start(ctx, "redis.connect")
+	_, span := tr.Start(ctx, "redis.connect")
 	defer span.End()
 
 	client := redis.NewClient(&redis.Options{

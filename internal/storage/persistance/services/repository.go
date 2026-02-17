@@ -26,6 +26,7 @@ import (
 )
 
 type ServicesStorage struct {
+	cfg           *config.VaultConfig
 	dal           dal.MongoDal[model.Service, model.Service]
 	serviceDal    dal.MongoDal[model.ServiceList, model.ServiceList]
 	kafkaProducer kafka.ClientOrchestrationProducer
@@ -34,6 +35,7 @@ type ServicesStorage struct {
 
 func NewServicesRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.ServicesRepository {
 	return &ServicesStorage{
+		cfg:           cfg,
 		dal:           dal.NewMongoDal[model.Service, model.Service](client, cfg, dbName, collection),
 		serviceDal:    dal.NewMongoDal[model.ServiceList, model.ServiceList](client, cfg, dbName, "service_list"),
 		kafkaProducer: kafkaProducer,
@@ -95,7 +97,7 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 		ctx,
 		updatedService,
 		string(constants.ClientOrchestrationServicesTopic),
-		"cps-service-updated",
+		s.cfg.CPSServiceUpdate,
 		"service authorized and updated",
 	)
 

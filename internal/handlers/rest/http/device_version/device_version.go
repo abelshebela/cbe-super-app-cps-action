@@ -36,7 +36,7 @@ func InitDeviceVersionAdapter(s service.DeviceVersionServiceSrv, logger utils.Lo
 //	@Tags			Device Version
 //	@Accept			json
 //	@Produce		json
-//	@Param			device_version	body		dvdto.CreateDeviceVersionRequest		true	"Device version information"
+//	@Param			device_version	body		deviceversion.CreateDeviceVersionRequest	true	"Device version information"
 //	@Success		200				{object}	localization.StandardResponse{data=nil}	"Device version created successfully"
 //	@Failure		400				{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500				{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -92,7 +92,7 @@ func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *htt
 //	@Accept			json
 //	@Produce		json
 //	@Param			id				path		string									true	"Device version ID"
-//	@Param			device_version	body		dvdto.UpdateDeviceVersionRequest		true	"Device version update information"
+//	@Param			device_version	body		deviceversion.UpdateDeviceVersionRequest	true	"Device version update information"
 //	@Success		200				{object}	localization.StandardResponse{data=nil}	"Device version update request submitted"
 //	@Failure		400				{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500				{object}	localization.StandardResponse{data=nil}	"Internal server error"

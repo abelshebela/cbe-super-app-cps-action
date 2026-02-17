@@ -472,7 +472,7 @@ func (q *Queries) FindBankVaultAndLocks(ctx context.Context, id string) (BankVau
 
 	rows, err := q.db.QueryContext(ctx, findLocksByProductID, id)
 	if err != nil {
-		fmt.Println("failed to query locked vaults from vaults table: %v", err)
+		fmt.Printf("failed to query locked vaults from vaults table: %v", err)
 		return BankVaultProductWithLocks{}, fmt.Errorf("failed to query locks: %w", err)
 	}
 	defer rows.Close()

@@ -135,6 +135,7 @@ type CpsUserPopulatedResponse struct {
 	MakerAllocations   []string                  `json:"maker_allocations" example:"[\"Action1\", \"Action2\"]"`
 	CheckerAllocations []string                  `json:"checker_allocations" example:"[[\"Action1_Checker1\", \"Action1_Checker2\"], [\"Action2_Checker1\"]]"`
 	AuditorAllocations []string                  `json:"auditor_allocations" example:"[\"Action1\", \"Action2\"]"`
+	LastLogin          time.Time                 `json:"last_login,omitempty" bson:"last_login"` // optional
 }
 
 type Department struct {

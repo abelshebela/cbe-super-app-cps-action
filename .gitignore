@@ -50,7 +50,7 @@ docs/modules
 docs/templates
 definition_of_done.md
 definition_of_ready.md
-docs
+
 tools
 
 ./cmd/__debug*
@@ -58,3 +58,5 @@ __debug_bin*
 .tools
 .vscode
 .idea
+postman/FULL CPS  New.txt
+postman/automation  FULL CPS ACTION.postman_collection

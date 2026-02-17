@@ -89,7 +89,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		ResetSessionPersistence:         reset_session.NewResetSessionRepository(client, cfg, dbName, PINResetsCollection, logger),
 		CPSAction:                       cps_action.NewCPSActionRepository(client, cfg, dbName, CPSActionsCollection, logger),
 		AmountBasedAuthPersistence:      amount_based_auth.NewAmountBasedAuthRepository(client, cfg, dbName, AuthTierCollection, logger),
-		AccountBlockPersistence:         account_block.NewAccountBlockRepository(client, cfg, dbName, AccountBlockCollection, clientOrchestrationProducer, logger),
+		AccountBlockPersistence:         account_block.NewAccountBlockRepository(client, cfg, dbName, AccountBlockCollection, CPSActionsCollection, clientOrchestrationProducer, logger),
 		PortalCardPersistence:           portal_card.NewPortalCardRepository(client, cfg, dbName, CardsCollection, logger),
 		MiniAppPersistence:              mini_app.NewMiniAppRepository(client, cfg, dbName, MiniAppsCollection, logger),
 		MerchantLookup:                  *merchant_lookup.NewMerchantLookupAdapter(*cfg, logger),
@@ -143,11 +143,11 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		MiniAppProductCodePersistence:     mini_app.NewMiniAppProdutCodeRepository(logger, client, cfg, dbName, MiniAppProductCodes),
 		AccessListSegmentationPersistence: access_list_segmentation_repository.NewAccessListSegmentationRepository(client, cfg, dbName, AccessListSegmentationCollection, accessListSegmentationProducer, logger),
 		MiniAppMerchant:                   mini_app.NewMiniAppMerchantRepository(client, cfg, dbName, MiniAppMerchantCollection, logger),
-		CustomerSegmentation:              customer_segmentation_repo.NewCustomerSegmentationRepository(client, cfg, dbName, CustomerSegmentationCollection, logger),
-		CPSRoles:                          cps_roles.NewCPSRolesStorage(client, cfg, dbName, CPSRolesCollection, logger),
+		CustomerSegmentation:              customer_segmentation_repo.NewCustomerSegmentationRepository(client, cfg, dbName, CustomerSegmentationCollection, clientOrchestrationProducer, logger),
+		CPSRoles:                          cps_roles.NewCPSRolesStorage(client, cfg, dbName, CPSRolesCollection, clientOrchestrationProducer, logger),
 		LogisticsMerchantPersistence:      logistics_merchant_repository.NewLogisticsMerchantRepository(client, cfg, dbName, LogisticsMerchantsCollection, logger),
 		CustomerKYCPersistence:            persistence_kyc.NewCustomerKYCRepository(client, cfg, dbName, FaydaKYCollection, logger),
-		UssdMerchantPersistence:           ussd_merchant_repo.NewUssdMerchant(*client, dbName, UssdMerchantCollection, cfg, logger),
+		UssdMerchantPersistence:           ussd_merchant_repo.NewUssdMerchant(client, dbName, UssdMerchantCollection, cfg, logger),
 	}
 
 	return data

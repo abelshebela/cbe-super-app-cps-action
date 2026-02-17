@@ -10,13 +10,14 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"regexp"
+	"time"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"regexp"
-	"time"
 )
 
 type UssdMerchantRepository struct {
@@ -28,9 +29,9 @@ type UssdMerchantRepository struct {
 	logger          utils.Logger
 }
 
-func NewUssdMerchant(client mongo.Client, dbName string, collection string, cfg *config.VaultConfig, logger utils.Logger) storage.UssdMerchantRepository {
+func NewUssdMerchant(client *mongo.Client, dbName string, collection string, cfg *config.VaultConfig, logger utils.Logger) storage.UssdMerchantRepository {
 	return &UssdMerchantRepository{
-		dal:             dal.NewMongoDal[imodel.UssdMerchant, imodel.UssdMerchant](&client, cfg, dbName, collection),
+		dal:             dal.NewMongoDal[imodel.UssdMerchant, imodel.UssdMerchant](client, cfg, dbName, collection),
 		mongoCollection: client.Database(dbName).Collection(collection),
 		cfg:             *cfg,
 		logger:          logger,

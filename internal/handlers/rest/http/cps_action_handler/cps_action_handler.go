@@ -29,7 +29,6 @@ import (
 )
 
 type cps_action_resp *model.CPSAction
-type cps_action_dto_Resp *cpsactionDto.ActionRequest
 type cps_actions_paginated_resp *types.PaginatedResponse[[]*model.CPSAction]
 
 type cpsActionAdapter struct {
@@ -45,7 +44,20 @@ func InitCPSActionAdapter(cpsActionApplication service.CPSActionService, logger 
 }
 
 // AuditorAction handles both claim (start) and mark (complete) for auditor in a single endpoint
-// POST /actions/{action_code}/auditor
+//
+//	@Summary		Auditor action (claim or mark)
+//	@Description	Allows an auditor to claim (start) or mark (complete) an audit for a CPS action. Send empty mark to claim, or include mark (APPROVED/REJECTED) and reason to complete.
+//	@Tags			CPS Actions
+//	@Accept			json
+//	@Produce		json
+//	@Param			action_code	path		string									true	"Action Code"
+//	@Param			request		body		cps_actionrole_dto.AuditorMarkRequest	true	"Auditor mark request (empty mark to claim, or mark + reason to complete)"
+//	@Success		200			{object}	localization.StandardResponse{data=nil}	"Auditor action processed successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request - Invalid input or operation not allowed"
+//	@Failure		404			{object}	localization.StandardResponse{data=nil}	"Action not found"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/actions/{action_code}/auditor [patch]
 func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "auditorAction", "handler", "cpsAction")
 	defer span.End()
@@ -187,11 +199,35 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionChecked, nil)
 }
 
-// CancelCPSAction implements cps_action.CPSActionAdapter.
+// CancelCPSAction cancels a CPS action
+//
+//	@Summary		Cancel CPS action
+//	@Description	Cancels a PENDING CPS action. Only the maker who created the action can cancel it, and only if no checker has approved it yet.
+//	@Tags			CPS Actions
+//	@Accept			json
+//	@Produce		json
+//	@Param			action_code	path		string									true	"Action Code"
+//	@Success		200			{object}	localization.StandardResponse{data=nil}	"CPS action canceled successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request - Action cannot be canceled"
+//	@Failure		404			{object}	localization.StandardResponse{data=nil}	"Action not found"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/actions/{action_code}/cancel [patch]
 func (a *cpsActionAdapter) CancelCPSAction(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "cancelCpsAction", "handler", "cpsAction")
 	defer span.End()
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
+
+	var req cps_actionrole_dto.CancelRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
 
 	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, "")
 	if err != nil {
@@ -216,6 +252,7 @@ func (a *cpsActionAdapter) CancelCPSAction(w http.ResponseWriter, r *http.Reques
 	}
 
 	action.ActionStatus = string(constants.Canceled)
+	action.RejectionReason = string(req.Reason)
 
 	if err := a.cpsActionApplication.RejectCPSAction(ctx, actionCode, action); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -452,7 +489,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 //	@Accept			json
 //	@Produce		json
 //	@Param			action_code	path		string									true	"Action Code"
-//	@Param			request		body		cps_action_dto_Resp						true	"Rejection request"
+//	@Param			request		body		cpsaction.ActionRequest	true	"Rejection request"
 //	@Success		200			{object}	localization.StandardResponse{data=nil}	"CPS action rejected successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request - Invalid input or missing rejection reason"
 //	@Failure		404			{object}	localization.StandardResponse{data=nil}	"Action not found"
@@ -627,6 +664,21 @@ func (a *cpsActionAdapter) GetCPSActionsByDepartment(w http.ResponseWriter, r *h
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, actions)
 }
 
+// GetUserCheckedActions retrieves CPS actions checked by the current user
+//
+//	@Summary		Get user checked actions
+//	@Description	Retrieves a paginated list of CPS actions that have been checked (approved/rejected) by the current user
+//	@Tags			CPS Actions
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int																false	"Page number"		default(1)
+//	@Param			per_page	query		int																false	"Items per page"	default(10)
+//	@Param			search		query		string															false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=cps_actions_paginated_resp}	"CPS actions retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}							"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}							"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/actions/user/checked/actions [get]
 func (a *cpsActionAdapter) GetUserCheckedActions(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 
@@ -656,6 +708,21 @@ func (a *cpsActionAdapter) GetUserCheckedActions(w http.ResponseWriter, r *http.
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
 }
 
+// GetUserCreatedActions retrieves CPS actions created by the current user
+//
+//	@Summary		Get user created actions
+//	@Description	Retrieves a paginated list of CPS actions created by the current user
+//	@Tags			CPS Actions
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int																false	"Page number"		default(1)
+//	@Param			per_page	query		int																false	"Items per page"	default(10)
+//	@Param			search		query		string															false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=cps_actions_paginated_resp}	"CPS actions retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}							"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}							"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/actions/user/created/actions [get]
 func (a *cpsActionAdapter) GetUserCreatedActions(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 
@@ -676,7 +743,7 @@ func (a *cpsActionAdapter) GetUserCreatedActions(w http.ResponseWriter, r *http.
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserCreatedActions", "handler", "cpsAction")
 	defer span.End()
 
-	userID := userData.UserID
+	userID := userData.UserName
 	res, err := a.cpsActionApplication.GetUserCreatedActions(ctx, userID, filterParams)
 	if err != nil {
 		span.RecordError(err)
@@ -733,7 +800,7 @@ func (a *cpsActionAdapter) GetCPSActionByID(w http.ResponseWriter, r *http.Reque
 //	@Tags			CPS Actions
 //	@Accept			json
 //	@Produce		json
-//	@Param			action_code	path		string												whitespace	true	"Action Code"
+//	@Param			action_code	path		string	true	"Action Code"
 //	@Success		200			{object}	localization.StandardResponse{data=cps_action_resp}	"CPS action with history retrieved successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}				"Bad request - Invalid action code"
 //	@Failure		404			{object}	localization.StandardResponse{data=nil}				"Action not found"
@@ -765,6 +832,21 @@ func (a *cpsActionAdapter) GetCPSActionByActionCode(w http.ResponseWriter, r *ht
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionFetched, action)
 }
 
+// GetUserApproverActions retrieves CPS actions pending approval for the current user's approver role
+//
+//	@Summary		Get approver checker actions
+//	@Description	Retrieves a paginated list of CPS actions that are pending approval for the current user's approver/checker role
+//	@Tags			CPS Actions
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int																false	"Page number"		default(1)
+//	@Param			per_page	query		int																false	"Items per page"	default(10)
+//	@Param			search		query		string															false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=cps_actions_paginated_resp}	"CPS actions retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}							"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}							"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/actions/approver/checker/actions [get]
 func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 
@@ -848,6 +930,21 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
 }
 
+// GetUserAuditorActions retrieves CPS actions pending audit for the current user's auditor role
+//
+//	@Summary		Get auditor checker actions
+//	@Description	Retrieves a paginated list of CPS actions that are pending audit for the current user's auditor role
+//	@Tags			CPS Actions
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int																false	"Page number"		default(1)
+//	@Param			per_page	query		int																false	"Items per page"	default(10)
+//	@Param			search		query		string															false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=cps_actions_paginated_resp}	"CPS actions retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}							"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}							"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/actions/auditor/checker/actions [get]
 func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
 	defer span.End()
@@ -1001,6 +1098,19 @@ func (a *cpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
 }
 
+// GetActionCounts retrieves action counts for the current user's role
+//
+//	@Summary		Get action counts
+//	@Description	Retrieves counts of CPS actions by status (pending, approved, rejected, canceled, inprogress, completed) for the current user's role (maker/checker/auditor)
+//	@Tags			CPS Actions
+//	@Accept			json
+//	@Produce		json
+//	@Param			role	query		string															true	"Role type: maker, checker, or auditor"
+//	@Success		200		{object}	localization.StandardResponse{data=cpsaction.CPSActionCountResponse}	"Action counts retrieved successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}							"Bad request"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}							"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/actions/counts [get]
 func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionCounts", "handler", "cpsAction")
 	defer span.End()
@@ -1222,6 +1332,19 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionCount, resp)
 }
 
+// GetAuthorizerIndex retrieves the authorizer index for a specific request action
+//
+//	@Summary		Get authorizer index
+//	@Description	Retrieves the authorizer index configuration for a specific request action type
+//	@Tags			CPS Actions
+//	@Accept			json
+//	@Produce		json
+//	@Param			request_action	path		string									true	"Request Action (e.g., CREATE_BANK, UPDATE_BANK)"
+//	@Success		200				{object}	localization.StandardResponse{data=object}	"Authorizer index retrieved successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}		"Bad request - Invalid request action"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/actions/authorizer/index/{request_action} [get]
 func (a *cpsActionAdapter) GetAuthorizerIndex(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserAuthorizerIndex", "handler", "cpsAction")
 	defer span.End()

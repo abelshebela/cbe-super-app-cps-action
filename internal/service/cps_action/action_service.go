@@ -49,7 +49,7 @@ func (ca *cpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 	if err != nil || act == nil {
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
-	// compute active group from record
+
 	current := int64(0)
 	if act.CurrentAuditorIndex > 0 {
 		current = int64(act.CurrentAuditorIndex)
@@ -59,9 +59,9 @@ func (ca *cpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 	if current != 0 && current != expected {
 		return errors.New(localization.ErrorOperationNotAllowed.Code)
 	}
-	// idempotent move to INPROGRESS
+
 	upd := model.CPSAction{ActionCode: actionCode}
-	upd.AuditorStatus = "INPROGRESS"
+	upd.AuditorStatus = model.AuditorStatus(constants.AUDITORINPROGRESS)
 	_, err = ca.repo.Update(ctx, actionCode, upd)
 	return err
 }
@@ -115,18 +115,16 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	defer span.End()
 	var existing *model.CPSAction
 	var err error
+	ca.logger.Infof("CreateCPSAction: %+v", cpsAction)
 
 	roleCode := ctx.Value(constants.ContextKey("role_code")).(string)
-	if strings.Contains(cpsAction.RequestAction, constants.CREATE) {
-		existing, err = ca.GetCPSActionByUniqueID(ctx, cpsAction.RequestAction, roleCode)
+	actionName, _ := ctx.Value(constants.ContextKey("action_name")).(string)
+
+	reqs := ca.pendingLockRequestActions(actionName, cpsAction.RequestAction)
+	if len(reqs) > 0 {
+		existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, roleCode, reqs)
 		if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
-			span.AddEvent("failed to get cps action by unique id", trace.WithAttributes(attribute.String("error", err.Error())))
-			return err
-		}
-	} else {
-		existing, err = ca.GetCPSActionByForUpdate(ctx)
-		if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
-			span.AddEvent("failed to get cps action by unique id", trace.WithAttributes(attribute.String("error", err.Error())))
+			span.AddEvent("failed to get cps action by role and request actions", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
 		}
 	}
@@ -143,6 +141,49 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		return err
 	}
 	return nil
+}
+
+func (ca *cpsActionService) pendingLockRequestActions(actionName string, requestAction string) []string {
+	normalize := func(s string) string {
+		return strings.ToUpper(strings.TrimSpace(s))
+	}
+	isCreate := func(s string) bool {
+		return strings.Contains(normalize(s), constants.CREATE)
+	}
+
+	defaultReq := []string{normalize(requestAction)}
+	if actionName == "" {
+		return defaultReq
+	}
+
+	lst, ok := RequestActionGroups[actionName]
+	if !ok {
+		return defaultReq
+	}
+
+	wantCreateOnly := isCreate(requestAction)
+	seen := map[string]struct{}{}
+	reqs := make([]string, 0, len(lst))
+
+	for _, ra := range lst {
+		key := string(ra)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+
+		isKeyCreate := isCreate(key)
+		if wantCreateOnly != isKeyCreate {
+			continue
+		}
+
+		seen[key] = struct{}{}
+		reqs = append(reqs, key)
+	}
+
+	if len(reqs) == 0 {
+		return defaultReq
+	}
+	return reqs
 }
 
 func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
@@ -266,7 +307,25 @@ func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestA
 		"request_action": requestAction,
 	}
 
-	action, err := ca.repo.SanitizedFindOne(context.Background(), filter)
+	action, err := ca.repo.SanitizedFindOne(ctx, filter)
+	if err != nil {
+		span.AddEvent("failed to find one", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+	return action, nil
+}
+
+func (ca *cpsActionService) GetPendingCPSActionByRoleAndRequestActions(ctx context.Context, roleCode string, requestActions []string) (*model.CPSAction, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetPendingCPSActionByRoleAndRequestActions", "CPSAction", "GetPendingCPSActionByRoleAndRequestActions")
+	defer span.End()
+
+	filter := bson.M{
+		"role_code":      roleCode,
+		"action_status":  string(constants.Pending),
+		"request_action": bson.M{"$in": requestActions},
+	}
+
+	action, err := ca.repo.SanitizedFindOne(ctx, filter)
 	if err != nil {
 		span.AddEvent("failed to find one", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
@@ -293,17 +352,19 @@ func (ca *cpsActionService) GetCPSActionByForUpdate(ctx context.Context) (*model
 			if strings.Contains(key, constants.CREATE) {
 				continue
 			}
+
 			seen[key] = struct{}{}
 			reqs = append(reqs, key)
 		}
 	}
 
 	filter := bson.M{
+		"role_code":      ctx.Value(constants.ContextKey("role_code")).(string),
 		"action_status":  string(constants.Pending),
 		"request_action": bson.M{"$in": reqs},
 	}
 
-	action, err := ca.repo.SanitizedFindOne(context.Background(), filter)
+	action, err := ca.repo.SanitizedFindOne(ctx, filter)
 	if err != nil {
 		span.AddEvent("failed to find one", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
@@ -350,6 +411,7 @@ func (ca *cpsActionService) GetUserAuthorizerIndex(ctx context.Context, requestA
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 	var approverData imodel.CPSActionApproveIndex
 
+	ca.logger.Infof("[GetUserAuthorizerIndex] role code: %s and request action: %s", roleCode, requestAction)
 	if mod, ok := ResolveModuleForRA(RequestAction(requestAction)); ok && ca.roles != nil {
 		if approver, err := ca.roles.FindApproverByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil {
 			approverData = approver

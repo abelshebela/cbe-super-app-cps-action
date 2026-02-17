@@ -34,9 +34,12 @@ func NewCustomerSegmentation(svc service.CustomerSegmentationService, logger uti
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		cust_seg.CreateCustomerSegmentationRequest	true	"Customer Segmentation DTO"
-//	@Success		201		{object}	localization.StandardResponse{data=nil}
-//	@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
+//	@Param			body	body		customersegmentation.CreateCustomerSegmentationRequest	true	"Customer Segmentation DTO"
+//	@Success		201		{object}	localization.StandardResponse{data=nil}	"Customer segmentation creation request submitted successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		401		{object}	localization.StandardResponse{data=nil}	"Unauthorized"
+//	@Failure		422		{object}	localization.StandardResponse{data=nil}	"Validation error"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Router			/customer-segmentations [post]
 func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "CreateCustomerSegmentation", "handler", "customerSegmentation")
@@ -85,7 +88,7 @@ func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.Response
 //	@Accept			json
 //	@Produce		json
 //	@Param			id		path		string										true	"Segmentation ID"
-//	@Param			body	body		cust_seg.UpdateCustomerSegmentationRequest	true	"Customer Segmentation DTO"
+//	@Param			body	body		customersegmentation.UpdateCustomerSegmentationRequest	true	"Customer Segmentation DTO"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}
 //	@Failure		400,401,404,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/customer-segmentations/{id}/update [patch]
@@ -142,8 +145,10 @@ func (c *CustomerSegmentationAdapter) UpdateCustomerSegmentation(w http.Response
 //	@Produce		json
 //	@Param			page		query		int	false	"Page number"
 //	@Param			per_page	query		int	false	"Items per page"
-//	@Success		200			{object}	localization.StandardResponse{data=types.PaginatedResponse[[]*imodel.CustomerSegmentation]}
-//	@Failure		400,401,500	{object}	localization.StandardResponse{data=nil}
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"Customer segmentations retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		401			{object}	localization.StandardResponse{data=nil}		"Unauthorized"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Router			/customer-segmentations [get]
 func (c *CustomerSegmentationAdapter) GetAllCustomerSegmentations(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
@@ -179,8 +184,11 @@ func (c *CustomerSegmentationAdapter) GetAllCustomerSegmentations(w http.Respons
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			id				path		string	true	"Segmentation ID"
-//	@Success		200				{object}	localization.StandardResponse{data=imodel.CustomerSegmentation}
-//	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Success		200				{object}	localization.StandardResponse{data=object}	"Customer segmentation retrieved successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		401				{object}	localization.StandardResponse{data=nil}		"Unauthorized"
+//	@Failure		404				{object}	localization.StandardResponse{data=nil}		"Customer segmentation not found"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Router			/customer-segmentations/{id} [get]
 func (c *CustomerSegmentationAdapter) GetCustomerSegmentation(w http.ResponseWriter, r *http.Request) {
 	id, err := local_util.ExtractID(w, r)

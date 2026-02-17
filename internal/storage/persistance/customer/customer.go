@@ -504,7 +504,7 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 				{Key: "account_type", Value: "$linked_accounts_raw.account_type"},
 				{Key: "account_branch_code", Value: "$linked_accounts_raw.account_branch_code"},
 				{Key: "is_active", Value: "$linked_accounts_raw.linked_status"},
-				{Key: "account_branch_name", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$account_block_info.name", 0}}}},
+				{Key: "account_branch_name", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$account_block_info.branch_name", 0}}}},
 			}}}},
 			{Key: "personal_info", Value: bson.D{{Key: "$first", Value: bson.D{
 				{Key: "full_name", Value: "$member_info.full_name"},
@@ -679,6 +679,7 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 			{Key: "_id", Value: 1},
 			{Key: "user_id", Value: bson.M{"$toString": "$_id"}},
 			{Key: "user_code", Value: 1},
+			{Key: "email", Value: 1},
 			{Key: "customer_number", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$member_info.customer_number", 0}}}}, {Key: "full_name", Value: 1},
 			{Key: "phone_number", Value: 1},
 			{Key: "branch_code", Value: 1},
@@ -701,6 +702,7 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 		ID             bson.ObjectID `bson:"_id"`
 		UserID         string        `bson:"user_id"`
 		UserCode       string        `bson:"user_code"`
+		Email          string        `bson:"email"`
 		CustomerNumber string        `bson:"customer_number"`
 		AccountNumber  string        `bson:"account_number"`
 		FullName       string        `bson:"full_name"`
@@ -724,6 +726,7 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 		ID:             res.ID.Hex(),
 		UserID:         res.UserID,
 		UserCode:       res.UserCode,
+		Email:          res.Email,
 		CustomerNumber: res.CustomerNumber,
 		FullName:       res.FullName,
 		PhoneNumber:    res.PhoneNumber,
@@ -754,4 +757,40 @@ func (p *CustomerRepository) FindCustomerByIDs(ctx context.Context, ids []string
 		return nil, err
 	}
 	return customers, nil
+}
+
+func (p *CustomerRepository) FindCustomerByID(ctx context.Context, id string) (*member.User, error) {
+	p.logger.Infof("[FindCustomerByID] fetching customer by id: %s", id)
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		p.logger.Errorf("[FindCustomerByID] invalid object id: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+	filter := bson.M{"_id": objID}
+	user, err := p.mongoDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		code, _ := local_util.HandleMongoError(err)
+		if code == localization.ErrorResourceNotFound.Code {
+			p.logger.Errorf("[FindCustomerByID] customer not found")
+			return nil, fmt.Errorf("%s", code)
+		}
+		p.logger.Errorf("[FindCustomerByID] failed to fetch customer: %v", err)
+		return nil, err
+	}
+	return user, nil
+}
+
+func (p *CustomerRepository) FindCustomerByUserCode(ctx context.Context, userCode string) (*member.User, error) {
+	p.logger.Infof("[FindCustomerByUserCode] fetching customer by user code: %s", userCode)
+	filter := bson.M{"user_code": userCode}
+	user, err := p.mongoDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if code, _ := local_util.HandleMongoError(err); code == localization.ErrorResourceNotFound.Code {
+			p.logger.Errorf("[FindCustomerByUserCode] customer not found for user code: %s", userCode)
+			return nil, fmt.Errorf("%s", code)
+		}
+		p.logger.Errorf("[FindCustomerByUserCode] failed to find customer by user code: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+	return user, nil
 }

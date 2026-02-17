@@ -11,9 +11,9 @@ import (
 	"errors"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -23,18 +23,26 @@ import (
 )
 
 type AccountBlockStorage struct {
+	cfg           *config.VaultConfig
 	accountBlock  dal.MongoDal[model.AccountBlock, model.AccountBlock]
+	cpsActionRepo dal.MongoDal[model.CPSAction, model.CPSAction]
 	client        *mongo.Client
 	dbName        string
+	abCollection  string
+	cpsCollection string
 	kafkaProducer kafka.ClientOrchestrationProducer
 	logger        utils.Logger
 }
 
-func NewAccountBlockRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.AccountBlockRepository {
+func NewAccountBlockRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, abCollection, cpsCollection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.AccountBlockRepository {
 	return &AccountBlockStorage{
-		accountBlock:  dal.NewMongoDal[model.AccountBlock, model.AccountBlock](client, cfg, dbName, collection),
+		cfg:           cfg,
+		accountBlock:  dal.NewMongoDal[model.AccountBlock, model.AccountBlock](client, cfg, dbName, abCollection),
+		cpsActionRepo: dal.NewMongoDal[model.CPSAction, model.CPSAction](client, cfg, dbName, cpsCollection),
 		client:        client,
 		dbName:        dbName,
+		abCollection:  abCollection,
+		cpsCollection: cpsCollection,
 		kafkaProducer: kafkaProducer,
 		logger:        logger,
 	}
@@ -189,7 +197,7 @@ func (a *AccountBlockStorage) EnableOrDisableBranches(ctx context.Context, ids [
 		ctx,
 		updatedBranches,
 		string(constants.ClientOrchestrationServicesTopic),
-		"account-block-updated",
+		a.cfg.AccountBlockUpdate,
 		"account block enable status updated",
 	)
 
@@ -395,12 +403,7 @@ func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	filter["type"] = "D"
 
-	if regionId, ok := filterParam.Filters["region_id"].(string); ok && regionId != "" {
-		objID, err := bson.ObjectIDFromHex(regionId)
-		if err == nil {
-			filter["region_id"] = objID
-		}
-	}
+	ApplyIDFilter(filter, filterParam.Filters, "region_id")
 
 	collection := a.client.Database(a.dbName).Collection("account_block")
 	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)
@@ -607,4 +610,55 @@ func (a *AccountBlockStorage) GetCitiesByIds(ctx context.Context, ids []string) 
 	}
 	return block, nil
 
+}
+
+func (a *AccountBlockStorage) GetAccountBlockDetails(ctx context.Context, id string) ([]*model.CPSAction, error) {
+	a.logger.Infof("[GetAccountBlockDetails] fetching CPS actions for account block id: %s", id)
+
+	if _, err := bson.ObjectIDFromHex(id); err != nil {
+		a.logger.Errorf("[GetAccountBlockDetails] invalid object id: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	cpsCollection := a.client.Database(a.dbName).Collection(a.cpsCollection)
+
+	accountBlockRequestActions := []string{
+		string(constants.RequestEnableBranches),
+		string(constants.RequestDisableBranches),
+		string(constants.RequestEnableCities),
+		string(constants.RequestDisableCities),
+		string(constants.RequestEnableDistricts),
+		string(constants.RequestDisableDistricts),
+		string(constants.RequestEnableRegions),
+		string(constants.RequestDisableRegions),
+	}
+
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{
+			"is_deleted":         false,
+			"previous_action.id": id,
+			"request_action":     bson.M{"$in": accountBlockRequestActions},
+		}}},
+		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+	}
+
+	cur, err := cpsCollection.Aggregate(ctx, pipeline)
+	if err != nil {
+		a.logger.Errorf("[GetAccountBlockDetails] aggregation failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer func() { _ = cur.Close(ctx) }()
+
+	var results []*model.CPSAction
+	if err := cur.All(ctx, &results); err != nil {
+		a.logger.Errorf("[GetAccountBlockDetails] failed to decode CPS actions: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if len(results) == 0 {
+		a.logger.Errorf("[GetAccountBlockDetails] no CPS actions found for id: %s", id)
+		return nil, errors.New(localization.ErrorActionNotFound.Code)
+	}
+
+	return results, nil
 }

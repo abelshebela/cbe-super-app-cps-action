@@ -1,22 +1,19 @@
+version: 2
+
 run:
   timeout: 5m
   tests: true
   modules-download-mode: readonly
-  go: "1.25"
+  allow-parallel-runners: true
 
 linters:
+  disable-all: true
   enable:
     - govet
     - errcheck
     - staticcheck
     - ineffassign
-    - gosimple
-    - unused
-    - typecheck
     - revive
-    - gofmt
-    - goimports
-    - gofumpt
     - misspell
     - gocyclo
     - dupl
@@ -25,10 +22,9 @@ linters:
     - unconvert
     - prealloc
     - whitespace
-    - exportloopref
+    - copyloopvar
     - gosec
     - gocritic
-    - stylecheck
     - nolintlint
     - predeclared
     - dogsled
@@ -37,8 +33,6 @@ linters:
     - errorlint
     - cyclop
     - funlen
-  disable:
-    - depguard
 
 linters-settings:
   revive:
@@ -54,8 +48,6 @@ linters-settings:
       - name: empty-lines
   gofmt:
     simplify: true
-  goimports:
-    local-prefixes: cbe-super-app-cps-action,gitlab.com/bersufekadgetachew/cbe-super-app-shared
   gocyclo:
     min-complexity: 12
   misspell:
@@ -86,6 +78,7 @@ linters-settings:
     require-specific: true
 
 issues:
+  exclude-dirs-use-default: true
   exclude-dirs:
     - docs
     - grpc
@@ -95,6 +88,7 @@ issues:
     - ".*\\.pb\\.go"
     - ".*_grpc\\.pb\\.go"
     - ".*mock.*\\.go"
+    - "cmd/__debug_bin\\..*"
   exclude-rules:
     - path: _test\\.go
       linters:
@@ -110,3 +104,5 @@ issues:
 
 output:
   sort-results: true
+  formats:
+    colored-line-number: {}

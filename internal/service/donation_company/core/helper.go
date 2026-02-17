@@ -5,6 +5,9 @@ import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
+
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
+
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"context"
@@ -57,6 +60,12 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 	if err != nil {
 		return nil, err
 	}
+	if accountDetail.Restriction == "YES" {
+		return nil, errors.New(localization.ErrorAccountRestricted.Code)
+	}
+	if accountDetail.Currency != "ETB" {
+		return nil, errors.New(localization.ErrorAccountCurrencyNotSupported.Code)
+	}
 
 	if accountDetail == nil {
 		return nil, err
@@ -76,17 +85,18 @@ func BindAction(source any, target any) error {
 // MapToDonationCompanyResponse creates a response DTO from request DTO and logo URL
 func MapToDonationCompanyResponse(donationCompany dto.DonationCompanyRequest, logoURL string) dto.DonationCompanyResponse {
 	return dto.DonationCompanyResponse{
-		CompanyName:    donationCompany.CompanyName,
-		CompanyCode:    donationCompany.CompanyCode,
-		CompanyLogo:    logoURL,
-		AccountNumber:  donationCompany.AccountNumber,
-		PhoneNumber:    donationCompany.PhoneNumber,
-		Email:          donationCompany.Email,
-		Address:        donationCompany.Address,
-		Enabled:        true,
-		IsDeleted:      false,
-		CreatedAt:      time.Now().Format(time.RFC3339),
-		LastModifiedAt: time.Now().Format(time.RFC3339),
+		CompanyName:        donationCompany.CompanyName,
+		CompanyCode:        donationCompany.CompanyCode,
+		CompanyDescription: donationCompany.CompanyDescription,
+		CompanyLogo:        logoURL,
+		AccountNumber:      donationCompany.AccountNumber,
+		PhoneNumber:        donationCompany.PhoneNumber,
+		Email:              donationCompany.Email,
+		Address:            donationCompany.Address,
+		Enabled:            true,
+		IsDeleted:          false,
+		CreatedAt:          time.Now().Format(time.RFC3339),
+		LastModifiedAt:     time.Now().Format(time.RFC3339),
 	}
 }
 
@@ -104,8 +114,8 @@ func MapToDonationCompanyCPSRequest(id string, donationCompany dto.DonationCompa
 	}
 }
 
-func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationCompanyListResponse, donationCompany dto.DonationCompanyRequest, logoURL string) *model.DonationCompany {
-	result := &model.DonationCompany{}
+func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationCompanyListResponse, donationCompany dto.DonationCompanyRequest, logoURL string) *donation_model.DonationCompany {
+	result := &donation_model.DonationCompany{}
 
 	if donationCompany.CompanyName != "" && donationCompany.CompanyName != existing.CompanyName {
 		result.CompanyName = donationCompany.CompanyName
@@ -119,7 +129,9 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 	// 	result.CompanyCode = existing.CompanyCode
 	// }
 	result.CompanyCode = existing.CompanyCode
-
+	if donationCompany.CompanyDescription != "" {
+		result.CompanyDescription = donationCompany.CompanyDescription
+	}
 	if donationCompany.AccountNumber != existing.AccountNumber {
 		result.AccountNumber = donationCompany.AccountNumber
 	} else {
@@ -158,11 +170,13 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 	return result
 }
 
-func IsDataSimilar(request dto.DonationCompanyRequest, existing *model.DonationCompany) bool {
+func IsDataSimilar(request dto.DonationCompanyRequest, existing *donation_model.DonationCompany) bool {
 	if request.CompanyName != "" && request.CompanyName != existing.CompanyName {
 		return false
 	}
-
+	if request.CompanyDescription != "" && request.CompanyDescription != existing.CompanyDescription {
+		return false
+	}
 	if request.CompanyCode != "" && request.CompanyCode != existing.CompanyCode {
 		return false
 	}
@@ -193,7 +207,7 @@ func IsDataSimilar(request dto.DonationCompanyRequest, existing *model.DonationC
 // CheckDataSimilarityAndValidation checks if data is similar and validates uniqueness
 func CheckDataSimilarityAndValidation(ctx context.Context, request dto.DonationCompanyRequest, existing *dto.DonationCompanyListResponse, donationCompanyRepo storage.DonationCompanyRepository, accountLookupService account_lookup.Account) error {
 	// Convert existing DTO to model for similarity check
-	existingModel := &model.DonationCompany{
+	existingModel := &donation_model.DonationCompany{
 		CompanyName:   existing.CompanyName,
 		CompanyCode:   existing.CompanyCode,
 		CompanyLogo:   existing.CompanyLogo,

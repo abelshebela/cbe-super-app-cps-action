@@ -47,15 +47,20 @@ func (c *allowCache) set(key string, val allowEntry) {
 var (
 	cpsApproveRepo              storage.CPSActionApproveIndexRepository
 	bpsApproveRepo              storage.BPSActionApproveIndexRepository
+	roleRepo                    storage.RoleRepository
 	clientOrchestrationProducer *kafka.ClientOrchestrationProducer
 	cpsGuardCache               = &allowCache{data: make(map[string]allowEntry), ttl: 5 * time.Minute}
+	roleEnabledCache            = &allowCache{data: make(map[string]allowEntry), ttl: 5 * time.Minute}
 	guardLogger                 utils.Logger
 )
 
-func InitCPSActionGuard(repo storage.CPSActionApproveIndexRepository, ttl time.Duration, logger utils.Logger) {
-	cpsApproveRepo = repo
+func InitCPSActionGuard(cpsRepo storage.CPSActionApproveIndexRepository, bpsRepo storage.BPSActionApproveIndexRepository, rRepo storage.RoleRepository, ttl time.Duration, logger utils.Logger) {
+	cpsApproveRepo = cpsRepo
+	bpsApproveRepo = bpsRepo
+	roleRepo = rRepo
 	if ttl > 0 {
 		cpsGuardCache.ttl = ttl
+		roleEnabledCache.ttl = ttl
 	}
 	guardLogger = logger
 }

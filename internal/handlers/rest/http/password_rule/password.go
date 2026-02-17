@@ -88,7 +88,7 @@ func (p *passwordRuleHandler) GetPasswordRule(w http.ResponseWriter, r *http.Req
 //	@Param			body			body		passwordrule.PasswordRuleUpdate	true	"Password Rule Update DTO"
 //	@Success		200				{object}	localization.StandardResponse{data=nil}
 //	@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/password_rule/{id} [put]
+//	@Router			/password_rule/{id} [patch]
 func (p *passwordRuleHandler) RequestPasswordRuleUpdate(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "passwordRule", "passwordRuleHandler", "RequestPasswordRuleUpdate")
 	defer span.End()

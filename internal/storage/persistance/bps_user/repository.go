@@ -105,6 +105,7 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			{"username": searchRegex},
 			{"user_code": searchRegex},
 			{"phone_number": searchRegex},
+			{"email": searchRegex},
 		}
 	}
 

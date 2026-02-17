@@ -20,6 +20,19 @@ type LogisticsMerchantHandler struct {
 	logger  utils.Logger
 }
 
+// CreateLogisticMerchant godoc
+//
+//	@Summary		Create logistics merchant
+//	@Description	Create a new logistics merchant with the provided information
+//	@Tags			Logistics Merchant
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		logistics_merchant_dto.CreateLogisticsMerchantRequest	true	"Create logistics merchant request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Logistics merchant created successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/logistics_merchants [post]
 func (e *LogisticsMerchantHandler) CreateLogisticMerchant(w http.ResponseWriter, r *http.Request) {
 	var req logistics_merchant_dto.CreateLogisticsMerchantRequest
 
@@ -41,6 +54,20 @@ func (e *LogisticsMerchantHandler) CreateLogisticMerchant(w http.ResponseWriter,
 	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantCreated, nil)
 }
 
+// DeleteLogisticMerchant godoc
+//
+//	@Summary		Delete logistics merchant
+//	@Description	Delete a logistics merchant by ID
+//	@Tags			Logistics Merchant
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Logistics Merchant ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Logistics merchant deleted successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Logistics merchant not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/logistics_merchants/{id} [delete]
 func (e *LogisticsMerchantHandler) DeleteLogisticMerchant(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -54,6 +81,20 @@ func (e *LogisticsMerchantHandler) DeleteLogisticMerchant(w http.ResponseWriter,
 	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantDeleted, nil)
 }
 
+// DisableLogisticMerchant godoc
+//
+//	@Summary		Disable logistics merchant
+//	@Description	Disable a logistics merchant by ID
+//	@Tags			Logistics Merchant
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Logistics Merchant ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Logistics merchant disabled successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Logistics merchant not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/logistics_merchants/disable/{id} [patch]
 func (e *LogisticsMerchantHandler) DisableLogisticMerchant(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -80,6 +121,20 @@ func (e *LogisticsMerchantHandler) EnableLogisticMerchant(w http.ResponseWriter,
 	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantEnabled, nil)
 }
 
+// GetLogisticMerchantByID godoc
+//
+//	@Summary		Get logistics merchant by ID
+//	@Description	Retrieve a single logistics merchant by its identifier
+//	@Tags			Logistics Merchant
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string													true	"Logistics Merchant ID"
+//	@Success		200	{object}	localization.StandardResponse{data=logistics_merchant_dto.LogisticsMerchantResponse}	"Logistics merchant retrieved successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}													"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}													"Logistics merchant not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}													"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/logistics_merchants/{id} [get]
 func (e *LogisticsMerchantHandler) GetLogisticMerchantByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -118,6 +173,21 @@ func (e *LogisticsMerchantHandler) GetLogisticMerchants(w http.ResponseWriter, r
 	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantFetched, result)
 }
 
+// UpdateLogisticMerchant godoc
+//
+//	@Summary		Update logistics merchant
+//	@Description	Update an existing logistics merchant by ID
+//	@Tags			Logistics Merchant
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string													true	"Logistics Merchant ID"
+//	@Param			body	body		logistics_merchant_dto.UpdateLogisticsMerchantRequest	true	"Update logistics merchant request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}				"Logistics merchant updated successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}				"Bad request"
+//	@Failure		404		{object}	localization.StandardResponse{data=nil}				"Logistics merchant not found"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}				"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/logistics_merchants/{id} [patch]
 func (e *LogisticsMerchantHandler) UpdateLogisticMerchant(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {

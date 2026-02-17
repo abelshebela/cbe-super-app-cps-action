@@ -19,7 +19,7 @@ func (f *SearchCustomerByCIRequest) Validate() error {
 		return errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
-	if regexp.MustCompile(`^[0-9]{10,18}$`).MatchString(f.CifOrAccountNumber) == false && f.CifOrAccountNumber != "" {
+	if !regexp.MustCompile(`^[0-9]{10,18}$`).MatchString(f.CifOrAccountNumber) && f.CifOrAccountNumber != "" {
 		return errors.New(localization.ErrorCustomerAccountNumberMustContainOnlyNumbers.Code)
 	}
 	return nil
