@@ -6,13 +6,15 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"database/sql"
 	"errors"
 
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
 
-func (s *vaultCategoryService) FindAllVaultTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.VaultTransaction], error) {
+func (s *vaultCategoryService) FindAllVaultTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.VaultTransaction], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllVaultTransactions", "vaultService", "vaultService")
 	defer span.End()
 
@@ -27,8 +29,23 @@ func (s *vaultCategoryService) FindAllVaultTransactions(ctx context.Context, fil
 		s.logger.Errorf("failed to fetch vault transactions | err=%v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return &types.PaginatedResponse[[]*imodel.VaultTransaction]{
+	return &types.PaginatedResponse[[]imodel.VaultTransaction]{
 		Data: entities.Data,
 		Meta: entities.Meta,
 	}, nil
+}
+
+func (s *vaultCategoryService) FindVaultTransaction(ctx context.Context, id string) (*imodel.VaultTransaction, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "FindVaultTransaction", "vaultService", "FindVaultTransaction")
+	defer span.End()
+
+	entity, err := s.repo.FindVaultTransaction(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
+		}
+		s.logger.Errorf("failed to fetch vault transaction by id | err=%v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return entity, nil
 }

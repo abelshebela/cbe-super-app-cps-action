@@ -2241,6 +2241,19 @@ var (
 		Type:       "success",
 	}
 
+	SuccessVaultTransactionsRetrievedS = ResponseCode{
+		Code:       "VAULT_TRANSACTIONS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    "Vault transactions retrieved successfully",
+		Type:       "success",
+	}
+	SuccessVaultTransactionRetrievedS = ResponseCode{
+		Code:       "VAULT_TRANSACTION_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    "Vault transaction retrieved successfully",
+		Type:       "success",
+	}
+
 	// Vault withdrawal request
 	SuccessVaultWithdrawalRequestSubmitted = ResponseCode{
 		Code:       "VAULT_WITHDRAWAL_REQUEST_SUBMITTED",
@@ -7703,6 +7716,12 @@ var (
 		Code:       "ERROR_EVENT_MERCHANT_INVALID_IS_EVENT_MERCHANT",
 		StatusCode: StatusBadRequest,
 		Message:    MsgEventMerchantInvalidIsEventMerchant,
+		Type:       "error",
+	}
+	ErrorEcommernceMerchantInvalidIsEcommerceMerchant = ResponseCode{
+		Code:       "ERROR_ECOMMERCE_MERCHANT_INVALID_IS_ECOMMERCE_MERCHANT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEcommerceMerchantInvalidIsEcommerceMerchant,
 		Type:       "error",
 	}
 	ErrorEventMerchantInvalidEmail = ResponseCode{
