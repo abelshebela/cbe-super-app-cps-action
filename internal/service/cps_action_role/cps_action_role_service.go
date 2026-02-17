@@ -365,7 +365,7 @@ func (s *cpsActionRoleService) Enable(ctx context.Context, actionCode string) er
 	maker := local_util.ExtractUserFromContext(ctx)
 	payload := model.ActionRole{ActionCode: actionCode, Enabled: true}
 
-	cps := lib.CpsModelBuilder(actionCode, maker, old, payload, string(constants.RequestEnableActionRole), constants.UPDATE)
+	cps := lib.CpsModelBuilder(actionCode, maker, old, payload, string(constants.RequestEnableCpsActionRole), constants.UPDATE)
 	err = s.cpsService.CreateCPSAction(ctx, &cps)
 	if err != nil {
 		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -393,7 +393,7 @@ func (s *cpsActionRoleService) Disable(ctx context.Context, actionCode string) e
 	}
 	maker := local_util.ExtractUserFromContext(ctx)
 	payload := model.ActionRole{ActionCode: actionCode, Enabled: false}
-	cps := lib.CpsModelBuilder(actionCode, maker, old, payload, string(constants.RequestDisableActionRole), constants.UPDATE)
+	cps := lib.CpsModelBuilder(actionCode, maker, old, payload, string(constants.RequestDisableCpsActionRole), constants.UPDATE)
 	err = s.cpsService.CreateCPSAction(ctx, &cps)
 	if err != nil {
 		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -457,7 +457,7 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 
 	case string(constants.UPDATE):
 		// Handle enable/disable separately to avoid corrupting data with partial payload
-		if action.RequestAction == string(constants.RequestEnableActionRole) {
+		if action.RequestAction == string(constants.RequestEnableCpsActionRole) {
 			s.logger.Infof("Authorize: Syncing indices for Enable.")
 			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, true); err != nil {
 				s.logger.Errorf("failed to enable action role: %v", err)
@@ -467,7 +467,7 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return action, nil
 		}
 
-		if action.RequestAction == string(constants.RequestDisableActionRole) {
+		if action.RequestAction == string(constants.RequestDisableCpsActionRole) {
 			s.logger.Infof("Authorize: Syncing indices for Disable. ")
 			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, false); err != nil {
 				s.logger.Errorf("failed to disable action role: %v", err)
