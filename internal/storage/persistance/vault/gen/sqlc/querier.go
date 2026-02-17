@@ -20,7 +20,6 @@ type Querier interface {
 	SaveVaultTiers(ctx context.Context, categoryID string, arg *imodel.VaultCategory) error
 	UpdateVaultCategory(ctx context.Context, id string, arg *imodel.VaultCategory) (string, error)
 	UpdateVaultTiers(ctx context.Context, categoryID string, arg *imodel.VaultCategory) error
-	FindVaultTransactions(ctx context.Context, arg FindVaultCategoryParams) ([]VaultTransaction, error)
 }
 
 var _ Querier = (*Queries)(nil)
