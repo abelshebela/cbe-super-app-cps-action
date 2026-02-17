@@ -189,6 +189,7 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "ApproveCPSAction", "CPSAction", "ApproveCPSAction")
 	defer span.End()
+	ca.logger.Infof("[ApproveCPSAction]: %+v", action)
 
 	data, err := ca.repo.Update(ctx, action.ActionCode, *action)
 	if err != nil {
