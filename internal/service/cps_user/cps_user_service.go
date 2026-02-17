@@ -369,7 +369,7 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 
 	var makerAlloc, checkerAlloc, auditorAlloc, portalCard []string
 	if roles.Enabled {
-		makerAlloc, checkerAlloc, auditorAlloc, portalCard, err = s.approverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
+		_, makerAlloc, checkerAlloc, auditorAlloc, portalCard, err = s.approverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
 		if err != nil {
 			span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
@@ -438,7 +438,7 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 	}
 
 	if roles != nil && roles.Enabled {
-		makerAlloc, checkerAlloc, auditorAlloc, portalCard, err = s.approverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
+		_, makerAlloc, checkerAlloc, auditorAlloc, portalCard, err = s.approverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
 		if err != nil {
 			span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err

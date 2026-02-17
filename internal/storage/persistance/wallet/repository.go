@@ -264,18 +264,6 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 			"preserveNullAndEmptyArrays": true,
 		}}},
 
-		// Output fields
-		// {{Key: "$addFields", Value: bson.M{
-		// 	"service_code": "$temp_service.service_code",
-		// 	"service_key":  "$temp_service.service_key",
-		// 	"service_id": bson.M{
-		// 		"$cond": bson.A{
-		// 			bson.M{"$ifNull": bson.A{"$temp_service._id", false}},
-		// 			bson.M{"$toString": "$temp_service._id"},
-		// 			"$service_id_safe",
-		// 		},
-		// 	},
-		// }}},
 		{{
 
 			Key: "$addFields", Value: bson.M{
@@ -289,6 +277,7 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 						"$service_id_safe",
 					},
 				},
+				// all below related to time is to handle potential date fields that are stored as strings, converting them to dates if needed
 				"created_at": bson.M{
 					"$cond": bson.A{
 						bson.M{"$eq": bson.A{bson.M{"$type": "$created_at"}, "string"}},

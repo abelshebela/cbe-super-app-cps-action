@@ -278,7 +278,7 @@ type AccountBlockRepository interface {
 	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 	EnableOrDisableDistricts(ctx context.Context, ids []string, reason string, enabled bool) error
 	GetDistrictsByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
-	GetAccountBlockDetails(ctx context.Context, id string) ([]*model.CPSAction, error)
+	GetAccountBlockDetails(ctx context.Context, id string) ([]model.CPSAction, error)
 }
 
 type AdvertRepository interface {
@@ -668,7 +668,7 @@ type CPSActionApproveIndexRepository interface {
 	FindMakerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.CPSActionApproveIndex, error)
 	FindCheckerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.CPSActionApproveIndex, error)
 	FindAuditorAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.CPSActionApproveIndex, error)
-	PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string, []string, []string, []string, error)
+	PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string, []string, []string, []string, []string, error)
 	FindByRoleAndAction(ctx context.Context, roleID string, actionName string, version int64) (*imodel.CPSActionApproveIndex, error)
 	DeleteMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
 	InsertMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
