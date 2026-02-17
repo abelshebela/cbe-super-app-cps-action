@@ -258,9 +258,9 @@ func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode
 	if serviceKey != "" {
 		orConditions = append(orConditions, bson.M{"service_key": serviceKey})
 	}
-	if serviceCode != "" {
-		orConditions = append(orConditions, bson.M{"service_code": serviceCode})
-	}
+	// if serviceCode != "" {
+	// 	orConditions = append(orConditions, bson.M{"service_code": serviceCode})
+	// }
 	if serviceName != "" {
 		orConditions = append(orConditions, bson.M{"service_name": serviceName})
 	}
