@@ -352,7 +352,7 @@ func (s *cpsActionRoleService) Enable(ctx context.Context, actionCode string) er
 		span.AddEvent("action code is empty", trace.WithAttributes(attribute.String("error", "action code is empty")))
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
-	old, err := s.repo.FindByActionName(ctx, actionCode)
+	old, err := s.repo.FindByActionCode(ctx, actionCode)
 	if err != nil {
 		span.AddEvent("failed to find by action code", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorResourceNotFound.Code)
@@ -381,7 +381,7 @@ func (s *cpsActionRoleService) Disable(ctx context.Context, actionCode string) e
 		span.AddEvent("action code is empty", trace.WithAttributes(attribute.String("error", "action code is empty")))
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
-	old, err := s.repo.FindByActionName(ctx, actionCode)
+	old, err := s.repo.FindByActionCode(ctx, actionCode)
 	if err != nil {
 		span.AddEvent("failed to find by action code", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorResourceNotFound.Code)
