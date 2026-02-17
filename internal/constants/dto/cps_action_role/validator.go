@@ -10,8 +10,8 @@ import (
 
 func (c *CancelRequest) Validate() error {
 	return validation.ValidateStruct(&c,
-		validation.Field(&c.Reason,
-			validation.Required.Error("Reason is required"),
+		validation.Field(&c.CancelReason,
+			validation.Required.Error("Cancel reason is required"),
 		),
 	)
 }

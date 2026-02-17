@@ -37,7 +37,7 @@ type AuditorMarkRequest struct {
 }
 
 type CancelRequest struct {
-	Reason string `json:"reason"`
+	CancelReason string `json:"cancel_reason"`
 }
 
 type GetActionRoleByActionCodeRes struct {

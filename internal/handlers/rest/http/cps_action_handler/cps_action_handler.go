@@ -252,7 +252,7 @@ func (a *cpsActionAdapter) CancelCPSAction(w http.ResponseWriter, r *http.Reques
 	}
 
 	action.ActionStatus = string(constants.Canceled)
-	action.RejectionReason = string(req.Reason)
+	action.CanceledReason = string(req.CancelReason)
 
 	if err := a.cpsActionApplication.RejectCPSAction(ctx, actionCode, action); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())

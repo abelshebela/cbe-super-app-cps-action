@@ -487,11 +487,13 @@ const (
 	MsgCpsRoleEnabledSP  = "CPS role enabled successfully"
 	MsgCpsRoleDisabledSP = "CPS role disabled successfully"
 
-	MsgRoleHasActiveJobs      = "There are active jobs for this role, you can't disable it"
-	MsgCpsRoleServiceEnabled  = "Service access enabled for CPS role successfully"
-	MsgCpsRoleServiceDisabled = "Service access disabled for CPS role successfully"
-	MsgCpsRoleDeleted         = "CPS role delete request submitted successfully"
-	MsgCpsRoleDeletedSP       = "CPS role deleted successfully"
+	MsgCannotDisableOwnRole     = "You cannot disable your own role"
+	MsgCannotDisableOwnJobTitle = "You cannot disable your own job title"
+	MsgRoleHasActiveJobs        = "There are active jobs for this role, you can't disable it"
+	MsgCpsRoleServiceEnabled    = "Service access enabled for CPS role successfully"
+	MsgCpsRoleServiceDisabled   = "Service access disabled for CPS role successfully"
+	MsgCpsRoleDeleted           = "CPS role delete request submitted successfully"
+	MsgCpsRoleDeletedSP         = "CPS role deleted successfully"
 
 	// Feedback Handler related success messages
 	MsgFeedbackCreatedSuccessfullySP = "Feedback created successfully"
