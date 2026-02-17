@@ -81,10 +81,17 @@ func (s *server) walletMapper(data *local_model.Wallet) *walletpb.Wallet {
 			}
 			return keys
 		}(),
-		Cap: &walletpb.Cap{
-			SingleCap:          data.Cap.SingleCap,
-			MinimumTransferCap: data.Cap.MinimumTransferCap,
-		},
+		Cap: func() []*walletpb.Cap {
+			var caps []*walletpb.Cap
+			for _, c := range data.Cap {
+				caps = append(caps, &walletpb.Cap{
+					SingleCap:          c.SingleCap,
+					MinimumTransferCap: c.MinimumTransferCap,
+					Currency:           c.Currency,
+				})
+			}
+			return caps
+		}(),
 		IsDeleted: data.IsDeleted,
 		Enabled:   data.Enabled,
 		Services: &walletpb.Services{
