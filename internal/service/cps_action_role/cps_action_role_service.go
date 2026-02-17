@@ -466,6 +466,7 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			}
 			return action, nil
 		}
+
 		if action.RequestAction == string(constants.RequestDisableActionRole) {
 			s.logger.Infof("Authorize: Syncing indices for Disable. ")
 			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, false); err != nil {
