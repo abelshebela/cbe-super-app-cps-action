@@ -406,7 +406,7 @@ func (s *cpsActionRoleService) Disable(ctx context.Context, actionCode string) e
 func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "CPSActionRole", "Authorize")
 	defer span.End()
-
+	s.logger.Infof("[Authorize CPSActionRole]: %+v", action)
 	switch action.ActionType {
 	case string(constants.CREATE):
 
