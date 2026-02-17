@@ -28,8 +28,9 @@ func NewCPSActionApproveIndexRepository(client *mongo.Client, database string, c
 	}
 }
 
-func (r *CPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string, []string, []string, []string, error) {
+func (r *CPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string, []string, []string, []string, []string, error) {
 	r.logger.Infof("PopulateUserApproverAllocations: Populating approver allocations for RoleID: %s", role_id)
+	var viewerAllocations []string
 	var makerAllocations []string
 	var checkerAllocations []string
 	var auditorAllocations []string
@@ -55,16 +56,19 @@ func (r *CPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx co
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		r.logger.Errorf("PopulateUserApproverAllocations: Aggregate failed: %v", err)
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 	defer cursor.Close(ctx)
 	var results []imodel.CPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
 		r.logger.Errorf("PopulateUserApproverAllocations: Cursor.All failed: %v", err)
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	for _, v := range results {
+		if v.ViewerIndex != nil {
+			viewerAllocations = append(viewerAllocations, v.ActionName)
+		}
 		if v.MakerIndex != nil {
 			makerAllocations = append(makerAllocations, v.ActionName)
 		}
@@ -76,8 +80,8 @@ func (r *CPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx co
 		}
 		portalCard = append(portalCard, v.PortalCardName)
 	}
-	r.logger.Infof("PopulateUserApproverAllocations: Found %d maker, %d checker, %d auditor allocations for RoleID: %s", len(makerAllocations), len(checkerAllocations), len(auditorAllocations), role_id)
-	return makerAllocations, checkerAllocations, auditorAllocations, portalCard, nil
+	r.logger.Infof("PopulateUserApproverAllocations: Found %d viewer, %d maker, %d checker, %d auditor allocations for RoleID: %s", len(viewerAllocations), len(makerAllocations), len(checkerAllocations), len(auditorAllocations), role_id)
+	return viewerAllocations, makerAllocations, checkerAllocations, auditorAllocations, portalCard, nil
 }
 func (r *CPSActionApproveIndexRepository) SaveIndices(ctx context.Context, indices []imodel.CPSActionApproveIndex) error {
 	r.logger.Infof("SaveIndices: Saving %d indices to DB: %s, Collection: %s", len(indices), r.collection.Database().Name(), r.collection.Name())
