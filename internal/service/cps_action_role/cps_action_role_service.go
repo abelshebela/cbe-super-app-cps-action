@@ -371,6 +371,7 @@ func (s *cpsActionRoleService) Enable(ctx context.Context, actionCode string) er
 		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
+
 	return nil
 }
 
@@ -471,7 +472,7 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return action, nil
 		}
 
-		prev, err := local_util.JsonUnmarshal[model.CPSActionRoleResposne](action.PreviousAction)
+		prev, err := local_util.JsonUnmarshal[imodel.CPSActionRole](action.PreviousAction)
 		if err != nil {
 			span.AddEvent("failed to unmarshal action", trace.WithAttributes(attribute.String("error", err.Error())))
 			s.logger.Errorf("failed to unmarshal action: %v", err)
