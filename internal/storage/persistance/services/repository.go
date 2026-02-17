@@ -269,7 +269,10 @@ func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode
 		return false, nil
 	}
 
-	filter := bson.M{"$or": orConditions}
+	filter := bson.M{
+		"$or":        orConditions,
+		"is_deleted": false,
+	}
 
 	_, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {

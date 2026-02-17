@@ -457,6 +457,8 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorAlreadyEnabled,
 	ErrorAlreadyDisabled,
+	ErrorCannotDisableOwnRole,
+	ErrorCannotDisableOwnJobTitle,
 	ErrorRoleHasActiveJobs,
 	ErrorInvalidBulkServiceKey,
 	ErrorInvalidRequiredAction,
@@ -7059,6 +7061,20 @@ var (
 		Code:       "ERROR_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorCannotDisableOwnRole = ResponseCode{
+		Code:       "ERROR_CANNOT_DISABLE_OWN_ROLE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotDisableOwnRole,
+		Type:       "error",
+	}
+
+	ErrorCannotDisableOwnJobTitle = ResponseCode{
+		Code:       "ERROR_CANNOT_DISABLE_OWN_JOB_TITLE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotDisableOwnJobTitle,
 		Type:       "error",
 	}
 
