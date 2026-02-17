@@ -471,8 +471,8 @@ func (m *miniAppMerchantService) updateERP(ctx context.Context, merchant *model.
 		Branches:         erpBranches,
 	}
 
-	// url := m.cfg.OddoEcommerceBaseUrl + "/cps/merchant/update/"
-	base := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce"
+	base := strings.TrimRight(m.cfg.OddoEcommerceBaseUrl, "/")
+	// base := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce"
 	url := base + "/cps/merchant/update/"
 
 	xAPIKey := m.cfg.ApiKey
