@@ -148,7 +148,7 @@ func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	role := imodel.JobRole{
 		Name:        strings.TrimSpace(body.Name),
 		Code:        "ROLE_" + local_util.UniqueIdGenerator(),
-		PortalCards: body.PortalCards,
+		Description: strings.TrimSpace(body.Description),
 		CreatedAt:   time.Now(),
 	}
 
@@ -209,9 +209,8 @@ func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if body.Code != "" {
 		updated.Code = strings.TrimSpace(body.Code)
 	}
-
-	if len(body.PortalCards) > 0 {
-		updated.PortalCards = body.PortalCards
+	if body.Description != "" {
+		updated.Description = strings.TrimSpace(body.Description)
 	}
 
 	if err := j.service.Update(ctx, id, updated); err != nil {

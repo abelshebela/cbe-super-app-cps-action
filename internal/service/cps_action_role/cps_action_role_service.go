@@ -458,14 +458,18 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 	case string(constants.UPDATE):
 		// Handle enable/disable separately to avoid corrupting data with partial payload
 		if action.RequestAction == string(constants.RequestEnableActionRole) {
+			s.logger.Infof("Authorize: Syncing indices for Enable.")
 			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, true); err != nil {
+				s.logger.Errorf("failed to enable action role: %v", err)
 				span.AddEvent("failed to enable action role", trace.WithAttributes(attribute.String("error", err.Error())))
 				return nil, err
 			}
 			return action, nil
 		}
 		if action.RequestAction == string(constants.RequestDisableActionRole) {
+			s.logger.Infof("Authorize: Syncing indices for Disable. ")
 			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, false); err != nil {
+				s.logger.Errorf("failed to disable action role: %v", err)
 				span.AddEvent("failed to disable action role", trace.WithAttributes(attribute.String("error", err.Error())))
 				return nil, err
 			}
