@@ -1,6 +1,7 @@
 package miniappmerchant
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/pkgs/utils"
 	"strings"
 
@@ -94,6 +95,20 @@ func (dto EcommerceMerchant) Validate(isCreate bool) error {
 					return nil
 				}),
 			),
+			validation.Field(
+				dto.IsEcommerceMerchant,
+				validation.Required.Error(localization.ErrorEcommernceMerchantInvalidIsEcommerceMerchant.Error()),
+				validation.By(func(value interface{}) error {
+					v, ok := value.(*bool)
+					if !ok || v == nil {
+						return nil // Required will catch nil
+					}
+					if !*v {
+						return localization.ErrorEcommernceMerchantInvalidIsEcommerceMerchant
+					}
+					return nil
+				}),
+			),
 		}
 	} else {
 		if strings.TrimSpace(dto.MerchantName) != "" {
@@ -122,6 +137,24 @@ func (dto EcommerceMerchant) Validate(isCreate bool) error {
 				validation.Field(&dto.SettlementMethod,
 					validation.By(utils.NoSpecialChars),
 				))
+		}
+		if dto.IsEcommerceMerchant != nil {
+			rules = append(rules,
+				validation.Field(
+					dto.IsEcommerceMerchant,
+					validation.Required.Error(localization.ErrorEcommernceMerchantInvalidIsEcommerceMerchant.Error()),
+					validation.By(func(value interface{}) error {
+						v, ok := value.(*bool)
+						if !ok || v == nil {
+							return nil // Required will catch nil
+						}
+						if !*v {
+							return localization.ErrorEcommernceMerchantInvalidIsEcommerceMerchant
+						}
+						return nil
+					}),
+				),
+			)
 		}
 	}
 

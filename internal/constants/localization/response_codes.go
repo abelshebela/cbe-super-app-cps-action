@@ -7697,6 +7697,12 @@ var (
 		Message:    MsgEventMerchantInvalidIsEventMerchant,
 		Type:       "error",
 	}
+	ErrorEcommernceMerchantInvalidIsEcommerceMerchant = ResponseCode{
+		Code:       "ERROR_ECOMMERCE_MERCHANT_INVALID_IS_ECOMMERCE_MERCHANT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEcommerceMerchantInvalidIsEcommerceMerchant,
+		Type:       "error",
+	}
 	ErrorEventMerchantInvalidEmail = ResponseCode{
 		Code:       "ERROR_EVENT_MERCHANT_INVALID_EMAIL",
 		StatusCode: StatusBadRequest,
