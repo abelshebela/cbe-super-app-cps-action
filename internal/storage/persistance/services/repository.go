@@ -58,7 +58,13 @@ func (s *ServicesStorage) Create(ctx context.Context, service *model.Service) er
 		s.logger.Errorf("insert service failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	s.kafkaProducer.PublishMessage(ctx, createService, string(constants.ClientOrchestrationServicesTopic), string(constants.ClientOrchestrationServicesTopic), "new service created")
+	s.kafkaProducer.PublishMessage(
+		ctx,
+		createService,
+		string(constants.ClientOrchestrationServicesTopic),
+		s.cfg.CPSServiceUpdate,
+		"service authorized and updated",
+	)
 	return nil
 }
 
@@ -138,7 +144,13 @@ func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	s.kafkaProducer.PublishMessage(ctx, updatedService, string(constants.ClientOrchestrationServicesTopic), string(constants.ClientOrchestrationServicesTopic), "service enabled/disabled")
+	s.kafkaProducer.PublishMessage(
+		ctx,
+		updatedService,
+		string(constants.ClientOrchestrationServicesTopic),
+		s.cfg.CPSServiceUpdate,
+		"service authorized and updated",
+	)
 
 	return nil
 }
