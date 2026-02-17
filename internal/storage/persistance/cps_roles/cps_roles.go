@@ -94,9 +94,7 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["$or"] = []bson.M{
-			{"name": searchRegex},
-		}
+		searchKeys["name"] = searchRegex
 	}
 
 	filter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
