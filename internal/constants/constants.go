@@ -332,6 +332,7 @@ const (
 	RequestActionRole            RequestAction = "ACTION_ROLE"
 	RequestCreateActionRole      RequestAction = "CREATE_ACTION_ROLE"
 	RequestUpdateActionRole      RequestAction = "UPDATE_ACTION_ROLE"
+	RequestEnableActionRole      RequestAction = "ENABLE_ACTION_ROLE"
 	RequestDisableActionRole     RequestAction = "DISABLE_ACTION_ROLE"
 	RequestDeleteActionRole      RequestAction = "DELETE_ACTION_ROLE"
 	RequestCreateCpsActionRole   RequestAction = "CREATE_CPS_ACTION_ROLE"
