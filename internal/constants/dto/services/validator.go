@@ -142,7 +142,7 @@ func (r CreateServiceRequest) Validate() error {
 	err := validation.ValidateStruct(&r,
 		validation.Field(&r.ServiceName, validation.Required, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ServiceKey, validation.Required, validation.By(utils.NoSpecialChars)),
-		validation.Field(&r.ServiceCode, validation.Required, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ProductGlAccount),
 	)
 	if err != nil {
