@@ -461,7 +461,7 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 
 	case string(constants.UPDATE):
 		// Handle enable/disable separately to avoid corrupting data with partial payload
-		if action.RequestAction == string(constants.RequestEnableActionRole) {
+		if action.RequestAction == string(constants.RequestEnableCpsActionRole) {
 			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, true); err != nil {
 				span.AddEvent("failed to enable action role", trace.WithAttributes(attribute.String("error", err.Error())))
 				return nil, err
