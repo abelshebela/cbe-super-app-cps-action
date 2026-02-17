@@ -457,6 +457,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorAlreadyEnabled,
 	ErrorAlreadyDisabled,
+	ErrorRoleHasActiveJobs,
 	ErrorInvalidBulkServiceKey,
 	ErrorInvalidRequiredAction,
 	ErrorFailToUpdateParent,
@@ -7044,6 +7045,13 @@ var (
 		Code:       "ERROR_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorRoleHasActiveJobs = ResponseCode{
+		Code:       "ERROR_ROLE_HAS_ACTIVE_JOBS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleHasActiveJobs,
 		Type:       "error",
 	}
 

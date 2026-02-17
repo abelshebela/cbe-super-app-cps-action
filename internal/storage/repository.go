@@ -673,6 +673,7 @@ type CPSActionApproveIndexRepository interface {
 	InsertMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
 	DeleteAll(ctx context.Context, prev imodel.CPSActionRoleResposne) error
 	InsertAll(ctx context.Context, new imodel.CPSActionRole) error
+	HasActiveActionRoles(ctx context.Context, roleCode string) (bool, error)
 }
 
 type BPSActionApproveIndexRepository interface {
