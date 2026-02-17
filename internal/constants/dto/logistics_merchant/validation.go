@@ -24,6 +24,9 @@ func Validation(v any) error {
 		if strings.TrimSpace(req.BankAccountNumber) == "" {
 			return errors.New(localization.ErrorLogisticMerchantInvalidBankAccountNumber.Message)
 		}
+		if req.IsLogisticsMerchant == nil || *req.IsLogisticsMerchant == false {
+			return errors.New(localization.ErrorLogisticMerchantInvalidIsLogisticsMerchant.Message)
+		}
 		// if strings.TrimSpace(req.Email) == "" {
 		// 	return errors.New(localization.ErrorLogisticMerchantInvalidEmail.Message)
 		// } else {
@@ -49,6 +52,9 @@ func Validation(v any) error {
 		// 		return errors.New(localization.ErrorLogisticMerchantInvalidPhoneNumber.Message)
 		// 	}
 		// }
+		if req.IsLogisticsMerchant == nil || *req.IsLogisticsMerchant == false {
+			return errors.New(localization.ErrorLogisticMerchantInvalidIsLogisticsMerchant.Message)
+		}
 	default:
 		return errors.New("invalid request type for validation")
 	}

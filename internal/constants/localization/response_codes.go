@@ -719,6 +719,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventMerchantInvalidSettlementMethod,
 	ErrorEventMerchantInvalidMerchantName,
 	ErrorEventMerchantInvalidBankAccountNumber,
+	ErrorEventMerchantInvalidIsEventMerchant,
 	ErrorEventMerchantInvalidEmail,
 	ErrorEventMerchantInvalidPhoneNumber,
 	ErrorMerchantIDAlreadyExists,
@@ -7698,6 +7699,12 @@ var (
 		Message:    MsgEventMerchantInvalidAccountNumber,
 		Type:       "error",
 	}
+	ErrorEventMerchantInvalidIsEventMerchant = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_IS_EVENT_MERCHANT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidIsEventMerchant,
+		Type:       "error",
+	}
 	ErrorEventMerchantInvalidEmail = ResponseCode{
 		Code:       "ERROR_EVENT_MERCHANT_INVALID_EMAIL",
 		StatusCode: StatusBadRequest,
@@ -7758,6 +7765,12 @@ var (
 		Code:       "ERROR_LOGISTIC_MERCHANT_INVALID_BANK_ACCOUNT_NUMBER",
 		StatusCode: StatusBadRequest,
 		Message:    MsgLogisticMerchantInvalidAccountNumber,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantInvalidIsLogisticsMerchant = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_INVALID_IS_LOGISTICS_MERCHANT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgLogisticMerchantInvalidIsLogisticsMerchant,
 		Type:       "error",
 	}
 	ErrorLogisticMerchantInvalidEmail = ResponseCode{
