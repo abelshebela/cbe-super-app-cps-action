@@ -147,11 +147,9 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	role := imodel.Role{
-		Code:        strings.TrimSpace(body.Code),
-		JobTitle:    strings.TrimSpace(body.JobTitle),
-		Description: strings.TrimSpace(body.Description),
-		Role:        strings.TrimSpace(body.Role),
-		CreatedAt:   time.Now(),
+		JobTitle:  strings.TrimSpace(body.JobTitle),
+		Role:      strings.TrimSpace(body.Role),
+		CreatedAt: time.Now(),
 	}
 
 	if err := j.service.Create(ctx, role); err != nil {
@@ -206,14 +204,8 @@ func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	updated := imodel.Role{
 		UpdateAt: time.Now(),
 	}
-	if body.Code != "" {
-		updated.Code = strings.TrimSpace(body.Code)
-	}
 	if body.JobTitle != "" {
 		updated.JobTitle = strings.TrimSpace(body.JobTitle)
-	}
-	if body.Description != "" {
-		updated.Description = strings.TrimSpace(body.Description)
 	}
 	if body.Role != "" {
 		updated.Role = strings.TrimSpace(body.Role)

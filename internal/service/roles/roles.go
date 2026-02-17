@@ -87,8 +87,8 @@ func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRo
 	if update.Code != "" {
 		newRole.Code = update.Code
 	}
-	if len(update.PortalCards) > 0 {
-		newRole.PortalCards = update.PortalCards
+	if update.Description != "" {
+		newRole.Description = update.Description
 	}
 	newRole.UpdatedAt = time.Now()
 
@@ -182,12 +182,13 @@ func (j *RoleService) FindById(ctx context.Context, id string) (*imodel.JobRole,
 		return nil, err
 	}
 
-	makerActions, checkerActions, auditorActions, _, err := j.approveIndexRepo.PopulateUserApproverAllocations(ctx, role.Code)
+	viewerActions, makerActions, checkerActions, auditorActions, _, err := j.approveIndexRepo.PopulateUserApproverAllocations(ctx, role.Code)
 	if err != nil {
 		j.logger.Errorf("[Role Service][FindById] failed to populate approver allocations: %v", err)
 		return role, nil
 	}
 
+	role.ViewerActions = viewerActions
 	role.MakerActions = makerActions
 	role.CheckerActions = checkerActions
 	role.AuditorActions = auditorActions

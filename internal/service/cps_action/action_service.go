@@ -194,21 +194,26 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 	data, err := ca.repo.Update(ctx, action.ActionCode, *action)
 	if err != nil {
 		span.AddEvent("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
+		ca.logger.Errorf("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
 
 	if action.ActionStatus != string(constants.Approved) {
 		return nil
 	}
+
 	approve, err := ca.dispatcher.Authorize(ctx, data)
 	if err != nil && approve == nil {
 		span.AddEvent("failed to authorize cps action", trace.WithAttributes(attribute.String("error", err.Error())))
+		ca.logger.Errorf("failed to authorize cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		RollErr := ca.RollBack(ctx, action)
+		ca.logger.Errorf("failed to roll back cps action", trace.WithAttributes(attribute.String("error", RollErr.Error())))
 		if err.Error() == localization.ErrorTimeoutError.Code {
 			return err
 		}
 		if RollErr != nil {
 			span.AddEvent("failed to roll back cps action", trace.WithAttributes(attribute.String("error", RollErr.Error())))
+			ca.logger.Errorf("failed to roll back cps action", trace.WithAttributes(attribute.String("error", RollErr.Error())))
 			return RollErr
 		}
 		return err

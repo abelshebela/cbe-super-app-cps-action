@@ -8,7 +8,6 @@ import (
 
 func (r *RequestRolesCreate) Validate() error {
 	return validation.ValidateStruct(r,
-		validation.Field(&r.Code, validation.Required.Error("Code is required")),
 		validation.Field(&r.JobTitle, validation.Required.Error("Job title is required")),
 		validation.Field(&r.Role, validation.Required.Error("Role is required")),
 	)
@@ -16,9 +15,6 @@ func (r *RequestRolesCreate) Validate() error {
 
 func (r *RequestRolesUpdate) Validate() error {
 	return validation.ValidateStruct(r,
-		validation.Field(&r.Code,
-			validation.When(r.Code != "", validation.By(utils.NoSpecialChars)),
-		),
 		validation.Field(&r.JobTitle,
 			validation.When(r.JobTitle != "", validation.By(utils.NoSpecialChars)),
 		),
