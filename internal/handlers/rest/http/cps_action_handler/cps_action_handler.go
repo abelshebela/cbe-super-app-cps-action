@@ -1114,13 +1114,14 @@ func (a *cpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionCounts", "handler", "cpsAction")
 	defer span.End()
+
 	if _, err := local_util.ParseUserContext(r); err != nil {
 		localization.SendErrorResponse(w, localization.ErrorUserForbidden, nil, nil)
 		return
 	}
 
 	userContext := local_util.ExtractUserContext(r)
-	userID := userContext.UserID
+	userID := userContext.UserName
 
 	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 	if strings.TrimSpace(rawRoleID) == "" {
