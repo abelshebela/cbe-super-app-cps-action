@@ -181,7 +181,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 
 	// Mark path -> record auditor mark and advance group/finish
 	auditor := model.Auditor{
-		AuditorID:          userData.UserID,
+		AuditorID:          userData.UserName,
 		RoleID:             rawRoleID,
 		AuditorIndex:       int32(activeGroup),
 		AuditorName:        userData.FullName,
@@ -456,7 +456,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		finalStatus = string(constants.Approved)
 	}
 	checkerUser := model.Checker{
-		CheckerID:          userData.UserID,
+		CheckerID:          userData.UserName,
 		RoleID:             r.Context().Value(constants.ContextKey("role_code")).(string),
 		CheckerIndex:       int32(*idxDoc.CheckerIndex),
 		CheckerName:        userData.FullName,
@@ -592,7 +592,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 	}
 
 	CheckerUser := model.Checker{
-		CheckerID:          makerData.UserID,
+		CheckerID:          makerData.UserName,
 		RoleID:             r.Context().Value(constants.ContextKey("role_code")).(string),
 		CheckerName:        makerData.FullName,
 		CheckerPhoneNumber: makerData.PhoneNumber,
@@ -1128,7 +1128,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	requestedRole := r.URL.Query().Get("role")
+	requestedRole := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("role")))
 	if err := local_util.NoSpecialChars(requestedRole); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -1302,22 +1302,24 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		canceledCount = int(res.Meta.TotalDocs)
 	}
 
-	// Audior's Inprogress Count
-	if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter("", string(model.AUDITORINPROGRESS))); err != nil {
-		span.RecordError(err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	} else if res != nil && res.Meta.TotalDocs > 0 {
-		inprogressAuditCount = int(res.Meta.TotalDocs)
-	}
+	// Auditor's Inprogress Count (only for auditor role)
+	if requestedRole == "auditor" {
+		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter("", string(model.AUDITORINPROGRESS))); err != nil {
+			span.RecordError(err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		} else if res != nil && res.Meta.TotalDocs > 0 {
+			inprogressAuditCount = int(res.Meta.TotalDocs)
+		}
 
-	// Audior's Completed Count
-	if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter("", string(model.AUDITORCHECKED))); err != nil {
-		span.RecordError(err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	} else if res != nil && res.Meta.TotalDocs > 0 {
-		completedAuditCount = int(res.Meta.TotalDocs)
+		// Auditor's Completed Count
+		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter("", string(model.AUDITORCHECKED))); err != nil {
+			span.RecordError(err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		} else if res != nil && res.Meta.TotalDocs > 0 {
+			completedAuditCount = int(res.Meta.TotalDocs)
+		}
 	}
 
 	resp := &cpsactionDto.CPSActionCountResponse{
