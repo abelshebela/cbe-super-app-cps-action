@@ -654,14 +654,14 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	_, checkerActions, auditorActions, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	makerActions, checkerActions, auditorActions, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if checkerActions == nil && auditorActions == nil {
+	if makerActions == nil && checkerActions == nil && auditorActions == nil {
 		resp := &bpsactionDto.BPSActionCountResponse{
 			Pending:    0,
 			Approved:   0,
@@ -676,6 +676,22 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	// resolve action_names -> request_actions (same as GetUserApproverActions)
 	var reqs []string
 	seen := map[string]struct{}{}
+
+	if makerActions != nil && requestedRole == "maker" {
+		for _, mod := range makerActions {
+			upper := strings.ToUpper(strings.TrimSpace(mod))
+			if lst, ok := bpsactionsvc.RequestActionGroups[upper]; ok {
+				for _, ra := range lst {
+					key := string(ra)
+					if _, ok := seen[key]; ok {
+						continue
+					}
+					seen[key] = struct{}{}
+					reqs = append(reqs, key)
+				}
+			}
+		}
+	}
 
 	if checkerActions != nil && requestedRole == "checker" {
 		for _, mod := range checkerActions {
@@ -730,7 +746,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			Search:  "",
 			Filters: map[string]interface{}{},
 		}
-		f.Filters[string(constants.ActionStatus)] = status
+		f.Filters["status"] = status
 
 		if auditorStatus != "" {
 			f.Filters[string(constants.AuditorStatusDBFieldName)] = auditorStatus
@@ -741,8 +757,8 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	var pendingCount, approvedCount, rejectedCount, inprogressAuditCount, completedAuditCount int
 
 	// Pending
-	if checkerActions != nil && requestedRole == "checker" {
-		if res, err := a.bpsActionApplication.GetBPSActions(ctx, "", requestedRole, reqs, buildFilter(string(constants.Pending), "")); err != nil {
+	if (checkerActions != nil && requestedRole == "checker") || (makerActions != nil && requestedRole == "maker") {
+		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(constants.Pending), "")); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return

@@ -439,6 +439,9 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationBPSActions(ctx conte
 	filter["request_action"] = bson.M{"$in": RAList}
 
 	var userFilter bson.M
+	if role == "maker" {
+		userFilter = bson.M{"maker_id": userID}
+	}
 	if role == "auditor" {
 		userFilter = bson.M{"auditor_users.auditor_id": userID}
 	}
@@ -446,8 +449,10 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationBPSActions(ctx conte
 	var finalMatch bson.M
 	if role == "checker" && filterParam.Filters != nil && filterParam.Filters["status"] == "PENDING" {
 		finalMatch = filter
-	} else {
+	} else if userFilter != nil {
 		finalMatch = bson.M{"$and": []bson.M{filter, userFilter}}
+	} else {
+		finalMatch = filter
 	}
 
 	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
