@@ -117,7 +117,7 @@ func (n *NotificationStorage) Delete(ctx context.Context, id string) error {
 	err = n.dal.DeleteOne(ctx, filter)
 	if err != nil {
 		n.logger.Errorf("[Delete] failed to delete notification: %v", err)
-		return err
+		return local_util.HandleDBError(err)
 	}
 	n.logger.Infof("[Delete] notification deleted successfully")
 	return nil
@@ -135,7 +135,7 @@ func (n *NotificationStorage) FindByID(ctx context.Context, id string) (*model.N
 	result, err := n.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		n.logger.Errorf("[FindByID] failed to find notification: %v", err)
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	n.logger.Infof("[FindByID] notification retrieved successfully")
 	return result, nil
@@ -164,7 +164,7 @@ func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterP
 	data, err := n.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		n.logger.Errorf("[FindAllWithPagination] failed to fetch notifications: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := n.dal.TotalCount(ctx, filter)

@@ -7,7 +7,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
 	"regexp"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -81,7 +80,7 @@ func (a *AdvertStorage) Delete(ctx context.Context, id string) error {
 	err = a.dal.DeleteOne(ctx, filter)
 	if err != nil {
 		a.logger.Errorf("[Delete] failed to delete advert: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	a.logger.Infof("[Delete] advert deleted successfully")
 	return nil
@@ -103,7 +102,7 @@ func (a *AdvertStorage) EnableOrDisable(ctx context.Context, id string, enable b
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
 		a.logger.Errorf("[EnableOrDisable] failed to enable/disable advert: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	a.logger.Infof("[EnableOrDisable] advert enable/disable completed successfully")
 	return nil
@@ -191,7 +190,7 @@ func (a *AdvertStorage) FindByTitle(ctx context.Context, title string) (*model.A
 			return nil, nil
 		}
 		a.logger.Errorf("[FindByTitle] failed to find advert: %v", err)
-		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	a.logger.Infof("[FindByTitle] advert retrieved successfully")
 	return result, nil

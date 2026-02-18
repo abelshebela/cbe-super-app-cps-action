@@ -9,7 +9,7 @@ import (
 )
 
 func (c *CancelRequest) Validate() error {
-	return validation.ValidateStruct(&c,
+	return validation.ValidateStruct(c,
 		validation.Field(&c.CancelReason,
 			validation.Required.Error("Cancel reason is required"),
 		),

@@ -45,7 +45,7 @@ func (l *AccountValidationStore) FindByID(ctx context.Context, id string) (*mode
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		l.logger.Errorf("[FindByID] invalid object id: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
 
@@ -56,7 +56,7 @@ func (l *AccountValidationStore) FindByID(ctx context.Context, id string) (*mode
 			return nil, errors.New(localization.ErrorFileNotFound.Code)
 		}
 		l.logger.Errorf("[FindByID] failed to find account validation rule: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	l.logger.Infof("[FindByID] account validation rule retrieved successfully")
 	return result, nil
@@ -115,14 +115,14 @@ func (l *AccountValidationStore) FindAllWithPagination(ctx context.Context, filt
 	data, err := l.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		l.logger.Errorf("[FindAllWithPagination] failed to fetch account validation rules: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := l.dal.TotalCount(ctx, filter)
 	if err != nil {
 		l.logger.Errorf("[FindAllWithPagination] failed to count account validation rules: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata

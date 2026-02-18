@@ -144,7 +144,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if action.MakerID == userData.UserID {
+	if action.MakerID == userData.UserName {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
 	}
@@ -163,7 +163,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if action.MakerID == userData.UserID {
+	if action.MakerID == userData.UserName {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
 	}
@@ -246,7 +246,7 @@ func (a *cpsActionAdapter) CancelCPSAction(w http.ResponseWriter, r *http.Reques
 		localization.SendBadRequestResponse(w, localization.ErrorUserForbidden.Message)
 		return
 	}
-	if userData.UserID != action.MakerID {
+	if userData.UserName != action.MakerID {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
 	}
@@ -431,7 +431,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		if action.MakerID == userData.UserID {
+		if action.MakerID == userData.UserName {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
@@ -562,7 +562,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		if action.MakerID == makerData.UserID {
+		if action.MakerID == makerData.UserName {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}

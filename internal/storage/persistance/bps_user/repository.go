@@ -83,8 +83,12 @@ func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*b
 	filter := bson.M{"user_code": userCode, "is_deleted": false}
 	result, err := b.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			b.logger.Errorf("[GetByUserCode] BPS user not found for code: %s", userCode)
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
 		b.logger.Errorf("[GetByUserCode] failed to find BPS user: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	b.logger.Infof("[GetByUserCode] BPS user retrieved successfully")
 	return result, nil
@@ -156,21 +160,21 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	cursor, err := s.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed aggregation: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var users []bpsUserDto.BPSUserResposenDTO
 	if err := cursor.All(ctx, &users); err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed to decode users: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// Count total documents (for pagination metadata)
 	total, err := s.collection.CountDocuments(ctx, match)
 	if err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed to count users: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	//  Build pagination metadata
@@ -218,7 +222,7 @@ func (b *BPSUserStorage) Create(ctx context.Context, req bps_model.BPSUser) erro
 		//     attribute.String("user_code", req.UserCode),
 		// ))
 		b.logger.Errorf("[CreateBPSUser] failed to create BPS user: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	b.logger.Infof("[CreateBPSUser] BPS user created successfully for user_code: %s", req.UserCode)
@@ -234,7 +238,7 @@ func (b *BPSUserStorage) FindByFilterKey(ctx context.Context, field, value strin
 		objID, err := bson.ObjectIDFromHex(value)
 		if err != nil {
 			b.logger.Errorf("[FindByFilterKey] invalid ObjectID: %v", err)
-			return nil, errors.New("invalid id format")
+			return nil, errors.New(localization.ErrorInvalidID.Code)
 		}
 		filter = bson.M{field: objID, "is_deleted": false}
 	} else {
@@ -243,8 +247,12 @@ func (b *BPSUserStorage) FindByFilterKey(ctx context.Context, field, value strin
 
 	result, err := b.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			b.logger.Errorf("[FindByFilterKey] BPS user not found by %s: %s", field, value)
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
 		b.logger.Errorf("[FindByFilterKey] failed to find BPS user by %s: %v", field, err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return result, nil
 }

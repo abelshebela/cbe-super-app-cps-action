@@ -52,6 +52,15 @@ func ThreeClickMerchantLookup(ctx context.Context, client *http.Client, x_api_ke
 		return res, merchantDto.MerchantLookUpResponse{}, errors.New(localization.ErrorThirdAPIRequestNotUnauthorized.Code)
 	}
 
+	if apiResp.Status == 404 {
+		return res, merchantDto.MerchantLookUpResponse{}, errors.New(localization.ErrorResourceNotFound.Code)
+	}
+
+	if apiResp.Status != 200 {
+		logger.Errorf("unexpected status code from third party API: %d", apiResp.Status)
+		return res, merchantDto.MerchantLookUpResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
 	if len(apiResp.Data) == 0 {
 		return res, merchantDto.MerchantLookUpResponse{}, errors.New(localization.ErrorResourceNotFound.Code)
 	}

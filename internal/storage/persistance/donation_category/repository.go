@@ -132,14 +132,14 @@ func (s *DonationCategoryStorage) FindAllWithPagination(ctx context.Context, fil
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, projection, skip, limit)
 	if err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed to fetch donation categories: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed to count donation categories: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
@@ -166,7 +166,7 @@ func (s *DonationCategoryStorage) Delete(ctx context.Context, id string) error {
 	err = s.dal.DeleteOne(ctx, filter)
 	if err != nil {
 		s.logger.Errorf("[Delete] failed to delete donation category: %v", err)
-		return err
+		return local_util.HandleDBError(err)
 	}
 	s.logger.Infof("[Delete] donation category deleted successfully")
 	return nil

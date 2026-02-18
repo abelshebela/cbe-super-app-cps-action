@@ -136,11 +136,11 @@ func (r *ResetSessionRepository) Delete(ctx context.Context, id string) error {
 
 	if err != nil {
 		r.logger.Errorf("Delete OTP failed: error creating filter. error=%v, id=%s", err, id)
-		return err
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	if err := r.resetSessionDal.DeleteOne(ctx, filter); err != nil {
 		r.logger.Errorf("Delete OTP failed: error deleting OTP. error=%v, id=%s", err, id)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	r.logger.Infof("OTP deleted successfully. id=%s", id)
 	return nil

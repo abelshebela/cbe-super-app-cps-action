@@ -31,8 +31,12 @@ func (b *BankStorage) FindByBIC(ctx context.Context, bic string) (*model.Bank, e
 	b.logger.Infof("[FindBIC] fetching bank by BIC: %s", bic)
 	bank, err := b.dal.FindOne(ctx, bson.M{"bic_code": bic, "enabled": true, "is_deleted": false}, nil)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			b.logger.Errorf("[FindBIC] bank with BIC %s not found", bic)
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
 		b.logger.Errorf("[FindBIC] failed to fetch bank: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return bank, nil
 }
@@ -90,7 +94,7 @@ func (b *BankStorage) Delete(ctx context.Context, id string) error {
 	err = b.dal.DeleteOne(ctx, filter)
 	if err != nil {
 		b.logger.Errorf("[Delete] failed to delete bank: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	b.logger.Infof("[Delete] bank deleted successfully")
 	return nil
@@ -112,7 +116,7 @@ func (b *BankStorage) EnableOrDisable(ctx context.Context, id string, enable boo
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
 		b.logger.Errorf("[EnableOrDisable] failed to enable/disable bank: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	b.logger.Infof("[EnableOrDisable] bank enable/disable completed successfully")
 	return nil
@@ -138,7 +142,7 @@ func (b *BankStorage) FindByID(ctx context.Context, id string) (*model.Bank, err
 	}
 	if result.IsDeleted {
 		b.logger.Errorf("[FindByID] bank is deleted")
-		return nil, mongo.ErrNoDocuments
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	b.logger.Infof("[FindByID] bank retrieved successfully")
 	return result, nil

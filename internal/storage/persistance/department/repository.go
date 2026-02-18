@@ -78,7 +78,7 @@ func (b *DepartmentStorage) Delete(ctx context.Context, id string) error {
 	err = b.dal.DeleteOne(ctx, filter)
 	if err != nil {
 		b.logger.Errorf("[Delete] failed to delete department: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	b.logger.Infof("[Delete] department deleted successfully")
 	return nil
@@ -95,8 +95,12 @@ func (b *DepartmentStorage) EnableOrDisable(ctx context.Context, id string, enab
 	update := bson.M{"enabled": enable}
 	_, err = b.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			b.logger.Errorf("[EnableOrDisable] department not found")
+			return errors.New(localization.ErrorDepartmentNotFound.Code)
+		}
 		b.logger.Errorf("[EnableOrDisable] failed to enable/disable department: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	b.logger.Infof("[EnableOrDisable] department enable/disable completed successfully")
 	return nil
@@ -131,8 +135,11 @@ func (b *DepartmentStorage) FindByName(ctx context.Context, name string) (*model
 	}
 	result, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
 		b.logger.Errorf("[FindByName] failed to find department: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	b.logger.Infof("[FindByName] department retrieved successfully")
 	return result, nil
@@ -170,14 +177,15 @@ func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterPar
 	// }
 	results, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return types.PaginatedResponse[[]model.Department]{}, err
+		s.logger.Errorf("[FindAllWithPagination] failed to fetch departments: %v", err)
+		return types.PaginatedResponse[[]model.Department]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed to count departments: %v", err)
-		return types.PaginatedResponse[[]model.Department]{}, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]model.Department]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
