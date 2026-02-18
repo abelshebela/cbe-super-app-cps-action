@@ -109,6 +109,11 @@ func (j *RoleService) EnableOrDisable(ctx context.Context, id string, enable boo
 		return err
 	}
 
+	if !enable && makerUser.UserRole == existing.Code {
+		j.logger.Errorf("[Role Service][EnableOrDisable] user cannot disable their own role")
+		return errors.New(localization.ErrorCannotDisableOwnRole.Code)
+	}
+
 	if existing.Enable == enable && enable {
 		j.logger.Errorf("[Role Service][EnableOrDisable] role is already %v", enable)
 		return errors.New(localization.ErrorAlreadyEnabled.Code)

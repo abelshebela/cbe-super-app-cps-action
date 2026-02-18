@@ -112,6 +112,11 @@ func (j *jobRoleService) EnableOrDisable(ctx context.Context, id string, enable 
 		return err
 	}
 
+	if !enable && makerUser.UserRole == existing.Role {
+		j.logger.Errorf("[JobRole Service][EnableOrDisable] user cannot disable their own role")
+		return errors.New(localization.ErrorCannotDisableOwnJobTitle.Code)
+	}
+
 	updated := *existing
 	updated.UpdateAt = time.Now()
 

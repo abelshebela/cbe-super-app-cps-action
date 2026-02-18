@@ -258,7 +258,7 @@ func (c *CustomerSegmentationAdapter) DeleteCustomerSegmentation(w http.Response
 //	@Param			id				path		string	true	"Segmentation ID"
 //	@Success		200				{object}	localization.StandardResponse{data=nil}
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/customer-segmentations/enable/{id} [patch]
+//	@Router			/customer-segmentations/{id}/enable [patch]
 func (c *CustomerSegmentationAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "Enable", "handler", "customerSegmentation")
 	defer span.End()
@@ -299,7 +299,7 @@ func (c *CustomerSegmentationAdapter) Enable(w http.ResponseWriter, r *http.Requ
 //	@Param			id				path		string	true	"Segmentation ID"
 //	@Success		200				{object}	localization.StandardResponse{data=nil}
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/customer-segmentations/disable/{id} [patch]
+//	@Router			/customer-segmentations/{id}/disable [patch]
 func (c *CustomerSegmentationAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "Disable", "handler", "customerSegmentation")
 	defer span.End()

@@ -58,7 +58,7 @@ func Init(router chi.Router, handler segmentations.CustomerSegmentation, authMid
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/customer-segmentations/enable/{id}",
+			Path:    "/customer-segmentations/{id}/enable",
 			Handler: handler.Enable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -66,7 +66,7 @@ func Init(router chi.Router, handler segmentations.CustomerSegmentation, authMid
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/customer-segmentations/disable/{id}",
+			Path:    "/customer-segmentations/{id}/disable",
 			Handler: handler.Disable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
