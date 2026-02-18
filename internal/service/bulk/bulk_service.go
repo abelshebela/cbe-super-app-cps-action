@@ -85,7 +85,6 @@ func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			return nil, err
 		}
 		s.logger.Infof("[Authorize] successfully enabled %d bulk services", len(keys))
-		return nil, nil
 	case string(constants.RequestBulkServiceDisable):
 		if err := s.repo.Update(ctx, keys, false); err != nil {
 			span.AddEvent("[Authorize] failed to diable bulk services", trace.WithAttributes(
@@ -95,11 +94,12 @@ func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			return nil, err
 		}
 		s.logger.Infof("[Authorize] successfully disabled %d bulk services", len(keys))
-		return nil, nil
 	default:
 		s.logger.Errorf("[Authorize] unsupported action: %s", cpsAction.RequestAction)
 		return nil, errors.New(localization.ErrorInvalidRequiredAction.Code)
 	}
+
+	return cpsAction, nil
 }
 
 func GetAllKeysFromMaps(maps map[string]bool) []string {
