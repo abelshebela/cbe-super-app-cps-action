@@ -103,7 +103,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		AuthTierPersistence:               auth_tier.NewAuthTierRepository(client, cfg, dbName, AuthTierCollection, logger),
 		BankPersistence:                   bank.NewBankRepository(client, cfg, dbName, BanksCollection, logger),
 		BudgetCategoryPersistence:         budget_category.NewBudgetCategoryRepository(client, cfg, dbName, BudgetCategoryCollection, clientOrchestrationProducer, logger),
-		BulkService:                       bulk_service.InitBulkServicePersistence(client, cfg, dbName, []string{CPSActionsCollection, AccessListCollection}, logger),
+		BulkService:                       bulk_service.InitBulkServicePersistence(client, cfg, dbName, []string{CPSActionsCollection, AccessListCollection}, clientOrchestrationProducer, logger),
 		CustomerService:                   customer.InitCustomerDetail(client, cfg, dbName, []string{MembersCollection, LinkedAccountsCollection}, clientOrchestrationProducer, logger),
 		CpsUserPersistence:                cps_user.NewCPSUserRepository(client, redisRepository, cfg, dbName, CPSUsersCollection, []string{DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection, RolesCollection, JobRolesCollection}, logger),
 		DonationPersistence:               donation.NewDonationRepository(client, cfg, dbName, DonationsCollection, clientOrchestrationProducer, logger),

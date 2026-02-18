@@ -495,12 +495,14 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 	delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
 
-	if RAList != nil {
-		RAList = local_utils.RemoveDuplicates(RAList)
-	} else {
-		RAList = []string{}
+	if role != "maker" {
+		if RAList != nil {
+			RAList = local_utils.RemoveDuplicates(RAList)
+		} else {
+			RAList = []string{}
+		}
+		filter["request_action"] = bson.M{"$in": RAList}
 	}
-	filter["request_action"] = bson.M{"$in": RAList}
 
 	var userFilter bson.M
 	if role == "maker" {
