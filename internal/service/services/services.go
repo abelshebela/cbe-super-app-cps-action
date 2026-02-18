@@ -72,7 +72,7 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 	}
 
 	for _, svc := range services.Data {
-		if svc.ID.Hex() != id && svc.ServiceName == searchName {
+		if svc.ID.Hex() != id && (svc.ServiceName == searchName) {
 			return errors.New(localization.ErrorServiceExists.Code)
 		}
 	}

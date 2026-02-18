@@ -341,7 +341,6 @@ func (r *CPSUserStorage) GetPopulatedWithRole(ctx context.Context, userCode stri
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	fmt.Println("Decoded CPS User Response:", resp.RoleCode)
 	r.logger.Infof("[GetPopulatedByID] populated CPS user retrieved successfully")
 	return &resp, nil
 }
