@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
+	"errors"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -40,13 +41,15 @@ func NewNewsTagRepository(client *mongo.Client, cfg *config.VaultConfig, databas
 func (n *NewsTagRepository) Create(ctx context.Context, tagName []string) error {
 	session, err := n.client.StartSession()
 	if err != nil {
-		return err
+		n.logger.Errorf("Create: failed to start session: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer session.EndSession(ctx)
 
 	err = mongo.WithSession(ctx, session, func(sc context.Context) error {
 		if err := session.StartTransaction(); err != nil {
-			return err
+			n.logger.Errorf("Create: failed to start transaction: %v", err)
+			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
 		for _, name := range tagName {
@@ -57,18 +60,24 @@ func (n *NewsTagRepository) Create(ctx context.Context, tagName []string) error 
 				LastModifiedAt: time.Now(),
 			}
 			if _, err := n.mongoDal.InsertOne(sc, cat); err != nil {
+				n.logger.Errorf("Create: failed to insert tag: %v", err)
 				_ = session.AbortTransaction(sc)
-				return err
+				return errors.New(localization.ErrorUnexpectedError.Code)
 			}
 		}
 
 		if err := session.CommitTransaction(sc); err != nil {
-			return err
+			n.logger.Errorf("Create: failed to commit transaction: %v", err)
+			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		n.kafkaProducer.PublishMessage(ctx, tagName, string(constants.ClientOrchestrationNewsTagTopic), string(constants.ClientOrchestrationNewsTagTopic), "new news tags created")
 		return nil
 	})
-	return err
+	if err != nil {
+		n.logger.Errorf("Create: transaction failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
 }
 
 // Delete implements storage.NewsTagRepository.
@@ -80,7 +89,8 @@ func (n *NewsTagRepository) Delete(ctx context.Context, id string) error {
 
 	err = n.mongoDal.DeleteOne(ctx, bson.M{"_id": objID})
 	if err != nil {
-		return err
+		n.logger.Errorf("[Delete] failed to delete news tag: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
@@ -108,7 +118,8 @@ func (n *NewsTagRepository) FindAllWithPagination(ctx context.Context, filterPar
 	filter["is_deleted"] = false
 	categories, err := n.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, err
+		n.logger.Errorf("[FindAllWithPagination] failed to fetch news tags: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	totalDocs, err := n.mongoDal.TotalCount(ctx, filter)
@@ -181,7 +192,11 @@ func (n *NewsTagRepository) FindByNames(ctx context.Context, names []string) (*m
 	filter := bson.M{"$or": orQueries}
 	news_category, err := n.mongoDal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		return nil, err
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		n.logger.Errorf("[FindByNames] failed to find news tag: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return news_category, nil
@@ -196,7 +211,11 @@ func (n *NewsTagRepository) Get(ctx context.Context, id string) (*model.NewsTag,
 
 	tag, err := n.mongoDal.FindOne(ctx, bson.M{"_id": objID, "is_deleted": false}, bson.M{})
 	if err != nil {
-		return nil, err
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		n.logger.Errorf("[Get] failed to find news tag: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return tag, nil
 }
@@ -210,7 +229,8 @@ func (n *NewsTagRepository) Update(ctx context.Context, id string, tagName strin
 
 	updatedNewsCategory, err := n.mongoDal.UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"tag_name": tagName})
 	if err != nil {
-		return err
+		n.logger.Errorf("[Update] failed to update news tag: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	n.kafkaProducer.PublishMessage(ctx, updatedNewsCategory, string(constants.ClientOrchestrationNewsTagTopic), string(constants.ClientOrchestrationNewsTagTopic), "news tag updated")
 	return nil

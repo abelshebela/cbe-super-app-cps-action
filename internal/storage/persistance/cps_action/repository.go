@@ -9,7 +9,6 @@ import (
 	cps_action_core "cbe-super-app-cps-action/internal/storage/persistance/cps_action/core"
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -48,7 +47,7 @@ func (r *CPSActionStorage) Save(ctx context.Context, cpsAction *model.CPSAction)
 	cps, err := r.dal.InsertOne(ctx, *cpsAction)
 	if err != nil {
 		r.logger.Errorf("[Save] failed to save CPS action: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Message)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	r.logger.Infof("[Save] CPS action saved successfully with id: %s", cps.ID.Hex())
 	return nil
@@ -89,13 +88,13 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 	data, err := s.dal.FindAllWithCursorBasedPagination(ctx, Filter)
 	if err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed to fetch CPS actions: %v", err)
-		return types.PaginatedResponse[[]model.CPSAction]{}, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]model.CPSAction]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed to count CPS actions: %v", err)
-		return types.PaginatedResponse[[]model.CPSAction]{}, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]model.CPSAction]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_utils.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -115,8 +114,7 @@ func (r *CPSActionStorage) FindOne(ctx context.Context, filter bson.M) (*model.C
 	data, err := r.dal.FindOne(ctx, filterMap, Projection)
 	if err != nil {
 		r.logger.Errorf("[FindOne] failed to find CPS action: %v", err)
-		code, _ := local_utils.HandleMongoError(err)
-		return nil, errors.New(code)
+		return nil, local_utils.HandleDBError(err)
 	}
 	r.logger.Infof("[FindOne] CPS action retrieved successfully")
 	return data, nil
@@ -130,8 +128,7 @@ func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update
 	data, err := r.dal.UpdateOne(ctx, filterMap, updateMap)
 	if err != nil {
 		r.logger.Errorf("[Update] failed to update CPS action: %v", err)
-		code, _ := local_utils.HandleMongoError(err)
-		return nil, errors.New(code)
+		return nil, local_utils.HandleDBError(err)
 	}
 	r.logger.Infof("[Update] CPS action updated successfully")
 	return &data, nil
@@ -144,8 +141,7 @@ func (r *CPSActionStorage) UpdateByActionCode(ctx context.Context, actionCode st
 	data, err := r.dal.UpdateOne(ctx, filterMap, updateMap)
 	if err != nil {
 		r.logger.Errorf("[UpdateByActionCode] failed to update CPS action: %v", err)
-		code, _ := local_utils.HandleMongoError(err)
-		return nil, errors.New(code)
+		return nil, local_utils.HandleDBError(err)
 	}
 	r.logger.Infof("[UpdateByActionCode] CPS action updated successfully")
 	return &data, nil
@@ -157,8 +153,7 @@ func (r *CPSActionStorage) UpdateCustome(ctx context.Context, filter, update bso
 	_, err := r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		r.logger.Errorf("[UpdateCustome] failed to update CPS action: %v", err)
-		code, _ := local_utils.HandleMongoError(err)
-		return errors.New(code)
+		return local_utils.HandleDBError(err)
 	}
 	r.logger.Infof("[UpdateCustome] CPS action updated successfully")
 	return nil
@@ -169,14 +164,14 @@ func (r *CPSActionStorage) Delete(ctx context.Context, id string) error {
 	idObj, ok := local_utils.StringToObjectID(id)
 	if !ok {
 		r.logger.Errorf("Invalid ObjectID for deletion: %s", id)
-		return errors.New(localization.ErrorUnexpectedError.Message)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filterMap := BuildCPSActionFilter(model.CPSAction{ID: idObj})
 
 	err := r.dal.DeleteOne(ctx, filterMap)
 	if err != nil {
 		r.logger.Errorf("Error deleting CPSAction: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Message)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	r.logger.Infof("Successfully deleted CPSAction with ID: %s", id)
 	return nil
@@ -235,7 +230,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	total, err := r.dal.TotalCount(ctx, filter)
 	if err != nil {
 		r.logger.Errorf("Error counting total CPSActions: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
@@ -310,18 +305,20 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 
 	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, err
+		r.logger.Errorf("[SanitizedFindAllWithPaginationForApprover] aggregation failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cur.Close(ctx)
 
 	var results []*model.CPSAction
 	if err := cur.All(ctx, &results); err != nil {
-		return nil, err
+		r.logger.Errorf("[SanitizedFindAllWithPaginationForApprover] cursor decode failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	total, err := r.dal.TotalCount(ctx, finalMatch)
 	if err != nil {
 		r.logger.Errorf("Error counting total CPSActions: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
@@ -430,18 +427,20 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 
 	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, err
+		r.logger.Errorf("[SanitizedFindAllWithPaginationForAuditor] aggregation failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cur.Close(ctx)
 
 	var results []*model.CPSAction
 	if err := cur.All(ctx, &results); err != nil {
-		return nil, err
+		r.logger.Errorf("[SanitizedFindAllWithPaginationForAuditor] cursor decode failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	total, err := r.dal.TotalCount(ctx, filter)
 	if err != nil {
 		r.logger.Errorf("Error counting total CPSActions: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
@@ -454,94 +453,6 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 		Meta: meta,
 	}, nil
 }
-
-// func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error) {
-// 	r.logger.Infof("Finding all CPSActions with pagination. Department: %s, Filter: %+v", RAList, filterParam)
-// 	// 1. Base filter (only active records)
-// 	baseFilter := bson.M{
-// 		"is_deleted": false,
-// 	}
-// 	searchKeys := bson.M{}
-
-// 	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "auditor_status"}
-
-// 	if filterParam.Search != "" {
-// 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-// 		baseFilter["$or"] = []bson.M{
-// 			{"maker_name": searchRegex},
-// 			{"maker_phone_number": searchRegex},
-// 			{"action_status": searchRegex},
-// 			{"auditor_status": searchRegex},
-// 			{"action_type": searchRegex},
-// 			{"request_action": searchRegex},
-// 		}
-
-// 	}
-
-// 	dynamicFilter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-// 	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
-
-// 	for k, v := range baseFilter {
-// 		dynamicFilter[k] = v
-// 	}
-// 	delete(dynamicFilter, "created_at")
-// 	filter := dynamicFilter
-
-// 	if RAList != nil {
-// 		RAList = local_utils.RemoveDuplicates(RAList)
-// 	} else {
-// 		RAList = []string{}
-// 	}
-// 	filter["request_action"] = bson.M{"$in": RAList}
-
-// 	// if filter["action_status"] == "" || filter["action_status"] == constants.Pending {
-// 	// 	filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
-// 	// }
-
-// 	// userFilter := bson.M{"auditor_users.auditor_id": userID}
-
-// 	// finalMatch := bson.M{
-// 	// 	"$or": []bson.M{
-// 	// 		filter,
-// 	// 		userFilter,
-// 	// 	},
-// 	// }
-
-// 	pipeline := mongo.Pipeline{
-// 		{{Key: "$match", Value: filter}},
-// 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
-// 		{{Key: "$skip", Value: skip}},
-// 		{{Key: "$limit", Value: limit}},
-// 		{{Key: "$project", Value: Projection}},
-// 		cps_action_core.SanitizePipeline(exclude),
-// 	}
-
-// 	cur, err := r.collection.Aggregate(ctx, pipeline)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer cur.Close(ctx)
-
-// 	var results []*model.CPSAction
-// 	if err := cur.All(ctx, &results); err != nil {
-// 		return nil, err
-// 	}
-// 	total, err := r.dal.TotalCount(ctx, filter)
-// 	if err != nil {
-// 		r.logger.Errorf("Error counting total CPSActions: %v", err)
-// 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
-// 	}
-
-// 	// 7. Build pagination metadata
-// 	meta := local_utils.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-
-// 	// 8. Return standard paginated response
-// 	r.logger.Infof("Successfully fetched paginated CPSActions. Total: %d", total)
-// 	return &types.PaginatedResponse[[]*model.CPSAction]{
-// 		Data: results,
-// 		Meta: meta,
-// 	}, nil
-// }
 
 func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.Context, userID, role string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	r.logger.Infof("Finding all CPSActions with pagination for User: %s. Department: %s, Filter: %+v", userID, RAList, filterParam)
@@ -630,18 +541,20 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 
 	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, err
+		r.logger.Errorf("[SanitizedFindAllWithPaginationCPSActions] aggregation failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cur.Close(ctx)
 
 	var results []*model.CPSAction
 	if err := cur.All(ctx, &results); err != nil {
-		return nil, err
+		r.logger.Errorf("[SanitizedFindAllWithPaginationCPSActions] cursor decode failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	total, err := r.dal.TotalCount(ctx, finalMatch)
 	if err != nil {
 		r.logger.Errorf("Error counting total CPSActions: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_utils.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -677,7 +590,8 @@ func (r *CPSActionStorage) SanitizedFindOne(ctx context.Context, filter bson.M) 
 
 	var result model.CPSAction
 	if err := cur.Decode(&result); err != nil {
-		return nil, fmt.Errorf("failed to decode document: %w", err)
+		r.logger.Errorf("[SanitizedFindOne] failed to decode document: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return &result, nil
@@ -710,7 +624,8 @@ func (r *CPSActionStorage) GetCountByDepartment(ctx context.Context, department 
 
 	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, fmt.Errorf("aggregation failed: %w", err)
+		r.logger.Errorf("[GetCountByDepartment] aggregation failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() {
 		_ = cur.Close(ctx)
@@ -719,7 +634,8 @@ func (r *CPSActionStorage) GetCountByDepartment(ctx context.Context, department 
 	var result actionDto.CPSActionCountResponse
 	if cur.Next(ctx) {
 		if err := cur.Decode(&result); err != nil {
-			return nil, fmt.Errorf("failed to decode document: %w", err)
+			r.logger.Errorf("[GetCountByDepartment] failed to decode document: %v", err)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 	} else {
 		// If no documents match, return zero counts instead of error

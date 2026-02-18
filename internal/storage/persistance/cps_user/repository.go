@@ -51,7 +51,7 @@ func (r *CPSUserStorage) Create(ctx context.Context, cpsUser *imodel.CPSUser) er
 	_, err := r.dal.InsertOne(ctx, *cpsUser)
 	if err != nil {
 		r.logger.Errorf("failed to create CPS user: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Message)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
@@ -64,7 +64,7 @@ func (r *CPSUserStorage) Update(ctx context.Context, userCode string, cpsUser *i
 	_, err := r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		r.logger.Errorf("[Update] failed to update CPS user: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Message)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	r.logger.Infof("[Update] CPS user updated successfully")
 	return nil
@@ -78,7 +78,7 @@ func (r *CPSUserStorage) Delete(ctx context.Context, userCode string) error {
 	_, err := r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		r.logger.Errorf("[Delete] failed to delete CPS user: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Message)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	r.logger.Infof("[Delete] CPS user deleted successfully")
 	return nil
@@ -95,7 +95,7 @@ func (r *CPSUserStorage) EnableOrDisable(ctx context.Context, userCode string, e
 	_, err := r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		r.logger.Errorf("[EnableOrDisable] failed to enable/disable CPS user: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Message)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	// remove user device id from redis
 	user, err := r.FindByID(ctx, userCode)
@@ -122,7 +122,7 @@ func (r *CPSUserStorage) FindByUsername(ctx context.Context, username string) (*
 			return nil, nil // Return nil, nil when no document found (not an error)
 		}
 		r.logger.Errorf("[FindByUsername] failed to find CPS user: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	r.logger.Infof("[FindByUsername] CPS user retrieved successfully")
 	return result, nil
@@ -137,7 +137,7 @@ func (r *CPSUserStorage) FindByPhoneNumber(ctx context.Context, phoneNumber stri
 			return nil, nil
 		}
 		r.logger.Errorf("[FindByPhoneNumber] failed to find CPS user: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	r.logger.Infof("[FindByPhoneNumber] CPS user retrieved successfully")
 	return result, nil
@@ -152,7 +152,7 @@ func (r *CPSUserStorage) FindByEmail(ctx context.Context, email string) (*imodel
 			return nil, nil
 		}
 		r.logger.Errorf("[FindByEmail] failed to find CPS user: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	r.logger.Infof("[FindByEmail] CPS user retrieved successfully")
 	return result, nil
@@ -170,7 +170,7 @@ func (r *CPSUserStorage) FindByID(ctx context.Context, id string) (*imodel.CPSUs
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
 		r.logger.Errorf("[FindByID] failed to find CPS user: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	r.logger.Infof("[FindByID] CPS user retrieved successfully")
 	return result, nil
@@ -253,7 +253,7 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		r.logger.Errorf("[FindAllWithPagination] failed to execute aggregation pipeline: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
@@ -266,7 +266,7 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	if err := cursor.All(ctx, &results); err != nil {
 		r.logger.Errorf("[FindAllWithPagination] failed to decode aggregation results: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if len(results) == 0 {
@@ -297,7 +297,7 @@ func (r *CPSUserStorage) GetPopulatedByID(ctx context.Context, userCode string) 
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		r.logger.Errorf("[GetPopulatedByID] failed to aggregate CPS user: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	defer cursor.Close(ctx)
@@ -310,7 +310,7 @@ func (r *CPSUserStorage) GetPopulatedByID(ctx context.Context, userCode string) 
 	var resp cpsuser.CpsUserResponse
 	if err := cursor.Decode(&resp); err != nil {
 		r.logger.Errorf("[GetPopulatedByID] failed to decode CPS user response: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	fmt.Println("Decoded CPS User Response:", resp)
 	r.logger.Infof("[GetPopulatedByID] populated CPS user retrieved successfully")
@@ -325,7 +325,7 @@ func (r *CPSUserStorage) GetPopulatedWithRole(ctx context.Context, userCode stri
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		r.logger.Errorf("[GetPopulatedByID] failed to aggregate CPS user: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	defer cursor.Close(ctx)
@@ -338,7 +338,7 @@ func (r *CPSUserStorage) GetPopulatedWithRole(ctx context.Context, userCode stri
 	var resp cpsuser.CpsUserPopulatedResponse
 	if err := cursor.Decode(&resp); err != nil {
 		r.logger.Errorf("[GetPopulatedByID] failed to decode CPS user response: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	fmt.Println("Decoded CPS User Response:", resp.RoleCode)
@@ -365,7 +365,7 @@ func (r *CPSUserStorage) FindByEmailOrPhoneNumberOrUserName(ctx context.Context,
 
 	result, err := r.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }

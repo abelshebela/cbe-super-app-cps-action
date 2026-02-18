@@ -77,7 +77,7 @@ func (a *AvatarStorage) Delete(ctx context.Context, id string) error {
 	err = a.dal.DeleteOne(ctx, filter)
 	if err != nil {
 		a.logger.Errorf("[Delete] failed to delete avatar: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	a.logger.Infof("[Delete] avatar deleted successfully")
 	return nil
@@ -99,7 +99,7 @@ func (a *AvatarStorage) EnableOrDisable(ctx context.Context, id string, enable b
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
 		a.logger.Errorf("[EnableOrDisable] failed to enable/disable avatar: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	a.logger.Infof("[EnableOrDisable] avatar enable/disable completed successfully")
 	return nil
@@ -121,7 +121,7 @@ func (a *AvatarStorage) FindByID(ctx context.Context, id string) (*model.Avatar,
 			return nil, errors.New(localization.ErrorFileNotFound.Code)
 		}
 		a.logger.Errorf("[FindByID] failed to find avatar: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	a.logger.Infof("[FindByID] avatar retrieved successfully")
 	return result, nil
@@ -131,7 +131,7 @@ func (a *AvatarStorage) FindAll(ctx context.Context, filter bson.M, projection b
 	result, err := a.dal.FindAll(ctx, filter, nil)
 	if err != nil {
 		a.logger.Errorf("[FindAll] failed to fetch avatars: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	a.logger.Infof("[FindAll] retrieved %d avatars", len(result))
 	return result, nil
@@ -174,14 +174,14 @@ func (s *AvatarStorage) FindAllWithPagination(ctx context.Context, filterParam t
 	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed to fetch avatars: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed to count avatars: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata

@@ -48,7 +48,7 @@ func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmen
 	_, err := r.dal.InsertOne(ctx, *seg)
 	if err != nil {
 		r.logger.Errorf("Unable to create customer segmentation with error: %s", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
@@ -64,7 +64,7 @@ func (r *customerStorage) Update(ctx context.Context, id string, seg *imodel.Cus
 	updatedCustomerSegmentation, err := r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		r.logger.Errorf("Unable to update customer segmentation with error: %s", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	r.kafkaProducer.PublishMessage(
@@ -94,7 +94,7 @@ func (r *customerStorage) EnableOrDisable(ctx context.Context, id string, enable
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
 		r.logger.Errorf("Unable to enable/disable customer segmentation with error: %s", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
@@ -109,7 +109,7 @@ func (r *customerStorage) Delete(ctx context.Context, id string) error {
 	_, err = r.dal.UpdateOne(ctx, filter, bson.M{"is_deleted": true})
 	if err != nil {
 		r.logger.Errorf("Unable to delete customer segmentation with error: %s", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
@@ -128,7 +128,7 @@ func (r *customerStorage) FindByID(ctx context.Context, id string) (*imodel.Cust
 			return nil, errors.New(localization.ErrorFileNotFound.Code)
 		}
 		r.logger.Errorf("Unable to find customer segmentation by ID with error: %s", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return seg, nil
@@ -164,13 +164,13 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 	data, err := r.dal.FindAllWithPaginationE(ctx, filter, projection, skip, limit)
 	if err != nil {
 		r.logger.Errorf("[FindAllWithPagination] failed to fetch customer segmentations: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := r.dal.TotalCount(ctx, filter)
 	if err != nil {
 		r.logger.Errorf("[FindAllWithPagination] failed to count customer segmentations: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -199,7 +199,7 @@ func (r *customerStorage) FindByCustomerSegmentation(ctx context.Context, custom
 	result, err := r.dal.FindOne(ctx, filter, projection)
 	if err != nil {
 		r.logger.Errorf("[FindByCustomerSegmentation] failed to fetch customer segmentation: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return result, nil
 }

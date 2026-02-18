@@ -85,7 +85,7 @@ func (l *ArchivedLinkedAccountStorage) FindByID(ctx context.Context, id string, 
 	result, err := l.dal.FindOne(ctx, filter, nil)
 
 	if err != nil {
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -123,12 +123,12 @@ func (l *ArchivedLinkedAccountStorage) FindAllWithPagination(ctx context.Context
 
 	data, err := l.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := l.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
