@@ -53,7 +53,7 @@ func ThreeClickMerchantLookup(ctx context.Context, client *http.Client, x_api_ke
 	}
 
 	if apiResp.Status == 404 {
-		return res, merchantDto.MerchantLookUpResponse{}, errors.New(localization.ErrorResourceNotFound.Code)
+		return res, merchantDto.MerchantLookUpResponse{}, errors.New("Merchant with ID " + merchantId + " not found")
 	}
 
 	if apiResp.Status != 200 {
