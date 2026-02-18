@@ -30,7 +30,7 @@ type CPSUser struct {
 	LastLoginAttempt         time.Time      `json:"last_login_attempt,omitempty" bson:"last_login_attempt"`
 	NextLoginAttempt         time.Time      `json:"next_login_attempt,omitempty" bson:"next_login_attempt"`
 	LastOnlineDate           time.Time      `json:"last_online_date,omitempty" bson:"last_online_date"`
-	LastLogin                time.Time      `json:"last_login,omitempty" bson:"last_login"`
+	LastLogin                time.Time      `json:"last_login" bson:"last_login"`
 	LoginPassword            string         `json:"login_password,omitempty" bson:"login_password"`
 	AccountAuthorizationCode string         `json:"account_authorization_code,omitempty" bson:"account_authorization_code"`
 	UnlockAccountRequested   bool           `json:"unlock_account_requested,omitempty" bson:"unlock_account_requested"`
