@@ -607,16 +607,16 @@ func (r *CPSActionStorage) GetCountByDepartment(ctx context.Context, department 
 		// group stage
 		{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: nil},
-			{Key: "Pending", Value: bson.D{
+			{Key: "pending", Value: bson.D{
 				{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$action_status", "PENDING"}}}, 1, 0}}}},
 			}},
-			{Key: "Approved", Value: bson.D{
+			{Key: "approved", Value: bson.D{
 				{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$action_status", "APPROVED"}}}, 1, 0}}}},
 			}},
-			{Key: "Rejected", Value: bson.D{
+			{Key: "rejected", Value: bson.D{
 				{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$action_status", "REJECTED"}}}, 1, 0}}}},
 			}},
-			{Key: "Canceled", Value: bson.D{
+			{Key: "canceled", Value: bson.D{
 				{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$action_status", "CANCELED"}}}, 1, 0}}}},
 			}},
 		}}},

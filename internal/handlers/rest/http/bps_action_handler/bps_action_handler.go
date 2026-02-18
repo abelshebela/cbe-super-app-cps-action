@@ -642,7 +642,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	requestedRole := r.URL.Query().Get("role")
+	requestedRole := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("role")))
 	if err := local_util.NoSpecialChars(requestedRole); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

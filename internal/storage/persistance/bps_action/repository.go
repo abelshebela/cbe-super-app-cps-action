@@ -558,10 +558,10 @@ func (b *bpsActionRepository) GetCountByDepartment(ctx context.Context, departme
 		{{Key: "$match", Value: bson.M{"is_deleted": false, "department": department}}},
 		{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: nil},
-			{Key: "Approved", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", "APPROVED"}}}, 1, 0}}}}}},
-			{Key: "Rejected", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", "REJECTED"}}}, 1, 0}}}}}},
-			{Key: "Inprogress", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", "INPROGRESS"}}}, 1, 0}}}}}},
-			{Key: "Completed", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", "AUDITORNOTCHECKED"}}}, 1, 0}}}}}},
+			{Key: "approved", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", "APPROVED"}}}, 1, 0}}}}}},
+			{Key: "rejected", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", "REJECTED"}}}, 1, 0}}}}}},
+			{Key: "inprogress", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", "INPROGRESS"}}}, 1, 0}}}}}},
+			{Key: "completed", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", "AUDITORNOTCHECKED"}}}, 1, 0}}}}}},
 		}}},
 	}
 
