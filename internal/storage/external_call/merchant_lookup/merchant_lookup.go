@@ -34,7 +34,7 @@ func (m *MerchantLookupAdapter) LookupMerchant(ctx context.Context, merchantID, 
 	res, merchantInfo, err := ThreeClickMerchantLookup(ctx, m.client, xAPIKey, url, merchantID, m.logger)
 	if err != nil {
 		m.logger.Errorf("failed to lookup merchant data from third party API: %v", err)
-		return merchantDto.MerchantLookUpResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
+		return merchantDto.MerchantLookUpResponse{}, err
 	}
 	defer res.Body.Close()
 
