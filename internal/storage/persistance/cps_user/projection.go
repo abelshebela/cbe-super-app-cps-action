@@ -160,6 +160,7 @@ func PipelineBuilder(userCode string) mongo.Pipeline {
 			"enabled":      1,
 			"job_title":    1,
 			"role_id":      "$role_doc.role_id",
+			"last_login":   1,
 		}}},
 	}
 }
@@ -261,6 +262,7 @@ func PipelineBuilderWithRole(userCode, departmentColl, rolesColl, jobRolesColl s
 			"username":     1,
 			"email":        1,
 			"phone_number": 1,
+			"last_login":   1,
 			"gender":       1,
 			"realm":        1,
 			"enabled":      1,
