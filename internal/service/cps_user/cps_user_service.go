@@ -77,7 +77,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	}
 
 	emailCheckBPS, err := s.bpsRepo.FindByOr(ctx, req.PhoneNumber, req.Email, "")
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to check email existence in BPS", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
@@ -367,10 +367,13 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 		return nil, err
 	}
 
-	makerAlloc, checkerAlloc, auditorAlloc, portalCard, err := s.approverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
-	if err != nil {
-		span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
-		return nil, err
+	var makerAlloc, checkerAlloc, auditorAlloc, portalCard []string
+	if roles.Enabled {
+		_, makerAlloc, checkerAlloc, auditorAlloc, portalCard, err = s.approverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
+		if err != nil {
+			span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
 	}
 
 	userData, err := local_util.JsonUnmarshal[cpsuser.CpsUserResponse](user)
@@ -434,8 +437,8 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		}
 	}
 
-	if roles != nil {
-		makerAlloc, checkerAlloc, auditorAlloc, portalCard, err = s.approverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
+	if roles != nil && roles.Enabled {
+		_, makerAlloc, checkerAlloc, auditorAlloc, portalCard, err = s.approverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
 		if err != nil {
 			span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err

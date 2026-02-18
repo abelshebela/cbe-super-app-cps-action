@@ -141,7 +141,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	accessListSegmentationService := access_list_segmentation_service.NewAccessListSegmentationService(persistence.AccessListSegmentationPersistence, nil, persistence.AccessListPersistence, persistence.AccountBlockPersistence, persistence.CustomerService, persistence.CPSRoles, logger)
 	customerSegmentationService := customer_segmentation.NewCustomerSegmentation(persistence.CustomerSegmentation, persistence.CPSRoles, nil, logger)
 	jobRoleService := job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, nil, *cfg, logger)
-	RoleService := roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, nil, *cfg, logger)
+	RoleService := roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, nil, *cfg, logger)
 	CPSRolesService := cps_role.NewCPSRoleService(persistence.CPSRoles, nil, logger)
 	customerKYCService := kyc_service.NewCustomerKYCService(persistence.CustomerKYCPersistence, nil, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 
@@ -301,7 +301,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	accessListSegmentationService = access_list_segmentation_service.NewAccessListSegmentationService(persistence.AccessListSegmentationPersistence, cpsActionService, persistence.AccessListPersistence, persistence.AccountBlockPersistence, persistence.CustomerService, persistence.CPSRoles, logger)
 	customerSegmentationService = customer_segmentation.NewCustomerSegmentation(persistence.CustomerSegmentation, persistence.CPSRoles, cpsActionService, logger)
 	jobRoleService = job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, cpsActionService, *cfg, logger)
-	RoleService = roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, cpsActionService, *cfg, logger)
+	RoleService = roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, cpsActionService, *cfg, logger)
 	CPSRolesService = cps_role.NewCPSRoleService(persistence.CPSRoles, cpsActionService, logger)
 	customerKYCService = kyc_service.NewCustomerKYCService(persistence.CustomerKYCPersistence, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 

@@ -44,6 +44,9 @@ type MerchantLookUpResponse struct {
 	Name          string   `json:"name"`
 	Street        string   `json:"street"`
 	Branches      []Branch `json:"branches"`
+	IsOrganizer   bool     `json:"is_organizer"`
+	IsDelivery    bool     `json:"is_delivery"`
+	IsEcommerce   bool     `json:"is_ecommerce"`
 }
 
 type MiniAppMerchantResponseDTO struct {

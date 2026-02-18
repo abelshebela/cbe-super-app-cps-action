@@ -457,6 +457,9 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorAlreadyEnabled,
 	ErrorAlreadyDisabled,
+	ErrorCannotDisableOwnRole,
+	ErrorCannotDisableOwnJobTitle,
+	ErrorRoleHasActiveJobs,
 	ErrorInvalidBulkServiceKey,
 	ErrorInvalidRequiredAction,
 	ErrorFailToUpdateParent,
@@ -718,6 +721,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventMerchantInvalidSettlementMethod,
 	ErrorEventMerchantInvalidMerchantName,
 	ErrorEventMerchantInvalidBankAccountNumber,
+	ErrorEventMerchantInvalidIsEventMerchant,
 	ErrorEventMerchantInvalidEmail,
 	ErrorEventMerchantInvalidPhoneNumber,
 	ErrorMerchantIDAlreadyExists,
@@ -7060,6 +7064,27 @@ var (
 		Type:       "error",
 	}
 
+	ErrorCannotDisableOwnRole = ResponseCode{
+		Code:       "ERROR_CANNOT_DISABLE_OWN_ROLE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotDisableOwnRole,
+		Type:       "error",
+	}
+
+	ErrorCannotDisableOwnJobTitle = ResponseCode{
+		Code:       "ERROR_CANNOT_DISABLE_OWN_JOB_TITLE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotDisableOwnJobTitle,
+		Type:       "error",
+	}
+
+	ErrorRoleHasActiveJobs = ResponseCode{
+		Code:       "ERROR_ROLE_HAS_ACTIVE_JOBS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleHasActiveJobs,
+		Type:       "error",
+	}
+
 	ErrorOneOrMoreInvalidCodes = ResponseCode{
 		Code:       "ERROR_ONE_OR_MORE_INVALID_CODES",
 		StatusCode: StatusBadRequest,
@@ -7703,6 +7728,18 @@ var (
 		Message:    MsgEventMerchantInvalidAccountNumber,
 		Type:       "error",
 	}
+	ErrorEventMerchantInvalidIsEventMerchant = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_IS_EVENT_MERCHANT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidIsEventMerchant,
+		Type:       "error",
+	}
+	ErrorEcommernceMerchantInvalidIsEcommerceMerchant = ResponseCode{
+		Code:       "ERROR_ECOMMERCE_MERCHANT_INVALID_IS_ECOMMERCE_MERCHANT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEcommerceMerchantInvalidIsEcommerceMerchant,
+		Type:       "error",
+	}
 	ErrorEventMerchantInvalidEmail = ResponseCode{
 		Code:       "ERROR_EVENT_MERCHANT_INVALID_EMAIL",
 		StatusCode: StatusBadRequest,
@@ -7763,6 +7800,12 @@ var (
 		Code:       "ERROR_LOGISTIC_MERCHANT_INVALID_BANK_ACCOUNT_NUMBER",
 		StatusCode: StatusBadRequest,
 		Message:    MsgLogisticMerchantInvalidAccountNumber,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantInvalidIsLogisticsMerchant = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_INVALID_IS_LOGISTICS_MERCHANT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgLogisticMerchantInvalidIsLogisticsMerchant,
 		Type:       "error",
 	}
 	ErrorLogisticMerchantInvalidEmail = ResponseCode{

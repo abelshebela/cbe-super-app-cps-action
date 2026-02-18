@@ -59,7 +59,7 @@ func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.Feedback
 		return nil, err
 	}
 
-	user, err := f.memberRepo.FindCustomerByID(ctx, userCode)
+	user, err := f.memberRepo.FindCustomerByUserCode(ctx, userCode)
 	if err != nil {
 		f.logger.Errorf("[CreateFeedback] failed to find user by code %s: %v", userCode, err)
 		span.AddEvent("Failed to find user", trace.WithAttributes(
@@ -99,9 +99,9 @@ func (f *feedbackService) CreateSurveyFeedback(ctx context.Context, surveyFeedba
 		))
 		return nil, err
 	}
-	user, err := f.memberRepo.FindCustomerByID(ctx, surveyFeedback.UserID)
+	user, err := f.memberRepo.FindCustomerByUserCode(ctx, surveyFeedback.UserID)
 	if err != nil {
-		f.logger.Errorf("[CreateFeedback] failed to find user by code %s: %v", surveyFeedback.UserID, err)
+		f.logger.Errorf("[CreateSurveyFeedback] failed to find user by code %s: %v", surveyFeedback.UserID, err)
 		span.AddEvent("Failed to find user", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("user_id", surveyFeedback.UserID),

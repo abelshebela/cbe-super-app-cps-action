@@ -541,6 +541,7 @@ func FallbackModuleForRA(action constants.RequestAction) (string, bool) {
 }
 
 func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, body erp_merchant_update_dto.ERPUpdateRequest, merchantID string, logger utils.Logger) error {
+	logger.Infof("Publishing merchant change to ERP for merchant %s with body %+v", merchantID, body)
 	ctx, span := local_util.TraceLogger(ctx, "core", "UpdateERP", "LogisticsMerchant", "UpdateERP")
 	defer span.End()
 
@@ -592,6 +593,7 @@ func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, bo
 		logger.Errorf("ERP update failed api key: %s", cfg.ApiKey)
 		return errors.New("ERP update failed")
 	}
-
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	logger.Infof("ERP update successful for merchant %s with response status %d, response body: %s", merchantID, resp.StatusCode, string(bodyBytes))
 	return nil
 }

@@ -23,20 +23,22 @@ import (
 )
 
 type RoleService struct {
-	cpsService     service.CPSActionService
-	portalCardRepo storage.PortalCardRepository
-	roleRepository storage.JobRoleRepository
-	cfg            config.VaultConfig
-	logger         utils.Logger
+	cpsService       service.CPSActionService
+	portalCardRepo   storage.PortalCardRepository
+	roleRepository   storage.JobRoleRepository
+	approveIndexRepo storage.CPSActionApproveIndexRepository
+	cfg              config.VaultConfig
+	logger           utils.Logger
 }
 
-func NewRoleService(roleRepo storage.JobRoleRepository, portalCard storage.PortalCardRepository, cpsService service.CPSActionService, cfg config.VaultConfig, logger utils.Logger) service.RoleService {
+func NewRoleService(roleRepo storage.JobRoleRepository, portalCard storage.PortalCardRepository, approveIndexRepo storage.CPSActionApproveIndexRepository, cpsService service.CPSActionService, cfg config.VaultConfig, logger utils.Logger) service.RoleService {
 	return &RoleService{
-		cpsService:     cpsService,
-		portalCardRepo: portalCard,
-		roleRepository: roleRepo,
-		cfg:            cfg,
-		logger:         logger,
+		cpsService:       cpsService,
+		portalCardRepo:   portalCard,
+		roleRepository:   roleRepo,
+		approveIndexRepo: approveIndexRepo,
+		cfg:              cfg,
+		logger:           logger,
 	}
 }
 
@@ -85,8 +87,8 @@ func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRo
 	if update.Code != "" {
 		newRole.Code = update.Code
 	}
-	if len(update.PortalCards) > 0 {
-		newRole.PortalCards = update.PortalCards
+	if update.Description != "" {
+		newRole.Description = update.Description
 	}
 	newRole.UpdatedAt = time.Now()
 
@@ -107,12 +109,29 @@ func (j *RoleService) EnableOrDisable(ctx context.Context, id string, enable boo
 		return err
 	}
 
+	if !enable && makerUser.UserRole == existing.Code {
+		j.logger.Errorf("[Role Service][EnableOrDisable] user cannot disable their own role")
+		return errors.New(localization.ErrorCannotDisableOwnRole.Code)
+	}
+
 	if existing.Enable == enable && enable {
 		j.logger.Errorf("[Role Service][EnableOrDisable] role is already %v", enable)
 		return errors.New(localization.ErrorAlreadyEnabled.Code)
 	} else if existing.Enable == enable && !enable {
 		j.logger.Errorf("[Role Service][EnableOrDisable] role is already %v", enable)
 		return errors.New(localization.ErrorAlreadyDisabled.Code)
+	}
+
+	if !enable {
+		hasActive, err := j.approveIndexRepo.HasActiveActionRoles(ctx, existing.Code)
+		if err != nil {
+			j.logger.Errorf("[Role Service][EnableOrDisable] failed to check active action roles: %v", err)
+			return err
+		}
+		if hasActive {
+			j.logger.Errorf("[Role Service][EnableOrDisable] role %s has active jobs, cannot disable", existing.Code)
+			return errors.New(localization.ErrorRoleHasActiveJobs.Code)
+		}
 	}
 
 	updated := *existing
@@ -163,7 +182,24 @@ func (j *RoleService) Delete(ctx context.Context, id string) error {
 }
 
 func (j *RoleService) FindById(ctx context.Context, id string) (*imodel.JobRole, error) {
-	return j.roleRepository.FindByID(ctx, id)
+	role, err := j.roleRepository.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	viewerActions, makerActions, checkerActions, auditorActions, _, err := j.approveIndexRepo.PopulateUserApproverAllocations(ctx, role.Code)
+	if err != nil {
+		j.logger.Errorf("[Role Service][FindById] failed to populate approver allocations: %v", err)
+		return role, nil
+	}
+
+	role.ViewerActions = viewerActions
+	role.MakerActions = makerActions
+	role.CheckerActions = checkerActions
+	role.AuditorActions = auditorActions
+
+	j.logger.Infof("[Role Service][FindById] role: %v", role)
+	return role, nil
 }
 
 func (j *RoleService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error) {
@@ -171,7 +207,6 @@ func (j *RoleService) FindAllWithPagination(ctx context.Context, filterParam typ
 }
 
 func (j *RoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.CPSAction) (*sharedmodel.CPSAction, error) {
-	// Turn CurrentAction into Role, attach ID from UniqueId (if present), apply action
 	var asAny any
 	raw, err := json.Marshal(cpsAction.CurrentAction)
 	if err != nil {

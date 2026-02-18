@@ -94,9 +94,7 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["$or"] = []bson.M{
-			{"name": searchRegex},
-		}
+		searchKeys["name"] = searchRegex
 	}
 
 	filter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
@@ -107,6 +105,7 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	filter["is_deleted"] = false
 	total, err := m.dal.TotalCount(ctx, filter)
 	if err != nil {
 		m.logger.Errorf("[FindAllWithPagination] failed to count total cps roles: %v", err)
@@ -129,7 +128,7 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRo
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
-	filter := bson.M{"_id": objID}
+	filter := bson.M{"_id": objID, "is_deleted": false}
 	result, err := m.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -287,7 +286,7 @@ func (m *cpsRoleStorage) FindByNameOrRoleCode(ctx context.Context, name, roleCod
 	if name == "" {
 		filter = append(filter, bson.M{"role_code": bson.M{"$regex": "^" + roleCode, "$options": "i"}})
 	}
-	orFilter := bson.M{"$or": filter}
+	orFilter := bson.M{"$or": filter, "is_deleted": false}
 	result, err := m.dal.FindOne(ctx, orFilter, bson.M{})
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {

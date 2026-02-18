@@ -70,6 +70,7 @@ func WriteJSONResponse(w http.ResponseWriter, status int, message string, data i
 
 type UserPayload struct {
 	PhoneNumber string   `json:"phone_number,omitempty"`
+	UserName    string   `json:"username,omitempty"`
 	UserRole    string   `json:"user_role,omitempty"`
 	RoleId      string   `json:"role_code,omitempty"`
 	UserID      string   `json:"user_id,omitempty"`
@@ -243,13 +244,9 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		deviceID = strings.Trim(deviceID, "\"")
 		if userPayload.SessionExp != 0 && (userPayload.DeviceID == deviceID || deviceID == "") {
 			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now, userPayload.SessionExp-now)
-			if userPayload.SessionExp < now {
-				a.logger.Warnf("session has expired")
-				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
-				return
-			}
 
-			if userPayload.SessionExp-now <= 0 {
+			if userPayload.SessionExp <= now {
+				a.logger.Warnf("session has expired")
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
 			} else if userPayload.SessionExp-now < int64(remainTime) {
@@ -408,6 +405,7 @@ func (a *authMiddleware) setUserPayload(ctx context.Context, userPayload UserPay
 	ctx = context.WithValue(ctx, constants.ContextKey("phone_number"), userPayload.PhoneNumber)
 	ctx = context.WithValue(ctx, constants.ContextKey("user_code"), userPayload.UserCode)
 	ctx = context.WithValue(ctx, constants.ContextKey("full_name"), userPayload.FullName)
+	ctx = context.WithValue(ctx, constants.ContextKey("username"), userPayload.UserName)
 	ctx = context.WithValue(ctx, constants.ContextKey("department"), userPayload.Department)
 	ctx = context.WithValue(ctx, constants.ContextKey("next_step"), userPayload.NextStep)
 	ctx = context.WithValue(ctx, constants.ContextKey("action"), userPayload.Action)

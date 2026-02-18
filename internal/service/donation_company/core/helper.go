@@ -131,6 +131,8 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 	result.CompanyCode = existing.CompanyCode
 	if donationCompany.CompanyDescription != "" {
 		result.CompanyDescription = donationCompany.CompanyDescription
+	} else {
+		result.CompanyDescription = existing.CompanyDescription
 	}
 	if donationCompany.AccountNumber != existing.AccountNumber {
 		result.AccountNumber = donationCompany.AccountNumber
@@ -208,11 +210,15 @@ func IsDataSimilar(request dto.DonationCompanyRequest, existing *donation_model.
 func CheckDataSimilarityAndValidation(ctx context.Context, request dto.DonationCompanyRequest, existing *dto.DonationCompanyListResponse, donationCompanyRepo storage.DonationCompanyRepository, accountLookupService account_lookup.Account) error {
 	// Convert existing DTO to model for similarity check
 	existingModel := &donation_model.DonationCompany{
-		CompanyName:   existing.CompanyName,
-		CompanyCode:   existing.CompanyCode,
-		CompanyLogo:   existing.CompanyLogo,
-		AccountNumber: existing.AccountNumber,
-		IsDeleted:     existing.IsDeleted,
+		CompanyName:        existing.CompanyName,
+		CompanyCode:        existing.CompanyCode,
+		CompanyDescription: existing.CompanyDescription,
+		CompanyLogo:        existing.CompanyLogo,
+		AccountNumber:      existing.AccountNumber,
+		PhoneNumber:        existing.PhoneNumber,
+		Email:              existing.Email,
+		Address:            existing.Address,
+		IsDeleted:          existing.IsDeleted,
 	}
 
 	// Check if data is similar to existing data

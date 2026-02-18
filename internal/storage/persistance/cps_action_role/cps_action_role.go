@@ -106,7 +106,15 @@ func (r *CPSActionRoleRepository) UpdateByActionCode(ctx context.Context, action
 
 func (r *CPSActionRoleRepository) EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error {
 	_, err := r.mongoDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, bson.M{"enabled": enable})
-	return err
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			r.logger.Errorf("[EnableOrDisableByActionCode] action code %s not found", actionCode)
+			return errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		r.logger.Errorf("[EnableOrDisableByActionCode] failed to enable or disable action code %s: %v", actionCode, err)
+		return err
+	}
+	return nil
 }
 func (r *CPSActionRoleRepository) FindByActionCode(
 	ctx context.Context,

@@ -25,5 +25,5 @@ type CPSRoles struct {
 	IsDeleted        bool                `json:"is_deleted" bson:"is_deleted"`
 	CreatedAt        time.Time           `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	UpdatedAt        time.Time           `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
-	DeletedAt        *time.Time          `json:"deleted_at,omitempty" bson:"deleted_at,omitempty"`
+	DeletedAt        time.Time           `json:"deleted_at,omitempty" bson:"deleted_at,omitempty"`
 }

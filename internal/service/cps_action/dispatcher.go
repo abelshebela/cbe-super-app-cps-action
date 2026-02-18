@@ -3,6 +3,7 @@ package cpsaction
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
@@ -148,7 +149,9 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.BudgetCategoryContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "MINIAPPCATEGORY"):
 		return d.app.MiniAppCategoryContainer.Authorize(ctx, cpsAction)
+
 	case IsActionInGroup(RequestAction(action), "CPSACTIONROLE"):
+		fmt.Println("CPSACTIONROLE---------------------")
 		return d.app.CPSActionRoleContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "EVENTMERCHANT"):
 		return d.app.EventMerchantServiceContainer.Authorize(ctx, cpsAction)

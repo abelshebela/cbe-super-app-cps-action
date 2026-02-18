@@ -352,7 +352,7 @@ func (s *cpsActionRoleService) Enable(ctx context.Context, actionCode string) er
 		span.AddEvent("action code is empty", trace.WithAttributes(attribute.String("error", "action code is empty")))
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
-	old, err := s.repo.FindByActionName(ctx, actionCode)
+	old, err := s.repo.FindByActionCode(ctx, actionCode)
 	if err != nil {
 		span.AddEvent("failed to find by action code", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorResourceNotFound.Code)
@@ -365,12 +365,13 @@ func (s *cpsActionRoleService) Enable(ctx context.Context, actionCode string) er
 	maker := local_util.ExtractUserFromContext(ctx)
 	payload := model.ActionRole{ActionCode: actionCode, Enabled: true}
 
-	cps := lib.CpsModelBuilder(actionCode, maker, old, payload, string(constants.RequestEnableActionRole), constants.UPDATE)
+	cps := lib.CpsModelBuilder(actionCode, maker, old, payload, string(constants.RequestEnableCpsActionRole), constants.UPDATE)
 	err = s.cpsService.CreateCPSAction(ctx, &cps)
 	if err != nil {
 		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
+
 	return nil
 }
 
@@ -381,7 +382,7 @@ func (s *cpsActionRoleService) Disable(ctx context.Context, actionCode string) e
 		span.AddEvent("action code is empty", trace.WithAttributes(attribute.String("error", "action code is empty")))
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
-	old, err := s.repo.FindByActionName(ctx, actionCode)
+	old, err := s.repo.FindByActionCode(ctx, actionCode)
 	if err != nil {
 		span.AddEvent("failed to find by action code", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorResourceNotFound.Code)
@@ -392,7 +393,7 @@ func (s *cpsActionRoleService) Disable(ctx context.Context, actionCode string) e
 	}
 	maker := local_util.ExtractUserFromContext(ctx)
 	payload := model.ActionRole{ActionCode: actionCode, Enabled: false}
-	cps := lib.CpsModelBuilder(actionCode, maker, old, payload, string(constants.RequestDisableActionRole), constants.UPDATE)
+	cps := lib.CpsModelBuilder(actionCode, maker, old, payload, string(constants.RequestDisableCpsActionRole), constants.UPDATE)
 	err = s.cpsService.CreateCPSAction(ctx, &cps)
 	if err != nil {
 		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -405,7 +406,7 @@ func (s *cpsActionRoleService) Disable(ctx context.Context, actionCode string) e
 func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "CPSActionRole", "Authorize")
 	defer span.End()
-
+	s.logger.Infof("[Authorize CPSActionRole]: %+v", action)
 	switch action.ActionType {
 	case string(constants.CREATE):
 
@@ -456,22 +457,27 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 
 	case string(constants.UPDATE):
 		// Handle enable/disable separately to avoid corrupting data with partial payload
-		if action.RequestAction == string(constants.RequestEnableActionRole) {
+		if action.RequestAction == string(constants.RequestEnableCpsActionRole) {
+			s.logger.Infof("Authorize: Syncing indices for Enable.")
 			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, true); err != nil {
+				s.logger.Errorf("failed to enable action role: %v", err)
 				span.AddEvent("failed to enable action role", trace.WithAttributes(attribute.String("error", err.Error())))
 				return nil, err
 			}
 			return action, nil
 		}
-		if action.RequestAction == string(constants.RequestDisableActionRole) {
+
+		if action.RequestAction == string(constants.RequestDisableCpsActionRole) {
+			s.logger.Infof("Authorize: Syncing indices for Disable. ")
 			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, false); err != nil {
+				s.logger.Errorf("failed to disable action role: %v", err)
 				span.AddEvent("failed to disable action role", trace.WithAttributes(attribute.String("error", err.Error())))
 				return nil, err
 			}
 			return action, nil
 		}
 
-		prev, err := local_util.JsonUnmarshal[model.CPSActionRoleResposne](action.PreviousAction)
+		prev, err := local_util.JsonUnmarshal[imodel.CPSActionRole](action.PreviousAction)
 		if err != nil {
 			span.AddEvent("failed to unmarshal action", trace.WithAttributes(attribute.String("error", err.Error())))
 			s.logger.Errorf("failed to unmarshal action: %v", err)

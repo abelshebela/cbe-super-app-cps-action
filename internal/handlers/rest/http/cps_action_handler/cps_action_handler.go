@@ -252,7 +252,7 @@ func (a *cpsActionAdapter) CancelCPSAction(w http.ResponseWriter, r *http.Reques
 	}
 
 	action.ActionStatus = string(constants.Canceled)
-	action.RejectionReason = string(req.Reason)
+	action.CanceledReason = string(req.CancelReason)
 
 	if err := a.cpsActionApplication.RejectCPSAction(ctx, actionCode, action); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -881,7 +881,7 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
-	_, checkerActions, _, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	_, _, checkerActions, _, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -978,7 +978,7 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 		return
 	}
 
-	_, _, auditorAllocations, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	_, _, _, auditorAllocations, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -1055,7 +1055,7 @@ func (a *cpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
-	_, checkerActions, _, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	_, _, checkerActions, _, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -1140,7 +1140,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	makerActions, checkerActions, auditorActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	_, makerActions, checkerActions, auditorActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -1382,8 +1382,8 @@ func (a *cpsActionAdapter) ApproverCheckerAllocations(w http.ResponseWriter, r *
 		localization.SendErrorResponse(w, localization.ErrorInternalServerError, nil, nil)
 		return
 	}
-	// maker, checker, auditor, portalCards
-	_, checkerMods, _, _, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
+	// viewer, maker, checker, auditor, portalCards
+	_, _, checkerMods, _, _, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -1466,8 +1466,8 @@ func (a *cpsActionAdapter) ApproverAuditorAllocations(w http.ResponseWriter, r *
 		localization.SendErrorResponse(w, localization.ErrorInternalServerError, nil, nil)
 		return
 	}
-	// maker, checker, auditor, portalCards
-	_, _, auditorMods, _, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
+	// viewer, maker, checker, auditor, portalCards
+	_, _, _, auditorMods, _, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -1554,31 +1554,33 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 	}
 
 	var checkerIdx, auditorIdx int64
-	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
-		role, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
-		if role == "" {
-			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-			return
-		}
+	if actionName != "CPSACTIONROLE" {
+		if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
+			role, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+			if role == "" {
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+				return
+			}
 
-		uppercasedActionName := strings.ToUpper(actionName)
-		idxDoc, err = repo.FindByRoleAndAction(ctx, role, uppercasedActionName, parsedVersion)
-		if err != nil {
-			span.RecordError(err)
-			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-			return
-		}
+			uppercasedActionName := strings.ToUpper(actionName)
+			idxDoc, err = repo.FindByRoleAndAction(ctx, role, uppercasedActionName, parsedVersion)
+			if err != nil {
+				span.RecordError(err)
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+				return
+			}
 
-		if idxDoc == nil || idxDoc.CheckerIndex == nil {
-			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-			return
-		}
+			if idxDoc == nil || idxDoc.CheckerIndex == nil {
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+				return
+			}
 
-		if idxDoc.CheckerIndex != nil {
-			checkerIdx = int64(*idxDoc.CheckerIndex)
-		}
-		if idxDoc.AuditorIndex != nil {
-			auditorIdx = int64(*idxDoc.AuditorIndex)
+			if idxDoc.CheckerIndex != nil {
+				checkerIdx = int64(*idxDoc.CheckerIndex)
+			}
+			if idxDoc.AuditorIndex != nil {
+				auditorIdx = int64(*idxDoc.AuditorIndex)
+			}
 		}
 	}
 

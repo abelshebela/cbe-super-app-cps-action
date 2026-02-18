@@ -664,7 +664,7 @@ func (r *CPSActionStorage) SanitizedFindOne(ctx context.Context, filter bson.M) 
 
 	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, fmt.Errorf("aggregation failed: %w", err)
+		return nil, errors.New(localization.ErrorActionNotFound.Code)
 	}
 	defer func() {
 		_ = cur.Close(ctx)
