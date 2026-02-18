@@ -73,7 +73,7 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 	// 6. Count total
 	total, err := b.mongoDalbulkService.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
@@ -98,7 +98,7 @@ func (b BulkServicePersistence) FindAll(ctx context.Context) ([]model.APPAccessL
 			return []model.APPAccessList{}, errors.New(localization.ErrorResourceNotFound.Code)
 		}
 		b.logger.Errorf("[FindAll] failed to fetch bulk services: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	b.logger.Infof("[FindAll] retrieved %d bulk services", len(bulkServices))
 	return bulkServices, nil

@@ -81,7 +81,7 @@ func (s *KYCVerifierStorage) FindByIDPopulated(ctx context.Context, id string) (
 	cur, err := s.coll.Aggregate(ctx, pipeline)
 	if err != nil {
 		s.logger.Errorf("aggregate kyc by id: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cur.Close(ctx)
 	if !cur.Next(ctx) {
@@ -90,7 +90,7 @@ func (s *KYCVerifierStorage) FindByIDPopulated(ctx context.Context, id string) (
 	var resp dto.KYCVerifierResponse
 	if err := cur.Decode(&resp); err != nil {
 		s.logger.Errorf("decode kyc populated by id: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return &resp, nil
 }
@@ -156,7 +156,7 @@ func (s *KYCVerifierStorage) FindAllWithPaginationPopulated(ctx context.Context,
 	cur, err := s.coll.Aggregate(ctx, pipeline)
 	if err != nil {
 		s.logger.Errorf("aggregate kyc list: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cur.Close(ctx)
 
@@ -168,7 +168,7 @@ func (s *KYCVerifierStorage) FindAllWithPaginationPopulated(ctx context.Context,
 	}
 	if err := cur.All(ctx, result); err != nil {
 		s.logger.Errorf("decode kyc list: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	var data []dto.KYCVerifierResponse
 	var total int64
@@ -243,8 +243,7 @@ func (s *KYCVerifierStorage) FindByID(ctx context.Context, id string) (*model.Cu
 	result, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		s.logger.Errorf("Error finding kyc verifier: %v", err)
-		code, _ := local_util.HandleMongoError(err)
-		return nil, errors.New(code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -261,11 +260,11 @@ func (s *KYCVerifierStorage) FindAllWithPagination(ctx context.Context, filterPa
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	data, err := s.dal.FindAllWithPagination(ctx, filter, projection, skip, limit)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	return &types.PaginatedResponse[[]model.CustomerKYC]{

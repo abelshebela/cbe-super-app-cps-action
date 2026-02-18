@@ -47,7 +47,7 @@ func (r *VaultCategoryRepository) CreateWithdrawalRequest(ctx context.Context, w
 	)
 	if err != nil {
 		r.logger.Errorf("failed to create withdrawal request: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
@@ -56,11 +56,11 @@ func (r *VaultCategoryRepository) UpdateWithdrawalRequest(ctx context.Context, i
 	res, err := r.db.ExecContext(ctx, updateWithdrawalStatus, status, id)
 	if err != nil {
 		r.logger.Errorf("failed to update withdrawal request: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
-		return sql.ErrNoRows
+		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	return nil
 }
@@ -84,7 +84,7 @@ func (r *VaultCategoryRepository) GetWithdrawalRequest(ctx context.Context, id s
 			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
 		r.logger.Errorf("failed to get withdrawal request: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return &w, nil
 }
@@ -103,13 +103,13 @@ func (r *VaultCategoryRepository) GetAllWithdrawalRequests(ctx context.Context, 
 	var total int64
 	if err := r.db.QueryRowContext(ctx, countWithdrawals).Scan(&total); err != nil {
 		r.logger.Errorf("failed to count withdrawal requests: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	rows, err := r.db.QueryContext(ctx, listWithdrawals, sql.Named("offset", offset), sql.Named("limit", limit))
 	if err != nil {
 		r.logger.Errorf("failed to list withdrawal requests: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer rows.Close()
 
@@ -128,7 +128,8 @@ func (r *VaultCategoryRepository) GetAllWithdrawalRequests(ctx context.Context, 
 			&w.CreatedAt,
 			&w.UpdatedAt,
 		); err != nil {
-			return nil, err
+			r.logger.Errorf("failed to scan withdrawal request: %v", err)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		list = append(list, w)
 	}

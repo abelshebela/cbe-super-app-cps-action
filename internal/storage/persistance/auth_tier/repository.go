@@ -59,7 +59,7 @@ func (a *AuthTierStorage) FindByID(ctx context.Context, id string) (*model.AuthT
 
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -77,12 +77,12 @@ func (a *AuthTierStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	data, err := a.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := a.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)

@@ -87,7 +87,7 @@ func (a *AccessListStorage) Delete(ctx context.Context, id string) error {
 	err = a.dal.DeleteOne(ctx, filter)
 	if err != nil {
 		a.logger.Errorf("[Delete] failed to delete access list: %v", err)
-		return err
+		return local_util.HandleDBError(err)
 	}
 	a.logger.Infof("[Delete] access list deleted successfully")
 	return nil
@@ -109,7 +109,7 @@ func (a *AccessListStorage) EnableOrDisable(ctx context.Context, id string, enab
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
 		a.logger.Errorf("[EnableOrDisable] failed to enable/disable access list: %v", err)
-		return err
+		return local_util.HandleDBError(err)
 	}
 
 	a.kafkaProducer.PublishMessage(ctx, updateAccessList, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "enable/disable access-list")
@@ -130,7 +130,7 @@ func (a *AccessListStorage) FindByID(ctx context.Context, id string) (*model.APP
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		a.logger.Errorf("[FindByID] failed to find access list: %v", err)
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	a.logger.Infof("[FindByID] access list retrieved successfully")
 	return result, nil
@@ -149,13 +149,13 @@ func (a *AccessListStorage) FindAllWithPagination(ctx context.Context, departmen
 	data, err := a.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		a.logger.Errorf("[FindAllWithPagination] failed to fetch access lists: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := a.dal.TotalCount(ctx, filter)
 	if err != nil {
 		a.logger.Errorf("[FindAllWithPagination] failed to count access lists: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -180,7 +180,7 @@ func (a *AccessListStorage) FindByKeys(ctx context.Context, keys []string) (map[
 	als, err := a.dal.FindAll(ctx, filter, nil)
 	if err != nil {
 		a.logger.Errorf("[FindByKeys] failed to count access lists: %v", err)
-		return map[string]string{}, err
+		return map[string]string{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// Build a set of found keys from both key and sub_access_list.key
@@ -237,7 +237,7 @@ func (a *AccessListStorage) FindAllByKeys(ctx context.Context, keys []string) ([
 			return nil, errors.New(localization.ErrorFileNotFound.Code)
 		}
 		a.logger.Errorf("[FindByKeys] failed to count access lists: %v", err)
-		return []model.APPAccessList{}, err
+		return []model.APPAccessList{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return als, nil
 }

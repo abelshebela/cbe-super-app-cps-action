@@ -145,9 +145,10 @@ func (a *AccessListSegmentation) CreateAccountSegment(ctx context.Context, acces
 	_, err := collection.InsertMany(ctx, docs)
 	if err != nil {
 		a.logger.Errorf("failed to insert documents: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	a.kafkaProducer.PublishMessage(ctx, docs, "create", string(constants.AccessListSegmentationTopic), "create account-segment")
-	return err
+	return nil
 }
 
 func (a *AccessListSegmentation) CreateBlockSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error {
@@ -180,8 +181,9 @@ func (a *AccessListSegmentation) CreateBlockSegment(ctx context.Context, accessL
 	_, err := collection.InsertMany(ctx, docs)
 	if err != nil {
 		a.logger.Errorf("failed to insert documents: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return err
+	return nil
 }
 
 // EnableOrDisable implements storage.AccessListSegmentationRepository.
@@ -200,8 +202,9 @@ func (a *AccessListSegmentation) EnableOrDisable(ctx context.Context, id string,
 			return errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
 		}
 		a.logger.Errorf("[EnableOrDisable] failed to enable/disable access list segmentation: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return err
+	return nil
 }
 
 func (a *AccessListSegmentation) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.AccessListSegmentation], error) {
@@ -223,13 +226,13 @@ func (a *AccessListSegmentation) FindAllWithPagination(ctx context.Context, filt
 	data, err := a.repo.FindAllWithPagination(ctx, filter, nil, skip, limit)
 	if err != nil {
 		a.logger.Errorf("[FindAllWithPagination] find error: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := a.repo.TotalCount(ctx, filter)
 	if err != nil {
 		a.logger.Errorf("[FindAllWithPagination] count error: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -256,7 +259,7 @@ func (a *AccessListSegmentation) FindByID(ctx context.Context, id string) (*loca
 			return nil, errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
 		}
 		a.logger.Errorf("[FindByID] find error: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return response, nil
@@ -278,7 +281,7 @@ func (a *AccessListSegmentation) FindByIDAndType(ctx context.Context, id string,
 			return nil, errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
 		}
 		a.logger.Errorf("[FindByID] find error: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return response, nil
@@ -322,7 +325,7 @@ func (a *AccessListSegmentation) Update(ctx context.Context, id string, accessLi
 			return errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
 		}
 		a.logger.Errorf("[Update] update error: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }

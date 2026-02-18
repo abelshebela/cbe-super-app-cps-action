@@ -96,7 +96,7 @@ func (d *DonationStorage) Delete(ctx context.Context, id string) error {
 	err = d.dal.DeleteOne(ctx, filter)
 	if err != nil {
 		d.logger.Errorf("[Delete] failed to delete donation: %v", err)
-		return err
+		return local_util.HandleDBError(err)
 	}
 	d.logger.Infof("[Delete] donation deleted successfully")
 	return nil
@@ -114,7 +114,7 @@ func (d *DonationStorage) FindByID(ctx context.Context, id string) (*donation_dt
 	result, err := d.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		d.logger.Errorf("[FindByID] failed to find donation: %v", err)
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 
 	camObj, err := bson.ObjectIDFromHex(result.CompanyID.Hex())
@@ -126,7 +126,7 @@ func (d *DonationStorage) FindByID(ctx context.Context, id string) (*donation_dt
 	company, err := d.donationCompanyDal.FindOne(ctx, companyFilter, nil)
 	if err != nil {
 		d.logger.Errorf("[FindByID] failed to find donation company: %v", err)
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 
 	catObj, err := bson.ObjectIDFromHex(result.CategoryID.Hex())
@@ -138,7 +138,7 @@ func (d *DonationStorage) FindByID(ctx context.Context, id string) (*donation_dt
 	category, err := d.donationCategoryDal.FindOne(ctx, categoryFilter, nil)
 	if err != nil {
 		d.logger.Errorf("[FindByID] failed to find donation category: %v", err)
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	d.logger.Infof("[FindByID] donation retrieved successfully")
 	return MapToDonationListResponse(*result, company, category), nil
@@ -166,13 +166,13 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 	data, err := d.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		d.logger.Errorf("[FindAllWithPagination] failed to fetch donations: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := d.dal.TotalCount(ctx, filter)
 	if err != nil {
 		d.logger.Errorf("[FindAllWithPagination] failed to count donations: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
