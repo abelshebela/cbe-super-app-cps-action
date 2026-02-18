@@ -47,10 +47,14 @@ func (r *bankVaultRepositary) ExecuteInTransaction(ctx context.Context, fn func(
 	}
 
 	if err := fn(txRepo); err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		r.logger.Errorf("[ExecuteInTransaction] failed to commit transaction: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
 }
 
 func (r *bankVaultRepositary) Create(ctx context.Context, product *model.BankVaultProduct) (string, error) {
@@ -73,7 +77,12 @@ func (r *bankVaultRepositary) Create(ctx context.Context, product *model.BankVau
 		},
 	}
 
-	return r.queries.SaveBankVault(ctx, params)
+	id, err := r.queries.SaveBankVault(ctx, params)
+	if err != nil {
+		r.logger.Errorf("[Create] failed to save bank vault: %v", err)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return id, nil
 }
 
 func (r *bankVaultRepositary) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.BankVaultProduct], error) {
@@ -327,7 +336,11 @@ func (r *bankVaultRepositary) FindByID(ctx context.Context, id string) (*model.B
 func (r *bankVaultRepositary) FindBankVaultByName(ctx context.Context, name string) error {
 	_, err := r.queries.FindBankVaultByName(ctx, name)
 	if err != nil {
-		return err
+		if err == sql.ErrNoRows {
+			return errors.New(localization.ErrorNoBankProductFound.Code)
+		}
+		r.logger.Errorf("[FindBankVaultByName] failed to find bank vault by name: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
@@ -339,7 +352,7 @@ func (r *bankVaultRepositary) Update(ctx context.Context, id string, product *mo
 	}
 
 	if existingProduct.IsDeleted {
-		return fmt.Errorf("CANNOT_UPDATE_DELETED_BANK_PRODUCT %s", id)
+		return errors.New(localization.ErrorCannotDeletedBankProduct.Code)
 	}
 
 	params := sqlc.UpdateBankVaultParams{ID: id}
@@ -352,7 +365,11 @@ func (r *bankVaultRepositary) Update(ctx context.Context, id string, product *mo
 	}
 
 	_, err = r.queries.UpdateBankVault(ctx, params)
-	return err
+	if err != nil {
+		r.logger.Errorf("[Update] failed to update bank vault: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
 }
 
 func (r *bankVaultRepositary) Delete(ctx context.Context, id string) (string, error) {

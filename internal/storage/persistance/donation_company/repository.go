@@ -108,7 +108,7 @@ func (s *DonationCompanyStorage) FindByAccountNumber(ctx context.Context, accoun
 	result, err := s.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
 		s.logger.Errorf("[FindByAccountNumber] failed to find donation company: %v", err)
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	s.logger.Infof("[FindByAccountNumber] donation company retrieved successfully")
 	return result, nil
@@ -134,14 +134,14 @@ func (s *DonationCompanyStorage) FindAllWithPagination(ctx context.Context, filt
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, projection, skip, limit)
 	if err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed to fetch donation companies: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed to count donation companies: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
@@ -168,7 +168,7 @@ func (s *DonationCompanyStorage) Delete(ctx context.Context, id string) error {
 	err = s.dal.DeleteOne(ctx, filter)
 	if err != nil {
 		s.logger.Errorf("[Delete] failed to delete donation company: %v", err)
-		return err
+		return local_util.HandleDBError(err)
 	}
 	s.logger.Infof("[Delete] donation company deleted successfully")
 	return nil

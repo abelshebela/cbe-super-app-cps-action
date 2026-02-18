@@ -103,7 +103,7 @@ func (f *FeedbackStorage) FindByID(ctx context.Context, id string) (*feedback.Fe
 	cursor, err := f.feedbackCollection.Aggregate(ctx, pipeline)
 	if err != nil {
 		f.logger.Errorf("[FindByID] failed to aggregate feedback: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
@@ -115,7 +115,7 @@ func (f *FeedbackStorage) FindByID(ctx context.Context, id string) (*feedback.Fe
 	var resp feedback.FeedbackResponse
 	if err := cursor.Decode(&resp); err != nil {
 		f.logger.Errorf("[FindByID] failed to decode feedback response: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	f.logger.Infof("[FindByID] feedback retrieved successfully")
 	return &resp, nil

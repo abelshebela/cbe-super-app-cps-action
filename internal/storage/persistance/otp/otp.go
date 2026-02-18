@@ -62,11 +62,11 @@ func (o *OTPRepository) Delete(ctx context.Context, id string) error {
 	filter, err := local_util.FilterIdFor(id)
 	if err != nil {
 		o.logger.Errorf("Delete OTP failed: error creating filter. error=%v, id=%s", err, id)
-		return err
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	if err := o.otpDal.DeleteOne(ctx, filter); err != nil {
 		o.logger.Errorf("Delete OTP failed: error deleting OTP. error=%v, id=%s", err, id)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	o.logger.Infof("OTP deleted successfully. id=%s", id)
 	return nil

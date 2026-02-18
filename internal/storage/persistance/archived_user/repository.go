@@ -64,7 +64,7 @@ func (a *archivedUserStorage) FindByID(ctx context.Context, id string) (*model.A
 	filter := bson.M{"_id": objID}
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -93,13 +93,13 @@ func (s *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterP
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
@@ -259,7 +259,7 @@ func (s *archivedUserStorage) FindAllArchievedUsersWithPagination(ctx context.Co
 	cursor, err := s.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		s.logger.Errorf("[FindAllArchievedUsersWithPagination] aggregation failed: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
@@ -272,7 +272,7 @@ func (s *archivedUserStorage) FindAllArchievedUsersWithPagination(ctx context.Co
 
 	if err = cursor.All(ctx, &results); err != nil {
 		s.logger.Errorf("[FindAllArchievedUsersWithPagination] decode failed: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// Handle empty aggregation result

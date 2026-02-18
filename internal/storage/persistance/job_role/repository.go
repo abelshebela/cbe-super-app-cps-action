@@ -150,7 +150,7 @@ func (r *JobRoleStorage) ExistsMany(ctx context.Context, codes []string) (bool, 
 
 	count, err := r.collection.CountDocuments(ctx, bson.M{"code": bson.M{"$in": codes}})
 	if err != nil {
-		return false, err
+		return false, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return count == int64(len(codes)), nil
 }
@@ -161,7 +161,10 @@ func (s *JobRoleStorage) FindByCode(ctx context.Context, code string) (*imodel.J
 	}
 	res, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return res, nil
 }
@@ -170,7 +173,7 @@ func (s *JobRoleStorage) Find(ctx context.Context, filter bson.M) (*imodel.JobRo
 
 	res, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	return res, nil
 }
@@ -184,7 +187,7 @@ func (s *JobRoleStorage) FindByName(ctx context.Context, name string) (*imodel.J
 	}
 	res, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	return res, nil
 }

@@ -184,7 +184,7 @@ func (m *MiniAppStorage) FindByIDWithMerchant(ctx context.Context, id string) (*
 	cursor, err := m.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		m.logger.Errorf("aggregate mini app by id: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
@@ -195,7 +195,7 @@ func (m *MiniAppStorage) FindByIDWithMerchant(ctx context.Context, id string) (*
 	var resp mini_app.MiniAppResponse
 	if err := cursor.Decode(&resp); err != nil {
 		m.logger.Errorf("decode mini app response: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return &resp, nil
