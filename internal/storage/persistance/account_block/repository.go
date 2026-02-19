@@ -178,7 +178,7 @@ func (a *AccountBlockStorage) EnableOrDisableBranches(ctx context.Context, ids [
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
 	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "B"}
-	update := bson.M{"$set": bson.M{"is_enabled": enabled, "updated_at": time.Now()}}
+	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disabled_reason": reason, "updated_at": time.Now()}}
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -313,7 +313,7 @@ func (a *AccountBlockStorage) EnableOrDisableRegions(ctx context.Context, ids []
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
 	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "R"}
-	update := bson.M{"$set": bson.M{"is_enabled": enabled, "updated_at": time.Now()}}
+	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disabled_reason": reason, "updated_at": time.Now()}}
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -326,6 +326,20 @@ func (a *AccountBlockStorage) EnableOrDisableRegions(ctx context.Context, ids []
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	regions, err := a.GetRegionsByIds(ctx, ids)
+	if err != nil {
+		a.logger.Errorf("Error fetching updated regions: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	a.kafkaProducer.PublishMessage(
+		ctx,
+		regions,
+		string(constants.ClientOrchestrationServicesTopic),
+		a.cfg.AccountBlockUpdate,
+		"account block enable status updated",
+	)
 
 	return nil
 }
@@ -442,7 +456,7 @@ func (a *AccountBlockStorage) EnableOrDisableDistricts(ctx context.Context, ids 
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
 	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "D"}
-	update := bson.M{"$set": bson.M{"is_enabled": enabled, "updated_at": time.Now()}}
+	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disabled_reason": reason, "updated_at": time.Now()}}
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -455,6 +469,20 @@ func (a *AccountBlockStorage) EnableOrDisableDistricts(ctx context.Context, ids 
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	districts, err := a.GetDistrictsByIds(ctx, ids)
+	if err != nil {
+		a.logger.Errorf("Error fetching updated regions: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	a.kafkaProducer.PublishMessage(
+		ctx,
+		districts,
+		string(constants.ClientOrchestrationServicesTopic),
+		a.cfg.AccountBlockUpdate,
+		"account block enable status updated",
+	)
 
 	return nil
 }
@@ -578,7 +606,7 @@ func (a *AccountBlockStorage) EnableOrDisableCities(ctx context.Context, ids []s
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
 	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "C"}
-	update := bson.M{"$set": bson.M{"is_enabled": enabled, "updated_at": time.Now()}}
+	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disabled_reason": reason, "updated_at": time.Now()}}
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -591,6 +619,20 @@ func (a *AccountBlockStorage) EnableOrDisableCities(ctx context.Context, ids []s
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	cities, err := a.GetCitiesByIds(ctx, ids)
+	if err != nil {
+		a.logger.Errorf("Error fetching updated regions: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	a.kafkaProducer.PublishMessage(
+		ctx,
+		cities,
+		string(constants.ClientOrchestrationServicesTopic),
+		a.cfg.AccountBlockUpdate,
+		"account block enable status updated",
+	)
 
 	return nil
 }
