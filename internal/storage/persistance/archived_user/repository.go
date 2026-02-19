@@ -50,7 +50,7 @@ func (a *archivedUserStorage) Create(ctx context.Context, user *member.User) err
 	archivedUser := UserToArchivedUser(user)
 	_, err := a.dal.InsertOne(ctx, *archivedUser)
 	if err != nil {
-		a.logger.Errorf("Error while creating archive user error: %v", err)
+		a.logger.Errorf("[ArchivedUserStorage][Create] failed to create archived user: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -59,13 +59,13 @@ func (a *archivedUserStorage) Create(ctx context.Context, user *member.User) err
 func (a *archivedUserStorage) FindByID(ctx context.Context, id string) (*model.ArchivedUser, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[FindByID] invalid object id: %v", err)
+		a.logger.Errorf("[ArchivedUserStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		a.logger.Errorf("[FindByID] failed to find archived user: %v", err)
+		a.logger.Errorf("[ArchivedUserStorage][FindByID] failed to find archived user: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
@@ -95,14 +95,14 @@ func (s *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterP
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		s.logger.Errorf("[FindAllWithPagination] failed to fetch archived users: %v", err)
+		s.logger.Errorf("[ArchivedUserStorage][FindAllWithPagination] failed to fetch archived users: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		s.logger.Errorf("[FindAllWithPagination] failed to count archived users: %v", err)
+		s.logger.Errorf("[ArchivedUserStorage][FindAllWithPagination] failed to count archived users: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -116,7 +116,7 @@ func (s *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterP
 }
 
 func (s *archivedUserStorage) FindAllArchievedUsersWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*unlink_dto.ArchivedUserResponse], error) {
-	s.logger.Infof("[FindAllArchievedUsersWithPagination] fetching archived users with pipeline")
+	s.logger.Infof("[ArchivedUserStorage][FindAllArchievedUsersWithPagination] fetching archived users with pipeline")
 
 	// base and dynamic filters
 	filter := bson.M{"is_deleted": false}
@@ -262,7 +262,7 @@ func (s *archivedUserStorage) FindAllArchievedUsersWithPagination(ctx context.Co
 
 	cursor, err := s.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		s.logger.Errorf("[FindAllArchievedUsersWithPagination] aggregation failed: %v", err)
+		s.logger.Errorf("[ArchivedUserStorage][FindAllArchievedUsersWithPagination] aggregation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
@@ -275,7 +275,7 @@ func (s *archivedUserStorage) FindAllArchievedUsersWithPagination(ctx context.Co
 	}
 
 	if err = cursor.All(ctx, &results); err != nil {
-		s.logger.Errorf("[FindAllArchievedUsersWithPagination] decode failed: %v", err)
+		s.logger.Errorf("[ArchivedUserStorage][FindAllArchievedUsersWithPagination] decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
