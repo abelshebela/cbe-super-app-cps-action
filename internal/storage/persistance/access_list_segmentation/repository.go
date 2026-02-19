@@ -61,12 +61,8 @@ func (a *AccessListSegmentation) FindBySegmentIDAndAccessListKeys(ctx context.Co
 	filter := bson.M{"segmented_id": objID, "access_list_key": bson.M{"$in": keys}, "enabled": true}
 	response, err := a.repo.FindOne(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("[FindByID] access list with segmentationID%v and keys:%v not found", id, keys)
-			return nil, errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
-		}
 		a.logger.Errorf("[FindByID] find error: %v", err)
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return response, nil
@@ -80,7 +76,7 @@ func (a *AccessListSegmentation) FindByAccountSegmentationAndAccessListKeys(ctx 
 			return nil, nil
 		}
 		a.logger.Errorf("[FindByAccountSegmentationAndAccessListKeys] failed to find access list segmentation by segmentation id and service id: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return seg, nil
 }
@@ -93,7 +89,7 @@ func (a *AccessListSegmentation) FindBySegmentationAndServiceID(ctx context.Cont
 			return nil, nil
 		}
 		a.logger.Errorf("[FindBySegmentationAndServiceID] failed to find access list segmentation by segmentation id and service id: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return seg, nil
 }
@@ -118,7 +114,7 @@ func (a *AccessListSegmentation) FindByIDS(ctx context.Context, ids []string, t 
 			return nil, nil
 		}
 		a.logger.Errorf("[FindByIDS] failed to find access list segmentation by ids: %v", err)
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	return als, nil
 }
@@ -198,11 +194,8 @@ func (a *AccessListSegmentation) EnableOrDisable(ctx context.Context, id string,
 
 	_, err = a.repo.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
-		}
 		a.logger.Errorf("[EnableOrDisable] failed to enable/disable access list segmentation: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -254,12 +247,8 @@ func (a *AccessListSegmentation) FindByID(ctx context.Context, id string) (*loca
 	filter := bson.M{"_id": objID, "enabled": true}
 	response, err := a.repo.FindOne(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("[FindByID] access list segmentation not found")
-			return nil, errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
-		}
 		a.logger.Errorf("[FindByID] find error: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return response, nil
@@ -276,12 +265,8 @@ func (a *AccessListSegmentation) FindByIDAndType(ctx context.Context, id string,
 	filter := bson.M{"segmented_id": objID, "type": t, "enabled": true}
 	response, err := a.repo.FindOne(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("[FindByID] access list segmentation not found")
-			return nil, errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
-		}
 		a.logger.Errorf("[FindByID] find error: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return response, nil
@@ -320,12 +305,8 @@ func (a *AccessListSegmentation) Update(ctx context.Context, id string, accessLi
 
 	_, err = a.repo.UpdateOne(ctx, filer, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("[Update] access list segmentation not found")
-			return errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
-		}
 		a.logger.Errorf("[Update] update error: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -347,12 +328,8 @@ func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCode(ctx context.Con
 	filter["enabled"] = true
 	als, err := a.repo.FindAll(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("[FindAllBySegmentIDorSegmentCode] access list segmentation not found")
-			return nil, errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
-		}
 		a.logger.Errorf("[FindAllBySegmentIDorSegmentCode] failed to find access list segmentation by segmentation id or segment code: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return als, nil
 }
@@ -375,12 +352,8 @@ func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCodeAndKeys(ctx cont
 	filter["enabled"] = true
 	als, err := a.repo.FindAll(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Errorf("[FindAllBySegmentIDorSegmentCode] access list segmentation not found")
-			return nil, errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
-		}
-		a.logger.Errorf("[FindAllBySegmentIDorSegmentCode] failed to find access list segmentation by segmentation id or segment code: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		a.logger.Errorf("[FindAllBySegmentIDorSegmentCodeAndKeys] failed to find access list segmentation: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	return als, nil
 }

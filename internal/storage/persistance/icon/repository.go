@@ -51,10 +51,7 @@ func (i *IconStorage) Update(ctx context.Context, id string, icon *model.Icon) e
 
 	_, err = i.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -77,9 +74,7 @@ func (i *IconStorage) EnableOrDisable(ctx context.Context, id string, enable boo
 	update := bson.M{"$set": bson.M{"enabled": enable}}
 	_, err = i.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }

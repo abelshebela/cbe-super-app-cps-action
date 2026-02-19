@@ -14,10 +14,10 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -106,10 +106,6 @@ func (s *accountBlockService) GetAllRegions(ctx context.Context, filterParams *t
 
 	regions, err := s.repo.FindAllRegionsWithPagination(ctx, *filterParams)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			span.AddEvent("Region not found", trace.WithAttributes(attribute.Int("page", filterParams.Page), attribute.Int("per_page", filterParams.PerPage), attribute.String("error", err.Error())))
-			return nil, errors.New(localization.ErrorRegionNotFound.Code)
-		}
 		span.AddEvent("Failed to fetch regions", trace.WithAttributes(attribute.Int("page", filterParams.Page), attribute.Int("per_page", filterParams.PerPage), attribute.String("error", err.Error())))
 		return nil, err
 	}
@@ -593,14 +589,14 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 	return action, nil
 }
 
-func (s *accountBlockService) GetAccountBlockDetails(ctx context.Context, id string) ([]model.CPSAction, error) {
+func (s *accountBlockService) GetAccountBlockDetails(ctx context.Context, id string) ([]account_block_dto.AccountBlockActionResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAccountBlockDetails", "BlockAccount", "GetAccountBlockDetails")
 	defer span.End()
 
 	result, err := s.repo.GetAccountBlockDetails(ctx, id)
 	if err != nil {
 		if err.Error() == localization.ErrorBranchNotFound.Code || err.Error() == localization.ErrorCityNotFound.Code || err.Error() == localization.ErrorDistrictNotFound.Code || err.Error() == localization.ErrorRegionNotFound.Code || err.Error() == localization.ErrorActionNotFound.Code {
-			return []model.CPSAction{}, nil
+			return []account_block_dto.AccountBlockActionResponse{}, nil
 		}
 		s.logger.Errorf("[GetAccountBlockDetails] failed to get account block details for id %s: %v", id, err)
 		return nil, err

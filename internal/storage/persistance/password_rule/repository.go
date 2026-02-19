@@ -56,12 +56,7 @@ func (p *PasswordRuleStorage) Update(ctx context.Context, id string, rule *local
 
 	_, err = p.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			p.logger.Errorf("[Update] password rule not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		p.logger.Errorf("[Update] failed to update password rule: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	p.logger.Infof("[Update] password rule updated successfully")
 	return nil

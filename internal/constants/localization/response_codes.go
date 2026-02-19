@@ -169,6 +169,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDisableDistrictsRequestSent,
 
 	SuccessCityRetrieved,
+	DataRetrievedSuccessfully,
 	SuccessCitiesRetrieved,
 	SuccessCitiesEnabled,
 	SuccessCitiesDisabled,
@@ -4392,6 +4393,13 @@ var (
 		Code:       "SUCCESS_CITY_RETRIEVED",
 		StatusCode: StatusOK,
 		Message:    MsgCitySuccessfullyRetrieved,
+		Type:       "success",
+	}
+
+	DataRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_DATA_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgDataSuccessfullyRetrieved,
 		Type:       "success",
 	}
 

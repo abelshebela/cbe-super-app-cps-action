@@ -60,10 +60,7 @@ func (a *AdvertStorage) Update(ctx context.Context, id string, advert *model.Adv
 	_, err = a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		a.logger.Errorf("[Update] failed to update advert: %v", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	a.logger.Infof("[Update] advert updated successfully")
 	return nil
@@ -97,12 +94,8 @@ func (a *AdvertStorage) EnableOrDisable(ctx context.Context, id string, enable b
 	update := bson.M{"enabled": enable}
 	_, err = a.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			a.logger.Errorf("[EnableOrDisable] advert not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
 		a.logger.Errorf("[EnableOrDisable] failed to enable/disable advert: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	a.logger.Infof("[EnableOrDisable] advert enable/disable completed successfully")
 	return nil
@@ -119,12 +112,8 @@ func (a *AdvertStorage) FindByID(ctx context.Context, id string) (*model.Advert,
 
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			a.logger.Errorf("[FindByID] advert not found")
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
 		a.logger.Errorf("[FindByID] failed to find advert: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	a.logger.Infof("[FindByID] advert retrieved successfully")
 	return result, nil
@@ -190,7 +179,7 @@ func (a *AdvertStorage) FindByTitle(ctx context.Context, title string) (*model.A
 			return nil, nil
 		}
 		a.logger.Errorf("[FindByTitle] failed to find advert: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	a.logger.Infof("[FindByTitle] advert retrieved successfully")
 	return result, nil

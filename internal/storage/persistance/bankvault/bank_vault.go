@@ -302,10 +302,7 @@ func (r *bankVaultRepositary) FindAllGroupVaultWithPagination(ctx context.Contex
 func (r *bankVaultRepositary) FindByID(ctx context.Context, id string) (*model.BankVaultProduct, error) {
 	row, err := r.queries.FindBankVaultById(ctx, id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.New(localization.ErrorNoBankProductFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, utils.HandleDBError(err)
 	}
 
 	product := &model.BankVaultProduct{
@@ -336,11 +333,8 @@ func (r *bankVaultRepositary) FindByID(ctx context.Context, id string) (*model.B
 func (r *bankVaultRepositary) FindBankVaultByName(ctx context.Context, name string) error {
 	_, err := r.queries.FindBankVaultByName(ctx, name)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return errors.New(localization.ErrorNoBankProductFound.Code)
-		}
 		r.logger.Errorf("[FindBankVaultByName] failed to find bank vault by name: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return utils.HandleDBError(err)
 	}
 	return nil
 }
@@ -348,7 +342,7 @@ func (r *bankVaultRepositary) FindBankVaultByName(ctx context.Context, name stri
 func (r *bankVaultRepositary) Update(ctx context.Context, id string, product *model.BankVaultProduct) error {
 	existingProduct, err := r.FindByID(ctx, id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return utils.HandleDBError(err)
 	}
 
 	if existingProduct.IsDeleted {
@@ -367,7 +361,7 @@ func (r *bankVaultRepositary) Update(ctx context.Context, id string, product *mo
 	_, err = r.queries.UpdateBankVault(ctx, params)
 	if err != nil {
 		r.logger.Errorf("[Update] failed to update bank vault: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return utils.HandleDBError(err)
 	}
 	return nil
 }
@@ -375,7 +369,7 @@ func (r *bankVaultRepositary) Update(ctx context.Context, id string, product *mo
 func (r *bankVaultRepositary) Delete(ctx context.Context, id string) (string, error) {
 	bankvaultProduct, err := r.queries.FindBankVaultAndLocks(ctx, id)
 	if err != nil && err != sql.ErrNoRows {
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
+		return "", utils.HandleDBError(err)
 	}
 
 	if bankvaultProduct.IsActive.Bool {
@@ -388,7 +382,7 @@ func (r *bankVaultRepositary) Delete(ctx context.Context, id string) (string, er
 
 	_, err = r.queries.DeleteBankVault(ctx, id)
 	if err != nil {
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
+		return "", utils.HandleDBError(err)
 	}
 
 	return "", nil
@@ -398,7 +392,7 @@ func (r *bankVaultRepositary) EnableOrDisable(ctx context.Context, id string, en
 
 	product, err := r.FindByID(ctx, id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return utils.HandleDBError(err)
 	}
 
 	if product.IsDeleted {
@@ -408,14 +402,14 @@ func (r *bankVaultRepositary) EnableOrDisable(ctx context.Context, id string, en
 	if enable {
 		_, err = r.queries.ActivateBankVault(ctx, id)
 		if err != nil {
-			return errors.New(localization.ErrorUnexpectedError.Code)
+			return utils.HandleDBError(err)
 		}
 		return nil
 	}
 
 	_, err = r.queries.DeactivateBankVault(ctx, id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return utils.HandleDBError(err)
 	}
 	return nil
 }

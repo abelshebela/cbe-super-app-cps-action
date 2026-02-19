@@ -86,11 +86,7 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 
 	updatedService, err := s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		s.logger.Errorf("update service failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	s.kafkaProducer.PublishMessage(
@@ -113,11 +109,7 @@ func (s *ServicesStorage) Delete(ctx context.Context, id string) error {
 	update := bson.M{"is_deleted": true, "deleted_at": time.Now()}
 	_, err = s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		s.logger.Errorf("delete service failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -131,11 +123,7 @@ func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable
 	update := bson.M{"enabled": enable, "last_modified_at": time.Now()}
 	updatedService, err := s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		s.logger.Errorf("enable/disable service failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	s.kafkaProducer.PublishMessage(ctx, updatedService, string(constants.ClientOrchestrationServicesTopic), string(constants.ClientOrchestrationServicesTopic), "service enabled/disabled")
@@ -151,11 +139,7 @@ func (s *ServicesStorage) FindByID(ctx context.Context, id string) (*model.Servi
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	doc, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		s.logger.Errorf("find service by id failed: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return doc, nil
 }
@@ -269,7 +253,7 @@ func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode
 			return false, nil
 		}
 		s.logger.Errorf("failed to check service existence in services: %v", err)
-		return false, errors.New(localization.ErrorUnexpectedError.Code)
+		return false, local_util.HandleDBError(err)
 	}
 
 	return true, nil

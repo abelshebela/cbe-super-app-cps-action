@@ -8,7 +8,6 @@ import (
 	"context"
 	"errors"
 
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -27,9 +26,9 @@ func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel
 	var role *imodel.JobRole
 
 	if types == constants.CREATE {
-		resByName, err := roleRepo.Find(ctx, bson.M{"name": update.Name})
+		resByName, err := roleRepo.Find(ctx, bson.M{"name": update.Name, "code": update.Code})
 		if err != nil {
-			if err != mongo.ErrNoDocuments {
+			if err.Error() != localization.ErrorResourceNotFound.Code {
 				return err
 			}
 		}

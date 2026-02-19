@@ -73,7 +73,7 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 				Meta: meta,
 			}, nil
 		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	// 6. Count total
@@ -99,12 +99,8 @@ func (b BulkServicePersistence) FindAll(ctx context.Context) ([]model.APPAccessL
 	projection := bson.M{}
 	bulkServices, err := b.mongoDalbulkService.FindAll(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			b.logger.Infof("[FindAll] no bulk services found")
-			return []model.APPAccessList{}, errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		b.logger.Errorf("[FindAll] failed to fetch bulk services: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	b.logger.Infof("[FindAll] retrieved %d bulk services", len(bulkServices))
 	return bulkServices, nil

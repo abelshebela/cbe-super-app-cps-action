@@ -57,10 +57,7 @@ func (a *AvatarStorage) Update(ctx context.Context, id string, avatar *model.Ava
 	_, err = a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		a.logger.Errorf("[Update] failed to update avatar: %v", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	a.logger.Infof("[Update] avatar updated successfully")
 	return nil
@@ -94,12 +91,8 @@ func (a *AvatarStorage) EnableOrDisable(ctx context.Context, id string, enable b
 	update := bson.M{"enable": enable}
 	_, err = a.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			a.logger.Errorf("[EnableOrDisable] avatar not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
 		a.logger.Errorf("[EnableOrDisable] failed to enable/disable avatar: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	a.logger.Infof("[EnableOrDisable] avatar enable/disable completed successfully")
 	return nil
@@ -116,12 +109,8 @@ func (a *AvatarStorage) FindByID(ctx context.Context, id string) (*model.Avatar,
 
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			a.logger.Errorf("[FindByID] avatar not found")
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
 		a.logger.Errorf("[FindByID] failed to find avatar: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	a.logger.Infof("[FindByID] avatar retrieved successfully")
 	return result, nil
@@ -142,12 +131,8 @@ func (a *AvatarStorage) Find(ctx context.Context, filter bson.M, projection bson
 	filter["is_deleted"] = false
 	avatar, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			a.logger.Errorf("[Find] avatar not found")
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
 		a.logger.Errorf("[Find] failed to find avatar: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	a.logger.Infof("[Find] avatar retrieved successfully")
 	return avatar, nil

@@ -71,12 +71,7 @@ func (d *DonationStorage) Update(ctx context.Context, id string, donation *imode
 
 	updatedDonation, err := d.dal.UpdateOne(ctx, filter, updatedData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			d.logger.Errorf("[Update] donation not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		d.logger.Errorf("[Update] failed to update donation: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	d.kafkaProducer.PublishMessage(ctx, updatedDonation, string(constants.ClientOrchestrationDonationTopic), string(constants.ClientOrchestrationDonationTopic), "donation updated")
@@ -166,13 +161,13 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 	data, err := d.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		d.logger.Errorf("[FindAllWithPagination] failed to fetch donations: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	total, err := d.dal.TotalCount(ctx, filter)
 	if err != nil {
 		d.logger.Errorf("[FindAllWithPagination] failed to count donations: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)

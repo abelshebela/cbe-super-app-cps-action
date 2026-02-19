@@ -51,12 +51,8 @@ func (l *AccountValidationStore) FindByID(ctx context.Context, id string) (*mode
 
 	result, err := l.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			l.logger.Errorf("[FindByID] account validation rule not found")
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
 		l.logger.Errorf("[FindByID] failed to find account validation rule: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	l.logger.Infof("[FindByID] account validation rule retrieved successfully")
 	return result, nil
@@ -75,12 +71,8 @@ func (a *AccountValidationStore) Update(ctx context.Context, id string, rule *mo
 
 	updateAccountValidation, err := a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			a.logger.Errorf("[Update] account validation rule not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
 		a.logger.Errorf("[Update] failed to update account validation rule: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	a.kafkaProducer.PublishMessage(ctx, updateAccountValidation, string(constants.ClientOrchestrationAccountValidationTopic), string(constants.ClientOrchestrationAccountValidationTopic), "update account validation rule")

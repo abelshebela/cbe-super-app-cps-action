@@ -18,7 +18,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -207,10 +206,6 @@ func (s *bankVaultService) EnableBankVault(ctx context.Context, id string) error
 	}
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
-			span.AddEvent("[EnableBankVault] bank vault not found", trace.WithAttributes(attribute.String("id", id)))
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		span.AddEvent("[EnableBankVault] failed to find bank vault", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -246,11 +241,6 @@ func (s *bankVaultService) DisableBankVault(ctx context.Context, id string) erro
 	}
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
-			span.AddEvent("[DisableBankVault] bank vault not found", trace.WithAttributes(attribute.String("id", id)))
-			s.logger.Errorf("[DisableBankVault] bank vault not found: %s", id)
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		span.AddEvent("[DisableBankVault] failed to find bank vault", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),

@@ -71,11 +71,7 @@ func (w *WalletStorage) Update(ctx context.Context, id string, wallet *local_mod
 
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorWalletNotFound.Code)
-		}
-		w.logger.Errorf("Failed to update wallet: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -91,11 +87,7 @@ func (w *WalletStorage) Delete(ctx context.Context, id string) error {
 
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorWalletNotFound.Code)
-		}
-		w.logger.Errorf("Failed to delete wallet: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -111,12 +103,7 @@ func (w *WalletStorage) EnableOrDisable(ctx context.Context, id string, enable b
 
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			w.logger.Warnf("Wallet ID %s not found for enable/disable", id)
-			return errors.New(localization.ErrorWalletNotFound.Code)
-		}
-		w.logger.Errorf("Failed to enable/disable wallet ID %s: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -130,11 +117,7 @@ func (w *WalletStorage) FindByID(ctx context.Context, id string) (*local_model.W
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errors.New(localization.ErrorWalletNotFound.Code)
-		}
-		w.logger.Errorf("FindByID wallet failed: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return doc, nil
@@ -173,7 +156,7 @@ func (w *WalletStorage) Find(ctx context.Context, code, name string) (*local_mod
 			return nil, nil
 		}
 		w.logger.Errorf("FindBy code:%s name:%s wallet failed: %v", code, name, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return doc, nil

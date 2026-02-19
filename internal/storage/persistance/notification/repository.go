@@ -79,12 +79,7 @@ func (n *NotificationStorage) Update(ctx context.Context, id string, notificatio
 
 	updatedNotification, err := n.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			n.logger.Errorf("[Update] notification not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		n.logger.Errorf("[Update] failed to update notification: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	inAppMessage := notification_dto.InAppKafkaMessage{
@@ -225,11 +220,7 @@ func (n *NotificationStorage) EnableDisableNotification(ctx context.Context, id 
 	}
 	updatedNotification, err := n.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		n.logger.Errorf("EnableOrDisable Event failed", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	status := "disabled"

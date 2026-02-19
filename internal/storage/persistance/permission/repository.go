@@ -130,12 +130,7 @@ func (r *PermissionPersistence) FindByID(ctx context.Context, id string) (*model
 	var result model.PermissionGroup
 	err = r.collections[0].FindOne(ctx, filter).Decode(&result)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Errorf("[FindByID] permission group not found")
-			return nil, errors.New(localization.ErrorPermissionGroupNotFound.Code)
-		}
-		r.logger.Errorf("[FindByID] failed to find permission group: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	r.logger.Infof("[FindByID] permission group retrieved successfully")
 	return &result, nil
@@ -433,11 +428,7 @@ func (r *PermissionPersistence) GetPermissionGroup(groupName string) (*model.Per
 	var group model.PermissionGroup
 	err := r.collections[0].FindOne(ctx, filter).Decode(&group)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errors.New(localization.ErrorPermissionGroupNotFound.Code)
-		}
-		r.logger.Errorf("[GetPermissionGroup] failed to find permission group: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	if group.ID.IsZero() {
 		return nil, nil
