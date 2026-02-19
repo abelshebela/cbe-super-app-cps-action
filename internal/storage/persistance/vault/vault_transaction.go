@@ -6,7 +6,6 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"database/sql"
-	"fmt"
 )
 
 const (
@@ -89,13 +88,13 @@ func (r *VaultCategoryRepository) FindAllTransactionsWithPagination(ctx context.
 	var total int64
 	if err := r.db.QueryRowContext(ctx, countTransactions).Scan(&total); err != nil {
 		r.logger.Errorf("failed to count withdrawal requests: %v", err)
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 
 	rows, err := r.db.QueryContext(ctx, listTransactions, sql.Named("offset", offset), sql.Named("limit", limit))
 	if err != nil {
 		r.logger.Errorf("failed to list withdrawal requests: %v", err)
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
 
@@ -144,7 +143,8 @@ func (r *VaultCategoryRepository) FindAllTransactionsWithPagination(ctx context.
 			&w.VaultID,
 			&w.VaultTxType,
 		); err != nil {
-			return nil, err
+			r.logger.Errorf("failed to scan transaction row: %v", err)
+			return nil, local_util.HandleDBError(err)
 		}
 
 		list = append(list, w)
@@ -200,11 +200,8 @@ func (r VaultCategoryRepository) FindVaultTransaction(ctx context.Context, id st
 		&w.VaultTxType,
 	)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("failed to get vault transactions for id: %s and error %v", id, err)
-		}
-		r.logger.Errorf("failed to get withdrawal request: %v", err)
-		return nil, err
+		r.logger.Errorf("failed to get vault transaction for id %s: %v", id, err)
+		return nil, local_util.HandleDBError(err)
 	}
 	return &w, nil
 }

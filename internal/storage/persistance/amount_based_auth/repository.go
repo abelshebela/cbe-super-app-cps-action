@@ -61,7 +61,7 @@ func (a *AmountBasedAuthStorage) FindAll(ctx context.Context, filter bson.M, pro
 	result, err := a.dal.FindAll(ctx, filter, projection)
 	if err != nil {
 		a.logger.Errorf("[FindAll] failed to fetch amount-based auth tiers: %v", err)
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	a.logger.Infof("[FindAll] retrieved %d amount-based auth tiers", len(result))
 	return result, nil
@@ -81,13 +81,13 @@ func (a *AmountBasedAuthStorage) FindAllWithPagination(ctx context.Context, filt
 	data, err := a.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		a.logger.Errorf("[FindAllWithPagination] failed to fetch amount-based auth tiers: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := a.dal.TotalCount(ctx, filter)
 	if err != nil {
 		a.logger.Errorf("[FindAllWithPagination] failed to count amount-based auth tiers: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -112,7 +112,7 @@ func (a *AmountBasedAuthStorage) FindByID(ctx context.Context, id string) (*mode
 
 	if err != nil {
 		a.logger.Errorf("[FindByID] failed to find amount-based auth tier: %v", err)
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	a.logger.Infof("[FindByID] amount-based auth tier retrieved successfully")
 	return result, nil

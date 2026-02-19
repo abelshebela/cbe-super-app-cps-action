@@ -83,7 +83,7 @@ func (d *DeviceVersionControlRepository) Delete(ctx context.Context, id string) 
 	err = d.deviceDal.DeleteOne(ctx, filter)
 	if err != nil {
 		d.logger.Errorf("[Delete] failed to delete device version control: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	d.logger.Infof("[Delete] device version control deleted successfully")
 	return nil
@@ -101,8 +101,12 @@ func (d *DeviceVersionControlRepository) EnableOrDisable(ctx context.Context, id
 	update := bson.M{"enabled": enable}
 	updatedDeviceVersion, err := d.deviceDal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			d.logger.Errorf("[EnableOrDisable] device version control not found")
+			return errors.New(localization.ErrorResourceNotFound.Code)
+		}
 		d.logger.Errorf("[EnableOrDisable] failed to enable/disable device version control: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	_ = updatedDeviceVersion
 
@@ -161,14 +165,14 @@ func (d *DeviceVersionControlRepository) FindAllWithPagination(ctx context.Conte
 	data, err := d.deviceDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		d.logger.Errorf("[FindAllWithPagination] failed to fetch device version controls: %v", err)
-		return types.PaginatedResponse[[]model.DeviceVersionControl]{}, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]model.DeviceVersionControl]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := d.deviceDal.TotalCount(ctx, filter)
 	if err != nil {
 		d.logger.Errorf("[FindAllWithPagination] failed to count device version controls: %v", err)
-		return types.PaginatedResponse[[]model.DeviceVersionControl]{}, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]model.DeviceVersionControl]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
@@ -189,7 +193,7 @@ func (d *DeviceVersionControlRepository) FindOne(ctx context.Context, platform, 
 		if err == mongo.ErrNoDocuments {
 			return model.DeviceVersionControl{}, errors.New(localization.ErrorResourceNotFound.Code)
 		}
-		return model.DeviceVersionControl{}, errors.New(localization.ErrorUnexpectedError.Message)
+		return model.DeviceVersionControl{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return *result, nil
 }

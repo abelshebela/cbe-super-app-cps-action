@@ -1,8 +1,10 @@
 package bulk_service
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
 
@@ -24,15 +26,17 @@ import (
 type BulkServicePersistence struct {
 	mongoDalCpsAction   dal.MongoDal[model.CPSAction, model.CPSAction]
 	mongoDalbulkService dal.MongoDal[model.APPAccessList, model.APPAccessList]
+	kafkaProducer       kafka.ClientOrchestrationProducer
 	logger              utils.Logger
 }
 
-func InitBulkServicePersistence(client *mongo.Client, cfg *config.VaultConfig, dbName string, collections []string, logger utils.Logger) storage.BulkServiceRepository {
+func InitBulkServicePersistence(client *mongo.Client, cfg *config.VaultConfig, dbName string, collections []string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.BulkServiceRepository {
 	mongoDalCpsAction := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, cfg, dbName, collections[0])
 	mongoDalbulkService := dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, cfg, dbName, collections[1])
 	return &BulkServicePersistence{
 		mongoDalCpsAction:   mongoDalCpsAction,
 		mongoDalbulkService: mongoDalbulkService,
+		kafkaProducer:       clientOrchestrationProducer,
 		logger:              logger,
 	}
 }
@@ -73,7 +77,7 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 	// 6. Count total
 	total, err := b.mongoDalbulkService.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
@@ -98,7 +102,7 @@ func (b BulkServicePersistence) FindAll(ctx context.Context) ([]model.APPAccessL
 			return []model.APPAccessList{}, errors.New(localization.ErrorResourceNotFound.Code)
 		}
 		b.logger.Errorf("[FindAll] failed to fetch bulk services: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	b.logger.Infof("[FindAll] retrieved %d bulk services", len(bulkServices))
 	return bulkServices, nil
@@ -124,6 +128,7 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 					b.logger.Errorf("[Update] failed to update child: %v", err)
 					return errors.New(localization.ErrorFailToUpdateChild.Code)
 				}
+				b.kafkaProducer.PublishMessage(ctx, child, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "bulk enable/disable access-list child")
 				parentKeys = append(parentKeys, child.Key)
 
 				continue
@@ -132,6 +137,8 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 			b.logger.Errorf("[Update] failed to update parent: %v", err)
 			return errors.New(localization.ErrorFailToUpdateParent.Code)
 		}
+
+		b.kafkaProducer.PublishMessage(ctx, result, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "bulk enable/disable access-list parent")
 
 		// Parent exists → manually loop over children and update each one
 		for _, sub := range result.SubAccessList {
@@ -152,11 +159,12 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 			parentFilter := bson.M{"key": key}
 			parentUpdate := bson.M{"enabled": state}
 
-			_, err := b.mongoDalbulkService.UpdateOne(ctx, parentFilter, parentUpdate)
+			updatedParent, err := b.mongoDalbulkService.UpdateOne(ctx, parentFilter, parentUpdate)
 			if err != nil {
 				b.logger.Errorf("[Update] failed to update parent: %v", err)
 				return errors.New(localization.ErrorFailToUpdateParent.Code)
 			}
+			b.kafkaProducer.PublishMessage(ctx, updatedParent, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "bulk enable/disable access-list parent")
 		}
 	}
 

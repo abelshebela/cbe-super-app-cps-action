@@ -75,7 +75,7 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 
 	prev, err := s.dal.FindOne(ctx, bson.M{"_id": objID}, bson.M{})
 	if err != nil {
-		return err
+		return local_util.HandleDBError(err)
 	}
 
 	update := core.MapToServiceUpdate(*service, *prev)

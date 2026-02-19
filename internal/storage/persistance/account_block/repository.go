@@ -147,13 +147,13 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)
 	if err != nil {
 		a.logger.Errorf("[FindAllBranchesWithPagination] failed to find branches: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := a.accountBlock.TotalCount(ctx, filter)
 	if err != nil {
 		a.logger.Errorf("[FindAllBranchesWithPagination] failed to count branches: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -182,7 +182,8 @@ func (a *AccountBlockStorage) EnableOrDisableBranches(ctx context.Context, ids [
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
-		return err
+		a.logger.Errorf("[EnableOrDisableBranches] failed to update branches: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	descendantsFilter := bson.M{"region_id": bson.M{"$in": objIDs}}
@@ -219,7 +220,8 @@ func (a *AccountBlockStorage) GetBranchesByIds(ctx context.Context, ids []string
 
 	block, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, int64(len(ids)), a.logger)
 	if err != nil {
-		return nil, err
+		a.logger.Errorf("[GetBranchesByIds] failed to fetch branches: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	if len(block) == 0 {
 		return nil, errors.New(localization.ErrorBranchNotFound.Code)
@@ -282,8 +284,8 @@ func (a *AccountBlockStorage) FindAllRegionsWithPagination(ctx context.Context, 
 	collection := a.client.Database(a.dbName).Collection("account_block")
 	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)
 	if err != nil {
-		a.logger.Errorf("Error finding cities with pagination: %v", err)
-		return nil, err
+		a.logger.Errorf("[FindAllRegionsWithPagination] failed to find regions: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	total, err := a.accountBlock.TotalCount(ctx, filter)
 	if err != nil {
@@ -315,7 +317,8 @@ func (a *AccountBlockStorage) EnableOrDisableRegions(ctx context.Context, ids []
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
-		return err
+		a.logger.Errorf("[EnableOrDisableRegions] failed to update regions: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	descendantsFilter := bson.M{"region_id": bson.M{"$in": objIDs}}
@@ -356,7 +359,8 @@ func (a *AccountBlockStorage) GetRegionsByIds(ctx context.Context, ids []string)
 
 	block, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, int64(len(ids)), a.logger)
 	if err != nil {
-		return nil, err
+		a.logger.Errorf("[GetRegionsByIds] failed to fetch regions: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	if len(block) == 0 {
 		return nil, errors.New(localization.ErrorRegionNotFound.Code)
@@ -422,8 +426,8 @@ func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context
 	collection := a.client.Database(a.dbName).Collection("account_block")
 	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)
 	if err != nil {
-		a.logger.Errorf("Error finding cities with pagination: %v", err)
-		return nil, err
+		a.logger.Errorf("[FindAllDistrictsWithPagination] failed to find districts: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := a.accountBlock.TotalCount(ctx, filter)
@@ -456,7 +460,8 @@ func (a *AccountBlockStorage) EnableOrDisableDistricts(ctx context.Context, ids 
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
-		return err
+		a.logger.Errorf("[EnableOrDisableDistricts] failed to update districts: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	descendantsFilter := bson.M{"district_id": bson.M{"$in": objIDs}}
@@ -497,7 +502,8 @@ func (a *AccountBlockStorage) GetDistrictsByIds(ctx context.Context, ids []strin
 
 	block, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, int64(len(ids)), a.logger)
 	if err != nil {
-		return nil, err
+		a.logger.Errorf("[GetDistrictsByIds] failed to fetch districts: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	if len(block) == 0 {
 		return nil, errors.New(localization.ErrorDistrictNotFound.Code)
@@ -569,8 +575,8 @@ func (a *AccountBlockStorage) FindAllCitiesWithPagination(ctx context.Context, f
 	collection := a.client.Database(a.dbName).Collection("account_block")
 	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)
 	if err != nil {
-		a.logger.Errorf("Error finding cities with pagination: %v", err)
-		return nil, err
+		a.logger.Errorf("[FindAllCitiesWithPagination] failed to find cities: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	totalCount, err := a.accountBlock.TotalCount(ctx, filter)
@@ -604,7 +610,8 @@ func (a *AccountBlockStorage) EnableOrDisableCities(ctx context.Context, ids []s
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
-		return err
+		a.logger.Errorf("[EnableOrDisableCities] failed to update cities: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	descendantsFilter := bson.M{"city_id": bson.M{"$in": objIDs}}
@@ -645,7 +652,8 @@ func (a *AccountBlockStorage) GetCitiesByIds(ctx context.Context, ids []string) 
 
 	block, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, int64(len(ids)), a.logger)
 	if err != nil {
-		return nil, err
+		a.logger.Errorf("[GetCitiesByIds] failed to fetch cities: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	if len(block) == 0 {
 		return nil, errors.New(localization.ErrorCityNotFound.Code)

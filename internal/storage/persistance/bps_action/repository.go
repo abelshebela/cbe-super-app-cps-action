@@ -8,7 +8,6 @@ import (
 	bps_action_core "cbe-super-app-cps-action/internal/storage/persistance/cps_action/core"
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -78,7 +77,7 @@ func (b *bpsActionRepository) GetBPSActionByUserID(ctx context.Context, userID s
 	objID, err := bson.ObjectIDFromHex(userID)
 	if err != nil {
 		b.logger.Errorf("[GetBPSActionByUserID] invalid user ID: %v", err)
-		return types.PaginatedResponse[[]bps_action.BPSAction]{}, err
+		return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, nil)
 	filter["user_information.user_id"] = objID
@@ -86,14 +85,14 @@ func (b *bpsActionRepository) GetBPSActionByUserID(ctx context.Context, userID s
 	cus, err := b.actionDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		b.logger.Errorf("[GetBPSActionByUserID] failed to fetch BPS actions: %v", err)
-		return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New("failed to fetch BPS actions")
+		return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	filter = bson.M{"user_information.user_id": objID}
 	total, err := b.actionDal.TotalCount(ctx, filter)
 	if err != nil {
 		b.logger.Errorf("[GetBPSActionByUserID] failed to fetch total count: %v", err)
-		return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New("error failed to get bps action")
+		return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
@@ -109,7 +108,7 @@ func (b *bpsActionRepository) Save(ctx context.Context, action *bps_action.BPSAc
 	_, err := b.actionDal.InsertOne(ctx, *action)
 	if err != nil {
 		b.logger.Errorf("[Save] failed to save BPS action: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Message)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return nil
@@ -146,13 +145,13 @@ func (b *bpsActionRepository) FindAllWithPagination(ctx context.Context, filterP
 	data, err := b.actionDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		b.logger.Errorf("[FindAllWithPagination] failed to fetch BPS actions: %v", err)
-		return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := b.actionDal.TotalCount(ctx, filter)
 	if err != nil {
 		b.logger.Errorf("[FindAllWithPagination] failed to count BPS actions: %v", err)
-		return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -168,8 +167,7 @@ func (b *bpsActionRepository) FindOne(ctx context.Context, filter bson.M) (*bps_
 	data, err := b.actionDal.FindOne(ctx, filter, Projection)
 	if err != nil {
 		b.logger.Errorf("[FindOne] failed to find BPS action: %v", err)
-		code, _ := local_util.HandleMongoError(err)
-		return nil, errors.New(code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return data, nil
@@ -218,18 +216,21 @@ func (b *bpsActionRepository) SanitizedFindAllWithPagination(ctx context.Context
 
 	cur, err := b.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, err
+		b.logger.Errorf("[SanitizedFindAllWithPagination] aggregation failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = cur.Close(ctx) }()
 
 	var results []*bps_action.BPSAction
 	if err := cur.All(ctx, &results); err != nil {
-		return nil, err
+		b.logger.Errorf("[SanitizedFindAllWithPagination] cursor decode failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := b.actionDal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		b.logger.Errorf("[SanitizedFindAllWithPagination] failed to count BPS actions: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -316,21 +317,23 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(
 		bps_action_core.SanitizePipeline(exclude),
 	}
 
-	fmt.Println("filter", filter)
 	cur, err := b.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, err
+		b.logger.Errorf("[SanitizedFindAllWithPaginationForApprover] aggregation failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cur.Close(ctx)
 
 	var results []*bps_action.BPSAction
 	if err := cur.All(ctx, &results); err != nil {
-		return nil, err
+		b.logger.Errorf("[SanitizedFindAllWithPaginationForApprover] cursor decode failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := b.actionDal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		b.logger.Errorf("[SanitizedFindAllWithPaginationForApprover] failed to count BPS actions: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -384,18 +387,21 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 
 	cur, err := b.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, err
+		b.logger.Errorf("[SanitizedFindAllWithPaginationForAuditor] aggregation failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = cur.Close(ctx) }()
 
 	var results []*bps_action.BPSAction
 	if err := cur.All(ctx, &results); err != nil {
-		return nil, err
+		b.logger.Errorf("[SanitizedFindAllWithPaginationForAuditor] cursor decode failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := b.actionDal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		b.logger.Errorf("[SanitizedFindAllWithPaginationForAuditor] failed to count BPS actions: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -430,9 +436,14 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationBPSActions(ctx conte
 	}
 	delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
-	filter["request_action"] = bson.M{"$in": RAList}
+	if role != "maker" {
+		filter["request_action"] = bson.M{"$in": RAList}
+	}
 
 	var userFilter bson.M
+	if role == "maker" {
+		userFilter = bson.M{"maker_id": userID}
+	}
 	if role == "auditor" {
 		userFilter = bson.M{"auditor_users.auditor_id": userID}
 	}
@@ -440,8 +451,10 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationBPSActions(ctx conte
 	var finalMatch bson.M
 	if role == "checker" && filterParam.Filters != nil && filterParam.Filters["status"] == "PENDING" {
 		finalMatch = filter
-	} else {
+	} else if userFilter != nil {
 		finalMatch = bson.M{"$and": []bson.M{filter, userFilter}}
+	} else {
+		finalMatch = filter
 	}
 
 	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
@@ -457,18 +470,21 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationBPSActions(ctx conte
 
 	cur, err := b.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, err
+		b.logger.Errorf("[SanitizedFindAllWithPaginationBPSActions] aggregation failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = cur.Close(ctx) }()
 
 	var results []*bps_action.BPSAction
 	if err := cur.All(ctx, &results); err != nil {
-		return nil, err
+		b.logger.Errorf("[SanitizedFindAllWithPaginationBPSActions] cursor decode failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := b.actionDal.TotalCount(ctx, finalMatch)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		b.logger.Errorf("[SanitizedFindAllWithPaginationBPSActions] failed to count BPS actions: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -486,7 +502,8 @@ func (b *bpsActionRepository) SanitizedFindOne(ctx context.Context, filter bson.
 
 	cur, err := b.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, fmt.Errorf("aggregation failed: %w", err)
+		b.logger.Errorf("[SanitizedFindOne] aggregation failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = cur.Close(ctx) }()
 
@@ -496,7 +513,8 @@ func (b *bpsActionRepository) SanitizedFindOne(ctx context.Context, filter bson.
 
 	var result bps_action.BPSAction
 	if err := cur.Decode(&result); err != nil {
-		return nil, fmt.Errorf("failed to decode document: %w", err)
+		b.logger.Errorf("[SanitizedFindOne] failed to decode document: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return &result, nil
@@ -507,8 +525,7 @@ func (b *bpsActionRepository) Update(ctx context.Context, actionCode string, upd
 	updateMap := bson.M{"$set": update}
 	data, err := b.actionDal.UpdateOne(ctx, filter, updateMap)
 	if err != nil {
-		code, _ := local_util.HandleMongoError(err)
-		return nil, errors.New(code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return &data, nil
 }
@@ -518,8 +535,7 @@ func (b *bpsActionRepository) UpdateByActionCode(ctx context.Context, actionCode
 	updateMap := bson.M{"$set": update}
 	data, err := b.actionDal.UpdateOne(ctx, filter, updateMap)
 	if err != nil {
-		code, _ := local_util.HandleMongoError(err)
-		return nil, errors.New(code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return &data, nil
 }
@@ -527,8 +543,7 @@ func (b *bpsActionRepository) UpdateByActionCode(ctx context.Context, actionCode
 func (b *bpsActionRepository) UpdateCustome(ctx context.Context, filter, update bson.M) error {
 	_, err := b.actionDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		code, _ := local_util.HandleMongoError(err)
-		return errors.New(code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -536,11 +551,11 @@ func (b *bpsActionRepository) UpdateCustome(ctx context.Context, filter, update 
 func (b *bpsActionRepository) Delete(ctx context.Context, id string) error {
 	objID, ok := local_util.StringToObjectID(id)
 	if !ok {
-		return errors.New(localization.ErrorUnexpectedError.Message)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if err := b.actionDal.DeleteOne(ctx, bson.M{"_id": objID}); err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Message)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
@@ -550,23 +565,25 @@ func (b *bpsActionRepository) GetCountByDepartment(ctx context.Context, departme
 		{{Key: "$match", Value: bson.M{"is_deleted": false, "department": department}}},
 		{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: nil},
-			{Key: "Approved", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", "APPROVED"}}}, 1, 0}}}}}},
-			{Key: "Rejected", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", "REJECTED"}}}, 1, 0}}}}}},
-			{Key: "Inprogress", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", "INPROGRESS"}}}, 1, 0}}}}}},
-			{Key: "Completed", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", "AUDITORNOTCHECKED"}}}, 1, 0}}}}}},
+			{Key: "approved", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", "APPROVED"}}}, 1, 0}}}}}},
+			{Key: "rejected", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", "REJECTED"}}}, 1, 0}}}}}},
+			{Key: "inprogress", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", "INPROGRESS"}}}, 1, 0}}}}}},
+			{Key: "completed", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", "AUDITORNOTCHECKED"}}}, 1, 0}}}}}},
 		}}},
 	}
 
 	cur, err := b.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, fmt.Errorf("aggregation failed: %w", err)
+		b.logger.Errorf("[GetCountByDepartment] aggregation failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = cur.Close(ctx) }()
 
 	var result bpsActionDto.BPSActionCountResponse
 	if cur.Next(ctx) {
 		if err := cur.Decode(&result); err != nil {
-			return nil, fmt.Errorf("failed to decode document: %w", err)
+			b.logger.Errorf("[GetCountByDepartment] failed to decode document: %v", err)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		return &result, nil
 	}

@@ -247,7 +247,7 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 	cursor, err := u.mongoCollection.Aggregate(ctx, pipeline)
 	if err != nil {
 		u.logger.Errorf("[FindAllWithPagination] failed to execute aggregation pipeline: %v", err)
-		return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{}, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
@@ -260,7 +260,7 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 
 	if err := cursor.All(ctx, &results); err != nil {
 		u.logger.Errorf("[FindAllWithPagination] failed to decode aggregation results: %v", err)
-		return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{}, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if len(results) == 0 {

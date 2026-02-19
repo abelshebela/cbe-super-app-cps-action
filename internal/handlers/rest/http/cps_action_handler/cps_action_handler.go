@@ -144,7 +144,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if action.MakerID == userData.UserID {
+	if action.MakerID == userData.UserName {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
 	}
@@ -163,7 +163,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if action.MakerID == userData.UserID {
+	if action.MakerID == userData.UserName {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
 	}
@@ -181,7 +181,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 
 	// Mark path -> record auditor mark and advance group/finish
 	auditor := model.Auditor{
-		AuditorID:          userData.UserID,
+		AuditorID:          userData.UserName,
 		RoleID:             rawRoleID,
 		AuditorIndex:       int32(activeGroup),
 		AuditorName:        userData.FullName,
@@ -246,7 +246,7 @@ func (a *cpsActionAdapter) CancelCPSAction(w http.ResponseWriter, r *http.Reques
 		localization.SendBadRequestResponse(w, localization.ErrorUserForbidden.Message)
 		return
 	}
-	if userData.UserID != action.MakerID {
+	if userData.UserName != action.MakerID {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
 	}
@@ -431,7 +431,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		if action.MakerID == userData.UserID {
+		if action.MakerID == userData.UserName {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
@@ -456,7 +456,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		finalStatus = string(constants.Approved)
 	}
 	checkerUser := model.Checker{
-		CheckerID:          userData.UserID,
+		CheckerID:          userData.UserName,
 		RoleID:             r.Context().Value(constants.ContextKey("role_code")).(string),
 		CheckerIndex:       int32(*idxDoc.CheckerIndex),
 		CheckerName:        userData.FullName,
@@ -562,7 +562,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		if action.MakerID == makerData.UserID {
+		if action.MakerID == makerData.UserName {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
@@ -592,7 +592,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 	}
 
 	CheckerUser := model.Checker{
-		CheckerID:          makerData.UserID,
+		CheckerID:          makerData.UserName,
 		RoleID:             r.Context().Value(constants.ContextKey("role_code")).(string),
 		CheckerName:        makerData.FullName,
 		CheckerPhoneNumber: makerData.PhoneNumber,
@@ -1114,13 +1114,14 @@ func (a *cpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionCounts", "handler", "cpsAction")
 	defer span.End()
+
 	if _, err := local_util.ParseUserContext(r); err != nil {
 		localization.SendErrorResponse(w, localization.ErrorUserForbidden, nil, nil)
 		return
 	}
 
 	userContext := local_util.ExtractUserContext(r)
-	userID := userContext.UserID
+	userID := userContext.UserName
 
 	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 	if strings.TrimSpace(rawRoleID) == "" {
@@ -1128,7 +1129,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	requestedRole := r.URL.Query().Get("role")
+	requestedRole := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("role")))
 	if err := local_util.NoSpecialChars(requestedRole); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -1147,7 +1148,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if makerActions == nil && checkerActions == nil && auditorActions == nil {
+	if makerActions == nil && checkerActions == nil && auditorActions == nil && requestedRole != "maker" {
 		resp := &cpsactionDto.CPSActionCountResponse{
 			Pending:    0,
 			Approved:   0,
@@ -1213,8 +1214,9 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	// If no mapped request actions, return zero counts
-	if len(reqs) == 0 {
+	// If no mapped request actions and not maker, return zero counts
+	// Maker counts don't rely on RAList — they filter by maker_id instead
+	if len(reqs) == 0 && requestedRole != "maker" {
 		resp := &cpsactionDto.CPSActionCountResponse{
 			Pending:    0,
 			Approved:   0,
@@ -1302,22 +1304,24 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		canceledCount = int(res.Meta.TotalDocs)
 	}
 
-	// Audior's Inprogress Count
-	if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter("", string(model.AUDITORINPROGRESS))); err != nil {
-		span.RecordError(err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	} else if res != nil && res.Meta.TotalDocs > 0 {
-		inprogressAuditCount = int(res.Meta.TotalDocs)
-	}
+	// Auditor's Inprogress Count (only for auditor role)
+	if requestedRole == "auditor" {
+		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter("", string(model.AUDITORINPROGRESS))); err != nil {
+			span.RecordError(err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		} else if res != nil && res.Meta.TotalDocs > 0 {
+			inprogressAuditCount = int(res.Meta.TotalDocs)
+		}
 
-	// Audior's Completed Count
-	if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter("", string(model.AUDITORCHECKED))); err != nil {
-		span.RecordError(err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	} else if res != nil && res.Meta.TotalDocs > 0 {
-		completedAuditCount = int(res.Meta.TotalDocs)
+		// Auditor's Completed Count
+		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter("", string(model.AUDITORCHECKED))); err != nil {
+			span.RecordError(err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		} else if res != nil && res.Meta.TotalDocs > 0 {
+			completedAuditCount = int(res.Meta.TotalDocs)
+		}
 	}
 
 	resp := &cpsactionDto.CPSActionCountResponse{

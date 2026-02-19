@@ -132,7 +132,7 @@ func (r *userRepository) FindByUserCode(ctx context.Context, userCode string) (*
 		if err == mongo.ErrNoDocuments {
 			return nil, errors.New(localization.ErrorUserNotFound.Code)
 		}
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return user, nil
@@ -148,7 +148,7 @@ func (r *userRepository) FindByCustomerNumber(ctx context.Context, customerNumbe
 		if err == mongo.ErrNoDocuments {
 			return nil, errors.New(localization.ErrorUserNotFound.Code)
 		}
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return user, nil
 }
