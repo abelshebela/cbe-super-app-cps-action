@@ -206,7 +206,7 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 	if err != nil && approve == nil {
 		span.AddEvent("failed to authorize cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		ca.logger.Errorf("failed to authorize cps action", trace.WithAttributes(attribute.String("error", err.Error())))
-		RollErr := ca.RollBack(ctx, action)
+		RollErr := ca.RollBack(ctx, data)
 		if RollErr != nil {
 			span.AddEvent("failed to roll back cps action", trace.WithAttributes(attribute.String("error", RollErr.Error())))
 			ca.logger.Errorf("failed to roll back cps action", trace.WithAttributes(attribute.String("error", RollErr.Error())))
@@ -389,16 +389,63 @@ func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, unique
 	return action, nil
 }
 
-func (ca *cpsActionService) RollBack(ctx context.Context, action *model.CPSAction) error {
+// RollBack reverts a CPS action after a failed Authorize call.
+// It receives the full DB document (data) so it can inspect CheckerCount, AuditorCount, etc.
+//   - Maker-only (CheckerCount == 0): soft-delete the action so it does not block future creations.
+//   - Multi-checker (CheckerCount > 0): revert the last checker and reset status to Pending.
+//   - Auditor fields are also reset when AuditorCount > 0.
+func (ca *cpsActionService) RollBack(ctx context.Context, data *model.CPSAction) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "RollBack", "CPSAction", "RollBack")
 	defer span.End()
-	err := ca.repo.UpdateCustome(ctx, bson.M{"action_code": action.ActionCode}, bson.M{"action_status": string(constants.Pending), "checker_id": "", "checker_name": "", "checker_phone_number": ""})
+
+	filter := bson.M{"action_code": data.ActionCode}
+
+	// Maker-only action: no checkers configured, so nobody can approve/reject.
+	// Soft-delete the action to unblock future creations.
+	if data.CheckerCount == 0 {
+		err := ca.repo.UpdateCustome(ctx, filter, bson.M{
+			"action_status": string(constants.Canceled),
+			"is_deleted":    true,
+		})
+		if err != nil {
+			span.AddEvent("failed to soft-delete maker-only cps action", trace.WithAttributes(attribute.String("error", err.Error())))
+			return err
+		}
+		ca.logger.Infof("[RollBack] soft-deleted maker-only CPS action %s", data.ActionCode)
+		return nil
+	}
+
+	// Multi-checker action: revert the last appended checker.
+	previousCheckers := data.CheckerUsers
+	if len(previousCheckers) > 0 {
+		previousCheckers = previousCheckers[:len(previousCheckers)-1]
+	}
+
+	previousIndex := data.CurrentCheckerIndex - 1
+	if previousIndex < 0 {
+		previousIndex = 0
+	}
+
+	update := bson.M{
+		"action_status":         string(constants.Pending),
+		"checker_users":         previousCheckers,
+		"current_checker_index": previousIndex,
+	}
+
+	// Reset auditor state if auditors are configured.
+	if data.AuditorCount > 0 {
+		update["auditor_users"] = []model.Auditor{}
+		update["auditor_status"] = string(model.AUDITORNOTCHECKED)
+		update["current_auditor_index"] = 0
+	}
+
+	err := ca.repo.UpdateCustome(ctx, filter, update)
 	if err != nil {
-		span.AddEvent("failed to update custom", trace.WithAttributes(attribute.String("error", err.Error())))
+		span.AddEvent("failed to roll back cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
+	ca.logger.Infof("[RollBack] successfully rolled back CPS action %s to Pending", data.ActionCode)
 	return nil
-	// return ca.repo.UpdateCustome(ctx, bson.M{"action_code": action.ActionCode}, bson.M{"action_status": string(constants.Pending), "checker_users": []types.Checker{}, "current_checker_index": float32(0)})
 }
 
 func (ca *cpsActionService) GetActionCountsByDepartemnt(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error) {
