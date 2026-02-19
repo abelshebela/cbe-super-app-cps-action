@@ -44,10 +44,7 @@ func (l *ArchivedLinkedAccountStorage) FindByCustomerNumber(ctx context.Context,
 
 	result, err := l.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -96,10 +93,7 @@ func (l *ArchivedLinkedAccountStorage) FindByAccountNumber(ctx context.Context, 
 	}
 	result, err := l.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return result, nil

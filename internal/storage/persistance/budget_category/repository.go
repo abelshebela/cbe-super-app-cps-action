@@ -84,12 +84,7 @@ func (b *BudgetCategoryStorage) FindBudgetCategoryByID(ctx context.Context, id s
 
 	budgetCategory, err := b.budgetCategoryDal.FindOne(ctx, bson.M{"_id": objectID, "is_deleted": false}, bson.M{})
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			b.logger.Errorf("[FindBudgetCategoryByID] budget category not found")
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		b.logger.Errorf("[FindBudgetCategoryByID] failed to fetch budget category: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	b.logger.Infof("[FindBudgetCategoryByID] budget category retrieved successfully")
 	return budgetCategory, nil

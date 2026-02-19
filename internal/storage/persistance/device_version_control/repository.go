@@ -59,12 +59,7 @@ func (d *DeviceVersionControlRepository) Update(ctx context.Context, id string, 
 	deviceVersionControl["last_modified_at"] = time.Now()
 	updatedDeviceVersion, err := d.deviceDal.UpdateOne(ctx, filter, deviceVersionControl)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			d.logger.Errorf("[Update] device version control not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		d.logger.Errorf("[Update] failed to update device version control: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	_ = updatedDeviceVersion
 
@@ -101,12 +96,7 @@ func (d *DeviceVersionControlRepository) EnableOrDisable(ctx context.Context, id
 	update := bson.M{"enabled": enable}
 	updatedDeviceVersion, err := d.deviceDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			d.logger.Errorf("[EnableOrDisable] device version control not found")
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		d.logger.Errorf("[EnableOrDisable] failed to enable/disable device version control: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	_ = updatedDeviceVersion
 
@@ -124,12 +114,8 @@ func (d *DeviceVersionControlRepository) FindByID(ctx context.Context, id string
 	d.logger.Infof("[FindByID] fetching device version control by id: %s", id)
 	result, err := d.deviceDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			d.logger.Errorf("[FindByID] device version control not found")
-			return model.DeviceVersionControl{}, errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		d.logger.Errorf("[FindByID] failed to find device version control: %v", err)
-		return model.DeviceVersionControl{}, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.DeviceVersionControl{}, local_util.HandleDBError(err)
 	}
 	d.logger.Infof("[FindByID] device version control retrieved successfully")
 	return *result, nil
@@ -190,10 +176,7 @@ func (d *DeviceVersionControlRepository) FindOne(ctx context.Context, platform, 
 	filter := bson.M{"platform": platform, "latest_version": lastVersion}
 	result, err := d.deviceDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return model.DeviceVersionControl{}, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		return model.DeviceVersionControl{}, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.DeviceVersionControl{}, local_util.HandleDBError(err)
 	}
 	return *result, nil
 }

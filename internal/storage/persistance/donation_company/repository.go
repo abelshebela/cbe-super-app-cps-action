@@ -64,12 +64,7 @@ func (s *DonationCompanyStorage) Update(ctx context.Context, id string, details 
 	updateData := DonationCompanyMapper(*details)
 	updatedDonationCompany, err := s.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			s.logger.Errorf("[Update] donation company not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		s.logger.Errorf("[Update] failed to update donation company: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	s.kafkaProducer.PublishMessage(ctx, updatedDonationCompany, string(constants.ClientOrchestrationDonationCompanyTopic), string(constants.ClientOrchestrationDonationCompanyTopic), "donation company updated")

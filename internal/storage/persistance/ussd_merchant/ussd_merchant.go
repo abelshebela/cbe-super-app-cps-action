@@ -45,10 +45,7 @@ func (u *UssdMerchantRepository) Create(ctx context.Context, data imodel.UssdMer
 	_, err := u.dal.InsertOne(ctx, data)
 	if err != nil {
 		u.logger.Errorf("[UssdDalCreateMerchant] Error creating ussd_merchant: %v", err)
-		if err == mongo.ErrNoDocuments {
-			return localization.ErrorResourceNotFound
-		}
-		return errors.New(localization.ErrorUnhandledServer.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -64,10 +61,7 @@ func (u *UssdMerchantRepository) Update(ctx context.Context, id string, update b
 	_, err = u.dal.UpdateOne(ctx, bson.M{"_id": objID}, update)
 	if err != nil {
 		u.logger.Errorf("[UssdDalUpdateMerchant] Error creating ussd_merchant: %v", err)
-		if err == mongo.ErrNoDocuments {
-			return localization.ErrorResourceNotFound
-		}
-		return errors.New(localization.ErrorUnhandledServer.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -81,10 +75,7 @@ func (u *UssdMerchantRepository) FindById(ctx context.Context, id string) (ussd_
 	data, err := u.dal.FindOne(ctx, bson.M{"_id": objID}, nil)
 	if err != nil {
 		u.logger.Errorf("[UssdDalFindMerchant] Error fetching ussd_merchant: %v", err)
-		if err == mongo.ErrNoDocuments {
-			return ussd_merchant_dto.UssdMerchantResponse{}, localization.ErrorResourceNotFound
-		}
-		return ussd_merchant_dto.UssdMerchantResponse{}, errors.New(localization.ErrorUnhandledServer.Code)
+		return ussd_merchant_dto.UssdMerchantResponse{}, local_util.HandleDBError(err)
 	}
 
 	res := ResponseMapper(*data)
@@ -97,10 +88,7 @@ func (u *UssdMerchantRepository) Find(ctx context.Context, filter bson.M) (ussd_
 	data, err := u.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		u.logger.Errorf("[UssdDalFindMerchant] Error fetching ussd_merchant: %v", err)
-		if err == mongo.ErrNoDocuments {
-			return ussd_merchant_dto.UssdMerchantResponse{}, localization.ErrorResourceNotFound
-		}
-		return ussd_merchant_dto.UssdMerchantResponse{}, errors.New(localization.ErrorUnhandledServer.Code)
+		return ussd_merchant_dto.UssdMerchantResponse{}, local_util.HandleDBError(err)
 	}
 
 	res := ResponseMapper(*data)
@@ -134,12 +122,8 @@ func (u *UssdMerchantRepository) FindByOr(ctx context.Context, phone, email, acc
 	filter := bson.M{"$or": conditions}
 	data, err := u.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			u.logger.Infof("[FindByOr] no merchant found matching the criteria")
-			return imodel.UssdMerchant{}, nil
-		}
 		u.logger.Errorf("[FindByOr] failed to find merchant: %v", err)
-		return imodel.UssdMerchant{}, errors.New(localization.ErrorUnexpectedError.Code)
+		return imodel.UssdMerchant{}, local_util.HandleDBError(err)
 	}
 	return *data, nil
 }

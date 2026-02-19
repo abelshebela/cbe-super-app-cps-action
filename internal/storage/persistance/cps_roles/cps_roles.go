@@ -69,12 +69,7 @@ func (m *cpsRoleStorage) Update(ctx context.Context, id string, req imodel.CPSRo
 
 	updatedCPSRole, err := m.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Warnf("[Update] cps role not found, id: %s", id)
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		m.logger.Errorf("[Update] failed to update cps role, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	m.kafkaProducer.PublishMessage(
@@ -420,12 +415,7 @@ func (m *cpsRoleStorage) Delete(ctx context.Context, id string) error {
 
 	_, err = m.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Warnf("[Delete] cps role not found, id: %s", id)
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		m.logger.Errorf("[Delete] failed to soft delete cps role, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -434,12 +424,7 @@ func (m *cpsRoleStorage) FindByCustomerSegmentation(ctx context.Context, custome
 	filter := bson.M{"name": customerSegment, "enabled": true}
 	result, err := m.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Warnf("[FindByCustomerSegmentation] cps role not found for customer segment: %s", customerSegment)
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		m.logger.Errorf("[FindByCustomerSegmentation] failed to find cps role for customer segment: %s, error: %v", customerSegment, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }

@@ -45,12 +45,8 @@ func (a *AmountBasedAuthStorage) Update(ctx context.Context, id string, authTier
 
 	_, err = a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			a.logger.Errorf("[Update] amount-based auth tier not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
 		a.logger.Errorf("[Update] failed to update amount-based auth tier: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	a.logger.Infof("[Update] amount-based auth tier updated successfully")
 	return nil

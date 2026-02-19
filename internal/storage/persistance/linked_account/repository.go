@@ -42,10 +42,7 @@ func (l *LinkedAccountStorage) FindByCustomerNumber(ctx context.Context, custome
 
 	result, err := l.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -71,10 +68,7 @@ func (l *LinkedAccountStorage) Update(ctx context.Context, id string, account *m
 
 	updatedLinkedAccount, err := l.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	l.kafkaProducer.PublishMessage(ctx, updatedLinkedAccount, string(constants.ClientOrchestrationLinkedAccountTopic), string(constants.ClientOrchestrationLinkedAccountTopic), "linked account updated")
@@ -112,10 +106,7 @@ func (l *LinkedAccountStorage) FindByAccountNumber(ctx context.Context, accountN
 	}
 	result, err := l.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return result, nil

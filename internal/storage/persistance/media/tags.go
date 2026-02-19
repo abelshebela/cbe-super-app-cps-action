@@ -53,11 +53,7 @@ func (n *newsTags) Update(ctx context.Context, newsTag *model.NewsTags, id strin
 	update := buildNewsTagUpdate(*newsTag)
 	_, err = n.newsTagsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		n.logger.Errorf("Error updating news tag in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 	return nil
 }
@@ -73,11 +69,7 @@ func (n *newsTags) Delete(ctx context.Context, id string) error {
 
 	err = n.newsTagsDal.DeleteOne(ctx, filter)
 	if err != nil {
-		n.logger.Errorf("Error deleting news tag in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 	return nil
 }
@@ -96,11 +88,7 @@ func (n *newsTags) EnableDisable(ctx context.Context, id string, isEnable bool) 
 	}
 	_, err = n.newsTagsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		n.logger.Errorf("Error enabling/disabling news tag in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 	return nil
 }

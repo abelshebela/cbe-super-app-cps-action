@@ -61,11 +61,7 @@ func (e *EventStorage) Update(ctx context.Context, id string, event *model.Event
 
 	_, err = e.dal.UpdateOne(ctx, filter, updateDoc)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		e.logger.Errorf("Update Event failed", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -83,11 +79,7 @@ func (e *EventStorage) Delete(ctx context.Context, id string) error {
 
 	_, err = e.dal.UpdateOne(ctx, filter, updateFields)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		e.logger.Errorf("Delete Event failed", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -104,11 +96,7 @@ func (e *EventStorage) EnableOrDisable(ctx context.Context, id string, enable bo
 	}
 	_, err = e.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		e.logger.Errorf("EnableOrDisable Event failed", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -121,11 +109,7 @@ func (e *EventStorage) FindByID(ctx context.Context, id string) (*model.Event, e
 
 	doc, err := e.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		e.logger.Errorf("FindByID Event failed", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	result := EventMapper(doc)
@@ -150,7 +134,7 @@ func (e *EventStorage) Find(ctx context.Context, name string) (*model.Event, err
 			return nil, nil
 		}
 		e.logger.Errorf("FindByName Event failed for name %s: %v", name, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	result := EventMapper(doc)

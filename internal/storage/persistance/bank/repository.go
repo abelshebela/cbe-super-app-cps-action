@@ -31,12 +31,8 @@ func (b *BankStorage) FindByBIC(ctx context.Context, bic string) (*model.Bank, e
 	b.logger.Infof("[FindBIC] fetching bank by BIC: %s", bic)
 	bank, err := b.dal.FindOne(ctx, bson.M{"bic_code": bic, "enabled": true, "is_deleted": false}, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			b.logger.Errorf("[FindBIC] bank with BIC %s not found", bic)
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		b.logger.Errorf("[FindBIC] failed to fetch bank: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return bank, nil
 }
@@ -74,10 +70,7 @@ func (b *BankStorage) Update(ctx context.Context, id string, bank *model.Bank) e
 	_, err = b.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		b.logger.Errorf("[Update] failed to update bank: %v", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	b.logger.Infof("[Update] bank updated successfully")
 	return nil
@@ -111,12 +104,8 @@ func (b *BankStorage) EnableOrDisable(ctx context.Context, id string, enable boo
 	update := bson.M{"enabled": enable}
 	_, err = b.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			b.logger.Errorf("[EnableOrDisable] bank not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
 		b.logger.Errorf("[EnableOrDisable] failed to enable/disable bank: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	b.logger.Infof("[EnableOrDisable] bank enable/disable completed successfully")
 	return nil
@@ -133,12 +122,8 @@ func (b *BankStorage) FindByID(ctx context.Context, id string) (*model.Bank, err
 
 	result, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			b.logger.Errorf("[FindByID] bank not found")
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		b.logger.Errorf("[FindByID] failed to find bank: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	if result.IsDeleted {
 		b.logger.Errorf("[FindByID] bank is deleted")
@@ -174,7 +159,7 @@ func (s *BankStorage) FindByNameOrBIC(
 			return nil, nil
 		}
 		s.logger.Errorf("[FindByNameOrBICOrCode] failed to find bank: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return bank, nil
 }
@@ -201,12 +186,8 @@ func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 	}
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			s.logger.Infof("[FindAllWithPagination] no banks found")
-			return nil, localization.ErrorResourceNotFound
-		}
 		s.logger.Errorf("[FindAllWithPagination] failed to fetch banks: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	total, err := s.dal.TotalCount(ctx, filter)

@@ -19,7 +19,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -161,14 +160,6 @@ func (s *notificationService) EnableNotification(ctx context.Context, id string)
 	}
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
-			s.logger.Errorf("[EnableNotification] notification not found: %s", id)
-			span.AddEvent("Notification not found", trace.WithAttributes(
-				attribute.String("error", localization.ErrorResourceNotFound.Code),
-				attribute.String("id", id),
-			))
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		s.logger.Errorf("[EnableNotification] failed to find notification: %v", err)
 		span.AddEvent("Failed to find notification", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -215,14 +206,6 @@ func (s *notificationService) DisableNotification(ctx context.Context, id string
 	}
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
-			s.logger.Errorf("[DisableNotification] notification not found: %s", id)
-			span.AddEvent("Notification not found", trace.WithAttributes(
-				attribute.String("error", localization.ErrorResourceNotFound.Code),
-				attribute.String("id", id),
-			))
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		s.logger.Errorf("[DisableNotification] failed to find notification: %v", err)
 		span.AddEvent("Failed to find notification", trace.WithAttributes(
 			attribute.String("error", err.Error()),
