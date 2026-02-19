@@ -16,7 +16,6 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type cpsRoleService struct {
@@ -70,18 +69,14 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 
 	existing, err := r.repo.FindById(ctx, id)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Errorf("[Update] Resource not found")
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		r.logger.Errorf("[Update] failed to find existing cps role: %v", err)
 		return err
 	}
 
 	cpsRole, err := r.repo.FindByNameOrRoleCode(ctx, req.Name, req.RoleCode)
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		r.logger.Errorf("[Update] failed to check existing cps role by name or role code: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 
 	if cpsRole != nil {
@@ -123,21 +118,17 @@ func (r *cpsRoleService) EnableOrDisable(ctx context.Context, id string, enable 
 
 	existing, err := r.repo.FindById(ctx, id)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Errorf("[EnableOrDisable] Resource not found")
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		r.logger.Errorf("[Enable] failed to find existing cps role: %v", err)
 		return err
 	}
 
 	if enable && *existing.Enabled {
 		r.logger.Warnf("CPS Role already enabled, id: %s", id)
-		return errors.New(localization.ErrorCPSRoleAlreadyEnabled.Code)
+		return err
 	}
 	if !enable && !*existing.Enabled {
 		r.logger.Warnf("CPS Role already disabled, id: %s", id)
-		return errors.New(localization.ErrorCPSRoleAlreadyDisabled.Code)
+		return err
 	}
 
 	updated := *existing
@@ -192,10 +183,6 @@ func (r *cpsRoleService) Delete(ctx context.Context, id string) error {
 
 	existing, err := r.repo.FindById(ctx, id)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Errorf("[Delete] Resource not found")
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		r.logger.Errorf("[Delete] failed to find existing cps role: %v", err)
 		return err
 	}

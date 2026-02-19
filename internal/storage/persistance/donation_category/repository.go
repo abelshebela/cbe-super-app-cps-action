@@ -105,8 +105,7 @@ func (s *DonationCategoryStorage) FindByName(ctx context.Context, name string) (
 	result, err := s.dal.FindOne(ctx, filter, projection)
 	if err != nil {
 		s.logger.Errorf("[FindByName] failed to find donation category: %v", err)
-		code, _ := local_util.HandleMongoError(err)
-		return nil, errors.New(code)
+		return nil, local_util.HandleDBError(err)
 	}
 	s.logger.Infof("[FindByName] donation category retrieved successfully")
 	return MapToDonationCategoryListResponse(result), nil

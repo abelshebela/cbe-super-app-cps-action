@@ -68,12 +68,8 @@ func (b *BPSUserStorage) FindByOr(ctx context.Context, phone, email, username st
 	filter := bson.M{"$or": conditions}
 	data, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			b.logger.Infof("[FindByOr] no bps user found matching the criteria")
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		b.logger.Errorf("[FindByOr] failed to find bps user: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return data, nil
 }

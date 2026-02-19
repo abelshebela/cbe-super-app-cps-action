@@ -207,10 +207,6 @@ func (s *bankVaultService) EnableBankVault(ctx context.Context, id string) error
 	}
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
-			span.AddEvent("[EnableBankVault] bank vault not found", trace.WithAttributes(attribute.String("id", id)))
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		span.AddEvent("[EnableBankVault] failed to find bank vault", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),

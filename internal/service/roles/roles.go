@@ -19,7 +19,6 @@ import (
 	sharedmodel "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type RoleService struct {
@@ -50,7 +49,7 @@ func (j *RoleService) Create(ctx context.Context, role imodel.JobRole) error {
 	}
 
 	if err := core.RoleExistenChecker(ctx, constants.CREATE, "", role, j.roleRepository); err != nil {
-		if err != mongo.ErrNoDocuments {
+		if err.Error() != localization.ErrorResourceNotFound.Code {
 			return errors.New(err.Error())
 		}
 	}
@@ -70,7 +69,7 @@ func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRo
 	}
 
 	if err := core.RoleExistenChecker(ctx, constants.CREATE, "", update, j.roleRepository); err != nil {
-		if err != mongo.ErrNoDocuments {
+		if err.Error() != localization.ErrorResourceNotFound.Code {
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 	}

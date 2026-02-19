@@ -166,13 +166,13 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 	data, err := d.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		d.logger.Errorf("[FindAllWithPagination] failed to fetch donations: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	total, err := d.dal.TotalCount(ctx, filter)
 	if err != nil {
 		d.logger.Errorf("[FindAllWithPagination] failed to count donations: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
