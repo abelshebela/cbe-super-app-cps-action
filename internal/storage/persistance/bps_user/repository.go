@@ -79,6 +79,7 @@ func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*b
 	filter := bson.M{"user_code": userCode, "is_deleted": false}
 	result, err := b.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
+		b.logger.Errorf("[GetByUserCode] failed to find BPS user: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	b.logger.Infof("[GetByUserCode] BPS user retrieved successfully")
@@ -184,6 +185,7 @@ func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *bps_model.BPSUser)
 	filter := bson.M{"_id": BpsUser.ID, "is_deleted": false}
 	_, err := b.dal.UpdateOne(ctx, filter, BPSUserMapper(*BpsUser))
 	if err != nil {
+		b.logger.Errorf("[Update] failed to update BPS user: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	b.logger.Infof("[Update] BPS user updated successfully")
@@ -233,6 +235,7 @@ func (b *BPSUserStorage) FindByFilterKey(ctx context.Context, field, value strin
 
 	result, err := b.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
+		b.logger.Errorf("[FindByFilterKey] failed to find BPS user: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil

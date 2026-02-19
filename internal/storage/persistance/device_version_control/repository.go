@@ -39,6 +39,7 @@ func NewDeviceVersionControlRepository(client *mongo.Client, cfg *config.VaultCo
 func (d *DeviceVersionControlRepository) Save(ctx context.Context, deviceVersionControl model.DeviceVersionControl) error {
 	newDeviceVersion, err := d.deviceDal.InsertOne(ctx, deviceVersionControl)
 	if err != nil {
+		d.logger.Errorf("[Save] failed to save device version control: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	_ = newDeviceVersion
@@ -59,6 +60,7 @@ func (d *DeviceVersionControlRepository) Update(ctx context.Context, id string, 
 	deviceVersionControl["last_modified_at"] = time.Now()
 	updatedDeviceVersion, err := d.deviceDal.UpdateOne(ctx, filter, deviceVersionControl)
 	if err != nil {
+		d.logger.Errorf("[Update] failed to update device version control: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	_ = updatedDeviceVersion
@@ -96,6 +98,7 @@ func (d *DeviceVersionControlRepository) EnableOrDisable(ctx context.Context, id
 	update := bson.M{"enabled": enable}
 	updatedDeviceVersion, err := d.deviceDal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		d.logger.Errorf("[EnableOrDisable] failed to enable/disable device version control: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	_ = updatedDeviceVersion
@@ -107,6 +110,7 @@ func (d *DeviceVersionControlRepository) EnableOrDisable(ctx context.Context, id
 func (d *DeviceVersionControlRepository) FindByID(ctx context.Context, id string) (model.DeviceVersionControl, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		d.logger.Errorf("[FindByID] invalid object id: %v", err)
 		return model.DeviceVersionControl{}, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
@@ -176,6 +180,7 @@ func (d *DeviceVersionControlRepository) FindOne(ctx context.Context, platform, 
 	filter := bson.M{"platform": platform, "latest_version": lastVersion}
 	result, err := d.deviceDal.FindOne(ctx, filter, nil)
 	if err != nil {
+		d.logger.Errorf("[FindOne] failed to find device version control: %v", err)
 		return model.DeviceVersionControl{}, local_util.HandleDBError(err)
 	}
 	return *result, nil

@@ -51,6 +51,7 @@ func (e *EventStorage) Create(ctx context.Context, event *model.Event) error {
 func (e *EventStorage) Update(ctx context.Context, id string, event *model.Event) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		e.logger.Errorf("[Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -61,6 +62,7 @@ func (e *EventStorage) Update(ctx context.Context, id string, event *model.Event
 
 	_, err = e.dal.UpdateOne(ctx, filter, updateDoc)
 	if err != nil {
+		e.logger.Errorf("[Update] failed to update event: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
@@ -69,6 +71,7 @@ func (e *EventStorage) Update(ctx context.Context, id string, event *model.Event
 func (e *EventStorage) Delete(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		e.logger.Errorf("[Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -79,6 +82,7 @@ func (e *EventStorage) Delete(ctx context.Context, id string) error {
 
 	_, err = e.dal.UpdateOne(ctx, filter, updateFields)
 	if err != nil {
+		e.logger.Errorf("[Delete] failed to delete event: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
@@ -87,6 +91,7 @@ func (e *EventStorage) Delete(ctx context.Context, id string) error {
 func (e *EventStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		e.logger.Errorf("[EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -96,6 +101,7 @@ func (e *EventStorage) EnableOrDisable(ctx context.Context, id string, enable bo
 	}
 	_, err = e.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		e.logger.Errorf("[EnableOrDisable] failed to enable/disable event: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
@@ -103,12 +109,14 @@ func (e *EventStorage) EnableOrDisable(ctx context.Context, id string, enable bo
 func (e *EventStorage) FindByID(ctx context.Context, id string) (*model.Event, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		e.logger.Errorf("[FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	doc, err := e.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		e.logger.Errorf("[FindByID] failed to find event: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 

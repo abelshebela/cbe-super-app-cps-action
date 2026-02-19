@@ -59,11 +59,13 @@ func (a *archivedUserStorage) Create(ctx context.Context, user *member.User) err
 func (a *archivedUserStorage) FindByID(ctx context.Context, id string) (*model.ArchivedUser, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		a.logger.Errorf("[FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		a.logger.Errorf("[FindByID] failed to find archived user: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
@@ -93,12 +95,14 @@ func (s *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterP
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
+		s.logger.Errorf("[FindAllWithPagination] failed to fetch archived users: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
+		s.logger.Errorf("[FindAllWithPagination] failed to count archived users: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 

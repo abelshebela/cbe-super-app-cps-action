@@ -87,12 +87,14 @@ func (r *customerKYCRepository) FindByID(ctx context.Context, id string) (*imode
 	r.logger.Infof("[CustomerKYCRepository.FindByID] fetching kyc by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		r.logger.Errorf("[FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
 	result, err := r.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		r.logger.Errorf("[FindByID] failed to find kyc: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -103,6 +105,7 @@ func (r *customerKYCRepository) Delete(ctx context.Context, id string) error {
 	r.logger.Infof("[CustomerKYCRepository.Delete] hard deleting kyc for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		r.logger.Errorf("[Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -119,6 +122,7 @@ func (r *customerKYCRepository) UpdateKYCStatus(ctx context.Context, id string, 
 	r.logger.Infof("[CustomerKYCRepository.UpdateKYCStatus] updating kyc status for id: %s to %s", id, status)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		r.logger.Errorf("[UpdateKYCStatus] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
