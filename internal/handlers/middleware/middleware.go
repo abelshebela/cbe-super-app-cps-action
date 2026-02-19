@@ -229,11 +229,11 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		} else {
 			remainTime *= 60
 		}
-		AccessTokenExpireTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutes)
-		if err != nil || AccessTokenExpireTime == 0 {
-			AccessTokenExpireTime = 15 * 60
+		redisDeviceIDExpireTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutes)
+		if err != nil || redisDeviceIDExpireTime == 0 {
+			redisDeviceIDExpireTime = 15 * 60
 		} else {
-			AccessTokenExpireTime *= 60
+			redisDeviceIDExpireTime *= 60
 		}
 		deviceID, err := a.redisRepository.Get(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID))
 		if err != nil {
@@ -256,7 +256,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
 			} else if deviceID != "" && deviceID == userPayload.DeviceID {
-				if err := a.redisRepository.Set(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID), deviceID, time.Second*time.Duration(AccessTokenExpireTime)); err != nil {
+				if err := a.redisRepository.Set(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID), deviceID, time.Second*time.Duration(redisDeviceIDExpireTime)); err != nil {
 					a.logger.Warnf("failed to set device id in redis for user %s: %v", userPayload.UserID, err)
 				} else {
 					a.logger.Infof("device id updated in redis for user %s", userPayload.UserID)
