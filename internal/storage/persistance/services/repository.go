@@ -58,13 +58,7 @@ func (s *ServicesStorage) Create(ctx context.Context, service *model.Service) er
 		s.logger.Errorf("insert service failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	s.kafkaProducer.PublishMessage(
-		ctx,
-		createService,
-		string(constants.ClientOrchestrationServicesTopic),
-		s.cfg.CPSServiceUpdate,
-		"service authorized and updated",
-	)
+	s.kafkaProducer.PublishMessage(ctx, createService, string(constants.ClientOrchestrationServicesTopic), string(constants.ClientOrchestrationServicesTopic), "new service created")
 	return nil
 }
 
@@ -144,13 +138,7 @@ func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	s.kafkaProducer.PublishMessage(
-		ctx,
-		updatedService,
-		string(constants.ClientOrchestrationServicesTopic),
-		s.cfg.CPSServiceUpdate,
-		"service authorized and updated",
-	)
+	s.kafkaProducer.PublishMessage(ctx, updatedService, string(constants.ClientOrchestrationServicesTopic), string(constants.ClientOrchestrationServicesTopic), "service enabled/disabled")
 
 	return nil
 }
@@ -254,26 +242,27 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 }
 
 func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error) {
+	// Build an OR filter with exact matches only.
+	// service_key, service_code and service_name must match exactly (no regex / partial match).
 	orConditions := make([]bson.M, 0, 3)
 	if serviceKey != "" {
 		orConditions = append(orConditions, bson.M{"service_key": serviceKey})
 	}
-	// if serviceCode != "" {
-	// 	orConditions = append(orConditions, bson.M{"service_code": serviceCode})
-	// }
+	if serviceCode != "" {
+		orConditions = append(orConditions, bson.M{"service_code": serviceCode})
+	}
 	if serviceName != "" {
 		orConditions = append(orConditions, bson.M{"service_name": serviceName})
 	}
 
+	// If nothing is provided, there is nothing to check.
 	if len(orConditions) == 0 {
 		return false, nil
 	}
 
-	filter := bson.M{
-		"$or":        orConditions,
-		"is_deleted": false,
-	}
+	filter := bson.M{"$or": orConditions}
 
+	// Fetch a single document instead of counting.
 	_, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
