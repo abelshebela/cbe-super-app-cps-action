@@ -42,7 +42,7 @@ func (e *EventStorage) Create(ctx context.Context, event *model.Event) error {
 
 	_, err := e.dal.InsertOne(ctx, *eventDoc)
 	if err != nil {
-		e.logger.Errorf("Create Event failed", err)
+		e.logger.Errorf("[EventStorage][Create] failed to create event: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -51,7 +51,7 @@ func (e *EventStorage) Create(ctx context.Context, event *model.Event) error {
 func (e *EventStorage) Update(ctx context.Context, id string, event *model.Event) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		e.logger.Errorf("[Update] invalid object id: %v", err)
+		e.logger.Errorf("[EventStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -62,7 +62,7 @@ func (e *EventStorage) Update(ctx context.Context, id string, event *model.Event
 
 	_, err = e.dal.UpdateOne(ctx, filter, updateDoc)
 	if err != nil {
-		e.logger.Errorf("[Update] failed to update event: %v", err)
+		e.logger.Errorf("[EventStorage][Update] failed to update event: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
@@ -71,7 +71,7 @@ func (e *EventStorage) Update(ctx context.Context, id string, event *model.Event
 func (e *EventStorage) Delete(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		e.logger.Errorf("[Delete] invalid object id: %v", err)
+		e.logger.Errorf("[EventStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -82,7 +82,7 @@ func (e *EventStorage) Delete(ctx context.Context, id string) error {
 
 	_, err = e.dal.UpdateOne(ctx, filter, updateFields)
 	if err != nil {
-		e.logger.Errorf("[Delete] failed to delete event: %v", err)
+		e.logger.Errorf("[EventStorage][Delete] failed to delete event: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
@@ -91,7 +91,7 @@ func (e *EventStorage) Delete(ctx context.Context, id string) error {
 func (e *EventStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		e.logger.Errorf("[EnableOrDisable] invalid object id: %v", err)
+		e.logger.Errorf("[EventStorage][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -101,7 +101,7 @@ func (e *EventStorage) EnableOrDisable(ctx context.Context, id string, enable bo
 	}
 	_, err = e.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		e.logger.Errorf("[EnableOrDisable] failed to enable/disable event: %v", err)
+		e.logger.Errorf("[EventStorage][EnableOrDisable] failed to enable/disable event: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
@@ -109,14 +109,14 @@ func (e *EventStorage) EnableOrDisable(ctx context.Context, id string, enable bo
 func (e *EventStorage) FindByID(ctx context.Context, id string) (*model.Event, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		e.logger.Errorf("[FindByID] invalid object id: %v", err)
+		e.logger.Errorf("[EventStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	doc, err := e.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		e.logger.Errorf("[FindByID] failed to find event: %v", err)
+		e.logger.Errorf("[EventStorage][FindByID] failed to find event: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -126,7 +126,7 @@ func (e *EventStorage) FindByID(ctx context.Context, id string) (*model.Event, e
 
 func (e *EventStorage) Find(ctx context.Context, name string) (*model.Event, error) {
 	if name == "" {
-		e.logger.Warnf("FindByName called with empty name")
+		e.logger.Warnf("[EventStorage][Find] called with empty name")
 		return nil, errors.New(localization.ErrorEventNameRequired.Code)
 	}
 
@@ -138,10 +138,10 @@ func (e *EventStorage) Find(ctx context.Context, name string) (*model.Event, err
 	doc, err := e.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			e.logger.Warnf("No event found with name: %s", name)
+			e.logger.Warnf("[EventStorage][Find] no event found with name: %s", name)
 			return nil, nil
 		}
-		e.logger.Errorf("FindByName Event failed for name %s: %v", name, err)
+		e.logger.Errorf("[EventStorage][Find] failed to find event by name %s: %v", name, err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -165,7 +165,7 @@ func (e *EventStorage) FindAllWithPagination(ctx context.Context, filterParam ty
 
 	docs, err := e.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		e.logger.Errorf("FindAllWithPagination Event failed", err)
+		e.logger.Errorf("[EventStorage][FindAllWithPagination] failed to fetch events: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -177,13 +177,13 @@ func (e *EventStorage) FindAllWithPagination(ctx context.Context, filterParam ty
 
 	total, err := e.dal.TotalCount(ctx, filter)
 	if err != nil {
-		e.logger.Errorf("Count Event failed", err)
+		e.logger.Errorf("[EventStorage][FindAllWithPagination] failed to count events: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	e.logger.Infof("FindAllWithPagination returning %d events, total: %d", len(events), total)
+	e.logger.Infof("[EventStorage][FindAllWithPagination] returning %d events, total: %d", len(events), total)
 
 	return &types.PaginatedResponse[[]model.Event]{
 		Data: events,

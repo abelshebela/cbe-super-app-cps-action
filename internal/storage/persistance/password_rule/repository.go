@@ -34,21 +34,21 @@ func NewPasswordRuleRepository(client *mongo.Client, cfg *config.VaultConfig, db
 }
 
 func (p *PasswordRuleStorage) Create(ctx context.Context, rule *local_model.PasswordRule) error {
-	p.logger.Infof("[Create] creating password rule")
+	p.logger.Infof("[PasswordRuleStorage][Create] creating password rule")
 	_, err := p.dal.InsertOne(ctx, *rule)
 	if err != nil {
-		p.logger.Errorf("[Create] failed to create password rule: %v", err)
+		p.logger.Errorf("[PasswordRuleStorage][Create] failed to create password rule: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	p.logger.Infof("[Create] password rule created successfully")
+	p.logger.Infof("[PasswordRuleStorage][Create] password rule created successfully")
 	return nil
 }
 
 func (p *PasswordRuleStorage) Update(ctx context.Context, id string, rule *local_model.PasswordRule) error {
-	p.logger.Infof("[Update] updating password rule for id: %s", id)
+	p.logger.Infof("[PasswordRuleStorage][Update] updating password rule for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		p.logger.Errorf("[Update] invalid object id: %v", err)
+		p.logger.Errorf("[PasswordRuleStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -58,32 +58,32 @@ func (p *PasswordRuleStorage) Update(ctx context.Context, id string, rule *local
 	if err != nil {
 		return local_util.HandleDBError(err)
 	}
-	p.logger.Infof("[Update] password rule updated successfully")
+	p.logger.Infof("[PasswordRuleStorage][Update] password rule updated successfully")
 	return nil
 }
 
 func (p *PasswordRuleStorage) Delete(ctx context.Context, id string) error {
-	p.logger.Infof("[Delete] deleting password rule for id: %s", id)
+	p.logger.Infof("[PasswordRuleStorage][Delete] deleting password rule for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		p.logger.Errorf("[Delete] invalid object id: %v", err)
+		p.logger.Errorf("[PasswordRuleStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	err = p.dal.DeleteOne(ctx, filter)
 	if err != nil {
-		p.logger.Errorf("[Delete] failed to delete password rule: %v", err)
+		p.logger.Errorf("[PasswordRuleStorage][Delete] failed to delete password rule: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	p.logger.Infof("[Delete] password rule deleted successfully")
+	p.logger.Infof("[PasswordRuleStorage][Delete] password rule deleted successfully")
 	return nil
 }
 
 func (p *PasswordRuleStorage) FindByID(ctx context.Context, id string) (*local_model.PasswordRule, error) {
-	p.logger.Infof("[FindByID] fetching password rule by id: %s", id)
+	p.logger.Infof("[PasswordRuleStorage][FindByID] fetching password rule by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		p.logger.Errorf("[FindByID] invalid object id: %v", err)
+		p.logger.Errorf("[PasswordRuleStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -91,10 +91,10 @@ func (p *PasswordRuleStorage) FindByID(ctx context.Context, id string) (*local_m
 	result, err := p.dal.FindOne(ctx, filter, nil)
 
 	if err != nil {
-		p.logger.Errorf("[FindByID] failed to find password rule: %v", err)
+		p.logger.Errorf("[PasswordRuleStorage][FindByID] failed to find password rule: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	p.logger.Infof("[FindByID] password rule retrieved successfully")
+	p.logger.Infof("[PasswordRuleStorage][FindByID] password rule retrieved successfully")
 	return result, nil
 }
 
@@ -113,18 +113,18 @@ func (p *PasswordRuleStorage) FindAllWithPagination(ctx context.Context, filterP
 
 	data, err := p.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		p.logger.Errorf("[FindAllWithPagination] failed to fetch password rules: %v", err)
+		p.logger.Errorf("[PasswordRuleStorage][FindAllWithPagination] failed to fetch password rules: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := p.dal.TotalCount(ctx, filter)
 	if err != nil {
-		p.logger.Errorf("[FindAllWithPagination] failed to count password rules: %v", err)
+		p.logger.Errorf("[PasswordRuleStorage][FindAllWithPagination] failed to count password rules: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	p.logger.Infof("[FindAllWithPagination] retrieved %d password rules", len(data))
+	p.logger.Infof("[PasswordRuleStorage][FindAllWithPagination] retrieved %d password rules", len(data))
 
 	return &types.PaginatedResponse[[]local_model.PasswordRule]{
 		Data: data,
@@ -133,12 +133,12 @@ func (p *PasswordRuleStorage) FindAllWithPagination(ctx context.Context, filterP
 }
 
 func (p *PasswordRuleStorage) FindCurrentRule(ctx context.Context) (*local_model.PasswordRule, error) {
-	p.logger.Infof("[FindCurrentRule] fetching current password rule")
+	p.logger.Infof("[PasswordRuleStorage][FindCurrentRule] fetching current password rule")
 	rulelocal_Model, err := p.dal.FindOne(ctx, bson.M{}, bson.M{})
 	if err != nil || rulelocal_Model == nil {
-		p.logger.Errorf("[FindCurrentRule] failed to find current password rule: %v", err)
+		p.logger.Errorf("[PasswordRuleStorage][FindCurrentRule] failed to find current password rule: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	p.logger.Infof("[FindCurrentRule] current password rule retrieved successfully")
+	p.logger.Infof("[PasswordRuleStorage][FindCurrentRule] current password rule retrieved successfully")
 	return rulelocal_Model, nil
 }

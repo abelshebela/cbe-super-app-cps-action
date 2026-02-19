@@ -41,29 +41,29 @@ func NewAccountValidationStore(client *mongo.Client, cfg *config.VaultConfig, db
 
 // GetAccountValidationByID implements ValidationRuleRepository
 func (l *AccountValidationStore) FindByID(ctx context.Context, id string) (*model.ValidationRule, error) {
-	l.logger.Infof("[FindByID] fetching account validation rule by id: %s", id)
+	l.logger.Infof("[AccountValidationStore][FindByID] fetching account validation rule by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		l.logger.Errorf("[FindByID] invalid object id: %v", err)
+		l.logger.Errorf("[AccountValidationStore][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
 
 	result, err := l.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		l.logger.Errorf("[FindByID] failed to find account validation rule: %v", err)
+		l.logger.Errorf("[AccountValidationStore][FindByID] failed to find account validation rule: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	l.logger.Infof("[FindByID] account validation rule retrieved successfully")
+	l.logger.Infof("[AccountValidationStore][FindByID] account validation rule retrieved successfully")
 	return result, nil
 }
 
 // UpdateAccountValidation implements ValidationRuleRepository
 func (a *AccountValidationStore) Update(ctx context.Context, id string, rule *model.ValidationRule) error {
-	a.logger.Infof("[Update] updating account validation rule for id: %s", id)
+	a.logger.Infof("[AccountValidationStore][Update] updating account validation rule for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[Update] invalid object id: %v", err)
+		a.logger.Errorf("[AccountValidationStore][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -71,13 +71,13 @@ func (a *AccountValidationStore) Update(ctx context.Context, id string, rule *mo
 
 	updateAccountValidation, err := a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		a.logger.Errorf("[Update] failed to update account validation rule: %v", err)
+		a.logger.Errorf("[AccountValidationStore][Update] failed to update account validation rule: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
 	a.kafkaProducer.PublishMessage(ctx, updateAccountValidation, string(constants.ClientOrchestrationAccountValidationTopic), string(constants.ClientOrchestrationAccountValidationTopic), "update account validation rule")
 
-	a.logger.Infof("[Update] account validation rule updated successfully")
+	a.logger.Infof("[AccountValidationStore][Update] account validation rule updated successfully")
 	return nil
 }
 
@@ -106,20 +106,20 @@ func (l *AccountValidationStore) FindAllWithPagination(ctx context.Context, filt
 	// 5. Fetch data
 	data, err := l.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		l.logger.Errorf("[FindAllWithPagination] failed to fetch account validation rules: %v", err)
+		l.logger.Errorf("[AccountValidationStore][FindAllWithPagination] failed to fetch account validation rules: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := l.dal.TotalCount(ctx, filter)
 	if err != nil {
-		l.logger.Errorf("[FindAllWithPagination] failed to count account validation rules: %v", err)
+		l.logger.Errorf("[AccountValidationStore][FindAllWithPagination] failed to count account validation rules: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	l.logger.Infof("[FindAllWithPagination] retrieved %d account validation rules", len(data))
+	l.logger.Infof("[AccountValidationStore][FindAllWithPagination] retrieved %d account validation rules", len(data))
 
 	return &types.PaginatedResponse[[]model.ValidationRule]{
 		Data: data,

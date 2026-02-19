@@ -37,14 +37,14 @@ func (a *AccessListSegmentation) FindParentChildRelationship(ctx context.Context
 	cursor, err := collection.Aggregate(ctx, mongo.Pipeline{})
 
 	if err != nil {
-		a.logger.Errorf("[FindParentChildRelationship] failed to aggregate: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][FindParentChildRelationship] failed to aggregate: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var relations []local_model.AccessItemRelation
 	if err := cursor.All(ctx, &relations); err != nil {
-		a.logger.Errorf("[FindParentChildRelationship] failed to decode: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][FindParentChildRelationship] failed to decode: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -55,13 +55,13 @@ func (a *AccessListSegmentation) FindParentChildRelationship(ctx context.Context
 func (a *AccessListSegmentation) FindBySegmentIDAndAccessListKeys(ctx context.Context, id string, keys []string) (*local_model.AccessListSegmentation, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[FindByID] invalid ObjectID: %s", id)
+		a.logger.Errorf("[AccessListSegmentation][FindBySegmentIDAndAccessListKeys] invalid ObjectID: %s", id)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"segmented_id": objID, "access_list_key": bson.M{"$in": keys}, "enabled": true}
 	response, err := a.repo.FindOne(ctx, filter, nil)
 	if err != nil {
-		a.logger.Errorf("[FindByID] find error: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][FindBySegmentIDAndAccessListKeys] find error: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -75,7 +75,7 @@ func (a *AccessListSegmentation) FindByAccountSegmentationAndAccessListKeys(ctx 
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
 		}
-		a.logger.Errorf("[FindByAccountSegmentationAndAccessListKeys] failed to find access list segmentation by segmentation id and service id: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][FindByAccountSegmentationAndAccessListKeys] failed to find access list segmentation by segmentation id and service id: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return seg, nil
@@ -88,7 +88,7 @@ func (a *AccessListSegmentation) FindBySegmentationAndServiceID(ctx context.Cont
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
 		}
-		a.logger.Errorf("[FindBySegmentationAndServiceID] failed to find access list segmentation by segmentation id and service id: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][FindBySegmentationAndServiceID] failed to find access list segmentation by segmentation id and service id: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return seg, nil
@@ -101,7 +101,7 @@ func (a *AccessListSegmentation) FindByIDS(ctx context.Context, ids []string, t 
 	for _, idStr := range ids {
 		objID, err := bson.ObjectIDFromHex(idStr)
 		if err != nil {
-			a.logger.Errorf("[FindByIDS] invalid ObjectID: %s", idStr)
+			a.logger.Errorf("[AccessListSegmentation][FindByIDS] invalid ObjectID: %s", idStr)
 			return nil, errors.New(localization.ErrorInvalidID.Code)
 		}
 		objIDs = append(objIDs, objID)
@@ -113,7 +113,7 @@ func (a *AccessListSegmentation) FindByIDS(ctx context.Context, ids []string, t 
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
 		}
-		a.logger.Errorf("[FindByIDS] failed to find access list segmentation by ids: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][FindByIDS] failed to find access list segmentation by ids: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return als, nil
@@ -140,7 +140,7 @@ func (a *AccessListSegmentation) CreateAccountSegment(ctx context.Context, acces
 	collection := a.client.Database(a.dbName).Collection(a.collectionName)
 	_, err := collection.InsertMany(ctx, docs)
 	if err != nil {
-		a.logger.Errorf("failed to insert documents: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][CreateAccountSegment] failed to insert documents: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	a.kafkaProducer.PublishMessage(ctx, docs, "create", string(constants.AccessListSegmentationTopic), "create account-segment")
@@ -156,7 +156,7 @@ func (a *AccessListSegmentation) CreateBlockSegment(ctx context.Context, accessL
 	for i, idStr := range accessListSegmentation.AccessListKeys {
 		objID, err := bson.ObjectIDFromHex(accessListSegmentation.SegmentedID)
 		if err != nil {
-			a.logger.Errorf("invalid ObjectID: %s", accessListSegmentation.SegmentedID)
+			a.logger.Errorf("[AccessListSegmentation][CreateBlockSegment] invalid ObjectID: %s", accessListSegmentation.SegmentedID)
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
 		doc := local_model.AccessListSegmentation{
@@ -176,7 +176,7 @@ func (a *AccessListSegmentation) CreateBlockSegment(ctx context.Context, accessL
 	collection := a.client.Database(a.dbName).Collection(a.collectionName)
 	_, err := collection.InsertMany(ctx, docs)
 	if err != nil {
-		a.logger.Errorf("failed to insert documents: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][CreateBlockSegment] failed to insert documents: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -186,7 +186,7 @@ func (a *AccessListSegmentation) CreateBlockSegment(ctx context.Context, accessL
 func (a *AccessListSegmentation) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[EnableOrDisable] invalid ObjectID: %s", id)
+		a.logger.Errorf("[AccessListSegmentation][EnableOrDisable] invalid ObjectID: %s", id)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	update := bson.M{"enabled": enable}
@@ -194,14 +194,14 @@ func (a *AccessListSegmentation) EnableOrDisable(ctx context.Context, id string,
 
 	_, err = a.repo.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("[EnableOrDisable] failed to enable/disable access list segmentation: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][EnableOrDisable] failed to enable/disable access list segmentation: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 
 func (a *AccessListSegmentation) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.AccessListSegmentation], error) {
-	a.logger.Infof("[FindAllWithPagination] filter params: %+v", filterParam)
+	a.logger.Infof("[AccessListSegmentation][FindAllWithPagination] filter params: %+v", filterParam)
 
 	searchKeys := bson.M{}
 	allowedKeys := []string{"type", "segmented_id", "created_at", "updated_at", "enabled"}
@@ -218,18 +218,18 @@ func (a *AccessListSegmentation) FindAllWithPagination(ctx context.Context, filt
 
 	data, err := a.repo.FindAllWithPagination(ctx, filter, nil, skip, limit)
 	if err != nil {
-		a.logger.Errorf("[FindAllWithPagination] find error: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][FindAllWithPagination] find error: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := a.repo.TotalCount(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("[FindAllWithPagination] count error: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][FindAllWithPagination] count error: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	a.logger.Infof("[FindAllWithPagination] retrieved %d segmentations", len(data))
+	a.logger.Infof("[AccessListSegmentation][FindAllWithPagination] retrieved %d segmentations", len(data))
 
 	return &types.PaginatedResponse[[]local_model.AccessListSegmentation]{
 		Data: data,
@@ -241,13 +241,13 @@ func (a *AccessListSegmentation) FindAllWithPagination(ctx context.Context, filt
 func (a *AccessListSegmentation) FindByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[FindByID] invalid ObjectID: %s", id)
+		a.logger.Errorf("[AccessListSegmentation][FindByID] invalid ObjectID: %s", id)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "enabled": true}
 	response, err := a.repo.FindOne(ctx, filter, nil)
 	if err != nil {
-		a.logger.Errorf("[FindByID] find error: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][FindByID] find error: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -259,13 +259,13 @@ func (a *AccessListSegmentation) FindByID(ctx context.Context, id string) (*loca
 func (a *AccessListSegmentation) FindByIDAndType(ctx context.Context, id string, t string) (*local_model.AccessListSegmentation, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[FindByID] invalid ObjectID: %s", id)
+		a.logger.Errorf("[AccessListSegmentation][FindByIDAndType] invalid ObjectID: %s", id)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"segmented_id": objID, "type": t, "enabled": true}
 	response, err := a.repo.FindOne(ctx, filter, nil)
 	if err != nil {
-		a.logger.Errorf("[FindByID] find error: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][FindByIDAndType] find error: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -277,7 +277,7 @@ func (a *AccessListSegmentation) FindByIDAndType(ctx context.Context, id string,
 func (a *AccessListSegmentation) Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[Update] invalid ObjectID: %s", id)
+		a.logger.Errorf("[AccessListSegmentation][Update] invalid ObjectID: %s", id)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -305,7 +305,7 @@ func (a *AccessListSegmentation) Update(ctx context.Context, id string, accessLi
 
 	_, err = a.repo.UpdateOne(ctx, filer, update)
 	if err != nil {
-		a.logger.Errorf("[Update] update error: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][Update] update error: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
@@ -315,12 +315,12 @@ func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCode(ctx context.Con
 	var objID bson.ObjectID
 	objID, err := bson.ObjectIDFromHex(segmentIDorCode)
 	if err != nil {
-		a.logger.Infof("[FindAllBySegmentIDorSegmentCode] segmentIDorCode is not a valid ObjectID, treating as segmentation code")
+		a.logger.Infof("[AccessListSegmentation][FindAllBySegmentIDorSegmentCode] segmentIDorCode is not a valid ObjectID, treating as segmentation code")
 		filter = bson.M{
 			"segmentation_code": segmentIDorCode,
 		}
 	} else {
-		a.logger.Infof("[FindAllBySegmentIDorSegmentCode] segmentIDorCode is a valid ObjectID, treating as segmented ID")
+		a.logger.Infof("[AccessListSegmentation][FindAllBySegmentIDorSegmentCode] segmentIDorCode is a valid ObjectID, treating as segmented ID")
 		filter = bson.M{
 			"segmented_id": objID,
 		}
@@ -328,7 +328,7 @@ func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCode(ctx context.Con
 	filter["enabled"] = true
 	als, err := a.repo.FindAll(ctx, filter, nil)
 	if err != nil {
-		a.logger.Errorf("[FindAllBySegmentIDorSegmentCode] failed to find access list segmentation by segmentation id or segment code: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][FindAllBySegmentIDorSegmentCode] failed to find access list segmentation by segmentation id or segment code: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return als, nil
@@ -338,12 +338,12 @@ func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCodeAndKeys(ctx cont
 	var objID bson.ObjectID
 	objID, err := bson.ObjectIDFromHex(segmentIDorCode)
 	if err != nil {
-		a.logger.Infof("[FindAllBySegmentIDorSegmentCode] segmentIDorCode is not a valid ObjectID, treating as segmentation code")
+		a.logger.Infof("[AccessListSegmentation][FindAllBySegmentIDorSegmentCodeAndKeys] segmentIDorCode is not a valid ObjectID, treating as segmentation code")
 		filter = bson.M{
 			"segmentation_code": segmentIDorCode,
 		}
 	} else {
-		a.logger.Infof("[FindAllBySegmentIDorSegmentCode] segmentIDorCode is a valid ObjectID, treating as segmented ID")
+		a.logger.Infof("[AccessListSegmentation][FindAllBySegmentIDorSegmentCodeAndKeys] segmentIDorCode is a valid ObjectID, treating as segmented ID")
 		filter = bson.M{
 			"segmented_id": objID,
 		}
@@ -352,7 +352,7 @@ func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCodeAndKeys(ctx cont
 	filter["enabled"] = true
 	als, err := a.repo.FindAll(ctx, filter, nil)
 	if err != nil {
-		a.logger.Errorf("[FindAllBySegmentIDorSegmentCodeAndKeys] failed to find access list segmentation: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][FindAllBySegmentIDorSegmentCodeAndKeys] failed to find access list segmentation: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return als, nil
@@ -364,12 +364,12 @@ func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_lis
 	var objID bson.ObjectID
 	objID, err := bson.ObjectIDFromHex(req.ID)
 	if err != nil {
-		a.logger.Infof("[FindAllBySegmentIDorSegmentCode] segmentIDorCode is not a valid ObjectID, treating as segmentation code")
+		a.logger.Infof("[AccessListSegmentation][BulkDisable] segmentIDorCode is not a valid ObjectID, treating as segmentation code")
 		filter = bson.M{
 			"segmentation_code": req.ID,
 		}
 	} else {
-		a.logger.Infof("[FindAllBySegmentIDorSegmentCode] segmentIDorCode is a valid ObjectID, treating as segmented ID")
+		a.logger.Infof("[AccessListSegmentation][BulkDisable] segmentIDorCode is a valid ObjectID, treating as segmented ID")
 		filter = bson.M{
 			"segmented_id": objID,
 		}
@@ -383,7 +383,7 @@ func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_lis
 	collection := a.client.Database(a.dbName).Collection(a.collectionName)
 	_, err = collection.UpdateMany(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("[BulkDisable] failed to bulk disable access list segmentation: %v", err)
+		a.logger.Errorf("[AccessListSegmentation][BulkDisable] failed to bulk disable access list segmentation: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	a.kafkaProducer.PublishMessage(ctx, req, string(constants.AccessListSegmentationTopic), "delete", "bulk disable access-list-segmentation")

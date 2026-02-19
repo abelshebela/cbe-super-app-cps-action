@@ -40,17 +40,17 @@ func NewNewsCategoryRepository(client *mongo.Client, cfg *config.VaultConfig, da
 
 // Create implements storage.NewsCategoryRepository.
 func (n *NewsCategoryRepository) Create(ctx context.Context, categoryName []string) error {
-	n.logger.Infof("Create called with category names: %v", categoryName)
+	n.logger.Infof("[NewsCategoryRepository][Create] called with category names: %v", categoryName)
 	session, err := n.client.StartSession()
 	if err != nil {
-		n.logger.Errorf("Create: failed to start session: %v", err)
+		n.logger.Errorf("[NewsCategoryRepository][Create] failed to start session: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer session.EndSession(ctx)
 
 	err = mongo.WithSession(ctx, session, func(sc context.Context) error {
 		if err := session.StartTransaction(); err != nil {
-			n.logger.Errorf("Create: failed to start transaction: %v", err)
+			n.logger.Errorf("[NewsCategoryRepository][Create] failed to start transaction: %v", err)
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
@@ -62,25 +62,25 @@ func (n *NewsCategoryRepository) Create(ctx context.Context, categoryName []stri
 				LastModifiedAt: time.Now(),
 			}
 			if _, err := n.mongoDal.InsertOne(sc, cat); err != nil {
-				n.logger.Errorf("Create: failed to insert category '%s': %v", name, err)
+				n.logger.Errorf("[NewsCategoryRepository][Create] failed to insert category '%s': %v", name, err)
 				_ = session.AbortTransaction(sc)
 				return errors.New(localization.ErrorUnexpectedError.Code)
 			}
 		}
 
 		if err := session.CommitTransaction(sc); err != nil {
-			n.logger.Errorf("Create: failed to commit transaction: %v", err)
+			n.logger.Errorf("[NewsCategoryRepository][Create] failed to commit transaction: %v", err)
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
-		n.logger.Infof("Create: transaction committed successfully for categories: %v", categoryName)
+		n.logger.Infof("[NewsCategoryRepository][Create] transaction committed successfully for categories: %v", categoryName)
 		return nil
 	})
 	if err != nil {
-		n.logger.Errorf("Create: transaction failed: %v", err)
+		n.logger.Errorf("[NewsCategoryRepository][Create] transaction failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	n.kafkaProducer.PublishMessage(ctx, categoryName, string(constants.ClientOrchestrationNewsCategoryTopic), string(constants.ClientOrchestrationNewsCategoryTopic), "new news categories created")
-	n.logger.Infof("Create completed for category names: %v", categoryName)
+	n.logger.Infof("[NewsCategoryRepository][Create] completed for category names: %v", categoryName)
 	return nil
 }
 
@@ -93,7 +93,7 @@ func (n *NewsCategoryRepository) Delete(ctx context.Context, id string) error {
 
 	err = n.mongoDal.DeleteOne(ctx, bson.M{"_id": objID})
 	if err != nil {
-		n.logger.Errorf("[Delete] failed to delete news category: %v", err)
+		n.logger.Errorf("[NewsCategoryRepository][Delete] failed to delete news category: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -122,7 +122,7 @@ func (n *NewsCategoryRepository) FindAllWithPagination(ctx context.Context, filt
 	filter["is_deleted"] = false
 	catagories, err := n.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		n.logger.Errorf("[FindAllWithPagination] failed to fetch news categories: %v", err)
+		n.logger.Errorf("[NewsCategoryRepository][FindAllWithPagination] failed to fetch news categories: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -227,7 +227,7 @@ func (n *NewsCategoryRepository) Update(ctx context.Context, id string, category
 	// }
 	updatedNewsCategory, err := n.mongoDal.UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"category_name": categoryName})
 	if err != nil {
-		n.logger.Errorf("[Update] failed to update news category: %v", err)
+		n.logger.Errorf("[NewsCategoryRepository][Update] failed to update news category: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	n.kafkaProducer.PublishMessage(ctx, updatedNewsCategory, string(constants.ClientOrchestrationNewsCategoryTopic), string(constants.ClientOrchestrationNewsCategoryTopic), "news category updated")

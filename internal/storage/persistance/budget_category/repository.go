@@ -45,7 +45,7 @@ func NewBudgetCategoryRepository(client *mongo.Client, cfg *config.VaultConfig, 
 func (b *BudgetCategoryStorage) CreateBudgetCategory(ctx context.Context, budgetCategory *model.BudgetCategory) error {
 	newBudgetCategory, err := b.budgetCategoryDal.InsertOne(ctx, *budgetCategory)
 	if err != nil {
-		b.logger.Errorf("failed to create budget category: %v", err)
+		b.logger.Errorf("[BudgetCategoryStorage][CreateBudgetCategory] failed to create budget category: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	b.kafkaProducer.PublishMessage(ctx, newBudgetCategory, string(constants.ClientOrchestrationBudgetCategoryTopic), string(constants.ClientOrchestrationBudgetCategoryTopic), "new budget category created")
@@ -53,10 +53,10 @@ func (b *BudgetCategoryStorage) CreateBudgetCategory(ctx context.Context, budget
 }
 
 func (b *BudgetCategoryStorage) UpdateBudgetCategory(ctx context.Context, id string, budgetCategory *model.BudgetCategory) error {
-	b.logger.Infof("[UpdateBudgetCategory] updating budget category for id: %s", id)
+	b.logger.Infof("[BudgetCategoryStorage][UpdateBudgetCategory] updating budget category for id: %s", id)
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		b.logger.Errorf("[UpdateBudgetCategory] invalid object id: %v", err)
+		b.logger.Errorf("[BudgetCategoryStorage][UpdateBudgetCategory] invalid object id: %v", err)
 		return errors.New(localization.ErrorPINInvalid.Code)
 	}
 
@@ -64,21 +64,21 @@ func (b *BudgetCategoryStorage) UpdateBudgetCategory(ctx context.Context, id str
 	updateData := BudgetCategoryMapper(*budgetCategory)
 	updatedBudgetCategory, err := b.budgetCategoryDal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		b.logger.Errorf("[UpdateBudgetCategory] failed to update budget category: %v", err)
+		b.logger.Errorf("[BudgetCategoryStorage][UpdateBudgetCategory] failed to update budget category: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	b.kafkaProducer.PublishMessage(ctx, updatedBudgetCategory, string(constants.ClientOrchestrationBudgetCategoryTopic), string(constants.ClientOrchestrationBudgetCategoryTopic), "budget category updated")
 
-	b.logger.Infof("[UpdateBudgetCategory] budget category updated successfully")
+	b.logger.Infof("[BudgetCategoryStorage][UpdateBudgetCategory] budget category updated successfully")
 	return nil
 }
 
 func (b *BudgetCategoryStorage) FindBudgetCategoryByID(ctx context.Context, id string) (*model.BudgetCategory, error) {
-	b.logger.Infof("[FindBudgetCategoryByID] fetching budget category by id: %s", id)
+	b.logger.Infof("[BudgetCategoryStorage][FindBudgetCategoryByID] fetching budget category by id: %s", id)
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		b.logger.Errorf("[FindBudgetCategoryByID] invalid object id: %v", err)
+		b.logger.Errorf("[BudgetCategoryStorage][FindBudgetCategoryByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -86,7 +86,7 @@ func (b *BudgetCategoryStorage) FindBudgetCategoryByID(ctx context.Context, id s
 	if err != nil {
 		return nil, local_util.HandleDBError(err)
 	}
-	b.logger.Infof("[FindBudgetCategoryByID] budget category retrieved successfully")
+	b.logger.Infof("[BudgetCategoryStorage][FindBudgetCategoryByID] budget category retrieved successfully")
 	return budgetCategory, nil
 }
 
@@ -105,26 +105,26 @@ func (b *BudgetCategoryStorage) FindAllBudgetCategories(ctx context.Context, fil
 
 	data, err := b.budgetCategoryDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		b.logger.Errorf("[FindAllBudgetCategories] failed to fetch budget categories: %v", err)
+		b.logger.Errorf("[BudgetCategoryStorage][FindAllBudgetCategories] failed to fetch budget categories: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := b.budgetCategoryDal.TotalCount(ctx, filter)
 	if err != nil {
-		b.logger.Errorf("[FindAllBudgetCategories] failed to count budget categories: %v", err)
+		b.logger.Errorf("[BudgetCategoryStorage][FindAllBudgetCategories] failed to count budget categories: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParams.Page, filterParams.PerPage)
-	b.logger.Infof("[FindAllBudgetCategories] retrieved %d budget categories", len(data))
+	b.logger.Infof("[BudgetCategoryStorage][FindAllBudgetCategories] retrieved %d budget categories", len(data))
 	return &types.PaginatedResponse[[]model.BudgetCategory]{Data: data, Meta: meta}, nil
 }
 
 func (b *BudgetCategoryStorage) DeleteBudgetCategory(ctx context.Context, id string) error {
-	b.logger.Infof("[DeleteBudgetCategory] deleting budget category for id: %s", id)
+	b.logger.Infof("[BudgetCategoryStorage][DeleteBudgetCategory] deleting budget category for id: %s", id)
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		b.logger.Errorf("[DeleteBudgetCategory] invalid object id: %v", err)
+		b.logger.Errorf("[BudgetCategoryStorage][DeleteBudgetCategory] invalid object id: %v", err)
 		return errors.New(localization.ErrorPINInvalid.Code)
 	}
 
@@ -132,18 +132,18 @@ func (b *BudgetCategoryStorage) DeleteBudgetCategory(ctx context.Context, id str
 	update := bson.M{"is_deleted": true, "updated_at": time.Now()}
 	_, err = b.budgetCategoryDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		b.logger.Errorf("[DeleteBudgetCategory] failed to delete budget category: %v", err)
+		b.logger.Errorf("[BudgetCategoryStorage][DeleteBudgetCategory] failed to delete budget category: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	b.logger.Infof("[DeleteBudgetCategory] budget category deleted successfully")
+	b.logger.Infof("[BudgetCategoryStorage][DeleteBudgetCategory] budget category deleted successfully")
 	return nil
 }
 
 func (b *BudgetCategoryStorage) EnableOrDisableBudgetCategory(ctx context.Context, id string, enable bool) error {
-	b.logger.Infof("[EnableOrDisableBudgetCategory] processing budget category enable/disable for id: %s, enabled: %v", id, enable)
+	b.logger.Infof("[BudgetCategoryStorage][EnableOrDisableBudgetCategory] processing budget category enable/disable for id: %s, enabled: %v", id, enable)
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		b.logger.Errorf("[EnableOrDisableBudgetCategory] invalid object id: %v", err)
+		b.logger.Errorf("[BudgetCategoryStorage][EnableOrDisableBudgetCategory] invalid object id: %v", err)
 		return errors.New(localization.ErrorPINInvalid.Code)
 	}
 
@@ -151,18 +151,18 @@ func (b *BudgetCategoryStorage) EnableOrDisableBudgetCategory(ctx context.Contex
 	update := bson.M{"enabled": enable, "updated_at": time.Now()}
 	updatedBudgetCategory, err := b.budgetCategoryDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		b.logger.Errorf("[EnableOrDisableBudgetCategory] failed to enable/disable budget category: %v", err)
+		b.logger.Errorf("[BudgetCategoryStorage][EnableOrDisableBudgetCategory] failed to enable/disable budget category: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	b.kafkaProducer.PublishMessage(ctx, updatedBudgetCategory, string(constants.ClientOrchestrationBudgetCategoryTopic), string(constants.ClientOrchestrationBudgetCategoryTopic), "budget category enable/disable updated")
 
-	b.logger.Infof("[EnableOrDisableBudgetCategory] budget category enable/disable completed successfully")
+	b.logger.Infof("[BudgetCategoryStorage][EnableOrDisableBudgetCategory] budget category enable/disable completed successfully")
 	return nil
 }
 
 func (b *BudgetCategoryStorage) FindByName(ctx context.Context, name string) (*model.BudgetCategory, error) {
-	b.logger.Infof("[FindByName] searching for budget category by name")
+	b.logger.Infof("[BudgetCategoryStorage][FindByName] searching for budget category by name")
 
 	filter := bson.M{
 		"name": bson.M{
@@ -175,12 +175,12 @@ func (b *BudgetCategoryStorage) FindByName(ctx context.Context, name string) (*m
 	result, err := b.budgetCategoryDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			b.logger.Infof("[FindByName] budget category not found")
+			b.logger.Infof("[BudgetCategoryStorage][FindByName] budget category not found")
 			return nil, nil
 		}
-		b.logger.Errorf("[FindByName] failed to find budget category: %v", err)
+		b.logger.Errorf("[BudgetCategoryStorage][FindByName] failed to find budget category: %v", err)
 		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
-	b.logger.Infof("[FindByName] budget category retrieved successfully")
+	b.logger.Infof("[BudgetCategoryStorage][FindByName] budget category retrieved successfully")
 	return result, nil
 }
