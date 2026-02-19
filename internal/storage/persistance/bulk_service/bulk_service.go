@@ -71,7 +71,7 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 				Meta: meta,
 			}, nil
 		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	// 6. Count total
@@ -97,12 +97,8 @@ func (b BulkServicePersistence) FindAll(ctx context.Context) ([]model.APPAccessL
 	projection := bson.M{}
 	bulkServices, err := b.mongoDalbulkService.FindAll(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			b.logger.Infof("[FindAll] no bulk services found")
-			return []model.APPAccessList{}, errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		b.logger.Errorf("[FindAll] failed to fetch bulk services: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	b.logger.Infof("[FindAll] retrieved %d bulk services", len(bulkServices))
 	return bulkServices, nil
@@ -135,7 +131,7 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 			}
 			// Other parent update errors
 			b.logger.Errorf("[Update] failed to update parent: %v", err)
-			return errors.New(localization.ErrorFailToUpdateParent.Code)
+			return local_util.HandleDBError(err)
 		}
 
 		b.kafkaProducer.PublishMessage(ctx, result, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "bulk enable/disable access-list parent")

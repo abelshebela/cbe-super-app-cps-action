@@ -54,12 +54,7 @@ func (m *LogisticsMerchantRepository) Update(ctx context.Context, id string, mer
 
 	_, err = m.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			m.logger.Warnf("logistics merchant not found for update, id: %s", id)
-			return errors.New(localization.ErrorLogisticMerchantNotFound.Code)
-		}
-		m.logger.Errorf("Failed to update logistics merchant, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	return nil
@@ -81,12 +76,7 @@ func (m *LogisticsMerchantRepository) Delete(ctx context.Context, id string) err
 
 	_, err = m.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			m.logger.Warnf("logistics merchant not found for deletion, id: %s", id)
-			return errors.New(localization.ErrorLogisticMerchantNotFound.Code)
-		}
-		m.logger.Errorf("Failed to delete logistics merchant, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	return nil
@@ -104,12 +94,7 @@ func (m *LogisticsMerchantRepository) EnableOrDisable(ctx context.Context, id st
 
 	_, err = m.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Warnf("logistics merchant not found for enable/disable, id: %s", id)
-			return errors.New(localization.ErrorLogisticMerchantNotFound.Code)
-		}
-		m.logger.Errorf("Failed to enable/disable logistics merchant, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -124,12 +109,7 @@ func (m *LogisticsMerchantRepository) FindByID(ctx context.Context, id string) (
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	result, err := m.dal.FindOne(context.Background(), filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			m.logger.Warnf("logistics merchant not found, id: %s", id)
-			return nil, errors.New(localization.ErrorLogisticMerchantNotFound.Code)
-		}
-		m.logger.Errorf("Failed to find logistics merchant, id: %s, error: %v", id, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -176,12 +156,7 @@ func (s *LogisticsMerchantRepository) FindAllWithPagination(ctx context.Context,
 func (m *LogisticsMerchantRepository) FindOne(ctx context.Context, filter bson.M) (*local_model.LogisticsMerchant, error) {
 	result, err := m.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			m.logger.Warnf("logistics merchant not found")
-			return nil, errors.New(localization.ErrorLogisticMerchantNotFound.Code)
-		}
-		m.logger.Errorf("Failed to find logistics merchant, filter: %v, error: %v", filter, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }

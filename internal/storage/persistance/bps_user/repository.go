@@ -79,12 +79,7 @@ func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*b
 	filter := bson.M{"user_code": userCode, "is_deleted": false}
 	result, err := b.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			b.logger.Errorf("[GetByUserCode] BPS user not found for code: %s", userCode)
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		b.logger.Errorf("[GetByUserCode] failed to find BPS user: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	b.logger.Infof("[GetByUserCode] BPS user retrieved successfully")
 	return result, nil
@@ -189,12 +184,7 @@ func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *bps_model.BPSUser)
 	filter := bson.M{"_id": BpsUser.ID, "is_deleted": false}
 	_, err := b.dal.UpdateOne(ctx, filter, BPSUserMapper(*BpsUser))
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			b.logger.Errorf("[Update] BPS user not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		b.logger.Errorf("[Update] failed to update BPS user: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	b.logger.Infof("[Update] BPS user updated successfully")
 	return nil
@@ -243,12 +233,7 @@ func (b *BPSUserStorage) FindByFilterKey(ctx context.Context, field, value strin
 
 	result, err := b.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			b.logger.Errorf("[FindByFilterKey] BPS user not found by %s: %s", field, value)
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		b.logger.Errorf("[FindByFilterKey] failed to find BPS user by %s: %v", field, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }

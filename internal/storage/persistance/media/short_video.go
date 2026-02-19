@@ -61,11 +61,7 @@ func (s *shortVideoRepo) Update(ctx context.Context, shortVideo *model.ShortVide
 	update := buildShortVideoUpdate(*shortVideo)
 	updatedShotVideo, err := s.shortVideoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		s.logger.Errorf("Error updating short video in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 	s.kafkaProducer.PublishMessage(ctx, updatedShotVideo, string(constants.ClientOrchestrationShortVideoTopic), string(constants.ClientOrchestrationShortVideoTopic), "short video updated")
 	return nil
@@ -86,11 +82,7 @@ func (s *shortVideoRepo) Delete(ctx context.Context, id string) error {
 	}
 	_, err = s.shortVideoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		s.logger.Errorf("Error deleting short video in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 	return nil
 }
@@ -114,11 +106,7 @@ func (s *shortVideoRepo) PublishUnpublish(ctx context.Context, id string, isPubl
 
 	updatedShortVideo, err := s.shortVideoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		s.logger.Errorf("Error updating short video publish status in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 	s.kafkaProducer.PublishMessage(ctx, updatedShortVideo, string(constants.ClientOrchestrationShortVideoTopic), string(constants.ClientOrchestrationShortVideoTopic), "short video publish status updated")
 	return nil

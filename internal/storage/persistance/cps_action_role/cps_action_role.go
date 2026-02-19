@@ -636,12 +636,7 @@ func (r *CPSActionRoleRepository) FindByActionName(ctx context.Context, actionNa
 
 	roleData, err := r.mongoDal.FindOne(ctx, bson.M{"action_name": actionName}, bson.M{})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Errorf("[FindByActionName] action name %s not found", actionName)
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		r.logger.Errorf("[FindByActionName] error finding role by action name: %v error: %v", actionName, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return roleData, nil
@@ -651,12 +646,7 @@ func (r *CPSActionRoleRepository) FindByActionNameAndPortalCard(ctx context.Cont
 
 	roleData, err := r.mongoDal.FindOne(ctx, bson.M{"action_name": actionName, "portal_card_name": portalCard}, bson.M{})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Errorf("[FindByActionNameAndPortalCard] action name %s not found", actionName)
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		r.logger.Errorf("[FindByActionNameAndPortalCard] error finding role by action name: %v error: %v", actionName, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return roleData, nil
@@ -665,12 +655,7 @@ func (r *CPSActionRoleRepository) FindByActionNameAndPortalCard(ctx context.Cont
 func (r *CPSActionRoleRepository) FindApproverByActionName(ctx context.Context, actionName, role_code string) (imodel.CPSActionApproveIndex, error) {
 	approverModal, err := r.approverDal.FindOne(ctx, bson.M{"action_name": actionName, "role_id": role_code}, bson.M{})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Errorf("[FindApproverByActionName] approver for action %s and role %s not found", actionName, role_code)
-			return imodel.CPSActionApproveIndex{}, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		r.logger.Errorf("[FindApproverByActionName] error finding approver index: %v", err)
-		return imodel.CPSActionApproveIndex{}, errors.New(localization.ErrorUnexpectedError.Code)
+		return imodel.CPSActionApproveIndex{}, local_util.HandleDBError(err)
 	}
 
 	return *approverModal, nil

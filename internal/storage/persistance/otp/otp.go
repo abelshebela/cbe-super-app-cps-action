@@ -35,12 +35,7 @@ func (o *OTPRepository) Find(ctx context.Context, filter bson.M) (*model.OTP, er
 	projection := OtpProjection()
 	otp, err := o.otpDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			o.logger.Errorf("OTP not found. filter=%+v", filter)
-			return nil, errors.New(localization.ErrorOTPNotFound.Code)
-		}
-		o.logger.Errorf("Unexpected error while finding OTP. error=%v, filter=%+v", err, filter)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	o.logger.Infof("OTP found successfully. otp=%+v", otp)
 	return otp, nil

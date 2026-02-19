@@ -64,12 +64,7 @@ func (s *DonationCategoryStorage) Update(ctx context.Context, id string, details
 	updateData := DonationCategoryMapper(*details)
 	updatedDonationCategory, err := s.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			s.logger.Errorf("[Update] donation category not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		s.logger.Errorf("[Update] failed to update donation category: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	s.kafkaProducer.PublishMessage(ctx, updatedDonationCategory, string(constants.ClientOrchestrationDonationCategoryTopic), string(constants.ClientOrchestrationDonationCategoryTopic), "new donation category updated")
@@ -181,12 +176,7 @@ func (s *DonationCategoryStorage) EnableDisable(ctx context.Context, id string, 
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	updatedDonationCategory, err := s.dal.UpdateOne(ctx, filter, bson.M{"enabled": enable, "last_modified_at": time.Now()})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			s.logger.Errorf("[EnableDisable] donation category not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		s.logger.Errorf("[EnableDisable] failed to update donation category: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	s.kafkaProducer.PublishMessage(ctx, updatedDonationCategory, string(constants.ClientOrchestrationDonationCategoryTopic), string(constants.ClientOrchestrationDonationCategoryTopic), "new donation category updated")

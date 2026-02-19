@@ -56,12 +56,7 @@ func (b *DepartmentStorage) Update(ctx context.Context, id string, Department *m
 
 	_, err = b.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			b.logger.Errorf("[Update] department not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		b.logger.Errorf("[Update] failed to update department: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	b.logger.Infof("[Update] department updated successfully")
 	return nil
@@ -95,12 +90,7 @@ func (b *DepartmentStorage) EnableOrDisable(ctx context.Context, id string, enab
 	update := bson.M{"enabled": enable}
 	_, err = b.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			b.logger.Errorf("[EnableOrDisable] department not found")
-			return errors.New(localization.ErrorDepartmentNotFound.Code)
-		}
-		b.logger.Errorf("[EnableOrDisable] failed to enable/disable department: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	b.logger.Infof("[EnableOrDisable] department enable/disable completed successfully")
 	return nil
@@ -115,12 +105,7 @@ func (b *DepartmentStorage) FindByID(ctx context.Context, id string) (*model.Dep
 
 	result, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			b.logger.Errorf("[FindByID] department not found")
-			return nil, errors.New(localization.ErrorDepartmentNotFound.Code)
-		}
-		b.logger.Errorf("[FindByID] failed to find department: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	b.logger.Infof("[FindByID] department retrieved successfully")
 	return result, nil

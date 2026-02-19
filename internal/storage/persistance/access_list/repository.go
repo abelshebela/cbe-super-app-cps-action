@@ -62,12 +62,8 @@ func (a *AccessListStorage) Update(ctx context.Context, id string, accessList *m
 
 	updateAccessList, err := a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			a.logger.Errorf("[Update] access list not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
 		a.logger.Errorf("[Update] failed to update access list: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	a.kafkaProducer.PublishMessage(ctx, updateAccessList, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "update access-list")
@@ -104,10 +100,6 @@ func (a *AccessListStorage) EnableOrDisable(ctx context.Context, id string, enab
 	update := bson.M{"$set": bson.M{"enabled": enable}}
 	updateAccessList, err := a.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			a.logger.Errorf("[EnableOrDisable] access list not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
 		a.logger.Errorf("[EnableOrDisable] failed to enable/disable access list: %v", err)
 		return local_util.HandleDBError(err)
 	}
@@ -233,11 +225,8 @@ func (a *AccessListStorage) FindAllByKeys(ctx context.Context, keys []string) ([
 
 	als, err := a.dal.FindAll(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		a.logger.Errorf("[FindByKeys] failed to count access lists: %v", err)
-		return []model.APPAccessList{}, errors.New(localization.ErrorUnexpectedError.Code)
+		a.logger.Errorf("[FindAllByKeys] failed to fetch access lists: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	return als, nil
 }

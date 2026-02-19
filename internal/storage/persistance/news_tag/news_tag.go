@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"time"
@@ -192,11 +193,7 @@ func (n *NewsTagRepository) FindByNames(ctx context.Context, names []string) (*m
 	filter := bson.M{"$or": orQueries}
 	news_category, err := n.mongoDal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		n.logger.Errorf("[FindByNames] failed to find news tag: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return news_category, nil
@@ -211,11 +208,7 @@ func (n *NewsTagRepository) Get(ctx context.Context, id string) (*model.NewsTag,
 
 	tag, err := n.mongoDal.FindOne(ctx, bson.M{"_id": objID, "is_deleted": false}, bson.M{})
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		n.logger.Errorf("[Get] failed to find news tag: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return tag, nil
 }

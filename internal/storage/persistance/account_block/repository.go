@@ -63,12 +63,8 @@ func (a *AccountBlockStorage) GetBranchByIds(ctx context.Context, id string) (*m
 
 	branch, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, 1, a.logger)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			a.logger.Errorf("[GetBranchByIds] branch not found")
-			return nil, errors.New(localization.ErrorBranchNotFound.Code)
-		}
 		a.logger.Errorf("[GetBranchByIds] failed to fetch branch: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	if len(branch) == 0 {

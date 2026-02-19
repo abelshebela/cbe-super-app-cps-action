@@ -89,12 +89,7 @@ func (r *customerStorage) EnableOrDisable(ctx context.Context, id string, enable
 
 	_, err = r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			r.logger.Warnf("Customer segmentation not found for enable/disable, id: %s", id)
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		r.logger.Errorf("Unable to enable/disable customer segmentation with error: %s", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -123,12 +118,7 @@ func (r *customerStorage) FindByID(ctx context.Context, id string) (*imodel.Cust
 	filter := bson.M{"_id": obj, "is_deleted": false}
 	seg, err := r.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Errorf("[FindByID] customer segmentation not found")
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		r.logger.Errorf("Unable to find customer segmentation by ID with error: %s", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return seg, nil

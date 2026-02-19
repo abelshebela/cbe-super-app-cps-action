@@ -93,11 +93,7 @@ func (r *customerKYCRepository) FindByID(ctx context.Context, id string) (*imode
 	filter := bson.M{"_id": objID}
 	result, err := r.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		r.logger.Errorf("[CustomerKYCRepository.FindByID] failed to fetch kyc: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return result, nil

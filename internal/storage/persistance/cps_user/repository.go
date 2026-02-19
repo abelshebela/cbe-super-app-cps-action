@@ -117,12 +117,8 @@ func (r *CPSUserStorage) FindByUsername(ctx context.Context, username string) (*
 	filter := bson.M{"username": username}
 	result, err := r.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Infof("[FindByUsername] CPS user not found")
-			return nil, nil // Return nil, nil when no document found (not an error)
-		}
 		r.logger.Errorf("[FindByUsername] failed to find CPS user: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	r.logger.Infof("[FindByUsername] CPS user retrieved successfully")
 	return result, nil
@@ -137,7 +133,7 @@ func (r *CPSUserStorage) FindByPhoneNumber(ctx context.Context, phoneNumber stri
 			return nil, nil
 		}
 		r.logger.Errorf("[FindByPhoneNumber] failed to find CPS user: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	r.logger.Infof("[FindByPhoneNumber] CPS user retrieved successfully")
 	return result, nil
@@ -152,7 +148,7 @@ func (r *CPSUserStorage) FindByEmail(ctx context.Context, email string) (*imodel
 			return nil, nil
 		}
 		r.logger.Errorf("[FindByEmail] failed to find CPS user: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	r.logger.Infof("[FindByEmail] CPS user retrieved successfully")
 	return result, nil

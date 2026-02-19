@@ -340,12 +340,7 @@ func (f *FeedbackStorage) FindFeedbackByID(ctx context.Context, id string) (*loc
 
 	result, err := f.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			f.logger.Warnf("[FindFeedbackByID] feedback not found for id: %s", id)
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		f.logger.Errorf("[FindFeedbackByID] failed to find feedback: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	f.logger.Infof("[FindFeedbackByID] feedback retrieved successfully for id: %s", id)
@@ -403,12 +398,7 @@ func (f *FeedbackStorage) FindSurveyFeedbackByID(ctx context.Context, id string)
 
 	result, err := f.surveyFeedbackDal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			f.logger.Warnf("[FindSurveyFeedbackByID] survey feedback not found for id: %s", id)
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		f.logger.Errorf("[FindSurveyFeedbackByID] failed to find survey feedback: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	f.logger.Infof("[FindSurveyFeedbackByID] survey feedback retrieved successfully for id: %s", id)
@@ -427,12 +417,7 @@ func (f *FeedbackStorage) FindCustomerFeedbackByID(ctx context.Context, id strin
 
 	result, err := f.customerFeedbackDal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			f.logger.Warnf("[FindCustomerFeedbackByID] customer feedback not found for id: %s", id)
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		f.logger.Errorf("[FindCustomerFeedbackByID] failed to find customer feedback: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	f.logger.Infof("[FindCustomerFeedbackByID] customer feedback retrieved successfully for id: %s", id)

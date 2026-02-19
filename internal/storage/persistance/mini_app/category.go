@@ -5,6 +5,7 @@ import (
 	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"time"
@@ -56,11 +57,7 @@ func (a *miniAppCategory) Update(ctx context.Context, category *model.MiniAppCat
 	update := buildCategoryUpdate(*category)
 	_, err = a.miniAppCategoryDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("Error updating mini app category in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -74,11 +71,7 @@ func (a *miniAppCategory) Delete(ctx context.Context, id string) error {
 	}
 	err = a.miniAppCategoryDal.DeleteOne(ctx, bson.M{"_id": objId, "is_deleted": false})
 	if err != nil {
-		a.logger.Errorf("Error deleting mini app category in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -94,11 +87,7 @@ func (a *miniAppCategory) EnableOrDisable(ctx context.Context, id string, enable
 	update := bson.M{"is_enabled": enable, "updated_at": time.Now()}
 	_, err = a.miniAppCategoryDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("Error enabling or disabling mini app category in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
