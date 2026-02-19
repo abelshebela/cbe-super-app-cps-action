@@ -36,6 +36,8 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "MiniApp", "Authorize")
 	defer span.End()
 
+	const financialAPPtype = "FINANCIAL"
+
 	miniApp, err := local_util.JsonUnmarshal[mini_model.MiniApp](cpsAction.CurrentAction)
 	if err != nil {
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
@@ -47,13 +49,16 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniApp):
-		err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
-		if err != nil {
-			span.AddEvent("Merchant validation failed", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", cpsAction.UniqueId),
-			))
-			break
+		if miniApp.AppType == financialAPPtype {
+			err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
+			if err != nil {
+				span.AddEvent("Merchant validation failed", trace.WithAttributes(
+					attribute.String("error", err.Error()),
+					attribute.String("unique_id", cpsAction.UniqueId),
+				))
+				break
+			}
+
 		}
 		err = s.repo.Create(ctx, miniApp)
 		if err != nil {
@@ -65,13 +70,15 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		}
 
 	case string(constants.RequestUpdateMiniApp):
-		err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
-		if err != nil {
-			span.AddEvent("Merchant validation failed", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", cpsAction.UniqueId),
-			))
-			break
+		if miniApp.AppType == financialAPPtype {
+			err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
+			if err != nil {
+				span.AddEvent("Merchant validation failed", trace.WithAttributes(
+					attribute.String("error", err.Error()),
+					attribute.String("unique_id", cpsAction.UniqueId),
+				))
+				break
+			}
 		}
 		err = s.repo.Update(ctx, cpsAction.UniqueId, miniApp)
 		if err != nil {
@@ -93,13 +100,15 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		}
 
 	case string(constants.RequestEnableMiniApp):
-		err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
-		if err != nil {
-			span.AddEvent("Merchant validation failed", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", cpsAction.UniqueId),
-			))
-			break
+		if miniApp.AppType == financialAPPtype {
+			err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
+			if err != nil {
+				span.AddEvent("Merchant validation failed", trace.WithAttributes(
+					attribute.String("error", err.Error()),
+					attribute.String("unique_id", cpsAction.UniqueId),
+				))
+				break
+			}
 		}
 		err = s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
 		if err != nil {

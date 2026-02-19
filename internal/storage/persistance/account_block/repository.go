@@ -178,7 +178,7 @@ func (a *AccountBlockStorage) EnableOrDisableBranches(ctx context.Context, ids [
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
 	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "B"}
-	update := bson.M{"$set": bson.M{"is_enabled": enabled, "updated_at": time.Now()}}
+	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disabled_reason": reason, "updated_at": time.Now()}}
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -313,7 +313,7 @@ func (a *AccountBlockStorage) EnableOrDisableRegions(ctx context.Context, ids []
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
 	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "R"}
-	update := bson.M{"$set": bson.M{"is_enabled": enabled, "updated_at": time.Now()}}
+	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disabled_reason": reason, "updated_at": time.Now()}}
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -456,7 +456,7 @@ func (a *AccountBlockStorage) EnableOrDisableDistricts(ctx context.Context, ids 
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
 	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "D"}
-	update := bson.M{"$set": bson.M{"is_enabled": enabled, "updated_at": time.Now()}}
+	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disabled_reason": reason, "updated_at": time.Now()}}
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -606,7 +606,7 @@ func (a *AccountBlockStorage) EnableOrDisableCities(ctx context.Context, ids []s
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
 	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "C"}
-	update := bson.M{"$set": bson.M{"is_enabled": enabled, "updated_at": time.Now()}}
+	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disabled_reason": reason, "updated_at": time.Now()}}
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
