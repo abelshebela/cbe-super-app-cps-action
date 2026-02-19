@@ -436,7 +436,9 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationBPSActions(ctx conte
 	}
 	delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
-	filter["request_action"] = bson.M{"$in": RAList}
+	if role != "maker" {
+		filter["request_action"] = bson.M{"$in": RAList}
+	}
 
 	var userFilter bson.M
 	if role == "maker" {

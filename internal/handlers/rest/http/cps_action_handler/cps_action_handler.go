@@ -1114,13 +1114,14 @@ func (a *cpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionCounts", "handler", "cpsAction")
 	defer span.End()
+
 	if _, err := local_util.ParseUserContext(r); err != nil {
 		localization.SendErrorResponse(w, localization.ErrorUserForbidden, nil, nil)
 		return
 	}
 
 	userContext := local_util.ExtractUserContext(r)
-	userID := userContext.UserID
+	userID := userContext.UserName
 
 	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 	if strings.TrimSpace(rawRoleID) == "" {
@@ -1147,7 +1148,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if makerActions == nil && checkerActions == nil && auditorActions == nil {
+	if makerActions == nil && checkerActions == nil && auditorActions == nil && requestedRole != "maker" {
 		resp := &cpsactionDto.CPSActionCountResponse{
 			Pending:    0,
 			Approved:   0,
@@ -1213,8 +1214,9 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	// If no mapped request actions, return zero counts
-	if len(reqs) == 0 {
+	// If no mapped request actions and not maker, return zero counts
+	// Maker counts don't rely on RAList — they filter by maker_id instead
+	if len(reqs) == 0 && requestedRole != "maker" {
 		resp := &cpsactionDto.CPSActionCountResponse{
 			Pending:    0,
 			Approved:   0,

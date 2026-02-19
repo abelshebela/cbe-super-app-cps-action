@@ -661,7 +661,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if makerActions == nil && checkerActions == nil && auditorActions == nil {
+	if makerActions == nil && checkerActions == nil && auditorActions == nil && requestedRole != "maker" {
 		resp := &bpsactionDto.BPSActionCountResponse{
 			Pending:    0,
 			Approved:   0,
@@ -725,8 +725,9 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	// If no mapped request actions, return zero counts
-	if len(reqs) == 0 {
+	// If no mapped request actions and not maker, return zero counts
+	// Maker counts don't rely on RAList — they filter by maker_id instead
+	if len(reqs) == 0 && requestedRole != "maker" {
 		resp := &bpsactionDto.BPSActionCountResponse{
 			Pending:    0,
 			Approved:   0,
