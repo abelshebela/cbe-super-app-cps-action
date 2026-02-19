@@ -60,8 +60,9 @@ import (
 
 	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 
-	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
+	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
 
+	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -397,7 +398,7 @@ type AccountBlockService interface {
 	EnableOrDisableDistricts(ctx context.Context, regionIds []string, reason string, enabled bool) error
 	EnableOrDisableCities(ctx context.Context, ids []string, reason string, enabled bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	GetAccountBlockDetails(ctx context.Context, id string) ([]model.CPSAction, error)
+	GetAccountBlockDetails(ctx context.Context, id string) ([]account_block_dto.AccountBlockActionResponse, error)
 }
 
 type AccountValidationService interface {
