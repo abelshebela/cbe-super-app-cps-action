@@ -71,12 +71,14 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 				Meta: meta,
 			}, nil
 		}
+		b.logger.Errorf("[FindAllWithPagination] failed to fetch bulk services: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
 	// 6. Count total
 	total, err := b.mongoDalbulkService.TotalCount(ctx, filter)
 	if err != nil {
+		b.logger.Errorf("[FindAllWithPagination] failed to count bulk services: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 

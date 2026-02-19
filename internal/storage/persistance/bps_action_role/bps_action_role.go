@@ -82,6 +82,7 @@ func (r *BPSActionRoleRepository) Create(ctx context.Context, actionRole *imodel
 	_, err := r.mongoDal.InsertOne(ctx, *actionRole)
 	if err != nil {
 		if mongo.IsTimeout(err) {
+			r.logger.Errorf("[Create] timeout creating action role: %v", err)
 			return errors.New(localization.ErrorInternalServerTimeout.Code)
 		}
 		r.logger.Errorf("[Create] failed to create action role: %v", err)
@@ -517,12 +518,14 @@ func (r *BPSActionRoleRepository) FindAllWithPagination(
 	// ----------------------------------
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
+		r.logger.Errorf("[FindAllWithPagination] failed to aggregate action roles: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var data []*imodel.BPSActionRoleResposne
 	if err := cursor.All(ctx, &data); err != nil {
+		r.logger.Errorf("[FindAllWithPagination] failed to decode action roles: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -531,6 +534,7 @@ func (r *BPSActionRoleRepository) FindAllWithPagination(
 	// ----------------------------------
 	total, err := r.mongoDal.TotalCount(ctx, filter)
 	if err != nil {
+		r.logger.Errorf("[FindAllWithPagination] failed to count action roles: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -567,5 +571,10 @@ func (r *BPSActionRoleRepository) FindApproverByActionName(ctx context.Context, 
 	return *approverModal, nil
 }
 func (r *BPSActionRoleRepository) FindByActionCodeOne(ctx context.Context, actionCode string) (*imodel.BPSActionRole, error) {
-	return r.mongoDal.FindOne(ctx, bson.M{"action_code": actionCode}, bson.M{})
+	result, err := r.mongoDal.FindOne(ctx, bson.M{"action_code": actionCode}, bson.M{})
+	if err != nil {
+		r.logger.Errorf("[FindByActionCodeOne] failed to find action role by code %s: %v", actionCode, err)
+		return nil, local_util.HandleDBError(err)
+	}
+	return result, nil
 }

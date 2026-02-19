@@ -39,6 +39,7 @@ func (b *DepartmentStorage) Create(ctx context.Context, Department *model.Depart
 	Department.ID = bson.NewObjectID()
 	_, err := b.dal.InsertOne(ctx, *Department)
 	if err != nil {
+		b.logger.Errorf("[Create] failed to create department: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -56,6 +57,7 @@ func (b *DepartmentStorage) Update(ctx context.Context, id string, Department *m
 
 	_, err = b.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
+		b.logger.Errorf("[Update] failed to update department: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	b.logger.Infof("[Update] department updated successfully")
@@ -90,6 +92,7 @@ func (b *DepartmentStorage) EnableOrDisable(ctx context.Context, id string, enab
 	update := bson.M{"enabled": enable}
 	_, err = b.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		b.logger.Errorf("[EnableOrDisable] failed to enable/disable department: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	b.logger.Infof("[EnableOrDisable] department enable/disable completed successfully")
@@ -99,12 +102,14 @@ func (b *DepartmentStorage) EnableOrDisable(ctx context.Context, id string, enab
 func (b *DepartmentStorage) FindByID(ctx context.Context, id string) (*model.Department, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		b.logger.Errorf("[FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorDepartmentInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
 
 	result, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		b.logger.Errorf("[FindByID] failed to find department: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	b.logger.Infof("[FindByID] department retrieved successfully")

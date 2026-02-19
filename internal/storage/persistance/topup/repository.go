@@ -52,6 +52,7 @@ func (w *TopupStorage) Update(ctx context.Context, id string, Topup *model.Topup
 	objID, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
+		w.logger.Errorf("[Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -64,6 +65,7 @@ func (w *TopupStorage) Update(ctx context.Context, id string, Topup *model.Topup
 
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		w.logger.Errorf("[Update] failed to update topup: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
@@ -72,6 +74,7 @@ func (w *TopupStorage) Update(ctx context.Context, id string, Topup *model.Topup
 func (w *TopupStorage) Delete(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		w.logger.Errorf("[Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -80,6 +83,7 @@ func (w *TopupStorage) Delete(ctx context.Context, id string) error {
 
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		w.logger.Errorf("[Delete] failed to delete topup: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
@@ -88,6 +92,7 @@ func (w *TopupStorage) Delete(ctx context.Context, id string) error {
 func (w *TopupStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		w.logger.Errorf("[EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -96,6 +101,7 @@ func (w *TopupStorage) EnableOrDisable(ctx context.Context, id string, enable bo
 
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		w.logger.Errorf("[EnableOrDisable] failed to enable/disable topup: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
@@ -104,12 +110,14 @@ func (w *TopupStorage) EnableOrDisable(ctx context.Context, id string, enable bo
 func (w *TopupStorage) FindByID(ctx context.Context, id string) (*model.Topup, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		w.logger.Errorf("[FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		w.logger.Errorf("[FindByID] failed to find topup: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -146,6 +154,7 @@ func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topu
 			w.logger.Warnf("No Topup found with code=%s name=%s", code, name)
 			return nil, nil
 		}
+		w.logger.Errorf("[Find] failed to find topup: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -155,6 +164,7 @@ func (b *TopupStorage) FindByOr(ctx context.Context, filter bson.M) (model.Topup
 
 	data, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		b.logger.Errorf("[FindByOr] failed to find topup: %v", err)
 		return model.Topup{}, local_util.HandleDBError(err)
 	}
 	return *data, nil

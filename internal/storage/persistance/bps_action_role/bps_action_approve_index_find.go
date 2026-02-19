@@ -25,6 +25,7 @@ func (r *BPSActionApproveIndexRepository) FindByRoleAndAction(ctx context.Contex
 	}
 
 	if err != nil {
+		r.logger.Errorf("[FindByRoleAndAction] failed to find approver index: %v", err)
 		return nil, err
 	}
 	return &res, nil

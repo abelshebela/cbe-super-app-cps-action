@@ -65,6 +65,7 @@ func (s *ServicesStorage) Create(ctx context.Context, service *model.Service) er
 func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.Service) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		s.logger.Errorf("[Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -75,6 +76,7 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 
 	prev, err := s.dal.FindOne(ctx, bson.M{"_id": objID}, bson.M{})
 	if err != nil {
+		s.logger.Errorf("[Update] failed to find previous service: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
@@ -86,6 +88,7 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 
 	updatedService, err := s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		s.logger.Errorf("[Update] failed to update service: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
@@ -103,12 +106,14 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 func (s *ServicesStorage) Delete(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		s.logger.Errorf("[Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	update := bson.M{"is_deleted": true, "deleted_at": time.Now()}
 	_, err = s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		s.logger.Errorf("[Delete] failed to delete service: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
@@ -117,12 +122,14 @@ func (s *ServicesStorage) Delete(ctx context.Context, id string) error {
 func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		s.logger.Errorf("[EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	update := bson.M{"enabled": enable, "last_modified_at": time.Now()}
 	updatedService, err := s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		s.logger.Errorf("[EnableOrDisable] failed to enable/disable service: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
@@ -134,11 +141,13 @@ func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable
 func (s *ServicesStorage) FindByID(ctx context.Context, id string) (*model.Service, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		s.logger.Errorf("[FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	doc, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		s.logger.Errorf("[FindByID] failed to find service: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return doc, nil
@@ -180,11 +189,12 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 	items, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		s.logger.Errorf("failed to get all services: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		s.logger.Errorf("[FindAllWithPagination] failed to count services: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	return &types.PaginatedResponse[[]model.Service]{
@@ -207,11 +217,13 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 
 	items, err := s.serviceDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		s.logger.Errorf("[FindAllServiceListWithPagination] failed to fetch service list: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		s.logger.Errorf("[FindAllServiceListWithPagination] failed to count service list: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	// count, err := s.dal.TotalCount(ctx, bson.M{})

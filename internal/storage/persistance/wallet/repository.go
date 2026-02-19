@@ -59,6 +59,7 @@ func (w *WalletStorage) Update(ctx context.Context, id string, wallet *local_mod
 	objID, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
+		w.logger.Errorf("[Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -71,6 +72,7 @@ func (w *WalletStorage) Update(ctx context.Context, id string, wallet *local_mod
 
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		w.logger.Errorf("[Update] failed to update wallet: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
@@ -79,6 +81,7 @@ func (w *WalletStorage) Update(ctx context.Context, id string, wallet *local_mod
 func (w *WalletStorage) Delete(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		w.logger.Errorf("[Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -87,6 +90,7 @@ func (w *WalletStorage) Delete(ctx context.Context, id string) error {
 
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		w.logger.Errorf("[Delete] failed to delete wallet: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
@@ -95,6 +99,7 @@ func (w *WalletStorage) Delete(ctx context.Context, id string) error {
 func (w *WalletStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		w.logger.Errorf("[EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -103,6 +108,7 @@ func (w *WalletStorage) EnableOrDisable(ctx context.Context, id string, enable b
 
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		w.logger.Errorf("[EnableOrDisable] failed to enable/disable wallet: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
@@ -111,12 +117,14 @@ func (w *WalletStorage) EnableOrDisable(ctx context.Context, id string, enable b
 func (w *WalletStorage) FindByID(ctx context.Context, id string) (*local_model.Wallet, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		w.logger.Errorf("[FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		w.logger.Errorf("[FindByID] failed to find wallet: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 

@@ -356,6 +356,7 @@ func (r *CPSUserStorage) FindByEmailOrPhoneNumberOrUserName(ctx context.Context,
 
 	result, err := r.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		r.logger.Errorf("[FindByEmailOrPhoneNumberOrUserName] failed to find CPS user: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
