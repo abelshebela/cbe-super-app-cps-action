@@ -504,25 +504,34 @@ func (ba *bpsActionService) GetBPSActionByActionCode(ctx context.Context, unique
 }
 
 func (ba *bpsActionService) RollBack(ctx context.Context, action *bps_model.BPSAction) error {
-
-	ctx, span := lobal_util.TraceLogger(ctx, "service", "RollBack", "CPSAction", "RollBack")
-
+	ctx, span := lobal_util.TraceLogger(ctx, "service", "RollBack", "BPSAction", "RollBack")
 	defer span.End()
 
-	err := ba.repo.UpdateCustome(ctx, bson.M{"action_code": action.ActionCode}, bson.M{"action_status": string(constants.Pending), "checker_id": "", "checker_name": "", "checker_phone_number": ""})
-
-	if err != nil {
-
-		span.AddEvent("failed to update custom", trace.WithAttributes(attribute.String("error", err.Error())))
-
-		return err
-
+	// Revert to previous checker state by removing the last appended checker
+	previousCheckers := action.CheckerID
+	if len(previousCheckers) > 0 {
+		previousCheckers = previousCheckers[:len(previousCheckers)-1]
 	}
 
+	previousApproved := action.CheckersApproved - 1
+	if previousApproved < 0 {
+		previousApproved = 0
+	}
+
+	err := ba.repo.UpdateCustome(ctx,
+		bson.M{"action_code": action.ActionCode},
+		bson.M{
+			"status":            string(constants.Pending),
+			"checker_id":        previousCheckers,
+			"checkers_approved": previousApproved,
+		},
+	)
+	if err != nil {
+		span.AddEvent("failed to roll back bps action", trace.WithAttributes(attribute.String("error", err.Error())))
+		return err
+	}
+	ba.logger.Infof("[RollBack] successfully rolled back BPS action %s to Pending", action.ActionCode)
 	return nil
-
-	// return ba.repo.UpdateCustome(ctx, bson.M{"action_code": action.ActionCode}, bson.M{"action_status": string(constants.Pending), "checker_users": []types.Checker{}, "current_checker_index": float32(0)})
-
 }
 
 func (ba *bpsActionService) GetActionCountsByDepartemnt(ctx context.Context, department string) (*bpsActionDto.BPSActionCountResponse, error) {
