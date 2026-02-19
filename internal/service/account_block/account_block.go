@@ -14,6 +14,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -588,14 +589,14 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 	return action, nil
 }
 
-func (s *accountBlockService) GetAccountBlockDetails(ctx context.Context, id string) ([]model.CPSAction, error) {
+func (s *accountBlockService) GetAccountBlockDetails(ctx context.Context, id string) ([]account_block_dto.AccountBlockActionResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAccountBlockDetails", "BlockAccount", "GetAccountBlockDetails")
 	defer span.End()
 
 	result, err := s.repo.GetAccountBlockDetails(ctx, id)
 	if err != nil {
 		if err.Error() == localization.ErrorBranchNotFound.Code || err.Error() == localization.ErrorCityNotFound.Code || err.Error() == localization.ErrorDistrictNotFound.Code || err.Error() == localization.ErrorRegionNotFound.Code || err.Error() == localization.ErrorActionNotFound.Code {
-			return []model.CPSAction{}, nil
+			return []account_block_dto.AccountBlockActionResponse{}, nil
 		}
 		s.logger.Errorf("[GetAccountBlockDetails] failed to get account block details for id %s: %v", id, err)
 		return nil, err

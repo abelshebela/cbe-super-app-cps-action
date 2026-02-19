@@ -16,9 +16,7 @@ import (
 	// "time"
 
 	"github.com/go-chi/cors"
-	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
-	"google.golang.org/grpc/metadata"
 
 	// "google.golang.org/grpc/metadata"
 
@@ -250,40 +248,20 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 
 		deviceID = strings.Trim(deviceID, "\"")
 		a.logger.Infof("device id from redis: %s device id from payload: %s for user %s", deviceID, userPayload.DeviceID, userPayload.UserID)
-		if deviceID != "" && deviceID != userPayload.DeviceID {
-			if err := a.redisRepository.Set(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID), uuid.New().String(), time.Duration(AccessTokenExpireTime)); err != nil {
-				a.logger.Warnf("failed to set device id in redis for user %s: %v", userPayload.UserID, err)
-			} else {
-				a.logger.Infof("device id updated in redis for user %s", userPayload.UserID)
-			}
-		} else if userPayload.SessionExp != 0 {
+		if userPayload.SessionExp != 0 {
 			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now, userPayload.SessionExp-now)
 
 			if userPayload.SessionExp <= now {
 				a.logger.Warnf("session has expired")
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
-			} else if userPayload.SessionExp-now < int64(remainTime) {
-				// Less than 1 minute left, refresh token
-				a.logger.Infof("session expiring soon, refreshing token, remaining_time_from_env in %d remaining time from subtraction from user expiration time %d", remainTime, userPayload.SessionExp-now)
-				// Inject Bearer token and user_id from context into gRPC metadata
-				md := metadata.New(map[string]string{
-					"authorization": "Bearer " + tokenString,
-				})
-
-				ctxWithAuth := metadata.NewOutgoingContext(ctx, md)
-				refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
-				if err != nil {
-					a.logger.Errorf("failed to refresh token: %v", err)
-				}
-				if refresh_response != nil {
-					a.logger.Infof("token refreshed successfully, setting X-Refreshed-Token header")
-					w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
+			} else if deviceID != "" && deviceID == userPayload.DeviceID {
+				if err := a.redisRepository.Set(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID), deviceID, time.Second*time.Duration(AccessTokenExpireTime)); err != nil {
+					a.logger.Warnf("failed to set device id in redis for user %s: %v", userPayload.UserID, err)
 				} else {
-					a.logger.Errorf("refresh token response from grpc is nil")
+					a.logger.Infof("device id updated in redis for user %s", userPayload.UserID)
 				}
 			}
-
 		} else {
 			a.logger.Errorf("unauthorized access device_id_from_redis%s device_id_from_payload:%s user_expiration_session:%s remaining_time_from_env:%d", deviceID, userPayload.DeviceID, userPayload.SessionExp, remainTime)
 			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
@@ -294,6 +272,99 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		w.Header().Set("Access-Control-Expose-Headers", "X-Refreshed-Token")
+// 		authHeader := r.Header.Get("Authorization")
+// 		bearer := "Bearer "
+// 		if !strings.HasPrefix(authHeader, bearer) {
+// 			a.logger.Warnf("bearer token is not present")
+// 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+// 			return
+// 		}
+// 		tokenString := authHeader[len(bearer):]
+// 		if tokenString == "" {
+// 			a.logger.Warnf("empty token string provided")
+// 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+// 			return
+// 		}
+// 		data, err := a.validateToken(r.Context(), tokenString)
+// 		if err != nil {
+// 			localization.SendErrorResponse(w, localization.ErrorInvalidToken, nil, nil)
+// 			return
+// 		}
+// 		userPayload, err := a.extractUserPayload(r.Context(), data)
+// 		if err != nil {
+// 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+// 			return
+// 		}
+// 		ctx := a.setUserPayload(r.Context(), userPayload)
+// 		now := time.Now().Unix()
+// 		remainTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutesRemain)
+// 		if err != nil || remainTime == 0 {
+// 			remainTime = 120
+// 		} else {
+// 			remainTime *= 60
+// 		}
+// 		AccessTokenExpireTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutes)
+// 		if err != nil || AccessTokenExpireTime == 0 {
+// 			AccessTokenExpireTime = 15 * 60
+// 		} else {
+// 			AccessTokenExpireTime *= 60
+// 		}
+// 		deviceID, err := a.redisRepository.Get(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID))
+// 		if err != nil {
+// 			if errors.Is(err, redis.Nil) {
+// 				a.logger.Warnf("device id not found in redis: %v", err)
+// 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+// 				return
+// 			}
+// 			// If redis is down or cannot be read, log and continue
+// 			a.logger.Warnf("redis error (continuing): %v", err)
+// 		}
+// 		deviceID = strings.Trim(deviceID, "\"")
+// 		if deviceID != "" && deviceID != userPayload.DeviceID {
+// 			if err := a.redisRepository.Set(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID), uuid.New().String(), time.Duration(AccessTokenExpireTime)); err != nil {
+// 				a.logger.Warnf("failed to set device id in redis for user %s: %v", userPayload.UserID, err)
+// 			} else {
+// 				a.logger.Infof("device id updated in redis for user %s", userPayload.UserID)
+// 			}
+// 		} else if userPayload.SessionExp != 0 {
+// 			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now, userPayload.SessionExp-now)
+// 			if userPayload.SessionExp <= now {
+// 				a.logger.Warnf("session has expired")
+// 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+// 				return
+// 			} else if userPayload.SessionExp-now < int64(remainTime) {
+// 				// Less than 1 minute left, refresh token
+// 				a.logger.Infof("session expiring soon, refreshing token, remaining_time_from_env in %d remaining time from subtraction from user expiration time %d", remainTime, userPayload.SessionExp-now)
+// 				// Inject Bearer token and user_id from context into gRPC metadata
+// 				md := metadata.New(map[string]string{
+// 					"authorization": "Bearer " + tokenString,
+// 				})
+// 				ctxWithAuth := metadata.NewOutgoingContext(ctx, md)
+// 				refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
+// 				if err != nil {
+// 					a.logger.Errorf("failed to refresh token: %v", err)
+// 				}
+// 				if refresh_response != nil {
+// 					a.logger.Infof("token refreshed successfully, setting X-Refreshed-Token header")
+// 					w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
+// 				} else {
+// 					a.logger.Errorf("refresh token response from grpc is nil")
+// 				}
+// 			}
+// 		} else {
+// 			a.logger.Errorf("unauthorized access device_id_from_redis%s device_id_from_payload:%s user_expiration_session:%s remaining_time_from_env:%d", deviceID, userPayload.DeviceID, userPayload.SessionExp, remainTime)
+// 			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+// 			return
+// 		}
+// 		r = r.WithContext(ctx)
+// 		next.ServeHTTP(w, r)
+// 	})
+// }
+
 func (a *authMiddleware) validateToken(ctx context.Context, tokenString string) (string, error) {
 	jwtSecret := []byte(a.JWTSecretKey)
 

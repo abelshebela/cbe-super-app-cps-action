@@ -941,5 +941,5 @@ func (a *accountBlockAdapter) GetAccountBlockDetails(w http.ResponseWriter, r *h
 	}
 
 	a.logger.Infof("[GetAccountBlockDetails] account block data successfully fetched id: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessCityRetrieved, data)
+	localization.SendSuccessResponse(w, localization.DataRetrievedSuccessfully, data)
 }
