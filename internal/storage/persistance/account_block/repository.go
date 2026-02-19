@@ -11,6 +11,7 @@ import (
 	"errors"
 	"time"
 
+	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -321,25 +322,25 @@ func (a *AccountBlockStorage) EnableOrDisableRegions(ctx context.Context, ids []
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	descendantsFilter := bson.M{"region_id": bson.M{"$in": objIDs}}
-	_, err = collection.UpdateMany(ctx, descendantsFilter, update)
-	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	// descendantsFilter := bson.M{"region_id": bson.M{"$in": objIDs}}
+	// _, err = collection.UpdateMany(ctx, descendantsFilter, update)
+	// if err != nil {
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
 
-	regions, err := a.GetRegionsByIds(ctx, ids)
-	if err != nil {
-		a.logger.Errorf("Error fetching updated regions: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	// regions, err := a.GetRegionsByIds(ctx, ids)
+	// if err != nil {
+	// 	a.logger.Errorf("Error fetching updated regions: %v", err)
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
 
-	a.kafkaProducer.PublishMessage(
-		ctx,
-		regions,
-		string(constants.ClientOrchestrationServicesTopic),
-		a.cfg.AccountBlockUpdate,
-		"account block enable status updated",
-	)
+	// a.kafkaProducer.PublishMessage(
+	// 	ctx,
+	// 	regions,
+	// 	string(constants.ClientOrchestrationServicesTopic),
+	// 	a.cfg.AccountBlockUpdate,
+	// 	"account block enable status updated",
+	// )
 
 	return nil
 }
@@ -464,25 +465,25 @@ func (a *AccountBlockStorage) EnableOrDisableDistricts(ctx context.Context, ids 
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	descendantsFilter := bson.M{"district_id": bson.M{"$in": objIDs}}
-	_, err = collection.UpdateMany(ctx, descendantsFilter, update)
-	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	// descendantsFilter := bson.M{"district_id": bson.M{"$in": objIDs}}
+	// _, err = collection.UpdateMany(ctx, descendantsFilter, update)
+	// if err != nil {
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
 
-	districts, err := a.GetDistrictsByIds(ctx, ids)
-	if err != nil {
-		a.logger.Errorf("Error fetching updated regions: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	// districts, err := a.GetDistrictsByIds(ctx, ids)
+	// if err != nil {
+	// 	a.logger.Errorf("Error fetching updated regions: %v", err)
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
 
-	a.kafkaProducer.PublishMessage(
-		ctx,
-		districts,
-		string(constants.ClientOrchestrationServicesTopic),
-		a.cfg.AccountBlockUpdate,
-		"account block enable status updated",
-	)
+	// a.kafkaProducer.PublishMessage(
+	// 	ctx,
+	// 	districts,
+	// 	string(constants.ClientOrchestrationServicesTopic),
+	// 	a.cfg.AccountBlockUpdate,
+	// 	"account block enable status updated",
+	// )
 
 	return nil
 }
@@ -614,25 +615,25 @@ func (a *AccountBlockStorage) EnableOrDisableCities(ctx context.Context, ids []s
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	descendantsFilter := bson.M{"city_id": bson.M{"$in": objIDs}}
-	_, err = collection.UpdateMany(ctx, descendantsFilter, update)
-	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	// descendantsFilter := bson.M{"city_id": bson.M{"$in": objIDs}}
+	// _, err = collection.UpdateMany(ctx, descendantsFilter, update)
+	// if err != nil {
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
 
-	cities, err := a.GetCitiesByIds(ctx, ids)
-	if err != nil {
-		a.logger.Errorf("Error fetching updated regions: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	// cities, err := a.GetCitiesByIds(ctx, ids)
+	// if err != nil {
+	// 	a.logger.Errorf("Error fetching updated regions: %v", err)
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
 
-	a.kafkaProducer.PublishMessage(
-		ctx,
-		cities,
-		string(constants.ClientOrchestrationServicesTopic),
-		a.cfg.AccountBlockUpdate,
-		"account block enable status updated",
-	)
+	// a.kafkaProducer.PublishMessage(
+	// 	ctx,
+	// 	cities,
+	// 	string(constants.ClientOrchestrationServicesTopic),
+	// 	a.cfg.AccountBlockUpdate,
+	// 	"account block enable status updated",
+	// )
 
 	return nil
 }
@@ -662,7 +663,7 @@ func (a *AccountBlockStorage) GetCitiesByIds(ctx context.Context, ids []string) 
 
 }
 
-func (a *AccountBlockStorage) GetAccountBlockDetails(ctx context.Context, id string) ([]model.CPSAction, error) {
+func (a *AccountBlockStorage) GetAccountBlockDetails(ctx context.Context, id string) ([]account_block_dto.AccountBlockActionResponse, error) {
 	a.logger.Infof("[GetAccountBlockDetails] fetching CPS actions for account block id: %s", id)
 
 	if _, err := bson.ObjectIDFromHex(id); err != nil {
@@ -710,5 +711,133 @@ func (a *AccountBlockStorage) GetAccountBlockDetails(ctx context.Context, id str
 		return nil, errors.New(localization.ErrorActionNotFound.Code)
 	}
 
-	return results, nil
+	// Map CPSAction to AccountBlockActionResponse
+	response := make([]account_block_dto.AccountBlockActionResponse, 0, len(results))
+	for _, cpsAction := range results {
+		actionResponse := account_block_dto.AccountBlockActionResponse{
+			ID:                  cpsAction.ID,
+			ActionCode:          cpsAction.ActionCode,
+			UniqueId:            cpsAction.UniqueId,
+			MakerID:             cpsAction.MakerID,
+			MakerName:           cpsAction.MakerName,
+			MakerPhoneNumber:    cpsAction.MakerPhoneNumber,
+			CheckerUsers:        convertCheckers(cpsAction.CheckerUsers),
+			AuditorUsers:        convertAuditors(cpsAction.AuditorUsers),
+			AuditorCount:        cpsAction.AuditorCount,
+			AuditorStatus:       account_block_dto.AuditorStatus(cpsAction.AuditorStatus),
+			CurrentAuditorIndex: cpsAction.CurrentAuditorIndex,
+			CheckerCount:        cpsAction.CheckerCount,
+			CurrentCheckerIndex: cpsAction.CurrentCheckerIndex,
+			RoleCode:            cpsAction.RoleCode,
+			RejectionReason:     cpsAction.RejectionReason,
+			CanceledReason:      cpsAction.CanceledReason,
+			ActionStatus:        cpsAction.ActionStatus,
+			ActionType:          cpsAction.ActionType,
+			IsDeleted:           cpsAction.IsDeleted,
+			RequestAction:       cpsAction.RequestAction,
+			Version:             cpsAction.Version,
+			ReversedByRoleID:    cpsAction.ReversedByRoleID,
+			ReversedByID:        cpsAction.ReversedByID,
+			ReversedByName:      cpsAction.ReversedByName,
+			ReversedAt:          cpsAction.ReversedAt,
+			CreatedAt:           cpsAction.CreatedAt,
+			LastModifiedAt:      cpsAction.LastModifiedAt,
+			MakerActionTime:     cpsAction.MakerActionTime,
+		}
+
+		// Map previous_action based on ActionStatus
+		var previousAction interface{}
+		if cpsAction.ActionStatus == string(constants.ActionApproved) {
+			// If APPROVED, use current_action filtered by matching id
+			previousAction = getMatchingAction(cpsAction.CurrentAction, id, a.logger)
+		} else if cpsAction.ActionStatus == string(constants.ActionPending) || cpsAction.ActionStatus == string(constants.ActionRejected) {
+			// If PENDING or REJECTED, use previous_action filtered by matching id
+			previousAction = getMatchingAction(cpsAction.PreviousAction, id, a.logger)
+		} else {
+			// For other statuses, use previous_action as fallback
+			previousAction = getMatchingAction(cpsAction.PreviousAction, id, a.logger)
+		}
+
+		actionResponse.PreviousAction = previousAction
+		response = append(response, actionResponse)
+	}
+
+	a.logger.Infof("[GetAccountBlockDetails] successfully mapped %d CPS actions", len(response))
+	return response, nil
+}
+
+// getMatchingAction extracts the action that matches the given account block id
+// from either previous_action or current_action (which can be arrays or single objects)
+func getMatchingAction(actionData interface{}, accountBlockID string, logger utils.Logger) interface{} {
+	if actionData == nil {
+		return nil
+	}
+
+	// Try to unmarshal as array of EnableDisableAction
+	actions, err := local_util.JsonUnmarshal[[]types.EnableDisableAction](actionData)
+	if err == nil && actions != nil {
+		// Find the action matching the account block id
+		for _, action := range *actions {
+			if action.ID == accountBlockID {
+				return action
+			}
+		}
+		// If no match found, return nil
+		return nil
+	}
+
+	// Try to unmarshal as single EnableDisableAction
+	singleAction, err := local_util.JsonUnmarshal[types.EnableDisableAction](actionData)
+	if err == nil && singleAction != nil {
+		if singleAction.ID == accountBlockID {
+			return *singleAction
+		}
+		return nil
+	}
+
+	// If unmarshaling fails, check if it's already a map/object with id field
+	if actionMap, ok := actionData.(map[string]interface{}); ok {
+		if id, exists := actionMap["id"]; exists {
+			if idStr, ok := id.(string); ok && idStr == accountBlockID {
+				return actionMap
+			}
+		}
+	}
+
+	logger.Warnf("[getMatchingAction] failed to extract matching action for id: %s", accountBlockID)
+	return nil
+}
+
+// convertCheckers converts model.Checker to account_block_dto.Checker
+func convertCheckers(checkers []model.Checker) []account_block_dto.Checker {
+	result := make([]account_block_dto.Checker, 0, len(checkers))
+	for _, c := range checkers {
+		result = append(result, account_block_dto.Checker{
+			CheckerID:          c.CheckerID,
+			RoleID:             c.RoleID,
+			CheckerIndex:       c.CheckerIndex,
+			CheckerName:        c.CheckerName,
+			CheckerPhoneNumber: c.CheckerPhoneNumber,
+			ApprovedAt:         c.ApprovedAt,
+		})
+	}
+	return result
+}
+
+// convertAuditors converts model.Auditor to account_block_dto.Auditor
+func convertAuditors(auditors []model.Auditor) []account_block_dto.Auditor {
+	result := make([]account_block_dto.Auditor, 0, len(auditors))
+	for _, a := range auditors {
+		result = append(result, account_block_dto.Auditor{
+			AuditorID:          a.AuditorID,
+			RoleID:             a.RoleID,
+			AuditorIndex:       a.AuditorIndex,
+			AuditorName:        a.AuditorName,
+			AuditorPhoneNumber: a.AuditorPhoneNumber,
+			AuditorReason:      a.AuditorReason,
+			AuditorMark:        account_block_dto.AuditorMark(a.AuditorMark),
+			ApprovedAt:         a.ApprovedAt,
+		})
+	}
+	return result
 }

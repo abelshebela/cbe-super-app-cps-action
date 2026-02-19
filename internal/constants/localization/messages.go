@@ -1184,6 +1184,7 @@ const (
 	MsgDisableDistrictsRequestSent    = "Request to disable districts sent successfully"
 
 	MsgCitySuccessfullyRetrieved   = "City retrieved successfully"
+	MsgDataSuccessfullyRetrieved   = "Data retrieved successfully"
 	MsgCitiesSuccessfullyRetrieved = "Cities retrieved successfully"
 	MsgCitiesSuccessfullyEnabled   = "Cities enabled successfully"
 	MsgCitiesSuccessfullyDisabled  = "Cities disabled successfully"
