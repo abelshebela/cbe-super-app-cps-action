@@ -122,6 +122,7 @@ const (
 	Rejected                            = "REJECTED"
 	Reversed                            = "REVERSED"
 	Canceled                            = "CANCELED"
+	RoleBackReason                      = "Roll back by the system because of the failed action"
 	ContextKeyMetadata       ContextKey = "context_metadata"
 	BPSApproveTopic                     = "bps.action.approve"
 	BPSRejectTopic                      = "bps.action.reject"

@@ -1547,6 +1547,8 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 	actionVersion := chi.URLParam(r, "action_version")
 	parsedVersion, err := strconv.ParseInt(actionVersion, 10, 64)
 	if err != nil {
+		a.logger.Infof("location: 0")
+
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
 	}
@@ -1562,6 +1564,7 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 		if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
 			role, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 			if role == "" {
+				a.logger.Infof("location: 1")
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
@@ -1570,11 +1573,14 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 			idxDoc, err = repo.FindByRoleAndAction(ctx, role, uppercasedActionName, parsedVersion)
 			if err != nil {
 				span.RecordError(err)
+				a.logger.Infof("location: 2")
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
 
 			if idxDoc == nil || idxDoc.CheckerIndex == nil {
+				a.logger.Infof("location: 3")
+
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
