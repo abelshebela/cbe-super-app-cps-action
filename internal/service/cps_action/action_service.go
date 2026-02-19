@@ -41,7 +41,6 @@ func (ca *cpsActionService) IsMakerOnlyForRequest(ctx context.Context, requestAc
 	return false, errors.New(localization.ErrorOperationNotAllowed.Code)
 }
 
-// AuditorClaim sets auditor status to INPROGRESS when caller belongs to the active group.
 func (ca *cpsActionService) AuditorClaim(ctx context.Context, actionCode string, activeGroup int) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "AuditorClaim", "CPSAction", "AuditorClaim")
 	defer span.End()
@@ -66,7 +65,6 @@ func (ca *cpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 	return err
 }
 
-// AuditorMark records an auditor's mark and advances to the next group or finishes.
 func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "AuditorMark", "CPSAction", "AuditorMark")
 	defer span.End()
@@ -75,6 +73,7 @@ func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 		ca.logger.Errorf("failed to find action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorActionNotFound.Code)
 	}
+
 	// prevent multiple marks within the same group (any-one quorum)
 	grp := int(activeGroup)
 	for _, au := range act.AuditorUsers {
@@ -400,13 +399,12 @@ func (ca *cpsActionService) RollBack(ctx context.Context, data *model.CPSAction)
 
 	filter := bson.M{"action_code": data.ActionCode}
 
-	// Maker-only action: no checkers configured, so nobody can approve/reject.
-	// Soft-delete the action to unblock future creations.
 	if data.CheckerCount == 0 {
 		err := ca.repo.UpdateCustome(ctx, filter, bson.M{
-			"action_status": string(constants.Canceled),
-			"is_deleted":    true,
+			"action_status":   string(constants.Canceled),
+			"canceled_reason": constants.RoleBackReason,
 		})
+
 		if err != nil {
 			span.AddEvent("failed to soft-delete maker-only cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
@@ -415,7 +413,6 @@ func (ca *cpsActionService) RollBack(ctx context.Context, data *model.CPSAction)
 		return nil
 	}
 
-	// Multi-checker action: revert the last appended checker.
 	previousCheckers := data.CheckerUsers
 	if len(previousCheckers) > 0 {
 		previousCheckers = previousCheckers[:len(previousCheckers)-1]
@@ -432,7 +429,6 @@ func (ca *cpsActionService) RollBack(ctx context.Context, data *model.CPSAction)
 		"current_checker_index": previousIndex,
 	}
 
-	// Reset auditor state if auditors are configured.
 	if data.AuditorCount > 0 {
 		update["auditor_users"] = []model.Auditor{}
 		update["auditor_status"] = string(model.AUDITORNOTCHECKED)
