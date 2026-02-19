@@ -17,7 +17,6 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -106,10 +105,6 @@ func (s *accountBlockService) GetAllRegions(ctx context.Context, filterParams *t
 
 	regions, err := s.repo.FindAllRegionsWithPagination(ctx, *filterParams)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			span.AddEvent("Region not found", trace.WithAttributes(attribute.Int("page", filterParams.Page), attribute.Int("per_page", filterParams.PerPage), attribute.String("error", err.Error())))
-			return nil, errors.New(localization.ErrorRegionNotFound.Code)
-		}
 		span.AddEvent("Failed to fetch regions", trace.WithAttributes(attribute.Int("page", filterParams.Page), attribute.Int("per_page", filterParams.PerPage), attribute.String("error", err.Error())))
 		return nil, err
 	}

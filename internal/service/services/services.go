@@ -29,27 +29,19 @@ func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionSe
 }
 
 func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServiceRequest) error {
-	exist, err := s.repo.CheckServiceExistence(ctx, req.ServiceCode, req.ServiceKey, req.ServiceName)
+	filterParam := types.Filter{
+		Search: req.ServiceName,
+	}
+	services, err := s.repo.FindAllWithPagination(ctx, filterParam)
 	if err != nil {
 		return err
 	}
-	if exist {
-		return errors.New(localization.ErrorServiceExists.Code)
+
+	for _, svc := range services.Data {
+		if svc.ServiceName == req.ServiceName {
+			return errors.New(localization.ErrorServiceExists.Code)
+		}
 	}
-
-	// for _, service := range req.ServiceList {
-	// 	if service.ServiceKey == nil || service.ServiceName == nil {
-	// 		break
-	// 	}
-	// 	listExists, err := s.repo.CheckServiceExistence(ctx, "", *service.ServiceKey, *service.ServiceName)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	if listExists {
-	// 		return errors.New(localization.ErrorChildServiceExists.Code)
-	// 	}
-	// }
-
 	mapped := core.MapToServiceModel(req)
 
 	return core.HandleCPSAction(ctx, s.cps, "", constants.RequestCreateService, mapped, nil, constants.ActionCreate)

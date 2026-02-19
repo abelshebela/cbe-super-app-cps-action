@@ -285,11 +285,11 @@ func (a *AccountBlockStorage) FindAllRegionsWithPagination(ctx context.Context, 
 	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)
 	if err != nil {
 		a.logger.Errorf("[FindAllRegionsWithPagination] failed to find regions: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	total, err := a.accountBlock.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)

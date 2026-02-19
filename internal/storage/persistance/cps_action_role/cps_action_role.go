@@ -43,12 +43,8 @@ func NewCPSActionRoleRepository(client *mongo.Client, cfg *config.VaultConfig, d
 func (a *CPSActionRoleRepository) UpdateActionList(ctx context.Context, actionCode, portalCard string, status bool) error {
 	_, err := a.actionListDal.UpdateOne(ctx, bson.M{"action_code": actionCode, "portal_card_name": portalCard}, bson.M{"is_configured": status})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			a.logger.Errorf("[UpdateActionList] action code %s not found", actionCode)
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		a.logger.Errorf("[UpdateActionList] failed to update action list: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -70,13 +66,13 @@ func (a *CPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Co
 	data, err := a.actionListDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		a.logger.Errorf("[FindAllWithPagination] failed to fetch access lists: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	total, err := a.actionListDal.TotalCount(ctx, filter)
 	if err != nil {
 		a.logger.Errorf("[FindAllWithPagination] failed to count access lists: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -92,7 +88,7 @@ func (r *CPSActionRoleRepository) Create(ctx context.Context, actionRole *imodel
 	_, err := r.mongoDal.InsertOne(ctx, *actionRole)
 	if err != nil {
 		r.logger.Errorf("[Create] failed to create action role: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -114,12 +110,8 @@ func (r *CPSActionRoleRepository) UpdateByActionCode(ctx context.Context, action
 	}
 	_, err := r.mongoDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Errorf("[UpdateByActionCode] action code %s not found", actionCode)
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		r.logger.Errorf("[UpdateByActionCode] failed to update action role: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -127,12 +119,8 @@ func (r *CPSActionRoleRepository) UpdateByActionCode(ctx context.Context, action
 func (r *CPSActionRoleRepository) EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error {
 	_, err := r.mongoDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, bson.M{"enabled": enable})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Errorf("[EnableOrDisableByActionCode] action code %s not found", actionCode)
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		r.logger.Errorf("[EnableOrDisableByActionCode] failed to enable or disable action code %s: %v", actionCode, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }

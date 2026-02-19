@@ -18,7 +18,6 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -171,7 +170,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 
 	}
 	foundUser, err := s.repo.FindByEmailOrPhoneNumberOrUserName(ctx, req.Email, req.PhoneNumber, req.UserName)
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to find user by email, phone number, or username", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -245,10 +244,6 @@ func (s *cpsUserService) DeleteUserRequest(ctx context.Context, userCode string)
 
 	existing, err := s.repo.FindByID(ctx, userCode)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
-			span.AddEvent("user not found", trace.WithAttributes(attribute.String("user_code", userCode)))
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		span.AddEvent("failed to find user by id", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
@@ -277,10 +272,6 @@ func (s *cpsUserService) EnableUser(ctx context.Context, userCode string) error 
 	}
 	prev, err := s.repo.FindByID(ctx, userCode)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
-			span.AddEvent("user not found", trace.WithAttributes(attribute.String("user_code", userCode)))
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		span.AddEvent("failed to find user by id", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
@@ -315,10 +306,6 @@ func (s *cpsUserService) DisableUser(ctx context.Context, userCode string) error
 
 	prev, err := s.repo.FindByID(ctx, userCode)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
-			span.AddEvent("user not found", trace.WithAttributes(attribute.String("user_code", userCode)))
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		span.AddEvent("failed to find user by id", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
@@ -353,10 +340,6 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 
 	user, err := s.repo.FindByID(ctx, userCode)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
-			span.AddEvent("user not found", trace.WithAttributes(attribute.String("user_code", userCode)))
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		span.AddEvent("failed to find user by id", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
 	}
@@ -395,10 +378,6 @@ func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode strin
 	user, err := s.repo.GetPopulatedByID(ctx, userCode)
 	// user, err := s.repo.GetPopulatedByID(ctx, userCode)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
-			span.AddEvent("user not found", trace.WithAttributes(attribute.String("user_code", userCode)))
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		span.AddEvent("failed to get populated by id", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
 
@@ -419,10 +398,6 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 	// populated, err := s.repo.GetPopulatedByID(ctx, userCode)
 	populated, err := s.repo.GetPopulatedWithRole(ctx, userCode)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
-			span.AddEvent("user not found", trace.WithAttributes(attribute.String("user_code", userCode)))
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		span.AddEvent("failed to get populated by id", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
 	}

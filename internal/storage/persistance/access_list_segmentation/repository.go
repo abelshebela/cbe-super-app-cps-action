@@ -66,7 +66,7 @@ func (a *AccessListSegmentation) FindBySegmentIDAndAccessListKeys(ctx context.Co
 			return nil, errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
 		}
 		a.logger.Errorf("[FindByID] find error: %v", err)
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return response, nil
