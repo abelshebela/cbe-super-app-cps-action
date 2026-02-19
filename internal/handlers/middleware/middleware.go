@@ -256,7 +256,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
 			} else if deviceID != "" && deviceID == userPayload.DeviceID {
-				if err := a.redisRepository.Set(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID), deviceID, time.Duration(AccessTokenExpireTime)); err != nil {
+				if err := a.redisRepository.Set(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID), deviceID, time.Second*time.Duration(AccessTokenExpireTime)); err != nil {
 					a.logger.Warnf("failed to set device id in redis for user %s: %v", userPayload.UserID, err)
 				} else {
 					a.logger.Infof("device id updated in redis for user %s", userPayload.UserID)
