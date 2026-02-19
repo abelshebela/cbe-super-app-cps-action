@@ -16,6 +16,7 @@ import (
 	// "time"
 
 	"github.com/go-chi/cors"
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc/metadata"
 
@@ -230,6 +231,12 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		} else {
 			remainTime *= 60
 		}
+		AccessTokenExpireTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutes)
+		if err != nil || AccessTokenExpireTime == 0 {
+			AccessTokenExpireTime = 15 * 60
+		} else {
+			AccessTokenExpireTime *= 60
+		}
 		deviceID, err := a.redisRepository.Get(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID))
 		if err != nil {
 			if errors.Is(err, redis.Nil) {
@@ -242,7 +249,13 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		}
 
 		deviceID = strings.Trim(deviceID, "\"")
-		if userPayload.SessionExp != 0 && (userPayload.DeviceID == deviceID || deviceID == "") {
+		if deviceID != "" && deviceID != userPayload.DeviceID {
+			if err := a.redisRepository.Set(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID), uuid.New().String(), time.Duration(AccessTokenExpireTime)); err != nil {
+				a.logger.Warnf("failed to set device id in redis for user %s: %v", userPayload.UserID, err)
+			} else {
+				a.logger.Infof("device id updated in redis for user %s", userPayload.UserID)
+			}
+		} else if userPayload.SessionExp != 0 {
 			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now, userPayload.SessionExp-now)
 
 			if userPayload.SessionExp <= now {
