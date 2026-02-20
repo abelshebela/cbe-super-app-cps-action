@@ -411,8 +411,8 @@ github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 h1:ilQV1hzziu+LLM3zU
 github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78/go.mod h1:aL8wCCfTfSfmXjznFBSZNN13rSJjlIOI1fUNAtF7rmI=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
-gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.2.45 h1:P+S7B4/Gaij18PGS0fdlV5gSTu4Ax8YXnAppJgX4zZs=
-gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.2.45/go.mod h1:oqaYOl7tUQo3wKOJru5djGnL0hL/U/GDI6JvGIyrZ6Q=
+gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.2.51 h1:JbuQFk2YSuiQZK3uO8dhTR0jeaws8MLN3DWULclN9KI=
+gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.2.51/go.mod h1:oqaYOl7tUQo3wKOJru5djGnL0hL/U/GDI6JvGIyrZ6Q=
 go.mongodb.org/mongo-driver v1.17.6 h1:87JUG1wZfWsr6rIz3ZmpH90rL5tea7O3IHuSwHUpsss=
 go.mongodb.org/mongo-driver v1.17.6/go.mod h1:Hy04i7O2kC4RS06ZrhPRqj/u4DTYkFDAAccj+rVKqgQ=
 go.mongodb.org/mongo-driver/v2 v2.4.1 h1:hGDMngUao03OVQ6sgV5csk+RWOIkF+CuLsTPobNMGNI=
