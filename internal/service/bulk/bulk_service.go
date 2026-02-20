@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/service/bulk/core"
 	"errors"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -27,16 +28,18 @@ import (
 )
 
 type bulkService struct {
-	cpsActionRepo service.CPSActionService
-	repo          storage.BulkServiceRepository
-	logger        utils.Logger
+	cpsActionRepo              service.CPSActionService
+	repo                       storage.BulkServiceRepository
+	accessListSegmentationRepo storage.AccessListSegmentationRepository
+	logger                     utils.Logger
 }
 
-func NewBulkService(repo storage.BulkServiceRepository, CpsActionRepo service.CPSActionService, logger utils.Logger) service.BulkService {
+func NewBulkService(repo storage.BulkServiceRepository, CpsActionRepo service.CPSActionService, accessListSegmentationRepo storage.AccessListSegmentationRepository, logger utils.Logger) service.BulkService {
 	return &bulkService{
-		cpsActionRepo: CpsActionRepo,
-		repo:          repo,
-		logger:        logger,
+		cpsActionRepo:              CpsActionRepo,
+		repo:                       repo,
+		accessListSegmentationRepo: accessListSegmentationRepo,
+		logger:                     logger,
 	}
 }
 
@@ -162,6 +165,17 @@ func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *type
 		s.logger.Errorf("[GetAllBulkServices] failed to fetch bulk services: %v", err)
 		return nil, err
 	}
+
+	relation, err := s.accessListSegmentationRepo.FindParentChildRelationship(ctx)
+	if err != nil {
+		span.AddEvent("[GetAllBulkServices] failed to fetch access list segmentation relationships", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
+		s.logger.Errorf("[GetAllBulkServices] failed to fetch access list segmentation relationships: %v", err)
+		return nil, err
+	}
+
+	result.Data = core.MapParentChildRelationship(relation, result.Data)
 	return result, nil
 }
 

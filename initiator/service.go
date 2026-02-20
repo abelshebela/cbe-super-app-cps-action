@@ -87,7 +87,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	avatarService := avatar.NewAvatarService(persistence.AvatarPersistence, nil, logger, minioClient, cfg.S3BucketName, minioPubUrl, *cfg)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, nil, logger)
 	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
-	bulkService := bulk_service.NewBulkService(persistence.BulkService, nil, logger)
+	bulkService := bulk_service.NewBulkService(persistence.BulkService, nil, persistence.AccessListSegmentationPersistence, logger)
 	ussdMerchant := ussd_merchant.NewUssdMerchantService(persistence.UssdMerchantPersistence, persistence.ServicesPersistence, minioClient, nil, cfg.S3BucketName, *cfg, logger)
 
 	customerService := customer.NewCustomerService(persistence.CustomerService, persistence.BpsActionPersistence, nil, nil, nil, nil, logger)
@@ -217,7 +217,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	// cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
 	eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, ecommerceMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
-	bulkService = bulk_service.NewBulkService(persistence.BulkService, cpsActionService, logger)
+	bulkService = bulk_service.NewBulkService(persistence.BulkService, cpsActionService, persistence.AccessListSegmentationPersistence, logger)
 	// customerService = customer.NewCustomerService(persistence.CustomerService, persistence.BpsActionPersistence, cpsActionService, redis, smsService, cfg, logger)
 	bank_service = bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
 	walletService = wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, persistence.ServicesPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
