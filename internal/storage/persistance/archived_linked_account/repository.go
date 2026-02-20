@@ -44,10 +44,8 @@ func (l *ArchivedLinkedAccountStorage) FindByCustomerNumber(ctx context.Context,
 
 	result, err := l.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][FindByCustomerNumber] failed to find archived linked account: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -55,6 +53,7 @@ func (l *ArchivedLinkedAccountStorage) FindByCustomerNumber(ctx context.Context,
 func (l *ArchivedLinkedAccountStorage) Create(ctx context.Context, account *model.LinkedAccount) error {
 	_, err := l.dal.InsertOne(ctx, *account)
 	if err != nil {
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][Create] failed to create archived linked account: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -63,15 +62,21 @@ func (l *ArchivedLinkedAccountStorage) Create(ctx context.Context, account *mode
 func (l *ArchivedLinkedAccountStorage) Delete(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	return l.dal.DeleteOne(ctx, filter)
+	if err := l.dal.DeleteOne(ctx, filter); err != nil {
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][Delete] failed to delete archived linked account: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
 }
 
 func (l *ArchivedLinkedAccountStorage) FindByID(ctx context.Context, id string, isUserId bool) (*model.ArchivedLinkedAccount, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -85,6 +90,7 @@ func (l *ArchivedLinkedAccountStorage) FindByID(ctx context.Context, id string, 
 	result, err := l.dal.FindOne(ctx, filter, nil)
 
 	if err != nil {
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][FindByID] failed to find archived linked account: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
@@ -96,10 +102,8 @@ func (l *ArchivedLinkedAccountStorage) FindByAccountNumber(ctx context.Context, 
 	}
 	result, err := l.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][FindByAccountNumber] failed to find archived linked account: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return result, nil
@@ -123,11 +127,13 @@ func (l *ArchivedLinkedAccountStorage) FindAllWithPagination(ctx context.Context
 
 	data, err := l.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][FindAllWithPagination] failed to fetch archived linked accounts: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := l.dal.TotalCount(ctx, filter)
 	if err != nil {
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][FindAllWithPagination] failed to count archived linked accounts: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 

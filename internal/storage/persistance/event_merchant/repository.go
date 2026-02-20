@@ -56,12 +56,7 @@ func (m *EventMerchantRepository) Update(ctx context.Context, id string, merchan
 
 	_, err = m.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			m.logger.Warnf("Event merchant not found for update, id: %s", id)
-			return errors.New(localization.ErrorEventMerchantNotFound.Code)
-		}
-		m.logger.Errorf("Failed to update event merchant, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	return nil
@@ -83,12 +78,7 @@ func (m *EventMerchantRepository) Delete(ctx context.Context, id string) error {
 
 	_, err = m.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			m.logger.Warnf("Event merchant not found for deletion, id: %s", id)
-			return errors.New(localization.ErrorEventMerchantNotFound.Code)
-		}
-		m.logger.Errorf("Failed to delete event merchant, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	return nil
@@ -106,12 +96,7 @@ func (m *EventMerchantRepository) EnableOrDisable(ctx context.Context, id string
 
 	_, err = m.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Warnf("Event merchant not found for enable/disable, id: %s", id)
-			return errors.New(localization.ErrorEventMerchantNotFound.Code)
-		}
-		m.logger.Errorf("Failed to enable/disable event merchant, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -126,12 +111,7 @@ func (m *EventMerchantRepository) FindByID(ctx context.Context, id string) (*mod
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	result, err := m.dal.FindOne(context.Background(), filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			m.logger.Warnf("Event merchant not found, id: %s", id)
-			return nil, errors.New(localization.ErrorEventMerchantNotFound.Code)
-		}
-		m.logger.Errorf("Failed to find event merchant, id: %s, error: %v", id, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -178,12 +158,7 @@ func (s *EventMerchantRepository) FindAllWithPagination(ctx context.Context, fil
 func (m *EventMerchantRepository) FindOne(ctx context.Context, filter bson.M) (*model.EventMerchant, error) {
 	result, err := m.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			m.logger.Warnf("Event merchant not found")
-			return nil, errors.New(localization.ErrorEventMerchantNotFound.Code)
-		}
-		m.logger.Errorf("Failed to find event merchant, filter: %v, error: %v", filter, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }

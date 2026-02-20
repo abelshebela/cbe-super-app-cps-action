@@ -37,10 +37,12 @@ func NewRoleRepository(client *mongo.Client, cfg *config.VaultConfig, database s
 func (r *RoleRepository) Exists(ctx context.Context, id string) (bool, error) {
 	oid, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		r.logger.Errorf("[RoleRepository][Exists] invalid object id: %v", err)
 		return false, err
 	}
 	count, err := r.collection.CountDocuments(ctx, bson.M{"_id": oid})
 	if err != nil {
+		r.logger.Errorf("[RoleRepository][Exists] failed to count documents: %v", err)
 		return false, err
 	}
 	return count > 0, nil
@@ -57,6 +59,7 @@ func (r *RoleRepository) ExistsMany(ctx context.Context, ids []string) (bool, er
 
 	count, err := r.collection.CountDocuments(ctx, bson.M{"code": bson.M{"$in": oids}})
 	if err != nil {
+		r.logger.Errorf("[RoleRepository][ExistsMany] failed to count documents: %v", err)
 		return false, err
 	}
 	return count == int64(len(ids)), nil
@@ -66,7 +69,7 @@ func (r *RoleRepository) Create(ctx context.Context, role *imodel.Role) error {
 	role.ID = bson.NewObjectID()
 	_, err := r.mongoDal.InsertOne(ctx, *role)
 	if err != nil {
-		r.logger.Errorf("[Role Repository] Error while creating Error: %v", err)
+		r.logger.Errorf("[RoleRepository][Create] failed to create role: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -75,7 +78,7 @@ func (r *RoleRepository) Create(ctx context.Context, role *imodel.Role) error {
 func (r *RoleRepository) Update(ctx context.Context, id string, role *imodel.Role) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorf("[Role Repository][Update] invalid object id: %v", err)
+		r.logger.Errorf("[RoleRepository][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -93,11 +96,8 @@ func (r *RoleRepository) Update(ctx context.Context, id string, role *imodel.Rol
 	filter := bson.M{"_id": objID}
 	_, err = r.mongoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		r.logger.Errorf("[Role Repository][Update] failed to update: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		r.logger.Errorf("[RoleRepository][Update] failed to update role: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -105,7 +105,7 @@ func (r *RoleRepository) Update(ctx context.Context, id string, role *imodel.Rol
 func (r *RoleRepository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorf("[Role Repository][EnableOrDisable] invalid object id: %v", err)
+		r.logger.Errorf("[RoleRepository][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -114,12 +114,8 @@ func (r *RoleRepository) EnableOrDisable(ctx context.Context, id string, enable 
 
 	_, err = r.mongoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("[Role Repository][EnableOrDisable] role not found, id: %s", id)
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		r.logger.Errorf("[Role Repository][EnableOrDisable] failed to enable/disable role, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		r.logger.Errorf("[RoleRepository][EnableOrDisable] failed to enable/disable role: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -127,7 +123,7 @@ func (r *RoleRepository) EnableOrDisable(ctx context.Context, id string, enable 
 func (r *RoleRepository) SoftDelete(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorf("[Role Repository][SoftDelete] invalid object id: %v", err)
+		r.logger.Errorf("[RoleRepository][SoftDelete] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -136,12 +132,8 @@ func (r *RoleRepository) SoftDelete(ctx context.Context, id string) error {
 
 	_, err = r.mongoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("[Role Repository][SoftDelete] role not found, id: %s", id)
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		r.logger.Errorf("[Role Repository][SoftDelete] failed to soft delete role, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		r.logger.Errorf("[RoleRepository][SoftDelete] failed to soft delete role: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -149,17 +141,14 @@ func (r *RoleRepository) SoftDelete(ctx context.Context, id string) error {
 func (r *RoleRepository) FindByID(ctx context.Context, id string) (*imodel.Role, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorf("[Role Repository][FindByID] invalid object id: %v", err)
+		r.logger.Errorf("[RoleRepository][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
 	result, err := r.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		r.logger.Errorf("[Role Repository][FindByID] failed to find: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		r.logger.Errorf("[RoleRepository][FindByID] failed to find role: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -168,11 +157,8 @@ func (r *RoleRepository) FindByName(ctx context.Context, name string) (*imodel.R
 	filter := bson.M{"job_title": bson.M{"$regex": "^" + name + "$", "$options": "i"}}
 	result, err := r.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		r.logger.Errorf("[Role Repository][FindByName] failed to find: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		r.logger.Errorf("[RoleRepository][FindByName] failed to find role: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -180,11 +166,8 @@ func (r *RoleRepository) FindByRole(ctx context.Context, name string) (*imodel.R
 	filter := bson.M{"role": bson.M{"$regex": "^" + name + "$", "$options": "i"}}
 	result, err := r.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		r.logger.Errorf("[Role Repository][FindByName] failed to find: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		r.logger.Errorf("[RoleRepository][FindByRole] failed to find role: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -193,11 +176,8 @@ func (r *RoleRepository) FindByCode(ctx context.Context, code string) (*imodel.R
 	filter := bson.M{"code": code}
 	result, err := r.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		r.logger.Errorf("[Role Repository][FindByCode] failed to find: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		r.logger.Errorf("[RoleRepository][FindByCode] failed to find role: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -205,11 +185,8 @@ func (r *RoleRepository) FindByCode(ctx context.Context, code string) (*imodel.R
 func (r *RoleRepository) FindAll(ctx context.Context) (*[]imodel.Role, error) {
 	data, err := r.mongoDal.FindAll(ctx, bson.M{}, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		r.logger.Errorf("[Role Repository][FindAll] failed to find: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		r.logger.Errorf("[RoleRepository][FindAll] failed to find roles: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	return &data, nil
 }
@@ -228,16 +205,13 @@ func (r *RoleRepository) FindAllWithPagination(ctx context.Context, filterParam 
 
 	data, err := r.mongoDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		r.logger.Errorf("[Role Repository][FindAllWithPagination] fetch error: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		r.logger.Errorf("[RoleRepository][FindAllWithPagination] failed to fetch roles: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	total, err := r.mongoDal.TotalCount(ctx, filter)
 	if err != nil {
-		r.logger.Errorf("[Role Repository][FindAllWithPagination] count error: %v", err)
+		r.logger.Errorf("[RoleRepository][FindAllWithPagination] failed to count roles: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -264,11 +238,7 @@ func (r *RoleRepository) FindByFilterKey(ctx context.Context, field string, valu
 
 	result, err := r.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		r.logger.Errorf("[RoleRepository][FindByFilterKey] failed to find: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }

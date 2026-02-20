@@ -67,12 +67,6 @@ func (d *Donation) FetchDonation(ctx context.Context, filterParams *types.Filter
 
 	data, err := d.DonationRepo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			span.AddEvent("Donations not found", trace.WithAttributes(
-				attribute.String("error", localization.ErrorFileNotFound.Code),
-			))
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
 		span.AddEvent("Failed to fetch donations", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -87,13 +81,6 @@ func (d *Donation) FetchDonationByID(ctx context.Context, id string) (*dto.Donat
 
 	res, err := d.DonationRepo.FindByID(ctx, id)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			span.AddEvent("Donation not found", trace.WithAttributes(
-				attribute.String("error", localization.ErrorFileNotFound.Code),
-				attribute.String("id", id),
-			))
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
 		span.AddEvent("Failed to fetch donation", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),

@@ -35,13 +35,13 @@ func NewTopupRepository(client *mongo.Client, cfg *config.VaultConfig, dbName st
 func (w *TopupStorage) Create(ctx context.Context, Topup *model.Topup) error {
 	TopupDoc, err := ToTopupDocument(*Topup)
 	if err != nil {
-		w.logger.Errorf("Failed to convert Topup to document: %v", err)
+		w.logger.Errorf("[TopupStorage][Create] failed to convert topup to document: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	_, err = w.dal.InsertOne(ctx, *TopupDoc)
 	if err != nil {
-		w.logger.Errorf("Failed to insert Topup: %v", err)
+		w.logger.Errorf("[TopupStorage][Create] failed to insert topup: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -52,6 +52,7 @@ func (w *TopupStorage) Update(ctx context.Context, id string, Topup *model.Topup
 	objID, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
+		w.logger.Errorf("[TopupStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -64,11 +65,8 @@ func (w *TopupStorage) Update(ctx context.Context, id string, Topup *model.Topup
 
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorTopupNotFound.Code)
-		}
-		w.logger.Errorf("Failed to update Topup: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		w.logger.Errorf("[TopupStorage][Update] failed to update topup: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -76,6 +74,7 @@ func (w *TopupStorage) Update(ctx context.Context, id string, Topup *model.Topup
 func (w *TopupStorage) Delete(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		w.logger.Errorf("[TopupStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -84,11 +83,8 @@ func (w *TopupStorage) Delete(ctx context.Context, id string) error {
 
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorTopupNotFound.Code)
-		}
-		w.logger.Errorf("Failed to delete Topup: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		w.logger.Errorf("[TopupStorage][Delete] failed to delete topup: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -96,6 +92,7 @@ func (w *TopupStorage) Delete(ctx context.Context, id string) error {
 func (w *TopupStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		w.logger.Errorf("[TopupStorage][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -104,12 +101,8 @@ func (w *TopupStorage) EnableOrDisable(ctx context.Context, id string, enable bo
 
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			w.logger.Warnf("Topup ID %s not found for enable/disable", id)
-			return errors.New(localization.ErrorTopupNotFound.Code)
-		}
-		w.logger.Errorf("Failed to enable/disable Topup ID %s: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		w.logger.Errorf("[TopupStorage][EnableOrDisable] failed to enable/disable topup: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -117,17 +110,15 @@ func (w *TopupStorage) EnableOrDisable(ctx context.Context, id string, enable bo
 func (w *TopupStorage) FindByID(ctx context.Context, id string) (*model.Topup, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		w.logger.Errorf("[TopupStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errors.New(localization.ErrorTopupNotFound.Code)
-		}
-		w.logger.Errorf("FindByID Topup failed: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		w.logger.Errorf("[TopupStorage][FindByID] failed to find topup: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return doc, nil
@@ -160,10 +151,11 @@ func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topu
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			w.logger.Warnf("No Topup found with code=%s name=%s", code, name)
+			w.logger.Warnf("[TopupStorage][Find] no topup found with code=%s name=%s", code, name)
 			return nil, nil
 		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		w.logger.Errorf("[TopupStorage][Find] failed to find topup: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return doc, nil
@@ -172,12 +164,8 @@ func (b *TopupStorage) FindByOr(ctx context.Context, filter bson.M) (model.Topup
 
 	data, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			b.logger.Infof("[FindByOr] no topup found matching the criteria")
-			return model.Topup{}, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		b.logger.Errorf("[FindByOr] failed to find topup: %v", err)
-		return model.Topup{}, errors.New(localization.ErrorUnexpectedError.Code)
+		b.logger.Errorf("[TopupStorage][FindByOr] failed to find topup: %v", err)
+		return model.Topup{}, local_util.HandleDBError(err)
 	}
 	return *data, nil
 }
@@ -195,19 +183,19 @@ func (e *TopupStorage) FindAllWithPagination(ctx context.Context, filterParam ty
 	}
 	docs, err := e.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		e.logger.Errorf("FindAllWithPagination Topup failed", err)
+		e.logger.Errorf("[TopupStorage][FindAllWithPagination] failed to fetch topups: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := e.dal.TotalCount(ctx, filter)
 	if err != nil {
-		e.logger.Errorf("Count Topup failed", err)
+		e.logger.Errorf("[TopupStorage][FindAllWithPagination] failed to count topups: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	e.logger.Infof("FindAllWithPagination returning %d Topups, total: %d", len(docs), total)
+	e.logger.Infof("[TopupStorage][FindAllWithPagination] returning %d topups, total: %d", len(docs), total)
 
 	return &types.PaginatedResponse[[]model.Topup]{
 		Data: docs,
@@ -232,10 +220,10 @@ func (w *TopupStorage) FindByKeyValue(ctx context.Context, key string, value str
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			w.logger.Warnf("No Topup found with %s: %v", key, value)
+			w.logger.Warnf("[TopupStorage][FindByKeyValue] no topup found with %s: %v", key, value)
 			return nil, nil
 		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return doc, nil

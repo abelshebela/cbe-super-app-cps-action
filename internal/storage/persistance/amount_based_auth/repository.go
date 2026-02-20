@@ -33,10 +33,10 @@ func NewAmountBasedAuthRepository(client *mongo.Client, cfg *config.VaultConfig,
 }
 
 func (a *AmountBasedAuthStorage) Update(ctx context.Context, id string, authTier *model.AuthTier) error {
-	a.logger.Infof("[Update] updating amount-based auth tier for id: %s", id)
+	a.logger.Infof("[AmountBasedAuthStorage][Update] updating amount-based auth tier for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[Update] invalid object id: %v", err)
+		a.logger.Errorf("[AmountBasedAuthStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -45,25 +45,21 @@ func (a *AmountBasedAuthStorage) Update(ctx context.Context, id string, authTier
 
 	_, err = a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			a.logger.Errorf("[Update] amount-based auth tier not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		a.logger.Errorf("[Update] failed to update amount-based auth tier: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		a.logger.Errorf("[AmountBasedAuthStorage][Update] failed to update amount-based auth tier: %v", err)
+		return local_util.HandleDBError(err)
 	}
-	a.logger.Infof("[Update] amount-based auth tier updated successfully")
+	a.logger.Infof("[AmountBasedAuthStorage][Update] amount-based auth tier updated successfully")
 	return nil
 }
 
 func (a *AmountBasedAuthStorage) FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]model.AuthTier, error) {
-	a.logger.Infof("[FindAll] fetching all amount-based auth tiers")
+	a.logger.Infof("[AmountBasedAuthStorage][FindAll] fetching all amount-based auth tiers")
 	result, err := a.dal.FindAll(ctx, filter, projection)
 	if err != nil {
-		a.logger.Errorf("[FindAll] failed to fetch amount-based auth tiers: %v", err)
+		a.logger.Errorf("[AmountBasedAuthStorage][FindAll] failed to fetch amount-based auth tiers: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	a.logger.Infof("[FindAll] retrieved %d amount-based auth tiers", len(result))
+	a.logger.Infof("[AmountBasedAuthStorage][FindAll] retrieved %d amount-based auth tiers", len(result))
 	return result, nil
 }
 
@@ -80,18 +76,18 @@ func (a *AmountBasedAuthStorage) FindAllWithPagination(ctx context.Context, filt
 
 	data, err := a.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		a.logger.Errorf("[FindAllWithPagination] failed to fetch amount-based auth tiers: %v", err)
+		a.logger.Errorf("[AmountBasedAuthStorage][FindAllWithPagination] failed to fetch amount-based auth tiers: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := a.dal.TotalCount(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("[FindAllWithPagination] failed to count amount-based auth tiers: %v", err)
+		a.logger.Errorf("[AmountBasedAuthStorage][FindAllWithPagination] failed to count amount-based auth tiers: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	a.logger.Infof("[FindAllWithPagination] retrieved %d amount-based auth tiers", len(data))
+	a.logger.Infof("[AmountBasedAuthStorage][FindAllWithPagination] retrieved %d amount-based auth tiers", len(data))
 
 	return &types.PaginatedResponse[[]model.AuthTier]{
 		Data: data,
@@ -100,10 +96,10 @@ func (a *AmountBasedAuthStorage) FindAllWithPagination(ctx context.Context, filt
 }
 
 func (a *AmountBasedAuthStorage) FindByID(ctx context.Context, id string) (*model.AuthTier, error) {
-	a.logger.Infof("[FindByID] fetching amount-based auth tier by id: %s", id)
+	a.logger.Infof("[AmountBasedAuthStorage][FindByID] fetching amount-based auth tier by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[FindByID] invalid object id: %v", err)
+		a.logger.Errorf("[AmountBasedAuthStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -111,9 +107,9 @@ func (a *AmountBasedAuthStorage) FindByID(ctx context.Context, id string) (*mode
 	result, err := a.dal.FindOne(ctx, filter, nil)
 
 	if err != nil {
-		a.logger.Errorf("[FindByID] failed to find amount-based auth tier: %v", err)
+		a.logger.Errorf("[AmountBasedAuthStorage][FindByID] failed to find amount-based auth tier: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	a.logger.Infof("[FindByID] amount-based auth tier retrieved successfully")
+	a.logger.Infof("[AmountBasedAuthStorage][FindByID] amount-based auth tier retrieved successfully")
 	return result, nil
 }

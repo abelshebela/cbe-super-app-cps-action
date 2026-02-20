@@ -39,6 +39,7 @@ func NewDeviceVersionControlRepository(client *mongo.Client, cfg *config.VaultCo
 func (d *DeviceVersionControlRepository) Save(ctx context.Context, deviceVersionControl model.DeviceVersionControl) error {
 	newDeviceVersion, err := d.deviceDal.InsertOne(ctx, deviceVersionControl)
 	if err != nil {
+		d.logger.Errorf("[DeviceVersionControl][Save] failed to save device version control: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	_ = newDeviceVersion
@@ -47,10 +48,10 @@ func (d *DeviceVersionControlRepository) Save(ctx context.Context, deviceVersion
 }
 
 func (d *DeviceVersionControlRepository) Update(ctx context.Context, id string, deviceVersionControl bson.M) error {
-	d.logger.Infof("[Update] updating device version control for id: %s", id)
+	d.logger.Infof("[DeviceVersionControl][Update] updating device version control for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		d.logger.Errorf("[Update] invalid object id: %v", err)
+		d.logger.Errorf("[DeviceVersionControl][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
@@ -59,41 +60,37 @@ func (d *DeviceVersionControlRepository) Update(ctx context.Context, id string, 
 	deviceVersionControl["last_modified_at"] = time.Now()
 	updatedDeviceVersion, err := d.deviceDal.UpdateOne(ctx, filter, deviceVersionControl)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			d.logger.Errorf("[Update] device version control not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		d.logger.Errorf("[Update] failed to update device version control: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		d.logger.Errorf("[DeviceVersionControl][Update] failed to update device version control: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	_ = updatedDeviceVersion
 
-	d.logger.Infof("[Update] device version control updated successfully")
+	d.logger.Infof("[DeviceVersionControl][Update] device version control updated successfully")
 	return nil
 }
 
 func (d *DeviceVersionControlRepository) Delete(ctx context.Context, id string) error {
-	d.logger.Infof("[Delete] deleting device version control for id: %s", id)
+	d.logger.Infof("[DeviceVersionControl][Delete] deleting device version control for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		d.logger.Errorf("[Delete] invalid object id: %v", err)
+		d.logger.Errorf("[DeviceVersionControl][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	err = d.deviceDal.DeleteOne(ctx, filter)
 	if err != nil {
-		d.logger.Errorf("[Delete] failed to delete device version control: %v", err)
+		d.logger.Errorf("[DeviceVersionControl][Delete] failed to delete device version control: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	d.logger.Infof("[Delete] device version control deleted successfully")
+	d.logger.Infof("[DeviceVersionControl][Delete] device version control deleted successfully")
 	return nil
 }
 
 func (d *DeviceVersionControlRepository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	d.logger.Infof("[EnableOrDisable] processing device version control enable/disable for id: %s, enabled: %v", id, enable)
+	d.logger.Infof("[DeviceVersionControl][EnableOrDisable] processing device version control enable/disable for id: %s, enabled: %v", id, enable)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		d.logger.Errorf("[EnableOrDisable] invalid object id: %v", err)
+		d.logger.Errorf("[DeviceVersionControl][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -101,37 +98,30 @@ func (d *DeviceVersionControlRepository) EnableOrDisable(ctx context.Context, id
 	update := bson.M{"enabled": enable}
 	updatedDeviceVersion, err := d.deviceDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			d.logger.Errorf("[EnableOrDisable] device version control not found")
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		d.logger.Errorf("[EnableOrDisable] failed to enable/disable device version control: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		d.logger.Errorf("[DeviceVersionControl][EnableOrDisable] failed to enable/disable device version control: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	_ = updatedDeviceVersion
 
-	d.logger.Infof("[EnableOrDisable] device version control enable/disable completed successfully")
+	d.logger.Infof("[DeviceVersionControl][EnableOrDisable] device version control enable/disable completed successfully")
 	return nil
 }
 
 func (d *DeviceVersionControlRepository) FindByID(ctx context.Context, id string) (model.DeviceVersionControl, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		d.logger.Errorf("[DeviceVersionControl][FindByID] invalid object id: %v", err)
 		return model.DeviceVersionControl{}, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
 
-	d.logger.Infof("[FindByID] fetching device version control by id: %s", id)
+	d.logger.Infof("[DeviceVersionControl][FindByID] fetching device version control by id: %s", id)
 	result, err := d.deviceDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			d.logger.Errorf("[FindByID] device version control not found")
-			return model.DeviceVersionControl{}, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		d.logger.Errorf("[FindByID] failed to find device version control: %v", err)
-		return model.DeviceVersionControl{}, errors.New(localization.ErrorUnexpectedError.Code)
+		d.logger.Errorf("[DeviceVersionControl][FindByID] failed to find device version control: %v", err)
+		return model.DeviceVersionControl{}, local_util.HandleDBError(err)
 	}
-	d.logger.Infof("[FindByID] device version control retrieved successfully")
+	d.logger.Infof("[DeviceVersionControl][FindByID] device version control retrieved successfully")
 	return *result, nil
 }
 
@@ -164,20 +154,20 @@ func (d *DeviceVersionControlRepository) FindAllWithPagination(ctx context.Conte
 	// 5. Fetch data
 	data, err := d.deviceDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		d.logger.Errorf("[FindAllWithPagination] failed to fetch device version controls: %v", err)
+		d.logger.Errorf("[DeviceVersionControl][FindAllWithPagination] failed to fetch device version controls: %v", err)
 		return types.PaginatedResponse[[]model.DeviceVersionControl]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := d.deviceDal.TotalCount(ctx, filter)
 	if err != nil {
-		d.logger.Errorf("[FindAllWithPagination] failed to count device version controls: %v", err)
+		d.logger.Errorf("[DeviceVersionControl][FindAllWithPagination] failed to count device version controls: %v", err)
 		return types.PaginatedResponse[[]model.DeviceVersionControl]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	d.logger.Infof("[FindAllWithPagination] retrieved %d device version controls", len(data))
+	d.logger.Infof("[DeviceVersionControl][FindAllWithPagination] retrieved %d device version controls", len(data))
 
 	// 8. Return standard paginated response
 	return types.PaginatedResponse[[]model.DeviceVersionControl]{
@@ -190,10 +180,8 @@ func (d *DeviceVersionControlRepository) FindOne(ctx context.Context, platform, 
 	filter := bson.M{"platform": platform, "latest_version": lastVersion}
 	result, err := d.deviceDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return model.DeviceVersionControl{}, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		return model.DeviceVersionControl{}, errors.New(localization.ErrorUnexpectedError.Code)
+		d.logger.Errorf("[DeviceVersionControl][FindOne] failed to find device version control: %v", err)
+		return model.DeviceVersionControl{}, local_util.HandleDBError(err)
 	}
 	return *result, nil
 }

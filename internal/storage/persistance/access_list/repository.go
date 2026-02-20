@@ -42,6 +42,7 @@ func (a *AccessListStorage) Create(ctx context.Context, accessList *model.APPAcc
 
 	newAccessControl, err := a.dal.InsertOne(ctx, *accessList)
 	if err != nil {
+		a.logger.Errorf("[AccessListStorage][Create] failed to create access list: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -51,10 +52,10 @@ func (a *AccessListStorage) Create(ctx context.Context, accessList *model.APPAcc
 }
 
 func (a *AccessListStorage) Update(ctx context.Context, id string, accessList *model.APPAccessList) error {
-	a.logger.Infof("[Update] updating access list for id: %s", id)
+	a.logger.Infof("[AccessListStorage][Update] updating access list for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[Update] invalid object id: %v", err)
+		a.logger.Errorf("[AccessListStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -62,77 +63,69 @@ func (a *AccessListStorage) Update(ctx context.Context, id string, accessList *m
 
 	updateAccessList, err := a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			a.logger.Errorf("[Update] access list not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		a.logger.Errorf("[Update] failed to update access list: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		a.logger.Errorf("[AccessListStorage][Update] failed to update access list: %v", err)
+		return local_util.HandleDBError(err)
 	}
 
 	a.kafkaProducer.PublishMessage(ctx, updateAccessList, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "update access-list")
 
-	a.logger.Infof("[Update] access list updated successfully")
+	a.logger.Infof("[AccessListStorage][Update] access list updated successfully")
 	return nil
 }
 
 func (a *AccessListStorage) Delete(ctx context.Context, id string) error {
-	a.logger.Infof("[Delete] deleting access list for id: %s", id)
+	a.logger.Infof("[AccessListStorage][Delete] deleting access list for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[Delete] invalid object id: %v", err)
+		a.logger.Errorf("[AccessListStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	err = a.dal.DeleteOne(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("[Delete] failed to delete access list: %v", err)
+		a.logger.Errorf("[AccessListStorage][Delete] failed to delete access list: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	a.logger.Infof("[Delete] access list deleted successfully")
+	a.logger.Infof("[AccessListStorage][Delete] access list deleted successfully")
 	return nil
 }
 
 func (a *AccessListStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	a.logger.Infof("[EnableOrDisable] processing access list enable/disable for id: %s, enabled: %v", id, enable)
+	a.logger.Infof("[AccessListStorage][EnableOrDisable] processing access list enable/disable for id: %s, enabled: %v", id, enable)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[EnableOrDisable] invalid object id: %v", err)
+		a.logger.Errorf("[AccessListStorage][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"$set": bson.M{"enabled": enable}}
 	updateAccessList, err := a.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			a.logger.Errorf("[EnableOrDisable] access list not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		a.logger.Errorf("[EnableOrDisable] failed to enable/disable access list: %v", err)
+		a.logger.Errorf("[AccessListStorage][EnableOrDisable] failed to enable/disable access list: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
 	a.kafkaProducer.PublishMessage(ctx, updateAccessList, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "enable/disable access-list")
 
-	a.logger.Infof("[EnableOrDisable] access list enable/disable completed successfully")
+	a.logger.Infof("[AccessListStorage][EnableOrDisable] access list enable/disable completed successfully")
 	return nil
 }
 
 func (a *AccessListStorage) FindByID(ctx context.Context, id string) (*model.APPAccessList, error) {
-	a.logger.Infof("[FindByID] fetching access list by id: %s", id)
+	a.logger.Infof("[AccessListStorage][FindByID] fetching access list by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[FindByID] invalid object id: %v", err)
+		a.logger.Errorf("[AccessListStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
 
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		a.logger.Errorf("[FindByID] failed to find access list: %v", err)
+		a.logger.Errorf("[AccessListStorage][FindByID] failed to find access list: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	a.logger.Infof("[FindByID] access list retrieved successfully")
+	a.logger.Infof("[AccessListStorage][FindByID] access list retrieved successfully")
 	return result, nil
 }
 
@@ -148,18 +141,18 @@ func (a *AccessListStorage) FindAllWithPagination(ctx context.Context, departmen
 
 	data, err := a.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		a.logger.Errorf("[FindAllWithPagination] failed to fetch access lists: %v", err)
+		a.logger.Errorf("[AccessListStorage][FindAllWithPagination] failed to fetch access lists: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := a.dal.TotalCount(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("[FindAllWithPagination] failed to count access lists: %v", err)
+		a.logger.Errorf("[AccessListStorage][FindAllWithPagination] failed to count access lists: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	a.logger.Infof("[FindAllWithPagination] retrieved %d access lists", len(data))
+	a.logger.Infof("[AccessListStorage][FindAllWithPagination] retrieved %d access lists", len(data))
 
 	return &types.PaginatedResponse[[]model.APPAccessList]{
 		Data: data,
@@ -168,7 +161,7 @@ func (a *AccessListStorage) FindAllWithPagination(ctx context.Context, departmen
 }
 
 func (a *AccessListStorage) FindByKeys(ctx context.Context, keys []string) (map[string]string, error) {
-	a.logger.Infof("[FindByKeys] checking access list for keys")
+	a.logger.Infof("[AccessListStorage][FindByKeys] checking access list for keys")
 	// Match if any key in keys is present in either the parent key or any sub_access_list.key
 	filter := bson.M{
 		"$or": []bson.M{
@@ -179,7 +172,7 @@ func (a *AccessListStorage) FindByKeys(ctx context.Context, keys []string) (map[
 
 	als, err := a.dal.FindAll(ctx, filter, nil)
 	if err != nil {
-		a.logger.Errorf("[FindByKeys] failed to count access lists: %v", err)
+		a.logger.Errorf("[AccessListStorage][FindByKeys] failed to fetch access lists: %v", err)
 		return map[string]string{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -207,14 +200,14 @@ func (a *AccessListStorage) FindByKeys(ctx context.Context, keys []string) (map[
 		if len(missing) == 1 {
 			msg = "key: " + strings.Join(missing, ", ") + " not found in access list"
 		}
-		a.logger.Errorf("[FindByKeys] %s", msg)
+		a.logger.Errorf("[AccessListStorage][FindByKeys] %s", msg)
 		return map[string]string{}, errors.New(msg)
 	}
 	return foundKeys, nil
 }
 
 func (a *AccessListStorage) FindAllByKeys(ctx context.Context, keys []string) ([]model.APPAccessList, error) {
-	a.logger.Infof("[FindByKeys] checking access list for keys")
+	a.logger.Infof("[AccessListStorage][FindAllByKeys] checking access list for keys")
 	filter := bson.M{"enabled": true}
 	// Match if any key in keys is present in either the parent key or any sub_access_list.key
 	// filter := bson.M{
@@ -233,11 +226,8 @@ func (a *AccessListStorage) FindAllByKeys(ctx context.Context, keys []string) ([
 
 	als, err := a.dal.FindAll(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		a.logger.Errorf("[FindByKeys] failed to count access lists: %v", err)
-		return []model.APPAccessList{}, errors.New(localization.ErrorUnexpectedError.Code)
+		a.logger.Errorf("[AccessListStorage][FindAllByKeys] failed to fetch access lists: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	return als, nil
 }

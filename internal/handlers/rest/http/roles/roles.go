@@ -146,8 +146,9 @@ func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	role := imodel.JobRole{
-		Name:        strings.TrimSpace(body.Name),
-		Code:        "ROLE_" + local_util.UniqueIdGenerator(),
+		Name: strings.TrimSpace(body.Name),
+		Code: body.Code,
+		// Code:        "ROLE_" + local_util.UniqueIdGenerator(),
 		Description: strings.TrimSpace(body.Description),
 		CreatedAt:   time.Now(),
 	}

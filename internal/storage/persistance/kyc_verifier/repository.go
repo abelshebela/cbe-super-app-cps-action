@@ -202,10 +202,7 @@ func (s *KYCVerifierStorage) Update(ctx context.Context, id string, kyc *model.C
 	update := data
 	updatedKycVerifier, err := s.dal.UpdateOne(ctx, filter, *update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	s.kafkaProducer.PublishMessage(ctx, updatedKycVerifier, string(constants.ClientOrchestrationKycTopic), string(constants.ClientOrchestrationKycTopic), "update kyc-verifier")
@@ -222,10 +219,7 @@ func (s *KYCVerifierStorage) EnableOrDisable(ctx context.Context, id string, ena
 	update := bson.M{"$set": bson.M{"enabled": enable}}
 	updatedKycVerifier, err := s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	s.kafkaProducer.PublishMessage(ctx, updatedKycVerifier, string(constants.ClientOrchestrationKycTopic), string(constants.ClientOrchestrationKycTopic), "enable/disable kyc-verifier")

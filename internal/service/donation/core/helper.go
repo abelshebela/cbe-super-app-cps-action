@@ -17,7 +17,6 @@ import (
 	// types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 func nonEmptyBool(newVal *bool, oldVal bool) bool {
@@ -121,8 +120,8 @@ func DonationTitleExists(ctx context.Context, title string, donationRepo storage
 	donations, err := donationRepo.FindAllWithPagination(ctx, types.Filter{
 		Search: title,
 	})
-	if err != nil && err != mongo.ErrNoDocuments {
-		return false, errors.New(localization.ErrorDonationLookupFailed.Code)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		return false, err
 	}
 
 	if donations.Data != nil {
@@ -177,7 +176,7 @@ func CheckDataSimilarityAndValidation(ctx context.Context, request donation_dto.
 	}
 	if request.Title != "" && request.Title != existing.Title {
 		ok, err := DonationTitleExists(ctx, request.Title, donationRepo)
-		if err != nil && err != mongo.ErrNoDocuments {
+		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 			return err
 		}
 		if ok {

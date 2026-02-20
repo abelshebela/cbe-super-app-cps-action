@@ -8,8 +8,6 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
-	"go.mongodb.org/mongo-driver/v2/mongo"
-
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -511,10 +509,6 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 func (s *cpsActionRoleService) UpdateActionList(ctx context.Context, actionCode, portalCard string, status bool) error {
 	err := s.repo.UpdateActionList(ctx, actionCode, portalCard, status)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			s.logger.Infof("UpdateActionList: Action %s not found in the list", actionCode)
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		s.logger.Errorf("UpdateActionList: Failed to update action list: %v", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}

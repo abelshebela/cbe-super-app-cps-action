@@ -47,7 +47,7 @@ func NewCustomerSegmentationRepository(client *mongo.Client, cfg *config.VaultCo
 func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmentation) error {
 	_, err := r.dal.InsertOne(ctx, *seg)
 	if err != nil {
-		r.logger.Errorf("Unable to create customer segmentation with error: %s", err)
+		r.logger.Errorf("[CustomerSegmentation][Create] failed to create customer segmentation: %s", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -56,6 +56,7 @@ func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmen
 func (r *customerStorage) Update(ctx context.Context, id string, seg *imodel.CustomerSegmentation) error {
 	obj, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		r.logger.Errorf("[CustomerSegmentation][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -63,7 +64,7 @@ func (r *customerStorage) Update(ctx context.Context, id string, seg *imodel.Cus
 	update := MapToCustomerSegUpdate(seg)
 	updatedCustomerSegmentation, err := r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		r.logger.Errorf("Unable to update customer segmentation with error: %s", err)
+		r.logger.Errorf("[CustomerSegmentation][Update] failed to update customer segmentation: %s", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -81,6 +82,7 @@ func (r *customerStorage) Update(ctx context.Context, id string, seg *imodel.Cus
 func (r *customerStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	obj, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		r.logger.Errorf("[CustomerSegmentation][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -89,12 +91,8 @@ func (r *customerStorage) EnableOrDisable(ctx context.Context, id string, enable
 
 	_, err = r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			r.logger.Warnf("Customer segmentation not found for enable/disable, id: %s", id)
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		r.logger.Errorf("Unable to enable/disable customer segmentation with error: %s", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		r.logger.Errorf("[CustomerSegmentation][EnableOrDisable] failed to enable/disable customer segmentation: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -102,13 +100,14 @@ func (r *customerStorage) EnableOrDisable(ctx context.Context, id string, enable
 func (r *customerStorage) Delete(ctx context.Context, id string) error {
 	obj, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		r.logger.Errorf("[CustomerSegmentation][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	filter := bson.M{"_id": obj}
 	_, err = r.dal.UpdateOne(ctx, filter, bson.M{"is_deleted": true})
 	if err != nil {
-		r.logger.Errorf("Unable to delete customer segmentation with error: %s", err)
+		r.logger.Errorf("[CustomerSegmentation][Delete] failed to delete customer segmentation: %s", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -117,18 +116,15 @@ func (r *customerStorage) Delete(ctx context.Context, id string) error {
 func (r *customerStorage) FindByID(ctx context.Context, id string) (*imodel.CustomerSegmentation, error) {
 	obj, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		r.logger.Errorf("[CustomerSegmentation][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	filter := bson.M{"_id": obj, "is_deleted": false}
 	seg, err := r.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Errorf("[FindByID] customer segmentation not found")
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		r.logger.Errorf("Unable to find customer segmentation by ID with error: %s", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		r.logger.Errorf("[CustomerSegmentation][FindByID] failed to find customer segmentation: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return seg, nil
@@ -163,13 +159,13 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	data, err := r.dal.FindAllWithPaginationE(ctx, filter, projection, skip, limit)
 	if err != nil {
-		r.logger.Errorf("[FindAllWithPagination] failed to fetch customer segmentations: %v", err)
+		r.logger.Errorf("[CustomerSegmentation][FindAllWithPagination] failed to fetch customer segmentations: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := r.dal.TotalCount(ctx, filter)
 	if err != nil {
-		r.logger.Errorf("[FindAllWithPagination] failed to count customer segmentations: %v", err)
+		r.logger.Errorf("[CustomerSegmentation][FindAllWithPagination] failed to count customer segmentations: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -198,7 +194,7 @@ func (r *customerStorage) FindByCustomerSegmentation(ctx context.Context, custom
 	}
 	result, err := r.dal.FindOne(ctx, filter, projection)
 	if err != nil {
-		r.logger.Errorf("[FindByCustomerSegmentation] failed to fetch customer segmentation: %v", err)
+		r.logger.Errorf("[CustomerSegmentation][FindByCustomerSegmentation] failed to fetch customer segmentation: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return result, nil

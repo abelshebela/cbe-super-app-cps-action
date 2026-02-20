@@ -71,12 +71,14 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 				Meta: meta,
 			}, nil
 		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		b.logger.Errorf("[BulkServicePersistence][FindAllWithPagination] failed to fetch bulk services: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	// 6. Count total
 	total, err := b.mongoDalbulkService.TotalCount(ctx, filter)
 	if err != nil {
+		b.logger.Errorf("[BulkServicePersistence][FindAllWithPagination] failed to count bulk services: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -91,25 +93,21 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 }
 
 func (b BulkServicePersistence) FindAll(ctx context.Context) ([]model.APPAccessList, error) {
-	b.logger.Infof("[FindAll] fetching all bulk services")
+	b.logger.Infof("[BulkServicePersistence][FindAll] fetching all bulk services")
 	filter := bson.M{}
 
 	projection := bson.M{}
 	bulkServices, err := b.mongoDalbulkService.FindAll(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			b.logger.Infof("[FindAll] no bulk services found")
-			return []model.APPAccessList{}, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		b.logger.Errorf("[FindAll] failed to fetch bulk services: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		b.logger.Errorf("[BulkServicePersistence][FindAll] failed to fetch bulk services: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
-	b.logger.Infof("[FindAll] retrieved %d bulk services", len(bulkServices))
+	b.logger.Infof("[BulkServicePersistence][FindAll] retrieved %d bulk services", len(bulkServices))
 	return bulkServices, nil
 }
 
 func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state bool) error {
-	b.logger.Infof("[Update] updating bulk services, enabled: %v", state)
+	b.logger.Infof("[BulkServicePersistence][Update] updating bulk services, enabled: %v", state)
 	parentKeys := []string{}
 
 	for _, key := range keys {
@@ -125,7 +123,7 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 				childUpdate := bson.M{"sub_access_list.$.enabled": state}
 				child, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
 				if err != nil {
-					b.logger.Errorf("[Update] failed to update child: %v", err)
+					b.logger.Errorf("[BulkServicePersistence][Update] failed to update child: %v", err)
 					return errors.New(localization.ErrorFailToUpdateChild.Code)
 				}
 				b.kafkaProducer.PublishMessage(ctx, child, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "bulk enable/disable access-list child")
@@ -134,8 +132,8 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 				continue
 			}
 			// Other parent update errors
-			b.logger.Errorf("[Update] failed to update parent: %v", err)
-			return errors.New(localization.ErrorFailToUpdateParent.Code)
+			b.logger.Errorf("[BulkServicePersistence][Update] failed to update parent: %v", err)
+			return local_util.HandleDBError(err)
 		}
 
 		b.kafkaProducer.PublishMessage(ctx, result, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "bulk enable/disable access-list parent")
@@ -147,7 +145,7 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 
 			_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
 			if err != nil {
-				b.logger.Errorf("[Update] failed to update child: %v", err)
+				b.logger.Errorf("[BulkServicePersistence][Update] failed to update child: %v", err)
 				return errors.New(localization.ErrorFailToUpdateChild.Code)
 			}
 		}
@@ -161,7 +159,7 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 
 			updatedParent, err := b.mongoDalbulkService.UpdateOne(ctx, parentFilter, parentUpdate)
 			if err != nil {
-				b.logger.Errorf("[Update] failed to update parent: %v", err)
+				b.logger.Errorf("[BulkServicePersistence][Update] failed to update parent: %v", err)
 				return errors.New(localization.ErrorFailToUpdateParent.Code)
 			}
 			b.kafkaProducer.PublishMessage(ctx, updatedParent, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "bulk enable/disable access-list parent")

@@ -48,7 +48,7 @@ func NewCPSRolesStorage(client *mongo.Client, cfg *config.VaultConfig, dbName, c
 func (m *cpsRoleStorage) Create(ctx context.Context, req imodel.CPSRoles) error {
 	_, err := m.dal.InsertOne(ctx, req)
 	if err != nil {
-		m.logger.Errorf("[Create] failed to create cps role: %v", err)
+		m.logger.Errorf("[CPSRolesStorage][Create] failed to create cps role: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -57,7 +57,7 @@ func (m *cpsRoleStorage) Create(ctx context.Context, req imodel.CPSRoles) error 
 func (m *cpsRoleStorage) Update(ctx context.Context, id string, req imodel.CPSRoles) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		m.logger.Errorf("[Update] invalid id format: %s, error: %v", id, err)
+		m.logger.Errorf("[CPSRolesStorage][Update] invalid id format: %s, error: %v", id, err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -70,12 +70,7 @@ func (m *cpsRoleStorage) Update(ctx context.Context, id string, req imodel.CPSRo
 
 	updatedCPSRole, err := m.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Warnf("[Update] cps role not found, id: %s", id)
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		m.logger.Errorf("[Update] failed to update cps role, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	m.kafkaProducer.PublishMessage(
@@ -104,7 +99,7 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	data, err := m.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		m.logger.Errorf("[FindAllWithPagination] failed to fetch paginated cps roles: %v", err)
+		m.logger.Errorf("[CPSRolesStorage][FindAllWithPagination] failed to fetch paginated cps roles: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -113,7 +108,7 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	total, err := m.dal.TotalCount(ctx, filter)
 	if err != nil {
-		m.logger.Errorf("[FindAllWithPagination] failed to count total cps roles: %v", err)
+		m.logger.Errorf("[CPSRolesStorage][FindAllWithPagination] failed to count total cps roles: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -127,24 +122,20 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 }
 
 func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRoles, error) {
-	m.logger.Infof("[FindById] fetching cps role by id: %s", id)
+	m.logger.Infof("[CPSRolesStorage][FindById] fetching cps role by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		m.logger.Errorf("[FindById] invalid id format: %s, error: %v", id, err)
+		m.logger.Errorf("[CPSRolesStorage][FindById] invalid id format: %s, error: %v", id, err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	result, err := m.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Warnf("[FindById] cps role not found, id: %s", id)
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		m.logger.Errorf("[FindById] failed to find cps role, id: %s, error: %v", id, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		m.logger.Errorf("[CPSRolesStorage][FindById] failed to find cps role, id: %s, error: %v", id, err)
+		return nil, local_util.HandleDBError(err)
 	}
-	m.logger.Infof("[FindById] cps role retrieved successfully, id: %s, result: %v", id, result)
+	m.logger.Infof("[CPSRolesStorage][FindById] cps role retrieved successfully, id: %s, result: %v", id, result)
 
 	// Use MongoDB pipeline to group action_names by maker/checker/auditor index
 	approverCol := m.client.Database(m.dbName).Collection("cps_action_approver_index")
@@ -167,8 +158,8 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRo
 	}
 	cursor, err := approverCol.Aggregate(ctx, pipeline)
 	if err != nil {
-		m.logger.Errorf("Error aggregating cps_action_approver_index: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		m.logger.Errorf("[CPSRolesStorage][FindById] error aggregating cps_action_approver_index: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	defer cursor.Close(ctx)
 
@@ -184,10 +175,10 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRo
 	var aggResult []facetActions
 
 	if err := cursor.All(ctx, &aggResult); err != nil {
-		m.logger.Errorf("Error decoding facet result: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		m.logger.Errorf("[CPSRolesStorage][FindById] error decoding facet result: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
-	m.logger.Infof("Facet aggregation result: %v", aggResult)
+	m.logger.Infof("[CPSRolesStorage][FindById] facet aggregation result: %v", aggResult)
 
 	var maker, checker, auditor []string
 	if len(aggResult) > 0 {
@@ -201,7 +192,7 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRo
 			auditor = aggResult[0].Auditor[0].Actions
 		}
 	} else {
-		m.logger.Warnf("No approver index found for role_id: %s", result.RoleCode)
+		m.logger.Warnf("[CPSRolesStorage][FindById] no approver index found for role_id: %s", result.RoleCode)
 	}
 
 	result.MakerActions = maker
@@ -211,7 +202,7 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRo
 	// Fetch enabled/disabled service lists for this role
 	enabledServices, disabledServices, err := m.fetchServiceAccessLists(ctx, result.ID)
 	if err != nil {
-		m.logger.Warnf("[FindById] failed to fetch service access lists for role %s: %v", id, err)
+		m.logger.Warnf("[CPSRolesStorage][FindById] failed to fetch service access lists for role %s: %v", id, err)
 	}
 	result.EnabledServices = enabledServices
 	result.DisabledServices = disabledServices
@@ -295,12 +286,8 @@ func (m *cpsRoleStorage) FindByNameOrRoleCode(ctx context.Context, name, roleCod
 	orFilter := bson.M{"$or": filter, "is_deleted": false}
 	result, err := m.dal.FindOne(ctx, orFilter, bson.M{})
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Warnf("[FindByNameOrRoleCode] cps role not found, name: %s, roleCode: %s", name, roleCode)
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		m.logger.Errorf("[FindByNameOrRoleCode] failed to find cps role, name: %s, roleCode: %s, error: %v", name, roleCode, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		m.logger.Errorf("[CPSRolesStorage][FindByNameOrRoleCode] failed to find cps role, name: %s, roleCode: %s, error: %v", name, roleCode, err)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -308,7 +295,7 @@ func (m *cpsRoleStorage) FindByNameOrRoleCode(ctx context.Context, name, roleCod
 func (m *cpsRoleStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		m.logger.Errorf("[EnableOrDisable] invalid id format: %s, error: %v", id, err)
+		m.logger.Errorf("[CPSRolesStorage][EnableOrDisable] invalid id format: %s, error: %v", id, err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -317,12 +304,8 @@ func (m *cpsRoleStorage) EnableOrDisable(ctx context.Context, id string, enable 
 
 	_, err = m.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Warnf("[EnableOrDisable] cps role not found, id: %s", id)
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		m.logger.Errorf("[EnableOrDisable] failed to enable/disable cps role, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		m.logger.Errorf("[CPSRolesStorage][EnableOrDisable] failed to enable/disable cps role, id: %s, error: %v", id, err)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -332,7 +315,7 @@ func (m *cpsRoleStorage) EnableOrDisable(ctx context.Context, id string, enable 
 func (m *cpsRoleStorage) EnableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error {
 	objID, err := bson.ObjectIDFromHex(roleID)
 	if err != nil {
-		m.logger.Errorf("[EnableServiceAccess] invalid role id: %s, error: %v", roleID, err)
+		m.logger.Errorf("[CPSRolesStorage][EnableServiceAccess] invalid role id: %s, error: %v", roleID, err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -346,8 +329,8 @@ func (m *cpsRoleStorage) EnableServiceAccess(ctx context.Context, roleID string,
 
 	_, err = segCol.UpdateMany(ctx, filter, update)
 	if err != nil {
-		m.logger.Errorf("[EnableServiceAccess] failed to enable services for role %s: %v", roleID, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		m.logger.Errorf("[CPSRolesStorage][EnableServiceAccess] failed to enable services for role %s: %v", roleID, err)
+		return local_util.HandleDBError(err)
 	}
 
 	return nil
@@ -358,14 +341,14 @@ func (m *cpsRoleStorage) EnableServiceAccess(ctx context.Context, roleID string,
 func (m *cpsRoleStorage) DisableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error {
 	objID, err := bson.ObjectIDFromHex(roleID)
 	if err != nil {
-		m.logger.Errorf("[DisableServiceAccess] invalid role id: %s, error: %v", roleID, err)
+		m.logger.Errorf("[CPSRolesStorage][DisableServiceAccess] invalid role id: %s, error: %v", roleID, err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	// Fetch the role to get name for segmentation_name
 	role, err := m.dal.FindOne(ctx, bson.M{"_id": objID}, bson.M{})
 	if err != nil {
-		m.logger.Errorf("[DisableServiceAccess] role not found: %s, error: %v", roleID, err)
+		m.logger.Errorf("[CPSRolesStorage][DisableServiceAccess] role not found: %s, error: %v", roleID, err)
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
@@ -373,7 +356,7 @@ func (m *cpsRoleStorage) DisableServiceAccess(ctx context.Context, roleID string
 	accessListCol := m.client.Database(m.dbName).Collection("access_list")
 	alCursor, err := accessListCol.Find(ctx, bson.M{"key": bson.M{"$in": accessListKeys}})
 	if err != nil {
-		m.logger.Errorf("[DisableServiceAccess] failed to fetch access list: %v", err)
+		m.logger.Errorf("[CPSRolesStorage][DisableServiceAccess] failed to fetch access list: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer alCursor.Close(ctx)
@@ -384,7 +367,7 @@ func (m *cpsRoleStorage) DisableServiceAccess(ctx context.Context, roleID string
 	}
 	var alDocs []alDoc
 	if err := alCursor.All(ctx, &alDocs); err != nil {
-		m.logger.Errorf("[DisableServiceAccess] failed to decode access list: %v", err)
+		m.logger.Errorf("[CPSRolesStorage][DisableServiceAccess] failed to decode access list: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	alNameMap := make(map[string]string, len(alDocs))
@@ -418,7 +401,7 @@ func (m *cpsRoleStorage) DisableServiceAccess(ctx context.Context, roleID string
 		opts := options.UpdateOne().SetUpsert(true)
 		_, err := segCol.UpdateOne(ctx, filter, update, opts)
 		if err != nil {
-			m.logger.Errorf("[DisableServiceAccess] failed to upsert segmentation for key %s: %v", key, err)
+			m.logger.Errorf("[CPSRolesStorage][DisableServiceAccess] failed to upsert segmentation for key %s: %v", key, err)
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 	}
@@ -429,7 +412,7 @@ func (m *cpsRoleStorage) DisableServiceAccess(ctx context.Context, roleID string
 func (m *cpsRoleStorage) Delete(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		m.logger.Errorf("[Delete] invalid id format: %s, error: %v", id, err)
+		m.logger.Errorf("[CPSRolesStorage][Delete] invalid id format: %s, error: %v", id, err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -438,12 +421,7 @@ func (m *cpsRoleStorage) Delete(ctx context.Context, id string) error {
 
 	_, err = m.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Warnf("[Delete] cps role not found, id: %s", id)
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		m.logger.Errorf("[Delete] failed to soft delete cps role, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -452,12 +430,7 @@ func (m *cpsRoleStorage) FindByCustomerSegmentation(ctx context.Context, custome
 	filter := bson.M{"name": customerSegment, "enabled": true}
 	result, err := m.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Warnf("[FindByCustomerSegmentation] cps role not found for customer segment: %s", customerSegment)
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		m.logger.Errorf("[FindByCustomerSegmentation] failed to find cps role for customer segment: %s, error: %v", customerSegment, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
