@@ -117,7 +117,7 @@ func (r *VaultAmountTierRepository) Update(ctx context.Context, id string, vault
 	}
 	_, err := r.queries.UpdateAmountTier(ctx, arg)
 	if err != nil {
-		r.logger.Errorf("[Update] failed to update amount tier: %v", err)
+		r.logger.Errorf("[VaultAmountTierRepository][Update] failed to update amount tier: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -130,7 +130,7 @@ func (r *VaultAmountTierRepository) Delete(ctx context.Context, id string) (stri
 func (r *VaultAmountTierRepository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	_, err := r.queries.EnableOrDisableAmountTier(ctx, id, enable)
 	if err != nil {
-		r.logger.Errorf("[EnableOrDisable] failed to enable/disable amount tier: %v", err)
+		r.logger.Errorf("[VaultAmountTierRepository][EnableOrDisable] failed to enable/disable amount tier: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil

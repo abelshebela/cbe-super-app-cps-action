@@ -41,25 +41,25 @@ func NewFeedbackRepository(client *mongo.Client, cfg *config.VaultConfig, dbName
 }
 
 func (f *FeedbackStorage) Create(ctx context.Context, feedback *local_model.Feedback) error {
-	f.logger.Infof("[Create] creating feedback")
+	f.logger.Infof("[FeedbackStorage][Create] creating feedback")
 	feed, err := f.dal.InsertOne(ctx, *feedback)
 	if err != nil {
-		f.logger.Errorf("[Create] failed to create feedback: %v", err)
+		f.logger.Errorf("[FeedbackStorage][Create] failed to create feedback: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	f.logger.Infof("[Create] feedback created successfully", feed, feed.UserCode)
+	f.logger.Infof("[FeedbackStorage][Create] feedback created successfully", feed, feed.UserCode)
 
 	return nil
 }
 
 func (f *FeedbackStorage) CreateSurveyFeedback(ctx context.Context, surveyFeedback *local_model.SurveyFeedback) error {
-	f.logger.Infof("[CreateSurveyFeedback] creating survey feedback")
+	f.logger.Infof("[FeedbackStorage][CreateSurveyFeedback] creating survey feedback")
 	feed, err := f.surveyFeedbackDal.InsertOne(ctx, *surveyFeedback)
 	if err != nil {
-		f.logger.Errorf("[CreateSurveyFeedback] failed to create survey feedback: %v", err)
+		f.logger.Errorf("[FeedbackStorage][CreateSurveyFeedback] failed to create survey feedback: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	f.logger.Infof("[CreateSurveyFeedback] survey feedback created successfully", feed, feed.UserCode)
+	f.logger.Infof("[FeedbackStorage][CreateSurveyFeedback] survey feedback created successfully", feed, feed.UserCode)
 
 	return nil
 }
@@ -99,25 +99,25 @@ func (f *FeedbackStorage) FindByID(ctx context.Context, id string) (*feedback.Fe
 		}}},
 	}
 
-	f.logger.Infof("[FindByID] fetching feedback by id: %s", id)
+	f.logger.Infof("[FeedbackStorage][FindByID] fetching feedback by id: %s", id)
 	cursor, err := f.feedbackCollection.Aggregate(ctx, pipeline)
 	if err != nil {
-		f.logger.Errorf("[FindByID] failed to aggregate feedback: %v", err)
+		f.logger.Errorf("[FeedbackStorage][FindByID] failed to aggregate feedback: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	if !cursor.Next(ctx) {
-		f.logger.Errorf("[FindByID] feedback not found")
+		f.logger.Errorf("[FeedbackStorage][FindByID] feedback not found")
 		return nil, errors.New(localization.ErrorFileNotFound.Code)
 	}
 
 	var resp feedback.FeedbackResponse
 	if err := cursor.Decode(&resp); err != nil {
-		f.logger.Errorf("[FindByID] failed to decode feedback response: %v", err)
+		f.logger.Errorf("[FeedbackStorage][FindByID] failed to decode feedback response: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	f.logger.Infof("[FindByID] feedback retrieved successfully")
+	f.logger.Infof("[FeedbackStorage][FindByID] feedback retrieved successfully")
 	return &resp, nil
 }
 
@@ -266,21 +266,21 @@ func (f *FeedbackStorage) FindAllCustomerFeedbacks(ctx context.Context, filterPa
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	f.logger.Infof("[FindAllCustomerFeedbacks] fetching customer feedbacks with pagination")
+	f.logger.Infof("[FeedbackStorage][FindAllCustomerFeedbacks] fetching customer feedbacks with pagination")
 	data, err := f.customerFeedbackDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		f.logger.Errorf("[FindAllCustomerFeedbacks] failed to fetch customer feedbacks: %v", err)
+		f.logger.Errorf("[FeedbackStorage][FindAllCustomerFeedbacks] failed to fetch customer feedbacks: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := f.customerFeedbackDal.TotalCount(ctx, filter)
 	if err != nil {
-		f.logger.Errorf("[FindAllCustomerFeedbacks] failed to count customer feedbacks: %v", err)
+		f.logger.Errorf("[FeedbackStorage][FindAllCustomerFeedbacks] failed to count customer feedbacks: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	f.logger.Infof("[FindAllCustomerFeedbacks] retrieved %d customer feedbacks", len(data))
+	f.logger.Infof("[FeedbackStorage][FindAllCustomerFeedbacks] retrieved %d customer feedbacks", len(data))
 
 	return &types.PaginatedResponse[[]local_model.CustomerFeedback]{
 		Data: data,
@@ -308,18 +308,18 @@ func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam
 	f.logger.Infof("[FindAllWithPagination] fetching feedbacks with pagination")
 	data, err := f.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		f.logger.Errorf("[FindAllWithPagination] failed to fetch feedbacks: %v", err)
+		f.logger.Errorf("[FeedbackStorage][FindAllWithPagination] failed to fetch feedbacks: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := f.dal.TotalCount(ctx, filter)
 	if err != nil {
-		f.logger.Errorf("[FindAllWithPagination] failed to count feedbacks: %v", err)
+		f.logger.Errorf("[FeedbackStorage][FindAllWithPagination] failed to count feedbacks: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	f.logger.Infof("[FindAllWithPagination] retrieved %d feedbacks", len(data))
+	f.logger.Infof("[FeedbackStorage][FindAllWithPagination] retrieved %d feedbacks", len(data))
 
 	return &types.PaginatedResponse[[]local_model.Feedback]{
 		Data: data,
@@ -331,19 +331,19 @@ func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam
 func (f *FeedbackStorage) FindFeedbackByID(ctx context.Context, id string) (*local_model.Feedback, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		f.logger.Errorf("[FindFeedbackByID] invalid id: %s", id)
+		f.logger.Errorf("[FeedbackStorage][FindFeedbackByID] invalid id: %s", id)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
-	f.logger.Infof("[FindFeedbackByID] fetching feedback by id: %s", id)
+	f.logger.Infof("[FeedbackStorage][FindFeedbackByID] fetching feedback by id: %s", id)
 
 	result, err := f.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
 		return nil, local_util.HandleDBError(err)
 	}
 
-	f.logger.Infof("[FindFeedbackByID] feedback retrieved successfully for id: %s", id)
+	f.logger.Infof("[FeedbackStorage][FindFeedbackByID] feedback retrieved successfully for id: %s", id)
 	return result, nil
 }
 
@@ -364,21 +364,21 @@ func (f *FeedbackStorage) FindAllSurveyFeedbacks(ctx context.Context, filterPara
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	f.logger.Infof("[FindAllSurveyFeedbacks] fetching survey feedbacks with pagination")
+	f.logger.Infof("[FeedbackStorage][FindAllSurveyFeedbacks] fetching survey feedbacks with pagination")
 	data, err := f.surveyFeedbackDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		f.logger.Errorf("[FindAllSurveyFeedbacks] failed to fetch survey feedbacks: %v", err)
+		f.logger.Errorf("[FeedbackStorage][FindAllSurveyFeedbacks] failed to fetch survey feedbacks: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := f.surveyFeedbackDal.TotalCount(ctx, filter)
 	if err != nil {
-		f.logger.Errorf("[FindAllSurveyFeedbacks] failed to count survey feedbacks: %v", err)
+		f.logger.Errorf("[FeedbackStorage][FindAllSurveyFeedbacks] failed to count survey feedbacks: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	f.logger.Infof("[FindAllSurveyFeedbacks] retrieved %d survey feedbacks", len(data))
+	f.logger.Infof("[FeedbackStorage][FindAllSurveyFeedbacks] retrieved %d survey feedbacks", len(data))
 
 	return &types.PaginatedResponse[[]local_model.SurveyFeedback]{
 		Data: data,
@@ -389,37 +389,37 @@ func (f *FeedbackStorage) FindAllSurveyFeedbacks(ctx context.Context, filterPara
 func (f *FeedbackStorage) FindSurveyFeedbackByID(ctx context.Context, id string) (*local_model.SurveyFeedback, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		f.logger.Errorf("[FindSurveyFeedbackByID] invalid id: %s", id)
+		f.logger.Errorf("[FeedbackStorage][FindSurveyFeedbackByID] invalid id: %s", id)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
-	f.logger.Infof("[FindSurveyFeedbackByID] fetching survey feedback by id: %s", id)
+	f.logger.Infof("[FeedbackStorage][FindSurveyFeedbackByID] fetching survey feedback by id: %s", id)
 
 	result, err := f.surveyFeedbackDal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
 		return nil, local_util.HandleDBError(err)
 	}
 
-	f.logger.Infof("[FindSurveyFeedbackByID] survey feedback retrieved successfully for id: %s", id)
+	f.logger.Infof("[FeedbackStorage][FindSurveyFeedbackByID] survey feedback retrieved successfully for id: %s", id)
 	return result, nil
 }
 
 func (f *FeedbackStorage) FindCustomerFeedbackByID(ctx context.Context, id string) (*local_model.CustomerFeedback, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		f.logger.Errorf("[FindCustomerFeedbackByID] invalid id: %s", id)
+		f.logger.Errorf("[FeedbackStorage][FindCustomerFeedbackByID] invalid id: %s", id)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
-	f.logger.Infof("[FindCustomerFeedbackByID] fetching customer feedback by id: %s", id)
+	f.logger.Infof("[FeedbackStorage][FindCustomerFeedbackByID] fetching customer feedback by id: %s", id)
 
 	result, err := f.customerFeedbackDal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
 		return nil, local_util.HandleDBError(err)
 	}
 
-	f.logger.Infof("[FindCustomerFeedbackByID] customer feedback retrieved successfully for id: %s", id)
+	f.logger.Infof("[FeedbackStorage][FindCustomerFeedbackByID] customer feedback retrieved successfully for id: %s", id)
 	return result, nil
 }

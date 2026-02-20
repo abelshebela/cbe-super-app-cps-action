@@ -34,14 +34,14 @@ func NewCustomerKYCRepository(client *mongo.Client, cfg *config.VaultConfig, dbN
 }
 
 func (r *customerKYCRepository) Create(ctx context.Context, kyc *imodel.CustomerKYC) error {
-	r.logger.Infof("[CustomerKYCRepository.Create] creating kyc for customer: %s", kyc.CustomerCode)
+	r.logger.Infof("[CustomerKYC][Create] creating kyc for customer: %s", kyc.CustomerCode)
 	kyc.CreatedAt = time.Now()
 	kyc.UpdatedAt = time.Now()
 	kyc.KYCStatus = "PENDING"
 	kyc.CustomerStatus = constants.CustomerPending
 
 	if _, err := r.dal.InsertOne(ctx, *kyc); err != nil {
-		r.logger.Errorf("[CustomerKYCRepository.Create] failed to create kyc: %v", err)
+		r.logger.Errorf("[CustomerKYC][Create] failed to create kyc: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -49,7 +49,7 @@ func (r *customerKYCRepository) Create(ctx context.Context, kyc *imodel.Customer
 }
 
 func (r *customerKYCRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error) {
-	r.logger.Infof("[CustomerKYCRepository.FindAllWithPagination] fetching kyc requests")
+	r.logger.Infof("[CustomerKYC][FindAllWithPagination] fetching kyc requests")
 
 	allowed := []string{"search"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
@@ -60,13 +60,13 @@ func (r *customerKYCRepository) FindAllWithPagination(ctx context.Context, filte
 
 	results, err := r.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		r.logger.Errorf("[CustomerKYCRepository.FindAllWithPagination] failed to fetch data: %v", err)
+		r.logger.Errorf("[CustomerKYC][FindAllWithPagination] failed to fetch data: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := r.dal.TotalCount(ctx, filter)
 	if err != nil {
-		r.logger.Errorf("[CustomerKYCRepository.FindAllWithPagination] failed to get total count: %v", err)
+		r.logger.Errorf("[CustomerKYC][FindAllWithPagination] failed to get total count: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -84,15 +84,17 @@ func (r *customerKYCRepository) FindAllWithPagination(ctx context.Context, filte
 }
 
 func (r *customerKYCRepository) FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error) {
-	r.logger.Infof("[CustomerKYCRepository.FindByID] fetching kyc by id: %s", id)
+	r.logger.Infof("[CustomerKYC][FindByID] fetching kyc by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		r.logger.Errorf("[CustomerKYC][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
 	result, err := r.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		r.logger.Errorf("[CustomerKYC][FindByID] failed to find kyc: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -100,15 +102,16 @@ func (r *customerKYCRepository) FindByID(ctx context.Context, id string) (*imode
 }
 
 func (r *customerKYCRepository) Delete(ctx context.Context, id string) error {
-	r.logger.Infof("[CustomerKYCRepository.Delete] hard deleting kyc for id: %s", id)
+	r.logger.Infof("[CustomerKYC][Delete] hard deleting kyc for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		r.logger.Errorf("[CustomerKYC][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID}
 	if err := r.dal.DeleteOneH(ctx, filter); err != nil {
-		r.logger.Errorf("[CustomerKYCRepository.Delete] failed to delete kyc: %v", err)
+		r.logger.Errorf("[CustomerKYC][Delete] failed to delete kyc: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -116,9 +119,10 @@ func (r *customerKYCRepository) Delete(ctx context.Context, id string) error {
 }
 
 func (r *customerKYCRepository) UpdateKYCStatus(ctx context.Context, id string, status string) error {
-	r.logger.Infof("[CustomerKYCRepository.UpdateKYCStatus] updating kyc status for id: %s to %s", id, status)
+	r.logger.Infof("[CustomerKYC][UpdateKYCStatus] updating kyc status for id: %s to %s", id, status)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		r.logger.Errorf("[CustomerKYC][UpdateKYCStatus] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -126,7 +130,7 @@ func (r *customerKYCRepository) UpdateKYCStatus(ctx context.Context, id string, 
 	update := bson.M{"kyc_status": status}
 
 	if _, err := r.dal.UpdateOne(ctx, filter, update); err != nil {
-		r.logger.Errorf("[CustomerKYCRepository.UpdateKYCStatus] failed to update kyc status: %v", err)
+		r.logger.Errorf("[CustomerKYC][UpdateKYCStatus] failed to update kyc status: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 

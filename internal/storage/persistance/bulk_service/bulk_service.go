@@ -73,12 +73,14 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 				Meta: meta,
 			}, nil
 		}
+		b.logger.Errorf("[BulkServicePersistence][FindAllWithPagination] failed to fetch bulk services: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
 	// 6. Count total
 	total, err := b.mongoDalbulkService.TotalCount(ctx, filter)
 	if err != nil {
+		b.logger.Errorf("[BulkServicePersistence][FindAllWithPagination] failed to count bulk services: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -93,16 +95,16 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 }
 
 func (b BulkServicePersistence) FindAll(ctx context.Context) ([]model.APPAccessList, error) {
-	b.logger.Infof("[FindAll] fetching all bulk services")
+	b.logger.Infof("[BulkServicePersistence][FindAll] fetching all bulk services")
 	filter := bson.M{}
 
 	projection := bson.M{}
 	bulkServices, err := b.mongoDalbulkService.FindAll(ctx, filter, projection)
 	if err != nil {
-		b.logger.Errorf("[FindAll] failed to fetch bulk services: %v", err)
+		b.logger.Errorf("[BulkServicePersistence][FindAll] failed to fetch bulk services: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	b.logger.Infof("[FindAll] retrieved %d bulk services", len(bulkServices))
+	b.logger.Infof("[BulkServicePersistence][FindAll] retrieved %d bulk services", len(bulkServices))
 	return bulkServices, nil
 }
 
