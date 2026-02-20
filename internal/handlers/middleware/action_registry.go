@@ -275,10 +275,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			}
 
 			// Normalize actual path route (concrete values like /banks/567...)
-			relPath := r.URL.Path
-			if strings.HasPrefix(relPath, "/api/v1/cbesuperapp/cps_action/") {
-				relPath = strings.TrimPrefix(relPath, "/api/v1/cbesuperapp/cps_action/")
-			}
+			relPath := strings.TrimPrefix(r.URL.Path, "/api/v1/cbesuperapp/cps_action/")
 
 			// Allowlist (e.g., CPSAction endpoints)
 			for _, p := range whitelist {
@@ -310,7 +307,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			}
 
 			if !found {
-				if rparts := strings.Split(relPattern, "/"); rparts != nil && len(rparts) >= 1 {
+				if rparts := strings.Split(relPattern, "/"); len(rparts) > 0 {
 					relPattern = rparts[0]
 				}
 				path := method + " " + relPath
