@@ -897,6 +897,7 @@ const (
 	ClientOrchestrationMemberTopic               KafkaTopic = "member.sync.cps"
 	ClientOrchestrationKycTopic                  KafkaTopic = "kyc.sync.cps"
 	ClientOrchestrationAccessControlTopic        KafkaTopic = "access_control.sync.cps"
+	BulkServiceTopic                             KafkaTopic = "bulk_service"
 	ClientOrchestrationLinkedAccountTopic        KafkaTopic = "linked_account.sync.cps"
 	ClientOrchestrationAccountBlockTopic         KafkaTopic = "account_block.sync.cps"
 	ClientOrchestrationAccountValidationTopic    KafkaTopic = "account_validation.sync.cps"

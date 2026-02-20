@@ -42,7 +42,7 @@ func (e *EventMerchantHandler) CreateEventMerchant(w http.ResponseWriter, r *htt
 		return
 	}
 	if err := event_merchant_dto.Validation(req); err != nil {
-		localization.SendBadRequestResponse(w, err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	m := core.CreateEventMerchantRequestToModel(req)
@@ -230,7 +230,7 @@ func (e *EventMerchantHandler) UpdateEventMerchant(w http.ResponseWriter, r *htt
 		return
 	}
 	if err := event_merchant_dto.Validation(req); err != nil {
-		localization.SendBadRequestResponse(w, err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	m := core.UpdateEventMerchantRequestToModel(req)

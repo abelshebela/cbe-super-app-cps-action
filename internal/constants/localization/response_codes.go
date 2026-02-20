@@ -465,6 +465,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidRequiredAction,
 	ErrorFailToUpdateParent,
 	ErrorFailToUpdateChild,
+	ErrorFailToUpdateBulkService,
 
 	// department related error
 	ErrorDepartmentCreateRequest,
@@ -7411,6 +7412,13 @@ var (
 		Code:       "ERROR_INVALID_REQUIRED_ACTION",
 		StatusCode: StatusBadRequest,
 		Message:    "The required action is invalid or missing.",
+		Type:       "error",
+	}
+
+	ErrorFailToUpdateBulkService = ResponseCode{
+		Code:       "ERROR_FAIL_TO_UPDATE_BULK_SERVICE",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to update bulk service.",
 		Type:       "error",
 	}
 
