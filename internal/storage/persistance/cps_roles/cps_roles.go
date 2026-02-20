@@ -11,6 +11,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -99,19 +100,24 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	filter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
 
+	filter["is_deleted"] = false
+
 	data, err := m.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		m.logger.Errorf("[FindAllWithPagination] failed to fetch paginated cps roles: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	filter["is_deleted"] = false
+	fmt.Println("===============Filter", filter)
+	local_util.PrintJSON(data)
+
 	total, err := m.dal.TotalCount(ctx, filter)
 	if err != nil {
 		m.logger.Errorf("[FindAllWithPagination] failed to count total cps roles: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	fmt.Println("===========Total", total)
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
 	return &types.PaginatedResponse[[]imodel.CPSRoles]{
