@@ -72,7 +72,7 @@ func (r *customerStorage) Update(ctx context.Context, id string, seg *imodel.Cus
 		ctx,
 		updatedCustomerSegmentation,
 		string(constants.ClientOrchestrationServicesTopic),
-		"customer-segmentation-updated",
+		string(constants.CustomerSegmentationUpdatedTopic),
 		"customer segmentation updated",
 	)
 
