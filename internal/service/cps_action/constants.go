@@ -99,6 +99,7 @@ const (
 	RequestPermissionGroup    RequestAction = "PERMISSION_GROUP"
 	RequestBulkServiceEnable  RequestAction = "ENABLE_BULK_SERVICE"
 	RequestBulkServiceDisable RequestAction = "DISABLE_BULK_SERVICE"
+
 	// RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestCreateDepartment           RequestAction = "CREATE_DEPARTMENT"
 	RequestUpdateDepartment           RequestAction = "UPDATE_DEPARTMENT"
@@ -143,10 +144,12 @@ const (
 	RequestDeleteEcommerceMerchant  RequestAction = "DELETE_ECOMMERCE_MERCHANT"
 
 	// Services catalog (model.Services)
-	RequestCreateService  RequestAction = "CREATE_SERVICE"
-	RequestUpdateService  RequestAction = "UPDATE_SERVICE"
-	RequestEnableService  RequestAction = "ENABLE_SERVICE"
-	RequestDisableService RequestAction = "DISABLE_SERVICE"
+	RequestCreateService     RequestAction = "CREATE_SERVICE"
+	RequestUpdateService     RequestAction = "UPDATE_SERVICE"
+	RequestEnableService     RequestAction = "ENABLE_SERVICE"
+	RequestDisableService    RequestAction = "DISABLE_SERVICE"
+	RequestCreateServiceList RequestAction = "CREATE_SERVICE_LIST"
+	RequestUpdateServiceList RequestAction = "UPDATE_SERVICE_LIST"
 
 	RequestCreateTopup  RequestAction = "CREATE_TOPUP"
 	RequestUpdateTopup  RequestAction = "UPDATE_TOPUP"
@@ -485,6 +488,8 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateService:            {},
 	RequestEnableService:            {},
 	RequestDisableService:           {},
+	RequestCreateServiceList:        {},
+	RequestUpdateServiceList:        {},
 	RequestUpdatePasswordExpiry:     {},
 	RequestCreateValidation:         {},
 	RequestUpdateValidation:         {},
@@ -759,6 +764,8 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateService,
 		RequestEnableService,
 		RequestDisableService,
+		RequestCreateServiceList,
+		RequestUpdateServiceList,
 	},
 	"USSDMERCHANT": {
 		RequestCreateUssdMerchant,
