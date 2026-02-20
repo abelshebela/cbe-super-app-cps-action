@@ -76,7 +76,7 @@ func (m *cpsRoleStorage) Update(ctx context.Context, id string, req imodel.CPSRo
 		ctx,
 		updatedCPSRole,
 		string(constants.ClientOrchestrationServicesTopic),
-		"cps-customer-role-updated",
+		string(constants.CustomerRoleUpdatedTopic),
 		"cps customer role updated",
 	)
 
