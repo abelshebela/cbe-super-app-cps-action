@@ -229,7 +229,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		} else {
 			remainTime *= 60
 		}
-		redisDeviceIDExpireTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutes)
+		redisDeviceIDExpireTime, err := strconv.Atoi(a.cfg.IdelUserTimeoutInMinutes)
 		if err != nil || redisDeviceIDExpireTime == 0 {
 			redisDeviceIDExpireTime = 15 * 60
 		} else {
