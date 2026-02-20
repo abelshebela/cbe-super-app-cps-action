@@ -659,7 +659,7 @@ func (a *AccountBlockStorage) GetCitiesByIds(ctx context.Context, ids []string) 
 
 }
 
-func (a *AccountBlockStorage) GetAccountBlockDetails(ctx context.Context, id string) ([]account_block_dto.AccountBlockActionResponse, error) {
+func (a *AccountBlockStorage) GetAccountBlockDetails(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error) {
 	a.logger.Infof("[AccountBlockStorage][GetAccountBlockDetails] fetching CPS actions for account block id: %s", id)
 
 	if _, err := bson.ObjectIDFromHex(id); err != nil {
@@ -680,13 +680,20 @@ func (a *AccountBlockStorage) GetAccountBlockDetails(ctx context.Context, id str
 		string(constants.RequestDisableRegions),
 	}
 
+	matchFilter := bson.M{
+		"is_deleted":         false,
+		"previous_action.id": id,
+		"request_action":     bson.M{"$in": accountBlockRequestActions},
+	}
+
+	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
+	limit := int64(filterParam.PerPage)
+
 	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: bson.M{
-			"is_deleted":         false,
-			"previous_action.id": id,
-			"request_action":     bson.M{"$in": accountBlockRequestActions},
-		}}},
+		{{Key: "$match", Value: matchFilter}},
 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+		{{Key: "$skip", Value: skip}},
+		{{Key: "$limit", Value: limit}},
 	}
 
 	cur, err := cpsCollection.Aggregate(ctx, pipeline)
@@ -707,7 +714,12 @@ func (a *AccountBlockStorage) GetAccountBlockDetails(ctx context.Context, id str
 		return nil, errors.New(localization.ErrorActionNotFound.Code)
 	}
 
-	// Map CPSAction to AccountBlockActionResponse
+	total, err := cpsCollection.CountDocuments(ctx, matchFilter)
+	if err != nil {
+		a.logger.Errorf("[GetAccountBlockDetails] failed to count CPS actions: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
 	response := make([]account_block_dto.AccountBlockActionResponse, 0, len(results))
 	for _, cpsAction := range results {
 		actionResponse := account_block_dto.AccountBlockActionResponse{
@@ -741,16 +753,12 @@ func (a *AccountBlockStorage) GetAccountBlockDetails(ctx context.Context, id str
 			MakerActionTime:     cpsAction.MakerActionTime,
 		}
 
-		// Map previous_action based on ActionStatus
 		var previousAction interface{}
 		if cpsAction.ActionStatus == string(constants.ActionApproved) {
-			// If APPROVED, use current_action filtered by matching id
 			previousAction = getMatchingAction(cpsAction.CurrentAction, id, a.logger)
 		} else if cpsAction.ActionStatus == string(constants.ActionPending) || cpsAction.ActionStatus == string(constants.ActionRejected) {
-			// If PENDING or REJECTED, use previous_action filtered by matching id
 			previousAction = getMatchingAction(cpsAction.PreviousAction, id, a.logger)
 		} else {
-			// For other statuses, use previous_action as fallback
 			previousAction = getMatchingAction(cpsAction.PreviousAction, id, a.logger)
 		}
 
@@ -758,12 +766,15 @@ func (a *AccountBlockStorage) GetAccountBlockDetails(ctx context.Context, id str
 		response = append(response, actionResponse)
 	}
 
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	a.logger.Infof("[AccountBlockStorage][GetAccountBlockDetails] successfully mapped %d CPS actions", len(response))
-	return response, nil
+
+	return &types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse]{
+		Data: response,
+		Meta: meta,
+	}, nil
 }
 
-// getMatchingAction extracts the action that matches the given account block id
-// from either previous_action or current_action (which can be arrays or single objects)
 func getMatchingAction(actionData interface{}, accountBlockID string, logger utils.Logger) interface{} {
 	if actionData == nil {
 		return nil
