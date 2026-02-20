@@ -1,7 +1,6 @@
 package bulk_service
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
@@ -24,6 +23,7 @@ import (
 )
 
 type BulkServicePersistence struct {
+	cfg                    *config.VaultConfig
 	mongoDalCpsAction      dal.MongoDal[model.CPSAction, model.CPSAction]
 	mongoDalbulkService    dal.MongoDal[model.APPAccessList, model.APPAccessList]
 	kafkaProducer          kafka.ClientOrchestrationProducer
@@ -35,6 +35,7 @@ func InitBulkServicePersistence(client *mongo.Client, cfg *config.VaultConfig, d
 	mongoDalCpsAction := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, cfg, dbName, collections[0])
 	mongoDalbulkService := dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, cfg, dbName, collections[1])
 	return &BulkServicePersistence{
+		cfg:                    cfg,
 		mongoDalCpsAction:      mongoDalCpsAction,
 		mongoDalbulkService:    mongoDalbulkService,
 		kafkaProducer:          clientOrchestrationProducer,
@@ -169,7 +170,7 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 		}
 	}
 
-	b.kafkaProducer.PublishMessage(ctx, publishBody, string(constants.BulkServiceTopic), string(constants.BulkServiceTopic), "bulk enable/disable access-list parent")
+	b.kafkaProducer.PublishMessage(ctx, publishBody, string(b.cfg.KafkaBulkServiceUpdateTopic), string(b.cfg.KafkaBulkServiceUpdateTopic), "bulk enable/disable access-list parent")
 
 	return nil
 }

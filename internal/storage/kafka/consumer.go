@@ -11,6 +11,8 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
+	cfg "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+
 	"github.com/IBM/sarama"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -31,28 +33,29 @@ type FeedbackConsumer struct {
 	consumerGroup sarama.ConsumerGroup
 	logger        utils.Logger
 	config        config.KafkaConfig
+	cfg           *cfg.VaultConfig
 	feedbackRepo  FeedbackRepository
 	deadLetterQ   DeadLetterQueue
 	maxRetries    int
 }
 
 // NewFeedbackConsumer creates a new Kafka consumer for feedback
-func NewFeedbackConsumer(cfg config.KafkaConfig, logger utils.Logger, feedbackRepo FeedbackRepository, deadLetterQ DeadLetterQueue) (*FeedbackConsumer, error) {
+func NewFeedbackConsumer(kafkaConfig config.KafkaConfig, vaultConfig *cfg.VaultConfig, logger utils.Logger, feedbackRepo FeedbackRepository, deadLetterQ DeadLetterQueue) (*FeedbackConsumer, error) {
 	// Configure Sarama consumer group
 	config := sarama.NewConfig()
 	config.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRoundRobin
 	config.Consumer.Offsets.Initial = sarama.OffsetNewest // Changed to OffsetNewest for production
-	config.Consumer.Group.Session.Timeout = time.Duration(cfg.SessionTimeout) * time.Millisecond
-	config.Consumer.Group.Heartbeat.Interval = time.Duration(cfg.HeartbeatInterval) * time.Millisecond
+	config.Consumer.Group.Session.Timeout = time.Duration(kafkaConfig.SessionTimeout) * time.Millisecond
+	config.Consumer.Group.Heartbeat.Interval = time.Duration(kafkaConfig.HeartbeatInterval) * time.Millisecond
 	config.Version = sarama.V2_6_0_0
 
 	// Parse brokers
-	brokers := strings.Split(cfg.Brokers, ",")
+	brokers := strings.Split(kafkaConfig.Brokers, ",")
 	for i, broker := range brokers {
 		brokers[i] = strings.TrimSpace(broker)
 	}
 
-	consumerGroup, err := sarama.NewConsumerGroup(brokers, cfg.ConsumerGroup, config)
+	consumerGroup, err := sarama.NewConsumerGroup(brokers, kafkaConfig.ConsumerGroup, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Kafka consumer group: %w", err)
 	}
@@ -60,7 +63,8 @@ func NewFeedbackConsumer(cfg config.KafkaConfig, logger utils.Logger, feedbackRe
 	return &FeedbackConsumer{
 		consumerGroup: consumerGroup,
 		logger:        logger,
-		config:        cfg,
+		config:        kafkaConfig,
+		cfg:           vaultConfig,
 		feedbackRepo:  feedbackRepo,
 		deadLetterQ:   deadLetterQ,
 		maxRetries:    3, // Configurable retry count
@@ -307,7 +311,7 @@ func (h *ConsumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession,
 		h.consumer.logger.Infof("Processing message: topic=%s partition=%d offset=%d",
 			message.Topic, message.Partition, message.Offset)
 		switch message.Topic {
-		case "feedback-events":
+		case h.consumer.cfg.KafkaCustomerFeedbackTopic:
 			// Use session context instead of Background
 			if err := h.consumer.handleFeedbackMessage(session.Context(), message); err != nil {
 				h.consumer.logger.Errorf("Failed to process message: %v", err)
@@ -315,7 +319,7 @@ func (h *ConsumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession,
 				continue
 			}
 
-		case "survey-feedback-events":
+		case h.consumer.cfg.KafkaCustomerSurveyTopic:
 			// Use session context instead of Background
 			if err := h.consumer.handleSurveyFeedbackMessage(session.Context(), message); err != nil {
 				h.consumer.logger.Errorf("Failed to process survey feedback message: %v", err)

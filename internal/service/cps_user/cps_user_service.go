@@ -55,7 +55,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
 	req.PhoneNumber = normalized
 	exists, err := core.UsernameExists(ctx, "", s.repo, req.UserName)
-	if err != nil {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to check username existence", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
@@ -65,7 +65,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		return errors.New(localization.ErrorUsernameAlreadyExists.Code)
 	}
 	emailCheck, err := core.EmailExists(ctx, "", s.repo, req.Email)
-	if err != nil {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to check email existence", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
@@ -92,7 +92,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	}
 
 	phoneCheck, err := core.PhoneNumberExists(ctx, "", s.repo, req.PhoneNumber)
-	if err != nil {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to check phone number existence", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
