@@ -94,13 +94,14 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	filter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
 
+	filter["is_deleted"] = false
+
 	data, err := m.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		m.logger.Errorf("[CPSRolesStorage][FindAllWithPagination] failed to fetch paginated cps roles: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	filter["is_deleted"] = false
 	total, err := m.dal.TotalCount(ctx, filter)
 	if err != nil {
 		m.logger.Errorf("[CPSRolesStorage][FindAllWithPagination] failed to count total cps roles: %v", err)
