@@ -213,6 +213,7 @@ func (s *notificationService) DisableNotification(ctx context.Context, id string
 		))
 		return err
 	}
+
 	if !prev.Enabled {
 		s.logger.Errorf("[DisableNotification] notification already disabled: %s", id)
 		span.AddEvent("Notification already disabled", trace.WithAttributes(
