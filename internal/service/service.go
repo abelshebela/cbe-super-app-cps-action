@@ -398,7 +398,7 @@ type AccountBlockService interface {
 	EnableOrDisableDistricts(ctx context.Context, regionIds []string, reason string, enabled bool) error
 	EnableOrDisableCities(ctx context.Context, ids []string, reason string, enabled bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	GetAccountBlockDetails(ctx context.Context, id string) ([]account_block_dto.AccountBlockActionResponse, error)
+	GetAccountBlockDetails(ctx context.Context, id string, filter *types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error)
 }
 
 type AccountValidationService interface {

@@ -932,7 +932,9 @@ func (a *accountBlockAdapter) GetAccountBlockDetails(w http.ResponseWriter, r *h
 		return
 	}
 
-	data, err := a.accountBlockApplication.GetAccountBlockDetails(ctx, id)
+	filterParams := local_util.ExtractFilterParams(r)
+
+	data, err := a.accountBlockApplication.GetAccountBlockDetails(ctx, id, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		a.logger.Errorf("[GetAccountBlockDetails] service error: %v", err)
