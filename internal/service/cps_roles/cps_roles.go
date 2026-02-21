@@ -230,6 +230,8 @@ func (r *cpsRoleService) Authorize(ctx context.Context, action *model.CPSAction)
 		err = r.repo.EnableOrDisable(ctx, action.UniqueId, true)
 	case string(constants.RequestDisableCpsRole):
 		err = r.repo.EnableOrDisable(ctx, action.UniqueId, false)
+	case string(constants.RequestDeleteCpsRole):
+		err = r.repo.Delete(ctx, action.UniqueId)
 	default:
 		r.logger.Errorf("[Authorize] unsupported action: %s", action.RequestAction)
 		return nil, errors.New("unsupported action")
