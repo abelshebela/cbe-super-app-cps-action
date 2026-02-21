@@ -298,15 +298,18 @@ func (m *cpsRoleStorage) fetchServiceAccessLists(ctx context.Context, roleID bso
 
 func (m *cpsRoleStorage) FindByNameOrRoleCode(ctx context.Context, name, roleCode string) (*imodel.CPSRoles, error) {
 	filter := []bson.M{}
-	if roleCode == "" {
+	if roleCode != "" {
 		filter = append(filter, bson.M{"name": bson.M{"$regex": "^" + name, "$options": "i"}})
 	}
-	if name == "" {
+	if name != "" {
 		filter = append(filter, bson.M{"role_code": bson.M{"$regex": "^" + roleCode, "$options": "i"}})
 	}
 	orFilter := bson.M{"$or": filter, "is_deleted": false}
 	result, err := m.dal.FindOne(ctx, orFilter, bson.M{})
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
 		m.logger.Errorf("[CPSRolesStorage][FindByNameOrRoleCode] failed to find cps role, name: %s, roleCode: %s, error: %v", name, roleCode, err)
 		return nil, local_util.HandleDBError(err)
 	}
