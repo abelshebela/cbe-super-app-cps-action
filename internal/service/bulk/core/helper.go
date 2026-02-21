@@ -15,10 +15,12 @@ func MapParentChildRelationship(relations []local_model.AccessItemRelation, acce
 		accessListMap[al.Key] = al
 	}
 
-	// Build parent to children map
+	// Build parent to children map and a set of all child keys
 	parentToChildren := make(map[string][]string)
+	childSet := make(map[string]struct{})
 	for _, rel := range relations {
 		parentToChildren[rel.ParentKey] = append(parentToChildren[rel.ParentKey], rel.ChildKey)
+		childSet[rel.ChildKey] = struct{}{}
 	}
 
 	// For each parent, add its children to SubAccessList
@@ -36,7 +38,15 @@ func MapParentChildRelationship(relations []local_model.AccessItemRelation, acce
 		}
 	}
 
-	return accessList
+	// Only return access lists that are not children (i.e., parents or standalone)
+	var result []model.APPAccessList
+	for i := range accessList {
+		al := accessList[i]
+		if _, isChild := childSet[al.Key]; !isChild {
+			result = append(result, al)
+		}
+	}
+	return result
 }
 
 // Helper to convert APPAccessList to SubAccessList
@@ -46,4 +56,43 @@ func modelToSubAccessList(al *model.APPAccessList) shared_type.SubAccessList {
 		Enabled:        al.Enabled,
 		AccessListName: al.AccessListName,
 	}
+}
+
+func SplitEnabledDisabledTree(accessList []model.APPAccessList) (
+	enabled []model.APPAccessList,
+	disabled []model.APPAccessList,
+) {
+	for _, node := range accessList {
+
+		if !node.Enabled {
+			// whole subtree disabled
+			disabled = append(disabled, node)
+			continue
+		}
+
+		// parent enabled
+		var enabledChildren []shared_type.SubAccessList
+		var disabledChildren []shared_type.SubAccessList
+
+		for _, child := range node.SubAccessList {
+			if child.Enabled {
+				enabledChildren = append(enabledChildren, child)
+			} else {
+				disabledChildren = append(disabledChildren, child)
+			}
+		}
+
+		if len(enabledChildren) > 0 {
+			node.SubAccessList = enabledChildren
+			enabled = append(enabled, node)
+		}
+
+		if len(disabledChildren) > 0 {
+			disabledNode := node
+			disabledNode.SubAccessList = disabledChildren
+			disabled = append(disabled, disabledNode)
+		}
+	}
+
+	return
 }
