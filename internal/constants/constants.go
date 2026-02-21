@@ -413,6 +413,8 @@ const (
 	RequestUpdateService            RequestAction = "UPDATE_SERVICE"
 	RequestEnableService            RequestAction = "ENABLE_SERVICE"
 	RequestDisableService           RequestAction = "DISABLE_SERVICE"
+	RequestCreateServiceList        RequestAction = "CREATE_SERVICE_LIST"
+	RequestUpdateServiceList        RequestAction = "UPDATE_SERVICE_LIST"
 	RequestUpdatePasswordExpiry     RequestAction = "UPDATE_PASSWORD_EXPIRY"
 	RequestCreateValidation         RequestAction = "CREATE_VALIDATION"
 	RequestUpdateValidation         RequestAction = "UPDATE_VALIDATION"

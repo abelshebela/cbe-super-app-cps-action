@@ -73,6 +73,8 @@ type ServicesService interface {
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.Service], error)
+	CreateServiceList(ctx context.Context, req *service_dto.CreateServiceList) error
+	UpdateServiceList(ctx context.Context, id string, req *service_dto.UpdateServiceList) error
 	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error)
 	GetByID(ctx context.Context, id string) (*model.Service, error)
 }

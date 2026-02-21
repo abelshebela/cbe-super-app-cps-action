@@ -88,8 +88,11 @@ type ServicesRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Service, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Service], error)
-	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error)
 	CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error)
+	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error)
+	FindServiceListByID(ctx context.Context, id string) (*model.ServiceList, error)
+	CreateServiceList(ctx context.Context, serviceList *model.ServiceList) error
+	UpdateServiceList(ctx context.Context, id, serviceKey string, serviceList *model.ServiceList) error
 }
 
 type OTPRepository interface {

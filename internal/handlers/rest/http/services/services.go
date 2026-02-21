@@ -289,6 +289,82 @@ func (a *servicesAdapter) GetAll(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, list)
 }
 
+func (a *servicesAdapter) CreateServiceList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "CreateServiceList", "handler", "CreateServiceList")
+	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	var req servicesdto.CreateServiceList
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		a.logger.Errorf("Failed to decode JSON request: %v", err)
+		localization.SendErrorResponse(w, localization.ErrorInvalidJSONPayload, nil, nil)
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		span.RecordError(err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
+	if err := a.app.CreateServiceList(ctx, &req); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[CreateServiceList] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceListCreated, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceListCreateRequestSubmitted, nil)
+}
+
+func (a *servicesAdapter) UpdateServiceList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "UpdateServiceList", "handler", "UpdateServiceList")
+	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	var req servicesdto.UpdateServiceList
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		a.logger.Errorf("Failed to decode JSON request: %v", err)
+		localization.SendErrorResponse(w, localization.ErrorInvalidJSONPayload, nil, nil)
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		span.RecordError(err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
+	id, err := local_util.ExtractID(w, r)
+	if err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
+	if err := a.app.UpdateServiceList(ctx, id, &req); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[UpdateServiceList] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceListUpdated, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceListUpdateRequestSubmitted, nil)
+}
+
 // GetAllServiceList godoc
 //
 //	@Summary		List Service List

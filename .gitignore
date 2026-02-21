@@ -58,5 +58,6 @@ __debug_bin*
 .tools
 .vscode
 .idea
+.env.sh
 postman/FULL CPS  New.txt
 postman/automation  FULL CPS ACTION.postman_collection
