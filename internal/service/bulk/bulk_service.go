@@ -176,6 +176,7 @@ func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *type
 	}
 
 	result.Data = core.MapParentChildRelationship(relation, result.Data)
+	s.logger.Infof("[GetAllBulkServices] successfully mapped parent-child relationships for %d bulk services, values %v", len(result.Data), result.Data)
 	enabled, disabled := core.SplitEnabledDisabledTree(result.Data)
 	return enabled, disabled, nil
 }
