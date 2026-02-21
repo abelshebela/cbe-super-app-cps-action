@@ -229,6 +229,15 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			"role_info": 0,
 		}}},
 
+		// Add a $group stage to ensure unique results
+		bson.D{{Key: "$group", Value: bson.M{
+			"_id": "$user_code",
+			"doc": bson.M{"$first": "$$ROOT"},
+		}}},
+		bson.D{{Key: "$replaceRoot", Value: bson.M{
+			"newRoot": "$doc",
+		}}},
+
 		// Use $facet for concurrent data fetching and counting
 		bson.D{{Key: "$facet", Value: bson.M{
 			"data": []bson.D{
