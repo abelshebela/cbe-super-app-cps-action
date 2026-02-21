@@ -12,6 +12,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -73,32 +74,40 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 		return err
 	}
 
-	cpsRole, err := r.repo.FindByNameOrRoleCode(ctx, req.Name, req.RoleCode)
+	var name, roleCode string
+	if req.Name != nil {
+		name = *req.Name
+	}
+	if req.RoleCode != nil {
+		roleCode = *req.RoleCode
+	}
+
+	cpsRole, err := r.repo.FindByNameOrRoleCode(ctx, name, roleCode)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		r.logger.Errorf("[Update] failed to check existing cps role by name or role code: %v", err)
 		return err
 	}
 
 	if cpsRole != nil {
-		if cpsRole.Name == req.Name && existing.Name != req.Name {
-			r.logger.Warnf("[Update] CPS role with the same name already exists, name: %s", req.Name)
+		if strings.EqualFold(cpsRole.Name, name) && existing.Name != name {
+			r.logger.Warnf("[Update] CPS role with the same name already exists, name: %s", name)
 			return errors.New(localization.ErrorCPSRoleNameAlreadyExists.Code)
 		}
-		if cpsRole.RoleCode == req.RoleCode && existing.RoleCode != req.RoleCode {
-			r.logger.Warnf("[Update] CPS role with the same role code already exists, roleCode: %s", req.RoleCode)
+		if cpsRole.RoleCode == roleCode && existing.RoleCode != roleCode {
+			r.logger.Warnf("[Update] CPS role with the same role code already exists, roleCode: %s", roleCode)
 			return errors.New(localization.ErrorCPSRoleCodeAlreadyExists.Code)
 		}
 	}
 
 	updated := *existing
-	if req.Name != "" {
-		updated.Name = req.Name
+	if req.Name != nil {
+		updated.Name = *req.Name
 	}
-	if req.RoleCode != "" {
-		updated.RoleCode = req.RoleCode
+	if req.RoleCode != nil {
+		updated.RoleCode = *req.RoleCode
 	}
-	if req.Description != "" {
-		updated.Description = req.Description
+	if req.Description != nil {
+		updated.Description = *req.Description
 	}
 	updated.UpdatedAt = time.Now()
 
@@ -221,6 +230,8 @@ func (r *cpsRoleService) Authorize(ctx context.Context, action *model.CPSAction)
 		err = r.repo.EnableOrDisable(ctx, action.UniqueId, true)
 	case string(constants.RequestDisableCpsRole):
 		err = r.repo.EnableOrDisable(ctx, action.UniqueId, false)
+	case string(constants.RequestDeleteCpsRole):
+		err = r.repo.Delete(ctx, action.UniqueId)
 	default:
 		r.logger.Errorf("[Authorize] unsupported action: %s", action.RequestAction)
 		return nil, errors.New("unsupported action")

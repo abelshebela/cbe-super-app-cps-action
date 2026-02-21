@@ -29,6 +29,7 @@ type ServicesStorage struct {
 	cfg           *config.VaultConfig
 	dal           dal.MongoDal[model.Service, model.Service]
 	serviceDal    dal.MongoDal[model.ServiceList, model.ServiceList]
+	accessDal     dal.MongoDal[model.APPAccessList, model.APPAccessList]
 	kafkaProducer kafka.ClientOrchestrationProducer
 	logger        utils.Logger
 }
@@ -38,6 +39,7 @@ func NewServicesRepository(client *mongo.Client, cfg *config.VaultConfig, dbName
 		cfg:           cfg,
 		dal:           dal.NewMongoDal[model.Service, model.Service](client, cfg, dbName, collection),
 		serviceDal:    dal.NewMongoDal[model.ServiceList, model.ServiceList](client, cfg, dbName, "service_list"),
+		accessDal:     dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, cfg, dbName, "access_list"),
 		kafkaProducer: kafkaProducer,
 		logger:        logger,
 	}
@@ -269,4 +271,88 @@ func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode
 	}
 
 	return true, nil
+}
+
+func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*model.ServiceList, error) {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		s.logger.Errorf("[UpdateServiceList][Update] invalid object id: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+	filter := bson.M{"_id": objID}
+	doc, err := s.serviceDal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New(localization.ErrorServiceListNotFound.Code)
+		}
+		s.logger.Errorf("[ServicesStorage][FindServiceListByID] failed to find service list: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return doc, nil
+}
+
+func (s *ServicesStorage) CreateServiceList(ctx context.Context, serviceList *model.ServiceList) error {
+	serviceList.ID = bson.NewObjectID()
+
+	_, err := s.serviceDal.InsertOne(ctx, *serviceList)
+	if err != nil {
+		s.logger.Errorf("[ServicesStorage][CreateServiceList] failed to insert service list: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	_, err = s.accessDal.InsertOne(ctx, model.APPAccessList{Key: serviceList.ServiceKey, AccessListName: serviceList.ServiceName})
+	if err != nil {
+		s.logger.Errorf("[ServicesStorage][CreateServiceList] failed to insert access list: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// s.kafkaProducer.PublishMessage(ctx, createServiceList, string(constants.ClientOrchestrationServicesTopic), string(constants.ClientOrchestrationServicesTopic), "new service list created")
+	return nil
+
+}
+
+func (s *ServicesStorage) UpdateServiceList(ctx context.Context, id, serviceKey string, serviceList *model.ServiceList) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		s.logger.Errorf("[UpdateServiceList][Update] invalid object id: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+	filter := bson.M{"_id": objID}
+
+	serviceListUpdate := bson.M{}
+	if serviceList.ServiceName != "" {
+		serviceListUpdate["service_name"] = serviceList.ServiceName
+	}
+	if serviceList.ServiceKey != "" {
+		serviceListUpdate["service_key"] = serviceList.ServiceKey
+	}
+	if len(serviceListUpdate) == 0 {
+		return errors.New(localization.ErrorNoDataProvided.Code)
+	}
+
+	// update service_list collection
+	_, err = s.serviceDal.UpdateOne(ctx, filter, serviceListUpdate)
+	if err != nil {
+		s.logger.Errorf("[UpdateServiceList] failed to update service lists: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// update access_list
+	accessListUpdate := bson.M{}
+	if serviceList.ServiceName != "" {
+		accessListUpdate["access_list_name"] = serviceList.ServiceName
+	}
+	if serviceList.ServiceKey != "" {
+		accessListUpdate["key"] = serviceList.ServiceKey
+	}
+	if len(accessListUpdate) > 0 {
+		accessListUpdate["last_modified_at"] = time.Now()
+		_, err = s.accessDal.UpdateOne(ctx, bson.M{"key": serviceKey}, accessListUpdate)
+		if err != nil {
+			s.logger.Errorf("[UpdateServiceList] failed to update access lists: %v", err)
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+	}
+
+	return nil
 }

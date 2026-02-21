@@ -25,6 +25,10 @@ var ResponseCodesList = []ResponseCode{
 
 	SuccessCPSActionCount,
 	SuccessServiceCreateRequestSubmitted,
+	SuccessServiceListCreated,
+	SuccessServiceListUpdated,
+	SuccessServiceListCreateRequestSubmitted,
+	SuccessServiceListUpdateRequestSubmitted,
 	SuccessServiceCreated,
 	SuccessServiceUpdateRequestSubmitted,
 	SuccessServiceUpdated,
@@ -466,6 +470,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorFailToUpdateParent,
 	ErrorFailToUpdateChild,
 	ErrorFailToUpdateBulkService,
+
+	ErrorServiceListAlreadyExists,
+	ErrorServiceListNotFound,
 
 	// department related error
 	ErrorDepartmentCreateRequest,
@@ -3619,6 +3626,32 @@ var (
 		Code:       "SUCCESS_SERVICE_CREATE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
 		Message:    "Service create request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessServiceListCreated = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_CREATED",
+		StatusCode: StatusOK,
+		Message:    "Service list created successfully",
+		Type:       "success",
+	}
+	SuccessServiceListUpdated = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_UPDATED",
+		StatusCode: StatusOK,
+		Message:    "Service list updated successfully",
+		Type:       "success",
+	}
+
+	SuccessServiceListCreateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_CREATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Service list create request submitted successfully",
+		Type:       "success",
+	}
+	SuccessServiceListUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Service list update request submitted successfully",
 		Type:       "success",
 	}
 
@@ -7070,6 +7103,19 @@ var (
 		Code:       "ERROR_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorServiceListAlreadyExists = ResponseCode{
+		Code:       "ERROR_SERVICE_LIST_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Service list with the same key already exists",
+		Type:       "error",
+	}
+	ErrorServiceListNotFound = ResponseCode{
+		Code:       "ERROR_SERVICE_LIST_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Service list not found",
 		Type:       "error",
 	}
 
