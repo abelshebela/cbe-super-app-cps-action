@@ -10,4 +10,6 @@ type ServicesHandler interface {
 	GetAll(w http.ResponseWriter, r *http.Request)
 	GetByID(w http.ResponseWriter, r *http.Request)
 	GetAllServiceList(w http.ResponseWriter, r *http.Request)
+	CreateServiceList(w http.ResponseWriter, r *http.Request)
+	UpdateServiceList(w http.ResponseWriter, r *http.Request)
 }

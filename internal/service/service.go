@@ -73,6 +73,8 @@ type ServicesService interface {
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.Service], error)
+	CreateServiceList(ctx context.Context, req *service_dto.CreateServiceList) error
+	UpdateServiceList(ctx context.Context, id string, req *service_dto.UpdateServiceList) error
 	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error)
 	GetByID(ctx context.Context, id string) (*model.Service, error)
 }
@@ -132,7 +134,7 @@ type BudgetCategoryService interface {
 }
 
 type BulkService interface {
-	GetAllBulkServices(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.APPAccessList], error)
+	GetAllBulkServices(ctx context.Context, filterParams *types.Filter) ([]model.APPAccessList, []model.APPAccessList, error)
 	EnableBulkService(ctx context.Context, keys []string) error
 	DisableBulkService(ctx context.Context, keys []string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)

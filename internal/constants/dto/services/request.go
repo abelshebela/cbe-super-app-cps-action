@@ -55,3 +55,13 @@ type UpdateServiceRequest struct {
 	// HaveATier  *bool `json:"have_a_tier"`
 	// HaveAChild *bool `json:"have_a_child"`
 }
+
+type CreateServiceList struct {
+	ServiceName string `json:"service_name" example:"Transfer To Other bank"`
+	ServiceKey  string `json:"service_key" example:"CBE"`
+}
+
+type UpdateServiceList struct {
+	ServiceName string `json:"service_name" example:"Transfer To Other bank"`
+	ServiceKey  string `json:"service_key" example:"CBE"`
+}

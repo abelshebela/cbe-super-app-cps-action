@@ -230,3 +230,17 @@ func (r UpdateServiceRequest) Validate() error {
 
 	return nil
 }
+
+func (r CreateServiceList) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.ServiceKey, validation.Required, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.ServiceName, validation.Required, validation.By(utils.NoSpecialChars)),
+	)
+}
+
+func (r UpdateServiceList) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.ServiceKey, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.ServiceName, validation.By(utils.NoSpecialChars)),
+	)
+}

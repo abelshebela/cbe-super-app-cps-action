@@ -153,7 +153,7 @@ func validaterAccessKey(validAccessMap map[string]bool, accessList []string, fla
 	return invalidKeys, validKeys, isActionValid
 }
 
-func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.APPAccessList], error) {
+func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *types.Filter) ([]model.APPAccessList, []model.APPAccessList, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllBulkServices", "Bulk Service", "GetAllBulkServices")
 	defer span.End()
 
@@ -163,7 +163,7 @@ func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *type
 			attribute.String("error", err.Error()),
 		))
 		s.logger.Errorf("[GetAllBulkServices] failed to fetch bulk services: %v", err)
-		return nil, err
+		return nil, nil, err
 	}
 
 	relation, err := s.accessListSegmentationRepo.FindParentChildRelationship(ctx)
@@ -172,11 +172,12 @@ func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *type
 			attribute.String("error", err.Error()),
 		))
 		s.logger.Errorf("[GetAllBulkServices] failed to fetch access list segmentation relationships: %v", err)
-		return nil, err
+		return nil, nil, err
 	}
 
 	result.Data = core.MapParentChildRelationship(relation, result.Data)
-	return result, nil
+	enabled, disabled := core.SplitEnabledDisabledTree(result.Data)
+	return enabled, disabled, nil
 }
 
 func (s *bulkService) CheckServiceIsEnabledOrDisabled(ctx context.Context, keys []string, isEnabled bool) ([]string, error) {
