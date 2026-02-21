@@ -177,7 +177,10 @@ func (d *DeviceVersionControlRepository) FindAllWithPagination(ctx context.Conte
 }
 
 func (d *DeviceVersionControlRepository) FindOne(ctx context.Context, platform, lastVersion string) (model.DeviceVersionControl, error) {
-	filter := bson.M{"platform": platform, "latest_version": lastVersion}
+	filter := bson.M{"platform": platform}
+	if lastVersion != "" {
+		filter["latest_version"] = lastVersion
+	}
 	result, err := d.deviceDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		d.logger.Errorf("[DeviceVersionControl][FindOne] failed to find device version control: %v", err)
