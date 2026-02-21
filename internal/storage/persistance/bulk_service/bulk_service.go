@@ -78,6 +78,8 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 		return nil, local_util.HandleDBError(err)
 	}
 
+	b.logger.Infof("[BulkServicePersistence][FindAllWithPagination] fetched %d bulk services with filter %v result %v", len(data), filter, data)
+
 	// 6. Count total
 	total, err := b.mongoDalbulkService.TotalCount(ctx, filter)
 	if err != nil {
