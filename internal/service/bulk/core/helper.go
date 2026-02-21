@@ -88,7 +88,7 @@ func SplitEnabledDisabledTree(accessList []model.APPAccessList) (
 		}
 
 		if len(disabledChildren) > 0 {
-			disabledNode := node
+			disabledNode := model.APPAccessList{}
 			disabledNode.SubAccessList = disabledChildren
 			disabled = append(disabled, disabledNode)
 		}
