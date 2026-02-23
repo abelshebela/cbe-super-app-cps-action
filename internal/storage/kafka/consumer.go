@@ -326,6 +326,8 @@ func (h *ConsumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession,
 				// Continue processing other messages but don't mark as processed
 				continue
 			}
+		default:
+			h.consumer.logger.Infof("[kafka][consume]requested topic=%s unhandled, handled topics topic1:%s topic2:%s", message.Topic, h.consumer.cfg.KafkaCustomerFeedbackTopic, h.consumer.cfg.KafkaCustomerSurveyTopic)
 		}
 
 		// Mark message as processed only if successful
