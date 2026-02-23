@@ -113,50 +113,6 @@ func (b BulkServicePersistence) FindAll(ctx context.Context) ([]model.APPAccessL
 
 func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state bool) error {
 	b.logger.Infof("[Update] updating bulk services, enabled: %v keys: %v", state, keys)
-	// parentKeys := []string{}
-
-	// for _, key := range keys {
-	// 	// Try updating parent
-	// 	parentFilter := bson.M{"key": key}
-	// 	parentUpdate := bson.M{"enabled": state}
-
-	// 	result, err := b.mongoDalbulkService.UpdateOne(ctx, parentFilter, parentUpdate)
-	// 	if err != nil {
-	// 		if err == mongo.ErrNoDocuments {
-	// 			// Parent not found → update child
-	// 			childFilter := bson.M{"sub_access_list.key": key}
-	// 			childUpdate := bson.M{"sub_access_list.$.enabled": state}
-	// 			child, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
-	// 			if err != nil {
-	// 				b.logger.Errorf("[Update] failed to update child: %v", err)
-	// 				return errors.New(localization.ErrorFailToUpdateChild.Code)
-	// 			}
-	// 			b.kafkaProducer.PublishMessage(ctx, child, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "bulk enable/disable access-list child")
-	// 			parentKeys = append(parentKeys, child.Key)
-
-	// 			continue
-	// 		}
-	// 		// Other parent update errors
-	// 		b.logger.Errorf("[Update] failed to update parent: %v", err)
-	// 		return errors.New(localization.ErrorFailToUpdateParent.Code)
-	// 	}
-
-	// 	b.kafkaProducer.PublishMessage(ctx, result, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "bulk enable/disable access-list parent")
-
-	// 	// Parent exists → manually loop over children and update each one
-	// 	for _, sub := range result.SubAccessList {
-	// 		childFilter := bson.M{"sub_access_list.key": sub.Key}
-	// 		childUpdate := bson.M{"sub_access_list.$.enabled": state}
-
-	// 		_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
-	// 		if err != nil {
-	// 			b.logger.Errorf("[Update] failed to update child: %v", err)
-	// 			return errors.New(localization.ErrorFailToUpdateChild.Code)
-	// 		}
-	// 	}
-
-	// }
-
 	publishBody := []model.APPAccessList{}
 
 	for _, key := range keys {
