@@ -41,9 +41,9 @@ func CompanyNameExists(ctx context.Context, companyName string, donationCompanyR
 func CheckIfAccountExists(ctx context.Context, accountNumber string, repo storage.DonationCompanyRepository) error {
 	donCompany, err := repo.FindByAccountNumber(ctx, accountNumber)
 	if err != nil {
-		if err.Error() == "mongo: no documents in result" {
-			return nil
-		}
+		if err.Error() == "ERROR_RESOURCE_NOT_FOUND" {
+		return  nil
+	}
 		return err
 	}
 	if donCompany.AccountNumber != "" {
