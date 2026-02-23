@@ -854,7 +854,8 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	userID := local_util.ExtractUserContext(r).UserID
+	// userID := local_util.ExtractUserContext(r).UserID
+	userID := local_util.ExtractUserContext(r).UserName
 
 	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -1087,7 +1088,6 @@ func (a *cpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 	if len(reqs) > 0 {
 		filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
 	}
-	// do not force action_status; let API-provided filters decide
 
 	userID := local_util.ExtractUserContext(r).UserID
 	res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, userID, reqs, filterParams)

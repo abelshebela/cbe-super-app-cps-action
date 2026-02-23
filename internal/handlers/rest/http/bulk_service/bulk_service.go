@@ -71,17 +71,20 @@ func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.
 		return
 	}
 
-	bulk_services, err := h.bulkService.GetAllBulkServices(ctx, filter_params)
+	enabled, disabled, err := h.bulkService.GetAllBulkServices(ctx, filter_params)
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[GetAllBulkServices] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.UnableToFetchBulkService.Code)
 		return
 	}
-	span.SetAttributes(attribute.Int("bulk_service.count", len(bulk_services.Data)))
-	log.Infof("[GetAllBulkServices] retrieved %d bulk services", len(bulk_services.Data))
-	localization.SendSuccessResponse(w, localization.BulkServiceFetchSuccessfully, bulk_services)
 
+	span.SetAttributes(attribute.Int("bulk_service.enabled_count", len(enabled)), attribute.Int("bulk_service.disabled_count", len(disabled)))
+	log.Infof("[GetAllBulkServices] retrieved %d enabled and %d disabled bulk services", len(enabled), len(disabled))
+	localization.SendSuccessResponse(w, localization.BulkServiceFetchSuccessfully, map[string]interface{}{
+		"enabled":  enabled,
+		"disabled": disabled,
+	})
 }
 
 // EnableBulkService enables one or more bulk services

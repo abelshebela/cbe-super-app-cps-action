@@ -96,16 +96,42 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	filter["is_deleted"] = false
 
-	data, err := m.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	// Use aggregation to apply sort before skip/limit so pagination reflects ordering
+	col := m.client.Database(m.dbName).Collection(m.collection)
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: filter}},
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+		bson.D{{Key: "$facet", Value: bson.M{
+			"data":  []bson.D{{{Key: "$skip", Value: skip}}, {{Key: "$limit", Value: limit}}},
+			"total": []bson.D{{{Key: "$count", Value: "count"}}},
+		}}},
+	}
+
+	cursor, err := col.Aggregate(ctx, pipeline)
 	if err != nil {
-		m.logger.Errorf("[CPSRolesStorage][FindAllWithPagination] failed to fetch paginated cps roles: %v", err)
+		m.logger.Errorf("[CPSRolesStorage][FindAllWithPagination] aggregation error: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer cursor.Close(ctx)
+
+	var aggResult []struct {
+		Data  []imodel.CPSRoles `bson:"data"`
+		Total []struct {
+			Count int64 `bson:"count"`
+		} `bson:"total"`
+	}
+	if err := cursor.All(ctx, &aggResult); err != nil {
+		m.logger.Errorf("[CPSRolesStorage][FindAllWithPagination] failed to decode aggregation result: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	total, err := m.dal.TotalCount(ctx, filter)
-	if err != nil {
-		m.logger.Errorf("[CPSRolesStorage][FindAllWithPagination] failed to count total cps roles: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	var data []imodel.CPSRoles
+	var total int64
+	if len(aggResult) > 0 {
+		data = aggResult[0].Data
+		if len(aggResult[0].Total) > 0 {
+			total = aggResult[0].Total[0].Count
+		}
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -272,15 +298,18 @@ func (m *cpsRoleStorage) fetchServiceAccessLists(ctx context.Context, roleID bso
 
 func (m *cpsRoleStorage) FindByNameOrRoleCode(ctx context.Context, name, roleCode string) (*imodel.CPSRoles, error) {
 	filter := []bson.M{}
-	if roleCode == "" {
+	if roleCode != "" {
 		filter = append(filter, bson.M{"name": bson.M{"$regex": "^" + name, "$options": "i"}})
 	}
-	if name == "" {
+	if name != "" {
 		filter = append(filter, bson.M{"role_code": bson.M{"$regex": "^" + roleCode, "$options": "i"}})
 	}
 	orFilter := bson.M{"$or": filter, "is_deleted": false}
 	result, err := m.dal.FindOne(ctx, orFilter, bson.M{})
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
 		m.logger.Errorf("[CPSRolesStorage][FindByNameOrRoleCode] failed to find cps role, name: %s, roleCode: %s, error: %v", name, roleCode, err)
 		return nil, local_util.HandleDBError(err)
 	}
