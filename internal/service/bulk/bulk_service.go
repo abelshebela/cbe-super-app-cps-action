@@ -241,7 +241,8 @@ func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) erro
 	if err != nil {
 		return err
 	}
-	var allKeys map[string]interface{}
+	// Initialize the map to avoid nil map panic
+	allKeys := make(map[string]interface{})
 	for _, access := range allAccessLists {
 		s.logger.Infof("[DisableBulkService] Access List - Key: %s, Enabled: %t", access.Key, access.Enabled)
 		allKeys[access.Key] = access
@@ -291,7 +292,8 @@ func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) err
 	if err != nil {
 		return err
 	}
-	var allKeys map[string]interface{}
+	// Initialize the map to avoid nil map panic
+	allKeys := make(map[string]model.APPAccessList)
 	for _, access := range allAccessLists {
 		s.logger.Infof("[DisableBulkService] Access List - Key: %s, Enabled: %t", access.Key, access.Enabled)
 		allKeys[access.Key] = access
@@ -301,15 +303,15 @@ func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) err
 	var noneDisabledKeys []model.APPAccessList
 	for _, key := range keys {
 		if access, exists := allKeys[key]; exists {
-			accessList := access.(model.APPAccessList)
-			if !accessList.Enabled {
+			// accessList := access.(model.APPAccessList)
+			if !access.Enabled {
 				span.AddEvent("[DisableBulkService] service already disabled")
 				s.logger.Errorf("[DisableBulkService] service already disabled: %s", key)
 				return errors.New(localization.ErrorBulkServiceAlreadyDisabled.Code)
 			}
-			noneDisabledKeys = append(noneDisabledKeys, accessList)
-			accessList.Enabled = false
-			disabledKeys = append(disabledKeys, accessList)
+			noneDisabledKeys = append(noneDisabledKeys, access)
+			access.Enabled = false
+			disabledKeys = append(disabledKeys, access)
 		}
 	}
 
