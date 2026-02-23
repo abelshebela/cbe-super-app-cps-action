@@ -16,6 +16,7 @@ import (
 func (h *handler) CreateWithdrawalRequest(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "CreateWithdrawalRequest", "handler", "CreateWithdrawalRequest")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -23,7 +24,7 @@ func (h *handler) CreateWithdrawalRequest(w http.ResponseWriter, r *http.Request
 	var req vault_category_dto.CreateWithdrawalRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[CreateWithdrawalRequest] decode: %v", err)
+		log.Errorf("[CreateWithdrawalRequest] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 
@@ -31,7 +32,7 @@ func (h *handler) CreateWithdrawalRequest(w http.ResponseWriter, r *http.Request
 
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[CreateWithdrawalRequest] validation: %v", err)
+		log.Errorf("[CreateWithdrawalRequest] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -39,25 +40,26 @@ func (h *handler) CreateWithdrawalRequest(w http.ResponseWriter, r *http.Request
 	err := h.service.CreateWithdrawalRequest(ctx, &req)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[CreateWithdrawalRequest] service: %v", err)
+		log.Errorf("[CreateWithdrawalRequest] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		h.logger.Infof("[CreateWithdrawalRequest] withdrawal request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[CreateWithdrawalRequest] withdrawal request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessVaultWithdrawalRequest, nil)
 		return
 	}
 
-	h.logger.Infof("[CreateWithdrawalRequest] withdrawal request submitted successfully")
+	log.Infof("[CreateWithdrawalRequest] withdrawal request submitted successfully")
 	localization.SendSuccessResponse(w, localization.SuccessVaultWithdrawalRequestSubmitted, nil)
 }
 
 func (h *handler) UpdateWithDrawalRequest(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "UpdateWithDrawalRequest", "handler", "UpdateWithDrawalRequest")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -65,7 +67,7 @@ func (h *handler) UpdateWithDrawalRequest(w http.ResponseWriter, r *http.Request
 	var req vault_category_dto.UpdateWithdrawalStatusRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[UpdateWithDrawalRequest] decode: %v", err)
+		log.Errorf("[UpdateWithDrawalRequest] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 
@@ -73,7 +75,7 @@ func (h *handler) UpdateWithDrawalRequest(w http.ResponseWriter, r *http.Request
 
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[UpdateWithDrawalRequest] validation: %v", err)
+		log.Errorf("[UpdateWithDrawalRequest] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -81,7 +83,7 @@ func (h *handler) UpdateWithDrawalRequest(w http.ResponseWriter, r *http.Request
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil || id == "" {
 		span.RecordError(err)
-		h.logger.Errorf("[UpdateWithDrawalRequest] extract id: %v", err)
+		log.Errorf("[UpdateWithDrawalRequest] extract id: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -89,25 +91,26 @@ func (h *handler) UpdateWithDrawalRequest(w http.ResponseWriter, r *http.Request
 	err = h.service.UpdateWithdrawalRequest(ctx, id, &req)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[UpdateWithDrawalRequest] service: %v", err)
+		log.Errorf("[UpdateWithDrawalRequest] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		h.logger.Infof("[UpdateWithDrawalRequest] withdrawal request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[UpdateWithDrawalRequest] withdrawal request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessVaultWithdrawalUpdateRequest, nil)
 		return
 	}
 
-	h.logger.Infof("[UpdateWithDrawalRequest] withdrawal request submitted successfully")
+	log.Infof("[UpdateWithDrawalRequest] withdrawal request submitted successfully")
 	localization.SendSuccessResponse(w, localization.SuccessVaultWithdrawalUpdateSubmitted, nil)
 }
 
 func (h *handler) GetAllWithdrawalRequests(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "GetAllWithdrawalRequests", "handler", "GetAllWithdrawalRequests")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 
 	params := common_utils.ExtractFilterParams(r)
 
@@ -127,7 +130,7 @@ func (h *handler) GetAllWithdrawalRequests(w http.ResponseWriter, r *http.Reques
 	result, err := h.service.GetAllWithdrawalRequests(ctx, params)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[GetAllWithdrawalRequests] service: %v", err)
+		log.Errorf("[GetAllWithdrawalRequests] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -138,6 +141,7 @@ func (h *handler) GetAllWithdrawalRequests(w http.ResponseWriter, r *http.Reques
 func (h *handler) GetWithdrawalRequestById(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "GetWithdrawalRequestById", "handler", "GetWithdrawalRequestById")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -145,7 +149,7 @@ func (h *handler) GetWithdrawalRequestById(w http.ResponseWriter, r *http.Reques
 	}
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[GetWithdrawalRequestById] extract id: %v", err)
+		log.Errorf("[GetWithdrawalRequestById] extract id: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -153,10 +157,10 @@ func (h *handler) GetWithdrawalRequestById(w http.ResponseWriter, r *http.Reques
 	result, err := h.service.GetWithdrawalRequest(ctx, id)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[GetWithdrawalRequestById] service: %v", err)
+		log.Errorf("[GetWithdrawalRequestById] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("Vault withdrawal request retrieved with ID: %s", id)
+	log.Infof("[VaultWithdH][GetByID] ok id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessVaultWithdrawalRequestFetchedSuccessfully, result)
 }

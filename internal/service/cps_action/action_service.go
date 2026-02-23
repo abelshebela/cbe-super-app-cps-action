@@ -70,7 +70,7 @@ func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	defer span.End()
 	act, err := ca.repo.SanitizedFindOne(ctx, bson.M{"action_code": actionCode})
 	if err != nil || act == nil {
-		ca.logger.Errorf("failed to find action", trace.WithAttributes(attribute.String("error", err.Error())))
+		ca.logger.Errorf("[CpsActionSvc][AuditorMark] find err: %v", err)
 		return errors.New(localization.ErrorActionNotFound.Code)
 	}
 
@@ -114,7 +114,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	defer span.End()
 	var existing *model.CPSAction
 	var err error
-	ca.logger.Infof("CreateCPSAction: %+v", cpsAction)
+	ca.logger.Infof("[CpsActionSvc][Create] action: %s", cpsAction.RequestAction)
 
 	roleCode := ctx.Value(constants.ContextKey("role_code")).(string)
 	actionName, _ := ctx.Value(constants.ContextKey("action_name")).(string)
@@ -188,12 +188,12 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "ApproveCPSAction", "CPSAction", "ApproveCPSAction")
 	defer span.End()
-	ca.logger.Infof("[ApproveCPSAction]: %+v", action)
+	ca.logger.Infof("[CpsActionSvc][Approve] action: %s", action.ActionCode)
 
 	data, err := ca.repo.Update(ctx, action.ActionCode, *action)
 	if err != nil {
 		span.AddEvent("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
-		ca.logger.Errorf("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
+		ca.logger.Errorf("[CpsActionSvc][Approve] update err: %v", err)
 		return err
 	}
 
@@ -204,11 +204,11 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 	approve, err := ca.dispatcher.Authorize(ctx, data)
 	if err != nil && approve == nil {
 		span.AddEvent("failed to authorize cps action", trace.WithAttributes(attribute.String("error", err.Error())))
-		ca.logger.Errorf("failed to authorize cps action", trace.WithAttributes(attribute.String("error", err.Error())))
+		ca.logger.Errorf("[CpsActionSvc][Approve] authorize err: %v", err)
 		RollErr := ca.RollBack(ctx, data)
 		if RollErr != nil {
 			span.AddEvent("failed to roll back cps action", trace.WithAttributes(attribute.String("error", RollErr.Error())))
-			ca.logger.Errorf("failed to roll back cps action", trace.WithAttributes(attribute.String("error", RollErr.Error())))
+			ca.logger.Errorf("[CpsActionSvc][Approve] rollback err: %v", RollErr)
 			return RollErr
 		}
 		if err.Error() == localization.ErrorTimeoutError.Code {
@@ -291,7 +291,7 @@ func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		span.AddEvent("failed to parse the string to bson object", trace.WithAttributes(attribute.String("error", err.Error())))
-		ca.logger.Errorf("their is error when try to parse the string to bson object in service")
+		ca.logger.Errorf("[CpsActionSvc][GetByID] parse id err")
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	action, err := ca.repo.SanitizedFindOne(ctx, bson.M{"_id": objID, "department": department})
@@ -409,7 +409,7 @@ func (ca *cpsActionService) RollBack(ctx context.Context, data *model.CPSAction)
 			span.AddEvent("failed to soft-delete maker-only cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
 		}
-		ca.logger.Infof("[RollBack] soft-deleted maker-only CPS action %s", data.ActionCode)
+		ca.logger.Infof("[CpsActionSvc][RollBack] soft-deleted: %s", data.ActionCode)
 		return nil
 	}
 
@@ -440,7 +440,7 @@ func (ca *cpsActionService) RollBack(ctx context.Context, data *model.CPSAction)
 		span.AddEvent("failed to roll back cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
-	ca.logger.Infof("[RollBack] successfully rolled back CPS action %s to Pending", data.ActionCode)
+	ca.logger.Infof("[CpsActionSvc][RollBack] reverted to pending: %s", data.ActionCode)
 	return nil
 }
 
@@ -459,7 +459,7 @@ func (ca *cpsActionService) GetUserAuthorizerIndex(ctx context.Context, requestA
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 	var approverData imodel.CPSActionApproveIndex
 
-	ca.logger.Infof("[GetUserAuthorizerIndex] role code: %s and request action: %s", roleCode, requestAction)
+	ca.logger.Infof("[CpsActionSvc][GetAuthIdx] role: %s action: %s", roleCode, requestAction)
 	if mod, ok := ResolveModuleForRA(RequestAction(requestAction)); ok && ca.roles != nil {
 		if approver, err := ca.roles.FindApproverByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil {
 			approverData = approver

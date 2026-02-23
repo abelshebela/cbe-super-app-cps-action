@@ -116,7 +116,7 @@ func (d *DonationCategory) CreateDonationCategory(ctx context.Context, donationC
 	}
 	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationCategoryFolderName), *d.cfg, "", d.logger)
 	if err != nil {
-		d.logger.Errorf("failed to upload image to minio: %v", err)
+		d.logger.Errorf("[DonCatSvc][Create] upload err: %v", err)
 		span.AddEvent("Failed to upload image to minio", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -249,7 +249,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 
 	// requestedAction := action.RequestAction
 	if action.ActionStatus != constants.Approved {
-		d.logger.Errorf("Tried to authorize service action without cps action approval")
+		d.logger.Errorf("[DonCatSvc][Authorize] invalid status")
 		span.AddEvent("CPS action status invalid", trace.WithAttributes(
 			attribute.String("error", localization.ErrorCPSActionStatusInvalid.Code),
 			attribute.String("unique_id", action.UniqueId),
@@ -259,7 +259,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 	var donationCPS *donation_model.DonationCategory
 	bindErr := core.BindAction(action.CurrentAction, &donationCPS)
 	if bindErr != nil {
-		d.logger.Errorf("failed to bind current action to donation Category: %v", bindErr)
+		d.logger.Errorf("[DonCatSvc][Authorize] bind err: %v", bindErr)
 		span.AddEvent("Failed to bind current action", trace.WithAttributes(
 			attribute.String("error", bindErr.Error()),
 			attribute.String("unique_id", action.UniqueId),
@@ -272,7 +272,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 
 		err := d.DonationCategoryRepo.Create(ctx, donationCPS)
 		if err != nil {
-			d.logger.Errorf("Failed to create donation category: %v", err)
+			d.logger.Errorf("[DonCatSvc][Authorize] create err: %v", err)
 			span.AddEvent("Failed to create donation category", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -283,7 +283,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 	case string(constants.RequestUpdateDonationCategory):
 		err := d.DonationCategoryRepo.Update(ctx, action.UniqueId, donationCPS)
 		if err != nil {
-			d.logger.Errorf("Failed to update donation category: %v", err)
+			d.logger.Errorf("[DonCatSvc][Authorize] update err: %v", err)
 			span.AddEvent("Failed to update donation category", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -294,7 +294,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 	case string(constants.RequestEnableDonationCategory):
 		err := d.DonationCategoryRepo.EnableDisable(ctx, action.UniqueId, true)
 		if err != nil {
-			d.logger.Errorf("Failed to update donation category: %v", err)
+			d.logger.Errorf("[DonCatSvc][Authorize] enable err: %v", err)
 			span.AddEvent("Failed to enable donation category", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -304,7 +304,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 	case string(constants.RequestDisableDonationCategory):
 		err := d.DonationCategoryRepo.EnableDisable(ctx, action.UniqueId, false)
 		if err != nil {
-			d.logger.Errorf("Failed to update donation category: %v", err)
+			d.logger.Errorf("[DonCatSvc][Authorize] disable err: %v", err)
 			span.AddEvent("Failed to disable donation category", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -313,7 +313,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 		}
 
 	default:
-		d.logger.Errorf("Unsupported action requested: %s", action.RequestAction)
+		d.logger.Errorf("[DonCatSvc][Authorize] unsupported action: %s", action.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(action.RequestAction)),
@@ -321,7 +321,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
-	d.logger.Infof("Service action authorization completed: %s", action.RequestAction)
+	d.logger.Infof("[DonCatSvc][Authorize] completed: %s", action.RequestAction)
 	return action, nil
 
 }

@@ -124,7 +124,7 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableBranches", "BlockAccount", "EnableOrDisableBranches")
 	defer span.End()
 
-	s.logger.Infof("[EnableOrDisableBranches] processing %d branches, enabled: %v", len(branchIds), enabled)
+	s.logger.Infof("[AccBlockSvc][EnableDisableBranches] count: %d enabled: %v", len(branchIds), enabled)
 	var alreadyEnabled []string
 	var alreadyDisabled []string
 	var previousAction []types.EnableDisableAction
@@ -133,12 +133,12 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 	branches, err := s.repo.GetBranchesByIds(ctx, branchIds)
 	if err != nil {
 		span.AddEvent("Failed to get branches", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[EnableOrDisableBranches] failed to get branches: %v", err)
+		s.logger.Errorf("[AccBlockSvc][EnableDisableBranches] get err: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if len(branches) != len(branchIds) {
-		s.logger.Errorf("[EnableOrDisableBranches] one or more branches not found")
+		s.logger.Errorf("[AccBlockSvc][EnableDisableBranches] not found")
 		return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
 	}
 
@@ -209,10 +209,10 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[EnableOrDisableBranches] failed to create CPS action: %v", err)
+		s.logger.Errorf("[AccBlockSvc][EnableDisableBranches] cps action err: %v", err)
 		return err
 	}
-	s.logger.Infof("[EnableOrDisableBranches] CPS action created successfully for %d branches", len(branchIds))
+	s.logger.Infof("[AccBlockSvc][EnableDisableBranches] done count: %d", len(branchIds))
 	return nil
 }
 
@@ -220,7 +220,7 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableRegions", "BlockAccount", "EnableOrDisableRegions")
 	defer span.End()
 
-	s.logger.Infof("[EnableOrDisableRegions] processing %d regions, enabled: %v", len(regionIds), enabled)
+	s.logger.Infof("[AccBlockSvc][EnableDisableRegions] count: %d enabled: %v", len(regionIds), enabled)
 
 	var alreadyEnabled []string
 	var alreadyDisabled []string
@@ -229,12 +229,12 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 	regions, err := s.repo.GetRegionsByIds(ctx, regionIds)
 	if err != nil {
 		span.AddEvent("Failed to get regions", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[EnableOrDisableRegions] failed to get regions: %v", err)
+		s.logger.Errorf("[AccBlockSvc][EnableDisableRegions] get err: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if len(regions) != len(regionIds) {
-		s.logger.Errorf("[EnableOrDisableRegions] one or more regions not found")
+		s.logger.Errorf("[AccBlockSvc][EnableDisableRegions] not found")
 		return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code) // Corrected error code usage
 	}
 
@@ -282,10 +282,10 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[EnableOrDisableRegions] failed to create CPS action: %v", err)
+		s.logger.Errorf("[AccBlockSvc][EnableDisableRegions] cps action err: %v", err)
 		return err
 	}
-	s.logger.Infof("[EnableOrDisableRegions] CPS action created successfully for %d regions", len(regionIds))
+	s.logger.Infof("[AccBlockSvc][EnableDisableRegions] done count: %d", len(regionIds))
 	return nil
 }
 
@@ -293,7 +293,7 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableDistricts", "BlockAccount", "EnableOrDisableDistricts")
 	defer span.End()
 
-	s.logger.Infof("[EnableOrDisableDistricts] processing %d districts, enabled: %v", len(districtIds), enabled)
+	s.logger.Infof("[AccBlockSvc][EnableDisableDistricts] count: %d enabled: %v", len(districtIds), enabled)
 
 	var alreadyEnabled []string
 	var alreadyDisabled []string
@@ -303,12 +303,12 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 	districts, err := s.repo.GetDistrictsByIds(ctx, districtIds)
 	if err != nil {
 		span.AddEvent("Failed to get districts", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[EnableOrDisableDistricts] failed to get districts: %v", err)
+		s.logger.Errorf("[AccBlockSvc][EnableDisableDistricts] get err: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if len(districts) != len(districtIds) {
-		s.logger.Errorf("[EnableOrDisableDistricts] one or more districts not found")
+		s.logger.Errorf("[AccBlockSvc][EnableDisableDistricts] not found")
 		return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
 	}
 
@@ -378,10 +378,10 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[EnableOrDisableDistricts] failed to create CPS action: %v", err)
+		s.logger.Errorf("[AccBlockSvc][EnableDisableDistricts] cps action err: %v", err)
 		return err
 	}
-	s.logger.Infof("[EnableOrDisableDistricts] CPS action created successfully for %d districts", len(districtIds))
+	s.logger.Infof("[AccBlockSvc][EnableDisableDistricts] done count: %d", len(districtIds))
 	return nil
 }
 
@@ -389,7 +389,7 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableCities", "BlockAccount", "EnableOrDisableCities")
 	defer span.End()
 
-	s.logger.Infof("[EnableOrDisableCities] processing %d cities, enabled: %v", len(ids), enabled)
+	s.logger.Infof("[AccBlockSvc][EnableDisableCities] count: %d enabled: %v", len(ids), enabled)
 
 	var alreadyEnabled []string
 	var alreadyDisabled []string
@@ -398,12 +398,12 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 	cities, err := s.repo.GetCitiesByIds(ctx, ids)
 	if err != nil {
 		span.AddEvent("Failed to get cities", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[EnableOrDisableCities] failed to get cities: %v", err)
+		s.logger.Errorf("[AccBlockSvc][EnableDisableCities] get err: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if len(cities) != len(ids) {
-		s.logger.Errorf("[EnableOrDisableCities] one or more cities not found")
+		s.logger.Errorf("[AccBlockSvc][EnableDisableCities] not found")
 		return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
 	}
 
@@ -473,19 +473,19 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[EnableOrDisableCities] failed to create CPS action: %v", err)
+		s.logger.Errorf("[AccBlockSvc][EnableDisableCities] cps action err: %v", err)
 		return err
 	}
-	s.logger.Infof("[EnableOrDisableCities] CPS action created successfully for %d cities", len(ids))
+	s.logger.Infof("[AccBlockSvc][EnableDisableCities] done count: %d", len(ids))
 	return nil
 }
 
 func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	s.logger.Infof("[Authorize] authorizing account block action: %s", action.RequestAction)
+	s.logger.Infof("[AccBlockSvc][Authorize] action: %s", action.RequestAction)
 
 	actions, err := local_util.JsonUnmarshal[[]types.EnableDisableAction](action.CurrentAction)
 	if err != nil {
-		s.logger.Errorf("[Authorize] failed to unmarshal enable branches action: %v", err)
+		s.logger.Errorf("[AccBlockSvc][Authorize] unmarshal err: %v", err)
 		return nil, err
 	}
 
@@ -496,10 +496,10 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 			ids = append(ids, act.ID)
 		}
 		if err := s.repo.EnableOrDisableBranches(ctx, ids, (*actions)[0].Reason, true); err != nil {
-			s.logger.Errorf("[Authorize] failed to enable branches: %v", err)
+			s.logger.Errorf("[AccBlockSvc][Authorize] enable branches err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] successfully enabled %d branches", len(*actions))
+		s.logger.Infof("[AccBlockSvc][Authorize] enabled %d branches", len(*actions))
 
 	case constants.RequestDisableBranches:
 		var ids []string
@@ -507,10 +507,10 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 			ids = append(ids, act.ID)
 		}
 		if err := s.repo.EnableOrDisableBranches(ctx, ids, (*actions)[0].Reason, false); err != nil {
-			s.logger.Errorf("[Authorize] failed to disable branches: %v", err)
+			s.logger.Errorf("[AccBlockSvc][Authorize] disable branches err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] successfully disabled %d branches", len(*actions))
+		s.logger.Infof("[AccBlockSvc][Authorize] disabled %d branches", len(*actions))
 
 	case constants.RequestEnableCities:
 		var ids []string
@@ -518,10 +518,10 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 			ids = append(ids, act.ID)
 		}
 		if err := s.repo.EnableOrDisableCities(ctx, ids, (*actions)[0].Reason, true); err != nil {
-			s.logger.Errorf("[Authorize] failed to enable cities: %v", err)
+			s.logger.Errorf("[AccBlockSvc][Authorize] enable cities err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] successfully enabled %d cities", len(*actions))
+		s.logger.Infof("[AccBlockSvc][Authorize] enabled %d cities", len(*actions))
 
 	case constants.RequestDisableCities:
 		var ids []string
@@ -529,10 +529,10 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 			ids = append(ids, act.ID)
 		}
 		if err := s.repo.EnableOrDisableCities(ctx, ids, (*actions)[0].Reason, false); err != nil {
-			s.logger.Errorf("[Authorize] failed to disable cities: %v", err)
+			s.logger.Errorf("[AccBlockSvc][Authorize] disable cities err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] successfully disabled %d cities", len(*actions))
+		s.logger.Infof("[AccBlockSvc][Authorize] disabled %d cities", len(*actions))
 
 	case constants.RequestEnableDistricts:
 		var ids []string
@@ -540,10 +540,10 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 			ids = append(ids, act.ID)
 		}
 		if err := s.repo.EnableOrDisableDistricts(ctx, ids, (*actions)[0].Reason, true); err != nil {
-			s.logger.Errorf("[Authorize] failed to enable districts: %v", err)
+			s.logger.Errorf("[AccBlockSvc][Authorize] enable districts err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] successfully enabled %d districts", len(*actions))
+		s.logger.Infof("[AccBlockSvc][Authorize] enabled %d districts", len(*actions))
 
 	case constants.RequestDisableDistricts:
 		var ids []string
@@ -551,10 +551,10 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 			ids = append(ids, act.ID)
 		}
 		if err := s.repo.EnableOrDisableDistricts(ctx, ids, (*actions)[0].Reason, false); err != nil {
-			s.logger.Errorf("[Authorize] failed to disable districts: %v", err)
+			s.logger.Errorf("[AccBlockSvc][Authorize] disable districts err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] successfully disabled %d districts", len(*actions))
+		s.logger.Infof("[AccBlockSvc][Authorize] disabled %d districts", len(*actions))
 
 	case constants.RequestEnableRegions:
 		var ids []string
@@ -562,10 +562,10 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 			ids = append(ids, act.ID)
 		}
 		if err := s.repo.EnableOrDisableRegions(ctx, ids, (*actions)[0].Reason, true); err != nil {
-			s.logger.Errorf("[Authorize] failed to enable regions: %v", err)
+			s.logger.Errorf("[AccBlockSvc][Authorize] enable regions err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] successfully enabled %d regions", len(*actions))
+		s.logger.Infof("[AccBlockSvc][Authorize] enabled %d regions", len(*actions))
 
 	case constants.RequestDisableRegions:
 		var ids []string
@@ -573,18 +573,18 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 			ids = append(ids, act.ID)
 		}
 		if err := s.repo.EnableOrDisableRegions(ctx, ids, (*actions)[0].Reason, false); err != nil {
-			s.logger.Errorf("[Authorize] failed to disable regions: %v", err)
+			s.logger.Errorf("[AccBlockSvc][Authorize] disable regions err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] successfully disabled %d regions", len(*actions))
+		s.logger.Infof("[AccBlockSvc][Authorize] disabled %d regions", len(*actions))
 
 	default:
-		s.logger.Errorf("[Authorize] unsupported action: %s", action.RequestAction)
+		s.logger.Errorf("[AccBlockSvc][Authorize] unsupported: %s", action.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
 	action.ActionStatus = string(constants.ActionApproved)
-	s.logger.Infof("[Authorize] account block action authorized successfully: %s", action.RequestAction)
+	s.logger.Infof("[AccBlockSvc][Authorize] done: %s", action.RequestAction)
 
 	return action, nil
 }
@@ -598,7 +598,7 @@ func (s *accountBlockService) GetAccountBlockDetails(ctx context.Context, id str
 		if err.Error() == localization.ErrorBranchNotFound.Code || err.Error() == localization.ErrorCityNotFound.Code || err.Error() == localization.ErrorDistrictNotFound.Code || err.Error() == localization.ErrorRegionNotFound.Code || err.Error() == localization.ErrorActionNotFound.Code {
 			return &types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse]{}, nil
 		}
-		s.logger.Errorf("[GetAccountBlockDetails] failed to get account block details for id %s: %v", id, err)
+		s.logger.Errorf("[AccBlockSvc][GetDetails] id=%s err: %v", id, err)
 		return nil, err
 	}
 

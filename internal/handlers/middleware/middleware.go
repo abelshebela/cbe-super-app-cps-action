@@ -132,14 +132,14 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 		authHeader := r.Header.Get("Authorization")
 
 		if !strings.HasPrefix(authHeader, bearer) {
-			a.logger.Warnf("bearer token is not provided")
+			a.logger.Warnf("[AuthMW][AuthTempToken] bearer missing")
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, bearer)
 		if tokenString == "" {
-			a.logger.Warnf("empty token string provided")
+			a.logger.Warnf("[AuthMW][AuthTempToken] empty token")
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
@@ -195,7 +195,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		bearer := "Bearer "
 
 		if !strings.HasPrefix(authHeader, bearer) {
-			a.logger.Warnf("bearer token is not present")
+			a.logger.Warnf("[AuthMW][AuthToken] bearer missing")
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
@@ -203,7 +203,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		tokenString := authHeader[len(bearer):]
 
 		if tokenString == "" {
-			a.logger.Warnf("empty token string provided")
+			a.logger.Warnf("[AuthMW][AuthToken] empty token")
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
@@ -238,32 +238,32 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		deviceID, err := a.redisRepository.Get(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID))
 		if err != nil {
 			if errors.Is(err, redis.Nil) {
-				a.logger.Warnf("device id not found in redis: %v", err)
+				a.logger.Warnf("[AuthMW][AuthToken] redis device not found: %v", err)
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
 			}
 			// If redis is down or cannot be read, log and continue
-			a.logger.Warnf("redis error (continuing): %v", err)
+			a.logger.Warnf("[AuthMW][AuthToken] redis err: %v", err)
 		}
 
 		deviceID = strings.Trim(deviceID, "\"")
-		a.logger.Infof("device id from redis: %s device id from payload: %s for user %s", deviceID, userPayload.DeviceID, userPayload.UserID)
+		a.logger.Infof("[AuthMW][AuthToken] redis_device: %s payload_device: %s user: %s", deviceID, userPayload.DeviceID, userPayload.UserID)
 		if userPayload.SessionExp != 0 {
-			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now, userPayload.SessionExp-now)
+			a.logger.Infof("[AuthMW][AuthToken] session_exp: %d now: %d remain: %d", userPayload.SessionExp, now, userPayload.SessionExp-now)
 
 			if userPayload.SessionExp <= now {
-				a.logger.Warnf("session has expired")
+				a.logger.Warnf("[AuthMW][AuthToken] session expired")
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
 			} else if deviceID != "" && deviceID == userPayload.DeviceID {
 				if err := a.redisRepository.Set(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID), deviceID, time.Second*time.Duration(redisDeviceIDExpireTime)); err != nil {
-					a.logger.Warnf("failed to set device id in redis for user %s: %v", userPayload.UserID, err)
+					a.logger.Warnf("[AuthMW][AuthToken] redis set device err user: %s: %v", userPayload.UserID, err)
 				} else {
-					a.logger.Infof("device id updated in redis for user %s", userPayload.UserID)
+					a.logger.Infof("[AuthMW][AuthToken] device updated user: %s", userPayload.UserID)
 				}
 			}
 		} else {
-			a.logger.Errorf("unauthorized access device_id_from_redis%s device_id_from_payload:%s user_expiration_session:%s remaining_time_from_env:%d", deviceID, userPayload.DeviceID, userPayload.SessionExp, remainTime)
+			a.logger.Errorf("[AuthMW][AuthToken] unauth redis_device: %s payload_device: %s session: %v remain: %d", deviceID, userPayload.DeviceID, userPayload.SessionExp, remainTime)
 			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 			return
 		}
@@ -370,27 +370,27 @@ func (a *authMiddleware) validateToken(ctx context.Context, tokenString string) 
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			a.logger.Errorf("unexpected signing method used")
+			a.logger.Errorf("[AuthMW][ValidateToken] unexpected signing method")
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return jwtSecret, nil
 	})
 
 	if err != nil || !token.Valid {
-		a.logger.Errorf("invalid or expired token: %v", err)
+		a.logger.Errorf("[AuthMW][ValidateToken] invalid/expired token: %v", err)
 		return "", errors.New(localization.ErrorUserUnauthorized.Code)
 
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		a.logger.Errorf("failed to cast to map claims")
+		a.logger.Errorf("[AuthMW][ValidateToken] cast claims err")
 		return "", errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
 	data, ok := claims["data"].(string)
 	if !ok || data == "" {
-		a.logger.Errorf("invalid token or data not present")
+		a.logger.Errorf("[AuthMW][ValidateToken] no data in token")
 		return "", errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
@@ -406,7 +406,7 @@ func (a *authMiddleware) extractUserPayload(ctx context.Context, data string) (U
 	var userPayload UserPayload
 	err = json.Unmarshal([]byte(decryptedUser), &userPayload)
 	if err != nil {
-		a.logger.Errorf("failed to unmarshal user payload: %v", err)
+		a.logger.Errorf("[AuthMW][ExtractPayload] unmarshal err: %v", err)
 		return UserPayload{}, errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
@@ -419,6 +419,8 @@ func (a *authMiddleware) setUserPayload(ctx context.Context, userPayload UserPay
 		ctx = context.WithValue(ctx, constants.ContextKey("role_code"), userPayload.RoleId)
 	}
 	ctx = context.WithValue(ctx, constants.ContextKey("user_id"), userPayload.UserID)
+	// TODO(request-logger): uncomment after shared module adds WithStr to Logger interface:
+	// ctx = local_util.CtxWithLogger(ctx, a.logger.WithStr("user_id", userPayload.UserID))
 	ctx = context.WithValue(ctx, constants.ContextKey("phone_number"), userPayload.PhoneNumber)
 	ctx = context.WithValue(ctx, constants.ContextKey("user_code"), userPayload.UserCode)
 	ctx = context.WithValue(ctx, constants.ContextKey("full_name"), userPayload.FullName)
@@ -436,23 +438,23 @@ func (a *authMiddleware) decryptUserData(ctx context.Context, data string) (stri
 	ivByte := []byte(a.IV)
 
 	if len(keyByte) != 32 {
-		a.logger.Warnf("invalid key byte provided")
+		a.logger.Warnf("[AuthMW][Decrypt] invalid key bytes")
 		return "", errors.New("key must be 32 bytes for AES-256")
 	}
 	if len(ivByte) != aes.BlockSize {
-		a.logger.Warnf("invalid iv bytes provided must be 16 bytes")
+		a.logger.Warnf("[AuthMW][Decrypt] invalid IV bytes")
 		return "", errors.New("IV must be 16 bytes for AES-256-CBC")
 	}
 
 	ciphertext, err := hex.DecodeString(data)
 	if err != nil {
-		a.logger.Errorf("failed to decode hex: %v", err)
+		a.logger.Errorf("[AuthMW][Decrypt] hex decode err: %v", err)
 		return "", fmt.Errorf("hex decode failed: %w", err)
 	}
 
 	block, err := aes.NewCipher(keyByte)
 	if err != nil {
-		a.logger.Errorf("new cipher failed: %v", err)
+		a.logger.Errorf("[AuthMW][Decrypt] cipher err: %v", err)
 		return "", fmt.Errorf("NewCipher failed: %w", err)
 	}
 
@@ -472,21 +474,21 @@ func (a *authMiddleware) decryptUserData(ctx context.Context, data string) (stri
 
 func (a *authMiddleware) pkcs7Unpad(ctx context.Context, data []byte, blockSize int) ([]byte, error) {
 	if len(data) == 0 {
-		a.logger.Warnf("input data is empty")
+		a.logger.Warnf("[AuthMW][Unpad] empty input")
 		return nil, errors.New("input data is empty")
 	}
 	if len(data)%blockSize != 0 {
-		a.logger.Warnf("input length is not multiple of block size")
+		a.logger.Warnf("[AuthMW][Unpad] invalid length")
 		return nil, errors.New("input length is not a multiple of block size")
 	}
 	padding := int(data[len(data)-1])
 	if padding == 0 || padding > blockSize {
-		a.logger.Warnf("invalid padding")
+		a.logger.Warnf("[AuthMW][Unpad] invalid padding")
 		return nil, errors.New("invalid padding")
 	}
 	for i := len(data) - padding; i < len(data); i++ {
 		if int(data[i]) != padding {
-			a.logger.Warnf("invalid padding bytes")
+			a.logger.Warnf("[AuthMW][Unpad] invalid padding bytes")
 			return nil, errors.New("invalid padding bytes")
 		}
 	}

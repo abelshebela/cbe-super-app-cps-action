@@ -46,6 +46,7 @@ func NewBPSActionRoleHandler(svc service.BPSActionRoleService, logger utils.Logg
 func (h *BPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllBpsActionRoles", "handler", "bpsActionRole")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	filterParams := *local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -64,7 +65,7 @@ func (h *BPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.R
 	res, err := h.service.FindAllActionListWithPagination(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("list action list error: %v", err)
+		log.Errorf("[BpsRoleH][ListActions] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -87,11 +88,12 @@ func (h *BPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.R
 func (h *BPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllBpsActionRoles", "handler", "bpsActionRole")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	filter := *local_util.ExtractFilterParams(r)
 	res, err := h.service.FindAllWithPagination(ctx, filter)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("list action roles error: %v", err)
+		log.Errorf("[BpsRoleH][ListRoles] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -116,6 +118,7 @@ func (h *BPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionRoleByCode", "handler", "cpsActionRole")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
@@ -125,7 +128,7 @@ func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 	res, err := h.service.GetByActionCode(ctx, code)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("get action role error: %v", err)
+		log.Errorf("[BpsRoleH][GetByCode] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -144,6 +147,7 @@ func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 func (h *BPSActionRoleHandler) GetByActionNameCode(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionRoleByCode", "handler", "cpsActionRole")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	name := chi.URLParam(r, "name")
 	if name == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
@@ -153,7 +157,7 @@ func (h *BPSActionRoleHandler) GetByActionNameCode(w http.ResponseWriter, r *htt
 	res, err := h.service.GetByActionNameCode(ctx, name)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("get action role error: %v", err)
+		log.Errorf("[BpsRoleH][GetByCode] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -173,13 +177,14 @@ func (h *BPSActionRoleHandler) GetByActionNameCode(w http.ResponseWriter, r *htt
 func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	var req actionrole_dto.CreateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[BPSActionRoleHandler] invalid input payload: %v", err)
+		log.Errorf("[BPSActionRoleHandler] invalid input payload: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
@@ -204,7 +209,7 @@ func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("create action role failed: %v", err)
+		log.Errorf("[BpsRoleH][Create] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -233,6 +238,7 @@ func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -254,7 +260,7 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	err := h.service.Update(ctx, code, req)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("update action role failed: %v", err)
+		log.Errorf("[BpsRoleH][Update] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -283,6 +289,7 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -295,7 +302,7 @@ func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	if err := h.service.Enable(ctx, code); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("enable action role failed: %v", err)
+		log.Errorf("[BpsRoleH][Enable] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -323,6 +330,7 @@ func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 func (h *BPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -335,7 +343,7 @@ func (h *BPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	if err := h.service.Disable(ctx, code); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("disable action role failed: %v", err)
+		log.Errorf("[BpsRoleH][Disable] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

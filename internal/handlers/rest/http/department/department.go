@@ -52,6 +52,7 @@ func NewDepartmentHandler(departmentService service.DepartmentService, logger ut
 func (d *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllDepartments", "handler", "department")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, d.logger)
 	filterParams := common_utils.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -70,13 +71,13 @@ func (d *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Req
 	departments, err := d.departmentService.GetAllDepartments(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("[GetAllDepartments] service error: %v", err)
+		log.Errorf("[GetAllDepartments] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	span.SetAttributes(attribute.Int("department.count", len(departments.Data)))
-	d.logger.Infof("[GetAllDepartments] retrieved %d departments", len(departments.Data))
+	log.Infof("[GetAllDepartments] retrieved %d departments", len(departments.Data))
 	localization.SendSuccessResponse(w, localization.SuccessGetAllDepartments, departments)
 }
 
@@ -96,18 +97,19 @@ func (d *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Req
 func (d *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createDepartment", "handler", "department")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, d.logger)
 	var departmentRequest department_dto.CreateDepartmentRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&departmentRequest); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("[CreateDepartment] decode: %v", err)
+		log.Errorf("[CreateDepartment] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
 
 	if err := departmentRequest.Validate(); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("[CreateDepartment] validation: %v", err)
+		log.Errorf("[CreateDepartment] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -117,11 +119,11 @@ func (d *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 	err := d.departmentService.CreateDepartment(ctx, departmentRequest)
 	if err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("[CreateDepartment] service error: %v", err)
+		log.Errorf("[CreateDepartment] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	d.logger.Infof("[CreateDepartment] request sent successfully for department: %s", departmentRequest.Department)
+	log.Infof("[CreateDepartment] request sent successfully for department: %s", departmentRequest.Department)
 	localization.SendSuccessResponse(w, localization.SuccessDepartmentCreateRequestCreated, nil)
 }
 
@@ -142,9 +144,10 @@ func (d *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateDepartment", "handler", "department")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, d.logger)
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
-		d.logger.Errorf("[UpdateDepartmentRequest] missing department ID")
+		log.Errorf("[UpdateDepartmentRequest] missing department ID")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
@@ -153,14 +156,14 @@ func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 
 	if err := json.NewDecoder(r.Body).Decode(&departmentRequest); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("[UpdateDepartmentRequest] decode: %v", err)
+		log.Errorf("[UpdateDepartmentRequest] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
 
 	if err := departmentRequest.Validate(); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("[UpdateDepartmentRequest] validation: %v", err)
+		log.Errorf("[UpdateDepartmentRequest] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -170,11 +173,11 @@ func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 	err := d.departmentService.UpdateDepartment(ctx, id, departmentRequest)
 	if err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("[UpdateDepartmentRequest] service error: %v", err)
+		log.Errorf("[UpdateDepartmentRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	d.logger.Infof("[UpdateDepartmentRequest] request sent successfully for id: %s", id)
+	log.Infof("[UpdateDepartmentRequest] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessDepartmentUpdateRequestCreated, nil)
 }
 
@@ -195,9 +198,10 @@ func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 func (d *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getDepartmentById", "handler", "department")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, d.logger)
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
-		d.logger.Errorf("[GetDepartmentByID] missing department ID")
+		log.Errorf("[GetDepartmentByID] missing department ID")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
@@ -207,11 +211,11 @@ func (d *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Req
 	department, err := d.departmentService.GetDepartmentByID(ctx, id)
 	if err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("[GetDepartmentByID] service error: %v", err)
+		log.Errorf("[GetDepartmentByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	d.logger.Infof("[GetDepartmentByID] department retrieved successfully for id: %s", id)
+	log.Infof("[GetDepartmentByID] department retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessGetDepartments, department)
 }
 
@@ -232,9 +236,10 @@ func (d *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Req
 func (d *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableDepartment", "handler", "department")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, d.logger)
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
-		d.logger.Errorf("[EnableDepartment] missing department ID")
+		log.Errorf("[EnableDepartment] missing department ID")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
@@ -244,11 +249,11 @@ func (d *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Requ
 	err := d.departmentService.EnableDisableDepartment(ctx, id, true)
 	if err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("[EnableDepartment] service error: %v", err)
+		log.Errorf("[EnableDepartment] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	d.logger.Infof("[EnableDepartment] request sent successfully for id: %s", id)
+	log.Infof("[EnableDepartment] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessDepartmentEnableRequestCreated, nil)
 }
 
@@ -269,9 +274,10 @@ func (d *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Requ
 func (d *DepartmentHandler) DisableDepartment(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableDepartment", "handler", "department")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, d.logger)
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
-		d.logger.Errorf("[DisableDepartment] missing department ID")
+		log.Errorf("[DisableDepartment] missing department ID")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
@@ -281,10 +287,10 @@ func (d *DepartmentHandler) DisableDepartment(w http.ResponseWriter, r *http.Req
 	err := d.departmentService.EnableDisableDepartment(ctx, id, false)
 	if err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("[DisableDepartment] service error: %v", err)
+		log.Errorf("[DisableDepartment] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	d.logger.Infof("[DisableDepartment] request sent successfully for id: %s", id)
+	log.Infof("[DisableDepartment] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessDepartmentDisableRequestCreated, nil)
 }
