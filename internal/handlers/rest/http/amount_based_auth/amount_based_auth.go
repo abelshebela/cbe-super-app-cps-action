@@ -51,6 +51,7 @@ func NewAmountBasedAuthHandler(service service.AmountBasedAuthService, logger ut
 func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_util.TraceLogger(r.Context(), "handler", "getAllAmountBasedAuth", "handler", "amountBasedAuth")
 	defer span.End()
+	log := common_util.LoggerFromCtx(ctx, a.logger)
 	filterParams := common_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -69,12 +70,12 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 	customers, err := a.Service.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[GetAllAmountBasedAuth] service error: %v", err)
+		log.Errorf("[GetAllAmountBasedAuth] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	a.logger.Infof("[GetAllAmountBasedAuth] retrieved %d amount-based auth tiers", len(customers.Data))
+	log.Infof("[GetAllAmountBasedAuth] retrieved %d amount-based auth tiers", len(customers.Data))
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, customers)
 }
 
@@ -97,6 +98,7 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_util.TraceLogger(r.Context(), "handler", "updateAmountBasedAuth", "handler", "amountBasedAuth")
 	defer span.End()
+	log := common_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
@@ -115,7 +117,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	var request amount_based_auth_dto.UpdateAmountBasedAuthRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[UpdateAmountBasedAuth] failed to decode request: %v", err)
+		log.Errorf("[UpdateAmountBasedAuth] failed to decode request: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Code)
 		return
 	}
@@ -141,7 +143,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 
 	if err := a.Service.UpdateAmountBasedAuth(ctx, id, methodEnum, request); err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[UpdateAmountBasedAuth] service error: %v", err)
+		log.Errorf("[UpdateAmountBasedAuth] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -149,7 +151,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 		localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthRequestSentSP, nil)
 	} else {
 		localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthRequestSent, nil)
-		a.logger.Infof("[UpdateAmountBasedAuth] request sent successfully for id: %s, method: %s", id, method)
+		log.Infof("[UpdateAmountBasedAuth] request sent successfully for id: %s, method: %s", id, method)
 	}
 }
 
@@ -167,8 +169,9 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth/reject/{id} [patch]
 func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
-	_, span := common_util.TraceLogger(r.Context(), "handler", "rejectAmountBasedAuth", "handler", "amountBasedAuth")
+	ctx, span := common_util.TraceLogger(r.Context(), "handler", "rejectAmountBasedAuth", "handler", "amountBasedAuth")
 	defer span.End()
+	log := common_util.LoggerFromCtx(ctx, a.logger)
 
 	idParam, ok := common_util.GetParam(r, "id")
 	if !ok {
@@ -179,14 +182,14 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 	var cpsReq model.CPSAction
 	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[RejectAmountBasedAuth] failed to decode request: %v", err)
+		log.Errorf("[RejectAmountBasedAuth] failed to decode request: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
 
 	span.SetAttributes(attribute.String("amount_based_auth.id", idParam))
 
-	a.logger.Infof("[RejectAmountBasedAuth] rejection request processed for id: %s", idParam)
+	log.Infof("[RejectAmountBasedAuth] rejection request processed for id: %s", idParam)
 	// For rejection, just return success since the actual rejection
 	// would be handled by the CPS action system
 	localization.SendSuccessResponse(w, localization.SuccessUserUpdated, cpsReq)

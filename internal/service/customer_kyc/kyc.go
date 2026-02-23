@@ -57,7 +57,7 @@ func (s *customerKYCService) Create(ctx context.Context, req dto.CreateCustomerK
 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		s.logger.Errorf("[CustomerKYCService.Create] incomplete user data")
+		s.logger.Errorf("[CustKycSvc][Create] incomplete user")
 		return errors.New(constants.IncompleteUserInfo)
 	}
 
@@ -148,7 +148,7 @@ func (s *customerKYCService) Create(ctx context.Context, req dto.CreateCustomerK
 	action := lib.CpsModelBuilder("", makerData, nil, kyc, string(constants.RequestCreateCustomerKYC), constants.CREATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
-		s.logger.Errorf("[CustomerKYCService.Create] failed to create CPS action: %v", err)
+		s.logger.Errorf("[CustKycSvc][Create] cps action err: %v", err)
 		return err
 	}
 
@@ -173,10 +173,10 @@ func (s *customerKYCService) Delete(ctx context.Context, id string) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteKYC", "CustomerKYC", "Delete")
 	defer span.End()
 
-	s.logger.Infof("[CustomerKYCService.Delete] deleting kyc request: %s", id)
+	s.logger.Infof("[CustKycSvc][Delete] id: %s", id)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		s.logger.Errorf("[CustomerKYCService.Delete] incomplete user data")
+		s.logger.Errorf("[CustKycSvc][Delete] incomplete user")
 		return errors.New(constants.IncompleteUserInfo)
 	}
 
@@ -188,7 +188,7 @@ func (s *customerKYCService) Delete(ctx context.Context, id string) error {
 	action := lib.CpsModelBuilder(id, makerData, kyc, nil, string(constants.RequestDeleteCustomerKYC), constants.DELETE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
-		s.logger.Errorf("[CustomerKYCService.Delete] failed to create CPS action: %v", err)
+		s.logger.Errorf("[CustKycSvc][Delete] cps action err: %v", err)
 		return err
 	}
 
@@ -199,10 +199,10 @@ func (s *customerKYCService) UpdateKYCStatus(ctx context.Context, id string, sta
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateKYCStatus", "CustomerKYC", "UpdateKYCStatus")
 	defer span.End()
 
-	s.logger.Infof("[CustomerKYCService.UpdateKYCStatus] updating kyc status for request: %s to %s", id, status)
+	s.logger.Infof("[CustKycSvc][UpdateStatus] id: %s status: %s", id, status)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		s.logger.Errorf("[CustomerKYCService.UpdateKYCStatus] incomplete user data")
+		s.logger.Errorf("[CustKycSvc][UpdateStatus] incomplete user")
 		return errors.New(constants.IncompleteUserInfo)
 	}
 
@@ -217,7 +217,7 @@ func (s *customerKYCService) UpdateKYCStatus(ctx context.Context, id string, sta
 	action := lib.CpsModelBuilder(id, makerData, kyc, currentAction, string(constants.RequestUpdateCustomerKYC), constants.UPDATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
-		s.logger.Errorf("[CustomerKYCService.UpdateKYCStatus] failed to create CPS action: %v", err)
+		s.logger.Errorf("[CustKycSvc][UpdateStatus] cps action err: %v", err)
 		return err
 	}
 
@@ -227,7 +227,7 @@ func (s *customerKYCService) UpdateKYCStatus(ctx context.Context, id string, sta
 func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "CustomerKYC", "Authorize")
 	defer span.End()
-	s.logger.Infof("[CustomerKYCService.Authorize] authorizing kyc action: %s", cpsAction.RequestAction)
+	s.logger.Infof("[CustKycSvc][Authorize] action: %s", cpsAction.RequestAction)
 
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestCreateCustomerKYC):

@@ -848,6 +848,7 @@ func (a *cpsActionAdapter) GetCPSActionByActionCode(w http.ResponseWriter, r *ht
 //	@Security		BearerAuth
 //	@Router			/actions/approver/checker/actions [get]
 func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -893,7 +894,7 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		return
 	}
 
-	a.logger.Infof("Checker Actions: %v", checkerActions)
+	log.Infof("[CpsActionH][Approve] checker actions: %v", checkerActions)
 
 	// resolve action_names -> request_actions
 	var reqs []string
@@ -1352,6 +1353,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 func (a *cpsActionAdapter) GetAuthorizerIndex(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserAuthorizerIndex", "handler", "cpsAction")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	requestAction := chi.URLParam(r, "request_action")
 
 	if requestAction == "" {
@@ -1362,7 +1364,7 @@ func (a *cpsActionAdapter) GetAuthorizerIndex(w http.ResponseWriter, r *http.Req
 	authorizerIndex, err := a.cpsActionApplication.GetUserAuthorizerIndex(ctx, constants.RequestAction(requestAction))
 	if err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[CPSAction.GetActionCounts] service failed %v", err)
+		log.Errorf("[CPSAction.GetActionCounts] service failed %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -1542,12 +1544,13 @@ func (a *cpsActionAdapter) ApproverAuditorAllocations(w http.ResponseWriter, r *
 func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "rejectCpsAction", "handler", "cpsAction")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 
 	requestAction := chi.URLParam(r, "request_action")
 	actionVersion := chi.URLParam(r, "action_version")
 	parsedVersion, err := strconv.ParseInt(actionVersion, 10, 64)
 	if err != nil {
-		a.logger.Infof("location: 0")
+		log.Infof("[CpsActionH][Reject] parse version err")
 
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
@@ -1564,7 +1567,7 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 		if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
 			role, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 			if role == "" {
-				a.logger.Infof("location: 1")
+				log.Infof("[CpsActionH][Reject] empty role")
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
@@ -1573,13 +1576,13 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 			idxDoc, err = repo.FindByRoleAndAction(ctx, role, uppercasedActionName, parsedVersion)
 			if err != nil {
 				span.RecordError(err)
-				a.logger.Infof("location: 2")
+				log.Infof("[CpsActionH][Reject] role lookup err")
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
 
 			if idxDoc == nil || idxDoc.CheckerIndex == nil {
-				a.logger.Infof("location: 3")
+				log.Infof("[CpsActionH][Reject] no checker index")
 
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return

@@ -33,10 +33,10 @@ func NonEmptyString(s, fallback string) string {
 }
 
 func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (string, error) {
-	logger.Infof("Generating prefixed name", "prefix", prefix, "value", value)
+	logger.Infof("[TopupCore][GenPrefix] prefix: %s value: %s", prefix, value)
 
 	if prefix == "" || value == "" {
-		logger.Errorf("Invalid input for GeneratePrefixedName", "prefix", prefix, "value", value)
+		logger.Errorf("[TopupCore][GenPrefix] invalid input prefix: %s value: %s", prefix, value)
 		return "", fmt.Errorf("prefix and value must not be empty")
 	}
 
@@ -46,7 +46,7 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 		return value, nil
 	}
 	result := strings.Join([]string{prefix, value}, "-")
-	logger.Infof("Successfully generated prefixed name", "result", result)
+	logger.Infof("[TopupCore][GenPrefix] result: %s", result)
 	return result, nil
 
 }
