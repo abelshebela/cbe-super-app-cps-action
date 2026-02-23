@@ -9,7 +9,6 @@ import (
 
 func MapParentChildRelationship(relations []local_model.AccessItemRelation, accessList []model.APPAccessList) []model.APPAccessList {
 	var result []model.APPAccessList
-
 	// Build parent to children map and a set of all child keys
 	parentToChildren := make(map[string][]string)
 	childSet := make(map[string]model.APPAccessList)
@@ -21,26 +20,18 @@ func MapParentChildRelationship(relations []local_model.AccessItemRelation, acce
 		childSet[al.Key] = al
 	}
 
-	accountedFor := make(map[string]bool)
 	for parentKey, childKeys := range parentToChildren {
 		parent, ok := childSet[parentKey]
-		if ok {
-			for _, childKey := range childKeys {
-				child, ok := childSet[childKey]
-				if ok && child.Key != parentKey {
-					parent.SubAccessList = append(parent.SubAccessList, modelToSubAccessList(&child))
-				}
-				accountedFor[childKey] = true
+		if !ok {
+			continue
+		}
+		for _, childKey := range childKeys {
+			child, ok := childSet[childKey]
+			if ok && child.Key != parentKey {
+				parent.SubAccessList = append(parent.SubAccessList, modelToSubAccessList(&child))
 			}
-
 		}
-		accountedFor[parentKey] = true
 		result = append(result, parent)
-	}
-	for _, al := range accessList {
-		if _, ok := accountedFor[al.Key]; !ok {
-			result = append(result, al)
-		}
 	}
 	return result
 }
