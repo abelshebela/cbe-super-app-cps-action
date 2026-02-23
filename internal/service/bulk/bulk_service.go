@@ -52,27 +52,20 @@ func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 	cpsAction.LastModifiedAt = Now
 
 	// updateData := cpsAction.CurrentAction.([]string)
-	doc, ok := cpsAction.CurrentAction.([]model.APPAccessList)
-	if !ok {
-		s.logger.Errorf("[Authorize] current action is not a []model.APPAccessList")
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	// extract the "keys" array
-	// var arr bson.A
-	// for _, elem := range doc {
-	// 	if elem.Key == "keys" {
-	// 		arr, ok = elem.Value.(bson.A)
-	// 		break
-	// 	}
-	// }
+	// doc, ok := cpsAction.CurrentAction.([]model.APPAccessList)
 	// if !ok {
-	// 	s.logger.Errorf("[Authorize] keys array is not a bson.A")
+	// 	s.logger.Errorf("[Authorize] current action is not a []model.APPAccessList")
 	// 	return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	// }
 
+	cur, err := local_util.JsonUnmarshal[[]model.APPAccessList](cpsAction.CurrentAction)
+	if err != nil {
+		s.logger.Errorf("[Authorize] failed to unmarshal current action: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
 	var keys []string
-	for _, v := range doc {
+	for _, v := range *cur {
 		keys = append(keys, v.Key)
 	}
 
