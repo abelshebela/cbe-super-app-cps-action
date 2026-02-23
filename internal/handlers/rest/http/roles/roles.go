@@ -51,6 +51,7 @@ func NewRoleHandler(service service.RoleService, logger utils.Logger) inbound.Ro
 //	@Security		BearerAuth
 //	@Router			/roles [get]
 func (j *RoleHandler) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
+	log := common_utils.LoggerFromCtx(r.Context(), j.logger)
 	filterParams := common_utils.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -68,7 +69,7 @@ func (j *RoleHandler) FindAllWithPagination(w http.ResponseWriter, r *http.Reque
 
 	resp, err := j.service.FindAllWithPagination(r.Context(), *filterParams)
 	if err != nil {
-		j.logger.Errorf("[Roles][GetAll] service error: %v", err)
+		log.Errorf("[Roles][GetAll] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -76,14 +77,14 @@ func (j *RoleHandler) FindAllWithPagination(w http.ResponseWriter, r *http.Reque
 }
 
 func (j *RoleHandler) FindAll(w http.ResponseWriter, r *http.Request) {
-
+	log := common_utils.LoggerFromCtx(r.Context(), j.logger)
 	data, err := j.service.FindAll(r.Context())
 	if err != nil {
-		j.logger.Errorf("[Roles][GetAll] service error: %v", err)
+		log.Errorf("[Roles][GetAll] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	j.logger.Infof("[Roles][GetAll] fetched %d roles", len(*data))
+	log.Infof("[Roles][GetAll] fetched %d roles", len(*data))
 	localization.SendSuccessResponse(w, localization.SuccessCPSRoleFetched, data)
 }
 
@@ -102,6 +103,7 @@ func (j *RoleHandler) FindAll(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/roles/{id} [get]
 func (j *RoleHandler) FindById(w http.ResponseWriter, r *http.Request) {
+	log := common_utils.LoggerFromCtx(r.Context(), j.logger)
 	id := chi.URLParam(r, "id")
 	if strings.TrimSpace(id) == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -109,7 +111,7 @@ func (j *RoleHandler) FindById(w http.ResponseWriter, r *http.Request) {
 	}
 	role, err := j.service.FindById(r.Context(), id)
 	if err != nil {
-		j.logger.Errorf("[Roles][GetByID] service error: %v", err)
+		log.Errorf("[Roles][GetByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -130,9 +132,9 @@ func (j *RoleHandler) FindById(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/roles [post]
 func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
-
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	var body roles_dto.CreateJobRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -140,7 +142,7 @@ func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := body.Validate(); err != nil {
-		j.logger.Errorf("[JobRoleHandler] error: %v", err)
+		log.Errorf("[JobRoleHandler] error: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -183,6 +185,7 @@ func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
 	if strings.TrimSpace(id) == "" {
@@ -196,7 +199,7 @@ func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := body.Validate(); err != nil {
-		j.logger.Errorf("[Job Role Handler] error: %v", err.Error())
+		log.Errorf("[Job Role Handler] error: %v", err.Error())
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -244,6 +247,7 @@ func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (j *RoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
 	if strings.TrimSpace(id) == "" {
@@ -252,7 +256,7 @@ func (j *RoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := j.service.EnableOrDisable(ctx, id, true); err != nil {
-		j.logger.Errorf("[RoleHandler][Enable] service error: %v", err)
+		log.Errorf("[RoleHandler][Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -281,6 +285,7 @@ func (j *RoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 func (j *RoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
 	if strings.TrimSpace(id) == "" {
@@ -289,7 +294,7 @@ func (j *RoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := j.service.EnableOrDisable(ctx, id, false); err != nil {
-		j.logger.Errorf("[RoleHandler][Disable] service error: %v", err)
+		log.Errorf("[RoleHandler][Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -318,6 +323,7 @@ func (j *RoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 func (j *RoleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
 	if strings.TrimSpace(id) == "" {
@@ -326,7 +332,7 @@ func (j *RoleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := j.service.Delete(ctx, id); err != nil {
-		j.logger.Errorf("[RoleHandler][Delete] service error: %v", err)
+		log.Errorf("[RoleHandler][Delete] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

@@ -29,10 +29,10 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64, isRequ
 	if err != nil {
 		if err == http.ErrMissingFile {
 			if isRequired {
-				logger.Errorf("Required file '%s' is missing", key)
+				logger.Errorf("[VaultHelper][ParseFile] required file missing: %s", key)
 				return nil, nil, fmt.Errorf("file '%s' is required", key)
 			}
-			logger.Infof("Optional file '%s' not provided - skipping", key)
+			logger.Infof("[VaultHelper][ParseFile] optional file skipped: %s", key)
 			return nil, nil, nil
 		}
 		return nil, nil, fmt.Errorf("error retrieving file '%s': %w", key, err)

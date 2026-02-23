@@ -46,7 +46,7 @@ func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Bulk Service", "Authorize")
 	defer span.End()
 
-	s.logger.Infof("[Authorize] authorizing bulk service action: %s", cpsAction.RequestAction)
+	s.logger.Infof("[BulkSvc][Authorize] action: %s", cpsAction.RequestAction)
 	Now := time.Now()
 	cpsAction.MakerActionTime = Now
 	cpsAction.LastModifiedAt = Now
@@ -82,21 +82,21 @@ func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			span.AddEvent("[Authorize] failed to enable bulk service", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 			))
-			s.logger.Errorf("[Authorize] failed to enable bulk services: %v", err)
+			s.logger.Errorf("[BulkSvc][Authorize] enable err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] successfully enabled %d bulk services", len(keys))
+		s.logger.Infof("[BulkSvc][Authorize] enabled %d", len(keys))
 	case string(constants.RequestBulkServiceDisable):
 		if err := s.repo.Update(ctx, keys, false); err != nil {
 			span.AddEvent("[Authorize] failed to diable bulk services", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 			))
-			s.logger.Errorf("[Authorize] failed to disable bulk services: %v", err)
+			s.logger.Errorf("[BulkSvc][Authorize] disable err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] successfully disabled %d bulk services", len(keys))
+		s.logger.Infof("[BulkSvc][Authorize] disabled %d", len(keys))
 	default:
-		s.logger.Errorf("[Authorize] unsupported action: %s", cpsAction.RequestAction)
+		s.logger.Errorf("[BulkSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 		return nil, errors.New(localization.ErrorInvalidRequiredAction.Code)
 	}
 
@@ -200,7 +200,7 @@ func (s *bulkService) CheckServiceIsEnabledOrDisabled(ctx context.Context, keys 
 
 	if len(invalidDatas) > 0 {
 		span.AddEvent("[CheckServiceIsEnabledOrDisabled] One or more services are not found with these keys")
-		s.logger.Errorf("[CheckServiceIsEnabledOrDisabled] one or more services not found: %v", invalidDatas)
+		s.logger.Errorf("[BulkSvc][CheckState] not found: %v", invalidDatas)
 		return nil, errors.New(localization.ErrorInvalidBulkServiceKey.Code)
 	}
 
@@ -209,14 +209,14 @@ func (s *bulkService) CheckServiceIsEnabledOrDisabled(ctx context.Context, keys 
 
 			if value {
 				span.AddEvent("[CheckServiceIsEnabledOrDisabled] Service already enabled")
-				s.logger.Errorf("[CheckServiceIsEnabledOrDisabled] service already enabled: %s", key)
+				s.logger.Errorf("[BulkSvc][CheckState] already enabled: %s", key)
 				return nil, errors.New(localization.ErrorBulkServiceAlreadyEnabled.Code)
 			}
 		} else {
 
 			if !value {
 				span.AddEvent("[CheckServiceIsEnabledOrDisabled] Service already disabled")
-				s.logger.Errorf("[CheckServiceIsEnabledOrDisabled] service already disabled: %s", key)
+				s.logger.Errorf("[BulkSvc][CheckState] already disabled: %s", key)
 				return nil, errors.New(localization.ErrorBulkServiceAlreadyDisabled.Code)
 			}
 		}
@@ -233,7 +233,7 @@ func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) erro
 
 	if len(keys) == 0 {
 		span.AddEvent("[EnableBulkService] No keys provided to bulk enable")
-		s.logger.Errorf("[EnableBulkService] no keys provided")
+		s.logger.Errorf("[BulkSvc][Enable] no keys")
 		return errors.New(localization.ErrorKeyRequiredForBulkService.Code)
 	}
 
@@ -270,7 +270,7 @@ func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) erro
 
 	if err := s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("[EnableBulkService] Failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[EnableBulkService] failed to create CPS action: %v", err)
+		s.logger.Errorf("[BulkSvc][Enable] cps action err: %v", err)
 		return err
 	}
 	s.logger.Infof("[EnableBulkService] CPS action created successfully for %d services", len(keys))
@@ -283,7 +283,7 @@ func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) err
 
 	if len(keys) == 0 {
 		span.AddEvent("[DisableBulkService] no keys provided")
-		s.logger.Errorf("[DisableBulkService] no keys provided")
+		s.logger.Errorf("[BulkSvc][Disable] no keys")
 		return errors.New(localization.ErrorKeyRequiredForBulkService.Code)
 	}
 
@@ -321,7 +321,7 @@ func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) err
 
 	if err := s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("[DisableBulkService] failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[DisableBulkService] failed to create CPS action: %v", err)
+		s.logger.Errorf("[BulkSvc][Disable] cps action err: %v", err)
 		return err
 	}
 	s.logger.Infof("[DisableBulkService] CPS action created successfully for %d services", len(keys))

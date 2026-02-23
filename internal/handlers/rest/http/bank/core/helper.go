@@ -22,11 +22,11 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64, action
 
 			if action == constants.CREATE {
 				if err == http.ErrMissingFile {
-					logger.Errorf("Error logo file is missing error: %v", err)
+					logger.Errorf("[BankHelper][ParseFile] logo missing: %v", err)
 					return nil, nil, fmt.Errorf("%s", localization.MsgFileNotFound)
 				}
 			}
-			logger.Infof("Logo not provided for update - skipping file update")
+			logger.Infof("[BankHelper][ParseFile] no logo, skipping")
 			return nil, nil, nil
 		}
 

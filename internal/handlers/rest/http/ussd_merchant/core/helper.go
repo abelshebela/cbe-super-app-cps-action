@@ -8,9 +8,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"mime/multipart"
 	"net/http"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 func ParseInputData(ctx context.Context, r *http.Request, req *ussd_merchant_dto.CreateUssdMerchantRequest) error {
@@ -51,11 +52,11 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64, action
 
 			if action == constants.CREATE {
 				if err == http.ErrMissingFile {
-					logger.Errorf("Error logo file is missing error: %v", err)
+					logger.Errorf("[UssdMerchHelper][ParseFile] logo missing: %v", err)
 					return nil, nil, fmt.Errorf("%s", localization.MsgFileNotFound)
 				}
 			}
-			logger.Infof("Logo not provided for update - skipping file update")
+			logger.Infof("[UssdMerchHelper][ParseFile] no logo, skipping")
 			return nil, nil, nil
 		}
 

@@ -153,13 +153,13 @@ func UpdateERP(ctx context.Context, cfg *config.VaultConfig, bankAccountNumber, 
 	}
 	jsonBody, err := json.Marshal(reqBody)
 	if err != nil {
-		logger.Errorf("Failed to marshal ERP update body: %v", err)
+		logger.Errorf("[LogMerchCore][ERPUpdate] marshal err: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, base, bytes.NewBuffer(jsonBody))
 	if err != nil {
-		logger.Errorf("Failed to build ERP update request: %v", err)
+		logger.Errorf("[LogMerchCore][ERPUpdate] build req err: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -168,14 +168,14 @@ func UpdateERP(ctx context.Context, cfg *config.VaultConfig, bankAccountNumber, 
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		logger.Errorf("ERP update request failed: %v", err)
+		logger.Errorf("[LogMerchCore][ERPUpdate] request err: %v", err)
 		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		logger.Errorf("ERP update failed: %s", string(bodyBytes))
+		logger.Errorf("[LogMerchCore][ERPUpdate] failed: %s", string(bodyBytes))
 		return errors.New("ERP update failed")
 	}
 

@@ -47,6 +47,7 @@ func InitFeedbackAdapter(feedbackApplication service.FeedbackService, logger uti
 func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createFeedback", "handler", "feedback")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, f.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
@@ -54,14 +55,14 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
-		f.logger.Errorf("failed to bind feedback data: %v", err)
+		log.Errorf("[FeedbackH][Create] decode body err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
-		f.logger.Errorf("validation failed: %v", err)
+		log.Errorf("[FeedbackH][Create] validate err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -80,7 +81,7 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 	_, err := f.feedbackApplication.CreateFeedback(ctx, req, userID)
 	if err != nil {
 		span.RecordError(err)
-		f.logger.Errorf("[CreateFeedback] service error: %v", err)
+		log.Errorf("[CreateFeedback] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -88,7 +89,7 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 		localization.SendSuccessResponse(w, localization.SuccessFeedbackCreatedSP, nil)
 
 	} else {
-		f.logger.Infof("[CreateFeedback] feedback created successfully by user: %s", userID)
+		log.Infof("[CreateFeedback] feedback created successfully by user: %s", userID)
 		localization.SendSuccessResponse(w, localization.SuccessFeedbackCreated, nil)
 	}
 }
@@ -116,6 +117,7 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getFeedbacks", "handler", "feedback")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, f.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -145,12 +147,12 @@ func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 	feedbacks, err := f.feedbackApplication.GetFeedbacks(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
-		f.logger.Errorf("[GetFeedbacks] service error: %v", err)
+		log.Errorf("[GetFeedbacks] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	span.SetAttributes(attribute.Int("feedback.count", len(feedbacks.Data)))
-	f.logger.Infof("[GetFeedbacks] retrieved %d feedbacks", len(feedbacks.Data))
+	log.Infof("[GetFeedbacks] retrieved %d feedbacks", len(feedbacks.Data))
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedbacks)
 }
 
@@ -171,17 +173,18 @@ func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 func (f *feedbackAdapter) GetFeedbackByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getFeedbackById", "handler", "feedback")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, f.logger)
 	id := chi.URLParam(r, "id")
 
 	// Enhanced ID validation
 	if id == "" {
-		f.logger.Errorf("empty feedback ID provided")
+		log.Errorf("[FeedbackH] empty id")
 		localization.SendErrorByCodeResponse(w, localization.ErrorFeedbackIDRequired.Code)
 		return
 	}
 
 	if len(id) != 24 {
-		f.logger.Errorf("invalid feedback ID format: %s", id)
+		log.Errorf("[FeedbackH] invalid id format: %s", id)
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidIDFormat.Code)
 		return
 	}
@@ -190,12 +193,12 @@ func (f *feedbackAdapter) GetFeedbackByID(w http.ResponseWriter, r *http.Request
 	feedback, err := f.feedbackApplication.GetFeedbackByID(ctx, id)
 	if err != nil {
 		span.RecordError(err)
-		f.logger.Errorf("[GetFeedbackByID] service error for id %s: %v", id, err)
+		log.Errorf("[GetFeedbackByID] service error for id %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	f.logger.Infof("[GetFeedbackByID] feedback retrieved successfully for id: %s", id)
+	log.Infof("[GetFeedbackByID] feedback retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedback)
 }
 
@@ -216,6 +219,7 @@ func (f *feedbackAdapter) GetFeedbackByID(w http.ResponseWriter, r *http.Request
 func (f *feedbackAdapter) GetAllCustomerFeedbacks(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCustomerFeedbacks", "handler", "feedback")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, f.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -234,18 +238,19 @@ func (f *feedbackAdapter) GetAllCustomerFeedbacks(w http.ResponseWriter, r *http
 	feedbacks, err := f.feedbackApplication.GetAllCustomerFeedbacks(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
-		f.logger.Errorf("[GetAllCustomerFeedbacks] service error: %v", err)
+		log.Errorf("[GetAllCustomerFeedbacks] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	span.SetAttributes(attribute.Int("feedback.count", len(feedbacks.Data)))
-	f.logger.Infof("[GetAllCustomerFeedbacks] retrieved %d customer feedbacks", len(feedbacks.Data))
+	log.Infof("[GetAllCustomerFeedbacks] retrieved %d customer feedbacks", len(feedbacks.Data))
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedbacks)
 }
 func (f *feedbackAdapter) GetAllSurveyFeedbacks(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllSurveyFeedbacks", "handler", "feedback")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, f.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -264,13 +269,13 @@ func (f *feedbackAdapter) GetAllSurveyFeedbacks(w http.ResponseWriter, r *http.R
 	feedbacks, err := f.feedbackApplication.GetAllSurveyFeedbacks(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
-		f.logger.Errorf("[GetAllSurveyFeedbacks] service error: %v", err)
+		log.Errorf("[GetAllSurveyFeedbacks] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	span.SetAttributes(attribute.Int("feedback.count", len(feedbacks.Data)))
-	f.logger.Infof("[GetAllSurveyFeedbacks] retrieved %d survey feedbacks", len(feedbacks.Data))
+	log.Infof("[GetAllSurveyFeedbacks] retrieved %d survey feedbacks", len(feedbacks.Data))
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedbacks)
 }
 
@@ -278,11 +283,12 @@ func (f *feedbackAdapter) GetAllSurveyFeedbacks(w http.ResponseWriter, r *http.R
 func (f *feedbackAdapter) GetSurveyFeedbacksByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getSurveyFeedbackByID", "handler", "surveyFeedback")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, f.logger)
 	id := chi.URLParam(r, "id")
 
 	// Enhanced ID validation
 	if id == "" {
-		f.logger.Errorf("empty survey feedback ID provided")
+		log.Errorf("[FeedbackH][GetSurveyByID] empty id")
 		localization.SendErrorByCodeResponse(w, localization.ErrorFeedbackIDRequired.Code)
 		return
 	}
@@ -291,12 +297,12 @@ func (f *feedbackAdapter) GetSurveyFeedbacksByID(w http.ResponseWriter, r *http.
 	SurveyFeedback, err := f.feedbackApplication.GetSurveyFeedbackByID(ctx, id)
 	if err != nil {
 		span.RecordError(err)
-		f.logger.Errorf("[GetSurveyFeedbackByID] service error for id %s: %v", id, err)
+		log.Errorf("[GetSurveyFeedbackByID] service error for id %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	f.logger.Infof("[GetSurveyFeedbackByID] feedback retrieved successfully for id: %s", id)
+	log.Infof("[GetSurveyFeedbackByID] feedback retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, SurveyFeedback)
 }
 
@@ -316,10 +322,11 @@ func (f *feedbackAdapter) GetSurveyFeedbacksByID(w http.ResponseWriter, r *http.
 func (f *feedbackAdapter) GetCustomerFeedback(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCustomerFeedback", "handler", "feedback")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, f.logger)
 	id := chi.URLParam(r, "id")
 
 	if id == "" {
-		f.logger.Errorf("empty feedback ID provided")
+		log.Errorf("[FeedbackH] empty id")
 		localization.SendErrorByCodeResponse(w, localization.ErrorFeedbackIDRequired.Code)
 		return
 	}
@@ -328,11 +335,11 @@ func (f *feedbackAdapter) GetCustomerFeedback(w http.ResponseWriter, r *http.Req
 	feedback, err := f.feedbackApplication.GetCustomerFeedback(ctx, id)
 	if err != nil {
 		span.RecordError(err)
-		f.logger.Errorf("[GetCustomerFeedback] service error for id %s: %v", id, err)
+		log.Errorf("[GetCustomerFeedback] service error for id %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	f.logger.Infof("[GetCustomerFeedback] customer feedback retrieved successfully for id: %s", id)
+	log.Infof("[GetCustomerFeedback] customer feedback retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedback)
 }

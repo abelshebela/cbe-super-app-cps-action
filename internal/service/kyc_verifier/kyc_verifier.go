@@ -179,7 +179,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 	defer span.End()
 
 	if action.ActionStatus != constants.Approved {
-		s.logger.Errorf("Tried to authorize KYC action without approval")
+		s.logger.Errorf("[KycVerifSvc][Authorize] invalid status")
 		span.AddEvent("CPS action status invalid", trace.WithAttributes(
 			attribute.String("error", localization.ErrorCPSActionStatusInvalid.Code),
 			attribute.String("unique_id", action.UniqueId),
@@ -200,7 +200,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 
 		lib.GoRoutinBaker(types.BakerOptions{}, func() {
 			if err := s.repo.Update(ctx, action.UniqueId, updated); err != nil {
-				s.logger.Errorf("[KYCVerifier] Error updating KYC in job proccess: %v", err)
+				s.logger.Errorf("[KycVerifSvc][Authorize] update kyc job err: %v", err)
 				span.AddEvent("Failed to update KYC in job process", trace.WithAttributes(
 					attribute.String("error", err.Error()),
 					attribute.String("unique_id", action.UniqueId),
@@ -212,7 +212,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 
 			user, err := s.userRepo.FindById(bgCtx, action.UniqueId)
 			if err != nil {
-				s.logger.Errorf("[KYCVerifier] Error finding user in job proccess: %v", err)
+				s.logger.Errorf("[KycVerifSvc][Authorize] find user job err: %v", err)
 				span.AddEvent("Failed to find user in job process", trace.WithAttributes(
 					attribute.String("error", err.Error()),
 					attribute.String("unique_id", action.UniqueId),
@@ -220,7 +220,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 			}
 
 			if err := core.AccountCreateAndLink(bgCtx, *action, action.UniqueId, *user, s.accountService, s.userRepo, s.linkedAccountRepo, s.logger); err != nil {
-				s.logger.Errorf("[KYCVerifier] Error creating account in job proccess: %v", err)
+				s.logger.Errorf("[KycVerifSvc][Authorize] create account job err: %v", err)
 				span.AddEvent("Failed to create account in job process", trace.WithAttributes(
 					attribute.String("error", err.Error()),
 					attribute.String("unique_id", action.UniqueId),
@@ -249,14 +249,14 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 
 		// update user
 		if err := core.MapandUpdateuserFromKYC(ctx, s.userRepo, *updated, s.logger); err != nil {
-			s.logger.Errorf("[KYCVerifier] Error updating user in job proccess: %v", err)
+			s.logger.Errorf("[KycVerifSvc][Authorize] update user err: %v", err)
 			span.AddEvent("Failed to update user", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
 		}
 	default:
-		s.logger.Errorf("Unsupported action requested: %s", action.RequestAction)
+		s.logger.Errorf("[KycVerifSvc][Authorize] unsupported action: %s", action.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(action.RequestAction)),

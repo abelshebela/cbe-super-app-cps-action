@@ -30,7 +30,7 @@ func InitServicesAdapter(app service.ServicesService, logger utils.Logger) inbou
 
 func decodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}, logger utils.Logger) bool {
 	if err := json.NewDecoder(r.Body).Decode(dst); err != nil {
-		logger.Errorf("Failed to decode JSON request: %v", err)
+		logger.Errorf("[ServicesH] decode body err: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorInvalidJSONPayload, nil, nil)
 		return false
 	}
@@ -53,12 +53,13 @@ func decodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}, log
 func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "createService", "handler", "services")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	var req servicesdto.CreateServiceRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		a.logger.Errorf("Failed to decode JSON request: %v", err)
+		log.Errorf("[ServicesH][Create] decode body err: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorInvalidJSONPayload, nil, nil)
 		return
 	}
@@ -77,7 +78,7 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		a.logger.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessServiceCreated, nil)
 		return
 	}
@@ -103,6 +104,7 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "updateService", "handler", "services")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
@@ -133,7 +135,7 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		a.logger.Infof("[Update] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[Update] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessServiceUpdated, nil)
 		return
 	}
@@ -159,6 +161,7 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "enableService", "handler", "services")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
@@ -183,7 +186,7 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		a.logger.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessServiceEnabled, nil)
 		return
 	}
@@ -209,6 +212,7 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "disableService", "handler", "services")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
@@ -233,7 +237,7 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		a.logger.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessServiceDisabled, nil)
 		return
 	}
@@ -263,7 +267,8 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 func (a *servicesAdapter) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllServices", "handler", "services")
 	defer span.End()
-
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	_ = log
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -387,7 +392,8 @@ func (a *servicesAdapter) UpdateServiceList(w http.ResponseWriter, r *http.Reque
 func (a *servicesAdapter) GetAllServiceList(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllServicesList", "handler", "servicesList")
 	defer span.End()
-
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	_ = log
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -430,6 +436,8 @@ func (a *servicesAdapter) GetAllServiceList(w http.ResponseWriter, r *http.Reque
 func (a *servicesAdapter) GetByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "getServiceById", "handler", "services")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	_ = log
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("service ID is required for get"))
