@@ -242,7 +242,7 @@ func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) erro
 		return err
 	}
 	// Initialize the map to avoid nil map panic
-	allKeys := make(map[string]interface{})
+	allKeys := make(map[string]model.APPAccessList)
 	for _, access := range allAccessLists {
 		s.logger.Infof("[DisableBulkService] Access List - Key: %s, Enabled: %t", access.Key, access.Enabled)
 		allKeys[access.Key] = access
@@ -253,15 +253,14 @@ func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) erro
 
 	for _, key := range keys {
 		if access, exists := allKeys[key]; exists {
-			accessList := access.(model.APPAccessList)
-			if accessList.Enabled {
+			if access.Enabled {
 				span.AddEvent("[DisableBulkService] service already enabled")
 				s.logger.Errorf("[DisableBulkService] service already enabled: %s", key)
 				return errors.New(localization.ErrorBulkServiceAlreadyEnabled.Code)
 			}
-			disabledKeys = append(disabledKeys, accessList)
-			accessList.Enabled = true
-			noneDisabledKeys = append(noneDisabledKeys, accessList)
+			disabledKeys = append(disabledKeys, access)
+			access.Enabled = true
+			noneDisabledKeys = append(noneDisabledKeys, access)
 		}
 	}
 
