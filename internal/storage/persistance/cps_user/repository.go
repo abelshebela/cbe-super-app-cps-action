@@ -188,7 +188,7 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},
-		bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "date_joined", Value: -1}}}},
 		bson.D{{Key: "$project", Value: bson.M{
 			"_id":           1,
 			"user_code":     1,
@@ -227,6 +227,15 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		}}},
 		bson.D{{Key: "$project", Value: bson.M{
 			"role_info": 0,
+		}}},
+
+		// Add a $group stage to ensure unique results
+		bson.D{{Key: "$group", Value: bson.M{
+			"_id": "$user_code",
+			"doc": bson.M{"$first": "$$ROOT"},
+		}}},
+		bson.D{{Key: "$replaceRoot", Value: bson.M{
+			"newRoot": "$doc",
 		}}},
 
 		// Use $facet for concurrent data fetching and counting
