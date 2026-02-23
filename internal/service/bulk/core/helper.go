@@ -10,13 +10,6 @@ import (
 func MapParentChildRelationship(relations []local_model.AccessItemRelation, accessList []model.APPAccessList) []model.APPAccessList {
 	var result []model.APPAccessList
 
-	// Build a map from key to APPAccessList for quick lookup
-	// accessListMap := make(map[string]*model.APPAccessList)
-	// for i := range accessList {
-	// 	al := &accessList[i]
-	// 	accessListMap[al.Key] = al
-	// }
-
 	// Build parent to children map and a set of all child keys
 	parentToChildren := make(map[string][]string)
 	childSet := make(map[string]model.APPAccessList)
@@ -29,7 +22,10 @@ func MapParentChildRelationship(relations []local_model.AccessItemRelation, acce
 	}
 
 	for parentKey, childKeys := range parentToChildren {
-		parent := childSet[parentKey]
+		parent, ok := childSet[parentKey]
+		if !ok {
+			continue
+		}
 		for _, childKey := range childKeys {
 			child, ok := childSet[childKey]
 			if ok && child.Key != parentKey {
@@ -38,46 +34,6 @@ func MapParentChildRelationship(relations []local_model.AccessItemRelation, acce
 		}
 		result = append(result, parent)
 	}
-
-	// // For each parent, add its children to SubAccessList
-	// for parentKey, childKeys := range parentToChildren {
-	// 	if parentKey == "" {
-	// 		// Treat children with no parent as standalone nodes
-	// 		for _, childKey := range childKeys {
-	// 			child, ok := accessListMap[childKey]
-	// 			if ok {
-	// 				result = append(result, *child)
-	// 			}
-	// 		}
-	// 		continue
-	// 	}
-
-	// 	// Handle case where a node's parent is itself
-	// 	if parent, ok := accessListMap[parentKey]; ok && parentKey == parent.Key {
-	// 		result = append(result, *parent)
-	// 		continue
-	// 	}
-
-	// 	parent, ok := accessListMap[parentKey]
-	// 	if !ok {
-	// 		continue
-	// 	}
-	// 	parent.SubAccessList = []shared_type.SubAccessList{}
-	// 	for _, childKey := range childKeys {
-	// 		child, ok := accessListMap[childKey]
-	// 		if ok {
-	// 			parent.SubAccessList = append(parent.SubAccessList, modelToSubAccessList(child))
-	// 		}
-	// 	}
-	// }
-
-	// // Only return access lists that are not children (i.e., parents or standalone)
-	// for i := range accessList {
-	// 	al := accessList[i]
-	// 	if _, isChild := childSet[al.Key]; !isChild {
-	// 		result = append(result, al)
-	// 	}
-	// }
 	return result
 }
 
