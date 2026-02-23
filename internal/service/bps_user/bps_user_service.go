@@ -261,10 +261,11 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 	}
 
 	is_exist_on_CPS,err := b.CPSUserRepo.FindByEmailOrPhoneNumberOrUserName(ctx,req.Email,req.PhoneNumber,req.Username)
-	if  err != nil {
+	if  err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		b.logger.Errorf("[CreateBPSUser] got error while checking user data exist on cps user ")
 		return errors.New(localization.ErrorInternalServerError.Code)
 	} 
+	
 	if is_exist_on_CPS != nil{
 		if  is_exist_on_CPS.UserName != "" && is_exist_on_CPS.UserName == req.Username {
 		b.logger.Errorf("[CreateBPSUser] user name already exist")
@@ -331,7 +332,7 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 	}
 
 	is_exist_on_CPS,err := b.CPSUserRepo.FindByEmailOrPhoneNumberOrUserName(ctx,updatedUser.Email,updatedUser.PhoneNumber,updatedUser.Username)
-	if  err != nil {
+	if  err != nil  && err.Error()!= localization.ErrorResourceNotFound.Code{
 		b.logger.Errorf("[CreateBPSUser] got error while checking user data exist on cps user ")
 		return errors.New(localization.ErrorInternalServerError.Code)
 	} 
