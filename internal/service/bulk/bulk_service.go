@@ -51,13 +51,6 @@ func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 	cpsAction.MakerActionTime = Now
 	cpsAction.LastModifiedAt = Now
 
-	// updateData := cpsAction.CurrentAction.([]string)
-	// doc, ok := cpsAction.CurrentAction.([]model.APPAccessList)
-	// if !ok {
-	// 	s.logger.Errorf("[Authorize] current action is not a []model.APPAccessList")
-	// 	return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	// }
-
 	cur, err := local_util.JsonUnmarshal[[]model.APPAccessList](cpsAction.CurrentAction)
 	if err != nil {
 		s.logger.Errorf("[Authorize] failed to unmarshal current action: %v", err)
@@ -148,7 +141,7 @@ func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *type
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllBulkServices", "Bulk Service", "GetAllBulkServices")
 	defer span.End()
 
-	result, err := s.repo.FindAllWithPagination(ctx, *filterParams)
+	result, err := s.repo.FindAll(ctx)
 	if err != nil {
 		span.AddEvent("[GetAllBulkServices] failed to fetch bulk services", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -168,7 +161,7 @@ func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *type
 
 	// s.logger.Infof("[GetAllBulkServices] successfully fetched %d bulk services and %d parent-child relationships", len(result.Data), len(relation))
 
-	enabled, disabled := core.SplitEnabledDisabledTree(result.Data)
+	enabled, disabled := core.SplitEnabledDisabledTree(result)
 	// s.logger.Infof("[GetAllBulkServices] split bulk services into %d enabled and %d disabled", len(enabled), len(disabled))
 
 	enabled = core.MapParentChildRelationship(relation, enabled)
