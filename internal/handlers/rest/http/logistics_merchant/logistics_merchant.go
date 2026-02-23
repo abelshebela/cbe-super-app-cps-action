@@ -34,10 +34,11 @@ type LogisticsMerchantHandler struct {
 //	@Security		BearerAuth
 //	@Router			/logistics_merchants [post]
 func (e *LogisticsMerchantHandler) CreateLogisticMerchant(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), e.logger)
 	var req logistics_merchant_dto.CreateLogisticsMerchantRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		e.logger.Errorf("[CreateLogisticsMerchant] decode: %v", err)
+		log.Errorf("[CreateLogisticsMerchant] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
@@ -189,6 +190,7 @@ func (e *LogisticsMerchantHandler) GetLogisticMerchants(w http.ResponseWriter, r
 //	@Security		BearerAuth
 //	@Router			/logistics_merchants/{id} [patch]
 func (e *LogisticsMerchantHandler) UpdateLogisticMerchant(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), e.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
@@ -196,7 +198,7 @@ func (e *LogisticsMerchantHandler) UpdateLogisticMerchant(w http.ResponseWriter,
 	}
 	var req logistics_merchant_dto.UpdateLogisticsMerchantRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		e.logger.Errorf("[UpdateLogisticsMerchant] decode: %v", err)
+		log.Errorf("[UpdateLogisticsMerchant] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}

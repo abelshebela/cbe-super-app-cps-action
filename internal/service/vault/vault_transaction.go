@@ -25,7 +25,7 @@ func (s *vaultCategoryService) FindAllVaultTransactions(ctx context.Context, fil
 	entities, err := s.repo.FindAllTransactionsWithPagination(ctx, *filterParams)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("failed to fetch vault transactions | err=%v", err)
+		s.logger.Errorf("[VaultTxnSvc][FindAll] fetch err: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return &types.PaginatedResponse[[]imodel.VaultTransaction]{
@@ -43,7 +43,7 @@ func (s *vaultCategoryService) FindVaultTransaction(ctx context.Context, id stri
 		if errors.Is(err, sql.ErrNoRows) || err.Error() == localization.ErrorResourceNotFound.Code {
 			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
-		s.logger.Errorf("failed to fetch vault transaction by id | err=%v", err)
+		s.logger.Errorf("[VaultTxnSvc][FindByID] fetch err: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return entity, nil

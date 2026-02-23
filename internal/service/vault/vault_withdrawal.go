@@ -35,7 +35,7 @@ func (s *vaultCategoryService) CreateWithdrawalRequest(ctx context.Context, req 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, withdrawal, string(constants.RequestCreateWithdrawal), string(constants.CREATE))
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
-		s.logger.Errorf("failed to create CPS action for vault withdrawal | action=%s | err=%v", constants.RequestCreateWithdrawal, err)
+		s.logger.Errorf("[VaultWithdrawSvc][Create] cps action err: %v", err)
 		return err
 	}
 	return nil
@@ -50,7 +50,7 @@ func (s *vaultCategoryService) UpdateWithdrawalRequest(ctx context.Context, id s
 		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, mongo.ErrNoDocuments) {
 			return errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
-		s.logger.Errorf("failed to fetch withdrawal request by id | err=%v", err)
+		s.logger.Errorf("[VaultWithdrawSvc][Update] fetch err: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -58,7 +58,7 @@ func (s *vaultCategoryService) UpdateWithdrawalRequest(ctx context.Context, id s
 	payload := map[string]string{"withdrawal_id": id, "withdrawal_status": req.WithdrawalStatus}
 	cpsActionModel := lib.CpsModelBuilder(id, makerData, nil, payload, string(constants.RequestUpdateWithdrawal), string(constants.UPDATE))
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
-		s.logger.Errorf("failed to create CPS action for vault withdrawal update | action=%s | err=%v", constants.RequestUpdateWithdrawal, err)
+		s.logger.Errorf("[VaultWithdrawSvc][Update] cps action err: %v", err)
 		return err
 	}
 	return nil
@@ -74,7 +74,7 @@ func (s *vaultCategoryService) GetAllWithdrawalRequests(ctx context.Context, fil
 	entities, err := s.repo.GetAllWithdrawalRequests(ctx, *filterParams)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("failed to fetch withdrawal requests | err=%v", err)
+		s.logger.Errorf("[VaultWithdrawSvc][GetAll] fetch err: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return entities, nil
@@ -89,7 +89,7 @@ func (s *vaultCategoryService) GetWithdrawalRequest(ctx context.Context, id stri
 		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorVaultCategoryNotFound.Code {
 			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
-		s.logger.Errorf("failed to fetch withdrawal request by id | err=%v", err)
+		s.logger.Errorf("[VaultWithdrawSvc][GetByID] fetch err: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return entity, nil

@@ -30,12 +30,12 @@ func AccountCreateAndLink(ctx context.Context, actionData model.CPSAction, id st
 
 	accountResponse, err := accountLookupService.CreateAccountWithFayda(ctx, data)
 	if err != nil {
-		logger.Errorf("failed to create account with fayda: %v", err)
+		logger.Errorf("[KycVerifCore][CreateLink] create account err: %v", err)
 		return err
 	}
 
 	if err := AccountLinker(ctx, actionData, id, userData, accountResponse, userRepo, linkedAccountRepo, logger); err != nil {
-		logger.Errorf("failed to link account: %v", err)
+		logger.Errorf("[KycVerifCore][CreateLink] link err: %v", err)
 		return err
 	}
 
@@ -79,13 +79,13 @@ func AccountLinker(ctx context.Context, actionData model.CPSAction, id string, u
 				},
 				CreatedAt: time.Now(),
 			}); err != nil {
-				logger.Errorf("failed to create linked account: %v", err)
+				logger.Errorf("[KycVerifCore][Linker] create linked acct err: %v", err)
 			}
 		},
 		func() {
 
 			if err := userRepo.Update(ctx, id, &userData); err != nil {
-				logger.Errorf("failed to update user: %v", err)
+				logger.Errorf("[KycVerifCore][Linker] update user err: %v", err)
 			}
 		})
 	return nil
@@ -94,7 +94,7 @@ func AccountLinker(ctx context.Context, actionData model.CPSAction, id string, u
 func MapandUpdateuserFromKYC(ctx context.Context, userRepo storage.UserRepository, updated model.CustomerKYC, logger utils.Logger) error {
 	user, err := userRepo.FindById(ctx, updated.UserID)
 	if err != nil {
-		logger.Errorf("failed to find user by id: %v", err)
+		logger.Errorf("[KycVerifCore][MapUpdateKYC] find user err: %v", err)
 		return err
 	}
 	// Map fields from updated CustomerKYC to user
@@ -116,7 +116,7 @@ func MapandUpdateuserFromKYC(ctx context.Context, userRepo storage.UserRepositor
 	}
 
 	if err := userRepo.Update(ctx, user.ID.Hex(), user); err != nil {
-		logger.Errorf("failed to update user from KYC: %v", err)
+		logger.Errorf("[KycVerifCore][MapUpdateKYC] update user err: %v", err)
 		return err
 	}
 	return nil

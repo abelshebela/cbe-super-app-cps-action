@@ -56,7 +56,7 @@ func NewWalletService(repo storage.WalletRepository, cps service.CPSActionServic
 func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRequest) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateWallet", "walletService", "walletService")
 	defer span.End()
-	s.logger.Infof("CreateWallet called", "wallet_name", req.Name)
+	s.logger.Infof("[WalletSvc][Create] name: %s", req.Name)
 
 	exist, err := s.repo.Find(ctx, req.UniqueCode, req.Name)
 	if err != nil {
@@ -72,7 +72,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		if strings.EqualFold(strings.TrimSpace(exist.UniqueCode), strings.TrimSpace(req.UniqueCode)) {
 			return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
 		}
-		s.logger.Errorf("wallet already exists wallet: %v", exist)
+		s.logger.Errorf("[WalletSvc][Create] already exists: %v", exist)
 		return errors.New(localization.ErrorWalletServiceIDAlreadyExists.Code)
 	}
 
@@ -90,7 +90,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 	// if err := core.HandleCPSAction(ctx, s.cpsService, wallet.ID.Hex(), constants.RequestCreateWallet, wallet, nil, constants.ActionCreate); err != nil {
 	if err := core.HandleCPSAction(ctx, s.cpsService, "", constants.RequestCreateWallet, wallet, nil, constants.ActionCreate); err != nil {
 		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("unique_code", wallet.UniqueCode)))
-		s.logger.Errorf("CPS action failed for wallet %s: %v", wallet.UniqueCode, err)
+		s.logger.Errorf("[WalletSvc][Create] cps action err: %v", err)
 		return err
 	}
 
@@ -101,7 +101,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateWallet", "walletService", "walletService")
 	defer span.End()
-	s.logger.Infof("UpdateWallet called", "wallet_id", id)
+	s.logger.Infof("[WalletSvc][Update] id: %s", id)
 	prevWallet, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		span.AddEvent("FindByID error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
@@ -120,7 +120,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 				return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
 			}
 		} else {
-			s.logger.Infof("No conflicting wallet name found for update", "wallet_name", req.Name)
+			s.logger.Infof("[WalletSvc][Update] no name conflict: %s", req.Name)
 		}
 	}
 	if req.UniqueCode != "" {
@@ -135,7 +135,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 				return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
 			}
 		} else {
-			s.logger.Infof("No conflicting wallet code found for update", "wallet_code", req.UniqueCode)
+			s.logger.Infof("[WalletSvc][Update] no code conflict: %s", req.UniqueCode)
 		}
 	}
 
@@ -167,7 +167,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestUpdateWallet, UpdateWallet, *prevWallet, constants.ActionUpdate); err != nil {
 		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("unique_code", UpdateWallet.UniqueCode)))
-		s.logger.Errorf("CPS action failed for wallet %s: %v", UpdateWallet.UniqueCode, err)
+		s.logger.Errorf("[WalletSvc][Update] cps action err: %v", err)
 		return err
 	}
 
@@ -191,7 +191,7 @@ func (s *walletService) DeleteWallet(ctx context.Context, id string) error {
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestDeleteWallet, deletedWallet, *prevWallet, constants.ActionDelete); err != nil {
 		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("unique_code", deletedWallet.UniqueCode)))
-		s.logger.Errorf("CPS action failed for wallet %s: %v", deletedWallet.UniqueCode, err)
+		s.logger.Errorf("[WalletSvc][Delete] cps action err: %v", err)
 		return err
 	}
 
@@ -230,7 +230,7 @@ func (s *walletService) EnableOrDisableWallet(ctx context.Context, id string, en
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, action, updatedWallet, *prevWallet, constants.ActionUpdate); err != nil {
 		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("unique_code", updatedWallet.UniqueCode)))
-		s.logger.Errorf("CPS action failed for wallet %s: %v", updatedWallet.UniqueCode, err)
+		s.logger.Errorf("[WalletSvc][EnableDisable] cps action err: %v", err)
 		return err
 	}
 

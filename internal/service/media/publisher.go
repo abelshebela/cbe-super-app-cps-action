@@ -36,7 +36,7 @@ func CreateKafkaProducer(logger utils.Logger, cfg *config.VaultConfig) KafkaProd
 			switch ev := e.(type) {
 			case *kafka.Message:
 				if ev.TopicPartition.Error != nil {
-					logger.Errorf("Delivery failed for local message: %v", ev.TopicPartition.Error)
+					logger.Errorf("[MediaPubSvc][Events] delivery err: %v", ev.TopicPartition.Error)
 				}
 			}
 		}
@@ -67,7 +67,7 @@ func (r *KafkaProducer) produceMessage(topic string, key string, payload interfa
 
 	data, err := json.Marshal(payload)
 	if err != nil {
-		r.logger.Errorf("Failed to marshal payload for topic %s: %v", topic, err)
+		r.logger.Errorf("[MediaPubSvc][Produce] marshal err topic %s: %v", topic, err)
 		return err
 	}
 
@@ -84,10 +84,10 @@ func (r *KafkaProducer) produceMessage(topic string, key string, payload interfa
 	}
 
 	if err := r.producer.Produce(msg, nil); err != nil {
-		r.logger.Errorf("Failed to produce message to topic %s: %v", topic, err)
+		r.logger.Errorf("[MediaPubSvc][Produce] send err topic %s: %v", topic, err)
 		return err
 	}
 
-	r.logger.Infof("Successfully produced to topic=%s", topic)
+	r.logger.Infof("[MediaPubSvc][Produce] sent topic: %s", topic)
 	return nil
 }

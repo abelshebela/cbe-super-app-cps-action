@@ -338,7 +338,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 					role, err := roleRepo.FindByRole(r.Context(), roleCode)
 					if err != nil || role == nil {
 						if guardLogger != nil {
-							guardLogger.Errorf("job_title role lookup failed for role_code %s: %v", roleCode, err)
+							guardLogger.Errorf("[ActionRegistry][RouteGuard] role lookup err code: %s: %v", roleCode, err)
 						}
 						localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 						return
@@ -361,7 +361,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			allowed, err := cpsApproveRepo.ExistsByRoleAndAction(r.Context(), roleCode, action)
 			if err != nil {
 				if guardLogger != nil {
-					guardLogger.Errorf("central guard lookup failed: %v", err)
+					guardLogger.Errorf("[ActionRegistry][RouteGuard] guard lookup err: %v", err)
 				}
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return

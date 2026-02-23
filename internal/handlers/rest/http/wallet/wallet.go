@@ -55,20 +55,21 @@ func InitWalletAdapter(walletApp service.WalletService, logger utils.Logger) wal
 func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createWallet", "handler", "wallet")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 
 	var req walletDto.WalletRequest
 	req, err := walletcore.ParseWalletRequestFromMultipartForm(r, true)
 	if err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("error fetching wallet create request data")
+		log.Errorf("[WalletH][Create] parse form err")
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	a.logger.Infof("this is the wallet request%+v\n", req)
+	log.Infof("[WalletH] req: %+v", req)
 
 	if err := req.Validate(true); err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("wallet request validation failed: %v", err)
+		log.Errorf("[WalletH] validate err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -80,12 +81,12 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 
 	if err := a.walletApp.CreateWallet(ctx, req); err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("failed to create wallet: %v", err)
+		log.Errorf("[WalletH][Create] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	a.logger.Infof("wallet creation request submitted successfully")
+	log.Infof("[WalletH][Create] request submitted")
 	localization.SendSuccessResponse(w, localization.SuccessWalletCreationRequestSent, nil)
 }
 
@@ -112,11 +113,12 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateWallet", "handler", "wallet")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	id := chi.URLParam(r, "id")
 
 	if id == "" {
 		span.RecordError(errors.New("wallet ID is required for update"))
-		a.logger.Errorf("wallet ID is required for update")
+		log.Errorf("[WalletH][Update] id required")
 		localization.SendErrorResponse(w, localization.ErrorWalletIDRequired, nil, nil)
 		return
 	}
@@ -125,20 +127,20 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		span.RecordError(err)
-		a.logger.Errorf("failed to parse wallet update request: %v", err)
+		log.Errorf("[WalletH][Update] parse form err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	a.logger.Infof("this is the wallet request%+v\n", req)
+	log.Infof("[WalletH] req: %+v", req)
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		a.logger.Errorf("failed to parse multipart form: %v", err)
+		log.Errorf("[WalletH][Update] multipart form err: %v", err)
 		localization.SendBadRequestResponse(w, "Failed to parse form data")
 		return
 	}
 
 	if err := req.Validate(false); err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("wallet request validation failed: %v", err)
+		log.Errorf("[WalletH] validate err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -146,7 +148,7 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	if req.IsEmpty() {
 		span.RecordError(errors.New("no data provided for wallet update"))
 
-		a.logger.Warnf("no data provided for wallet update, wallet ID: %s", id)
+		log.Warnf("[WalletH][Update] empty payload id: %s", id)
 		localization.SendErrorResponse(w, localization.ErrorWalletUpdateEmptyPayload, nil, nil)
 		return
 	}
@@ -154,12 +156,12 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("wallet.id", id))
 	if err := a.walletApp.UpdateWallet(ctx, id, req); err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("failed to update wallet (ID: %s): %v", id, err)
+		log.Errorf("[WalletH][Update] svc err id: %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	a.logger.Infof("wallet update request submitted successfully, wallet ID: %s", id)
+	log.Infof("[WalletH][Update] request submitted id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessWalletUpdateRequestSent, nil)
 }
 
@@ -322,6 +324,7 @@ func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 func (a *walletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllWallets", "handler", "wallet")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -337,17 +340,17 @@ func (a *walletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.logger.Infof("fetching wallets with filter: %+v", filter)
+	log.Infof("[WalletH][GetAll] filter: %+v", filter)
 
 	list, err := a.walletApp.GetAllWallet(ctx, *filterParams)
 	if err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("failed to fetch wallets: %v", err)
+		log.Errorf("[WalletH][GetAll] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	span.SetAttributes(attribute.Int("wallet.count", len(list.Data)))
-	a.logger.Infof("wallets fetched successfully")
+	log.Infof("[WalletH][GetAll] ok")
 	localization.SendSuccessResponse(w, localization.SuccessWalletsRetrieved, list)
 }
