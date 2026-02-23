@@ -158,18 +158,17 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 	// }
 
 	publishBody := []model.APPAccessList{}
-	if state {
-		for _, key := range keys {
-			parentFilter := bson.M{"key": key}
-			parentUpdate := bson.M{"enabled": state}
 
-			updatedParent, err := b.mongoDalbulkService.UpdateOne(ctx, parentFilter, parentUpdate)
-			if err != nil {
-				b.logger.Errorf("[UpdateBulkService] failed to update access list: %v", err)
-				return errors.New(localization.ErrorFailToUpdateBulkService.Code)
-			}
-			publishBody = append(publishBody, updatedParent)
+	for _, key := range keys {
+		parentFilter := bson.M{"key": key}
+		parentUpdate := bson.M{"enabled": state}
+
+		updatedParent, err := b.mongoDalbulkService.UpdateOne(ctx, parentFilter, parentUpdate)
+		if err != nil {
+			b.logger.Errorf("[UpdateBulkService] failed to update access list: %v", err)
+			return errors.New(localization.ErrorFailToUpdateBulkService.Code)
 		}
+		publishBody = append(publishBody, updatedParent)
 	}
 
 	b.kafkaProducer.PublishMessage(ctx, publishBody, string(b.cfg.KafkaBulkServiceUpdateTopic), string(b.cfg.KafkaBulkServiceUpdateTopic), "bulk enable/disable access-list parent")
