@@ -22,7 +22,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -51,31 +50,30 @@ func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 	Now := time.Now()
 	cpsAction.MakerActionTime = Now
 	cpsAction.LastModifiedAt = Now
+
 	// updateData := cpsAction.CurrentAction.([]string)
-	doc, ok := cpsAction.CurrentAction.(bson.D)
+	doc, ok := cpsAction.CurrentAction.([]model.APPAccessList)
 	if !ok {
-		s.logger.Errorf("[Authorize] current action is not a bson.D")
+		s.logger.Errorf("[Authorize] current action is not a []model.APPAccessList")
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// extract the "keys" array
-	var arr bson.A
-	for _, elem := range doc {
-		if elem.Key == "keys" {
-			arr, ok = elem.Value.(bson.A)
-			break
-		}
-	}
-	if !ok {
-		s.logger.Errorf("[Authorize] keys array is not a bson.A")
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	// var arr bson.A
+	// for _, elem := range doc {
+	// 	if elem.Key == "keys" {
+	// 		arr, ok = elem.Value.(bson.A)
+	// 		break
+	// 	}
+	// }
+	// if !ok {
+	// 	s.logger.Errorf("[Authorize] keys array is not a bson.A")
+	// 	return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	// }
 
 	var keys []string
-	for _, v := range arr {
-		if s, ok := v.(string); ok {
-			keys = append(keys, s)
-		}
+	for _, v := range doc {
+		keys = append(keys, v.Key)
 	}
 
 	switch cpsAction.RequestAction {
@@ -239,30 +237,43 @@ func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) erro
 		return errors.New(localization.ErrorKeyRequiredForBulkService.Code)
 	}
 
-	validKeys, err := s.CheckServiceIsEnabledOrDisabled(ctx, keys, true)
+	allAccessLists, err := s.repo.FindAll(ctx)
 	if err != nil {
-		span.AddEvent("[EnableBulkService] Validation failed while checking service enableness/disableness", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-		))
-		s.logger.Errorf("[EnableBulkService] validation failed: %v", err)
 		return err
+	}
+	var allKeys map[string]interface{}
+	for _, access := range allAccessLists {
+		s.logger.Infof("[DisableBulkService] Access List - Key: %s, Enabled: %t", access.Key, access.Enabled)
+		allKeys[access.Key] = access
+	}
+
+	var disabledKeys []model.APPAccessList
+	var noneDisabledKeys []model.APPAccessList
+
+	for _, key := range keys {
+		if access, exists := allKeys[key]; exists {
+			accessList := access.(model.APPAccessList)
+			if accessList.Enabled {
+				span.AddEvent("[DisableBulkService] service already enabled")
+				s.logger.Errorf("[DisableBulkService] service already enabled: %s", key)
+				return errors.New(localization.ErrorBulkServiceAlreadyEnabled.Code)
+			}
+			disabledKeys = append(disabledKeys, accessList)
+			accessList.Enabled = true
+			noneDisabledKeys = append(noneDisabledKeys, accessList)
+		}
 	}
 
 	userPayload := local_util.ExtractUserFromContext(ctx)
 
-	type currAction struct {
-		Keys []string
-	}
-	cpsAction := lib.CpsModelBuilder("", userPayload, nil, currAction{
-		Keys: validKeys,
-	}, string(constants.RequestBulkServiceEnable), string(constants.UpdateAction))
+	cpsAction := lib.CpsModelBuilder("", userPayload, disabledKeys, noneDisabledKeys, string(constants.RequestBulkServiceEnable), string(constants.UpdateAction))
 
 	if err := s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("[EnableBulkService] Failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
 		s.logger.Errorf("[EnableBulkService] failed to create CPS action: %v", err)
 		return err
 	}
-	s.logger.Infof("[EnableBulkService] CPS action created successfully for %d services", len(validKeys))
+	s.logger.Infof("[EnableBulkService] CPS action created successfully for %d services", len(keys))
 	return nil
 }
 
@@ -276,31 +287,43 @@ func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) err
 		return errors.New(localization.ErrorKeyRequiredForBulkService.Code)
 	}
 
-	validKeys, err := s.CheckServiceIsEnabledOrDisabled(ctx, keys, false)
+	allAccessLists, err := s.repo.FindAll(ctx)
 	if err != nil {
-		span.AddEvent("[DisableBulkService] Validation failed while checking service enableness/disableness", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-		))
-		s.logger.Errorf("[DisableBulkService] validation failed: %v", err)
 		return err
+	}
+	var allKeys map[string]interface{}
+	for _, access := range allAccessLists {
+		s.logger.Infof("[DisableBulkService] Access List - Key: %s, Enabled: %t", access.Key, access.Enabled)
+		allKeys[access.Key] = access
+	}
+
+	var disabledKeys []model.APPAccessList
+	var noneDisabledKeys []model.APPAccessList
+	for _, key := range keys {
+		if access, exists := allKeys[key]; exists {
+			accessList := access.(model.APPAccessList)
+			if !accessList.Enabled {
+				span.AddEvent("[DisableBulkService] service already disabled")
+				s.logger.Errorf("[DisableBulkService] service already disabled: %s", key)
+				return errors.New(localization.ErrorBulkServiceAlreadyDisabled.Code)
+			}
+			noneDisabledKeys = append(noneDisabledKeys, accessList)
+			accessList.Enabled = false
+			disabledKeys = append(disabledKeys, accessList)
+		}
 	}
 
 	userPayload := local_util.ExtractUserFromContext(ctx)
 
-	type currAction struct {
-		Keys []string
-	}
 	unicode := GenerateUnique14DigitCode()
-	cpsAction := lib.CpsModelBuilder(unicode, userPayload, nil, currAction{
-		Keys: validKeys,
-	}, string(constants.RequestBulkServiceDisable), string(constants.UpdateAction))
+	cpsAction := lib.CpsModelBuilder(unicode, userPayload, noneDisabledKeys, disabledKeys, string(constants.RequestBulkServiceDisable), string(constants.UpdateAction))
 
 	if err := s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("[DisableBulkService] failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
 		s.logger.Errorf("[DisableBulkService] failed to create CPS action: %v", err)
 		return err
 	}
-	s.logger.Infof("[DisableBulkService] CPS action created successfully for %d services", len(validKeys))
+	s.logger.Infof("[DisableBulkService] CPS action created successfully for %d services", len(keys))
 	return nil
 }
 
