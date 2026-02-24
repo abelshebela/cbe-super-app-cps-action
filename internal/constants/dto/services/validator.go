@@ -8,19 +8,30 @@ import (
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
+const (
+	maximunTransferCapLimit = 1000000000.0
+)
+
 func (c CapRequest) Validate() error {
 	return validation.ValidateStruct(&c,
 		validation.Field(&c.Currency, validation.NotNil, is.CurrencyCode),
-		validation.Field(&c.SingleCap, validation.NotNil, validation.Min(0.0)),
-		validation.Field(&c.MinimumTransferCap, validation.NotNil, validation.Min(0.0), validation.By(func(value interface{}) error {
-			if c.SingleCap == nil || c.MinimumTransferCap == nil {
+		validation.Field(&c.SingleCap,
+			validation.NotNil,
+			validation.Min(0.0),
+			validation.Max(maximunTransferCapLimit).Error("must be no greater than 1,000,000,000"),
+		),
+		validation.Field(&c.MinimumTransferCap,
+			validation.NotNil,
+			validation.Min(0.0),
+			validation.By(func(value interface{}) error {
+				if c.SingleCap == nil || c.MinimumTransferCap == nil {
+					return nil
+				}
+				if *c.MinimumTransferCap > *c.SingleCap {
+					return fmt.Errorf("minimum transfer cap must not be greater than the single maximum transfer cap")
+				}
 				return nil
-			}
-			if *c.MinimumTransferCap > *c.SingleCap {
-				return fmt.Errorf("minimum transfer cap must not be greater than the single maximum transfer cap")
-			}
-			return nil
-		})),
+			})),
 	)
 }
 

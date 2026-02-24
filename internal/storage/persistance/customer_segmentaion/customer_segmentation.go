@@ -137,10 +137,10 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
-			{"customer_role": searchRegex},
-			{"customer_segment": searchRegex},
-			{"customer_sub_segment": searchRegex},
-			{"customer_group": searchRegex},
+			{"customer_role.name": searchRegex},
+			{"t24_customer_sub_segments.customer_segment": searchRegex},
+			{"t24_customer_sub_segments.customer_sub_segment": searchRegex},
+			{"t24_customer_sub_segments.customer_group": searchRegex},
 		}
 	}
 
@@ -155,7 +155,6 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 			delete(filter, "is_enabled")
 		}
 	}
-	local_util.PrintJSON(filter)
 
 	data, err := r.dal.FindAllWithPaginationE(ctx, filter, projection, skip, limit)
 	if err != nil {
