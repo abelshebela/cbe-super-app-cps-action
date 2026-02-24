@@ -241,6 +241,7 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		// Use $facet for concurrent data fetching and counting
 		bson.D{{Key: "$facet", Value: bson.M{
 			"data": []bson.D{
+				{{Key: "$sort", Value: bson.D{{Key: "date_joined", Value: -1}}}}, // Ensure sorting within the facet
 				{{Key: "$skip", Value: skip}},
 				{{Key: "$limit", Value: limit}},
 			},
