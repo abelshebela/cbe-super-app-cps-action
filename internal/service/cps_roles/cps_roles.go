@@ -103,6 +103,7 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 	if req.Name != nil {
 		updated.Name = *req.Name
 	}
+
 	if req.RoleCode != nil {
 		updated.RoleCode = *req.RoleCode
 	}

@@ -83,6 +83,7 @@ const (
 	RequestDeleteAmountBasedAuth RequestAction = "DELETE_AMOUNT_BASED_AUTH"
 	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"
 	RequestUpdateAmountBasedAuth RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
+	RequestResetAmountBasedAuth  RequestAction = "RESET_AMOUNT_BASED_AUTH"
 	RequestUser                  RequestAction = "USER"
 	RequestCpsUserCreate         RequestAction = "CREATE_CPS_USER"
 	RequestCpsUserUpdate         RequestAction = "UPDATE_CPS_USER"
@@ -447,6 +448,7 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteAmountBasedAuth: {},
 	RequestCreateAmountBasedAuth: {},
 	RequestUpdateAmountBasedAuth: {},
+	RequestResetAmountBasedAuth:  {},
 	RequestUser:                  {},
 
 	RequestUpdateAccountValidation: {},
@@ -785,6 +787,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateAmountBasedAuth,
 		RequestUpdateAmountBasedAuth,
 		RequestDeleteAmountBasedAuth,
+		RequestResetAmountBasedAuth,
 		RequestAuthTier,
 	},
 	"USER": {
