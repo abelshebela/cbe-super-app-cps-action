@@ -29,20 +29,20 @@ import (
 )
 
 type bpsUserService struct {
-	cpsService service.CPSActionService
-	repo       storage.BPSUserRepository
+	cpsService  service.CPSActionService
+	repo        storage.BPSUserRepository
 	CPSUserRepo storage.CpsUserRepository
-	roles_repo storage.RoleRepository
-	logger     utils.Logger
+	roles_repo  storage.RoleRepository
+	logger      utils.Logger
 }
 
-func NewBPSUserService(repo storage.BPSUserRepository, rolesRepo storage.RoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository,logger utils.Logger) service.BPSUserService {
+func NewBPSUserService(repo storage.BPSUserRepository, rolesRepo storage.RoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository, logger utils.Logger) service.BPSUserService {
 	return &bpsUserService{
-		cpsService: cpsService,
-		repo:       repo,
+		cpsService:  cpsService,
+		repo:        repo,
 		CPSUserRepo: cpsUserRepo,
-		roles_repo: rolesRepo,
-		logger:     logger,
+		roles_repo:  rolesRepo,
+		logger:      logger,
 	}
 }
 
@@ -260,15 +260,15 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		return errors.New(localization.ErrorRoleNotFound.Code)
 	}
 
-	is_exist_on_CPS,err := b.CPSUserRepo.FindByEmailOrPhoneNumberOrUserName(ctx,req.Email,req.PhoneNumber,req.Username)
-	if  err != nil {
+	is_exist_on_CPS, err := b.CPSUserRepo.FindByEmailOrPhoneNumberOrUserName(ctx, req.Email, req.PhoneNumber, req.Username)
+	if err != nil {
 		b.logger.Errorf("[CreateBPSUser] got error while checking user data exist on cps user ")
 		return errors.New(localization.ErrorInternalServerError.Code)
-	} 
-	if is_exist_on_CPS != nil{
-		if  is_exist_on_CPS.UserName != "" && is_exist_on_CPS.UserName == req.Username {
-		b.logger.Errorf("[CreateBPSUser] user name already exist")
-		return errors.New(localization.ErrorExistUserName.Code)
+	}
+	if is_exist_on_CPS != nil {
+		if is_exist_on_CPS.UserName != "" && is_exist_on_CPS.UserName == req.Username {
+			b.logger.Errorf("[CreateBPSUser] user name already exist")
+			return errors.New(localization.ErrorExistUserName.Code)
 		}
 
 		if is_exist_on_CPS.Email != "" && is_exist_on_CPS.Email == req.Email {
@@ -277,7 +277,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 
 		}
 
-		if is_exist_on_CPS.PhoneNumber != "" && is_exist_on_CPS.PhoneNumber ==req.PhoneNumber{
+		if is_exist_on_CPS.PhoneNumber != "" && is_exist_on_CPS.PhoneNumber == req.PhoneNumber {
 			b.logger.Errorf("[CreateBPSUser] phone number already exist")
 			return errors.New(localization.ErrorExistPhoneNumber.Code)
 		}
@@ -330,15 +330,15 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 		return err
 	}
 
-	is_exist_on_CPS,err := b.CPSUserRepo.FindByEmailOrPhoneNumberOrUserName(ctx,updatedUser.Email,updatedUser.PhoneNumber,updatedUser.Username)
-	if  err != nil {
+	is_exist_on_CPS, err := b.CPSUserRepo.FindByEmailOrPhoneNumberOrUserName(ctx, updatedUser.Email, updatedUser.PhoneNumber, updatedUser.Username)
+	if err != nil {
 		b.logger.Errorf("[CreateBPSUser] got error while checking user data exist on cps user ")
 		return errors.New(localization.ErrorInternalServerError.Code)
-	} 
-	if is_exist_on_CPS != nil{
-		if  is_exist_on_CPS.UserName != "" && is_exist_on_CPS.UserName == updatedUser.Username {
-		b.logger.Errorf("[CreateBPSUser] user name already exist")
-		return errors.New(localization.ErrorExistUserName.Code)
+	}
+	if is_exist_on_CPS != nil {
+		if is_exist_on_CPS.UserName != "" && is_exist_on_CPS.UserName == updatedUser.Username {
+			b.logger.Errorf("[CreateBPSUser] user name already exist")
+			return errors.New(localization.ErrorExistUserName.Code)
 		}
 
 		if is_exist_on_CPS.Email != "" && is_exist_on_CPS.Email == updatedUser.Email {
@@ -347,7 +347,7 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 
 		}
 
-		if is_exist_on_CPS.PhoneNumber != "" && is_exist_on_CPS.PhoneNumber == updatedUser.PhoneNumber{
+		if is_exist_on_CPS.PhoneNumber != "" && is_exist_on_CPS.PhoneNumber == updatedUser.PhoneNumber {
 			b.logger.Errorf("[CreateBPSUser] phone number already exist")
 			return errors.New(localization.ErrorExistPhoneNumber.Code)
 		}
