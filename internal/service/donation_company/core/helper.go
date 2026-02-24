@@ -42,8 +42,8 @@ func CheckIfAccountExists(ctx context.Context, accountNumber string, repo storag
 	donCompany, err := repo.FindByAccountNumber(ctx, accountNumber)
 	if err != nil {
 		if err.Error() == "ERROR_RESOURCE_NOT_FOUND" {
-		return  nil
-	}
+			return nil
+		}
 		return err
 	}
 	if donCompany.AccountNumber != "" {

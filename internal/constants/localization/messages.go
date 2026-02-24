@@ -596,12 +596,12 @@ const (
 	MsgExistEmail                   = "user with this email already exist"
 	MsgExistUser                    = "user with this already exist"
 
-	MsgExistEmailBpsUser = "BPS user with this email already exist"
+	MsgExistEmailBpsUser = "user with this email already exist"
 
-	MsgExistUserName        = "cps user with this username already exist"
-	MsgExistUserNameBPSUser = "bps user with this username already exist"
+	MsgExistUserName        = " user with this username already exist"
+	MsgExistUserNameBPSUser = "user with this username already exist"
 
-	MsgBpsUserEmailExist                     = "A BPS user with this email already exists"
+	MsgBpsUserEmailExist                     = "A user with this email already exists"
 	MsgExistPhoneNumber                      = "user with this  phone Number already exist"
 	MsgInvalidDate                           = "Invalid date format"
 	MsgInvalidAction                         = "Invalid Action"

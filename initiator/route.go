@@ -94,7 +94,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	router.Use(customeMiddleware.ChiLogger(logger))
 
 	router.Use(customeMiddleware.HandlePanic(logger))
-	router.Use(customeMiddleware.CORS())
+	router.Use(customeMiddleware.CORS(cfg))
 	router.Use(middleware.Timeout(30 * time.Second))
 	router.Use(middleware.Compress(5, "application/json"))
 
