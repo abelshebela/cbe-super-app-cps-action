@@ -360,9 +360,10 @@ func (a *AccessListSegmentationService) GetAllAccessListSegmentationBySegmentIDo
 		return nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	accessList, segmentedAccessList := access_list_segmentation_core.MapParentChildRelationship(accessListSegmentation, realtions, &accessList)
+	accessList = access_list_segmentation_core.MapParentChildRelationship(realtions, accessList)
+	accessListSegmentation = access_list_segmentation_core.MapParentChildRelationship(realtions, accessListSegmentation)
 
-	return accessList, segmentedAccessList, nil
+	return accessList, accessListSegmentation, nil
 }
 
 func NewAccessListSegmentationService(repo storage.AccessListSegmentationRepository, cpsAction service.CPSActionService, accessListServiceRepo storage.AppAccessListRepository, accBlock storage.AccountBlockRepository, memberRepo storage.CustomerRepository, customerSeg storage.CPSRolesRepository, logger utils.Logger) service.AccessListSegmentationService {

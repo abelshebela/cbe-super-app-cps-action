@@ -4,20 +4,23 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"strings"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"go.mongodb.org/mongo-driver/v2/bson"
+
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"errors"
 	"time"
 
-	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -45,6 +48,7 @@ func NewCPSRolesStorage(client *mongo.Client, cfg *config.VaultConfig, dbName, c
 }
 
 func (m *cpsRoleStorage) Create(ctx context.Context, req imodel.CPSRoles) error {
+	req.Name = strings.ToUpper(req.Name)
 	_, err := m.dal.InsertOne(ctx, req)
 	if err != nil {
 		m.logger.Errorf("[CPSRolesStorage][Create] failed to create cps role: %v", err)
@@ -62,9 +66,17 @@ func (m *cpsRoleStorage) Update(ctx context.Context, id string, req imodel.CPSRo
 
 	filter := bson.M{"_id": objID}
 	update := bson.M{
-		"name":       req.Name,
-		"enabled":    req.Enabled,
 		"updated_at": time.Now(),
+	}
+
+	if req.Name != "" {
+		update["name"] = strings.ToUpper(req.Name)
+	}
+	if req.RoleCode != "" {
+		update["role_code"] = req.RoleCode
+	}
+	if req.Description != "" {
+		update["description"] = req.Description
 	}
 
 	updatedCPSRole, err := m.dal.UpdateOne(ctx, filter, update)

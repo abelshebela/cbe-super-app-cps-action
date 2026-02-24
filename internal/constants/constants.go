@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// ---------------------------------------------------------------------------
+// --------------------------------------------------------------------------
 // Type Definitions
 // ---------------------------------------------------------------------------
 
@@ -725,6 +725,7 @@ const (
 	RequestDeleteAmountBasedAuth RequestAction = "DELETE_AMOUNT_BASED_AUTH"
 	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"
 	RequestUpdateAmountBasedAuth RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
+	RequestResetAmountBasedAuth  RequestAction = "RESET_AMOUNT_BASED_AUTH"
 
 	// Advert
 	RequestCreateAdvert  RequestAction = "CREATE_ADVERT"
