@@ -1,28 +1,104 @@
 package amount_based_auth
 
 import (
-	shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"cbe-super-app-cps-action/internal/constants"
 )
+
+// ----------- Valid methods set -----------
+
+var ValidMethods = map[constants.Method]bool{
+	constants.OPEN:      true,
+	constants.PIN:       true,
+	constants.OTPANDPIN: true,
+}
+
+// ----------- TierInput -----------
+
+type TierInput struct {
+	Method    constants.Method `json:"method"`
+	MinAmount uint64           `json:"min_amount"`
+	MaxAmount uint64           `json:"max_amount"`
+}
+
+// ----------- AddCurrencyRequest -----------
+
+type AddCurrencyRequest struct {
+	Currency constants.CurrencyType `json:"currency"`
+	Methods  []constants.Method     `json:"methods"`
+	Tiers    []TierInput            `json:"tiers"`
+}
+
+func (r AddCurrencyRequest) Validate() bool {
+	// if r.Currency != constants.ETB && r.Currency != constants.USD {
+	// 	return false
+	// }
+	if len(r.Methods) == 0 {
+		return false
+	}
+	if len(r.Tiers) != len(r.Methods) {
+		return false
+	}
+	// check each method is valid and no duplicates
+	seen := map[constants.Method]bool{}
+	for _, m := range r.Methods {
+		if !ValidMethods[m] {
+			return false
+		}
+		if seen[m] {
+			return false
+		}
+		seen[m] = true
+	}
+	// validate tier amounts
+	for i, t := range r.Tiers {
+		if t.MinAmount == 0 {
+			return false
+		}
+		isLast := i == len(r.Tiers)-1
+		if !isLast && t.MaxAmount == 0 {
+			return false
+		}
+		if !isLast && t.MinAmount >= t.MaxAmount {
+			return false
+		}
+	}
+	return true
+}
+
+// ----------- ResetConfigRequest -----------
+
+type ResetConfigRequest struct {
+	Methods []constants.Method `json:"methods"`
+	Tiers   []TierInput        `json:"tiers"`
+}
+
+func (r ResetConfigRequest) Validate(currency constants.CurrencyType) bool {
+	return AddCurrencyRequest{
+		Currency: currency,
+		Methods:  r.Methods,
+		Tiers:    r.Tiers,
+	}.Validate()
+}
+
+// ----------- CurrencyGroup (grouped response) -----------
+
+type CurrencyGroup struct {
+	Currency constants.CurrencyType `json:"currency"`
+	Tiers    []TierResponse         `json:"tiers"`
+}
+
+type TierResponse struct {
+	ID        string           `json:"id"`
+	Method    constants.Method `json:"method"`
+	MinAmount uint64           `json:"min_amount"`
+	MaxAmount uint64           `json:"max_amount"`
+	Enabled   bool             `json:"enabled"`
+}
+
+// ----------- UpdateAmountBasedAuthRequest (existing) -----------
 
 // UpdateAmountBasedAuthRequest carries fields for updating any tier type
 type UpdateAmountBasedAuthRequest struct {
 	MinAmount uint64 `json:"min_amount,omitempty"`
 	MaxAmount uint64 `json:"max_amount,omitempty"`
-}
-
-// Validate ensures the request has valid data based on the method
-func (r UpdateAmountBasedAuthRequest) Validate(method shared_constants.Method) bool {
-	switch method {
-	case shared_constants.OPEN:
-		// OPEN tier only needs MaxAmount
-		return r.MaxAmount > 0
-	case shared_constants.PIN:
-		// PIN tier needs both MinAmount and MaxAmount
-		return r.MinAmount > 0 && r.MaxAmount > 0
-	case shared_constants.OTPANDPIN:
-		// OTP_PIN tier only needs MinAmount
-		return r.MinAmount > 0
-	default:
-		return false
-	}
 }

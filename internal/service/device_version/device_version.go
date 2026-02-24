@@ -60,18 +60,18 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestCreateDeviceVersion):
 		actionData.CreatedAt = time.Now()
-		if actionData.ForceUpdate{
-		err = d.DisableExistingDeviceVersion(ctx, actionData.Platform)
-		if err != nil {
-			d.logger.Errorf("[DevVerSvc][Authorize] disable existing err: %v", err)
-			span.AddEvent("Failed to disable existing device version", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("platform", actionData.Platform),
-			))
-			return nil, err
+		if actionData.ForceUpdate {
+			err = d.DisableExistingDeviceVersion(ctx, actionData.Platform)
+			if err != nil {
+				d.logger.Errorf("[DevVerSvc][Authorize] disable existing err: %v", err)
+				span.AddEvent("Failed to disable existing device version", trace.WithAttributes(
+					attribute.String("error", err.Error()),
+					attribute.String("platform", actionData.Platform),
+				))
+				return nil, err
+			}
 		}
-		}
-		
+
 		if err = d.deviceVersionRepo.Save(ctx, *actionData); err != nil {
 			d.logger.Errorf("[DevVerSvc][Authorize] create err: %v", err)
 			span.AddEvent("Device version create action failed", trace.WithAttributes(

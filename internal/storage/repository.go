@@ -251,10 +251,15 @@ type BudgetCategoryRepository interface {
 
 // AmountBasedAuth persistence
 type AmountBasedAuthRepository interface {
-	Update(ctx context.Context, id string, update *model.AuthTier) error
-	FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]model.AuthTier, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.AuthTier], error)
-	FindByID(ctx context.Context, id string) (*model.AuthTier, error)
+	Create(ctx context.Context, tier *local_model.AuthTier) error
+	CreateMany(ctx context.Context, tiers []local_model.AuthTier) error
+	Update(ctx context.Context, id string, update *local_model.AuthTier) error
+	FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]local_model.AuthTier, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.AuthTier], error)
+	FindByID(ctx context.Context, id string) (*local_model.AuthTier, error)
+	FindByCurrency(ctx context.Context, currency string) ([]local_model.AuthTier, error)
+	CurrencyExists(ctx context.Context, currency string) (bool, error)
+	DeleteByCurrency(ctx context.Context, currency string) error
 }
 
 // AccountBlock persistence
