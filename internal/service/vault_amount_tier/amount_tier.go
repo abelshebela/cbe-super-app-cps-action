@@ -48,7 +48,7 @@ func (s *VaultAmountTierService) CreateAmountTier(ctx context.Context, req *vaul
 	cpsAction := lib.CpsModelBuilder("", makerData, nil, current, string(constants.RequestCreateVaultAmountTier), string(constants.CREATE))
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-		s.logger.Errorf("[CreateAmountTier] failed to create cps action: %v", err)
+		s.logger.Errorf("[VaultTierSvc][Create] cps action err: %v", err)
 		return "", err
 	}
 
@@ -78,7 +78,7 @@ func (s *VaultAmountTierService) UpdateAmountTier(ctx context.Context, id string
 	cpsAction := lib.CpsModelBuilder(id, makerData, nil, current, string(constants.RequestUpdateVaultAmountTier), string(constants.UPDATE))
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-		s.logger.Errorf("[UpdateAmountTier] failed to create cps action: %v", err)
+		s.logger.Errorf("[VaultTierSvc][Update] cps action err: %v", err)
 		return "", err
 	}
 
@@ -94,7 +94,7 @@ func (s *VaultAmountTierService) DeleteAmountTier(ctx context.Context, id string
 	cpsAction := lib.CpsModelBuilder(id, makerData, nil, current, string(constants.RequestDeleteVaultAmountTier), string(constants.UPDATE))
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-		s.logger.Errorf("[UpdateAmountTier] failed to create cps action: %v", err)
+		s.logger.Errorf("[VaultTierSvc][Delete] cps action err: %v", err)
 		return "", err
 	}
 
@@ -116,7 +116,7 @@ func (s *VaultAmountTierService) EnableOrDisableAmountTier(ctx context.Context, 
 	cpsAction := lib.CpsModelBuilder(id, makerData, nil, current, requestType, string(constants.UPDATE))
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-		s.logger.Errorf("[UpdateAmountTier] failed to create cps action: %v", err)
+		s.logger.Errorf("[VaultTierSvc][EnableDisable] cps action err: %v", err)
 		return "", err
 	}
 
@@ -127,20 +127,20 @@ func (s *VaultAmountTierService) Authorize(ctx context.Context, cpsAction *model
 	ctx, span := utils.TraceLogger(ctx, "service", "Authorize", "Bank Vault", "Authorize")
 	defer span.End()
 
-	s.logger.Infof("[Authorize] authorizing bank vault action: %s", cpsAction.RequestAction)
+	s.logger.Infof("[VaultTierSvc][Authorize] action: %s", cpsAction.RequestAction)
 
 	var actionMap interface{}
 	marshaled, err := json.Marshal(cpsAction.CurrentAction)
 	if err != nil {
 		span.AddEvent("Failed to marshal CurrentAction")
-		s.logger.Errorf("failed to marshal CurrentAction: %v\n", err)
+		s.logger.Errorf("[VaultTierSvc][Authorize] marshal err: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	err = json.Unmarshal(marshaled, &actionMap)
 	if err != nil {
 		span.AddEvent("Failed to unmarshal CurrentAction")
-		s.logger.Errorf("failed to unmarshal CurrentAction: %v\n", err)
+		s.logger.Errorf("[VaultTierSvc][Authorize] unmarshal err: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
@@ -151,7 +151,7 @@ func (s *VaultAmountTierService) Authorize(ctx context.Context, cpsAction *model
 		_, err := s.repo.Create(ctx, &actionData)
 		if err != nil {
 			span.AddEvent("Failed to create vault amount tier")
-			s.logger.Errorf("[VaultAmountTier Authorize] failed to authorize creation %v", err)
+			s.logger.Errorf("[VaultTierSvc][Authorize] create err: %v", err)
 			return nil, err
 		}
 		return cpsAction, nil
@@ -207,6 +207,6 @@ func (s *VaultAmountTierService) Authorize(ctx context.Context, cpsAction *model
 	}
 
 	span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", cpsAction.RequestAction)))
-	s.logger.Errorf("[Authorize] unsupported action: %s", cpsAction.RequestAction)
+	s.logger.Errorf("[VaultTierSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 	return nil, errors.New(localization.ErrorInvalidRequest.Code)
 }

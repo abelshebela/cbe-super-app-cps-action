@@ -37,7 +37,7 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Media", "Authorize")
 	defer span.End()
 
-	m.logger.Infof("Media short video service authorizing action: %s", cpsAction.ActionCode)
+	m.logger.Infof("[ShortVideoSvc][Authorize] action: %s", cpsAction.ActionCode)
 
 	const (
 		NewsShortVideoCacheKeyPattern   = "news:shortVideo:%s"
@@ -65,9 +65,9 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 		}
 
 		if err := m.producer.PublishShortVideoEvent(shortVideo.VideoURL, shortVideo.ID.Hex()); err != nil {
-			m.logger.Errorf("Failed to publish short video event for short video %s: %v", shortVideo.ID, err)
+			m.logger.Errorf("[ShortVideoSvc][Authorize] publish err: %v", err)
 		} else {
-			m.logger.Infof("Successfully published short video event for short video %s", shortVideo.ID)
+			m.logger.Infof("[ShortVideoSvc][Authorize] published id: %s", shortVideo.ID)
 		}
 	case string(constants.RequestUpdateShortVideo):
 		err = m.repo.Update(ctx, shortVideo.ToShortVideo(), cpsAction.UniqueId)
@@ -90,9 +90,9 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 
 		if shortVideo.VideoURL != prevVideo.VideoURL {
 			if err := m.producer.PublishShortVideoEvent(shortVideo.VideoURL, shortVideo.ID.Hex()); err != nil {
-				m.logger.Errorf("Failed to publish short video event for short video %s: %v", shortVideo.ID, err)
+				m.logger.Errorf("[ShortVideoSvc][Authorize] publish err: %v", err)
 			} else {
-				m.logger.Infof("Successfully published short video event for short video %s", shortVideo.ID)
+				m.logger.Infof("[ShortVideoSvc][Authorize] published id: %s", shortVideo.ID)
 			}
 		}
 
@@ -143,7 +143,7 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 			m.logger.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
 		}
 	default:
-		m.logger.Errorf("Unsupported request action: %s", cpsAction.RequestAction)
+		m.logger.Errorf("[ShortVideoSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 		span.AddEvent("Unsupported request action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorInvalidRequest.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
@@ -152,7 +152,7 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 	}
 
 	cpsAction.CurrentAction = shortVideo
-	m.logger.Infof("Action %s approved for shortVideo shortVideo %s", cpsAction.RequestAction, shortVideo.ID)
+	m.logger.Infof("[ShortVideoSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, shortVideo.ID)
 	return cpsAction, nil
 
 }

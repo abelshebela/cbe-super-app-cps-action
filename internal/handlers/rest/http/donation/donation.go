@@ -58,6 +58,7 @@ func NewDonationAdapter(donationApp service.DonationService, logger utils.Logger
 func (d *donationAdapter) CreateDonation(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createDonation", "handler", "donation")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -65,14 +66,14 @@ func (d *donationAdapter) CreateDonation(w http.ResponseWriter, r *http.Request)
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to parse request from multipart form: %v", err)
+		log.Errorf("[DonationH] parse form err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("request validation failed: %v", err)
+		log.Errorf("[DonationH] validate err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -85,7 +86,7 @@ func (d *donationAdapter) CreateDonation(w http.ResponseWriter, r *http.Request)
 
 	if err := d.donationApp.CreateDonation(ctx, req); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to create donation: %v", err)
+		log.Errorf("[DonationH][Create] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -124,12 +125,13 @@ func (d *donationAdapter) CreateDonation(w http.ResponseWriter, r *http.Request)
 func (d *donationAdapter) UpdateDonation(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateDonation", "handler", "donation")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
-		d.logger.Errorf("donation ID is required")
+		log.Errorf("[DonationH] id required")
 		localization.SendBadRequestResponse(w, "donation ID is required")
 		return
 	}
@@ -137,14 +139,14 @@ func (d *donationAdapter) UpdateDonation(w http.ResponseWriter, r *http.Request)
 	req, err := core.ParseRequestFromMultipartForm(r, false)
 	if err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to parse request from multipart form: %v", err)
+		log.Errorf("[DonationH] parse form err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if err := core.ValidateForUpdate(req); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("request validation failed: %v", err)
+		log.Errorf("[DonationH] validate err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -154,7 +156,7 @@ func (d *donationAdapter) UpdateDonation(w http.ResponseWriter, r *http.Request)
 	err = d.donationApp.UpdateDonation(ctx, id, req)
 	if err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to update donation: %v", err)
+		log.Errorf("[DonationH][Update] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -182,6 +184,8 @@ func (d *donationAdapter) UpdateDonation(w http.ResponseWriter, r *http.Request)
 func (d *donationAdapter) FetchDonation(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchDonations", "handler", "donation")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -205,7 +209,7 @@ func (d *donationAdapter) FetchDonation(w http.ResponseWriter, r *http.Request) 
 	donations, err := d.donationApp.FetchDonation(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to fetch donations: %v", err)
+		log.Errorf("[DonationH][FetchAll] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -231,9 +235,10 @@ func (d *donationAdapter) FetchDonation(w http.ResponseWriter, r *http.Request) 
 func (d *donationAdapter) FetchDonationByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchDonationById", "handler", "donation")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
-		d.logger.Errorf("donation ID is required")
+		log.Errorf("[DonationH] id required")
 		localization.SendBadRequestResponse(w, "donation ID is required")
 		return
 	}
@@ -243,7 +248,7 @@ func (d *donationAdapter) FetchDonationByID(w http.ResponseWriter, r *http.Reque
 	donation, err := d.donationApp.FetchDonationByID(ctx, id)
 	if err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to fetch donation by ID: %v", err)
+		log.Errorf("[DonationH][FetchByID] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -269,12 +274,13 @@ func (d *donationAdapter) FetchDonationByID(w http.ResponseWriter, r *http.Reque
 func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateDonationImage", "handler", "donation")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
-		d.logger.Errorf("donation ID is required")
+		log.Errorf("[DonationH] id required")
 		localization.SendBadRequestResponse(w, "donation ID is required")
 		return
 	}
@@ -282,13 +288,13 @@ func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Req
 	req, err := core.ParseImageUpdateRequestFromMultipartForm(r)
 	if err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to parse image update request from multipart form: %v", err)
+		log.Errorf("[DonationH][UpdateImage] parse form err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	// if err := core.ValidateImageUpdateRequest(req); err != nil {
-	// 	d.logger.Errorf("image update validation failed: %v", err)
+	// 	log.Errorf("image update validation failed: %v", err)
 	// 	localization.SendBadRequestResponse(w, err.Error())
 	// 	return
 	// }
@@ -296,7 +302,7 @@ func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Req
 	span.SetAttributes(attribute.String("donation.id", id))
 	if err := d.donationApp.UpdateDonationImage(ctx, id, req); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to update donation image: %v", err)
+		log.Errorf("[DonationH][UpdateImage] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -325,12 +331,13 @@ func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Req
 func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteDonationImage", "handler", "donation")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
-		d.logger.Errorf("donation ID is required")
+		log.Errorf("[DonationH] id required")
 		localization.SendBadRequestResponse(w, "donation ID is required")
 		return
 	}
@@ -338,13 +345,13 @@ func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Req
 	var req dto.DonationImageDeleteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("Failed to decode JSON request: %v", err)
+		log.Errorf("[DonationH][DeleteImage] decode err: %v", err)
 		localization.SendBadRequestResponse(w, "invalid request body")
 		return
 	}
 
 	if req.ImageID == "" {
-		d.logger.Errorf("image ID is required")
+		log.Errorf("[DonationH][DeleteImage] image id required")
 		localization.SendBadRequestResponse(w, "image ID is required")
 		return
 	}
@@ -355,7 +362,7 @@ func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Req
 	)
 	if err := d.donationApp.DeleteDonationImage(ctx, id, req.ImageID); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to delete donation image: %v", err)
+		log.Errorf("[DonationH][DeleteImage] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -383,13 +390,14 @@ func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Req
 func (d *donationAdapter) AddDonationImage(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "addDonationImage", "handler", "donation")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
-		d.logger.Errorf("donation ID is required")
+		log.Errorf("[DonationH] id required")
 		localization.SendBadRequestResponse(w, "donation ID is required")
 		return
 	}
@@ -397,14 +405,14 @@ func (d *donationAdapter) AddDonationImage(w http.ResponseWriter, r *http.Reques
 	req, err := core.ParseRequestFromMultipartForm(r, false)
 	if err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to parse request from multipart form: %v", err)
+		log.Errorf("[DonationH] parse form err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if err := core.ValidateImageAdd(req); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("image validation failed: %v", err)
+		log.Errorf("[DonationH][AddImage] validate err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -412,7 +420,7 @@ func (d *donationAdapter) AddDonationImage(w http.ResponseWriter, r *http.Reques
 	span.SetAttributes(attribute.String("donation.id", id))
 	if err := d.donationApp.AddDonationImage(ctx, id, req); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to add donation image: %v", err)
+		log.Errorf("[DonationH][AddImage] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -440,12 +448,13 @@ func (d *donationAdapter) AddDonationImage(w http.ResponseWriter, r *http.Reques
 func (d *donationAdapter) EnableDonation(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableDonation", "handler", "donation")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
-		d.logger.Errorf("donation ID is required")
+		log.Errorf("[DonationH] id required")
 		localization.SendBadRequestResponse(w, "donation ID is required")
 		return
 	}
@@ -453,7 +462,7 @@ func (d *donationAdapter) EnableDonation(w http.ResponseWriter, r *http.Request)
 	span.SetAttributes(attribute.String("donation.id", id))
 	if err := d.donationApp.EnableDonation(ctx, id); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to enable donation: %v", err)
+		log.Errorf("[DonationH][Enable] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -481,12 +490,13 @@ func (d *donationAdapter) EnableDonation(w http.ResponseWriter, r *http.Request)
 func (d *donationAdapter) DisableDonation(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDonation", "handler", "donation")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
-		d.logger.Errorf("donation ID is required")
+		log.Errorf("[DonationH] id required")
 		localization.SendBadRequestResponse(w, "donation ID is required")
 		return
 	}
@@ -494,7 +504,7 @@ func (d *donationAdapter) DisableDonation(w http.ResponseWriter, r *http.Request
 	span.SetAttributes(attribute.String("donation.id", id))
 	if err := d.donationApp.DisableDonation(ctx, id); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to disable donation: %v", err)
+		log.Errorf("[DonationH][Disable] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

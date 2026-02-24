@@ -56,10 +56,10 @@ func NonEmptyTickets(tickets, fallback []types.Ticket) []types.Ticket {
 }
 
 func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (string, error) {
-	logger.Infof("Generating prefixed name", "prefix", prefix, "value", value)
+	logger.Infof("[EventCore][GenPrefix] prefix: %s value: %s", prefix, value)
 
 	if prefix == "" || value == "" {
-		logger.Errorf("Invalid input for GeneratePrefixedName", "prefix", prefix, "value", value)
+		logger.Errorf("[EventCore][GenPrefix] invalid input prefix: %s value: %s", prefix, value)
 		return "", fmt.Errorf("prefix and value must not be empty")
 	}
 
@@ -70,7 +70,7 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 	for i := range code {
 		n, err := cRand.Int(cRand.Reader, max)
 		if err != nil {
-			logger.Errorf("Failed to generate random digit", "error", err)
+			logger.Errorf("[EventCore][GenPrefix] random digit err: %v", err)
 			return "", fmt.Errorf("failed to generate random digit: %v", err)
 		}
 		code[i] = digits[n.Int64()]
@@ -79,7 +79,7 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 	value = strings.ReplaceAll(value, " ", "")
 	prefix = strings.ReplaceAll(prefix, " ", "")
 	result := strings.Join([]string{prefix, value, string(code)}, "-")
-	logger.Infof("Successfully generated prefixed name", "result", result)
+	logger.Infof("[EventCore][GenPrefix] result: %s", result)
 	return result, nil
 }
 func BindAction(source any, target any) error {

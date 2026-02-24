@@ -39,7 +39,7 @@ func InitFeedbackConsumer(feedbackSvc service.FeedbackService, cfg *config.Vault
 	// Create dead letter queue
 	deadLetterQueue := kafka.NewSimpleDeadLetterQueue(logger)
 
-	consumer, err := kafka.NewFeedbackConsumer(*kafkaConfig, logger, adapter, deadLetterQueue)
+	consumer, err := kafka.NewFeedbackConsumer(*kafkaConfig, cfg, logger, adapter, deadLetterQueue)
 	if err != nil {
 		logger.Errorf("Failed to create Kafka consumer: %v", err)
 		return err

@@ -55,17 +55,17 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
 	req.PhoneNumber = normalized
 	exists, err := core.UsernameExists(ctx, "", s.repo, req.UserName)
-	if err != nil {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to check username existence", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
 	if exists {
-		s.logger.Errorf("user already existing with username: %v", req.UserName)
+		s.logger.Errorf("[CpsUserSvc][Create] username exists: %s", req.UserName)
 		span.AddEvent("username already exists", trace.WithAttributes(attribute.String("username", req.UserName)))
 		return errors.New(localization.ErrorUsernameAlreadyExists.Code)
 	}
 	emailCheck, err := core.EmailExists(ctx, "", s.repo, req.Email)
-	if err != nil {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to check email existence", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
@@ -92,7 +92,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	}
 
 	phoneCheck, err := core.PhoneNumberExists(ctx, "", s.repo, req.PhoneNumber)
-	if err != nil {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to check phone number existence", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
@@ -107,10 +107,10 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
 		span.AddEvent("failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[CreateUserRequest] failed to create CPS action: %v", err)
+		s.logger.Errorf("[CpsUserSvc][Create] cps action err: %v", err)
 		return err
 	}
-	s.logger.Infof("[CreateUserRequest] CPS user creation request created successfully")
+	s.logger.Infof("[CpsUserSvc][Create] request created")
 	return nil
 }
 

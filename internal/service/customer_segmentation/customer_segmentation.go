@@ -45,10 +45,10 @@ func (s *customerSegmentationService) Create(ctx context.Context, req cust_seg.C
 	role, err := s.cpsRoleRepo.FindById(ctx, req.CustomerRole)
 	if err != nil {
 		if err.Error() == localization.ErrorResourceNotFound.Code {
-			s.logger.Errorf("CPS role {%s} cannot be found", req.CustomerRole)
+			s.logger.Errorf("[CustSegSvc][Create] role not found: %s", req.CustomerRole)
 			return fmt.Errorf("This role not found")
 		} else {
-			s.logger.Errorf("error while fetching CPS role {%s}: %v", req.CustomerRole, err)
+			s.logger.Errorf("[CustSegSvc][Create] role fetch err: %s, %v", req.CustomerRole, err)
 			return err
 		}
 	}
@@ -72,10 +72,10 @@ func (s *customerSegmentationService) Create(ctx context.Context, req cust_seg.C
 	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, core.MapCustomerSegmentationToMap(newData), string(constants.RequestCreateCustomerSegmentation), constants.CREATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		s.logger.Errorf("[Create] failed to create CPS action %d: %v", err)
+		s.logger.Errorf("[CustSegSvc][Create] cps action err: %v", err)
 		return err
 	}
-	s.logger.Infof("[Create] customer segmentation creation request sent successfully")
+	s.logger.Infof("[CustSegSvc][Create] request created")
 
 	return nil
 }
@@ -85,7 +85,7 @@ func (s *customerSegmentationService) Update(ctx context.Context, id string, req
 
 	existing, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		s.logger.Errorf("[Update] failed to find existing customer segmentation: %v", err)
+		s.logger.Errorf("[CustSegSvc][Update] find err: %v", err)
 		return err
 	}
 
@@ -124,11 +124,11 @@ func (s *customerSegmentationService) Update(ctx context.Context, id string, req
 	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing), core.MapCustomerSegmentationToMap(updated), string(constants.RequestUpdateCustomerSegmentation), constants.UPDATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		s.logger.Errorf("[Update] failed to create CPS action: %v", err)
+		s.logger.Errorf("[CustSegSvc][Update] cps action err: %v", err)
 		return err
 	}
 
-	s.logger.Infof("[Update] customer segmentation update request created successfully")
+	s.logger.Infof("[CustSegSvc][Update] request created")
 	return nil
 }
 
@@ -160,12 +160,12 @@ func (s *customerSegmentationService) EnableOrDisable(ctx context.Context, id st
 
 	existing, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		s.logger.Errorf("[EnableOrDisable] failed to find existing customer segmentation: %v", err)
+		s.logger.Errorf("[CustSegSvc][EnableDisable] find err: %v", err)
 		return err
 	}
 
 	if existing.IsEnabled == enable {
-		s.logger.Warnf("[EnableOrDisable] customer segmentation already in desired state, id: %s, enable: %v", id, enable)
+		s.logger.Warnf("[CustSegSvc][EnableDisable] already in state id: %s, enable: %v", id, enable)
 		return errors.New("already in desired state")
 	}
 
@@ -183,7 +183,7 @@ func (s *customerSegmentationService) EnableOrDisable(ctx context.Context, id st
 	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing), core.MapCustomerSegmentationToMap(updated), string(action), constants.UPDATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		s.logger.Errorf("[EnableOrDisable] failed to create CPS action: %v", err)
+		s.logger.Errorf("[CustSegSvc][EnableDisable] cps action err: %v", err)
 		return err
 	}
 
@@ -195,7 +195,7 @@ func (s *customerSegmentationService) Delete(ctx context.Context, id string) err
 
 	existing, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		s.logger.Errorf("[Delete] failed to find existing customer segmentation: %v", err)
+		s.logger.Errorf("[CustSegSvc][Delete] find err: %v", err)
 		return err
 	}
 
@@ -204,7 +204,7 @@ func (s *customerSegmentationService) Delete(ctx context.Context, id string) err
 	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing), core.MapCustomerSegmentationToMap(updated), string(constants.RequestDeleteCustomerSegmentation), constants.DELETE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		s.logger.Errorf("[Delete] failed to create CPS action: %v", err)
+		s.logger.Errorf("[CustSegSvc][Delete] cps action err: %v", err)
 		return err
 	}
 
@@ -212,7 +212,7 @@ func (s *customerSegmentationService) Delete(ctx context.Context, id string) err
 }
 
 func (s *customerSegmentationService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	s.logger.Infof("[Authorize] authorizing customer segmentation action: %s", action.RequestAction)
+	s.logger.Infof("[CustSegSvc][Authorize] action: %s", action.RequestAction)
 
 	var (
 		err error
@@ -221,7 +221,7 @@ func (s *customerSegmentationService) Authorize(ctx context.Context, action *mod
 
 	seg, marshal_err := local_util.JsonUnmarshal[imodel.CustomerSegmentation](action.CurrentAction)
 	if marshal_err != nil || seg == nil {
-		s.logger.Errorf("[Authorize] failed to unmarshal current action: %v", marshal_err)
+		s.logger.Errorf("[CustSegSvc][Authorize] unmarshal err: %v", marshal_err)
 		return nil, marshal_err
 	}
 
@@ -229,40 +229,40 @@ func (s *customerSegmentationService) Authorize(ctx context.Context, action *mod
 	case string(constants.RequestCreateCustomerSegmentation):
 		err = s.repo.Create(ctx, seg)
 		if err != nil {
-			s.logger.Errorf("[Authorize] failed to create customer segmentation: %v", err)
+			s.logger.Errorf("[CustSegSvc][Authorize] create err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] customer segmentation created successfully")
+		s.logger.Infof("[CustSegSvc][Authorize] created")
 	case string(constants.RequestUpdateCustomerSegmentation):
 		err = s.repo.Update(ctx, action.UniqueId, seg)
 		if err != nil {
-			s.logger.Errorf("[Authorize] failed to update customer segmentation: %v", err)
+			s.logger.Errorf("[CustSegSvc][Authorize] update err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] customer segmentation updated successfully")
+		s.logger.Infof("[CustSegSvc][Authorize] updated")
 	case string(constants.RequestDeleteCustomerSegmentation):
 		err = s.repo.Delete(ctx, action.UniqueId)
 		if err != nil {
-			s.logger.Errorf("[Authorize] failed to delete customer segmentation: %v", err)
+			s.logger.Errorf("[CustSegSvc][Authorize] delete err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] customer segmentation deleted successfully")
+		s.logger.Infof("[CustSegSvc][Authorize] deleted")
 	case string(constants.RequestEnableCustomerSegmentation):
 		err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
 		if err != nil {
-			s.logger.Errorf("[Authorize] failed to enable customer segmentation: %v", err)
+			s.logger.Errorf("[CustSegSvc][Authorize] enable err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] customer segmentation enabled successfully")
+		s.logger.Infof("[CustSegSvc][Authorize] enabled")
 	case string(constants.RequestDisableCustomerSegmentation):
 		err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
 		if err != nil {
-			s.logger.Errorf("[Authorize] failed to disable customer segmentation: %v", err)
+			s.logger.Errorf("[CustSegSvc][Authorize] disable err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] customer segmentation disabled successfully")
+		s.logger.Infof("[CustSegSvc][Authorize] disabled")
 	default:
-		s.logger.Errorf("[Authorize] unsupported action: %s", action.RequestAction)
+		s.logger.Errorf("[CustSegSvc][Authorize] unsupported action: %s", action.RequestAction)
 		return nil, errors.New("unsupported action")
 	}
 	return action, nil

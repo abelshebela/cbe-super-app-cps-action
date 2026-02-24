@@ -34,15 +34,16 @@ type EventMerchantHandler struct {
 //	@Security		BearerAuth
 //	@Router			/event_merchants [post]
 func (e *EventMerchantHandler) CreateEventMerchant(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), e.logger)
 	var req event_merchant_dto.CreateEventMerchantRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		e.logger.Errorf("[CreateEventMerchant] decode: %v", err)
+		log.Errorf("[CreateEventMerchant] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
 	if err := event_merchant_dto.Validation(req); err != nil {
-		localization.SendBadRequestResponse(w, err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	m := core.CreateEventMerchantRequestToModel(req)
@@ -218,6 +219,7 @@ func (e *EventMerchantHandler) GetEventMerchants(w http.ResponseWriter, r *http.
 //	@Security		BearerAuth
 //	@Router			/event_merchants/{id} [patch]
 func (e *EventMerchantHandler) UpdateEventMerchant(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), e.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
@@ -225,12 +227,12 @@ func (e *EventMerchantHandler) UpdateEventMerchant(w http.ResponseWriter, r *htt
 	}
 	var req event_merchant_dto.UpdateEventMerchantRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		e.logger.Errorf("[UpdateEventMerchant] decode: %v", err)
+		log.Errorf("[UpdateEventMerchant] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
 	if err := event_merchant_dto.Validation(req); err != nil {
-		localization.SendBadRequestResponse(w, err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	m := core.UpdateEventMerchantRequestToModel(req)
