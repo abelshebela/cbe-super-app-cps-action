@@ -75,7 +75,18 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		return errors.New(localization.ErrorExistEmail.Code)
 	}
 
-	emailCheckBPS, err := s.bpsRepo.FindByOr(ctx, req.PhoneNumber, req.Email, "")
+	phoneCheck, err := core.PhoneNumberExists(ctx, "", s.repo, req.PhoneNumber)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		span.AddEvent("failed to check phone number existence", trace.WithAttributes(attribute.String("error", err.Error())))
+		return err
+	}
+
+	if phoneCheck {
+		span.AddEvent("phone number already exists", trace.WithAttributes(attribute.String("phone_number", req.PhoneNumber)))
+		return errors.New(localization.ErrorExistPhoneNumber.Code)
+	}
+
+	emailCheckBPS, err := s.bpsRepo.FindByOr(ctx, req.PhoneNumber, req.Email, req.UserName)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to check email existence in BPS", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
@@ -89,17 +100,11 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 			span.AddEvent("phone number already exists in BPS", trace.WithAttributes(attribute.String("phone_number", req.PhoneNumber)))
 			return errors.New(localization.ErrorExistPhoneNumber.Code)
 		}
-	}
+		if emailCheckBPS.Username == req.UserName {
+			span.AddEvent("username already exists in BPS", trace.WithAttributes(attribute.String("username", req.UserName)))
+			return errors.New(localization.ErrorUsernameAlreadyExists.Code)
+		}
 
-	phoneCheck, err := core.PhoneNumberExists(ctx, "", s.repo, req.PhoneNumber)
-	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-		span.AddEvent("failed to check phone number existence", trace.WithAttributes(attribute.String("error", err.Error())))
-		return err
-	}
-
-	if phoneCheck {
-		span.AddEvent("phone number already exists", trace.WithAttributes(attribute.String("phone_number", req.PhoneNumber)))
-		return errors.New(localization.ErrorExistPhoneNumber.Code)
 	}
 
 	cpsUser := core.CPSUModel(req)
