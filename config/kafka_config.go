@@ -35,8 +35,8 @@ func loadKafkaConfigFromEnv(cfg *config.VaultConfig, logger utils.Logger) *Kafka
 
 	return &KafkaConfig{
 		Brokers:             cfg.KafkaBrokers,
-		FeedbackTopic:       "feedback-events",
-		SurveyFeedbackTopic: "survey-feedback-events",
+		FeedbackTopic:       cfg.KafkaCustomerFeedbackTopic,
+		SurveyFeedbackTopic: cfg.KafkaCustomerSurveyTopic,
 		ConsumerGroup:       "cps-action-service",
 		RequiredAcks:        requiredAcks,
 		RetryMax:            retryMax,
