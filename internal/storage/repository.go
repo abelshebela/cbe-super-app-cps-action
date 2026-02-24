@@ -612,7 +612,7 @@ type ArticleCategoryRepository interface {
 }
 
 type ShortVideoRepository interface {
-	Create(ctx context.Context, shortVideo *model.ShortVideo) error
+	Create(ctx context.Context, shortVideo *model.ShortVideo) (*model.ShortVideo, error)
 	Update(ctx context.Context, shortVideo *model.ShortVideo, id string) error
 	Delete(ctx context.Context, id string) error
 	PublishUnpublish(ctx context.Context, id string, isPublished bool) error

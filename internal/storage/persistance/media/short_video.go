@@ -39,15 +39,15 @@ func NewShortVideoRepository(logger shared_utils.Logger, client *mongo.Client, c
 	}
 }
 
-func (s *shortVideoRepo) Create(ctx context.Context, shortVideo *model.ShortVideo) error {
-	newShortVidoe, err := s.shortVideoDal.InsertOne(ctx, *shortVideo)
+func (s *shortVideoRepo) Create(ctx context.Context, shortVideo *model.ShortVideo) (*model.ShortVideo, error) {
+	newShortVideo, err := s.shortVideoDal.InsertOne(ctx, *shortVideo)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	s.kafkaProducer.PublishMessage(ctx, newShortVidoe, string(constants.ClientOrchestrationShortVideoTopic), string(constants.ClientOrchestrationShortVideoTopic), "new short video created")
+	s.kafkaProducer.PublishMessage(ctx, newShortVideo, string(constants.ClientOrchestrationShortVideoTopic), string(constants.ClientOrchestrationShortVideoTopic), "new short video created")
 
-	return nil
+	return &newShortVideo, nil
 }
 
 func (s *shortVideoRepo) Update(ctx context.Context, shortVideo *model.ShortVideo, id string) error {
