@@ -31,15 +31,25 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 )
 
-func CORS() func(http.Handler) http.Handler {
+func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
+	allowedOrigins := []string{"*"} // Default to allow all origins
+
+	// Set allowed origins based on environment
+	switch cfg.GoEnv { // Assuming config.GetEnvironment() returns the current environment as a string
+	case "uat":
+		allowedOrigins = []string{"https://uat-cbe-super-app-central-portal.vercel.app"}
+	case "qa":
+		allowedOrigins = []string{"https://qa-cbe-super-app-central-portal.vercel.app"}
+	case "dev":
+		allowedOrigins = []string{"https://dev-cbe-super-app-central-portal.vercel.app"}
+	default:
+		allowedOrigins = []string{"*"}
+	}
+
 	return cors.Handler(cors.Options{
-		// If credentials are used, specify explicit origins in production (browsers block * with credentials).
-		AllowedOrigins: []string{"*"},
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
-		AllowedHeaders: []string{
-			"Content-Type", "Access-Control-Allow-Headers", "Access-Control-Allow-Methods", "Access-Control-Allow-Origin",
-			"Authorization", "X-Requested-With", "X-CSRF-Token", "Origin", "Accept", "x-api-applicationid", "x-source-secret",
-		},
+		AllowedOrigins:   allowedOrigins,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Access-Control-Allow-Headers", "Access-Control-Allow-Methods", "Access-Control-Allow-Origin", "Authorization", "X-Requested-With", "X-CSRF-Token", "Origin", "Accept", "x-api-applicationid", "x-source-secret"},
 		ExposedHeaders:   []string{},
 		AllowCredentials: true,
 		MaxAge:           300,
