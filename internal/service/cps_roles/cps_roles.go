@@ -88,7 +88,7 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 		return err
 	}
 
-	if cpsRole != nil {
+	if cpsRole != nil && cpsRole.ID.Hex() != id {
 		if strings.EqualFold(cpsRole.Name, name) && existing.Name != name {
 			r.logger.Warnf("[CpsRoleSvc][Update] name exists: %s", req.Name)
 			return errors.New(localization.ErrorCPSRoleNameAlreadyExists.Code)

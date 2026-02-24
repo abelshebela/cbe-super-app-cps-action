@@ -11,6 +11,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -45,6 +46,7 @@ func NewCPSRolesStorage(client *mongo.Client, cfg *config.VaultConfig, dbName, c
 }
 
 func (m *cpsRoleStorage) Create(ctx context.Context, req imodel.CPSRoles) error {
+	req.Name = strings.ToUpper(req.Name)
 	_, err := m.dal.InsertOne(ctx, req)
 	if err != nil {
 		m.logger.Errorf("[CPSRolesStorage][Create] failed to create cps role: %v", err)
@@ -62,9 +64,17 @@ func (m *cpsRoleStorage) Update(ctx context.Context, id string, req imodel.CPSRo
 
 	filter := bson.M{"_id": objID}
 	update := bson.M{
-		"name":       req.Name,
-		"enabled":    req.Enabled,
 		"updated_at": time.Now(),
+	}
+
+	if req.Name != "" {
+		update["name"] = strings.ToUpper(req.Name)
+	}
+	if req.RoleCode != "" {
+		update["role_code"] = req.RoleCode
+	}
+	if req.Description != "" {
+		update["description"] = req.Description
 	}
 
 	updatedCPSRole, err := m.dal.UpdateOne(ctx, filter, update)
