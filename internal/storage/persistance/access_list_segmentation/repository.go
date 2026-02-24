@@ -16,6 +16,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -23,6 +24,7 @@ import (
 
 type AccessListSegmentation struct {
 	repo           dal.MongoDal[local_model.AccessListSegmentation, local_model.AccessListSegmentation]
+	fromSharedRepo dal.MongoDal[model.APPAccessList, model.APPAccessList]
 	client         *mongo.Client
 	accBlock       storage.AccountBlockRepository
 	dbName         string
@@ -310,7 +312,7 @@ func (a *AccessListSegmentation) Update(ctx context.Context, id string, accessLi
 	}
 	return nil
 }
-func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]local_model.AccessListSegmentation, error) {
+func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error) {
 	var filter bson.M
 	var objID bson.ObjectID
 	objID, err := bson.ObjectIDFromHex(segmentIDorCode)
@@ -326,7 +328,7 @@ func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCode(ctx context.Con
 		}
 	}
 	filter["enabled"] = true
-	als, err := a.repo.FindAll(ctx, filter, nil)
+	als, err := a.fromSharedRepo.FindAll(ctx, filter, nil)
 	if err != nil {
 		a.logger.Errorf("[AccessListSegmentation][FindAllBySegmentIDorSegmentCode] failed to find access list segmentation by segmentation id or segment code: %v", err)
 		return nil, local_util.HandleDBError(err)
@@ -393,6 +395,7 @@ func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_lis
 func NewAccessListSegmentationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collectionName string, customerSegmentationProducer kafka.AccessListSegmentationProducer, logger utils.Logger) storage.AccessListSegmentationRepository {
 	return &AccessListSegmentation{
 		repo:           dal.NewMongoDal[local_model.AccessListSegmentation, local_model.AccessListSegmentation](client, cfg, dbName, collectionName),
+		fromSharedRepo: dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, cfg, dbName, "app_access_list"),
 		client:         client,
 		kafkaProducer:  customerSegmentationProducer,
 		dbName:         dbName,

@@ -760,7 +760,7 @@ type AccessListSegmentationRepository interface {
 	FindBySegmentIDAndAccessListKeys(ctx context.Context, id string, keys []string) (*local_model.AccessListSegmentation, error)
 	Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]local_model.AccessListSegmentation, error)
+	FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
 	FindAllBySegmentIDorSegmentCodeAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
 	BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error
 
