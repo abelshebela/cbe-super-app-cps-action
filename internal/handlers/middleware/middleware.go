@@ -48,9 +48,6 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 		allowCredentials = false // credentials cannot be used with wildcard origin
 	}
 
-	allowedOrigins = []string{"http://localhost:3000", "localhost:3000", "*"}
-	allowCredentials = false
-
 	return cors.Handler(cors.Options{
 		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
