@@ -32,7 +32,7 @@ import (
 )
 
 func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
-	allowedOrigins := []string{"*"} // Default to allow all origins
+	allowedOrigins := []string{} // Default to allow all origins
 
 	// Set allowed origins based on environment
 	switch cfg.GoEnv { // Assuming config.GetEnvironment() returns the current environment as a string
@@ -41,7 +41,7 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 	case "qa":
 		allowedOrigins = []string{"https://qa-cbe-super-app-central-portal.vercel.app"}
 	case "dev":
-		allowedOrigins = []string{"https://dev-cbe-super-app-central-portal.vercel.app", "http://localhost:3000"}
+		allowedOrigins = []string{"0.0.0.0:3000", "https://dev-cbe-super-app-central-portal.vercel.app"}
 	default:
 		allowedOrigins = []string{"*"}
 	}
