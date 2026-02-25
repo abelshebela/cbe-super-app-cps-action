@@ -48,6 +48,9 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 		allowCredentials = false // credentials cannot be used with wildcard origin
 	}
 
+	// temporary overide
+	allowedOrigins = []string{"*"}
+	allowCredentials = false
 	return cors.Handler(cors.Options{
 		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
