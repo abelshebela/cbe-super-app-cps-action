@@ -84,6 +84,8 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
+	// CORS must run early so preflight OPTIONS requests are handled before auth/logging
+	router.Use(customeMiddleware.CORS(cfg))
 	// Inject trace and span ids from OpenTelemetry span into context for logger extraction
 	router.Use(telemetry.TraceContextMiddleware())
 	// Optional debug middleware to detect missing spans. Enable by setting OTEL_DEBUG_TRACE_PRESENCE=true
@@ -94,7 +96,6 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	router.Use(customeMiddleware.ChiLogger(logger))
 
 	router.Use(customeMiddleware.HandlePanic(logger))
-	router.Use(customeMiddleware.CORS(cfg))
 	router.Use(middleware.Timeout(30 * time.Second))
 	router.Use(middleware.Compress(5, "application/json"))
 
@@ -200,6 +201,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 			r.Get("/swagger/*", httpSwagger.Handler(
 				httpSwagger.URL("/api/v1/cbesuperapp/cps_action/swagger/doc.json"),
 			))
+
 			r.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, "/api/v1/cbesuperapp/cps_action/swagger/index.html", http.StatusMovedPermanently)
 			})

@@ -64,6 +64,7 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	req.Normalize()
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
 		localization.SendBadRequestResponse(w, err.Error())
@@ -119,6 +120,13 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 		span.RecordError(errors.New("invalid payload"))
 		return
 	}
+
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
+
+	req.Normalize()
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
 		localization.SendBadRequestResponse(w, err.Error())
@@ -170,6 +178,10 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
 		return
 	}
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
 
 	if r.Header.Get("Authorization") == "" {
 		span.RecordError(errors.New("missing Authorization header"))
@@ -219,6 +231,10 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	if id == "" {
 		span.RecordError(errors.New("service ID is required for disable"))
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
+		return
+	}
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
 		return
 	}
 
@@ -347,10 +363,13 @@ func (a *servicesAdapter) UpdateServiceList(w http.ResponseWriter, r *http.Reque
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
 		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
 		return
 	}
 
@@ -442,6 +461,10 @@ func (a *servicesAdapter) GetByID(w http.ResponseWriter, r *http.Request) {
 	if id == "" {
 		span.RecordError(errors.New("service ID is required for get"))
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
+		return
+	}
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
 		return
 	}
 

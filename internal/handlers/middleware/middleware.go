@@ -28,30 +28,34 @@ import (
 )
 
 func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
-	allowedOrigins := []string{} // Default to allow all origins
+	var allowedOrigins []string
+	allowCredentials := true
 
 	// Set allowed origins based on environment
 	switch cfg.GoEnv {
+	case "production":
+		allowedOrigins = []string{"https://production-cbe-super-app-central-portal.vercel.app"}
 	case "uat":
 		allowedOrigins = []string{"https://uat-cbe-super-app-central-portal.vercel.app"}
+	case "staging":
+		allowedOrigins = []string{"https://staging-cbe-super-app-central-portal.vercel.app"}
 	case "qa":
 		allowedOrigins = []string{"http://localhost:3000", "https://qa-cbe-super-app-central-portal.vercel.app"}
 	case "dev":
 		allowedOrigins = []string{"http://localhost:3000", "https://dev-cbe-super-app-central-portal.vercel.app"}
-	case "staging":
-		allowedOrigins = []string{"http://localhost:3000", "https://staging-cbe-super-app-central-portal.vercel.app"}
-	case "production":
-		allowedOrigins = []string{"http://localhost:3000", "https://production-cbe-super-app-central-portal.vercel.app"}
 	default:
 		allowedOrigins = []string{"*"}
+		allowCredentials = false // credentials cannot be used with wildcard origin
 	}
+
+	allowedOrigins = []string{"http://localhost:3000", "https://qa-cbe-super-app-central-portal.vercel.app"}
 
 	return cors.Handler(cors.Options{
 		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Access-Control-Allow-Headers", "Access-Control-Allow-Methods", "Access-Control-Allow-Origin", "Authorization", "X-Requested-With", "X-CSRF-Token", "Origin", "Accept", "x-api-applicationid", "x-source-secret"},
-		ExposedHeaders:   []string{},
-		AllowCredentials: true,
+		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token", "Accept", "Origin", "x-api-applicationid", "x-source-secret"},
+		ExposedHeaders:   []string{"X-Refreshed-Token"},
+		AllowCredentials: allowCredentials,
 		MaxAge:           300,
 	})
 }
