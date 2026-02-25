@@ -200,6 +200,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 			r.Get("/swagger/*", httpSwagger.Handler(
 				httpSwagger.URL("/api/v1/cbesuperapp/cps_action/swagger/doc.json"),
 			))
+
 			r.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, "/api/v1/cbesuperapp/cps_action/swagger/index.html", http.StatusMovedPermanently)
 			})
