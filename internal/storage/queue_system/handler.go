@@ -9,6 +9,8 @@ import (
 
 type JobHandler func(ctx context.Context, job Job) error
 
+// handlers is a process-wide registry shared by all QueueManager instances.
+// Register handlers at init time or before starting any queue.
 var (
 	handlers   = map[string]func(context.Context, json.RawMessage) error{}
 	handlersMu sync.RWMutex

@@ -2,16 +2,15 @@ package cpsaction
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"cbe-super-app-cps-action/internal/constants"
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/pkgs/utils"
 
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
@@ -19,8 +18,8 @@ import (
 )
 
 type cpsActionServiceWithRoles struct {
-	base  service.CPSActionService
-	roles storage.CPSActionRoleRepository
+	base   service.CPSActionService
+	roles  storage.CPSActionRoleRepository
 	logger utils.Logger
 }
 
@@ -61,7 +60,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 				role = r
 			}
 
-			if role != nil && !role.Enabled {\
+			if role != nil && !role.Enabled {
 				return localization.ErrorActionAlreadyDisabled
 			}
 			if role != nil {

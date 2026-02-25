@@ -1,9 +1,6 @@
 package queue
 
-import (
-	"encoding/json"
-	"fmt"
-)
+import "encoding/json"
 
 type Job struct {
 	ID                  string          `json:"id"`
@@ -19,5 +16,5 @@ type Job struct {
 }
 
 func (j Job) LogPrefix() string {
-	return fmt.Sprintf("id=%s service=%s method=%s action=%s", j.ID, j.Service, j.Method, j.Action)
+	return "id=" + j.ID + " service=" + j.Service + " method=" + j.Method + " action=" + j.Action
 }
