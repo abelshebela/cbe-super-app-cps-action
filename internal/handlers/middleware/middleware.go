@@ -49,6 +49,7 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 	}
 
 	allowedOrigins = []string{"http://localhost:3000", "localhost:3000"}
+	allowCredentials = true
 
 	return cors.Handler(cors.Options{
 		AllowedOrigins:   allowedOrigins,
