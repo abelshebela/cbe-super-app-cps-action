@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"cbe-super-app-cps-action/internal/storage/persistance/vault/gen/sqlc"
 	"context"
 	"database/sql"
@@ -14,18 +15,23 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type VaultCategoryRepository struct {
-	db     *sql.DB
-	logger shared_utils.Logger
+	cfg           *config.VaultConfig
+	db            *sql.DB
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        shared_utils.Logger
 }
 
-func NewVaultCategoryRepository(db *sql.DB, logger shared_utils.Logger) storage.VaultCategoryRepository {
+func NewVaultCategoryRepository(db *sql.DB, cfg *config.VaultConfig, kafkaProducer kafka.ClientOrchestrationProducer, logger shared_utils.Logger) storage.VaultCategoryRepository {
 	return &VaultCategoryRepository{
-		db:     db,
-		logger: logger,
+		cfg:           cfg,
+		db:            db,
+		kafkaProducer: kafkaProducer,
+		logger:        logger,
 	}
 }
 
