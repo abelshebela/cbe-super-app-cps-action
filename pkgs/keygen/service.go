@@ -27,8 +27,6 @@ type KeyGeneratorService interface {
 	Verify(data, signature []byte, publicKey string) (bool, error)
 }
 
-var secretKey = []byte("01234567890123456789012345678901")
-
 func NewKeyGenerator(
 	logger shared_utils.Logger,
 	cfg *config.VaultConfig,

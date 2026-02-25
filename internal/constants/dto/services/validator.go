@@ -3,6 +3,7 @@ package services
 import (
 	"cbe-super-app-cps-action/pkgs/utils"
 	"fmt"
+	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
@@ -11,6 +12,44 @@ import (
 const (
 	maximunTransferCapLimit = 1000000000.0
 )
+
+func (r CreateServiceRequest) Normalize() {
+	r.ServiceName = strings.TrimSpace(r.ServiceName)
+	r.ServiceKey = strings.TrimSpace(r.ServiceKey)
+	r.ServiceCode = strings.TrimSpace(r.ServiceCode)
+	r.ProductGlAccount = strings.TrimSpace(r.ProductGlAccount)
+
+	for i := range r.Cap {
+		if r.Cap[i].Currency != nil {
+			currency := strings.TrimSpace(*r.Cap[i].Currency)
+			currency = strings.ToUpper(currency)
+			r.Cap[i].Currency = &currency
+		}
+	}
+}
+
+func (r UpdateServiceRequest) Normalize() {
+	if r.ServiceName != nil {
+		*r.ServiceName = strings.TrimSpace(*r.ServiceName)
+	}
+	if r.ServiceKey != nil {
+		*r.ServiceKey = strings.TrimSpace(*r.ServiceKey)
+	}
+	if r.ServiceCode != nil {
+		*r.ServiceCode = strings.TrimSpace(*r.ServiceCode)
+	}
+	if r.ProductGlAccount != nil {
+		*r.ProductGlAccount = strings.TrimSpace(*r.ProductGlAccount)
+	}
+
+	for i := range r.Cap {
+		if r.Cap[i].Currency != nil {
+			currency := strings.TrimSpace(*r.Cap[i].Currency)
+			currency = strings.ToUpper(currency)
+			r.Cap[i].Currency = &currency
+		}
+	}
+}
 
 func (c CapRequest) Validate() error {
 	return validation.ValidateStruct(&c,
