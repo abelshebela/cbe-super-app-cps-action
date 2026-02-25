@@ -37,6 +37,7 @@ func (c *cpsRolesHandler) CreateCPSRole(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	req.Normalize()
 	if err := req.Validate(); err != nil {
 		log.Errorf("[CreateCPSRole] validation error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -73,6 +74,7 @@ func (c *cpsRolesHandler) UpdateCPSRole(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	req.Normalize()
 	if err := req.Validate(); err != nil {
 		log.Errorf("[UpdateCPSRole] validation error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
