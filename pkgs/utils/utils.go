@@ -433,7 +433,7 @@ func TrimWhiteSpace(value interface{}) error {
 		}
 		s = *v
 	default:
-		return nil // Non-string types are not trimmed
+		return nil
 	}
 	if strings.TrimSpace(s) == "" {
 		return errors.New("value cannot be empty or whitespace")
