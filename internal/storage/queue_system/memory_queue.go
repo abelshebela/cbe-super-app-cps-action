@@ -13,6 +13,8 @@ const (
 	maxBackoffDelay   = 5 * time.Minute
 	maxRetryQueueLen  = 10000
 	retryTickInterval = 500 * time.Millisecond
+	drainTimeout      = 30 * time.Second
+	stopTimeout       = 30 * time.Second
 )
 
 type RetryJob struct {
@@ -23,6 +25,7 @@ type RetryJob struct {
 type InMemoryQueue struct {
 	queue      chan Job
 	retryQueue []RetryJob
+	readyBuf   []Job // reused by processRetryTick (single goroutine)
 	logger     utils.Logger
 	handler    JobHandler
 
@@ -44,8 +47,15 @@ func NewInMemoryQueue(size int, logger utils.Logger, handler ...JobHandler) *InM
 }
 
 func (q *InMemoryQueue) Start(ctx context.Context, workers int) {
+	q.mu.Lock()
+	if q.cancel != nil {
+		q.mu.Unlock()
+		q.logger.Warnf("[memory_queue] Start: already running, ignoring duplicate start")
+		return
+	}
 	ctx, cancel := context.WithCancel(ctx)
 	q.cancel = cancel
+	q.mu.Unlock()
 
 	for i := 0; i < workers; i++ {
 		q.wg.Add(1)
@@ -58,9 +68,58 @@ func (q *InMemoryQueue) Start(ctx context.Context, workers int) {
 }
 
 func (q *InMemoryQueue) Stop() {
-	q.cancel()
-	q.wg.Wait()
-	q.logger.Infof("[memory_queue] all workers stopped")
+	q.mu.Lock()
+	cancel := q.cancel
+	q.cancel = nil
+	q.mu.Unlock()
+
+	if cancel == nil {
+		return
+	}
+	cancel()
+	if !waitWithTimeout(&q.wg, stopTimeout) {
+		q.logger.Errorf("[memory_queue] Stop: timed out waiting for workers to exit after %s", stopTimeout)
+	}
+
+	drainCtx, drainCancel := context.WithTimeout(context.Background(), drainTimeout)
+	defer drainCancel()
+
+	// Drain remaining jobs from the channel
+	drained := 0
+drainLoop:
+	for drainCtx.Err() == nil {
+		select {
+		case job := <-q.queue:
+			if err := q.handler(drainCtx, job); err != nil {
+				q.logger.Warnf("[memory_queue] drain: job failed %s: %v", job.LogPrefix(), err)
+			} else {
+				drained++
+			}
+		default:
+			break drainLoop
+		}
+	}
+
+	// Attempt to process pending retry jobs instead of dropping them
+	q.mu.Lock()
+	retryJobs := q.retryQueue
+	q.retryQueue = nil
+	q.mu.Unlock()
+
+	drainedRetries := 0
+	for _, rj := range retryJobs {
+		if drainCtx.Err() != nil {
+			break
+		}
+		if err := q.handler(drainCtx, rj.job); err != nil {
+			q.logger.Warnf("[memory_queue] drain: retry job failed %s: %v", rj.job.LogPrefix(), err)
+		} else {
+			drainedRetries++
+		}
+	}
+	droppedRetries := len(retryJobs) - drainedRetries
+
+	q.logger.Infof("[memory_queue] all workers stopped, drained=%d, drained_retries=%d, dropped_retries=%d", drained, drainedRetries, droppedRetries)
 }
 
 func (q *InMemoryQueue) Enqueue(ctx context.Context, job Job) error {
@@ -130,43 +189,70 @@ func (q *InMemoryQueue) retryScheduler(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			now := time.Now()
-
-			q.mu.Lock()
-			var remaining []RetryJob
-			var ready []Job
-
-			for _, r := range q.retryQueue {
-				if r.executeAt.Before(now) {
-					ready = append(ready, r.job)
-				} else {
-					remaining = append(remaining, r)
-				}
-			}
-			q.retryQueue = remaining
-			q.mu.Unlock()
-
-			for _, job := range ready {
-				select {
-				case q.queue <- job:
-				default:
-					backoff := retryTickInterval * time.Duration(job.Retry+1)
-					if backoff > maxBackoffDelay {
-						backoff = maxBackoffDelay
-					}
-					q.logger.Warnf("[memory_queue] retryScheduler: queue full, re-scheduling job %s delay=%s", job.LogPrefix(), backoff)
-					q.mu.Lock()
-					q.retryQueue = append(q.retryQueue, RetryJob{
-						job:       job,
-						executeAt: now.Add(backoff),
-					})
-					q.mu.Unlock()
-				}
-			}
-
-			if len(ready) > 0 {
-				q.logger.Debugf("[memory_queue] retry scheduler: re-enqueued %d jobs", len(ready))
-			}
+			q.processRetryTick()
 		}
+	}
+}
+
+func (q *InMemoryQueue) processRetryTick() {
+	now := time.Now()
+
+	q.mu.Lock()
+	ready := q.readyBuf[:0]
+	n := 0
+	for _, r := range q.retryQueue {
+		if r.executeAt.Before(now) {
+			ready = append(ready, r.job)
+		} else {
+			q.retryQueue[n] = r
+			n++
+		}
+	}
+	for i := n; i < len(q.retryQueue); i++ {
+		q.retryQueue[i] = RetryJob{}
+	}
+	q.retryQueue = q.retryQueue[:n]
+	q.readyBuf = ready
+	q.mu.Unlock()
+
+	for _, job := range ready {
+		select {
+		case q.queue <- job:
+		default:
+			backoff := time.Second * time.Duration(1<<job.Retry)
+			if backoff > maxBackoffDelay {
+				backoff = maxBackoffDelay
+			}
+			q.logger.Warnf("[memory_queue] retryScheduler: queue full, re-scheduling job %s delay=%s", job.LogPrefix(), backoff)
+			q.mu.Lock()
+			q.retryQueue = append(q.retryQueue, RetryJob{
+				job:       job,
+				executeAt: time.Now().Add(backoff),
+			})
+			q.mu.Unlock()
+		}
+	}
+
+	// Clear stale references so GC can collect Job.Payload between ticks
+	for i := range ready {
+		ready[i] = Job{}
+	}
+
+	if len(ready) > 0 {
+		q.logger.Debugf("[memory_queue] retry scheduler: re-enqueued %d jobs", len(ready))
+	}
+}
+
+func waitWithTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+	select {
+	case <-done:
+		return true
+	case <-time.After(timeout):
+		return false
 	}
 }
