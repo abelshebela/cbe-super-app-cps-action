@@ -40,16 +40,17 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 	case "staging":
 		allowedOrigins = []string{"https://staging-cbe-super-app-central-portal.vercel.app"}
 	case "qa":
-		allowedOrigins = []string{"http://localhost:3000", "https://qa-cbe-super-app-central-portal.vercel.app"}
+		allowedOrigins = []string{"http://localhost:3000", "https://qa-cbe-super-app-central-portal.vercel.app", "*"}
 	case "dev":
-		allowedOrigins = []string{"http://localhost:3000", "https://dev-cbe-super-app-central-portal.vercel.app"}
+		allowedOrigins = []string{"http://localhost:3000", "https://dev-cbe-super-app-central-portal.vercel.app", "*"}
 	default:
 		allowedOrigins = []string{"*"}
-		allowCredentials = true // credentials cannot be used with wildcard origin
+		allowCredentials = false // credentials cannot be used with wildcard origin
 	}
 
-	allowedOrigins = []string{"http://localhost:3000", "https://qa-cbe-super-app-central-portal.vercel.app"}
-
+	// temporary overide
+	allowedOrigins = []string{"*"}
+	allowCredentials = false
 	return cors.Handler(cors.Options{
 		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
