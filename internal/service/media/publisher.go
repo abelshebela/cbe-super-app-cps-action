@@ -51,9 +51,13 @@ func CreateKafkaProducer(logger utils.Logger, cfg *config.VaultConfig) KafkaProd
 
 func (r *KafkaProducer) PublishShortVideoEvent(path, shortVideoID string) error {
 	topic := "short-video-events-create"
+	shortVideoTopic := "short-video-events-update"
+
 	payload := map[string]string{
 		"short_video_id": shortVideoID,
 		"path":           path,
+		"topic_name":     shortVideoTopic,
+		"upload_path":    "news-reel-videos",
 	}
 
 	return r.produceMessage(topic, shortVideoID, payload)

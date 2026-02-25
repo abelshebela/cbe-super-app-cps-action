@@ -34,11 +34,11 @@ func (r *cpsRoleService) Create(ctx context.Context, req cps_role_dto.CreateCPSR
 
 	cpsRole, _ := r.repo.FindByNameOrRoleCode(ctx, req.Name, req.RoleCode)
 	if cpsRole != nil {
-		if cpsRole.Name == req.Name {
+		if strings.EqualFold(cpsRole.Name, req.Name) {
 			r.logger.Warnf("[CpsRoleSvc][Create] name exists: %s", req.Name)
 			return errors.New(localization.ErrorCPSRoleNameAlreadyExists.Code)
 		}
-		if cpsRole.RoleCode == req.RoleCode {
+		if strings.EqualFold(cpsRole.RoleCode, req.RoleCode) {
 			r.logger.Warnf("[CpsRoleSvc][Create] code exists: %s", req.RoleCode)
 			return errors.New(localization.ErrorCPSRoleCodeAlreadyExists.Code)
 		}
