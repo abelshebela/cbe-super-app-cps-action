@@ -11,6 +11,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -168,11 +169,11 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 	for _, branch := range branches {
 		if enabled {
 			if branch.IsEnabled {
-				alreadyEnabled = append(alreadyEnabled, branch.ID.Hex())
+				alreadyEnabled = append(alreadyEnabled, branch.Name)
 			}
 		} else {
 			if !branch.IsEnabled {
-				alreadyDisabled = append(alreadyDisabled, branch.ID.Hex())
+				alreadyDisabled = append(alreadyDisabled, branch.Name)
 			}
 		}
 
@@ -190,9 +191,9 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 	}
 
 	if len(alreadyEnabled) > 0 {
-		return fmt.Errorf("these branches are already enabled: %s", alreadyEnabled)
+		return fmt.Errorf("these branches are already enabled: %s", strings.Join(alreadyEnabled, ", "))
 	} else if len(alreadyDisabled) > 0 {
-		return fmt.Errorf("these branches are already disabled: %s", alreadyDisabled)
+		return fmt.Errorf("these branches are already disabled: %s", strings.Join(alreadyDisabled, ", "))
 	}
 
 	var actionType constants.ActionType
@@ -241,11 +242,11 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 	for _, region := range regions {
 		if enabled {
 			if region.IsEnabled {
-				alreadyEnabled = append(alreadyEnabled, region.ID.Hex())
+				alreadyEnabled = append(alreadyEnabled, region.Name)
 			}
 		} else {
 			if !region.IsEnabled {
-				alreadyDisabled = append(alreadyDisabled, region.ID.Hex())
+				alreadyDisabled = append(alreadyDisabled, region.Name)
 			}
 		}
 
@@ -263,9 +264,9 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 	}
 
 	if len(alreadyEnabled) > 0 {
-		return fmt.Errorf("these regions are already enabled: %s", alreadyEnabled)
+		return fmt.Errorf("these regions are already enabled: %s", strings.Join(alreadyEnabled, ", "))
 	} else if len(alreadyDisabled) > 0 {
-		return fmt.Errorf("these regions are already disabled: %s", alreadyDisabled)
+		return fmt.Errorf("these regions are already disabled: %s", strings.Join(alreadyDisabled, ", "))
 	}
 
 	var actionType constants.ActionType
@@ -337,11 +338,11 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 	for _, district := range districts {
 		if enabled {
 			if district.IsEnabled {
-				alreadyEnabled = append(alreadyEnabled, district.ID.Hex())
+				alreadyEnabled = append(alreadyEnabled, district.Name)
 			}
 		} else {
 			if !district.IsEnabled {
-				alreadyDisabled = append(alreadyDisabled, district.ID.Hex())
+				alreadyDisabled = append(alreadyDisabled, district.Name)
 			}
 		}
 
@@ -359,9 +360,9 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 	}
 
 	if len(alreadyEnabled) > 0 {
-		return fmt.Errorf("these districts are already enabled: %s", alreadyEnabled)
+		return fmt.Errorf("these districts are already enabled: %s", strings.Join(alreadyEnabled, ", "))
 	} else if len(alreadyDisabled) > 0 {
-		return fmt.Errorf("these districts are already disabled: %s", alreadyDisabled)
+		return fmt.Errorf("these districts are already disabled: %s", strings.Join(alreadyDisabled, ", "))
 	}
 
 	var actionType constants.ActionType
@@ -432,11 +433,11 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 	for _, city := range cities {
 		if enabled {
 			if city.IsEnabled {
-				alreadyEnabled = append(alreadyEnabled, city.ID.Hex())
+				alreadyEnabled = append(alreadyEnabled, city.Name)
 			}
 		} else {
 			if !city.IsEnabled {
-				alreadyDisabled = append(alreadyDisabled, city.ID.Hex())
+				alreadyDisabled = append(alreadyDisabled, city.Name)
 			}
 		}
 
@@ -454,9 +455,9 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 	}
 
 	if len(alreadyEnabled) > 0 {
-		return fmt.Errorf("these cities are already enabled: %s", alreadyEnabled)
+		return fmt.Errorf("these cities are already enabled: %s", strings.Join(alreadyEnabled, ", "))
 	} else if len(alreadyDisabled) > 0 {
-		return fmt.Errorf("these cities are already disabled: %s", alreadyDisabled)
+		return fmt.Errorf("these cities are already disabled: %s", strings.Join(alreadyDisabled, ", "))
 	}
 
 	var actionType constants.ActionType
