@@ -193,7 +193,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	if isSwaggerEnabled(cfg.GoEnv) {
 		secured.Group(func(r chi.Router) {
 			// Require authentication for swagger routes
-			r.Use(authMiddleware.AuthenticateToken)
+			// r.Use(authMiddleware.AuthenticateToken)
 
 			// Build after: swag init -g cmd/main.go -o docs && go run scripts/merge_swagger_examples.go
 			r.Get("/swagger/doc.json", serveSwaggerDocEmbedded())
