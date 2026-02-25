@@ -36,6 +36,22 @@ func Init(router chi.Router, handler amount_based.AmountBasedAuthAdapter, authMi
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/amount_based_auth/currency",
+			Handler: handler.AddCurrency,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/amount_based_auth/reset/{currency}",
+			Handler: handler.ResetConfig,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

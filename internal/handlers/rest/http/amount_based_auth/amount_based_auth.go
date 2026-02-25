@@ -21,7 +21,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-type paginated_auth_tier_resp types.PaginatedResponse[[]*model.AuthTier]
+type paginated_auth_tier_resp types.PaginatedResponse[[]amount_based_auth_dto.CurrencyGroup]
 type AmountBasedAuthHandler struct {
 	Service service.AmountBasedAuthService
 	logger  utils.Logger
@@ -193,4 +193,114 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 	// For rejection, just return success since the actual rejection
 	// would be handled by the CPS action system
 	localization.SendSuccessResponse(w, localization.SuccessUserUpdated, cpsReq)
+}
+
+// AddCurrency godoc
+//
+//	@Summary		Add currency configuration
+//	@Description	Add amount-based authentication tiers for a new currency.
+//	@Tags			Amount-Based-Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		amount_based_auth.AddCurrencyRequest		true	"Add currency payload"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}		"Request sent"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}		"Invalid input"
+//	@Failure		409		{object}	localization.StandardResponse{data=nil}		"Currency already exists"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}		"Server error"
+//	@Security		BearerAuth
+//	@Router			/amount_based_auth/currency [post]
+func (a *AmountBasedAuthHandler) AddCurrency(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_util.TraceLogger(r.Context(), "handler", "addCurrency", "handler", "amountBasedAuth")
+	defer span.End()
+	log := common_util.LoggerFromCtx(ctx, a.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	var request amount_based_auth_dto.AddCurrencyRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		span.RecordError(err)
+		log.Errorf("[AddCurrency] failed to decode request: %v", err)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Code)
+		return
+	}
+
+	if !request.Validate() {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
+		return
+	}
+
+	span.SetAttributes(attribute.String("amount_based_auth.currency", string(request.Currency)))
+
+	if err := a.Service.AddCurrency(ctx, request); err != nil {
+		span.RecordError(err)
+		log.Errorf("[AddCurrency] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthCurrencyAddedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthCurrencyAdded, nil)
+		log.Infof("[AddCurrency] request sent for currency: %s", request.Currency)
+	}
+}
+
+// ResetConfig godoc
+//
+//	@Summary		Reset currency configuration
+//	@Description	Reset amount-based authentication tiers for an existing currency.
+//	@Tags			Amount-Based-Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			currency	path		string									true	"Currency code"		Enums(ETB,USD)
+//	@Param			request		body		amount_based_auth.ResetConfigRequest		true	"Reset config payload"
+//	@Success		200			{object}	localization.StandardResponse{data=nil}		"Request sent"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}		"Invalid input"
+//	@Failure		404			{object}	localization.StandardResponse{data=nil}		"Currency not found"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Server error"
+//	@Security		BearerAuth
+//	@Router			/amount_based_auth/reset/{currency} [post]
+func (a *AmountBasedAuthHandler) ResetConfig(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_util.TraceLogger(r.Context(), "handler", "resetConfig", "handler", "amountBasedAuth")
+	defer span.End()
+	log := common_util.LoggerFromCtx(ctx, a.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	currencyParam, ok := common_util.GetParam(r, "currency")
+	if !ok {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
+		return
+	}
+	currency := constants.CurrencyType(currencyParam)
+
+	var request amount_based_auth_dto.ResetConfigRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		span.RecordError(err)
+		log.Errorf("[ResetConfig] failed to decode request: %v", err)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Code)
+		return
+	}
+
+	if !request.Validate(currency) {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
+		return
+	}
+
+	span.SetAttributes(attribute.String("amount_based_auth.currency", string(currency)))
+
+	if err := a.Service.ResetConfig(ctx, currency, request); err != nil {
+		span.RecordError(err)
+		log.Errorf("[ResetConfig] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthResetSentSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthResetSent, nil)
+		log.Infof("[ResetConfig] request sent for currency: %s", currency)
+	}
 }
