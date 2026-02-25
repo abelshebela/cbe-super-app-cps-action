@@ -328,12 +328,21 @@ func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCode(ctx context.Con
 		}
 	}
 	filter["enabled"] = true
-	als, err := a.fromSharedRepo.FindAll(ctx, filter, nil)
+	als, err := a.repo.FindAll(ctx, filter, nil)
 	if err != nil {
 		a.logger.Errorf("[AccessListSegmentation][FindAllBySegmentIDorSegmentCode] failed to find access list segmentation by segmentation id or segment code: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	return als, nil
+	var result []model.APPAccessList
+	for _, al := range als {
+		a.logger.Infof("[AccessListSegmentation][FindAllBySegmentIDorSegmentCode] found access list segmentation: %+v", al)
+		result = append(result, model.APPAccessList{
+			Key:            al.AccessListKey,
+			AccessListName: al.AccessListName,
+			Enabled:        al.Enabled,
+		})
+	}
+	return result, nil
 }
 func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCodeAndKeys(ctx context.Context, segmentIDorCode string, ac []string) ([]local_model.AccessListSegmentation, error) {
 	var filter bson.M
