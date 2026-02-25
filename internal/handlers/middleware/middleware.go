@@ -49,7 +49,7 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 	}
 
 	// temporary overide
-	allowedOrigins = []string{"*"}
+	allowedOrigins = []string{"http://localhost:3000", "localhost:3000", "0.0.0.0:3000"}
 	allowCredentials = false
 	return cors.Handler(cors.Options{
 		AllowedOrigins:   allowedOrigins,
