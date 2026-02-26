@@ -93,6 +93,24 @@ func Init(router chi.Router, handler inbound.ServicesHandler, auth middleware.Au
 				// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/services_list/{id}/enable",
+			Handler: handler.EnableServiceList,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+				// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/services_list/{id}/disable",
+			Handler: handler.DisableServiceList,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+				// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+			},
+		},
 	}
 	glue.RegisterRoutes(router, routes)
 }

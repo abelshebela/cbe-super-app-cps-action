@@ -477,3 +477,65 @@ func (a *servicesAdapter) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, item)
 }
+
+func (a *servicesAdapter) EnableServiceList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "EnableServiceList", "handler", "EnableServiceList")
+	defer span.End()
+
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	id := chi.URLParam(r, "id")
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
+
+	span.SetAttributes(attribute.String("service.id", id))
+	if err := a.app.EnableOrDisableServiceList(ctx, id, true); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceListEnabled, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceListEnableRequestSubmitted, nil)
+}
+
+func (a *servicesAdapter) DisableServiceList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "DisableServiceList", "handler", "DisableServiceList")
+	defer span.End()
+
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	id := chi.URLParam(r, "id")
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
+
+	span.SetAttributes(attribute.String("service.id", id))
+	if err := a.app.EnableOrDisableServiceList(ctx, id, false); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceListDisabled, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceListDisableRequestSubmitted, nil)
+}
