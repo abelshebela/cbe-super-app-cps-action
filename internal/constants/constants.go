@@ -765,8 +765,10 @@ const (
 	RequestDisableWallet RequestAction = "DISABLE_WALLET"
 
 	// Services catalog (model.Services)
-	RequestCreateServiceList RequestAction = "CREATE_SERVICE_LIST"
-	RequestUpdateServiceList RequestAction = "UPDATE_SERVICE_LIST"
+	RequestCreateServiceList  RequestAction = "CREATE_SERVICE_LIST"
+	RequestUpdateServiceList  RequestAction = "UPDATE_SERVICE_LIST"
+	RequestEnableServiceList  RequestAction = "ENABLE_SERVICE_LIST"
+	RequestDisableServiceList RequestAction = "DISABLE_SERVICE_LIST"
 	// Service
 	RequestCreateService        RequestAction = "CREATE_SERVICE"
 	RequestUpdateService        RequestAction = "UPDATE_SERVICE"

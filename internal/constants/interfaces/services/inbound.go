@@ -12,4 +12,6 @@ type ServicesHandler interface {
 	GetAllServiceList(w http.ResponseWriter, r *http.Request)
 	CreateServiceList(w http.ResponseWriter, r *http.Request)
 	UpdateServiceList(w http.ResponseWriter, r *http.Request)
+	EnableServiceList(w http.ResponseWriter, r *http.Request)
+	DisableServiceList(w http.ResponseWriter, r *http.Request)
 }
