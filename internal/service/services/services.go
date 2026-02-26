@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -132,9 +131,9 @@ func (s *servicesService) UpdateServiceList(ctx context.Context, id string, req 
 		return err
 	}
 
-	if strings.EqualFold(existing.ServiceName, req.ServiceName) || strings.EqualFold(existing.ServiceKey, req.ServiceKey) {
-		return errors.New(localization.ErrorNoChangesDetected.Code)
-	}
+	// if strings.EqualFold(existing.ServiceName, req.ServiceName) || strings.EqualFold(existing.ServiceKey, req.ServiceKey) {
+	// 	return errors.New(localization.ErrorNoChangesDetected.Code)
+	// }
 
 	mapped := core.MapServiceListDtoUpdateToModel(req)
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestUpdateServiceList, mapped, existing, constants.ActionUpdate)
