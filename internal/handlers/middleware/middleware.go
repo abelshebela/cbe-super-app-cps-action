@@ -48,10 +48,6 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 		allowCredentials = false // credentials cannot be used with wildcard origin
 	}
 
-	// fmt.Println("allowedOrigins***************************", cfg.GoEnv)
-	// temporary overide
-	// allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "0.0.0.0:3000", "https://qa-cbe-super-app-central-portal.vercel.app", "https://dev-cbe-super-app-central-portal.vercel.app", "https://staging-cbe-super-app-central-portal.vercel.app", "https://uat-cbe-super-app-central-portal.vercel.app", "https://production-cbe-super-app-central-portal.vercel.app"}
-	allowCredentials = false
 	return cors.Handler(cors.Options{
 		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
