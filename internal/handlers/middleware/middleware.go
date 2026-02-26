@@ -32,33 +32,22 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 	allowCredentials := true
 
 	// Set allowed origins based on environment
-	// switch cfg.GoEnv {
-	// case "production":
-	// 	fmt.Println("allowedOrigins***************************", cfg.GoEnv)
-	// 	allowedOrigins = []string{"https://production-cbe-super-app-central-portal.vercel.app"}
-	// case "uat":
-	// 	fmt.Println("allowedOrigins***************************", cfg.GoEnv)
-	// 	allowedOrigins = []string{"https://uat-cbe-super-app-central-portal.vercel.app"}
-	// case "staging":
-	// 	fmt.Println("allowedOrigins***************************", cfg.GoEnv)
-	// 	allowedOrigins = []string{"0.0.0.0:3000", "https://staging-cbe-super-app-central-portal.vercel.app"}
-	// case "qa":
-	// 	fmt.Println("allowedOrigins***************************", cfg.GoEnv)
-	// 	fmt.Println("allowedOrigins***************************", cfg.GoEnv)
-	// 	allowedOrigins = []string{"0.0.0.0:3000", "https://qa-cbe-super-app-central-portal.vercel.app"}
-	// case "dev":
-	// 	fmt.Println("allowedOrigins***************************", cfg.GoEnv)
-	// 	allowedOrigins = []string{"0.0.0.0:3000", "https://dev-cbe-super-app-central-portal.vercel.app"}
-	// default:
-	// 	fmt.Println("allowedOrigins FAN DEFAULT***************************")
-	// 	allowedOrigins = []string{"0.0.0.0:3000", "*"}
-	// 	allowCredentials = false // credentials cannot be used with wildcard origin
-	// }
+	switch cfg.GoEnv {
+	case "production":
+		allowedOrigins = []string{"https://production-cbe-super-app-central-portal.vercel.app"}
+	case "uat":
+		allowedOrigins = []string{"https://uat-cbe-super-app-central-portal.vercel.app"}
+	case "staging":
+		allowedOrigins = []string{"0.0.0.0:3000", "https://staging-cbe-super-app-central-portal.vercel.app"}
+	case "qa":
+		allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "0.0.0.0:3000", "https://qa-cbe-super-app-central-portal.vercel.app"}
+	case "dev":
+		allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "0.0.0.0:3000", "https://dev-cbe-super-app-central-portal.vercel.app"}
+	default:
+		allowedOrigins = []string{"*"}
+		allowCredentials = false // credentials cannot be used with wildcard origin
+	}
 
-	// fmt.Println("allowedOrigins***************************", cfg.GoEnv)
-	// temporary overide
-	allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "0.0.0.0:3000", "https://qa-cbe-super-app-central-portal.vercel.app", "https://dev-cbe-super-app-central-portal.vercel.app", "https://staging-cbe-super-app-central-portal.vercel.app", "https://uat-cbe-super-app-central-portal.vercel.app", "https://production-cbe-super-app-central-portal.vercel.app"}
-	allowCredentials = false
 	return cors.Handler(cors.Options{
 		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
