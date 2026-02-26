@@ -148,6 +148,30 @@ func (s *servicesService) GetByID(ctx context.Context, id string) (*model.Servic
 	return s.repo.FindByID(ctx, id)
 }
 
+func (s *servicesService) EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error {
+	if id == "" {
+		return localization.ErrorInvalidID
+	}
+	prev, err := s.repo.FindServiceListByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if prev.IsEnabled == enable {
+		if enable {
+			return localization.ErrorAlreadyEnabled
+		}
+		return localization.ErrorAlreadyDisabled
+	}
+	payload := model.ServiceList{IsEnabled: enable}
+	var requestAction constants.RequestAction
+	if enable {
+		requestAction = constants.RequestEnableServiceList
+	} else {
+		requestAction = constants.RequestDisableServiceList
+	}
+	return core.HandleCPSAction(ctx, s.cps, id, requestAction, payload, prev, constants.ActionUpdate)
+}
+
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	serviceDoc, err := local_util.JsonUnmarshal[model.Service](action.CurrentAction)
 	if err != nil {
@@ -181,6 +205,20 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		}
 
 		err = s.repo.UpdateServiceList(ctx, action.UniqueId, prevListDoc.ServiceKey, listDoc)
+	case string(constants.RequestEnableServiceList):
+		listDoc, err := local_util.JsonUnmarshal[model.ServiceList](action.PreviousAction)
+		if err != nil {
+			return nil, localization.ErrorInvalidActionData
+		}
+		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, listDoc.ServiceKey, true)
+	case string(constants.RequestDisableServiceList):
+		listDoc, err := local_util.JsonUnmarshal[model.ServiceList](action.PreviousAction)
+		if err != nil {
+			return nil, localization.ErrorInvalidActionData
+		}
+
+		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, listDoc.ServiceKey, false)
+
 	default:
 		return nil, localization.ErrorInvalidRequest
 	}

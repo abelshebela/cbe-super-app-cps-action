@@ -356,3 +356,28 @@ func (s *ServicesStorage) UpdateServiceList(ctx context.Context, id, serviceKey 
 
 	return nil
 }
+
+func (s *ServicesStorage) EnableOrDisableServiceList(ctx context.Context, id, serviceKey string, enable bool) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		s.logger.Errorf("[UpdateServiceList][Update] invalid object id: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+	filter := bson.M{"_id": objID}
+	update := bson.M{"is_enabled": enable}
+	_, err = s.serviceDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		s.logger.Errorf("[EnableOrDisableServiceList] failed to update service list: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// Update access_list too
+	accessListUpdate := bson.M{"enabled": enable}
+	_, err = s.accessDal.UpdateOne(ctx, bson.M{"key": serviceKey}, accessListUpdate)
+	if err != nil {
+		s.logger.Errorf("[EnableOrDisableServiceList] failed to update access list: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
+}
