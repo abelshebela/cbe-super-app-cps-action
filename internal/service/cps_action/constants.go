@@ -705,10 +705,10 @@ var RequestActionGroups = map[string][]RequestAction{
 		// RequestEnableSingleBranch,
 		// RequestDisableMultiBranches,
 		// RequestEnableMultiBranches,
-		RequestEnableBranches,
-		RequestDisableBranches,
-		RequestEnableRegions,
-		RequestDisableRegions,
+		// RequestEnableBranches,
+		// RequestDisableBranches,
+		// RequestEnableRegions,
+		// RequestDisableRegions,
 		RequestEnableDistricts,
 		RequestDisableDistricts,
 		RequestEnableCities,
@@ -716,17 +716,23 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"SINGLEBRANCHENABLEACCOUNTBLOCK": {
 		RequestEnableSingleBranch,
+		RequestEnableBranches,
 	},
 	"SINGLEBRANCHDISABLEACCOUNTBLOCK": {
 		RequestDisableSingleBranch,
+		RequestDisableBranches,
 	},
 	"MULTIBRANCHENABLEACCOUNTBLOCK": {
 		RequestEnableSingleBranch,
 		RequestEnableRegions,
+		RequestEnableDistricts,
+		RequestEnableCities,
 	},
 	"MULTIBRANCHDISABLEACCOUNTBLOCK": {
 		RequestDisableMultiBranches,
 		RequestDisableRegions,
+		RequestDisableDistricts,
+		RequestDisableCities,
 	},
 	"ACCOUNTVALIDATION": {
 		RequestUser,
