@@ -44,7 +44,7 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 	case "dev":
 		allowedOrigins = []string{"0.0.0.0:3000", "https://dev-cbe-super-app-central-portal.vercel.app"}
 	default:
-		allowedOrigins = []string{"*"}
+		allowedOrigins = []string{"0.0.0.0:3000", "*"}
 		allowCredentials = false // credentials cannot be used with wildcard origin
 	}
 
