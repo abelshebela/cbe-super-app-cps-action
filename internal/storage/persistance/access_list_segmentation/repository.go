@@ -63,7 +63,7 @@ func (a *AccessListSegmentation) FindBySegmentIDAndAccessListKeys(ctx context.Co
 	filter := bson.M{"segmented_id": objID, "access_list_key": bson.M{"$in": keys}, "enabled": true}
 	response, err := a.repo.FindOne(ctx, filter, nil)
 	if err != nil {
-		if local_util.HandleDBError(err) == localization.ErrorResourceNotFound {
+		if temp := local_util.HandleDBError(err); temp.Error() == localization.ErrorResourceNotFound.Code {
 			return nil, errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
 		}
 		a.logger.Errorf("[AccessListSegmentation][FindBySegmentIDAndAccessListKeys] find error: %v", err)
