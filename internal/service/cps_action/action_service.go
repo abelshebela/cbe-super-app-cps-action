@@ -39,6 +39,8 @@ type cpsActionService struct {
 	roles      storage.CPSActionRoleRepository
 	logger     utils.Logger
 	dispatcher Dispatcher
+	minioClient *s3.Client
+	buckerName string
 }
 
 // IsMakerOnlyForRequest returns true if the module mapped from requestAction is configured as maker-only in CPSActionRole.
@@ -112,12 +114,15 @@ func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	return err
 }
 
-func NewCPSActionService(roles storage.CPSActionRoleRepository, repo storage.CPSActionRepository, logger utils.Logger, dispatcher Dispatcher) service.CPSActionService {
+func NewCPSActionService(roles storage.CPSActionRoleRepository, repo storage.CPSActionRepository, logger utils.Logger, dispatcher Dispatcher,minioClient *s3.Client,bucketName string) service.CPSActionService {
 	return &cpsActionService{
 		repo:       repo,
 		logger:     logger,
 		roles:      roles,
 		dispatcher: dispatcher,
+		minioClient: minioClient,
+		buckerName: bucketName,
+
 	}
 }
 
@@ -523,14 +528,14 @@ func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 
 func (ca *cpsActionService) ExportCpsActionData(
     ctx context.Context,
-    startDate, endDate time.Time,
+    startDate, endDate time.Time,export_type string,
 ) (string, error) {
 
     if endDate.Before(startDate) {
         return "", errors.New("end_date cannot be before start_date")
     }
 
-    // 1️⃣ Create temp file
+    // 1 Create temp file
     tmpFile, err := os.CreateTemp("", "cps_actions_*.csv")
     if err != nil {
         return "", fmt.Errorf("create temp file: %w", err)
@@ -540,12 +545,12 @@ func (ca *cpsActionService) ExportCpsActionData(
 
     writer := csv.NewWriter(tmpFile)
 
-    // 2️⃣ Write Header
+    // 2️ Write Header
     if err := writer.Write(CpsActionCSVHeader()); err != nil {
         return "", fmt.Errorf("write header: %w", err)
     }
 
-    // 3️⃣ Stream from repository
+    // 3️Stream from repository
     err = ca.repo.StreamByDateRange(ctx, startDate, endDate,
         func(action *model.CPSAction) error {
             return ca.processCPSAction(writer, action)
@@ -560,7 +565,7 @@ func (ca *cpsActionService) ExportCpsActionData(
         return "", fmt.Errorf("flush csv: %w", err)
     }
 
-    // 4️⃣ Upload to MinIO
+    // 4️Upload to MinIO
     objectName := fmt.Sprintf(
         "exports/cps-actions/cps_actions_%s_to_%s_%d.csv",
         startDate.Format("20060102"),
@@ -568,7 +573,8 @@ func (ca *cpsActionService) ExportCpsActionData(
         time.Now().Unix(),
     )
 
-    if err := ca.uploadFileToMinio(ctx, tmpFile.Name(), objectName); err != nil {
+    link,err := UploadFileToMinio(ctx, tmpFile.Name(), objectName)
+	if err != nil {
         return "", err
     }
 
@@ -634,10 +640,10 @@ func BuildCPSActionRow(a *model.CPSAction) ([]string, error) {
         a.ReversedByRoleID,
         a.ReversedByID,
         a.ReversedByName,
-        formatTime(a.ReversedAt),
-        formatTime(a.CreatedAt),
-        formatTime(a.LastModifiedAt),
-        formatTime(a.MakerActionTime),
+        // formatTime(a.ReversedAt),
+        // formatTime(a.CreatedAt),
+        // formatTime(a.LastModifiedAt),
+        // formatTime(a.MakerActionTime),
     }, nil
 }
 
@@ -676,7 +682,7 @@ func CpsActionCSVHeader() []string {
     }
 }
 
-func (ca *cpsActionService) uploadFileToMinio(
+func  UploadFileToMinio(
     ctx context.Context,
 	s3Client *s3.Client,
 	bucketName string,
@@ -684,34 +690,37 @@ func (ca *cpsActionService) uploadFileToMinio(
 	env config.VaultConfig,
     filePath string,
     objectKey string,
-) error {
+) (string,error) {
 
     file, err := os.Open(filePath)
     if err != nil {
-        return fmt.Errorf("open file: %w", err)
+        return "",fmt.Errorf("open file: %w", err)
     }
     defer file.Close()
 
     stat, err := file.Stat()
     if err != nil {
-        return err
+        return "",err
     }
-
-    _, err = ca.minioClient.PutObject(
+	size := stat.Size()
+	contentType := "text/csv"
+	putInput := &s3.PutObjectInput{
+		Bucket:        aws.String(bucketName),
+		Key:           aws.String(objectKey),
+		Body:          bytes.NewReader(finalBytes),
+		ContentType:   aws.String(contentType),
+		ContentLength: &size,
+	}
+    _, err = s3Client.PutObject(
         ctx,
-        ca.minioBucket,
-        objectName,
-        file,
-        stat.Size(),
-        minio.PutObjectOptions{
-            ContentType: "text/csv",
-        },
+        putInput,
     )
     if err != nil {
-        return fmt.Errorf("upload to minio: %w", err)
+        return "",fmt.Errorf("upload to minio: %w", err)
     }
-
-    return nil
+	 baseURL := env.MinioPublicEndPoint
+	url := fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(objectKey, "/")) 
+	   return url,nil
 }
 
 
