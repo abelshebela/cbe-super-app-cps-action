@@ -93,6 +93,7 @@ type ServicesRepository interface {
 	FindServiceListByID(ctx context.Context, id string) (*model.ServiceList, error)
 	CreateServiceList(ctx context.Context, serviceList *model.ServiceList) error
 	UpdateServiceList(ctx context.Context, id, serviceKey string, serviceList *model.ServiceList) error
+	EnableOrDisableServiceList(ctx context.Context, id, serviceKey string, enable bool) error
 }
 
 type OTPRepository interface {
