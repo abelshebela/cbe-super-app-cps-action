@@ -199,6 +199,9 @@ type CPSActionRepository interface {
 	UpdateCustome(ctx context.Context, filter, update bson.M) error
 	Delete(ctx context.Context, id string) error
 	GetCountByDepartment(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error)
+	// FindByDateRange(ctx context.Context, start_date, end_date time.Time)([]*model.CPSAction,error)
+
+	StreamByDateRange(ctx context.Context,startDate, endDate time.Time,handler func(*model.CPSAction) error,) error 
 }
 
 // Avatar persistence

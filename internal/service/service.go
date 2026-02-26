@@ -12,6 +12,7 @@ import (
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	passwordrule "cbe-super-app-cps-action/internal/constants/dto/password_rule"
 	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
+	"time"
 
 	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
 
@@ -98,6 +99,8 @@ type CPSActionService interface {
 	GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByUniqueID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error)
+
+	ExportCpsActionData(ctx context.Context, start_date, end_date time.Time, exported_to string) (string, error)
 }
 
 type BPSActionService interface {

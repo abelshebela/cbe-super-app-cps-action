@@ -1,12 +1,20 @@
 package cpsaction
 
 import (
+	"bytes"
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"encoding/csv"
+	"encoding/json"
+	"fmt"
+	"mime/multipart"
+	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	"cbe-super-app-cps-action/internal/storage"
@@ -14,6 +22,10 @@ import (
 	"context"
 	"errors"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/minio/minio-go/v7"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -507,4 +519,256 @@ func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 		return nil, err
 	}
 	return result, nil
+}
+
+func (ca *cpsActionService) ExportCpsActionData(
+    ctx context.Context,
+    startDate, endDate time.Time,
+) (string, error) {
+
+    if endDate.Before(startDate) {
+        return "", errors.New("end_date cannot be before start_date")
+    }
+
+    // 1️⃣ Create temp file
+    tmpFile, err := os.CreateTemp("", "cps_actions_*.csv")
+    if err != nil {
+        return "", fmt.Errorf("create temp file: %w", err)
+    }
+    defer os.Remove(tmpFile.Name())
+    defer tmpFile.Close()
+
+    writer := csv.NewWriter(tmpFile)
+
+    // 2️⃣ Write Header
+    if err := writer.Write(CpsActionCSVHeader()); err != nil {
+        return "", fmt.Errorf("write header: %w", err)
+    }
+
+    // 3️⃣ Stream from repository
+    err = ca.repo.StreamByDateRange(ctx, startDate, endDate,
+        func(action *model.CPSAction) error {
+            return ca.processCPSAction(writer, action)
+        },
+    )
+    if err != nil {
+        return "", fmt.Errorf("stream data: %w", err)
+    }
+
+    writer.Flush()
+    if err := writer.Error(); err != nil {
+        return "", fmt.Errorf("flush csv: %w", err)
+    }
+
+    // 4️⃣ Upload to MinIO
+    objectName := fmt.Sprintf(
+        "exports/cps-actions/cps_actions_%s_to_%s_%d.csv",
+        startDate.Format("20060102"),
+        endDate.Format("20060102"),
+        time.Now().Unix(),
+    )
+
+    if err := ca.uploadFileToMinio(ctx, tmpFile.Name(), objectName); err != nil {
+        return "", err
+    }
+
+    // 5️⃣ Generate presigned URL
+    presignedURL, err := ca.minioClient.PresignedGetObject(
+        ctx,
+        ca.minioBucket,
+        objectName,
+        15*time.Minute,
+        nil,
+    )
+    if err != nil {
+        return "", fmt.Errorf("generate presigned url: %w", err)
+    }
+
+    return presignedURL.String(), nil
+}
+
+func (ca *cpsActionService) processCPSAction(
+    writer *csv.Writer,
+    action *model.CPSAction,
+) error {
+
+    row, err := BuildCPSActionRow(action)
+    if err != nil {
+        return err
+    }
+
+    return writer.Write(row)
+}
+
+func BuildCPSActionRow(a *model.CPSAction) ([]string, error) {
+
+    checkerJSON, _ := json.Marshal(a.CheckerUsers)
+    auditorJSON, _ := json.Marshal(a.AuditorUsers)
+    prevJSON, _ := json.Marshal(a.PreviousAction)
+    currJSON, _ := json.Marshal(a.CurrentAction)
+
+    return []string{
+        a.ID.Hex(),
+        a.ActionCode,
+        a.UniqueId,
+        a.MakerID,
+        a.MakerName,
+        a.MakerPhoneNumber,
+        string(checkerJSON),
+        string(auditorJSON),
+        strconv.Itoa(int(a.AuditorCount)),
+        string(a.AuditorStatus),
+        fmt.Sprintf("%f", a.CurrentAuditorIndex),
+        strconv.Itoa(int(a.CheckerCount)),
+        fmt.Sprintf("%f", a.CurrentCheckerIndex),
+        a.RoleCode,
+        a.RejectionReason,
+        a.CanceledReason,
+        string(prevJSON),
+        string(currJSON),
+        a.ActionStatus,
+        a.ActionType,
+        strconv.FormatBool(a.IsDeleted),
+        a.RequestAction,
+        strconv.FormatInt(a.Version, 10),
+        a.ReversedByRoleID,
+        a.ReversedByID,
+        a.ReversedByName,
+        formatTime(a.ReversedAt),
+        formatTime(a.CreatedAt),
+        formatTime(a.LastModifiedAt),
+        formatTime(a.MakerActionTime),
+    }, nil
+}
+
+func CpsActionCSVHeader() []string {
+    return []string{
+        "ID",
+        "ActionCode",
+        "UniqueId",
+        "MakerID",
+        "MakerName",
+        "MakerPhoneNumber",
+        "CheckerUsers",
+        "AuditorUsers",
+        "AuditorCount",
+        "AuditorStatus",
+        "CurrentAuditorIndex",
+        "CheckerCount",
+        "CurrentCheckerIndex",
+        "RoleCode",
+        "RejectionReason",
+        "CanceledReason",
+        "PreviousAction",
+        "CurrentAction",
+        "ActionStatus",
+        "ActionType",
+        "IsDeleted",
+        "RequestAction",
+        "Version",
+        "ReversedByRoleID",
+        "ReversedByID",
+        "ReversedByName",
+        "ReversedAt",
+        "CreatedAt",
+        "LastModifiedAt",
+        "MakerActionTime",
+    }
+}
+
+func (ca *cpsActionService) uploadFileToMinio(
+    ctx context.Context,
+	s3Client *s3.Client,
+	bucketName string,
+	fileHeader *multipart.FileHeader,
+	env config.VaultConfig,
+    filePath string,
+    objectKey string,
+) error {
+
+    file, err := os.Open(filePath)
+    if err != nil {
+        return fmt.Errorf("open file: %w", err)
+    }
+    defer file.Close()
+
+    stat, err := file.Stat()
+    if err != nil {
+        return err
+    }
+
+    _, err = ca.minioClient.PutObject(
+        ctx,
+        ca.minioBucket,
+        objectName,
+        file,
+        stat.Size(),
+        minio.PutObjectOptions{
+            ContentType: "text/csv",
+        },
+    )
+    if err != nil {
+        return fmt.Errorf("upload to minio: %w", err)
+    }
+
+    return nil
+}
+
+
+func  UploadCSVFile(
+    ctx context.Context,
+	s3Client *s3.Client,
+    filePath string,
+    objectKey string,
+	bucketName string,
+) (string, error) {
+
+    // 1. Open file (NO memory loading)
+    file, err := os.Open(filePath)
+    if err != nil {
+        return "", fmt.Errorf("open csv file: %w", err)
+    }
+    defer file.Close()
+
+    // 2. Get file size (required by MinIO)
+    stat, err := file.Stat()
+    if err != nil {
+        return "", fmt.Errorf("stat file: %w", err)
+    }
+
+	byteFile := []byte(file)
+
+	minioInputObject := &s3.PutObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:aws.String(objectKey),
+		Body: bytes.NewReader(file),
+	}
+    // 3. Upload using STREAM (file reader)
+    _, err = s3Client.PutObject(
+        ctx,
+        bucketName,
+        objectKey,
+        file,              //  STREAM directly (important)
+        stat.Size(),       // file size
+        minio.PutObjectOptions{
+            ContentType: "text/csv",
+        },
+    )
+    if err != nil {
+        return "", fmt.Errorf("upload csv to minio: %w", err)
+    }
+
+    // 4. Generate presigned URL (download link)
+    presignedURL, err := m.client.PresignedGetObject(
+        ctx,
+        m.bucketName,
+        objectKey,
+        15*time.Minute,
+        nil,
+    )
+    if err != nil {
+        return "", fmt.Errorf("generate presigned url: %w", err)
+    }
+
+    return presignedURL.String(), nil
 }
