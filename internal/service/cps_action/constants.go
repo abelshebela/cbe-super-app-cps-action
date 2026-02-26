@@ -722,9 +722,11 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"MULTIBRANCHENABLEACCOUNTBLOCK": {
 		RequestEnableSingleBranch,
+		RequestEnableRegions,
 	},
 	"MULTIBRANCHDISABLEACCOUNTBLOCK": {
 		RequestDisableMultiBranches,
+		RequestDisableRegions,
 	},
 	"ACCOUNTVALIDATION": {
 		RequestUser,
