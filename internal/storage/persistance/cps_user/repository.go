@@ -351,6 +351,7 @@ func (r *CPSUserStorage) GetPopulatedWithRole(ctx context.Context, userCode stri
 
 // FindByEmailOrPhoneNumberOrUserName implements [storage.CpsUserRepository].
 func (r *CPSUserStorage) FindByEmailOrPhoneNumberOrUserName(ctx context.Context, email string, phoneNumber string, username string) (*imodel.CPSUser, error) {
+	r.logger.Infof("[CPSUserStorage][FindByEmailOrPhoneNumberOrUserName] searching for CPS user by email, phone number, or username")
 	var orFilters []bson.M
 	if email != "" {
 		orFilters = append(orFilters, bson.M{"email": email})
