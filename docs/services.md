@@ -221,3 +221,318 @@ Enabled: `On` for new services being rolled out
 - Disabling a widely used production service without planning communication and monitoring.  
 - Assuming that disabling fully removes the service – it usually stays in lists and history.
 
+---
+
+### Screen / Form: Get Service by ID
+
+**Purpose:**  
+To retrieve full details of a single service by its unique identifier.
+
+**Input Fields**
+
+**Service ID**
+
+- **Type:** Text (URL path parameter)  
+- **Required:** Yes  
+- **Description:** The unique identifier of the service to retrieve.
+- **Rules:**  
+  - Must be a valid MongoDB ObjectID.
+
+**Example (Correctly Filled Form)**
+
+Service ID: `674003000000000000000001`
+
+**Common Mistakes**
+
+- Providing an invalid or non-existent service ID.  
+- Confusing the service ID with the service code or service key.
+
+---
+
+### Screen / Form: Get All Service List
+
+**Purpose:**  
+To retrieve all service list entries with pagination. Service lists group related services together for configuration or display.
+
+**Input Fields**
+
+**Page**
+
+- **Type:** Number  
+- **Required:** No
+
+**Items per page**
+
+- **Type:** Number  
+- **Required:** No
+
+**Example (Correctly Filled Form)**
+
+Page: `1`  
+Items per page: `20`
+
+**Common Mistakes**
+
+- Confusing the service list with the main services list.  
+- Not using pagination for large datasets.
+
+---
+
+### Screen / Form: Create Service List
+
+**Purpose:**  
+To create a new service list entry that groups or categorizes services.
+
+**Input Fields**
+
+**Service list name**
+
+- **Type:** Text  
+- **Required:** Yes  
+- **Description:** A human-readable name for the service list.
+- **Rules:**  
+  - Must be unique.  
+  - Use letters, numbers, and spaces.
+
+**Service list key**
+
+- **Type:** Text  
+- **Required:** Yes  
+- **Description:** A short internal key for the service list.
+- **Rules:**  
+  - Should be unique.  
+  - Typically uppercase with underscores.
+
+**Example (Correctly Filled Form)**
+
+Service list name: `Payment Services`  
+Service list key: `PAYMENT_SERVICES`
+
+**Common Mistakes**
+
+- Reusing an existing service list key.  
+- Creating duplicate service lists with slightly different names.
+
+---
+
+### Screen / Form: Update Service List
+
+**Purpose:**  
+To modify an existing service list entry.
+
+**Input Fields**
+
+**Service list ID**
+
+- **Type:** Text (URL path parameter)  
+- **Required:** Yes  
+- **Description:** The unique identifier of the service list to update.
+
+**Service list name**
+
+- **Type:** Text  
+- **Required:** No (optional to change)
+
+**Service list key**
+
+- **Type:** Text  
+- **Required:** No (optional to change)
+
+**Example (Correctly Filled Form)**
+
+Service list ID: `674003000000000000000001`  
+Service list name: `Updated Payment Services`
+
+**Common Mistakes**
+
+- Changing the service list key without verifying dependencies in other modules.  
+- Updating a service list that is currently in active use without coordination.
+
+---
+
+## Component Interaction Flow
+
+### Write Operation (Create / Update / Enable / Disable Service)
+
+```plantuml
+@startuml
+skinparam style strictuml
+title Services Module – Write Operation Flow
+
+actor "CPS Portal\n(Maker)" as Maker
+participant "Chi Router\n+ Middleware" as Router
+participant "Services\nHandler" as Handler
+participant "Services\nService" as Service
+participant "CPS Action\nService" as CPS
+participant "Services\nRepository" as Repo
+database "MongoDB" as DB
+
+== Maker Creates a Request ==
+Maker -> Router : POST /services (Create/Update/Enable/Disable)
+Router -> Router : AuthMiddleware · AccessControl
+Router -> Handler : Authenticated request
+Handler -> Handler : Parse & validate DTO
+Handler -> Service : Create(ctx, req)
+Service -> Repo : FindAllWithPagination (duplicate check)
+Repo -> DB : Query services collection
+DB --> Repo : Results
+Repo --> Service : Existing data
+Service -> Service : Map DTO → Model
+Service -> CPS : HandleCPSAction (pending)
+CPS -> DB : Insert CPSAction (status=PENDING)
+DB --> CPS : Stored
+CPS --> Service : Action created
+Service --> Handler : Success
+Handler --> Maker : 200 OK – Pending approval
+
+== Checker Approves the Request ==
+actor "CPS Portal\n(Checker)" as Checker
+Checker -> Router : POST /cps_action/{id}/approve
+Router -> Router : AuthMiddleware · AccessControl
+Router -> Handler : Authenticated request
+Handler -> CPS : ApproveCPSAction(ctx, action)
+CPS -> Service : Authorize(ctx, action)
+Service -> Repo : Create / Update / EnableOrDisable
+Repo -> DB : Write to services collection
+DB --> Repo : Done
+Repo --> Service : Applied
+Service --> CPS : Authorized action
+CPS -> DB : Update CPSAction (status=APPROVED)
+CPS --> Handler : Approved
+Handler --> Checker : 200 OK
+
+@enduml
+```
+
+### Read Operation (Get All Services / Get Service by ID)
+
+```plantuml
+@startuml
+skinparam style strictuml
+title Services Module – Read Operation Flow
+
+actor "CPS Portal User" as User
+participant "Chi Router\n+ Middleware" as Router
+participant "Services\nHandler" as Handler
+participant "Services\nService" as Service
+participant "Services\nRepository" as Repo
+database "MongoDB" as DB
+
+User -> Router : GET /services  or  GET /services/{id}
+Router -> Router : AuthMiddleware
+Router -> Handler : Authenticated request
+Handler -> Service : GetAll(ctx, filter) / GetByID(ctx, id)
+Service -> Repo : FindAllWithPagination / FindByID
+Repo -> DB : Query
+DB --> Repo : Result
+Repo --> Service : Data
+Service --> Handler : Response
+Handler --> User : 200 OK + JSON payload
+
+@enduml
+```
+
+---
+
+## Data Models
+
+### Core Entity: Service
+
+```plantuml
+@startuml
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #FEFECE
+  BorderColor #A0522D
+  ArrowColor #A0522D
+}
+
+class Service {
+  **Primary Key**
+  ..
+  + ID : ObjectID
+  **Service Info**
+  ..
+  + ServiceCode : string
+  + ServiceKey : string
+  + ServiceName : string
+  + ServiceList : []ServiceLists
+  + Cap : Cap
+  + Tiers : []Tier
+  + ProductGlAccount : string
+  **Status**
+  ..
+  + Enabled : bool
+  + IsDeleted : bool
+  **Timestamps**
+  ..
+  + CreatedAt : time.Time
+  + LastModifiedAt : time.Time
+  + DeletedAt : *time.Time
+}
+
+class ServiceLists {
+  + ServiceName : string
+  + ServiceKey : string
+  + OverideCap : Cap
+  + OverideProductGlAccount : string
+  + OverideTiers : []Tier
+  + IsEnabled : bool
+}
+
+class Cap {
+  + Currency : string
+  + SingleCap : string
+  + MinimumTransferCap : string
+}
+
+class Tier {
+  + FeeType : FeeType
+  + FeeAmount : string
+  + Min : string
+  + Max : string
+}
+
+note right of Tier
+  **Possible Values:**
+  FeeType: FLAT, PERCENT
+end note
+
+Service *-- ServiceLists
+Service *-- Cap
+Service *-- Tier
+ServiceLists *-- Cap
+ServiceLists *-- Tier
+
+note bottom of Service
+  **Field Descriptions:**
+  **ServiceCode:** Auto-generated unique code
+  **ServiceKey:** Unique key for API routing
+  **ServiceName:** Display name of the service
+  **ServiceList:** Sub-services within this service
+  **Cap:** Transaction cap configuration
+  **Tiers:** Fee tier configuration
+  **ProductGlAccount:** GL account for product
+  **Enabled:** Active status
+end note
+
+@enduml
+```
+
+*Figure 1: Service Entity Model*
+
+| Field | Type | Description |
+|-------|------|-------------|
+| ID | ObjectID | Unique identifier |
+| ServiceCode | string | Auto-generated unique service code |
+| ServiceKey | string | Unique key identifier for API routing |
+| ServiceName | string | Display name of the service |
+| ServiceList | []ServiceLists | Sub-services within this service |
+| Cap | Cap | Transaction cap configuration (currency, single cap, minimum) |
+| Tiers | []Tier | Fee tier configuration (flat/percent, amount, min/max) |
+| ProductGlAccount | string | GL account for the product |
+| Enabled | bool | Active status of the service |
+| IsDeleted | bool | Soft delete flag |
+| CreatedAt | time.Time | Timestamp of creation |
+| LastModifiedAt | time.Time | Timestamp of last modification |
+| DeletedAt | *time.Time | Timestamp of deletion (nullable) |

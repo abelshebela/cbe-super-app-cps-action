@@ -197,6 +197,7 @@ func (r *RoleRepository) FindAllWithPagination(ctx context.Context, filterParam 
 		searchKeys["$or"] = []bson.M{
 			{"job_title": searchRegex},
 			{"role": searchRegex},
+			{"enabled": searchRegex},
 		}
 	}
 

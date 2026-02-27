@@ -20,6 +20,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/transaction"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
+	queue "cbe-super-app-cps-action/internal/storage/queue_system"
 	"time"
 
 	bankvault "cbe-super-app-cps-action/internal/service/bankvault"
@@ -74,7 +75,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, oracle OraclePersistence, logger utils.Logger, sitotagRPCClient transactionpb.TransactionServiceClient, cfg *config.VaultConfig, minioClient *s3.Client, redis storage.RedisRepository, smsService *lib.NotificationStore, clientOrchestrationProducer *kafka.ClientOrchestrationProducer) service.ServiceLayer {
+func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, oracle OraclePersistence, logger utils.Logger, sitotagRPCClient transactionpb.TransactionServiceClient, cfg *config.VaultConfig, minioClient *s3.Client, redis storage.RedisRepository, smsService *lib.NotificationStore, clientOrchestrationProducer *kafka.ClientOrchestrationProducer, queueManager *queue.QueueManager) service.ServiceLayer {
 
 	// Initiate Service Layer
 	// Assign variable for minio public url
@@ -365,5 +366,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CustomerKYC:                   customerKYCService,
 		UssdMerchantService:           ussdMerchant,
 		BPSActionService:              bpsActionService,
+		QueueManager:                  queueManager,
 	}
 }
