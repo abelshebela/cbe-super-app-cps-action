@@ -187,6 +187,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDisableCitiesRequestSent,
 
 	AutorizersLevelFetchedSuccessfully,
+	AutorizersLevelFetchedSuccessfully,
 
 	// department related success response
 	SuccessGetAllDepartments,
@@ -1592,6 +1593,15 @@ var (
 		Message:    MsgAuthorizersLevelFetchedSuccessfully,
 		Type:       "success",
 	}
+
+	CpsActionDataExportedSuccess = ResponseCode{
+		Code: "DATA_EXPORT_SUCCESS",
+		StatusCode: StatusOK,
+		Message: MsgCpsActionDataExportedSuccessfully,
+		Type: "success",
+	}
+
+
 	// BPS Action related success response codes
 	SuccessBPSActionsRetrieved = ResponseCode{
 		Code:       "SUCCESS_BPS_ACTIONS_RETRIEVED",
