@@ -181,7 +181,7 @@ const (
 	MsgCPSActionRejectedSuccessfully       = "CPS Action rejected successfully"
 	MsgCPSActionCanceledSuccessfully       = "CPS Action Canceled Successfully"
 	MsgCPSActionsRetrieved                 = "CPS actions retrieved successfully"
-	MsgCpsActionDataExportedSuccessfully = "CPS actions Data exported successfully"
+	MsgCpsActionDataExportedSuccessfully   = "CPS actions Data exported successfully"
 
 	// BPS Action related success messages
 	MsgBPSActionsRetrievedSuccessfully = "BPS Actions retrieved successfully"
@@ -636,10 +636,11 @@ const (
 	MsgExternalServiceError        = "External service error"
 
 	// Business logic error messages
-	MsgInsufficientBalance                 = "Insufficient balance"
-	MsgTransactionFailed                   = "Transaction failed"
-	MsgLimitExceeded                       = "Limit exceeded"
-	MsgOperationNotAllowed                 = "Operation not allowed"
+	MsgInsufficientBalance = "Insufficient balance"
+	MsgTransactionFailed   = "Transaction failed"
+	MsgLimitExceeded       = "Limit exceeded"
+	MsgOperationNotAllowed = "Access Denied"
+	// MsgOperationNotAllowed                 = "Operation not allowed"
 	MsgAuditorAlreadyChecked               = "Auditor already checked this action"
 	MsgAuditorActionOnThisRoleCompleted    = "Action Auditing on this role is already completed"
 	MsgAuditorActionOnThisActionCompleted  = "Action Auditing on this action is already completed"
