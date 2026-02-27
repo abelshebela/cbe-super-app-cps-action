@@ -649,3 +649,21 @@ func TraceLogger(ctx context.Context, key, spanName, serviceType, serviceName st
 	return ctx, span
 
 }
+
+
+func ValidateTimeAndParse(dateTime string) (time.Time, error) {
+	// Fix space before timezone offset
+	if len(dateTime) >= 6 && dateTime[len(dateTime)-6] == ' ' {
+		dateTime = dateTime[:len(dateTime)-6] + "+" + dateTime[len(dateTime)-5:]
+	}
+
+	return time.Parse(time.RFC3339Nano, dateTime)
+}
+
+
+func ValidateTimeRangeOrder(time1,time2 time.Time) (bool,error){
+	if time1.After(time2){
+		return false,errors.New("'end date'  cannot be before 'start' date")
+	}
+	return  true,nil
+}

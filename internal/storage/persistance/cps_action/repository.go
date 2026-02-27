@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -21,6 +22,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type CPSActionStorage struct {
@@ -654,4 +656,71 @@ func (r *CPSActionStorage) GetCountByDepartment(ctx context.Context, department 
 	}
 
 	return &result, nil
+}
+
+
+
+			// memory intensice hold all in memory at one good for small  amount of data  memory user O(n)
+// func (r *CPSActionStorage) FindByDateRange(ctx context.Context,start_date, end_date time.Time) ([]*model.CPSAction, error) {
+//     filter := bson.M{
+//         "created_at": bson.M{
+//             "$gte": start_date,
+//             "$lte": end_date, 
+//         },
+//     }
+
+//     // opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: 1}})
+
+//     // cursor, err := r.collection.Find(ctx, filter, opts)
+// 	actions,err := r.dal.FindAll(ctx,filter,nil)
+//     if err != nil {
+//         return nil, err
+//     }
+//     // defer cursor.Close(ctx)
+
+//     // var actions []*model.CPSAction
+//     // if err := cursor.All(ctx, &actions); err != nil {
+//     //     return nil, err
+//     // }
+
+//     return actions, nil
+
+// }
+
+                 //stream process constant memrory useage O(1)
+func (r *CPSActionStorage) StreamByDateRange(
+    ctx context.Context,
+    startDate, endDate time.Time,
+    handler func(*model.CPSAction) error,
+) error {
+
+    filter := bson.M{
+        "created_at": bson.M{
+            "$gte": startDate,
+            "$lte": endDate,
+        },
+    }
+
+    opts := options.Find().
+        SetSort(bson.D{{Key: "created_at", Value: 1}}).
+        SetBatchSize(1000) // very important
+
+    cursor, err := r.collection.Find(ctx, filter, opts)
+    if err != nil {
+        return err
+    }
+    defer cursor.Close(ctx)
+
+    for cursor.Next(ctx) {
+        var action model.CPSAction
+        if err := cursor.Decode(&action); err != nil {
+            return err
+        }
+
+        if err := handler(&action); err != nil {
+            return err
+        }
+    }
+
+    return cursor.Err()
 }
