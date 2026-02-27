@@ -662,7 +662,7 @@ func ValidateTimeAndParse(dateTime string) (time.Time, error) {
 
 
 func ValidateTimeRangeOrder(time1,time2 time.Time) (bool,error){
-	if time1.Before(time2){
+	if time1.After(time2){
 		return false,errors.New("'end date'  cannot be before 'start' date")
 	}
 	return  true,nil

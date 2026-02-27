@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -140,6 +141,16 @@ func (s *cpsActionServiceWithRoles) GetCPSActionsForAuditor(ctx context.Context,
 
 func (s *cpsActionServiceWithRoles) GetCPSActions(ctx context.Context, userID, role string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	return s.base.GetCPSActions(ctx, userID, role, RAList, filterParams)
+}
+
+func (s *cpsActionServiceWithRoles) ExportCpsActionData(
+	ctx context.Context,
+	startDate, endDate time.Time, export_type string,
+) (string, error) {
+	return s.base.ExportCpsActionData(
+		ctx,
+		startDate, endDate, export_type,
+	)
 }
 
 func (s *cpsActionServiceWithRoles) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {

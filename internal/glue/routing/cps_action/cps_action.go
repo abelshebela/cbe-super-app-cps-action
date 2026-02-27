@@ -137,7 +137,7 @@ func Init(router chi.Router, handler cpsaction.CPSActionAdapter, authMiddleware 
 
 
 		{
-			Method:  http.MethodPatch,
+			Method:  http.MethodGet,
 			Path:    "/actions/export_data",
 			Handler: handler.ExportCPSActionData,
 			Middlewares: []func(next http.Handler) http.Handler{

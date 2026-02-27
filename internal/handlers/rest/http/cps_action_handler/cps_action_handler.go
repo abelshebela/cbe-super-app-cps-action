@@ -1610,7 +1610,7 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 
-		fileType :=chi.URLParam(r,"file_type")
+		fileType :=r.URL.Query().Get("file_type")
 		from := r.URL.Query().Get("From")
 		to := r.URL.Query().Get("To")
 
