@@ -88,22 +88,22 @@ func Init(router chi.Router, handler bankgroupcategory.VaultCategoryHandler, aut
 		},
 
 		// VAULT WITHDRAWAL REQUEST
-		{
-			Method:  http.MethodPost,
-			Path:    "/vault/withdrawals/create",
-			Handler: handler.CreateWithdrawalRequest,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-			},
-		},
-		{
-			Method:  http.MethodPatch,
-			Path:    "/vault/withdrawals/{id}/cancel",
-			Handler: handler.UpdateWithDrawalRequest,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-			},
-		},
+		// {
+		// 	Method:  http.MethodPost,
+		// 	Path:    "/vault/withdrawals/create",
+		// 	Handler: handler.CreateWithdrawalRequest,
+		// 	Middlewares: []func(next http.Handler) http.Handler{
+		// 		authMiddleware.AuthenticateToken,
+		// 	},
+		// },
+		// {
+		// 	Method:  http.MethodPatch,
+		// 	Path:    "/vault/withdrawals/{id}/cancel",
+		// 	Handler: handler.UpdateWithDrawalRequest,
+		// 	Middlewares: []func(next http.Handler) http.Handler{
+		// 		authMiddleware.AuthenticateToken,
+		// 	},
+		// },
 		{
 			Method:  http.MethodPatch,
 			Path:    "/vault/withdrawals/{id}/approve",

@@ -16,6 +16,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -23,6 +24,7 @@ import (
 
 type AccessListSegmentation struct {
 	repo           dal.MongoDal[local_model.AccessListSegmentation, local_model.AccessListSegmentation]
+	fromSharedRepo dal.MongoDal[model.APPAccessList, model.APPAccessList]
 	client         *mongo.Client
 	accBlock       storage.AccountBlockRepository
 	dbName         string
@@ -61,8 +63,11 @@ func (a *AccessListSegmentation) FindBySegmentIDAndAccessListKeys(ctx context.Co
 	filter := bson.M{"segmented_id": objID, "access_list_key": bson.M{"$in": keys}, "enabled": true}
 	response, err := a.repo.FindOne(ctx, filter, nil)
 	if err != nil {
+		if temp := local_util.HandleDBError(err); temp.Error() == localization.ErrorResourceNotFound.Code {
+			return nil, errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
+		}
 		a.logger.Errorf("[AccessListSegmentation][FindBySegmentIDAndAccessListKeys] find error: %v", err)
-		return nil, local_util.HandleDBError(err)
+		return nil, err
 	}
 
 	return response, nil
@@ -310,7 +315,7 @@ func (a *AccessListSegmentation) Update(ctx context.Context, id string, accessLi
 	}
 	return nil
 }
-func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]local_model.AccessListSegmentation, error) {
+func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error) {
 	var filter bson.M
 	var objID bson.ObjectID
 	objID, err := bson.ObjectIDFromHex(segmentIDorCode)
@@ -331,7 +336,16 @@ func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCode(ctx context.Con
 		a.logger.Errorf("[AccessListSegmentation][FindAllBySegmentIDorSegmentCode] failed to find access list segmentation by segmentation id or segment code: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	return als, nil
+	var result []model.APPAccessList
+	for _, al := range als {
+		a.logger.Infof("[AccessListSegmentation][FindAllBySegmentIDorSegmentCode] found access list segmentation: %+v", al)
+		result = append(result, model.APPAccessList{
+			Key:            al.AccessListKey,
+			AccessListName: al.AccessListName,
+			Enabled:        al.Enabled,
+		})
+	}
+	return result, nil
 }
 func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCodeAndKeys(ctx context.Context, segmentIDorCode string, ac []string) ([]local_model.AccessListSegmentation, error) {
 	var filter bson.M
@@ -393,6 +407,7 @@ func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_lis
 func NewAccessListSegmentationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collectionName string, customerSegmentationProducer kafka.AccessListSegmentationProducer, logger utils.Logger) storage.AccessListSegmentationRepository {
 	return &AccessListSegmentation{
 		repo:           dal.NewMongoDal[local_model.AccessListSegmentation, local_model.AccessListSegmentation](client, cfg, dbName, collectionName),
+		fromSharedRepo: dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, cfg, dbName, "app_access_list"),
 		client:         client,
 		kafkaProducer:  customerSegmentationProducer,
 		dbName:         dbName,

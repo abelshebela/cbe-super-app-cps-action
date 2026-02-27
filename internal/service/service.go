@@ -77,6 +77,7 @@ type ServicesService interface {
 	CreateServiceList(ctx context.Context, req *service_dto.CreateServiceList) error
 	UpdateServiceList(ctx context.Context, id string, req *service_dto.UpdateServiceList) error
 	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error)
+	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
 	GetByID(ctx context.Context, id string) (*model.Service, error)
 }
 type CPSActionService interface {
@@ -429,8 +430,10 @@ type AdvertService interface {
 
 type AmountBasedAuthService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]model.AuthTier], error)
+	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]amountauthdto.CurrencyGroup], error)
 	UpdateAmountBasedAuth(ctx context.Context, id string, method shared_constant.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error
+	AddCurrency(ctx context.Context, request amountauthdto.AddCurrencyRequest) error
+	ResetConfig(ctx context.Context, currency constants.CurrencyType, request amountauthdto.ResetConfigRequest) error
 }
 
 type AvatarService interface {

@@ -60,18 +60,18 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestCreateDeviceVersion):
 		actionData.CreatedAt = time.Now()
-		if actionData.ForceUpdate{
-		err = d.DisableExistingDeviceVersion(ctx, actionData.Platform)
-		if err != nil {
-			d.logger.Errorf("[DevVerSvc][Authorize] disable existing err: %v", err)
-			span.AddEvent("Failed to disable existing device version", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("platform", actionData.Platform),
-			))
-			return nil, err
+		if actionData.ForceUpdate {
+			err = d.DisableExistingDeviceVersion(ctx, actionData.Platform)
+			if err != nil {
+				d.logger.Errorf("[DevVerSvc][Authorize] disable existing err: %v", err)
+				span.AddEvent("Failed to disable existing device version", trace.WithAttributes(
+					attribute.String("error", err.Error()),
+					attribute.String("platform", actionData.Platform),
+				))
+				return nil, err
+			}
 		}
-		}
-		
+
 		if err = d.deviceVersionRepo.Save(ctx, *actionData); err != nil {
 			d.logger.Errorf("[DevVerSvc][Authorize] create err: %v", err)
 			span.AddEvent("Device version create action failed", trace.WithAttributes(
@@ -343,7 +343,7 @@ func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id strin
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	// apply updates
-	update, err := core.UpdateDeviceVersionBson(req, makerData.FullName)
+	update, err := core.UpdateDeviceVersionBson(req, makerData.FullName,existing.Enabled,existing.ForceUpdate )
 	if err != nil {
 		d.logger.Errorf("[DevVerSvc][Update] prepare data err: %v", err)
 		span.AddEvent("Failed to prepare update data", trace.WithAttributes(
@@ -352,6 +352,7 @@ func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id strin
 		))
 		return err
 	}
+	update["enabled"] = existing.Enabled
 
 	action := lib.CpsModelBuilder(existing.ID.Hex(), makerData, &existing, update, string(constants.RequestUpdateDeviceVersion), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &action); err != nil {

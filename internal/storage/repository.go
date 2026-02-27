@@ -93,6 +93,7 @@ type ServicesRepository interface {
 	FindServiceListByID(ctx context.Context, id string) (*model.ServiceList, error)
 	CreateServiceList(ctx context.Context, serviceList *model.ServiceList) error
 	UpdateServiceList(ctx context.Context, id, serviceKey string, serviceList *model.ServiceList) error
+	EnableOrDisableServiceList(ctx context.Context, id, serviceKey string, enable bool) error
 }
 
 type OTPRepository interface {
@@ -254,10 +255,15 @@ type BudgetCategoryRepository interface {
 
 // AmountBasedAuth persistence
 type AmountBasedAuthRepository interface {
-	Update(ctx context.Context, id string, update *model.AuthTier) error
-	FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]model.AuthTier, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.AuthTier], error)
-	FindByID(ctx context.Context, id string) (*model.AuthTier, error)
+	Create(ctx context.Context, tier *local_model.AuthTier) error
+	CreateMany(ctx context.Context, tiers []local_model.AuthTier) error
+	Update(ctx context.Context, id string, update *local_model.AuthTier) error
+	FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]local_model.AuthTier, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.AuthTier], error)
+	FindByID(ctx context.Context, id string) (*local_model.AuthTier, error)
+	FindByCurrency(ctx context.Context, currency string) ([]local_model.AuthTier, error)
+	CurrencyExists(ctx context.Context, currency string) (bool, error)
+	DeleteByCurrency(ctx context.Context, currency string) error
 }
 
 // AccountBlock persistence
@@ -615,7 +621,7 @@ type ArticleCategoryRepository interface {
 }
 
 type ShortVideoRepository interface {
-	Create(ctx context.Context, shortVideo *model.ShortVideo) error
+	Create(ctx context.Context, shortVideo *model.ShortVideo) (*model.ShortVideo, error)
 	Update(ctx context.Context, shortVideo *model.ShortVideo, id string) error
 	Delete(ctx context.Context, id string) error
 	PublishUnpublish(ctx context.Context, id string, isPublished bool) error
@@ -763,7 +769,7 @@ type AccessListSegmentationRepository interface {
 	FindBySegmentIDAndAccessListKeys(ctx context.Context, id string, keys []string) (*local_model.AccessListSegmentation, error)
 	Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]local_model.AccessListSegmentation, error)
+	FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
 	FindAllBySegmentIDorSegmentCodeAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
 	BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error
 

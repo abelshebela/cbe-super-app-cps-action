@@ -64,6 +64,7 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	req.Normalize()
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
 		localization.SendBadRequestResponse(w, err.Error())
@@ -119,6 +120,13 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 		span.RecordError(errors.New("invalid payload"))
 		return
 	}
+
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
+
+	req.Normalize()
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
 		localization.SendBadRequestResponse(w, err.Error())
@@ -170,6 +178,10 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
 		return
 	}
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
 
 	if r.Header.Get("Authorization") == "" {
 		span.RecordError(errors.New("missing Authorization header"))
@@ -219,6 +231,10 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	if id == "" {
 		span.RecordError(errors.New("service ID is required for disable"))
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
+		return
+	}
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
 		return
 	}
 
@@ -347,10 +363,13 @@ func (a *servicesAdapter) UpdateServiceList(w http.ResponseWriter, r *http.Reque
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
 		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
 		return
 	}
 
@@ -444,6 +463,10 @@ func (a *servicesAdapter) GetByID(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
 		return
 	}
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
 
 	span.SetAttributes(attribute.String("service.id", id))
 	item, err := a.app.GetByID(ctx, id)
@@ -453,4 +476,66 @@ func (a *servicesAdapter) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, item)
+}
+
+func (a *servicesAdapter) EnableServiceList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "EnableServiceList", "handler", "EnableServiceList")
+	defer span.End()
+
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	id := chi.URLParam(r, "id")
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
+
+	span.SetAttributes(attribute.String("service.id", id))
+	if err := a.app.EnableOrDisableServiceList(ctx, id, true); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceListEnabled, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceListEnableRequestSubmitted, nil)
+}
+
+func (a *servicesAdapter) DisableServiceList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "DisableServiceList", "handler", "DisableServiceList")
+	defer span.End()
+
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	id := chi.URLParam(r, "id")
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
+
+	span.SetAttributes(attribute.String("service.id", id))
+	if err := a.app.EnableOrDisableServiceList(ctx, id, false); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceListDisabled, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceListDisableRequestSubmitted, nil)
 }

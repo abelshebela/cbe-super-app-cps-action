@@ -83,6 +83,7 @@ const (
 	RequestDeleteAmountBasedAuth RequestAction = "DELETE_AMOUNT_BASED_AUTH"
 	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"
 	RequestUpdateAmountBasedAuth RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
+	RequestResetAmountBasedAuth  RequestAction = "RESET_AMOUNT_BASED_AUTH"
 	RequestUser                  RequestAction = "USER"
 	RequestCpsUserCreate         RequestAction = "CREATE_CPS_USER"
 	RequestCpsUserUpdate         RequestAction = "UPDATE_CPS_USER"
@@ -144,12 +145,14 @@ const (
 	RequestDeleteEcommerceMerchant  RequestAction = "DELETE_ECOMMERCE_MERCHANT"
 
 	// Services catalog (model.Services)
-	RequestCreateService     RequestAction = "CREATE_SERVICE"
-	RequestUpdateService     RequestAction = "UPDATE_SERVICE"
-	RequestEnableService     RequestAction = "ENABLE_SERVICE"
-	RequestDisableService    RequestAction = "DISABLE_SERVICE"
-	RequestCreateServiceList RequestAction = "CREATE_SERVICE_LIST"
-	RequestUpdateServiceList RequestAction = "UPDATE_SERVICE_LIST"
+	RequestCreateService      RequestAction = "CREATE_SERVICE"
+	RequestUpdateService      RequestAction = "UPDATE_SERVICE"
+	RequestEnableService      RequestAction = "ENABLE_SERVICE"
+	RequestDisableService     RequestAction = "DISABLE_SERVICE"
+	RequestCreateServiceList  RequestAction = "CREATE_SERVICE_LIST"
+	RequestUpdateServiceList  RequestAction = "UPDATE_SERVICE_LIST"
+	RequestEnableServiceList  RequestAction = "ENABLE_SERVICE_LIST"
+	RequestDisableServiceList RequestAction = "DISABLE_SERVICE_LIST"
 
 	RequestCreateTopup  RequestAction = "CREATE_TOPUP"
 	RequestUpdateTopup  RequestAction = "UPDATE_TOPUP"
@@ -447,6 +450,7 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteAmountBasedAuth: {},
 	RequestCreateAmountBasedAuth: {},
 	RequestUpdateAmountBasedAuth: {},
+	RequestResetAmountBasedAuth:  {},
 	RequestUser:                  {},
 
 	RequestUpdateAccountValidation: {},
@@ -484,12 +488,15 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDisableWallet:   {},
 
 	// Services catalog
-	RequestCreateService:            {},
-	RequestUpdateService:            {},
-	RequestEnableService:            {},
-	RequestDisableService:           {},
-	RequestCreateServiceList:        {},
-	RequestUpdateServiceList:        {},
+	RequestCreateService:      {},
+	RequestUpdateService:      {},
+	RequestEnableService:      {},
+	RequestDisableService:     {},
+	RequestCreateServiceList:  {},
+	RequestUpdateServiceList:  {},
+	RequestEnableServiceList:  {},
+	RequestDisableServiceList: {},
+
 	RequestUpdatePasswordExpiry:     {},
 	RequestCreateValidation:         {},
 	RequestUpdateValidation:         {},
@@ -703,26 +710,34 @@ var RequestActionGroups = map[string][]RequestAction{
 		// RequestEnableSingleBranch,
 		// RequestDisableMultiBranches,
 		// RequestEnableMultiBranches,
-		RequestEnableBranches,
-		RequestDisableBranches,
-		RequestEnableRegions,
-		RequestDisableRegions,
-		RequestEnableDistricts,
-		RequestDisableDistricts,
-		RequestEnableCities,
-		RequestDisableCities,
+		// RequestEnableBranches,
+		// RequestDisableBranches,
+		// RequestEnableRegions,
+		// RequestDisableRegions,
+		// RequestEnableDistricts,
+		// RequestDisableDistricts,
+		// RequestEnableCities,
+		// RequestDisableCities,
 	},
 	"SINGLEBRANCHENABLEACCOUNTBLOCK": {
 		RequestEnableSingleBranch,
+		RequestEnableBranches,
 	},
 	"SINGLEBRANCHDISABLEACCOUNTBLOCK": {
 		RequestDisableSingleBranch,
+		RequestDisableBranches,
 	},
 	"MULTIBRANCHENABLEACCOUNTBLOCK": {
 		RequestEnableSingleBranch,
+		RequestEnableRegions,
+		RequestEnableDistricts,
+		RequestEnableCities,
 	},
 	"MULTIBRANCHDISABLEACCOUNTBLOCK": {
 		RequestDisableMultiBranches,
+		RequestDisableRegions,
+		RequestDisableDistricts,
+		RequestDisableCities,
 	},
 	"ACCOUNTVALIDATION": {
 		RequestUser,
@@ -766,6 +781,8 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableService,
 		RequestCreateServiceList,
 		RequestUpdateServiceList,
+		RequestEnableServiceList,
+		RequestDisableServiceList,
 	},
 	"USSDMERCHANT": {
 		RequestCreateUssdMerchant,
@@ -785,6 +802,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateAmountBasedAuth,
 		RequestUpdateAmountBasedAuth,
 		RequestDeleteAmountBasedAuth,
+		RequestResetAmountBasedAuth,
 		RequestAuthTier,
 	},
 	"USER": {

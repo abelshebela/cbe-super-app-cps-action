@@ -55,7 +55,7 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateShortVideo):
-		err = m.repo.Create(ctx, shortVideo.ToShortVideo())
+		createdVideo, err := m.repo.Create(ctx, shortVideo.ToShortVideo())
 		if err != nil {
 			span.AddEvent("Failed to create short video", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -64,11 +64,13 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 			return nil, err
 		}
 
-		if err := m.producer.PublishShortVideoEvent(shortVideo.VideoURL, shortVideo.ID.Hex()); err != nil {
+		shortVideoID := createdVideo.ID.Hex()
+		if err := m.producer.PublishShortVideoEvent(shortVideo.VideoURL, shortVideoID); err != nil {
 			m.logger.Errorf("[ShortVideoSvc][Authorize] publish err: %v", err)
 		} else {
-			m.logger.Infof("[ShortVideoSvc][Authorize] published id: %s", shortVideo.ID)
+			m.logger.Infof("[ShortVideoSvc][Authorize] published id: %s", shortVideoID)
 		}
+		shortVideo.ID = createdVideo.ID
 	case string(constants.RequestUpdateShortVideo):
 		err = m.repo.Update(ctx, shortVideo.ToShortVideo(), cpsAction.UniqueId)
 		if err != nil {
@@ -89,10 +91,14 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 		}
 
 		if shortVideo.VideoURL != prevVideo.VideoURL {
-			if err := m.producer.PublishShortVideoEvent(shortVideo.VideoURL, shortVideo.ID.Hex()); err != nil {
+			shortVideoID := shortVideo.ID.Hex()
+			if shortVideo.ID.IsZero() && cpsAction.UniqueId != "" {
+				shortVideoID = cpsAction.UniqueId
+			}
+			if err := m.producer.PublishShortVideoEvent(shortVideo.VideoURL, shortVideoID); err != nil {
 				m.logger.Errorf("[ShortVideoSvc][Authorize] publish err: %v", err)
 			} else {
-				m.logger.Infof("[ShortVideoSvc][Authorize] published id: %s", shortVideo.ID)
+				m.logger.Infof("[ShortVideoSvc][Authorize] published id: %s", shortVideoID)
 			}
 		}
 

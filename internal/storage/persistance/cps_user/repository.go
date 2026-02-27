@@ -48,6 +48,8 @@ func NewCPSUserRepository(client *mongo.Client, redisRepository storage.RedisRep
 // Implement actual repository methods for CPS action authorization
 func (r *CPSUserStorage) Create(ctx context.Context, cpsUser *imodel.CPSUser) error {
 	// cpsUserMap := CPSUserMapper(*cpsUser)
+	current_time := time.Now()
+	cpsUser.DateJoined = &current_time
 	_, err := r.dal.InsertOne(ctx, *cpsUser)
 	if err != nil {
 		r.logger.Errorf("[CPSUserStorage][Create] failed to create CPS user: %v", err)
@@ -188,7 +190,7 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},
-		bson.D{{Key: "$sort", Value: bson.D{{Key: "date_joined", Value: -1}}}},
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
 		bson.D{{Key: "$project", Value: bson.M{
 			"_id":           1,
 			"user_code":     1,
@@ -241,6 +243,7 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		// Use $facet for concurrent data fetching and counting
 		bson.D{{Key: "$facet", Value: bson.M{
 			"data": []bson.D{
+				{{Key: "$sort", Value: bson.D{{Key: "date_joined", Value: -1}}}}, // Ensure sorting within the facet
 				{{Key: "$skip", Value: skip}},
 				{{Key: "$limit", Value: limit}},
 			},

@@ -29,6 +29,10 @@ var ResponseCodesList = []ResponseCode{
 	SuccessServiceListUpdated,
 	SuccessServiceListCreateRequestSubmitted,
 	SuccessServiceListUpdateRequestSubmitted,
+	SuccessServiceListEnableRequestSubmitted,
+	SuccessServiceListEnabled,
+	SuccessServiceListDisableRequestSubmitted,
+	SuccessServiceListDisabled,
 	SuccessServiceCreated,
 	SuccessServiceUpdateRequestSubmitted,
 	SuccessServiceUpdated,
@@ -328,6 +332,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCoverImageRequired,
 	ErrorInvalidAmounts,
 	ErrorAuthTierAlreadyExists,
+	ErrorCurrencyAlreadyExists,
+	ErrorCurrencyNotFound,
+	ErrorInvalidTierCascade,
 	ErrorInvalidMethod,
 	ErrorMerchantNotFound,
 	ErrorEventNotFound,
@@ -947,6 +954,34 @@ var (
 		Code:       "SUCCESS_AMOUNT_BASED_AUTH_UPDATED_SUCCESS",
 		StatusCode: StatusOK,
 		Message:    MsgAmountBasedSuccessfullySentSP,
+		Type:       "success",
+	}
+
+	SuccessAmountBasedAuthCurrencyAdded = ResponseCode{
+		Code:       "SUCCESS_AMOUNT_BASED_AUTH_CURRENCY_ADDED",
+		StatusCode: StatusOK,
+		Message:    MsgAmountBasedCurrencyAdded,
+		Type:       "success",
+	}
+
+	SuccessAmountBasedAuthCurrencyAddedSP = ResponseCode{
+		Code:       "SUCCESS_AMOUNT_BASED_AUTH_CURRENCY_ADDED_SP",
+		StatusCode: StatusOK,
+		Message:    MsgAmountBasedCurrencyAddedSP,
+		Type:       "success",
+	}
+
+	SuccessAmountBasedAuthResetSent = ResponseCode{
+		Code:       "SUCCESS_AMOUNT_BASED_AUTH_RESET_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAmountBasedResetSent,
+		Type:       "success",
+	}
+
+	SuccessAmountBasedAuthResetSentSP = ResponseCode{
+		Code:       "SUCCESS_AMOUNT_BASED_AUTH_RESET_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgAmountBasedResetSentSP,
 		Type:       "success",
 	}
 
@@ -2336,6 +2371,27 @@ var (
 		Type:       "error",
 	}
 
+	ErrorCurrencyAlreadyExists = ResponseCode{
+		Code:       "ERROR_CURRENCY_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    "Currency configuration already exists",
+		Type:       "error",
+	}
+
+	ErrorCurrencyNotFound = ResponseCode{
+		Code:       "ERROR_CURRENCY_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Currency configuration not found",
+		Type:       "error",
+	}
+
+	ErrorInvalidTierCascade = ResponseCode{
+		Code:       "ERROR_INVALID_TIER_CASCADE",
+		StatusCode: StatusBadRequest,
+		Message:    "Tier amounts must cascade: each tier max must equal the next tier min",
+		Type:       "error",
+	}
+
 	ErrorInvalidMethod = ResponseCode{
 		Code:       "ERROR_INVALID_METHOD",
 		StatusCode: StatusBadRequest,
@@ -3662,6 +3718,30 @@ var (
 		Code:       "SUCCESS_SERVICE_LIST_UPDATE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
 		Message:    "Service list update request submitted successfully",
+		Type:       "success",
+	}
+	SuccessServiceListEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Service list enable request submitted successfully",
+		Type:       "success",
+	}
+	SuccessServiceListEnabled = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Service list enabled successfully",
+		Type:       "success",
+	}
+	SuccessServiceListDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Service list disable request submitted successfully",
+		Type:       "success",
+	}
+	SuccessServiceListDisabled = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Service list disabled successfully",
 		Type:       "success",
 	}
 

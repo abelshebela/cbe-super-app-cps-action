@@ -75,7 +75,18 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		return errors.New(localization.ErrorExistEmail.Code)
 	}
 
-	emailCheckBPS, err := s.bpsRepo.FindByOr(ctx, req.PhoneNumber, req.Email, "")
+	phoneCheck, err := core.PhoneNumberExists(ctx, "", s.repo, req.PhoneNumber)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		span.AddEvent("failed to check phone number existence", trace.WithAttributes(attribute.String("error", err.Error())))
+		return err
+	}
+
+	if phoneCheck {
+		span.AddEvent("phone number already exists", trace.WithAttributes(attribute.String("phone_number", req.PhoneNumber)))
+		return errors.New(localization.ErrorExistPhoneNumber.Code)
+	}
+
+	emailCheckBPS, err := s.bpsRepo.FindByOr(ctx, req.PhoneNumber, req.Email, req.UserName)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to check email existence in BPS", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
@@ -89,17 +100,11 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 			span.AddEvent("phone number already exists in BPS", trace.WithAttributes(attribute.String("phone_number", req.PhoneNumber)))
 			return errors.New(localization.ErrorExistPhoneNumber.Code)
 		}
-	}
+		if emailCheckBPS.Username == req.UserName {
+			span.AddEvent("username already exists in BPS", trace.WithAttributes(attribute.String("username", req.UserName)))
+			return errors.New(localization.ErrorUsernameAlreadyExists.Code)
+		}
 
-	phoneCheck, err := core.PhoneNumberExists(ctx, "", s.repo, req.PhoneNumber)
-	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-		span.AddEvent("failed to check phone number existence", trace.WithAttributes(attribute.String("error", err.Error())))
-		return err
-	}
-
-	if phoneCheck {
-		span.AddEvent("phone number already exists", trace.WithAttributes(attribute.String("phone_number", req.PhoneNumber)))
-		return errors.New(localization.ErrorExistPhoneNumber.Code)
 	}
 
 	cpsUser := core.CPSUModel(req)
@@ -126,49 +131,22 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 
 	if req.PhoneNumber != "" {
 		normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
-		if currentUser.PhoneNumber != normalized {
-			req.PhoneNumber = normalized
+		req.PhoneNumber = normalized
+		if currentUser.PhoneNumber == req.PhoneNumber {
+			req.PhoneNumber = ""
 		}
-
-		// phoneCheck, err := core.PhoneNumberExists(ctx, currentUser.UserCode, s.repo, req.PhoneNumber)
-		// if err != nil {
-		// 	span.AddEvent("failed to check phone number existence", trace.WithAttributes(attribute.String("error", err.Error())))
-		// 	return err
-		// }
-		// if phoneCheck {
-		// 	span.AddEvent("phone number already exists", trace.WithAttributes(attribute.String("phone_number", req.PhoneNumber)))
-		// 	return errors.New(localization.ErrorExistPhoneNumber.Code)
-		// }
 	}
 	if req.UserName != "" {
 		if currentUser.UserName == req.UserName {
 			req.UserName = ""
-			// exists, err := core.UsernameExists(ctx, currentUser.UserCode, s.repo, req.UserName)
-			// if err != nil {
-			// 	span.AddEvent("failed to check username existence", trace.WithAttributes(attribute.String("error", err.Error())))
-			// 	return err
-			// }
-			// if exists {
-			// 	span.AddEvent("username already exists", trace.WithAttributes(attribute.String("username", req.UserName)))
-			// 	return errors.New(localization.ErrorUserAlreadyExists.Code)
-			// }
 		}
 	}
 	if req.Email != "" {
 		if currentUser.Email == req.Email {
 			req.Email = ""
 		}
-		// emailCheck, err := core.EmailExists(ctx, currentUser.UserCode, s.repo, req.Email)
-		// if err != nil {
-		// 	span.AddEvent("failed to check email existence", trace.WithAttributes(attribute.String("error", err.Error())))
-		// 	return err
-		// }
-		// if emailCheck {
-		// 	span.AddEvent("email already exists", trace.WithAttributes(attribute.String("email", req.Email)))
-		// 	return errors.New(localization.ErrorExistEmail.Code)
-		// }
-
 	}
+
 	foundUser, err := s.repo.FindByEmailOrPhoneNumberOrUserName(ctx, req.Email, req.PhoneNumber, req.UserName)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to find user by email, phone number, or username", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -190,7 +168,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 		}
 	}
 
-	bpsUser, err := s.bpsRepo.FindByOr(ctx, req.PhoneNumber, req.Email, "")
+	bpsUser, err := s.bpsRepo.FindByOr(ctx, req.PhoneNumber, req.Email, req.UserName)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to find user by email, phone number, or username", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -204,6 +182,10 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 		if bpsUser.PhoneNumber == req.PhoneNumber {
 			span.AddEvent("phone number already exists", trace.WithAttributes(attribute.String("phone_number", req.PhoneNumber)))
 			return errors.New(localization.ErrorExistPhoneNumber.Code)
+		}
+		if bpsUser.Username == req.UserName {
+			span.AddEvent("username already exists", trace.WithAttributes(attribute.String("username", req.UserName)))
+			return errors.New(localization.ErrorUserAlreadyExists.Code)
 		}
 	}
 
