@@ -15,8 +15,9 @@ import (
 	"context"
 	"errors"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"time"
+
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	// types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
@@ -205,7 +206,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		Target:     donation.Target,
 
 		DonationDescription: donation.DonationDescription,
-		DonationImages:      core.ConvertToDonationImages(donationImages),
+		DonationImages:      donationImages,
 		CoverImage:          coverImageURL,
 		EndDate:             donation.EndDate.Format(time.RFC3339),
 		StartDate:           donation.StartDate.Format(time.RFC3339),
@@ -252,8 +253,8 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
 
-	// Prepare existing imodel for validation
-	existingModel := &imodel.Donation{
+	// Prepare existing model for validation
+	existingModel := &donation_model.Donation{
 		DonationCode:        existingDonation.DonationCode,
 		Title:               existingDonation.Title,
 		DonationDescription: existingDonation.DonationDescription,
