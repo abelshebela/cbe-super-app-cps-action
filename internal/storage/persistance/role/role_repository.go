@@ -6,6 +6,7 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/persistance/role/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
@@ -94,10 +95,24 @@ func (r *RoleRepository) Update(ctx context.Context, id string, role *imodel.Rol
 	}
 
 	filter := bson.M{"_id": objID}
+
+	// find by name so that we can update users with the new role name if it changes
+	existingRole, err := r.FindByName(ctx, role.JobTitle)
+	if err != nil {
+		r.logger.Warnf("[RoleRepository][Update] failed to find role by name: %v", err)
+	}
+
 	_, err = r.mongoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		r.logger.Errorf("[RoleRepository][Update] failed to update role: %v", err)
 		return local_util.HandleDBError(err)
+	}
+	if existingRole != nil && existingRole.JobTitle != role.JobTitle {
+		r.logger.Infof("[RoleRepository][Update] updating cps users for job title change from %s to %s", existingRole.JobTitle, role.JobTitle)
+		if err := core.UpdateCpsUsers(ctx, r.client, existingRole.JobTitle, role.JobTitle); err != nil {
+			r.logger.Errorf("[RoleRepository][Update] failed to update cps users for job title change: %v", err)
+			// Not returning error since role update succeeded, and user update failure shouldn't block it
+		}
 	}
 	return nil
 }
