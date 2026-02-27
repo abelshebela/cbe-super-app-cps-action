@@ -47,6 +47,7 @@ import (
 	vaultCategory "cbe-super-app-cps-action/internal/constants/interfaces/vault"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
 	"cbe-super-app-cps-action/internal/service"
+	queue "cbe-super-app-cps-action/internal/storage/queue_system"
 
 	// Handler section
 	actionrole_iface "cbe-super-app-cps-action/internal/constants/interfaces/action_role"
@@ -167,7 +168,7 @@ type Handler struct {
 	UssdMerchantHandler           ussd_merchant_interface.UssdMerchantInbound
 }
 
-func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler {
+func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger, queueManager *queue.QueueManager) Handler {
 	return Handler{
 		RoleHandler:              roles.NewRoleHandler(serviceLayer.RoleService, logger),
 		jobRoleHandler:           jobRoleHandler.NewJobRoleHandler(serviceLayer.JobRoleService, logger),

@@ -19,12 +19,14 @@ const (
 	redisProcessingStaleAge = 5 * time.Minute
 	redisMaxRetrySetSize    = 10000
 	redisStopTimeout        = 30 * time.Second
+	redisReaperMaxPerCycle  = 500
 )
 
 type RedisQueue struct {
 	client  *redis.Client
 	logger  utils.Logger
 	handler JobHandler
+	metrics *QueueMetrics
 
 	mainKey       string
 	processingKey string
@@ -61,6 +63,10 @@ func WithJobHandler(h JobHandler) RedisQueueOption {
 			rq.handler = h
 		}
 	}
+}
+
+func WithRedisMetrics(m *QueueMetrics) RedisQueueOption {
+	return func(rq *RedisQueue) { rq.metrics = m }
 }
 
 func NewRedisQueue(client *redis.Client, logger utils.Logger, opts ...RedisQueueOption) *RedisQueue {
@@ -135,6 +141,7 @@ func (rq *RedisQueue) Enqueue(ctx context.Context, job Job) error {
 		rq.logger.Errorf("[redis_queue] Enqueue: failed to push job %s: %v", job.LogPrefix(), err)
 		return err
 	}
+	rq.metrics.IncEnqueued("redis", job.Type)
 	rq.logger.Debugf("[redis_queue] Enqueue: job enqueued %s", job.LogPrefix())
 	return nil
 }
@@ -205,11 +212,13 @@ func (rq *RedisQueue) processJob(ctx context.Context, workerID int, res string) 
 	}
 
 	if err := rq.handler(ctx, job); err != nil {
+		rq.metrics.IncFailed("redis", job.Type)
 		rq.logger.Warnf("[redis_queue] worker(%d): job execution failed %s retry=%d: %v", workerID, job.LogPrefix(), job.Retry, err)
 		rq.handleFailure(ctx, job, res)
 		return
 	}
 
+	rq.metrics.IncProcessed("redis", job.Type)
 	rq.logger.Debugf("[redis_queue] worker(%d): job completed %s", workerID, job.LogPrefix())
 	rq.client.LRem(ctx, rq.processingKey, 1, res)
 }
@@ -218,6 +227,7 @@ func (rq *RedisQueue) handleFailure(ctx context.Context, job Job, raw string) {
 	job.Retry++
 
 	if job.MaxRetry > 0 && job.Retry > job.MaxRetry {
+		rq.metrics.IncDeadLettered("redis", job.Type)
 		rq.logger.Errorf("[redis_queue] handleFailure: job exceeded max retries, moving to dead letter queue %s max_retry=%d", job.LogPrefix(), job.MaxRetry)
 		dlData, mErr := json.Marshal(job)
 		if mErr != nil {
@@ -245,6 +255,7 @@ func (rq *RedisQueue) handleFailure(ctx context.Context, job Job, raw string) {
 
 	// Cap retry set size to prevent unbounded growth
 	if count, cErr := rq.client.ZCard(ctx, rq.retryKey).Result(); cErr == nil && count >= redisMaxRetrySetSize {
+		rq.metrics.IncDeadLettered("redis", job.Type)
 		rq.logger.Errorf("[redis_queue] handleFailure: retry set full (%d), moving to dead letter %s", count, job.LogPrefix())
 		if pErr := moveToDeadLetterScript.Run(ctx, rq.client, rq.processingDeadLetterKeys, raw, string(data)).Err(); pErr != nil {
 			rq.logger.Errorf("[redis_queue] handleFailure: failed to move job to dead letter (overflow) %s: %v", job.LogPrefix(), pErr)
@@ -252,6 +263,7 @@ func (rq *RedisQueue) handleFailure(ctx context.Context, job Job, raw string) {
 		return
 	}
 
+	rq.metrics.IncRetried("redis", job.Type)
 	score := float64(time.Now().Add(delay).Unix())
 	if err := moveToRetryScript.Run(ctx, rq.client, rq.processingRetryKeys, raw, string(data), score).Err(); err != nil {
 		rq.logger.Errorf("[redis_queue] handleFailure: failed to move job to retry set %s: %v", job.LogPrefix(), err)
@@ -324,6 +336,10 @@ func (rq *RedisQueue) retryScheduler(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
+			if depth, dErr := rq.client.LLen(ctx, rq.mainKey).Result(); dErr == nil {
+				rq.metrics.SetDepth("redis", float64(depth))
+			}
+
 			now := time.Now().Unix()
 
 			count, err := retryLuaScript.Run(ctx, rq.client, rq.retryMainKeys, now).Int()
@@ -362,30 +378,44 @@ func (rq *RedisQueue) reapStaleJobs(ctx context.Context) {
 	now := time.Now()
 	reaped := 0
 
-	for {
-		items, err := rq.client.LRange(ctx, rq.processingKey, offset, offset+batchSize-1).Result()
-		if err != nil {
-			if ctx.Err() == nil {
-				rq.logger.Warnf("[redis_queue] reaper: failed to read processing list: %v", err)
-			}
+	for reaped < redisReaperMaxPerCycle {
+		batchReaped, done := rq.reapBatch(ctx, now, batchSize, &offset)
+		reaped += batchReaped
+		if done {
 			break
-		}
-		if len(items) == 0 {
-			break
-		}
-
-		for _, raw := range items {
-			if rq.reapItem(ctx, raw, now) {
-				reaped++
-			} else {
-				offset++
-			}
 		}
 	}
 
+	if reaped >= redisReaperMaxPerCycle {
+		rq.logger.Warnf("[redis_queue] reaper: hit per-cycle cap (%d), deferring remaining to next cycle", redisReaperMaxPerCycle)
+	}
 	if reaped > 0 {
 		rq.logger.Infof("[redis_queue] reaper: recovered %d stale jobs from processing list", reaped)
 	}
+}
+
+// reapBatch processes one batch of items from the processing list.
+// It returns the number of items reaped and whether iteration should stop.
+func (rq *RedisQueue) reapBatch(ctx context.Context, now time.Time, batchSize int64, offset *int64) (reaped int, done bool) {
+	items, err := rq.client.LRange(ctx, rq.processingKey, *offset, *offset+batchSize-1).Result()
+	if err != nil {
+		if ctx.Err() == nil {
+			rq.logger.Warnf("[redis_queue] reaper: failed to read processing list: %v", err)
+		}
+		return 0, true
+	}
+	if len(items) == 0 {
+		return 0, true
+	}
+
+	for _, raw := range items {
+		if rq.reapItem(ctx, raw, now) {
+			reaped++
+		} else {
+			*offset++
+		}
+	}
+	return reaped, false
 }
 
 // reapItem checks if a job in the processing list is stale and re-queues it.
@@ -414,6 +444,7 @@ func (rq *RedisQueue) reapItem(ctx context.Context, raw string, now time.Time) b
 	rq.logger.Warnf("[redis_queue] reaper: stale job found (age=%s), re-queuing %s retry=%d", jobAge, job.LogPrefix(), job.Retry)
 
 	if job.MaxRetry > 0 && job.Retry > job.MaxRetry {
+		rq.metrics.IncDeadLettered("redis", job.Type)
 		rq.logger.Errorf("[redis_queue] reaper: stale job exceeded max retries, moving to dead letter %s max_retry=%d", job.LogPrefix(), job.MaxRetry)
 		dlData, mErr := json.Marshal(job)
 		if mErr != nil {

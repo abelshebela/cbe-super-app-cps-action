@@ -174,10 +174,11 @@ func (r *JobRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		searchKeys["$or"] = []bson.M{
 			{"name": searchRegex},
 			{"code": searchRegex},
+			{"enabled": searchRegex},
 		}
 	}
 
-	allowedKeys := []string{"enabled"}
+	allowedKeys := []string{"enabled", "name", "code"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
 	if filter.String() == "" {
