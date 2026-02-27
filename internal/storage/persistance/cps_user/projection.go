@@ -31,10 +31,6 @@ func CPSUserUpdateMapper(u *imodel.CPSUser) bson.M {
 		set["job_title"] = u.JobTitle
 	}
 
-	if u.JobTitle != "" {
-		set["job_title"] = u.JobTitle
-	}
-
 	set["last_modified"] = time.Now()
 	return set
 }
