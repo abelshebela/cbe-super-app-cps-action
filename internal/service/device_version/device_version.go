@@ -343,7 +343,7 @@ func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id strin
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	// apply updates
-	update, err := core.UpdateDeviceVersionBson(req, makerData.FullName)
+	update, err := core.UpdateDeviceVersionBson(req, makerData.FullName,existing.Enabled,existing.ForceUpdate )
 	if err != nil {
 		d.logger.Errorf("[DevVerSvc][Update] prepare data err: %v", err)
 		span.AddEvent("Failed to prepare update data", trace.WithAttributes(
@@ -352,6 +352,7 @@ func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id strin
 		))
 		return err
 	}
+	update["enabled"] = existing.Enabled
 
 	action := lib.CpsModelBuilder(existing.ID.Hex(), makerData, &existing, update, string(constants.RequestUpdateDeviceVersion), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &action); err != nil {

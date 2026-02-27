@@ -20,6 +20,7 @@ import (
 
 	"log"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-chi/chi/v5"
 	"github.com/hugokessem/coreio/core"
 )
@@ -86,6 +87,8 @@ func Init(ctx context.Context) {
 	minioClient := InitMinio(*cfg, logger) // 24G -23G= 1G
 	logger.Infof("Minio client initialized")
 
+	presignClient := s3.NewPresignClient(minioClient)
+
 	logger.Infof("initializing kafka")
 	notificationProducer, clientOrchestrationProducer, accessListSegmentationProducer := InitKafkaService(cfg, logger) //27G - 24G= 3G
 	logger.Infof("kafka initialized")
@@ -150,8 +153,9 @@ func Init(ctx context.Context) {
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persistence, OraclePersistence, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService, clientOrchestrationProducer, queueInfra.Manager)
 
+	serviceLayer := InitServiceLayer(mongoClient, persistence, OraclePersistence, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService, clientOrchestrationProducer,presignClient, queueInfra.Manager)
+	
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
 			logger.Errorf("Failed to start feedback consumer: %v", err)
