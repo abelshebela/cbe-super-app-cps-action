@@ -107,14 +107,11 @@ func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*typ
 }
 
 func (s *servicesService) CreateServiceList(ctx context.Context, req *service_dto.CreateServiceList) error {
-	filterParam := types.Filter{
-		Search: req.ServiceKey,
-	}
-	lists, err := s.repo.FindAllServiceListWithPagination(ctx, filterParam)
-	if err != nil {
+	list, err := s.repo.FindServiceListByNameOrKey(ctx, req.ServiceName, req.ServiceKey)
+	if err != nil && err.Error() != localization.ErrorServiceListNotFound.Code {
 		return err
 	}
-	if lists.Data != nil {
+	if list != nil {
 		return errors.New(localization.ErrorServiceListAlreadyExists.Code)
 	}
 

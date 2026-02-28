@@ -1,89 +1,184 @@
-package miniappmerchant
+package ecommercemerchant
 
 import (
-	"cbe-super-app-cps-action/internal/constants/localization"
-	"errors"
+	"cbe-super-app-cps-action/pkgs/utils"
+	"fmt"
 	"regexp"
-	"strings"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
-type BranchInformation struct {
-	BranchCode    string `json:"branch_code"`
-	BranchName    string `json:"branch_name"`
-	BranchAddress string `json:"branch_address"`
-	BranchOwner   string `json:"branch_owner"`
+func (b BranchInformation) ValidateCreate() error {
+	return validation.ValidateStruct(&b,
+
+		validation.Field(&b.BranchCode,
+			validation.Required,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&b.BranchName,
+			validation.Required,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&b.BranchAddress,
+			validation.Required,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&b.BranchOwner,
+			validation.Required,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&b.BranchAccountNumber,
+			validation.Required,
+			validation.Match(regexp.MustCompile(`^[0-9]+$`)).
+				Error("Invalid branch account number"),
+		),
+	)
 }
 
-func isBranchEmpty(branch model.BranchInformation) bool {
-	return strings.TrimSpace(branch.BranchCode) == "" &&
-		strings.TrimSpace(branch.BranchName) == "" &&
-		strings.TrimSpace(branch.BranchAddress) == "" &&
-		strings.TrimSpace(branch.BranchOwner) == ""
+func (b BranchInformation) ValidateUpdate() error {
+	return validation.ValidateStruct(&b,
+
+		validation.Field(&b.BranchCode,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&b.BranchName,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&b.BranchAddress,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&b.BranchOwner,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&b.BranchAccountNumber,
+			validation.Match(regexp.MustCompile(`^[0-9]+$`)).
+				Error("Invalid branch account number"),
+		),
+	)
 }
 
-func (dto EcommerceMerchant) IsEmpty() bool {
-	if strings.TrimSpace(dto.MerchantName) != "" ||
-		// strings.TrimSpace(dto.PhoneNumber) != "" ||
-		// strings.TrimSpace(dto.Email) != "" ||
-		strings.TrimSpace(dto.AccountNumber) != "" {
-		return false
+func validateBranchesCreate(value interface{}) error {
+	branches, ok := value.([]BranchInformation)
+	if !ok {
+		return fmt.Errorf("invalid branches format")
 	}
 
-	if len(dto.Branches) == 0 {
-		return true
-	}
+	seen := make(map[string]bool)
 
-	for _, b := range dto.Branches {
-		if !isBranchEmpty(b) {
-			return false
-		}
-	}
+	for i, b := range branches {
 
-	return true
-}
+		if seen[b.BranchCode] {
+			return fmt.Errorf("duplicate branch_code: %s", b.BranchCode)
+		}
+		seen[b.BranchCode] = true
 
-func (dto EcommerceMerchant) Validate(isCreate bool) error {
-	if !isCreate && dto.IsEmpty() {
-		return nil
-	}
-
-	if isCreate {
-		if regexp.MustCompile(`^[a-zA-Z0-9\s]+$`).MatchString(strings.TrimSpace(dto.MerchantName)) == false {
-			return errors.New("Invalid merchant name is required")
+		if err := b.ValidateCreate(); err != nil {
+			return fmt.Errorf("branch[%d]: %w", i, err)
 		}
-		if regexp.MustCompile(`^[a-zA-Z0-9_\s]+$`).MatchString(strings.TrimSpace(dto.MerchantCode)) == false {
-			return errors.New("Invalid merchant code is required")
-		}
-		if regexp.MustCompile(`^[a-zA-Z0-9\s]+$`).MatchString(strings.TrimSpace(dto.SettlementMethod)) == false {
-			return errors.New("Invalid settlement method is required")
-		}
-		if regexp.MustCompile(`^[0-9]+$`).MatchString(strings.TrimSpace(dto.AccountNumber)) == false {
-			return errors.New("Invalid account number is required")
-		}
-		if dto.IsEcommerceMerchant == nil || !*dto.IsEcommerceMerchant {
-			return errors.New(localization.ErrorEcommernceMerchantInvalidIsEcommerceMerchant.Message)
-		}
-
-	} else {
-		if regexp.MustCompile(`^[a-zA-Z0-9\s]+$`).MatchString(strings.TrimSpace(dto.MerchantName)) == false {
-			return errors.New("Invalid merchant name is required")
-		}
-		if regexp.MustCompile(`^[a-zA-Z0-9_\s]+$`).MatchString(strings.TrimSpace(dto.MerchantCode)) == false {
-			return errors.New("Invalid merchant code is required")
-		}
-		if regexp.MustCompile(`^[a-zA-Z0-9\s]+$`).MatchString(strings.TrimSpace(dto.SettlementMethod)) == false {
-			return errors.New("Invalid settlement method is required")
-		}
-		if regexp.MustCompile(`^[0-9]+$`).MatchString(strings.TrimSpace(dto.AccountNumber)) == false {
-			return errors.New("Invalid account number is required")
-		}
-		if dto.IsEcommerceMerchant == nil || !*dto.IsEcommerceMerchant {
-			return errors.New(localization.ErrorEcommernceMerchantInvalidIsEcommerceMerchant.Message)
-		}
-
 	}
 
 	return nil
+}
+
+func validateBranchesUpdate(value interface{}) error {
+	branches, ok := value.([]BranchInformation)
+	if !ok {
+		return fmt.Errorf("invalid branches format")
+	}
+
+	seen := make(map[string]bool)
+
+	for i, b := range branches {
+
+		if b.BranchCode != "" {
+			if seen[b.BranchCode] {
+				return fmt.Errorf("duplicate branch_code: %s", b.BranchCode)
+			}
+			seen[b.BranchCode] = true
+		}
+
+		if err := b.ValidateUpdate(); err != nil {
+			return fmt.Errorf("branch[%d]: %w", i, err)
+		}
+	}
+
+	return nil
+}
+
+func (r EcommerceMerchant) ValidateCreate() error {
+	return validation.ValidateStruct(&r,
+
+		validation.Field(&r.MerchantName,
+			validation.Required,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&r.MerchantCode,
+			validation.Required,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&r.AccountNumber,
+			validation.Required,
+			validation.Match(regexp.MustCompile(`^[0-9]+$`)).
+				Error("Invalid account number"),
+		),
+
+		validation.Field(&r.SettlementMethod,
+			validation.Required,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&r.Branches,
+			validation.By(validateBranchesCreate),
+		),
+	)
+}
+
+func (r UpdateEcommerceMerchant) ValidateUpdate() error {
+	return validation.ValidateStruct(&r,
+
+		validation.Field(&r.MerchantName,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&r.MerchantCode,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&r.AccountNumber,
+			validation.Match(regexp.MustCompile(`^[0-9]+$`)).
+				Error("Invalid account number"),
+		),
+
+		validation.Field(&r.SettlementMethod,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&r.Branches,
+			validation.By(validateBranchesUpdate),
+		),
+	)
 }
