@@ -1563,7 +1563,7 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 	}
 
 	var checkerIdx, auditorIdx int64
-	if actionName != "CPSACTIONROLE" {
+	{
 		if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
 			role, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 			if role == "" {
@@ -1605,54 +1605,54 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 	localization.SendSuccessResponse(w, localization.AutorizersLevelFetchedSuccessfully, autorizersLevel)
 }
 
-func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Request){
+func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "exportCPSaction", "handler", "cpsAction")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 
-		fileType :=r.URL.Query().Get("file_type")
-		from := r.URL.Query().Get("From")
-		to := r.URL.Query().Get("To")
+	fileType := r.URL.Query().Get("file_type")
+	from := r.URL.Query().Get("From")
+	to := r.URL.Query().Get("To")
 
-		if fileType== "" || from == "" || to == ""{
-			log.Warnf("file type and from date amd to date have to be given")
-			localization.SendBadRequestResponse(w, localization.ErrorRequiredFieldMissing.Message)
-			return
-		}
-
-		ValidStartDate ,err := local_util.ValidateTimeAndParse(from)
-		if err != nil {
-			log.Warnf("Invalid Start date is given ",from)
-			localization.SendBadRequestResponse(w,localization.ErrorInvalidFormat.Message)
-			return
-		}
-
-		ValidEndDate,err := local_util.ValidateTimeAndParse(to)
-		if err != nil {
-			log.Warnf("Invalid End date is given ",from)
-			localization.SendBadRequestResponse(w,localization.ErrorInvalidFormat.Message)
-			return
-		}
-
-		is_valid_order,err := local_util.ValidateTimeRangeOrder(ValidStartDate,ValidEndDate)
-		if err != nil {
-			log.Warnf("get error while validating start and end date order error:",err)
-			localization.SendBadRequestResponse(w,localization.ErrorInvalidFormat.Message)
-			return
-		}
-
-		if !is_valid_order {
-			log.Warnf("end date can not be before Start Date: %v, End Date:%v",ValidStartDate,ValidEndDate)
-			localization.SendBadRequestResponse(w,localization.ErrorInvalidFormat.Message)
-			return
-		}
-		FileLinkExpored, err := a.cpsActionApplication.ExportCpsActionData(ctx,ValidStartDate,ValidEndDate,fileType)
-
-		if err != nil{
-			span.RecordError(err)
-			localization.SendErrorByCodeResponse(w,err.Error())
-			return
-		}
-
-		localization.SendSuccessResponse(w,localization.CpsActionDataExportedSuccess,FileLinkExpored)
+	if fileType == "" || from == "" || to == "" {
+		log.Warnf("file type and from date amd to date have to be given")
+		localization.SendBadRequestResponse(w, localization.ErrorRequiredFieldMissing.Message)
+		return
 	}
+
+	ValidStartDate, err := local_util.ValidateTimeAndParse(from)
+	if err != nil {
+		log.Warnf("Invalid Start date is given ", from)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
+		return
+	}
+
+	ValidEndDate, err := local_util.ValidateTimeAndParse(to)
+	if err != nil {
+		log.Warnf("Invalid End date is given ", from)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
+		return
+	}
+
+	is_valid_order, err := local_util.ValidateTimeRangeOrder(ValidStartDate, ValidEndDate)
+	if err != nil {
+		log.Warnf("get error while validating start and end date order error:", err)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
+		return
+	}
+
+	if !is_valid_order {
+		log.Warnf("end date can not be before Start Date: %v, End Date:%v", ValidStartDate, ValidEndDate)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
+		return
+	}
+	FileLinkExpored, err := a.cpsActionApplication.ExportCpsActionData(ctx, ValidStartDate, ValidEndDate, fileType)
+
+	if err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.CpsActionDataExportedSuccess, FileLinkExpored)
+}
