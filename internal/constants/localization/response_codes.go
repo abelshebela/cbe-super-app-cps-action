@@ -22,6 +22,8 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorExistUserName,
 	ErrorExistUserNameBPS,
+	DonationDataExportedSuccess,
+	DonationDataExportedError,
 
 	SuccessCPSActionCount,
 	SuccessServiceCreateRequestSubmitted,
@@ -186,6 +188,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDisableCities,
 	SuccessDisableCitiesRequestSent,
 
+	AutorizersLevelFetchedSuccessfully,
 	AutorizersLevelFetchedSuccessfully,
 
 	// department related success response
@@ -1592,6 +1595,28 @@ var (
 		Message:    MsgAuthorizersLevelFetchedSuccessfully,
 		Type:       "success",
 	}
+
+	CpsActionDataExportedSuccess = ResponseCode{
+		Code:       "DATA_EXPORT_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgCpsActionDataExportedSuccessfully,
+		Type:       "success",
+	}
+
+	DonationDataExportedSuccess = ResponseCode{
+		Code:       "DONATION_DATA_EXPORT_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgDonationDataExportedSuccessfully,
+		Type:       "success",
+	}
+
+	DonationDataExportedError = ResponseCode{
+		Code:       "DONATION_DATA_EXPORT_ERROR",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDonationDataExportFailed,
+		Type:       "error",
+	}
+
 	// BPS Action related success response codes
 	SuccessBPSActionsRetrieved = ResponseCode{
 		Code:       "SUCCESS_BPS_ACTIONS_RETRIEVED",

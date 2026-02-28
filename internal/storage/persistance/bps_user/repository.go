@@ -43,7 +43,7 @@ func NewBPSUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName 
 }
 
 func (b *BPSUserStorage) FindByOr(ctx context.Context, phone, email, username string) (*bps_model.BPSUser, error) {
-
+	b.logger.Infof("[BPSUserStorage][FindByOr] searching for BPS user by phone, email, or username")
 	// Build conditions dynamically, only for non-empty parameters
 	conditions := []bson.M{}
 

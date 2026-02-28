@@ -150,40 +150,48 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 	foundUser, err := s.repo.FindByEmailOrPhoneNumberOrUserName(ctx, req.Email, req.PhoneNumber, req.UserName)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to find user by email, phone number, or username", trace.WithAttributes(attribute.String("error", err.Error())))
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		s.logger.Errorf("[CpsUserSvc][Update] error checking user conflicts: %v", err)
+		return err
 	}
-
+	s.logger.Infof("[CpsUserSvc][Update] found user: %v", foundUser)
 	if foundUser != nil && foundUser.UserCode != currentUser.UserCode {
 		if foundUser.Email == req.Email {
+			s.logger.Infof("[CpsUserSvc][Update] email already exists: %s", req.Email)
 			span.AddEvent("email already exists", trace.WithAttributes(attribute.String("email", req.Email)))
 			return errors.New(localization.ErrorExistEmail.Code)
 		}
 		if foundUser.PhoneNumber == req.PhoneNumber {
+			s.logger.Infof("[CpsUserSvc][Update] phone number already exists: %s", req.PhoneNumber)
 			span.AddEvent("phone number already exists", trace.WithAttributes(attribute.String("phone_number", req.PhoneNumber)))
 			return errors.New(localization.ErrorExistPhoneNumber.Code)
 		}
 		if foundUser.UserName == req.UserName {
+			s.logger.Infof("[CpsUserSvc][Update] username already exists: %s", req.UserName)
 			span.AddEvent("username already exists", trace.WithAttributes(attribute.String("username", req.UserName)))
 			return errors.New(localization.ErrorUserAlreadyExists.Code)
 		}
 	}
-
+	s.logger.Infof("[CpsUserSvc][Update] no conflicts found, proceeding with update")
 	bpsUser, err := s.bpsRepo.FindByOr(ctx, req.PhoneNumber, req.Email, req.UserName)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to find user by email, phone number, or username", trace.WithAttributes(attribute.String("error", err.Error())))
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		s.logger.Errorf("[CpsUserSvc][Update] error checking BPS user: %v", err)
+		return err
 	}
 
 	if bpsUser != nil {
 		if bpsUser.Email == req.Email {
+			s.logger.Infof("[CpsUserSvc][Update] email already exists: %s", req.Email)
 			span.AddEvent("email already exists", trace.WithAttributes(attribute.String("email", req.Email)))
 			return errors.New(localization.ErrorExistEmail.Code)
 		}
 		if bpsUser.PhoneNumber == req.PhoneNumber {
+			s.logger.Infof("[CpsUserSvc][Update] phone number already exists: %s", req.PhoneNumber)
 			span.AddEvent("phone number already exists", trace.WithAttributes(attribute.String("phone_number", req.PhoneNumber)))
 			return errors.New(localization.ErrorExistPhoneNumber.Code)
 		}
 		if bpsUser.Username == req.UserName {
+			s.logger.Infof("[CpsUserSvc][Update] username already exists: %s", req.UserName)
 			span.AddEvent("username already exists", trace.WithAttributes(attribute.String("username", req.UserName)))
 			return errors.New(localization.ErrorUserAlreadyExists.Code)
 		}

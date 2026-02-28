@@ -9,9 +9,9 @@ import (
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
+	"time"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -24,29 +24,32 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type DonationStorage struct {
-	dal                 dal.MongoDal[imodel.Donation, imodel.Donation]
+	dal                 dal.MongoDal[donation_model.Donation, donation_model.Donation]
 	donationCompanyDal  dal.MongoDal[donation_model.DonationCompany, donation_model.DonationCompany]
 	donationCategoryDal dal.MongoDal[donation_model.DonationCategory, donation_model.DonationCategory]
 	client              *mongo.Client
+	collection          *mongo.Collection
 	kafkaProducer       kafka.ClientOrchestrationProducer
 	logger              utils.Logger
 }
 
 func NewDonationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationRepository {
 	return &DonationStorage{
-		dal:                 dal.NewMongoDal[imodel.Donation, imodel.Donation](client, cfg, dbName, collection),
+		dal:                 dal.NewMongoDal[donation_model.Donation, donation_model.Donation](client, cfg, dbName, collection),
 		donationCompanyDal:  dal.NewMongoDal[donation_model.DonationCompany, donation_model.DonationCompany](client, cfg, dbName, "donation_companies"),
 		donationCategoryDal: dal.NewMongoDal[donation_model.DonationCategory, donation_model.DonationCategory](client, cfg, dbName, "donation_categories"),
 		client:              client,
+		collection:          client.Database(dbName).Collection(collection),
 		kafkaProducer:       kafkaProducer,
 		logger:              logger,
 	}
 }
 
-func (d *DonationStorage) Create(ctx context.Context, donation *imodel.Donation) error {
+func (d *DonationStorage) Create(ctx context.Context, donation *donation_model.Donation) error {
 	d.logger.Infof("[DonationStorage][Create] creating donation")
 	newDonation, err := d.dal.InsertOne(ctx, *donation)
 	if err != nil {
@@ -59,7 +62,7 @@ func (d *DonationStorage) Create(ctx context.Context, donation *imodel.Donation)
 	return nil
 }
 
-func (d *DonationStorage) Update(ctx context.Context, id string, donation *imodel.Donation) error {
+func (d *DonationStorage) Update(ctx context.Context, id string, donation *donation_model.Donation) error {
 	d.logger.Infof("[DonationStorage][Update] updating donation for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -200,4 +203,35 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 		Data: result,
 		Meta: meta,
 	}, nil
+}
+
+func (d *DonationStorage) StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*donation_model.Donation) error) error {
+	filter := bson.M{
+		"created_at": bson.M{
+			"$gte": startDate,
+			"$lte": endDate,
+		},
+	}
+
+	opts := options.Find().
+		SetSort(bson.D{{Key: "created_at", Value: 1}}).
+		SetBatchSize(1000)
+
+	cursor, err := d.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return local_util.HandleDBError(err)
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var donation donation_model.Donation
+		if err := cursor.Decode(&donation); err != nil {
+			return err
+		}
+		if err := handler(&donation); err != nil {
+			return err
+		}
+	}
+
+	return cursor.Err()
 }

@@ -12,6 +12,7 @@ import (
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	passwordrule "cbe-super-app-cps-action/internal/constants/dto/password_rule"
 	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
+	"time"
 
 	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
 
@@ -62,6 +63,8 @@ import (
 
 	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
 
+	queue "cbe-super-app-cps-action/internal/storage/queue_system"
+
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -99,6 +102,8 @@ type CPSActionService interface {
 	GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByUniqueID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error)
+
+	ExportCpsActionData(ctx context.Context, start_date, end_date time.Time, exported_to string) (string, error)
 }
 
 type BPSActionService interface {
@@ -200,6 +205,7 @@ type DonationService interface {
 	AddDonationImage(ctx context.Context, id string, image donation_dto.DonationRequest) error
 	EnableDonation(ctx context.Context, id string) error
 	DisableDonation(ctx context.Context, id string) error
+	ExportDonationData(ctx context.Context, startDate, endDate time.Time, fileType string) (string, error)
 }
 
 type DonationCategoryService interface {
@@ -603,6 +609,7 @@ type ServiceLayer struct {
 	CustomerKYC                   CustomerKYCService
 	UssdMerchantService           UssdMerchantService
 	BPSActionService              BPSActionService
+	QueueManager                  *queue.QueueManager
 }
 
 type ServiceContainer struct {
@@ -671,6 +678,7 @@ type ServiceContainer struct {
 	CustomerKYCContainer               CustomerKYCService
 	UssdMerchantContainer              UssdMerchantService
 	BPSActionContainer                 BPSActionService
+	QueueManager                       *queue.QueueManager
 }
 
 type BPSActionRoleService interface {

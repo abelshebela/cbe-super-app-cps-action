@@ -201,6 +201,9 @@ type CPSActionRepository interface {
 	UpdateCustome(ctx context.Context, filter, update bson.M) error
 	Delete(ctx context.Context, id string) error
 	GetCountByDepartment(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error)
+	// FindByDateRange(ctx context.Context, start_date, end_date time.Time)([]*model.CPSAction,error)
+
+	StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*model.CPSAction) error) error
 }
 
 // Avatar persistence
@@ -405,11 +408,12 @@ type VaultAmountTierRepository interface {
 }
 
 type DonationRepository interface {
-	Create(ctx context.Context, donation *imodel.Donation) error
-	Update(ctx context.Context, id string, donation *imodel.Donation) error
+	Create(ctx context.Context, donation *donation_model.Donation) error
+	Update(ctx context.Context, id string, donation *donation_model.Donation) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation.DonationListResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation.DonationListResponse], error)
+	StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*donation_model.Donation) error) error
 }
 
 type DonationCategoryRepository interface {
