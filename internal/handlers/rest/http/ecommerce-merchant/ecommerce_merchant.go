@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/constants"
-	miniappmerchant "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
+	ecomerceDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	ecommerce_merchant "cbe-super-app-cps-action/internal/constants/interfaces/ecommerce_merchant"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -56,7 +56,7 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
-	var reqDTO miniappmerchant.EcommerceMerchant
+	var reqDTO ecomerceDto.EcommerceMerchant
 
 	if err := json.NewDecoder(r.Body).Decode(&reqDTO); err != nil {
 		span.RecordError(err)
@@ -65,7 +65,7 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := reqDTO.Validate(true); err != nil {
+	if err := reqDTO.ValidateCreate(); err != nil {
 		span.RecordError(err)
 		log.Errorf("[EcomMerchH][Create] validate err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
@@ -115,7 +115,7 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 //	@Failure		400,401,404,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/ecommerce-merchant/{id} [patch]
 func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateMiniAppMerchant", "handler", "miniAppMerchant")
+	ctx, span := local_util.TraceLogger(r.Context(), "", "Update", "handler", "Update")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
@@ -128,20 +128,14 @@ func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var reqDTO miniappmerchant.EcommerceMerchant
+	var reqDTO ecomerceDto.UpdateEcommerceMerchant
 	if err := json.NewDecoder(r.Body).Decode(&reqDTO); err != nil {
 		span.RecordError(err)
 		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantMarshalFailed, nil, nil)
 		return
 	}
 
-	if reqDTO.IsEmpty() {
-		span.RecordError(errors.New("no data provided for update"))
-		localization.SendErrorResponse(w, localization.ErrorNoDataProvidedForUpdate, nil, nil)
-		return
-	}
-
-	if err := reqDTO.Validate(false); err != nil {
+	if err := reqDTO.ValidateUpdate(); err != nil {
 		span.RecordError(err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return

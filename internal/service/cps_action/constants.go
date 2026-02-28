@@ -687,6 +687,8 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateCustomerKYC: {},
 	RequestUpdateCustomerKYC: {},
 	RequestDeleteCustomerKYC: {},
+
+	RequestEnableDisableBank: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -728,12 +730,14 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableBranches,
 	},
 	"MULTIBRANCHENABLEACCOUNTBLOCK": {
+		RequestEnableBranches,
 		RequestEnableSingleBranch,
 		RequestEnableRegions,
 		RequestEnableDistricts,
 		RequestEnableCities,
 	},
 	"MULTIBRANCHDISABLEACCOUNTBLOCK": {
+		RequestDisableBranches,
 		RequestDisableMultiBranches,
 		RequestDisableRegions,
 		RequestDisableDistricts,

@@ -20,30 +20,48 @@ const (
 type RetryJob struct {
 	job       Job
 	executeAt time.Time
+	index     int
 }
 
 type InMemoryQueue struct {
 	queue      chan Job
 	retryQueue []RetryJob
-	readyBuf   []Job // reused by processRetryTick (single goroutine)
-	logger     utils.Logger
-	handler    JobHandler
+	// readyBuf is reused exclusively by processRetryTick (called only from
+	// the single retryScheduler goroutine) to avoid per-tick allocations.
+	readyBuf []Job
+	logger   utils.Logger
+	handler  JobHandler
+	metrics  *QueueMetrics
 
 	mu     sync.Mutex
 	wg     sync.WaitGroup
 	cancel context.CancelFunc
 }
 
-func NewInMemoryQueue(size int, logger utils.Logger, handler ...JobHandler) *InMemoryQueue {
-	h := DefaultJobHandler
-	if len(handler) > 0 && handler[0] != nil {
-		h = handler[0]
+type InMemoryQueueOption func(*InMemoryQueue)
+
+func WithMemoryHandler(h JobHandler) InMemoryQueueOption {
+	return func(q *InMemoryQueue) {
+		if h != nil {
+			q.handler = h
+		}
 	}
-	return &InMemoryQueue{
+}
+
+func WithMemoryMetrics(m *QueueMetrics) InMemoryQueueOption {
+	return func(q *InMemoryQueue) { q.metrics = m }
+}
+
+func NewInMemoryQueue(size int, logger utils.Logger, opts ...InMemoryQueueOption) *InMemoryQueue {
+	q := &InMemoryQueue{
 		queue:   make(chan Job, size),
 		logger:  logger,
-		handler: h,
+		handler: DefaultJobHandler,
 	}
+	for _, opt := range opts {
+		opt(q)
+	}
+	return q
 }
 
 func (q *InMemoryQueue) Start(ctx context.Context, workers int) {
@@ -125,6 +143,7 @@ drainLoop:
 func (q *InMemoryQueue) Enqueue(ctx context.Context, job Job) error {
 	select {
 	case q.queue <- job:
+		q.metrics.IncEnqueued("memory", job.Type)
 		q.logger.Debugf("[memory_queue] Enqueue: job enqueued %s", job.LogPrefix())
 		return nil
 	default:
@@ -143,9 +162,11 @@ func (q *InMemoryQueue) worker(ctx context.Context, id int) {
 			return
 		case job := <-q.queue:
 			if err := q.handler(ctx, job); err != nil {
+				q.metrics.IncFailed("memory", job.Type)
 				q.logger.Warnf("[memory_queue] worker(%d): job execution failed %s retry=%d: %v", id, job.LogPrefix(), job.Retry, err)
 				q.scheduleRetry(job)
 			} else {
+				q.metrics.IncProcessed("memory", job.Type)
 				q.logger.Debugf("[memory_queue] worker(%d): job completed %s", id, job.LogPrefix())
 			}
 		}
@@ -155,9 +176,11 @@ func (q *InMemoryQueue) worker(ctx context.Context, id int) {
 func (q *InMemoryQueue) scheduleRetry(job Job) {
 	job.Retry++
 	if job.MaxRetry > 0 && job.Retry > job.MaxRetry {
+		q.metrics.IncDeadLettered("memory", job.Type)
 		q.logger.Errorf("[memory_queue] scheduleRetry: job exceeded max retries, discarding %s max_retry=%d", job.LogPrefix(), job.MaxRetry)
 		return
 	}
+	q.metrics.IncRetried("memory", job.Type)
 
 	delay := time.Second * time.Duration(1<<job.Retry)
 	if delay > maxBackoffDelay {
@@ -195,6 +218,7 @@ func (q *InMemoryQueue) retryScheduler(ctx context.Context) {
 }
 
 func (q *InMemoryQueue) processRetryTick() {
+	q.metrics.SetDepth("memory", float64(len(q.queue)))
 	now := time.Now()
 
 	q.mu.Lock()

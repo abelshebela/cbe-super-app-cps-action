@@ -37,9 +37,10 @@ func InitBudgetCategoryAdapter(budgetCategoryApplication service.BudgetCategoryS
 //	@Tags			Budget Category
 //	@Accept			multipart/form-data
 //	@Produce		json
-//	@Param			name	formData	string									true	"Budget category name"	example(Monthly Groceries)
-//	@Param			color	formData	string									false	"Hex color code"		example(#FF5733)
-//	@Param			icon	formData	file									false	"Icon image file (png, jpg, etc)"
+//	@Param			name	formData	string										true	"Budget category name"	example(Monthly Groceries)
+//	@Param			color	formData	string										false	"Hex color code"		example(#FF5733)
+//	@Param			icon	formData	file										false	"Icon image file (png, jpg, etc)"
+//	@Param			type	formData	string										true	"Budget category type (CB, IFB, BOTH)"	example(CB)
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Budget category created successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -99,9 +100,10 @@ func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *h
 //	@Accept			multipart/form-data
 //	@Produce		json
 //	@Param			id		path		string									true	"Budget category ID"
-//	@Param			name	formData	string									false	"Budget category name"	example(Monthly Groceries)
-//	@Param			color	formData	string									false	"Hex color code"		example(#FF5733)
-//	@Param			icon	formData	file									false	"Icon image file (png, jpg, etc)"
+//	@Param			name	formData	string										false	"Budget category name"	example(Monthly Groceries)
+//	@Param			color	formData	string										false	"Hex color code"		example(#FF5733)
+//	@Param			icon	formData	file										false	"Icon image file (png, jpg, etc)"
+//	@Param			type	formData	string										false	"Budget category type (CB, IFB, BOTH)"	example(CB)
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Budget category update request submitted successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -212,6 +214,7 @@ func (b *budgetCategoryAdapter) GetBudgetCategoryByID(w http.ResponseWriter, r *
 //	@Param			search		query		string																			false	"Searchable fields name"
 //	@Param			enabled		query		bool																			false	"Status filter (e.g.,true or false)"
 //	@Param			name		query		string																			false	"Status filter by  name"
+//	@Param			type		query		string																			false	"Type filter (CB, IFB, BOTH)"
 //	@Success		200			{object}	localization.StandardResponse{data=[]budget_category.BudgetCategoryResponse}	"Budget categories retrieved successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}											"Bad request"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}											"Internal server error"

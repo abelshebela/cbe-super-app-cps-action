@@ -52,7 +52,7 @@ definition_of_done.md
 definition_of_ready.md
 
 tools
-
+docs
 ./cmd/__debug*
 __debug_bin*
 .tools

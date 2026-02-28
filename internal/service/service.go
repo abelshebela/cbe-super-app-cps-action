@@ -63,6 +63,8 @@ import (
 
 	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
 
+	queue "cbe-super-app-cps-action/internal/storage/queue_system"
+
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -203,6 +205,7 @@ type DonationService interface {
 	AddDonationImage(ctx context.Context, id string, image donation_dto.DonationRequest) error
 	EnableDonation(ctx context.Context, id string) error
 	DisableDonation(ctx context.Context, id string) error
+	ExportDonationData(ctx context.Context, startDate, endDate time.Time, fileType string) (string, error)
 }
 
 type DonationCategoryService interface {
@@ -294,7 +297,7 @@ type MiniAppMerchantService interface {
 type EcommerceMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	Create(ctx context.Context, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, error)
-	Update(ctx context.Context, id string, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error)
+	Update(ctx context.Context, id string, req *merchantDto.UpdateEcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error)
 	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
 	Delete(ctx context.Context, id string) error
@@ -606,6 +609,7 @@ type ServiceLayer struct {
 	CustomerKYC                   CustomerKYCService
 	UssdMerchantService           UssdMerchantService
 	BPSActionService              BPSActionService
+	QueueManager                  *queue.QueueManager
 }
 
 type ServiceContainer struct {
@@ -674,6 +678,7 @@ type ServiceContainer struct {
 	CustomerKYCContainer               CustomerKYCService
 	UssdMerchantContainer              UssdMerchantService
 	BPSActionContainer                 BPSActionService
+	QueueManager                       *queue.QueueManager
 }
 
 type BPSActionRoleService interface {

@@ -199,10 +199,13 @@ func (e *EventMerchantService) Create(ctx context.Context, eventMerchant model.E
 	}, nil)
 	if err != nil {
 		e.logger.Errorf("[EventMerchSvc][Create] exist check err: %v", err)
-		span.AddEvent("Failed to check merchant existence", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-		))
-		return err
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			span.AddEvent("Failed to check merchant existence", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+			))
+			return err
+		}
+
 	}
 
 	if exist {
@@ -406,7 +409,7 @@ func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerch
 				attribute.String("error", err.Error()),
 				attribute.String("id", id),
 			))
-			return errors.New(localization.ErrorMiniAppMerchantExistsCheckFailed.Code)
+			return errors.New(localization.ErrorMerchantNotFound.Code)
 		}
 		if exist {
 			e.logger.Warnf("[EventMerchSvc][Update] already exists id: %s", id)
