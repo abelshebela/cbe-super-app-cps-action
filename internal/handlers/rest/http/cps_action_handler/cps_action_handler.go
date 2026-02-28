@@ -1597,6 +1597,7 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 		}
 	}
 
+	a.logger.Infof("Checker index: %s, Auditor index: %s", checkerIdx, auditorIdx)
 	autorizersLevel := cpsactionDto.AutorizersLevelResponse{
 		CheckerIndex: checkerIdx,
 		AuditorIndex: auditorIdx,
