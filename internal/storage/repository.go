@@ -91,6 +91,7 @@ type ServicesRepository interface {
 	CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error)
 	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error)
 	FindServiceListByID(ctx context.Context, id string) (*model.ServiceList, error)
+	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*model.ServiceList, error)
 	CreateServiceList(ctx context.Context, serviceList *model.ServiceList) error
 	UpdateServiceList(ctx context.Context, id, serviceKey string, serviceList *model.ServiceList) error
 	EnableOrDisableServiceList(ctx context.Context, id, serviceKey string, enable bool) error
@@ -412,6 +413,7 @@ type DonationRepository interface {
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation.DonationListResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation.DonationListResponse], error)
+	StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*donation_model.Donation) error) error
 }
 
 type DonationCategoryRepository interface {

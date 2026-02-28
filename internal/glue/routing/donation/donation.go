@@ -86,6 +86,14 @@ func Init(router chi.Router, handler donation.DonationHandler, authMiddleware mi
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/donation/export",
+			Handler: handler.ExportDonationList,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

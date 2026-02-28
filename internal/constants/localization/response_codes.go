@@ -22,6 +22,8 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorExistUserName,
 	ErrorExistUserNameBPS,
+	DonationDataExportedSuccess,
+	DonationDataExportedError,
 
 	SuccessCPSActionCount,
 	SuccessServiceCreateRequestSubmitted,
@@ -1595,12 +1597,25 @@ var (
 	}
 
 	CpsActionDataExportedSuccess = ResponseCode{
-		Code: "DATA_EXPORT_SUCCESS",
+		Code:       "DATA_EXPORT_SUCCESS",
 		StatusCode: StatusOK,
-		Message: MsgCpsActionDataExportedSuccessfully,
-		Type: "success",
+		Message:    MsgCpsActionDataExportedSuccessfully,
+		Type:       "success",
 	}
 
+	DonationDataExportedSuccess = ResponseCode{
+		Code:       "DONATION_DATA_EXPORT_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgDonationDataExportedSuccessfully,
+		Type:       "success",
+	}
+
+	DonationDataExportedError = ResponseCode{
+		Code:       "DONATION_DATA_EXPORT_ERROR",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDonationDataExportFailed,
+		Type:       "error",
+	}
 
 	// BPS Action related success response codes
 	SuccessBPSActionsRetrieved = ResponseCode{
@@ -7199,7 +7214,7 @@ var (
 	ErrorServiceListAlreadyExists = ResponseCode{
 		Code:       "ERROR_SERVICE_LIST_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
-		Message:    "Service list with the same key already exists",
+		Message:    "Service list with the same name or key already exists",
 		Type:       "error",
 	}
 	ErrorServiceListNotFound = ResponseCode{
