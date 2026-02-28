@@ -205,6 +205,7 @@ type DonationService interface {
 	AddDonationImage(ctx context.Context, id string, image donation_dto.DonationRequest) error
 	EnableDonation(ctx context.Context, id string) error
 	DisableDonation(ctx context.Context, id string) error
+	ExportDonationData(ctx context.Context, startDate, endDate time.Time, fileType string) (string, error)
 }
 
 type DonationCategoryService interface {

@@ -9,6 +9,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
+	"time"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -23,6 +24,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type DonationStorage struct {
@@ -30,6 +32,7 @@ type DonationStorage struct {
 	donationCompanyDal  dal.MongoDal[donation_model.DonationCompany, donation_model.DonationCompany]
 	donationCategoryDal dal.MongoDal[donation_model.DonationCategory, donation_model.DonationCategory]
 	client              *mongo.Client
+	collection          *mongo.Collection
 	kafkaProducer       kafka.ClientOrchestrationProducer
 	logger              utils.Logger
 }
@@ -40,6 +43,7 @@ func NewDonationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName
 		donationCompanyDal:  dal.NewMongoDal[donation_model.DonationCompany, donation_model.DonationCompany](client, cfg, dbName, "donation_companies"),
 		donationCategoryDal: dal.NewMongoDal[donation_model.DonationCategory, donation_model.DonationCategory](client, cfg, dbName, "donation_categories"),
 		client:              client,
+		collection:          client.Database(dbName).Collection(collection),
 		kafkaProducer:       kafkaProducer,
 		logger:              logger,
 	}
@@ -199,4 +203,35 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 		Data: result,
 		Meta: meta,
 	}, nil
+}
+
+func (d *DonationStorage) StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*donation_model.Donation) error) error {
+	filter := bson.M{
+		"created_at": bson.M{
+			"$gte": startDate,
+			"$lte": endDate,
+		},
+	}
+
+	opts := options.Find().
+		SetSort(bson.D{{Key: "created_at", Value: 1}}).
+		SetBatchSize(1000)
+
+	cursor, err := d.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return local_util.HandleDBError(err)
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var donation donation_model.Donation
+		if err := cursor.Decode(&donation); err != nil {
+			return err
+		}
+		if err := handler(&donation); err != nil {
+			return err
+		}
+	}
+
+	return cursor.Err()
 }
