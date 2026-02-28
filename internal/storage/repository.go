@@ -91,6 +91,7 @@ type ServicesRepository interface {
 	CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error)
 	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error)
 	FindServiceListByID(ctx context.Context, id string) (*model.ServiceList, error)
+	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*model.ServiceList, error)
 	CreateServiceList(ctx context.Context, serviceList *model.ServiceList) error
 	UpdateServiceList(ctx context.Context, id, serviceKey string, serviceList *model.ServiceList) error
 	EnableOrDisableServiceList(ctx context.Context, id, serviceKey string, enable bool) error
