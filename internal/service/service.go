@@ -63,6 +63,8 @@ import (
 
 	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
 
+	queue "cbe-super-app-cps-action/internal/storage/queue_system"
+
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -203,6 +205,7 @@ type DonationService interface {
 	AddDonationImage(ctx context.Context, id string, image donation_dto.DonationRequest) error
 	EnableDonation(ctx context.Context, id string) error
 	DisableDonation(ctx context.Context, id string) error
+	ExportDonationData(ctx context.Context, startDate, endDate time.Time, fileType string) (string, error)
 }
 
 type DonationCategoryService interface {
@@ -606,6 +609,7 @@ type ServiceLayer struct {
 	CustomerKYC                   CustomerKYCService
 	UssdMerchantService           UssdMerchantService
 	BPSActionService              BPSActionService
+	QueueManager                  *queue.QueueManager
 }
 
 type ServiceContainer struct {
@@ -674,6 +678,7 @@ type ServiceContainer struct {
 	CustomerKYCContainer               CustomerKYCService
 	UssdMerchantContainer              UssdMerchantService
 	BPSActionContainer                 BPSActionService
+	QueueManager                       *queue.QueueManager
 }
 
 type BPSActionRoleService interface {

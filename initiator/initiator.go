@@ -114,6 +114,13 @@ func Init(ctx context.Context) {
 
 	redisRepository := redisStorage.GetRedisRepository()
 
+	// Initialize queue system (memory + Redis backends, dedup, metrics)
+	logger.Infof("Initializing queue system...")
+	queueInfra := InitQueueSystem(redis, logger)
+	queueInfra.Manager.Start(ctx, queueWorkers)
+	defer queueInfra.Manager.Stop()
+	logger.Infof("Queue system initialized and started")
+
 	persistence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, notificationApi, *notificationProducer, sharedKafkaProducer, *clientOrchestrationProducer, *accessListSegmentationProducer, redisRepository, cfg, logger)
 	logger.Infof("Persistence initialized")
 
@@ -146,8 +153,9 @@ func Init(ctx context.Context) {
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persistence, OraclePersistence, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService, clientOrchestrationProducer,presignClient )
 
+	serviceLayer := InitServiceLayer(mongoClient, persistence, OraclePersistence, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService, clientOrchestrationProducer,presignClient, queueInfra.Manager)
+	
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
 			logger.Errorf("Failed to start feedback consumer: %v", err)
@@ -155,7 +163,7 @@ func Init(ctx context.Context) {
 	}()
 
 	logger.Infof("initialize handler layer")
-	handlerLayer := InitHandler(serviceLayer, logger)
+	handlerLayer := InitHandler(serviceLayer, logger, queueInfra.Manager)
 
 	r := chi.NewRouter()
 	// InitRoute(ctx, r, handlerLayer, nil, logger, cfg)
@@ -185,4 +193,5 @@ func Init(ctx context.Context) {
 	logger.Infof("Shutdown signal received. Stopping servers...")
 	srv.HTTPServerStop(ctx, logger)
 	server.StopGrpcServer(grpcServer, logger)
+	// queue system stopped via deferred queueInfra.Manager.Stop()
 }

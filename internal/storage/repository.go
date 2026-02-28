@@ -202,7 +202,7 @@ type CPSActionRepository interface {
 	GetCountByDepartment(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error)
 	// FindByDateRange(ctx context.Context, start_date, end_date time.Time)([]*model.CPSAction,error)
 
-	StreamByDateRange(ctx context.Context,startDate, endDate time.Time,handler func(*model.CPSAction) error,) error 
+	StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*model.CPSAction) error) error
 }
 
 // Avatar persistence
@@ -412,6 +412,7 @@ type DonationRepository interface {
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation.DonationListResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation.DonationListResponse], error)
+	StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*donation_model.Donation) error) error
 }
 
 type DonationCategoryRepository interface {

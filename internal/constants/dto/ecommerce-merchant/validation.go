@@ -67,9 +67,9 @@ func (dto EcommerceMerchant) Validate(isCreate bool) error {
 		}
 
 	} else {
-		if regexp.MustCompile(`^[a-zA-Z0-9\s]+$`).MatchString(strings.TrimSpace(dto.MerchantName)) == false {
-			return errors.New("Invalid merchant name is required")
-		}
+		// if regexp.MustCompile(`^[a-zA-Z0-9\s]+$`).MatchString(strings.TrimSpace(dto.MerchantName)) == false {
+		// 	return errors.New("Invalid merchant name is required")
+		// }
 		if regexp.MustCompile(`^[a-zA-Z0-9_\s]+$`).MatchString(strings.TrimSpace(dto.MerchantCode)) == false {
 			return errors.New("Invalid merchant code is required")
 		}

@@ -52,10 +52,12 @@ func (qm *QueueManager) Stop() {
 }
 
 // Enqueue dispatches a job to one or both queue backends based on the given mode.
-// NOTE: ModeBoth will enqueue to both memory and redis queues independently. Since both
-// queues have their own workers, the job WILL be processed twice. Use ModeBoth only when
-// handlers are idempotent or when dual-write redundancy is intentional.
+// ModeBoth enqueues to both memory and redis for redundancy. When a Deduplicator is
+// configured on the HandlerRegistry, only the first backend to process the job will
+// actually execute the handler; the second will be silently deduplicated.
 func (qm *QueueManager) Enqueue(ctx context.Context, job Job, mode QueueMode) error {
+	// Normalize once so both backends share the same ID (critical for dedup).
+	job.Normalize()
 	switch mode {
 	case ModeMemory:
 		if qm.memory == nil {
