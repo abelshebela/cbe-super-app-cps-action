@@ -245,13 +245,13 @@ type BPSActionRepository interface {
 }
 
 type BudgetCategoryRepository interface {
-	CreateBudgetCategory(ctx context.Context, budgetCategory *model.BudgetCategory) error
-	UpdateBudgetCategory(ctx context.Context, id string, budgetCategory *model.BudgetCategory) error
-	FindBudgetCategoryByID(ctx context.Context, id string) (*model.BudgetCategory, error)
-	FindAllBudgetCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.BudgetCategory], error)
+	CreateBudgetCategory(ctx context.Context, budgetCategory *imodel.BudgetCategory) error
+	UpdateBudgetCategory(ctx context.Context, id string, budgetCategory *imodel.BudgetCategory) error
+	FindBudgetCategoryByID(ctx context.Context, id string) (*imodel.BudgetCategory, error)
+	FindAllBudgetCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BudgetCategory], error)
 	DeleteBudgetCategory(ctx context.Context, id string) error
 	EnableOrDisableBudgetCategory(ctx context.Context, id string, enable bool) error
-	FindByName(ctx context.Context, name string) (*model.BudgetCategory, error)
+	FindByName(ctx context.Context, name string) (*imodel.BudgetCategory, error)
 }
 
 // AmountBasedAuth persistence
