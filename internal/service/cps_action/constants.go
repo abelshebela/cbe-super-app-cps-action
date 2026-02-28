@@ -687,6 +687,8 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateCustomerKYC: {},
 	RequestUpdateCustomerKYC: {},
 	RequestDeleteCustomerKYC: {},
+
+	RequestEnableDisableBank: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {

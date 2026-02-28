@@ -14,6 +14,8 @@ import (
 	"path"
 	"time"
 
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -59,7 +61,7 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 
 	b.logger.Infof("[BudgetCatSvc][Authorize] action: %s", action.RequestAction)
 	var err error
-	budgetCategory, marshal_err := local_util.JsonUnmarshal[model.BudgetCategory](action.CurrentAction)
+	budgetCategory, marshal_err := local_util.JsonUnmarshal[imodel.BudgetCategory](action.CurrentAction)
 	if marshal_err != nil || budgetCategory == nil {
 		span.AddEvent("[Authorize] failed to unmarshal current action", trace.WithAttributes(
 			attribute.String("error", marshal_err.Error()),
@@ -169,10 +171,11 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 		return errors.New(localization.ErrorBudgetCategoryNameAlreadyExists.Code)
 	}
 
-	budgetCategory := &model.BudgetCategory{
+	budgetCategory := &imodel.BudgetCategory{
 		Name:      req.Name,
 		Color:     req.Color,
 		Icon:      iconURL,
+		Type:      imodel.BudgetCategoryType(req.Type),
 		Enabled:   true,
 		IsDeleted: false,
 		CreatedAt: time.Now(),
@@ -214,6 +217,7 @@ func (b *BudgetCategoryService) FetchBudgetCategory(ctx context.Context, filterP
 			Name:      budgetCategory.Name,
 			Color:     budgetCategory.Color,
 			Icon:      budgetCategory.Icon,
+			Type:      string(budgetCategory.Type),
 			Enabled:   budgetCategory.Enabled,
 			CreatedAt: budgetCategory.CreatedAt.Format(time.RFC3339),
 			UpdatedAt: budgetCategory.UpdatedAt.Format(time.RFC3339),
@@ -247,6 +251,7 @@ func (b *BudgetCategoryService) FetchBudgetCategoryByID(ctx context.Context, id 
 		Name:      budgetCategory.Name,
 		Color:     budgetCategory.Color,
 		Icon:      budgetCategory.Icon,
+		Type:      string(budgetCategory.Type),
 		Enabled:   budgetCategory.Enabled,
 		CreatedAt: budgetCategory.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: budgetCategory.UpdatedAt.Format(time.RFC3339),
@@ -293,6 +298,9 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 	}
 	if req.Color != "" {
 		newBudgetCategory.Color = req.Color
+	}
+	if req.Type != "" {
+		newBudgetCategory.Type = imodel.BudgetCategoryType(req.Type)
 	}
 	if req.Icon != nil {
 		var objectkey string
