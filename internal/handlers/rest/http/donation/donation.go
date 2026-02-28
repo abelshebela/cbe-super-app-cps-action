@@ -564,5 +564,5 @@ func (a *donationAdapter) ExportDonationList(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.CpsActionDataExportedSuccess, FileLinkExported)
+	localization.SendSuccessResponse(w, localization.DonationDataExportedSuccess, FileLinkExported)
 }
