@@ -33,7 +33,7 @@ CREATE TABLE vault_categories (
     id                VARCHAR2(36) PRIMARY KEY,
     name              VARCHAR2(255) NOT NULL,
     cover_image_url   VARCHAR2(255),
-    interest_type     VARCHAR2(50),
+    interest_type     VARCHAR2(50) NOT NULL CHECK (interest_type IN ('FLAT', 'DYNAMIC')),
     category_interest VARCHAR2(50),
     deadlock          NUMBER(1) DEFAULT 0 NOT NULL,
     is_active         NUMBER(1) DEFAULT 0 NOT NULL,

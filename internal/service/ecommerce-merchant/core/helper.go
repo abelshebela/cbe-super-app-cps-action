@@ -173,7 +173,7 @@ func CheckMerchantExists(
 
 	res, err := merchantRepo.FindOne(ctx, filter)
 	if err != nil {
-		if err.Error() == localization.ErrorMiniAppMerchantNotFound.Code {
+		if err.Error() == localization.ErrorMiniAppMerchantNotFound.Code || err.Error() == localization.ErrorResourceNotFound.Code {
 			return false, nil
 		}
 		return false, err
@@ -212,20 +212,61 @@ func ToMiniAppMerchantResponseDTO(domain *model.EcommerceMerchant) *merchantDto.
 	}
 }
 
-// Convert DTO to Domain model for service layer
-func ToMiniAppMerchantDomainFromUpdateDTO(d *merchantDto.EcommerceMerchant) *model.EcommerceMerchant {
+// convertDtoBranches converts slice of dto branch info to model branch info.
+func convertDtoBranches(dto []merchantDto.BranchInformation) []model.BranchInformation {
+	if dto == nil {
+		return nil
+	}
+	result := make([]model.BranchInformation, len(dto))
+	for i, b := range dto {
+		result[i] = model.BranchInformation{
+			BranchCode:          b.BranchCode,
+			BranchName:          b.BranchName,
+			BranchAddress:       b.BranchAddress,
+			BranchOwner:         b.BranchOwner,
+			BranchAccountNumber: b.BranchAccountNumber,
+		}
+	}
+	return result
+}
+
+func ToEcommerceMerchantCreateModel(d *merchantDto.EcommerceMerchant) *model.EcommerceMerchant {
 	return &model.EcommerceMerchant{
 		ID:                bson.NewObjectID(),
 		Code:              d.MerchantCode,
 		MerchantName:      d.MerchantName,
 		BankAccountNumber: d.AccountNumber,
-		// Email:             d.Email,
-		// PhoneNumber:       d.PhoneNumber,
-		SettlementMethod: d.SettlementMethod,
-		Branches:         d.Branches,
-		Enabled:          true,
-		IsDeleted:        false,
-		CreatedAt:        time.Now(),
-		UpdatedAt:        time.Now(),
+		SettlementMethod:  d.SettlementMethod,
+		Branches:          convertDtoBranches(d.Branches),
+		Enabled:           true,
+		IsDeleted:         false,
+		CreatedAt:         time.Now(),
+		UpdatedAt:         time.Now(),
 	}
+}
+
+func ToEcommerceMerchantDomainFromUpdateDTO(d *merchantDto.UpdateEcommerceMerchant) *model.EcommerceMerchant {
+	updatedEcommerceMerchant := &model.EcommerceMerchant{}
+
+	if d.MerchantCode != nil {
+		updatedEcommerceMerchant.Code = *d.MerchantCode
+	}
+	if d.MerchantName != nil {
+		updatedEcommerceMerchant.MerchantName = *d.MerchantName
+	}
+	if d.AccountNumber != nil {
+		updatedEcommerceMerchant.BankAccountNumber = *d.AccountNumber
+	}
+	if d.SettlementMethod != nil {
+		updatedEcommerceMerchant.SettlementMethod = *d.SettlementMethod
+	}
+	if d.Branches != nil {
+		updatedEcommerceMerchant.Branches = convertDtoBranches(d.Branches)
+	}
+	updatedEcommerceMerchant.Enabled = true
+	updatedEcommerceMerchant.IsDeleted = false
+	updatedEcommerceMerchant.CreatedAt = time.Now()
+	updatedEcommerceMerchant.UpdatedAt = time.Now()
+
+	return updatedEcommerceMerchant
 }

@@ -60,13 +60,10 @@ func (m *miniAppMerchantService) Create(ctx context.Context, req *merchantDto.Ec
 	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "MiniAppMerchant", "Create")
 	defer span.End()
 
-	data := core.ToMiniAppMerchantDomainFromUpdateDTO(req)
+	data := core.ToEcommerceMerchantCreateModel(req)
 
 	m.logger.Infof("[EcomMerchSvc][Create] name: %s", data.MerchantName)
 	exist, err := core.CheckMerchantExists(ctx, m.repo, &types.CheckMiniAppMerchant{
-		// BankAccountNumber: data.BankAccountNumber,
-		// Email:        data.Email,
-		// PhoneNumber:  data.PhoneNumber,
 		MerchantCode: data.Code,
 	}, nil)
 	if err != nil {
@@ -126,11 +123,11 @@ func (m *miniAppMerchantService) Create(ctx context.Context, req *merchantDto.Ec
 	return data, nil
 }
 
-func (m *miniAppMerchantService) Update(ctx context.Context, id string, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error) {
+func (m *miniAppMerchantService) Update(ctx context.Context, id string, req *merchantDto.UpdateEcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "MiniAppMerchant", "Update")
 	defer span.End()
 
-	merchantReq := core.ToMiniAppMerchantDomainFromUpdateDTO(req)
+	merchantReq := core.ToEcommerceMerchantDomainFromUpdateDTO(req)
 	m.logger.Infof("[EcomMerchSvc][Update] id: %s", id)
 	old, err := m.repo.FindByID(ctx, id)
 	if err != nil {

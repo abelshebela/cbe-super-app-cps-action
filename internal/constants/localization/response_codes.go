@@ -7214,7 +7214,7 @@ var (
 	ErrorServiceListAlreadyExists = ResponseCode{
 		Code:       "ERROR_SERVICE_LIST_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
-		Message:    "Service list with the same key already exists",
+		Message:    "Service list with the same name or key already exists",
 		Type:       "error",
 	}
 	ErrorServiceListNotFound = ResponseCode{
