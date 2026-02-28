@@ -182,6 +182,8 @@ const (
 	MsgCPSActionCanceledSuccessfully       = "CPS Action Canceled Successfully"
 	MsgCPSActionsRetrieved                 = "CPS actions retrieved successfully"
 	MsgCpsActionDataExportedSuccessfully   = "CPS actions Data exported successfully"
+	MsgDonationDataExportedSuccessfully    = "Donation Data exported successfully"
+	MsgDonationDataExportFailed            = "Donation Data export failed"
 
 	// BPS Action related success messages
 	MsgBPSActionsRetrievedSuccessfully = "BPS Actions retrieved successfully"

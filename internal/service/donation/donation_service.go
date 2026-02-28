@@ -22,6 +22,11 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	// types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
+	"encoding/csv"
+	"fmt"
+	"os"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -1137,4 +1142,153 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 
 	d.logger.Infof("[DonationSvc][Authorize] completed: %s", action.RequestAction)
 	return action, nil
+}
+
+func (d *Donation) ExportDonationData(ctx context.Context, startDate, endDate time.Time, fileType string) (string, error) {
+	if endDate.Before(startDate) {
+		return "", errors.New("end_date cannot be before start_date")
+	}
+
+	// 1 Create temp file
+	tmpFile, err := os.CreateTemp("", "donations_*.csv")
+	if err != nil {
+		return "", fmt.Errorf("create temp file: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+	defer tmpFile.Close()
+
+	writer := csv.NewWriter(tmpFile)
+
+	// 2 Write Header
+	if err := writer.Write(DonationCSVHeader()); err != nil {
+		return "", fmt.Errorf("write header: %w", err)
+	}
+
+	// 3 Stream from repository
+	err = d.DonationRepo.StreamByDateRange(ctx, startDate, endDate,
+		func(donation *donation_model.Donation) error {
+			return d.processDonation(writer, donation)
+		},
+	)
+	if err != nil {
+		return "", fmt.Errorf("stream data: %w", err)
+	}
+
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return "", fmt.Errorf("flush csv: %w", err)
+	}
+
+	// 4 Upload to MinIO
+	objectName := fmt.Sprintf(
+		"exports/donations/donations_%s_to_%s_%d.csv",
+		startDate.Format("20060102"),
+		endDate.Format("20060102"),
+		time.Now().Unix(),
+	)
+
+	presignClient := s3.NewPresignClient(d.minio)
+	link, err := d.UploadFileToMinio(
+		ctx,
+		d.minio,
+		presignClient,
+		d.bucketName,
+		d.minioEndPoint,
+		tmpFile,
+		objectName)
+	if err != nil {
+		return "", err
+	}
+
+	return link, nil
+}
+
+func (d *Donation) processDonation(writer *csv.Writer, donation *donation_model.Donation) error {
+	row := d.BuildDonationRow(donation)
+	return writer.Write(row)
+}
+
+func DonationCSVHeader() []string {
+	return []string{
+		"ID",
+		"DonationCode",
+		"Title",
+		"CompanyID",
+		"CategoryID",
+		"Target",
+		"CurrentAmount",
+		"IsFeatured",
+		"Enabled",
+		"StartDate",
+		"EndDate",
+		"CreatedAt",
+	}
+}
+
+func (d *Donation) BuildDonationRow(donation *donation_model.Donation) []string {
+	return []string{
+		donation.ID.Hex(),
+		donation.DonationCode,
+		donation.Title,
+		donation.CompanyID.Hex(),
+		donation.CategoryID.Hex(),
+		donation.Target,
+		donation.CurrentAmount,
+		fmt.Sprintf("%v", donation.IsFeatured),
+		fmt.Sprintf("%v", donation.Enabled),
+		donation.StartDate.Format(time.RFC3339),
+		donation.EndDate.Format(time.RFC3339),
+		donation.CreatedAt.Format(time.RFC3339),
+	}
+}
+
+func (d *Donation) UploadFileToMinio(
+	ctx context.Context,
+	s3Client *s3.Client,
+	presignClient *s3.PresignClient,
+	bucketName string,
+	minioBaseURL string,
+	file *os.File,
+	objectKey string,
+) (string, error) {
+
+	_, err := file.Seek(0, 0)
+	if err != nil {
+		return "", err
+	}
+
+	stat, err := file.Stat()
+	if err != nil {
+		return "", err
+	}
+	size := stat.Size()
+	contentType := "text/csv"
+	putInput := &s3.PutObjectInput{
+		Bucket:        aws.String(bucketName),
+		Key:           aws.String(objectKey),
+		Body:          file,
+		ContentType:   aws.String(contentType),
+		ContentLength: &size,
+	}
+	_, err = s3Client.PutObject(
+		ctx,
+		putInput,
+	)
+	if err != nil {
+		return "", fmt.Errorf("upload to minio: %w", err)
+	}
+
+	req, err := presignClient.PresignGetObject(
+		ctx,
+		&s3.GetObjectInput{
+			Bucket: aws.String(bucketName),
+			Key:    aws.String(objectKey),
+		},
+		s3.WithPresignExpires(5*time.Minute),
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return req.URL, nil
 }
