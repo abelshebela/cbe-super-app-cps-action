@@ -274,6 +274,7 @@ type AccountBlockRepository interface {
 	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 	EnableOrDisableBranches(ctx context.Context, ids []string, reason string, enabled bool) error
 	GetBranchesByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
+	FindByFilterKey(ctx context.Context, field, value string) (*model.AccountBlock, error)
 
 	CreateCity(ctx context.Context, city *model.AccountBlock) error
 	DeleteCity(ctx context.Context, id string) error
