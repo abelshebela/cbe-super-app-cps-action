@@ -667,3 +667,41 @@ func ValidateTimeRangeOrder(time1, time2 time.Time) (bool, error) {
 	}
 	return true, nil
 }
+
+
+
+func FormatDateRangeToUTCStrings(fromStr, toStr string) (string, string, error) {
+	const layout = "2006-01-02" // frontend format
+
+	from, err := time.Parse(layout, fromStr)
+	if err != nil {
+		return "", "", err
+	}
+
+	to, err := time.Parse(layout, toStr)
+	if err != nil {
+		return "", "", err
+	}
+
+	// Start of day UTC
+	startOfDay := time.Date(
+		from.Year(),
+		from.Month(),
+		from.Day(),
+		0, 0, 0, 0,
+		time.UTC,
+	)
+
+	// End of day UTC (recommended production-safe version)
+	endOfDay := time.Date(
+		to.Year(),
+		to.Month(),
+		to.Day(),
+		23, 59, 59, 999999999,
+		time.UTC,
+	)
+
+	return startOfDay.Format(time.RFC3339Nano),
+		endOfDay.Format(time.RFC3339Nano),
+		nil
+}

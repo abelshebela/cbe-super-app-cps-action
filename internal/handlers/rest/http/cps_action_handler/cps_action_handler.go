@@ -1614,14 +1614,21 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	ValidStartDate, err := local_util.ValidateTimeAndParse(from)
+	FormatedFrom,formatedTo,err :=local_util.FormatDateRangeToUTCStrings(from,to)
+	if err != nil{
+		log.Warnf("Invalid Start date is given ", from)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
+		return
+	}
+
+	ValidStartDate, err := local_util.ValidateTimeAndParse(FormatedFrom)
 	if err != nil {
 		log.Warnf("Invalid Start date is given ", from)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
 		return
 	}
 
-	ValidEndDate, err := local_util.ValidateTimeAndParse(to)
+	ValidEndDate, err := local_util.ValidateTimeAndParse(formatedTo)
 	if err != nil {
 		log.Warnf("Invalid End date is given ", from)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
