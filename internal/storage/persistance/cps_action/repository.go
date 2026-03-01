@@ -88,6 +88,7 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 		Projection: Projection,
 	}
 
+	s.logger.Infof("Update cps action filter: %v", filter)
 	data, err := s.dal.FindAllWithCursorBasedPagination(ctx, Filter)
 	if err != nil {
 		s.logger.Errorf("[CPSAction][FindAllWithPagination] failed to fetch CPS actions: %v", err)
