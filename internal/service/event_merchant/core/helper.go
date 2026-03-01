@@ -96,7 +96,7 @@ func CheckMerchantExists(
 		if err != nil {
 			return false, err
 		}
-		filter["_id"] = bson.M{"$ne": objID}
+		filter["_id"] = objID
 	}
 
 	res, err := merchantRepo.FindOne(ctx, filter)
