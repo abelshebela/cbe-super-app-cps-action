@@ -3,15 +3,12 @@ package event_merchant_handler
 import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
-	"cbe-super-app-cps-action/internal/constants"
 	event_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/event_merchant"
 	event_merchant_port "cbe-super-app-cps-action/internal/constants/interfaces/event_merchant"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/event_merchant/core"
 	"cbe-super-app-cps-action/internal/service"
-	"context"
 	"encoding/json"
 	"net/http"
 
@@ -48,14 +45,13 @@ func (e *EventMerchantHandler) CreateEventMerchant(w http.ResponseWriter, r *htt
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := req.Validate(); err != nil {
+	if err := event_merchant_dto.Validation(req); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	e.logger.Infof("[CreateEventMerchant] request received to create event merchant: %v", req)
 	m := core.CreateEventMerchantRequestToModel(req)
 
-	if err := e.service.Create(ctx, m); err != nil {
 	if err := e.service.Create(ctx, m); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -92,7 +88,6 @@ func (e *EventMerchantHandler) DeleteEventMerchant(w http.ResponseWriter, r *htt
 		return
 	}
 	if err := e.service.Delete(ctx, id); err != nil {
-	if err := e.service.Delete(ctx, id); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -122,7 +117,6 @@ func (e *EventMerchantHandler) DisableEventMerchant(w http.ResponseWriter, r *ht
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := e.service.EnableOrDisable(ctx, id, false); err != nil {
 	if err := e.service.EnableOrDisable(ctx, id, false); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -158,7 +152,6 @@ func (e *EventMerchantHandler) EnableEventMerchant(w http.ResponseWriter, r *htt
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := e.service.EnableOrDisable(ctx, id, true); err != nil {
 	if err := e.service.EnableOrDisable(ctx, id, true); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -269,12 +262,11 @@ func (e *EventMerchantHandler) UpdateEventMerchant(w http.ResponseWriter, r *htt
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := req.Validate(); err != nil {
+	if err := event_merchant_dto.Validation(req); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	m := core.UpdateEventMerchantRequestToModel(req)
-	if err := e.service.Update(ctx, id, m); err != nil {
 	if err := e.service.Update(ctx, id, m); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
