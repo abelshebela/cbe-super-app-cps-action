@@ -848,3 +848,26 @@ func convertAuditors(auditors []model.Auditor) []account_block_dto.Auditor {
 	}
 	return result
 }
+
+func (a *AccountBlockStorage) FindByFilterKey(ctx context.Context, field, value string) (*model.AccountBlock, error) {
+	a.logger.Infof("[AccountBlockStorage][FindByFilterKey] searching Account Block by %s: %s", field, value)
+	var filter bson.M
+
+	if field == "id" {
+		field = "_id"
+		objID, err := bson.ObjectIDFromHex(value)
+		if err != nil {
+			a.logger.Errorf("[BPSUserStorage][FindByFilterKey] invalid ObjectID: %v", err)
+			return nil, errors.New(localization.ErrorInvalidID.Code)
+		}
+		filter = bson.M{field: objID, "is_deleted": false}
+	} else {
+		filter = bson.M{field: value, "is_deleted": false}
+	}
+	result, err := a.accountBlock.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		a.logger.Errorf("[AccountBlockStorage][FindByFilterKey] failed to find Account block: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	return result, nil
+}

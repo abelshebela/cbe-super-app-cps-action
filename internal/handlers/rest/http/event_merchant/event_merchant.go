@@ -45,7 +45,7 @@ func (e *EventMerchantHandler) CreateEventMerchant(w http.ResponseWriter, r *htt
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := event_merchant_dto.Validation(req); err != nil {
+	if err := req.Validate(); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -262,7 +262,7 @@ func (e *EventMerchantHandler) UpdateEventMerchant(w http.ResponseWriter, r *htt
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := event_merchant_dto.Validation(req); err != nil {
+	if err := req.Validate(); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
