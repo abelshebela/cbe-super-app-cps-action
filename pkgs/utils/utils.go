@@ -316,7 +316,9 @@ func RandomGenerator(length uint8) string {
 	return string(result)
 }
 
-var allowedChars = "a-zA-Z0-9\\s._@-"
+// var allowedChars = "a-zA-Z0-9\\s._@-"
+var allowedChars = `a-zA-Z0-9\s._@\p{Ethiopic}\(\)\-`
+var validNameRegex = regexp.MustCompile("^[" + allowedChars + "]+$")
 
 func NoSpecialChars(value any) error {
 	var str string
@@ -337,8 +339,8 @@ func NoSpecialChars(value any) error {
 		return nil
 	}
 
-	re := regexp.MustCompile("^[" + allowedChars + "]+$")
-	if !re.MatchString(str) {
+	// re := regexp.MustCompile("^[" + allowedChars + "]+$")
+	if !validNameRegex.MatchString(str) {
 		return validation.NewError("validation", "contains invalid characters")
 	}
 	return nil
@@ -650,7 +652,6 @@ func TraceLogger(ctx context.Context, key, spanName, serviceType, serviceName st
 
 }
 
-
 func ValidateTimeAndParse(dateTime string) (time.Time, error) {
 	// Fix space before timezone offset
 	if len(dateTime) >= 6 && dateTime[len(dateTime)-6] == ' ' {
@@ -660,10 +661,9 @@ func ValidateTimeAndParse(dateTime string) (time.Time, error) {
 	return time.Parse(time.RFC3339Nano, dateTime)
 }
 
-
-func ValidateTimeRangeOrder(time1,time2 time.Time) (bool,error){
-	if time1.After(time2){
-		return false,errors.New("'end date'  cannot be before 'start' date")
+func ValidateTimeRangeOrder(time1, time2 time.Time) (bool, error) {
+	if time1.After(time2) {
+		return false, errors.New("'end date'  cannot be before 'start' date")
 	}
-	return  true,nil
+	return true, nil
 }
