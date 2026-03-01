@@ -404,7 +404,7 @@ func (e *LogisticsMerchantService) Update(ctx context.Context, id string, Logist
 				attribute.String("error", err.Error()),
 				attribute.String("id", id),
 			))
-			return errors.New(localization.ErrorMiniAppMerchantExistsCheckFailed.Code)
+			return err
 		}
 		if exist {
 			e.logger.Warnf("[LogisMerchSvc][Update] already exists id: %s", id)
