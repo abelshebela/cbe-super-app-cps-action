@@ -63,7 +63,7 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 	}
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"unique_id", "action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "created_at"}
+	allowedKeys := []string{"unique_id", "action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "created_at"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -77,6 +77,7 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 			{"action_type": searchRegex},
 			{"request_action": searchRegex},
 			{"action_status": searchRegex},
+			{"action_code": searchRegex},
 		}
 	}
 
@@ -87,6 +88,7 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 		Projection: Projection,
 	}
 
+	s.logger.Infof("Update cps action filter: %v", filter)
 	data, err := s.dal.FindAllWithCursorBasedPagination(ctx, Filter)
 	if err != nil {
 		s.logger.Errorf("[CPSAction][FindAllWithPagination] failed to fetch CPS actions: %v", err)
@@ -188,7 +190,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	}
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -197,6 +199,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
 			{"action_type": searchRegex},
+			{"action_code": searchRegex},
 			{"request_action": searchRegex},
 		}
 	}
@@ -256,7 +259,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 	}
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -265,6 +268,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
 			{"action_type": searchRegex},
+			{"action_code": searchRegex},
 			{"request_action": searchRegex},
 		}
 	}
@@ -476,12 +480,13 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 	searchKeys := bson.M{}
 
 	// Exclude maker_id and checker_id from allowedKeys so request cannot override userFilter
-	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
 			{"maker_name": searchRegex},
+			{"action_code": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
 			{"auditor_status": searchRegex},
@@ -658,14 +663,12 @@ func (r *CPSActionStorage) GetCountByDepartment(ctx context.Context, department 
 	return &result, nil
 }
 
-
-
-			// memory intensice hold all in memory at one good for small  amount of data  memory user O(n)
+// memory intensice hold all in memory at one good for small  amount of data  memory user O(n)
 // func (r *CPSActionStorage) FindByDateRange(ctx context.Context,start_date, end_date time.Time) ([]*model.CPSAction, error) {
 //     filter := bson.M{
 //         "created_at": bson.M{
 //             "$gte": start_date,
-//             "$lte": end_date, 
+//             "$lte": end_date,
 //         },
 //     }
 
@@ -687,40 +690,40 @@ func (r *CPSActionStorage) GetCountByDepartment(ctx context.Context, department 
 
 // }
 
-                 //stream process constant memrory useage O(1)
+// stream process constant memrory useage O(1)
 func (r *CPSActionStorage) StreamByDateRange(
-    ctx context.Context,
-    startDate, endDate time.Time,
-    handler func(*model.CPSAction) error,
+	ctx context.Context,
+	startDate, endDate time.Time,
+	handler func(*model.CPSAction) error,
 ) error {
 
-    filter := bson.M{
-        "created_at": bson.M{
-            "$gte": startDate,
-            "$lte": endDate,
-        },
-    }
+	filter := bson.M{
+		"created_at": bson.M{
+			"$gte": startDate,
+			"$lte": endDate,
+		},
+	}
 
-    opts := options.Find().
-        SetSort(bson.D{{Key: "created_at", Value: 1}}).
-        SetBatchSize(1000) // very important
+	opts := options.Find().
+		SetSort(bson.D{{Key: "created_at", Value: 1}}).
+		SetBatchSize(1000) // very important
 
-    cursor, err := r.collection.Find(ctx, filter, opts)
-    if err != nil {
-        return err
-    }
-    defer cursor.Close(ctx)
+	cursor, err := r.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return err
+	}
+	defer cursor.Close(ctx)
 
-    for cursor.Next(ctx) {
-        var action model.CPSAction
-        if err := cursor.Decode(&action); err != nil {
-            return err
-        }
+	for cursor.Next(ctx) {
+		var action model.CPSAction
+		if err := cursor.Decode(&action); err != nil {
+			return err
+		}
 
-        if err := handler(&action); err != nil {
-            return err
-        }
-    }
+		if err := handler(&action); err != nil {
+			return err
+		}
+	}
 
-    return cursor.Err()
+	return cursor.Err()
 }

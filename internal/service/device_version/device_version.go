@@ -103,6 +103,17 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 		}
 		d.logger.Infof("[DevVerSvc][Authorize] created platform: %s", actionData.Platform)
 	case string(constants.RequestUpdateDeviceVersion), string(constants.RequestEnableDisableDeviceVersion):
+		if actionData.ForceUpdate {
+			err = d.DisableExistingDeviceVersion(ctx, actionData.Platform)
+			if err != nil {
+				d.logger.Errorf("[DevVerSvc][Authorize] disable existing err: %v", err)
+				span.AddEvent("Failed to disable existing device version", trace.WithAttributes(
+					attribute.String("error", err.Error()),
+					attribute.String("platform", actionData.Platform),
+				))
+				return nil, err
+			}
+		}
 		updateData, err := core.UpdateDeviceVersionBsonForDb(*actionData, cpsAction.MakerName)
 		if err != nil {
 			d.logger.Errorf("[DevVerSvc][Authorize] prepare update err: %v", err)
@@ -112,6 +123,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 			))
 			return nil, err
 		}
+		
 		if err := d.deviceVersionRepo.Update(ctx, cpsAction.UniqueId, updateData); err != nil {
 			d.logger.Errorf("[DevVerSvc][Authorize] update err: %v", err)
 			span.AddEvent("Device version update/enable-disable action failed", trace.WithAttributes(
