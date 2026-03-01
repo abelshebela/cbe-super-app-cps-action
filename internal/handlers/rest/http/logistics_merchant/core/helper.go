@@ -18,9 +18,6 @@ func CreateLogisticsMerchantRequestToModel(req logistic_merchant_dto.CreateLogis
 
 func UpdateLogisticsMerchantRequestToModel(req logistic_merchant_dto.UpdateLogisticsMerchantRequest) local_model.LogisticsMerchant {
 	return local_model.LogisticsMerchant{
-		MerchantID:        req.MerchantID,
-		MerchantType:      req.MerchantType,
-		SettlementMethod:  req.SettlementMethod,
 		MerchantName:      req.MerchantName,
 		BankAccountNumber: req.BankAccountNumber,
 	}
