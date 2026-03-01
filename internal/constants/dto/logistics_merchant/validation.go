@@ -52,9 +52,9 @@ func Validation(v any) error {
 		// 		return errors.New(localization.ErrorLogisticMerchantInvalidPhoneNumber.Message)
 		// 	}
 		// }
-		if req.IsLogisticsMerchant == nil || *req.IsLogisticsMerchant == false {
-			return errors.New(localization.ErrorLogisticMerchantInvalidIsLogisticsMerchant.Message)
-		}
+		// if req.IsLogisticsMerchant == nil || *req.IsLogisticsMerchant == false {
+		// 	return errors.New(localization.ErrorLogisticMerchantInvalidIsLogisticsMerchant.Message)
+		// }
 	default:
 		return errors.New("invalid request type for validation")
 	}
