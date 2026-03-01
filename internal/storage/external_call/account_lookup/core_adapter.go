@@ -24,6 +24,7 @@ type Account interface {
 	LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*model.AccountDetail, error)
 	LookupAccountByAccountNumberFromBps(ctx context.Context, accountNumber string) (accountLookup.AccountResponse, error)
 	CreateAccountWithFayda(ctx context.Context, account accountLookup.CreateAccountRequest) (types.Account, error)
+	CifSearch(ctx context.Context, cif string) ([]imodel.AccountData, error)
 }
 
 type CoreAccountLookupAdapter struct {
@@ -154,7 +155,7 @@ func (s *CoreAccountLookupAdapter) CifSearch(ctx context.Context, cif string) ([
 			CustomerSegment: account.CustomerSegment,
 			Restriction:     account.Restriction,
 			RestrictionType: account.RestrictionType,
-			//WorkingBalance:  account.WorkingBalance,
+			Email:           account.Email,
 		})
 	}
 

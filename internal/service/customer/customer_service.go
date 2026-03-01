@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
@@ -33,9 +34,10 @@ type customerService struct {
 	cfg        *config.VaultConfig
 	logger     utils.Logger
 	smsService *lib.NotificationStore
+	core       account_lookup.Account
 }
 
-func NewCustomerService(repo storage.CustomerRepository, bpsRepo storage.BPSActionRepository, cpsService service.CPSActionService, redis storage.RedisRepository, smsService *lib.NotificationStore, cfg *config.VaultConfig, logger utils.Logger) service.CustomerService {
+func NewCustomerService(repo storage.CustomerRepository, bpsRepo storage.BPSActionRepository, cpsService service.CPSActionService, redis storage.RedisRepository, smsService *lib.NotificationStore, core account_lookup.Account, cfg *config.VaultConfig, logger utils.Logger) service.CustomerService {
 	return &customerService{
 		repo:       repo,
 		bpsRepo:    bpsRepo,
@@ -44,6 +46,7 @@ func NewCustomerService(repo storage.CustomerRepository, bpsRepo storage.BPSActi
 		cfg:        cfg,
 		logger:     logger,
 		smsService: smsService,
+		core:       core,
 	}
 }
 
@@ -478,6 +481,21 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 			attribute.String("id", id),
 		))
 		return nil, err
+	}
+	// use external call to get missing account detail
+	coreRes, err := d.core.CifSearch(ctx, res.PersonalInfo.CustomerNumber)
+	if err != nil {
+		d.logger.Errorf("[CustomerSvc][GetCustomerDetailByID] CifSearch error: %v", err)
+		span.AddEvent("Failed to search CIF", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("customer_number", res.PersonalInfo.CustomerNumber),
+		))
+		return nil, err
+	}
+	if len(coreRes) > 0 {
+		res.PersonalInfo.DateOfBirth = coreRes[0].BirthOfDate
+		res.PersonalInfo.MaritalStatus = coreRes[0].Email
+		res.PersonalInfo.Branch = coreRes[0].Branch
 	}
 	return res, nil
 }

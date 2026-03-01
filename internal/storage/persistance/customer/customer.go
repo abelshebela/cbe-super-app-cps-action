@@ -590,49 +590,6 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 	return response, nil
 }
 
-// func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error) {
-// 	p.logger.Infof("[SearchCustomerByCIForAccountNumber] searching customer by value: %s", number)
-
-// 	// Step 1: Find user_id from linked_account where customer_id and account_number match
-// 	linkedAccountColl := p.client.Database(p.coll.Database().Name()).Collection("linked_account")
-// 	var linkedResult struct {
-// 		UserID interface{} `bson:"user_id"`
-// 	}
-// 	f := bson.M{"$or": bson.A{
-// 		bson.M{"customer_number": number},
-// 		bson.M{"account_number": number},
-// 	}}
-
-// 	err := linkedAccountColl.FindOne(ctx, f).Decode(&linkedResult)
-// 	if err != nil {
-// 		code, _ := local_util.HandleMongoError(err)
-// 		if code == localization.ErrorResourceNotFound.Code {
-// 			p.logger.Errorf("[searchCustomerByCIForAccountNumber] customer not found")
-// 			return nil, fmt.Errorf("%s", code)
-// 		}
-// 		p.logger.Errorf("[searchCustomerByCIForAccountNumber] failed to fetch customer: %v", err)
-// 		return nil, err
-// 	}
-
-// 	res, err := p.mongoDal.FindOne(ctx, bson.M{"_id": linkedResult.UserID}, nil)
-// 	if err != nil {
-// 		p.logger.Errorf("[searchCustomerByCIForAccountNumber] failed to find customer: %v", err)
-// 		return nil, err
-// 	}
-
-// 	response := &customer_dto.CustomerListResponse{
-// 		ID:          res.ID.Hex(),
-// 		UserCode:    res.UserCode,
-// 		FullName:    res.FullName,
-// 		PhoneNumber: res.PhoneNumber,
-// 		BranchCode:  res.BranchCode,
-// 		Gender:      string(res.Gender),
-// 		CreatedAt:   res.CreatedAt.Format(time.RFC3339),
-// 		IsBlocked:   res.IsBlocked,
-// 	}
-
-//		return response, nil
-//	}
 func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error) {
 	p.logger.Infof("[CustomerRepository][SearchCustomerByCIForAccountNumber] searching members by value: %s", number)
 

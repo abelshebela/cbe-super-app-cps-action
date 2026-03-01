@@ -74,6 +74,9 @@ type PersonalInfo struct {
 	CustomerNumber string `json:"customer_number" bson:"customer_number"` // members
 	IsActivated    bool   `json:"is_activated" bson:"is_activated"`       // customer_kyc.is_activated
 	DateOfBirth    string `json:"date_of_birth" bson:"date_of_birth"`     // customer_kyc.kyc_data
+	MaritalStatus  string `json:"marital_status" bson:"marital_status"`   // customer_kyc.kyc_data
+	Nationality    string `json:"nationality" bson:"nationality"`         // customer_kyc.kyc_data
+	Branch         string `json:"branch_code" bson:"branch_code"`         // members
 }
 
 type CustomerDetailResponse struct {
