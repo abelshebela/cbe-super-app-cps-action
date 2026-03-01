@@ -242,9 +242,13 @@ var ResponseCodesList = []ResponseCode{
 	SuccessActionRoleDisabledSP,
 	// event merchant success response codes
 	SuccessEventMerchantCreated,
+	SuccessEventMerchantCreateRequestSent,
 	SuccessEventMerchantDisabled,
+	SuccessEventMerchantDisableRequestSent,
 	SuccessEventMerchantEnabled,
+	SuccessEventMerchantEnableRequestSent,
 	SuccessEventMerchantUpdated,
+	SuccessEventMerchantUpdateRequestSent,
 	SuccessEventMerchantDeleted,
 	SuccessEventMerchantFetched,
 
@@ -4696,6 +4700,12 @@ var (
 		Message:    MsgEventMerchantCreatedSuccessfully,
 		Type:       "success",
 	}
+	SuccessEventMerchantCreateRequestSent = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_CREATE_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgEventMerchantCreateRequestSentSuccessfully,
+		Type:       "success",
+	}
 	SuccessEventMerchantDeleted = ResponseCode{
 		Code:       "SUCCESS_EVENT_MERCHANT_DELETED",
 		StatusCode: StatusOK,
@@ -4708,16 +4718,34 @@ var (
 		Message:    MsgEventMerchantUpdatedSuccessfully,
 		Type:       "success",
 	}
+	SuccessEventMerchantUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantUpdateRequestSentSuccessfully,
+		Type:       "success",
+	}
 	SuccessEventMerchantEnabled = ResponseCode{
 		Code:       "SUCCESS_EVENT_MERCHANT_ENABLED",
 		StatusCode: StatusOK,
 		Message:    MsgEventMerchantEnabledSuccessfully,
 		Type:       "success",
 	}
+	SuccessEventMerchantEnableRequestSent = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_ENABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantEnableRequestSentSuccessfully,
+		Type:       "success",
+	}
 	SuccessEventMerchantDisabled = ResponseCode{
 		Code:       "SUCCESS_EVENT_MERCHANT_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgEventMerchantDisabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantDisableRequestSent = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_DISABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantDisableRequestSentSuccessfully,
 		Type:       "success",
 	}
 	SuccessEventMerchantFetched = ResponseCode{
