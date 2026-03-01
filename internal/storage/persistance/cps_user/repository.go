@@ -182,6 +182,7 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			{"username": searchRegex},
 			{"user_code": searchRegex},
 			{"phone_number": searchRegex},
+			{"job_title": searchRegex},
 		}
 	}
 

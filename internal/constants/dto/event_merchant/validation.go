@@ -39,9 +39,9 @@ func Validation(v any) error {
 		// 	return errors.New(localization.ErrorEventMerchantInvalidPhoneNumber.Message)
 		// }
 	case UpdateEventMerchantRequest:
-		if req.IsEventMerchant == nil || *req.IsEventMerchant == false {
-			return errors.New(localization.ErrorEventMerchantInvalidIsEventMerchant.Code)
-		}
+		// if req.IsEventMerchant == nil || *req.IsEventMerchant == false {
+		// 	return errors.New(localization.ErrorEventMerchantInvalidIsEventMerchant.Code)
+		// }
 		// if strings.TrimSpace(req.Email) != "" {
 		// 	return errors.New(localization.ErrorEventMerchantInvalidEmail.Message)
 		// } else {
