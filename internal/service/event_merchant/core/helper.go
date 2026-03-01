@@ -96,12 +96,12 @@ func CheckMerchantExists(
 		if err != nil {
 			return false, err
 		}
-		filter["_id"] = objID
+		filter["_id"] = bson.M{"$ne": objID}
 	}
 
 	res, err := merchantRepo.FindOne(ctx, filter)
 	if err != nil {
-		if err.Error() == localization.ErrorEventMerchantNotFound.Code {
+		if err.Error() == localization.ErrorResourceNotFound.Code {
 			return false, nil
 		}
 		return false, err
