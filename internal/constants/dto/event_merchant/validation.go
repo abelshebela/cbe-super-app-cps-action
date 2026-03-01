@@ -23,7 +23,7 @@ func (req CreateEventMerchantRequest) Validate() error {
 	if strings.TrimSpace(req.BankAccountNumber) == "" {
 		return errors.New(localization.ErrorEventMerchantInvalidBankAccountNumber.Code)
 	}
-	if req.MerchantType == "" || req.MerchantType == string(constants.Event) {
+	if req.MerchantType == "" || req.MerchantType != string(constants.Event) {
 		return errors.New(localization.ErrorEventMerchantInvalidIsEventMerchant.Code)
 	}
 	// if strings.TrimSpace(req.Email) == "" {
@@ -55,7 +55,7 @@ func (req UpdateEventMerchantRequest) Validate() error {
 	if strings.TrimSpace(req.BankAccountNumber) != "" && len(strings.TrimSpace(req.BankAccountNumber)) == 0 {
 		return errors.New(localization.ErrorEventMerchantInvalidBankAccountNumber.Code)
 	}
-	if req.MerchantType == "" || req.MerchantType == string(constants.Event) {
+	if req.MerchantType == "" || req.MerchantType != string(constants.Event) {
 		return errors.New(localization.ErrorEventMerchantInvalidIsEventMerchant.Code)
 	}
 	// if strings.TrimSpace(req.Email) != "" {
