@@ -19,9 +19,6 @@ func CreateEventMerchantRequestToModel(req event_merchant_dto.CreateEventMerchan
 
 func UpdateEventMerchantRequestToModel(req event_merchant_dto.UpdateEventMerchantRequest) model.EventMerchant {
 	return model.EventMerchant{
-		MerchantID:        req.MerchantID,
-		MerchantType:      req.MerchantType,
-		SettlementMethod:  req.SettlementMethod,
 		MerchantName:      req.MerchantName,
 		BankAccountNumber: req.BankAccountNumber,
 	}
