@@ -212,12 +212,12 @@ func (r *RoleRepository) FindAllWithPagination(ctx context.Context, filterParam 
 		searchKeys["$or"] = []bson.M{
 			{"job_title": searchRegex},
 			{"role": searchRegex},
-			{"enabled": searchRegex},
 		}
 	}
 
-	allowedKeys := []string{"enabled"}
+	allowedKeys := []string{"enabled", "job_title", "role"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	filter["is_deleted"] = bson.M{"$ne": true}
 
 	data, err := r.mongoDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {

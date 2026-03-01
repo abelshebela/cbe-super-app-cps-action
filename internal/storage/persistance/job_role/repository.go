@@ -174,17 +174,14 @@ func (r *JobRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		searchKeys["$or"] = []bson.M{
 			{"name": searchRegex},
 			{"code": searchRegex},
-			{"enabled": searchRegex},
 		}
 	}
 
 	allowedKeys := []string{"enabled", "name", "code"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	filter["is_deleted"] = bson.M{"$ne": true}
 
-	if filter.String() == "" {
-		filter = bson.M{}
-	}
-	data, err := r.dal.FindAllWithPaginationE(ctx, bson.M{}, bson.M{}, skip, limit)
+	data, err := r.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		return nil, local_util.HandleDBError(err)
 	}
