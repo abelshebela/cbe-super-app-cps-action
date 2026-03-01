@@ -24,7 +24,7 @@ func Validation(v any) error {
 		if strings.TrimSpace(req.BankAccountNumber) == "" {
 			return errors.New(localization.ErrorLogisticMerchantInvalidBankAccountNumber.Message)
 		}
-		if req.IsLogisticsMerchant == nil || *req.IsLogisticsMerchant == false {
+		if req.IsLogisticsMerchant == nil || !*req.IsLogisticsMerchant {
 			return errors.New(localization.ErrorLogisticMerchantInvalidIsLogisticsMerchant.Message)
 		}
 		// if strings.TrimSpace(req.Email) == "" {
