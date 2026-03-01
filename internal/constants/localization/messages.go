@@ -1307,6 +1307,7 @@ const (
 
 	// event merchant message
 	MsgEventMerchantCreatedSuccessfully            = "Event merchant created successfully"
+	MsgEventMerchantCreateRequestSentSuccessfully  = "Event merchant create request sent successfully"
 	MsgEventMerchantInvalidID                      = "merchant id invalid or empty"
 	MsgEventMerchantInvalidType                    = "merchant type invalid or empty"
 	MsgEventMerchantInvalidMethod                  = "merchant method invalid or empty"
@@ -1320,8 +1321,11 @@ const (
 	MsgEventMerchantDisableFailed                  = "event merchant already disabled"
 	MsgEventMerchantNotFound                       = "event merchant not found"
 	MsgEventMerchantDisabledSuccessfully           = "event merchant disabled successfully"
+	MsgEventMerchantDisableRequestSentSuccessfully = "event merchant disable request sent successfully"
 	MsgEventMerchantEnabledSuccessfully            = "event merchant enabled successfully"
+	MsgEventMerchantEnableRequestSentSuccessfully  = "event merchant enable request sent successfully"
 	MsgEventMerchantUpdatedSuccessfully            = "event merchant updated successfully"
+	MsgEventMerchantUpdateRequestSentSuccessfully  = "event merchant update request sent successfully"
 	MsgEventMerchantDeletedSuccessfully            = "event merchant deleted successfully"
 	MsgEventMerchantFetchedSuccessfully            = "event merchant fetched successfully"
 	MsgEventMerchantCreateRequestSubmitted         = "Event merchant create request submitted for approval"
