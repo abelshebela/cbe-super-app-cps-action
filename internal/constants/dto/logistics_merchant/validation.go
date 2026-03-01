@@ -12,9 +12,6 @@ func Validation(v any) error {
 		if strings.TrimSpace(req.MerchantID) == "" {
 			return errors.New(localization.ErrorLogisticMerchantInvalidMerchantID.Message)
 		}
-		if strings.TrimSpace(req.MerchantType) == "" {
-			return errors.New(localization.ErrorLogisticMerchantInvalidMerchantType.Message)
-		}
 		if strings.TrimSpace(req.SettlementMethod) == "" {
 			return errors.New(localization.ErrorLogisticMerchantInvalidSettlementMethod.Message)
 		}
@@ -27,17 +24,7 @@ func Validation(v any) error {
 		if req.IsLogisticsMerchant == nil || !*req.IsLogisticsMerchant {
 			return errors.New(localization.ErrorLogisticMerchantInvalidIsLogisticsMerchant.Message)
 		}
-		// if strings.TrimSpace(req.Email) == "" {
-		// 	return errors.New(localization.ErrorLogisticMerchantInvalidEmail.Message)
-		// } else {
-		// 	if !strings.Contains(req.Email, "@") || !strings.Contains(req.Email, ".") {
-		// 		return errors.New(localization.ErrorLogisticMerchantInvalidEmail.Message)
-		// 	}
-		// }
-		// if strings.TrimSpace(req.PhoneNumber) == "" {
 
-		// 	return errors.New(localization.ErrorLogisticMerchantInvalidPhoneNumber.Message)
-		// }
 	case UpdateLogisticsMerchantRequest:
 		// if strings.TrimSpace(req.Email) != "" {
 		// 	return errors.New(localization.ErrorLogisticMerchantInvalidEmail.Message)
