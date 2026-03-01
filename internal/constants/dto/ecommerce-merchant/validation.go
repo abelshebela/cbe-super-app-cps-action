@@ -170,19 +170,19 @@ func (r EcommerceMerchant) ValidateCreate() error {
 func (r UpdateEcommerceMerchant) ValidateUpdate() error {
 	return validation.ValidateStruct(&r,
 
-		validation.Field(&r.IsEcommerceMerchant,
-			validation.Required,
-			validation.By(func(value interface{}) error {
-				isEcommerceMerchant, ok := value.(*bool)
-				if !ok || isEcommerceMerchant == nil {
-					return fmt.Errorf("is_ecommerce_merchant is required")
-				}
-				if !*isEcommerceMerchant {
-					return fmt.Errorf("is_ecommerce_merchant must be true")
-				}
-				return nil
-			}),
-		),
+		// validation.Field(&r.IsEcommerceMerchant,
+		// 	validation.Required,
+		// 	validation.By(func(value interface{}) error {
+		// 		isEcommerceMerchant, ok := value.(*bool)
+		// 		if !ok || isEcommerceMerchant == nil {
+		// 			return fmt.Errorf("is_ecommerce_merchant is required")
+		// 		}
+		// 		if !*isEcommerceMerchant {
+		// 			return fmt.Errorf("is_ecommerce_merchant must be true")
+		// 		}
+		// 		return nil
+		// 	}),
+		// ),
 
 		validation.Field(&r.MerchantName,
 			validation.By(utils.TrimWhiteSpace),
