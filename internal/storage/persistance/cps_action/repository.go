@@ -190,7 +190,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	}
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -199,6 +199,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
 			{"action_type": searchRegex},
+			{"action_code": searchRegex},
 			{"request_action": searchRegex},
 		}
 	}
@@ -258,7 +259,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 	}
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -267,6 +268,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
 			{"action_type": searchRegex},
+			{"action_code": searchRegex},
 			{"request_action": searchRegex},
 		}
 	}
@@ -478,12 +480,13 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 	searchKeys := bson.M{}
 
 	// Exclude maker_id and checker_id from allowedKeys so request cannot override userFilter
-	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
 			{"maker_name": searchRegex},
+			{"action_code": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
 			{"auditor_status": searchRegex},
