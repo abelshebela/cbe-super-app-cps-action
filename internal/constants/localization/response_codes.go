@@ -865,6 +865,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessCPSRoleUpdatedSP,
 	SuccessCPSRoleCreatedSP,
 	SuccessCPSRoleDeletedSP,
+	ErrorBranchNotExistWithGivenBranchCode,
 }
 
 // Success Response Codes
@@ -5593,6 +5594,14 @@ var (
 		Message:    MsgRoleNotFoundWithGivenJobTitle,
 		Type:       "error",
 	}
+
+	ErrorBranchNotExistWithGivenBranchCode = ResponseCode{
+		Code:       "ERROR_BRANCE_NOT_FOUND_WITH_GIVEN_KEY",
+		StatusCode: StatusNotFound,
+		Message:    MsgBranchNotFoundWithGivenCode,
+		Type:       "error",
+	}
+
 
 	ErrorExistPhoneNumber = ResponseCode{
 		Code:       "ERROR_EXIST_PHONE_NUMBER",

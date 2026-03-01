@@ -93,6 +93,7 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	if enabledVal, ok := filterParam.Filters["enabled"]; ok {
 		match["enabled"] = enabledVal
 	}
+	 
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -102,6 +103,7 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			{"user_code": searchRegex},
 			{"phone_number": searchRegex},
 			{"email": searchRegex},
+			{"branch_name":searchRegex},
 		}
 	}
 
