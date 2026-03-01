@@ -75,6 +75,7 @@ type (
 // ---------------------------------------------------------------------------
 
 const (
+	Event               = "EVENT"
 	UpdateApp           = "Update your app"
 	DeviceFound         = "Device Successfuly Found"
 	OTPMessage          = "Your device lookup OTP is: %s. Valid for %d minutes."

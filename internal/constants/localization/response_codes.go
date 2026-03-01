@@ -251,6 +251,11 @@ var ResponseCodesList = []ResponseCode{
 	SuccessEventMerchantUpdateRequestSent,
 	SuccessEventMerchantDeleted,
 	SuccessEventMerchantFetched,
+	SuccessEventMerchantCreateRequestSubmitted,
+	SuccessEventMerchantUpdateRequestSubmitted,
+	SuccessEventMerchantDeleteRequestSubmitted,
+	SuccessEventMerchantEnableRequestSubmitted,
+	SuccessEventMerchantDisableRequestSubmitted,
 
 	ErrorUsedJobTitleExisting,
 	// Error codes
@@ -4754,6 +4759,36 @@ var (
 		Message:    MsgEventMerchantFetchedSuccessfully,
 		Type:       "success",
 	}
+	SuccessEventMerchantCreateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_CREATE_REQUEST_SUBMITTED",
+		StatusCode: StatusCreated,
+		Message:    MsgEventMerchantCreateRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessEventMerchantUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessEventMerchantDeleteRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_DELETE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantDeleteRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessEventMerchantEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantEnableRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessEventMerchantDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantDisableRequestSubmitted,
+		Type:       "success",
+	}
 	SuccessLogisticsMerchantCreated = ResponseCode{
 		Code:       "SUCCESS_LOGISTICS_MERCHANT_CREATED",
 		StatusCode: StatusCreated,
@@ -7242,7 +7277,7 @@ var (
 	ErrorServiceListAlreadyExists = ResponseCode{
 		Code:       "ERROR_SERVICE_LIST_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
-		Message:    "Service list with the same key already exists",
+		Message:    "Service list with the same name or key already exists",
 		Type:       "error",
 	}
 	ErrorServiceListNotFound = ResponseCode{

@@ -17,6 +17,24 @@ func generateUUID() string {
 	return uuid.New().String()
 }
 
+func boolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
+func pointerBoolToInt(pb *bool) *int {
+	if pb == nil {
+		return nil
+	}
+	v := 0
+	if *pb {
+		v = 1
+	}
+	return &v
+}
+
 const activateVaultCategory = `-- name: ActivateVaultCategory :one
 UPDATE vault_categories
 SET is_active = 1, updated_at = SYSTIMESTAMP
@@ -289,7 +307,6 @@ INSERT INTO vault_tiers (
 func (q *Queries) SaveVaultCategory(ctx context.Context, arg *imodel.VaultCategory) (string, error) {
 	categoryID := generateUUID()
 
-	// Insert category
 	_, err := q.db.ExecContext(
 		ctx,
 		saveVaultCategory,
@@ -298,8 +315,8 @@ func (q *Queries) SaveVaultCategory(ctx context.Context, arg *imodel.VaultCatego
 		arg.CoverImageURL,
 		arg.InterestType,
 		arg.CategoryInterest,
-		arg.Deadlock,
-		arg.IsActive,
+		boolToInt(arg.Deadlock),
+		boolToInt(arg.IsActive),
 	)
 	if err != nil {
 		return "", fmt.Errorf("insert category failed: %w", err)

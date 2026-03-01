@@ -42,9 +42,6 @@ func Validation(v any) error {
 		if req.IsEventMerchant == nil || *req.IsEventMerchant == false {
 			return errors.New(localization.ErrorEventMerchantInvalidIsEventMerchant.Code)
 		}
-		if strings.TrimSpace(req.BankAccountNumber) == "" {
-			return errors.New(localization.ErrorEventMerchantInvalidBankAccountNumber.Code)
-		}
 		// if strings.TrimSpace(req.Email) != "" {
 		// 	return errors.New(localization.ErrorEventMerchantInvalidEmail.Message)
 		// } else {

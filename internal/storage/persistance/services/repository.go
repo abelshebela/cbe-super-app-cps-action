@@ -206,32 +206,24 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 }
 
 func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error) {
-	allowed := []string{"service_name", "service_code", "service_type", "enabled"}
+	allowed := []string{"service_name", "service_key", "is_enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["$or"] = []bson.M{{"service_name": q}, {"service_code": q}, {"service_type": q}}
+		filter["$or"] = []bson.M{{"service_name": q}, {"service_key": q}, {"is_enabled": q}}
 	}
-
-	// if count < limit {
-	// 	limit = count
-	// }
 
 	items, err := s.serviceDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		s.logger.Errorf("[ServicesStorage][FindAllServiceListWithPagination] failed to fetch service list: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	total, err := s.dal.TotalCount(ctx, filter)
+	total, err := s.serviceDal.TotalCount(ctx, filter)
 	if err != nil {
 		s.logger.Errorf("[ServicesStorage][FindAllServiceListWithPagination] failed to count service list: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
-	// count, err := s.dal.TotalCount(ctx, bson.M{})
-	// if err != nil {
-	// 	return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	// }
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	return &types.PaginatedResponse[[]model.ServiceList]{
 		Data: items,
@@ -294,6 +286,9 @@ func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*
 
 func (s *ServicesStorage) CreateServiceList(ctx context.Context, serviceList *model.ServiceList) error {
 	serviceList.ID = bson.NewObjectID()
+	serviceList.CreatedAt = time.Now()
+	serviceList.LastModifiedAt = time.Now()
+	serviceList.IsEnabled = true
 
 	_, err := s.serviceDal.InsertOne(ctx, *serviceList)
 	if err != nil {
@@ -309,6 +304,33 @@ func (s *ServicesStorage) CreateServiceList(ctx context.Context, serviceList *mo
 	// s.kafkaProducer.PublishMessage(ctx, createServiceList, string(constants.ClientOrchestrationServicesTopic), string(constants.ClientOrchestrationServicesTopic), "new service list created")
 	return nil
 
+}
+
+func (s *ServicesStorage) FindServiceListByNameOrKey(ctx context.Context, name, key string) (*model.ServiceList, error) {
+	var condition []bson.M
+
+	if name != "" {
+		condition = append(condition, bson.M{"service_name": bson.M{"$regex": name, "$options": "i"}})
+	}
+	if key != "" {
+		condition = append(condition, bson.M{"service_key": key})
+	}
+
+	if len(condition) == 0 {
+		return nil, errors.New(localization.ErrorNoDataProvided.Code)
+	}
+
+	filter := bson.M{"$or": condition}
+
+	doc, err := s.serviceDal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New(localization.ErrorServiceListNotFound.Code)
+		}
+		s.logger.Errorf("[ServicesStorage][FindServiceListByNameOrKey] failed to find service list: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	return doc, nil
 }
 
 func (s *ServicesStorage) UpdateServiceList(ctx context.Context, id, serviceKey string, serviceList *model.ServiceList) error {
