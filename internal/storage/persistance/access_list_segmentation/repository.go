@@ -400,7 +400,16 @@ func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_lis
 		a.logger.Errorf("[AccessListSegmentation][BulkDisable] failed to bulk disable access list segmentation: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	a.kafkaProducer.PublishMessage(ctx, req, "delete", string(constants.AccessListSegmentationTopic), "bulk disable access-list-segmentation")
+	if _, ok := filter["segmentation_code"]; ok {
+		als := make([]local_model.AccessListSegmentation, len(req.Keys))
+		for i, key := range req.Keys {
+			als[i] = local_model.AccessListSegmentation{
+				SegmentationCode: req.ID,
+				AccessListKey:    key,
+			}
+		}
+		a.kafkaProducer.PublishMessage(ctx, als, "delete", string(constants.AccessListSegmentationTopic), "bulk disable access-list-segmentation")
+	}
 	return nil
 }
 

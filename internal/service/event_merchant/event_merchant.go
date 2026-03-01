@@ -387,6 +387,11 @@ func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerch
 		return err
 	}
 
+	if old.BankAccountNumber == eventMerchant.BankAccountNumber && old.MerchantName == eventMerchant.MerchantName {
+		e.logger.Infof("[EventMerchSvc][Update] no changes id: %s", id)
+		return errors.New(localization.ErrorNoChangesDetected.Code)
+	}
+
 	updated := core.MergeEventMerchantData(old, &eventMerchant)
 
 	var check types.CheckMiniAppMerchant
