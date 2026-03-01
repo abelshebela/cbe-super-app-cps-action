@@ -15,7 +15,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -25,7 +25,7 @@ import (
 )
 
 type BudgetCategoryStorage struct {
-	budgetCategoryDal dal.MongoDal[model.BudgetCategory, model.BudgetCategory]
+	budgetCategoryDal dal.MongoDal[imodel.BudgetCategory, imodel.BudgetCategory]
 	client            *mongo.Client
 	kafkaProducer     kafka.ClientOrchestrationProducer
 	logger            utils.Logger
@@ -35,14 +35,14 @@ var _ storage.BudgetCategoryRepository = (*BudgetCategoryStorage)(nil)
 
 func NewBudgetCategoryRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.BudgetCategoryRepository {
 	return &BudgetCategoryStorage{
-		budgetCategoryDal: dal.NewMongoDal[model.BudgetCategory, model.BudgetCategory](client, cfg, dbName, collection),
+		budgetCategoryDal: dal.NewMongoDal[imodel.BudgetCategory, imodel.BudgetCategory](client, cfg, dbName, collection),
 		client:            client,
 		kafkaProducer:     kafkaProducer,
 		logger:            logger,
 	}
 }
 
-func (b *BudgetCategoryStorage) CreateBudgetCategory(ctx context.Context, budgetCategory *model.BudgetCategory) error {
+func (b *BudgetCategoryStorage) CreateBudgetCategory(ctx context.Context, budgetCategory *imodel.BudgetCategory) error {
 	newBudgetCategory, err := b.budgetCategoryDal.InsertOne(ctx, *budgetCategory)
 	if err != nil {
 		b.logger.Errorf("[BudgetCategoryStorage][CreateBudgetCategory] failed to create budget category: %v", err)
@@ -52,7 +52,7 @@ func (b *BudgetCategoryStorage) CreateBudgetCategory(ctx context.Context, budget
 	return nil
 }
 
-func (b *BudgetCategoryStorage) UpdateBudgetCategory(ctx context.Context, id string, budgetCategory *model.BudgetCategory) error {
+func (b *BudgetCategoryStorage) UpdateBudgetCategory(ctx context.Context, id string, budgetCategory *imodel.BudgetCategory) error {
 	b.logger.Infof("[BudgetCategoryStorage][UpdateBudgetCategory] updating budget category for id: %s", id)
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -74,7 +74,7 @@ func (b *BudgetCategoryStorage) UpdateBudgetCategory(ctx context.Context, id str
 	return nil
 }
 
-func (b *BudgetCategoryStorage) FindBudgetCategoryByID(ctx context.Context, id string) (*model.BudgetCategory, error) {
+func (b *BudgetCategoryStorage) FindBudgetCategoryByID(ctx context.Context, id string) (*imodel.BudgetCategory, error) {
 	b.logger.Infof("[BudgetCategoryStorage][FindBudgetCategoryByID] fetching budget category by id: %s", id)
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -90,9 +90,9 @@ func (b *BudgetCategoryStorage) FindBudgetCategoryByID(ctx context.Context, id s
 	return budgetCategory, nil
 }
 
-func (b *BudgetCategoryStorage) FindAllBudgetCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.BudgetCategory], error) {
+func (b *BudgetCategoryStorage) FindAllBudgetCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BudgetCategory], error) {
 	filter := bson.M{"is_deleted": false}
-	allowedKeys := []string{"enabled", "name"}
+	allowedKeys := []string{"enabled", "name", "type"}
 
 	filter, skip, limit := lib.FilterBuilder(*filterParams, bson.M{}, allowedKeys)
 
@@ -100,6 +100,7 @@ func (b *BudgetCategoryStorage) FindAllBudgetCategories(ctx context.Context, fil
 		searchRegex := bson.M{"$regex": filterParams.Search, "$options": "i"}
 		filter["$or"] = []bson.M{
 			{"name": searchRegex},
+			{"type": searchRegex},
 		}
 	}
 
@@ -117,7 +118,7 @@ func (b *BudgetCategoryStorage) FindAllBudgetCategories(ctx context.Context, fil
 
 	meta := local_util.BuildPaginationMeta(total, filterParams.Page, filterParams.PerPage)
 	b.logger.Infof("[BudgetCategoryStorage][FindAllBudgetCategories] retrieved %d budget categories", len(data))
-	return &types.PaginatedResponse[[]model.BudgetCategory]{Data: data, Meta: meta}, nil
+	return &types.PaginatedResponse[[]imodel.BudgetCategory]{Data: data, Meta: meta}, nil
 }
 
 func (b *BudgetCategoryStorage) DeleteBudgetCategory(ctx context.Context, id string) error {
@@ -161,7 +162,7 @@ func (b *BudgetCategoryStorage) EnableOrDisableBudgetCategory(ctx context.Contex
 	return nil
 }
 
-func (b *BudgetCategoryStorage) FindByName(ctx context.Context, name string) (*model.BudgetCategory, error) {
+func (b *BudgetCategoryStorage) FindByName(ctx context.Context, name string) (*imodel.BudgetCategory, error) {
 	b.logger.Infof("[BudgetCategoryStorage][FindByName] searching for budget category by name")
 
 	filter := bson.M{

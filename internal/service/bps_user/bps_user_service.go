@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	// local_model "cbe-super-app-cps-action/internal/constants/model"
@@ -32,17 +33,19 @@ type bpsUserService struct {
 	cpsService  service.CPSActionService
 	repo        storage.BPSUserRepository
 	CPSUserRepo storage.CpsUserRepository
-	roles_repo  storage.RoleRepository
-	logger      utils.Logger
+	roles_repo storage.RoleRepository
+	Branch_blocks storage.AccountBlockRepository
+	logger     utils.Logger
 }
 
-func NewBPSUserService(repo storage.BPSUserRepository, rolesRepo storage.RoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository, logger utils.Logger) service.BPSUserService {
+func NewBPSUserService(repo storage.BPSUserRepository, rolesRepo storage.RoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository,branch_blocks storage.AccountBlockRepository,logger utils.Logger) service.BPSUserService {
 	return &bpsUserService{
 		cpsService:  cpsService,
 		repo:        repo,
 		CPSUserRepo: cpsUserRepo,
-		roles_repo:  rolesRepo,
-		logger:      logger,
+		roles_repo: rolesRepo,
+		Branch_blocks: branch_blocks,
+		logger:     logger,
 	}
 }
 
@@ -234,9 +237,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 	defer span.End()
 	makerData := local_util.ExtractUserFromContext(ctx)
 
-	md := &types.ContextMetadata{}
-	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
-
+	
 	existing, err := b.repo.FindByOr(ctx, req.PhoneNumber, req.Email, req.Username)
 	if err != nil {
 		if err.Error() != localization.ErrorResourceNotFound.Code {
@@ -284,6 +285,17 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		}
 	}
 
+	branch_detail ,err := b.Branch_blocks.FindByFilterKey(ctx,"code",strings.TrimSpace(req.BranchCode[0]))
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		b.logger.Errorf("[CreateBPSUser] Get error while locking branch name by branch code")
+		return errors.New(localization.ErrorInternalServerError.Code)
+	}
+	if branch_detail == nil {
+		b.logger.Warnf("[CreateBPSUser] branch not found with given branch code")
+		return errors.New(localization.ErrorBranchNotExistWithGivenBranchCode.Code)
+	}
+	req.BranchName = branch_detail.Name
+
 	req.UserCode = local_util.UniqueIdGenerator()
 	// Build CPS action model for create
 	cpsActionModel := lib.CpsModelBuilder(
@@ -304,11 +316,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		b.logger.Errorf("[BpsUserSvc][Create] cps action err: %v", err)
 		return err
 	}
-	if md.IsMakerOnly {
-
-	} else {
-
-	}
+	
 	b.logger.Infof("[BpsUserSvc][Create] request created code: %s", req.UserCode)
 	return nil
 }
@@ -353,6 +361,17 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 			return errors.New(localization.ErrorExistPhoneNumber.Code)
 		}
 	}
+
+	branch_detail ,err := b.Branch_blocks.FindByFilterKey(ctx,"code",strings.TrimSpace(updatedUser.BranchCode[0]))
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		b.logger.Errorf("[UpdateBPSUser] Get error while locking branch name by branch code")
+		return errors.New(localization.ErrorInternalServerError.Code)
+	}
+	if branch_detail == nil {
+		b.logger.Warnf("[UpdateBPSUser] branch not found with given branch code")
+		return errors.New(localization.ErrorBranchNotExistWithGivenBranchCode.Code)
+	}
+	updatedUser.BranchName = branch_detail.Name
 
 	// updatedUser.Role = roles.Role
 	cpsActionModel := lib.CpsModelBuilder(
