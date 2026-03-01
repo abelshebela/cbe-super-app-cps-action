@@ -3,15 +3,18 @@ package account_lookup
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	accountLookup "cbe-super-app-cps-action/internal/constants/dto/account_lookup"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"context"
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/hugokessem/coreio/core"
 )
@@ -30,9 +33,10 @@ type CoreAccountLookupAdapter struct {
 	PhoneUrlPath   string
 	AccountUrlPath string
 	FaydaUrlPath   string
+	Logger         utils.Logger
 }
 
-func NewCoreAccountLookupAdapter(coreAPI core.CBECoreAPIInterface, baseUrl string, timeout time.Duration) Account {
+func NewCoreAccountLookupAdapter(coreAPI core.CBECoreAPIInterface, baseUrl string, timeout time.Duration, logger utils.Logger) Account {
 	return &CoreAccountLookupAdapter{
 		coreAPI:        coreAPI,
 		BaseUrl:        baseUrl,
@@ -40,6 +44,7 @@ func NewCoreAccountLookupAdapter(coreAPI core.CBECoreAPIInterface, baseUrl strin
 		FaydaUrlPath:   "bps_banking/core/with_fayda",
 		PhoneUrlPath:   "bps_banking/core/phone_number",
 		AccountUrlPath: "bps_banking/core/account_number",
+		Logger:         logger,
 	}
 }
 
@@ -107,4 +112,52 @@ func (a *CoreAccountLookupAdapter) CreateAccountWithFayda(ctx context.Context, a
 	}
 
 	return types.Account{}, nil
+}
+
+func (s *CoreAccountLookupAdapter) CifSearch(ctx context.Context, cif string) ([]imodel.AccountData, error) {
+	search, err := s.coreAPI.AccountList(core.AccountListParam{
+		ColumnName:    "CUS.ID",
+		CriteriaValue: cif,
+	})
+	if err != nil {
+		s.Logger.Errorf("[AccountLookup][CifSearch] failed to search CIF: %v", err)
+		return nil, err
+	}
+
+	// Log the details count before processing
+	detailsCount := len(search.Details)
+
+	// Debug: Log the full search structure to understand the response format
+	s.Logger.Infof("CIF search response received")
+
+	if detailsCount == 0 {
+		s.Logger.Warnf("CIF search successful but search.Details is empty")
+		return []imodel.AccountData{}, nil
+	}
+
+	var accounts []imodel.AccountData
+	for _, account := range search.Details {
+		s.Logger.Infof("Processing account from CIF search")
+
+		phoneNumberTrimed := strings.ReplaceAll(account.PhoneNo, "+", "")
+		accounts = append(accounts, imodel.AccountData{
+			AccountNumber:   account.AccountNumber,
+			CustomerID:      cif,
+			CustomerName:    account.CustomerName,
+			AccountType:     account.AccountType,
+			PhoneNumber:     phoneNumberTrimed,
+			BirthOfDate:     account.BirthOfDate,
+			Gender:          account.Gender,
+			Currency:        account.Currency,
+			BranchCode:      account.BranchCode,
+			Branch:          account.BranchName,
+			CustomerSegment: account.CustomerSegment,
+			Restriction:     account.Restriction,
+			RestrictionType: account.RestrictionType,
+			//WorkingBalance:  account.WorkingBalance,
+		})
+	}
+
+	s.Logger.Infof("CIF search completed successfully")
+	return accounts, nil
 }
