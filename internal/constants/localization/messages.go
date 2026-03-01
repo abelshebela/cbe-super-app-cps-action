@@ -1324,6 +1324,11 @@ const (
 	MsgEventMerchantUpdatedSuccessfully            = "event merchant updated successfully"
 	MsgEventMerchantDeletedSuccessfully            = "event merchant deleted successfully"
 	MsgEventMerchantFetchedSuccessfully            = "event merchant fetched successfully"
+	MsgEventMerchantCreateRequestSubmitted         = "Event merchant create request submitted for approval"
+	MsgEventMerchantUpdateRequestSubmitted         = "Event merchant update request submitted for approval"
+	MsgEventMerchantDeleteRequestSubmitted         = "Event merchant delete request submitted for approval"
+	MsgEventMerchantEnableRequestSubmitted         = "Event merchant enable request submitted for approval"
+	MsgEventMerchantDisableRequestSubmitted        = "Event merchant disable request submitted for approval"
 
 	// logistic merchant message
 	MsgLogisticMerchantCreatedSuccessfully        = "Logistic merchant created successfully"
