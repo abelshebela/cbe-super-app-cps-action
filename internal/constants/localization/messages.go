@@ -613,6 +613,8 @@ const (
 	MsgBankDisableRequestSuccessfullyCreated = "Bank Disable request successfully created"
 	MsgBankDisableRequestFailed              = "Bank Disable request  failed"
 	MsgRoleNotFoundWithGivenJobTitle         = "Role does not exist with the given job title"
+	MsgBranchNotFoundWithGivenCode        = "Branch does not exist with the given branch code"
+
 
 	MsgBankEnableRequestSuccessfullyCreated = "Bank Enable request successfully created"
 	MsgBankEnableRequestFailed              = "Bank Enable request  failed"
