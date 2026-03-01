@@ -9,12 +9,12 @@ type BranchInformation struct {
 }
 
 type EcommerceMerchant struct {
-	MerchantName     string              `json:"merchant_name"`
-	MerchantCode     string              `json:"merchant_code"`
-	AccountNumber    string              `json:"account_number"`
-	SettlementMethod string              `json:"settlement_method" bson:"settlement_method"`
-	Branches         []BranchInformation `json:"branches"`
-	// IsEcommerceMerchant *bool                     `json:"is_ecommerce_merchant"`
+	MerchantName        string              `json:"merchant_name"`
+	MerchantCode        string              `json:"merchant_code"`
+	AccountNumber       string              `json:"account_number"`
+	SettlementMethod    string              `json:"settlement_method" bson:"settlement_method"`
+	Branches            []BranchInformation `json:"branches"`
+	IsEcommerceMerchant *bool               `json:"is_ecommerce_merchant"`
 }
 
 type UpdateEcommerceMerchant struct {
@@ -23,6 +23,7 @@ type UpdateEcommerceMerchant struct {
 	AccountNumber    *string             `json:"account_number"`
 	SettlementMethod *string             `json:"settlement_method" bson:"settlement_method"`
 	Branches         []BranchInformation `json:"branches"`
+	// IsEcommerceMerchant *bool               `json:"is_ecommerce_merchant"`
 }
 
 type KYCDTO struct {
