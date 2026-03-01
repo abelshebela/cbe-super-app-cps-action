@@ -62,6 +62,7 @@ func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.Response
 		localization.SendErrorByCodeResponse(w, fmt.Sprintf("validation error: %v", err))
 		return
 	}
+	req.CapitilizeCustomerSegmentationRequest()
 
 	if err := c.svc.Create(ctx, req); err != nil {
 		span.RecordError(err)
