@@ -280,7 +280,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, redis, mediaProducer, logger)
 	serviceContainer.ShortVideoServiceContainer = ShortVideoService
 	customerService = customer.NewCustomerService(persistence.CustomerService, persistence.BpsActionPersistence, cpsActionService, redis, smsService, accountLookupAdapter, cfg, logger)
-
 	kycService = kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, persistence.UserPersistence, accountLookupAdapter, cpsActionService, persistence.LinkedAccountPersistence, *cfg, logger)
 	sitotaService = sitota_service.NewSitotaTransactionService(oracle.Sitota, logger)
 	transactionService = transaction.NewTransactionService(oracle.Transaction, logger)
