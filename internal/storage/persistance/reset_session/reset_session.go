@@ -46,12 +46,7 @@ func (r *ResetSessionRepository) FindById(ctx context.Context, id string) (*mode
 
 	session, err := r.resetSessionDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("No reset session found for the provided id")
-			return nil, errors.New(localization.ErrorSessionNotFound.Code)
-		}
-		r.logger.Errorf("Unexpected error while finding reset session by id. error=%v, id=%s", err, id)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	r.logger.Infof("Reset session found by id successfully. id=%s", id)
 	return session, nil
@@ -65,12 +60,7 @@ func (r *ResetSessionRepository) FindByPhoneNumber(ctx context.Context, phoneNum
 	session, err := r.resetSessionDal.FindOne(ctx, filter, projection)
 	if err != nil {
 
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("No reset session found for the provided phone number")
-			return nil, errors.New(localization.ErrorSessionNotFound.Code)
-		}
-		r.logger.Errorf("Unexpected error while finding reset session by phone number. error=%v, phoneNumber=%s", err, phoneNumber)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	r.logger.Infof("Reset session found by phone number successfully. phoneNumber=%s", phoneNumber)
 	return session, nil
@@ -84,12 +74,7 @@ func (r *ResetSessionRepository) FindByDeviceUUID(ctx context.Context, deviceUUI
 
 	session, err := r.resetSessionDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("No reset session found for the provided deviceUUID")
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		r.logger.Errorf("Unexpected error while finding reset session by deviceUUID. error=%v, deviceUUID=%s", err, deviceUUID)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	r.logger.Infof("Reset session found by deviceUUID successfully. deviceUUID=%s", deviceUUID)
 	return session, nil

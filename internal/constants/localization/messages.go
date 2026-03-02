@@ -24,6 +24,10 @@ const (
 	MsgUserUpdatedSuccessfully       = "User update request sent successfully"
 	MsgAmountBasedSuccessfullySent   = "Amount-based authentication update request sent successfully"
 	MsgAmountBasedSuccessfullySentSP = "Amount-based authentication updated successfully"
+	MsgAmountBasedCurrencyAdded      = "Amount-based authentication currency add request sent successfully"
+	MsgAmountBasedCurrencyAddedSP    = "Amount-based authentication currency added successfully"
+	MsgAmountBasedResetSent          = "Amount-based authentication reset request sent successfully"
+	MsgAmountBasedResetSentSP        = "Amount-based authentication reset completed successfully"
 	MsgUserDeletedSuccessfully       = "User delete request sent successfully"
 	MsgUserRetrievedSuccessfully     = "User retrieved successfully"
 	MsgUserLoginSuccessfully         = "User logged in successfully"
@@ -177,6 +181,9 @@ const (
 	MsgCPSActionRejectedSuccessfully       = "CPS Action rejected successfully"
 	MsgCPSActionCanceledSuccessfully       = "CPS Action Canceled Successfully"
 	MsgCPSActionsRetrieved                 = "CPS actions retrieved successfully"
+	MsgCpsActionDataExportedSuccessfully   = "CPS actions Data exported successfully"
+	MsgDonationDataExportedSuccessfully    = "Donation Data exported successfully"
+	MsgDonationDataExportFailed            = "Donation Data export failed"
 
 	// BPS Action related success messages
 	MsgBPSActionsRetrievedSuccessfully = "BPS Actions retrieved successfully"
@@ -592,12 +599,12 @@ const (
 	MsgExistEmail                   = "user with this email already exist"
 	MsgExistUser                    = "user with this already exist"
 
-	MsgExistEmailBpsUser = "BPS user with this email already exist"
+	MsgExistEmailBpsUser = "user with this email already exist"
 
-	MsgExistUserName        = "cps user with this username already exist"
-	MsgExistUserNameBPSUser = "bps user with this username already exist"
+	MsgExistUserName        = " user with this username already exist"
+	MsgExistUserNameBPSUser = "user with this username already exist"
 
-	MsgBpsUserEmailExist                     = "A BPS user with this email already exists"
+	MsgBpsUserEmailExist                     = "A user with this email already exists"
 	MsgExistPhoneNumber                      = "user with this  phone Number already exist"
 	MsgInvalidDate                           = "Invalid date format"
 	MsgInvalidAction                         = "Invalid Action"
@@ -606,6 +613,8 @@ const (
 	MsgBankDisableRequestSuccessfullyCreated = "Bank Disable request successfully created"
 	MsgBankDisableRequestFailed              = "Bank Disable request  failed"
 	MsgRoleNotFoundWithGivenJobTitle         = "Role does not exist with the given job title"
+	MsgBranchNotFoundWithGivenCode        = "Branch does not exist with the given branch code"
+
 
 	MsgBankEnableRequestSuccessfullyCreated = "Bank Enable request successfully created"
 	MsgBankEnableRequestFailed              = "Bank Enable request  failed"
@@ -631,10 +640,11 @@ const (
 	MsgExternalServiceError        = "External service error"
 
 	// Business logic error messages
-	MsgInsufficientBalance                 = "Insufficient balance"
-	MsgTransactionFailed                   = "Transaction failed"
-	MsgLimitExceeded                       = "Limit exceeded"
-	MsgOperationNotAllowed                 = "Operation not allowed"
+	MsgInsufficientBalance = "Insufficient balance"
+	MsgTransactionFailed   = "Transaction failed"
+	MsgLimitExceeded       = "Limit exceeded"
+	MsgOperationNotAllowed = "Access Denied"
+	// MsgOperationNotAllowed                 = "Operation not allowed"
 	MsgAuditorAlreadyChecked               = "Auditor already checked this action"
 	MsgAuditorActionOnThisRoleCompleted    = "Action Auditing on this role is already completed"
 	MsgAuditorActionOnThisActionCompleted  = "Action Auditing on this action is already completed"
@@ -1184,6 +1194,7 @@ const (
 	MsgDisableDistrictsRequestSent    = "Request to disable districts sent successfully"
 
 	MsgCitySuccessfullyRetrieved   = "City retrieved successfully"
+	MsgDataSuccessfullyRetrieved   = "Data retrieved successfully"
 	MsgCitiesSuccessfullyRetrieved = "Cities retrieved successfully"
 	MsgCitiesSuccessfullyEnabled   = "Cities enabled successfully"
 	MsgCitiesSuccessfullyDisabled  = "Cities disabled successfully"
@@ -1298,6 +1309,7 @@ const (
 
 	// event merchant message
 	MsgEventMerchantCreatedSuccessfully            = "Event merchant created successfully"
+	MsgEventMerchantCreateRequestSentSuccessfully  = "Event merchant create request sent successfully"
 	MsgEventMerchantInvalidID                      = "merchant id invalid or empty"
 	MsgEventMerchantInvalidType                    = "merchant type invalid or empty"
 	MsgEventMerchantInvalidMethod                  = "merchant method invalid or empty"
@@ -1311,10 +1323,18 @@ const (
 	MsgEventMerchantDisableFailed                  = "event merchant already disabled"
 	MsgEventMerchantNotFound                       = "event merchant not found"
 	MsgEventMerchantDisabledSuccessfully           = "event merchant disabled successfully"
+	MsgEventMerchantDisableRequestSentSuccessfully = "event merchant disable request sent successfully"
 	MsgEventMerchantEnabledSuccessfully            = "event merchant enabled successfully"
+	MsgEventMerchantEnableRequestSentSuccessfully  = "event merchant enable request sent successfully"
 	MsgEventMerchantUpdatedSuccessfully            = "event merchant updated successfully"
+	MsgEventMerchantUpdateRequestSentSuccessfully  = "event merchant update request sent successfully"
 	MsgEventMerchantDeletedSuccessfully            = "event merchant deleted successfully"
 	MsgEventMerchantFetchedSuccessfully            = "event merchant fetched successfully"
+	MsgEventMerchantCreateRequestSubmitted         = "Event merchant create request submitted for approval"
+	MsgEventMerchantUpdateRequestSubmitted         = "Event merchant update request submitted for approval"
+	MsgEventMerchantDeleteRequestSubmitted         = "Event merchant delete request submitted for approval"
+	MsgEventMerchantEnableRequestSubmitted         = "Event merchant enable request submitted for approval"
+	MsgEventMerchantDisableRequestSubmitted        = "Event merchant disable request submitted for approval"
 
 	// logistic merchant message
 	MsgLogisticMerchantCreatedSuccessfully        = "Logistic merchant created successfully"

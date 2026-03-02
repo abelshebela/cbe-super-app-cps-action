@@ -5,6 +5,7 @@ import (
 	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"time"
@@ -51,11 +52,7 @@ func (a *miniAppProductCode) Update(ctx context.Context, productCode *model.Mini
 	update := buildProductCodeUpdate(*productCode)
 	_, err = a.miniAppProductCodeDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("Error updating mini app product code in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -71,11 +68,7 @@ func (a *miniAppProductCode) EnableOrDisable(ctx context.Context, id string, ena
 	update := bson.M{"is_enabled": enable, "updated_at": time.Now()}
 	_, err = a.miniAppProductCodeDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("Error enabling or disabling mini app product code in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }

@@ -389,6 +389,7 @@ func (a *bpsActionAdapter) GetBPSActionByActionCode(w http.ResponseWriter, r *ht
 }
 
 func (a *bpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -435,7 +436,7 @@ func (a *bpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		return
 	}
 
-	a.logger.Infof("Checker Actions: %v", checkerActions)
+	log.Infof("[BpsActionH][Approve] checker actions: %v", checkerActions)
 
 	// resolve action_names -> request_actions
 	var reqs []string
@@ -843,6 +844,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 func (a *bpsActionAdapter) GetAuthorizerIndex(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserAuthorizerIndex", "handler", "cpsAction")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	requestAction := chi.URLParam(r, "request_action")
 
 	if requestAction == "" {
@@ -853,7 +855,7 @@ func (a *bpsActionAdapter) GetAuthorizerIndex(w http.ResponseWriter, r *http.Req
 	authorizerIndex, err := a.bpsActionApplication.GetUserAuthorizerIndex(ctx, constants.RequestAction(requestAction))
 	if err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[CPSAction.GetActionCounts] service failed %v", err)
+		log.Errorf("[CPSAction.GetActionCounts] service failed %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

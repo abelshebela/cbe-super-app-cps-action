@@ -62,7 +62,7 @@ func (e *EncryptionService) LocalEncryptPassword(req dtoEncryption.EncryptionReq
 	defer span.End()
 
 	if e.cfg == nil {
-		e.logger.Errorf("[LocalEncryptPassword] config is empty")
+		e.logger.Errorf("[EncryptSvc][Encrypt] config empty")
 		span.AddEvent("Config is empty", trace.WithAttributes(
 			attribute.String("error", localization.ErrConfigIsEmpty.Code),
 		))
@@ -78,7 +78,7 @@ func (e *EncryptionService) LocalEncryptPassword(req dtoEncryption.EncryptionReq
 	}
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
-		e.logger.Errorf("[LocalEncryptPassword] failed to marshal data: %v", err)
+		e.logger.Errorf("[EncryptSvc][Encrypt] marshal err: %v", err)
 		span.AddEvent("Failed to marshal data", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -100,7 +100,7 @@ func (e *EncryptionService) LocalEncryptPassword(req dtoEncryption.EncryptionReq
 	}
 
 	if len(key) != 32 || len(iv) != aes.BlockSize {
-		e.logger.Errorf("[LocalEncryptPassword] invalid key or IV length")
+		e.logger.Errorf("[EncryptSvc][Encrypt] invalid key/IV length")
 		span.AddEvent("Invalid key or IV length", trace.WithAttributes(
 			attribute.String("error", localization.ErrInvalidKeyOrIv.Code),
 		))
@@ -109,7 +109,7 @@ func (e *EncryptionService) LocalEncryptPassword(req dtoEncryption.EncryptionReq
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		e.logger.Errorf("[LocalEncryptPassword] failed to create cipher: %v", err)
+		e.logger.Errorf("[EncryptSvc][Encrypt] cipher err: %v", err)
 		span.AddEvent("Failed to create cipher", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -123,6 +123,6 @@ func (e *EncryptionService) LocalEncryptPassword(req dtoEncryption.EncryptionReq
 	encrypted := make([]byte, len(padded))
 	mode.CryptBlocks(encrypted, padded)
 
-	e.logger.Infof("[LocalEncryptPassword] password encrypted successfully for username (hashed)")
+	e.logger.Infof("[EncryptSvc][Encrypt] success")
 	return dtoEncryption.EncryptionResponse{Encryption: hex.EncodeToString(encrypted)}, salt, nil
 }

@@ -848,12 +848,14 @@ func (a *cpsActionAdapter) GetCPSActionByActionCode(w http.ResponseWriter, r *ht
 //	@Security		BearerAuth
 //	@Router			/actions/approver/checker/actions [get]
 func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	userID := local_util.ExtractUserContext(r).UserID
+	// userID := local_util.ExtractUserContext(r).UserID
+	userID := local_util.ExtractUserContext(r).UserName
 
 	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -893,7 +895,7 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		return
 	}
 
-	a.logger.Infof("Checker Actions: %v", checkerActions)
+	log.Infof("[CpsActionH][Approve] checker actions: %v", checkerActions)
 
 	// resolve action_names -> request_actions
 	var reqs []string
@@ -1086,7 +1088,6 @@ func (a *cpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 	if len(reqs) > 0 {
 		filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
 	}
-	// do not force action_status; let API-provided filters decide
 
 	userID := local_util.ExtractUserContext(r).UserID
 	res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, userID, reqs, filterParams)
@@ -1352,6 +1353,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 func (a *cpsActionAdapter) GetAuthorizerIndex(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserAuthorizerIndex", "handler", "cpsAction")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	requestAction := chi.URLParam(r, "request_action")
 
 	if requestAction == "" {
@@ -1362,7 +1364,7 @@ func (a *cpsActionAdapter) GetAuthorizerIndex(w http.ResponseWriter, r *http.Req
 	authorizerIndex, err := a.cpsActionApplication.GetUserAuthorizerIndex(ctx, constants.RequestAction(requestAction))
 	if err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[CPSAction.GetActionCounts] service failed %v", err)
+		log.Errorf("[CPSAction.GetActionCounts] service failed %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -1542,12 +1544,13 @@ func (a *cpsActionAdapter) ApproverAuditorAllocations(w http.ResponseWriter, r *
 func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "rejectCpsAction", "handler", "cpsAction")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 
 	requestAction := chi.URLParam(r, "request_action")
 	actionVersion := chi.URLParam(r, "action_version")
 	parsedVersion, err := strconv.ParseInt(actionVersion, 10, 64)
 	if err != nil {
-		a.logger.Infof("location: 0")
+		log.Infof("[CpsActionH][Reject] parse version err")
 
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
@@ -1560,11 +1563,11 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 	}
 
 	var checkerIdx, auditorIdx int64
-	if actionName != "CPSACTIONROLE" {
+	{
 		if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
 			role, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 			if role == "" {
-				a.logger.Infof("location: 1")
+				log.Infof("[CpsActionH][Reject] empty role")
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
@@ -1573,14 +1576,7 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 			idxDoc, err = repo.FindByRoleAndAction(ctx, role, uppercasedActionName, parsedVersion)
 			if err != nil {
 				span.RecordError(err)
-				a.logger.Infof("location: 2")
-				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-				return
-			}
-
-			if idxDoc == nil || idxDoc.CheckerIndex == nil {
-				a.logger.Infof("location: 3")
-
+				log.Infof("[CpsActionH][Reject] role lookup err")
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
@@ -1594,10 +1590,70 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 		}
 	}
 
+	a.logger.Infof("Checker index: %s, Auditor index: %s", checkerIdx, auditorIdx)
 	autorizersLevel := cpsactionDto.AutorizersLevelResponse{
 		CheckerIndex: checkerIdx,
 		AuditorIndex: auditorIdx,
 	}
 
 	localization.SendSuccessResponse(w, localization.AutorizersLevelFetchedSuccessfully, autorizersLevel)
+}
+
+func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "exportCPSaction", "handler", "cpsAction")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
+	fileType := r.URL.Query().Get("file_type")
+	from := r.URL.Query().Get("From")
+	to := r.URL.Query().Get("To")
+
+	if fileType == "" || from == "" || to == "" {
+		log.Warnf("file type and from date amd to date have to be given")
+		localization.SendBadRequestResponse(w, localization.ErrorRequiredFieldMissing.Message)
+		return
+	}
+
+	FormatedFrom,formatedTo,err :=local_util.FormatDateRangeToUTCStrings(from,to)
+	if err != nil{
+		log.Warnf("Invalid Start date is given ", from)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
+		return
+	}
+
+	ValidStartDate, err := local_util.ValidateTimeAndParse(FormatedFrom)
+	if err != nil {
+		log.Warnf("Invalid Start date is given ", from)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
+		return
+	}
+
+	ValidEndDate, err := local_util.ValidateTimeAndParse(formatedTo)
+	if err != nil {
+		log.Warnf("Invalid End date is given ", from)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
+		return
+	}
+
+	is_valid_order, err := local_util.ValidateTimeRangeOrder(ValidStartDate, ValidEndDate)
+	if err != nil {
+		log.Warnf("get error while validating start and end date order error:", err)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
+		return
+	}
+
+	if !is_valid_order {
+		log.Warnf("end date can not be before Start Date: %v, End Date:%v", ValidStartDate, ValidEndDate)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
+		return
+	}
+	FileLinkExpored, err := a.cpsActionApplication.ExportCpsActionData(ctx, ValidStartDate, ValidEndDate, fileType)
+
+	if err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.CpsActionDataExportedSuccess, FileLinkExpored)
 }

@@ -60,12 +60,7 @@ func (s *JobRoleStorage) Update(ctx context.Context, id string, role *imodel.Job
 	update := JobRoleMapper(*role)
 	_, err = s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			s.logger.Errorf("[JobRole/Update] job role not found")
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		s.logger.Errorf("[JobRole/Update] failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -82,12 +77,7 @@ func (s *JobRoleStorage) EnableOrDisable(ctx context.Context, id string, enable 
 
 	_, err = s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			s.logger.Warnf("[JobRole/EnableOrDisable] role not found, id: %s", id)
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		s.logger.Errorf("[JobRole/EnableOrDisable] failed, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -104,12 +94,7 @@ func (s *JobRoleStorage) SoftDelete(ctx context.Context, id string) error {
 
 	_, err = s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			s.logger.Warnf("[JobRole/SoftDelete] role not found, id: %s", id)
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		s.logger.Errorf("[JobRole/SoftDelete] failed, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -122,10 +107,7 @@ func (s *JobRoleStorage) FindByID(ctx context.Context, id string) (*imodel.JobRo
 	filter := bson.M{"_id": objID}
 	res, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return res, nil
 }
@@ -134,11 +116,7 @@ func (s *JobRoleStorage) FindAll(ctx context.Context) (*[]imodel.JobRole, error)
 
 	data, err := s.dal.FindAll(ctx, bson.M{}, bson.M{})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		s.logger.Errorf("[JobRole/FindAll] failed: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return &data, nil
 }
@@ -161,10 +139,7 @@ func (s *JobRoleStorage) FindByCode(ctx context.Context, code string) (*imodel.J
 	}
 	res, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return res, nil
 }
@@ -202,16 +177,13 @@ func (r *JobRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		}
 	}
 
-	allowedKeys := []string{"enabled"}
+	allowedKeys := []string{"enabled", "name", "code"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	filter["is_deleted"] = bson.M{"$ne": true}
 
 	data, err := r.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		r.logger.Errorf("[Role Repository][FindAllWithPagination] fetch error: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	total, err := r.dal.TotalCount(ctx, filter)

@@ -9,9 +9,9 @@ import (
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
+	"time"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -24,46 +24,49 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type DonationStorage struct {
-	dal                 dal.MongoDal[imodel.Donation, imodel.Donation]
+	dal                 dal.MongoDal[donation_model.Donation, donation_model.Donation]
 	donationCompanyDal  dal.MongoDal[donation_model.DonationCompany, donation_model.DonationCompany]
 	donationCategoryDal dal.MongoDal[donation_model.DonationCategory, donation_model.DonationCategory]
 	client              *mongo.Client
+	collection          *mongo.Collection
 	kafkaProducer       kafka.ClientOrchestrationProducer
 	logger              utils.Logger
 }
 
 func NewDonationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationRepository {
 	return &DonationStorage{
-		dal:                 dal.NewMongoDal[imodel.Donation, imodel.Donation](client, cfg, dbName, collection),
+		dal:                 dal.NewMongoDal[donation_model.Donation, donation_model.Donation](client, cfg, dbName, collection),
 		donationCompanyDal:  dal.NewMongoDal[donation_model.DonationCompany, donation_model.DonationCompany](client, cfg, dbName, "donation_companies"),
 		donationCategoryDal: dal.NewMongoDal[donation_model.DonationCategory, donation_model.DonationCategory](client, cfg, dbName, "donation_categories"),
 		client:              client,
+		collection:          client.Database(dbName).Collection(collection),
 		kafkaProducer:       kafkaProducer,
 		logger:              logger,
 	}
 }
 
-func (d *DonationStorage) Create(ctx context.Context, donation *imodel.Donation) error {
-	d.logger.Infof("[Create] creating donation")
+func (d *DonationStorage) Create(ctx context.Context, donation *donation_model.Donation) error {
+	d.logger.Infof("[DonationStorage][Create] creating donation")
 	newDonation, err := d.dal.InsertOne(ctx, *donation)
 	if err != nil {
-		d.logger.Errorf("[Create] failed to create donation: %v", err)
+		d.logger.Errorf("[DonationStorage][Create] failed to create donation: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	d.kafkaProducer.PublishMessage(ctx, newDonation, string(constants.ClientOrchestrationDonationTopic), string(constants.ClientOrchestrationDonationTopic), "new donation created")
 
-	d.logger.Infof("[Create] donation created successfully")
+	d.logger.Infof("[DonationStorage][Create] donation created successfully")
 	return nil
 }
 
-func (d *DonationStorage) Update(ctx context.Context, id string, donation *imodel.Donation) error {
-	d.logger.Infof("[Update] updating donation for id: %s", id)
+func (d *DonationStorage) Update(ctx context.Context, id string, donation *donation_model.Donation) error {
+	d.logger.Infof("[DonationStorage][Update] updating donation for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		d.logger.Errorf("[Update] invalid object id: %v", err)
+		d.logger.Errorf("[DonationStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -71,76 +74,71 @@ func (d *DonationStorage) Update(ctx context.Context, id string, donation *imode
 
 	updatedDonation, err := d.dal.UpdateOne(ctx, filter, updatedData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			d.logger.Errorf("[Update] donation not found")
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		d.logger.Errorf("[Update] failed to update donation: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	d.kafkaProducer.PublishMessage(ctx, updatedDonation, string(constants.ClientOrchestrationDonationTopic), string(constants.ClientOrchestrationDonationTopic), "donation updated")
 
-	d.logger.Infof("[Update] donation updated successfully")
+	d.logger.Infof("[DonationStorage][Update] donation updated successfully")
 	return nil
 }
 
 func (d *DonationStorage) Delete(ctx context.Context, id string) error {
-	d.logger.Infof("[Delete] deleting donation for id: %s", id)
+	d.logger.Infof("[DonationStorage][Delete] deleting donation for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		d.logger.Errorf("[Delete] invalid object id: %v", err)
+		d.logger.Errorf("[DonationStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	err = d.dal.DeleteOne(ctx, filter)
 	if err != nil {
-		d.logger.Errorf("[Delete] failed to delete donation: %v", err)
+		d.logger.Errorf("[DonationStorage][Delete] failed to delete donation: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	d.logger.Infof("[Delete] donation deleted successfully")
+	d.logger.Infof("[DonationStorage][Delete] donation deleted successfully")
 	return nil
 }
 
 func (d *DonationStorage) FindByID(ctx context.Context, id string) (*donation_dto.DonationListResponse, error) {
-	d.logger.Infof("[FindByID] fetching donation by id: %s", id)
+	d.logger.Infof("[DonationStorage][FindByID] fetching donation by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		d.logger.Errorf("[FindByID] invalid object id: %v", err)
+		d.logger.Errorf("[DonationStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	result, err := d.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		d.logger.Errorf("[FindByID] failed to find donation: %v", err)
+		d.logger.Errorf("[DonationStorage][FindByID] failed to find donation: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
 	camObj, err := bson.ObjectIDFromHex(result.CompanyID.Hex())
 	if err != nil {
-		d.logger.Errorf("[FindByID] failed to parse company id: %v", err)
+		d.logger.Errorf("[DonationStorage][FindByID] failed to parse company id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	companyFilter := bson.M{"_id": camObj}
 	company, err := d.donationCompanyDal.FindOne(ctx, companyFilter, nil)
 	if err != nil {
-		d.logger.Errorf("[FindByID] failed to find donation company: %v", err)
+		d.logger.Errorf("[DonationStorage][FindByID] failed to find donation company: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
 	catObj, err := bson.ObjectIDFromHex(result.CategoryID.Hex())
 	if err != nil {
-		d.logger.Errorf("[FindByID] failed to parse category id: %v", err)
+		d.logger.Errorf("[DonationStorage][FindByID] failed to parse category id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	categoryFilter := bson.M{"_id": catObj}
 	category, err := d.donationCategoryDal.FindOne(ctx, categoryFilter, nil)
 	if err != nil {
-		d.logger.Errorf("[FindByID] failed to find donation category: %v", err)
+		d.logger.Errorf("[DonationStorage][FindByID] failed to find donation category: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	d.logger.Infof("[FindByID] donation retrieved successfully")
+	d.logger.Infof("[DonationStorage][FindByID] donation retrieved successfully")
 	return MapToDonationListResponse(*result, company, category), nil
 }
 
@@ -165,14 +163,14 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	data, err := d.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		d.logger.Errorf("[FindAllWithPagination] failed to fetch donations: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		d.logger.Errorf("[DonationStorage][FindAllWithPagination] failed to fetch donations: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	total, err := d.dal.TotalCount(ctx, filter)
 	if err != nil {
-		d.logger.Errorf("[FindAllWithPagination] failed to count donations: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		d.logger.Errorf("[DonationStorage][FindAllWithPagination] failed to count donations: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -185,7 +183,7 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 			if err == mongo.ErrNoDocuments {
 				continue
 			}
-			d.logger.Errorf("[FindAllWithPagination] failed to find donation company: %v", err)
+			d.logger.Errorf("[DonationStorage][FindAllWithPagination] failed to find donation company: %v", err)
 		}
 
 		categoryFilter := bson.M{"_id": donation.CategoryID}
@@ -194,15 +192,46 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 			if err == mongo.ErrNoDocuments {
 				continue
 			}
-			d.logger.Errorf("[FindAllWithPagination] failed to find donation category: %v", err)
+			d.logger.Errorf("[DonationStorage][FindAllWithPagination] failed to find donation category: %v", err)
 		}
 
 		result = append(result, *MapToDonationListResponse(donation, company, category))
 	}
-	d.logger.Infof("[FindAllWithPagination] retrieved %d donations", len(result))
+	d.logger.Infof("[DonationStorage][FindAllWithPagination] retrieved %d donations", len(result))
 
 	return &types.PaginatedResponse[[]donation_dto.DonationListResponse]{
 		Data: result,
 		Meta: meta,
 	}, nil
+}
+
+func (d *DonationStorage) StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*donation_model.Donation) error) error {
+	filter := bson.M{
+		"created_at": bson.M{
+			"$gte": startDate,
+			"$lte": endDate,
+		},
+	}
+
+	opts := options.Find().
+		SetSort(bson.D{{Key: "created_at", Value: 1}}).
+		SetBatchSize(1000)
+
+	cursor, err := d.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return local_util.HandleDBError(err)
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var donation donation_model.Donation
+		if err := cursor.Decode(&donation); err != nil {
+			return err
+		}
+		if err := handler(&donation); err != nil {
+			return err
+		}
+	}
+
+	return cursor.Err()
 }

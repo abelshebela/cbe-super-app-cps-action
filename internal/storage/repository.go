@@ -30,11 +30,12 @@ import (
 	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
+	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
+
+	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
-	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 
 	bps_user_dto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 
@@ -87,8 +88,13 @@ type ServicesRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Service, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Service], error)
-	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error)
 	CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error)
+	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error)
+	FindServiceListByID(ctx context.Context, id string) (*model.ServiceList, error)
+	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*model.ServiceList, error)
+	CreateServiceList(ctx context.Context, serviceList *model.ServiceList) error
+	UpdateServiceList(ctx context.Context, id, serviceKey string, serviceList *model.ServiceList) error
+	EnableOrDisableServiceList(ctx context.Context, id, serviceKey string, enable bool) error
 }
 
 type OTPRepository interface {
@@ -195,6 +201,9 @@ type CPSActionRepository interface {
 	UpdateCustome(ctx context.Context, filter, update bson.M) error
 	Delete(ctx context.Context, id string) error
 	GetCountByDepartment(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error)
+	// FindByDateRange(ctx context.Context, start_date, end_date time.Time)([]*model.CPSAction,error)
+
+	StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*model.CPSAction) error) error
 }
 
 // Avatar persistence
@@ -236,21 +245,26 @@ type BPSActionRepository interface {
 }
 
 type BudgetCategoryRepository interface {
-	CreateBudgetCategory(ctx context.Context, budgetCategory *model.BudgetCategory) error
-	UpdateBudgetCategory(ctx context.Context, id string, budgetCategory *model.BudgetCategory) error
-	FindBudgetCategoryByID(ctx context.Context, id string) (*model.BudgetCategory, error)
-	FindAllBudgetCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.BudgetCategory], error)
+	CreateBudgetCategory(ctx context.Context, budgetCategory *imodel.BudgetCategory) error
+	UpdateBudgetCategory(ctx context.Context, id string, budgetCategory *imodel.BudgetCategory) error
+	FindBudgetCategoryByID(ctx context.Context, id string) (*imodel.BudgetCategory, error)
+	FindAllBudgetCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BudgetCategory], error)
 	DeleteBudgetCategory(ctx context.Context, id string) error
 	EnableOrDisableBudgetCategory(ctx context.Context, id string, enable bool) error
-	FindByName(ctx context.Context, name string) (*model.BudgetCategory, error)
+	FindByName(ctx context.Context, name string) (*imodel.BudgetCategory, error)
 }
 
 // AmountBasedAuth persistence
 type AmountBasedAuthRepository interface {
-	Update(ctx context.Context, id string, update *model.AuthTier) error
-	FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]model.AuthTier, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.AuthTier], error)
-	FindByID(ctx context.Context, id string) (*model.AuthTier, error)
+	Create(ctx context.Context, tier *local_model.AuthTier) error
+	CreateMany(ctx context.Context, tiers []local_model.AuthTier) error
+	Update(ctx context.Context, id string, update *local_model.AuthTier) error
+	FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]local_model.AuthTier, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.AuthTier], error)
+	FindByID(ctx context.Context, id string) (*local_model.AuthTier, error)
+	FindByCurrency(ctx context.Context, currency string) ([]local_model.AuthTier, error)
+	CurrencyExists(ctx context.Context, currency string) (bool, error)
+	DeleteByCurrency(ctx context.Context, currency string) error
 }
 
 // AccountBlock persistence
@@ -260,6 +274,7 @@ type AccountBlockRepository interface {
 	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 	EnableOrDisableBranches(ctx context.Context, ids []string, reason string, enabled bool) error
 	GetBranchesByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
+	FindByFilterKey(ctx context.Context, field, value string) (*model.AccountBlock, error)
 
 	CreateCity(ctx context.Context, city *model.AccountBlock) error
 	DeleteCity(ctx context.Context, id string) error
@@ -278,7 +293,7 @@ type AccountBlockRepository interface {
 	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 	EnableOrDisableDistricts(ctx context.Context, ids []string, reason string, enabled bool) error
 	GetDistrictsByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
-	GetAccountBlockDetails(ctx context.Context, id string) ([]model.CPSAction, error)
+	GetAccountBlockDetails(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error)
 }
 
 type AdvertRepository interface {
@@ -394,11 +409,12 @@ type VaultAmountTierRepository interface {
 }
 
 type DonationRepository interface {
-	Create(ctx context.Context, donation *imodel.Donation) error
-	Update(ctx context.Context, id string, donation *imodel.Donation) error
+	Create(ctx context.Context, donation *donation_model.Donation) error
+	Update(ctx context.Context, id string, donation *donation_model.Donation) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation.DonationListResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation.DonationListResponse], error)
+	StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*donation_model.Donation) error) error
 }
 
 type DonationCategoryRepository interface {
@@ -608,7 +624,7 @@ type ArticleCategoryRepository interface {
 }
 
 type ShortVideoRepository interface {
-	Create(ctx context.Context, shortVideo *model.ShortVideo) error
+	Create(ctx context.Context, shortVideo *model.ShortVideo) (*model.ShortVideo, error)
 	Update(ctx context.Context, shortVideo *model.ShortVideo, id string) error
 	Delete(ctx context.Context, id string) error
 	PublishUnpublish(ctx context.Context, id string, isPublished bool) error
@@ -756,7 +772,7 @@ type AccessListSegmentationRepository interface {
 	FindBySegmentIDAndAccessListKeys(ctx context.Context, id string, keys []string) (*local_model.AccessListSegmentation, error)
 	Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]local_model.AccessListSegmentation, error)
+	FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
 	FindAllBySegmentIDorSegmentCodeAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
 	BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error
 

@@ -42,6 +42,7 @@ func InitFaydaHandler(faydaService service.FaydaAccountService, logger utils.Log
 func (f *faydaAccountHandler) InitiateEnableFaydaAccount(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "initiateEnableFaydaAccount", "handler", "fayda")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, f.logger)
 
 	user_code, ok := core.ExtractID(w, r, f.logger)
 	if !ok {
@@ -53,12 +54,12 @@ func (f *faydaAccountHandler) InitiateEnableFaydaAccount(w http.ResponseWriter, 
 	err := f.faydaService.EnableOrDisableFayda(ctx, user_code, true)
 	if err != nil {
 		span.RecordError(err)
-		f.logger.Errorf("[InitiateEnableFaydaAccount] service error: %v", err)
+		log.Errorf("[InitiateEnableFaydaAccount] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	f.logger.Infof("[InitiateEnableFaydaAccount] request sent successfully for user_code: %s", user_code)
+	log.Infof("[InitiateEnableFaydaAccount] request sent successfully for user_code: %s", user_code)
 	localization.SendSuccessResponse(w, localization.SuccessFaydaEnableActionCreated, nil)
 }
 
@@ -78,6 +79,7 @@ func (f *faydaAccountHandler) InitiateEnableFaydaAccount(w http.ResponseWriter, 
 func (f *faydaAccountHandler) InitiateDisableFaydaAccount(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "initiateDisableFaydaAccount", "handler", "fayda")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, f.logger)
 
 	user_code, ok := core.ExtractID(w, r, f.logger)
 	if !ok {
@@ -89,11 +91,11 @@ func (f *faydaAccountHandler) InitiateDisableFaydaAccount(w http.ResponseWriter,
 	err := f.faydaService.EnableOrDisableFayda(ctx, user_code, false)
 	if err != nil {
 		span.RecordError(err)
-		f.logger.Errorf("[InitiateDisableFaydaAccount] service error: %v", err)
+		log.Errorf("[InitiateDisableFaydaAccount] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	f.logger.Infof("[InitiateDisableFaydaAccount] request sent successfully for user_code: %s", user_code)
+	log.Infof("[InitiateDisableFaydaAccount] request sent successfully for user_code: %s", user_code)
 	localization.SendSuccessResponse(w, localization.SuccessFaydaDisableActionCreated, nil)
 }

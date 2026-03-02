@@ -1,7 +1,6 @@
 package bulk_service
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
@@ -24,20 +23,24 @@ import (
 )
 
 type BulkServicePersistence struct {
-	mongoDalCpsAction   dal.MongoDal[model.CPSAction, model.CPSAction]
-	mongoDalbulkService dal.MongoDal[model.APPAccessList, model.APPAccessList]
-	kafkaProducer       kafka.ClientOrchestrationProducer
-	logger              utils.Logger
+	cfg                    *config.VaultConfig
+	mongoDalCpsAction      dal.MongoDal[model.CPSAction, model.CPSAction]
+	mongoDalbulkService    dal.MongoDal[model.APPAccessList, model.APPAccessList]
+	kafkaProducer          kafka.ClientOrchestrationProducer
+	kafkaProducerForClient kafka.NotificationProducer
+	logger                 utils.Logger
 }
 
-func InitBulkServicePersistence(client *mongo.Client, cfg *config.VaultConfig, dbName string, collections []string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.BulkServiceRepository {
+func InitBulkServicePersistence(client *mongo.Client, cfg *config.VaultConfig, dbName string, collections []string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, kafkaProducerForClient kafka.NotificationProducer, logger utils.Logger) storage.BulkServiceRepository {
 	mongoDalCpsAction := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, cfg, dbName, collections[0])
 	mongoDalbulkService := dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, cfg, dbName, collections[1])
 	return &BulkServicePersistence{
-		mongoDalCpsAction:   mongoDalCpsAction,
-		mongoDalbulkService: mongoDalbulkService,
-		kafkaProducer:       clientOrchestrationProducer,
-		logger:              logger,
+		cfg:                    cfg,
+		mongoDalCpsAction:      mongoDalCpsAction,
+		mongoDalbulkService:    mongoDalbulkService,
+		kafkaProducer:          clientOrchestrationProducer,
+		kafkaProducerForClient: kafkaProducerForClient,
+		logger:                 logger,
 	}
 }
 
@@ -71,12 +74,16 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 				Meta: meta,
 			}, nil
 		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		b.logger.Errorf("[BulkServicePersistence][FindAllWithPagination] failed to fetch bulk services: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
+
+	b.logger.Infof("[BulkServicePersistence][FindAllWithPagination] fetched %d bulk services with filter %v result %v", len(data), filter, data)
 
 	// 6. Count total
 	total, err := b.mongoDalbulkService.TotalCount(ctx, filter)
 	if err != nil {
+		b.logger.Errorf("[BulkServicePersistence][FindAllWithPagination] failed to count bulk services: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -91,82 +98,36 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 }
 
 func (b BulkServicePersistence) FindAll(ctx context.Context) ([]model.APPAccessList, error) {
-	b.logger.Infof("[FindAll] fetching all bulk services")
+	b.logger.Infof("[BulkServicePersistence][FindAll] fetching all bulk services")
 	filter := bson.M{}
 
 	projection := bson.M{}
 	bulkServices, err := b.mongoDalbulkService.FindAll(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			b.logger.Infof("[FindAll] no bulk services found")
-			return []model.APPAccessList{}, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		b.logger.Errorf("[FindAll] failed to fetch bulk services: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		b.logger.Errorf("[BulkServicePersistence][FindAll] failed to fetch bulk services: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
-	b.logger.Infof("[FindAll] retrieved %d bulk services", len(bulkServices))
+	b.logger.Infof("[BulkServicePersistence][FindAll] retrieved %d bulk services", len(bulkServices))
 	return bulkServices, nil
 }
 
 func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state bool) error {
-	b.logger.Infof("[Update] updating bulk services, enabled: %v", state)
-	parentKeys := []string{}
+	b.logger.Infof("[Update] updating bulk services, enabled: %v keys: %v", state, keys)
+	publishBody := []model.APPAccessList{}
 
 	for _, key := range keys {
-		// Try updating parent
 		parentFilter := bson.M{"key": key}
 		parentUpdate := bson.M{"enabled": state}
 
-		result, err := b.mongoDalbulkService.UpdateOne(ctx, parentFilter, parentUpdate)
+		updatedParent, err := b.mongoDalbulkService.UpdateOne(ctx, parentFilter, parentUpdate)
 		if err != nil {
-			if err == mongo.ErrNoDocuments {
-				// Parent not found → update child
-				childFilter := bson.M{"sub_access_list.key": key}
-				childUpdate := bson.M{"sub_access_list.$.enabled": state}
-				child, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
-				if err != nil {
-					b.logger.Errorf("[Update] failed to update child: %v", err)
-					return errors.New(localization.ErrorFailToUpdateChild.Code)
-				}
-				b.kafkaProducer.PublishMessage(ctx, child, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "bulk enable/disable access-list child")
-				parentKeys = append(parentKeys, child.Key)
-
-				continue
-			}
-			// Other parent update errors
-			b.logger.Errorf("[Update] failed to update parent: %v", err)
-			return errors.New(localization.ErrorFailToUpdateParent.Code)
+			b.logger.Errorf("[UpdateBulkService] failed to update access list: %v", err)
+			return errors.New(localization.ErrorFailToUpdateBulkService.Code)
 		}
-
-		b.kafkaProducer.PublishMessage(ctx, result, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "bulk enable/disable access-list parent")
-
-		// Parent exists → manually loop over children and update each one
-		for _, sub := range result.SubAccessList {
-			childFilter := bson.M{"sub_access_list.key": sub.Key}
-			childUpdate := bson.M{"sub_access_list.$.enabled": state}
-
-			_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
-			if err != nil {
-				b.logger.Errorf("[Update] failed to update child: %v", err)
-				return errors.New(localization.ErrorFailToUpdateChild.Code)
-			}
-		}
-
+		publishBody = append(publishBody, updatedParent)
 	}
 
-	if state {
-		for _, key := range parentKeys {
-			parentFilter := bson.M{"key": key}
-			parentUpdate := bson.M{"enabled": state}
-
-			updatedParent, err := b.mongoDalbulkService.UpdateOne(ctx, parentFilter, parentUpdate)
-			if err != nil {
-				b.logger.Errorf("[Update] failed to update parent: %v", err)
-				return errors.New(localization.ErrorFailToUpdateParent.Code)
-			}
-			b.kafkaProducer.PublishMessage(ctx, updatedParent, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "bulk enable/disable access-list parent")
-		}
-	}
+	b.kafkaProducer.PublishMessage(ctx, publishBody, string(b.cfg.KafkaBulkServiceUpdateTopic), string(b.cfg.KafkaBulkServiceUpdateTopic), "bulk enable/disable access-list parent")
 
 	return nil
 }

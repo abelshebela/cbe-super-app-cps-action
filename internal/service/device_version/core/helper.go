@@ -3,6 +3,7 @@ package core
 import (
 	deviceversion "cbe-super-app-cps-action/internal/constants/dto/device_version"
 	"context"
+	"strings"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -18,20 +19,28 @@ func IdProvider(ctx context.Context, id string) (bson.ObjectID, error) {
 	return objID, nil
 }
 
-func UpdateDeviceVersionBson(req deviceversion.UpdateDeviceVersionRequest, updatedBy string) (bson.M, error) {
+func UpdateDeviceVersionBson(req deviceversion.UpdateDeviceVersionRequest, updatedBy string, Enabled bool, forceUpdate bool) (bson.M, error) {
 	update := bson.M{}
 	if req.LatestVersion != "" {
 		update["latest_version"] = req.LatestVersion
 	}
 	if req.Platform != "" {
-		update["platform"] = req.Platform
+		update["platform"] = strings.ToUpper(req.Platform)
 	}
-	if &req.ForceUpdate != nil {
-		update["force_update"] = req.ForceUpdate
+	if req.ForceUpdate != nil {
+		update["force_update"] = *req.ForceUpdate
+	} else {
+		update["force_update"] = forceUpdate
 	}
 	if req.ReleaseNotes != "" {
 		update["release_notes"] = req.ReleaseNotes
 	}
+	if req.Enabled != nil {
+		update["enabled"] = *req.Enabled
+	} else {
+		update["enabled"] = Enabled
+	}
+
 	update["updated_by"] = updatedBy
 	update["updated_at"] = time.Now()
 	return update, nil

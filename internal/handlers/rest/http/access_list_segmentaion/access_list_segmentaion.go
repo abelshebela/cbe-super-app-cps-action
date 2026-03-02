@@ -37,22 +37,23 @@ type accessListSegmentation struct {
 func (a *accessListSegmentation) CreateAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "CreateAccessListSegmentation", "handler", "accessListSegmentation")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	var req access_list_segmentation_dto.CreateAccessListSegmentationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		a.logger.Errorf("[CreateAccessListSegmentation] failed to decode request body: %v", err)
+		log.Errorf("[CreateAccessListSegmentation] failed to decode request body: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	if err := req.Validate(); err != nil {
-		a.logger.Errorf("[CreateAccessListSegmentation] validation error: %v", err)
+		log.Errorf("[CreateAccessListSegmentation] validation error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	if err := a.service.CreateAccessListSegmentation(ctx, req); err != nil {
-		a.logger.Errorf("[CreateAccessListSegmentation] service error: %v", err)
+		log.Errorf("[CreateAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -79,27 +80,28 @@ func (a *accessListSegmentation) CreateAccessListSegmentation(w http.ResponseWri
 //	@Security		BearerAuth
 //	@Router			/access_list_segmentation/disable/{id} [patch]
 func (a *accessListSegmentation) DisableAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		a.logger.Errorf("[DisableAccessListSegmentation] missing id parameter")
+		log.Errorf("[DisableAccessListSegmentation] missing id parameter")
 		localization.SendErrorByCodeResponse(w, localization.ErrorAccessListSegmentationInvalidID.Code)
 		return
 	}
 	var req access_list_segmentation_dto.EnableDisableAccessListSegmentationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		a.logger.Errorf("[DisableAccessListSegmentation] failed to decode request body: %v", err)
+		log.Errorf("[DisableAccessListSegmentation] failed to decode request body: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		a.logger.Errorf("[DisableAccessListSegmentation] validation error: %v", err)
+		log.Errorf("[DisableAccessListSegmentation] validation error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, false, req.AccessListKeys); err != nil {
-		a.logger.Errorf("[DisableAccessListSegmentation] service error: %v", err)
+		log.Errorf("[DisableAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -109,14 +111,15 @@ func (a *accessListSegmentation) DisableAccessListSegmentation(w http.ResponseWr
 
 // EnableAccessListSegmentation implements accesslistsegmentation.AccessListSegmentationHandler.
 func (a *accessListSegmentation) EnableAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		a.logger.Errorf("[EnableAccessListSegmentation] missing id parameter")
+		log.Errorf("[EnableAccessListSegmentation] missing id parameter")
 		localization.SendErrorByCodeResponse(w, localization.ErrorAccessListSegmentationInvalidID.Code)
 		return
 	}
 	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, true, nil); err != nil {
-		a.logger.Errorf("[EnableAccessListSegmentation] service error: %v", err)
+		log.Errorf("[EnableAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -138,15 +141,16 @@ func (a *accessListSegmentation) EnableAccessListSegmentation(w http.ResponseWri
 //	@Security		BearerAuth
 //	@Router			/access_list_segmentation/{id} [get]
 func (a *accessListSegmentation) GetAccessListSegmentationByID(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		a.logger.Errorf("[GetAccessListSegmentationByID] missing id parameter")
+		log.Errorf("[GetAccessListSegmentationByID] missing id parameter")
 		localization.SendErrorByCodeResponse(w, localization.ErrorAccessListSegmentationInvalidID.Code)
 		return
 	}
 	accessListSegmentation, err := a.service.GetAccessListSegmentationByID(r.Context(), id)
 	if err != nil {
-		a.logger.Errorf("[GetAccessListSegmentationByID] service error: %v", err)
+		log.Errorf("[GetAccessListSegmentationByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -169,6 +173,7 @@ func (a *accessListSegmentation) GetAccessListSegmentationByID(w http.ResponseWr
 //	@Security		BearerAuth
 //	@Router			/access_list_segmentation [get]
 func (a *accessListSegmentation) GetAllAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -186,7 +191,7 @@ func (a *accessListSegmentation) GetAllAccessListSegmentation(w http.ResponseWri
 
 	accessListSegmentations, err := a.service.GetAllAccessListSegmentation(r.Context(), *filterParams)
 	if err != nil {
-		a.logger.Errorf("[GetAllAccessListSegmentation] service error: %v", err)
+		log.Errorf("[GetAllAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -195,26 +200,27 @@ func (a *accessListSegmentation) GetAllAccessListSegmentation(w http.ResponseWri
 
 // UpdateAccessListSegmentation implements accesslistsegmentation.AccessListSegmentationHandler.
 func (a *accessListSegmentation) UpdateAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		a.logger.Errorf("[UpdateAccessListSegmentation] missing id parameter")
+		log.Errorf("[UpdateAccessListSegmentation] missing id parameter")
 		localization.SendErrorByCodeResponse(w, localization.ErrorAccessListSegmentationInvalidID.Code)
 		return
 	}
 	var req access_list_segmentation_dto.UpdateAccessListSegmentationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		a.logger.Errorf("[UpdateAccessListSegmentation] failed to decode request body: %v", err)
+		log.Errorf("[UpdateAccessListSegmentation] failed to decode request body: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	req.ID = id
 	if err := req.Validate(); err != nil {
-		a.logger.Errorf("[UpdateAccessListSegmentation] validation error: %v", err)
+		log.Errorf("[UpdateAccessListSegmentation] validation error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	if err := a.service.UpdateAccessListSegmentation(r.Context(), req); err != nil {
-		a.logger.Errorf("[UpdateAccessListSegmentation] service error: %v", err)
+		log.Errorf("[UpdateAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -236,15 +242,16 @@ func (a *accessListSegmentation) UpdateAccessListSegmentation(w http.ResponseWri
 //	@Security		BearerAuth
 //	@Router			/access_list_segmentation/all/{id} [get]
 func (a *accessListSegmentation) GetAllAccessListSegmentationBySegmentIDorSegmentCode(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		a.logger.Errorf("[GetAllAccessListSegmentationBySegmentIDorSegmentCode] missing id parameter")
+		log.Errorf("[GetAllAccessListSegmentationBySegmentIDorSegmentCode] missing id parameter")
 		localization.SendErrorByCodeResponse(w, localization.ErrorAccessListSegmentationInvalidID.Code)
 		return
 	}
 	accesssList, accessListSegmentations, err := a.service.GetAllAccessListSegmentationBySegmentIDorSegmentCode(r.Context(), id)
 	if err != nil {
-		a.logger.Errorf("[GetAllAccessListSegmentationBySegmentIDorSegmentCode] service error: %v", err)
+		log.Errorf("[GetAllAccessListSegmentationBySegmentIDorSegmentCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

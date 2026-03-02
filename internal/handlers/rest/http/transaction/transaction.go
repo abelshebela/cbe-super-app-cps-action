@@ -40,6 +40,7 @@ type TransactionHandler struct {
 func (t *TransactionHandler) FindTransactionByCifOrAccountNumberOrFT(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_utils.TraceLogger(r.Context(), "handler", "transaction", "TransactionHandler", "FindTransactionByCifOrAccountNumberOrFT")
 	defer span.End()
+	log := local_utils.LoggerFromCtx(ctx, t.logger)
 
 	identifier := chi.URLParam(r, "identifier")
 	if identifier == "" {
@@ -50,7 +51,7 @@ func (t *TransactionHandler) FindTransactionByCifOrAccountNumberOrFT(w http.Resp
 	transaction, err := t.service.FindTransactionByCifOrAccountNumberOrFT(ctx, identifier)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("identifier", identifier)))
-		t.logger.Errorf("FindTransactionByCifOrAccountNumberOrFT failed: %v", err)
+		log.Errorf("[TxnH][FindByCif] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -79,12 +80,15 @@ func (t *TransactionHandler) FindTransactionByCifOrAccountNumberOrFT(w http.Resp
 func (t *TransactionHandler) FetchAllTransactions(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_utils.TraceLogger(r.Context(), "handler", "transaction", "TransactionHandler", "FetchAllTransactions")
 	defer span.End()
+	log := local_utils.LoggerFromCtx(ctx, t.logger)
+
 	filterParams := local_utils.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
 	if err := local_utils.NoSpecialChars(search); err != nil {
+		log.Errorf("[TxnH][GetAll] invalid search query: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -97,7 +101,7 @@ func (t *TransactionHandler) FetchAllTransactions(w http.ResponseWriter, r *http
 	transactions, err := t.service.FetchAllTransactions(ctx, filterParams)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
-		t.logger.Errorf("FetchAllTransactions failed: %v", err)
+		log.Errorf("[TxnH][GetAll] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -124,6 +128,7 @@ func (t *TransactionHandler) FetchAllTransactions(w http.ResponseWriter, r *http
 func (t *TransactionHandler) FetchTransactionByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_utils.TraceLogger(r.Context(), "handler", "transaction", "TransactionHandler", "FetchTransactionByID")
 	defer span.End()
+	log := local_utils.LoggerFromCtx(ctx, t.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.AddEvent("Missing transaction ID", trace.WithAttributes(attribute.String("error", "transaction ID required")))
@@ -133,7 +138,7 @@ func (t *TransactionHandler) FetchTransactionByID(w http.ResponseWriter, r *http
 	transaction, err := t.service.FetchTransactionByID(ctx, id)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
-		t.logger.Errorf("FetchTransactionByID failed: %v", err)
+		log.Errorf("[TxnH][GetByID] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

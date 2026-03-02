@@ -62,6 +62,21 @@ func (r *VaultCategoryRepository) UpdateWithdrawalRequest(ctx context.Context, i
 	if rows == 0 {
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
+
+	// updatedRequest, err := r.GetWithdrawalRequest(ctx, id)
+	// if err != nil {
+	// 	r.logger.Errorf("failed to fetch updated withdrawal request: %v", err)
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
+
+	// r.kafkaProducer.PublishMessage(
+	// 	ctx,
+	// 	updatedRequest,
+	// 	string(constants.ClientOrchestrationServicesTopic),
+	// 	r.cfg.CPSServiceUpdate,
+	// 	"vault withdrawal request authorized",
+	// )
+
 	return nil
 }
 
@@ -86,6 +101,7 @@ func (r *VaultCategoryRepository) GetWithdrawalRequest(ctx context.Context, id s
 		r.logger.Errorf("failed to get withdrawal request: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
 	return &w, nil
 }
 

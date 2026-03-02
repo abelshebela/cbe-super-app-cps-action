@@ -35,6 +35,7 @@ func NewAuthTierRepository(client *mongo.Client, cfg *config.VaultConfig, dbName
 func (a *AuthTierStorage) Update(ctx context.Context, id string, authTier *model.AuthTier) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		a.logger.Errorf("[AuthTierStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -42,10 +43,8 @@ func (a *AuthTierStorage) Update(ctx context.Context, id string, authTier *model
 
 	_, err = a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		a.logger.Errorf("[AuthTierStorage][Update] failed to update auth tier: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -53,12 +52,14 @@ func (a *AuthTierStorage) Update(ctx context.Context, id string, authTier *model
 func (a *AuthTierStorage) FindByID(ctx context.Context, id string) (*model.AuthTier, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		a.logger.Errorf("[AuthTierStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
 
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		a.logger.Errorf("[AuthTierStorage][FindByID] failed to find auth tier: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
@@ -77,11 +78,13 @@ func (a *AuthTierStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	data, err := a.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
+		a.logger.Errorf("[AuthTierStorage][FindAllWithPagination] failed to fetch auth tiers: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := a.dal.TotalCount(ctx, filter)
 	if err != nil {
+		a.logger.Errorf("[AuthTierStorage][FindAllWithPagination] failed to count auth tiers: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 

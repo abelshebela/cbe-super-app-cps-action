@@ -1,10 +1,9 @@
 package fayda
 
 import (
-	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
-	"errors"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -32,10 +31,7 @@ func (f *FaydaStorage) FindByUserCode(ctx context.Context, user_code string) (*m
 	filter := bson.M{"user_code": user_code}
 	user, err := f.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorUserNotFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return user, nil
@@ -47,10 +43,7 @@ func (p *FaydaStorage) Update(ctx context.Context, user *member.User, isEnabled 
 
 	_, err := p.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }

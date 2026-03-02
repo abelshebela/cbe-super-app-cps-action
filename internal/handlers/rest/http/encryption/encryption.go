@@ -40,19 +40,20 @@ func InitEncryption(svc service.EncryptionService, logger utils.Logger) *encrypt
 //	@Security		BearerAuth
 //	@Router			/encryption/encrypt [post]
 func (enc *encryptionHandler) Encrypt(w http.ResponseWriter, r *http.Request) {
-	_, span := local_util.TraceLogger(r.Context(), "handler", "encryptPassword", "handler", "encryption")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "encryptPassword", "handler", "encryption")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, enc.logger)
 	var req encryptionDto.EncryptionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
-		enc.logger.Errorf("[Encryption] failed to decode request: %v", err)
+		log.Errorf("[Encryption] failed to decode request: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
-		enc.logger.Errorf("[Encryption] validation failed: %v", err)
+		log.Errorf("[Encryption] validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -62,11 +63,11 @@ func (enc *encryptionHandler) Encrypt(w http.ResponseWriter, r *http.Request) {
 	result, _, err := enc.svc.LocalEncryptPassword(req, "enc", "enc", "enc")
 	if err != nil {
 		span.RecordError(err)
-		enc.logger.Errorf("[Encryption] service error: %v", err)
+		log.Errorf("[Encryption] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	enc.logger.Infof("[Encryption] password encrypted successfully for username: %s", req.Username)
+	log.Infof("[Encryption] password encrypted successfully for username: %s", req.Username)
 	localization.SendSuccessResponse(w, localization.SuccessEncryptionGenerated, result)
 }

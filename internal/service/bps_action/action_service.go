@@ -375,7 +375,7 @@ func (ba *bpsActionService) GetBPSActionByID(ctx context.Context, id, department
 
 		span.AddEvent("failed to parse the string to bson object", trace.WithAttributes(attribute.String("error", err.Error())))
 
-		ba.logger.Errorf("their is error when try to parse the string to bson object in service")
+		ba.logger.Errorf("[BpsActionSvc][GetByID] parse id err")
 
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 
@@ -530,7 +530,7 @@ func (ba *bpsActionService) RollBack(ctx context.Context, action *bps_model.BPSA
 		span.AddEvent("failed to roll back bps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
-	ba.logger.Infof("[RollBack] successfully rolled back BPS action %s to Pending", action.ActionCode)
+	ba.logger.Infof("[BpsActionSvc][RollBack] reverted: %s", action.ActionCode)
 	return nil
 }
 

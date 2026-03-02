@@ -7,6 +7,7 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	// "cbe-super-app-cps-action/internal/constants/model"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	mini_app "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 
@@ -66,12 +67,7 @@ func (m *MiniAppStorage) Update(ctx context.Context, id string, miniApp *mini_mo
 
 	_, err = m.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Warnf("MiniApp not found for ID: %s", id)
-			return errors.New(localization.ErrorMiniAppNotFound.Code)
-		}
-		m.logger.Errorf("Update MiniApp failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -90,12 +86,7 @@ func (m *MiniAppStorage) Delete(ctx context.Context, id string) error {
 
 	_, err = m.dal.UpdateOne(ctx, filter, updateFields)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Warnf("MiniApp not found for ID: %s", id)
-			return errors.New(localization.ErrorMiniAppNotFound.Code)
-		}
-		m.logger.Errorf("Delete MiniApp failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -114,12 +105,7 @@ func (m *MiniAppStorage) EnableOrDisable(ctx context.Context, id string, enable 
 
 	_, err = m.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Warnf("MiniApp not found for ID: %s", id)
-			return errors.New(localization.ErrorMiniAppNotFound.Code)
-		}
-		m.logger.Errorf("EnableOrDisable MiniApp failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }

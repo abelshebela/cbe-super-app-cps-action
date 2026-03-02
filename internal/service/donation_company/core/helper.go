@@ -15,10 +15,8 @@ import (
 	"errors"
 	"time"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	// shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
+	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -41,7 +39,7 @@ func CompanyNameExists(ctx context.Context, companyName string, donationCompanyR
 func CheckIfAccountExists(ctx context.Context, accountNumber string, repo storage.DonationCompanyRepository) error {
 	donCompany, err := repo.FindByAccountNumber(ctx, accountNumber)
 	if err != nil {
-		if err.Error() == "mongo: no documents in result" {
+		if err.Error() == "ERROR_RESOURCE_NOT_FOUND" {
 			return nil
 		}
 		return err
@@ -63,7 +61,7 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 	if accountDetail.Restriction == "YES" {
 		return nil, errors.New(localization.ErrorAccountRestricted.Code)
 	}
-	if accountDetail.Currency != "ETB" {
+	if accountDetail.Currency!="ETB" {
 		return nil, errors.New(localization.ErrorAccountCurrencyNotSupported.Code)
 	}
 
@@ -257,9 +255,9 @@ func CheckDataSimilarityAndValidation(ctx context.Context, request dto.DonationC
 	return nil
 }
 
-// ConvertDonationListResponseToModel converts a DonationListResponse DTO to a model.Donation
+// ConvertDonationListResponseToModel converts a DonationListResponse DTO to a donation_model.Donation
 // This is used when we need to update donations and preserve all existing fields
-func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationListResponse) *imodel.Donation {
+func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationListResponse) *donation_model.Donation {
 	companyObjID, _ := bson.ObjectIDFromHex(donationResponse.Company.ID)
 	categoryObjID, _ := bson.ObjectIDFromHex(donationResponse.Category.ID)
 
@@ -279,7 +277,7 @@ func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationL
 
 	donationID, _ := bson.ObjectIDFromHex(donationResponse.ID)
 
-	return &imodel.Donation{
+	return &donation_model.Donation{
 		ID:                  donationID,
 		DonationCode:        donationResponse.DonationCode,
 		CompanyID:           companyObjID,
@@ -289,7 +287,7 @@ func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationL
 		Target:              donationResponse.Target,
 		CurrentAmount:       donationResponse.CurrentAmount,
 		DonationDescription: donationResponse.DonationDescription,
-		DonationImages:      donationImages,
+		DonationImages:      convertToSharedDonationImages(donationImages),
 		CoverImage:          donationResponse.CoverImage,
 		StartDate:           startTime,
 		EndDate:             endTime,
@@ -298,4 +296,16 @@ func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationL
 		CreatedAt:           createdAt,
 		LastModifiedAt:      lastModifiedAt,
 	}
+}
+
+func convertToSharedDonationImages(images []types.DonationImage) []shared_types.DonationImage {
+	result := make([]shared_types.DonationImage, len(images))
+	for i, img := range images {
+		result[i] = shared_types.DonationImage{
+			ID:        img.ID,
+			PhotoURL:  img.PhotoURL,
+			CreatedAt: img.CreatedAt,
+		}
+	}
+	return result
 }

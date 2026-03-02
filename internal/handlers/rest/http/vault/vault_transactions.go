@@ -12,6 +12,7 @@ import (
 func (h *handler) GetVaultTransactions(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getVaultTransactions", "handler", "getVaultTransactions")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 
 	params := common_utils.ExtractFilterParams(r)
 
@@ -31,7 +32,7 @@ func (h *handler) GetVaultTransactions(w http.ResponseWriter, r *http.Request) {
 	result, err := h.service.FindAllVaultTransactions(ctx, params)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[getVaultTransactions] service: %v", err)
+		log.Errorf("[getVaultTransactions] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -42,6 +43,7 @@ func (h *handler) GetVaultTransactions(w http.ResponseWriter, r *http.Request) {
 func (h *handler) GetVaultTransaction(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "GetVaultTransaction", "handler", "GetVaultTransaction")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 
 	id := chi.URLParam(r, "transaction_id")
 
@@ -49,11 +51,11 @@ func (h *handler) GetVaultTransaction(w http.ResponseWriter, r *http.Request) {
 	result, err := h.service.FindVaultTransaction(ctx, id)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[GetVaultTransaction] service: %v", err)
+		log.Errorf("[GetVaultTransaction] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("Vault transaction retrieved with ID: %s", id)
+	log.Infof("[VaultTxnH][GetByID] ok id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessVaultTransactionRetrievedS, result)
 
 }

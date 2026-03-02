@@ -12,6 +12,7 @@ import (
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	passwordrule "cbe-super-app-cps-action/internal/constants/dto/password_rule"
 	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
+	"time"
 
 	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
 
@@ -60,8 +61,11 @@ import (
 
 	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 
-	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
+	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
 
+	queue "cbe-super-app-cps-action/internal/storage/queue_system"
+
+	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -72,7 +76,10 @@ type ServicesService interface {
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.Service], error)
+	CreateServiceList(ctx context.Context, req *service_dto.CreateServiceList) error
+	UpdateServiceList(ctx context.Context, id string, req *service_dto.UpdateServiceList) error
 	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error)
+	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
 	GetByID(ctx context.Context, id string) (*model.Service, error)
 }
 type CPSActionService interface {
@@ -95,6 +102,8 @@ type CPSActionService interface {
 	GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByUniqueID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error)
+
+	ExportCpsActionData(ctx context.Context, start_date, end_date time.Time, exported_to string) (string, error)
 }
 
 type BPSActionService interface {
@@ -131,7 +140,7 @@ type BudgetCategoryService interface {
 }
 
 type BulkService interface {
-	GetAllBulkServices(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.APPAccessList], error)
+	GetAllBulkServices(ctx context.Context, filterParams *types.Filter) ([]model.APPAccessList, []model.APPAccessList, error)
 	EnableBulkService(ctx context.Context, keys []string) error
 	DisableBulkService(ctx context.Context, keys []string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -196,6 +205,7 @@ type DonationService interface {
 	AddDonationImage(ctx context.Context, id string, image donation_dto.DonationRequest) error
 	EnableDonation(ctx context.Context, id string) error
 	DisableDonation(ctx context.Context, id string) error
+	ExportDonationData(ctx context.Context, startDate, endDate time.Time, fileType string) (string, error)
 }
 
 type DonationCategoryService interface {
@@ -287,7 +297,7 @@ type MiniAppMerchantService interface {
 type EcommerceMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	Create(ctx context.Context, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, error)
-	Update(ctx context.Context, id string, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error)
+	Update(ctx context.Context, id string, req *merchantDto.UpdateEcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error)
 	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
 	Delete(ctx context.Context, id string) error
@@ -397,7 +407,7 @@ type AccountBlockService interface {
 	EnableOrDisableDistricts(ctx context.Context, regionIds []string, reason string, enabled bool) error
 	EnableOrDisableCities(ctx context.Context, ids []string, reason string, enabled bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	GetAccountBlockDetails(ctx context.Context, id string) ([]model.CPSAction, error)
+	GetAccountBlockDetails(ctx context.Context, id string, filter *types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error)
 }
 
 type AccountValidationService interface {
@@ -423,8 +433,10 @@ type AdvertService interface {
 
 type AmountBasedAuthService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]model.AuthTier], error)
+	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]amountauthdto.CurrencyGroup], error)
 	UpdateAmountBasedAuth(ctx context.Context, id string, method shared_constant.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error
+	AddCurrency(ctx context.Context, request amountauthdto.AddCurrencyRequest) error
+	ResetConfig(ctx context.Context, currency constants.CurrencyType, request amountauthdto.ResetConfigRequest) error
 }
 
 type AvatarService interface {
@@ -597,6 +609,7 @@ type ServiceLayer struct {
 	CustomerKYC                   CustomerKYCService
 	UssdMerchantService           UssdMerchantService
 	BPSActionService              BPSActionService
+	QueueManager                  *queue.QueueManager
 }
 
 type ServiceContainer struct {
@@ -665,6 +678,7 @@ type ServiceContainer struct {
 	CustomerKYCContainer               CustomerKYCService
 	UssdMerchantContainer              UssdMerchantService
 	BPSActionContainer                 BPSActionService
+	QueueManager                       *queue.QueueManager
 }
 
 type BPSActionRoleService interface {

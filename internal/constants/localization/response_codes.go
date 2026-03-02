@@ -22,9 +22,19 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorExistUserName,
 	ErrorExistUserNameBPS,
+	DonationDataExportedSuccess,
+	DonationDataExportedError,
 
 	SuccessCPSActionCount,
 	SuccessServiceCreateRequestSubmitted,
+	SuccessServiceListCreated,
+	SuccessServiceListUpdated,
+	SuccessServiceListCreateRequestSubmitted,
+	SuccessServiceListUpdateRequestSubmitted,
+	SuccessServiceListEnableRequestSubmitted,
+	SuccessServiceListEnabled,
+	SuccessServiceListDisableRequestSubmitted,
+	SuccessServiceListDisabled,
 	SuccessServiceCreated,
 	SuccessServiceUpdateRequestSubmitted,
 	SuccessServiceUpdated,
@@ -169,6 +179,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDisableDistrictsRequestSent,
 
 	SuccessCityRetrieved,
+	DataRetrievedSuccessfully,
 	SuccessCitiesRetrieved,
 	SuccessCitiesEnabled,
 	SuccessCitiesDisabled,
@@ -177,6 +188,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDisableCities,
 	SuccessDisableCitiesRequestSent,
 
+	AutorizersLevelFetchedSuccessfully,
 	AutorizersLevelFetchedSuccessfully,
 
 	// department related success response
@@ -230,11 +242,20 @@ var ResponseCodesList = []ResponseCode{
 	SuccessActionRoleDisabledSP,
 	// event merchant success response codes
 	SuccessEventMerchantCreated,
+	SuccessEventMerchantCreateRequestSent,
 	SuccessEventMerchantDisabled,
+	SuccessEventMerchantDisableRequestSent,
 	SuccessEventMerchantEnabled,
+	SuccessEventMerchantEnableRequestSent,
 	SuccessEventMerchantUpdated,
+	SuccessEventMerchantUpdateRequestSent,
 	SuccessEventMerchantDeleted,
 	SuccessEventMerchantFetched,
+	SuccessEventMerchantCreateRequestSubmitted,
+	SuccessEventMerchantUpdateRequestSubmitted,
+	SuccessEventMerchantDeleteRequestSubmitted,
+	SuccessEventMerchantEnableRequestSubmitted,
+	SuccessEventMerchantDisableRequestSubmitted,
 
 	ErrorUsedJobTitleExisting,
 	// Error codes
@@ -322,6 +343,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCoverImageRequired,
 	ErrorInvalidAmounts,
 	ErrorAuthTierAlreadyExists,
+	ErrorCurrencyAlreadyExists,
+	ErrorCurrencyNotFound,
+	ErrorInvalidTierCascade,
 	ErrorInvalidMethod,
 	ErrorMerchantNotFound,
 	ErrorEventNotFound,
@@ -464,6 +488,10 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidRequiredAction,
 	ErrorFailToUpdateParent,
 	ErrorFailToUpdateChild,
+	ErrorFailToUpdateBulkService,
+
+	ErrorServiceListAlreadyExists,
+	ErrorServiceListNotFound,
 
 	// department related error
 	ErrorDepartmentCreateRequest,
@@ -837,6 +865,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessCPSRoleUpdatedSP,
 	SuccessCPSRoleCreatedSP,
 	SuccessCPSRoleDeletedSP,
+	ErrorBranchNotExistWithGivenBranchCode,
 }
 
 // Success Response Codes
@@ -937,6 +966,34 @@ var (
 		Code:       "SUCCESS_AMOUNT_BASED_AUTH_UPDATED_SUCCESS",
 		StatusCode: StatusOK,
 		Message:    MsgAmountBasedSuccessfullySentSP,
+		Type:       "success",
+	}
+
+	SuccessAmountBasedAuthCurrencyAdded = ResponseCode{
+		Code:       "SUCCESS_AMOUNT_BASED_AUTH_CURRENCY_ADDED",
+		StatusCode: StatusOK,
+		Message:    MsgAmountBasedCurrencyAdded,
+		Type:       "success",
+	}
+
+	SuccessAmountBasedAuthCurrencyAddedSP = ResponseCode{
+		Code:       "SUCCESS_AMOUNT_BASED_AUTH_CURRENCY_ADDED_SP",
+		StatusCode: StatusOK,
+		Message:    MsgAmountBasedCurrencyAddedSP,
+		Type:       "success",
+	}
+
+	SuccessAmountBasedAuthResetSent = ResponseCode{
+		Code:       "SUCCESS_AMOUNT_BASED_AUTH_RESET_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAmountBasedResetSent,
+		Type:       "success",
+	}
+
+	SuccessAmountBasedAuthResetSentSP = ResponseCode{
+		Code:       "SUCCESS_AMOUNT_BASED_AUTH_RESET_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgAmountBasedResetSentSP,
 		Type:       "success",
 	}
 
@@ -1548,6 +1605,28 @@ var (
 		Message:    MsgAuthorizersLevelFetchedSuccessfully,
 		Type:       "success",
 	}
+
+	CpsActionDataExportedSuccess = ResponseCode{
+		Code:       "DATA_EXPORT_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgCpsActionDataExportedSuccessfully,
+		Type:       "success",
+	}
+
+	DonationDataExportedSuccess = ResponseCode{
+		Code:       "DONATION_DATA_EXPORT_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgDonationDataExportedSuccessfully,
+		Type:       "success",
+	}
+
+	DonationDataExportedError = ResponseCode{
+		Code:       "DONATION_DATA_EXPORT_ERROR",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDonationDataExportFailed,
+		Type:       "error",
+	}
+
 	// BPS Action related success response codes
 	SuccessBPSActionsRetrieved = ResponseCode{
 		Code:       "SUCCESS_BPS_ACTIONS_RETRIEVED",
@@ -2314,6 +2393,27 @@ var (
 		Code:       "ERROR_AUTH_TIER_ALREADY_EXISTS",
 		StatusCode: StatusConflict,
 		Message:    "Auth tier already exists with the same values",
+		Type:       "error",
+	}
+
+	ErrorCurrencyAlreadyExists = ResponseCode{
+		Code:       "ERROR_CURRENCY_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    "Currency configuration already exists",
+		Type:       "error",
+	}
+
+	ErrorCurrencyNotFound = ResponseCode{
+		Code:       "ERROR_CURRENCY_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Currency configuration not found",
+		Type:       "error",
+	}
+
+	ErrorInvalidTierCascade = ResponseCode{
+		Code:       "ERROR_INVALID_TIER_CASCADE",
+		StatusCode: StatusBadRequest,
+		Message:    "Tier amounts must cascade: each tier max must equal the next tier min",
 		Type:       "error",
 	}
 
@@ -3620,6 +3720,56 @@ var (
 		Type:       "success",
 	}
 
+	SuccessServiceListCreated = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_CREATED",
+		StatusCode: StatusOK,
+		Message:    "Service list created successfully",
+		Type:       "success",
+	}
+	SuccessServiceListUpdated = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_UPDATED",
+		StatusCode: StatusOK,
+		Message:    "Service list updated successfully",
+		Type:       "success",
+	}
+
+	SuccessServiceListCreateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_CREATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Service list create request submitted successfully",
+		Type:       "success",
+	}
+	SuccessServiceListUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Service list update request submitted successfully",
+		Type:       "success",
+	}
+	SuccessServiceListEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Service list enable request submitted successfully",
+		Type:       "success",
+	}
+	SuccessServiceListEnabled = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Service list enabled successfully",
+		Type:       "success",
+	}
+	SuccessServiceListDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Service list disable request submitted successfully",
+		Type:       "success",
+	}
+	SuccessServiceListDisabled = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Service list disabled successfully",
+		Type:       "success",
+	}
+
 	SuccessServiceCreated = ResponseCode{
 		Code:       "SERVICE_CREATED",
 		StatusCode: StatusOK,
@@ -4394,6 +4544,13 @@ var (
 		Type:       "success",
 	}
 
+	DataRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_DATA_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgDataSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
 	SuccessCitiesRetrieved = ResponseCode{
 		Code:       "SUCCESS_CITIES_RETRIEVED",
 		StatusCode: StatusOK,
@@ -4549,6 +4706,12 @@ var (
 		Message:    MsgEventMerchantCreatedSuccessfully,
 		Type:       "success",
 	}
+	SuccessEventMerchantCreateRequestSent = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_CREATE_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgEventMerchantCreateRequestSentSuccessfully,
+		Type:       "success",
+	}
 	SuccessEventMerchantDeleted = ResponseCode{
 		Code:       "SUCCESS_EVENT_MERCHANT_DELETED",
 		StatusCode: StatusOK,
@@ -4561,10 +4724,22 @@ var (
 		Message:    MsgEventMerchantUpdatedSuccessfully,
 		Type:       "success",
 	}
+	SuccessEventMerchantUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantUpdateRequestSentSuccessfully,
+		Type:       "success",
+	}
 	SuccessEventMerchantEnabled = ResponseCode{
 		Code:       "SUCCESS_EVENT_MERCHANT_ENABLED",
 		StatusCode: StatusOK,
 		Message:    MsgEventMerchantEnabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantEnableRequestSent = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_ENABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantEnableRequestSentSuccessfully,
 		Type:       "success",
 	}
 	SuccessEventMerchantDisabled = ResponseCode{
@@ -4573,10 +4748,46 @@ var (
 		Message:    MsgEventMerchantDisabledSuccessfully,
 		Type:       "success",
 	}
+	SuccessEventMerchantDisableRequestSent = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_DISABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantDisableRequestSentSuccessfully,
+		Type:       "success",
+	}
 	SuccessEventMerchantFetched = ResponseCode{
 		Code:       "SUCCESS_EVENT_MERCHANT_FETCHED",
 		StatusCode: StatusOK,
 		Message:    MsgEventMerchantFetchedSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantCreateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_CREATE_REQUEST_SUBMITTED",
+		StatusCode: StatusCreated,
+		Message:    MsgEventMerchantCreateRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessEventMerchantUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessEventMerchantDeleteRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_DELETE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantDeleteRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessEventMerchantEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantEnableRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessEventMerchantDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantDisableRequestSubmitted,
 		Type:       "success",
 	}
 	SuccessLogisticsMerchantCreated = ResponseCode{
@@ -5383,6 +5594,14 @@ var (
 		Message:    MsgRoleNotFoundWithGivenJobTitle,
 		Type:       "error",
 	}
+
+	ErrorBranchNotExistWithGivenBranchCode = ResponseCode{
+		Code:       "ERROR_BRANCE_NOT_FOUND_WITH_GIVEN_KEY",
+		StatusCode: StatusNotFound,
+		Message:    MsgBranchNotFoundWithGivenCode,
+		Type:       "error",
+	}
+
 
 	ErrorExistPhoneNumber = ResponseCode{
 		Code:       "ERROR_EXIST_PHONE_NUMBER",
@@ -7064,6 +7283,19 @@ var (
 		Type:       "error",
 	}
 
+	ErrorServiceListAlreadyExists = ResponseCode{
+		Code:       "ERROR_SERVICE_LIST_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Service list with the same name or key already exists",
+		Type:       "error",
+	}
+	ErrorServiceListNotFound = ResponseCode{
+		Code:       "ERROR_SERVICE_LIST_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Service list not found",
+		Type:       "error",
+	}
+
 	ErrorCannotDisableOwnRole = ResponseCode{
 		Code:       "ERROR_CANNOT_DISABLE_OWN_ROLE",
 		StatusCode: StatusBadRequest,
@@ -7403,6 +7635,13 @@ var (
 		Code:       "ERROR_INVALID_REQUIRED_ACTION",
 		StatusCode: StatusBadRequest,
 		Message:    "The required action is invalid or missing.",
+		Type:       "error",
+	}
+
+	ErrorFailToUpdateBulkService = ResponseCode{
+		Code:       "ERROR_FAIL_TO_UPDATE_BULK_SERVICE",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to update bulk service.",
 		Type:       "error",
 	}
 

@@ -78,7 +78,7 @@ func (s *permissionService) CreatePermissionGroup(ctx context.Context, req permi
 
 	dept, err := s.department.FindByID(ctx, req.DepartmentID)
 	if err != nil || dept == nil {
-		s.logger.Errorf("Department not found with ID: %s", req.DepartmentID)
+		s.logger.Errorf("[PermSvc][CreateGroup] dept not found: %s", req.DepartmentID)
 		span.AddEvent("Department not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorDepartmentNotFound.Code),
 			attribute.String("department_id", req.DepartmentID),
@@ -111,10 +111,10 @@ func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permi
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdatePermissionGroup", "Permission", "UpdatePermissionGroup")
 	defer span.End()
 
-	s.logger.Infof("[UpdatePermissionGroup] updating permission group for id: %s", req.Id)
+	s.logger.Infof("[PermSvc][UpdateGroup] id: %s", req.Id)
 	existingGroup, err := s.repo.GetPermissionGroupById(ctx, req.Id)
 	if err != nil {
-		s.logger.Errorf("[UpdatePermissionGroup] failed to find permission group: %v", err)
+		s.logger.Errorf("[PermSvc][UpdateGroup] find err: %v", err)
 		span.AddEvent("Resource not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorResourceNotFound.Code),
 			attribute.String("id", req.Id),
@@ -124,7 +124,7 @@ func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permi
 
 	if req.NewGroupName != "" && req.NewGroupName != existingGroup.GroupName {
 		if s.repo.CheckPermissionGroupExists(req.NewGroupName) {
-			s.logger.Errorf("[UpdatePermissionGroup] permission group with new name already exists")
+			s.logger.Errorf("[PermSvc][UpdateGroup] name already exists")
 			span.AddEvent("Permission group already exists", trace.WithAttributes(
 				attribute.String("error", localization.ErrorPermissionGroupAlreadyExists.Code),
 				attribute.String("id", req.Id),
@@ -136,7 +136,7 @@ func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permi
 	if len(req.PermissionCategoryLists) > 0 {
 		validCategories, err := s.repo.ValidatePermissionCategories(ctx, req.PermissionCategoryLists)
 		if err != nil {
-			s.logger.Errorf("[UpdatePermissionGroup] failed to validate permission categories: %v", err)
+			s.logger.Errorf("[PermSvc][UpdateGroup] validate categories err: %v", err)
 			span.AddEvent("Failed to validate permission categories", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("id", req.Id),
@@ -145,7 +145,7 @@ func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permi
 		}
 
 		if len(validCategories) != len(req.PermissionCategoryLists) {
-			s.logger.Errorf("[UpdatePermissionGroup] invalid permission categories provided")
+			s.logger.Errorf("[PermSvc][UpdateGroup] invalid categories")
 			span.AddEvent("Permission category not found", trace.WithAttributes(
 				attribute.String("error", localization.ErrorPermissionCatagoryNotFound.Code),
 				attribute.String("id", req.Id),
@@ -167,14 +167,14 @@ func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permi
 	)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-		s.logger.Errorf("[UpdatePermissionGroup] failed to create CPS action: %v", err)
+		s.logger.Errorf("[PermSvc][UpdateGroup] cps action err: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", req.Id),
 		))
 		return err
 	}
-	s.logger.Infof("[UpdatePermissionGroup] permission group update request created successfully for id: %s", req.Id)
+	s.logger.Infof("[PermSvc][UpdateGroup] request created id: %s", req.Id)
 	return nil
 }
 
@@ -184,7 +184,7 @@ func (s *permissionService) GetPermissionGroup(groupName string) (*model.Permiss
 	defer span.End()
 
 	if groupName == "" {
-		s.logger.Errorf("[GetPermissionGroup] group name is empty")
+		s.logger.Errorf("[PermSvc][GetGroup] name empty")
 		span.AddEvent("Group name is empty", trace.WithAttributes(
 			attribute.String("error", localization.ErrorPermissionGroupRequired.Code),
 		))
@@ -195,21 +195,21 @@ func (s *permissionService) GetPermissionGroup(groupName string) (*model.Permiss
 	permissionGroup, err := s.repo.GetPermissionGroup(groupName)
 	if err != nil {
 		if err == mongo.ErrNoDocuments || err.Error() == "mongo: no documents in result" {
-			s.logger.Errorf("[GetPermissionGroup] permission group not found: %s", groupName)
+			s.logger.Errorf("[PermSvc][GetGroup] not found: %s", groupName)
 			span.AddEvent("Permission group not found", trace.WithAttributes(
 				attribute.String("error", localization.ErrorPermissionGroupNotFound.Code),
 				attribute.String("group_name", groupName),
 			))
 			return nil, errors.New(localization.ErrorPermissionGroupNotFound.Code)
 		}
-		s.logger.Errorf("[GetPermissionGroup] failed to fetch permission group: %v", err)
+		s.logger.Errorf("[PermSvc][GetGroup] fetch err: %v", err)
 		span.AddEvent("Failed to fetch permission group", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("group_name", groupName),
 		))
 		return nil, err
 	}
-	s.logger.Infof("[GetPermissionGroup] permission group retrieved successfully for name: %s", groupName)
+	s.logger.Infof("[PermSvc][GetGroup] retrieved: %s", groupName)
 	return permissionGroup, nil
 }
 
@@ -218,7 +218,7 @@ func (s *permissionService) GetPermissionGroupById(ctx context.Context, id strin
 	defer span.End()
 
 	if id == "" {
-		s.logger.Errorf("[GetPermissionGroupById] id is empty")
+		s.logger.Errorf("[PermSvc][GetGroupById] id empty")
 		span.AddEvent("Id is empty", trace.WithAttributes(
 			attribute.String("error", localization.ErrorPermissionGroupRequired.Code),
 		))
@@ -227,14 +227,14 @@ func (s *permissionService) GetPermissionGroupById(ctx context.Context, id strin
 
 	group, err := s.repo.GetPermissionGroupById(ctx, id)
 	if err != nil {
-		s.logger.Errorf("[GetPermissionGroupById] failed to fetch permission group: %v", err)
+		s.logger.Errorf("[PermSvc][GetGroupById] fetch err: %v", err)
 		span.AddEvent("Failed to fetch permission group", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return nil, err
 	}
-	s.logger.Infof("[GetPermissionGroupById] permission group retrieved successfully for id: %s", id)
+	s.logger.Infof("[PermSvc][GetGroupById] retrieved id: %s", id)
 	return group, nil
 }
 
@@ -249,13 +249,13 @@ func (s *permissionService) GetPermissionGroups(ctx context.Context, filterParam
 
 	result, err := s.repo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
-		s.logger.Errorf("[GetPermissionGroups] failed to fetch permission groups: %v", err)
+		s.logger.Errorf("[PermSvc][GetGroups] fetch err: %v", err)
 		span.AddEvent("Failed to fetch permission groups", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
 		return nil, err
 	}
-	s.logger.Infof("[GetPermissionGroups] retrieved %d permission groups", len(result.Data))
+	s.logger.Infof("[PermSvc][GetGroups] retrieved %d", len(result.Data))
 	return result, nil
 }
 
@@ -279,7 +279,7 @@ func (s *permissionService) ValidatePermissionCategories(ctx context.Context, ca
 
 	validCategories, err := s.repo.ValidatePermissionCategories(ctx, categoryIDs)
 	if err != nil {
-		s.logger.Errorf("Failed to validate permission categories: %v", err)
+		s.logger.Errorf("[PermSvc][ValidateCategories] validate err: %v", err)
 		span.AddEvent("Failed to validate permission categories", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -288,7 +288,7 @@ func (s *permissionService) ValidatePermissionCategories(ctx context.Context, ca
 
 	// Check if all requested categories were validated
 	if len(validCategories) != len(categoryIDs) {
-		s.logger.Warnf("Some permission categories were not found. Requested: %d, Valid: %d", len(categoryIDs), len(validCategories))
+		s.logger.Warnf("[PermSvc][ValidateCategories] mismatch requested: %d, valid: %d", len(categoryIDs), len(validCategories))
 		span.AddEvent("Permission category not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorPermissionCategoryNotFound.Code),
 		))
@@ -304,7 +304,7 @@ func (s *permissionService) ValidatePermissionGroups(ctx context.Context, groupI
 
 	validGroups, err := s.repo.ValidatePermissionGroups(ctx, groupIDs)
 	if err != nil {
-		s.logger.Errorf("Failed to validate permission groups: %v", err)
+		s.logger.Errorf("[PermSvc][ValidateGroups] validate err: %v", err)
 		span.AddEvent("Failed to validate permission groups", trace.WithAttributes(
 			attribute.String("error", localization.ErrorPermissionGroupValidationFailed.Code),
 		))
@@ -312,7 +312,7 @@ func (s *permissionService) ValidatePermissionGroups(ctx context.Context, groupI
 	}
 
 	if len(validGroups) != len(groupIDs) {
-		s.logger.Warnf("Some permission groups were not found. Requested: %d, Valid: %d", len(groupIDs), len(validGroups))
+		s.logger.Warnf("[PermSvc][ValidateGroups] mismatch requested: %d, valid: %d", len(groupIDs), len(validGroups))
 		span.AddEvent("Permission group not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorPermissionGroupNotFound.Code),
 		))
@@ -328,7 +328,7 @@ func (s *permissionService) GetPermissionCategoriesByDepartment(ctx context.Cont
 
 	department, err := s.department.FindByID(ctx, departmentId)
 	if err != nil || department == nil {
-		s.logger.Errorf("Department not found with ID: %s", departmentId)
+		s.logger.Errorf("[PermSvc][GetCatsByDept] dept not found: %s", departmentId)
 		span.AddEvent("Department not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorResourceNotFound.Code),
 			attribute.String("department_id", departmentId),
@@ -343,7 +343,7 @@ func (s *permissionService) GetPermissionCategoriesByDepartment(ctx context.Cont
 		for _, card := range portal_cards {
 			categories, err := s.repo.GetAllPermissionCategories(ctx, card)
 			if err != nil {
-				s.logger.Errorf("Permission category can't be found with department ID")
+				s.logger.Errorf("[PermSvc][GetCatsByDept] category not found for dept: %s", departmentId)
 				span.AddEvent("Permission category not found", trace.WithAttributes(
 					attribute.String("error", localization.ErrorResourceNotFound.Code),
 					attribute.String("department_id", departmentId),
@@ -366,7 +366,7 @@ func (s *permissionService) GetPermissionGroupsByDepartment(ctx context.Context,
 
 	department, err := s.repo.FindAllGroupsWithPagination(ctx, departmentId, filterParam)
 	if err != nil || department == nil {
-		s.logger.Errorf("Department not found with ID: %s", departmentId)
+		s.logger.Errorf("[PermSvc][GetGroupsByDept] dept not found: %s", departmentId)
 		span.AddEvent("Department not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorResourceNotFound.Code),
 			attribute.String("department_id", departmentId),
@@ -453,7 +453,7 @@ func (s *permissionService) GetPopulatedPermissionCategories(ctx context.Context
 
 	validCategories, err := s.repo.ValidatePermissionCategories(ctx, categoryIDs)
 	if err != nil {
-		s.logger.Errorf("Failed to validate permission categories: %v", err)
+		s.logger.Errorf("[PermSvc][GetPopulatedCats] validate err: %v", err)
 		span.AddEvent("Failed to validate permission categories", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -461,7 +461,7 @@ func (s *permissionService) GetPopulatedPermissionCategories(ctx context.Context
 	}
 
 	if len(validCategories) != len(categoryIDs) {
-		s.logger.Warnf("Some permission categories were not found. Requested: %d, Valid: %d", len(categoryIDs), len(validCategories))
+		s.logger.Warnf("[PermSvc][GetPopulatedCats] mismatch requested: %d, valid: %d", len(categoryIDs), len(validCategories))
 		span.AddEvent("Permission category not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorPermissionCategoryNotFound.Code),
 		))
@@ -492,7 +492,7 @@ func (s *permissionService) GetPopulatedPermissionGroups(ctx context.Context, gr
 
 	validGroups, err := s.repo.ValidatePermissionGroups(ctx, groupIDs)
 	if err != nil {
-		s.logger.Errorf("Failed to validate permission groups: %v", err)
+		s.logger.Errorf("[PermSvc][GetPopulatedGroups] validate err: %v", err)
 		span.AddEvent("Failed to validate permission groups", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -500,7 +500,7 @@ func (s *permissionService) GetPopulatedPermissionGroups(ctx context.Context, gr
 	}
 
 	if len(validGroups) != len(groupIDs) {
-		s.logger.Warnf("Some permission groups were not found. Requested: %d, Valid: %d", len(groupIDs), len(validGroups))
+		s.logger.Warnf("[PermSvc][GetPopulatedGroups] mismatch requested: %d, valid: %d", len(groupIDs), len(validGroups))
 		span.AddEvent("Permission group not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorPermissionGroupNotFound.Code),
 		))

@@ -97,9 +97,10 @@ func (d *donationCompanyAdapter) FetchDonationCompany(w http.ResponseWriter, r *
 func (d *donationCompanyAdapter) FetchDonationCompanyByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchDonationCompanyById", "handler", "donationCompany")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		d.logger.Errorf("donation company ID is required to fetch one")
+		log.Errorf("[DonCompH][GetByID] id required")
 		localization.SendErrorResponse(w, localization.ErrorDonationCompanyIdRequired, nil, nil)
 		return
 	}
@@ -133,19 +134,20 @@ func (d *donationCompanyAdapter) FetchDonationCompanyByID(w http.ResponseWriter,
 func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createDonationCompany", "handler", "donationCompany")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to parse donation company request from multipart form: %v", err)
+		log.Errorf("[DonCompH][Create] parse form err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("donation company request validation failed: %v", err)
+		log.Errorf("[DonCompH][Create] validate err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -157,14 +159,14 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 	)
 	if err := d.donationCompanyApp.CreateDonationCompany(ctx, req); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to create donation company: %v", err)
+		log.Errorf("[DonCompH][Create] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyCreatedSP, nil)
 	} else {
-		d.logger.Infof("donation company creation request submitted successfully")
+		log.Infof("[DonCompH][Create] request submitted")
 		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyCreateRequestSent, nil)
 	}
 }
@@ -189,12 +191,13 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateDonationCompany", "handler", "donationCompany")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		d.logger.Errorf("donation company ID is required for update")
+		log.Errorf("[DonCompH][Update] id required")
 		localization.SendErrorResponse(w, localization.ErrorDonationCompanyIdRequired, nil, nil)
 		return
 	}
@@ -202,14 +205,14 @@ func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r 
 	req, err := core.ParseRequestFromMultipartForm(r, false)
 	if err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to parse donation company update request from multipart form: %v", err)
+		log.Errorf("[DonCompH][Update] parse form err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if err := req.ValidateForUpdate(); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("donation company update request validation failed: %v", err)
+		log.Errorf("[DonCompH][Update] validate err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -218,17 +221,16 @@ func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r 
 		attribute.String("donation_company.id", id),
 		attribute.String("donation_company.name", req.CompanyName),
 	)
-	updatedDonationCompany, err := d.donationCompanyApp.UpdateDonationCompany(ctx, id, req)
-	if err != nil {
+	if _, err := d.donationCompanyApp.UpdateDonationCompany(ctx, id, req); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to update donation company: %v", err)
+		log.Errorf("[DonCompH][Update] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyUpdatedSP, nil)
 	} else {
-		d.logger.Infof("donation company update request submitted successfully", updatedDonationCompany)
+		log.Infof("[DonCompH][Update] request submitted")
 		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyUpdatedRequestSent, nil)
 	}
 }
@@ -250,15 +252,16 @@ func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r 
 func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "donationCompanyAccountLookup", "handler", "donationCompany")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	accountNumber := chi.URLParam(r, "account_number")
 	if accountNumber == "" {
-		d.logger.Errorf("account nmumber is required to fetch one")
+		log.Errorf("[DonCompH][GetByAcct] account number required")
 		localization.SendErrorResponse(w, localization.ErrorAccountNumberRequired, nil, nil)
 		return
 	}
 
 	if !local_util.IsValidCBEAccountNumber(accountNumber) {
-		d.logger.Errorf("account nmumber is not valid")
+		log.Errorf("[DonCompH][GetByAcct] invalid account number")
 		localization.SendBadRequestResponse(w, localization.ErrorAccountNumberNotValid.Message)
 		return
 	}
@@ -291,12 +294,13 @@ func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Re
 func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableDonationCompany", "handler", "donationCompany")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		d.logger.Errorf("donation company ID is required for diable")
+		log.Errorf("[DonCompH][Enable] id required")
 		localization.SendErrorResponse(w, localization.ErrorDonationCompanyIdRequired, nil, nil)
 		return
 	}
@@ -304,7 +308,7 @@ func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r 
 	span.SetAttributes(attribute.String("donation_company.id", id))
 	if err := d.donationCompanyApp.EnableDonationCompany(ctx, id); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to enable donation company: %v", err)
+		log.Errorf("[DonCompH][Enable] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -333,12 +337,13 @@ func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r 
 func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDonationCompany", "handler", "donationCompany")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		d.logger.Errorf("donation company ID is required for disable")
+		log.Errorf("[DonCompH][Disable] id required")
 		localization.SendErrorResponse(w, localization.ErrorDonationCompanyIdRequired, nil, nil)
 		return
 	}
@@ -346,7 +351,7 @@ func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r
 	span.SetAttributes(attribute.String("donation_company.id", id))
 	if err := d.donationCompanyApp.DisableDonationCompany(ctx, id); err != nil {
 		span.RecordError(err)
-		d.logger.Errorf("failed to disable donation company: %v", err)
+		log.Errorf("[DonCompH][Disable] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

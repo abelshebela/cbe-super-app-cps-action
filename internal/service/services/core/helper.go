@@ -191,3 +191,17 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing mode
 
 	return existing
 }
+
+func MapServiceListDtoToModel(req *service_dto.CreateServiceList) model.ServiceList {
+	return model.ServiceList{
+		ServiceName: req.ServiceName,
+		ServiceKey:  req.ServiceKey,
+	}
+}
+
+func MapServiceListDtoUpdateToModel(req *service_dto.UpdateServiceList) model.ServiceList {
+	return model.ServiceList{
+		ServiceName: req.ServiceName,
+		ServiceKey:  req.ServiceKey,
+	}
+}

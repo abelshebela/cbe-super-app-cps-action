@@ -29,27 +29,19 @@ func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionSe
 }
 
 func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServiceRequest) error {
-	exist, err := s.repo.CheckServiceExistence(ctx, req.ServiceCode, req.ServiceKey, req.ServiceName)
+	filterParam := types.Filter{
+		Search: req.ServiceName,
+	}
+	services, err := s.repo.FindAllWithPagination(ctx, filterParam)
 	if err != nil {
 		return err
 	}
-	if exist {
-		return errors.New(localization.ErrorServiceExists.Code)
+
+	for _, svc := range services.Data {
+		if svc.ServiceName == req.ServiceName {
+			return errors.New(localization.ErrorServiceExists.Code)
+		}
 	}
-
-	// for _, service := range req.ServiceList {
-	// 	if service.ServiceKey == nil || service.ServiceName == nil {
-	// 		break
-	// 	}
-	// 	listExists, err := s.repo.CheckServiceExistence(ctx, "", *service.ServiceKey, *service.ServiceName)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	if listExists {
-	// 		return errors.New(localization.ErrorChildServiceExists.Code)
-	// 	}
-	// }
-
 	mapped := core.MapToServiceModel(req)
 
 	return core.HandleCPSAction(ctx, s.cps, "", constants.RequestCreateService, mapped, nil, constants.ActionCreate)
@@ -114,12 +106,66 @@ func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*typ
 	return s.repo.FindAllWithPagination(ctx, filter)
 }
 
+func (s *servicesService) CreateServiceList(ctx context.Context, req *service_dto.CreateServiceList) error {
+	list, err := s.repo.FindServiceListByNameOrKey(ctx, req.ServiceName, req.ServiceKey)
+	if err != nil && err.Error() != localization.ErrorServiceListNotFound.Code {
+		return err
+	}
+	if list != nil {
+		return errors.New(localization.ErrorServiceListAlreadyExists.Code)
+	}
+
+	mapped := core.MapServiceListDtoToModel(req)
+	return core.HandleCPSAction(ctx, s.cps, "", constants.RequestCreateServiceList, mapped, nil, constants.ActionCreate)
+}
+
+func (s *servicesService) UpdateServiceList(ctx context.Context, id string, req *service_dto.UpdateServiceList) error {
+	existing, err := s.repo.FindServiceListByID(ctx, id)
+	if err != nil {
+		if err.Error() == localization.ErrorServiceListNotFound.Code {
+			return localization.ErrorServiceListNotFound
+		}
+		return err
+	}
+
+	// if strings.EqualFold(existing.ServiceName, req.ServiceName) || strings.EqualFold(existing.ServiceKey, req.ServiceKey) {
+	// 	return errors.New(localization.ErrorNoChangesDetected.Code)
+	// }
+
+	mapped := core.MapServiceListDtoUpdateToModel(req)
+	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestUpdateServiceList, mapped, existing, constants.ActionUpdate)
+}
+
 func (s *servicesService) GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error) {
 	return s.repo.FindAllServiceListWithPagination(ctx, filter)
 }
 
 func (s *servicesService) GetByID(ctx context.Context, id string) (*model.Service, error) {
 	return s.repo.FindByID(ctx, id)
+}
+
+func (s *servicesService) EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error {
+	if id == "" {
+		return localization.ErrorInvalidID
+	}
+	prev, err := s.repo.FindServiceListByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if prev.IsEnabled == enable {
+		if enable {
+			return localization.ErrorAlreadyEnabled
+		}
+		return localization.ErrorAlreadyDisabled
+	}
+	payload := model.ServiceList{IsEnabled: enable}
+	var requestAction constants.RequestAction
+	if enable {
+		requestAction = constants.RequestEnableServiceList
+	} else {
+		requestAction = constants.RequestDisableServiceList
+	}
+	return core.HandleCPSAction(ctx, s.cps, id, requestAction, payload, prev, constants.ActionUpdate)
 }
 
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
@@ -137,6 +183,38 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
 	case string(constants.RequestDisableService):
 		err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
+	case string(constants.RequestCreateServiceList):
+		listDoc, err := local_util.JsonUnmarshal[model.ServiceList](action.CurrentAction)
+		if err != nil {
+			return nil, localization.ErrorInvalidActionData
+		}
+
+		err = s.repo.CreateServiceList(ctx, listDoc)
+	case string(constants.RequestUpdateServiceList):
+		listDoc, err := local_util.JsonUnmarshal[model.ServiceList](action.CurrentAction)
+		if err != nil {
+			return nil, localization.ErrorInvalidActionData
+		}
+		prevListDoc, err := local_util.JsonUnmarshal[model.ServiceList](action.PreviousAction)
+		if err != nil {
+			return nil, localization.ErrorInvalidActionData
+		}
+
+		err = s.repo.UpdateServiceList(ctx, action.UniqueId, prevListDoc.ServiceKey, listDoc)
+	case string(constants.RequestEnableServiceList):
+		listDoc, err := local_util.JsonUnmarshal[model.ServiceList](action.PreviousAction)
+		if err != nil {
+			return nil, localization.ErrorInvalidActionData
+		}
+		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, listDoc.ServiceKey, true)
+	case string(constants.RequestDisableServiceList):
+		listDoc, err := local_util.JsonUnmarshal[model.ServiceList](action.PreviousAction)
+		if err != nil {
+			return nil, localization.ErrorInvalidActionData
+		}
+
+		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, listDoc.ServiceKey, false)
+
 	default:
 		return nil, localization.ErrorInvalidRequest
 	}

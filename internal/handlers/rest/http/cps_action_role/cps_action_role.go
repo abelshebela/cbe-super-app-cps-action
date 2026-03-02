@@ -46,6 +46,7 @@ func NewCPSActionRoleHandler(svc service.CPSActionRoleService, logger utils.Logg
 func (h *CPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCpsActionRoles", "handler", "cpsActionRole")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	filterParams := *local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -64,7 +65,7 @@ func (h *CPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.R
 	res, err := h.service.FindAllActionListWithPagination(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("list action list error: %v", err)
+		log.Errorf("[CpsRoleH][ListActions] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -91,6 +92,7 @@ func (h *CPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.R
 func (h *CPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCpsActionRoles", "handler", "cpsActionRole")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	filterParams := *local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -109,7 +111,7 @@ func (h *CPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	res, err := h.service.FindAllWithPagination(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("list action roles error: %v", err)
+		log.Errorf("[CpsRoleH][ListRoles] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -134,6 +136,7 @@ func (h *CPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 func (h *CPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionRoleByCode", "handler", "cpsActionRole")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
@@ -143,7 +146,7 @@ func (h *CPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 	res, err := h.service.GetByActionCode(ctx, code)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("get action role error: %v", err)
+		log.Errorf("[CpsRoleH][GetByCode] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -166,6 +169,7 @@ func (h *CPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -173,7 +177,7 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req actionrole_dto.CreateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[CPSActionRoleHandler] invalid input payload: %v", err)
+		log.Errorf("[CpsRoleH][Create] decode body err: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
@@ -200,7 +204,7 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("create action role failed: %v", err)
+		log.Errorf("[CpsRoleH][Create] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -230,6 +234,7 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -256,7 +261,7 @@ func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	err := h.service.Update(ctx, code, req)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("update action role failed: %v", err)
+		log.Errorf("[CpsRoleH][Update] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -285,6 +290,7 @@ func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (h *CPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -297,7 +303,7 @@ func (h *CPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	if err := h.service.Enable(ctx, code); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("enable action role failed: %v", err)
+		log.Errorf("[CpsRoleH][Enable] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -325,6 +331,7 @@ func (h *CPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 func (h *CPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
@@ -337,7 +344,7 @@ func (h *CPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	if err := h.service.Disable(ctx, code); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("disable action role failed: %v", err)
+		log.Errorf("[CpsRoleH][Disable] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

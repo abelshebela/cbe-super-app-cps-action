@@ -2,10 +2,11 @@ package cpsaction
 
 import (
 	"context"
-	"fmt"
 	"strings"
+	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"cbe-super-app-cps-action/internal/constants"
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
@@ -18,14 +19,15 @@ import (
 )
 
 type cpsActionServiceWithRoles struct {
-	base  service.CPSActionService
-	roles storage.CPSActionRoleRepository
+	base   service.CPSActionService
+	roles  storage.CPSActionRoleRepository
+	logger utils.Logger
 }
 
 // WithActionRolePolicy wraps a base CPSActionService and injects CPSActionRole
 // policy on CPSAction creation (checker_count and action_status).
-func WithActionRolePolicy(base service.CPSActionService, roles storage.CPSActionRoleRepository) service.CPSActionService {
-	return &cpsActionServiceWithRoles{base: base, roles: roles}
+func WithActionRolePolicy(base service.CPSActionService, roles storage.CPSActionRoleRepository, logger utils.Logger) service.CPSActionService {
+	return &cpsActionServiceWithRoles{base: base, roles: roles, logger: logger}
 }
 
 func (s *cpsActionServiceWithRoles) IsMakerOnlyForRequest(ctx context.Context, requestAction string) (bool, error) {
@@ -72,10 +74,12 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			}
 
 			if role == nil || approverData.ID.IsZero() {
+				s.logger.Errorf("[action_service] CreateCPSAction: role or approver not found for action %s", mod)
 				return localization.ErrorOperationNotAllowed
 			}
 
 			if approverData.MakerIndex == nil {
+				s.logger.Errorf("[action_service] CreateCPSAction: maker index not found for action %s", mod)
 				return localization.ErrorOperationNotAllowed
 			}
 
@@ -94,7 +98,6 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			}
 
 			if role != nil {
-				fmt.Printf("CPS Action created with role policy: %+v\n", role)
 				if role.IsMakerOnly {
 					cpsAction.ActionStatus = string(constants.Approved)
 					if err := s.base.ApproveCPSAction(ctx, cpsAction); err != nil {
@@ -104,6 +107,9 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 
 			}
 
+		} else {
+			s.logger.Errorf("[action_service] CreateCPSAction: role or approver not found for action %s", mod)
+			return localization.ErrorOperationNotAllowed
 		}
 	}
 
@@ -140,6 +146,16 @@ func (s *cpsActionServiceWithRoles) GetCPSActionsForAuditor(ctx context.Context,
 
 func (s *cpsActionServiceWithRoles) GetCPSActions(ctx context.Context, userID, role string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	return s.base.GetCPSActions(ctx, userID, role, RAList, filterParams)
+}
+
+func (s *cpsActionServiceWithRoles) ExportCpsActionData(
+	ctx context.Context,
+	startDate, endDate time.Time, export_type string,
+) (string, error) {
+	return s.base.ExportCpsActionData(
+		ctx,
+		startDate, endDate, export_type,
+	)
 }
 
 func (s *cpsActionServiceWithRoles) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {

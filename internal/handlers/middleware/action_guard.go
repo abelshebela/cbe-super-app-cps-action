@@ -97,7 +97,7 @@ func RequireCPSAction(actionName string) func(http.Handler) http.Handler {
 			allowed, err := cpsApproveRepo.ExistsByRoleAndAction(r.Context(), roleID, action)
 			if err != nil {
 				if guardLogger != nil {
-					guardLogger.Errorf("action guard lookup failed: %v", err)
+					guardLogger.Errorf("[ActionGuard][RequireCPS] lookup err: %v", err)
 				}
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return

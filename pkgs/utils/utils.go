@@ -316,7 +316,9 @@ func RandomGenerator(length uint8) string {
 	return string(result)
 }
 
-var allowedChars = "a-zA-Z0-9\\s._@-"
+// var allowedChars = "a-zA-Z0-9\\s._@-"
+var allowedChars = `a-zA-Z0-9\s._@\p{Ethiopic}\(\)\-`
+var validNameRegex = regexp.MustCompile("^[" + allowedChars + "]+$")
 
 func NoSpecialChars(value any) error {
 	var str string
@@ -337,8 +339,8 @@ func NoSpecialChars(value any) error {
 		return nil
 	}
 
-	re := regexp.MustCompile("^[" + allowedChars + "]+$")
-	if !re.MatchString(str) {
+	// re := regexp.MustCompile("^[" + allowedChars + "]+$")
+	if !validNameRegex.MatchString(str) {
 		return validation.NewError("validation", "contains invalid characters")
 	}
 	return nil
@@ -433,7 +435,7 @@ func TrimWhiteSpace(value interface{}) error {
 		}
 		s = *v
 	default:
-		return nil // Non-string types are not trimmed
+		return nil
 	}
 	if strings.TrimSpace(s) == "" {
 		return errors.New("value cannot be empty or whitespace")
@@ -648,4 +650,58 @@ func TraceLogger(ctx context.Context, key, spanName, serviceType, serviceName st
 
 	return ctx, span
 
+}
+
+func ValidateTimeAndParse(dateTime string) (time.Time, error) {
+	// Fix space before timezone offset
+	if len(dateTime) >= 6 && dateTime[len(dateTime)-6] == ' ' {
+		dateTime = dateTime[:len(dateTime)-6] + "+" + dateTime[len(dateTime)-5:]
+	}
+
+	return time.Parse(time.RFC3339Nano, dateTime)
+}
+
+func ValidateTimeRangeOrder(time1, time2 time.Time) (bool, error) {
+	if time1.After(time2) {
+		return false, errors.New("'end date'  cannot be before 'start' date")
+	}
+	return true, nil
+}
+
+
+
+func FormatDateRangeToUTCStrings(fromStr, toStr string) (string, string, error) {
+	const layout = "2006-01-02" // frontend format
+
+	from, err := time.Parse(layout, fromStr)
+	if err != nil {
+		return "", "", err
+	}
+
+	to, err := time.Parse(layout, toStr)
+	if err != nil {
+		return "", "", err
+	}
+
+	// Start of day UTC
+	startOfDay := time.Date(
+		from.Year(),
+		from.Month(),
+		from.Day(),
+		0, 0, 0, 0,
+		time.UTC,
+	)
+
+	// End of day UTC (recommended production-safe version)
+	endOfDay := time.Date(
+		to.Year(),
+		to.Month(),
+		to.Day(),
+		23, 59, 59, 999999999,
+		time.UTC,
+	)
+
+	return startOfDay.Format(time.RFC3339Nano),
+		endOfDay.Format(time.RFC3339Nano),
+		nil
 }

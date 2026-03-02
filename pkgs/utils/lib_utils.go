@@ -341,7 +341,7 @@ func GenerateActionCode() string {
 	now := time.Now()
 	year := now.Format("06")                        // last 2 digits of year
 	dayOfYear := fmt.Sprintf("%03d", now.YearDay()) // day of year zero-padded to 3 digits
-	timeStr := now.Format("150405")                 // HHMMSS
+	timeStr := now.Format("150405000")              // HHMMSSmmm (milliseconds)
 
 	return prefix + year + dayOfYear + "_" + timeStr
 }

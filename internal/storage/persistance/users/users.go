@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -56,12 +57,7 @@ func (r *userRepository) FindById(ctx context.Context, id string) (*member.User,
 
 	user, err := r.userDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("no user found for the provided id")
-			return nil, errors.New(localization.ErrorUserNotFound.Code)
-		}
-		r.logger.Errorf("unexpected error during FindById")
-		return nil, errors.New(localization.ErrorInternalServerError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	r.logger.Infof("user found by id")
@@ -75,13 +71,7 @@ func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber stri
 
 	user, err := r.userDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Errorf("failed to find user by phone number", err)
-
-			return nil, errors.New(localization.ErrorUserNotFound.Code)
-		}
-		r.logger.Errorf("failed to find user by phone number")
-		return nil, errors.New(localization.ErrorInternalServerError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	r.logger.Infof("user found by phone number")
@@ -96,12 +86,7 @@ func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string
 
 	user, err := r.userDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("no user found for the provided deviceUUID")
-			return nil, errors.New(localization.ErrorUserNotFound.Code)
-		}
-		r.logger.Errorf("unexpected error during FindByDeviceUUID: %v", err)
-		return nil, errors.New(localization.ErrorInternalServerError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	r.logger.Infof("user found by deviceUUID")
@@ -129,10 +114,7 @@ func (r *userRepository) FindByUserCode(ctx context.Context, userCode string) (*
 	// projection := UserProjection()
 	user, err := r.userDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorUserNotFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return user, nil
@@ -145,10 +127,7 @@ func (r *userRepository) FindByCustomerNumber(ctx context.Context, customerNumbe
 	projection := UserProjection()
 	user, err := r.userDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorUserNotFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return user, nil
 }
@@ -161,12 +140,7 @@ func (r *userRepository) GetUserByAccount(ctx context.Context, accNumber string)
 	}
 	err := linkedAccountCollection.FindOne(ctx, linkedAccountFilter).Decode(&linkedAccount)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("no linked account found for the provided account number")
-			return nil, errors.New(localization.ErrorUserNotFound.Code)
-		}
-		r.logger.Errorf("unexpected error during GetUserByAccount (linked account): %v", err)
-		return nil, errors.New(localization.ErrorInternalServerError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	userFilter := bson.M{
@@ -175,12 +149,7 @@ func (r *userRepository) GetUserByAccount(ctx context.Context, accNumber string)
 	projection := UserProjection()
 	user, err := r.userDal.FindOne(ctx, userFilter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("no user found for the provided customer number")
-			return nil, errors.New(localization.ErrorUserNotFound.Code)
-		}
-		r.logger.Errorf("unexpected error during GetUserByAccount (user): %v", err)
-		return nil, errors.New(localization.ErrorInternalServerError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	r.logger.Infof("user found by account number via linked account")

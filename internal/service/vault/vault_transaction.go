@@ -9,7 +9,6 @@ import (
 	"database/sql"
 	"errors"
 
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -26,7 +25,7 @@ func (s *vaultCategoryService) FindAllVaultTransactions(ctx context.Context, fil
 	entities, err := s.repo.FindAllTransactionsWithPagination(ctx, *filterParams)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("failed to fetch vault transactions | err=%v", err)
+		s.logger.Errorf("[VaultTxnSvc][FindAll] fetch err: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return &types.PaginatedResponse[[]imodel.VaultTransaction]{
@@ -41,10 +40,10 @@ func (s *vaultCategoryService) FindVaultTransaction(ctx context.Context, id stri
 
 	entity, err := s.repo.FindVaultTransaction(ctx, id)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, mongo.ErrNoDocuments) {
+		if errors.Is(err, sql.ErrNoRows) || err.Error() == localization.ErrorResourceNotFound.Code {
 			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
-		s.logger.Errorf("failed to fetch vault transaction by id | err=%v", err)
+		s.logger.Errorf("[VaultTxnSvc][FindByID] fetch err: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return entity, nil

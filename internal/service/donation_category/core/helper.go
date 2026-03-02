@@ -10,7 +10,6 @@ import (
 	"time"
 
 	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 func DonationNameExists(
@@ -23,9 +22,6 @@ func DonationNameExists(
 	if err != nil {
 		// Check if the error message is the "not found" error code
 		if err.Error() == localization.ErrorResourceNotFound.Code {
-			return false, nil
-		}
-		if errors.Is(err, mongo.ErrNoDocuments) {
 			return false, nil
 		}
 		return false, errors.New(localization.ErrorDonationCategoryLookupFailed.Code)

@@ -19,7 +19,6 @@ import (
 	sharedmodel "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type RoleService struct {
@@ -50,7 +49,7 @@ func (j *RoleService) Create(ctx context.Context, role imodel.JobRole) error {
 	}
 
 	if err := core.RoleExistenChecker(ctx, constants.CREATE, "", role, j.roleRepository); err != nil {
-		if err != mongo.ErrNoDocuments {
+		if err.Error() != localization.ErrorResourceNotFound.Code {
 			return errors.New(err.Error())
 		}
 	}
@@ -70,7 +69,7 @@ func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRo
 	}
 
 	if err := core.RoleExistenChecker(ctx, constants.CREATE, "", update, j.roleRepository); err != nil {
-		if err != mongo.ErrNoDocuments {
+		if err.Error() != localization.ErrorResourceNotFound.Code {
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 	}
@@ -209,6 +208,7 @@ func (j *RoleService) FindAllWithPagination(ctx context.Context, filterParam typ
 func (j *RoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.CPSAction) (*sharedmodel.CPSAction, error) {
 	var asAny any
 	raw, err := json.Marshal(cpsAction.CurrentAction)
+	j.logger.Infof("[Role Service][Authorize] raw CPS action data: %s", string(raw))
 	if err != nil {
 		j.logger.Errorf("[JobRole Service][Authorize] marshal CurrentAction failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -217,6 +217,7 @@ func (j *RoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.CPSA
 		j.logger.Errorf("[JobRole Service][Authorize] unmarshal CurrentAction failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	j.logger.Infof("[Role Service][Authorize] CPS action data as any: %v", asAny)
 
 	raw2, _ := json.Marshal(asAny)
 	var role imodel.JobRole
@@ -224,6 +225,7 @@ func (j *RoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.CPSA
 		j.logger.Errorf("[JobRole Service][Authorize] map to Role failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	j.logger.Infof("[Role Service][Authorize] CPS action data as JobRole: %v", role)
 	if cpsAction.UniqueId != "" {
 		if oid, err := bson.ObjectIDFromHex(cpsAction.UniqueId); err == nil {
 			role.ID = oid

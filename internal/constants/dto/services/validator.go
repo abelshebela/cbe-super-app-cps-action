@@ -3,24 +3,74 @@ package services
 import (
 	"cbe-super-app-cps-action/pkgs/utils"
 	"fmt"
+	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
+const (
+	maximunTransferCapLimit = 1000000000.0
+)
+
+func (r CreateServiceRequest) Normalize() {
+	r.ServiceName = strings.TrimSpace(r.ServiceName)
+	r.ServiceKey = strings.TrimSpace(r.ServiceKey)
+	r.ServiceCode = strings.TrimSpace(r.ServiceCode)
+	r.ProductGlAccount = strings.TrimSpace(r.ProductGlAccount)
+
+	for i := range r.Cap {
+		if r.Cap[i].Currency != nil {
+			currency := strings.TrimSpace(*r.Cap[i].Currency)
+			currency = strings.ToUpper(currency)
+			r.Cap[i].Currency = &currency
+		}
+	}
+}
+
+func (r UpdateServiceRequest) Normalize() {
+	if r.ServiceName != nil {
+		*r.ServiceName = strings.TrimSpace(*r.ServiceName)
+	}
+	if r.ServiceKey != nil {
+		*r.ServiceKey = strings.TrimSpace(*r.ServiceKey)
+	}
+	if r.ServiceCode != nil {
+		*r.ServiceCode = strings.TrimSpace(*r.ServiceCode)
+	}
+	if r.ProductGlAccount != nil {
+		*r.ProductGlAccount = strings.TrimSpace(*r.ProductGlAccount)
+	}
+
+	for i := range r.Cap {
+		if r.Cap[i].Currency != nil {
+			currency := strings.TrimSpace(*r.Cap[i].Currency)
+			currency = strings.ToUpper(currency)
+			r.Cap[i].Currency = &currency
+		}
+	}
+}
+
 func (c CapRequest) Validate() error {
 	return validation.ValidateStruct(&c,
 		validation.Field(&c.Currency, validation.NotNil, is.CurrencyCode),
-		validation.Field(&c.SingleCap, validation.NotNil, validation.Min(0.0)),
-		validation.Field(&c.MinimumTransferCap, validation.NotNil, validation.Min(0.0), validation.By(func(value interface{}) error {
-			if c.SingleCap == nil || c.MinimumTransferCap == nil {
+		validation.Field(&c.SingleCap,
+			validation.NotNil,
+			validation.Min(0.0),
+			validation.Max(maximunTransferCapLimit).Error("must be no greater than 1,000,000,000"),
+		),
+		validation.Field(&c.MinimumTransferCap,
+			validation.NotNil,
+			validation.Min(0.0),
+			validation.By(func(value interface{}) error {
+				if c.SingleCap == nil || c.MinimumTransferCap == nil {
+					return nil
+				}
+				if *c.MinimumTransferCap > *c.SingleCap {
+					return fmt.Errorf("minimum transfer cap must not be greater than the single maximum transfer cap")
+				}
 				return nil
-			}
-			if *c.MinimumTransferCap > *c.SingleCap {
-				return fmt.Errorf("minimum transfer cap must not be greater than the single maximum transfer cap")
-			}
-			return nil
-		})),
+			})),
 	)
 }
 
@@ -229,4 +279,18 @@ func (r UpdateServiceRequest) Validate() error {
 	// }
 
 	return nil
+}
+
+func (r CreateServiceList) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.ServiceKey, validation.Required, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.ServiceName, validation.Required, validation.By(utils.NoSpecialChars)),
+	)
+}
+
+func (r UpdateServiceList) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.ServiceKey, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.ServiceName, validation.By(utils.NoSpecialChars)),
+	)
 }
