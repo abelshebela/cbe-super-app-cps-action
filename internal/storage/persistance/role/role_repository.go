@@ -97,7 +97,7 @@ func (r *RoleRepository) Update(ctx context.Context, id string, role *imodel.Rol
 	filter := bson.M{"_id": objID}
 
 	// find by name so that we can update users with the new role name if it changes
-	existingRole, err := r.FindByName(ctx, role.JobTitle)
+	existingRole, err := r.FindByID(ctx, id)
 	if err != nil {
 		r.logger.Errorf("[RoleRepository][Update] failed to find role by name: %s err: %v", role.JobTitle, err)
 	}
@@ -198,7 +198,7 @@ func (r *RoleRepository) FindByCode(ctx context.Context, code string) (*imodel.R
 }
 
 func (r *RoleRepository) FindAll(ctx context.Context) (*[]imodel.Role, error) {
-	data, err := r.mongoDal.FindAll(ctx, bson.M{}, nil)
+	data, err := r.mongoDal.FindAll(ctx, bson.M{"enabled": true}, nil)
 	if err != nil {
 		r.logger.Errorf("[RoleRepository][FindAll] failed to find roles: %v", err)
 		return nil, local_util.HandleDBError(err)
