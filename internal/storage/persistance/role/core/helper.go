@@ -13,7 +13,7 @@ func UpdateCpsUsers(ctx context.Context, client *mongo.Client, oldJobTitle, newJ
 	const collectionName = "cps_users"
 
 	// Access the MongoDB collection (replace 'db' with your MongoDB client instance)
-	collection := client.Database("your_database_name").Collection(collectionName)
+	collection := client.Database(collectionName).Collection(collectionName)
 
 	// Define the filter to match documents with the old job title
 	filter := bson.M{"job_title": oldJobTitle}
