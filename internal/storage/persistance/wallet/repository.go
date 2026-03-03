@@ -313,6 +313,7 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 				},
 			},
 		}},
+		{{Key: "$sort", Value: bson.M{"created_at": -1}}},
 		// Cleanup
 		{{Key: "$project", Value: bson.M{
 			"temp_service":   0,
