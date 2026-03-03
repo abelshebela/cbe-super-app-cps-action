@@ -20,18 +20,22 @@ import (
 )
 
 type RoleRepository struct {
-	client     *mongo.Client
-	mongoDal   dal.MongoDal[imodel.Role, imodel.Role]
-	logger     utils.Logger
-	collection *mongo.Collection
+	client                *mongo.Client
+	mongoDal              dal.MongoDal[imodel.Role, imodel.Role]
+	logger                utils.Logger
+	dbName                string
+	cpsUserCollectionName string
+	collection            *mongo.Collection
 }
 
 func NewRoleRepository(client *mongo.Client, cfg *config.VaultConfig, database string, collection []string, logger utils.Logger) storage.RoleRepository {
 	return &RoleRepository{
-		client:     client,
-		mongoDal:   dal.NewMongoDal[imodel.Role, imodel.Role](client, cfg, database, collection[0]),
-		logger:     logger,
-		collection: client.Database(database).Collection(collection[1]),
+		client:                client,
+		mongoDal:              dal.NewMongoDal[imodel.Role, imodel.Role](client, cfg, database, collection[0]),
+		logger:                logger,
+		dbName:                database,
+		collection:            client.Database(database).Collection(collection[1]),
+		cpsUserCollectionName: collection[2],
 	}
 }
 
@@ -109,7 +113,7 @@ func (r *RoleRepository) Update(ctx context.Context, id string, role *imodel.Rol
 	}
 	if existingRole != nil && existingRole.JobTitle != role.JobTitle {
 		r.logger.Infof("[RoleRepository][Update] updating cps users for job title change from %s to %s", existingRole.JobTitle, role.JobTitle)
-		if err := core.UpdateCpsUsers(ctx, r.client, existingRole.JobTitle, role.JobTitle); err != nil {
+		if err := core.UpdateCpsUsers(ctx, r.dbName, r.cpsUserCollectionName, r.client, existingRole.JobTitle, role.JobTitle); err != nil {
 			r.logger.Errorf("[RoleRepository][Update] failed to update cps users for job title change: %v", err)
 			// Not returning error since role update succeeded, and user update failure shouldn't block it
 		}
