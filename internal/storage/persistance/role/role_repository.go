@@ -198,7 +198,7 @@ func (r *RoleRepository) FindByCode(ctx context.Context, code string) (*imodel.R
 }
 
 func (r *RoleRepository) FindAll(ctx context.Context) (*[]imodel.Role, error) {
-	data, err := r.mongoDal.FindAll(ctx, bson.M{}, nil)
+	data, err := r.mongoDal.FindAll(ctx, bson.M{"enabled": true}, nil)
 	if err != nil {
 		r.logger.Errorf("[RoleRepository][FindAll] failed to find roles: %v", err)
 		return nil, local_util.HandleDBError(err)
