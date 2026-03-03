@@ -375,3 +375,22 @@ func (r *CPSUserStorage) FindByEmailOrPhoneNumberOrUserName(ctx context.Context,
 	}
 	return result, nil
 }
+
+func (r *CPSUserStorage) UpdateCpsUsersJobTitle(ctx context.Context, oldJobTitle, newJobTitle string) error {
+	// Define the filter to match documents with the old job title
+	filter := bson.M{"job_title": oldJobTitle}
+
+	// Define the update operation to set the new job title
+	update := bson.M{"$set": bson.M{"job_title": newJobTitle}}
+
+	// Perform the update operation
+	result, err := r.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	// Log the number of documents updated (optional)
+	fmt.Printf("Updated %d documents in collection %s\n", result.ModifiedCount, r.collection.Name())
+
+	return nil
+}
