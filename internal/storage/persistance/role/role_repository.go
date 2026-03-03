@@ -99,7 +99,7 @@ func (r *RoleRepository) Update(ctx context.Context, id string, role *imodel.Rol
 	// find by name so that we can update users with the new role name if it changes
 	existingRole, err := r.FindByName(ctx, role.JobTitle)
 	if err != nil {
-		r.logger.Warnf("[RoleRepository][Update] failed to find role by name: %v", err)
+		r.logger.Errorf("[RoleRepository][Update] failed to find role by name: %s err: %v", role.JobTitle, err)
 	}
 
 	_, err = r.mongoDal.UpdateOne(ctx, filter, update)
