@@ -6,16 +6,22 @@ import (
 	"strings"
 
 	"cbe-super-app-cps-action/platform/telemetry"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 // NewOtelConfig constructs a telemetry.Config from environment variables with sane local defaults.
 // This keeps OTEL setup isolated from the main application config and is intentionally minimal and explicit.
-func NewOtelConfig() telemetry.Config {
+func NewOtelConfig(cfg config.VaultConfig) telemetry.Config {
 	// defaults
-	serviceName := "cbe-super-app-cps-action"
-	serviceVersion := "1.0.0"
-	env := "development"
-	endpoint := "localhost:4317"
+	// serviceName := "cbe-super-app-cps-action"
+	// serviceVersion := "1.0.0"
+	// env := "development"
+	// endpoint := "localhost:4317"
+	serviceName := cfg.OTELServiceName
+	serviceVersion := cfg.OTELResourceAttributes
+	env := cfg.OTELResourceAttributes
+	endpoint := cfg.OTELExporterOTLPEndpoint
 	enabled := true
 
 	if v := os.Getenv("SERVICE_NAME"); v != "" {
@@ -34,7 +40,7 @@ func NewOtelConfig() telemetry.Config {
 	if v := os.Getenv("OTLP"); v != "" && endpoint == "localhost:4317" {
 		endpoint = v
 	}
-	endpoint = "192.168.136.1:4317"
+	endpoint = cfg.OTELExporterOTLPEndpoint
 
 	if v := os.Getenv("OTEL_ENABLED"); v != "" {
 		lv := strings.ToLower(v)
@@ -56,4 +62,6 @@ func NewOtelConfig() telemetry.Config {
 		Enabled:        enabled,
 		SamplingRatio:  samplingRatio,
 	}
+	// }
+
 }
