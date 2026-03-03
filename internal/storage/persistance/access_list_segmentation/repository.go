@@ -8,7 +8,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
-	"cbe-super-app-cps-action/internal/storage/persistance/access_list_segmentation/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
@@ -149,8 +148,7 @@ func (a *AccessListSegmentation) CreateAccountSegment(ctx context.Context, acces
 		a.logger.Errorf("[AccessListSegmentation][CreateAccountSegment] failed to insert documents: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	topic := core.ChangeTopicName(a.cfg)
-	a.kafkaProducer.PublishMessage(ctx, docs, "create", topic, "create account-segment")
+	a.kafkaProducer.PublishMessage(ctx, docs, "create", a.cfg.KafkaCustomerSegmentaionTopic, "create account-segment")
 	return nil
 }
 
@@ -410,9 +408,7 @@ func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_lis
 				AccessListKey:    key,
 			}
 		}
-		topic := core.ChangeTopicName(a.cfg)
-
-		a.kafkaProducer.PublishMessage(ctx, als, "delete", topic, "bulk disable access-list-segmentation")
+		a.kafkaProducer.PublishMessage(ctx, als, "delete", a.cfg.KafkaCustomerSegmentaionTopic, "bulk disable access-list-segmentation")
 	}
 	return nil
 }
