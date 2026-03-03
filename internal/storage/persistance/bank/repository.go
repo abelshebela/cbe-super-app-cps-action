@@ -184,7 +184,6 @@ func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 	if filterParam.Search == "enabled" {
 		filter["enabled"] = true
 	}
-	filter["sort"] = bson.M{"created_at": -1}
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		s.logger.Errorf("[BankStorage][FindAllWithPagination] failed to fetch banks: %v", err)
