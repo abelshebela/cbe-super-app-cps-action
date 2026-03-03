@@ -18,9 +18,19 @@ func UpdateCpsUsers(ctx context.Context, client *mongo.Client, oldJobTitle, newJ
 	// Define the filter to match documents with the old job title
 	filter := bson.M{"job_title": oldJobTitle}
 
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		return err
+	}
+	defer cursor.Close(ctx)
+	var results []bson.M
+	if err := cursor.All(ctx, &results); err != nil {
+		return err
+	}
+
 	// Define the update operation to set the new job title
 	update := bson.M{"$set": bson.M{"job_title": newJobTitle}}
-
+	fmt.Println(filter, update, results, "///////////")
 	// Perform the update operation
 	result, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
