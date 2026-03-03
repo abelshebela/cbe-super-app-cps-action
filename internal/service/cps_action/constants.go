@@ -723,11 +723,11 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"SINGLEBRANCHENABLEACCOUNTBLOCK": {
 		RequestEnableSingleBranch,
-		RequestEnableBranches,
+		// RequestEnableBranches,
 	},
 	"SINGLEBRANCHDISABLEACCOUNTBLOCK": {
 		RequestDisableSingleBranch,
-		RequestDisableBranches,
+		// RequestDisableBranches,
 	},
 	"MULTIBRANCHENABLEACCOUNTBLOCK": {
 		RequestEnableBranches,
