@@ -17,3 +17,15 @@ func ValidateString(s string) error {
 	}
 	return nil
 }
+
+func ValidateCustomerLookupRequest(number string) error {
+	if number == "" {
+		return errors.New("number is empty")
+	}
+	// Regex to ensure the number contains only digits
+	numberRegex := regexp.MustCompile(`^\d+$`)
+	if !numberRegex.MatchString(number) {
+		return errors.New("number must contain only digits")
+	}
+	return nil
+}

@@ -175,7 +175,7 @@ func Init(ctx context.Context) {
 	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.Services, serviceLayer.Topup, logger)
 	srv := server.NewHTTPServer(cfg, otlr)
 
-	grpcServer, lis := server.StartGrpcServer(grpcHandlers, logger)
+	grpcServer, lis := server.StartGrpcServer(grpcHandlers, logger, cfg)
 
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {
