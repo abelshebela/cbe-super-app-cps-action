@@ -9,12 +9,18 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
+var validRoleTypes = []interface{}{"CPS", "BPS"}
+
 func (r CreateJobRoleRequest) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Name,
 			validation.Required.Error("name is required"),
 			validation.Length(2, 100).Error("name must be between 2 and 100 characters"),
 			validation.By(utils.NoSpecialChars),
+		),
+		validation.Field(&r.Type,
+			validation.Required.Error("type is required"),
+			validation.In(validRoleTypes...).Error("type must be CPS or BPS"),
 		),
 		// validation.Field(&r.PortalCards,
 		// 	validation.By(validatePortalCards),
@@ -23,7 +29,7 @@ func (r CreateJobRoleRequest) Validate() error {
 }
 
 func (r UpdateJobRoleRequest) Validate() error {
-	if strings.TrimSpace(r.Code) == "" && strings.TrimSpace(r.Name) == "" {
+	if strings.TrimSpace(r.Code) == "" && strings.TrimSpace(r.Name) == "" && strings.TrimSpace(r.Type) == "" {
 		return fmt.Errorf("at least one field must be provided for update")
 	}
 	return validation.ValidateStruct(&r,
@@ -31,6 +37,11 @@ func (r UpdateJobRoleRequest) Validate() error {
 			validation.When(r.Name != "",
 				validation.Length(2, 100).Error("name must be between 2 and 100 characters"),
 				validation.By(utils.NoSpecialChars),
+			),
+		),
+		validation.Field(&r.Type,
+			validation.When(r.Type != "",
+				validation.In(validRoleTypes...).Error("type must be CPS or BPS"),
 			),
 		),
 	)

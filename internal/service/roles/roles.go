@@ -86,6 +86,9 @@ func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRo
 	if update.Code != "" {
 		newRole.Code = update.Code
 	}
+	if update.Type != "" {
+		newRole.Type = update.Type
+	}
 	if update.Description != "" {
 		newRole.Description = update.Description
 	}

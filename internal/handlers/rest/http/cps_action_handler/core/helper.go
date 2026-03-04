@@ -1,4 +1,4 @@
-package cpsactionhandler
+package cpsactioncore
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
