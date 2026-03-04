@@ -1,7 +1,6 @@
 package event_merchant_dto
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"errors"
 	"strings"
@@ -10,9 +9,6 @@ import (
 func (req CreateEventMerchantRequest) Validate() error {
 	if strings.TrimSpace(req.MerchantID) == "" {
 		return errors.New(localization.ErrorEventMerchantInvalidMerchantID.Code)
-	}
-	if strings.TrimSpace(req.MerchantType) == "" {
-		return errors.New(localization.ErrorEventMerchantInvalidMerchantType.Code)
 	}
 	if strings.TrimSpace(req.SettlementMethod) == "" {
 		return errors.New(localization.ErrorEventMerchantInvalidSettlementMethod.Code)
@@ -23,7 +19,7 @@ func (req CreateEventMerchantRequest) Validate() error {
 	if strings.TrimSpace(req.BankAccountNumber) == "" {
 		return errors.New(localization.ErrorEventMerchantInvalidBankAccountNumber.Code)
 	}
-	if req.MerchantType == "" || req.MerchantType != string(constants.Event) {
+	if req.IsEventMerchant == nil || !*req.IsEventMerchant {
 		return errors.New(localization.ErrorEventMerchantInvalidIsEventMerchant.Code)
 	}
 	// if strings.TrimSpace(req.Email) == "" {

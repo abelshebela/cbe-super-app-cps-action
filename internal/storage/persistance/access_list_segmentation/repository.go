@@ -1,7 +1,6 @@
 package access_list_segmentation_repository
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	access_list_segmentation_dto "cbe-super-app-cps-action/internal/constants/dto/access_list_segmentation"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -31,6 +30,7 @@ type AccessListSegmentation struct {
 	collectionName string
 	kafkaProducer  kafka.AccessListSegmentationProducer
 	logger         utils.Logger
+	cfg            *config.VaultConfig
 }
 
 // FindParentChildRelationship implements [storage.AccessListSegmentationRepository].
@@ -148,7 +148,7 @@ func (a *AccessListSegmentation) CreateAccountSegment(ctx context.Context, acces
 		a.logger.Errorf("[AccessListSegmentation][CreateAccountSegment] failed to insert documents: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	a.kafkaProducer.PublishMessage(ctx, docs, "create", string(constants.AccessListSegmentationTopic), "create account-segment")
+	a.kafkaProducer.PublishMessage(ctx, docs, "create", a.cfg.KafkaCustomerSegmentaionTopic, "create account-segment")
 	return nil
 }
 
@@ -408,7 +408,7 @@ func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_lis
 				AccessListKey:    key,
 			}
 		}
-		a.kafkaProducer.PublishMessage(ctx, als, "delete", string(constants.AccessListSegmentationTopic), "bulk disable access-list-segmentation")
+		a.kafkaProducer.PublishMessage(ctx, als, "delete", a.cfg.KafkaCustomerSegmentaionTopic, "bulk disable access-list-segmentation")
 	}
 	return nil
 }
@@ -422,5 +422,6 @@ func NewAccessListSegmentationRepository(client *mongo.Client, cfg *config.Vault
 		dbName:         dbName,
 		collectionName: collectionName,
 		logger:         logger,
+		cfg:            cfg,
 	}
 }

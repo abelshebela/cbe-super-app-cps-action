@@ -1139,10 +1139,13 @@ const (
 	ClientOrchestrationNewsTagTopic              KafkaTopic = "news_tag.sync.cps"
 	ClientOrchestrationNotificationTopic         KafkaTopic = "notification.sync.cps"
 	ClientOrchestrationServicesTopic             KafkaTopic = "services.sync.cps"
-	AccessListSegmentationTopic                  KafkaTopic = "customer_segmentation"
 	InAppNotificationsTopic                      KafkaTopic = "inapp.notifications"
 	CustomerRoleUpdatedTopic                     KafkaTopic = "cps-customer-role-updated"
 	CustomerSegmentationUpdatedTopic             KafkaTopic = "cps-customer-segmentation-updated"
+)
+
+var (
+	AccessListSegmentationTopic KafkaTopic = "customer_segmentation_qa"
 )
 
 // ---------------------------------------------------------------------------
