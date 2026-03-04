@@ -9,7 +9,6 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	mid "cbe-super-app-cps-action/internal/handlers/middleware"
-	core "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler/core"
 	"cbe-super-app-cps-action/internal/service"
 	cpsactionsvc "cbe-super-app-cps-action/internal/service/cps_action"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -365,8 +364,18 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Prevent approving an action that is already finalized
-	if msg := core.CheckActionFinalized(action); msg != "" {
-		localization.SendBadRequestResponse(w, msg)
+	if action.ActionStatus == string(constants.Approved) {
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyApproved)
+		return
+	}
+
+	if action.ActionStatus == string(constants.Rejected) {
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyRejected)
+		return
+	}
+
+	if action.ActionStatus == string(constants.Canceled) {
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyRejected)
 		return
 	}
 
@@ -377,17 +386,63 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	}
 
 	TotalCheckerCount := action.CheckerCount
+	currentIndex := action.CurrentCheckerIndex
 
-	// Validate approver role's checker_index via cps_action_approver_index
+	// Validate approver role's checker_index via cps_action_approver_index (grouped: 0.* -> 1.*, 1.* -> 2.*)
+	actionName := ""
 	var idxDoc *imodel.CPSActionApproveIndex
-	result, errMsg := core.ValidateCheckerAccess(ctx, r, action, &userData)
-	if errMsg != "" {
-		localization.SendBadRequestResponse(w, errMsg)
-		return
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
+		actionName = mod
 	}
-	idxDoc = result.IdxDoc
-	ctx = result.Ctx
-	r = result.Request
+
+	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
+		rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+		if rawRoleID == "" {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+
+		roleID := rawRoleID
+		UpperCaseAction := strings.ToUpper(actionName)
+		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, UpperCaseAction, action.Version)
+		if err != nil {
+			span.RecordError(err)
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+
+		if idxDoc == nil || idxDoc.CheckerIndex == nil {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+
+		Current_role_level := *idxDoc.CheckerIndex
+		expected := int32(*idxDoc.CheckerIndex)
+		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
+		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
+		r = r.WithContext(ctx)
+		if currentIndex == float64(Current_role_level) {
+			localization.SendBadRequestResponse(w, localization.MsgCPSActionApprovedByThisRole)
+			return
+		}
+
+		if int64(currentIndex)+1 < int64(Current_role_level) {
+			localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
+			return
+		}
+
+		if action.MakerID == userData.UserName {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+
+		for _, cu := range action.CheckerUsers {
+			if cu.RoleID == roleID || cu.CheckerID == userData.UserID {
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+				return
+			}
+		}
+	}
 
 	// Enforce ordering: must approve in sequence
 	// if int64(*idxDoc.CheckerIndex) != int64(currentIndex)+1 || int64(*idxDoc.CheckerIndex) > int64(checkerCount) {

@@ -58,8 +58,10 @@ func (s *ussdMerchantService) CreateUssdMerchant(ctx context.Context, req ussd_m
 
 	existing, err := s.repo.FindByOr(ctx, req.PhoneNumber, req.Email, req.AccountNumber)
 	if err != nil {
-		s.logger.Errorf("[UssdMerchSvc][Create] exist check err: %v", err)
-		return err
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			s.logger.Errorf("[UssdMerchSvc][Create] exist check err: %v", err)
+			return err
+		}
 	}
 
 	if req.Service != "" {

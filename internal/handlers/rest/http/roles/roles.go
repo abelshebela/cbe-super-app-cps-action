@@ -150,6 +150,7 @@ func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	role := imodel.JobRole{
 		Name: strings.TrimSpace(body.Name),
 		Code: body.Code,
+		Type: strings.ToUpper(strings.TrimSpace(body.Type)),
 		// Code:        "ROLE_" + local_util.UniqueIdGenerator(),
 		Description: strings.TrimSpace(body.Description),
 		CreatedAt:   time.Now(),
@@ -212,6 +213,9 @@ func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	if body.Code != "" {
 		updated.Code = strings.TrimSpace(body.Code)
+	}
+	if body.Type != "" {
+		updated.Type = strings.ToUpper(strings.TrimSpace(body.Type))
 	}
 	if body.Description != "" {
 		updated.Description = strings.TrimSpace(body.Description)

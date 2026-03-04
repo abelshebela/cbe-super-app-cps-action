@@ -136,20 +136,14 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["enabled"] = searchRegex
-		searchKeys["merchant_code"] = searchRegex
-		searchKeys["name"] = searchRegex
-		searchKeys["settlement_method"] = searchRegex
-		searchKeys["phone_number"] = searchRegex
-		searchKeys["service"] = searchRegex
-		searchKeys["account_number"] = searchRegex
-	}
-
-	if filterParam.Page == 0 {
-		filterParam.Page = 1
-	}
-	if filterParam.PerPage == 0 {
-		filterParam.PerPage = 10
+		searchKeys["$or"] = []bson.M{
+			{"merchant_code": searchRegex},
+			{"name": searchRegex},
+			{"settlement_method": searchRegex},
+			{"phone_number": searchRegex},
+			{"service": searchRegex},
+			{"account_number": searchRegex},
+		}
 	}
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
