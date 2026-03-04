@@ -290,7 +290,8 @@ func (s *server) TopupMapper(data []model.Topup) []*topuppb.Topup {
 
 func StartGrpcServer(s *server, logger utils.Logger, cfg *config.VaultConfig) (*grpc.Server, net.Listener) {
 
-	lis, err := net.Listen("tcp", cfg.CPSActionGrpcAddress)
+	// lis, err := net.Listen("tcp", cfg.CPSActionGrpcAddress)
+	lis, err := net.Listen("tcp", ":50051")
 
 	if err != nil {
 		logger.Fatalf("failed to listen: %v", err)
