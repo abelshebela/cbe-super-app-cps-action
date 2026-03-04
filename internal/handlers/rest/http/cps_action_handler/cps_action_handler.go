@@ -1614,8 +1614,8 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	FormatedFrom,formatedTo,err :=local_util.FormatDateRangeToUTCStrings(from,to)
-	if err != nil{
+	FormatedFrom, formatedTo, err := local_util.FormatDateRangeToUTCStrings(from, to)
+	if err != nil {
 		log.Warnf("Invalid Start date is given ", from)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
 		return

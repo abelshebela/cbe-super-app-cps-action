@@ -12,6 +12,7 @@ import (
 	"context"
 	"net"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	otelgrpc "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -287,8 +288,9 @@ func (s *server) TopupMapper(data []model.Topup) []*topuppb.Topup {
 	return topups
 }
 
-func StartGrpcServer(s *server, logger utils.Logger) (*grpc.Server, net.Listener) {
+func StartGrpcServer(s *server, logger utils.Logger, cfg *config.VaultConfig) (*grpc.Server, net.Listener) {
 
+	// lis, err := net.Listen("tcp", cfg.CPSActionGrpcAddress)
 	lis, err := net.Listen("tcp", ":50051")
 
 	if err != nil {
@@ -303,7 +305,7 @@ func StartGrpcServer(s *server, logger utils.Logger) (*grpc.Server, net.Listener
 	walletpb.RegisterWalletServiceServer(grpcServer, s)
 	servicepb.RegisterServiceDetailsServiceServer(grpcServer, s)
 	topuppb.RegisterTopupServiceServer(grpcServer, s)
-	logger.Infof("gRPC server listening on port 50051")
+	logger.Infof("gRPC server listening on port %s", cfg.CPSActionGrpcAddress)
 	return grpcServer, lis
 }
 

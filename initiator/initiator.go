@@ -43,7 +43,7 @@ func Init(ctx context.Context) {
 	logger.Infof("Initializing OpenTelemetry Tracing...")
 
 	// Build OTEL config from a dedicated helper that reads env vars and provides defaults.
-	otelCfg := NewOtelConfig()
+	otelCfg := NewOtelConfig(*cfg)
 
 	if otelCfg.Enabled {
 		logger.Infof("Checking OTLP endpoint connectivity at %s...", otelCfg.OTLPEndpoint)
@@ -154,8 +154,8 @@ func Init(ctx context.Context) {
 
 	logger.Infof("initialize service layer")
 
-	serviceLayer := InitServiceLayer(mongoClient, persistence, OraclePersistence, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService, clientOrchestrationProducer,presignClient, queueInfra.Manager)
-	
+	serviceLayer := InitServiceLayer(mongoClient, persistence, OraclePersistence, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService, clientOrchestrationProducer, presignClient, queueInfra.Manager)
+
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
 			logger.Errorf("Failed to start feedback consumer: %v", err)
@@ -175,7 +175,7 @@ func Init(ctx context.Context) {
 	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.Services, serviceLayer.Topup, logger)
 	srv := server.NewHTTPServer(cfg, otlr)
 
-	grpcServer, lis := server.StartGrpcServer(grpcHandlers, logger)
+	grpcServer, lis := server.StartGrpcServer(grpcHandlers, logger, cfg)
 
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {
