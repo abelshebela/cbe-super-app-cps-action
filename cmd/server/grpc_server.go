@@ -290,7 +290,7 @@ func (s *server) TopupMapper(data []model.Topup) []*topuppb.Topup {
 
 func StartGrpcServer(s *server, logger utils.Logger, cfg *config.VaultConfig) (*grpc.Server, net.Listener) {
 
-	lis, err := net.Listen("tcp", cfg.GRPCPort)
+	lis, err := net.Listen("tcp", cfg.CPSActionGrpcAddress)
 
 	if err != nil {
 		logger.Fatalf("failed to listen: %v", err)
@@ -304,7 +304,7 @@ func StartGrpcServer(s *server, logger utils.Logger, cfg *config.VaultConfig) (*
 	walletpb.RegisterWalletServiceServer(grpcServer, s)
 	servicepb.RegisterServiceDetailsServiceServer(grpcServer, s)
 	topuppb.RegisterTopupServiceServer(grpcServer, s)
-	logger.Infof("gRPC server listening on port %s", cfg.GRPCPort)
+	logger.Infof("gRPC server listening on port %s", cfg.CPSActionGrpcAddress)
 	return grpcServer, lis
 }
 
