@@ -460,7 +460,11 @@ func (c customerAdapter) SearchCustomerByCIForAccountNumber(w http.ResponseWrite
 	log := util.LoggerFromCtx(ctx, c.logger)
 
 	number := chi.URLParam(r, "number")
-
+	if err := core.ValidateCustomerLookupRequest(number); err != nil {
+		log.Errorf("[SearchCustomerByCIForAccountNumber] validation error: %v", err)
+		localization.SendBadRequestResponse(w, "lookup value must not be empty and must be either a valid CID or account number or phone number")
+		return
+	}
 	customer, err := c.customerService.SearchCustomerByCIForAccountNumber(ctx, number)
 	if err != nil {
 		span.RecordError(err)
