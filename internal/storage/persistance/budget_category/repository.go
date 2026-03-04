@@ -104,7 +104,7 @@ func (b *BudgetCategoryStorage) FindAllBudgetCategories(ctx context.Context, fil
 		}
 	}
 
-	data, err := b.budgetCategoryDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := b.budgetCategoryDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		b.logger.Errorf("[BudgetCategoryStorage][FindAllBudgetCategories] failed to fetch budget categories: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
