@@ -177,7 +177,7 @@ func (r *JobRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		}
 	}
 
-	allowedKeys := []string{"enabled", "name", "code"}
+	allowedKeys := []string{"enabled", "name", "code", "type"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	filter["is_deleted"] = bson.M{"$ne": true}
 
