@@ -428,6 +428,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAvatarAlreadyExist,
 	ErrorWalletNameAlreadyExists,
 	ErrorWalletCodeAlreadyExists,
+	ErrorWalletServiceIDAlreadyExists,
 	ErrorWalletAlreadyDisabled,
 	ErrorWalletAlreadyEnabled,
 	ErrorWalletIDRequired,
