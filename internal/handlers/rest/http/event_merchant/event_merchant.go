@@ -2,7 +2,9 @@ package event_merchant_handler
 
 import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 
+	"cbe-super-app-cps-action/internal/constants"
 	event_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/event_merchant"
 	event_merchant_port "cbe-super-app-cps-action/internal/constants/interfaces/event_merchant"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -40,6 +42,8 @@ func (e *EventMerchantHandler) CreateEventMerchant(w http.ResponseWriter, r *htt
 	log := local_util.LoggerFromCtx(ctx, e.logger)
 	var req event_merchant_dto.CreateEventMerchantRequest
 	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Errorf("[CreateEventMerchant] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
@@ -113,6 +117,8 @@ func (e *EventMerchantHandler) DisableEventMerchant(w http.ResponseWriter, r *ht
 	ctx, _ := local_util.TraceLogger(r.Context(), "handler", "disableEventMerchant", "handler", "event_merchant")
 	md := &types.ContextMetadata{}
 	id := chi.URLParam(r, "id")
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
@@ -147,6 +153,7 @@ func (e *EventMerchantHandler) DisableEventMerchant(w http.ResponseWriter, r *ht
 func (e *EventMerchantHandler) EnableEventMerchant(w http.ResponseWriter, r *http.Request) {
 	ctx, _ := local_util.TraceLogger(r.Context(), "handler", "enableEventMerchant", "handler", "event_merchant")
 	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
@@ -251,6 +258,8 @@ func (e *EventMerchantHandler) UpdateEventMerchant(w http.ResponseWriter, r *htt
 	ctx, _ := local_util.TraceLogger(r.Context(), "handler", "updateEventMerchant", "handler", "event_merchant")
 	md := &types.ContextMetadata{}
 	log := local_util.LoggerFromCtx(ctx, e.logger)
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
