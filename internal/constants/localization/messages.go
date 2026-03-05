@@ -194,8 +194,11 @@ const (
 	MsgBPSActionsRetrieved             = "BPS actions retrieved successfully"
 
 	// Wallet related success messages
-	MsgWalletCreationRequestSent    = "Wallet creation request sent successfully"
-	MsgWalletUpdateRequestSent      = "Wallet update request sent successfully"
+	MsgWalletCreationRequestSent = "Wallet creation request sent successfully"
+	MsgWalletUpdateRequestSent   = "Wallet update request sent successfully"
+
+	MsgWalletCreated                = "Wallet created successfully"
+	MsgWalletUpdated                = "Wallet updated successfully"
 	MsgWalletDeleteRequestSent      = "Wallet delete request sent successfully"
 	MsgWalletDeletedSuccessfully    = "Wallet deleted successfully"
 	MsgWalletsRetrievedSuccessfully = "Wallets retrieved successfully"
@@ -613,8 +616,7 @@ const (
 	MsgBankDisableRequestSuccessfullyCreated = "Bank Disable request successfully created"
 	MsgBankDisableRequestFailed              = "Bank Disable request  failed"
 	MsgRoleNotFoundWithGivenJobTitle         = "Role does not exist with the given job title"
-	MsgBranchNotFoundWithGivenCode        = "Branch does not exist with the given branch code"
-
+	MsgBranchNotFoundWithGivenCode           = "Branch does not exist with the given branch code"
 
 	MsgBankEnableRequestSuccessfullyCreated = "Bank Enable request successfully created"
 	MsgBankEnableRequestFailed              = "Bank Enable request  failed"
