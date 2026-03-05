@@ -21,11 +21,14 @@ func (r CreateServiceRequest) Normalize() {
 
 	for i := range r.Cap {
 		if r.Cap[i].Currency != nil {
+			source := strings.TrimSpace(*r.Cap[i].Source)
 			currency := strings.TrimSpace(*r.Cap[i].Currency)
 			currency = strings.ToUpper(currency)
 			r.Cap[i].Currency = &currency
+			r.Cap[i].Source = &source
 		}
 	}
+
 }
 
 func (r UpdateServiceRequest) Normalize() {
@@ -44,15 +47,21 @@ func (r UpdateServiceRequest) Normalize() {
 
 	for i := range r.Cap {
 		if r.Cap[i].Currency != nil {
+			source := strings.TrimSpace(*r.Cap[i].Source)
 			currency := strings.TrimSpace(*r.Cap[i].Currency)
 			currency = strings.ToUpper(currency)
 			r.Cap[i].Currency = &currency
+			r.Cap[i].Source = &source
 		}
 	}
+
 }
 
 func (c CapRequest) Validate() error {
 	return validation.ValidateStruct(&c,
+		validation.Field(&c.Source, validation.NotNil,
+			validation.In("APP", "USSD", "INTERNET_BANKING", "ATM", "POS", "PAPERLESS").Error("source must be one of (APP, USSD, INTERNET_BANKING, ATM, POS, PAPERLESS)"),
+		),
 		validation.Field(&c.Currency, validation.NotNil, is.CurrencyCode),
 		validation.Field(&c.SingleCap,
 			validation.NotNil,
@@ -194,6 +203,7 @@ func (r CreateServiceRequest) Validate() error {
 		validation.Field(&r.ServiceKey, validation.Required, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ProductGlAccount),
+		validation.Field(&r.MinimumFraudAmount, validation.Min(0.0).Error("minimum_fraud_amount must be greater or equal to zero")),
 	)
 	if err != nil {
 		return err
@@ -239,6 +249,7 @@ func (r CreateServiceRequest) Validate() error {
 func (r UpdateServiceRequest) Validate() error {
 	err := validation.ValidateStruct(&r,
 		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.MinimumFraudAmount, validation.Min(0.0).Error("minimum_fraud_amount must be greater or equal to zero")),
 	)
 	if err != nil {
 		return err
@@ -246,7 +257,7 @@ func (r UpdateServiceRequest) Validate() error {
 
 	if r.Cap != nil {
 		for _, c := range r.Cap {
-			if c.SingleCap != nil || c.MinimumTransferCap != nil {
+			if c.Source != nil || c.Currency != nil || c.SingleCap != nil || c.MinimumTransferCap != nil {
 				if err := validateCap(c); err != nil {
 					return err
 				}
@@ -254,6 +265,10 @@ func (r UpdateServiceRequest) Validate() error {
 		}
 	}
 
+	// if r.MinimumFraudAmount != nil {
+	// 	err := validation.Field(&r.MinimumFraudAmount, validation.Required, validation.Min(1).Error("minimum_fraud_amount must be greater thatn 0"))
+	// 	return err
+	// }
 	// if BoolPointer(r.HaveATier, false) {
 	// 	// if r.Cap != nil && (r.Cap.SingleCap != nil || r.Cap.MinimumTransferCap != nil) || len(r.Tiers) > 0 {
 	// 	if r.Cap != nil && (r.Cap.SingleCap != nil || r.Cap.MinimumTransferCap != nil) {
