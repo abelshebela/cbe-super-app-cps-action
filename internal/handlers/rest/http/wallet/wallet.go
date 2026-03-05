@@ -1,9 +1,11 @@
 package wallet
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"context"
 	"errors"
 	"net/http"
 
@@ -57,6 +59,7 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	var req walletDto.WalletRequest
 	req, err := walletcore.ParseWalletRequestFromMultipartForm(r, true)
@@ -121,6 +124,8 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	id := chi.URLParam(r, "id")
 	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	if id == "" {
 		span.RecordError(errors.New("wallet ID is required for update"))
 		log.Errorf("[WalletH][Update] id required")
@@ -229,6 +234,8 @@ func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 
 	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("wallet ID is required for enable"))
@@ -269,6 +276,8 @@ func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableWallet", "handler", "wallet")
 	defer span.End()
 	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("wallet ID is required for disable"))
