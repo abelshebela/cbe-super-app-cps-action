@@ -263,14 +263,14 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 	}
 
 	versionUpdated := old.Version
-	if int32(len(req.AssignedCheckerRoles)) != int32(old.ApproverCount) {
+	if int32(len(req.AssignedCheckerRoles)) != int32(old.ApproverCount) || int32(len(req.AssignedAuditorRoles)) != int32(old.AuditorCount) {
 		versionUpdated = old.Version + 1
 	}
 
 	payload := imodel.CPSActionRole{
 		ActionCode:     actionCode,
 		PortalCardName: req.PortalCardName,
-		AuditorCount:   int32(len(req.AssignedCheckerRoles)),
+		AuditorCount:   int32(len(req.AssignedAuditorRoles)),
 		ActionName:     local_util.NonEmptyString(req.ActionName, old.ActionName),
 		IsMakerOnly:    req.IsMakerOnly || int32(len(req.AssignedCheckerRoles)) == 0,
 		IsViweOnly:     req.IsViewOnly || (int32(len(req.AssignedViewersRoles)) > 0 && len(req.AssignedViewersRoles) == 0 && len(req.AssignedCheckerRoles) == 0),
@@ -706,4 +706,77 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 	s.logger.Infof("[CpsActRoleSvc][GenIndices] completed total: %d", len(indices))
 
 	return indices
+}
+
+// GetVersionsByActionCode returns all distinct versions for a given action_code from cps_action_approver_index.
+func (s *cpsActionRoleService) GetVersionsByActionCode(ctx context.Context, actionCode string) ([]int64, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetVersionsByActionCode", "CPSActionRole", "GetVersionsByActionCode")
+	defer span.End()
+
+	if strings.TrimSpace(actionCode) == "" {
+		return nil, errors.New(localization.ErrorInvalidInputParameter.Code)
+	}
+
+	// action_code == action_name in this system
+	versions, err := s.indexRepo.FindVersionsByActionName(ctx, actionCode)
+	if err != nil {
+		span.AddEvent("failed to find versions", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+	return versions, nil
+}
+
+// GetConfiguredRoles returns the current configured roles for viewer/maker/checker/auditor for a given action_code.
+func (s *cpsActionRoleService) GetConfiguredRoles(ctx context.Context, actionCode string) (*actionrole_dto.ConfiguredRolesResponse, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetConfiguredRoles", "CPSActionRole", "GetConfiguredRoles")
+	defer span.End()
+
+	if strings.TrimSpace(actionCode) == "" {
+		return nil, errors.New(localization.ErrorInvalidInputParameter.Code)
+	}
+
+	role, err := s.repo.FindByActionCodeOne(ctx, actionCode)
+	if err != nil {
+		span.AddEvent("failed to find action role", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
+	}
+
+	return &actionrole_dto.ConfiguredRolesResponse{
+		ActionCode:           role.ActionCode,
+		ActionName:           role.ActionName,
+		PortalCardName:       role.PortalCardName,
+		AssignedViewersRoles: role.AssignedViewersRoles,
+		AssignedMakersRoles:  role.AssignedMakersRoles,
+		AssignedCheckerRoles: role.AssignedCheckerRoles,
+		AssignedAuditorRoles: role.AssignedAuditorRoles,
+		ApproverCount:        role.ApproverCount,
+		AuditorCount:         role.AuditorCount,
+		IsMakerOnly:          role.IsMakerOnly,
+		Version:              role.Version,
+		Enabled:              role.Enabled,
+	}, nil
+}
+
+// UpdateIndexRoleCode swaps a role_code in cps_action_approver_index for a specific action_code and version.
+func (s *cpsActionRoleService) UpdateIndexRoleCode(ctx context.Context, actionCode string, version int64, oldRoleCode, newRoleCode string) (int64, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateIndexRoleCode", "CPSActionRole", "UpdateIndexRoleCode")
+	defer span.End()
+
+	if strings.TrimSpace(actionCode) == "" || strings.TrimSpace(oldRoleCode) == "" || strings.TrimSpace(newRoleCode) == "" {
+		return 0, errors.New(localization.ErrorInvalidInputParameter.Code)
+	}
+
+	// Validate the new role exists
+	exists, err := s.roleRepo.ExistsMany(ctx, []string{newRoleCode})
+	if err != nil || !exists {
+		span.AddEvent("new role code not found", trace.WithAttributes(attribute.String("new_role_code", newRoleCode)))
+		return 0, errors.New(localization.ErrorRoleNotFound.Code)
+	}
+
+	count, err := s.indexRepo.UpdateRoleInIndices(ctx, actionCode, version, oldRoleCode, newRoleCode)
+	if err != nil {
+		span.AddEvent("failed to update role in indices", trace.WithAttributes(attribute.String("error", err.Error())))
+		return 0, err
+	}
+	return count, nil
 }
