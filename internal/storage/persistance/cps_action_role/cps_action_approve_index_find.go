@@ -8,7 +8,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -16,40 +15,39 @@ import (
 // Multiple documents may exist (maker, checker, auditor as separate rows), so this fetches all
 // matching documents and merges checker_index and auditor_index into a single result.
 func (r *CPSActionApproveIndexRepository) FindByRoleAndAction(ctx context.Context, roleID string, actionName string, version int64) (*imodel.CPSActionApproveIndex, error) {
-	// objID, err := primitive.ObjectIDFromHex(strings.TrimSpace(roleID))
-
-	// if err != nil {
-
-	// 	return nil, err
-
-	// }
-
 	filter := bson.M{
 		"role_id":     roleID,
 		"action_name": strings.ToUpper(strings.TrimSpace(actionName)),
-		// "version":     version,
-
-		// "maker_index": bson.M{"$exists": true, "$ne": nil},
-
+		"version":     version,
 	}
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
 
-	var res imodel.CPSActionApproveIndex
-
-	err := r.collection.FindOne(ctx, filter).Decode(&res)
-
-	if err == mongo.ErrNoDocuments {
-
+	var docs []imodel.CPSActionApproveIndex
+	if err := cursor.All(ctx, &docs); err != nil {
+		return nil, err
+	}
+	if len(docs) == 0 {
 		return nil, nil
 	}
 
-	if err != nil {
-
-		return nil, err
-
+	// Merge all documents into a single result, picking the first non-nil value for each index.
+	merged := docs[0]
+	for _, doc := range docs[1:] {
+		if merged.MakerIndex == nil && doc.MakerIndex != nil {
+			merged.MakerIndex = doc.MakerIndex
+		}
+		if merged.CheckerIndex == nil && doc.CheckerIndex != nil {
+			merged.CheckerIndex = doc.CheckerIndex
+		}
+		if merged.AuditorIndex == nil && doc.AuditorIndex != nil {
+			merged.AuditorIndex = doc.AuditorIndex
+		}
 	}
-
-	return &res, nil
-
+	return &merged, nil
 }
 
 // FindVersionsByActionName returns distinct versions for a given action_name from cps_action_approver_index.
