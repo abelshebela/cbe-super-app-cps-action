@@ -225,7 +225,7 @@ func (a *AmountBasedAuthHandler) AddCurrency(w http.ResponseWriter, r *http.Requ
 	}
 
 	if !request.Validate() {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Code)
 		return
 	}
 

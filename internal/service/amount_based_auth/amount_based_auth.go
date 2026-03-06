@@ -301,7 +301,18 @@ func (s *amountBasedAuthService) FindAllWithPagination(ctx context.Context, filt
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "Amount Based Auth", "FindAllWithPagination")
 	defer span.End()
 
-	result, err := s.Repository.FindAllWithPagination(ctx, filterParam)
+	// Build filter with optional search
+	filter := bson.M{"is_deleted": false}
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		filter["$or"] = []bson.M{
+			{"method": searchRegex},
+			{"currency": searchRegex},
+		}
+	}
+
+	// Fetch all matching tiers (pagination applied to currency groups, not individual tiers)
+	allTiers, err := s.Repository.FindAll(ctx, filter, bson.M{})
 	if err != nil {
 		span.AddEvent("[FindAllWithPagination] failed to fetch amount-based auth tiers", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -311,11 +322,34 @@ func (s *amountBasedAuthService) FindAllWithPagination(ctx context.Context, filt
 	}
 
 	// Group tiers by currency
-	grouped := groupTiersByCurrency(result.Data)
+	grouped := groupTiersByCurrency(allTiers)
+
+	// Paginate the currency groups
+	totalGroups := int64(len(grouped))
+	page := filterParam.Page
+	perPage := filterParam.PerPage
+	if page <= 0 {
+		page = 1
+	}
+	if perPage <= 0 {
+		perPage = 10
+	}
+
+	start := (page - 1) * perPage
+	end := start + perPage
+	if start > len(grouped) {
+		start = len(grouped)
+	}
+	if end > len(grouped) {
+		end = len(grouped)
+	}
+	paginatedGroups := grouped[start:end]
+
+	meta := local_util.BuildPaginationMeta(totalGroups, page, perPage)
 
 	return &types.PaginatedResponse[[]amountauthdto.CurrencyGroup]{
-		Data: grouped,
-		Meta: result.Meta,
+		Data: paginatedGroups,
+		Meta: meta,
 	}, nil
 }
 
@@ -332,11 +366,13 @@ func groupTiersByCurrency(tiers []local_model.AuthTier) []amountauthdto.Currency
 			}
 		}
 		groupMap[t.Currency].Tiers = append(groupMap[t.Currency].Tiers, amountauthdto.TierResponse{
-			ID:        t.ID.Hex(),
-			Method:    t.Method,
-			MinAmount: t.MinAmount,
-			MaxAmount: t.MaxAmount,
-			Enabled:   t.Enabled,
+			ID:           t.ID.Hex(),
+			Method:       t.Method,
+			MinAmount:    t.MinAmount,
+			MaxAmount:    t.MaxAmount,
+			Enabled:      t.Enabled,
+			CreatedAt:    t.CreatedAt,
+			LastModified: t.LastModified,
 		})
 	}
 
@@ -523,6 +559,7 @@ func (s *amountBasedAuthService) AddCurrency(ctx context.Context, request amount
 		s.logger.Errorf("[AmountAuthSvc][AddCurrency] check currency err: %v", err)
 		return err
 	}
+
 	if exists {
 		s.logger.Warnf("[AmountAuthSvc][AddCurrency] currency already exists: %s", request.Currency)
 		return errors.New(localization.ErrorCurrencyAlreadyExists.Code)

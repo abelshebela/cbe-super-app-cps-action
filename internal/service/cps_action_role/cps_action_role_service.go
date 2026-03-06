@@ -54,11 +54,13 @@ func NewCPSActionRoleService(
 func (s *cpsActionRoleService) FindAllActionListWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.CPSActionList], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "CPSActionRole", "FindAllWithPagination")
 	defer span.End()
+
 	result, err := s.repo.FindAllAccessListWithPagination(ctx, filter)
 	if err != nil {
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
 	}
+
 	return result, nil
 }
 
