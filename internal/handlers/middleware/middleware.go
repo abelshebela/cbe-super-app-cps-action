@@ -273,6 +273,10 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 				} else {
 					a.logger.Infof("[AuthMW][AuthToken] device updated user: %s", userPayload.UserID)
 				}
+			} else {
+				a.logger.Warnf("[AuthMW][AuthToken] device mismatch or empty device id, redis_device: %s payload_device: %s", deviceID, userPayload.DeviceID)
+				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+				return
 			}
 		} else {
 			a.logger.Errorf("[AuthMW][AuthToken] unauth redis_device: %s payload_device: %s session: %v remain: %d", deviceID, userPayload.DeviceID, userPayload.SessionExp, remainTime)
