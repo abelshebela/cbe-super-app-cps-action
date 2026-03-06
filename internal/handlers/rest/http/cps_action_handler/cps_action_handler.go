@@ -1638,6 +1638,12 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 				return
 			}
 
+			if idxDoc == nil {
+				log.Infof("[CpsActionH][GetAuthorizersLevel] no approve index found for role=%s action=%s version=%d", role, uppercasedActionName, parsedVersion)
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+				return
+			}
+
 			if idxDoc.CheckerIndex != nil {
 				checkerIdx = int64(*idxDoc.CheckerIndex)
 			}
