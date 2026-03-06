@@ -292,25 +292,8 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 
 	var finalMatch bson.M
 	if filterParam.Filters["action_status"] == "PENDING" {
-		// For PENDING: apply version constraints if available
-		// if vOr, ok := filterParam.Filters["__version_or"]; ok {
-		// 	delete(filterParam.Filters, "__version_or")
-		// 	delete(filter, "request_action")
-		// 	var bsonOrs []bson.M
-		// 	if ors, ok := vOr.([]interface{}); ok {
-		// 		for _, o := range ors {
-		// 			if m, ok := o.(map[string]interface{}); ok {
-		// 				bsonOrs = append(bsonOrs, bson.M(m))
-		// 			}
-		// 		}
-		// 	}
-		// 	if len(bsonOrs) > 0 {
-		// 		filter["$or"] = bsonOrs
-		// 	}
-		// }
 		finalMatch = filter
 	} else {
-		delete(filterParam.Filters, "__version_or")
 		finalMatch = bson.M{
 			"$and": []bson.M{
 				filter,
@@ -440,35 +423,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 	if filter["action_status"] == "" || filter["action_status"] == constants.Pending {
 		filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
 	}
-
-	// Apply version constraints for auditor actions.
-	// Already-claimed actions (auditor_users.auditor_id = userID) are shown regardless of version.
-	// Unclaimed actions are version-gated.
-	// if vOr, ok := filterParam.Filters["__version_or"]; ok {
-	// 	delete(filterParam.Filters, "__version_or")
-	// 	delete(filter, "request_action")
-	// 	var bsonOrs []bson.M
-	// 	if ors, ok := vOr.([]interface{}); ok {
-	// 		for _, o := range ors {
-	// 			if m, ok := o.(map[string]interface{}); ok {
-	// 				bsonOrs = append(bsonOrs, bson.M(m))
-	// 			}
-	// 		}
-	// 	}
-	// 	if len(bsonOrs) > 0 {
-	// 		versionFilter := bson.M{"$or": bsonOrs}
-	// 		filter = bson.M{
-	// 			"$and": []bson.M{
-	// 				filter,
-	// 				{"$or": []bson.M{
-	// 					{"auditor_users.auditor_id": userID},
-	// 					versionFilter,
-	// 				}},
-	// 			},
-	// 		}
-	// 	}
-	// }
-
+	// filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
