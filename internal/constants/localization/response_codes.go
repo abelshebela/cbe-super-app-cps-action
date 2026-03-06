@@ -429,6 +429,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletNameAlreadyExists,
 	ErrorWalletCodeAlreadyExists,
 	ErrorWalletServiceIDAlreadyExists,
+	ErrorWalletWithNameOrCodeAlreadyExists,
 	ErrorWalletAlreadyDisabled,
 	ErrorWalletAlreadyEnabled,
 	ErrorWalletIDRequired,
@@ -2737,6 +2738,12 @@ var (
 		Code:       "ERROR_WALLET_WITH_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet with the given name already exists",
+		Type:       "error",
+	}
+	ErrorWalletWithNameOrCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_WALLET_WITH_NAME_OR_CODE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet with the given name or code already exists",
 		Type:       "error",
 	}
 	ErrorWalletCodeAlreadyExists = ResponseCode{
