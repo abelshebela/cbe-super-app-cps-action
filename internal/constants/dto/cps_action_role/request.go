@@ -40,6 +40,26 @@ type CancelRequest struct {
 	CancelReason string `json:"reason"`
 }
 
+type UpdateIndexRoleCodeRequest struct {
+	OldRoleCode string `json:"old_role_code"`
+	NewRoleCode string `json:"new_role_code"`
+}
+
+type ConfiguredRolesResponse struct {
+	ActionCode           string     `json:"action_code"`
+	ActionName           string     `json:"action_name"`
+	PortalCardName       string     `json:"portal_card_name"`
+	AssignedViewersRoles []string   `json:"assigned_viewers_roles"`
+	AssignedMakersRoles  []string   `json:"assigned_makers_roles"`
+	AssignedCheckerRoles [][]string `json:"assigned_checkers_roles"`
+	AssignedAuditorRoles [][]string `json:"assigned_auditor_roles"`
+	ApproverCount        int32      `json:"approver_count"`
+	AuditorCount         int32      `json:"auditor_count"`
+	IsMakerOnly          bool       `json:"is_maker_only"`
+	Version              int64      `json:"version"`
+	Enabled              bool       `json:"enabled"`
+}
+
 type GetActionRoleByActionCodeRes struct {
 	ID                   bson.ObjectID     `json:"_id" bson:"_id"`
 	ActionCode           string            `json:"action_code" bson:"action_code"`

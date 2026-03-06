@@ -2,6 +2,7 @@ package amount_based_auth
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"time"
 )
 
 // ----------- Valid methods set -----------
@@ -51,7 +52,9 @@ func (r AddCurrencyRequest) Validate() bool {
 	}
 	// validate tier amounts
 	for i, t := range r.Tiers {
-		if t.MinAmount == 0 {
+		// Allow MinAmount = 0 for OPEN (free) method or when it's the only method
+		isOnlyMethod := len(r.Tiers) == 1
+		if t.MinAmount == 0 && t.Method != constants.OPEN && !isOnlyMethod {
 			return false
 		}
 		isLast := i == len(r.Tiers)-1
@@ -88,11 +91,13 @@ type CurrencyGroup struct {
 }
 
 type TierResponse struct {
-	ID        string           `json:"id"`
-	Method    constants.Method `json:"method"`
-	MinAmount uint64           `json:"min_amount"`
-	MaxAmount uint64           `json:"max_amount"`
-	Enabled   bool             `json:"enabled"`
+	ID           string           `json:"id"`
+	Method       constants.Method `json:"method"`
+	MinAmount    uint64           `json:"min_amount"`
+	MaxAmount    uint64           `json:"max_amount"`
+	Enabled      bool             `json:"enabled"`
+	CreatedAt    time.Time        `json:"created_at"`
+	LastModified time.Time        `json:"last_modified"`
 }
 
 // ----------- UpdateAmountBasedAuthRequest (existing) -----------

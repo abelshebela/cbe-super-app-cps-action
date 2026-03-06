@@ -106,6 +106,19 @@ func (r UpdateActionRoleRequest) Validate() error {
 	)
 }
 
+func (r UpdateIndexRoleCodeRequest) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.OldRoleCode,
+			validation.Required.Error("old_role_code is required"),
+			validation.By(utils.TrimWhiteSpace),
+		),
+		validation.Field(&r.NewRoleCode,
+			validation.Required.Error("new_role_code is required"),
+			validation.By(utils.TrimWhiteSpace),
+		),
+	)
+}
+
 func validate2DStringSliceRequired(value [][]string, field string) error {
 	if err := validation.Validate(value,
 		validation.Required.Error(field+" is required"),
