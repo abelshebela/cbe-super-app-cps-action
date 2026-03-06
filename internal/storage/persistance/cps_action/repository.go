@@ -444,30 +444,30 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 	// Apply version constraints for auditor actions.
 	// Already-claimed actions (auditor_users.auditor_id = userID) are shown regardless of version.
 	// Unclaimed actions are version-gated.
-	if vOr, ok := filterParam.Filters["__version_or"]; ok {
-		delete(filterParam.Filters, "__version_or")
-		delete(filter, "request_action")
-		var bsonOrs []bson.M
-		if ors, ok := vOr.([]interface{}); ok {
-			for _, o := range ors {
-				if m, ok := o.(map[string]interface{}); ok {
-					bsonOrs = append(bsonOrs, bson.M(m))
-				}
-			}
-		}
-		if len(bsonOrs) > 0 {
-			versionFilter := bson.M{"$or": bsonOrs}
-			filter = bson.M{
-				"$and": []bson.M{
-					filter,
-					{"$or": []bson.M{
-						{"auditor_users.auditor_id": userID},
-						versionFilter,
-					}},
-				},
-			}
-		}
-	}
+	// if vOr, ok := filterParam.Filters["__version_or"]; ok {
+	// 	delete(filterParam.Filters, "__version_or")
+	// 	delete(filter, "request_action")
+	// 	var bsonOrs []bson.M
+	// 	if ors, ok := vOr.([]interface{}); ok {
+	// 		for _, o := range ors {
+	// 			if m, ok := o.(map[string]interface{}); ok {
+	// 				bsonOrs = append(bsonOrs, bson.M(m))
+	// 			}
+	// 		}
+	// 	}
+	// 	if len(bsonOrs) > 0 {
+	// 		versionFilter := bson.M{"$or": bsonOrs}
+	// 		filter = bson.M{
+	// 			"$and": []bson.M{
+	// 				filter,
+	// 				{"$or": []bson.M{
+	// 					{"auditor_users.auditor_id": userID},
+	// 					versionFilter,
+	// 				}},
+	// 			},
+	// 		}
+	// 	}
+	// }
 
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
