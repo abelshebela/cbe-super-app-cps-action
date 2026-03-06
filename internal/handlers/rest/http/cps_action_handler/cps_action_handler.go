@@ -509,6 +509,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
+
 	// Fetch action and attach checker_index context for this approver
 	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, "")
 	if err != nil {
