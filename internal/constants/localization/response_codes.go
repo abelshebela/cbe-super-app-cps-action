@@ -76,8 +76,12 @@ var ResponseCodesList = []ResponseCode{
 	SuccessBankUpdatedRequestSent,
 	SuccessWalletEnableRequestSubmitted,
 	SuccessWalletDisableRequestSubmitted,
+	SuccessWalletEnabled,
+	SuccessWalletDisabled,
 	SuccessWalletCreationRequestSent,
 	SuccessWalletUpdateRequestSent,
+	SuccessWalletCreated,
+	SuccessWalletUpdated,
 	SuccessWalletDeleted,
 	SuccessWalletsRetrieved,
 	SuccessWalletRetrieved,
@@ -424,6 +428,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAvatarAlreadyExist,
 	ErrorWalletNameAlreadyExists,
 	ErrorWalletCodeAlreadyExists,
+	ErrorWalletServiceIDAlreadyExists,
 	ErrorWalletAlreadyDisabled,
 	ErrorWalletAlreadyEnabled,
 	ErrorWalletIDRequired,
@@ -1931,6 +1936,19 @@ var (
 		Message:    MsgWalletUpdateRequestSent,
 		Type:       "success",
 	}
+	SuccessWalletCreated = ResponseCode{
+		Code:       "SUCCESS_WALLET_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgWalletCreated,
+		Type:       "success",
+	}
+
+	SuccessWalletUpdated = ResponseCode{
+		Code:       "SUCCESS_WALLET_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgWalletUpdated,
+		Type:       "success",
+	}
 
 	SuccessWalletDeleted = ResponseCode{
 		Code:       "SUCCESS_WALLET_DELETE_REQUEST_SENT",
@@ -1971,6 +1989,19 @@ var (
 		Code:       "SUCCESS_WALLET_DISABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
 		Message:    "Wallet disable request sent successfully",
+		Type:       "success",
+	}
+	SuccessWalletEnabled = ResponseCode{
+		Code:       "SUCCESS_WALLET_ENABLED",
+		StatusCode: StatusOK,
+		Message:    "Wallet enabled successfully",
+		Type:       "success",
+	}
+
+	SuccessWalletDisabled = ResponseCode{
+		Code:       "SUCCESS_WALLET_DISABLED",
+		StatusCode: StatusOK,
+		Message:    "Wallet disabled successfully",
 		Type:       "success",
 	}
 
@@ -5601,7 +5632,6 @@ var (
 		Message:    MsgBranchNotFoundWithGivenCode,
 		Type:       "error",
 	}
-
 
 	ErrorExistPhoneNumber = ResponseCode{
 		Code:       "ERROR_EXIST_PHONE_NUMBER",

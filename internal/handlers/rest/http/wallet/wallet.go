@@ -1,9 +1,11 @@
 package wallet
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"context"
 	"errors"
 	"net/http"
 
@@ -56,6 +58,8 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createWallet", "handler", "wallet")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	var req walletDto.WalletRequest
 	req, err := walletcore.ParseWalletRequestFromMultipartForm(r, true)
@@ -85,9 +89,13 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	log.Infof("[WalletH][Create] request submitted")
-	localization.SendSuccessResponse(w, localization.SuccessWalletCreationRequestSent, nil)
+	if md.IsMakerOnly {
+		a.logger.Infof("[WalletH][Create]  create wallet successfully")
+		localization.SendSuccessResponse(w, localization.SuccessWalletCreated, nil)
+	} else {
+		a.logger.Infof("[WalletH][Create] request sent successfully for create wallet")
+		localization.SendSuccessResponse(w, localization.SuccessWalletCreationRequestSent, nil)
+	}
 }
 
 // UpdateWallet godoc
@@ -115,6 +123,8 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	id := chi.URLParam(r, "id")
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	if id == "" {
 		span.RecordError(errors.New("wallet ID is required for update"))
@@ -161,8 +171,13 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Infof("[WalletH][Update] request submitted id: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessWalletUpdateRequestSent, nil)
+	if md.IsMakerOnly {
+		a.logger.Infof("[WalletH][Update]  update wallet successfully")
+		localization.SendSuccessResponse(w, localization.SuccessWalletUpdated, nil)
+	} else {
+		a.logger.Infof("[WalletH][Update] request sent successfully for update wallet")
+		localization.SendSuccessResponse(w, localization.SuccessWalletUpdateRequestSent, nil)
+	}
 }
 
 // DeleteWallet godoc
@@ -217,6 +232,10 @@ func (a *walletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableWallet", "handler", "wallet")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("wallet ID is required for enable"))
@@ -230,8 +249,13 @@ func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	localization.SendSuccessResponse(w, localization.SuccessWalletEnableRequestSubmitted, nil)
+	if md.IsMakerOnly {
+		a.logger.Infof("[WalletH][Enable]  enable wallet successfully")
+		localization.SendSuccessResponse(w, localization.SuccessWalletEnabled, nil)
+	} else {
+		a.logger.Infof("[WalletH][Enable] request sent successfully for enable wallet")
+		localization.SendSuccessResponse(w, localization.SuccessWalletEnableRequestSubmitted, nil)
+	}
 }
 
 // DisableWallet godoc
@@ -251,6 +275,9 @@ func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableWallet", "handler", "wallet")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("wallet ID is required for disable"))
@@ -264,8 +291,13 @@ func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	localization.SendSuccessResponse(w, localization.SuccessWalletDisableRequestSubmitted, nil)
+	if md.IsMakerOnly {
+		a.logger.Infof("[WalletH][Disable]  disable wallet successfully")
+		localization.SendSuccessResponse(w, localization.SuccessWalletDisabled, nil)
+	} else {
+		a.logger.Infof("[WalletH][Disable] request sent successfully for disable wallet")
+		localization.SendSuccessResponse(w, localization.SuccessWalletDisableRequestSubmitted, nil)
+	}
 }
 
 // GetWallet godoc
