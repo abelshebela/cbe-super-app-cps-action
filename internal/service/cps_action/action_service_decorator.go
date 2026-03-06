@@ -92,7 +92,6 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			}
 
 			cpsAction.AuditorCount = int32(len(role.AssignedAuditorRoles))
-			cpsAction.Version = role.Version
 
 			if err := s.base.CreateCPSAction(ctx, cpsAction); err != nil {
 				return err
