@@ -7074,7 +7074,7 @@ var (
 	}
 
 	ErrorInvalidInputParameters = ResponseCode{
-		Code:       "ERROR_INVAErrorMissingOrInvalidImage,LID_INPUT_PARAMETERS",
+		Code:       "ERROR_INVALID_INPUT_PARAMETERS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidInputParameters,
 		Type:       "error",
