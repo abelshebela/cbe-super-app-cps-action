@@ -499,6 +499,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "rejectCpsAction", "handler", "cpsAction")
 	defer span.End()
+
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
 	var req cpsactionDto.ActionRequest
 	makerData := local_util.ExtractUserFromContext(ctx)
@@ -598,6 +599,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		CheckerPhoneNumber: makerData.PhoneNumber,
 		ApprovedAt:         time.Now(),
 	}
+
 	if err := a.cpsActionApplication.RejectCPSAction(ctx, actionCode, &model.CPSAction{
 		ActionCode:          actionCode,
 		CurrentCheckerIndex: *idxDoc.CheckerIndex,
@@ -923,6 +925,30 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
 	}
 
+	// Build version-constrained $or for PENDING checker actions.
+	// Each action_name maps to specific versions the checker is assigned in.
+	checkerVersions, verErr := idxRepo.FindAllocationsWithVersions(ctx, rawRoleID, "checker_index")
+	if verErr == nil && len(checkerVersions) > 0 {
+		var versionOr []interface{}
+		for actionName, versions := range checkerVersions {
+			if lst, ok := cpsactionsvc.RequestActionGroups[actionName]; ok {
+				var raStrs []string
+				for _, ra := range lst {
+					raStrs = append(raStrs, string(ra))
+				}
+				if len(raStrs) > 0 && len(versions) > 0 {
+					versionOr = append(versionOr, map[string]interface{}{
+						"request_action": map[string]interface{}{"$in": raStrs},
+						"version":        map[string]interface{}{"$in": versions},
+					})
+				}
+			}
+		}
+		if len(versionOr) > 0 {
+			filterParams.Filters["__version_or"] = versionOr
+		}
+	}
+
 	res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
@@ -1012,6 +1038,36 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 				seen[key] = struct{}{}
 				reqs = append(reqs, key)
 			}
+		}
+	}
+
+	// Build version-constrained $or for auditor actions.
+	// Actions already claimed by the auditor are shown regardless of version (handled in repo).
+	auditorVersions, verErr := idxRepo.FindAllocationsWithVersions(ctx, rawRoleID, "auditor_index")
+	if verErr == nil && len(auditorVersions) > 0 {
+		if filterParams == nil {
+			filterParams = &types.Filter{}
+		}
+		if filterParams.Filters == nil {
+			filterParams.Filters = map[string]interface{}{}
+		}
+		var versionOr []interface{}
+		for actionName, versions := range auditorVersions {
+			if lst, ok := cpsactionsvc.RequestActionGroups[actionName]; ok {
+				var raStrs []string
+				for _, ra := range lst {
+					raStrs = append(raStrs, string(ra))
+				}
+				if len(raStrs) > 0 && len(versions) > 0 {
+					versionOr = append(versionOr, map[string]interface{}{
+						"request_action": map[string]interface{}{"$in": raStrs},
+						"version":        map[string]interface{}{"$in": versions},
+					})
+				}
+			}
+		}
+		if len(versionOr) > 0 {
+			filterParams.Filters["__version_or"] = versionOr
 		}
 	}
 
