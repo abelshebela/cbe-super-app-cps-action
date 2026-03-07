@@ -133,9 +133,6 @@ func Init(router chi.Router, handler cpsaction.CPSActionAdapter, authMiddleware 
 				authMiddleware.AuthenticateToken,
 			},
 		},
-
-
-
 		{
 			Method:  http.MethodGet,
 			Path:    "/actions/export_data",
