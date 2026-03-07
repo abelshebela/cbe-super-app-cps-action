@@ -1546,6 +1546,8 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 
+	log.Infof("[CpsActionH][Reject] ------------checking started")
+
 	requestAction := chi.URLParam(r, "request_action")
 	actionVersion := chi.URLParam(r, "action_version")
 	parsedVersion, err := strconv.ParseInt(actionVersion, 10, 64)
