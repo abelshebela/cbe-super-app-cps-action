@@ -1524,6 +1524,7 @@ func (a *cpsActionAdapter) ApproverAuditorAllocations(w http.ResponseWriter, r *
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
 	}
+	a.logger.Infof("[CpsAction][ApproverAuditorAllocations] request approve started")
 	repo := mid.GetCPSActionApproveRepo()
 	if repo == nil {
 		localization.SendErrorResponse(w, localization.ErrorInternalServerError, nil, nil)
