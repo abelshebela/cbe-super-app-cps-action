@@ -18,7 +18,7 @@ func (r *CPSActionApproveIndexRepository) FindByRoleAndAction(ctx context.Contex
 	filter := bson.M{
 		"role_id":     roleID,
 		"action_name": strings.ToUpper(strings.TrimSpace(actionName)),
-		"version":     version,
+		// "version":     version,
 	}
 	cursor, err := r.collection.Find(ctx, filter)
 	if err != nil {
