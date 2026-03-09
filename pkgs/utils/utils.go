@@ -18,7 +18,7 @@ import (
 	// "math/rand"
 	mathrand "math/rand"
 	"net/http"
-
+    "path/filepath"
 	"os"
 
 	"regexp"
@@ -61,29 +61,46 @@ func IsValidCBEAccountNumber(acc string) bool {
 }
 
 func IsValidImage(fileHeader *multipart.FileHeader) bool {
-	var allowedMIMETypes = map[string]bool{
-		"image/jpg":  true,
-		"image/jpeg": true,
-		"image/png":  true,
-		"image/gif":  true,
-		"image/webp": true,
-	}
+    var allowedMIMETypes = map[string]bool{
+        "image/jpg":  true,
+        "image/jpeg": true,
+        "image/png":  true,
+        "image/gif":  true,
+        "image/webp": true,
+    }
 
-	file, err := fileHeader.Open()
-	if err != nil {
-		return false
-	}
-	defer file.Close()
+    if fileHeader == nil {
+        return false
+    }
 
-	buffer := make([]byte, 512)
-	_, err = file.Read(buffer)
-	if err != nil {
-		return false
-	}
+    ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
+    switch ext {
+    case ".jpg", ".jpeg", ".png", ".gif", ".webp":
+        // ok
+    default:
+        return false
+    }
 
-	contentType := http.DetectContentType(buffer)
+    // optional: reject names with additional dots (foo.jpg.exe, foo..jpg, etc.)
+    name := strings.TrimSuffix(fileHeader.Filename, ext)
+    if strings.Contains(name, ".") {
+        return false
+    }
 
-	return allowedMIMETypes[contentType]
+    file, err := fileHeader.Open()
+    if err != nil {
+        return false
+    }
+    defer file.Close()
+
+    buffer := make([]byte, 512)
+    _, err = file.Read(buffer)
+    if err != nil {
+        return false
+    }
+
+    contentType := http.DetectContentType(buffer)
+    return allowedMIMETypes[contentType]
 }
 
 func IsValidVideo(fileHeader *multipart.FileHeader) bool {
