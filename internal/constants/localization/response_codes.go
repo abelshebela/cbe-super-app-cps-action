@@ -76,8 +76,12 @@ var ResponseCodesList = []ResponseCode{
 	SuccessBankUpdatedRequestSent,
 	SuccessWalletEnableRequestSubmitted,
 	SuccessWalletDisableRequestSubmitted,
+	SuccessWalletEnabled,
+	SuccessWalletDisabled,
 	SuccessWalletCreationRequestSent,
 	SuccessWalletUpdateRequestSent,
+	SuccessWalletCreated,
+	SuccessWalletUpdated,
 	SuccessWalletDeleted,
 	SuccessWalletsRetrieved,
 	SuccessWalletRetrieved,
@@ -424,6 +428,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAvatarAlreadyExist,
 	ErrorWalletNameAlreadyExists,
 	ErrorWalletCodeAlreadyExists,
+	ErrorWalletServiceIDAlreadyExists,
+	ErrorWalletWithNameOrCodeAlreadyExists,
 	ErrorWalletAlreadyDisabled,
 	ErrorWalletAlreadyEnabled,
 	ErrorWalletIDRequired,
@@ -1931,6 +1937,19 @@ var (
 		Message:    MsgWalletUpdateRequestSent,
 		Type:       "success",
 	}
+	SuccessWalletCreated = ResponseCode{
+		Code:       "SUCCESS_WALLET_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgWalletCreated,
+		Type:       "success",
+	}
+
+	SuccessWalletUpdated = ResponseCode{
+		Code:       "SUCCESS_WALLET_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgWalletUpdated,
+		Type:       "success",
+	}
 
 	SuccessWalletDeleted = ResponseCode{
 		Code:       "SUCCESS_WALLET_DELETE_REQUEST_SENT",
@@ -1971,6 +1990,19 @@ var (
 		Code:       "SUCCESS_WALLET_DISABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
 		Message:    "Wallet disable request sent successfully",
+		Type:       "success",
+	}
+	SuccessWalletEnabled = ResponseCode{
+		Code:       "SUCCESS_WALLET_ENABLED",
+		StatusCode: StatusOK,
+		Message:    "Wallet enabled successfully",
+		Type:       "success",
+	}
+
+	SuccessWalletDisabled = ResponseCode{
+		Code:       "SUCCESS_WALLET_DISABLED",
+		StatusCode: StatusOK,
+		Message:    "Wallet disabled successfully",
 		Type:       "success",
 	}
 
@@ -2706,6 +2738,12 @@ var (
 		Code:       "ERROR_WALLET_WITH_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet with the given name already exists",
+		Type:       "error",
+	}
+	ErrorWalletWithNameOrCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_WALLET_WITH_NAME_OR_CODE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet with the given name or code already exists",
 		Type:       "error",
 	}
 	ErrorWalletCodeAlreadyExists = ResponseCode{
@@ -4232,7 +4270,7 @@ var (
 	// HQ related error response codes
 
 	ErrorHQNotFound       = ResponseCode{Code: "ERROR_HQ_NOT_FOUND", StatusCode: 404, Message: "HQ record not found", Type: "error"}
-	ErrorInvalidHQRequest = ResponseCode{Code: "ERROR_INVALID_HQ_REQUEST", StatusCode: 400, Message: "Invalid HQ request", Type: "error"}
+	ErrorInvalidHQRequest = ResponseCode{Code: "ERROR_INVALID_HQ_REQUEST", StatusCode: 400, Message: "Invalid input please check the input", Type: "error"}
 	ErrorCPSActionFailed  = ResponseCode{Code: "ERROR_CPS_ACTION_FAILED", StatusCode: 500, Message: "Failed to handle CPS action", Type: "error"}
 	ErrorHQIDRequired     = ResponseCode{Code: "ERROR_HQ_ID_REQUIRED", StatusCode: 400, Message: "HQ ID is required", Type: "error"}
 
@@ -5601,7 +5639,6 @@ var (
 		Message:    MsgBranchNotFoundWithGivenCode,
 		Type:       "error",
 	}
-
 
 	ErrorExistPhoneNumber = ResponseCode{
 		Code:       "ERROR_EXIST_PHONE_NUMBER",
@@ -7044,7 +7081,7 @@ var (
 	}
 
 	ErrorInvalidInputParameters = ResponseCode{
-		Code:       "ERROR_INVAErrorMissingOrInvalidImage,LID_INPUT_PARAMETERS",
+		Code:       "ERROR_INVALID_INPUT_PARAMETERS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidInputParameters,
 		Type:       "error",

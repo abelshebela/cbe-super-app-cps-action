@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
@@ -353,4 +354,131 @@ func (h *CPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	} else {
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleDisableRequestCreated, nil)
 	}
+}
+
+// GetVersions godoc
+//
+//	@Summary		Get versions for a CPS action role
+//	@Description	Return the list of distinct versions stored in cps_action_approver_index for the given action code
+//	@Tags			CPS Action Role
+//	@Produce		json
+//	@Param			code	path		string	true	"Action Code"
+//	@Success		200		{object}	localization.StandardResponse{data=[]int64}	"Versions retrieved"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/cps-action-roles/{code}/versions [get]
+func (h *CPSActionRoleHandler) GetVersions(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getVersions", "handler", "cpsActionRole")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	code := chi.URLParam(r, "code")
+	if code == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+		return
+	}
+
+	versions, err := h.service.GetVersionsByActionCode(ctx, code)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[CpsRoleH][GetVersions] svc err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessActionRoleFetched, versions)
+}
+
+// GetConfiguredRoles godoc
+//
+//	@Summary		Get configured roles for a CPS action role
+//	@Description	Return the configured viewer, maker, checker, and auditor roles for a given action code
+//	@Tags			CPS Action Role
+//	@Produce		json
+//	@Param			code	path		string	true	"Action Code"
+//	@Success		200		{object}	localization.StandardResponse{data=cps_actionrole_dto.ConfiguredRolesResponse}	"Configured roles retrieved"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404		{object}	localization.StandardResponse{data=nil}	"Not found"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/cps-action-roles/{code}/roles [get]
+func (h *CPSActionRoleHandler) GetConfiguredRoles(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getConfiguredRoles", "handler", "cpsActionRole")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	code := chi.URLParam(r, "code")
+	if code == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+		return
+	}
+
+	res, err := h.service.GetConfiguredRoles(ctx, code)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[CpsRoleH][GetConfiguredRoles] svc err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessActionRoleFetched, res)
+}
+
+// UpdateVersionRoleCode godoc
+//
+//	@Summary		Update role_code in approver index for a specific version
+//	@Description	Swap a role_code in cps_action_approver_index for a given action code and version
+//	@Tags			CPS Action Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			code	path		string										true	"Action Code"
+//	@Param			version	path		int											true	"Version"
+//	@Param			body	body		actionrole_dto.UpdateIndexRoleCodeRequest	true	"Role code swap request"
+//	@Success		200		{object}	localization.StandardResponse{data=object}	"Role code updated"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		404		{object}	localization.StandardResponse{data=nil}		"Not found"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/cps-action-roles/{code}/versions/{version}/role [patch]
+func (h *CPSActionRoleHandler) UpdateVersionRoleCode(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateVersionRoleCode", "handler", "cpsActionRole")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	code := chi.URLParam(r, "code")
+	versionStr := chi.URLParam(r, "version")
+	if code == "" || versionStr == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+		return
+	}
+
+	version, err := strconv.ParseInt(versionStr, 10, 64)
+	if err != nil {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+		return
+	}
+
+	var req actionrole_dto.UpdateIndexRoleCodeRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
+		log.Errorf("[CpsRoleH][UpdateVersionRoleCode] decode err: %v", err)
+		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
+	count, err := h.service.UpdateIndexRoleCode(ctx, code, version, req.OldRoleCode, req.NewRoleCode)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[CpsRoleH][UpdateVersionRoleCode] svc err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessActionRoleFetched, map[string]interface{}{
+		"updated_count": count,
+	})
 }

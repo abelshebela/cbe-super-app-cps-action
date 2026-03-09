@@ -1546,6 +1546,8 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 
+	log.Infof("[CpsActionH][Reject] 1------------checking started")
+
 	requestAction := chi.URLParam(r, "request_action")
 	actionVersion := chi.URLParam(r, "action_version")
 	parsedVersion, err := strconv.ParseInt(actionVersion, 10, 64)
@@ -1564,7 +1566,11 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 
 	var checkerIdx, auditorIdx int64
 	{
+		log.Infof("[CpsActionH][Reject] 2------------checking started")
+
 		if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
+			log.Infof("[CpsActionH][Reject] 3------------checking started")
+
 			role, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 			if role == "" {
 				log.Infof("[CpsActionH][Reject] empty role")
@@ -1581,6 +1587,11 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 				return
 			}
 
+			if idxDoc == nil {
+				log.Infof("[CpsActionH][Reject] idxDoc is nil")
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+				return
+			}
 			if idxDoc.CheckerIndex != nil {
 				checkerIdx = int64(*idxDoc.CheckerIndex)
 			}

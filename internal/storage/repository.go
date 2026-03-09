@@ -692,6 +692,9 @@ type CPSActionApproveIndexRepository interface {
 	DeleteAll(ctx context.Context, prev imodel.CPSActionRoleResposne) error
 	InsertAll(ctx context.Context, new imodel.CPSActionRole) error
 	HasActiveActionRoles(ctx context.Context, roleCode string) (bool, error)
+	FindAllocationsWithVersions(ctx context.Context, roleID string, indexField string) (map[string][]int64, error)
+	FindVersionsByActionName(ctx context.Context, actionName string) ([]int64, error)
+	UpdateRoleInIndices(ctx context.Context, actionName string, version int64, oldRoleCode, newRoleCode string) (int64, error)
 }
 
 type BPSActionApproveIndexRepository interface {

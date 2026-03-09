@@ -155,11 +155,8 @@ func (r EcommerceMerchant) ValidateCreate() error {
 			validation.Required,
 			validation.By(func(value interface{}) error {
 				isEcommerceMerchant, ok := value.(*bool)
-				if !ok || isEcommerceMerchant == nil {
-					return fmt.Errorf("is_ecommerce_merchant is required")
-				}
-				if !*isEcommerceMerchant {
-					return fmt.Errorf("is_ecommerce_merchant must be true")
+				if !ok || !*isEcommerceMerchant {
+					return fmt.Errorf("merchant type should be ecommerce")
 				}
 				return nil
 			}),
