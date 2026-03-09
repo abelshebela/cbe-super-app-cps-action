@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/handlers/rest/http/bps_user/core"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"encoding/json"
@@ -117,6 +118,8 @@ func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
+
+	filterParams = core.PhoneModifier(filterParams)
 
 	if err := common_utils.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
