@@ -1587,6 +1587,11 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 				return
 			}
 
+			if idxDoc == nil {
+				log.Infof("[CpsActionH][Reject] idxDoc is nil")
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+				return
+			}
 			if idxDoc.CheckerIndex != nil {
 				checkerIdx = int64(*idxDoc.CheckerIndex)
 			}
