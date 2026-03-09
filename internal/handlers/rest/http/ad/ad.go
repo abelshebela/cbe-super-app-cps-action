@@ -67,7 +67,7 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 	if err := req.Validate(false); err != nil {
 		span.RecordError(err)
 		log.Errorf("[AdH][Create] validate err: %v", err)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequest.Message)
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 	domainReq, err := core.ToAdvert(req)
