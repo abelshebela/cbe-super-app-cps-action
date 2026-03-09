@@ -44,10 +44,8 @@ func ValidateBankRequest(r *http.Request, data interface{}) localization.Respons
 		if v == nil {
 			return localization.ErrorNoDataProvidedForBankUpdate
 		}
-		if v.Logo != nil {
-			if err := v.Validate(); err != nil {
-				return localization.ErrorToResponseCode(err.Error(), 400, err.Error())
-			}
+		if err := v.Validate(); err != nil {
+			return localization.ErrorToResponseCode(err.Error(), 400, err.Error())
 		}
 		bic = &v.BICCode
 	case *bank_dto.CreateBankRequest:
