@@ -1,6 +1,7 @@
 package deviceversion
 
 import (
+	"html"
 	"regexp"
 	"strings"
 
@@ -13,6 +14,9 @@ func (r *CreateDeviceVersionRequest) Clean() {
 	r.Platform = strings.TrimSpace(strings.ToLower(r.Platform))
 	r.LatestVersion = strings.TrimSpace(r.LatestVersion)
 	r.ReleaseNotes = strings.TrimSpace(r.ReleaseNotes)
+	r.Platform = html.EscapeString(r.Platform)
+	r.ReleaseNotes = html.EscapeString(r.ReleaseNotes)
+	r.LatestVersion = html.EscapeString(r.LatestVersion)
 }
 
 func (r CreateDeviceVersionRequest) Validate() error {
