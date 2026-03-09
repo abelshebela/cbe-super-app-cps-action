@@ -10,14 +10,25 @@ func PhoneModifier(filter *types.Filter) *types.Filter {
 	if filter.Filters["phone"] == "" {
 		return filter
 	}
-	if strings.HasPrefix(filter.Filters["phone"].(string), "+") {
-		filter.Filters["phone"] = utils.FormatPhoneNumber(filter.Filters["phone"].(string))
+
+	if strings.HasPrefix(filter.Search, "+") {
+		filter.Filters["phone"] = utils.FormatPhoneNumber(filter.Search)
 	}
-	if strings.HasPrefix(filter.Filters["phone"].(string), "09") {
-		filter.Filters["phone"] = "+251" + filter.Filters["phone"].(string)[1:]
+
+	if strings.HasPrefix(filter.Search, "09") {
+		filter.Filters["phone"] = "+251" + filter.Search[1:]
 	}
-	if strings.HasPrefix(filter.Filters["phone"].(string), "07") {
-		filter.Filters["phone"] = "+251" + filter.Filters["phone"].(string)[1:]
+
+	if strings.HasPrefix(filter.Search, "9") {
+		filter.Filters["phone"] = "+2519" + filter.Search[1:]
+	}
+
+	if strings.HasPrefix(filter.Search, "07") {
+		filter.Filters["phone"] = "+251" + filter.Search[1:]
+	}
+
+	if strings.HasPrefix(filter.Search, "7") {
+		filter.Filters["phone"] = "+2517" + filter.Search[1:]
 	}
 
 	return filter
