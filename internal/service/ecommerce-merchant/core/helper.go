@@ -222,7 +222,7 @@ func convertDtoBranches(dto []merchantDto.BranchInformation) []model.BranchInfor
 		result[i] = model.BranchInformation{
 			BranchCode:          b.BranchCode,
 			BranchName:          b.BranchName,
-			BranchAddress:       b.BranchAddress,
+			BranchAddress:       *b.BranchAddress,
 			BranchOwner:         b.BranchOwner,
 			BranchAccountNumber: b.BranchAccountNumber,
 		}
