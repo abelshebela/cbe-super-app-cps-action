@@ -87,12 +87,17 @@ func SendValidationErrorResponse(w http.ResponseWriter, fieldErrors []FieldError
 
 // SendErrorByCodeResponse sends a validation error response
 func SendErrorByCodeResponse(w http.ResponseWriter, code string) {
-	responseCode, ok := GetResponseCodeByCode(code)
-	if !ok {
-		SendErrorResponse(w, ErrorFormatter(code), nil, nil)
-		return
-	}
-	SendSuccessResponse(w, responseCode, nil)
+    respCode, ok := GetResponseCodeByCode(code)
+    if !ok {
+        SendErrorResponse(w, ErrorFormatter(code), nil, nil)
+        return
+    }
+
+    if respCode.StatusCode >= http.StatusBadRequest || respCode.Type == "error" {
+        SendErrorResponse(w, respCode, nil, nil)
+    } else {
+        SendSuccessResponse(w, respCode, nil)
+    }
 }
 
 func ErrorFormatter(code string) ResponseCode {
