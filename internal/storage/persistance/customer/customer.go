@@ -671,7 +671,7 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 	}
 
 	if len(results) == 0 {
-		return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		return nil, errors.New(localization.ErrorCustomerNotFound.Code)
 	}
 
 	res := results[0]
