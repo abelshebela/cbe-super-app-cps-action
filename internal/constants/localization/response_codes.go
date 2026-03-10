@@ -364,6 +364,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMerchantIDRequired,
 	ErrorEventVenueRequired,
 	ErrorCustomerIDRequired,
+	ErrorCustomerCountFailed,
 	ErrorStartDateRequired,
 	ErrorDueDateRequired,
 	ErrorTotalTicketCountRequired,
