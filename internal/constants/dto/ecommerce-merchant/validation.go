@@ -24,9 +24,10 @@ func (b BranchInformation) ValidateCreate() error {
 		),
 
 		validation.Field(&b.BranchAddress,
-			validation.Required,
-			validation.By(utils.TrimWhiteSpace),
-			validation.By(utils.NoSpecialChars),
+			validation.When(b.BranchAddress != nil && *b.BranchAddress != "",
+				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
+			),
 		),
 
 		validation.Field(&b.BranchOwner,
