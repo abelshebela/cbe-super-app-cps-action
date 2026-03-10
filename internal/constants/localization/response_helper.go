@@ -9,7 +9,7 @@ import (
 
 // StandardResponse represents the standardized API response structure
 type StandardResponse struct {
-	Ok        bool        `json:"ok"`
+	// Ok        bool        `json:"ok"`
 	Status    int         `json:"status"`
 	TimeStamp time.Time   `json:"timestamp,omitempty"`
 	Message   string      `json:"message"`
@@ -41,7 +41,7 @@ func SendSuccessResponse(w http.ResponseWriter, responseCode ResponseCode, data 
 	w.WriteHeader(responseCode.StatusCode)
 
 	response := StandardResponse{
-		Ok:        true,
+		// Ok:        true,
 		Status:    responseCode.StatusCode,
 		TimeStamp: time.Now(),
 		Message:   responseCode.Message,
@@ -62,7 +62,7 @@ func SendErrorResponse(w http.ResponseWriter, responseCode ResponseCode, fieldEr
 	w.WriteHeader(responseCode.StatusCode)
 
 	response := StandardResponse{
-		Ok:        false,
+		// Ok:        false,
 		TimeStamp: time.Now(),
 		Status:    responseCode.StatusCode,
 		Message:   responseCode.Message,
@@ -87,17 +87,17 @@ func SendValidationErrorResponse(w http.ResponseWriter, fieldErrors []FieldError
 
 // SendErrorByCodeResponse sends a validation error response
 func SendErrorByCodeResponse(w http.ResponseWriter, code string) {
-    respCode, ok := GetResponseCodeByCode(code)
-    if !ok {
-        SendErrorResponse(w, ErrorFormatter(code), nil, nil)
-        return
-    }
+	respCode, ok := GetResponseCodeByCode(code)
+	if !ok {
+		SendErrorResponse(w, ErrorFormatter(code), nil, nil)
+		return
+	}
 
-    if respCode.StatusCode >= http.StatusBadRequest || respCode.Type == "error" {
-        SendErrorResponse(w, respCode, nil, nil)
-    } else {
-        SendSuccessResponse(w, respCode, nil)
-    }
+	if respCode.StatusCode >= http.StatusBadRequest || respCode.Type == "error" {
+		SendErrorResponse(w, respCode, nil, nil)
+	} else {
+		SendSuccessResponse(w, respCode, nil)
+	}
 }
 
 func ErrorFormatter(code string) ResponseCode {

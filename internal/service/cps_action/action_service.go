@@ -32,14 +32,14 @@ import (
 )
 
 type cpsActionService struct {
-	repo         storage.CPSActionRepository
-	roles        storage.CPSActionRoleRepository
-	logger       utils.Logger
-	dispatcher   Dispatcher
-	minioClient  *s3.Client
+	repo          storage.CPSActionRepository
+	roles         storage.CPSActionRoleRepository
+	logger        utils.Logger
+	dispatcher    Dispatcher
+	minioClient   *s3.Client
 	presignClient *s3.PresignClient
-	buckerName   string
-	minioBaseURL string
+	buckerName    string
+	minioBaseURL  string
 }
 
 // IsMakerOnlyForRequest returns true if the module mapped from requestAction is configured as maker-only in CPSActionRole.
@@ -113,16 +113,16 @@ func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	return err
 }
 
-func NewCPSActionService(roles storage.CPSActionRoleRepository, repo storage.CPSActionRepository, logger utils.Logger, dispatcher Dispatcher, minioClient *s3.Client, bucketName string, minioBaseURL string,	presignClient *s3.PresignClient,
+func NewCPSActionService(roles storage.CPSActionRoleRepository, repo storage.CPSActionRepository, logger utils.Logger, dispatcher Dispatcher, minioClient *s3.Client, bucketName string, minioBaseURL string, presignClient *s3.PresignClient,
 ) service.CPSActionService {
 	return &cpsActionService{
-		repo:         repo,
-		logger:       logger,
-		roles:        roles,
-		dispatcher:   dispatcher,
-		minioClient:  minioClient,
-		buckerName:   bucketName,
-		minioBaseURL: minioBaseURL,
+		repo:          repo,
+		logger:        logger,
+		roles:         roles,
+		dispatcher:    dispatcher,
+		minioClient:   minioClient,
+		buckerName:    bucketName,
+		minioBaseURL:  minioBaseURL,
 		presignClient: presignClient,
 	}
 }
@@ -632,7 +632,7 @@ func UploadFileToMinio(
 		return "", fmt.Errorf("upload to minio: %w", err)
 	}
 	// baseURL := env.MinioPublicEndPoint
-		req, err := presignClient.PresignGetObject(
+	req, err := presignClient.PresignGetObject(
 		ctx,
 		&s3.GetObjectInput{
 			Bucket: aws.String(bucketName),
@@ -738,18 +738,18 @@ func CpsActionCSVHeader() []string {
 }
 
 func formatTime(v any) string {
-    switch t := v.(type) {
-    case time.Time:
-        if t.IsZero() {
-            return ""
-        }
-        return t.Format(time.RFC3339)
-    case *time.Time:
-        if t == nil || t.IsZero() {
-            return ""
-        }
-        return t.Format(time.RFC3339)
-    default:
-        return fmt.Sprintf("%v", v)
-    }
+	switch t := v.(type) {
+	case time.Time:
+		if t.IsZero() {
+			return ""
+		}
+		return t.Format(time.RFC3339)
+	case *time.Time:
+		if t == nil || t.IsZero() {
+			return ""
+		}
+		return t.Format(time.RFC3339)
+	default:
+		return fmt.Sprintf("%v", v)
+	}
 }

@@ -17,6 +17,7 @@ func MapToServiceUpdate(service model.Service, existing model.Service) bson.M {
 	update["service_key"] = service.ServiceKey
 	update["service_name"] = service.ServiceName
 	update["product_gl_account"] = service.ProductGlAccount
+	update["minimum_fraud_amount"] = service.MinimumFraudAmount
 
 	// if len(service.Tiers) > 0 {
 	// 	update["tiers"] = service.Tiers
