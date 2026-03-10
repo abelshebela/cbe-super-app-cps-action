@@ -1,11 +1,11 @@
 package ecommercemerchant
 
 type BranchInformation struct {
-	BranchCode          string `json:"branch_code" bson:"branch_code"`
-	BranchName          string `json:"branch_name" bson:"branch_name"`
-	BranchAddress       string `json:"branch_address" bson:"branch_address"`
-	BranchOwner         string `json:"branch_owner" bson:"branch_owner"`
-	BranchAccountNumber string `json:"branch_account_number" bson:"branch_account_number"`
+	BranchCode          string  `json:"branch_code" bson:"branch_code"`
+	BranchName          string  `json:"branch_name" bson:"branch_name"`
+	BranchAddress       *string `json:"branch_address" bson:"branch_address"`
+	BranchOwner         string  `json:"branch_owner" bson:"branch_owner"`
+	BranchAccountNumber string  `json:"branch_account_number" bson:"branch_account_number"`
 }
 
 type EcommerceMerchant struct {
