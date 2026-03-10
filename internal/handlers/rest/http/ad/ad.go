@@ -63,6 +63,7 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
+	req.Clean()
 	if err := req.Validate(false); err != nil {
 		span.RecordError(err)
 		log.Errorf("[AdH][Create] validate err: %v", err)
@@ -232,10 +233,12 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	// sanitize user input before validation / persistence
+	req.Clean()
 	if err := req.Validate(true); err != nil {
 		span.RecordError(err)
 		log.Errorf("[AdH][Update] validate err: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequest.Message)
 		return
 	}
 	domainReq, _ := core.ToAdvert(req)

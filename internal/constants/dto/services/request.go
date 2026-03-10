@@ -7,6 +7,7 @@ package services
 // }
 
 type CapRequest struct {
+	Source             *string  `bson:"source" json:"source"`
 	Currency           *string  `json:"currency" example:"ETB"`
 	SingleCap          *float64 `json:"single_cap" example:"1000000"`
 	MinimumTransferCap *float64 `json:"minimum_transfer_cap" example:"10"`
@@ -36,7 +37,8 @@ type CreateServiceRequest struct {
 	ServiceCode      string `json:"service_code" example:"JKSJBDJB"`
 	ProductGlAccount string `json:"cbe_gl_product_account" example:"234353354"`
 	// ServiceList      []ServiceList `bson:"service_list" json:"service_list"`
-	Cap []CapRequest `json:"cap"`
+	Cap                []CapRequest `bson:"cap" json:"cap"`
+	MinimumFraudAmount float64      `bson:"minimum_fraud_amount" json:"minimum_fraud_amount"`
 	// Tiers            []TierRequest `json:"tiers"`
 	// HaveATier  bool  `json:"have_a_tier"`
 	// HaveAChild bool  `json:"have_a_child"`
@@ -45,12 +47,13 @@ type CreateServiceRequest struct {
 }
 
 type UpdateServiceRequest struct {
-	ServiceName      *string `json:"service_name" example:"Transfer To Other bank"`
-	ServiceKey       *string `json:"service_key" example:"Transfer To Other bank"`
-	ServiceCode      *string `json:"service_code" example:"JKSJBDJB"`
-	ProductGlAccount *string `json:"cbe_gl_product_account" example:"234353354"`
+	ServiceName      *string      `json:"service_name" example:"Transfer To Other bank"`
+	ServiceKey       *string      `json:"service_key" example:"Transfer To Other bank"`
+	ServiceCode      *string      `json:"service_code" example:"JKSJBDJB"`
+	ProductGlAccount *string      `json:"cbe_gl_product_account" example:"234353354"`
+	Cap              []CapRequest `bson:"cap" json:"cap"`
 	// ServiceList      []ServiceList `bson:"service_list" json:"service_list"`
-	Cap []CapRequest `json:"cap"`
+	MinimumFraudAmount *float64 `bson:"minimum_fraud_amount" json:"minimum_fraud_amount"`
 	// Tiers            []TierRequest `json:"tiers"`
 	// HaveATier  *bool `json:"have_a_tier"`
 	// HaveAChild *bool `json:"have_a_child"`

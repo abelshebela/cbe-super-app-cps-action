@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
@@ -49,6 +50,7 @@ func MapToServiceModel(req service_dto.CreateServiceRequest) model.Service {
 
 			for _, c := range req.Cap {
 				caps = append(caps, model.Cap{
+					Source:             shared_constant.SourceApp(*c.Source),
 					Currency:           service_dto.StringPointer(c.Currency, ""),
 					SingleCap:          formatFloatPointer(c.SingleCap),
 					MinimumTransferCap: formatFloatPointer(c.MinimumTransferCap),
@@ -57,6 +59,8 @@ func MapToServiceModel(req service_dto.CreateServiceRequest) model.Service {
 
 			return caps
 		}(),
+		MinimumFraudAmount: strconv.FormatFloat(req.MinimumFraudAmount, 'f', -1, 64),
+
 		// Tiers: func() []model.Tier {
 		// 	tiers := make([]model.Tier, 0, len(req.Tiers))
 		// 	for _, t := range req.Tiers {
@@ -124,6 +128,7 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing mode
 
 			for _, c := range req.Cap {
 				caps = append(caps, model.Cap{
+					Source:             shared_constant.SourceApp(*c.Source),
 					Currency:           service_dto.StringPointer(c.Currency, ""),
 					SingleCap:          formatFloatPointer(c.SingleCap),
 					MinimumTransferCap: formatFloatPointer(c.MinimumTransferCap),
@@ -132,6 +137,9 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing mode
 
 			return caps
 		}()
+	}
+	if req.MinimumFraudAmount != nil {
+		existing.MinimumFraudAmount = strconv.FormatFloat(*req.MinimumFraudAmount, 'f', -1, 64)
 	}
 
 	// if req.Tiers != nil {
