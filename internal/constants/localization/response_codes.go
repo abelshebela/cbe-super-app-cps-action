@@ -4924,7 +4924,7 @@ var (
 
 	SuccessUssdMerchantFetched = ResponseCode{
 		Code:       "SUCCESS_USSD_MERCHANT_FETCHED",
-		StatusCode: StatusCreated,
+		StatusCode: StatusOK,
 		Message:    MsgUssdMerchantFetchedSuccessfully,
 		Type:       "success",
 	}
