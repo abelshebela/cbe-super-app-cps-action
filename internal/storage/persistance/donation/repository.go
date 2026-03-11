@@ -235,3 +235,63 @@ func (d *DonationStorage) StreamByDateRange(ctx context.Context, startDate, endD
 
 	return cursor.Err()
 }
+
+func (d *DonationStorage) HasActiveDonationsByCategory(ctx context.Context, categoryID string) (bool, error) {
+	d.logger.Infof("[DonationStorage][HasActiveDonationsByCategory] checking active donations for category: %s", categoryID)
+
+	objID, err := bson.ObjectIDFromHex(categoryID)
+	if err != nil {
+		d.logger.Errorf("[DonationStorage][HasActiveDonationsByCategory] invalid category id: %v", err)
+		return false, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	filter := bson.M{
+		"category_id": objID,
+		"enabled":     true,
+		"is_deleted":  false,
+	}
+
+	count, err := d.dal.TotalCount(ctx, filter)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			// No donations exist for this category — treat as zero active donations.
+			return false, nil
+		}
+		d.logger.Errorf("[DonationStorage][HasActiveDonationsByCategory] count failed: %v", err)
+		return false, local_util.HandleDBError(err)
+	}
+
+	return count > 0, nil
+}
+
+func (d *DonationStorage) DisableAllByCompany(ctx context.Context, companyID string) error {
+	d.logger.Infof("[DonationStorage][DisableAllByCompany] disabling all active donations for company: %s", companyID)
+
+	objID, err := bson.ObjectIDFromHex(companyID)
+	if err != nil {
+		d.logger.Errorf("[DonationStorage][DisableAllByCompany] invalid company id: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	filter := bson.M{
+		"company_id": objID,
+		"enabled":    true,
+		"is_deleted": false,
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"enabled":          false,
+			"last_modified_at": time.Now(),
+		},
+	}
+
+	result, err := d.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		d.logger.Errorf("[DonationStorage][DisableAllByCompany] UpdateMany failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
+	d.logger.Infof("[DonationStorage][DisableAllByCompany] disabled %d donations for company %s", result.ModifiedCount, companyID)
+	return nil
+}
