@@ -141,12 +141,6 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	log.Infof("[WalletH] req: %+v", req)
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		log.Errorf("[WalletH][Update] multipart form err: %v", err)
-		localization.SendBadRequestResponse(w, "Failed to parse form data")
-		return
-	}
 
 	if err := req.Validate(false); err != nil {
 		span.RecordError(err)

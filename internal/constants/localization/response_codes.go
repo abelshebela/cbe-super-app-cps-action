@@ -560,6 +560,7 @@ var ResponseCodesList = []ResponseCode{
 	CustomerEnableRequestCreatedSuccessfully,
 	ErrorCustomerAlreadyDisabled,
 	ErrorCustomerAlreadyEnabled,
+	ErrorCustomerNotFound,
 	ErrorIdNotSetOnQueryParam,
 	CustomerDetailSuccessfullyFetched,
 	ErrorFailedToGetBlockedCustomer,
