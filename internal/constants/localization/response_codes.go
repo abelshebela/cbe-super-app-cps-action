@@ -5872,6 +5872,19 @@ var (
 		Type:       "error",
 	}
 
+	ErrorDonationCompanyNotEnabled = ResponseCode{
+		Code:       "ERROR_DONATION_COMPANY_NOT_ENABLED",
+		StatusCode: StatusForbidden,
+		Message:    MsgDonationCompanyNotEnabled,
+		Type:       "error",
+	}
+
+	ErrorDonationCategoryNotEnabled = ResponseCode{
+		Code:       "ERROR_DONATION_CATEGORY_NOT_ENABLED",
+		StatusCode: StatusForbidden,
+		Message:    MsgDonationCategoryNotEnabled,
+		Type:       "error",
+	}
 	// ErrorRoleAlreadyExists = ResponseCode{
 	// 	Code:       "ERROR_ROLE_ALREADY_EXISTS",
 	// 	StatusCode: StatusNotFound,

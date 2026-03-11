@@ -128,6 +128,10 @@ func (s *DonationCompanyStorage) FindAllWithPagination(ctx context.Context, filt
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, projection, skip, limit)
 	if err != nil {
+		if err.Error() == mongo.ErrNoDocuments.Error() {
+			s.logger.Errorf("[DonationCompanyStorage][FindAllWithPagination] no donation companies found")
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
 		s.logger.Errorf("[DonationCompanyStorage][FindAllWithPagination] failed to fetch donation companies: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
