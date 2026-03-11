@@ -560,6 +560,7 @@ var ResponseCodesList = []ResponseCode{
 	CustomerEnableRequestCreatedSuccessfully,
 	ErrorCustomerAlreadyDisabled,
 	ErrorCustomerAlreadyEnabled,
+	ErrorCustomerNotFound,
 	ErrorIdNotSetOnQueryParam,
 	CustomerDetailSuccessfullyFetched,
 	ErrorFailedToGetBlockedCustomer,
@@ -630,6 +631,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationCompanyIdRequired,
 	ErrorDonationAlreadyEnabled,
 	ErrorDonationAlreadyDisabled,
+	ErrorActiveDonationExistsInCategory,
 	SuccessDonationCompanyUpdatedSP,
 	SuccessDonationCompanyCreatedSP,
 	SuccessDonationCompanyEnabledSP,
@@ -6507,6 +6509,15 @@ var (
 		Code:       "ERROR_DONATION_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgDonationAlreadyDisabled,
+		Type:       "error",
+	}
+
+	// ErrorActiveDonationExistsInCategory is returned when disabling a category
+	// that still has at least one enabled donation referencing it.
+	ErrorActiveDonationExistsInCategory = ResponseCode{
+		Code:       "DONATION_CATEGORY_HAS_ACTIVE_DONATIONS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActiveDonationExistsInCategory,
 		Type:       "error",
 	}
 
