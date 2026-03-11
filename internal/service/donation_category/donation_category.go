@@ -28,15 +28,16 @@ import (
 
 type DonationCategory struct {
 	DonationCategoryRepo storage.DonationCategoryRepository
-	cpsService           service.CPSActionService
-	logger               utils.Logger
-	minio                *s3.Client
-	bucketName           string
-	cfg                  *config.VaultConfig
-	minioEndPoint        string
+	DonationRepo  storage.DonationRepository
+	cpsService    service.CPSActionService
+	logger        utils.Logger
+	minio         *s3.Client
+	bucketName    string
+	cfg           *config.VaultConfig
+	minioEndPoint string
 }
 
-func NewDonationCategoryService(client *mongo.Client, DonationCategoryRepo storage.DonationCategoryRepository, cpsAction service.CPSActionService, logger utils.Logger, minio *s3.Client,
+func NewDonationCategoryService(client *mongo.Client, DonationCategoryRepo storage.DonationCategoryRepository, DonationRepo storage.DonationRepository, cpsAction service.CPSActionService, logger utils.Logger, minio *s3.Client,
 	bucketName string,
 	cfg *config.VaultConfig,
 	minioEndPoint string,
@@ -44,6 +45,7 @@ func NewDonationCategoryService(client *mongo.Client, DonationCategoryRepo stora
 
 	return &DonationCategory{
 		DonationCategoryRepo: DonationCategoryRepo,
+		DonationRepo:         DonationRepo,
 		cpsService:           cpsAction,
 		logger:               logger,
 		minio:                minio,
@@ -409,6 +411,24 @@ func (d *DonationCategory) DisableDonationCategory(ctx context.Context, id strin
 		))
 		return errors.New(localization.ErrorAlreadyDisabled.Code)
 	}
+
+	// Guard: block the disable if there are still enabled donations using this category.
+	hasActive, err := d.DonationRepo.HasActiveDonationsByCategory(ctx, id)
+	if err != nil {
+		span.AddEvent("Failed to check active donations for category", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+	if hasActive {
+		span.AddEvent("Category has active donations — disable blocked", trace.WithAttributes(
+			attribute.String("error", localization.ErrorActiveDonationExistsInCategory.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorActiveDonationExistsInCategory.Code)
+	}
+
 	Enabled := false
 	DonationCategory := core.MapToDonationCategory(existingDonationCategory.CategoryName, existingDonationCategory.Icon, Enabled)
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCategory, DonationCategory, string(constants.RequestDisableDonationCategory), constants.UPDATE)
