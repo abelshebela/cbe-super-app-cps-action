@@ -721,7 +721,7 @@ func (d *Donation) EnableDonation(ctx context.Context, id string) error {
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
-	if !companies.Data[0].Enabled {
+	if len(companies.Data) > 0 && !companies.Data[0].Enabled {
 		span.AddEvent("Donation company not enabled", trace.WithAttributes(
 			attribute.String("error", localization.ErrorDonationCompanyNotEnabled.Code),
 			attribute.String("id", id),
@@ -729,7 +729,7 @@ func (d *Donation) EnableDonation(ctx context.Context, id string) error {
 		return errors.New(localization.ErrorDonationCompanyNotEnabled.Code)
 	}
 
-	if !donationCategories.Data[0].Enabled {
+	if len(donationCategories.Data) > 0 && !donationCategories.Data[0].Enabled {
 		span.AddEvent("Donation categories not enabled", trace.WithAttributes(
 			attribute.String("error", localization.ErrorDonationCategoryNotEnabled.Code),
 			attribute.String("id", id),
