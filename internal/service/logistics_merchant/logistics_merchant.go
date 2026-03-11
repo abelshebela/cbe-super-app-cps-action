@@ -99,7 +99,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			dto := erp_merchant_update_dto.ERPUpdateRequest{
 				MainAccountNumber: merchant.BankAccountNumber,
 			}
-			if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+			if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, false, e.logger); err != nil {
 				e.logger.Errorf("[LogisMerchSvc][Authorize] ERP update err: %v", err)
 				span.AddEvent("Failed to update ERP", trace.WithAttributes(
 					attribute.String("error", err.Error()),
@@ -122,7 +122,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 		dto := erp_merchant_update_dto.ERPUpdateRequest{
 			CpsEnabled: &enabled,
 		}
-		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, false, e.logger); err != nil {
 			e.logger.Errorf("[LogisMerchSvc][Authorize] ERP delete err: %v", err)
 			span.AddEvent("Failed to update ERP", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -144,7 +144,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 		dto := erp_merchant_update_dto.ERPUpdateRequest{
 			CpsEnabled: &enabled,
 		}
-		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, false, e.logger); err != nil {
 			e.logger.Errorf("[LogisMerchSvc][Authorize] ERP enable err: %v", err)
 			span.AddEvent("Failed to update ERP", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -166,7 +166,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 		dto := erp_merchant_update_dto.ERPUpdateRequest{
 			CpsEnabled: &enabled,
 		}
-		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, false, e.logger); err != nil {
 			e.logger.Errorf("[LogisMerchSvc][Authorize] ERP disable err: %v", err)
 			span.AddEvent("Failed to update ERP", trace.WithAttributes(
 				attribute.String("error", err.Error()),
