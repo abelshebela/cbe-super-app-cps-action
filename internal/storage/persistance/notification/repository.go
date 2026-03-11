@@ -50,7 +50,7 @@ func (n *NotificationStorage) Create(ctx context.Context, notification *model.No
 	}
 
 	inAppMessage := notification_dto.InAppKafkaMessage{
-		Type:    "in_app_broadcast",
+		Type:    "OTHER",
 		Title:   "notification created",
 		Message: "new notification created",
 		Data:    NotificationMapper(newNotification),
@@ -82,7 +82,7 @@ func (n *NotificationStorage) Update(ctx context.Context, id string, notificatio
 	}
 
 	inAppMessage := notification_dto.InAppKafkaMessage{
-		Type:    "in_app_broadcast",
+		Type:    "OTHER",
 		Title:   "notification updated",
 		Message: "notification has been updated",
 		Data:    NotificationMapper(updatedNotification),
@@ -225,7 +225,7 @@ func (n *NotificationStorage) EnableDisableNotification(ctx context.Context, id 
 	}
 
 	inAppMessage := notification_dto.InAppKafkaMessage{
-		Type:    "in_app_broadcast",
+		Type:    "OTHER",
 		Title:   fmt.Sprintf("notification %s", status),
 		Message: "notification has been " + status,
 		Data:    NotificationMapper(updatedNotification),
