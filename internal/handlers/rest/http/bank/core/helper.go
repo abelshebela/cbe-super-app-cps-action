@@ -5,7 +5,6 @@ import (
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
-	"errors"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -19,7 +18,7 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64, action
 	file, fileHeader, err := local_util.ParseMultipartFormFile(r, "logo", int64(constants.MaxMemoryForUpload))
 	if err != nil {
 		logger.Errorf("[BankHelper][ParseFile] error parsing multipart form file: %v", err)
-		if errors.Is(err, localization.ErrorMissingFile) {
+		if err == http.ErrMissingFile {
 
 			if action == constants.CREATE {
 				if err == http.ErrMissingFile {
