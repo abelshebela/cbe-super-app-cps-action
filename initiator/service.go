@@ -134,7 +134,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bpsActionRoleService := bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.JobRolePersistence, nil, logger)
 	miniAppCategory := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
 	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, nil, logger)
-	eventMerchantService := event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, nil, accountLookupAdapter, cfg, logger)
+	eventMerchantService := event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, nil, accountLookupAdapter, persistence.MerchantLookup, cfg, logger)
 	logisticsMerchantService := logistics_merchant_service.NewLogisticsMerchantService(persistence.LogisticsMerchantPersistence, nil, accountLookupAdapter, cfg, logger)
 	servicesService := services_svc.NewServicesService(persistence.ServicesPersistence, nil, logger)
 	vaultAmountTierSrv := vault_amount_tier.NewVaultAmountTierService(oracle.VaultAmountTier, nil, logger)
@@ -291,7 +291,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, persistence.AccountBlockPersistence, cpsActionService, logger)
 	bankVaultProductService = bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
 	vaultCategoryService = vault_category.NewVaultCategoryService(oracle.vaultCategory, cpsActionService, logger, minioClient, minioPubUrl, cfg.S3BucketName, cfg)
-	eventMerchantService = event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, cpsActionService, accountLookupAdapter, cfg, logger)
+	eventMerchantService = event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, cpsActionService, accountLookupAdapter, persistence.MerchantLookup, cfg, logger)
 
 	logisticsMerchantService = logistics_merchant_service.NewLogisticsMerchantService(persistence.LogisticsMerchantPersistence, cpsActionService, accountLookupAdapter, cfg, logger)
 
