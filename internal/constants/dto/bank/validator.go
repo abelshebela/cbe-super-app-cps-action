@@ -34,10 +34,11 @@ func (u UpdateBankRequest) Validate() error {
 			validation.Match(bankNameRegex).Error("Bank name must not contain special characters"),
 		),
 		validation.Field(&u.Logo, validation.By(func(value interface{}) error {
-			if value == nil {
+			file, ok := value.(*multipart.FileHeader)
+			if !ok || file == nil {
 				return nil
 			}
-			return validateLogo(value)
+			return validateLogo(file)
 		})),
 		// Code and BIC are optional on update — allow empty values by not validating them here
 	)
