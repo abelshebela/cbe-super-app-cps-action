@@ -738,3 +738,21 @@ func (p *CustomerRepository) FindCustomerByUserCode(ctx context.Context, userCod
 	}
 	return user, nil
 }
+
+func (p *CustomerRepository) FindCustomerLinkedAccountByUserCode(ctx context.Context, userCode string) (*model.LinkedAccount, error) {
+	p.logger.Infof("[CustomerRepository][FindCustomerLinkedAccountByUserCode] fetching linked account for user code: %s", userCode)
+	filter := bson.M{
+		"customer_number": userCode,
+		"is_main":         true,
+	}
+	linkedAccount, err := p.linkedAccountDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		p.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserCode] failed to find linked account: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	if linkedAccount == nil {
+		p.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserCode] linked account not found for user code: %s", userCode)
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
+	}
+	return linkedAccount, nil
+}
