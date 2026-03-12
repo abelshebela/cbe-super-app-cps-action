@@ -663,76 +663,38 @@ func (d *Donation) EnableDonation(ctx context.Context, id string) error {
 		return errors.New(localization.ErrorDonationAlreadyEnabled.Code)
 	}
 
-	companyId, err := bson.ObjectIDFromHex(existingDonation.Company.ID)
+	company, err := d.DonationCompanyRepo.FindByID(ctx, existingDonation.Company.ID)
 	if err != nil {
-		span.AddEvent("Failed to convert company ID to ObjectID", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
-		d.logger.Errorf("[Donation][EnableDonation] error while converting company id error: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	categoryId, err := bson.ObjectIDFromHex(existingDonation.Category.ID)
-	if err != nil {
-		span.AddEvent("Failed to convert category ID to ObjectID", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
-		d.logger.Errorf("[Donation][EnableDonation] error while converting company id error: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	companies, err := d.DonationCompanyRepo.FindAllWithPagination(ctx, types.Filter{
-		Filters: map[string]interface{}{
-			"_id": companyId,
-		},
-	})
-
-	donationCategories, catErr := d.DonationCategoryRepo.FindAllWithPagination(ctx, types.Filter{
-		Filters: map[string]interface{}{
-			"_id": categoryId,
-		},
-	})
-
-	if err != nil || catErr != bson.ErrNilReader {
-		span.AddEvent("Failed to find donation companies", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
-		d.logger.Errorf("[Donation][EnableDonation] failed to fetion donation list error:%v ", err)
-		if catErr.Error() == localization.ErrorResourceNotFound.Code {
-			d.logger.Errorf("[Donation][EnableDonation] failed to fetion donation category list error:%v ", catErr)
-			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
-		}
-
-		if err.Error() == localization.ErrorResourceNotFound.Code {
-			d.logger.Errorf("[Donation][EnableDonation] failed to fetch donation company error:%v ", err)
-			return errors.New(localization.ErrorDonationCompanyNotFound.Code)
-		}
-		return err
-	}
-
-	if len(companies.Data) == 0 {
 		span.AddEvent("Donation company not found", trace.WithAttributes(
-			attribute.String("error", localization.ErrorResourceNotFound.Code),
+			attribute.String("error", localization.ErrorDonationCompanyNotFound.Code),
 			attribute.String("id", id),
+			attribute.String("company_id", existingDonation.Company.ID),
 		))
-		return errors.New(localization.ErrorResourceNotFound.Code)
+		return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 	}
-
-	if len(companies.Data) > 0 && !companies.Data[0].Enabled {
+	if !company.Enabled {
 		span.AddEvent("Donation company not enabled", trace.WithAttributes(
 			attribute.String("error", localization.ErrorDonationCompanyNotEnabled.Code),
 			attribute.String("id", id),
+			attribute.String("company_id", existingDonation.Company.ID),
 		))
 		return errors.New(localization.ErrorDonationCompanyNotEnabled.Code)
 	}
 
-	if len(donationCategories.Data) > 0 && !donationCategories.Data[0].Enabled {
-		span.AddEvent("Donation categories not enabled", trace.WithAttributes(
+	category, err := d.DonationCategoryRepo.FindByID(ctx, existingDonation.Category.ID)
+	if err != nil {
+		span.AddEvent("Donation category not found", trace.WithAttributes(
+			attribute.String("error", localization.ErrorDonationCategoryNotFound.Code),
+			attribute.String("id", id),
+			attribute.String("category_id", existingDonation.Category.ID),
+		))
+		return errors.New(localization.ErrorDonationCategoryNotFound.Code)
+	}
+	if !category.Enabled {
+		span.AddEvent("Donation category not enabled", trace.WithAttributes(
 			attribute.String("error", localization.ErrorDonationCategoryNotEnabled.Code),
 			attribute.String("id", id),
+			attribute.String("category_id", existingDonation.Category.ID),
 		))
 		return errors.New(localization.ErrorDonationCategoryNotEnabled.Code)
 	}
