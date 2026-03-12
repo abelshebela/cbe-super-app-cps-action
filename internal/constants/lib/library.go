@@ -565,7 +565,12 @@ func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, bo
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 	}
-	base += "/cps/merchant/update/" + merchantID
+	if isEventMerchant {
+		base += "/cps/event/merchant/update/" + merchantID
+	} else {
+		base += "/cps/merchant/update/" + merchantID
+	}
+
 	if cfg.ApiKey == "" {
 		logger.Debugf("env api key for publish not found using hardcoded")
 		return errors.New(localization.ErrorUnexpectedError.Code)

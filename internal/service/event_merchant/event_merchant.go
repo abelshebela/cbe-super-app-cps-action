@@ -461,7 +461,7 @@ func (e *EventMerchantService) MerchantLookup(ctx context.Context, merchantID st
 
 	base := strings.TrimRight(e.cfg.OddoEventBaseUrl, "/")
 	// base := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce"
-	url := base + "/cps/merchant/"
+	url := base + "/cps/event/merchant/"
 	xAPIKey := e.cfg.ApiKey
 
 	merchantData, err := e.merchantLookup.LookupMerchant(ctx, merchantID, xAPIKey, url)
