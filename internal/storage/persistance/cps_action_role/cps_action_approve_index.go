@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"slices"
 	"time"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -80,7 +81,9 @@ func (r *CPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx co
 		if v.AuditorIndex != nil {
 			auditorAllocations = append(auditorAllocations, v.ActionName)
 		}
-		portalCard = append(portalCard, v.PortalCardName)
+		if !slices.Contains(portalCard, v.PortalCardName) {
+			portalCard = append(portalCard, v.PortalCardName)
+		}
 	}
 	r.logger.Infof("PopulateUserApproverAllocations: Found %d viewer, %d maker, %d checker, %d auditor allocations for RoleID: %s", len(viewerAllocations), len(makerAllocations), len(checkerAllocations), len(auditorAllocations), role_id)
 	return viewerAllocations, makerAllocations, checkerAllocations, auditorAllocations, portalCard, nil
