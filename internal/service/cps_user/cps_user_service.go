@@ -396,17 +396,12 @@ func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode strin
 
 func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCpsUserDetail", "CPSUser", "GetCpsUserDetail")
-	makerData := local_util.ExtractUserFromContext(ctx)
+
 	defer span.End()
 
 	if userCode == "" {
 		span.AddEvent("user code is empty", trace.WithAttributes(attribute.String("error", "user code is empty")))
 		return nil, errors.New(localization.ErrorUserCodeRequired.Code)
-	}
-
-	if userCode != makerData.UserCode {
-		span.AddEvent("user code does not match maker code", trace.WithAttributes(attribute.String("error", "user code does not match maker code")))
-		return nil, errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
 	// populated, err := s.repo.GetPopulatedByID(ctx, userCode)
