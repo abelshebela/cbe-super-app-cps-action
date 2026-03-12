@@ -114,7 +114,8 @@ func (s *JobRoleStorage) FindByID(ctx context.Context, id string) (*imodel.JobRo
 
 func (s *JobRoleStorage) FindAll(ctx context.Context) (*[]imodel.JobRole, error) {
 
-	data, err := s.dal.FindAll(ctx, bson.M{"enabled": true}, bson.M{})
+	data, err := s.dal.FindAll(ctx, bson.M{}, bson.M{})
+
 	if err != nil {
 		return nil, local_util.HandleDBError(err)
 	}
