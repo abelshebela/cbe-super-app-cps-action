@@ -16,6 +16,7 @@ type Feedback struct {
 	CustomerName  string        `json:"customer_name" bson:"customer_name"`
 	PhoneNumber   string        `json:"phone_number" bson:"phone_number"`
 	SendAt        time.Time     `json:"sent_at" bson:"sent_at"`
+	Platform      string        `json:"platform" bson:"platform"`
 	AccountNumber string        `json:"account_number" bson:"account_number"`
 	Rating        int           `json:"rating" bson:"rating"`
 	Comment       string        `json:"comment" bson:"comment"`
@@ -82,6 +83,7 @@ type CustomerFeedback struct {
 	PhoneNumber   string        `json:"phone_number" bson:"phone_number"`
 	AccountNumber string        `json:"account_number" bson:"account_number"`
 	Rating        int           `json:"rating" bson:"rating"`
+	Platform      string        `json:"platform" bson:"platform"`
 	DeviceModel   string        `json:"device_model" bson:"device_model"`
 	Message       string        `json:"message" bson:"message"`
 	SentAt        time.Time     `json:"sent_at" bson:"sent_at"`
@@ -95,6 +97,7 @@ type SurveyFeedback struct {
 	CustomerName  string                    `json:"customer_name" bson:"customer_name"`
 	PhoneNumber   string                    `json:"phone_number" bson:"phone_number"`
 	SentAt        time.Time                 `json:"sent_at" bson:"sent_at"`
+	Platform      string                    `json:"platform" bson:"platform"`
 	AccountNumber string                    `json:"account_number" bson:"account_number"`
 	Responses     map[string]types.Response `json:"responses" bson:"responses"`
 	CreatedAt     time.Time                 `json:"created_at" bson:"created_at"`
