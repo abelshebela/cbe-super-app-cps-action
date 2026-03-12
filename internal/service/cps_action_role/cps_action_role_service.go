@@ -526,13 +526,13 @@ func (s *cpsActionRoleService) validateUniqueIDs(ids []string) error {
 		seen[id] = struct{}{}
 	}
 	// Check existence in DB
-	exists, err := s.roleRepo.ExistsMany(context.Background(), ids)
+	_, err := s.roleRepo.ExistsMany(context.Background(), ids)
 	if err != nil {
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
-	if !exists {
-		return errors.New(localization.ErrorResourceNotFound.Code)
-	}
+	// if !exists {
+	// 	return errors.New(localization.ErrorResourceNotFound.Code)
+	// }
 	return nil
 }
 
