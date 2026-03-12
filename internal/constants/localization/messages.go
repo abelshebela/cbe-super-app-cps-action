@@ -43,6 +43,7 @@ const (
 	MSGIncompleteUserInfo            = "Incomplte user info"
 	MsgInvalidJSONPayload            = "Invalid json payload"
 	MSGUserCodeIsRequired            = "User code is required"
+	MSGUserIDIsRequired              = "User ID is required"
 	MsgActionAlreadyExists           = "Action already requested wait for checker approval"
 	MsgActionAlreadyDisabled         = "Action already disabled"
 	// OTP related success messages
@@ -117,7 +118,6 @@ const (
 	MsgDonationCompanyEnableRequestSent   = "Donation Company Enable request submitted successfully"
 	MsgDonationCompanyDisableRequestSent  = "Donation company Disable request submitted successfully"
 	MsgDonationCategoryEnableRequestSent  = "Donation category Enable request submitted successfully"
-
 
 	MsgActiveDonationExistsInCategory    = "Please disable all active donations in this category before disabling the category"
 	MsgDonationCompanyCreateRequestSent  = "Donation company create request submitted successfully"

@@ -172,9 +172,16 @@ func (h *handler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchCpsUserByCode", "handler", "cpsUser")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
+	userData := local_util.ExtractUserFromContext(ctx)
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorUserCodeRequired.Code)
+		return
+	}
+
+	if userCode != userData.UserCode {
+		h.logger.Errorf("[FetchUserByUserCode] user code does not match maker code: %s", userCode)
+		localization.SendErrorByCodeResponse(w, localization.ErrorUserUnauthorized.Code)
 		return
 	}
 
@@ -189,6 +196,30 @@ func (h *handler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Infof("[FetchUserByUserCode] CPS user retrieved successfully for user_code: %s", userCode)
+	localization.SendSuccessResponse(w, localization.SuccessCpsUserRetrieved, user)
+}
+
+func (h *handler) FetchUserByCode(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchCpsUserByCode", "handler", "cpsUser")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	userCode := strings.TrimSpace(chi.URLParam(r, "code"))
+	if userCode == "" {
+		localization.SendErrorByCodeResponse(w, localization.ErrorUserIDRequired.Code)
+		return
+	}
+
+	// Build detailed response in the service layer
+	span.SetAttributes(attribute.String("cps_user.code", userCode))
+	user, err := h.svc.GetCpsUserDetail(ctx, userCode)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[FetchUserByCode] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	log.Infof("[FetchUserByCode] CPS user retrieved successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserRetrieved, user)
 }
 

@@ -5038,6 +5038,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorUserIDRequired = ResponseCode{
+		Code:       "ERROR_USER_ID_IS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MSGUserIDIsRequired,
+		Type:       "error",
+	}
+
 	ErrorUserAlreadyExists = ResponseCode{
 		Code:       "ERROR_USER_ALREADY_EXISTS",
 		StatusCode: StatusConflict,
