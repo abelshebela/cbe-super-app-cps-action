@@ -185,6 +185,12 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 			return
 		}
 
+		if userPayload.SessionExp <= time.Now().Unix() {
+			a.logger.Warnf("[AuthMW][AuthToken] session expired")
+			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+			return
+		}
+
 		ctx := a.setUserPayload(r.Context(), userPayload)
 		// isOTPVerified := ctx.Value("is_otp_verified")
 		// if isOTPVerified != "true" {
