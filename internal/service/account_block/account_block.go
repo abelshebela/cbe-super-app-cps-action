@@ -191,9 +191,11 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 	}
 
 	if len(alreadyEnabled) > 0 {
-		return fmt.Errorf("these branches are already enabled: %s", strings.Join(alreadyEnabled, ", "))
+		return fmt.Errorf("some of the branches your requested to enable are already enabled")
+		// return fmt.Errorf("these branches are already enabled: %s", strings.Join(alreadyEnabled, ", "))
 	} else if len(alreadyDisabled) > 0 {
-		return fmt.Errorf("these branches are already disabled: %s", strings.Join(alreadyDisabled, ", "))
+		return fmt.Errorf("some of the branches your requested to disable are already disabled")
+		// return fmt.Errorf("these branches are already disabled: %s", strings.Join(alreadyDisabled, ", "))
 	}
 
 	var actionType constants.ActionType
@@ -264,9 +266,11 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 	}
 
 	if len(alreadyEnabled) > 0 {
-		return fmt.Errorf("these regions are already enabled: %s", strings.Join(alreadyEnabled, ", "))
+		return fmt.Errorf("some of the regions you requested to enable are already enabled.")
+		// return fmt.Errorf("these regions are already enabled: %s", strings.Join(alreadyEnabled, ", "))
 	} else if len(alreadyDisabled) > 0 {
-		return fmt.Errorf("these regions are already disabled: %s", strings.Join(alreadyDisabled, ", "))
+		return fmt.Errorf("some of the regions you requested to disable are already disabled.")
+		// return fmt.Errorf("these regions are already disabled: %s", strings.Join(alreadyDisabled, ", "))
 	}
 
 	var actionType constants.ActionType
@@ -360,9 +364,11 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 	}
 
 	if len(alreadyEnabled) > 0 {
-		return fmt.Errorf("these districts are already enabled: %s", strings.Join(alreadyEnabled, ", "))
+		return fmt.Errorf("some of the districts you requested to enable are already enabled.")
+		// return fmt.Errorf("these districts are already enabled: %s", strings.Join(alreadyEnabled, ", "))
 	} else if len(alreadyDisabled) > 0 {
-		return fmt.Errorf("these districts are already disabled: %s", strings.Join(alreadyDisabled, ", "))
+		return fmt.Errorf("some of the districts you requested to disable are already disabled.")
+		// return fmt.Errorf("these districts are already disabled: %s", strings.Join(alreadyDisabled, ", "))
 	}
 
 	var actionType constants.ActionType
