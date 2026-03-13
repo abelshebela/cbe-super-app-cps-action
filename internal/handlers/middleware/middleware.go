@@ -186,11 +186,11 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 		}
 
 		ctx := a.setUserPayload(r.Context(), userPayload)
-		isOTPVerified := ctx.Value("is_otp_verified")
-		if isOTPVerified != "true" {
-			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
-			return
-		}
+		// isOTPVerified := ctx.Value("is_otp_verified")
+		// if isOTPVerified != "true" {
+		// 	localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+		// 	return
+		// }
 
 		r = r.WithContext(ctx)
 
