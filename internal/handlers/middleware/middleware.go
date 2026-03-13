@@ -109,6 +109,8 @@ type UserPayload struct {
 	SessionExp  int64    `json:"session_expiry,omitempty"`
 	Environment string   `json:"environment"`
 	Permission  []string `json:"permission_group"`
+	// IsTemporary   bool     `json:"is_temporary"`
+	// IsOTPVerified bool     `json:"is_otp_verified"`
 }
 
 type authMiddleware struct {
@@ -184,6 +186,12 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 		}
 
 		ctx := a.setUserPayload(r.Context(), userPayload)
+		// isOTPVerified := ctx.Value("is_otp_verified")
+		// if isOTPVerified != "true" {
+		// 	localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+		// 	return
+		// }
+
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
@@ -458,6 +466,7 @@ func (a *authMiddleware) setUserPayload(ctx context.Context, userPayload UserPay
 	ctx = context.WithValue(ctx, constants.ContextKey("username"), userPayload.UserName)
 	ctx = context.WithValue(ctx, constants.ContextKey("department"), userPayload.Department)
 	ctx = context.WithValue(ctx, constants.ContextKey("next_step"), userPayload.NextStep)
+	// ctx = context.WithValue(ctx, constants.ContextKey("is_temporary"), userPayload.IsTemporary)
 	ctx = context.WithValue(ctx, constants.ContextKey("action"), userPayload.Action)
 	ctx = context.WithValue(ctx, constants.ContextKey("permission"), userPayload.Permission)
 	ctx = context.WithValue(ctx, constants.ContextKey("environment"), userPayload.Environment)

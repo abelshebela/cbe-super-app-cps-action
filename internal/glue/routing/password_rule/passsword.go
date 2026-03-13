@@ -18,6 +18,14 @@ func Init(router chi.Router, handler password.PasswordRule, authMiddleware middl
 			Path:    "/password_rule/",
 			Handler: handler.GetPasswordRule,
 			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTempToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/password_rule/internal",
+			Handler: handler.GetPasswordRule,
+			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},
 		},
