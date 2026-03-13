@@ -104,7 +104,8 @@ func (r *CPSUserStorage) EnableOrDisable(ctx context.Context, userCode string, e
 	if err == nil {
 		if !enable {
 			objID := user.ID.Hex()
-			if err := r.redisRepository.Delete(ctx, fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, objID)); err != nil {
+			id := local_util.FirstHex24(objID)
+			if err := r.redisRepository.Delete(ctx, fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, id)); err != nil {
 				r.logger.Errorf("[CPSUserStorage][EnableOrDisable] failed to delete user device id from redis: %v", err)
 			}
 		}

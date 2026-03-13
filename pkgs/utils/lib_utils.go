@@ -361,11 +361,16 @@ func HandleMongoError(err error) (string, string) {
 }
 
 func GenerateCPSUserCode() string {
-	const prefix = "BANKCPSUSER_"
+
+	const prefix = "SRM"
+
+	now := time.Now()
+	year := now.Format("06")                        // last 2 digits of year
+	dayOfYear := fmt.Sprintf("%03d", now.YearDay()) // day of year zero-padded to 3 digits
 
 	timestamp := time.Now().Format("20060102150405")
 
-	return prefix + timestamp
+	return prefix + year + dayOfYear + "_" + timestamp
 }
 func GenerateBPSUserCode() string {
 	const prefix = "BANKBPSUSER_"

@@ -349,6 +349,13 @@ func (h *handler) DisableUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userData := local_util.ExtractUserFromContext(r.Context())
+
+	if userCode == userData.UserCode {
+		log.Errorf("[EnableUser] cannot enable own account")
+		localization.SendErrorByCodeResponse(w, localization.ErrorCannotEnableOwnAccount.Code)
+		return
+	}
 	span.SetAttributes(attribute.String("cps_user.code", userCode))
 
 	if err := h.svc.DisableUser(ctx, userCode); err != nil {
@@ -386,13 +393,20 @@ func (h *handler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableCpsUser", "handler", "cpsUser")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
-
+	userData := local_util.ExtractUserFromContext(r.Context())
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
+		log.Errorf("[EnableUser] user code is required")
 		localization.SendErrorByCodeResponse(w, localization.ErrorUserCodeRequired.Code)
+		return
+	}
+
+	if userCode == userData.UserCode {
+		log.Errorf("[EnableUser] cannot enable own account")
+		localization.SendErrorByCodeResponse(w, localization.ErrorCannotDisableOwnAccount.Code)
 		return
 	}
 
