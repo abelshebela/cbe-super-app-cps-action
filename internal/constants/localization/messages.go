@@ -43,6 +43,7 @@ const (
 	MSGIncompleteUserInfo            = "Incomplte user info"
 	MsgInvalidJSONPayload            = "Invalid json payload"
 	MSGUserCodeIsRequired            = "User code is required"
+	MSGUserIDIsRequired              = "User ID is required"
 	MsgActionAlreadyExists           = "Action already requested wait for checker approval"
 	MsgActionAlreadyDisabled         = "Action already disabled"
 	// OTP related success messages
@@ -117,15 +118,17 @@ const (
 	MsgDonationCompanyEnableRequestSent   = "Donation Company Enable request submitted successfully"
 	MsgDonationCompanyDisableRequestSent  = "Donation company Disable request submitted successfully"
 	MsgDonationCategoryEnableRequestSent  = "Donation category Enable request submitted successfully"
-	MsgDonationCompanyCreateRequestSent   = "Donation company create request submitted successfully"
-	MsgDonationCompaniesFetched           = "Donation companies fetched successfully"
-	MsgDonationCompanyFetched             = "Donation company fetched successfully"
-	MsgAccountInfoFetched                 = "Account info fetched successfully"
-	MsgDonationCompanyUpdatedRequestSent  = "Donation company updated request sent successfully"
-	MsgSuccessDonationCompanyUpdated      = "Donation company updated request submitted successfully"
-	MsgKYCApproved                        = "KYC approve request sent successfully"
-	MsgKYCUpdatedRequestSent              = "KYC updated request sent successfully"
-	MsgKYCUpdatedRequestSentSP            = "KYC updated successfully"
+
+	MsgActiveDonationExistsInCategory    = "Please disable all active donations in this category before disabling the category"
+	MsgDonationCompanyCreateRequestSent  = "Donation company create request submitted successfully"
+	MsgDonationCompaniesFetched          = "Donation companies fetched successfully"
+	MsgDonationCompanyFetched            = "Donation company fetched successfully"
+	MsgAccountInfoFetched                = "Account info fetched successfully"
+	MsgDonationCompanyUpdatedRequestSent = "Donation company updated request sent successfully"
+	MsgSuccessDonationCompanyUpdated     = "Donation company updated request submitted successfully"
+	MsgKYCApproved                       = "KYC approve request sent successfully"
+	MsgKYCUpdatedRequestSent             = "KYC updated request sent successfully"
+	MsgKYCUpdatedRequestSentSP           = "KYC updated successfully"
 
 	MsgKYCFetched                            = "KYC fetched successfully"
 	MsgDonationCreateRequestSent             = "Donation create request submitted successfully"
@@ -194,8 +197,11 @@ const (
 	MsgBPSActionsRetrieved             = "BPS actions retrieved successfully"
 
 	// Wallet related success messages
-	MsgWalletCreationRequestSent    = "Wallet creation request sent successfully"
-	MsgWalletUpdateRequestSent      = "Wallet update request sent successfully"
+	MsgWalletCreationRequestSent = "Wallet creation request sent successfully"
+	MsgWalletUpdateRequestSent   = "Wallet update request sent successfully"
+
+	MsgWalletCreated                = "Wallet created successfully"
+	MsgWalletUpdated                = "Wallet updated successfully"
 	MsgWalletDeleteRequestSent      = "Wallet delete request sent successfully"
 	MsgWalletDeletedSuccessfully    = "Wallet deleted successfully"
 	MsgWalletsRetrievedSuccessfully = "Wallets retrieved successfully"
@@ -613,8 +619,7 @@ const (
 	MsgBankDisableRequestSuccessfullyCreated = "Bank Disable request successfully created"
 	MsgBankDisableRequestFailed              = "Bank Disable request  failed"
 	MsgRoleNotFoundWithGivenJobTitle         = "Role does not exist with the given job title"
-	MsgBranchNotFoundWithGivenCode        = "Branch does not exist with the given branch code"
-
+	MsgBranchNotFoundWithGivenCode           = "Branch does not exist with the given branch code"
 
 	MsgBankEnableRequestSuccessfullyCreated = "Bank Enable request successfully created"
 	MsgBankEnableRequestFailed              = "Bank Enable request  failed"

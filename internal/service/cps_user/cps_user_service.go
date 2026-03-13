@@ -396,6 +396,7 @@ func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode strin
 
 func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCpsUserDetail", "CPSUser", "GetCpsUserDetail")
+
 	defer span.End()
 
 	if userCode == "" {

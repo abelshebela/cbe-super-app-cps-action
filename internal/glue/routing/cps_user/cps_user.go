@@ -46,6 +46,14 @@ func Init(router chi.Router, handler cps_user.CPSUserHandler, authMiddleware mid
 		},
 		{
 			Method:  http.MethodGet,
+			Path:    "/cps_users/code/{code}",
+			Handler: handler.FetchUserByCode,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
 			Path:    "/cps_users",
 			Handler: handler.GetAllCPSUsers,
 			Middlewares: []func(next http.Handler) http.Handler{

@@ -86,6 +86,8 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	router.Use(middleware.RealIP)
 	// CORS must run early so preflight OPTIONS requests are handled before auth/logging
 	router.Use(customeMiddleware.CORS(cfg))
+	// Security headers: HSTS, X-Content-Type-Options, X-Frame-Options, CSP, Cache-Control
+	router.Use(customeMiddleware.SecurityHeaders)
 	// Inject trace and span ids from OpenTelemetry span into context for logger extraction
 	router.Use(telemetry.TraceContextMiddleware())
 	// Optional debug middleware to detect missing spans. Enable by setting OTEL_DEBUG_TRACE_PRESENCE=true
@@ -167,14 +169,14 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 
 	secured := chi.NewRouter()
 
-	secured.Route("/password_rule", func(r chi.Router) {
-		r.Get("/", handlerLayer.PasswordHandler.GetPasswordRule)
-		r.Group(func(r chi.Router) {
-			r.Use(authMiddleware.AuthenticateToken)
-			// r.Use(customeMiddleware.CPSActionRouteGuard([]string{}))
-			r.Patch("/{id}", handlerLayer.PasswordHandler.RequestPasswordRuleUpdate)
-		})
-	})
+	// secured.Route("/password_rule", func(r chi.Router) {
+	// 	r.Get("/", handlerLayer.PasswordHandler.GetPasswordRule)
+	// 	r.Group(func(r chi.Router) {
+	// 		r.Use(authMiddleware.AuthenticateToken)
+	// 		// r.Use(customeMiddleware.CPSActionRouteGuard([]string{}))
+	// 		r.Patch("/{id}", handlerLayer.PasswordHandler.RequestPasswordRuleUpdate)
+	// 	})
+	// })
 
 	secured.Group(func(r chi.Router) {
 		// Auth first

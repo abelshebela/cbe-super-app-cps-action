@@ -22,7 +22,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -307,7 +306,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 			return nil, err
 		}
 	case string(constants.RequestDisableDonationCompany):
-
+		// 1. Persist the company disable via CPS.
 		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
 		if err != nil {
 			d.logger.Errorf("[DonCompSvc][Authorize] disable err: %v", err)
@@ -318,44 +317,14 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 			return nil, err
 		}
 
-		// Disable all donation related with this donating company
-		obj, err := bson.ObjectIDFromHex(action.UniqueId)
-		if err != nil {
-			span.AddEvent("Failed to parse ObjectID", trace.WithAttributes(
-				attribute.String("error", err.Error()),
+		// 2. Atomically disable all enabled donations that belong to this company.
+		if err := d.DonationRepo.DisableAllByCompany(ctx, action.UniqueId); err != nil {
+			d.logger.Errorf("[DonCompSvc][Authorize] failed to disable company donations: %v", err)
+			span.AddEvent("Failed to bulk-disable donations for company", trace.WithAttributes(
+				attribute.String("error", localization.ErrorDonationUpdateFailed.Code),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		donations, err := d.DonationRepo.FindAllWithPagination(ctx, types.Filter{
-			Filters: map[string]interface{}{"company_id": obj}})
-		if err != nil {
-			if err.Error() == "mongo: no documents in result" {
-				return nil, nil
-			}
-			span.AddEvent("Failed to find donations", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", action.UniqueId),
-			))
-			return nil, err
-		}
-
-		if donations.Data != nil {
-			for _, donation := range donations.Data {
-				donationModel := core.ConvertDonationListResponseToModel(&donation)
-				donationModel.Enabled = false
-				donationModel.LastModifiedAt = time.Now()
-
-				err := d.DonationRepo.Update(ctx, donation.ID, donationModel)
-				if err != nil {
-					span.AddEvent("Failed to update donation", trace.WithAttributes(
-						attribute.String("error", localization.ErrorFailedToUpdateDonation.Code),
-						attribute.String("unique_id", action.UniqueId),
-						attribute.String("donation_id", donation.ID),
-					))
-					return nil, errors.New(localization.ErrorFailedToUpdateDonation.Code)
-				}
-			}
+			return nil, errors.New(localization.ErrorDonationUpdateFailed.Code)
 		}
 
 	default:

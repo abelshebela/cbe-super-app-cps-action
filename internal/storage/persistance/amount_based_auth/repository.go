@@ -1,6 +1,7 @@
 package amount_based_auth
 
 import (
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -95,20 +96,25 @@ func (a *AmountBasedAuthStorage) FindAll(ctx context.Context, filter bson.M, pro
 }
 
 func (a *AmountBasedAuthStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.AuthTier], error) {
-	filter := bson.M{"is_deleted": false}
 
+	allowedKeys := []string{"method", "currency"}
+
+	// Build search keys for $or search on title & description
+	searchKeys := bson.M{}
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["$or"] = []bson.M{
+		searchKeys["$or"] = []bson.M{
 			{"method": searchRegex},
 			{"currency": searchRegex},
 		}
 	}
 
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
+	// Use FilterBuilder to construct filter + pagination
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	data, err := a.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	filter["is_deleted"] = false
+	// Fetch data with final filter
+	data, err := a.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		a.logger.Errorf("[AmountBasedAuthStorage][FindAllWithPagination] failed to fetch amount-based auth tiers: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -127,6 +133,7 @@ func (a *AmountBasedAuthStorage) FindAllWithPagination(ctx context.Context, filt
 		Data: data,
 		Meta: meta,
 	}, nil
+
 }
 
 func (a *AmountBasedAuthStorage) FindByID(ctx context.Context, id string) (*local_model.AuthTier, error) {

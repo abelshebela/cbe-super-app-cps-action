@@ -416,6 +416,8 @@ type DonationRepository interface {
 	FindByID(ctx context.Context, id string) (*donation.DonationListResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation.DonationListResponse], error)
 	StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*donation_model.Donation) error) error
+	HasActiveDonationsByCategory(ctx context.Context, categoryID string) (bool, error)
+	DisableAllByCompany(ctx context.Context, companyID string) error
 }
 
 type DonationCategoryRepository interface {
@@ -583,6 +585,7 @@ type CustomerRepository interface {
 	FindCustomerByIDs(ctx context.Context, ids []string) ([]member.User, error)
 	FindCustomerByID(ctx context.Context, id string) (*member.User, error)
 	FindCustomerByUserCode(ctx context.Context, usercode string) (*member.User, error)
+	FindCustomerLinkedAccountByUserCode(ctx context.Context, userCode string) (*model.LinkedAccount, error)
 }
 
 type BulkServiceRepository interface {
@@ -692,6 +695,9 @@ type CPSActionApproveIndexRepository interface {
 	DeleteAll(ctx context.Context, prev imodel.CPSActionRoleResposne) error
 	InsertAll(ctx context.Context, new imodel.CPSActionRole) error
 	HasActiveActionRoles(ctx context.Context, roleCode string) (bool, error)
+	FindAllocationsWithVersions(ctx context.Context, roleID string, indexField string) (map[string][]int64, error)
+	FindVersionsByActionName(ctx context.Context, actionName string) ([]int64, error)
+	UpdateRoleInIndices(ctx context.Context, actionName string, version int64, oldRoleCode, newRoleCode string) (int64, error)
 }
 
 type BPSActionApproveIndexRepository interface {

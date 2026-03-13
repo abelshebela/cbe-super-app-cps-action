@@ -30,6 +30,10 @@ func BPSUserMapper(data bps_model.BPSUser) bson.M {
 		result["branch_code"] = data.BranchCode
 	}
 
+	if data.Email != "" {
+		result["email"] = data.Email
+	}
+
 	if data.Username != "" {
 		result["username"] = data.Username
 	}

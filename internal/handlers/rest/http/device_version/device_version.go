@@ -60,7 +60,7 @@ func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *htt
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
 		log.Errorf("[CreateDeviceVersion] validation: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequest.Code)
 		return
 	}
 
@@ -124,7 +124,12 @@ func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *htt
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
 		log.Errorf("[UpdateDeviceVersion] validation: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
+		// the validation library returns messages like
+		// "ID: must be a valid hexadecimal number" which expose
+		// internal details (mongodb object id format).  do not
+		// echo the raw text back to callers; instead return a
+		// generic invalid‑id message.
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Message)
 		return
 	}
 	span.SetAttributes(

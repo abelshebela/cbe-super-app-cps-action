@@ -67,6 +67,30 @@ func Init(router chi.Router, handler actionrole_inbound.CPSActionRoleHandler, au
 				auth.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/cps-action-roles/{code}/versions",
+			Handler: handler.GetVersions,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/cps-action-roles/{code}/roles",
+			Handler: handler.GetConfiguredRoles,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/cps-action-roles/{code}/versions/{version}/role",
+			Handler: handler.UpdateVersionRoleCode,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

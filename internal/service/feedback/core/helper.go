@@ -19,6 +19,7 @@ func BuildFeedbackEntity(userID string, req fbdto.FeedbackRequest, user *member.
 		PhoneNumber:  user.PhoneNumber,
 		Email:        user.Email,
 		SendAt:       time.Now(),
+		Platform:     string(user.Platform),
 		Rating:       req.Rating,
 		Comment:      req.Comment,
 		CreatedAt:    now,
@@ -33,9 +34,9 @@ func BuildSurveyFeedbackEntity(surveyFeedback fbdto.SurveyFeedbackReq, user *mem
 		CustomerName: user.FullName,
 		PhoneNumber:  user.PhoneNumber,
 		SentAt:       time.Now(),
-		// AccountNumber: user.AccountNumber,
-		Responses: surveyFeedback.Responses,
-		CreatedAt: surveyFeedback.CreatedAt,
-		Metadata:  surveyFeedback.Metadata,
+		Platform:     string(user.Platform),
+		Responses:    surveyFeedback.Responses,
+		CreatedAt:    surveyFeedback.CreatedAt,
+		Metadata:     surveyFeedback.Metadata,
 	}
 }

@@ -366,7 +366,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-		if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, m.logger); err != nil {
+		if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, false, m.logger); err != nil {
 			m.logger.Errorf("[EcomMerchSvc][Authorize] ERP create err: %v", err)
 			span.AddEvent("Failed to update ERP", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -388,7 +388,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-		if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, m.logger); err != nil {
+		if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, false, m.logger); err != nil {
 			m.logger.Errorf("[EcomMerchSvc][Authorize] ERP update err: %v", err)
 			span.AddEvent("Failed to update ERP", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -413,7 +413,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-		if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, m.logger); err != nil {
+		if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, false, m.logger); err != nil {
 			m.logger.Errorf("[EcomMerchSvc][Authorize] ERP enable err: %v", err)
 			span.AddEvent("Failed to update ERP", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -429,7 +429,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-		if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, m.logger); err != nil {
+		if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, false, m.logger); err != nil {
 			m.logger.Errorf("[EcomMerchSvc][Authorize] ERP disable err: %v", err)
 			span.AddEvent("Failed to update ERP", trace.WithAttributes(
 				attribute.String("error", err.Error()),

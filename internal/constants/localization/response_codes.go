@@ -76,8 +76,12 @@ var ResponseCodesList = []ResponseCode{
 	SuccessBankUpdatedRequestSent,
 	SuccessWalletEnableRequestSubmitted,
 	SuccessWalletDisableRequestSubmitted,
+	SuccessWalletEnabled,
+	SuccessWalletDisabled,
 	SuccessWalletCreationRequestSent,
 	SuccessWalletUpdateRequestSent,
+	SuccessWalletCreated,
+	SuccessWalletUpdated,
 	SuccessWalletDeleted,
 	SuccessWalletsRetrieved,
 	SuccessWalletRetrieved,
@@ -360,6 +364,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMerchantIDRequired,
 	ErrorEventVenueRequired,
 	ErrorCustomerIDRequired,
+	ErrorCustomerCountFailed,
 	ErrorStartDateRequired,
 	ErrorDueDateRequired,
 	ErrorTotalTicketCountRequired,
@@ -424,6 +429,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAvatarAlreadyExist,
 	ErrorWalletNameAlreadyExists,
 	ErrorWalletCodeAlreadyExists,
+	ErrorWalletServiceIDAlreadyExists,
+	ErrorWalletWithNameOrCodeAlreadyExists,
 	ErrorWalletAlreadyDisabled,
 	ErrorWalletAlreadyEnabled,
 	ErrorWalletIDRequired,
@@ -553,6 +560,7 @@ var ResponseCodesList = []ResponseCode{
 	CustomerEnableRequestCreatedSuccessfully,
 	ErrorCustomerAlreadyDisabled,
 	ErrorCustomerAlreadyEnabled,
+	ErrorCustomerNotFound,
 	ErrorIdNotSetOnQueryParam,
 	CustomerDetailSuccessfullyFetched,
 	ErrorFailedToGetBlockedCustomer,
@@ -623,6 +631,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationCompanyIdRequired,
 	ErrorDonationAlreadyEnabled,
 	ErrorDonationAlreadyDisabled,
+	ErrorActiveDonationExistsInCategory,
 	SuccessDonationCompanyUpdatedSP,
 	SuccessDonationCompanyCreatedSP,
 	SuccessDonationCompanyEnabledSP,
@@ -1931,6 +1940,19 @@ var (
 		Message:    MsgWalletUpdateRequestSent,
 		Type:       "success",
 	}
+	SuccessWalletCreated = ResponseCode{
+		Code:       "SUCCESS_WALLET_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgWalletCreated,
+		Type:       "success",
+	}
+
+	SuccessWalletUpdated = ResponseCode{
+		Code:       "SUCCESS_WALLET_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgWalletUpdated,
+		Type:       "success",
+	}
 
 	SuccessWalletDeleted = ResponseCode{
 		Code:       "SUCCESS_WALLET_DELETE_REQUEST_SENT",
@@ -1971,6 +1993,19 @@ var (
 		Code:       "SUCCESS_WALLET_DISABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
 		Message:    "Wallet disable request sent successfully",
+		Type:       "success",
+	}
+	SuccessWalletEnabled = ResponseCode{
+		Code:       "SUCCESS_WALLET_ENABLED",
+		StatusCode: StatusOK,
+		Message:    "Wallet enabled successfully",
+		Type:       "success",
+	}
+
+	SuccessWalletDisabled = ResponseCode{
+		Code:       "SUCCESS_WALLET_DISABLED",
+		StatusCode: StatusOK,
+		Message:    "Wallet disabled successfully",
 		Type:       "success",
 	}
 
@@ -2706,6 +2741,12 @@ var (
 		Code:       "ERROR_WALLET_WITH_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet with the given name already exists",
+		Type:       "error",
+	}
+	ErrorWalletWithNameOrCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_WALLET_WITH_NAME_OR_CODE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet with the given name or code already exists",
 		Type:       "error",
 	}
 	ErrorWalletCodeAlreadyExists = ResponseCode{
@@ -4232,7 +4273,7 @@ var (
 	// HQ related error response codes
 
 	ErrorHQNotFound       = ResponseCode{Code: "ERROR_HQ_NOT_FOUND", StatusCode: 404, Message: "HQ record not found", Type: "error"}
-	ErrorInvalidHQRequest = ResponseCode{Code: "ERROR_INVALID_HQ_REQUEST", StatusCode: 400, Message: "Invalid HQ request", Type: "error"}
+	ErrorInvalidHQRequest = ResponseCode{Code: "ERROR_INVALID_HQ_REQUEST", StatusCode: 400, Message: "Input is too large. Enter a valid number of days.", Type: "error"}
 	ErrorCPSActionFailed  = ResponseCode{Code: "ERROR_CPS_ACTION_FAILED", StatusCode: 500, Message: "Failed to handle CPS action", Type: "error"}
 	ErrorHQIDRequired     = ResponseCode{Code: "ERROR_HQ_ID_REQUIRED", StatusCode: 400, Message: "HQ ID is required", Type: "error"}
 
@@ -4886,7 +4927,7 @@ var (
 
 	SuccessUssdMerchantFetched = ResponseCode{
 		Code:       "SUCCESS_USSD_MERCHANT_FETCHED",
-		StatusCode: StatusCreated,
+		StatusCode: StatusOK,
 		Message:    MsgUssdMerchantFetchedSuccessfully,
 		Type:       "success",
 	}
@@ -4994,6 +5035,13 @@ var (
 		Code:       "ERROR_USER_CODE_IS_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MSGUserCodeIsRequired,
+		Type:       "error",
+	}
+
+	ErrorUserIDRequired = ResponseCode{
+		Code:       "ERROR_USER_ID_IS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MSGUserIDIsRequired,
 		Type:       "error",
 	}
 
@@ -5602,7 +5650,6 @@ var (
 		Type:       "error",
 	}
 
-
 	ErrorExistPhoneNumber = ResponseCode{
 		Code:       "ERROR_EXIST_PHONE_NUMBER",
 		StatusCode: StatusBadRequest,
@@ -5832,6 +5879,19 @@ var (
 		Type:       "error",
 	}
 
+	ErrorDonationCompanyNotEnabled = ResponseCode{
+		Code:       "ERROR_DONATION_COMPANY_NOT_ENABLED",
+		StatusCode: StatusForbidden,
+		Message:    MsgDonationCompanyNotEnabled,
+		Type:       "error",
+	}
+
+	ErrorDonationCategoryNotEnabled = ResponseCode{
+		Code:       "ERROR_DONATION_CATEGORY_NOT_ENABLED",
+		StatusCode: StatusForbidden,
+		Message:    MsgDonationCategoryNotEnabled,
+		Type:       "error",
+	}
 	// ErrorRoleAlreadyExists = ResponseCode{
 	// 	Code:       "ERROR_ROLE_ALREADY_EXISTS",
 	// 	StatusCode: StatusNotFound,
@@ -6472,6 +6532,15 @@ var (
 		Type:       "error",
 	}
 
+	// ErrorActiveDonationExistsInCategory is returned when disabling a category
+	// that still has at least one enabled donation referencing it.
+	ErrorActiveDonationExistsInCategory = ResponseCode{
+		Code:       "DONATION_CATEGORY_HAS_ACTIVE_DONATIONS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActiveDonationExistsInCategory,
+		Type:       "error",
+	}
+
 	ErrorCompanyNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_COMPANY_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
@@ -7044,7 +7113,7 @@ var (
 	}
 
 	ErrorInvalidInputParameters = ResponseCode{
-		Code:       "ERROR_INVAErrorMissingOrInvalidImage,LID_INPUT_PARAMETERS",
+		Code:       "ERROR_INVALID_INPUT_PARAMETERS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidInputParameters,
 		Type:       "error",

@@ -29,6 +29,11 @@ type Branch struct {
 	APIKey            string  `json:"api_key"`
 	Email             *string `json:"email"`
 	Phone             *string `json:"phone"`
+	Latitude          float64 `json:"lat_location"`
+	Longitude         float64 `json:"lng_location"`
+	MapHolder         string  `json:"map_holder"`
+	Street            string  `json:"street"`
+	City              string  `json:"city"`
 }
 
 type MerchantLookUpResponse struct {

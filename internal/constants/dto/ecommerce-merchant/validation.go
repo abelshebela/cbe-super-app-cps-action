@@ -24,9 +24,10 @@ func (b BranchInformation) ValidateCreate() error {
 		),
 
 		validation.Field(&b.BranchAddress,
-			validation.Required,
-			validation.By(utils.TrimWhiteSpace),
-			validation.By(utils.NoSpecialChars),
+			validation.When(b.BranchAddress != nil && *b.BranchAddress != "",
+				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
+			),
 		),
 
 		validation.Field(&b.BranchOwner,
@@ -155,11 +156,8 @@ func (r EcommerceMerchant) ValidateCreate() error {
 			validation.Required,
 			validation.By(func(value interface{}) error {
 				isEcommerceMerchant, ok := value.(*bool)
-				if !ok || isEcommerceMerchant == nil {
-					return fmt.Errorf("is_ecommerce_merchant is required")
-				}
-				if !*isEcommerceMerchant {
-					return fmt.Errorf("is_ecommerce_merchant must be true")
+				if !ok || !*isEcommerceMerchant {
+					return fmt.Errorf("merchant type should be ecommerce")
 				}
 				return nil
 			}),

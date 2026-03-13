@@ -1,6 +1,8 @@
 package event_merchant_service
 
 import (
+	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
+
 	"cbe-super-app-cps-action/internal/constants"
 	erp_merchant_update_dto "cbe-super-app-cps-action/internal/constants/dto/erp_merchant_update"
 	"cbe-super-app-cps-action/internal/constants/lib"
@@ -10,9 +12,11 @@ import (
 	"cbe-super-app-cps-action/internal/service/event_merchant/core"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
+	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -27,6 +31,7 @@ type EventMerchantService struct {
 	repo                 storage.EventMerchantRepository
 	cpsService           service.CPSActionService
 	accountLookupService account_lookup.Account
+	merchantLookup       merchant_lookup.MerchantLookupAdapter
 	cfg                  *config.VaultConfig
 	logger               utils.Logger
 }
@@ -62,7 +67,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 			CpsEnabled:        &enabled,
 			Branches:          []erp_merchant_update_dto.ERPBranch{},
 		}
-		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, true, e.logger); err != nil {
 			e.logger.Errorf("[EventMerchSvc][Authorize] ERP create err: %v", err)
 			span.AddEvent("Failed to update ERP", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -93,7 +98,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 			dto := erp_merchant_update_dto.ERPUpdateRequest{
 				MainAccountNumber: merchant.BankAccountNumber,
 			}
-			if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+			if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, true, e.logger); err != nil {
 				e.logger.Errorf("[EventMerchSvc][Authorize] ERP update err: %v", err)
 				span.AddEvent("Failed to update ERP", trace.WithAttributes(
 					attribute.String("error", err.Error()),
@@ -116,7 +121,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 		dto := erp_merchant_update_dto.ERPUpdateRequest{
 			CpsEnabled: &enabled,
 		}
-		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, true, e.logger); err != nil {
 			e.logger.Errorf("[EventMerchSvc][Authorize] ERP delete err: %v", err)
 			span.AddEvent("Failed to update ERP", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -138,7 +143,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 		dto := erp_merchant_update_dto.ERPUpdateRequest{
 			CpsEnabled: &enabled,
 		}
-		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, true, e.logger); err != nil {
 			e.logger.Errorf("[EventMerchSvc][Authorize] ERP enable err: %v", err)
 			span.AddEvent("Failed to update ERP", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -160,7 +165,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 		dto := erp_merchant_update_dto.ERPUpdateRequest{
 			CpsEnabled: &enabled,
 		}
-		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, true, e.logger); err != nil {
 			e.logger.Errorf("[EventMerchSvc][Authorize] ERP disable err: %v", err)
 			span.AddEvent("Failed to update ERP", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -450,12 +455,37 @@ func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerch
 	e.logger.Infof("[EventMerchSvc][Update] done id: %s", id)
 	return nil
 }
+func (e *EventMerchantService) MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "MerchantLookup", "MiniAppMerchant", "MerchantLookup")
+	defer span.End()
 
-func NewEventMerchantService(repo storage.EventMerchantRepository, cpsService service.CPSActionService, accountLookupService account_lookup.Account, cfg *config.VaultConfig, logger utils.Logger) service.EventMerchantService {
+	base := strings.TrimRight(e.cfg.OddoEcommerceBaseUrl, "/")
+	// base := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce"
+	url := base + "/cps/event/merchant/"
+	xAPIKey := e.cfg.ApiKey
+
+	merchantData, err := e.merchantLookup.LookupMerchant(ctx, merchantID, xAPIKey, url)
+	if err != nil {
+		e.logger.Errorf("[EventMerchSvc][MerchantLookup] err: %v", err)
+		span.AddEvent("Merchant lookup failed", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("merchant_id", merchantID),
+		))
+		span.AddEvent("Merchant lookup failed", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("merchant_id", merchantID),
+		))
+		return nil, err
+	}
+
+	return &merchantData, nil
+}
+func NewEventMerchantService(repo storage.EventMerchantRepository, cpsService service.CPSActionService, accountLookupService account_lookup.Account, merchantLookupAdaptor merchant_lookup.MerchantLookupAdapter, cfg *config.VaultConfig, logger utils.Logger) service.EventMerchantService {
 	return &EventMerchantService{
 		repo:                 repo,
 		cpsService:           cpsService,
 		accountLookupService: accountLookupService,
+		merchantLookup:       merchantLookupAdaptor,
 		cfg:                  cfg,
 		logger:               logger,
 	}

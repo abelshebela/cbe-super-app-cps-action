@@ -540,22 +540,37 @@ func FallbackModuleForRA(action constants.RequestAction) (string, bool) {
 	return "", false
 }
 
-func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, body erp_merchant_update_dto.ERPUpdateRequest, merchantID string, logger utils.Logger) error {
+func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, body erp_merchant_update_dto.ERPUpdateRequest, merchantID string, isEventMerchant bool, logger utils.Logger) error {
 	logger.Infof("Publishing merchant change to ERP for merchant %s with body %+v", merchantID, body)
 	ctx, span := local_util.TraceLogger(ctx, "core", "UpdateERP", "LogisticsMerchant", "UpdateERP")
 	defer span.End()
 
-	base := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce"
+	base := ""
 	if cfg == nil {
 		logger.Debugf("env config is nil, using hardcoded base url and cannot proceed without api key")
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	if cfg.OddoEcommerceBaseUrl != "" {
-		base = cfg.OddoEcommerceBaseUrl
+	if isEventMerchant {
+		if cfg.OddoEventBaseUrl != "" {
+			base = cfg.OddoEventBaseUrl
+		} else {
+			logger.Debugf("env url to event merchant publish not found using hardcoded")
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
 	} else {
-		logger.Debugf("env url for publish not found using hardcoded")
+		if cfg.OddoEcommerceBaseUrl != "" {
+			base = cfg.OddoEcommerceBaseUrl
+		} else {
+			logger.Debugf("env url for ecommerce merchant publish not found using hardcoded")
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
 	}
-	base += "/cps/merchant/update/" + merchantID
+	if isEventMerchant {
+		base += "/cps/event/merchant/update/" + merchantID
+	} else {
+		base += "/cps/merchant/update/" + merchantID
+	}
+
 	if cfg.ApiKey == "" {
 		logger.Debugf("env api key for publish not found using hardcoded")
 		return errors.New(localization.ErrorUnexpectedError.Code)

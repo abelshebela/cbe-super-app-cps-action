@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"slices"
 	"time"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -80,7 +81,9 @@ func (r *CPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx co
 		if v.AuditorIndex != nil {
 			auditorAllocations = append(auditorAllocations, v.ActionName)
 		}
-		portalCard = append(portalCard, v.PortalCardName)
+		if !slices.Contains(portalCard, v.PortalCardName) {
+			portalCard = append(portalCard, v.PortalCardName)
+		}
 	}
 	r.logger.Infof("PopulateUserApproverAllocations: Found %d viewer, %d maker, %d checker, %d auditor allocations for RoleID: %s", len(viewerAllocations), len(makerAllocations), len(checkerAllocations), len(auditorAllocations), role_id)
 	return viewerAllocations, makerAllocations, checkerAllocations, auditorAllocations, portalCard, nil
@@ -104,22 +107,20 @@ func (r *CPSActionApproveIndexRepository) SaveIndices(ctx context.Context, indic
 }
 
 func (r *CPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldActionName, portalCard string, newIndices []imodel.CPSActionApproveIndex, isVersionChanged bool) error {
-	r.logger.Infof("SyncIndices: Syncing %d indices for oldActionName: %s", len(newIndices), oldActionName)
+	r.logger.Infof("SyncIndices: Syncing %d indices for oldActionName: %s, isVersionChanged: %v", len(newIndices), oldActionName, isVersionChanged)
 
-	// if !isVersionChanged && len(newIndices) > 0 {
-	// 	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "version": newIndices[0].Version, "portal_card_name": portalCard}); err != nil {
-	// 		return err
-	// 	}
-	// } else {
-	// 	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "portal_card_name": portalCard}); err != nil {
-	// 		return err
-	// 	}
-	// }
-
-	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "portal_card_name": portalCard}); err != nil {
-		r.logger.Errorf("SyncIndices: DeleteMany failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+	if !isVersionChanged {
+		// Version unchanged: delete indices for the current version and re-insert
+		if len(newIndices) > 0 {
+			if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "version": newIndices[0].Version, "portal_card_name": portalCard}); err != nil {
+				r.logger.Errorf("SyncIndices: DeleteMany (same version) failed: %v", err)
+				return errors.New(localization.ErrorUnexpectedError.Code)
+			}
+		}
 	}
+	// Version changed: old version indices are preserved for in-flight actions,
+	// only new version indices are inserted alongside them.
+
 	if err := r.SaveIndices(ctx, newIndices); err != nil {
 		return err
 	}

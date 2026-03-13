@@ -381,11 +381,11 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	if file == nil || fileHeader == nil {
-		log.Infof("[BankH][Update] no logo, skipping")
-	} else {
+	if file != nil && fileHeader == nil {
 		defer file.Close()
 		updateRequest.Logo = fileHeader
+	} else {
+		log.Infof("[BankH][Update] no logo, skipping")
 	}
 
 	updateRequest.Name = r.FormValue("name")

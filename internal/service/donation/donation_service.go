@@ -646,6 +646,7 @@ func (d *Donation) EnableDonation(ctx context.Context, id string) error {
 		))
 		return err
 	}
+
 	if existingDonation == nil {
 		span.AddEvent("Donation not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorFileNotFound.Code),
@@ -653,12 +654,49 @@ func (d *Donation) EnableDonation(ctx context.Context, id string) error {
 		))
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
+
 	if existingDonation.Enabled {
 		span.AddEvent("Donation already enabled", trace.WithAttributes(
 			attribute.String("error", localization.ErrorDonationAlreadyEnabled.Code),
 			attribute.String("id", id),
 		))
 		return errors.New(localization.ErrorDonationAlreadyEnabled.Code)
+	}
+
+	company, err := d.DonationCompanyRepo.FindByID(ctx, existingDonation.Company.ID)
+	if err != nil {
+		span.AddEvent("Donation company not found", trace.WithAttributes(
+			attribute.String("error", localization.ErrorDonationCompanyNotFound.Code),
+			attribute.String("id", id),
+			attribute.String("company_id", existingDonation.Company.ID),
+		))
+		return errors.New(localization.ErrorDonationCompanyNotFound.Code)
+	}
+	if !company.Enabled {
+		span.AddEvent("Donation company not enabled", trace.WithAttributes(
+			attribute.String("error", localization.ErrorDonationCompanyNotEnabled.Code),
+			attribute.String("id", id),
+			attribute.String("company_id", existingDonation.Company.ID),
+		))
+		return errors.New(localization.ErrorDonationCompanyNotEnabled.Code)
+	}
+
+	category, err := d.DonationCategoryRepo.FindByID(ctx, existingDonation.Category.ID)
+	if err != nil {
+		span.AddEvent("Donation category not found", trace.WithAttributes(
+			attribute.String("error", localization.ErrorDonationCategoryNotFound.Code),
+			attribute.String("id", id),
+			attribute.String("category_id", existingDonation.Category.ID),
+		))
+		return errors.New(localization.ErrorDonationCategoryNotFound.Code)
+	}
+	if !category.Enabled {
+		span.AddEvent("Donation category not enabled", trace.WithAttributes(
+			attribute.String("error", localization.ErrorDonationCategoryNotEnabled.Code),
+			attribute.String("id", id),
+			attribute.String("category_id", existingDonation.Category.ID),
+		))
+		return errors.New(localization.ErrorDonationCategoryNotEnabled.Code)
 	}
 
 	updateData := *existingDonation
