@@ -550,21 +550,14 @@ func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, bo
 		logger.Debugf("env config is nil, using hardcoded base url and cannot proceed without api key")
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	if isEventMerchant {
-		if cfg.OddoEventBaseUrl != "" {
-			base = cfg.OddoEventBaseUrl
-		} else {
-			logger.Debugf("env url to event merchant publish not found using hardcoded")
-			return errors.New(localization.ErrorUnexpectedError.Code)
-		}
+
+	if cfg.OddoEcommerceBaseUrl != "" {
+		base = cfg.OddoEcommerceBaseUrl
 	} else {
-		if cfg.OddoEcommerceBaseUrl != "" {
-			base = cfg.OddoEcommerceBaseUrl
-		} else {
-			logger.Debugf("env url for ecommerce merchant publish not found using hardcoded")
-			return errors.New(localization.ErrorUnexpectedError.Code)
-		}
+		logger.Debugf("env url for ecommerce merchant publish not found using hardcoded")
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
 	if isEventMerchant {
 		base += "/cps/event/merchant/update/" + merchantID
 	} else {
