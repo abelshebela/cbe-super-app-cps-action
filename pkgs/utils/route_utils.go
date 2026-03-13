@@ -6,7 +6,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"regexp"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 	validation "github.com/go-ozzo/ozzo-validation"
@@ -31,9 +30,9 @@ func ValidateMongoID(id string) error {
 }
 
 func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multipart.File, *multipart.FileHeader, error) {
-	if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
-		return nil, nil, errors.New(localization.ErrorMissingFile.Code)
-	}
+	// if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+	// 	return nil, nil, errors.New(localization.ErrorMissingFile.Code)
+	// }
 	if err := r.ParseMultipartForm(maxMemory); err != nil {
 		return nil, nil, errors.New(localization.ErrorFileParseFailed.Code)
 	}
