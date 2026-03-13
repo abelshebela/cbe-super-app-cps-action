@@ -10,10 +10,9 @@ import (
 // StandardResponse represents the standardized API response structure
 type StandardResponse struct {
 	// Ok        bool        `json:"ok"`
-	Status    int         `json:"status"`
-	TimeStamp time.Time   `json:"timestamp,omitempty"`
-	Message   string      `json:"message"`
-	Data      interface{} `json:"data,omitempty"`
+	Status  int         `json:"status"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
 	// Error     *ErrorDetail `json:"error,omitempty"`
 }
 
@@ -42,10 +41,9 @@ func SendSuccessResponse(w http.ResponseWriter, responseCode ResponseCode, data 
 
 	response := StandardResponse{
 		// Ok:        true,
-		Status:    responseCode.StatusCode,
-		TimeStamp: time.Now(),
-		Message:   responseCode.Message,
-		Data:      data,
+		Status:  responseCode.StatusCode,
+		Message: responseCode.Message,
+		Data:    data,
 	}
 	// if responseCode.Type == "error" {
 	// 	response.Ok = false
@@ -62,11 +60,8 @@ func SendErrorResponse(w http.ResponseWriter, responseCode ResponseCode, fieldEr
 	w.WriteHeader(responseCode.StatusCode)
 
 	response := StandardResponse{
-		// Ok:        false,
-		TimeStamp: time.Now(),
-		Status:    responseCode.StatusCode,
-		Message:   responseCode.Message,
-		// Error:   errorDetail,
+		Status:  responseCode.StatusCode,
+		Message: responseCode.Message,
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {

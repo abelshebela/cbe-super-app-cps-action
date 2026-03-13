@@ -43,6 +43,11 @@ require (
 require github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.20.18
 
 require (
+	github.com/go-chi/httprate v0.15.0 // indirect
+	github.com/zeebo/xxh3 v1.0.2 // indirect
+)
+
+require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/VictoriaMetrics/easyproto v0.1.4 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496 // indirect
