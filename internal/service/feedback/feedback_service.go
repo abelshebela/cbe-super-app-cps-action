@@ -70,6 +70,17 @@ func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.Feedback
 	}
 	feedback := core.BuildFeedbackEntity(userCode, req, user)
 
+	linkedAccount, err := f.memberRepo.FindCustomerLinkedAccountByUserCode(ctx, user.UserCode)
+	if err != nil {
+		f.logger.Errorf("[FeedbackSvc][Create] failed to find linked account: %v", err)
+		span.AddEvent("Failed to find linked account", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_id", req.UserCode),
+		))
+		return nil, errors.New("linked account not found")
+	}
+	feedback.AccountNumber = linkedAccount.AccountNumber
+
 	// Call the Create method with the Feedback object
 	err = f.repo.Create(ctx, feedback)
 	if err != nil {
@@ -110,6 +121,17 @@ func (f *feedbackService) CreateSurveyFeedback(ctx context.Context, surveyFeedba
 	}
 
 	surveyFeedbackEntity := core.BuildSurveyFeedbackEntity(surveyFeedback, user)
+
+	linkedAccount, err := f.memberRepo.FindCustomerLinkedAccountByUserCode(ctx, user.UserCode)
+	if err != nil {
+		f.logger.Errorf("[FeedbackSvc][CreateSurvey] failed to find linked account: %v", err)
+		span.AddEvent("Failed to find linked account", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_id", surveyFeedback.UserID),
+		))
+		return nil, errors.New("linked account not found")
+	}
+	surveyFeedbackEntity.AccountNumber = linkedAccount.AccountNumber
 
 	// Call the Create method with the Feedback object
 	err = f.repo.CreateSurveyFeedback(ctx, surveyFeedbackEntity)
