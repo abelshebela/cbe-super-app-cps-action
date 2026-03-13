@@ -56,7 +56,8 @@ import (
 	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
 	jobRole "cbe-super-app-cps-action/internal/glue/routing/job_roles"
 	password "cbe-super-app-cps-action/internal/glue/routing/password_rule"
-	permission_details "cbe-super-app-cps-action/internal/glue/routing/permission"
+
+	// permission_details "cbe-super-app-cps-action/internal/glue/routing/permission"
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
 	roles "cbe-super-app-cps-action/internal/glue/routing/roles"
 	service "cbe-super-app-cps-action/internal/glue/routing/services"
@@ -76,6 +77,8 @@ import (
 	"go.uber.org/zap"
 
 	"cbe-super-app-cps-action/docs"
+
+	"github.com/go-chi/httprate"
 )
 
 func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, client cps_auth.CpsAuthServiceClient, redisRepository storage.RedisRepository, logger utils.Logger, cfg *config.VaultConfig) {
@@ -86,6 +89,8 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	router.Use(middleware.RealIP)
 	// CORS must run early so preflight OPTIONS requests are handled before auth/logging
 	router.Use(customeMiddleware.CORS(cfg))
+	// Security http rate limitter
+	router.Use(httprate.LimitByIP(100, 1*time.Minute))
 	// Security headers: HSTS, X-Content-Type-Options, X-Frame-Options, CSP, Cache-Control
 	router.Use(customeMiddleware.SecurityHeaders)
 	// Inject trace and span ids from OpenTelemetry span into context for logger extraction
@@ -135,7 +140,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	hqRoute.Init(r, handlerLayer.HqHandler, authMiddleware)
 	fayda.Init(r, handlerLayer.FaydaHandler, authMiddleware)
 	service.Init(r, handlerLayer.ServicesHandler, authMiddleware)
-	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
+	// permission_details.Init(r, handlerLayer.Permission, authMiddleware)
 	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
 	device_version.Init(r, handlerLayer.DeviceVersionHandler, authMiddleware)
 	bankvaultroutes.Init(r, handlerLayer.BankVaultHandler, authMiddleware)

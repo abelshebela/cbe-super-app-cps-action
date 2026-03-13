@@ -488,6 +488,7 @@ type EventMerchantService interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error)
+	EventMerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

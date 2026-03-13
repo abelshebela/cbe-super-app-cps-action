@@ -185,6 +185,12 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 			return
 		}
 
+		if userPayload.SessionExp <= time.Now().Unix() {
+			a.logger.Warnf("[AuthMW][AuthToken] session expired")
+			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+			return
+		}
+
 		ctx := a.setUserPayload(r.Context(), userPayload)
 		// isOTPVerified := ctx.Value("is_otp_verified")
 		// if isOTPVerified != "true" {
@@ -408,9 +414,9 @@ func (a *authMiddleware) validateToken(ctx context.Context, tokenString string) 
 	jwtSecret := []byte(a.JWTSecretKey)
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			a.logger.Errorf("[AuthMW][ValidateToken] unexpected signing method")
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+			a.logger.Errorf("[AuthMW][ValidateToken] invalid signing algorithm: %v", token.Header["alg"])
+			return nil, fmt.Errorf("invalid signing algorithm")
 		}
 		return jwtSecret, nil
 	})

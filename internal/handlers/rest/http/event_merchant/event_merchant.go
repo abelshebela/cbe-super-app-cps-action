@@ -3,6 +3,7 @@ package event_merchant_handler
 import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"errors"
 
 	"cbe-super-app-cps-action/internal/constants"
 	event_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/event_merchant"
@@ -16,11 +17,44 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type EventMerchantHandler struct {
 	service service.EventMerchantService
 	logger  utils.Logger
+}
+
+// Event Merchant Lookup
+// @Summary Event Merchant Lookup
+// @Description Retrieves a merchant by ID
+// @Tags event-merchant
+// @Security BearerAuth
+// @Produce json
+// @Param merchant_id path string true "Merchant ID"
+// @Success 200 {object} localization.StandardResponse{data=object}
+// @Failure 400,401,404,500 {object} localization.StandardResponse{data=nil}
+// @Router /event-merchant/merchant-lookup/{merchant_id} [get]
+func (e *EventMerchantHandler) EventMerchantLookup(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "EventMerchantLookup", "handler", "EventMerchant")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, e.logger)
+	_ = log
+	merchantID := chi.URLParam(r, "merchant_id")
+	if merchantID == "" {
+		span.RecordError(errors.New("missing or invalid parameter 'merchant_id'"))
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
+		return
+	}
+	span.SetAttributes(attribute.String("ecommerce_merchant_dto.id", merchantID))
+	result, err := e.service.EventMerchantLookup(ctx, merchantID)
+	if err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppDetailsFetched, result)
 }
 
 // CreateEventMerchant godoc

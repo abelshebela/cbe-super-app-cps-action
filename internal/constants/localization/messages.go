@@ -43,9 +43,12 @@ const (
 	MSGIncompleteUserInfo            = "Incomplte user info"
 	MsgInvalidJSONPayload            = "Invalid json payload"
 	MSGUserCodeIsRequired            = "User code is required"
-	MSGUserIDIsRequired              = "User ID is required"
-	MsgActionAlreadyExists           = "Action already requested wait for checker approval"
-	MsgActionAlreadyDisabled         = "Action already disabled"
+	MSGUserCanNotDiasble             = "User cant disable own account"
+	MSGUserCanNotEnable              = "User cant enable own account"
+
+	MSGUserIDIsRequired      = "User ID is required"
+	MsgActionAlreadyExists   = "Action already requested wait for checker approval"
+	MsgActionAlreadyDisabled = "Action already disabled"
 	// OTP related success messages
 	MsgOTPSentSuccessfully     = "OTP sent successfully"
 	MsgOTPVerifiedSuccessfully = "OTP verified successfully"

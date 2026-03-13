@@ -455,8 +455,9 @@ func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerch
 	e.logger.Infof("[EventMerchSvc][Update] done id: %s", id)
 	return nil
 }
-func (e *EventMerchantService) MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error) {
-	ctx, span := local_util.TraceLogger(ctx, "service", "MerchantLookup", "MiniAppMerchant", "MerchantLookup")
+
+func (e *EventMerchantService) EventMerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "EventMerchantLookup", "MiniAppMerchant", "EventMerchantLookup")
 	defer span.End()
 
 	base := strings.TrimRight(e.cfg.OddoEcommerceBaseUrl, "/")
@@ -466,7 +467,7 @@ func (e *EventMerchantService) MerchantLookup(ctx context.Context, merchantID st
 
 	merchantData, err := e.merchantLookup.LookupMerchant(ctx, merchantID, xAPIKey, url)
 	if err != nil {
-		e.logger.Errorf("[EventMerchSvc][MerchantLookup] err: %v", err)
+		e.logger.Errorf("[EventMerchSvc][EventMerchantLookup] err: %v", err)
 		span.AddEvent("Merchant lookup failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("merchant_id", merchantID),

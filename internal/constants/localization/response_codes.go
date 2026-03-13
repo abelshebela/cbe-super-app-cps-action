@@ -5038,6 +5038,20 @@ var (
 		Type:       "error",
 	}
 
+	ErrorCannotDisableOwnAccount = ResponseCode{
+		Code:       "ERROR_USER_CANT_DISABLE_OWN_ACCOUNT",
+		StatusCode: StatusBadRequest,
+		Message:    MSGUserCanNotDiasble,
+		Type:       "error",
+	}
+
+	ErrorCannotEnableOwnAccount = ResponseCode{
+		Code:       "ERROR_USER_CANT_ENABLE_OWN_ACCOUNT",
+		StatusCode: StatusBadRequest,
+		Message:    MSGUserCanNotEnable,
+		Type:       "error",
+	}
+
 	ErrorUserIDRequired = ResponseCode{
 		Code:       "ERROR_USER_ID_IS_REQUIRED",
 		StatusCode: StatusBadRequest,
