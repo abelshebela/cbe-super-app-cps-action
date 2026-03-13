@@ -77,6 +77,7 @@ type PersonalInfo struct {
 	MaritalStatus  string `json:"marital_status" bson:"marital_status"`   // customer_kyc.kyc_data
 	Nationality    string `json:"nationality" bson:"nationality"`         // customer_kyc.kyc_data
 	Branch         string `json:"branch_code" bson:"branch_code"`         // members
+	BranchName     string `json:"branch_name" bson:"branch_name"`
 }
 
 type CustomerDetailResponse struct {
