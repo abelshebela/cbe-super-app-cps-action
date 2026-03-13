@@ -68,6 +68,14 @@ func Init(router chi.Router, handler event_merchant_port.EventMerchantInboundAda
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/event-merchant/merchant-lookup/{merchant_id}",
+			Handler: handler.EventMerchantLookup,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)
