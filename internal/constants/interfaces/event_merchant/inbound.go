@@ -10,4 +10,5 @@ type EventMerchantInboundAdaptor interface {
 	DeleteEventMerchant(w http.ResponseWriter, r *http.Request)
 	GetEventMerchantByID(w http.ResponseWriter, r *http.Request)
 	GetEventMerchants(w http.ResponseWriter, r *http.Request)
+	EventMerchantLookup(w http.ResponseWriter, r *http.Request)
 }
