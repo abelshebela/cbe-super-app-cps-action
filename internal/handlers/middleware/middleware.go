@@ -95,20 +95,22 @@ func WriteJSONResponse(w http.ResponseWriter, status int, message string, data i
 }
 
 type UserPayload struct {
-	PhoneNumber string   `json:"phone_number,omitempty"`
-	UserName    string   `json:"username,omitempty"`
-	UserRole    string   `json:"user_role,omitempty"`
-	RoleId      string   `json:"role_code,omitempty"`
-	UserID      string   `json:"user_id,omitempty"`
-	UserCode    string   `json:"user_code,omitempty"`
-	FullName    string   `json:"full_name,omitempty"`
-	Department  string   `json:"department,omitempty"`
-	NextStep    string   `json:"next_step,omitempty"`
-	Action      string   `json:"action"`
-	DeviceID    string   `json:"device_id,omitempty"`
-	SessionExp  int64    `json:"session_expiry,omitempty"`
-	Environment string   `json:"environment"`
-	Permission  []string `json:"permission_group"`
+	PhoneNumber   string   `json:"phone_number,omitempty"`
+	UserName      string   `json:"username,omitempty"`
+	UserRole      string   `json:"user_role,omitempty"`
+	RoleId        string   `json:"role_code,omitempty"`
+	UserID        string   `json:"user_id,omitempty"`
+	UserCode      string   `json:"user_code,omitempty"`
+	FullName      string   `json:"full_name,omitempty"`
+	Department    string   `json:"department,omitempty"`
+	NextStep      string   `json:"next_step,omitempty"`
+	Action        string   `json:"action"`
+	DeviceID      string   `json:"device_id,omitempty"`
+	SessionExp    int64    `json:"session_expiry,omitempty"`
+	Environment   string   `json:"environment"`
+	Permission    []string `json:"permission_group"`
+	IsTemporary   bool     `json:"is_temporary"`
+	IsOTPVerified bool     `json:"is_otp_verified"`
 }
 
 type authMiddleware struct {
@@ -184,6 +186,12 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 		}
 
 		ctx := a.setUserPayload(r.Context(), userPayload)
+		isOTPVerified := ctx.Value("is_otp_verified")
+		if isOTPVerified != "true" {
+			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+			return
+		}
+
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
@@ -458,6 +466,7 @@ func (a *authMiddleware) setUserPayload(ctx context.Context, userPayload UserPay
 	ctx = context.WithValue(ctx, constants.ContextKey("username"), userPayload.UserName)
 	ctx = context.WithValue(ctx, constants.ContextKey("department"), userPayload.Department)
 	ctx = context.WithValue(ctx, constants.ContextKey("next_step"), userPayload.NextStep)
+	ctx = context.WithValue(ctx, constants.ContextKey("is_temporary"), userPayload.IsTemporary)
 	ctx = context.WithValue(ctx, constants.ContextKey("action"), userPayload.Action)
 	ctx = context.WithValue(ctx, constants.ContextKey("permission"), userPayload.Permission)
 	ctx = context.WithValue(ctx, constants.ContextKey("environment"), userPayload.Environment)
