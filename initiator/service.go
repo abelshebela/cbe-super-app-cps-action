@@ -211,7 +211,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	// CPSActionService Appended
 	dispatcher := cpsaction.NewDispatcher(serviceContainer)
-	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSActionRolePersistence, persistence.CPSAction, logger, *dispatcher, minioClient, cfg.S3BucketName, cfg.MinioEndPoint, presignClient)
+	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSActionRolePersistence, persistence.CPSAction, logger, *dispatcher, minioClient, cfg.S3BucketName, cfg.MinioPublicEndPoint, presignClient)
 	cpsActionService = cpsaction.WithActionRolePolicy(cpsActionService, persistence.CPSActionRolePersistence, logger)
 	ussdMerchant = ussd_merchant.NewUssdMerchantService(persistence.UssdMerchantPersistence, persistence.ServicesPersistence, minioClient, cpsActionService, cfg.S3BucketName, *cfg, logger)
 
