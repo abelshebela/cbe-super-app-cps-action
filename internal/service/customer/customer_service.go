@@ -499,7 +499,7 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 		res.PersonalInfo.DateOfBirth = coreRes[0].BirthOfDate
 		res.PersonalInfo.MaritalStatus = coreRes[0].Email
 		res.PersonalInfo.Branch = coreRes[0].Branch
-		res.PersonalInfo.BranchName = coreRes[0].BranchName
+		res.PersonalInfo.BranchName = coreRes[0].Branch
 		res.PersonalInfo.Gender = coreRes[0].Gender
 		res.PersonalInfo.Email = coreRes[0].Email
 	}
