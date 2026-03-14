@@ -492,6 +492,9 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 		))
 		return nil, err
 	}
+
+	d.logger.Infof("core result data---------------------: %v", coreRes)
+	d.logger.Infof("core result data branch name---------------------: %v", coreRes[0].BranchName)
 	if len(coreRes) > 0 {
 		res.PersonalInfo.DateOfBirth = coreRes[0].BirthOfDate
 		res.PersonalInfo.MaritalStatus = coreRes[0].Email
