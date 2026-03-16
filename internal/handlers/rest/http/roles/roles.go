@@ -222,6 +222,7 @@ func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := j.service.Update(ctx, id, updated); err != nil {
+		log.Errorf("[Job Role Handler] error: %v", err.Error())
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
