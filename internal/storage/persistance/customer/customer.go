@@ -741,8 +741,13 @@ func (p *CustomerRepository) FindCustomerByUserCode(ctx context.Context, userCod
 
 func (p *CustomerRepository) FindCustomerLinkedAccountByUserID(ctx context.Context, userID string) (*model.LinkedAccount, error) {
 	p.logger.Infof("[CustomerRepository][FindCustomerLinkedAccountByUserID] fetching linked account for user ID: %s", userID)
+	objID, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		p.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] invalid user ID: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
 	filter := bson.M{
-		"user_id": userID,
+		"user_id": objID,
 		"is_main": true,
 	}
 	linkedAccount, err := p.linkedAccountDal.FindOne(ctx, filter, nil)
