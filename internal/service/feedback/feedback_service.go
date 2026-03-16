@@ -70,16 +70,18 @@ func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.Feedback
 	}
 	feedback := core.BuildFeedbackEntity(userCode, req, user)
 
-	linkedAccount, err := f.memberRepo.FindCustomerLinkedAccountByUserCode(ctx, user.UserCode)
+	linkedAccount, err := f.memberRepo.FindCustomerLinkedAccountByUserID(ctx, user.ID.Hex())
 	if err != nil {
 		f.logger.Errorf("[FeedbackSvc][Create] failed to find linked account: %v", err)
 		span.AddEvent("Failed to find linked account", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("user_id", req.UserCode),
 		))
-		return nil, errors.New("linked account not found")
+		// return nil, errors.New("linked account not found")
+	} else {
+		f.logger.Infof("[FeedbackSvc][Create] found linked account for user ID: %s, account number: %s", req.UserCode, linkedAccount.AccountNumber)
+		feedback.AccountNumber = linkedAccount.AccountNumber
 	}
-	feedback.AccountNumber = linkedAccount.AccountNumber
 
 	// Call the Create method with the Feedback object
 	err = f.repo.Create(ctx, feedback)
@@ -122,16 +124,18 @@ func (f *feedbackService) CreateSurveyFeedback(ctx context.Context, surveyFeedba
 
 	surveyFeedbackEntity := core.BuildSurveyFeedbackEntity(surveyFeedback, user)
 
-	linkedAccount, err := f.memberRepo.FindCustomerLinkedAccountByUserCode(ctx, user.UserCode)
+	linkedAccount, err := f.memberRepo.FindCustomerLinkedAccountByUserID(ctx, user.ID.Hex())
 	if err != nil {
 		f.logger.Errorf("[FeedbackSvc][CreateSurvey] failed to find linked account: %v", err)
 		span.AddEvent("Failed to find linked account", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("user_id", surveyFeedback.UserID),
 		))
-		return nil, errors.New("linked account not found")
+		// return nil, errors.New("linked account not found")
+	} else {
+		f.logger.Infof("[FeedbackSvc][CreateSurvey] found linked account for user ID: %s, account number: %s", surveyFeedback.UserID, linkedAccount.AccountNumber)
+		surveyFeedbackEntity.AccountNumber = linkedAccount.AccountNumber
 	}
-	surveyFeedbackEntity.AccountNumber = linkedAccount.AccountNumber
 
 	// Call the Create method with the Feedback object
 	err = f.repo.CreateSurveyFeedback(ctx, surveyFeedbackEntity)
