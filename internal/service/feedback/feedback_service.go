@@ -77,9 +77,11 @@ func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.Feedback
 			attribute.String("error", err.Error()),
 			attribute.String("user_id", req.UserCode),
 		))
-		return nil, errors.New("linked account not found")
+		// return nil, errors.New("linked account not found")
+	} else {
+		f.logger.Infof("[FeedbackSvc][Create] found linked account for user ID: %s, account number: %s", req.UserCode, linkedAccount.AccountNumber)
+		feedback.AccountNumber = linkedAccount.AccountNumber
 	}
-	feedback.AccountNumber = linkedAccount.AccountNumber
 
 	// Call the Create method with the Feedback object
 	err = f.repo.Create(ctx, feedback)
@@ -129,9 +131,11 @@ func (f *feedbackService) CreateSurveyFeedback(ctx context.Context, surveyFeedba
 			attribute.String("error", err.Error()),
 			attribute.String("user_id", surveyFeedback.UserID),
 		))
-		return nil, errors.New("linked account not found")
+		// return nil, errors.New("linked account not found")
+	} else {
+		f.logger.Infof("[FeedbackSvc][CreateSurvey] found linked account for user ID: %s, account number: %s", surveyFeedback.UserID, linkedAccount.AccountNumber)
+		surveyFeedbackEntity.AccountNumber = linkedAccount.AccountNumber
 	}
-	surveyFeedbackEntity.AccountNumber = linkedAccount.AccountNumber
 
 	// Call the Create method with the Feedback object
 	err = f.repo.CreateSurveyFeedback(ctx, surveyFeedbackEntity)
