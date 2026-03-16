@@ -24,6 +24,7 @@ func CheckPortalCardsExistent(ctx context.Context, portalCards []string, portalC
 func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel.JobRole, roleRepo storage.JobRoleRepository) error {
 
 	var role *imodel.JobRole
+	var err error
 
 	if types == constants.CREATE {
 		resByName, err := roleRepo.Find(ctx, bson.M{"name": update.Name, "code": update.Code})
