@@ -79,6 +79,7 @@ func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRo
 		return err
 	}
 
+	j.logger.Infof("[Role][Update] Update role existence check passed")
 	newRole := *prev
 	if update.Name != "" {
 		newRole.Name = update.Name
