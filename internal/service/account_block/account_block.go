@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -166,6 +167,7 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 		}
 	}
 
+	fullname := ctx.Value(constants.ContextKey("full_name")).(string)
 	for _, branch := range branches {
 		if enabled {
 			if branch.IsEnabled {
@@ -186,7 +188,11 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 			ID:      branch.ID.Hex(),
 			Name:    branch.Name,
 			Enabled: enabled,
-			Reason:  reason,
+			Reason: types.Reason{
+				Reason:    reason,
+				CreatedAt: time.Now(),
+				CreatedBy: fullname,
+			},
 		})
 	}
 
@@ -241,6 +247,7 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 		return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code) // Corrected error code usage
 	}
 
+	fullname := ctx.Value(constants.ContextKey("full_name")).(string)
 	for _, region := range regions {
 		if enabled {
 			if region.IsEnabled {
@@ -261,7 +268,11 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 			ID:      region.ID.Hex(),
 			Name:    region.Name,
 			Enabled: enabled,
-			Reason:  reason,
+			Reason: types.Reason{
+				Reason:    reason,
+				CreatedAt: time.Now(),
+				CreatedBy: fullname,
+			},
 		})
 	}
 
@@ -339,6 +350,7 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 		}
 	}
 
+	fullname := ctx.Value(constants.ContextKey("full_name")).(string)
 	for _, district := range districts {
 		if enabled {
 			if district.IsEnabled {
@@ -359,7 +371,11 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 			ID:      district.ID.Hex(),
 			Name:    district.Name,
 			Enabled: enabled,
-			Reason:  reason,
+			Reason: types.Reason{
+				Reason:    reason,
+				CreatedAt: time.Now(),
+				CreatedBy: fullname,
+			},
 		})
 	}
 
@@ -436,6 +452,7 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 		}
 	}
 
+	fullname := ctx.Value(constants.ContextKey("full_name")).(string)
 	for _, city := range cities {
 		if enabled {
 			if city.IsEnabled {
@@ -456,7 +473,11 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 			ID:      city.ID.Hex(),
 			Name:    city.Name,
 			Enabled: enabled,
-			Reason:  reason,
+			Reason: types.Reason{
+				Reason:    reason,
+				CreatedAt: time.Now(),
+				CreatedBy: fullname,
+			},
 		})
 	}
 
@@ -502,7 +523,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		for _, act := range *actions {
 			ids = append(ids, act.ID)
 		}
-		if err := s.repo.EnableOrDisableBranches(ctx, ids, (*actions)[0].Reason, true); err != nil {
+		if err := s.repo.EnableOrDisableBranches(ctx, ids, &(*actions)[0].Reason, true); err != nil {
 			s.logger.Errorf("[AccBlockSvc][Authorize] enable branches err: %v", err)
 			return nil, err
 		}
@@ -513,7 +534,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		for _, act := range *actions {
 			ids = append(ids, act.ID)
 		}
-		if err := s.repo.EnableOrDisableBranches(ctx, ids, (*actions)[0].Reason, false); err != nil {
+		if err := s.repo.EnableOrDisableBranches(ctx, ids, &(*actions)[0].Reason, false); err != nil {
 			s.logger.Errorf("[AccBlockSvc][Authorize] disable branches err: %v", err)
 			return nil, err
 		}
@@ -524,7 +545,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		for _, act := range *actions {
 			ids = append(ids, act.ID)
 		}
-		if err := s.repo.EnableOrDisableCities(ctx, ids, (*actions)[0].Reason, true); err != nil {
+		if err := s.repo.EnableOrDisableCities(ctx, ids, &(*actions)[0].Reason, true); err != nil {
 			s.logger.Errorf("[AccBlockSvc][Authorize] enable cities err: %v", err)
 			return nil, err
 		}
@@ -535,7 +556,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		for _, act := range *actions {
 			ids = append(ids, act.ID)
 		}
-		if err := s.repo.EnableOrDisableCities(ctx, ids, (*actions)[0].Reason, false); err != nil {
+		if err := s.repo.EnableOrDisableCities(ctx, ids, &(*actions)[0].Reason, false); err != nil {
 			s.logger.Errorf("[AccBlockSvc][Authorize] disable cities err: %v", err)
 			return nil, err
 		}
@@ -546,7 +567,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		for _, act := range *actions {
 			ids = append(ids, act.ID)
 		}
-		if err := s.repo.EnableOrDisableDistricts(ctx, ids, (*actions)[0].Reason, true); err != nil {
+		if err := s.repo.EnableOrDisableDistricts(ctx, ids, &(*actions)[0].Reason, true); err != nil {
 			s.logger.Errorf("[AccBlockSvc][Authorize] enable districts err: %v", err)
 			return nil, err
 		}
@@ -557,7 +578,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		for _, act := range *actions {
 			ids = append(ids, act.ID)
 		}
-		if err := s.repo.EnableOrDisableDistricts(ctx, ids, (*actions)[0].Reason, false); err != nil {
+		if err := s.repo.EnableOrDisableDistricts(ctx, ids, &(*actions)[0].Reason, false); err != nil {
 			s.logger.Errorf("[AccBlockSvc][Authorize] disable districts err: %v", err)
 			return nil, err
 		}
@@ -568,7 +589,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		for _, act := range *actions {
 			ids = append(ids, act.ID)
 		}
-		if err := s.repo.EnableOrDisableRegions(ctx, ids, (*actions)[0].Reason, true); err != nil {
+		if err := s.repo.EnableOrDisableRegions(ctx, ids, &(*actions)[0].Reason, true); err != nil {
 			s.logger.Errorf("[AccBlockSvc][Authorize] enable regions err: %v", err)
 			return nil, err
 		}
@@ -579,7 +600,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		for _, act := range *actions {
 			ids = append(ids, act.ID)
 		}
-		if err := s.repo.EnableOrDisableRegions(ctx, ids, (*actions)[0].Reason, false); err != nil {
+		if err := s.repo.EnableOrDisableRegions(ctx, ids, &(*actions)[0].Reason, false); err != nil {
 			s.logger.Errorf("[AccBlockSvc][Authorize] disable regions err: %v", err)
 			return nil, err
 		}
