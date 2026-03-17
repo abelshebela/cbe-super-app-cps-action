@@ -479,9 +479,15 @@ type EmailKafkaMessage struct {
 	Metadata           map[string]interface{} `json:"metadata,omitempty"`
 }
 
+type Reason struct {
+	Reason    string    `bson:"reason" json:"reason"`
+	CreatedAt time.Time `bson:"created_at" json:"created_at"`
+	CreatedBy string    `bson:"created_by" json:"created_by"`
+}
+
 type EnableDisableAction struct {
 	ID      string `json:"id" bson:"id"`
 	Name    string `json:"name" bson:"name"`
 	Enabled bool   `json:"enabled" bson:"enabled"`
-	Reason  string `json:"reason,omitempty" bson:"reason,omitempty"`
+	Reason  Reason `json:"reason" bson:"reason"`
 }
