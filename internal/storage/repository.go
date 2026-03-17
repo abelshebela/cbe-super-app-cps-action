@@ -197,6 +197,7 @@ type CPSActionRepository interface {
 	SanitizedFindAllWithPaginationCPSActions(ctx context.Context, userID, role string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	SanitizedFindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
 	Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
+	FindByDateRange(ctx context.Context, start_date, end_date time.Time) ([]*model.CPSAction, error)
 	UpdateByActionCode(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
 	UpdateCustome(ctx context.Context, filter, update bson.M) error
 	Delete(ctx context.Context, id string) error
@@ -585,7 +586,7 @@ type CustomerRepository interface {
 	FindCustomerByIDs(ctx context.Context, ids []string) ([]member.User, error)
 	FindCustomerByID(ctx context.Context, id string) (*member.User, error)
 	FindCustomerByUserCode(ctx context.Context, usercode string) (*member.User, error)
-	FindCustomerLinkedAccountByUserCode(ctx context.Context, userCode string) (*model.LinkedAccount, error)
+	FindCustomerLinkedAccountByUserID(ctx context.Context, userID string) (*model.LinkedAccount, error)
 }
 
 type BulkServiceRepository interface {

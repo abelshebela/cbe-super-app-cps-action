@@ -25,6 +25,7 @@ func (r CreateUssdMerchantRequest) Validate() error {
 	if strings.TrimSpace(r.PhoneNumber) == "" {
 		errs["phone_number"] = validation.NewError("phone_number", "phone_number is required")
 	}
+
 	if strings.TrimSpace(r.Email) == "" {
 		return validation.NewError("email", "email is required")
 	}
