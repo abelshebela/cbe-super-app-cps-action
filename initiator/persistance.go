@@ -144,7 +144,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		AccessListSegmentationPersistence: access_list_segmentation_repository.NewAccessListSegmentationRepository(client, cfg, dbName, AccessListSegmentationCollection, accessListSegmentationProducer, logger),
 		MiniAppMerchant:                   mini_app.NewMiniAppMerchantRepository(client, cfg, dbName, MiniAppMerchantCollection, logger),
 		CustomerSegmentation:              customer_segmentation_repo.NewCustomerSegmentationRepository(client, cfg, dbName, CustomerSegmentationCollection, clientOrchestrationProducer, logger),
-		CPSRoles:                          cps_roles.NewCPSRolesStorage(client, cfg, dbName, CPSRolesCollection, clientOrchestrationProducer, logger),
+		CPSRoles:                          cps_roles.NewCPSRolesStorage(client, cfg, dbName, []string{CPSRolesCollection, AccessListCollection, AccessListSegmentationCollection}, clientOrchestrationProducer, logger),
 		LogisticsMerchantPersistence:      logistics_merchant_repository.NewLogisticsMerchantRepository(client, cfg, dbName, LogisticsMerchantsCollection, logger),
 		CustomerKYCPersistence:            persistence_kyc.NewCustomerKYCRepository(client, cfg, dbName, FaydaKYCollection, logger),
 		UssdMerchantPersistence:           ussd_merchant_repo.NewUssdMerchant(client, dbName, UssdMerchantCollection, cfg, logger),
