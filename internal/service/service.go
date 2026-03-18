@@ -451,10 +451,10 @@ type AvatarService interface {
 
 type BankService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.Bank], error)
+	GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BankOracle], error)
 
-	GetOneBank(ctx context.Context, id string) (*model.Bank, error)
-	GetOneBankByBIC(ctx context.Context, bicCode string) (*model.Bank, error)
+	GetOneBank(ctx context.Context, id string) (*imodel.BankOracle, error)
+	GetOneBankByBIC(ctx context.Context, bicCode string) (*imodel.BankOracle, error)
 
 	CreateOneBank(ctx context.Context, req bank_dto.CreateBankRequest) error
 	UpdateOneBank(ctx context.Context, id string, req bank_dto.UpdateBankRequest) error
