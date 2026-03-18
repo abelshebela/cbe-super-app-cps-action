@@ -374,6 +374,12 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 	filter := dynamicFilter
 	filter["request_action"] = bson.M{"$in": RAList}
 
+	if filter["auditor_status"] == "NOTCHECKED" {
+		filter["auditors.auditor"] = false
+	} else {
+		filter["auditors.auditor"] = true
+	}
+
 	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
 
 	pipeline := mongo.Pipeline{
