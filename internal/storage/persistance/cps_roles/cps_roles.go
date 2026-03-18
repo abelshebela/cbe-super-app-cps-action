@@ -9,9 +9,11 @@ import (
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"regexp"
 	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -26,24 +28,29 @@ import (
 )
 
 type cpsRoleStorage struct {
-	cfg           *config.VaultConfig
-	dal           dal.MongoDal[imodel.CPSRoles, imodel.CPSRoles]
-	client        *mongo.Client
-	dbName        string
-	collection    string
-	kafkaProducer kafka.ClientOrchestrationProducer
-	logger        utils.Logger
+	cfg                     *config.VaultConfig
+	dal                     dal.MongoDal[imodel.CPSRoles, imodel.CPSRoles]
+	accessDal               dal.MongoDal[model.APPAccessList, model.APPAccessList]
+	client                  *mongo.Client
+	dbName                  string
+	collection              string
+	accessListCollection    string
+	accessListSegCollection string
+	kafkaProducer           kafka.ClientOrchestrationProducer
+	logger                  utils.Logger
 }
 
-func NewCPSRolesStorage(client *mongo.Client, cfg *config.VaultConfig, dbName, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.CPSRolesRepository {
+func NewCPSRolesStorage(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection []string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.CPSRolesRepository {
 	return &cpsRoleStorage{
-		cfg:           cfg,
-		dal:           dal.NewMongoDal[imodel.CPSRoles, imodel.CPSRoles](client, cfg, dbName, collection),
-		client:        client,
-		dbName:        dbName,
-		collection:    collection,
-		kafkaProducer: kafkaProducer,
-		logger:        logger,
+		cfg:                     cfg,
+		dal:                     dal.NewMongoDal[imodel.CPSRoles, imodel.CPSRoles](client, cfg, dbName, collection[0]),
+		client:                  client,
+		dbName:                  dbName,
+		collection:              collection[0],
+		accessListCollection:    collection[1],
+		accessListSegCollection: collection[2],
+		kafkaProducer:           kafkaProducer,
+		logger:                  logger,
 	}
 }
 
@@ -240,7 +247,90 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRo
 	result.EnabledServices = enabledServices
 	result.DisabledServices = disabledServices
 
+	segEnabled, segErr := m.fetchServiceAccessListsByRoleNameSegmentationCode(ctx, result.Name)
+	if segErr != nil {
+		m.logger.Warnf("[CPSRolesStorage][FindById] failed to fetch service access lists by role name segmentation_code for role %s: %v", id, segErr)
+	} else {
+		result.EnabledServices = segEnabled
+		// result.DisabledServices = segDisabled
+	}
+
 	return result, nil
+}
+
+func (m *cpsRoleStorage) fetchServiceAccessListsByRoleNameSegmentationCode(ctx context.Context, cpsRoleName string) ([]imodel.ServiceAccessInfo, error) {
+	roleName := strings.TrimSpace(cpsRoleName)
+	if roleName == "" {
+		return nil, nil
+	}
+
+	// Optimized:
+	// - Get all excluded keys in one query (distinct)
+	// - Fetch all enabled access_list items excluding those keys in one query ($nin)
+	segCol := m.client.Database(m.dbName).Collection(m.accessListSegCollection)
+	accessListCol := m.client.Database(m.dbName).Collection(m.accessListCollection)
+
+	segCodeRegex := "^\\s*" + regexp.QuoteMeta(roleName) + "\\s*$"
+	segFilter := bson.M{
+		"enabled":           true,
+		"segmentation_code": bson.M{"$regex": segCodeRegex, "$options": "i"},
+	}
+
+	// Get excluded keys (enabled segmentation rows) in one query.
+	segCursor, err := segCol.Find(ctx, segFilter, options.Find().SetProjection(bson.M{"access_list_key": 1}))
+	if err != nil {
+		return nil, err
+	}
+	defer segCursor.Close(ctx)
+
+	type segKeyDoc struct {
+		AccessListKey string `bson:"access_list_key"`
+	}
+	var segKeys []segKeyDoc
+	if err := segCursor.All(ctx, &segKeys); err != nil {
+		return nil, err
+	}
+
+	excludedSet := make(map[string]struct{}, len(segKeys))
+	for _, d := range segKeys {
+		if k := strings.TrimSpace(d.AccessListKey); k != "" {
+			excludedSet[k] = struct{}{}
+		}
+	}
+
+	excludedKeys := make([]string, 0, len(excludedSet))
+	for k := range excludedSet {
+		excludedKeys = append(excludedKeys, k)
+	}
+
+	accessFilter := bson.M{"enabled": true}
+	if len(excludedKeys) > 0 {
+		accessFilter["key"] = bson.M{"$nin": excludedKeys}
+	}
+
+	cursor, err := accessListCol.Find(ctx, accessFilter, options.Find().SetProjection(bson.M{
+		"key":              1,
+		"access_list_name": 1,
+	}))
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	type accessListDoc struct {
+		Key            string `bson:"key"`
+		AccessListName string `bson:"access_list_name"`
+	}
+	var docs []accessListDoc
+	if err := cursor.All(ctx, &docs); err != nil {
+		return nil, err
+	}
+
+	out := make([]imodel.ServiceAccessInfo, 0, len(docs))
+	for _, d := range docs {
+		out = append(out, imodel.ServiceAccessInfo{Key: d.Key, AccessListName: d.AccessListName})
+	}
+	return out, nil
 }
 
 // fetchServiceAccessLists retrieves enabled and disabled service lists for a CPS role.
@@ -250,7 +340,7 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRo
 //     (i.e., in access_list_segmentation with enabled=true)
 func (m *cpsRoleStorage) fetchServiceAccessLists(ctx context.Context, roleID bson.ObjectID) ([]imodel.ServiceAccessInfo, []imodel.ServiceAccessInfo, error) {
 	// 1. Fetch all globally enabled services from access_list
-	accessListCol := m.client.Database(m.dbName).Collection("access_list")
+	accessListCol := m.client.Database(m.dbName).Collection(m.accessListCollection)
 	alCursor, err := accessListCol.Find(ctx, bson.M{"enabled": true})
 	if err != nil {
 		return nil, nil, err
@@ -267,7 +357,7 @@ func (m *cpsRoleStorage) fetchServiceAccessLists(ctx context.Context, roleID bso
 	}
 
 	// 2. Fetch segmentation entries for this role from access_list_segmentation
-	segCol := m.client.Database(m.dbName).Collection("access_list_segmentation")
+	segCol := m.client.Database(m.dbName).Collection(m.accessListSegCollection)
 	segCursor, err := segCol.Find(ctx, bson.M{"segmented_id": roleID})
 	if err != nil {
 		return nil, nil, err
