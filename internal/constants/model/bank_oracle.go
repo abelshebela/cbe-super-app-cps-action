@@ -8,8 +8,8 @@ type BankOracle struct {
 	IsEnabled       bool   `json:"is_enabled"`
 	AccountLength   int    `json:"account_length"`
 	HasAlphaNumeric bool   `json:"has_alpha_numeric"`
-	CreatedAt       string `json:"created_at"`
-	UpdatedAt       string `json:"updated_at"`
+	CreateAt        string `json:"create_at"`
+	UpdateAt        string `json:"update_at"`
 }
 
 // create table banks(
