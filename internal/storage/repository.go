@@ -273,26 +273,26 @@ type AccountBlockRepository interface {
 	CreateBranch(ctx context.Context, branch *model.AccountBlock) error
 	DeleteBranch(ctx context.Context, id string) error
 	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	EnableOrDisableBranches(ctx context.Context, ids []string, reason string, enabled bool) error
+	EnableOrDisableBranches(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
 	GetBranchesByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
 	FindByFilterKey(ctx context.Context, field, value string) (*model.AccountBlock, error)
 
 	CreateCity(ctx context.Context, city *model.AccountBlock) error
 	DeleteCity(ctx context.Context, id string) error
 	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	EnableOrDisableCities(ctx context.Context, ids []string, reason string, enabled bool) error
+	EnableOrDisableCities(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
 	GetCitiesByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
 
 	CreateRegion(ctx context.Context, region *model.AccountBlock) error
 	DeleteRegion(ctx context.Context, id string) error
 	FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	EnableOrDisableRegions(ctx context.Context, ids []string, reason string, enabled bool) error
+	EnableOrDisableRegions(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
 	GetRegionsByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
 
 	CreateDistrict(ctx context.Context, district *model.AccountBlock) error
 	DeleteDistrict(ctx context.Context, id string) error
 	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	EnableOrDisableDistricts(ctx context.Context, ids []string, reason string, enabled bool) error
+	EnableOrDisableDistricts(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
 	GetDistrictsByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
 	GetAccountBlockDetails(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error)
 }
