@@ -90,7 +90,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestCreateBank):
-		actionData.CreatedAt = time.Now().String()
+		actionData.CreateAt = time.Now().String()
 		err := b.oracleRepo.Create(ctx, &actionData)
 		if err != nil {
 			span.AddEvent("[Authorize] bank create action failed", trace.WithAttributes(
@@ -114,7 +114,8 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 		b.logger.Infof("[BankSvc][Authorize] deleted id: %s", cpsAction.UniqueId)
 
 	case string(constants.RequestEnableDisableBank):
-		err := b.repo.EnableOrDisable(ctx, cpsAction.UniqueId, actionData.IsEnabled)
+		actionData.UpdateAt = time.Now().String()
+		err := b.oracleRepo.EnableOrDisable(ctx, cpsAction.UniqueId, actionData.IsEnabled)
 
 		if err != nil {
 			span.AddEvent("[Authorize] bank enable/disable action failed", trace.WithAttributes(
@@ -137,6 +138,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 		}
 		b.logger.Infof("[BankSvc][Authorize] logo updated id: %s", cpsAction.UniqueId)
 	case string(constants.RequestUpdateBank):
+		actionData.UpdateAt = time.Now().String()
 		err := b.oracleRepo.Update(ctx, cpsAction.UniqueId, &actionData)
 		if err != nil {
 			span.AddEvent("[Authorize] bank update action failed", trace.WithAttributes(
