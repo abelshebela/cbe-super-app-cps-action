@@ -60,7 +60,7 @@ func (q *Queries) EnableOrDisable(ctx context.Context, id string, enable bool) e
 }
 
 func (q *Queries) FindByID(ctx context.Context, id string) (*imodel.BankOracle, error) {
-	query := `SELECT id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM banks WHERE id = :1`
+	query := `SELECT id, bank_name, logo, bic_code, is_enabled, account_length, has_alha_numeric, create_at, update_at FROM banks WHERE id = :1`
 	row := q.db.QueryRowContext(ctx, query, id)
 	var bank imodel.BankOracle
 	err := row.Scan(
@@ -71,8 +71,8 @@ func (q *Queries) FindByID(ctx context.Context, id string) (*imodel.BankOracle, 
 		&bank.IsEnabled,
 		&bank.AccountLength,
 		&bank.HasAlphaNumeric,
-		&bank.CreatedAt,
-		&bank.UpdatedAt,
+		&bank.CreateAt,
+		&bank.UpdateAt,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -95,8 +95,8 @@ func (q *Queries) FindByBIC(ctx context.Context, bic string) (*imodel.BankOracle
 		&bank.IsEnabled,
 		&bank.AccountLength,
 		&bank.HasAlphaNumeric,
-		&bank.CreatedAt,
-		&bank.UpdatedAt,
+		&bank.CreateAt,
+		&bank.UpdateAt,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -135,8 +135,8 @@ func (q *Queries) FindByNameOrBIC(ctx context.Context, bic, name string) (*imode
 		&bank.IsEnabled,
 		&bank.AccountLength,
 		&bank.HasAlphaNumeric,
-		&bank.CreatedAt,
-		&bank.UpdatedAt,
+		&bank.CreateAt,
+		&bank.UpdateAt,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -203,8 +203,8 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 			&bank.IsEnabled,
 			&bank.AccountLength,
 			&bank.HasAlphaNumeric,
-			&bank.CreatedAt,
-			&bank.UpdatedAt,
+			&bank.CreateAt,
+			&bank.UpdateAt,
 		)
 		if err != nil {
 			return nil, err
