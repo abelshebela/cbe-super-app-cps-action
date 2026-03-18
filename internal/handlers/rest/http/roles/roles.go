@@ -73,7 +73,7 @@ func (j *RoleHandler) FindAllWithPagination(w http.ResponseWriter, r *http.Reque
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessGetAllBanks, resp)
+	localization.SendSuccessResponse(w, localization.SuccessCPSRolesFetched, resp)
 }
 
 func (j *RoleHandler) FindAll(w http.ResponseWriter, r *http.Request) {
@@ -115,7 +115,7 @@ func (j *RoleHandler) FindById(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessGetOneBank, role)
+	localization.SendSuccessResponse(w, localization.SuccessCPSRolesFetched, role)
 }
 
 // Create godoc

@@ -843,24 +843,28 @@ const (
 	RequestDisableSingleBranches RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
 	RequestEnableMultiBranches   RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
 	RequestDisableMultiBranches  RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
-	RequestEnableBranches        RequestAction = "REQUEST_ENABLE_BRANCHES"
-	RequestDisableBranches       RequestAction = "REQUEST_DISABLE_BRANCHES"
+
+	RequestEnableBranches  RequestAction = "REQUEST_ENABLE_BRANCHES"
+	RequestDisableBranches RequestAction = "REQUEST_DISABLE_BRANCHES"
 
 	// Region
 	RequestEnableRegions  RequestAction = "REQUEST_ENABLE_REGIONS"
 	RequestDisableRegions RequestAction = "REQUEST_DISABLE_REGIONS"
-	RequestBlockRegion    RequestAction = "BLOCK_REGION"
+
+	RequestBlockRegion RequestAction = "BLOCK_REGION"
 
 	// District
 	RequestEnableDistricts  RequestAction = "REQUEST_ENABLE_DISTRICTS"
 	RequestDisableDistricts RequestAction = "REQUEST_DISABLE_DISTRICTS"
-	RequestBlockDistrict    RequestAction = "BLOCK_DISTRICT"
+
+	RequestBlockDistrict RequestAction = "BLOCK_DISTRICT"
 
 	// City
 	RequestEnableCities  RequestAction = "REQUEST_ENABLE_CITIES"
 	RequestDisableCities RequestAction = "REQUEST_DISABLE_CITIES"
-	RequestBlockCity     RequestAction = "BLOCK_CITY"
-	RequestBlockUser     RequestAction = "BLOCK_USER"
+
+	RequestBlockCity RequestAction = "BLOCK_CITY"
+	RequestBlockUser RequestAction = "BLOCK_USER"
 
 	// Business
 	RequestCreateBusiness RequestAction = "CREATE_BUSINESS"
