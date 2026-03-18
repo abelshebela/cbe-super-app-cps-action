@@ -118,7 +118,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		EcommerceMerchantPersistence:      ecommerce_merchant.NewEcommerceMerchantRepository(client, cfg, dbName, EcommerceMerchantCollection, logger),
 		NotificationPersistence:           notification.NewNotificationRepository(client, cfg, dbName, NotificationsCollection, notificationProducer, logger),
 		PasswordRulePersistence:           password.NewPasswordRuleRepository(client, cfg, dbName, PasswordRulesCollection, logger),
-		ServicesPersistence:               services_repo.NewServicesRepository(client, cfg, dbName, ServicesCollection, clientOrchestrationProducer, logger),
+		ServicesPersistence:               services_repo.NewServicesRepository(client, cfg, dbName, ServicesCollection, clientOrchestrationProducer, redisRepository, logger),
 		ValidationRulePersistence:         accountvalidation.NewAccountValidationStore(client, cfg, dbName, ValidationRulesCollection, clientOrchestrationProducer, logger),
 		WalletPersistence:                 wallet.NewWalletRepository(client, cfg, dbName, WalletsCollection, ServicesCollection, logger),
 		BpsActionPersistence:              bps_action.NewBPSActionRepository(client, dbName, BPSActionsCollection, logger, cfg),
