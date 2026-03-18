@@ -826,3 +826,14 @@ type CustomerKYCRepository interface {
 	UpdateKYCStatus(ctx context.Context, id string, status string) error
 	Delete(ctx context.Context, id string) error
 }
+
+type BankOracleRepository interface {
+	Create(ctx context.Context, bank *imodel.BankOracle) error
+	Update(ctx context.Context, id string, bank *imodel.BankOracle) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*imodel.BankOracle, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.BankOracle], error)
+	FindByNameOrBIC(ctx context.Context, bic, name string) (*imodel.BankOracle, error)
+	FindByBIC(ctx context.Context, bic string) (*imodel.BankOracle, error)
+}

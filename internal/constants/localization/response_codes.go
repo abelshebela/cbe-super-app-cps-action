@@ -334,7 +334,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorServiceNotFound,
 	ErrorChildServiceExists,
 	ErrorBankDeleteRequestFailed,
-	ErrorBankImageMissingOrInvalid,
+	ErrorBankAccountLengthRequired,
 	ErrorGetAllBanksFailed,
 	ErrorGetAllBanksFailed,
 	ErrorGetOneBank,
@@ -5575,6 +5575,18 @@ var (
 		Code:       "ERROR_BANK_IMAGE_MISSING_OR_INVALID",
 		StatusCode: StatusBadRequest,
 		Message:    MsgBankImageRequiredOrMissing,
+		Type:       "error",
+	}
+	ErrorBankAccountLengthRequired = ResponseCode{
+		Code:       "ERROR_BANK_ACCOUNT_LENGTH_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankAccountLengthRequired,
+		Type:       "error",
+	}
+	ErrorInvalidBankAccountLength = ResponseCode{
+		Code:       "ERROR_INVALID_BANK_ACCOUNT_LENGTH",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankAccountLengthInvalid,
 		Type:       "error",
 	}
 

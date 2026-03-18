@@ -1,6 +1,8 @@
 package bank_core
 
 import (
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
@@ -24,7 +26,7 @@ func Bank_mapper(action map[string]interface{}) model.Bank {
 			bank.BICCode = bicCode
 		}
 	}
-	if v, ok := action["enabled"]; ok {
+	if v, ok := action["is_enabled"]; ok {
 		if enabled, ok := v.(bool); ok {
 			bank.Enabled = enabled
 		}
@@ -37,6 +39,42 @@ func Bank_mapper(action map[string]interface{}) model.Bank {
 	if v, ok := action["type"]; ok {
 		if bankType, ok := v.(string); ok {
 			bank.Type = bankType
+		}
+	}
+
+	return bank
+}
+func Bank_oracle_mapper(action map[string]interface{}) imodel.BankOracle {
+	bank := imodel.BankOracle{}
+
+	if v, ok := action["name"]; ok {
+		if name, ok := v.(string); ok {
+			bank.BankName = name
+		}
+	}
+	if v, ok := action["logo"]; ok {
+		if logo, ok := v.(string); ok {
+			bank.Logo = logo
+		}
+	}
+	if v, ok := action["bic_code"]; ok {
+		if bicCode, ok := v.(string); ok {
+			bank.BICCode = bicCode
+		}
+	}
+	if v, ok := action["is_enabled"]; ok {
+		if enabled, ok := v.(bool); ok {
+			bank.IsEnabled = enabled
+		}
+	}
+	if v, ok := action["has_alpha_numeric"]; ok {
+		if has_alpha_numeric, ok := v.(bool); ok {
+			bank.HasAlphaNumeric = has_alpha_numeric
+		}
+	}
+	if v, ok := action["account_length"]; ok {
+		if accountLength, ok := v.(int); ok {
+			bank.AccountLength = accountLength
 		}
 	}
 

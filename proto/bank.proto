@@ -9,8 +9,10 @@ message Bank {
     string name = 2;
     string logo = 3;
     string bic_code = 4;
-    string type = 5;
+    string type = 5 [deprecated = true];
     bool enabled = 6;
+    bool has_alpha_numeric = 7;
+    int32 account_length = 8;
 }
 
 message docs {
