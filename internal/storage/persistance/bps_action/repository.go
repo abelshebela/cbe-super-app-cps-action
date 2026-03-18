@@ -376,7 +376,7 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 
 	if filter["auditor_status"] == "NOTCHECKED" {
 		filter["auditors.auditor"] = false
-	} else {
+	} else if filter["auditor_status"] == "CHECKED" {
 		filter["auditors.auditor"] = true
 	}
 
