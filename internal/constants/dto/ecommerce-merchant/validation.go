@@ -183,27 +183,37 @@ func (r UpdateEcommerceMerchant) ValidateUpdate() error {
 		// ),
 
 		validation.Field(&r.MerchantName,
-			validation.By(utils.TrimWhiteSpace),
-			validation.By(utils.NoSpecialChars),
+			validation.When(r.MerchantName != nil && *r.MerchantName != "",
+				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
+			),
 		),
 
 		validation.Field(&r.MerchantCode,
-			validation.By(utils.TrimWhiteSpace),
-			validation.By(utils.NoSpecialChars),
+			validation.When(r.MerchantCode != nil && *r.MerchantCode != "",
+				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
+			),
 		),
 
 		validation.Field(&r.AccountNumber,
-			validation.Match(regexp.MustCompile(`^[0-9]+$`)).
-				Error("Invalid account number"),
+			validation.When(r.AccountNumber != nil && *r.AccountNumber != "",
+				validation.Match(regexp.MustCompile(`^[0-9]+$`)).
+					Error("Invalid account number"),
+			),
 		),
 
 		validation.Field(&r.SettlementMethod,
-			validation.By(utils.TrimWhiteSpace),
-			validation.By(utils.NoSpecialChars),
+			validation.When(r.SettlementMethod != nil && *r.SettlementMethod != "",
+				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
+			),
 		),
 
 		validation.Field(&r.Branches,
-			validation.By(validateBranchesUpdate),
+			validation.When(r.Branches != nil,
+				validation.By(validateBranchesUpdate),
+			),
 		),
 	)
 }

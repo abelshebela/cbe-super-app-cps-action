@@ -68,7 +68,8 @@ func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRo
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	if err := core.RoleExistenChecker(ctx, constants.CREATE, "", update, j.roleRepository); err != nil {
+	j.logger.Infof("[Role Service][Update] Update role existence check started--------------------")
+	if err := core.RoleExistenChecker(ctx, constants.UPDATE, id, update, j.roleRepository); err != nil {
 		if err.Error() != localization.ErrorResourceNotFound.Code {
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
@@ -79,10 +80,12 @@ func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRo
 		return err
 	}
 
+	j.logger.Infof("[Role][Update] Update role existence check passed")
 	newRole := *prev
 	if update.Name != "" {
 		newRole.Name = update.Name
 	}
+
 	if update.Code != "" {
 		newRole.Code = update.Code
 	}

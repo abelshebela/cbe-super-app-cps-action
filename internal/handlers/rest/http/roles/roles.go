@@ -188,6 +188,7 @@ func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
+	log.Infof("[Role Handler] Update role started")
 	id := chi.URLParam(r, "id")
 	if strings.TrimSpace(id) == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -222,6 +223,7 @@ func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := j.service.Update(ctx, id, updated); err != nil {
+		log.Errorf("[Job Role Handler] error: %v", err.Error())
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
