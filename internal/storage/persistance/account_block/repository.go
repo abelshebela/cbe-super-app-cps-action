@@ -162,7 +162,7 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 	}, nil
 }
 
-func (a *AccountBlockStorage) EnableOrDisableBranches(ctx context.Context, ids []string, reason string, enabled bool) error {
+func (a *AccountBlockStorage) EnableOrDisableBranches(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error {
 	var objIDs []bson.ObjectID
 	for _, id := range ids {
 		objID, err := bson.ObjectIDFromHex(id)
@@ -174,8 +174,14 @@ func (a *AccountBlockStorage) EnableOrDisableBranches(ctx context.Context, ids [
 
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
+	rsn := model.Reason{
+		Reason:    reason.Reason,
+		CreatedAt: reason.CreatedAt,
+		CreatedBy: reason.CreatedBy,
+	}
+
 	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "B"}
-	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disabled_reason": reason, "updated_at": time.Now()}}
+	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disable_reason": rsn, "updated_at": time.Now()}}
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -297,7 +303,7 @@ func (a *AccountBlockStorage) FindAllRegionsWithPagination(ctx context.Context, 
 	}, nil
 }
 
-func (a *AccountBlockStorage) EnableOrDisableRegions(ctx context.Context, ids []string, reason string, enabled bool) error {
+func (a *AccountBlockStorage) EnableOrDisableRegions(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error {
 	var objIDs []bson.ObjectID
 	for _, id := range ids {
 		objID, err := bson.ObjectIDFromHex(id)
@@ -309,8 +315,14 @@ func (a *AccountBlockStorage) EnableOrDisableRegions(ctx context.Context, ids []
 
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
+	rsn := model.Reason{
+		Reason:    reason.Reason,
+		CreatedAt: reason.CreatedAt,
+		CreatedBy: reason.CreatedBy,
+	}
+
 	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "R"}
-	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disabled_reason": reason, "updated_at": time.Now()}}
+	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disable_reason": rsn, "updated_at": time.Now()}}
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -440,7 +452,7 @@ func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context
 	}, nil
 }
 
-func (a *AccountBlockStorage) EnableOrDisableDistricts(ctx context.Context, ids []string, reason string, enabled bool) error {
+func (a *AccountBlockStorage) EnableOrDisableDistricts(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error {
 	var objIDs []bson.ObjectID
 	for _, id := range ids {
 		objID, err := bson.ObjectIDFromHex(id)
@@ -452,8 +464,14 @@ func (a *AccountBlockStorage) EnableOrDisableDistricts(ctx context.Context, ids 
 
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
+	rsn := model.Reason{
+		Reason:    reason.Reason,
+		CreatedAt: reason.CreatedAt,
+		CreatedBy: reason.CreatedBy,
+	}
+
 	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "D"}
-	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disabled_reason": reason, "updated_at": time.Now()}}
+	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disable_reason": rsn, "updated_at": time.Now()}}
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -590,7 +608,7 @@ func (a *AccountBlockStorage) FindAllCitiesWithPagination(ctx context.Context, f
 	}, nil
 }
 
-func (a *AccountBlockStorage) EnableOrDisableCities(ctx context.Context, ids []string, reason string, enabled bool) error {
+func (a *AccountBlockStorage) EnableOrDisableCities(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error {
 	var objIDs []bson.ObjectID
 	for _, id := range ids {
 		objID, err := bson.ObjectIDFromHex(id)
@@ -602,8 +620,14 @@ func (a *AccountBlockStorage) EnableOrDisableCities(ctx context.Context, ids []s
 
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
+	rsn := model.Reason{
+		Reason:    reason.Reason,
+		CreatedAt: reason.CreatedAt,
+		CreatedBy: reason.CreatedBy,
+	}
+
 	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "C"}
-	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disabled_reason": reason, "updated_at": time.Now()}}
+	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disable_reason": rsn, "updated_at": time.Now()}}
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {

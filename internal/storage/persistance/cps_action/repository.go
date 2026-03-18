@@ -664,31 +664,26 @@ func (r *CPSActionStorage) GetCountByDepartment(ctx context.Context, department 
 }
 
 // memory intensice hold all in memory at one good for small  amount of data  memory user O(n)
-// func (r *CPSActionStorage) FindByDateRange(ctx context.Context,start_date, end_date time.Time) ([]*model.CPSAction, error) {
-//     filter := bson.M{
-//         "created_at": bson.M{
-//             "$gte": start_date,
-//             "$lte": end_date,
-//         },
-//     }
+func (r *CPSActionStorage) FindByDateRange(ctx context.Context, start_date, end_date time.Time) ([]*model.CPSAction, error) {
+	filter := buildCPSActionDateRangeFilter(start_date, end_date)
 
-//     // opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: 1}})
+	opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: 1}})
 
-//     // cursor, err := r.collection.Find(ctx, filter, opts)
-// 	actions,err := r.dal.FindAll(ctx,filter,nil)
-//     if err != nil {
-//         return nil, err
-//     }
-//     // defer cursor.Close(ctx)
+	cursor, err := r.collection.Find(ctx, filter, opts)
+	// actions,err := r.dal.FindAll(ctx,filter,nil)
+	if err != nil {
+		return nil, err
+	}
+	// defer cursor.Close(ctx)
 
-//     // var actions []*model.CPSAction
-//     // if err := cursor.All(ctx, &actions); err != nil {
-//     //     return nil, err
-//     // }
+	var actions []*model.CPSAction
+	if err := cursor.All(ctx, &actions); err != nil {
+		return nil, err
+	}
 
-//     return actions, nil
+	return actions, nil
 
-// }
+}
 
 // stream process constant memrory useage O(1)
 func (r *CPSActionStorage) StreamByDateRange(
@@ -696,13 +691,7 @@ func (r *CPSActionStorage) StreamByDateRange(
 	startDate, endDate time.Time,
 	handler func(*model.CPSAction) error,
 ) error {
-
-	filter := bson.M{
-		"created_at": bson.M{
-			"$gte": startDate,
-			"$lte": endDate,
-		},
-	}
+	filter := buildCPSActionDateRangeFilter(startDate, endDate)
 
 	opts := options.Find().
 		SetSort(bson.D{{Key: "created_at", Value: 1}}).
@@ -726,4 +715,21 @@ func (r *CPSActionStorage) StreamByDateRange(
 	}
 
 	return cursor.Err()
+}
+
+func buildCPSActionDateRangeFilter(startDate, endDate time.Time) bson.M {
+	rangeFilter := bson.M{
+		"$gte": startDate,
+		"$lte": endDate,
+	}
+
+	// Some records use different timestamp fields; include all known variants.
+	return bson.M{
+		"$or": []bson.M{
+			{"created_at": rangeFilter},
+			{"action_created_at": rangeFilter},
+			{"maker_action_time": rangeFilter},
+			{"last_modified_at": rangeFilter},
+		},
+	}
 }
