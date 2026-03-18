@@ -26,6 +26,14 @@ type BankStorage struct {
 	logger utils.Logger
 }
 
+func NewBankRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.BankRepository {
+	return &BankStorage{
+		dal:    dal.NewMongoDal[model.Bank, model.Bank](client, cfg, dbName, collection),
+		client: client,
+		logger: logger,
+	}
+}
+
 // FindBIC implements [storage.BankRepository].
 func (b *BankStorage) FindByBIC(ctx context.Context, bic string) (*model.Bank, error) {
 	b.logger.Infof("[BankStorage][FindByBIC] fetching bank by BIC: %s", bic)
@@ -35,14 +43,6 @@ func (b *BankStorage) FindByBIC(ctx context.Context, bic string) (*model.Bank, e
 		return nil, local_util.HandleDBError(err)
 	}
 	return bank, nil
-}
-
-func NewBankRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.BankRepository {
-	return &BankStorage{
-		dal:    dal.NewMongoDal[model.Bank, model.Bank](client, cfg, dbName, collection),
-		client: client,
-		logger: logger,
-	}
 }
 
 func (b *BankStorage) Create(ctx context.Context, bank *model.Bank) error {

@@ -31,16 +31,18 @@ type ServicesStorage struct {
 	serviceDal    dal.MongoDal[model.ServiceList, model.ServiceList]
 	accessDal     dal.MongoDal[model.APPAccessList, model.APPAccessList]
 	kafkaProducer kafka.ClientOrchestrationProducer
+	redis         storage.RedisRepository
 	logger        utils.Logger
 }
 
-func NewServicesRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.ServicesRepository {
+func NewServicesRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collection string, kafkaProducer kafka.ClientOrchestrationProducer, redis storage.RedisRepository, logger utils.Logger) storage.ServicesRepository {
 	return &ServicesStorage{
 		cfg:           cfg,
 		dal:           dal.NewMongoDal[model.Service, model.Service](client, cfg, dbName, collection),
 		serviceDal:    dal.NewMongoDal[model.ServiceList, model.ServiceList](client, cfg, dbName, "service_list"),
 		accessDal:     dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, cfg, dbName, "access_list"),
 		kafkaProducer: kafkaProducer,
+		redis:         redis,
 		logger:        logger,
 	}
 }
@@ -101,6 +103,11 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 		s.cfg.CPSServiceUpdate,
 		"service authorized and updated",
 	)
+
+	err = s.redis.Set(ctx, s.cfg.CPSServiceUpdate, updatedService, -1)
+	if err != nil {
+		s.logger.Errorf("[ServivcesStorage][Update] failed to set services updated data to redis: %v", err)
+	}
 
 	return nil
 }
