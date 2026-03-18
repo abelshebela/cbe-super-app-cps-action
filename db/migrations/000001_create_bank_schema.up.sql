@@ -1,13 +1,11 @@
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
-CREATE TABLE IF NOT EXISTS banks (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
-    bank_name VARCHAR(32) NOT NULL,
-    logo VARCHAR(255) NOT NULL,
-    bic_code VARCHAR(16) NOT NULL,
-    is_enabled INT DEFAULT 1,
-    account_length INT NOT NULL,
-    has_alpha_numeric INT DEFAULT 0,
-    create_at TIMESTAMP DEFAULT now(),
-    update_at TIMESTAMP DEFAULT now()
+CREATE TABLE banks (
+    id RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
+    bank_name VARCHAR2(32) NOT NULL,
+    logo VARCHAR2(255) NOT NULL,
+    bic_code VARCHAR2(16) NOT NULL,
+    is_enabled NUMBER(1) DEFAULT 1,
+    account_length NUMBER NOT NULL,
+    has_alpha_numeric NUMBER(1) DEFAULT 0,
+    create_at TIMESTAMP DEFAULT SYSTIMESTAMP,
+    update_at TIMESTAMP DEFAULT SYSTIMESTAMP
 );

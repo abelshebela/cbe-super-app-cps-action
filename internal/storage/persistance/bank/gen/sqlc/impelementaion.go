@@ -9,10 +9,16 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-var _ storage.BankOracleRepository = (*Queries)(nil)
-
+func NewBankRepository(db *sql.DB, log utils.Logger) storage.BankOracleRepository {
+	return &Queries{
+		db:     db,
+		logger: log,
+	}
+}
 func (q *Queries) Create(ctx context.Context, bank *imodel.BankOracle) error {
 	query := `INSERT INTO banks (id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at)
 		VALUES (gen_random_uuid(), :1, :2, :3, :4, :5, :6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`

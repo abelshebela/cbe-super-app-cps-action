@@ -675,6 +675,7 @@ const (
 	MsgBankBICRequired             = "Bank BIC is required"
 	MsgBankLogoRequired            = "Bank logo is required"
 	MsgBankHasAlphaNumericRequired = "Bank has alpha numeric is required"
+	MsgBankHasAlphaNumericInvalid  = "Bank has alpha numeric is invalid"
 	MsgBankAccountLengthRequired   = "Bank account length is required"
 	MsgBankAccountLengthInvalid    = "Bank account length is invalid"
 	MsgInvalidBankName             = "Invalid bank name"

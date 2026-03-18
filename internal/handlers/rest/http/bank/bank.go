@@ -84,7 +84,7 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 
 	hasAlphaNumeric := r.FormValue("has_alpha_numeric")
 	if hasAlphaNumeric == "" {
-		localization.SendErrorResponse(w, localization.ErrorInvalidFormat, nil, nil)
+		localization.SendErrorResponse(w, localization.ErrorBankHasAlphaNumericRequired, nil, nil)
 		return
 	}
 
@@ -93,7 +93,7 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	} else if strings.ToLower(hasAlphaNumeric) == "false" {
 		bankRequest.HasAlphaNumeric = false
 	} else {
-		localization.SendErrorResponse(w, localization.ErrorInvalidFormat, nil, nil)
+		localization.SendErrorResponse(w, localization.ErrorBankHasAlphaNumericInvalid, nil, nil)
 		return
 	}
 

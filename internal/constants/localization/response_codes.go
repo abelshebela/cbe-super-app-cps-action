@@ -335,6 +335,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorChildServiceExists,
 	ErrorBankDeleteRequestFailed,
 	ErrorBankAccountLengthRequired,
+	ErrorBankHasAlphaNumericRequired,
+	ErrorBankHasAlphaNumericInvalid,
 	ErrorGetAllBanksFailed,
 	ErrorGetAllBanksFailed,
 	ErrorGetOneBank,
@@ -5581,6 +5583,18 @@ var (
 		Code:       "ERROR_BANK_ACCOUNT_LENGTH_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgBankAccountLengthRequired,
+		Type:       "error",
+	}
+	ErrorBankHasAlphaNumericRequired = ResponseCode{
+		Code:       "ERROR_BANK_HAS_ALPHA_NUMERIC_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankHasAlphaNumericRequired,
+		Type:       "error",
+	}
+	ErrorBankHasAlphaNumericInvalid = ResponseCode{
+		Code:       "ERROR_BANK_HAS_ALPHA_NUMERIC_INVALID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankHasAlphaNumericInvalid,
 		Type:       "error",
 	}
 	ErrorInvalidBankAccountLength = ResponseCode{
