@@ -190,6 +190,7 @@ const (
 	MsgCpsActionDataExportedSuccessfully   = "CPS actions Data exported successfully"
 	MsgDonationDataExportedSuccessfully    = "Donation Data exported successfully"
 	MsgDonationDataExportFailed            = "Donation Data export failed"
+	MsgDonationDataNotFoundInDateRange     = "No donation data found in the specified date range"
 
 	// BPS Action related success messages
 	MsgBPSActionsRetrievedSuccessfully = "BPS Actions retrieved successfully"

@@ -24,6 +24,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorExistUserNameBPS,
 	DonationDataExportedSuccess,
 	DonationDataExportedError,
+	DonationDataNotFoundInDateRange,
 
 	SuccessCPSActionCount,
 	SuccessServiceCreateRequestSubmitted,
@@ -1638,6 +1639,13 @@ var (
 		Type:       "error",
 	}
 
+	DonationDataNotFoundInDateRange = ResponseCode{
+		Code:       "DONATION_DATA_NOT_FOUND_IN_DATE_RANGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationDataNotFoundInDateRange,
+		Type:       "error",
+	}
+
 	// BPS Action related success response codes
 	SuccessBPSActionsRetrieved = ResponseCode{
 		Code:       "SUCCESS_BPS_ACTIONS_RETRIEVED",
@@ -3157,7 +3165,7 @@ var (
 	SuccessEcommerceMerchantLookup = ResponseCode{
 		Code:       "SUCCESS_ECOMMERCE_MERCHANT_LOOKUP",
 		StatusCode: StatusOK,
-		Message:    "Notification created successfully",
+		Message:    "Ecommerce merchant looked up successfully",
 		Type:       "success",
 	}
 
