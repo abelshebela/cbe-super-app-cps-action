@@ -156,9 +156,32 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 		}
 	}
 
-	data, err := r.dal.FindAllWithPaginationE(ctx, filter, projection, skip, limit)
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: filter}},
+	}
+
+	if len(projection) > 0 {
+		pipeline = append(pipeline, bson.D{{Key: "$project", Value: projection}})
+	}
+
+	pipeline = append(
+		pipeline,
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+		bson.D{{Key: "$skip", Value: skip}},
+		bson.D{{Key: "$limit", Value: limit}},
+	)
+
+	collection := r.client.Database(r.dbName).Collection(r.collection)
+	cur, err := collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		r.logger.Errorf("[CustomerSegmentation][FindAllWithPagination] failed to fetch customer segmentations: %v", err)
+		r.logger.Errorf("[CustomerSegmentation][FindAllWithPagination] failed to aggregate customer segmentations: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer cur.Close(ctx)
+
+	var data []imodel.CustomerSegmentation
+	if err := cur.All(ctx, &data); err != nil {
+		r.logger.Errorf("[CustomerSegmentation][FindAllWithPagination] failed to decode customer segmentations: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
