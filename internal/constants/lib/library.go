@@ -3,11 +3,13 @@ package lib
 import (
 	"bytes"
 	"cbe-super-app-cps-action/internal/constants"
+	"encoding/csv"
 	"encoding/json"
 	"image"
 	"image/jpeg"
 	"image/png"
 	"net/http"
+	"os"
 
 	// "cbe-super-app-cps-action/internal/constants/localization"
 	erp_merchant_update_dto "cbe-super-app-cps-action/internal/constants/dto/erp_merchant_update"
@@ -464,6 +466,80 @@ func UploadCSVToMinio(
 	url := fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(objectKey, "/"))
 	return url, nil
 }
+
+// ExportCSVAndUpload is a shared utility that handles the full CSV-export-to-MinIO pipeline:
+//  1. Creates a temporary CSV file
+//  2. Writes the provided CSV header
+//  3. Invokes the writeRows callback to stream data rows into the CSV writer
+//  4. Flushes the CSV writer
+//  5. Uploads the resulting file to MinIO and returns the public URL
+//
+// The writeRows callback receives a *csv.Writer and is responsible for writing
+// all data rows (e.g., by streaming from a repository).
+func ExportCSVAndUpload(
+	ctx context.Context,
+	s3Client *s3.Client,
+	bucketName string,
+	env config.VaultConfig,
+	objectKey string,
+	headers []string,
+	writeRows func(writer *csv.Writer) error,
+	logger interface {
+		Errorf(format string, args ...any)
+	},
+) (string, error) {
+
+	// 1. Create temp CSV file
+	tmpFile, err := os.CreateTemp("", "export_*.csv")
+	if err != nil {
+		logger.Errorf("[ExportCSVAndUpload] create temp file: %v", err)
+		return "", fmt.Errorf("create temp file: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+	defer tmpFile.Close()
+
+	writer := csv.NewWriter(tmpFile)
+
+	// 2. Write CSV header
+	if err := writer.Write(headers); err != nil {
+		logger.Errorf("[ExportCSVAndUpload] write header: %v", err)
+		return "", fmt.Errorf("write header: %w", err)
+	}
+
+	// 3. Stream rows via callback
+	if err := writeRows(writer); err != nil {
+		logger.Errorf("[ExportCSVAndUpload] write rows: %v", err)
+		return "", fmt.Errorf("stream data: %w", err)
+	}
+
+	// 4. Flush CSV writer
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		logger.Errorf("[ExportCSVAndUpload] flush csv: %v", err)
+		return "", fmt.Errorf("flush csv: %w", err)
+	}
+
+	// 5. Seek to beginning and get file size
+	if _, err := tmpFile.Seek(0, 0); err != nil {
+		logger.Errorf("[ExportCSVAndUpload] seek temp file: %v", err)
+		return "", fmt.Errorf("seek temp file: %w", err)
+	}
+
+	stat, err := tmpFile.Stat()
+	if err != nil {
+		logger.Errorf("[ExportCSVAndUpload] stat temp file: %v", err)
+		return "", fmt.Errorf("stat temp file: %w", err)
+	}
+
+	// 6. Upload to MinIO
+	url, err := UploadCSVToMinio(ctx, s3Client, bucketName, tmpFile, stat.Size(), env, objectKey, logger)
+	if err != nil {
+		return "", fmt.Errorf("upload to minio: %w", err)
+	}
+
+	return url, nil
+}
+
 func RemoveFileFromMinio(
 	ctx context.Context,
 	client *s3.Client,
