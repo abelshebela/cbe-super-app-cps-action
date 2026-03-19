@@ -445,7 +445,8 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateOneBank", "Bank", "UpdateOneBank")
 	defer span.End()
 
-	b.logger.Infof("[BankSvc][UpdateOneBank] id: %s", id)
+	b.logger.Infof("[BankSvc][UpdateOneBank] id: %s, body: %+v", id, bank_request)
+
 	var logoUrl string
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
