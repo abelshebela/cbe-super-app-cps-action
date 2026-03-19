@@ -1,15 +1,15 @@
 package model
 
 type BankOracle struct {
-	ID              string `json:"id"`
-	BankName        string `json:"bank_name"`
-	Logo            string `json:"logo"`
-	BICCode         string `json:"bic_code"`
-	IsEnabled       int    `json:"is_enabled"`
-	AccountLength   int    `json:"account_length"`
-	HasAlphaNumeric int    `json:"has_alpha_numeric"`
-	CreateAt        string `json:"create_at"`
-	UpdateAt        string `json:"update_at"`
+	ID              string `sqlx:"id" json:"id"`
+	BankName        string `sqlx:"bank_name" json:"bank_name"`
+	Logo            string `sqlx:"logo" json:"logo"`
+	BICCode         string `sqlx:"bic_code" json:"bic_code"`
+	IsEnabled       int    `sqlx:"is_enabled" json:"is_enabled"`
+	AccountLength   int    `sqlx:"account_length" json:"account_length"`
+	HasAlphaNumeric int    `sqlx:"has_alpha_numeric" json:"has_alpha_numeric"`
+	CreateAt        string `sqlx:"create_at" json:"create_at"`
+	UpdateAt        string `sqlx:"update_at" json:"update_at"`
 }
 
 // create table banks(
