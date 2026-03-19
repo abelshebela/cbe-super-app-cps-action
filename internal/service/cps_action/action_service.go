@@ -529,12 +529,8 @@ func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 
 func (ca *cpsActionService) ExportCpsActionData(
 	ctx context.Context,
-	startDate, endDate time.Time, export_type string,
+	startDate, endDate time.Time, exportType string,
 ) (string, error) {
-
-	if endDate.Before(startDate) {
-		return "", errors.New("end_date cannot be before start_date")
-	}
 
 	// 1 Create temp file
 	tmpFile, err := os.CreateTemp("", "cps_actions_*.csv")
