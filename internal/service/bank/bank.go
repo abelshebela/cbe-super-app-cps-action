@@ -115,7 +115,13 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 
 	case string(constants.RequestEnableDisableBank):
 		actionData.UpdateAt = time.Now().String()
-		err := b.oracleRepo.EnableOrDisable(ctx, cpsAction.UniqueId, actionData.IsEnabled)
+		var err error
+		if actionData.IsEnabled == 1 {
+			err = b.oracleRepo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
+		} else {
+			err = b.oracleRepo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
+
+		}
 
 		if err != nil {
 			span.AddEvent("[Authorize] bank enable/disable action failed", trace.WithAttributes(
@@ -181,12 +187,16 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 	}
 
 	bank := imodel.BankOracle{
-		BankName:        bank_request.Name,
-		Logo:            URL,
-		BICCode:         bank_request.BICCode,
-		IsEnabled:       false,
-		AccountLength:   bank_request.AccountLength,
-		HasAlphaNumeric: bank_request.HasAlphaNumeric,
+		BankName:      bank_request.Name,
+		Logo:          URL,
+		BICCode:       bank_request.BICCode,
+		IsEnabled:     0,
+		AccountLength: bank_request.AccountLength,
+	}
+	if bank_request.HasAlphaNumeric {
+		bank.HasAlphaNumeric = 1
+	} else {
+		bank.HasAlphaNumeric = 0
 	}
 
 	result, err := b.oracleRepo.FindByNameOrBIC(ctx, bank_request.BICCode, bank_request.Name)
@@ -287,18 +297,22 @@ func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enable
 		return err
 	}
 
-	if bank.IsEnabled && enableDisable {
+	if bank.IsEnabled == 1 && enableDisable {
 		span.AddEvent("[EnableOrDisableBank] bank already enabled", trace.WithAttributes(attribute.String("id", id)))
 		b.logger.Errorf("[BankSvc][EnableOrDisable] already enabled")
 		return fmt.Errorf("%s", localization.ErrorBankAlreadyEnabled.Code)
-	} else if !bank.IsEnabled && !enableDisable {
+	} else if bank.IsEnabled == 0 && !enableDisable {
 		span.AddEvent("[EnableOrDisableBank] bank already disabled", trace.WithAttributes(attribute.String("id", id)))
 		b.logger.Errorf("[BankSvc][EnableOrDisable] already disabled")
 		return fmt.Errorf("%s", localization.ErrorBankAlreadyDisabled.Code)
 	}
 
 	newBankData := *bank
-	newBankData.IsEnabled = enableDisable
+	if enableDisable {
+		newBankData.IsEnabled = 1
+	} else {
+		newBankData.IsEnabled = 0
+	}
 
 	enable := string(constants.RequestEnableDisableBank)
 	// if !enableDisable {
@@ -462,7 +476,9 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		updatedBank.AccountLength = bank_request.AccountLength
 	}
 	if bank_request.HasAlphaNumeric {
-		updatedBank.HasAlphaNumeric = bank_request.HasAlphaNumeric
+		updatedBank.HasAlphaNumeric = 1
+	} else {
+		updatedBank.HasAlphaNumeric = 0
 	}
 
 	logoUrl = bank.Logo
