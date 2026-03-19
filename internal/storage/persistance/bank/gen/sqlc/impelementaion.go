@@ -191,13 +191,6 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 		return resp, nil
 	}
 
-	// Pagination
-	if filterParam.Page <= 0 {
-		filterParam.Page = 1
-	}
-	if filterParam.PerPage <= 0 {
-		filterParam.PerPage = 10
-	}
 	offset := (filterParam.Page - 1) * filterParam.PerPage
 	limit := filterParam.PerPage
 	// If requested offset is beyond total, return all data (no pagination)
@@ -213,8 +206,7 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	selectQuery := fmt.Sprintf(`SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM BANKS WHERE %s ORDER BY create_at DESC OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY`, whereClause, idx, idx+1)
 	args = append(args, offset, limit)
 	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] selectQuery: %s", selectQuery)
-	selectArgs := append(append([]interface{}{}, args...), offset, limit)
-	rows, err := q.db.QueryContext(ctx, selectQuery, selectArgs...)
+	rows, err := q.db.QueryContext(ctx, selectQuery, args...)
 	if err != nil {
 		q.logger.Errorf("[BankOracleRepository][FindAllWithPagination] failed to fetch rows: %v", err)
 		return nil, err
