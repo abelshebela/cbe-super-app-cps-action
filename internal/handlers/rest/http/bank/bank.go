@@ -430,24 +430,14 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 			localization.SendErrorResponse(w, localization.ErrorInvalidBankAccountLength, nil, nil)
 			return
 		}
-	} else {
-		localization.SendErrorResponse(w, localization.ErrorBankAccountLengthRequired, nil, nil)
-		return
 	}
 
 	hasAlphaNumeric := r.FormValue("has_alpha_numeric")
-	if hasAlphaNumeric == "" {
-		localization.SendErrorResponse(w, localization.ErrorInvalidFormat, nil, nil)
-		return
-	}
 
 	if strings.ToLower(hasAlphaNumeric) == "true" {
 		updateRequest.HasAlphaNumeric = true
 	} else if strings.ToLower(hasAlphaNumeric) == "false" {
 		updateRequest.HasAlphaNumeric = false
-	} else {
-		localization.SendErrorResponse(w, localization.ErrorInvalidFormat, nil, nil)
-		return
 	}
 
 	if response_code := bank_core.ValidateBankRequest(r, &updateRequest); response_code.Code != "" {
