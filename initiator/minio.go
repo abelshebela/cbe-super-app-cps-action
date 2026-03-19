@@ -16,7 +16,7 @@ func InitMinio(cfgMain config.VaultConfig, logger utils.Logger) *s3.Client {
 
 	cfg, err := configAw.LoadDefaultConfig(context.TODO(),
 		configAw.WithRegion("us-east-1"),
-		configAw.WithBaseEndpoint(cfgMain.S3BucketURL),
+		configAw.WithBaseEndpoint(cfgMain.MinioPublicEndPoint),
 		configAw.WithCredentialsProvider(
 			credentials.NewStaticCredentialsProvider(
 				cfgMain.S3AccessKeyID,
