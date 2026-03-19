@@ -5,9 +5,9 @@ type BankOracle struct {
 	BankName        string `json:"bank_name"`
 	Logo            string `json:"logo"`
 	BICCode         string `json:"bic_code"`
-	IsEnabled       bool   `json:"is_enabled"`
+	IsEnabled       int    `json:"is_enabled"`
 	AccountLength   int    `json:"account_length"`
-	HasAlphaNumeric bool   `json:"has_alpha_numeric"`
+	HasAlphaNumeric int    `json:"has_alpha_numeric"`
 	CreateAt        string `json:"create_at"`
 	UpdateAt        string `json:"update_at"`
 }
