@@ -553,6 +553,7 @@ func (ca *cpsActionService) ExportCpsActionData(
 	if err != nil {
 		return "", err
 	}
+
 	for _, action := range actions {
 		rowCount++
 		if err := ca.processCPSAction(writer, &action); err != nil {
