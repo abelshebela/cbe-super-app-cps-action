@@ -33,11 +33,12 @@ func (c CreateBankRequest) Validate() error {
 func (u UpdateBankRequest) Validate() error {
 	return validation.ValidateStruct(&u,
 		validation.Field(&u.Name,
-			validation.NilOrNotEmpty,
-			validation.Match(bankNameRegex).Error("Bank name must not contain special characters"),
+			validation.When(u.Name != "",
+				validation.Match(bankNameRegex).Error("Bank name must not contain special characters"),
+			),
 		),
 		validation.Field(&u.BICCode,
-			validation.NilOrNotEmpty,
+			validation.When(u.BICCode != "", validation.Length(1, 0)),
 		),
 		validation.Field(&u.Logo, validation.By(func(value interface{}) error {
 			file, ok := value.(*multipart.FileHeader)
@@ -47,11 +48,12 @@ func (u UpdateBankRequest) Validate() error {
 			return validateLogo(file)
 		})),
 		validation.Field(&u.HasAlphaNumeric,
-			validation.NilOrNotEmpty,
+			validation.When(u.HasAlphaNumeric, validation.In(true, false)),
 		),
 		validation.Field(&u.AccountLength,
-			validation.NilOrNotEmpty,
-			validation.Min(1).Error("Account length must be positive"),
+			validation.When(u.AccountLength != 0,
+				validation.Min(1).Error("Account length must be positive"),
+			),
 		),
 	)
 }
