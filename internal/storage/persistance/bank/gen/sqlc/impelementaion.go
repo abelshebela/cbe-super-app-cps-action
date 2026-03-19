@@ -55,7 +55,13 @@ func (q *Queries) Delete(ctx context.Context, id string) error {
 
 func (q *Queries) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	query := `UPDATE banks SET is_enabled = :1, update_at = CURRENT_TIMESTAMP WHERE id = :2`
-	_, err := q.db.ExecContext(ctx, query, enable, id)
+	var err error
+	if enable {
+		_, err = q.db.ExecContext(ctx, query, 1, id)
+	} else {
+		_, err = q.db.ExecContext(ctx, query, 0, id)
+
+	}
 	return err
 }
 
