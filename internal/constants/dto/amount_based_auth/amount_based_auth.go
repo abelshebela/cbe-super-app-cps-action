@@ -53,10 +53,10 @@ func (r AddCurrencyRequest) Validate() bool {
 	// validate tier amounts
 	for i, t := range r.Tiers {
 		// Allow MinAmount = 0 for OPEN (free) method or when it's the only method
-		isOnlyMethod := len(r.Tiers) == 1
-		if t.MinAmount == 0 && t.Method != constants.OPEN && !isOnlyMethod {
-			return false
-		}
+		// isOnlyMethod := len(r.Tiers) == 1
+		// if t.MinAmount == 0 && t.Method != constants.OPEN && !isOnlyMethod {
+		// 	return false
+		// }
 		isLast := i == len(r.Tiers)-1
 		if !isLast && t.MaxAmount == 0 {
 			return false
