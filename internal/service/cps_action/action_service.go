@@ -540,6 +540,7 @@ func (ca *cpsActionService) ExportCpsActionData(
 		time.Now().Unix(),
 	)
 
+	rowCount := 0
 	return lib.ExportCSVAndUpload(
 		ctx,
 		ca.minioClient,
@@ -548,11 +549,22 @@ func (ca *cpsActionService) ExportCpsActionData(
 		objectKey,
 		CpsActionCSVHeader(),
 		func(writer *csv.Writer) error {
-			return ca.repo.StreamByDateRange(ctx, startDate, endDate,
-				func(action *model.CPSAction) error {
-					return ca.processCPSAction(writer, action)
-				},
-			)
+			actions, err := ca.repo.ActionByDateRange(ctx, startDate, endDate)
+			if err != nil {
+				return err
+			}
+			for _, action := range actions {
+				rowCount++
+				if err := ca.processCPSAction(writer, &action); err != nil {
+					return err
+				}
+			}
+
+			if rowCount == 0 {
+				ca.logger.Infof("[CpsActionSvc][Export] no data found in date range %s - %s", startDate.Format(time.RFC3339), endDate.Format(time.RFC3339))
+				return errors.New(localization.CpsActionDataNotFoundInDateRange.Code)
+			}
+			return nil
 		},
 		ca.logger,
 	)

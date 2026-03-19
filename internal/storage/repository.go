@@ -196,6 +196,7 @@ type CPSActionRepository interface {
 	SanitizedFindAllWithPaginationForAuditor(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	SanitizedFindAllWithPaginationCPSActions(ctx context.Context, userID, role string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	SanitizedFindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
+	ActionByDateRange(ctx context.Context, startDate, endDate time.Time) ([]model.CPSAction, error)
 	Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
 	FindByDateRange(ctx context.Context, start_date, end_date time.Time) ([]*model.CPSAction, error)
 	UpdateByActionCode(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)

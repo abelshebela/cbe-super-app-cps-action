@@ -717,6 +717,26 @@ func (r *CPSActionStorage) StreamByDateRange(
 	return cursor.Err()
 }
 
+func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, startDate, endDate time.Time) ([]model.CPSAction, error) {
+	var action []model.CPSAction
+	filter := buildCPSActionDateRangeFilter(startDate, endDate)
+
+	opts := options.Find().
+		SetSort(bson.D{{Key: "created_at", Value: 1}}).
+		SetBatchSize(1000) // very important
+
+	cursor, err := r.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	if err := cursor.All(ctx, &action); err != nil {
+		return nil, err
+	}
+
+	return action, nil
+}
 func buildCPSActionDateRangeFilter(startDate, endDate time.Time) bson.M {
 	rangeFilter := bson.M{
 		"$gte": startDate,
