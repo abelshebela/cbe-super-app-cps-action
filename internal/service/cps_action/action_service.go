@@ -590,6 +590,7 @@ func (ca *cpsActionService) ExportCpsActionData(
 		time.Now().Unix(),
 	)
 
+	ca.logger.Infof("[CpsActionSvc][Export] uploading %d rows to BaseU: %s", rowCount, ca.minioBaseURL)
 	link, err := UploadFileToMinio(
 		ctx,
 		ca.minioClient,
@@ -640,10 +641,7 @@ func UploadFileToMinio(
 		ContentType:   aws.String(contentType),
 		ContentLength: &size,
 	}
-	_, err = s3Client.PutObject(
-		ctx,
-		putInput,
-	)
+	_, err = s3Client.PutObject(ctx, putInput)
 	if err != nil {
 		return "", fmt.Errorf("upload to minio: %w", err)
 	}
@@ -659,7 +657,8 @@ func UploadFileToMinio(
 	if err != nil {
 		return "", err
 	}
-	// url := fmt.Sprintf("%s/%s", minioBaseURL, strings.TrimPrefix(objectKey, "/"))
+	url := fmt.Sprintf("%s/%s", minioBaseURL, strings.TrimPrefix(objectKey, "/"))
+	fmt.Println("req.URL: ", url)
 
 	return req.URL, nil
 }
