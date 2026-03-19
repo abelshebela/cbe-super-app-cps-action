@@ -590,7 +590,7 @@ func (ca *cpsActionService) ExportCpsActionData(
 		time.Now().Unix(),
 	)
 
-	ca.logger.Infof("[CpsActionSvc][Export] uploading %d rows to BaseURL: %s", rowCount, ca.minioBaseURL)
+	ca.logger.Infof("[CpsActionSvc][Export] uploading %d rows to BaseU: %s", rowCount, ca.minioBaseURL)
 	link, err := UploadFileToMinio(
 		ctx,
 		ca.minioClient,
@@ -646,20 +646,21 @@ func UploadFileToMinio(
 		return "", fmt.Errorf("upload to minio: %w", err)
 	}
 	// baseURL := env.MinioPublicEndPoint
-	// req, err := presignClient.PresignGetObject(
-	// 	ctx,
-	// 	&s3.GetObjectInput{
-	// 		Bucket: aws.String(bucketName),
-	// 		Key:    aws.String(objectKey),
-	// 	},
-	// 	s3.WithPresignExpires(5*time.Minute),
-	// )
+	req, err := presignClient.PresignGetObject(
+		ctx,
+		&s3.GetObjectInput{
+			Bucket: aws.String(bucketName),
+			Key:    aws.String(objectKey),
+		},
+		s3.WithPresignExpires(5*time.Minute),
+	)
 	if err != nil {
 		return "", err
 	}
 	url := fmt.Sprintf("%s/%s", minioBaseURL, strings.TrimPrefix(objectKey, "/"))
+	fmt.Println("req.URL: ", url)
 
-	return url, nil
+	return req.URL, nil
 }
 
 func (ca *cpsActionService) processCPSAction(
