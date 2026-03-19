@@ -27,7 +27,7 @@ func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel
 	var err error
 
 	if types == constants.CREATE {
-		resByName, err := roleRepo.Find(ctx, bson.M{"name": update.Name, "code": update.Code})
+		resByName, err := roleRepo.Find(ctx, bson.M{"$or": []interface{}{bson.M{"name": update.Name}, bson.M{"code": update.Code}}})
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
 				return err
@@ -48,12 +48,12 @@ func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel
 
 		// Check name/type uniqueness only when provided.
 		if update.Name != "" || update.Type != "" {
-			filter := bson.M{}
+			filter := bson.M{"$or": []interface{}{}}
 			if update.Name != "" {
-				filter["name"] = update.Name
+				filter["$or"] = append(filter["$or"].([]interface{}), bson.M{"name": update.Name})
 			}
 			if update.Type != "" {
-				filter["type"] = update.Type
+				filter["$or"] = append(filter["$or"].([]interface{}), bson.M{"type": update.Type})
 			}
 			if len(filter) > 0 {
 				resByName, err := roleRepo.Find(ctx, filter)
