@@ -18,8 +18,8 @@ import (
 	// "math/rand"
 	mathrand "math/rand"
 	"net/http"
-    "path/filepath"
 	"os"
+	"path/filepath"
 
 	"regexp"
 	"strconv"
@@ -61,46 +61,46 @@ func IsValidCBEAccountNumber(acc string) bool {
 }
 
 func IsValidImage(fileHeader *multipart.FileHeader) bool {
-    var allowedMIMETypes = map[string]bool{
-        "image/jpg":  true,
-        "image/jpeg": true,
-        "image/png":  true,
-        "image/gif":  true,
-        "image/webp": true,
-    }
+	var allowedMIMETypes = map[string]bool{
+		"image/jpg":  true,
+		"image/jpeg": true,
+		"image/png":  true,
+		"image/gif":  true,
+		"image/webp": true,
+	}
 
-    if fileHeader == nil {
-        return false
-    }
+	if fileHeader == nil {
+		return false
+	}
 
-    ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
-    switch ext {
-    case ".jpg", ".jpeg", ".png", ".gif", ".webp":
-        // ok
-    default:
-        return false
-    }
+	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
+	switch ext {
+	case ".jpg", ".jpeg", ".png", ".gif", ".webp":
+		// ok
+	default:
+		return false
+	}
 
-    // optional: reject names with additional dots (foo.jpg.exe, foo..jpg, etc.)
-    name := strings.TrimSuffix(fileHeader.Filename, ext)
-    if strings.Contains(name, ".") {
-        return false
-    }
+	// optional: reject names with additional dots (foo.jpg.exe, foo..jpg, etc.)
+	name := strings.TrimSuffix(fileHeader.Filename, ext)
+	if strings.Contains(name, ".") {
+		return false
+	}
 
-    file, err := fileHeader.Open()
-    if err != nil {
-        return false
-    }
-    defer file.Close()
+	file, err := fileHeader.Open()
+	if err != nil {
+		return false
+	}
+	defer file.Close()
 
-    buffer := make([]byte, 512)
-    _, err = file.Read(buffer)
-    if err != nil {
-        return false
-    }
+	buffer := make([]byte, 512)
+	_, err = file.Read(buffer)
+	if err != nil {
+		return false
+	}
 
-    contentType := http.DetectContentType(buffer)
-    return allowedMIMETypes[contentType]
+	contentType := http.DetectContentType(buffer)
+	return allowedMIMETypes[contentType]
 }
 
 func IsValidVideo(fileHeader *multipart.FileHeader) bool {
@@ -685,17 +685,25 @@ func ValidateTimeRangeOrder(time1, time2 time.Time) (bool, error) {
 	return true, nil
 }
 
-
-
 func FormatDateRangeToUTCStrings(fromStr, toStr string) (string, string, error) {
 	const layout = "2006-01-02" // frontend format
 
-	from, err := time.Parse(layout, fromStr)
+	parseFlexible := func(s string) (time.Time, error) {
+		// Try RFC3339 first (handles timezone offsets like -05:00)
+		t, err := time.Parse(time.RFC3339, s)
+		if err == nil {
+			return t, nil
+		}
+		// Fall back to YYYY-MM-DD
+		return time.Parse(layout, s)
+	}
+
+	from, err := parseFlexible(fromStr)
 	if err != nil {
 		return "", "", err
 	}
 
-	to, err := time.Parse(layout, toStr)
+	to, err := parseFlexible(toStr)
 	if err != nil {
 		return "", "", err
 	}
