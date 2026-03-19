@@ -178,8 +178,10 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	// Pagination
 	offset := (filterParam.Page - 1) * filterParam.PerPage
 	limit := filterParam.PerPage
+	// If requested offset is beyond total, return all data (no pagination)
 	if int64(offset) >= total {
-		limit = 0
+		offset = 0
+		limit = int(total)
 	} else if int64(offset)+int64(limit) > total {
 		limit = int(total) - offset
 	}

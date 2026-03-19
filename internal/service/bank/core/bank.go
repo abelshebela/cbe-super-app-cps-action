@@ -64,12 +64,20 @@ func Bank_oracle_mapper(action map[string]interface{}) imodel.BankOracle {
 	}
 	if v, ok := action["isenabled"]; ok {
 		if enabled, ok := v.(bool); ok {
-			bank.IsEnabled = enabled
+			if enabled {
+				bank.IsEnabled = 1
+			} else {
+				bank.IsEnabled = 0
+			}
 		}
 	}
 	if v, ok := action["hasalphanumeric"]; ok {
 		if has_alpha_numeric, ok := v.(bool); ok {
-			bank.HasAlphaNumeric = has_alpha_numeric
+			if has_alpha_numeric {
+				bank.HasAlphaNumeric = 1
+			} else {
+				bank.HasAlphaNumeric = 0
+			}
 		}
 	}
 	if v, ok := action["accountlength"]; ok {

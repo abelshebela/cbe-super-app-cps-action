@@ -123,15 +123,24 @@ func (s *server) GetAllBank(ctx context.Context, req *bankpb.GetAllBankRequest) 
 	return &bankpb.GetAllBankResponse{Banks: s.bankListMapper(data.Data), Metadata: buildPagination(data.Meta)}, nil
 }
 func (s *server) bankMapper(data *imodel.BankOracle) *bankpb.Bank {
-	return &bankpb.Bank{
-		Id:              data.ID,
-		Name:            data.BankName,
-		BicCode:         data.BICCode,
-		Logo:            data.Logo,
-		Enabled:         data.IsEnabled,
-		HasAlphaNumeric: data.HasAlphaNumeric,
-		AccountLength:   int32(data.AccountLength),
+	grpcData := bankpb.Bank{
+		Id:            data.ID,
+		Name:          data.BankName,
+		BicCode:       data.BICCode,
+		Logo:          data.Logo,
+		AccountLength: int32(data.AccountLength),
 	}
+	if data.IsEnabled == 1 {
+		grpcData.Enabled = true
+	} else {
+		grpcData.Enabled = false
+	}
+	if data.HasAlphaNumeric == 1 {
+		grpcData.HasAlphaNumeric = true
+	} else {
+		grpcData.HasAlphaNumeric = false
+	}
+	return &grpcData
 }
 func buildPagination(meta types.PaginationMeta) *bankpb.Meta {
 	var nextPage int32
