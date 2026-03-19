@@ -60,7 +60,7 @@ func (q *Queries) EnableOrDisable(ctx context.Context, id string, enable bool) e
 }
 
 func (q *Queries) FindByID(ctx context.Context, id string) (*imodel.BankOracle, error) {
-	query := `SELECT id, bank_name, logo, bic_code, is_enabled, account_length, has_alha_numeric, create_at, update_at FROM banks WHERE id = :1`
+	query := `SELECT id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM banks WHERE id = :1`
 	row := q.db.QueryRowContext(ctx, query, id)
 	var bank imodel.BankOracle
 	err := row.Scan(
@@ -157,8 +157,8 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 
 	if filterParam.Search != "" && filterParam.Search != "enabled" {
 		search := "%" + filterParam.Search + "%"
-		filters = append(filters, "(bank_name LIKE :"+fmt.Sprint(idx)+" OR bic_code LIKE :"+fmt.Sprint(idx)+" OR type LIKE :"+fmt.Sprint(idx)+")")
-		args = append(args, search)
+		filters = append(filters, "(bank_name LIKE ? OR bic_code LIKE ?)")
+		args = append(args, search, search)
 		idx++
 	}
 	if filterParam.Search == "enabled" {
@@ -187,8 +187,7 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	}
 
 	// Fetch paginated results
-	selectQuery := fmt.Sprintf(`SELECT id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM banks WHERE %s ORDER BY create_at DESC OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY`, whereClause, idx, idx+1)
-	args = append(args, offset, limit)
+	selectQuery := fmt.Sprintf(`SELECT id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM banks WHERE %s ORDER BY create_at DESC OFFSET %d ROWS FETCH NEXT %d ROWS ONLY`, whereClause, offset, limit)
 	rows, err := q.db.QueryContext(ctx, selectQuery, args...)
 	if err != nil {
 		return nil, err
