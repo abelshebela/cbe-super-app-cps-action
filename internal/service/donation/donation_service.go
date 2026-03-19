@@ -1206,6 +1206,14 @@ func (d *Donation) ExportDonationData(ctx context.Context, startDate, endDate ti
 
 	writer := csv.NewWriter(tmpFile)
 
+	// Write UTF-8 BOM so Excel correctly recognizes comma-delimited columns
+	if _, err := tmpFile.Write([]byte{0xEF, 0xBB, 0xBF}); err != nil {
+		span.AddEvent("Failed to write BOM", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
+		return "", errors.New(localization.DonationDataExportedError.Code)
+	}
+
 	// 2. Write CSV header
 	if err := writer.Write(donationCSVHeader()); err != nil {
 		span.AddEvent("Failed to write CSV header", trace.WithAttributes(
