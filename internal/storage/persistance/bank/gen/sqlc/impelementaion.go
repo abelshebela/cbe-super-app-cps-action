@@ -48,7 +48,7 @@ func (q *Queries) Update(ctx context.Context, id string, bank *imodel.BankOracle
 }
 
 func (q *Queries) Delete(ctx context.Context, id string) error {
-	query := `DELETE FROM banks WHERE id = :1`
+	query := `DELETE FROM BANKS WHERE id = :1`
 	_, err := q.db.ExecContext(ctx, query, id)
 	return err
 }
@@ -60,7 +60,7 @@ func (q *Queries) EnableOrDisable(ctx context.Context, id string, enable bool) e
 }
 
 func (q *Queries) FindByID(ctx context.Context, id string) (*imodel.BankOracle, error) {
-	query := `SELECT id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM banks WHERE id = :1`
+	query := `SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM BANKS WHERE id = :1`
 	row := q.db.QueryRowContext(ctx, query, id)
 	var bank imodel.BankOracle
 	err := row.Scan(
@@ -84,7 +84,7 @@ func (q *Queries) FindByID(ctx context.Context, id string) (*imodel.BankOracle, 
 }
 
 func (q *Queries) FindByBIC(ctx context.Context, bic string) (*imodel.BankOracle, error) {
-	query := `SELECT id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM banks WHERE bic_code = :1 AND is_enabled = 1`
+	query := `SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM BANKS WHERE bic_code = :1 AND is_enabled = 1`
 	row := q.db.QueryRowContext(ctx, query, bic)
 	var bank imodel.BankOracle
 	err := row.Scan(
@@ -124,7 +124,7 @@ func (q *Queries) FindByNameOrBIC(ctx context.Context, bic, name string) (*imode
 	if len(conditions) == 0 {
 		return nil, nil
 	}
-	query := fmt.Sprintf(`SELECT id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM banks WHERE %s`, strings.Join(conditions, " OR "))
+	query := fmt.Sprintf(`SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM BANKS WHERE %s`, strings.Join(conditions, " OR "))
 	row := q.db.QueryRowContext(ctx, query, args...)
 	var bank imodel.BankOracle
 	err := row.Scan(
@@ -168,7 +168,7 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	whereClause := strings.Join(filters, " AND ")
 
 	// Count total
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM banks WHERE %s", whereClause)
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM BANKS WHERE %s", whereClause)
 	var total int64
 	err := q.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
 	if err != nil {
@@ -187,7 +187,7 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	}
 
 	// Fetch paginated results
-	selectQuery := fmt.Sprintf(`SELECT id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM banks WHERE %s ORDER BY create_at DESC OFFSET %d ROWS FETCH NEXT %d ROWS ONLY`, whereClause, offset, limit)
+	selectQuery := fmt.Sprintf(`SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM BANKS WHERE %s ORDER BY create_at DESC OFFSET %d ROWS FETCH NEXT %d ROWS ONLY`, whereClause, offset, limit)
 	rows, err := q.db.QueryContext(ctx, selectQuery, args...)
 	if err != nil {
 		return nil, err
