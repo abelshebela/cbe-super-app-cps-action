@@ -437,5 +437,5 @@ func (h *ecommerceMerchantAdapter) MerchantLookup(w http.ResponseWriter, r *http
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppDetailsFetched, result)
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantLookup, result)
 }
