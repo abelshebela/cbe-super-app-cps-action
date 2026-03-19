@@ -446,7 +446,7 @@ func UploadCSVToMinio(
 	},
 ) (string, error) {
 
-	contentType := "text/csv"
+	contentType := "text/csv; charset=utf-8"
 
 	putInput := &s3.PutObjectInput{
 		Bucket:        aws.String(bucketName),
