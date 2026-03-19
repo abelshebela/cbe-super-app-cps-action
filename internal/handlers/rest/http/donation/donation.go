@@ -515,8 +515,23 @@ func (d *donationAdapter) DisableDonation(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// ExportDonationList godoc
+//
+//	@Summary		Export donation list
+//	@Description	Export donations within a date range as a CSV file and return the download link
+//	@Tags			Donation
+//	@Accept			json
+//	@Produce		json
+//	@Param			file_type	query		string									true	"Export file type (e.g. csv)"
+//	@Param			From		query		string									true	"Start date (YYYY-MM-DD)"
+//	@Param			To			query		string									true	"End date (YYYY-MM-DD)"
+//	@Success		200			{object}	localization.StandardResponse{data=string}	"File link returned successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/donation/export [get]
 func (a *donationAdapter) ExportDonationList(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "exportDonation", "handler", "donation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "exportDonationList", "handler", "donation")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 
@@ -525,44 +540,52 @@ func (a *donationAdapter) ExportDonationList(w http.ResponseWriter, r *http.Requ
 	to := r.URL.Query().Get("To")
 
 	if fileType == "" || from == "" || to == "" {
-		log.Warnf("file type and from date and to date have to be given")
+		log.Warnf("[DonationH][Export] missing required params: file_type=%q, From=%q, To=%q", fileType, from, to)
 		localization.SendBadRequestResponse(w, localization.ErrorRequiredFieldMissing.Message)
 		return
 	}
 
-	ValidStartDate, err := local_util.ValidateTimeAndParse(from)
+	// Normalize date strings (accepts YYYY-MM-DD or RFC3339)
+	fromNorm, toNorm, err := local_util.FormatDateRangeToUTCStrings(from, to)
 	if err != nil {
-		log.Warnf("Invalid Start date is given: %s", from)
+		log.Warnf("[DonationH][Export] invalid date format: From=%s, To=%s, err=%v", from, to, err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
 		return
 	}
 
-	ValidEndDate, err := local_util.ValidateTimeAndParse(to)
+	startDate, err := local_util.ValidateTimeAndParse(fromNorm)
 	if err != nil {
-		log.Warnf("Invalid End date is given: %s", to)
+		log.Warnf("[DonationH][Export] invalid start date: %s", from)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
 		return
 	}
 
-	is_valid_order, err := local_util.ValidateTimeRangeOrder(ValidStartDate, ValidEndDate)
+	endDate, err := local_util.ValidateTimeAndParse(toNorm)
 	if err != nil {
-		log.Warnf("get error while validating start and end date order error: %v", err)
+		log.Warnf("[DonationH][Export] invalid end date: %s", to)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
 		return
 	}
 
-	if !is_valid_order {
-		log.Warnf("end date can not be before Start Date: %v, End Date:%v", ValidStartDate, ValidEndDate)
+	if endDate.Before(startDate) {
+		log.Warnf("[DonationH][Export] invalid date range: start=%v, end=%v", startDate, endDate)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
 		return
 	}
-	FileLinkExported, err := a.donationApp.ExportDonationData(ctx, ValidStartDate, ValidEndDate, fileType)
 
+	span.SetAttributes(
+		attribute.String("export.file_type", fileType),
+		attribute.String("export.from", from),
+		attribute.String("export.to", to),
+	)
+
+	fileLink, err := a.donationApp.ExportDonationData(ctx, startDate, endDate, fileType)
 	if err != nil {
 		span.RecordError(err)
+		log.Errorf("[DonationH][Export] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.DonationDataExportedSuccess, FileLinkExported)
+	localization.SendSuccessResponse(w, localization.DonationDataExportedSuccess, fileLink)
 }
