@@ -47,7 +47,7 @@ func Bank_mapper(action map[string]interface{}) model.Bank {
 func Bank_oracle_mapper(action map[string]interface{}) imodel.BankOracle {
 	bank := imodel.BankOracle{}
 
-	if v, ok := action["bank_name"]; ok {
+	if v, ok := action["bankname"]; ok {
 		if name, ok := v.(string); ok {
 			bank.BankName = name
 		}
@@ -57,32 +57,24 @@ func Bank_oracle_mapper(action map[string]interface{}) imodel.BankOracle {
 			bank.Logo = logo
 		}
 	}
-	if v, ok := action["bic_code"]; ok {
+	if v, ok := action["biccode"]; ok {
 		if bicCode, ok := v.(string); ok {
 			bank.BICCode = bicCode
 		}
 	}
-	if v, ok := action["is_enabled"]; ok {
-		if enabled, ok := v.(bool); ok {
-			if enabled {
-				bank.IsEnabled = 1
-			} else {
-				bank.IsEnabled = 0
-			}
+	if v, ok := action["isenabled"]; ok {
+		if enabled, ok := v.(float64); ok {
+			bank.IsEnabled = int(enabled)
 		}
 	}
-	if v, ok := action["has_alpha_numeric"]; ok {
-		if has_alpha_numeric, ok := v.(bool); ok {
-			if has_alpha_numeric {
-				bank.HasAlphaNumeric = 1
-			} else {
-				bank.HasAlphaNumeric = 0
-			}
+	if v, ok := action["hasalphanumeric"]; ok {
+		if has_alpha_numeric, ok := v.(float64); ok {
+			bank.HasAlphaNumeric = int(has_alpha_numeric)
 		}
 	}
-	if v, ok := action["account_length"]; ok {
-		if accountLength, ok := v.(int); ok {
-			bank.AccountLength = accountLength
+	if v, ok := action["accountlength"]; ok {
+		if accountLength, ok := v.(float64); ok {
+			bank.AccountLength = int(accountLength)
 		}
 	}
 
