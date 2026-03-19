@@ -24,6 +24,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorExistUserNameBPS,
 	DonationDataExportedSuccess,
 	DonationDataExportedError,
+	DonationDataNotFoundInDateRange,
 
 	SuccessCPSActionCount,
 	SuccessServiceCreateRequestSubmitted,
@@ -1635,6 +1636,13 @@ var (
 		Code:       "DONATION_DATA_EXPORT_ERROR",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgDonationDataExportFailed,
+		Type:       "error",
+	}
+
+	DonationDataNotFoundInDateRange = ResponseCode{
+		Code:       "DONATION_DATA_NOT_FOUND_IN_DATE_RANGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationDataNotFoundInDateRange,
 		Type:       "error",
 	}
 

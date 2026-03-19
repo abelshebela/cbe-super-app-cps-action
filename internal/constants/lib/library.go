@@ -431,6 +431,39 @@ func UploadFileToMinio(
 	url := fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(key, "/"))
 	return url, nil
 }
+
+// UploadCSVToMinio uploads a CSV file (from an io.Reader) to MinIO and returns
+func UploadCSVToMinio(
+	ctx context.Context,
+	s3Client *s3.Client,
+	bucketName string,
+	body io.Reader,
+	contentLength int64,
+	env config.VaultConfig,
+	objectKey string,
+	logger interface {
+		Errorf(format string, args ...any)
+	},
+) (string, error) {
+
+	contentType := "text/csv"
+
+	putInput := &s3.PutObjectInput{
+		Bucket:        aws.String(bucketName),
+		Key:           aws.String(objectKey),
+		Body:          body,
+		ContentType:   aws.String(contentType),
+		ContentLength: &contentLength,
+	}
+	if _, err := s3Client.PutObject(ctx, putInput); err != nil {
+		logger.Errorf("upload CSV failed error: %v", err)
+		return "", err
+	}
+
+	baseURL := strings.TrimSuffix(env.MinioPublicEndPoint, "/")
+	url := fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(objectKey, "/"))
+	return url, nil
+}
 func RemoveFileFromMinio(
 	ctx context.Context,
 	client *s3.Client,
