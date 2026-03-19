@@ -13,7 +13,6 @@ import (
 )
 
 func InitOracle(url string, logger utils.Logger) *sql.DB {
-	url = "system/oracle@localhost:1521/XE"
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
