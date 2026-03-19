@@ -9,6 +9,7 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	mid "cbe-super-app-cps-action/internal/handlers/middleware"
+	cpsactioncore "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler/core"
 	"cbe-super-app-cps-action/internal/service"
 	cpsactionsvc "cbe-super-app-cps-action/internal/service/cps_action"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -1625,40 +1626,14 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	FormatedFrom, formatedTo, err := local_util.FormatDateRangeToUTCStrings(from, to)
+	FormatedFrom, formatedTo, err := cpsactioncore.DataFormatter(from, to, log)
 	if err != nil {
 		log.Warnf("Invalid Start date is given ", from)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
 		return
 	}
 
-	ValidStartDate, err := local_util.ValidateTimeAndParse(FormatedFrom)
-	if err != nil {
-		log.Warnf("Invalid Start date is given ", from)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
-		return
-	}
-
-	ValidEndDate, err := local_util.ValidateTimeAndParse(formatedTo)
-	if err != nil {
-		log.Warnf("Invalid End date is given ", from)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
-		return
-	}
-
-	is_valid_order, err := local_util.ValidateTimeRangeOrder(ValidStartDate, ValidEndDate)
-	if err != nil {
-		log.Warnf("get error while validating start and end date order error:", err)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
-		return
-	}
-
-	if !is_valid_order {
-		log.Warnf("end date can not be before Start Date: %v, End Date:%v", ValidStartDate, ValidEndDate)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
-		return
-	}
-	FileLinkExpored, err := a.cpsActionApplication.ExportCpsActionData(ctx, ValidStartDate, ValidEndDate, fileType)
+	FileLinkExpored, err := a.cpsActionApplication.ExportCpsActionData(ctx, FormatedFrom, formatedTo, fileType)
 
 	if err != nil {
 		span.RecordError(err)

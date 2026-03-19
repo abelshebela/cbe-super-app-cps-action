@@ -190,6 +190,7 @@ const (
 	MsgCpsActionDataExportedSuccessfully   = "CPS actions Data exported successfully"
 	MsgDonationDataExportedSuccessfully    = "Donation Data exported successfully"
 	MsgDonationDataExportFailed            = "Donation Data export failed"
+	MsgDonationDataNotFoundInDateRange     = "No donation data found in the specified date range"
 
 	// BPS Action related success messages
 	MsgBPSActionsRetrievedSuccessfully = "BPS Actions retrieved successfully"
@@ -1118,8 +1119,8 @@ const (
 	MsgBudgetUpdateSubmittedForApprovalSuccess          = "Budget update request submitted for approval"
 	MsgBudgetCategoryFetchedSuccessfully                = "Budget category fetched successfully"
 	MsgBudgetCategoriesFetchedSuccessfully              = "Budget categories fetched successfully"
-	MsgBudgetCategoryRequestSubmittedForApprovalSuccess = "Budget category creation request submitted for approval"
-	MsgBudgetCategoryUpdateSubmittedForApprovalSuccess  = "Budget category update request submitted for approval"
+	MsgBudgetCategoryRequestSubmittedForApprovalSuccess = "Create budget category request sent successfully"
+	MsgBudgetCategoryUpdateSubmittedForApprovalSuccess  = "Update budget category request sent successfully"
 	MsgBudgetCategoryDeleteSubmittedForApprovalSuccess  = "Budget category deletion request submitted for approval"
 	MsgBudgetCategoryEnableSubmittedForApprovalSuccess  = "Budget category enable request submitted for approval"
 	MsgBudgetCategoryDisableSubmittedForApprovalSuccess = "Budget category disable request submitted for approval"
