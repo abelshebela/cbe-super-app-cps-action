@@ -148,6 +148,7 @@ func (q *Queries) FindByNameOrBIC(ctx context.Context, bic, name string) (*imode
 }
 
 func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.BankOracle], error) {
+	q.logger.Infof("[BankOracleRepository][FindAllWithPagination] called with filter: %+v", filterParam)
 	// Build filtering logic
 	var filters []string
 	var args []interface{}
@@ -166,14 +167,18 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	}
 
 	whereClause := strings.Join(filters, " AND ")
+	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] whereClause: %s, args: %+v", whereClause, args)
 
 	// Count total
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM BANKS WHERE %s", whereClause)
+	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] countQuery: %s", countQuery)
 	var total int64
 	err := q.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
 	if err != nil {
+		q.logger.Errorf("[BankOracleRepository][FindAllWithPagination] failed to count: %v", err)
 		return nil, err
 	}
+	q.logger.Infof("[BankOracleRepository][FindAllWithPagination] total records: %d", total)
 
 	// Pagination
 	offset := (filterParam.Page - 1) * filterParam.PerPage
@@ -185,15 +190,19 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	} else if int64(offset)+int64(limit) > total {
 		limit = int(total) - offset
 	}
+	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] offset: %d, limit: %d", offset, limit)
 
 	// Fetch paginated results
 	selectQuery := fmt.Sprintf(`SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM BANKS WHERE %s ORDER BY create_at DESC OFFSET %d ROWS FETCH NEXT %d ROWS ONLY`, whereClause, offset, limit)
+	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] selectQuery: %s", selectQuery)
 	rows, err := q.db.QueryContext(ctx, selectQuery, args...)
 	if err != nil {
+		q.logger.Errorf("[BankOracleRepository][FindAllWithPagination] failed to fetch rows: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
 	banks := []imodel.BankOracle{}
+	q.logger.Infof("[BankOracleRepository][FindAllWithPagination] scanning rows...")
 	for rows.Next() {
 		var bank imodel.BankOracle
 		err := rows.Scan(
@@ -208,15 +217,19 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 			&bank.UpdateAt,
 		)
 		if err != nil {
+			q.logger.Errorf("[BankOracleRepository][FindAllWithPagination] failed to scan row: %v", err)
 			return nil, err
 		}
+		q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] scanned bank: %+v", bank)
 		banks = append(banks, bank)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] meta: %+v", meta)
 	resp := &types.PaginatedResponse[[]imodel.BankOracle]{
 		Data: banks,
 		Meta: meta,
 	}
+	q.logger.Infof("[BankOracleRepository][FindAllWithPagination] success, returning response")
 	return resp, nil
 }
