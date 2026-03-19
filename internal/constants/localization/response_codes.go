@@ -3165,7 +3165,7 @@ var (
 	SuccessEcommerceMerchantLookup = ResponseCode{
 		Code:       "SUCCESS_ECOMMERCE_MERCHANT_LOOKUP",
 		StatusCode: StatusOK,
-		Message:    "Notification created successfully",
+		Message:    "Ecommerce merchant looked up successfully",
 		Type:       "success",
 	}
 
