@@ -46,8 +46,8 @@ func (e *EnableOrDisableCities) Clean() {
 }
 
 func (e *EnableOrDisableBranches) Validate() error {
-	if err := validate.Struct(e); err != nil {
-		return err
+	if e.Reason == "" {
+		return errors.New("reason is required")
 	}
 	for _, id := range e.BranchIds {
 		if err := ValidateMongoID(id); err != nil {
@@ -58,8 +58,8 @@ func (e *EnableOrDisableBranches) Validate() error {
 }
 
 func (e *EnableOrDisableRegions) Validate() error {
-	if err := validate.Struct(e); err != nil {
-		return err
+	if e.Reason == "" {
+		return errors.New("reason is required")
 	}
 	for _, id := range e.RegionIds {
 		if err := ValidateMongoID(id); err != nil {
@@ -70,8 +70,8 @@ func (e *EnableOrDisableRegions) Validate() error {
 }
 
 func (e *EnableOrDisableDistricts) Validate() error {
-	if err := validate.Struct(e); err != nil {
-		return err
+	if e.Reason == "" {
+		return errors.New("reason is required")
 	}
 	for _, id := range e.DistrictIds {
 		if err := ValidateMongoID(id); err != nil {
@@ -82,9 +82,10 @@ func (e *EnableOrDisableDistricts) Validate() error {
 }
 
 func (e *EnableOrDisableCities) Validate() error {
-	if err := validate.Struct(e); err != nil {
-		return err
+	if e.Reason == "" {
+		return errors.New("reason is required")
 	}
+
 	for _, id := range e.CityIds {
 		if err := ValidateMongoID(id); err != nil {
 			return errors.New("invalid city ID: " + id)
