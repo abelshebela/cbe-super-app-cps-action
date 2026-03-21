@@ -140,7 +140,10 @@ func (w *WalletStorage) Find(ctx context.Context, code, name string) (*local_mod
 
 	if code != "" {
 		orFilters = append(orFilters, bson.M{
-			"unique_code": code,
+			"unique_code": bson.M{
+				"$regex":   code,
+				"$options": "i",
+			},
 		})
 	}
 
@@ -177,7 +180,7 @@ func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{
 			{"name": searchRegex},
-			{"code": searchRegex},
+			{"unique_code": searchRegex},
 		}
 	}
 	docs, err := e.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
