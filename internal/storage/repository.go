@@ -196,6 +196,7 @@ type CPSActionRepository interface {
 	SanitizedFindAllWithPaginationForAuditor(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	SanitizedFindAllWithPaginationCPSActions(ctx context.Context, userID, role string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	SanitizedFindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
+	ActionByDateRange(ctx context.Context, startDate, endDate time.Time) ([]model.CPSAction, error)
 	Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
 	FindByDateRange(ctx context.Context, start_date, end_date time.Time) ([]*model.CPSAction, error)
 	UpdateByActionCode(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
@@ -826,4 +827,15 @@ type CustomerKYCRepository interface {
 	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
 	UpdateKYCStatus(ctx context.Context, id string, status string) error
 	Delete(ctx context.Context, id string) error
+}
+
+type BankOracleRepository interface {
+	Create(ctx context.Context, bank *imodel.BankOracle) error
+	Update(ctx context.Context, id string, bank *imodel.BankOracle) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*imodel.BankOracle, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.BankOracle], error)
+	FindByNameOrBIC(ctx context.Context, bic, name string) (*imodel.BankOracle, error)
+	FindByBIC(ctx context.Context, bic string) (*imodel.BankOracle, error)
 }

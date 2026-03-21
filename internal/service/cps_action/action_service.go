@@ -529,12 +529,8 @@ func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 
 func (ca *cpsActionService) ExportCpsActionData(
 	ctx context.Context,
-	startDate, endDate time.Time, export_type string,
+	startDate, endDate time.Time, exportType string,
 ) (string, error) {
-
-	if endDate.Before(startDate) {
-		return "", errors.New("end_date cannot be before start_date")
-	}
 
 	// 1 Create temp file
 	tmpFile, err := os.CreateTemp("", "cps_actions_*.csv")
@@ -550,21 +546,41 @@ func (ca *cpsActionService) ExportCpsActionData(
 	if err := writer.Write(CpsActionCSVHeader()); err != nil {
 		return "", fmt.Errorf("write header: %w", err)
 	}
+	var rowCount int
+	//==================================
+
+	actions, err := ca.repo.ActionByDateRange(ctx, startDate, endDate)
+	if err != nil {
+		return "", err
+	}
+
+	for _, action := range actions {
+		rowCount++
+		if err := ca.processCPSAction(writer, &action); err != nil {
+			return "", err
+		}
+	}
+
+	if rowCount == 0 {
+		ca.logger.Infof("[CpsActionSvc][Export] no data found in date range %s - %s", startDate.Format(time.RFC3339), endDate.Format(time.RFC3339))
+		return "", errors.New(localization.CpsActionDataNotFoundInDateRange.Code)
+	}
+	//=================================
 
 	// 3️Stream from repository
-	err = ca.repo.StreamByDateRange(ctx, startDate, endDate,
-		func(action *model.CPSAction) error {
-			return ca.processCPSAction(writer, action)
-		},
-	)
-	if err != nil {
-		return "", fmt.Errorf("stream data: %w", err)
-	}
+	// err = ca.repo.StreamByDateRange(ctx, startDate, endDate,
+	// 	func(action *model.CPSAction) error {
+	// 		return ca.processCPSAction(writer, action)
+	// 	},
+	// )
+	// if err != nil {
+	// 	return "", fmt.Errorf("stream data: %w", err)
+	// }
 
-	writer.Flush()
-	if err := writer.Error(); err != nil {
-		return "", fmt.Errorf("flush csv: %w", err)
-	}
+	// writer.Flush()
+	// if err := writer.Error(); err != nil {
+	// 	return "", fmt.Errorf("flush csv: %w", err)
+	// }
 
 	// 4️Upload to MinIO
 	objectName := fmt.Sprintf(
@@ -574,6 +590,7 @@ func (ca *cpsActionService) ExportCpsActionData(
 		time.Now().Unix(),
 	)
 
+	ca.logger.Infof("[CpsActionSvc][Export] uploading %d rows to BaseU: %s", rowCount, ca.minioBaseURL)
 	link, err := UploadFileToMinio(
 		ctx,
 		ca.minioClient,
@@ -624,10 +641,7 @@ func UploadFileToMinio(
 		ContentType:   aws.String(contentType),
 		ContentLength: &size,
 	}
-	_, err = s3Client.PutObject(
-		ctx,
-		putInput,
-	)
+	_, err = s3Client.PutObject(ctx, putInput)
 	if err != nil {
 		return "", fmt.Errorf("upload to minio: %w", err)
 	}
@@ -643,7 +657,8 @@ func UploadFileToMinio(
 	if err != nil {
 		return "", err
 	}
-	// url := fmt.Sprintf("%s/%s", minioBaseURL, strings.TrimPrefix(objectKey, "/"))
+	url := fmt.Sprintf("%s/%s", minioBaseURL, strings.TrimPrefix(objectKey, "/"))
+	fmt.Println("req.URL: ", url)
 
 	return req.URL, nil
 }

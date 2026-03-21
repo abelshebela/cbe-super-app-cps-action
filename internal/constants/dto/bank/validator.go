@@ -18,20 +18,32 @@ func (c CreateBankRequest) Validate() error {
 			validation.Required.Error(localization.MsgBankNameRequired),
 			validation.Match(bankNameRegex).Error("Bank name must not contain special characters"),
 		),
-		validation.Field(&c.Type,
-			validation.Required.Error(localization.MsgBankTypeRequired),
-			validation.In("BANK", "WALLET", "MFI").Error(localization.MsgInvalidRequestBankType),
-		),
 		validation.Field(&c.BICCode, validation.Required.Error(localization.MsgBankBICRequired)),
-		validation.Field(&c.Logo, validation.By(func(value interface{}) error { return validateLogo(value) })),
+		validation.Field(&c.Logo, validation.Required.Error(localization.MsgBankLogoRequired), validation.By(func(value interface{}) error { return validateLogo(value) })),
+		validation.Field(&c.HasAlphaNumeric,
+			validation.By(func(value interface{}) error {
+				if value == nil {
+					return errors.New(localization.MsgBankHasAlphaNumericRequired)
+				}
+				return nil
+			}),
+		),
+		validation.Field(&c.AccountLength,
+			validation.Required.Error(localization.MsgBankAccountLengthRequired),
+			validation.Min(1).Error("Account length must be positive"),
+		),
 	)
 }
 
 func (u UpdateBankRequest) Validate() error {
 	return validation.ValidateStruct(&u,
 		validation.Field(&u.Name,
-			validation.NilOrNotEmpty,
-			validation.Match(bankNameRegex).Error("Bank name must not contain special characters"),
+			validation.When(u.Name != "",
+				validation.Match(bankNameRegex).Error("Bank name must not contain special characters"),
+			),
+		),
+		validation.Field(&u.BICCode,
+			validation.When(u.BICCode != "", validation.Length(1, 0)),
 		),
 		validation.Field(&u.Logo, validation.By(func(value interface{}) error {
 			file, ok := value.(*multipart.FileHeader)
@@ -40,7 +52,14 @@ func (u UpdateBankRequest) Validate() error {
 			}
 			return validateLogo(file)
 		})),
-		// Code and BIC are optional on update — allow empty values by not validating them here
+		validation.Field(&u.HasAlphaNumeric,
+			validation.When(u.HasAlphaNumeric != nil && *u.HasAlphaNumeric, validation.In(true, false)),
+		),
+		validation.Field(&u.AccountLength,
+			validation.When(u.AccountLength != 0,
+				validation.Min(1).Error("Account length must be positive"),
+			),
+		),
 	)
 }
 

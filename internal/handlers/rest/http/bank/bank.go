@@ -9,6 +9,7 @@ import (
 	bank_core "cbe-super-app-cps-action/internal/handlers/rest/http/bank/core"
 	"cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	"strconv"
 
 	"net/http"
 	"strings"
@@ -66,7 +67,38 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 
 	bankRequest.Name = r.FormValue("name")
 	bankRequest.BICCode = r.FormValue("bic_code")
-	bankRequest.Type = r.FormValue("type")
+
+	if accountLength := r.FormValue("account_length"); accountLength != "" {
+		length, err := strconv.Atoi(accountLength)
+		if err == nil {
+			bankRequest.AccountLength = length
+
+		} else {
+			localization.SendErrorResponse(w, localization.ErrorInvalidBankAccountLength, nil, nil)
+			return
+		}
+	} else {
+		localization.SendErrorResponse(w, localization.ErrorBankAccountLengthRequired, nil, nil)
+		return
+	}
+
+	hasAlphaNumeric := r.FormValue("has_alpha_numeric")
+	if hasAlphaNumeric == "" {
+		localization.SendErrorResponse(w, localization.ErrorBankHasAlphaNumericRequired, nil, nil)
+		return
+	}
+
+	var boolValue bool = true
+	if strings.ToLower(hasAlphaNumeric) == "true" {
+		bankRequest.HasAlphaNumeric = &boolValue
+	} else if strings.ToLower(hasAlphaNumeric) == "false" {
+		boolValue = false
+		bankRequest.HasAlphaNumeric = &boolValue
+	} else {
+		localization.SendErrorResponse(w, localization.ErrorBankHasAlphaNumericInvalid, nil, nil)
+		return
+	}
+
 	bankRequest.Logo = fileHeader
 
 	if response_code := bank_core.ValidateBankRequest(r, &bankRequest); response_code.Code != "" {
@@ -390,7 +422,26 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 
 	updateRequest.Name = r.FormValue("name")
 	updateRequest.BICCode = r.FormValue("bic_code")
-	updateRequest.Type = r.FormValue("type")
+
+	if accountLength := r.FormValue("account_length"); accountLength != "" {
+		length, err := strconv.Atoi(accountLength)
+		if err == nil {
+			updateRequest.AccountLength = length
+
+		} else {
+			localization.SendErrorResponse(w, localization.ErrorInvalidBankAccountLength, nil, nil)
+			return
+		}
+	}
+
+	hasAlphaNumeric := r.FormValue("has_alpha_numeric")
+	var boolValue bool = true
+	if strings.ToLower(hasAlphaNumeric) == "true" {
+		updateRequest.HasAlphaNumeric = &boolValue
+	} else if strings.ToLower(hasAlphaNumeric) == "false" {
+		boolValue = false
+		updateRequest.HasAlphaNumeric = &boolValue
+	}
 
 	if response_code := bank_core.ValidateBankRequest(r, &updateRequest); response_code.Code != "" {
 		span.SetAttributes(attribute.String("invalid input", response_code.Code))

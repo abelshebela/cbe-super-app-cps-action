@@ -6,6 +6,7 @@ import (
 
 	topuppb "cbe-super-app-cps-action/grpc/topup/proto"
 	walletpb "cbe-super-app-cps-action/grpc/wallet/proto"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
@@ -103,7 +104,7 @@ func (s *server) walletMapper(data *local_model.Wallet) *walletpb.Wallet {
 	}
 }
 
-func (s *server) bankListMapper(data []model.Bank) []*bankpb.Bank {
+func (s *server) bankListMapper(data []imodel.BankOracle) []*bankpb.Bank {
 	var banks []*bankpb.Bank
 	for i := range data {
 		banks = append(banks, s.bankMapper(&data[i]))
@@ -121,15 +122,25 @@ func (s *server) GetAllBank(ctx context.Context, req *bankpb.GetAllBankRequest) 
 
 	return &bankpb.GetAllBankResponse{Banks: s.bankListMapper(data.Data), Metadata: buildPagination(data.Meta)}, nil
 }
-func (s *server) bankMapper(data *model.Bank) *bankpb.Bank {
-	return &bankpb.Bank{
-		Id:      data.ID.Hex(),
-		Name:    data.Name,
-		BicCode: data.BICCode,
-		Logo:    data.Logo,
-		Enabled: data.Enabled,
-		Type:    data.Type,
+func (s *server) bankMapper(data *imodel.BankOracle) *bankpb.Bank {
+	grpcData := bankpb.Bank{
+		Id:            data.ID,
+		Name:          data.BankName,
+		BicCode:       data.BICCode,
+		Logo:          data.Logo,
+		AccountLength: int32(data.AccountLength),
 	}
+	if data.IsEnabled == 1 {
+		grpcData.Enabled = true
+	} else {
+		grpcData.Enabled = false
+	}
+	if data.HasAlphaNumeric == 1 {
+		grpcData.HasAlphaNumeric = true
+	} else {
+		grpcData.HasAlphaNumeric = false
+	}
+	return &grpcData
 }
 func buildPagination(meta types.PaginationMeta) *bankpb.Meta {
 	var nextPage int32

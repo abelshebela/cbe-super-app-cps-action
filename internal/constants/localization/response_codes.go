@@ -22,8 +22,10 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorExistUserName,
 	ErrorExistUserNameBPS,
+	CpsActionDataNotFoundInDateRange,
 	DonationDataExportedSuccess,
 	DonationDataExportedError,
+	DonationDataNotFoundInDateRange,
 
 	SuccessCPSActionCount,
 	SuccessServiceCreateRequestSubmitted,
@@ -334,7 +336,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorServiceNotFound,
 	ErrorChildServiceExists,
 	ErrorBankDeleteRequestFailed,
-	ErrorBankImageMissingOrInvalid,
+	ErrorBankAccountLengthRequired,
+	ErrorBankHasAlphaNumericRequired,
+	ErrorBankHasAlphaNumericInvalid,
 	ErrorGetAllBanksFailed,
 	ErrorGetAllBanksFailed,
 	ErrorGetOneBank,
@@ -1622,6 +1626,13 @@ var (
 		Type:       "success",
 	}
 
+	CpsActionDataNotFoundInDateRange = ResponseCode{
+		Code:       "CPS_ACTION_DATA_NOT_FOUND_IN_DATE_RANGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCpsActionDataNotFoundInDateRange,
+		Type:       "error",
+	}
+
 	DonationDataExportedSuccess = ResponseCode{
 		Code:       "DONATION_DATA_EXPORT_SUCCESS",
 		StatusCode: StatusOK,
@@ -1633,6 +1644,13 @@ var (
 		Code:       "DONATION_DATA_EXPORT_ERROR",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgDonationDataExportFailed,
+		Type:       "error",
+	}
+
+	DonationDataNotFoundInDateRange = ResponseCode{
+		Code:       "DONATION_DATA_NOT_FOUND_IN_DATE_RANGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationDataNotFoundInDateRange,
 		Type:       "error",
 	}
 
@@ -3155,7 +3173,7 @@ var (
 	SuccessEcommerceMerchantLookup = ResponseCode{
 		Code:       "SUCCESS_ECOMMERCE_MERCHANT_LOOKUP",
 		StatusCode: StatusOK,
-		Message:    "Notification created successfully",
+		Message:    "Ecommerce merchant looked up successfully",
 		Type:       "success",
 	}
 
@@ -5575,6 +5593,30 @@ var (
 		Code:       "ERROR_BANK_IMAGE_MISSING_OR_INVALID",
 		StatusCode: StatusBadRequest,
 		Message:    MsgBankImageRequiredOrMissing,
+		Type:       "error",
+	}
+	ErrorBankAccountLengthRequired = ResponseCode{
+		Code:       "ERROR_BANK_ACCOUNT_LENGTH_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankAccountLengthRequired,
+		Type:       "error",
+	}
+	ErrorBankHasAlphaNumericRequired = ResponseCode{
+		Code:       "ERROR_BANK_HAS_ALPHA_NUMERIC_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankHasAlphaNumericRequired,
+		Type:       "error",
+	}
+	ErrorBankHasAlphaNumericInvalid = ResponseCode{
+		Code:       "ERROR_BANK_HAS_ALPHA_NUMERIC_INVALID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankHasAlphaNumericInvalid,
+		Type:       "error",
+	}
+	ErrorInvalidBankAccountLength = ResponseCode{
+		Code:       "ERROR_INVALID_BANK_ACCOUNT_LENGTH",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankAccountLengthInvalid,
 		Type:       "error",
 	}
 
