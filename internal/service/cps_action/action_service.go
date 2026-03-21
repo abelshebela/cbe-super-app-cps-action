@@ -2,6 +2,7 @@ package cpsaction
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -9,7 +10,6 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"mime/multipart"
 	"os"
 	"strconv"
 	"strings"
@@ -21,8 +21,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -32,14 +32,14 @@ import (
 )
 
 type cpsActionService struct {
-	repo          storage.CPSActionRepository
-	roles         storage.CPSActionRoleRepository
-	logger        utils.Logger
-	dispatcher    Dispatcher
-	minioClient   *s3.Client
-	presignClient *s3.PresignClient
-	buckerName    string
-	minioBaseURL  string
+	repo         storage.CPSActionRepository
+	roles        storage.CPSActionRoleRepository
+	logger       utils.Logger
+	dispatcher   Dispatcher
+	minioClient  *s3.Client
+	buckerName   string
+	minioBaseURL string
+	cfg          config.VaultConfig
 }
 
 // IsMakerOnlyForRequest returns true if the module mapped from requestAction is configured as maker-only in CPSActionRole.
@@ -113,17 +113,17 @@ func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	return err
 }
 
-func NewCPSActionService(roles storage.CPSActionRoleRepository, repo storage.CPSActionRepository, logger utils.Logger, dispatcher Dispatcher, minioClient *s3.Client, bucketName string, minioBaseURL string, presignClient *s3.PresignClient,
+func NewCPSActionService(roles storage.CPSActionRoleRepository, repo storage.CPSActionRepository, logger utils.Logger, dispatcher Dispatcher, minioClient *s3.Client, bucketName string, minioBaseURL string, cfg config.VaultConfig,
 ) service.CPSActionService {
 	return &cpsActionService{
-		repo:          repo,
-		logger:        logger,
-		roles:         roles,
-		dispatcher:    dispatcher,
-		minioClient:   minioClient,
-		buckerName:    bucketName,
-		minioBaseURL:  minioBaseURL,
-		presignClient: presignClient,
+		repo:         repo,
+		logger:       logger,
+		roles:        roles,
+		dispatcher:   dispatcher,
+		minioClient:  minioClient,
+		buckerName:   bucketName,
+		minioBaseURL: minioBaseURL,
+		cfg:          cfg,
 	}
 }
 
@@ -590,77 +590,30 @@ func (ca *cpsActionService) ExportCpsActionData(
 		time.Now().Unix(),
 	)
 
-	ca.logger.Infof("[CpsActionSvc][Export] uploading %d rows to BaseU: %s", rowCount, ca.minioBaseURL)
-	link, err := UploadFileToMinio(
-		ctx,
-		ca.minioClient,
-		ca.presignClient,
-		ca.buckerName,
-		nil,
-		ca.minioBaseURL,
-		tmpFile,
-		objectName)
-	if err != nil {
-		return "", err
+	if _, err := tmpFile.Seek(0, 0); err != nil {
+		ca.logger.Errorf("[CpsActionSvc][Export] seek temp file err: %v", err)
+		return "", errors.New(localization.CpsActionDataExportedError.Code)
 	}
 
-	return link, nil
-}
-
-func UploadFileToMinio(
-	ctx context.Context,
-	s3Client *s3.Client,
-	presignClient *s3.PresignClient,
-	bucketName string,
-	fileHeader *multipart.FileHeader,
-	minioBaseURL string,
-	file *os.File,
-	objectKey string,
-) (string, error) {
-
-	// file, err := os.Open(filePath)
-	// if err != nil {
-	//     return "",fmt.Errorf("open file: %w", err)
-	// }
-	// defer file.Close()
-	_, err := file.Seek(0, 0)
+	stat, err := tmpFile.Stat()
 	if err != nil {
-		return "", err
+		ca.logger.Errorf("[CpsActionSvc][Export] stat temp file err: %v", err)
+		return "", errors.New(localization.CpsActionDataExportedError.Code)
 	}
 
-	stat, err := file.Stat()
+	publicURL, err := lib.UploadCSVToMinio(ctx, ca.minioClient, ca.buckerName, tmpFile, stat.Size(), ca.cfg, objectName, ca.logger)
 	if err != nil {
-		return "", err
+		ca.logger.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
+		return "", errors.New(localization.CpsActionDataExportedError.Code)
 	}
-	size := stat.Size()
-	contentType := "text/csv"
-	putInput := &s3.PutObjectInput{
-		Bucket:        aws.String(bucketName),
-		Key:           aws.String(objectKey),
-		Body:          file,
-		ContentType:   aws.String(contentType),
-		ContentLength: &size,
-	}
-	_, err = s3Client.PutObject(ctx, putInput)
-	if err != nil {
-		return "", fmt.Errorf("upload to minio: %w", err)
-	}
-	// baseURL := env.MinioPublicEndPoint
-	req, err := presignClient.PresignGetObject(
-		ctx,
-		&s3.GetObjectInput{
-			Bucket: aws.String(bucketName),
-			Key:    aws.String(objectKey),
-		},
-		s3.WithPresignExpires(5*time.Minute),
-	)
-	if err != nil {
-		return "", err
-	}
-	url := fmt.Sprintf("%s/%s", minioBaseURL, strings.TrimPrefix(objectKey, "/"))
-	fmt.Println("req.URL: ", url)
 
-	return req.URL, nil
+
+	baseURL := strings.TrimSuffix(ca.minioBaseURL, "/")
+	if baseURL != "" {
+		publicURL = fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(objectName, "/"))
+	}
+
+	return publicURL, nil
 }
 
 func (ca *cpsActionService) processCPSAction(
