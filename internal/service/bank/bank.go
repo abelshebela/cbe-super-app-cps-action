@@ -476,10 +476,12 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	if bank_request.AccountLength != 0 {
 		updatedBank.AccountLength = bank_request.AccountLength
 	}
-	if *bank_request.HasAlphaNumeric {
-		updatedBank.HasAlphaNumeric = 1
-	} else {
-		updatedBank.HasAlphaNumeric = 0
+	if bank_request.HasAlphaNumeric != nil {
+		if *bank_request.HasAlphaNumeric {
+			updatedBank.HasAlphaNumeric = 1
+		} else {
+			updatedBank.HasAlphaNumeric = 0
+		}
 	}
 
 	logoUrl = bank.Logo
