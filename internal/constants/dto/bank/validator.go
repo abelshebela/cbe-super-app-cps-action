@@ -48,7 +48,7 @@ func (u UpdateBankRequest) Validate() error {
 			return validateLogo(file)
 		})),
 		validation.Field(&u.HasAlphaNumeric,
-			validation.When(u.HasAlphaNumeric, validation.In(true, false)),
+			validation.When(u.HasAlphaNumeric != nil && *u.HasAlphaNumeric, validation.In(true, false)),
 		),
 		validation.Field(&u.AccountLength,
 			validation.When(u.AccountLength != 0,
