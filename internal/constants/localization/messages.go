@@ -188,6 +188,7 @@ const (
 	MsgCPSActionCanceledSuccessfully       = "CPS Action Canceled Successfully"
 	MsgCPSActionsRetrieved                 = "CPS actions retrieved successfully"
 	MsgCpsActionDataExportedSuccessfully   = "CPS actions Data exported successfully"
+	MsgCpsActionDataExportFailed           = "CPS actions Data export failed"
 	MsgCpsActionDataNotFoundInDateRange    = "No CPS action data found in the specified date range"
 	MsgDonationDataExportedSuccessfully    = "Donation Data exported successfully"
 	MsgDonationDataExportFailed            = "Donation Data export failed"

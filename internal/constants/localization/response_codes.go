@@ -26,6 +26,8 @@ var ResponseCodesList = []ResponseCode{
 	DonationDataExportedSuccess,
 	DonationDataExportedError,
 	DonationDataNotFoundInDateRange,
+	CpsActionDataExportedError,
+	CpsActionDataNotFoundInDateRange,
 
 	SuccessCPSActionCount,
 	SuccessServiceCreateRequestSubmitted,
@@ -1624,6 +1626,13 @@ var (
 		StatusCode: StatusOK,
 		Message:    MsgCpsActionDataExportedSuccessfully,
 		Type:       "success",
+	}
+
+	CpsActionDataExportedError = ResponseCode{
+		Code:       "CPS_ACTION_DATA_EXPORT_ERROR",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgCpsActionDataExportFailed,
+		Type:       "error",
 	}
 
 	CpsActionDataNotFoundInDateRange = ResponseCode{
