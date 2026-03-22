@@ -121,7 +121,7 @@ func (r *CPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldAc
 	// Version changed: old version indices are preserved for in-flight actions,
 	// only new version indices are inserted alongside them.
 
-	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "version": newIndices[0].Version, "portal_card_name": portalCard}); err != nil {
+	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "portal_card_name": portalCard}); err != nil {
 		r.logger.Errorf("SyncIndices: DeleteMany (same version) failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
