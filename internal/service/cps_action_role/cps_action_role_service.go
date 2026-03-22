@@ -620,7 +620,7 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 					break
 				}
 			}
-			if !found {
+			if found {
 				indices = append(indices, imodel.CPSActionApproveIndex{
 					ID:             bson.NewObjectID(),
 					RoleId:         viewerID,
@@ -653,7 +653,7 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 				}
 			}
 
-			if !found {
+			if found {
 				indices = append(indices, imodel.CPSActionApproveIndex{
 					ID:             bson.NewObjectID(),
 					RoleId:         auditorID,
@@ -687,7 +687,7 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 						break
 					}
 				}
-				if !found {
+				if found {
 					indices = append(indices, imodel.CPSActionApproveIndex{
 						ID:             bson.NewObjectID(),
 						RoleId:         checkerID,
