@@ -319,8 +319,12 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 	}
 	if req.AssignedAuditorRoles != nil {
 		auditors := make([][]string, 0, len(req.AssignedAuditorRoles))
-		for _, code := range req.AssignedAuditorRoles {
-			auditors = append(auditors, code)
+		for _, group := range req.AssignedAuditorRoles {
+			g := make([]string, 0, len(group))
+			for _, code := range group {
+				g = append(g, code)
+			}
+			auditors = append(auditors, g)
 		}
 		payload.AssignedAuditorRoles = auditors
 	}
