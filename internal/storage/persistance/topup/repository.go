@@ -132,7 +132,10 @@ func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topu
 	orFilters := make([]bson.M, 0)
 
 	if code != "" {
-		orFilters = append(orFilters, bson.M{"code": code})
+		orFilters = append(orFilters, bson.M{"code": bson.M{
+			"$regex":   code,
+			"$options": "i",
+		}})
 	}
 
 	if name != "" {
