@@ -118,13 +118,13 @@ func (q *Queries) FindByNameOrBIC(ctx context.Context, bic, name string) (*imode
 	var args []interface{}
 	idx := 1
 	if name != "" {
-		conditions = append(conditions, fmt.Sprintf("bank_name = :%d", idx))
-		args = append(args, name)
+		conditions = append(conditions, fmt.Sprintf("UPPER(bank_name) = :%d", idx))
+		args = append(args, strings.ToUpper(name))
 		idx++
 	}
 	if bic != "" {
-		conditions = append(conditions, fmt.Sprintf("bic_code = :%d", idx))
-		args = append(args, bic)
+		conditions = append(conditions, fmt.Sprintf("UPPER(bic_code) = :%d", idx))
+		args = append(args, strings.ToUpper(bic))
 		idx++
 	}
 	if len(conditions) == 0 {

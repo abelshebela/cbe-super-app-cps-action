@@ -24,7 +24,7 @@ require (
 	github.com/shopspring/decimal v1.4.0
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.6
-	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.2.89
+	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.2.92
 	go.mongodb.org/mongo-driver v1.17.6
 	go.mongodb.org/mongo-driver/v2 v2.4.1
 	go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/v2/mongo/otelmongo v0.0.0-20251212233814-2da61975ff42
@@ -40,10 +40,15 @@ require (
 	google.golang.org/protobuf v1.36.11
 )
 
-require github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.20.18
+require (
+	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.20.18
+	github.com/go-chi/httprate v0.15.0
+)
 
 require (
-	github.com/go-chi/httprate v0.15.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/pgx/v5 v5.7.6 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 )
 
