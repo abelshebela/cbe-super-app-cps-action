@@ -30,7 +30,6 @@ type ServicesStorage struct {
 	dal           dal.MongoDal[model.Service, model.Service]
 	client        *mongo.Client
 	dbName        string
-	collection    string
 	serviceDal    dal.MongoDal[model.ServiceList, model.ServiceList]
 	accessDal     dal.MongoDal[model.APPAccessList, model.APPAccessList]
 	kafkaProducer kafka.ClientOrchestrationProducer
@@ -43,7 +42,6 @@ func NewServicesRepository(client *mongo.Client, cfg *config.VaultConfig, dbName
 		cfg:           cfg,
 		client:        client,
 		dbName:        dbName,
-		collection:    collection,
 		dal:           dal.NewMongoDal[model.Service, model.Service](client, cfg, dbName, collection),
 		serviceDal:    dal.NewMongoDal[model.ServiceList, model.ServiceList](client, cfg, dbName, "service_list"),
 		accessDal:     dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, cfg, dbName, "access_list"),
@@ -228,12 +226,6 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 		filter["$or"] = []bson.M{{"service_name": q}, {"service_key": q}, {"is_enabled": q}}
 	}
 
-	// items, err := s.serviceDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
-	// if err != nil {
-	// 	s.logger.Errorf("[ServicesStorage][FindAllServiceListWithPagination] failed to fetch service list: %v", err)
-	// 	return nil, local_util.HandleDBError(err)
-	// }
-
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},
 	}
@@ -249,7 +241,7 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 		bson.D{{Key: "$limit", Value: limit}},
 	)
 
-	collection := s.client.Database(s.dbName).Collection(s.collection)
+	collection := s.client.Database(s.dbName).Collection("service_list")
 	cur, err := collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		s.logger.Errorf("[GetAllServiceLists][FindAllWithPagination] failed to aggregate service lists: %v", err)
