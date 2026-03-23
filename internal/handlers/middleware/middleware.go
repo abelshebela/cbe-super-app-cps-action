@@ -288,7 +288,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		}
 
 		deviceID = strings.Trim(deviceID, "\"")
-		a.logger.Infof("[AuthMW][AuthToken] redis_device: %s payload_device: %s user: %s", deviceID, userPayload.DeviceID, userPayload.UserID)
+		a.logger.Infof("[AuthMW][AuthToken] redis_device: %s payload_device: %s user: %s expire_length: %d", deviceID, userPayload.DeviceID, userPayload.UserID, redisDeviceIDExpireTime)
 		if userPayload.SessionExp != 0 {
 			a.logger.Infof("[AuthMW][AuthToken] session_exp: %d now: %d remain: %d", userPayload.SessionExp, now, userPayload.SessionExp-now)
 
