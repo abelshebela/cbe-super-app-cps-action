@@ -91,6 +91,16 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		span.AddEvent("failed to check email existence in BPS", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
+
+	department, err := s.departmentRepo.FindByID(ctx, req.Department)
+	if err != nil {
+		span.AddEvent("failed to find department", trace.WithAttributes(attribute.String("error", err.Error())))
+		return err
+	}
+	if department == nil {
+		span.AddEvent("department not found", trace.WithAttributes(attribute.String("department", req.Department)))
+		return errors.New(localization.ErrorDepartmentNotFound.Code)
+	}
 	if emailCheckBPS != nil {
 		if emailCheckBPS.Email == req.Email {
 			span.AddEvent("email already exists in BPS", trace.WithAttributes(attribute.String("email", req.Email)))
@@ -200,6 +210,17 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 			}
 		}
 	}
+	if req.Department != "" {
+		department, err := s.departmentRepo.FindByID(ctx, req.Department)
+		if err != nil {
+			span.AddEvent("failed to find department", trace.WithAttributes(attribute.String("error", err.Error())))
+			return err
+		}
+		if department == nil {
+			span.AddEvent("department not found", trace.WithAttributes(attribute.String("department", req.Department)))
+			return errors.New(localization.ErrorDepartmentNotFound.Code)
+		}
+	}
 	var updated cpsuser.UpdateUserRequest
 	if req.UserName != "" {
 		updated.UserName = req.UserName
@@ -218,6 +239,9 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 	}
 	if req.JobTitle != "" {
 		updated.JobTitle = req.JobTitle
+	}
+	if req.Department != "" {
+		updated.Department = req.Department
 	}
 	if updated == (cpsuser.UpdateUserRequest{}) {
 		span.AddEvent("no fields to update", trace.WithAttributes(attribute.String("user_code", usercode)))

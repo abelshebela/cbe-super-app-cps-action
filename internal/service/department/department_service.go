@@ -155,9 +155,8 @@ func (d *DepartmentService) CreateDepartment(ctx context.Context, department dep
 	}
 
 	new_department := model.Department{
-		Department:  department.Department,
-		PortalCards: department.PortalCards,
-		Enabled:     true,
+		Department: department.Department,
+		Enabled:    true,
 	}
 
 	new_department.DepartmentCode = utils.RandomGenerator(20)
@@ -335,9 +334,6 @@ func (d *DepartmentService) UpdateDepartment(ctx context.Context, id string, dep
 		updatedDepartment.Department = department_request.Department
 	}
 
-	if len(department_request.PortalCards) > 0 {
-		updatedDepartment.PortalCards = department_request.PortalCards
-	}
 	action := lib.CpsModelBuilder(id, makerData, department, updatedDepartment, string(constants.RequestUpdateDepartment), constants.UPDATE)
 
 	err = d.cpsService.CreateCPSAction(ctx, &action)

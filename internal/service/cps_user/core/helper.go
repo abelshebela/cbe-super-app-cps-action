@@ -117,6 +117,7 @@ func CPSUModel(req cpsuser.CreateUserRequest) imodel.CPSUser {
 		UserName:         req.UserName,
 		FullName:         req.FullName,
 		PhoneNumber:      req.PhoneNumber,
+		Department:       req.Department,
 		JobTitle:         req.JobTitle,
 		Gender:           req.Gender,
 		Email:            req.Email,
