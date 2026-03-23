@@ -341,7 +341,7 @@ func GenerateActionCode() string {
 	now := time.Now()
 	year := now.Format("06")                        // last 2 digits of year
 	dayOfYear := fmt.Sprintf("%03d", now.YearDay()) // day of year zero-padded to 3 digits
-	timeStr := now.Format("150405000")              // HHMMSSmmm (milliseconds)
+	timeStr := now.Format("150405.000000")          // HHMMSSmmm (milliseconds)
 
 	return prefix + year + dayOfYear + "_" + timeStr
 }
@@ -367,8 +367,7 @@ func GenerateCPSUserCode() string {
 	now := time.Now()
 	year := now.Format("06")                        // last 2 digits of year
 	dayOfYear := fmt.Sprintf("%03d", now.YearDay()) // day of year zero-padded to 3 digits
-
-	timestamp := time.Now().Format("20060102150405")
+	timestamp := time.Now().Format("150405.000000")
 
 	return prefix + year + dayOfYear + "_" + timestamp
 }

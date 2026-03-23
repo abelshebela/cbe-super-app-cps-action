@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"strings"
 
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -95,4 +97,43 @@ func isInvalidFormat(s *string) bool {
 		}
 	}
 	return false
+}
+
+func MapBankToAddBool(oracleBank []imodel.BankOracle) []bank_dto.BankOracleResponse {
+	var banks []bank_dto.BankOracleResponse
+	for _, bank := range oracleBank {
+
+		banks = append(banks, bank_dto.BankOracleResponse{
+			ID:              bank.ID,
+			BankName:        bank.BankName,
+			Logo:            bank.Logo,
+			BICCode:         bank.BICCode,
+			IsEnabled:       bank.IsEnabled == 1,
+			AccountLength:   bank.AccountLength,
+			HasAlphaNumeric: bank.HasAlphaNumeric == 1,
+			CreateAt:        bank.CreateAt,
+			UpdateAt:        bank.UpdateAt,
+		})
+
+	}
+	return banks
+
+}
+func MapSingleBankToAddBool(oracleBank imodel.BankOracle) bank_dto.BankOracleResponse {
+	var banks bank_dto.BankOracleResponse
+
+	banks = bank_dto.BankOracleResponse{
+		ID:              oracleBank.ID,
+		BankName:        oracleBank.BankName,
+		Logo:            oracleBank.Logo,
+		BICCode:         oracleBank.BICCode,
+		IsEnabled:       oracleBank.IsEnabled == 1,
+		AccountLength:   oracleBank.AccountLength,
+		HasAlphaNumeric: oracleBank.HasAlphaNumeric == 1,
+		CreateAt:        oracleBank.CreateAt,
+		UpdateAt:        oracleBank.UpdateAt,
+	}
+
+	return banks
+
 }

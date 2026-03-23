@@ -28,6 +28,8 @@ import (
 type ServicesStorage struct {
 	cfg           *config.VaultConfig
 	dal           dal.MongoDal[model.Service, model.Service]
+	client        *mongo.Client
+	dbName        string
 	serviceDal    dal.MongoDal[model.ServiceList, model.ServiceList]
 	accessDal     dal.MongoDal[model.APPAccessList, model.APPAccessList]
 	kafkaProducer kafka.ClientOrchestrationProducer
@@ -38,6 +40,8 @@ type ServicesStorage struct {
 func NewServicesRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collection string, kafkaProducer kafka.ClientOrchestrationProducer, redis storage.RedisRepository, logger utils.Logger) storage.ServicesRepository {
 	return &ServicesStorage{
 		cfg:           cfg,
+		client:        client,
+		dbName:        dbName,
 		dal:           dal.NewMongoDal[model.Service, model.Service](client, cfg, dbName, collection),
 		serviceDal:    dal.NewMongoDal[model.ServiceList, model.ServiceList](client, cfg, dbName, "service_list"),
 		accessDal:     dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, cfg, dbName, "access_list"),
@@ -214,17 +218,43 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error) {
 	allowed := []string{"service_name", "service_key", "is_enabled"}
+
+	projection := bson.M{}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{{"service_name": q}, {"service_key": q}, {"is_enabled": q}}
 	}
 
-	items, err := s.serviceDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
-	if err != nil {
-		s.logger.Errorf("[ServicesStorage][FindAllServiceListWithPagination] failed to fetch service list: %v", err)
-		return nil, local_util.HandleDBError(err)
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: filter}},
 	}
+
+	if len(projection) > 0 {
+		pipeline = append(pipeline, bson.D{{Key: "$project", Value: projection}})
+	}
+
+	pipeline = append(
+		pipeline,
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+		bson.D{{Key: "$skip", Value: skip}},
+		bson.D{{Key: "$limit", Value: limit}},
+	)
+
+	collection := s.client.Database(s.dbName).Collection("service_list")
+	cur, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		s.logger.Errorf("[GetAllServiceLists][FindAllWithPagination] failed to aggregate service lists: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer cur.Close(ctx)
+
+	var data []model.ServiceList
+	if err := cur.All(ctx, &data); err != nil {
+		s.logger.Errorf("[ServiceList][FindAllWithPagination] failed to decode service lists: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
 	total, err := s.serviceDal.TotalCount(ctx, filter)
 	if err != nil {
 		s.logger.Errorf("[ServicesStorage][FindAllServiceListWithPagination] failed to count service list: %v", err)
@@ -233,7 +263,7 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	return &types.PaginatedResponse[[]model.ServiceList]{
-		Data: items,
+		Data: data,
 		Meta: meta,
 	}, nil
 }
