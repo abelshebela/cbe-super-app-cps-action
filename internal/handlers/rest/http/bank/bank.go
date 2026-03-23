@@ -278,10 +278,10 @@ func (b *bankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	bankRes := bank_core.MapBankToAddBool(banks.Data)
 	span.SetAttributes(attribute.Int("bank.count", len(banks.Data)))
 	log.Infof("[GetAllBank] retrieved %d banks", len(banks.Data))
-	localization.SendSuccessResponse(w, localization.SuccessGetAllBanks, banks)
+	localization.SendSuccessResponse(w, localization.SuccessGetAllBanks, bankRes)
 }
 
 // GetOneBank godoc
@@ -312,7 +312,6 @@ func (b *bankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 	}
 
 	bank, err := b.bankService.GetOneBank(ctx, id)
-
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[GetOneBank] service error: %v", err)
@@ -320,8 +319,10 @@ func (b *bankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	bankRes := bank_core.MapSingleBankToAddBool(*bank)
+
 	log.Infof("[GetOneBank] bank retrieved successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessGetOneBank, bank)
+	localization.SendSuccessResponse(w, localization.SuccessGetOneBank, bankRes)
 }
 
 // UpdateLogo godoc
