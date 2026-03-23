@@ -17,7 +17,7 @@ type BankOracleResponse struct {
 	BankName        string `sqlx:"bank_name" json:"bank_name"`
 	Logo            string `sqlx:"logo" json:"logo"`
 	BICCode         string `sqlx:"bic_code" json:"bic_code"`
-	IsEnabled       bool   `sqlx:"is_enabled" json:"is_enabled"`
+	IsEnabled       bool   `sqlx:"enabled" json:"enabled"`
 	AccountLength   int    `sqlx:"account_length" json:"account_length"`
 	HasAlphaNumeric bool   `sqlx:"has_alpha_numeric" json:"has_alpha_numeric"`
 	CreateAt        string `sqlx:"create_at" json:"create_at"`
