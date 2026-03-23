@@ -320,7 +320,7 @@ const (
 const (
 	OPEN      Method = "OPEN"
 	PIN       Method = "PIN"
-	OTPANDPIN Method = "OTP_PIN"
+	OTPANDPIN Method = "PIN_OTP"
 )
 
 // ---------------------------------------------------------------------------

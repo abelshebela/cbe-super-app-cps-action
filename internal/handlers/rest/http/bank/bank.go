@@ -88,10 +88,12 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var boolValue bool = true
 	if strings.ToLower(hasAlphaNumeric) == "true" {
-		bankRequest.HasAlphaNumeric = true
+		bankRequest.HasAlphaNumeric = &boolValue
 	} else if strings.ToLower(hasAlphaNumeric) == "false" {
-		bankRequest.HasAlphaNumeric = false
+		boolValue = false
+		bankRequest.HasAlphaNumeric = &boolValue
 	} else {
 		localization.SendErrorResponse(w, localization.ErrorBankHasAlphaNumericInvalid, nil, nil)
 		return
@@ -430,24 +432,15 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 			localization.SendErrorResponse(w, localization.ErrorInvalidBankAccountLength, nil, nil)
 			return
 		}
-	} else {
-		localization.SendErrorResponse(w, localization.ErrorBankAccountLengthRequired, nil, nil)
-		return
 	}
 
 	hasAlphaNumeric := r.FormValue("has_alpha_numeric")
-	if hasAlphaNumeric == "" {
-		localization.SendErrorResponse(w, localization.ErrorInvalidFormat, nil, nil)
-		return
-	}
-
+	var boolValue bool = true
 	if strings.ToLower(hasAlphaNumeric) == "true" {
-		updateRequest.HasAlphaNumeric = true
+		updateRequest.HasAlphaNumeric = &boolValue
 	} else if strings.ToLower(hasAlphaNumeric) == "false" {
-		updateRequest.HasAlphaNumeric = false
-	} else {
-		localization.SendErrorResponse(w, localization.ErrorInvalidFormat, nil, nil)
-		return
+		boolValue = false
+		updateRequest.HasAlphaNumeric = &boolValue
 	}
 
 	if response_code := bank_core.ValidateBankRequest(r, &updateRequest); response_code.Code != "" {

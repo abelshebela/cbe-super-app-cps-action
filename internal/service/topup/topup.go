@@ -125,8 +125,8 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
 				s.logger.Errorf("[TopupSvc][Update] check name err: %v", err)
+				return err
 			}
-			return err
 		}
 		if existing.Name != "" {
 			span.AddEvent("Topup name  already exists", trace.WithAttributes(attribute.String("name", req.Name)))

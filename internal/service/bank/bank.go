@@ -193,7 +193,7 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		IsEnabled:     0,
 		AccountLength: bank_request.AccountLength,
 	}
-	if bank_request.HasAlphaNumeric {
+	if *bank_request.HasAlphaNumeric {
 		bank.HasAlphaNumeric = 1
 	} else {
 		bank.HasAlphaNumeric = 0
@@ -476,10 +476,12 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	if bank_request.AccountLength != 0 {
 		updatedBank.AccountLength = bank_request.AccountLength
 	}
-	if bank_request.HasAlphaNumeric {
-		updatedBank.HasAlphaNumeric = 1
-	} else {
-		updatedBank.HasAlphaNumeric = 0
+	if bank_request.HasAlphaNumeric != nil {
+		if *bank_request.HasAlphaNumeric {
+			updatedBank.HasAlphaNumeric = 1
+		} else {
+			updatedBank.HasAlphaNumeric = 0
+		}
 	}
 
 	logoUrl = bank.Logo

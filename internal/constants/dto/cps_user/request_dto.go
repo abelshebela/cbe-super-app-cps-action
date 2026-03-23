@@ -9,6 +9,7 @@ type CreateUserRequest struct {
 	UserName    string `json:"username" bson:"username,omitempty" example:"john.doe"`
 	FullName    string `json:"full_name" bson:"full_name,omitempty" example:"John Doe"`
 	PhoneNumber string `json:"phone_number" bson:"phone_number,omitempty" example:"+251911234567"`
+	Department  string `json:"department" bson:"department"`
 	JobTitle    string `json:"job_title" bson:"job_title"`
 	Gender      string `json:"gender,omitempty" bson:"gender,omitempty" example:"Male"`
 	Email       string `json:"email,omitempty" bson:"email,omitempty" example:"john.doe@example.com"`
@@ -18,6 +19,7 @@ type UpdateUserRequest struct {
 	UserName    string `json:"username,omitempty" bson:"username,omitempty" example:"john.doe.updated"`
 	FullName    string `json:"full_name,omitempty" bson:"full_name,omitempty" example:"John Doe Updated"`
 	PhoneNumber string `json:"phone_number,omitempty" bson:"phone_number,omitempty" example:"+251911234567"`
+	Department  string `json:"department,omitempty" bson:"department,omitempty"`
 	Gender      string `json:"gender,omitempty" bson:"gender,omitempty" example:"Male"`
 	Email       string `json:"email,omitempty" bson:"email,omitempty" example:"john.doe.updated@example.com"`
 	JobTitle    string `json:"job_title,omitempty" bson:"job_title,omitempty"`

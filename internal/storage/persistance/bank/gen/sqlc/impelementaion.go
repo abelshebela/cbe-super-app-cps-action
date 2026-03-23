@@ -163,8 +163,8 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	filters = append(filters, "1=1") // always true, simplifies appending ANDs
 
 	if filterParam.Search != "" && filterParam.Search != "enabled" {
-		search := "%" + filterParam.Search + "%"
-		filters = append(filters, fmt.Sprintf("(bank_name LIKE :%d OR bic_code LIKE :%d)", idx, idx+1))
+		search := "%" + strings.ToUpper(filterParam.Search) + "%"
+		filters = append(filters, fmt.Sprintf("(UPPER(bank_name) LIKE :%d OR UPPER(bic_code) LIKE :%d)", idx, idx+1))
 		args = append(args, search, search)
 		idx += 2
 	}

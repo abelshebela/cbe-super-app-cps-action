@@ -3,6 +3,8 @@ package amount_based_auth
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"time"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 // ----------- Valid methods set -----------
@@ -64,6 +66,9 @@ func (r AddCurrencyRequest) Validate() bool {
 		if !isLast && t.MinAmount >= t.MaxAmount {
 			return false
 		}
+	}
+	if validation.Validate(&r.Methods, validation.Required, validation.Each(validation.In(constants.OPEN, constants.PIN, constants.OTPANDPIN))) != nil {
+		return false
 	}
 	return true
 }

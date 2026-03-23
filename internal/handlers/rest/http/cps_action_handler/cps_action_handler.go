@@ -9,7 +9,6 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	mid "cbe-super-app-cps-action/internal/handlers/middleware"
-	cpsactioncore "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler/core"
 	"cbe-super-app-cps-action/internal/service"
 	cpsactionsvc "cbe-super-app-cps-action/internal/service/cps_action"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -1611,6 +1610,21 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 	localization.SendSuccessResponse(w, localization.AutorizersLevelFetchedSuccessfully, autorizersLevel)
 }
 
+// ExportCPSActionData godoc
+//
+//	@Summary		Export CPS action data
+//	@Description	Export CPS actions within a date range as a CSV file and return the download link
+//	@Tags			CPS Actions
+//	@Accept			json
+//	@Produce		json
+//	@Param			file_type	query		string										true	"Export file type (e.g. csv)"
+//	@Param			From		query		string										true	"Start date (YYYY-MM-DD)"
+//	@Param			To			query		string										true	"End date (YYYY-MM-DD)"
+//	@Success		200			{object}	localization.StandardResponse{data=string}	"File link returned successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/actions/export [get]
 func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "exportCPSaction", "handler", "cpsAction")
 	defer span.End()
@@ -1621,25 +1635,52 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 	to := r.URL.Query().Get("To")
 
 	if fileType == "" || from == "" || to == "" {
-		log.Warnf("file type and from date amd to date have to be given")
+		log.Warnf("[CpsActionH][Export] missing required params: file_type=%q, From=%q, To=%q", fileType, from, to)
 		localization.SendBadRequestResponse(w, localization.ErrorRequiredFieldMissing.Message)
 		return
 	}
 
-	FormatedFrom, formatedTo, err := cpsactioncore.DataFormatter(from, to, log)
+	// Normalize date strings (accepts YYYY-MM-DD or RFC3339)
+	fromNorm, toNorm, err := local_util.FormatDateRangeToUTCStrings(from, to)
 	if err != nil {
-		log.Warnf("Invalid Start date is given ", from)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
+		log.Warnf("[CpsActionH][Export] invalid date format: From=%s, To=%s, err=%v", from, to, err)
+		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
 		return
 	}
 
-	FileLinkExpored, err := a.cpsActionApplication.ExportCpsActionData(ctx, FormatedFrom, formatedTo, fileType)
+	startDate, err := local_util.ValidateTimeAndParse(fromNorm)
+	if err != nil {
+		log.Warnf("[CpsActionH][Export] invalid start date: %s", from)
+		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+		return
+	}
 
+	endDate, err := local_util.ValidateTimeAndParse(toNorm)
+	if err != nil {
+		log.Warnf("[CpsActionH][Export] invalid end date: %s", to)
+		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+		return
+	}
+
+	if endDate.Before(startDate) {
+		log.Warnf("[CpsActionH][Export] invalid date range: start=%v, end=%v", startDate, endDate)
+		localization.SendErrorResponse(w, localization.CpsActionDataExportedError, nil, nil)
+		return
+	}
+
+	span.SetAttributes(
+		attribute.String("export.file_type", fileType),
+		attribute.String("export.from", from),
+		attribute.String("export.to", to),
+	)
+
+	fileLink, err := a.cpsActionApplication.ExportCpsActionData(ctx, startDate, endDate, fileType)
 	if err != nil {
 		span.RecordError(err)
+		log.Errorf("[CpsActionH][Export] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.CpsActionDataExportedSuccess, FileLinkExpored)
+	localization.SendSuccessResponse(w, localization.CpsActionDataExportedSuccess, fileLink)
 }
