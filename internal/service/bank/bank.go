@@ -447,7 +447,6 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 
 	b.logger.Infof("[BankSvc][UpdateOneBank] id: %s, body: %+v", id, bank_request)
 
-	var logoUrl string
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		span.AddEvent("[UpdateOneBank] incomplete user data", trace.WithAttributes(attribute.String("id", id)))
@@ -484,7 +483,6 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		}
 	}
 
-	logoUrl = bank.Logo
 	if bank_request.Logo != nil {
 		var objectkey string
 		if bank.Logo != "" {
@@ -510,7 +508,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 			return errors.New(localization.ErrorFileUploadFailed.Code)
 		}
 
-		logoUrl = URL
+		updatedBank.Logo = URL
 	}
 
 	result, err := b.oracleRepo.FindByNameOrBIC(ctx, bank_request.BICCode, bank_request.Name)
@@ -533,7 +531,6 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		}
 	}
 
-	updatedBank.Logo = logoUrl
 	action := lib.CpsModelBuilder(id, makerData, bank, updatedBank, string(constants.RequestUpdateBank), constants.UPDATE)
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
