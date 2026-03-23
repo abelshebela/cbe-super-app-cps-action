@@ -61,6 +61,7 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 
 	b.logger.Infof("[BudgetCatSvc][Authorize] action: %s", action.RequestAction)
 	var err error
+
 	budgetCategory, marshal_err := local_util.JsonUnmarshal[imodel.BudgetCategory](action.CurrentAction)
 	if marshal_err != nil || budgetCategory == nil {
 		span.AddEvent("[Authorize] failed to unmarshal current action", trace.WithAttributes(
@@ -70,6 +71,7 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 		b.logger.Errorf("[BudgetCatSvc][Authorize] unmarshal err: %v", marshal_err)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
+
 	switch action.RequestAction {
 	case string(constants.RequestCreateBudgetCategory):
 		err = b.budgetCategoryRepo.CreateBudgetCategory(ctx, budgetCategory)

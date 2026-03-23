@@ -38,6 +38,7 @@ func (r AddCurrencyRequest) Validate() bool {
 	if len(r.Methods) == 0 {
 		return false
 	}
+
 	if len(r.Tiers) != len(r.Methods) {
 		return false
 	}
