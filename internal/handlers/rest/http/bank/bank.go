@@ -279,9 +279,13 @@ func (b *bankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	bankRes := bank_core.MapBankToAddBool(banks.Data)
+	res := types.PaginatedResponse[[]bank_dto.BankOracleResponse]{
+		Data: bankRes,
+		Meta: banks.Meta,
+	}
 	span.SetAttributes(attribute.Int("bank.count", len(banks.Data)))
 	log.Infof("[GetAllBank] retrieved %d banks", len(banks.Data))
-	localization.SendSuccessResponse(w, localization.SuccessGetAllBanks, bankRes)
+	localization.SendSuccessResponse(w, localization.SuccessGetAllBanks, res)
 }
 
 // GetOneBank godoc
