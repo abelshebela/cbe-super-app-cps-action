@@ -1,6 +1,7 @@
 package sqlc
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
@@ -81,7 +82,7 @@ func (q *Queries) FindByID(ctx context.Context, id string) (*imodel.BankOracle, 
 		&bank.UpdateAt,
 	)
 	if err == sql.ErrNoRows {
-		return nil, nil
+		return nil, localization.ErrorResourceNotFound
 	}
 	if err != nil {
 		return nil, err

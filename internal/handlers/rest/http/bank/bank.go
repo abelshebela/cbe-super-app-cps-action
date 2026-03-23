@@ -418,7 +418,7 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	if file != nil && fileHeader == nil {
+	if file != nil && fileHeader != nil {
 		defer file.Close()
 		updateRequest.Logo = fileHeader
 	} else {

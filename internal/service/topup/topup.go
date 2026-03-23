@@ -121,7 +121,10 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 	}
 
 	if req.Name != "" && prevtopup.Name != req.Name {
-		existing, err = s.repo.FindByOr(ctx, bson.M{"name": req.Name})
+		existing, err = s.repo.FindByOr(ctx, bson.M{"name": bson.M{
+			"$regex":   req.Name,
+			"$options": "i",
+		}})
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
 				s.logger.Errorf("[TopupSvc][Update] check name err: %v", err)
@@ -134,7 +137,10 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 		}
 	}
 	if req.Code != "" && prevtopup.Code != req.Code {
-		topupByCode, err := s.repo.FindByOr(ctx, bson.M{"code": req.Code})
+		topupByCode, err := s.repo.FindByOr(ctx, bson.M{"code": bson.M{
+			"$regex":   req.Code,
+			"$options": "i",
+		}})
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
 				s.logger.Errorf("[TopupSvc][Update] check code err: %v", err)
