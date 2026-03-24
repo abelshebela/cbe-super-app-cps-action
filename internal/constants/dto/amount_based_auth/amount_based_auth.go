@@ -17,8 +17,8 @@ var ValidMethods = map[constants.Method]bool{
 
 type TierInput struct {
 	Method    constants.Method `json:"method"`
-	MinAmount uint64           `json:"min_amount"`
-	MaxAmount uint64           `json:"max_amount"`
+	MinAmount int64            `json:"min_amount"`
+	MaxAmount int64            `json:"max_amount"`
 }
 
 // ----------- AddCurrencyRequest -----------
