@@ -426,11 +426,12 @@ func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_lis
 	return nil
 }
 
-func NewAccessListSegmentationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collectionName string, customerSegmentationProducer kafka.AccessListSegmentationProducer, logger utils.Logger) storage.AccessListSegmentationRepository {
+func NewAccessListSegmentationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collectionName string, customerSegmentationProducer kafka.AccessListSegmentationProducer, accountBlock storage.AccountBlockRepository, logger utils.Logger) storage.AccessListSegmentationRepository {
 	return &AccessListSegmentation{
 		repo:           dal.NewMongoDal[local_model.AccessListSegmentation, local_model.AccessListSegmentation](client, cfg, dbName, collectionName),
 		fromSharedRepo: dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, cfg, dbName, "app_access_list"),
 		client:         client,
+		accBlock:       accountBlock,
 		kafkaProducer:  customerSegmentationProducer,
 		dbName:         dbName,
 		collectionName: collectionName,
