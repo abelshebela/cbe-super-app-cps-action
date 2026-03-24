@@ -109,6 +109,7 @@ func (s *JobRoleStorage) FindByID(ctx context.Context, id string) (*imodel.JobRo
 
 	res, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		s.logger.Errorf("[JobRole/FindByID] failed to find by id: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return res, nil
