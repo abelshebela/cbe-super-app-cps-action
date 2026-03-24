@@ -7,6 +7,13 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+type OracleQuery struct {
+	WhereClause string
+	Args        map[string]interface{}
+	Offset      int64
+	Limit       int64
+}
+
 type CheckMiniAppMerchant struct {
 	BankAccountNumber string `json:"bank_account_number"`
 	Email             string `json:"email"`
