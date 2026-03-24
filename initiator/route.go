@@ -50,7 +50,6 @@ import (
 	donation "cbe-super-app-cps-action/internal/glue/routing/donation"
 	donation_category "cbe-super-app-cps-action/internal/glue/routing/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/glue/routing/donation_company"
-	encryption "cbe-super-app-cps-action/internal/glue/routing/encryption"
 	fayda "cbe-super-app-cps-action/internal/glue/routing/fayda"
 	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
 	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
@@ -160,7 +159,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	bps_actionrole_routing.Init(r, handlerLayer.BPSActionRoleHandler, authMiddleware)
 	cps_actionrole_routing.Init(r, handlerLayer.CPSActionRoleHandler, authMiddleware)
 	sitota.Init(r, handlerLayer.SitotaHandler, authMiddleware)
-	encryption.Init(r, handlerLayer.EncryptionHandler, authMiddleware)
+	// encryption.Init(r, handlerLayer.EncryptionHandler, authMiddleware)
 	transaction.Init(r, handlerLayer.TransactionHandler, authMiddleware)
 	vaultAmountTier.Init(r, handlerLayer.AmountTierHandler, authMiddleware)
 	event_merchant_routing.Init(r, handlerLayer.EventMerchantHandler, authMiddleware)

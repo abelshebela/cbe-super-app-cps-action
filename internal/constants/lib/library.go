@@ -261,6 +261,110 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 
 	return filter, skip, limit
 }
+func BuildOracleFilter(
+	filterParam types.Filter,
+	searchKeys map[string]string, // keep as map
+	allowedKeys []string, // keep as slice
+) (string, []interface{}, int64, int64) {
+
+	var filters []string
+	var args []interface{}
+	idx := 1
+
+	filters = append(filters, "1=1")
+
+	// --- SEARCH ---
+	if filterParam.Search != "" {
+		search := "%" + strings.ToUpper(filterParam.Search) + "%"
+		searchParts := []string{}
+
+		for _, column := range searchKeys { // keep map structure
+			searchParts = append(searchParts,
+				fmt.Sprintf("UPPER(%s) LIKE :%d", column, idx))
+			args = append(args, search)
+			idx++
+		}
+
+		if len(searchParts) > 0 {
+			filters = append(filters, "("+strings.Join(searchParts, " OR ")+")")
+		}
+	}
+
+	// --- FILTERS ---
+	if filterParam.Filters != nil {
+		allowedSet := make(map[string]bool)
+		for _, k := range allowedKeys { // keep slice as input
+			allowedSet[k] = true
+		}
+
+		boolKeys := map[string]bool{
+			"enabled": true, "enable": true, "is_enabled": true,
+			"is_deleted": true, "is_blocked": true,
+			"is_verified": true, "active_account": true,
+		}
+
+		for key, val := range filterParam.Filters {
+			if !allowedSet[key] {
+				continue
+			}
+
+			// --- DATE RANGE ---
+			if strings.HasSuffix(key, "_from") {
+				column := strings.TrimSuffix(key, "_from")
+				if str, ok := val.(string); ok && str != "" {
+					if t, err := parseDateInput(str); err == nil {
+						filters = append(filters,
+							fmt.Sprintf("%s >= :%d", column, idx))
+						args = append(args, t)
+						idx++
+					}
+				}
+				continue
+			}
+
+			if strings.HasSuffix(key, "_to") {
+				column := strings.TrimSuffix(key, "_to")
+				if str, ok := val.(string); ok && str != "" {
+					if t, err := parseDateInput(str); err == nil {
+						if !strings.Contains(str, "T") {
+							t = t.Add(24*time.Hour - time.Millisecond)
+						}
+						filters = append(filters,
+							fmt.Sprintf("%s <= :%d", column, idx))
+						args = append(args, t)
+						idx++
+					}
+				}
+				continue
+			}
+
+			// --- BOOLEAN ---
+			if boolKeys[key] {
+				if str, ok := val.(string); ok {
+					if parsed, err := strconv.ParseBool(str); err == nil {
+						filters = append(filters,
+							fmt.Sprintf("%s = :%d", key, idx))
+						args = append(args, parsed)
+						idx++
+						continue
+					}
+				}
+			}
+
+			// --- DEFAULT ---
+			filters = append(filters,
+				fmt.Sprintf("%s = :%d", key, idx))
+			args = append(args, val)
+			idx++
+		}
+	}
+
+	// --- PAGINATION ---
+	offset := int64((filterParam.Page - 1) * filterParam.PerPage)
+	limit := int64(filterParam.PerPage)
+
+	return strings.Join(filters, " AND "), args, offset, limit
+}
 
 // parseDateInput parses a date string that can be either date-only ("2026-01-05")
 // or full ISO datetime ("2026-01-05T07:10:33.695+00:00", "2026-01-05T07:10:33").
