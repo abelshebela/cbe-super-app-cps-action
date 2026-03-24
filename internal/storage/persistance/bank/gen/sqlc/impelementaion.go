@@ -1,6 +1,7 @@
 package sqlc
 
 import (
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -173,7 +174,14 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 		filters = append(filters, "is_enabled = 1")
 	}
 
-	whereClause := strings.Join(filters, " AND ")
+	oracleQuery := lib.BuildOracleFilter(filterParam, map[string]string{"bank_name": "UPPER(bank_name)", "bic_code": "UPPER(bic_code)"}, []string{"bank_name", "bic_code", "is_enabled"})
+
+	whereClause := oracleQuery.WhereClause
+	args = append(args, oracleQuery.Args)
+	offset := oracleQuery.Offset
+	limit := oracleQuery.Limit
+
+	// whereClause := strings.Join(filters, " AND ")
 	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] whereClause: %s, args: %+v", whereClause, args)
 
 	// Count total
@@ -198,14 +206,14 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 		return resp, nil
 	}
 
-	offset := (filterParam.Page - 1) * filterParam.PerPage
-	limit := filterParam.PerPage
+	// offset := (filterParam.Page - 1) * filterParam.PerPage
+	// limit := filterParam.PerPage
 	// If requested offset is beyond total, return all data (no pagination)
 	if int64(offset) >= total {
 		offset = 0
-		limit = int(total)
+		limit = total
 	} else if int64(offset)+int64(limit) > total {
-		limit = int(total) - offset
+		limit = total - offset
 	}
 	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] offset: %d, limit: %d", offset, limit)
 
