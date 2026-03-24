@@ -198,6 +198,7 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			"user_code":     1,
 			"full_name":     1,
 			"job_title":     1,
+			"department":    1,
 			"role":          1,
 			"gender":        1,
 			"phone_number":  1,
@@ -222,15 +223,36 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 				}}},
 			},
 		}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "departments",
+			"localField":   "department",
+			"foreignField": "_id",
+			"as":           "department_info",
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$project", Value: bson.M{
+					"_id":  1,
+					"name": 1,
+				}}},
+			},
+		}}},
 		bson.D{{Key: "$unwind", Value: bson.M{
 			"path":                       "$role_info",
 			"preserveNullAndEmptyArrays": true,
 		}}},
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$department_info",
+			"preserveNullAndEmptyArrays": true,
+		}}},
 		bson.D{{Key: "$addFields", Value: bson.M{
 			"role": "$role_info.role",
+			"department": bson.M{
+				"id":   "$department_info._id",
+				"name": "$department_info.name",
+			},
 		}}},
 		bson.D{{Key: "$project", Value: bson.M{
-			"role_info": 0,
+			"role_info":       0,
+			"department_info": 0,
 		}}},
 
 		// Add a $group stage to ensure unique results
