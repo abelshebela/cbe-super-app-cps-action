@@ -85,9 +85,9 @@ func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *h
 	}
 	if md.IsMakerOnly {
 		log.Infof("[CreateBudgetCategory] request sent successfully")
-		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryCreateRequestSubmittedForApproval, nil)
-	} else {
 		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryCreatedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryCreateRequestSubmittedForApproval, nil)
 
 	}
 }
@@ -156,9 +156,9 @@ func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *h
 	}
 	if md.IsMakerOnly {
 		log.Infof("[UpdateBudgetCategory] request sent successfully for id: %s", id)
-		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryUpdateSubmittedForApproval, nil)
-	} else {
 		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryUpdatedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryUpdateSubmittedForApproval, nil)
 
 	}
 }
@@ -298,9 +298,9 @@ func (b *budgetCategoryAdapter) DeleteBudgetCategory(w http.ResponseWriter, r *h
 	if md.IsMakerOnly {
 
 		log.Infof("[DeleteBudgetCategory] request sent successfully for id: %s", id)
-		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryDeleteSubmittedForApproval, nil)
-	} else {
 		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryDeletedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryDeleteSubmittedForApproval, nil)
 
 	}
 }
@@ -351,9 +351,9 @@ func (b *budgetCategoryAdapter) EnableBudgetCategory(w http.ResponseWriter, r *h
 
 	if md.IsMakerOnly {
 		log.Infof("[EnableBudgetCategory] request sent successfully for id: %s", id)
-		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryEnableSubmittedForApproval, nil)
-	} else {
 		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryEnabledSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryEnableSubmittedForApproval, nil)
 
 	}
 }
@@ -401,12 +401,12 @@ func (b *budgetCategoryAdapter) DisableBudgetCategory(w http.ResponseWriter, r *
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	if md.IsMakerOnly {
 
+	if md.IsMakerOnly {
 		log.Infof("[DisableBudgetCategory] request sent successfully for id: %s", id)
-		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryDisableSubmittedForApproval, nil)
-	} else {
 		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryDisabledSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryDisableSubmittedForApproval, nil)
 
 	}
 }
