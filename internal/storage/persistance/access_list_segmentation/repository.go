@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
+	"cbe-super-app-cps-action/internal/storage/persistance/access_list_segmentation/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
@@ -148,7 +149,11 @@ func (a *AccessListSegmentation) CreateAccountSegment(ctx context.Context, acces
 		a.logger.Errorf("[AccessListSegmentation][CreateAccountSegment] failed to insert documents: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	a.kafkaProducer.PublishMessage(ctx, docs, "create", a.cfg.KafkaCustomerSegmentaionTopic, "create account-segment")
+	res := map[string]any{
+		"docs": docs,
+		"type": "account-segment",
+	}
+	a.kafkaProducer.PublishMessage(ctx, res, "create", a.cfg.KafkaCustomerSegmentaionTopic, "create account-segment")
 	return nil
 }
 
@@ -156,14 +161,15 @@ func (a *AccessListSegmentation) CreateBlockSegment(ctx context.Context, accessL
 	if len(accessListSegmentation.SegmentedID) == 0 {
 		return errors.New(localization.ErrorAccessListSegmentationIDSRequired.Code)
 	}
+	objID, err := bson.ObjectIDFromHex(accessListSegmentation.SegmentedID)
+	if err != nil {
+		a.logger.Errorf("[AccessListSegmentation][CreateBlockSegment] invalid ObjectID: %s", accessListSegmentation.SegmentedID)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
 
 	var docs []interface{}
 	for i, idStr := range accessListSegmentation.AccessListKeys {
-		objID, err := bson.ObjectIDFromHex(accessListSegmentation.SegmentedID)
-		if err != nil {
-			a.logger.Errorf("[AccessListSegmentation][CreateBlockSegment] invalid ObjectID: %s", accessListSegmentation.SegmentedID)
-			return errors.New(localization.ErrorUnhandledServer.Code)
-		}
+
 		doc := local_model.AccessListSegmentation{
 			ID:               bson.NewObjectID(),
 			Type:             accessListSegmentation.Type,
@@ -179,11 +185,18 @@ func (a *AccessListSegmentation) CreateBlockSegment(ctx context.Context, accessL
 	}
 
 	collection := a.client.Database(a.dbName).Collection(a.collectionName)
-	_, err := collection.InsertMany(ctx, docs)
+	_, err = collection.InsertMany(ctx, docs)
 	if err != nil {
 		a.logger.Errorf("[AccessListSegmentation][CreateBlockSegment] failed to insert documents: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	branches := core.GetAllBranches(ctx, accessListSegmentation.SegmentedID, a.accBlock)
+	res := map[string]any{
+		"branches": branches,
+		"docs":     docs,
+		"type":     "block-segment",
+	}
+	a.kafkaProducer.PublishMessage(ctx, res, "create", a.cfg.KafkaCustomerSegmentaionTopic, "create block-segment")
 	return nil
 }
 
@@ -413,11 +426,12 @@ func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_lis
 	return nil
 }
 
-func NewAccessListSegmentationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collectionName string, customerSegmentationProducer kafka.AccessListSegmentationProducer, logger utils.Logger) storage.AccessListSegmentationRepository {
+func NewAccessListSegmentationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collectionName string, customerSegmentationProducer kafka.AccessListSegmentationProducer, accountBlock storage.AccountBlockRepository, logger utils.Logger) storage.AccessListSegmentationRepository {
 	return &AccessListSegmentation{
 		repo:           dal.NewMongoDal[local_model.AccessListSegmentation, local_model.AccessListSegmentation](client, cfg, dbName, collectionName),
 		fromSharedRepo: dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, cfg, dbName, "app_access_list"),
 		client:         client,
+		accBlock:       accountBlock,
 		kafkaProducer:  customerSegmentationProducer,
 		dbName:         dbName,
 		collectionName: collectionName,

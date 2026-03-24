@@ -41,7 +41,7 @@ func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel
 		if roleId == "" {
 			return errors.New(localization.ErrorRoleIDMissing.Code)
 		}
-		role, err = roleRepo.FindByID(ctx, roleId)
+		role, err = roleRepo.FindByCode(ctx, roleId)
 		if err != nil {
 			return err
 		}

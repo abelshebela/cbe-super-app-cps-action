@@ -60,6 +60,26 @@ func IsValidCBEAccountNumber(acc string) bool {
 	return (l >= 8 && l <= 10) || (l >= 13 && l <= 16)
 }
 
+func ParseObjectID(id interface{}) (bson.ObjectID, error) {
+	switch v := id.(type) {
+
+	case string:
+		// validate + convert
+		objID, err := bson.ObjectIDFromHex(v)
+		if err != nil {
+			return bson.NilObjectID, err
+		}
+		return objID, nil
+
+	case bson.ObjectID:
+		// already ObjectID
+		return v, nil
+
+	default:
+		return bson.NilObjectID, fmt.Errorf("invalid id type")
+	}
+}
+
 func IsValidImage(fileHeader *multipart.FileHeader) bool {
 	var allowedMIMETypes = map[string]bool{
 		"image/jpg":  true,

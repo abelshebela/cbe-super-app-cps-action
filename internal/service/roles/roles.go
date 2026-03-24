@@ -75,10 +75,13 @@ func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRo
 		}
 	}
 
+	j.logger.Infof("[Role Service][Update] Update role existence check existing pass--------------------")
+
 	prev, err := j.roleRepository.FindByID(ctx, id)
 	if err != nil {
 		return err
 	}
+	j.logger.Infof("[Role Service][Update] Update role existence check existing prev data--------------------")
 
 	j.logger.Infof("[Role][Update] Update role existence check passed")
 	newRole := *prev
