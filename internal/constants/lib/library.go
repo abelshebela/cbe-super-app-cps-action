@@ -261,112 +261,101 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 
 	return filter, skip, limit
 }
+func BuildOracleFilter(
+	filterParam types.Filter,
+	searchKeys map[string]string, // keep as map
+	allowedKeys []string, // keep as slice
+) (string, []interface{}, int64, int64) {
 
-func BuildOracleFilter(filterParam types.Filter, searchKeys map[string]string, allowedKeys []string) types.OracleQuery {
-	whereParts := []string{"1=1"}
-	args := map[string]interface{}{}
+	var filters []string
+	var args []interface{}
+	idx := 1
+
+	filters = append(filters, "1=1")
 
 	// --- SEARCH ---
 	if filterParam.Search != "" {
+		search := "%" + strings.ToUpper(filterParam.Search) + "%"
 		searchParts := []string{}
-		for key, column := range searchKeys {
-			param := "search_" + key
-			searchParts = append(searchParts, column+" LIKE :"+param)
-			args[param] = "%" + filterParam.Search + "%"
+
+		for _, column := range searchKeys { // keep map structure
+			searchParts = append(searchParts,
+				fmt.Sprintf("UPPER(%s) LIKE :%d", column, idx))
+			args = append(args, search)
+			idx++
 		}
+
 		if len(searchParts) > 0 {
-			whereParts = append(whereParts, "("+strings.Join(searchParts, " OR ")+")")
+			filters = append(filters, "("+strings.Join(searchParts, " OR ")+")")
 		}
 	}
 
 	// --- FILTERS ---
 	if filterParam.Filters != nil {
-
 		allowedSet := make(map[string]bool)
-		for _, k := range allowedKeys {
+		for _, k := range allowedKeys { // keep slice as input
 			allowedSet[k] = true
 		}
 
-		for _, key := range allowedKeys {
+		boolKeys := map[string]bool{
+			"enabled": true, "enable": true, "is_enabled": true,
+			"is_deleted": true, "is_blocked": true,
+			"is_verified": true, "active_account": true,
+		}
 
-			// --- DATE HANDLING ---
-			fromKey := key + "_from"
-			toKey := key + "_to"
-
-			// exact date
-			if raw, ok := filterParam.Filters[key]; ok {
-				if str, ok := raw.(string); ok && str != "" {
-					if t, err := parseDateInput(str); err == nil {
-						param := key + "_exact"
-						if !strings.Contains(str, "T") {
-							whereParts = append(whereParts,
-								fmt.Sprintf("%s BETWEEN :%s_start AND :%s_end", key, param, param))
-							args[param+"_start"] = t
-							args[param+"_end"] = t.Add(24*time.Hour - time.Millisecond)
-						} else {
-							whereParts = append(whereParts,
-								fmt.Sprintf("%s = :%s", key, param))
-							args[param] = t
-						}
-					}
-				}
+		for key, val := range filterParam.Filters {
+			if !allowedSet[key] {
+				continue
 			}
 
-			// from
-			if raw, ok := filterParam.Filters[fromKey]; ok {
-				if str, ok := raw.(string); ok && str != "" {
+			// --- DATE RANGE ---
+			if strings.HasSuffix(key, "_from") {
+				column := strings.TrimSuffix(key, "_from")
+				if str, ok := val.(string); ok && str != "" {
 					if t, err := parseDateInput(str); err == nil {
-						param := key + "_from"
-						whereParts = append(whereParts,
-							fmt.Sprintf("%s >= :%s", key, param))
-						args[param] = t
+						filters = append(filters,
+							fmt.Sprintf("%s >= :%d", column, idx))
+						args = append(args, t)
+						idx++
 					}
 				}
+				continue
 			}
 
-			// to
-			if raw, ok := filterParam.Filters[toKey]; ok {
-				if str, ok := raw.(string); ok && str != "" {
+			if strings.HasSuffix(key, "_to") {
+				column := strings.TrimSuffix(key, "_to")
+				if str, ok := val.(string); ok && str != "" {
 					if t, err := parseDateInput(str); err == nil {
 						if !strings.Contains(str, "T") {
 							t = t.Add(24*time.Hour - time.Millisecond)
 						}
-						param := key + "_to"
-						whereParts = append(whereParts,
-							fmt.Sprintf("%s <= :%s", key, param))
-						args[param] = t
+						filters = append(filters,
+							fmt.Sprintf("%s <= :%d", column, idx))
+						args = append(args, t)
+						idx++
 					}
 				}
-			}
-		}
-
-		// --- BOOLEAN / NORMAL FILTERS ---
-		boolKeys := map[string]bool{
-			"enabled": true, "is_enabled": true, "is_deleted": true,
-			"is_blocked": true, "is_verified": true,
-		}
-
-		for k, v := range filterParam.Filters {
-			if !allowedSet[k] {
 				continue
 			}
 
-			param := k
-
-			// boolean normalization
-			if boolKeys[k] {
-				if str, ok := v.(string); ok {
+			// --- BOOLEAN ---
+			if boolKeys[key] {
+				if str, ok := val.(string); ok {
 					if parsed, err := strconv.ParseBool(str); err == nil {
-						args[param] = parsed
-						whereParts = append(whereParts, fmt.Sprintf("%s = :%s", k, param))
+						filters = append(filters,
+							fmt.Sprintf("%s = :%d", key, idx))
+						args = append(args, parsed)
+						idx++
 						continue
 					}
 				}
 			}
 
-			// default
-			args[param] = v
-			whereParts = append(whereParts, fmt.Sprintf("%s = :%s", k, param))
+			// --- DEFAULT ---
+			filters = append(filters,
+				fmt.Sprintf("%s = :%d", key, idx))
+			args = append(args, val)
+			idx++
 		}
 	}
 
@@ -374,12 +363,7 @@ func BuildOracleFilter(filterParam types.Filter, searchKeys map[string]string, a
 	offset := int64((filterParam.Page - 1) * filterParam.PerPage)
 	limit := int64(filterParam.PerPage)
 
-	return types.OracleQuery{
-		WhereClause: strings.Join(whereParts, " AND "),
-		Args:        args,
-		Offset:      offset,
-		Limit:       limit,
-	}
+	return strings.Join(filters, " AND "), args, offset, limit
 }
 
 // parseDateInput parses a date string that can be either date-only ("2026-01-05")
