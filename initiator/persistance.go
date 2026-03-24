@@ -77,7 +77,7 @@ import (
 )
 
 func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, notificationApi string, notificationProducer kafka.NotificationProducer, sharedKafkaProducer *shared_producer.NotificationProducer, clientOrchestrationProducer kafka.ClientOrchestrationProducer, accessListSegmentationProducer kafka.AccessListSegmentationProducer, redisRepository storage.RedisRepository, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
-
+	acctBlockPersistence := account_block.NewAccountBlockRepository(client, cfg, dbName, AccountBlockCollection, CPSActionsCollection, clientOrchestrationProducer, logger)
 	data := persistance.Persistence{
 		JobRolePersistence:              job_repo.NewJobRoleRepository(client, cfg, dbName, JobRolesCollection, logger),
 		DeviceVersionControlPersistence: deviceversioncontrol.NewDeviceVersionControlRepository(client, cfg, dbName, DeviceVersionControllCollection, clientOrchestrationProducer, logger),
@@ -89,7 +89,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		ResetSessionPersistence:         reset_session.NewResetSessionRepository(client, cfg, dbName, PINResetsCollection, logger),
 		CPSAction:                       cps_action.NewCPSActionRepository(client, cfg, dbName, CPSActionsCollection, logger),
 		AmountBasedAuthPersistence:      amount_based_auth.NewAmountBasedAuthRepository(client, cfg, dbName, AuthTierCollection, logger),
-		AccountBlockPersistence:         account_block.NewAccountBlockRepository(client, cfg, dbName, AccountBlockCollection, CPSActionsCollection, clientOrchestrationProducer, logger),
+		AccountBlockPersistence:         acctBlockPersistence,
 		PortalCardPersistence:           portal_card.NewPortalCardRepository(client, cfg, dbName, CardsCollection, logger),
 		MiniAppPersistence:              mini_app.NewMiniAppRepository(client, cfg, dbName, MiniAppsCollection, logger),
 		MerchantLookup:                  *merchant_lookup.NewMerchantLookupAdapter(*cfg, logger),
@@ -141,7 +141,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		CPSActionApproveIndexPersistence:  cps_actionrole_repo.NewCPSActionApproveIndexRepository(client, dbName, CPSActionApproveIndexCollection, logger),
 		EventMerchantPersistence:          event_merchant_repository.NewEventMerchantRepository(client, cfg, dbName, EventMerchantsCollection, logger),
 		MiniAppProductCodePersistence:     mini_app.NewMiniAppProdutCodeRepository(logger, client, cfg, dbName, MiniAppProductCodes),
-		AccessListSegmentationPersistence: access_list_segmentation_repository.NewAccessListSegmentationRepository(client, cfg, dbName, AccessListSegmentationCollection, accessListSegmentationProducer, logger),
+		AccessListSegmentationPersistence: access_list_segmentation_repository.NewAccessListSegmentationRepository(client, cfg, dbName, AccessListSegmentationCollection, accessListSegmentationProducer, acctBlockPersistence, logger),
 		MiniAppMerchant:                   mini_app.NewMiniAppMerchantRepository(client, cfg, dbName, MiniAppMerchantCollection, logger),
 		CustomerSegmentation:              customer_segmentation_repo.NewCustomerSegmentationRepository(client, cfg, dbName, CustomerSegmentationCollection, clientOrchestrationProducer, logger),
 		CPSRoles:                          cps_roles.NewCPSRolesStorage(client, cfg, dbName, []string{CPSRolesCollection, AccessListCollection, AccessListSegmentationCollection}, clientOrchestrationProducer, logger),
