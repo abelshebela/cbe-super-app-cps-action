@@ -1,10 +1,13 @@
 package department
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -293,4 +296,37 @@ func (d *DepartmentHandler) DisableDepartment(w http.ResponseWriter, r *http.Req
 	}
 	log.Infof("[DisableDepartment] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessDepartmentDisableRequestCreated, nil)
+}
+
+func (d *DepartmentHandler) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteDepartment", "handler", "department")
+	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, d.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	id := strings.TrimSpace(chi.URLParam(r, "id"))
+	if id == "" {
+		log.Errorf("[DeleteDepartment] missing department ID")
+		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
+		return
+	}
+
+	span.SetAttributes(attribute.String("department.id", id))
+
+	err := d.departmentService.DeleteDepartment(ctx, id)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[DeleteDepartment] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		log.Infof("[DeleteDepartment] soft delete request sent successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessDepartmentDeleted, nil)
+		return
+	}
+	log.Infof("[DeleteDepartment] request sent successfully for id: %s", id)
+	localization.SendSuccessResponse(w, localization.SuccessDepartmentDeleteRequestCreated, nil)
 }

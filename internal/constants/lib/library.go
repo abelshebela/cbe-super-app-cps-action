@@ -262,6 +262,126 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 	return filter, skip, limit
 }
 
+func BuildOracleFilter(filterParam types.Filter, searchKeys map[string]string, allowedKeys []string) types.OracleQuery {
+	whereParts := []string{"1=1"}
+	args := map[string]interface{}{}
+
+	// --- SEARCH ---
+	if filterParam.Search != "" {
+		searchParts := []string{}
+		for key, column := range searchKeys {
+			param := "search_" + key
+			searchParts = append(searchParts, column+" LIKE :"+param)
+			args[param] = "%" + filterParam.Search + "%"
+		}
+		if len(searchParts) > 0 {
+			whereParts = append(whereParts, "("+strings.Join(searchParts, " OR ")+")")
+		}
+	}
+
+	// --- FILTERS ---
+	if filterParam.Filters != nil {
+
+		allowedSet := make(map[string]bool)
+		for _, k := range allowedKeys {
+			allowedSet[k] = true
+		}
+
+		for _, key := range allowedKeys {
+
+			// --- DATE HANDLING ---
+			fromKey := key + "_from"
+			toKey := key + "_to"
+
+			// exact date
+			if raw, ok := filterParam.Filters[key]; ok {
+				if str, ok := raw.(string); ok && str != "" {
+					if t, err := parseDateInput(str); err == nil {
+						param := key + "_exact"
+						if !strings.Contains(str, "T") {
+							whereParts = append(whereParts,
+								fmt.Sprintf("%s BETWEEN :%s_start AND :%s_end", key, param, param))
+							args[param+"_start"] = t
+							args[param+"_end"] = t.Add(24*time.Hour - time.Millisecond)
+						} else {
+							whereParts = append(whereParts,
+								fmt.Sprintf("%s = :%s", key, param))
+							args[param] = t
+						}
+					}
+				}
+			}
+
+			// from
+			if raw, ok := filterParam.Filters[fromKey]; ok {
+				if str, ok := raw.(string); ok && str != "" {
+					if t, err := parseDateInput(str); err == nil {
+						param := key + "_from"
+						whereParts = append(whereParts,
+							fmt.Sprintf("%s >= :%s", key, param))
+						args[param] = t
+					}
+				}
+			}
+
+			// to
+			if raw, ok := filterParam.Filters[toKey]; ok {
+				if str, ok := raw.(string); ok && str != "" {
+					if t, err := parseDateInput(str); err == nil {
+						if !strings.Contains(str, "T") {
+							t = t.Add(24*time.Hour - time.Millisecond)
+						}
+						param := key + "_to"
+						whereParts = append(whereParts,
+							fmt.Sprintf("%s <= :%s", key, param))
+						args[param] = t
+					}
+				}
+			}
+		}
+
+		// --- BOOLEAN / NORMAL FILTERS ---
+		boolKeys := map[string]bool{
+			"enabled": true, "is_enabled": true, "is_deleted": true,
+			"is_blocked": true, "is_verified": true,
+		}
+
+		for k, v := range filterParam.Filters {
+			if !allowedSet[k] {
+				continue
+			}
+
+			param := k
+
+			// boolean normalization
+			if boolKeys[k] {
+				if str, ok := v.(string); ok {
+					if parsed, err := strconv.ParseBool(str); err == nil {
+						args[param] = parsed
+						whereParts = append(whereParts, fmt.Sprintf("%s = :%s", k, param))
+						continue
+					}
+				}
+			}
+
+			// default
+			args[param] = v
+			whereParts = append(whereParts, fmt.Sprintf("%s = :%s", k, param))
+		}
+	}
+
+	// --- PAGINATION ---
+	offset := int64((filterParam.Page - 1) * filterParam.PerPage)
+	limit := int64(filterParam.PerPage)
+
+	return types.OracleQuery{
+		WhereClause: strings.Join(whereParts, " AND "),
+		Args:        args,
+		Offset:      offset,
+		Limit:       limit,
+	}
+}
+
 // parseDateInput parses a date string that can be either date-only ("2026-01-05")
 // or full ISO datetime ("2026-01-05T07:10:33.695+00:00", "2026-01-05T07:10:33").
 func parseDateInput(s string) (time.Time, error) {
