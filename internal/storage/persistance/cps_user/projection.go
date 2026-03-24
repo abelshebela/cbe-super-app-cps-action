@@ -30,6 +30,9 @@ func CPSUserUpdateMapper(u *imodel.CPSUser) bson.M {
 	if u.JobTitle != "" {
 		set["job_title"] = u.JobTitle
 	}
+	if !u.Department.IsZero() {
+		set["department"] = u.Department
+	}
 
 	set["last_modified"] = time.Now()
 	return set
