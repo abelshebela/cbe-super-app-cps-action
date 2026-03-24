@@ -283,10 +283,11 @@ func (a *AmountBasedAuthHandler) ResetConfig(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if !request.Validate(currency) {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Message)
-		return
-	}
+	// if !request.Validate(currency) {
+
+	// 	localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Message)
+	// 	return
+	// }
 
 	span.SetAttributes(attribute.String("amount_based_auth.currency", string(currency)))
 
