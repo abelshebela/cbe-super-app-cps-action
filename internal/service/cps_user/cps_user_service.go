@@ -18,6 +18,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -221,29 +222,41 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 			return errors.New(localization.ErrorDepartmentNotFound.Code)
 		}
 	}
-	var updated cpsuser.UpdateUserRequest
+	changed := false
+	updated := *currentUser
 	if req.UserName != "" {
+		changed = true
 		updated.UserName = req.UserName
 	}
 	if req.FullName != "" {
+		changed = true
 		updated.FullName = req.FullName
 	}
 	if req.PhoneNumber != "" {
+		changed = true
 		updated.PhoneNumber = req.PhoneNumber
 	}
 	if req.Gender != "" {
+		changed = true
 		updated.Gender = req.Gender
 	}
 	if req.Email != "" {
+		changed = true
 		updated.Email = req.Email
 	}
 	if req.JobTitle != "" {
+		changed = true
 		updated.JobTitle = req.JobTitle
 	}
 	if req.Department != "" {
-		updated.Department = req.Department
+		changed = true
+		updated.Department, err = bson.ObjectIDFromHex(req.Department)
+		if err != nil {
+			span.AddEvent("failed to convert department id", trace.WithAttributes(attribute.String("error", err.Error())))
+			return errors.New("invalid department id")
+		}
 	}
-	if updated == (cpsuser.UpdateUserRequest{}) {
+	if !changed {
 		span.AddEvent("no fields to update", trace.WithAttributes(attribute.String("user_code", usercode)))
 		s.logger.Infof("[CpsUserSvc][Update] no fields to update for user code: %s", usercode)
 		return errors.New("no fields to update")
