@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"net/http"
@@ -361,15 +362,26 @@ func HandleMongoError(err error) (string, string) {
 }
 
 func GenerateCPSUserCode() string {
+	// Numeric time part (last 9 digits of Unix nano for compactness)
+	now := time.Now().UnixNano()
+	timePart := fmt.Sprintf("%09d", now%1e9)
 
-	const prefix = "SRM"
+	// Random part
+	const length = 6
+	bytes := make([]byte, length)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		panic(err) // handle properly in production
+	}
 
-	now := time.Now()
-	year := now.Format("06")                        // last 2 digits of year
-	dayOfYear := fmt.Sprintf("%03d", now.YearDay()) // day of year zero-padded to 3 digits
-	timestamp := time.Now().Format("150405.000000")
+	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	for i := range bytes {
+		bytes[i] = charset[int(bytes[i])%len(charset)]
+	}
 
-	return prefix + year + dayOfYear + "_" + timestamp
+	randomPart := string(bytes)
+
+	return fmt.Sprintf("%s_%s", timePart, randomPart)
 }
 func GenerateBPSUserCode() string {
 	const prefix = "BANKBPSUSER_"

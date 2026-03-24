@@ -150,6 +150,7 @@ type CPSUserWithDepartment struct {
 	Role         string        `json:"role,omitempty" bson:"role"`
 	Gender       string        `json:"gender,omitempty" bson:"gender"`
 	PhoneNumber  string        `json:"phone_number,omitempty" bson:"phone_number"`
+	Department   Department    `json:"department,omitempty" bson:"department"`
 	Email        string        `json:"email,omitempty" bson:"email"`
 	UserName     string        `json:"username,omitempty" bson:"username"`
 	JobTitle     string        `json:"job_title,omitempty" bson:"job_title"`
