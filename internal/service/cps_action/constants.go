@@ -104,6 +104,7 @@ const (
 	// RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestCreateDepartment           RequestAction = "CREATE_DEPARTMENT"
 	RequestUpdateDepartment           RequestAction = "UPDATE_DEPARTMENT"
+	RequestDeleteDepartment           RequestAction = "DELETE_DEPARTMENT"
 	RequestEnableDisableDepartment    RequestAction = "ENABLE_DISABLE_DEPARTMENT"
 	RequestEnableUser                 RequestAction = "ENABLE_USER"
 	RequestDisableUser                RequestAction = "DISABLE_USER"
@@ -833,6 +834,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateDepartment,
 		RequestUpdateDepartment,
 		RequestEnableDisableDepartment,
+		RequestDeleteDepartment,
 	},
 	"SERVICEFEE": {
 		RequestCreateServiceFee,
