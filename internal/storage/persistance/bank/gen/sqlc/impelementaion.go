@@ -164,22 +164,25 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 
 	filters = append(filters, "1=1") // always true, simplifies appending ANDs
 
-	if filterParam.Search != "" && filterParam.Search != "enabled" {
-		search := "%" + strings.ToUpper(filterParam.Search) + "%"
-		filters = append(filters, fmt.Sprintf("(UPPER(bank_name) LIKE :%d OR UPPER(bic_code) LIKE :%d)", idx, idx+1))
-		args = append(args, search, search)
-		idx += 2
-	}
-	if filterParam.Search == "enabled" {
-		filters = append(filters, "is_enabled = 1")
-	}
+	// if filterParam.Search != "" && filterParam.Search != "enabled" {
+	// 	// search := "%" + strings.ToUpper(filterParam.Search) + "%"
+	// 	filters = append(filters, fmt.Sprintf("(UPPER(bank_name) LIKE :%d OR UPPER(bic_code) LIKE :%d)", idx, idx+1))
+	// 	// args = append(args, search, search)
+	// 	idx += 2
+	// }
+	// if filterParam.Search == "enabled" {
+	// 	filters = append(filters, "is_enabled = 1")
+	// }
 
-	oracleQuery := lib.BuildOracleFilter(filterParam, map[string]string{"bank_name": "UPPER(bank_name)", "bic_code": "UPPER(bic_code)"}, []string{"bank_name", "bic_code", "is_enabled"})
-
-	whereClause := oracleQuery.WhereClause
-	args = append(args, oracleQuery.Args)
-	offset := oracleQuery.Offset
-	limit := oracleQuery.Limit
+	whereClause, args, offset, limit := lib.BuildOracleFilter(
+		filterParam,
+		map[string]string{"bank_name": "UPPER(bank_name)", "bic_code": "UPPER(bic_code)"},
+		[]string{"bank_name", "bic_code", "is_enabled"},
+	)
+	// whereClause := whereClause
+	// args = append(args, args)
+	// offset := oracleQuery.Offset
+	// limit := oracleQuery.Limit
 
 	// whereClause := strings.Join(filters, " AND ")
 	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] whereClause: %s, args: %+v", whereClause, args)
