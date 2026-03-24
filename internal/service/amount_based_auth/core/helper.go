@@ -54,8 +54,8 @@ func BuildTiersFromRequest(currency constants.CurrencyType, tiers []amountauthdt
 		result[i] = local_model.AuthTier{
 			ID:           bson.NewObjectID(),
 			Currency:     currency,
-			MinAmount:    t.MinAmount,
-			MaxAmount:    t.MaxAmount,
+			MinAmount:    uint64(t.MinAmount),
+			MaxAmount:    uint64(t.MaxAmount),
 			Method:       t.Method,
 			Enabled:      true,
 			IsDeleted:    false,

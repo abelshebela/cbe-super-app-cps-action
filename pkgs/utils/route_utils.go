@@ -42,6 +42,10 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multi
 		return nil, nil, err
 	}
 
+	if IsValidImage(fileHeader) {
+		return nil, nil, errors.New(localization.ErrorInvalidFileUpload.Code)
+	}
+
 	return file, fileHeader, nil
 }
 
