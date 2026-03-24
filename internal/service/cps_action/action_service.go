@@ -567,21 +567,6 @@ func (ca *cpsActionService) ExportCpsActionData(
 	}
 	//=================================
 
-	// 3️Stream from repository
-	// err = ca.repo.StreamByDateRange(ctx, startDate, endDate,
-	// 	func(action *model.CPSAction) error {
-	// 		return ca.processCPSAction(writer, action)
-	// 	},
-	// )
-	// if err != nil {
-	// 	return "", fmt.Errorf("stream data: %w", err)
-	// }
-
-	// writer.Flush()
-	// if err := writer.Error(); err != nil {
-	// 	return "", fmt.Errorf("flush csv: %w", err)
-	// }
-
 	// 4️Upload to MinIO
 	objectName := fmt.Sprintf(
 		"exports/cps-actions/cps_actions_%s_to_%s_%d.csv",
@@ -606,7 +591,6 @@ func (ca *cpsActionService) ExportCpsActionData(
 		ca.logger.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
 		return "", errors.New(localization.CpsActionDataExportedError.Code)
 	}
-
 
 	baseURL := strings.TrimSuffix(ca.minioBaseURL, "/")
 	if baseURL != "" {
