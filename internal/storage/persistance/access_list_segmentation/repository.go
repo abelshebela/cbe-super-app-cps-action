@@ -387,6 +387,7 @@ func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCodeAndKeys(ctx cont
 
 // BulkDisable implements [storage.AccessListSegmentationRepository].
 func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error {
+	a.logger.Infof("[AccessListSegmentation][BulkDisable] bulk disable request: %+v", req)
 	var filter bson.M
 	var objID bson.ObjectID
 	objID, err := bson.ObjectIDFromHex(req.ID)
@@ -415,7 +416,8 @@ func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_lis
 	}
 	branches := core.GetAllBranches(ctx, req.ID, a.accBlock)
 
-	if _, ok := filter["segmentation_code"]; ok {
+	if _, ok := filter["segmented_id"]; ok {
+		a.logger.Infof("[AccessListSegmentation][BulkDisable] bulk disable by segmented id, preparing kafka message")
 		als := make([]local_model.AccessListSegmentation, len(req.Keys))
 		for i, key := range req.Keys {
 			als[i] = local_model.AccessListSegmentation{
