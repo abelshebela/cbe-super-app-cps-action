@@ -115,6 +115,7 @@ func (q *Queries) FindByBIC(ctx context.Context, bic string) (*imodel.BankOracle
 }
 
 func (q *Queries) FindByNameOrBIC(ctx context.Context, bic, name string) (*imodel.BankOracle, error) {
+	q.logger.Infof("[BankOracleRepository][FindByNameOrBIC] called with name: %s, bic: %s", name, bic)
 	var conditions []string
 	var args []interface{}
 	idx := 1
