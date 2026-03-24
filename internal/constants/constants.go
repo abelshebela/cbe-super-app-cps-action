@@ -920,8 +920,7 @@ const (
 	RequestDisAbleVaultCategory RequestAction = "DISABLE_VAULT_CATEGORY"
 
 	// Vault Withdrawal
-	RequestCreateWithdrawal RequestAction = "CREATE_LOCKED_VAULT_WITHDRAWAL"
-	RequestUpdateWithdrawal RequestAction = "UPDATE_LOCKED_VAULT_WITHDRAWAL"
+	RequestUnlockDeadlock RequestAction = "UNLOCK_DEADLOCK_REQUEST"
 
 	// Event
 	RequestCreateEvent         RequestAction = "CREATE_EVENT"

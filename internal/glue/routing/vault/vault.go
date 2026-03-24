@@ -44,14 +44,6 @@ func Init(router chi.Router, handler bankgroupcategory.VaultCategoryHandler, aut
 				authMiddleware.AuthenticateToken,
 			},
 		},
-		// {
-		// 	Method:  http.MethodDelete,
-		// 	Path:    "/vault/categories/delete/{id}",
-		// 	Handler: handler.DeleteVaultCategory,
-		// 	Middlewares: []func(next http.Handler) http.Handler{
-		// 		authMiddleware.AuthenticateToken,
-		// 	},
-		// },
 		{
 			Method:  http.MethodPatch,
 			Path:    "/vault/categories/enable/{id}",
@@ -89,16 +81,8 @@ func Init(router chi.Router, handler bankgroupcategory.VaultCategoryHandler, aut
 
 		// VAULT WITHDRAWAL REQUEST
 		// {
-		// 	Method:  http.MethodPost,
-		// 	Path:    "/vault/withdrawals/create",
-		// 	Handler: handler.CreateWithdrawalRequest,
-		// 	Middlewares: []func(next http.Handler) http.Handler{
-		// 		authMiddleware.AuthenticateToken,
-		// 	},
-		// },
-		// {
 		// 	Method:  http.MethodPatch,
-		// 	Path:    "/vault/withdrawals/{id}/cancel",
+		// 	Path:    "/vault/deadlocks/{id}/approve",
 		// 	Handler: handler.UpdateWithDrawalRequest,
 		// 	Middlewares: []func(next http.Handler) http.Handler{
 		// 		authMiddleware.AuthenticateToken,
@@ -106,32 +90,24 @@ func Init(router chi.Router, handler bankgroupcategory.VaultCategoryHandler, aut
 		// },
 		{
 			Method:  http.MethodPatch,
-			Path:    "/vault/withdrawals/{id}/approve",
-			Handler: handler.UpdateWithDrawalRequest,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-			},
-		},
-		{
-			Method:  http.MethodPatch,
-			Path:    "/vault/withdrawals/{id}/reject",
-			Handler: handler.UpdateWithDrawalRequest,
+			Path:    "/vault/deadlocks/{id}/disable",
+			Handler: handler.UlockDeadlockRequest,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/vault/withdrawals",
-			Handler: handler.GetAllWithdrawalRequests,
+			Path:    "/vault/deadlocks",
+			Handler: handler.GetAllDeadlockRequests,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/vault/withdrawals/{id}",
-			Handler: handler.GetWithdrawalRequestById,
+			Path:    "/vault/deadlocks/{id}",
+			Handler: handler.GetDeadlockRequestById,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},
