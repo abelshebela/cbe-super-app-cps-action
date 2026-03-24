@@ -27,7 +27,6 @@ import (
 	logistics_merchant_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/logistics_merchant"
 	"cbe-super-app-cps-action/internal/constants/interfaces/transaction"
 	ussd_merchant_interface "cbe-super-app-cps-action/internal/constants/interfaces/ussd_merchant"
-	vaultAmountTierInbound "cbe-super-app-cps-action/internal/constants/interfaces/vault_amount_tier"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/ussd_merchant"
 
 	cpsRoleInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_roles"
@@ -109,7 +108,6 @@ import (
 	transaction_handler "cbe-super-app-cps-action/internal/handlers/rest/http/transaction"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	vaultcategoryhandler "cbe-super-app-cps-action/internal/handlers/rest/http/vault"
-	amount_tier_handler "cbe-super-app-cps-action/internal/handlers/rest/http/vault_amount_tier"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -160,7 +158,6 @@ type Handler struct {
 	TransactionHandler            transaction.TransactionInterface
 	EventMerchantHandler          event_merchant_port.EventMerchantInboundAdaptor
 	LogisticsMerchantHandler      logistics_merchant_adaptor.LogisticMerchantInboundAdaptor
-	AmountTierHandler             vaultAmountTierInbound.VaultAmountTierHandler
 	EcommerceMerchantHandler      ecommerce_merchant.EcommerceMerchant
 	AccessLostSegmentationHandler accesslistsegmentation.AccessListSegmentationHandler
 	CustomerSegmentationHandler   customer_seg.CustomerSegmentation
@@ -215,7 +212,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger, queueMa
 		TransactionHandler:       transaction_handler.NewTransactionHandler(serviceLayer.TransactionService, logger),
 		EventMerchantHandler:     event_merchant_handler.NewEventMerchantHandler(serviceLayer.EventMerchantService, logger),
 		LogisticsMerchantHandler: logistics_merchant_handler.NewLogisticsMerchantHandler(serviceLayer.LogisticsMerchantService, logger),
-		AmountTierHandler:        amount_tier_handler.NewVaultAmountTierHandler(serviceLayer.VaultAmountTierService, logger),
 		EcommerceMerchantHandler: ecommerce_handler.NewEcommerceMerchantdapter(serviceLayer.EcommerceMerchant, logger),
 
 		AccessLostSegmentationHandler: accesslistsegmentaion.InitAccessListSegmentationAdapter(serviceLayer.AccessListSegmentationService, logger),

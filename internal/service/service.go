@@ -34,7 +34,6 @@ import (
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
-	vault_amount_dto "cbe-super-app-cps-action/internal/constants/dto/vault_amount_tier"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -604,7 +603,6 @@ type ServiceLayer struct {
 	EventMerchantService          EventMerchantService
 	LogisticsMerchantService      LogisticsMerchantService
 	JobRoleService                JobRoleService
-	VaultAmountTierService        VaultAmountBasedTierService
 	AccessListSegmentationService AccessListSegmentationService
 	CustomerSegmentation          CustomerSegmentationService
 	CPSRoles                      CPSRolesService
@@ -672,7 +670,6 @@ type ServiceContainer struct {
 	EventMerchantServiceContainer      EventMerchantService
 	LogisticsMerchantServiceContainer  LogisticsMerchantService
 	ServiceContainer                   ServicesService
-	VaultAmountTierContainer           VaultAmountBasedTierService
 	MiniAppProductCodeContainer        MiniappProductCodeService
 	AccessListSegmentationContainer    AccessListSegmentationService
 	CustomerSegmentationContainer      CustomerSegmentationService
@@ -724,19 +721,10 @@ type VaultCategoryService interface {
 	FindVaultTransaction(ctx context.Context, id string) (*imodel.VaultTransaction, error)
 
 	// Withdrawal Request
-	CreateWithdrawalRequest(ctx context.Context, req *vault_dto.CreateWithdrawalRequest) error
-	UpdateWithdrawalRequest(ctx context.Context, id string, req *vault_dto.UpdateWithdrawalStatusRequest) error
-	GetAllWithdrawalRequests(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.Withdrawal], error)
-	GetWithdrawalRequest(ctx context.Context, id string) (*imodel.Withdrawal, error)
-}
-type VaultAmountBasedTierService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	CreateAmountTier(ctx context.Context, req *vault_amount_dto.VaultAmountTierRequest) (string, error)
-	FindAllAmountTiers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.VaultAmountTier], error)
-	GetAmountTier(ctx context.Context, id string) (*model.VaultAmountTier, error)
-	UpdateAmountTier(ctx context.Context, id string, req *vault_amount_dto.UpdateVaultAmountTierRequest) (string, error)
-	DeleteAmountTier(ctx context.Context, id string) (string, error)
-	EnableOrDisableAmountTier(ctx context.Context, id string, enable bool) (string, error)
+	// CreateWithdrawalRequest(ctx context.Context, req *vault_dto.CreateWithdrawalRequest) error
+	UnlockDeadlockRequest(ctx context.Context, id string) error
+	GetAllDeadlockRequests(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.DeadlockRequest], error)
+	GetDeadlockRequestById(ctx context.Context, id string) (*imodel.DeadlockRequest, error)
 }
 
 type ArticleService interface {
