@@ -40,7 +40,6 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -61,23 +60,23 @@ func IsValidCBEAccountNumber(acc string) bool {
 	return (l >= 8 && l <= 10) || (l >= 13 && l <= 16)
 }
 
-func ParseObjectID(id interface{}) (primitive.ObjectID, error) {
+func ParseObjectID(id interface{}) (bson.ObjectID, error) {
 	switch v := id.(type) {
 
 	case string:
 		// validate + convert
-		objID, err := primitive.ObjectIDFromHex(v)
+		objID, err := bson.ObjectIDFromHex(v)
 		if err != nil {
-			return primitive.NilObjectID, err
+			return bson.NilObjectID, err
 		}
 		return objID, nil
 
-	case primitive.ObjectID:
+	case bson.ObjectID:
 		// already ObjectID
 		return v, nil
 
 	default:
-		return primitive.NilObjectID, fmt.Errorf("invalid id type")
+		return bson.NilObjectID, fmt.Errorf("invalid id type")
 	}
 }
 
