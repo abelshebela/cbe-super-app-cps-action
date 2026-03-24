@@ -162,11 +162,12 @@ func SendBadRequestResponse(w http.ResponseWriter, message string) {
 		message = MsgBadRequest
 	}
 
+	m := strings.Split(message, ":")
 	customResponseCode := ResponseCode{
 		Code:       "ERROR_BAD_REQUEST",
 		TimeStamp:  time.Now(),
 		StatusCode: StatusBadRequest,
-		Message:    message,
+		Message:    m[1],
 		Type:       "error",
 	}
 
