@@ -3,8 +3,6 @@ package amount_based_auth
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"time"
-
-	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 // ----------- Valid methods set -----------
@@ -42,6 +40,7 @@ func (r AddCurrencyRequest) Validate() bool {
 	if len(r.Tiers) != len(r.Methods) {
 		return false
 	}
+
 	// check each method is valid and no duplicates
 	seen := map[constants.Method]bool{}
 	for _, m := range r.Methods {
@@ -68,9 +67,16 @@ func (r AddCurrencyRequest) Validate() bool {
 			return false
 		}
 	}
-	if validation.Validate(&r.Methods, validation.Required, validation.Each(validation.In(constants.OPEN, constants.PIN, constants.OTPANDPIN))) != nil {
-		return false
-	}
+
+	// if err := validation.Validate(
+	// 	&r.Methods,
+	// 	validation.Required,
+	// 	validation.Each(
+	// 		validation.In(constants.OPEN, constants.PIN, constants.OTPANDPIN),
+	// 	),
+	// ); err != nil {
+	// 	return false
+	// }
 	return true
 }
 

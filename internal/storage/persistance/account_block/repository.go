@@ -49,6 +49,39 @@ func NewAccountBlockRepository(client *mongo.Client, cfg *config.VaultConfig, db
 	}
 }
 
+// GetAllBranches implements [storage.AccountBlockRepository].
+func (a *AccountBlockStorage) GetAllBranches(ctx context.Context, id string) ([]model.AccountBlock, error) {
+	a.logger.Infof("[AccountBlockStorage][GetAllBranches] fetching all branches for segmented ID: %s", id)
+	collection := a.client.Database(a.dbName).Collection("account_block")
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		a.logger.Errorf("[AccountBlockStorage][GetAllBranches] invalid ObjectID: %s", id)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{
+			"type": "B",
+			"$or": []bson.M{
+				{"city_id": objID},
+				{"region_id": objID},
+				{"district_id": objID},
+			},
+		}}},
+	}
+	cursor, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		a.logger.Errorf("[AccountBlockStorage][GetAllBranches] Error aggregating account blocks: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer cursor.Close(ctx)
+
+	var results []model.AccountBlock
+	if err := cursor.All(ctx, &results); err != nil {
+		a.logger.Errorf("[AccountBlockStorage][GetAllBranches] Error decoding account blocks: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return results, nil
+}
 func (a *AccountBlockStorage) GetBranchByIds(ctx context.Context, id string) (*model.AccountBlock, error) {
 	a.logger.Infof("[AccountBlockStorage][GetBranchByIds] fetching branch by id: %s", id)
 
