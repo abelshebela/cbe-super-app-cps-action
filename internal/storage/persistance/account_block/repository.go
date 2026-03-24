@@ -65,6 +65,7 @@ func (a *AccountBlockStorage) GetAllBranches(ctx context.Context, id string) ([]
 				{"city_id": objID},
 				{"region_id": objID},
 				{"district_id": objID},
+				{"_id": objID},
 			},
 		}}},
 	}
