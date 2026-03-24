@@ -76,9 +76,9 @@ type PermissionGroupResponse struct {
 }
 
 type DepartmentResponse struct {
-	ID          bson.ObjectID `json:"id" bson:"id"`
-	Name        string        `json:"name" bson:"name"`
-	PortalCards []string      `json:"portal_cards" bson:"portal_cards"`
+	ID   bson.ObjectID `json:"id" bson:"id"`
+	Name string        `json:"name" bson:"name"`
+	// PortalCards []string      `json:"portal_cards" bson:"portal_cards"`
 }
 
 type CpsUserResponse struct {

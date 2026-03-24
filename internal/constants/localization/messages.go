@@ -78,13 +78,17 @@ const (
 
 	// Bank related success messages
 	MsgBankCreatedRequestSent     = "Bank created request sent successfully"
+	MsgBankCreatedSuccessfully    = "Bank created successfully"
 	MsgBankUpdatedRequestSent     = "Bank updated request sent successfully"
+	MsgBankUpdatedSuccessfully    = "Bank updated successfully"
 	MsgBankDeletedRequestSent     = "Bank deleted request sent successfully"
 	MsgBanksRetrievedRequestSent  = "Banks retrieved request sent successfully"
 	MsgBankRetrievedSuccessfully  = "Bank retrieved successfully"
 	MsgBankRejectedRequestSent    = "Bank rejected request sent successfully"
 	MsgBankDisableRequestSent     = "Bank disable request sent successfully"
+	MsgBankDisabledSuccessfully   = "Bank disabled successfully"
 	MsgBankEnableRequestSent      = "Bank enable request sent successfully"
+	MsgBankEnabledSuccessfully    = "Bank enabled successfully"
 	MsgBankLogoUpdatedRequestSent = "Bank logo updated request sent successfully"
 
 	MsgJobRolesFetchedSuccess = "Job roles fetched successfully"
