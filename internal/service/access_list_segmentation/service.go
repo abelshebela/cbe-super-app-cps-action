@@ -166,11 +166,11 @@ func (a *AccessListSegmentationService) EnableDisableAccessListSegmentation(ctx 
 		a.logger.Errorf("[AccessListSegSvc][EnableDisable] keys not found id: %s", id)
 		return errors.New(localization.ErrorAccessListSegmentationKeyNotFound.Code)
 	}
-
 	bulkDisable := access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest{
 		Keys: keys,
 		ID:   id,
 	}
+	bulkDisable.Enabled = enabled
 
 	// updatedAccessListSegmentation := accessListSegmentation
 	// for _, accessListSegmentation := range updatedAccessListSegmentation {
