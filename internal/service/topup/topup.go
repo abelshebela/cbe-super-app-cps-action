@@ -121,27 +121,31 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 	}
 
 	if req.Name != "" && prevtopup.Name != req.Name {
-		existing, err = s.repo.FindByOr(ctx, bson.M{"name": req.Name})
+		existing, err = s.repo.FindByOr(ctx, bson.M{"name": bson.M{
+			"$regex":   req.Name,
+			"$options": "i",
+		}})
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
 				s.logger.Errorf("[TopupSvc][Update] check name err: %v", err)
 				return err
 			}
-		}
-		if existing.Name != "" {
+		} else {
 			span.AddEvent("Topup name  already exists", trace.WithAttributes(attribute.String("name", req.Name)))
 			return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
 		}
 	}
 	if req.Code != "" && prevtopup.Code != req.Code {
-		topupByCode, err := s.repo.FindByOr(ctx, bson.M{"code": req.Code})
+		_, err := s.repo.FindByOr(ctx, bson.M{"code": bson.M{
+			"$regex":   req.Code,
+			"$options": "i",
+		}})
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
 				s.logger.Errorf("[TopupSvc][Update] check code err: %v", err)
 				return err
 			}
-		}
-		if topupByCode.Code == req.Code {
+		} else {
 			span.AddEvent("Topup code already exists", trace.WithAttributes(attribute.String("code", req.Code)))
 			return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
 		}

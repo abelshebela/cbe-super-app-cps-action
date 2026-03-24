@@ -104,13 +104,13 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 
 	method, ok := common_util.GetParam(r, "method")
 	if !ok {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Message)
 		return
 	}
 
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Message)
 		return
 	}
 
@@ -118,7 +118,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.RecordError(err)
 		log.Errorf("[UpdateAmountBasedAuth] failed to decode request: %v", err)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
 
@@ -132,7 +132,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 
 	if !request.Validate(methodEnum) {
 		span.SetAttributes(attribute.String("amount_based_auth.method", string(methodEnum)))
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Message)
 		return
 	}
 
@@ -175,7 +175,7 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 
 	idParam, ok := common_util.GetParam(r, "id")
 	if !ok {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Message)
 		return
 	}
 
@@ -220,12 +220,12 @@ func (a *AmountBasedAuthHandler) AddCurrency(w http.ResponseWriter, r *http.Requ
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.RecordError(err)
 		log.Errorf("[AddCurrency] failed to decode request: %v", err)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
 
 	if !request.Validate() {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
 
@@ -270,7 +270,7 @@ func (a *AmountBasedAuthHandler) ResetConfig(w http.ResponseWriter, r *http.Requ
 
 	currencyParam, ok := common_util.GetParam(r, "currency")
 	if !ok {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Message)
 		return
 	}
 	currency := constants.CurrencyType(currencyParam)
@@ -279,12 +279,12 @@ func (a *AmountBasedAuthHandler) ResetConfig(w http.ResponseWriter, r *http.Requ
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.RecordError(err)
 		log.Errorf("[ResetConfig] failed to decode request: %v", err)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
 
 	if !request.Validate(currency) {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Message)
 		return
 	}
 
