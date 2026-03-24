@@ -1,6 +1,11 @@
 package core
 
-import "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+import (
+	"cbe-super-app-cps-action/internal/storage"
+	"context"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+)
 
 func ChangeTopicName(cfg *config.VaultConfig) string {
 	var topic string
@@ -17,4 +22,19 @@ func ChangeTopicName(cfg *config.VaultConfig) string {
 		topic = "customer_segmentation_staging"
 	}
 	return topic
+}
+
+func GetAllBranches(ctx context.Context, segmentedID string, repo storage.AccountBlockRepository) []string {
+	// Implementation for getting all branches
+	branches, err := repo.GetAllBranches(ctx, segmentedID)
+	if err != nil {
+		// Handle error appropriately
+		return []string{}
+	}
+	// Extract branch IDs from the retrieved branches
+	var branchIDs []string
+	for _, branch := range branches {
+		branchIDs = append(branchIDs, branch.ID.Hex())
+	}
+	return branchIDs
 }

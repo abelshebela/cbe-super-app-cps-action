@@ -9,6 +9,7 @@ import (
 	bank_core "cbe-super-app-cps-action/internal/handlers/rest/http/bank/core"
 	"cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 	"strconv"
 
 	"net/http"
@@ -54,6 +55,10 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createOneBank", "handler", "bank")
 	defer span.End()
 	log := common_utils.LoggerFromCtx(ctx, b.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	var bankRequest bank_dto.CreateBankRequest
 
 	file, fileHeader, err := bank_core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), b.logger)
@@ -120,6 +125,12 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	if md.IsMakerOnly {
+		log.Infof("[CreateOneBank] bank created successfully for bic_code: %s", bankRequest.BICCode)
+		localization.SendSuccessResponse(w, localization.SuccessBankCreatedSuccessfully, nil)
+		return
+	}
 	log.Infof("[CreateOneBank] request sent successfully for bank bic_code: %s", bankRequest.BICCode)
 	localization.SendSuccessResponse(w, localization.SuccessBankCreatedRequestSent, nil)
 }
@@ -182,10 +193,14 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableBank", "handler", "bank")
 	defer span.End()
 	log := common_utils.LoggerFromCtx(ctx, b.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	span.SetAttributes(attribute.String("bank.id", id))
 	if id == "" {
-		log.Errorf("[BankH] missing id param")
+		log.Errorf("[BankDisable] missing id param")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
@@ -193,12 +208,21 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	err := b.bankService.EnableOrDisableBank(ctx, id, false)
 	if err != nil {
 		span.RecordError(err)
-		log.Errorf("[Disable] service error: %v", err)
+		log.Errorf("[BankDisable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	log.Infof("[Disable] request sent successfully for id: %s", id)
+	log.Infof("[BankDisable] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBankDisableRequestCreated, nil)
+
+	if md.IsMakerOnly {
+		log.Infof("[BankDisable] bank disabled successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessBankDisabledSuccessfully, nil)
+		return
+	}
+	log.Infof("[BankDisable] request sent successfully for id: %s", id)
+	localization.SendSuccessResponse(w, localization.SuccessBankDisableRequestCreated, nil)
+
 }
 
 // Enable godoc
@@ -219,6 +243,10 @@ func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableBank", "handler", "bank")
 	defer span.End()
 	log := common_utils.LoggerFromCtx(ctx, b.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	span.SetAttributes(attribute.String("bank.id", id))
 	if id == "" {
@@ -230,11 +258,16 @@ func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	err := b.bankService.EnableOrDisableBank(ctx, id, true)
 	if err != nil {
 		span.RecordError(err)
-		log.Errorf("[Enable] service error: %v", err)
+		log.Errorf("[BankEnable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	log.Infof("[Enable] request sent successfully for id: %s", id)
+	if md.IsMakerOnly {
+		log.Infof("[BankEnable] bank enabled successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessBankEnabledSuccessfully, nil)
+		return
+	}
+	log.Infof("[BankEnable] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBankEnableRequestCreated, nil)
 }
 
@@ -396,9 +429,14 @@ func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id} [patch]
 func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
+
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateOneBank", "handler", "bank")
 	defer span.End()
 	log := common_utils.LoggerFromCtx(ctx, b.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	span.SetAttributes(attribute.String("bank.id", id))
 	if id == "" {
@@ -463,7 +501,12 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	if md.IsMakerOnly {
+		log.Infof("[UpdateOneBank] bank updated successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessBankUpdated, nil)
+		return
+	}
 	log.Infof("[UpdateOneBank] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBankUpdatedRequestSent, nil)
+
 }
