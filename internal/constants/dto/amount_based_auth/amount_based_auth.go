@@ -52,6 +52,7 @@ func (r AddCurrencyRequest) Validate() bool {
 		}
 		seen[m] = true
 	}
+
 	// validate tier amounts
 	for i, t := range r.Tiers {
 		// Allow MinAmount = 0 for OPEN (free) method or when it's the only method
