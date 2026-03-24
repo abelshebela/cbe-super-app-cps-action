@@ -75,9 +75,14 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDeleteBanksRequest,
 	SuccessDeleteRequestCreated,
 	SuccessGetOneBank,
+	SuccessBankCreatedRequestSent,
+	SuccessBankCreatedSuccessfully,
 	SuccessBankDisableRequestCreated,
+	SuccessBankDisabledSuccessfully,
 	SuccessBankEnableRequestCreated,
+	SuccessBankEnabledSuccessfully,
 	SuccessBankUpdatedRequestSent,
+	SuccessBankUpdated,
 	SuccessWalletEnableRequestSubmitted,
 	SuccessWalletDisableRequestSubmitted,
 	SuccessWalletEnabled,
@@ -1111,6 +1116,13 @@ var (
 		Type:       "success",
 	}
 
+	SuccessBankCreatedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_BANK_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgBankCreatedSuccessfully,
+		Type:       "success",
+	}
+
 	SuccessRoleCreatedRequestSent = ResponseCode{
 		Code:       "SUCCESS_Role_CREATED_REQUEST_SENT",
 		StatusCode: StatusCreated,
@@ -1263,6 +1275,12 @@ var (
 
 	SuccessBankUpdatedRequestSent = ResponseCode{
 		Code:       "SUCCESS_BANK_UPDATED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgBankUpdatedRequestSent,
+		Type:       "success",
+	}
+	SuccessBankUpdated = ResponseCode{
+		Code:       "SUCCESS_BANK_UPDATED",
 		StatusCode: StatusOK,
 		Message:    MsgBankUpdatedRequestSent,
 		Type:       "success",
@@ -3092,11 +3110,23 @@ var (
 		Message:    MsgBankDisableRequestSent,
 		Type:       "success",
 	}
+	SuccessBankDisabledSuccessfully = ResponseCode{
+		Code:       "SUCCESS_BANK_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBankDisabledSuccessfully,
+		Type:       "success",
+	}
 
 	SuccessBankEnableRequestCreated = ResponseCode{
 		Code:       "SUCCESS_BANK_ENABLE_REQUEST_CREATED",
 		StatusCode: StatusOK,
 		Message:    MsgBankEnableRequestSent,
+		Type:       "success",
+	}
+	SuccessBankEnabledSuccessfully = ResponseCode{
+		Code:       "SUCCESS_BANK_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBankEnabledSuccessfully,
 		Type:       "success",
 	}
 

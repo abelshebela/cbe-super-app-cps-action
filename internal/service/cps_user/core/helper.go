@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func UsernameExists(ctx context.Context, userCode string, repo storage.CpsUserRepository, username string) (bool, error) {
@@ -112,12 +113,16 @@ func ConvertToResponseDTO(portalCard []string, user *cpsuser.CpsUserPopulatedRes
 }
 
 func CPSUModel(req cpsuser.CreateUserRequest) imodel.CPSUser {
+	depID, err := bson.ObjectIDFromHex(req.Department)
+	if err != nil {
+		// Handle error appropriately
+	}
 	return imodel.CPSUser{
 		UserCode:         local_util.GenerateCPSUserCode(),
 		UserName:         req.UserName,
 		FullName:         req.FullName,
 		PhoneNumber:      req.PhoneNumber,
-		Department:       req.Department,
+		Department:       depID,
 		JobTitle:         req.JobTitle,
 		Gender:           req.Gender,
 		Email:            req.Email,
