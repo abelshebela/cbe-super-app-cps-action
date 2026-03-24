@@ -50,7 +50,7 @@ func (s *JobRoleStorage) Create(ctx context.Context, role *imodel.JobRole) error
 
 func (s *JobRoleStorage) Update(ctx context.Context, id string, role *imodel.JobRole) error {
 	s.logger.Infof("[JobRole/Update] id=%s", id)
-	objID, err := bson.ObjectIDFromHex(id)
+	objID, err := local_util.ParseObjectID(id)
 	if err != nil {
 		s.logger.Errorf("[JobRole/Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
@@ -66,7 +66,7 @@ func (s *JobRoleStorage) Update(ctx context.Context, id string, role *imodel.Job
 }
 
 func (s *JobRoleStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	objID, err := bson.ObjectIDFromHex(id)
+	objID, err := local_util.ParseObjectID(id)
 	if err != nil {
 		s.logger.Errorf("[JobRole/EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
@@ -83,7 +83,7 @@ func (s *JobRoleStorage) EnableOrDisable(ctx context.Context, id string, enable 
 }
 
 func (s *JobRoleStorage) SoftDelete(ctx context.Context, id string) error {
-	objID, err := bson.ObjectIDFromHex(id)
+	objID, err := local_util.ParseObjectID(id)
 	if err != nil {
 		s.logger.Errorf("[JobRole/SoftDelete] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
@@ -107,7 +107,13 @@ func (s *JobRoleStorage) FindByID(ctx context.Context, id string) (*imodel.JobRo
 	// 	return nil, errors.New(localization.ErrorInvalidID.Code)
 	// }
 
-	filter := bson.M{"_id": id}
+	objID, err := local_util.ParseObjectID(id)
+	if err != nil {
+		s.logger.Errorf("[JobRole/FindByID] invalid object id: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"_id": objID}
 
 	res, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
