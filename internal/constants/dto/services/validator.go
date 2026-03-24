@@ -203,7 +203,7 @@ func (r CreateServiceRequest) Validate() error {
 		validation.Field(&r.ServiceKey, validation.Required, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ProductGlAccount),
-		validation.Field(&r.MinimumFraudAmount, validation.Min(0.0).Error("minimum_fraud_amount must be greater or equal to zero")),
+		validation.Field(&r.MinimumFraudAmount, validation.Min(0.0).Error("Minimum fraud amount must be greater or equal to zero")),
 	)
 	if err != nil {
 		return err
@@ -249,7 +249,7 @@ func (r CreateServiceRequest) Validate() error {
 func (r UpdateServiceRequest) Validate() error {
 	err := validation.ValidateStruct(&r,
 		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars)),
-		validation.Field(&r.MinimumFraudAmount, validation.Min(0.0).Error("minimum_fraud_amount must be greater or equal to zero")),
+		validation.Field(&r.MinimumFraudAmount, validation.Min(0.0).Error("Minimum fraud amount must be greater or equal to zero")),
 	)
 	if err != nil {
 		return err

@@ -23,12 +23,11 @@ type CreateTierDTO struct {
 }
 
 type CreateCategoryRequest struct {
-	Name             string                `json:"name" validate:"required"`
-	CoverImage       *multipart.FileHeader `form:"cover_image"`
-	InterestType     string                `json:"interest_type" bson:"interest_type"`
-	CategoryInterest string                `json:"category_interest" validate:"required"`
-	Deadlock         *bool                 `json:"deadlock"`
-	Tiers            []CreateTierDTO       `json:"tiers" validate:"required"`
+	Name         string                `json:"name" validate:"required"`
+	CoverImage   *multipart.FileHeader `form:"cover_image"`
+	InterestType string                `json:"interest_type" bson:"interest_type"`
+	Deadlock     *bool                 `json:"deadlock"`
+	Tiers        []CreateTierDTO       `json:"tiers" validate:"required"`
 }
 
 type CreateWithdrawalRequest struct {
@@ -39,9 +38,9 @@ type CreateWithdrawalRequest struct {
 }
 
 // Update request
-type UpdateWithdrawalStatusRequest struct {
-	WithdrawalStatus string `json:"withdrawal_status" validate:"required"`
-}
+// type UpdateWithdrawalStatusRequest struct {
+// 	WithdrawalStatus string `json:"withdrawal_status" validate:"required"`
+// }
 
 type UpdateCategoryRequest struct {
 	Name             *string               `json:"name,omitempty"`

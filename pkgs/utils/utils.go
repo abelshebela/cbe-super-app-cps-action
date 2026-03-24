@@ -97,6 +97,7 @@ func IsValidImage(fileHeader *multipart.FileHeader) bool {
 	switch ext {
 	case ".jpg", ".jpeg", ".png", ".gif", ".webp":
 		// ok
+		return true
 	default:
 		return false
 	}

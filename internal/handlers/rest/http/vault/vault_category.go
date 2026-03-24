@@ -3,7 +3,10 @@ package vault
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"cbe-super-app-cps-action/internal/constants"
 	vault_category_dto "cbe-super-app-cps-action/internal/constants/dto/vault"
@@ -22,6 +25,28 @@ import (
 type handler struct {
 	service service.VaultCategoryService
 	logger  utils.Logger
+}
+
+type createTierPayload struct {
+	Name         string      `json:"name"`
+	TierInterest string      `json:"tier_interest"`
+	Min          interface{} `json:"min"`
+	Max          interface{} `json:"max"`
+}
+
+func normalizeTierNumber(v interface{}) (string, error) {
+	switch value := v.(type) {
+	case string:
+		trimmed := strings.TrimSpace(value)
+		if trimmed == "" {
+			return "", fmt.Errorf("numeric field cannot be empty")
+		}
+		return trimmed, nil
+	case float64:
+		return strconv.FormatFloat(value, 'f', -1, 64), nil
+	default:
+		return "", fmt.Errorf("numeric field must be string or number")
+	}
 }
 
 func InitVaultCategoryHandler(svc service.VaultCategoryService, logger utils.Logger) *handler {
@@ -64,7 +89,6 @@ func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	req.Name = r.FormValue("name")
 	req.CoverImage = fileHeader
 	req.InterestType = r.FormValue("interest_type")
-	req.CategoryInterest = r.FormValue("category_interest")
 
 	// Parse deadlock (form value is string, DTO field is *bool)
 	deadlockStr := r.FormValue("deadlock")
@@ -81,12 +105,31 @@ func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	// Parse tiers JSON (from form-data string into []CreateTierDTO)
 	tiersStr := r.FormValue("tiers")
 	if tiersStr != "" {
-		var tiers []vault_category_dto.CreateTierDTO
-		if err := json.Unmarshal([]byte(tiersStr), &tiers); err != nil {
+		var rawTiers []createTierPayload
+		if err := json.Unmarshal([]byte(tiersStr), &rawTiers); err != nil {
 			span.RecordError(err)
 			log.Errorf("[CreateVaultCategory] parse tiers: %v", err)
 			localization.SendBadRequestResponse(w, "Invalid tiers format")
 			return
+		}
+		tiers := make([]vault_category_dto.CreateTierDTO, 0, len(rawTiers))
+		for i, t := range rawTiers {
+			min, err := normalizeTierNumber(t.Min)
+			if err != nil {
+				localization.SendBadRequestResponse(w, fmt.Sprintf("Invalid tiers format at index %d: min %v", i, err))
+				return
+			}
+			max, err := normalizeTierNumber(t.Max)
+			if err != nil {
+				localization.SendBadRequestResponse(w, fmt.Sprintf("Invalid tiers format at index %d: max %v", i, err))
+				return
+			}
+			tiers = append(tiers, vault_category_dto.CreateTierDTO{
+				Name:         t.Name,
+				TierInterest: t.TierInterest,
+				Min:          min,
+				Max:          max,
+			})
 		}
 		req.Tiers = tiers
 	}

@@ -65,7 +65,6 @@ import (
 	"cbe-super-app-cps-action/internal/service/topup"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	ussd_merchant "cbe-super-app-cps-action/internal/service/ussd_merchant"
-	vault_amount_tier "cbe-super-app-cps-action/internal/service/vault_amount_tier"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 
@@ -137,7 +136,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	eventMerchantService := event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, nil, accountLookupAdapter, persistence.MerchantLookup, cfg, logger)
 	logisticsMerchantService := logistics_merchant_service.NewLogisticsMerchantService(persistence.LogisticsMerchantPersistence, nil, accountLookupAdapter, cfg, logger)
 	servicesService := services_svc.NewServicesService(persistence.ServicesPersistence, nil, logger)
-	vaultAmountTierSrv := vault_amount_tier.NewVaultAmountTierService(oracle.VaultAmountTier, nil, logger)
 	miniAppProductCodeContainer := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
 	accessListSegmentationService := access_list_segmentation_service.NewAccessListSegmentationService(persistence.AccessListSegmentationPersistence, nil, persistence.AccessListPersistence, persistence.AccountBlockPersistence, persistence.CustomerService, persistence.CPSRoles, logger)
 	customerSegmentationService := customer_segmentation.NewCustomerSegmentation(persistence.CustomerSegmentation, persistence.CPSRoles, nil, logger)
@@ -198,7 +196,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		EventMerchantServiceContainer:     eventMerchantService,
 		LogisticsMerchantServiceContainer: logisticsMerchantService,
 		ServiceContainer:                  servicesService,
-		VaultAmountTierContainer:          vaultAmountTierSrv,
 		MiniAppProductCodeContainer:       miniAppProductCodeContainer,
 		AccessListSegmentationContainer:   accessListSegmentationService,
 		CustomerSegmentationContainer:     customerSegmentationService,
@@ -297,7 +294,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	serviceContainer.EventMerchantServiceContainer = eventMerchantService
 	serviceContainer.LogisticsMerchantServiceContainer = logisticsMerchantService
-	vaultAmountTierSrv = vault_amount_tier.NewVaultAmountTierService(oracle.VaultAmountTier, cpsActionService, logger)
 	accessListSegmentationService = access_list_segmentation_service.NewAccessListSegmentationService(persistence.AccessListSegmentationPersistence, cpsActionService, persistence.AccessListPersistence, persistence.AccountBlockPersistence, persistence.CustomerService, persistence.CPSRoles, logger)
 	customerSegmentationService = customer_segmentation.NewCustomerSegmentation(persistence.CustomerSegmentation, persistence.CPSRoles, cpsActionService, logger)
 	jobRoleService = job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, cpsActionService, *cfg, logger)
@@ -357,7 +353,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CPSActionRole:                 cpsActionRoleService,
 		EventMerchantService:          eventMerchantService,
 		LogisticsMerchantService:      logisticsMerchantService,
-		VaultAmountTierService:        vaultAmountTierSrv,
 		MiniappProductCode:            miniAppProductCodeContainer,
 		AccessListSegmentationService: accessListSegmentationService,
 		CustomerSegmentation:          customerSegmentationService,

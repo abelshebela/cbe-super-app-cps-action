@@ -397,10 +397,10 @@ type VaultCategoryRepository interface {
 	FindVaultTransaction(ctx context.Context, id string) (*imodel.VaultTransaction, error)
 
 	// withdrawal request
-	CreateWithdrawalRequest(ctx context.Context, withdrawal *imodel.Withdrawal) error
-	UpdateWithdrawalRequest(ctx context.Context, id string, status string) error
-	GetAllWithdrawalRequests(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Withdrawal], error)
-	GetWithdrawalRequest(ctx context.Context, id string) (*imodel.Withdrawal, error)
+	// CreateWithdrawalRequest(ctx context.Context, withdrawal *imodel.Vault) error
+	UpdateVaultDeadlock(ctx context.Context, id string, status string) error
+	GetAllDeadlockedRequests(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.DeadlockRequest], error)
+	GetDeadlockRequest(ctx context.Context, id string) (*imodel.DeadlockRequest, error)
 }
 
 type VaultAmountTierRepository interface {

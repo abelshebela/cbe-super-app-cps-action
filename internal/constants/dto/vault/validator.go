@@ -61,16 +61,11 @@ func validateCoverImage(value interface{}) error {
 //
 // Rules:
 //   - interest_type must be either "flat" or "dynamic" (case insensitive).
-//   - FLAT:
-//   - category Interest must be provided and > 0
-//   - tiers must NOT have interest (empty or zero)
-//   - DYNAMIC:
-//   - category Interest must be empty or zero
-//   - each tier must have interest > 0
+//   - FLAT: all tiers must have the same tier_interest value.
+//   - DYNAMIC: tier_interest values can differ across tiers.
 //   - Tiers numeric rules (for both types):
 //   - all min/max must be numeric and > 0
 //   - max > min
-//   - first tier Min must be 1
 //   - for tier i>0, Min must equal previous tier's Max
 func (r *CreateCategoryRequest) Validate() error {
 	if r == nil {
@@ -79,7 +74,6 @@ func (r *CreateCategoryRequest) Validate() error {
 
 	r.Name = strings.TrimSpace(r.Name)
 	r.InterestType = strings.TrimSpace(r.InterestType)
-	r.CategoryInterest = strings.TrimSpace(r.CategoryInterest)
 
 	if err := validation.ValidateStruct(r,
 		validation.Field(&r.Name,
@@ -104,33 +98,12 @@ func (r *CreateCategoryRequest) Validate() error {
 
 	it := strings.ToUpper(r.InterestType)
 	if it != "FLAT" && it != "DYNAMIC" {
-		return errors.New("interest_type must be either 'flat' or 'dynamic'")
+		return errors.New("interest_type must be either 'FLAT' or 'DYNAMIC'")
 	}
 
-	// Parse parent interest if provided
-	categoryInterest := decimal.Zero
-	if r.CategoryInterest != "" {
-		v, err := decimal.NewFromString(r.CategoryInterest)
-		if err != nil {
-			return fmt.Errorf("interest: must be a valid decimal number")
-		}
-		categoryInterest = v
-	}
-
-	// Validate tiers (min/max chaining + own interest when dynamic)
+	// Validate tiers (min/max chaining + interest-type behavior)
 	if err := validateCreateTiers(it, r.Tiers); err != nil {
 		return err
-	}
-
-	// Cross-field parent vs tier interest logic
-	if it == "FLAT" {
-		if categoryInterest.LessThanOrEqual(decimal.Zero) {
-			return errors.New("category_interest must be > 0 when interest_type is 'flat'")
-		}
-	} else { // DYNAMIC
-		if categoryInterest.GreaterThan(decimal.Zero) {
-			return errors.New("category_interest must be empty or 0 when interest_type is 'dynamic'")
-		}
 	}
 
 	return nil
@@ -142,6 +115,7 @@ func validateCreateTiers(interestType string, tiers []CreateTierDTO) error {
 	}
 
 	var previousMax decimal.Decimal
+	var flatTierInterest *decimal.Decimal
 	for i, t := range tiers {
 		name := strings.TrimSpace(t.Name)
 		minStr := strings.TrimSpace(t.Min)
@@ -182,6 +156,25 @@ func validateCreateTiers(interestType string, tiers []CreateTierDTO) error {
 			return fmt.Errorf("tier %d: max must be greater than min", i+1)
 		}
 
+		if tierInterest == "" {
+			return fmt.Errorf("tier %d: tier_interest is required", i+1)
+		}
+		tierInterestVal, err := decimal.NewFromString(strings.TrimSuffix(tierInterest, "%"))
+		if err != nil {
+			return fmt.Errorf("tier %d: tier_interest must be a valid number", i+1)
+		}
+		if tierInterestVal.LessThanOrEqual(decimal.Zero) {
+			return fmt.Errorf("tier %d: tier_interest must be > 0", i+1)
+		}
+
+		if interestType == "FLAT" {
+			if flatTierInterest == nil {
+				flatTierInterest = &tierInterestVal
+			} else if !tierInterestVal.Equal(*flatTierInterest) {
+				return errors.New("all tiers must have the same tier_interest when interest_type is 'FLAT'")
+			}
+		}
+
 		// Chaining rules
 		if i < 1 {
 			if min.LessThanOrEqual(decimal.NewFromInt(0)) {
@@ -194,38 +187,6 @@ func validateCreateTiers(interestType string, tiers []CreateTierDTO) error {
 		}
 		previousMax = max
 
-		// Interest handling per type
-		if strings.ToUpper(interestType) == "FLAT" {
-			// Tiers must not have interest
-			if tierInterest != "" {
-				clean := strings.TrimSpace(strings.TrimSuffix(tierInterest, "%"))
-				if clean == "" {
-					return fmt.Errorf("tier %d: interest must be a valid number", i+1)
-				}
-				v, err := decimal.NewFromString(clean)
-				if err != nil {
-					return fmt.Errorf("tier %d: interest must be a valid number", i+1)
-				}
-				if !v.IsZero() {
-					return fmt.Errorf("tier %d: tier_interest must be empty or 0 when interest_type is 'flat'", i+1)
-				}
-			}
-		} else { // DYNAMIC
-			if tierInterest == "" {
-				return fmt.Errorf("tier %d: tier_interest is required when interest_type is 'dynamic'", i+1)
-			}
-			clean := strings.TrimSpace(strings.TrimSuffix(tierInterest, "%"))
-			if clean == "" {
-				return fmt.Errorf("tier %d: tier_interest must be a valid number", i+1)
-			}
-			v, err := decimal.NewFromString(clean)
-			if err != nil {
-				return fmt.Errorf("tier %d: tier_interest must be a valid number", i+1)
-			}
-			if v.LessThanOrEqual(decimal.Zero) {
-				return fmt.Errorf("tier %d: tier_interest must be > 0", i+1)
-			}
-		}
 	}
 
 	return nil
@@ -257,21 +218,21 @@ func (r *CreateWithdrawalRequest) Validate() error {
 }
 
 // Validate validates UpdateWithdrawalStatusRequest.
-func (r *UpdateWithdrawalStatusRequest) Validate() error {
-	if r == nil {
-		return errors.New("request is required")
-	}
+// func (r *UpdateWithdrawalStatusRequest) Validate() error {
+// 	if r == nil {
+// 		return errors.New("request is required")
+// 	}
 
-	// r.WithdrawalID = strings.TrimSpace(r.WithdrawalID)
-	r.WithdrawalStatus = strings.TrimSpace(r.WithdrawalStatus)
+// 	// r.WithdrawalID = strings.TrimSpace(r.WithdrawalID)
+// 	r.WithdrawalStatus = strings.TrimSpace(r.WithdrawalStatus)
 
-	return validation.ValidateStruct(r,
-		// validation.Field(&r.WithdrawalID, validation.Required.Error("withdrawal_id is required")),
-		validation.Field(&r.WithdrawalStatus, validation.Required.Error("withdrawal_status is required"),
-			validation.In("APPROVED", "REJECTED").Error("withdrawal status should be 'APPROVED' or 'REJECTED'"),
-		),
-	)
-}
+// 	return validation.ValidateStruct(r,
+// 		// validation.Field(&r.WithdrawalID, validation.Required.Error("withdrawal_id is required")),
+// 		validation.Field(&r.WithdrawalStatus, validation.Required.Error("withdrawal_status is required"),
+// 			validation.In("APPROVED", "REJECTED").Error("withdrawal status should be 'APPROVED' or 'REJECTED'"),
+// 		),
+// 	)
+// }
 
 func (r *UpdateCategoryRequest) Validate() error {
 	if r == nil {
@@ -346,23 +307,6 @@ func (r *UpdateCategoryRequest) Validate() error {
 		return errors.New("interest_type is required when updating interest or tiers")
 	}
 
-	// Parent interest vs interest_type rules (if both provided)
-	if it != "" && r.CategoryInterest != nil && *r.CategoryInterest != "" {
-		parent, err := decimal.NewFromString(*r.CategoryInterest)
-		if err != nil {
-			return errors.New("category_interest must be a valid decimal number")
-		}
-		if it == "FLAT" {
-			if parent.LessThanOrEqual(decimal.Zero) {
-				return errors.New("category_interest must be > 0 when interest_type is 'flat'")
-			}
-		} else if it == "DYNAMIC" {
-			if parent.GreaterThan(decimal.Zero) {
-				return errors.New("category_interest must be empty or 0 when interest_type is 'dynamic'")
-			}
-		}
-	}
-
 	// Optional tier validation when present
 	if r.Tiers != nil {
 		if err := validateUpdateTier(r.Tiers, it); err != nil {
@@ -377,6 +321,8 @@ func validateUpdateTier(tiers []UpdateTierDTO, interestType string) error {
 	if tiers == nil {
 		return nil
 	}
+
+	var flatTierInterest *decimal.Decimal
 
 	// Validate provided numeric fields
 	for _, t := range tiers {
@@ -419,9 +365,13 @@ func validateUpdateTier(tiers []UpdateTierDTO, interestType string) error {
 
 			switch strings.ToUpper(interestType) {
 			case "FLAT":
-				// In flat mode, tier interest must be empty or 0; reaching here means provided and parsed.
-				if !v.IsZero() {
-					return errors.New("tiers.interest must be empty or 0 when interest_type is 'flat'")
+				if v.LessThanOrEqual(decimal.Zero) {
+					return errors.New("tiers.interest must be > 0 when interest_type is 'flat'")
+				}
+				if flatTierInterest == nil {
+					flatTierInterest = &v
+				} else if !v.Equal(*flatTierInterest) {
+					return errors.New("all provided tiers.interest values must be equal when interest_type is 'flat'")
 				}
 			case "DYNAMIC":
 				// In dynamic mode, when provided it must be > 0

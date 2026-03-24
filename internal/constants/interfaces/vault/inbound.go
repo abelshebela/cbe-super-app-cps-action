@@ -15,9 +15,9 @@ type VaultCategoryHandler interface {
 	GetVaultTransactions(w http.ResponseWriter, r *http.Request)
 	GetVaultTransaction(w http.ResponseWriter, r *http.Request)
 
-	// Withdrawal Request
-	CreateWithdrawalRequest(w http.ResponseWriter, r *http.Request)
-	UpdateWithDrawalRequest(w http.ResponseWriter, r *http.Request)
-	GetAllWithdrawalRequests(w http.ResponseWriter, r *http.Request)
-	GetWithdrawalRequestById(w http.ResponseWriter, r *http.Request)
+	// Emergency deadlock unlock request
+	// CreateWithdrawalRequest(w http.ResponseWriter, r *http.Request)
+	UlockDeadlockRequest(w http.ResponseWriter, r *http.Request)
+	GetAllDeadlockRequests(w http.ResponseWriter, r *http.Request)
+	GetDeadlockRequestById(w http.ResponseWriter, r *http.Request)
 }
