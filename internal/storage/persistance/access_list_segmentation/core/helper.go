@@ -34,7 +34,7 @@ func GetAllBranches(ctx context.Context, segmentedID string, repo storage.Accoun
 	// Extract branch IDs from the retrieved branches
 	var branchIDs []string
 	for _, branch := range branches {
-		branchIDs = append(branchIDs, branch.ID.Hex())
+		branchIDs = append(branchIDs, branch.Code)
 	}
 	return branchIDs
 }
