@@ -117,6 +117,7 @@ func (asp *AccessListSegmentationProducer) produceAndWait(ctx context.Context,
 			fmt.Sprintf("%s Access List Segmentation message published successfully", logType),
 			zap.String("message_id", messageID),
 			zap.String("topic", topic),
+			zap.Any("body", kafkaMsg.Value),
 			zap.Int32("partition", partition),
 			zap.Int64("offset", offset),
 		)
