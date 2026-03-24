@@ -296,6 +296,7 @@ type AccountBlockRepository interface {
 	EnableOrDisableDistricts(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
 	GetDistrictsByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
 	GetAccountBlockDetails(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error)
+	GetAllBranches(ctx context.Context, id string) ([]model.AccountBlock, error)
 }
 
 type AdvertRepository interface {
