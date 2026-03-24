@@ -224,14 +224,14 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			},
 		}}},
 		bson.D{{Key: "$lookup", Value: bson.M{
-			"from":         "departments",
+			"from":         "department",
 			"localField":   "department",
 			"foreignField": "_id",
 			"as":           "department_info",
 			"pipeline": mongo.Pipeline{
 				bson.D{{Key: "$project", Value: bson.M{
-					"_id":  1,
-					"name": 1,
+					"_id":        1,
+					"department": 1,
 				}}},
 			},
 		}}},
@@ -247,7 +247,7 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			"role": "$role_info.role",
 			"department": bson.M{
 				"id":   "$department_info._id",
-				"name": "$department_info.name",
+				"name": "$department_info.department",
 			},
 		}}},
 		bson.D{{Key: "$project", Value: bson.M{
