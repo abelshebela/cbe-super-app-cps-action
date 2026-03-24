@@ -2397,42 +2397,42 @@ var (
 		Type:       "success",
 	}
 
-	// Vault withdrawal request
-	SuccessVaultWithdrawalRequestSubmitted = ResponseCode{
-		Code:       "VAULT_WITHDRAWAL_REQUEST_SUBMITTED",
+	// Vault deadlock unlock request
+	SuccessVaultdDeadlockUnlockRequestSubmitted = ResponseCode{
+		Code:       "VAULT_DEADLOCK_UNLOCK_REQUEST_SUBMITTED",
 		StatusCode: StatusCreated,
-		Message:    "Vault withdrawal request submitted successfully",
+		Message:    "Vault deadlock unlock request submitted successfully",
 		Type:       "success",
 	}
-	SuccessVaultWithdrawalRequest = ResponseCode{
-		Code:       "VAULT_WITHDRAWAL_REQUEST_SUCCESSFULL",
+	SuccessVaultDeadlockUnlockRequest = ResponseCode{
+		Code:       "VAULT_DEADLOCK_UNLOCK_REQUEST_SUCCESSFULL",
 		StatusCode: StatusCreated,
-		Message:    "Vault withdrawal request created successfully",
+		Message:    "Vault deadlock unlock request created successfully",
 		Type:       "success",
 	}
 
-	SuccessVaultWithdrawalUpdateSubmitted = ResponseCode{
-		Code:       "VAULT_WITHDRAWAL_UPDATED_REQUEST_SUBMITTED",
+	SuccessVaultDeadlockUnlockUpdateSubmitted = ResponseCode{
+		Code:       "VAULT_DEADLOCK_UNLOCK_UPDATED_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    "Vault withdrawal update request submitted successfully",
+		Message:    "Vault deadlock unlock update request submitted successfully",
 		Type:       "success",
 	}
 	SuccessVaultWithdrawalUpdateRequest = ResponseCode{
-		Code:       "VAULT_WITHDRAWAL_UPDATE_REQUEST_CREATED",
+		Code:       "VAULT_DEADLOCK_UNLOCK_UPDATE_REQUEST_CREATED",
 		StatusCode: StatusOK,
-		Message:    "Vault withdrawal request updated successfully",
+		Message:    "Vault deadlock unlock request updated successfully",
 		Type:       "success",
 	}
-	SuccessVaultWithdrawalRequestsFetchedSuccessfully = ResponseCode{
-		Code:       "VAULT_WITHDRAWAL_REQUESTS_FETCHED_SUCCESSFULLY",
+	SuccessVaultDeadlockUnlockRequestsFetchedSuccessfully = ResponseCode{
+		Code:       "VAULT_DEADLOCK_UNLOCK_REQUESTS_FETCHED_SUCCESSFULLY",
 		StatusCode: StatusOK,
-		Message:    "Vault withdrawal request retrieved successfully",
+		Message:    "Vault deadlock unlock request retrieved successfully",
 		Type:       "success",
 	}
-	SuccessVaultWithdrawalRequestFetchedSuccessfully = ResponseCode{
-		Code:       "VAULT_WITHDRAWAL_REQUEST_FETCHED_SUCCESSFULLY",
+	SuccessVaultDeadlockUnlockRequestFetchedSuccessfully = ResponseCode{
+		Code:       "VAULT_DEADLOCK_UNLOCK_REQUEST_FETCHED_SUCCESSFULLY",
 		StatusCode: StatusOK,
-		Message:    "Vault withdrawal request retrieved successfully",
+		Message:    "Vault deadlock unlock request retrieved successfully",
 		Type:       "success",
 	}
 
@@ -5931,7 +5931,7 @@ var (
 	}
 
 	ErrorResourceBusy = ResponseCode{
-		Code:       "ERROR_RESOURCE_BUSY",
+		Code:       "resource is bussy",
 		StatusCode: StatusConflict,
 		Message:    MsgResourceBusy,
 		Type:       "error",

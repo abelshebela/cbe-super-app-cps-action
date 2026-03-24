@@ -63,7 +63,6 @@ import (
 	service "cbe-super-app-cps-action/internal/glue/routing/services"
 	sitota "cbe-super-app-cps-action/internal/glue/routing/sitota"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
-	vaultAmountTier "cbe-super-app-cps-action/internal/glue/routing/vault_amount_tier"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
 
 	ussd_merchant_rout "cbe-super-app-cps-action/internal/glue/routing/ussd_merchant"
@@ -162,7 +161,6 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	sitota.Init(r, handlerLayer.SitotaHandler, authMiddleware)
 	encryption.Init(r, handlerLayer.EncryptionHandler, authMiddleware)
 	transaction.Init(r, handlerLayer.TransactionHandler, authMiddleware)
-	vaultAmountTier.Init(r, handlerLayer.AmountTierHandler, authMiddleware)
 	event_merchant_routing.Init(r, handlerLayer.EventMerchantHandler, authMiddleware)
 	access_list_segmentation.Init(r, handlerLayer.AccessLostSegmentationHandler, authMiddleware)
 	ecommerce_merchant.Init(r, handlerLayer.EcommerceMerchantHandler, authMiddleware)
