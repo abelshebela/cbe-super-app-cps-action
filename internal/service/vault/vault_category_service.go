@@ -11,7 +11,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	imodel "cbe-super-app-cps-action/internal/constants/model"
@@ -81,13 +80,12 @@ func (s *vaultCategoryService) CreateVaultCategory(ctx context.Context, req *vau
 	}
 
 	req_data := &imodel.VaultCategory{
-		Name:             req.Name,
-		CoverImageURL:    coverImageUrl,
-		InterestType:     req.InterestType,
-		CategoryInterest: req.CategoryInterest,
-		Deadlock:         *req.Deadlock,
-		Tiers:            tiers,
-		IsActive:         true,
+		Name:          req.Name,
+		CoverImageURL: coverImageUrl,
+		InterestType:  req.InterestType,
+		Deadlock:      *req.Deadlock,
+		Tiers:         tiers,
+		IsActive:      true,
 	}
 
 	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, req_data, string(constants.RequestCreateVaultCategory), string(constants.CREATE))
@@ -457,43 +455,43 @@ func (s *vaultCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 		}
 		return cpsAction, nil
 
-	case string(constants.RequestCreateWithdrawal):
-		span.AddEvent("RequestCreateWithdrawal", trace.WithAttributes(attribute.String("id", cpsAction.UniqueId)))
+	// case string(constants.RequestCreateWithdrawal):
+	// 	span.AddEvent("RequestCreateWithdrawal", trace.WithAttributes(attribute.String("id", cpsAction.UniqueId)))
 
-		err = json.Unmarshal(marshaled, &actionMap)
-		if err != nil {
-			span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(attribute.String("error", err.Error())))
-			s.logger.Errorf("[VaultCatSvc][Authorize] unmarshal withdrawal err: %v", err)
-			return nil, errors.New(localization.ErrorInvalidActionData.Code)
-		}
+	// 	err = json.Unmarshal(marshaled, &actionMap)
+	// 	if err != nil {
+	// 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(attribute.String("error", err.Error())))
+	// 		s.logger.Errorf("[VaultCatSvc][Authorize] unmarshal withdrawal err: %v", err)
+	// 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+	// 	}
 
-		actionData := helperr.WithdrawalMapper(actionMap.(map[string]interface{}))
+	// 	actionData := helperr.WithdrawalMapper(actionMap.(map[string]interface{}))
 
-		if err := s.AuthorizeWithdrawalCreate(ctx, &actionData); err != nil {
-			span.AddEvent("Failed to create withdrawal request", trace.WithAttributes(attribute.String("error", err.Error())))
-			s.logger.Errorf("[VaultCatSvc][Authorize] withdrawal create err: %v", err)
-			return nil, err
-		}
-		return cpsAction, nil
+	// 	if err := s.AuthorizeWithdrawalCreate(ctx, &actionData); err != nil {
+	// 		span.AddEvent("Failed to create withdrawal request", trace.WithAttributes(attribute.String("error", err.Error())))
+	// 		s.logger.Errorf("[VaultCatSvc][Authorize] withdrawal create err: %v", err)
+	// 		return nil, err
+	// 	}
+	// 	return cpsAction, nil
 
-	case string(constants.RequestUpdateWithdrawal):
-		span.AddEvent("RequestUpdateWithdrawal", trace.WithAttributes(attribute.String("id", cpsAction.UniqueId)))
+	case string(constants.RequestUnlockDeadlock):
+		span.AddEvent("RequestUpdateDeadlock", trace.WithAttributes(attribute.String("id", cpsAction.UniqueId)))
 
-		err = json.Unmarshal(marshaled, &actionMap)
-		if err != nil {
-			span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(attribute.String("error", err.Error())))
-			s.logger.Errorf("[VaultCatSvc][Authorize] unmarshal withdrawal update err: %v", err)
-			return nil, errors.New(localization.ErrorInvalidActionData.Code)
-		}
+		// err = json.Unmarshal(marshaled, &actionMap)
+		// if err != nil {
+		// 	span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(attribute.String("error", err.Error())))
+		// 	s.logger.Errorf("[VaultCatSvc][Authorize] unmarshal withdrawal update err: %v", err)
+		// 	return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		// }
 
-		status := helperr.WithdrawalStatusMapper(actionMap.(map[string]interface{}))
-		if status == "" {
-			return cpsAction, fmt.Errorf("withdrawal status required")
-		}
+		// status := helperr.WithdrawalStatusMapper(actionMap.(map[string]interface{}))
+		// if status == "" {
+		// 	return cpsAction, fmt.Errorf("withdrawal status required")
+		// }
 
-		if err := s.AuthorizeWithdrawalUpdate(ctx, cpsAction.UniqueId, status); err != nil {
-			span.AddEvent("Failed to update withdrawal request", trace.WithAttributes(attribute.String("error", err.Error())))
-			s.logger.Errorf("[VaultCatSvc][Authorize] withdrawal update err: %v", err)
+		if err := s.AuthorizeDeadlockStatusUpdate(ctx, cpsAction.UniqueId, "COMPLETED"); err != nil {
+			span.AddEvent("Failed to update deadlock request", trace.WithAttributes(attribute.String("error", err.Error())))
+			s.logger.Errorf("[VaultCatSvc][Authorize] deadlock update err: %v", err)
 			return nil, err
 		}
 		return cpsAction, nil

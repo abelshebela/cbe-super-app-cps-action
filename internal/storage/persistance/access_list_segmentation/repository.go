@@ -419,6 +419,7 @@ func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_lis
 			als[i] = local_model.AccessListSegmentation{
 				SegmentationCode: req.ID,
 				AccessListKey:    key,
+				Enabled:          req.Enabled,
 			}
 		}
 		a.kafkaProducer.PublishMessage(ctx, als, "delete", a.cfg.KafkaCustomerSegmentaionTopic, "bulk disable access-list-segmentation")

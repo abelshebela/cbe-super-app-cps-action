@@ -193,47 +193,6 @@ func getTime(data map[string]interface{}, key string) time.Time {
 	return time.Time{}
 }
 
-// WithdrawalMapper maps action data (e.g. from CPS CurrentAction) to imodel.Withdrawal.
-func WithdrawalMapper(action map[string]interface{}) imodel.Withdrawal {
-	w := imodel.Withdrawal{}
-	if v, ok := action["id"]; ok {
-		w.ID = getAnyAsString(v)
-	}
-	if v, ok := action["locked_vault_id"]; ok {
-		w.LockedVaultID = getAnyAsString(v)
-	}
-	if v, ok := action["amount"]; ok {
-		w.Amount = getAnyAsString(v)
-	}
-	if v, ok := action["withdrawer_name"]; ok {
-		if s, ok := v.(string); ok {
-			w.WithdrawerName = s
-		}
-	}
-	if v, ok := action["withdrawer_phone_number"]; ok {
-		if s, ok := v.(string); ok {
-			w.WithdrawerPhoneNumber = s
-		}
-	}
-	if v, ok := action["status"]; ok {
-		if s, ok := v.(string); ok {
-			w.Status = s
-		}
-	}
-	if v, ok := action["is_active"]; ok {
-		if b, ok := v.(bool); ok {
-			w.IsActive = b
-		}
-	}
-	if v, ok := action["created_at"]; ok {
-		w.CreatedAt = getTimeFromAny(v)
-	}
-	if v, ok := action["updated_at"]; ok {
-		w.UpdatedAt = getTimeFromAny(v)
-	}
-	return w
-}
-
 func WithdrawalStatusMapper(action map[string]interface{}) string {
 	if v, ok := action["withdrawal_status"]; ok {
 		if s, ok := v.(string); ok {
