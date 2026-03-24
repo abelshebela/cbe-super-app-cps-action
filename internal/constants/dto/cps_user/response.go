@@ -147,7 +147,6 @@ type CPSUserWithDepartment struct {
 	ID           bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	UserCode     string        `json:"user_code,omitempty" bson:"user_code"`
 	FullName     string        `json:"full_name,omitempty" bson:"full_name"`
-	Department   Department    `json:"department,omitempty" bson:"department,omitempty"`
 	Role         string        `json:"role,omitempty" bson:"role"`
 	Gender       string        `json:"gender,omitempty" bson:"gender"`
 	PhoneNumber  string        `json:"phone_number,omitempty" bson:"phone_number"`
