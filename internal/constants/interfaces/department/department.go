@@ -9,4 +9,5 @@ type DepartmentHandler interface {
 	GetDepartmentByID(w http.ResponseWriter, r *http.Request)
 	EnableDepartment(w http.ResponseWriter, r *http.Request)
 	DisableDepartment(w http.ResponseWriter, r *http.Request)
+	DeleteDepartment(w http.ResponseWriter, r *http.Request)
 }

@@ -348,3 +348,44 @@ func (d *DepartmentService) UpdateDepartment(ctx context.Context, id string, dep
 	d.logger.Infof("[DeptSvc][Update] request created id: %s", id)
 	return nil
 }
+
+func (d *DepartmentService) DeleteDepartment(ctx context.Context, id string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteDepartment", "Department", "DeleteDepartment")
+	defer span.End()
+
+	makerData := local_util.ExtractUserFromContext(ctx)
+	if local_util.IsIncomplete(makerData) {
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", constants.IncompleteUserInfo),
+			attribute.String("id", id),
+		))
+		return fmt.Errorf(constants.IncompleteUserInfo)
+	}
+
+	department, err := d.repo.FindByID(ctx, id)
+	if err != nil {
+		d.logger.Errorf("[DeptSvc][Delete] find err: %v", err)
+		span.AddEvent("Failed to find department", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+
+	new_department := *department
+	new_department.IsDeleted = true
+
+	action := lib.CpsModelBuilder(id, makerData, department, new_department, string(constants.RequestDeleteDepartment), constants.DELETE)
+
+	err = d.cpsService.CreateCPSAction(ctx, &action)
+	if err != nil {
+		d.logger.Errorf("[DeptSvc][Delete] cps action err: %v", err)
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+	d.logger.Infof("[DeptSvc][Delete] request created id: %s", id)
+	return nil
+}

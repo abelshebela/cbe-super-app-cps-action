@@ -5593,6 +5593,20 @@ var (
 		Type:       "error",
 	}
 
+	SuccessDepartmentDeleted = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_DELETED",
+		StatusCode: StatusOK,
+		Message:    "Department deleted successfully",
+		Type:       "success",
+	}
+
+	SuccessDepartmentDeleteRequestCreated = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_DELETE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    "Department delete request created successfully",
+		Type:       "success",
+	}
+
 	ErrorServiceExists = ResponseCode{
 		Code:       "ERROR_SERVICE_EXISTS",
 		StatusCode: StatusConflict,
