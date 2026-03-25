@@ -5,7 +5,11 @@ BEGIN
   FOR t IN (
     SELECT table_name
     FROM user_tables
-    WHERE table_name IN ('VAULT_TIERS', 'WITHDRAWALS', 'VAULT_CATEGORIES')
+    WHERE table_name IN (
+      'VAULT_TIERS',
+      'VAULT_CATEGORIES',
+      'DEADLOCK_REQUESTS'
+    )
   ) LOOP
     EXECUTE IMMEDIATE 'DROP TABLE ' || t.table_name || ' CASCADE CONSTRAINTS';
   END LOOP;
@@ -19,7 +23,11 @@ BEGIN
   FOR i IN (
     SELECT index_name
     FROM user_indexes
-    WHERE index_name IN ('IDX_VAULT_CATEGORIES_IS_ACTIVE', 'IDX_WITHDRAWALS_IS_ACTIVE', 'IDX_VAULT_TIERS_CATEGORY_ID')
+    WHERE index_name IN (
+      'IDX_VAULT_CATEGORIES_IS_ACTIVE',
+      'IDX_VAULT_TIERS_CATEGORY_ID',
+      'IDX_DEADLOCK_REQUESTS_STATUS'
+    )
   ) LOOP
     EXECUTE IMMEDIATE 'DROP INDEX ' || i.index_name;
   END LOOP;
@@ -34,7 +42,6 @@ CREATE TABLE vault_categories (
     name              VARCHAR2(255) NOT NULL,
     cover_image_url   VARCHAR2(255),
     interest_type     VARCHAR2(50) NOT NULL CHECK (interest_type IN ('FLAT', 'DYNAMIC')),
-    category_interest VARCHAR2(50),
     deadlock          NUMBER(1) DEFAULT 0 NOT NULL,
     is_active         NUMBER(1) DEFAULT 0 NOT NULL,
     created_at        TIMESTAMP WITH TIME ZONE DEFAULT SYSTIMESTAMP NOT NULL,
@@ -58,27 +65,26 @@ CREATE TABLE vault_tiers (
 );
 
 -- ===========================================
--- Create withdrawals
+-- Create deadlock_requests
 -- ===========================================
-CREATE TABLE withdrawals (
+CREATE TABLE deadlock_requests (
     id                       VARCHAR2(36) PRIMARY KEY,
-    locked_vault_id          VARCHAR2(36) NOT NULL,
-    amount                   VARCHAR2(50) NOT NULL,
-    withdrawer_name          VARCHAR2(255),
-    withdrawer_phone_number  VARCHAR2(50),
-    status                   VARCHAR2(50),
-    is_active                NUMBER(1) DEFAULT 0 NOT NULL,
+    vault_name               VARCHAR2(255) NOT NULL,
+    vault_id                 VARCHAR2(36) NOT NULL,
+    vault_type               VARCHAR2(100),
+    member_name              VARCHAR2(255),
+    member_account_number    VARCHAR2(50),
+    status                   VARCHAR2(50) NOT NULL CHECK (status IN ('PENDING', 'COMPLETED')),
     created_at               TIMESTAMP WITH TIME ZONE DEFAULT SYSTIMESTAMP NOT NULL,
-    updated_at               TIMESTAMP WITH TIME ZONE DEFAULT SYSTIMESTAMP NOT NULL,
-    CONSTRAINT chk_w_is_active CHECK (is_active IN (0,1))
+    updated_at               TIMESTAMP WITH TIME ZONE DEFAULT SYSTIMESTAMP NOT NULL
 );
 
 -- ===========================================
 -- Indexes
 -- ===========================================
 CREATE INDEX idx_vault_categories_is_active ON vault_categories(is_active);
-CREATE INDEX idx_withdrawals_is_active ON withdrawals(is_active);
 CREATE INDEX idx_vault_tiers_category_id ON vault_tiers(category_id);
+CREATE INDEX idx_deadlock_requests_status ON deadlock_requests(status);
 
 -- ===========================================
 -- Triggers
@@ -96,8 +102,8 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER trg_withdrawals_biu
-BEFORE INSERT OR UPDATE ON withdrawals
+CREATE OR REPLACE TRIGGER trg_deadlock_requests_biu
+BEFORE INSERT OR UPDATE ON deadlock_requests
 FOR EACH ROW
 BEGIN
   IF INSERTING THEN
@@ -105,6 +111,7 @@ BEGIN
       :NEW.created_at := SYSTIMESTAMP;
     END IF;
   END IF;
+
   :NEW.updated_at := SYSTIMESTAMP;
 END;
 /

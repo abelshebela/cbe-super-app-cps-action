@@ -22,10 +22,10 @@ const (
 		status,
 		created_at,
 		updated_at
-	FROM deadlock_request
+	FROM deadlock_requests
 	WHERE id = :1`
 
-	countDeadlockRequests = `SELECT COUNT(*) FROM deadlock_request`
+	countDeadlockRequests = `SELECT COUNT(*) FROM deadlock_requests`
 
 	listDeadlockRequests = `SELECT
 		id,
@@ -37,12 +37,12 @@ const (
 		status,
 		created_at,
 		updated_at
-	FROM deadlock_request
+	FROM deadlock_requests
 	ORDER BY created_at DESC NULLS LAST, id DESC
 	OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`
 
-	updateDeadlockRequestStatus = `UPDATE deadlock_request SET status = :1, updated_at = SYSTIMESTAMP WHERE id = :2`
-	selectVaultIDByDeadlockReq  = `SELECT vault_id FROM deadlock_request WHERE id = :1`
+	updateDeadlockRequestStatus = `UPDATE deadlock_requests SET status = :1, updated_at = SYSTIMESTAMP WHERE id = :2`
+	selectVaultIDByDeadlockReq  = `SELECT vault_id FROM deadlock_requests WHERE id = :1`
 	updateVaultDeadlockFalse    = `UPDATE vault SET is_deadlocked = 0 WHERE id = :1`
 )
 
