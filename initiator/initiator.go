@@ -103,9 +103,7 @@ func Init(ctx context.Context) {
 	}
 
 	logger.Infof("Initializing persistence...")
-	notificationApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
-	// merchantApi := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce/cps/merchant/"
-	// merchantXAPIKey := "0e404061ea76caf9536bc7a38369ca38520aac3c"
+	notificationApi := cfg.SMSBaseURL
 
 	redis := InitRedis(cfg, logger)
 	logger.Infof("Initializing redis...")

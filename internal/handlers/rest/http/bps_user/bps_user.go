@@ -15,8 +15,6 @@ import (
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	model "cbe-super-app-cps-action/internal/constants/model"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
-
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -331,14 +329,8 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		localization.SendBadRequestResponse(w, "unable to convert object id")
-		return
-	}
 
 	updatedUser := bps_model.BPSUser{
-		ID:             objID,
 		LastModifiedAt: time.Now(),
 	}
 
@@ -373,7 +365,7 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	// Always update enabled (bool, so default is false if not set)
 	// updatedUser.Enabled = req.Enabled
 
-	err = h.Service.UpdateBPSUser(ctx, id, updatedUser)
+	err := h.Service.UpdateBPSUser(ctx, id, updatedUser)
 	if err != nil {
 		log.Errorf("[UpdateBPSUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
