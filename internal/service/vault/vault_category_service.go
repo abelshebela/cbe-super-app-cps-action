@@ -139,6 +139,20 @@ func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id strin
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateVaultCategory", "vaultCategoryService", "vaultCategoryService")
 	defer span.End()
 
+	if req.Name != nil {
+		dup, err := s.repo.FindByName(ctx, *req.Name)
+		if err != nil && err.Error() != localization.ErrorVaultCategoryNotFound.Code {
+			s.logger.Errorf("[VaultCatSvc][Update] find err: %v", err)
+			return "", errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		if dup != nil && dup.ID != id {
+			if strings.EqualFold(dup.Name, *req.Name) {
+				return "", errors.New(localization.ErrorDuplicateVaultCategory.Code)
+			}
+		}
+	}
+
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil || prev == nil {
 		if errors.Is(err, mongo.ErrNoDocuments) || errors.Is(err, sql.ErrNoRows) || prev == nil {
@@ -148,12 +162,6 @@ func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id strin
 		span.AddEvent("FindByID error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		s.logger.Errorf("[VaultCatSvc][Update] find err: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	if req.Name != nil {
-		if strings.EqualFold(prev.Name, *req.Name) {
-			return "", errors.New(localization.ErrorDuplicateVaultCategory.Code)
-		}
 	}
 
 	updatedName := strings.ToUpper(prev.Name)
