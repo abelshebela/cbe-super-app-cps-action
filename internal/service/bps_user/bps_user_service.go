@@ -30,22 +30,22 @@ import (
 )
 
 type bpsUserService struct {
-	cpsService  service.CPSActionService
-	repo        storage.BPSUserRepository
-	CPSUserRepo storage.CpsUserRepository
-	roles_repo storage.RoleRepository
+	cpsService    service.CPSActionService
+	repo          storage.BPSUserRepository
+	CPSUserRepo   storage.CpsUserRepository
+	roles_repo    storage.RoleRepository
 	Branch_blocks storage.AccountBlockRepository
-	logger     utils.Logger
+	logger        utils.Logger
 }
 
-func NewBPSUserService(repo storage.BPSUserRepository, rolesRepo storage.RoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository,branch_blocks storage.AccountBlockRepository,logger utils.Logger) service.BPSUserService {
+func NewBPSUserService(repo storage.BPSUserRepository, rolesRepo storage.RoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository, branch_blocks storage.AccountBlockRepository, logger utils.Logger) service.BPSUserService {
 	return &bpsUserService{
-		cpsService:  cpsService,
-		repo:        repo,
-		CPSUserRepo: cpsUserRepo,
-		roles_repo: rolesRepo,
+		cpsService:    cpsService,
+		repo:          repo,
+		CPSUserRepo:   cpsUserRepo,
+		roles_repo:    rolesRepo,
 		Branch_blocks: branch_blocks,
-		logger:     logger,
+		logger:        logger,
 	}
 }
 
@@ -139,7 +139,7 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 }
 
 // FetchUserByUserCode implements service.BPSUserService.
-func (b *bpsUserService) FetchUserByUserCode(ctx context.Context, userCode string) (*bps_model.BPSUser, error) {
+func (b *bpsUserService) FetchUserByUserCode(ctx context.Context, userCode string) (*bpsUserDto.BPSUserResposenDTO, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchUserByUserCode", "BPS User", "FetchUserByUserCode")
 	defer span.End()
 
@@ -237,7 +237,6 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 	defer span.End()
 	makerData := local_util.ExtractUserFromContext(ctx)
 
-	
 	existing, err := b.repo.FindByOr(ctx, req.PhoneNumber, req.Email, req.Username)
 	if err != nil {
 		if err.Error() != localization.ErrorResourceNotFound.Code {
@@ -285,7 +284,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		}
 	}
 
-	branch_detail ,err := b.Branch_blocks.FindByFilterKey(ctx,"code",strings.TrimSpace(req.BranchCode[0]))
+	branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "code", strings.TrimSpace(req.BranchCode[0]))
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		b.logger.Errorf("[CreateBPSUser] Get error while locking branch name by branch code")
 		return errors.New(localization.ErrorInternalServerError.Code)
@@ -316,7 +315,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		b.logger.Errorf("[BpsUserSvc][Create] cps action err: %v", err)
 		return err
 	}
-	
+
 	b.logger.Infof("[BpsUserSvc][Create] request created code: %s", req.UserCode)
 	return nil
 }
@@ -362,7 +361,7 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 		}
 	}
 
-	branch_detail ,err := b.Branch_blocks.FindByFilterKey(ctx,"code",strings.TrimSpace(updatedUser.BranchCode[0]))
+	branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "code", strings.TrimSpace(updatedUser.BranchCode[0]))
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		b.logger.Errorf("[UpdateBPSUser] Get error while locking branch name by branch code")
 		return errors.New(localization.ErrorInternalServerError.Code)

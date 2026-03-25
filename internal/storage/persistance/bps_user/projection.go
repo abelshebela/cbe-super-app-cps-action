@@ -3,6 +3,8 @@ package bps_user
 import (
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	// local_model "cbe-super-app-cps-action/internal/constants/model"
+	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
+
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -44,4 +46,33 @@ func BPSUserMapper(data bps_model.BPSUser) bson.M {
 	// result["role"] = data.Role
 	result["enabled"] = data.Enabled
 	return result
+}
+
+func BPSUserResponseMapper(data bps_model.BPSUser) *bpsUserDto.BPSUserResposenDTO {
+	return &bpsUserDto.BPSUserResposenDTO{
+		UserCode:          data.UserCode,
+		FullName:          data.FullName,
+		Username:          data.Username,
+		Email:             data.Email,
+		PhoneNumber:       data.PhoneNumber,
+		BranchCode:        data.BranchCode,
+		BranchName:        data.BranchName,
+		HomeBranch:        data.HomeBranch,
+		Role:              data.Role,
+		Realm:             data.Realm,
+		LoginAttemptCount: data.LoginAttemptCount,
+		FirstPasswordSet:  data.FirstPasswordSet,
+		Enabled:           data.Enabled,
+		IsDeleted:         data.IsDeleted,
+		OTPVerifyCount:    data.OTPVerifyCount,
+		OTPLastTriedAt:    data.OTPLastTriedAt,
+		JobTitle:          data.JobTitle,
+		OTPLastVerifiedAt: data.OTPLastVerifiedAt,
+		IsFirstTimeLogin:  data.IsFirstTimeLogin,
+		LastLoginAttempt:  data.LastLoginAttempt,
+		NextLoginAttempt:  data.NextLoginAttempt,
+		LastLogin:         data.LastLogin,
+		CreatedAt:         data.CreatedAt,
+		LastModifiedAt:    data.LastModifiedAt,
+	}
 }
