@@ -415,6 +415,8 @@ func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_lis
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	branches := core.GetAllBranches(ctx, req.ID, a.accBlock)
+	res := map[string]any{}
+	res["branches"] = branches
 
 	als := make([]local_model.AccessListSegmentation, len(req.Keys))
 	if _, ok := filter["segmentation_code"]; ok {
@@ -426,6 +428,7 @@ func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_lis
 				Enabled:          req.Enabled,
 			}
 		}
+		res["type"] = "account-segment"
 	} else if _, ok := filter["segmented_id"]; ok {
 		a.logger.Infof("[AccessListSegmentation][BulkDisable] bulk disable by segmented id, preparing kafka message")
 		for i, key := range req.Keys {
@@ -435,12 +438,9 @@ func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_lis
 				Enabled:       req.Enabled,
 			}
 		}
+		res["type"] = "block-segment"
 	}
-	res := map[string]any{
-		"branches": branches,
-		"docs":     als,
-		"type":     "block-segment",
-	}
+	res["docs"] = als
 	a.kafkaProducer.PublishMessage(ctx, res, "delete", a.cfg.KafkaCustomerSegmentaionTopic, "bulk disable access-list-segmentation")
 	return nil
 }
