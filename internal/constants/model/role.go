@@ -13,4 +13,5 @@ type Role struct {
 	Enabled   bool          `json:"enabled" bson:"enabled"`
 	UpdateAt  time.Time     `json:"updated_at" bson:"updated_at"`
 	CreatedAt time.Time     `json:"created_at" bson:"created_at"`
+	Type      string        `json:"type" bson:"type"`
 }
