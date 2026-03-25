@@ -31,10 +31,6 @@ func CategoryMapper(action map[string]interface{}) imodel.VaultCategory {
 		}
 	}
 
-	if v, ok := action["category_interest"]; ok {
-		category.CategoryInterest = getAnyAsString(v)
-	}
-
 	if v, ok := action["deadlock"]; ok {
 		if d, ok := v.(bool); ok {
 			category.Deadlock = d
@@ -116,15 +112,14 @@ func getAnyAsString(v interface{}) string {
 
 func MapVaultCategoryToResponse(vaultCategory *imodel.VaultCategory) *imodel.VaultCategory {
 	return &imodel.VaultCategory{
-		ID:               vaultCategory.ID,
-		Name:             vaultCategory.Name,
-		CoverImageURL:    vaultCategory.CoverImageURL,
-		InterestType:     vaultCategory.InterestType,
-		CategoryInterest: vaultCategory.CategoryInterest,
-		Deadlock:         vaultCategory.Deadlock,
-		IsActive:         vaultCategory.IsActive,
-		CreatedAt:        vaultCategory.CreatedAt,
-		UpdatedAt:        vaultCategory.UpdatedAt,
+		ID:            vaultCategory.ID,
+		Name:          vaultCategory.Name,
+		CoverImageURL: vaultCategory.CoverImageURL,
+		InterestType:  vaultCategory.InterestType,
+		Deadlock:      vaultCategory.Deadlock,
+		IsActive:      vaultCategory.IsActive,
+		CreatedAt:     vaultCategory.CreatedAt,
+		UpdatedAt:     vaultCategory.UpdatedAt,
 	}
 }
 
@@ -157,7 +152,6 @@ func MapCamelCaseToVaultCategory(jsonBytes []byte) (imodel.VaultCategory, error)
 	result.Name = getString(data, "name")
 	result.CoverImageURL = getString(data, "cover_image_url")
 	result.InterestType = getString(data, "interest_type")
-	result.CategoryInterest = getAnyAsString(data["category_interest"])
 	result.Deadlock = getBool(data, "deadlock")
 	result.IsActive = getBool(data, "is_active")
 	result.CreatedAt = getTime(data, "created_at")

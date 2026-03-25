@@ -114,16 +114,15 @@ func (r *VaultCategoryRepository) FindAllWithPagination(ctx context.Context, fil
 
 	for _, row := range rows {
 		c := &imodel.VaultCategory{
-			ID:               row.ID,
-			Name:             row.Name,
-			CoverImageURL:    row.CoverImageURL,
-			InterestType:     row.InterestType,
-			CategoryInterest: row.CategoryInterest,
-			Deadlock:         row.Deadlock,
-			Tiers:            row.Tiers,
-			IsActive:         row.IsActive,
-			CreatedAt:        row.CreatedAt,
-			UpdatedAt:        row.UpdatedAt,
+			ID:            row.ID,
+			Name:          row.Name,
+			CoverImageURL: row.CoverImageURL,
+			InterestType:  row.InterestType,
+			Deadlock:      row.Deadlock,
+			Tiers:         row.Tiers,
+			IsActive:      row.IsActive,
+			CreatedAt:     row.CreatedAt,
+			UpdatedAt:     row.UpdatedAt,
 		}
 
 		total = row.TotalCount
@@ -194,16 +193,15 @@ func (r *VaultCategoryRepository) FindByID(ctx context.Context, id string) (*imo
 	}
 
 	e := &imodel.VaultCategory{
-		ID:               category.ID,
-		Name:             category.Name,
-		CoverImageURL:    category.CoverImageURL,
-		InterestType:     category.InterestType,
-		CategoryInterest: category.CategoryInterest,
-		Deadlock:         category.Deadlock,
-		Tiers:            tiers,
-		IsActive:         category.IsActive,
-		CreatedAt:        category.CreatedAt,
-		UpdatedAt:        category.UpdatedAt,
+		ID:            category.ID,
+		Name:          category.Name,
+		CoverImageURL: category.CoverImageURL,
+		InterestType:  category.InterestType,
+		Deadlock:      category.Deadlock,
+		Tiers:         tiers,
+		IsActive:      category.IsActive,
+		CreatedAt:     category.CreatedAt,
+		UpdatedAt:     category.UpdatedAt,
 	}
 	return e, nil
 }
