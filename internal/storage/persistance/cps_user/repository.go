@@ -193,6 +193,7 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},
 		bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+
 		bson.D{{Key: "$project", Value: bson.M{
 			"_id":           1,
 			"user_code":     1,
@@ -211,6 +212,19 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			"region":        1,
 		}}},
 
+		// 🔥 FIX: convert department string → ObjectId
+		bson.D{{Key: "$addFields", Value: bson.M{
+			"department_obj_id": bson.M{
+				"$convert": bson.M{
+					"input":   "$department",
+					"to":      "objectId",
+					"onError": nil,
+					"onNull":  nil,
+				},
+			},
+		}}},
+
+		// 🔹 Role lookup
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from":         "roles",
 			"localField":   "job_title",
@@ -223,9 +237,11 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 				}}},
 			},
 		}}},
+
+		// 🔹 Department lookup (FIXED)
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from":         "department",
-			"localField":   "department",
+			"localField":   "department_obj_id", // ✅ FIXED
 			"foreignField": "_id",
 			"as":           "department_info",
 			"pipeline": mongo.Pipeline{
@@ -235,6 +251,7 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 				}}},
 			},
 		}}},
+
 		bson.D{{Key: "$unwind", Value: bson.M{
 			"path":                       "$role_info",
 			"preserveNullAndEmptyArrays": true,
@@ -243,6 +260,7 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			"path":                       "$department_info",
 			"preserveNullAndEmptyArrays": true,
 		}}},
+
 		bson.D{{Key: "$addFields", Value: bson.M{
 			"role": "$role_info.role",
 			"department": bson.M{
@@ -250,12 +268,15 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 				"name": "$department_info.department",
 			},
 		}}},
+
+		// 🔹 Clean temp + lookup fields
 		bson.D{{Key: "$project", Value: bson.M{
-			"role_info":       0,
-			"department_info": 0,
+			"role_info":         0,
+			"department_info":   0,
+			"department_obj_id": 0, // ✅ remove temp field
 		}}},
 
-		// Add a $group stage to ensure unique results
+		// 🔹 Ensure unique users
 		bson.D{{Key: "$group", Value: bson.M{
 			"_id": "$user_code",
 			"doc": bson.M{"$first": "$$ROOT"},
@@ -264,10 +285,10 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			"newRoot": "$doc",
 		}}},
 
-		// Use $facet for concurrent data fetching and counting
+		// 🔹 Pagination
 		bson.D{{Key: "$facet", Value: bson.M{
 			"data": []bson.D{
-				{{Key: "$sort", Value: bson.D{{Key: "date_joined", Value: -1}}}}, // Ensure sorting within the facet
+				{{Key: "$sort", Value: bson.D{{Key: "date_joined", Value: -1}}}},
 				{{Key: "$skip", Value: skip}},
 				{{Key: "$limit", Value: limit}},
 			},
