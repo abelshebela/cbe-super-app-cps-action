@@ -244,17 +244,13 @@ func (r *UpdateCategoryRequest) Validate() error {
 		trimmed := strings.TrimSpace(*r.Name)
 		*r.Name = trimmed
 	}
-	if r.CategoryInterest != nil {
-		trimmed := strings.TrimSpace(*r.CategoryInterest)
-		*r.CategoryInterest = trimmed
-	}
 	if r.InterestType != nil {
 		trimmed := strings.TrimSpace(*r.InterestType)
 		*r.InterestType = trimmed
 	}
 
 	// At least one updatable field must be provided
-	if r.Name == nil && r.InterestType == nil && r.CategoryInterest == nil && r.Tiers == nil && r.Deadlock == nil {
+	if r.Name == nil && r.InterestType == nil && r.Tiers == nil && r.Deadlock == nil {
 		return errors.New("at least one field (name, cover_image, interest_type, interest, tiers, deadlock) must be provided")
 	}
 
@@ -281,16 +277,16 @@ func (r *UpdateCategoryRequest) Validate() error {
 			}
 			return nil
 		})),
-		validation.Field(&r.CategoryInterest, validation.By(func(value interface{}) error {
-			ptr, ok := value.(*string)
-			if !ok || ptr == nil || *ptr == "" {
-				return nil
-			}
-			if _, err := decimal.NewFromString(*ptr); err != nil {
-				return errors.New("category_interest must be a valid decimal number")
-			}
-			return nil
-		})),
+		// validation.Field(&r.CategoryInterest, validation.By(func(value interface{}) error {
+		// 	ptr, ok := value.(*string)
+		// 	if !ok || ptr == nil || *ptr == "" {
+		// 		return nil
+		// 	}
+		// 	if _, err := decimal.NewFromString(*ptr); err != nil {
+		// 		return errors.New("category_interest must be a valid decimal number")
+		// 	}
+		// 	return nil
+		// })),
 	); err != nil {
 		return err
 	}
@@ -302,9 +298,6 @@ func (r *UpdateCategoryRequest) Validate() error {
 		if it != "FLAT" && it != "DYNAMIC" {
 			return errors.New("interest_type must be either 'flat' or 'dynamic'")
 		}
-	} else if r.CategoryInterest != nil || r.Tiers != nil {
-		// To apply consistent rules we require interest_type
-		return errors.New("interest_type is required when updating interest or tiers")
 	}
 
 	// Optional tier validation when present

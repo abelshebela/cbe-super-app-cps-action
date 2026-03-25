@@ -82,7 +82,7 @@ func (s *vaultCategoryService) CreateVaultCategory(ctx context.Context, req *vau
 	req_data := &imodel.VaultCategory{
 		Name:          req.Name,
 		CoverImageURL: coverImageUrl,
-		InterestType:  req.InterestType,
+		InterestType:  strings.ToUpper(req.InterestType),
 		Deadlock:      *req.Deadlock,
 		Tiers:         tiers,
 		IsActive:      true,
@@ -176,12 +176,7 @@ func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id strin
 
 	interestType := prev.InterestType
 	if req.InterestType != nil {
-		interestType = *req.InterestType
-	}
-
-	categoryInterest := prev.CategoryInterest
-	if req.CategoryInterest != nil {
-		categoryInterest = *req.CategoryInterest
+		interestType = strings.ToUpper(*req.InterestType)
 	}
 
 	deadlock := prev.Deadlock
@@ -227,14 +222,13 @@ func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id strin
 	}
 
 	req_data := &imodel.VaultCategory{
-		Name:             updatedName,
-		CoverImageURL:    updatedCover,
-		InterestType:     interestType,
-		CategoryInterest: categoryInterest,
-		Deadlock:         deadlock,
-		Tiers:            tiers,
-		UpdatedAt:        time.Now(),
-		IsActive:         prev.IsActive,
+		Name:          updatedName,
+		CoverImageURL: updatedCover,
+		InterestType:  interestType,
+		Deadlock:      deadlock,
+		Tiers:         tiers,
+		UpdatedAt:     time.Now(),
+		IsActive:      prev.IsActive,
 	}
 
 	makerData := local_util.ExtractUserFromContext(ctx)
