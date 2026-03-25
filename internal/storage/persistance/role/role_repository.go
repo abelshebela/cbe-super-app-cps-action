@@ -216,7 +216,7 @@ func (r *RoleRepository) FindAll(ctx context.Context) (*[]imodel.Role, error) {
 	pipeline := []bson.M{
 		{"$match": bson.M{"enabled": true}},
 		{"$lookup": bson.M{
-			"from":         "roles",
+			"from":         "job_roles",
 			"localField":   "role",
 			"foreignField": "code",
 			"as":           "role_info",
