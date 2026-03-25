@@ -300,7 +300,6 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	}
 	name := r.FormValue("name")
 	intType := r.FormValue("interest_type")
-	cateInt := r.FormValue("category_interest")
 	deadlockStr := r.FormValue("deadlock")
 	tiersStr := r.FormValue("tiers")
 
@@ -309,9 +308,6 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	}
 	if intType != "" {
 		req.InterestType = &intType
-	}
-	if cateInt != "" {
-		req.CategoryInterest = &cateInt
 	}
 
 	if deadlockStr != "" {
