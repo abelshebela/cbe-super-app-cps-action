@@ -69,12 +69,16 @@ CREATE TABLE vault_tiers (
 -- ===========================================
 CREATE TABLE deadlock_requests (
     id                       VARCHAR2(36) PRIMARY KEY,
-    vault_name               VARCHAR2(255) NOT NULL,
-    vault_id                 VARCHAR2(36) NOT NULL,
+    vault_name               VARCHAR2(255),
     vault_type               VARCHAR2(100),
     member_name              VARCHAR2(255),
     member_account_number    VARCHAR2(50),
-    status                   VARCHAR2(50) NOT NULL CHECK (status IN ('PENDING', 'COMPLETED')),
+    amount                   VARCHAR2(100),
+    category                 VARCHAR2(100),
+    number_of_members        VARCHAR2(50),
+    duration                 VARCHAR2(50),
+    end_date                 VARCHAR2(50),
+    status                   VARCHAR2(50),
     created_at               TIMESTAMP WITH TIME ZONE DEFAULT SYSTIMESTAMP NOT NULL,
     updated_at               TIMESTAMP WITH TIME ZONE DEFAULT SYSTIMESTAMP NOT NULL
 );
