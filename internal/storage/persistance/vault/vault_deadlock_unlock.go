@@ -161,6 +161,7 @@ func (r *VaultCategoryRepository) GetDeadlockRequest(ctx context.Context, id str
 }
 
 func (r *VaultCategoryRepository) GetAllDeadlockedRequests(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.DeadlockRequest], error) {
+	r.logger.Infof("[GetAllDeadlockedRequests] getting all deadlock requests")
 	limit := int64(50)
 	page := int64(1)
 

@@ -70,6 +70,7 @@ CREATE TABLE vault_tiers (
 CREATE TABLE deadlock_requests (
     id                       VARCHAR2(36) PRIMARY KEY,
     vault_name               VARCHAR2(255),
+    vault_id                 VARCHAR2(36),
     vault_type               VARCHAR2(100),
     member_name              VARCHAR2(255),
     member_account_number    VARCHAR2(50),
