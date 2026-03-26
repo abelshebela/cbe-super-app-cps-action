@@ -1263,7 +1263,7 @@ const (
 	MsgNoBankProductFound                      = "No bank Product found"
 	MsgCannotDeleteBankProduct                 = "Cannot delete bank product"
 	MsgcannotEnableOrDisableDeletedBankProduct = "Cannot enable or disable deleted bank product"
-	MsgDuplicateVaultCategory                  = "There is an existing vault category"
+	MsgDuplicateVaultCategory                  = "There is an existing vault category with the name you used"
 
 	// Fayda Account
 	MsgFaydaAccountEnableCreatedSuccessfully  = "Fayda Account enable action submitted successfully"
