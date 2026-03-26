@@ -67,48 +67,62 @@ func NewDonationService(client *mongo.Client, DonationRepo storage.DonationRepos
 }
 
 func (d *Donation) FetchDonation(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]dto.DonationListResponse], error) {
+	fmt.Println(">>> [SERVICE] FetchDonation - ENTRY")
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchDonation", "Donation", "FetchDonation")
 	defer span.End()
 
+	fmt.Println(">>> [SERVICE] FetchDonation - calling repo FindAllWithPagination")
 	data, err := d.DonationRepo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
+		fmt.Println(">>> [SERVICE] FetchDonation - repo ERROR:", err)
 		span.AddEvent("Failed to fetch donations", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
 		return nil, err
 	}
+	fmt.Printf(">>> [SERVICE] FetchDonation - got %d donations\n", len(data.Data))
 	return data, nil
 }
 
 func (d *Donation) FetchDonationByID(ctx context.Context, id string) (*dto.DonationListResponse, error) {
+	fmt.Println(">>> [SERVICE] FetchDonationByID - ENTRY, id:", id)
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchDonationByID", "Donation", "FetchDonationByID")
 	defer span.End()
 
+	fmt.Println(">>> [SERVICE] FetchDonationByID - calling repo FindByID")
 	res, err := d.DonationRepo.FindByID(ctx, id)
 	if err != nil {
+		fmt.Println(">>> [SERVICE] FetchDonationByID - repo ERROR:", err)
 		span.AddEvent("Failed to fetch donation", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return nil, err
 	}
+	fmt.Println(">>> [SERVICE] FetchDonationByID - SUCCESS")
 	return res, nil
 }
 
 func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequest) error {
+	fmt.Println(">>> [SERVICE] CreateDonation - ENTRY")
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateDonation", "Donation", "CreateDonation")
 	defer span.End()
 
+	fmt.Println(">>> [SERVICE] CreateDonation - extracting user from context")
 	makerData := local_util.ExtractUserFromContext(ctx)
+	fmt.Printf(">>> [SERVICE] CreateDonation - makerData: %+v\n", makerData)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+		fmt.Println(">>> [SERVICE] CreateDonation - incomplete user data")
 		span.AddEvent("Incomplete user data", trace.WithAttributes(
 			attribute.String("error", localization.ErrorAccountNumberRequired.Code),
 		))
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
+	fmt.Println(">>> [SERVICE] CreateDonation - checking title existence:", donation.Title)
 	ok, err := core.DonationTitleExists(ctx, donation.Title, d.DonationRepo)
 	if err != nil {
+		fmt.Println(">>> [SERVICE] CreateDonation - title check ERROR:", err)
 		span.AddEvent("Failed to check donation title existence", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("title", donation.Title),
@@ -116,6 +130,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		return err
 	}
 	if ok {
+		fmt.Println(">>> [SERVICE] CreateDonation - title already exists")
 		span.AddEvent("Donation title duplicated", trace.WithAttributes(
 			attribute.String("error", localization.ErrorDonationTitleDuplicated.Code),
 			attribute.String("title", donation.Title),
@@ -123,15 +138,19 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		return errors.New(localization.ErrorDonationTitleDuplicated.Code)
 	}
 
+	fmt.Println(">>> [SERVICE] CreateDonation - finding category:", donation.CategoryID)
 	category, err := d.DonationCategoryRepo.FindByID(ctx, donation.CategoryID)
 	if err != nil {
+		fmt.Println(">>> [SERVICE] CreateDonation - category find ERROR:", err)
 		span.AddEvent("Donation category not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorDonationCategoryNotFound.Code),
 			attribute.String("category_id", donation.CategoryID),
 		))
 		return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 	}
+	fmt.Printf(">>> [SERVICE] CreateDonation - category found: %+v\n", category)
 	if !category.Enabled {
+		fmt.Println(">>> [SERVICE] CreateDonation - category NOT enabled")
 		span.AddEvent("Category is not enabled", trace.WithAttributes(
 			attribute.String("error", localization.ErrorCategoryIsNotEnabled.Code),
 			attribute.String("category_id", donation.CategoryID),
@@ -139,15 +158,19 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		return errors.New(localization.ErrorCategoryIsNotEnabled.Code)
 	}
 
+	fmt.Println(">>> [SERVICE] CreateDonation - finding company:", donation.CompanyID)
 	company, err := d.DonationCompanyRepo.FindByID(ctx, donation.CompanyID)
 	if err != nil {
+		fmt.Println(">>> [SERVICE] CreateDonation - company find ERROR:", err)
 		span.AddEvent("Donation company not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorDonationCompanyNotFound.Code),
 			attribute.String("company_id", donation.CompanyID),
 		))
 		return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 	}
+	fmt.Printf(">>> [SERVICE] CreateDonation - company found: %+v\n", company)
 	if !company.Enabled {
+		fmt.Println(">>> [SERVICE] CreateDonation - company NOT enabled")
 		span.AddEvent("Company is not enabled", trace.WithAttributes(
 			attribute.String("error", localization.ErrorCompanyIsNotEnabled.Code),
 			attribute.String("company_id", donation.CompanyID),
@@ -218,22 +241,29 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	}
 	d.logger.Infof("[DonationSvc][Create] cps request target: %d, images: %d", result.Target, len(result.DonationImages))
 
+	fmt.Println(">>> [SERVICE] CreateDonation - building CPS action")
 	cpsAction := lib.CpsModelBuilder("", makerData, "", result, string(constants.RequestCreateDonation), constants.CREATE)
+	fmt.Println(">>> [SERVICE] CreateDonation - calling CreateCPSAction")
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		fmt.Println(">>> [SERVICE] CreateDonation - CPS action ERROR:", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
 		return err
 	}
+	fmt.Println(">>> [SERVICE] CreateDonation - SUCCESS EXIT")
 	return nil
 }
 
 func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.DonationRequest) error {
+	fmt.Println(">>> [SERVICE] UpdateDonation - ENTRY, id:", id)
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateDonation", "Donation", "UpdateDonation")
 	defer span.End()
 
+	fmt.Println(">>> [SERVICE] UpdateDonation - extracting user")
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
+		fmt.Println(">>> [SERVICE] UpdateDonation - incomplete user data")
 		span.AddEvent("Incomplete user data", trace.WithAttributes(
 			attribute.String("error", localization.ErrorAccountNumberRequired.Code),
 			attribute.String("id", id),
@@ -241,14 +271,17 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
+	fmt.Println(">>> [SERVICE] UpdateDonation - finding existing donation")
 	existingDonation, err := d.DonationRepo.FindByID(ctx, id)
 	if err != nil {
+		fmt.Println(">>> [SERVICE] UpdateDonation - FindByID ERROR:", err)
 		span.AddEvent("Failed to find donation", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return err
 	}
+	fmt.Printf(">>> [SERVICE] UpdateDonation - found existing: %+v\n", existingDonation)
 	if existingDonation == nil {
 		span.AddEvent("Donation not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorFileNotFound.Code),
@@ -625,11 +658,14 @@ func (d *Donation) AddDonationImage(ctx context.Context, id string, image dto.Do
 }
 
 func (d *Donation) EnableDonation(ctx context.Context, id string) error {
+	fmt.Println(">>> [SERVICE] EnableDonation - ENTRY, id:", id)
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableDonation", "Donation", "EnableDonation")
 	defer span.End()
 
+	fmt.Println(">>> [SERVICE] EnableDonation - extracting user")
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+		fmt.Println(">>> [SERVICE] EnableDonation - incomplete user data")
 		span.AddEvent("Incomplete user data", trace.WithAttributes(
 			attribute.String("error", localization.ErrorIncompleteUserInfo.Code),
 			attribute.String("id", id),
@@ -637,16 +673,20 @@ func (d *Donation) EnableDonation(ctx context.Context, id string) error {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
+	fmt.Println(">>> [SERVICE] EnableDonation - finding donation")
 	existingDonation, err := d.DonationRepo.FindByID(ctx, id)
 	if err != nil {
+		fmt.Println(">>> [SERVICE] EnableDonation - FindByID ERROR:", err)
 		span.AddEvent("Failed to find donation", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return err
 	}
+	fmt.Printf(">>> [SERVICE] EnableDonation - found: %+v\n", existingDonation)
 
 	if existingDonation == nil {
+		fmt.Println(">>> [SERVICE] EnableDonation - donation is nil")
 		span.AddEvent("Donation not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorFileNotFound.Code),
 			attribute.String("id", id),
@@ -715,11 +755,14 @@ func (d *Donation) EnableDonation(ctx context.Context, id string) error {
 }
 
 func (d *Donation) DisableDonation(ctx context.Context, id string) error {
+	fmt.Println(">>> [SERVICE] DisableDonation - ENTRY, id:", id)
 	ctx, span := local_util.TraceLogger(ctx, "service", "DisableDonation", "Donation", "DisableDonation")
 	defer span.End()
 
+	fmt.Println(">>> [SERVICE] DisableDonation - extracting user")
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+		fmt.Println(">>> [SERVICE] DisableDonation - incomplete user data")
 		span.AddEvent("Incomplete user data", trace.WithAttributes(
 			attribute.String("error", localization.ErrorAccountNumberRequired.Code),
 			attribute.String("id", id),
@@ -727,15 +770,19 @@ func (d *Donation) DisableDonation(ctx context.Context, id string) error {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
+	fmt.Println(">>> [SERVICE] DisableDonation - finding donation")
 	existingDonation, err := d.DonationRepo.FindByID(ctx, id)
 	if err != nil {
+		fmt.Println(">>> [SERVICE] DisableDonation - FindByID ERROR:", err)
 		span.AddEvent("Failed to find donation", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return err
 	}
+	fmt.Printf(">>> [SERVICE] DisableDonation - found: %+v\n", existingDonation)
 	if existingDonation == nil {
+		fmt.Println(">>> [SERVICE] DisableDonation - donation is nil")
 		span.AddEvent("Donation not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorFileNotFound.Code),
 			attribute.String("id", id),
@@ -767,10 +814,13 @@ func (d *Donation) DisableDonation(ctx context.Context, id string) error {
 }
 
 func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	fmt.Println(">>> [SERVICE] Authorize - ENTRY")
+	fmt.Printf(">>> [SERVICE] Authorize - action: UniqueId=%s, RequestAction=%s, ActionStatus=%s\n", action.UniqueId, action.RequestAction, action.ActionStatus)
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Donation", "Authorize")
 	defer span.End()
 
 	if action.ActionStatus != constants.Approved {
+		fmt.Println(">>> [SERVICE] Authorize - NOT approved, status:", action.ActionStatus)
 		d.logger.Errorf("[DonationSvc][Authorize] not approved")
 		span.AddEvent("CPS action status invalid", trace.WithAttributes(
 			attribute.String("error", localization.ErrorCPSActionStatusInvalid.Code),
@@ -778,9 +828,11 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		))
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
+	fmt.Println(">>> [SERVICE] Authorize - binding current action")
 	var donationCPS *dto.DonationCPSRequest
 	bindErr := core.BindAction(action.CurrentAction, &donationCPS)
 	if bindErr != nil {
+		fmt.Println(">>> [SERVICE] Authorize - bind ERROR:", bindErr)
 		d.logger.Errorf("[DonationSvc][Authorize] bind err: %v", bindErr)
 		span.AddEvent("Failed to bind current action", trace.WithAttributes(
 			attribute.String("error", bindErr.Error()),
@@ -788,15 +840,21 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		))
 		return nil, errors.New(localization.ErrorCPSActionFailed.Code)
 	}
+	fmt.Printf(">>> [SERVICE] Authorize - bound donationCPS: %+v\n", donationCPS)
 
+	fmt.Println(">>> [SERVICE] Authorize - switching on RequestAction:", action.RequestAction)
 	switch action.RequestAction {
 	case string(constants.RequestCreateDonation):
+		fmt.Println(">>> [SERVICE] Authorize - CASE: CreateDonation")
 		donationModel := core.MapToDonationModel(donationCPS)
+		fmt.Printf(">>> [SERVICE] Authorize - mapped model: %+v\n", donationModel)
 		err := d.DonationRepo.Create(ctx, donationModel)
 		if err != nil {
+			fmt.Println(">>> [SERVICE] Authorize - Create ERROR:", err)
 			d.logger.Errorf("[DonationSvc][Authorize] create err: %v", err)
 			return nil, err
 		}
+		fmt.Println(">>> [SERVICE] Authorize - Create SUCCESS")
 
 	case string(constants.RequestUpdateDonation):
 		existingDonation, err := d.DonationRepo.FindByID(ctx, action.UniqueId)
@@ -1182,10 +1240,13 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 }
 
 func (d *Donation) ExportDonationData(ctx context.Context, startDate, endDate time.Time, fileType string) (string, error) {
+	fmt.Println(">>> [SERVICE] ExportDonationData - ENTRY")
+	fmt.Printf(">>> [SERVICE] ExportDonationData - startDate=%v, endDate=%v, fileType=%s\n", startDate, endDate, fileType)
 	ctx, span := local_util.TraceLogger(ctx, "service", "ExportDonationData", "Donation", "ExportDonationData")
 	defer span.End()
 
 	if endDate.Before(startDate) {
+		fmt.Println(">>> [SERVICE] ExportDonationData - endDate before startDate")
 		span.AddEvent("Invalid date range", trace.WithAttributes(
 			attribute.String("start_date", startDate.Format(time.RFC3339)),
 			attribute.String("end_date", endDate.Format(time.RFC3339)),
@@ -1194,20 +1255,25 @@ func (d *Donation) ExportDonationData(ctx context.Context, startDate, endDate ti
 	}
 
 	// 1. Create temp CSV file
+	fmt.Println(">>> [SERVICE] ExportDonationData - creating temp file")
 	tmpFile, err := os.CreateTemp("", "donations_*.csv")
 	if err != nil {
+		fmt.Println(">>> [SERVICE] ExportDonationData - temp file ERROR:", err)
 		span.AddEvent("Failed to create temp file", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
 		return "", errors.New(localization.DonationDataExportedError.Code)
 	}
+	fmt.Println(">>> [SERVICE] ExportDonationData - temp file created:", tmpFile.Name())
 	defer os.Remove(tmpFile.Name())
 	defer tmpFile.Close()
 
 	writer := csv.NewWriter(tmpFile)
 
 	// Write UTF-8 BOM so Excel correctly recognizes comma-delimited columns
+	fmt.Println(">>> [SERVICE] ExportDonationData - writing BOM")
 	if _, err := tmpFile.Write([]byte{0xEF, 0xBB, 0xBF}); err != nil {
+		fmt.Println(">>> [SERVICE] ExportDonationData - BOM write ERROR:", err)
 		span.AddEvent("Failed to write BOM", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -1215,7 +1281,9 @@ func (d *Donation) ExportDonationData(ctx context.Context, startDate, endDate ti
 	}
 
 	// 2. Write CSV header
+	fmt.Println(">>> [SERVICE] ExportDonationData - writing CSV header")
 	if err := writer.Write(donationCSVHeader()); err != nil {
+		fmt.Println(">>> [SERVICE] ExportDonationData - header write ERROR:", err)
 		span.AddEvent("Failed to write CSV header", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -1223,22 +1291,27 @@ func (d *Donation) ExportDonationData(ctx context.Context, startDate, endDate ti
 	}
 
 	// 3. Stream donations from repository and write rows
+	fmt.Println(">>> [SERVICE] ExportDonationData - streaming donations")
 	rowCount := 0
 	err = d.DonationRepo.StreamByDateRange(ctx, startDate, endDate,
 		func(donation *donation_model.Donation) error {
 			rowCount++
+			fmt.Printf(">>> [SERVICE] ExportDonationData - streaming row %d: ID=%s, Title=%s\n", rowCount, donation.ID.Hex(), donation.Title)
 			return writer.Write(buildDonationRow(donation))
 		},
 	)
 	if err != nil {
+		fmt.Println(">>> [SERVICE] ExportDonationData - stream ERROR:", err)
 		span.AddEvent("Failed to stream donation data", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
 		return "", errors.New(localization.DonationDataExportedError.Code)
 	}
+	fmt.Printf(">>> [SERVICE] ExportDonationData - streamed %d rows\n", rowCount)
 
 	// 4. Check if any data was found
 	if rowCount == 0 {
+		fmt.Println(">>> [SERVICE] ExportDonationData - NO DATA found in range")
 		span.AddEvent("No donation data found in the specified date range")
 		return "", errors.New(localization.DonationDataNotFoundInDateRange.Code)
 	}
