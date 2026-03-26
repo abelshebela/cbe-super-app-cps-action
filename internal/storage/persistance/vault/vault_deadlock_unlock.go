@@ -50,8 +50,8 @@ const (
 		COUNT(*) OVER() AS total_count
 	FROM deadlock_requests
 	ORDER BY created_at DESC
-	OFFSET NVL(:1, 0) ROWS
-	FETCH NEXT NVL(:2, 50) ROWS ONLY`
+	OFFSET :1 ROWS
+	FETCH NEXT :2 ROWS ONLY`
 
 	updateDeadlockRequestStatus = `UPDATE deadlock_requests SET status = :1, updated_at = SYSTIMESTAMP WHERE id = :2`
 	selectVaultIDByDeadlockReq  = `SELECT vault_id FROM deadlock_requests WHERE id = :1`
