@@ -128,6 +128,27 @@ func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update
 	r.logger.Infof("[CPSAction][Update] updating CPS action for action code: %s", actionCode)
 	filterMap := BuildCPSActionFilter(update)
 	updateMap := BuildCPSActionUpdateMap(update)
+	modelData := []mongo.WriteModel{}
+
+	if strings.Contains(update.RequestAction, constants.DELETE) {
+		modelData = append(modelData, mongo.NewUpdateOneModel().
+			SetFilter(bson.M{"unique_id": update.UniqueId}).
+			SetUpdate(bson.M{"action_status": constants.Canceled, "canceled_reason": constants.CanceledBySystemDueToLinkedRequestAction}),
+		)
+		modelData = append(modelData, mongo.NewUpdateOneModel().
+			SetFilter(filterMap).
+			SetUpdate(update),
+		)
+
+		_, err := r.collection.BulkWrite(ctx, modelData, options.BulkWrite().SetOrdered(false))
+		if err != nil {
+			r.logger.Errorf("[CpsAction][Update] failed to make bulk update")
+			return nil, local_utils.HandleDBError(err)
+		}
+
+		return &update, nil
+	}
+
 	// filterMap := bson.M{}
 	data, err := r.dal.UpdateOne(ctx, filterMap, updateMap)
 	if err != nil {

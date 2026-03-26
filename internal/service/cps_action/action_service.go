@@ -139,7 +139,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 
 	reqs := ca.pendingLockRequestActions(actionName, cpsAction.RequestAction)
 	if len(reqs) > 0 {
-		existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, roleCode, reqs)
+		existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
 		if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
 			span.AddEvent("failed to get cps action by role and request actions", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
@@ -168,6 +168,10 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 		return strings.Contains(normalize(s), constants.CREATE)
 	}
 
+	isDelete := func(s string) bool {
+		return strings.Contains(normalize(s), constants.DELETE)
+	}
+
 	defaultReq := []string{normalize(requestAction)}
 	if actionName == "" {
 		return defaultReq
@@ -179,6 +183,7 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 	}
 
 	wantCreateOnly := isCreate(requestAction)
+	wantDeleteOnly := isDelete(requestAction)
 	seen := map[string]struct{}{}
 	reqs := make([]string, 0, len(lst))
 
@@ -189,7 +194,12 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 		}
 
 		isKeyCreate := isCreate(key)
+		isKeyDelete := isDelete(key)
 		if wantCreateOnly != isKeyCreate {
+			continue
+		}
+
+		if wantDeleteOnly != isKeyDelete {
 			continue
 		}
 
@@ -337,12 +347,12 @@ func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestA
 	return action, nil
 }
 
-func (ca *cpsActionService) GetPendingCPSActionByRoleAndRequestActions(ctx context.Context, roleCode string, requestActions []string) (*model.CPSAction, error) {
+func (ca *cpsActionService) GetPendingCPSActionByRoleAndRequestActions(ctx context.Context, uniqueId string, requestActions []string) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetPendingCPSActionByRoleAndRequestActions", "CPSAction", "GetPendingCPSActionByRoleAndRequestActions")
 	defer span.End()
 
 	filter := bson.M{
-		"role_code":      roleCode,
+		"unique_id":      uniqueId,
 		"action_status":  string(constants.Pending),
 		"request_action": bson.M{"$in": requestActions},
 	}

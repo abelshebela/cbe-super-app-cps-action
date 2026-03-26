@@ -463,16 +463,22 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		CheckerPhoneNumber: userData.PhoneNumber,
 		ApprovedAt:         time.Now(),
 	}
-	update := &model.CPSAction{
-		ActionCode:          action.ActionCode,
-		ActionStatus:        finalStatus,
-		CurrentCheckerIndex: float64(*idxDoc.CheckerIndex),
-		CheckerUsers:        append(action.CheckerUsers, checkerUser),
-		RoleCode:            r.Context().Value(constants.ContextKey("role_code")).(string),
-	}
+	// update := &model.CPSAction{
+	// 	ActionCode:          action.ActionCode,
+	// 	ActionStatus:        finalStatus,
+	// 	CurrentCheckerIndex: float64(*idxDoc.CheckerIndex),
+	// 	CheckerUsers:        append(action.CheckerUsers, checkerUser),
+	// 	RoleCode:            r.Context().Value(constants.ContextKey("role_code")).(string),
+	// }
+
+	updatedData := action
+	updatedData.ActionStatus = finalStatus
+	updatedData.CurrentCheckerIndex = float64(*idxDoc.CheckerIndex)
+	updatedData.CheckerUsers = append(action.CheckerUsers, checkerUser)
+	updatedData.RoleCode = r.Context().Value(constants.ContextKey("role_code")).(string)
 
 	// Then, approve the action
-	if err := a.cpsActionApplication.ApproveCPSAction(ctx, update); err != nil {
+	if err := a.cpsActionApplication.ApproveCPSAction(ctx, updatedData); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -598,14 +604,24 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		CheckerPhoneNumber: makerData.PhoneNumber,
 		ApprovedAt:         time.Now(),
 	}
-	if err := a.cpsActionApplication.RejectCPSAction(ctx, actionCode, &model.CPSAction{
-		ActionCode:          actionCode,
-		CurrentCheckerIndex: *idxDoc.CheckerIndex,
-		ActionStatus:        constants.Rejected,
-		RejectionReason:     req.RejectionReason,
-		CheckerUsers:        append(action.CheckerUsers, CheckerUser),
-		RoleCode:            r.Context().Value(constants.ContextKey("role_code")).(string),
-	}); err != nil {
+
+	updatedData := action
+	updatedData.ActionStatus = string(constants.Rejected)
+	updatedData.RejectionReason = req.RejectionReason
+	updatedData.CurrentCheckerIndex = float64(*idxDoc.CheckerIndex)
+	updatedData.CheckerUsers = append(action.CheckerUsers, CheckerUser)
+	updatedData.RoleCode = r.Context().Value(constants.ContextKey("role_code")).(string)
+
+	//  &model.CPSAction{
+	// 	ActionCode:          actionCode,
+	// 	CurrentCheckerIndex: *idxDoc.CheckerIndex,
+	// 	ActionStatus:        constants.Rejected,
+	// 	RejectionReason:     req.RejectionReason,
+	// 	CheckerUsers:        append(action.CheckerUsers, CheckerUser),
+	// 	RoleCode:            r.Context().Value(constants.ContextKey("role_code")).(string),
+	// }
+
+	if err := a.cpsActionApplication.RejectCPSAction(ctx, actionCode, updatedData); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -1395,6 +1411,7 @@ func (a *cpsActionAdapter) ApproverCheckerAllocations(w http.ResponseWriter, r *
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	type modInfo struct {
 		RequestActions []string `json:"request_actions"`
 		ActionTypes    []string `json:"action_types"`
