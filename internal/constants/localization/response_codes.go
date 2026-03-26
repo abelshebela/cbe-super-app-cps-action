@@ -146,6 +146,10 @@ var ResponseCodesList = []ResponseCode{
 	SuccessCPSRoleServiceDisabled,
 	SuccessCPSRoleDeleted,
 
+	// Global
+	SuccessGlobalLimitFetched,
+	SuccessServiceLevelLimits,
+
 	// Ad related success response codes
 	SuccessAdvertCreatedSP,
 	SuccessAdvertCreateRequestSent,
@@ -1896,6 +1900,19 @@ var (
 		Message:    MsgCpsRolesFetched,
 		Type:       "success",
 	}
+	SuccessGlobalLimitFetched = ResponseCode{
+		Code:       "GLOBAL_LIMITS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Global limits fetched successfully",
+		Type:       "success",
+	}
+	SuccessServiceLevelLimits = ResponseCode{
+		Code:       "GLOBAL_SERVICE_LEVEL_LIMITS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Global service level limits fetched successfully",
+		Type:       "success",
+	}
+
 	SuccessCPSRoleFetched = ResponseCode{
 		Code:       "SUCCESS_CPS_ROLE_FETCHED",
 		StatusCode: StatusOK,
