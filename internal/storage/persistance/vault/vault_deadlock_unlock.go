@@ -38,9 +38,9 @@ const (
 		created_at,
 		updated_at
 	FROM deadlock_requests
-		ORDER BY created_at DESC
-		OFFSET NVL(:offset, 0) ROWS
-		FETCH NEXT NVL(:limit, 50) ROWS ONLY`
+	ORDER BY created_at DESC
+	OFFSET NVL(:1, 0) ROWS
+	FETCH NEXT NVL(:2, 50) ROWS ONLY`
 
 	updateDeadlockRequestStatus = `UPDATE deadlock_requests SET status = :1, updated_at = SYSTIMESTAMP WHERE id = :2`
 	selectVaultIDByDeadlockReq  = `SELECT vault_id FROM deadlock_requests WHERE id = :1`
@@ -161,7 +161,7 @@ func (r *VaultCategoryRepository) GetAllDeadlockedRequests(ctx context.Context, 
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	rows, err := r.db.QueryContext(ctx, listDeadlockRequests, sql.Named("offset", offset), sql.Named("limit", limit))
+	rows, err := r.db.QueryContext(ctx, listDeadlockRequests, offset, limit)
 	if err != nil {
 		r.logger.Errorf("failed to list deadlock requests: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
