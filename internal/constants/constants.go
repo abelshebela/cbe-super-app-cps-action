@@ -919,7 +919,7 @@ const (
 	RequestEnableVaultCategory  RequestAction = "ENABLE_VAULT_CATEGORY"
 	RequestDisAbleVaultCategory RequestAction = "DISABLE_VAULT_CATEGORY"
 
-	// Vault Withdrawal
+	// Vault Deadlock request
 	RequestUnlockDeadlock RequestAction = "UNLOCK_DEADLOCK_REQUEST"
 
 	// Event

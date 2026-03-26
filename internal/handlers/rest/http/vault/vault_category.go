@@ -29,7 +29,7 @@ type handler struct {
 
 type createTierPayload struct {
 	Name         string      `json:"name"`
-	TierInterest string      `json:"tier_interest"`
+	TierInterest interface{} `json:"tier_interest"`
 	Min          interface{} `json:"min"`
 	Max          interface{} `json:"max"`
 }
@@ -44,6 +44,13 @@ func normalizeTierNumber(v interface{}) (string, error) {
 		return trimmed, nil
 	case float64:
 		return strconv.FormatFloat(value, 'f', -1, 64), nil
+	case json.Number:
+		// json.Unmarshal can use json.Number when configured with UseNumber.
+		return value.String(), nil
+	case int:
+		return strconv.Itoa(value), nil
+	case int64:
+		return strconv.FormatInt(value, 10), nil
 	default:
 		return "", fmt.Errorf("numeric field must be string or number")
 	}
@@ -124,9 +131,14 @@ func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
 				localization.SendBadRequestResponse(w, fmt.Sprintf("Invalid tiers format at index %d: max %v", i, err))
 				return
 			}
+			tier, err := normalizeTierNumber(t.TierInterest)
+			if err != nil {
+				localization.SendBadRequestResponse(w, fmt.Sprintf("Invalid tiers format at index %d: max %v", i, err))
+				return
+			}
 			tiers = append(tiers, vault_category_dto.CreateTierDTO{
 				Name:         t.Name,
-				TierInterest: t.TierInterest,
+				TierInterest: tier,
 				Min:          min,
 				Max:          max,
 			})
@@ -137,7 +149,7 @@ func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
 		log.Errorf("[CreateVaultCategory] validation: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	// product := core.ToDomainCreateVaultCategoryRequest(req)
@@ -300,7 +312,6 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	}
 	name := r.FormValue("name")
 	intType := r.FormValue("interest_type")
-	cateInt := r.FormValue("category_interest")
 	deadlockStr := r.FormValue("deadlock")
 	tiersStr := r.FormValue("tiers")
 
@@ -309,9 +320,6 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	}
 	if intType != "" {
 		req.InterestType = &intType
-	}
-	if cateInt != "" {
-		req.CategoryInterest = &cateInt
 	}
 
 	if deadlockStr != "" {
@@ -325,14 +333,58 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if tiersStr != "" {
-		var tier []vault_category_dto.UpdateTierDTO
-		if err := json.Unmarshal([]byte(tiersStr), &tier); err != nil {
+		type updateTierPayload struct {
+			Name         *string     `json:"name"`
+			TierInterest interface{} `json:"tier_interest"`
+			Min          interface{} `json:"min"`
+			Max          interface{} `json:"max"`
+		}
+
+		var rawTiers []updateTierPayload
+		if err := json.Unmarshal([]byte(tiersStr), &rawTiers); err != nil {
 			span.RecordError(err)
 			log.Errorf("[UpdateVaultCategory] parse tiers: %v", err)
 			localization.SendBadRequestResponse(w, "Invalid tiers format")
 			return
 		}
-		req.Tiers = tier
+
+		tiers := make([]vault_category_dto.UpdateTierDTO, 0, len(rawTiers))
+		for i, t := range rawTiers {
+			var tier vault_category_dto.UpdateTierDTO
+			tier.Name = t.Name
+
+			if t.Min != nil {
+				min, err := normalizeTierNumber(t.Min)
+				if err != nil {
+					localization.SendBadRequestResponse(w, fmt.Sprintf("Invalid tiers format at index %d: min %v", i, err))
+					return
+				}
+				tier.Min = &min
+			}
+
+			if t.Max != nil {
+				max, err := normalizeTierNumber(t.Max)
+				if err != nil {
+					localization.SendBadRequestResponse(w, fmt.Sprintf("Invalid tiers format at index %d: max %v", i, err))
+					return
+				}
+				tier.Max = &max
+			}
+
+			// tier_interest is optional on update.
+			if t.TierInterest != nil {
+				ti, err := normalizeTierNumber(t.TierInterest)
+				if err != nil {
+					localization.SendBadRequestResponse(w, fmt.Sprintf("Invalid tiers format at index %d: tier_interest %v", i, err))
+					return
+				}
+				tier.TierInterest = &ti
+			}
+
+			tiers = append(tiers, tier)
+		}
+
+		req.Tiers = tiers
 	}
 
 	if err := req.Validate(); err != nil {

@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"context"
 	"crypto/rand"
+	"encoding/base32"
 	"errors"
 	"fmt"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -361,27 +363,54 @@ func HandleMongoError(err error) (string, string) {
 	return localization.ErrorUnexpectedError.Code, localization.ErrorUnexpectedError.Message
 }
 
-func GenerateCPSUserCode() string {
-	// Numeric time part (last 9 digits of Unix nano for compactness)
-	now := time.Now().UnixNano()
-	timePart := fmt.Sprintf("%09d", now%1e9)
+// func GenerateCPSUserCode() string {
+// 	// Numeric time part (last 9 digits of Unix nano for compactness)
+// 	now := time.Now().UnixNano()
+// 	timePart := fmt.Sprintf("%09d", now%1e9)
 
-	// Random part
-	const length = 6
+// 	// Random part
+// 	const length = 6
+// 	bytes := make([]byte, length)
+// 	_, err := rand.Read(bytes)
+// 	if err != nil {
+// 		panic(err) // handle properly in production
+// 	}
+
+// 	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+// 	for i := range bytes {
+// 		bytes[i] = charset[int(bytes[i])%len(charset)]
+// 	}
+
+// 	randomPart := string(bytes)
+
+// 	return fmt.Sprintf("%s_%s", timePart, randomPart)
+// }
+
+func GenerateCPSUserCode() string {
+	// Time part (last 6 digits for shorter length)
+	now := time.Now().UnixNano()
+	timePart := fmt.Sprintf("%06d", now%1e6)
+
+	// Random part (4 chars instead of 6)
+	const length = 4
 	bytes := make([]byte, length)
 	_, err := rand.Read(bytes)
 	if err != nil {
-		panic(err) // handle properly in production
+		panic(err)
 	}
 
 	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	for i := range bytes {
 		bytes[i] = charset[int(bytes[i])%len(charset)]
 	}
-
 	randomPart := string(bytes)
 
-	return fmt.Sprintf("%s_%s", timePart, randomPart)
+	// Short UUID (base32 encoded, trimmed)
+	u := uuid.New()
+	encoded := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(u[:])
+	shortUUID := strings.ToLower(encoded[:6]) // take first 6 chars
+
+	return fmt.Sprintf("%s_%s_%s", timePart, randomPart, shortUUID)
 }
 func GenerateBPSUserCode() string {
 	const prefix = "BANKBPSUSER_"

@@ -190,8 +190,8 @@ func (fc *FeedbackConsumer) handleSurveyFeedbackMessage(ctx context.Context, mes
 	}
 
 	// Validate the message type
-	if kafkaMsg.Type != "survey_feedback" {
-		fc.logger.Errorf("Unexpected message type: %s, expected: survey_feedback", kafkaMsg.Type)
+	if kafkaMsg.Type != "survey-feedback" {
+		fc.logger.Errorf("Unexpected message type: %s, expected: survey-feedback", kafkaMsg.Type)
 		return fmt.Errorf("unexpected message type: %s", kafkaMsg.Type)
 	}
 

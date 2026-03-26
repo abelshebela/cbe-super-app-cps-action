@@ -143,7 +143,6 @@ func MapToDto(cus *member.User) customer.FindCustomerByIDResponse {
 		BlockedOn:            cus.BlockedOn,
 		IsUSSDEnabled:        cus.IsUSSDEnabled,
 		ISuperappEnabled:     cus.ISuperappEnabled,
-		LastLogin:            cus.LastLogin,
 		APPInstallationDate:  cus.APPInstallationDate,
 		Config:               cus.Config,
 		CreatedAt:            cus.CreatedAt,

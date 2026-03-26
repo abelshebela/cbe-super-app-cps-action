@@ -82,7 +82,7 @@ func (s *vaultCategoryService) CreateVaultCategory(ctx context.Context, req *vau
 	req_data := &imodel.VaultCategory{
 		Name:          req.Name,
 		CoverImageURL: coverImageUrl,
-		InterestType:  req.InterestType,
+		InterestType:  strings.ToUpper(req.InterestType),
 		Deadlock:      *req.Deadlock,
 		Tiers:         tiers,
 		IsActive:      true,
@@ -139,6 +139,20 @@ func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id strin
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateVaultCategory", "vaultCategoryService", "vaultCategoryService")
 	defer span.End()
 
+	if req.Name != nil {
+		dup, err := s.repo.FindByName(ctx, *req.Name)
+		if err != nil && err.Error() != localization.ErrorVaultCategoryNotFound.Code {
+			s.logger.Errorf("[VaultCatSvc][Update] find err: %v", err)
+			return "", errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		if dup != nil && dup.ID != id {
+			if strings.EqualFold(dup.Name, *req.Name) {
+				return "", errors.New(localization.ErrorDuplicateVaultCategory.Code)
+			}
+		}
+	}
+
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil || prev == nil {
 		if errors.Is(err, mongo.ErrNoDocuments) || errors.Is(err, sql.ErrNoRows) || prev == nil {
@@ -148,12 +162,6 @@ func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id strin
 		span.AddEvent("FindByID error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		s.logger.Errorf("[VaultCatSvc][Update] find err: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	if req.Name != nil {
-		if strings.EqualFold(prev.Name, *req.Name) {
-			return "", errors.New(localization.ErrorDuplicateVaultCategory.Code)
-		}
 	}
 
 	updatedName := strings.ToUpper(prev.Name)
@@ -176,12 +184,7 @@ func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id strin
 
 	interestType := prev.InterestType
 	if req.InterestType != nil {
-		interestType = *req.InterestType
-	}
-
-	categoryInterest := prev.CategoryInterest
-	if req.CategoryInterest != nil {
-		categoryInterest = *req.CategoryInterest
+		interestType = strings.ToUpper(*req.InterestType)
 	}
 
 	deadlock := prev.Deadlock
@@ -227,14 +230,13 @@ func (s *vaultCategoryService) UpdateVaultCategory(ctx context.Context, id strin
 	}
 
 	req_data := &imodel.VaultCategory{
-		Name:             updatedName,
-		CoverImageURL:    updatedCover,
-		InterestType:     interestType,
-		CategoryInterest: categoryInterest,
-		Deadlock:         deadlock,
-		Tiers:            tiers,
-		UpdatedAt:        time.Now(),
-		IsActive:         prev.IsActive,
+		Name:          updatedName,
+		CoverImageURL: updatedCover,
+		InterestType:  interestType,
+		Deadlock:      deadlock,
+		Tiers:         tiers,
+		UpdatedAt:     time.Now(),
+		IsActive:      prev.IsActive,
 	}
 
 	makerData := local_util.ExtractUserFromContext(ctx)

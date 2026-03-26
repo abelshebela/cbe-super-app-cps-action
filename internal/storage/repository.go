@@ -11,6 +11,7 @@ import (
 	access_list_segmentation_dto "cbe-super-app-cps-action/internal/constants/dto/access_list_segmentation"
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	bpsActionDto "cbe-super-app-cps-action/internal/constants/dto/bps_action"
+	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	cps_actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/cps_action_role"
 	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
@@ -222,7 +223,7 @@ type AvatarRepository interface {
 
 // BPSUser persistence
 type BPSUserRepository interface {
-	GetByUserCode(ctx context.Context, userCode string) (*bps_model.BPSUser, error)
+	GetByUserCode(ctx context.Context, userCode string) (*bpsUserDto.BPSUserResposenDTO, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]bps_user_dto.BPSUserResposenDTO], error)
 	Update(ctx context.Context, BpsUser *bps_model.BPSUser) error
 	Create(ctx context.Context, BpsUser bps_model.BPSUser) error

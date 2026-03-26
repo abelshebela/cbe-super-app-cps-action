@@ -766,12 +766,14 @@ var RequestActionGroups = map[string][]RequestAction{
 	"PASSWORDRULE": {
 		RequestUpdatePasswordRule,
 	},
-	"VAULT": {
+	"VAULTCATEGORIES": {
 		RequestCreateVaultCategory,
 		RequestUpdateVaultCategory,
 		RequestDeleteVaultCategory,
 		RequestEnableVaultCategory,
 		RequestDisAbleVaultCategory,
+	},
+	"VAULTEMERGENCYDEADLOCKREQUEST": {
 		RequestUnlockDeadlock,
 	},
 

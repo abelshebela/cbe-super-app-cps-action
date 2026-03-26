@@ -144,17 +144,16 @@ func (q *Queries) FindVaultCategories(ctx context.Context, arg FindVaultCategory
 		}
 
 		vc := VaultCategory{
-			ID:               category.ID,
-			Name:             category.Name,
-			CoverImageURL:    category.CoverImageURL,
-			InterestType:     category.InterestType,
-			CategoryInterest: category.CategoryInterest,
-			Deadlock:         category.Deadlock,
-			IsActive:         category.IsActive,
-			CreatedAt:        category.CreatedAt,
-			UpdatedAt:        category.UpdatedAt,
-			TotalCount:       totalCount,
-			Tiers:            tiers,
+			ID:            category.ID,
+			Name:          category.Name,
+			CoverImageURL: category.CoverImageURL,
+			InterestType:  category.InterestType,
+			Deadlock:      category.Deadlock,
+			IsActive:      category.IsActive,
+			CreatedAt:     category.CreatedAt,
+			UpdatedAt:     category.UpdatedAt,
+			TotalCount:    totalCount,
+			Tiers:         tiers,
 		}
 
 		items = append(items, vc)
@@ -173,7 +172,6 @@ SELECT
   c.name,
   c.cover_image_url,
   c.interest_type,
-  c.category_interest,
   c.deadlock,
   c.is_active,
   c.created_at,
@@ -210,7 +208,6 @@ func (q *Queries) FindVaultCategoryWithTiers(ctx context.Context, id string) (*i
 			&category.Name,
 			&category.CoverImageURL,
 			&category.InterestType,
-			&category.CategoryInterest,
 			&category.Deadlock,
 			&category.IsActive,
 			&category.CreatedAt,
@@ -252,7 +249,6 @@ SELECT
   name,
   cover_image_url,
   interest_type,
-  category_interest,
   deadlock,
   is_active,
   created_at,
@@ -268,7 +264,6 @@ func (q *Queries) FindVaultCategoryByName(ctx context.Context, name string) (*im
 		&i.Name,
 		&i.CoverImageURL,
 		&i.InterestType,
-		&i.CategoryInterest,
 		&i.Deadlock,
 		&i.IsActive,
 		&i.CreatedAt,
@@ -283,13 +278,12 @@ INSERT INTO vault_categories (
     name,
     cover_image_url,
     interest_type,
-    category_interest,
     deadlock,
     is_active,
     created_at,
     updated_at
 ) VALUES (
-    :1, :2, :3, :4, :5, :6, :7, SYSTIMESTAMP, SYSTIMESTAMP
+    :1, :2, :3, :4, :5, :6, SYSTIMESTAMP, SYSTIMESTAMP
 )`
 
 const saveVaultTier = `-- name: SaveVaultTier :exec
@@ -314,7 +308,6 @@ func (q *Queries) SaveVaultCategory(ctx context.Context, arg *imodel.VaultCatego
 		strings.ToUpper(arg.Name),
 		arg.CoverImageURL,
 		arg.InterestType,
-		arg.CategoryInterest,
 		boolToInt(arg.Deadlock),
 		boolToInt(arg.IsActive),
 	)
@@ -352,7 +345,6 @@ SET
     name              = COALESCE(UPPER(:1), name),
     cover_image_url   = COALESCE(:2, cover_image_url),
     interest_type     = COALESCE(:3, interest_type),
-    category_interest = COALESCE(:4, category_interest),
     deadlock          = COALESCE(:5, deadlock),
     updated_at        = COALESCE(:8, updated_at)
 WHERE id = :9`
@@ -383,11 +375,6 @@ func (q *Queries) UpdateVaultCategory(ctx context.Context, catID string, arg *im
 		interestType = &arg.InterestType
 	}
 
-	var categoryInterest *string
-	if arg.CategoryInterest != "" {
-		categoryInterest = &arg.CategoryInterest
-	}
-
 	var deadlock *int
 	if arg.Deadlock {
 		v := 1
@@ -400,13 +387,12 @@ func (q *Queries) UpdateVaultCategory(ctx context.Context, catID string, arg *im
 		ctx,
 		updateVaultCategory,
 
-		name,             // :1
-		cover,            // :2
-		interestType,     // :3
-		categoryInterest, // :4
-		deadlock,         // :5
-		now,              // :8
-		catID,            // :9
+		name,         // :1
+		cover,        // :2
+		interestType, // :3
+		deadlock,     // :4
+		now,          // :5
+		catID,        // :6
 	)
 
 	if err != nil {

@@ -43,12 +43,11 @@ type CreateWithdrawalRequest struct {
 // }
 
 type UpdateCategoryRequest struct {
-	Name             *string               `json:"name,omitempty"`
-	CoverImage       *multipart.FileHeader `form:"cover_image,omitempty"`
-	InterestType     *string               `json:"interest_type" bson:"interest_type"`
-	CategoryInterest *string               `json:"category_interest,omitempty"`
-	Deadlock         *bool                 `json:"deadlock,omitempty"`
-	Tiers            []UpdateTierDTO       `json:"tiers,omitempty"`
+	Name         *string               `json:"name,omitempty"`
+	CoverImage   *multipart.FileHeader `form:"cover_image,omitempty"`
+	InterestType *string               `json:"interest_type" bson:"interest_type"`
+	Deadlock     *bool                 `json:"deadlock,omitempty"`
+	Tiers        []UpdateTierDTO       `json:"tiers,omitempty"`
 }
 
 type UpdateTierDTO struct {

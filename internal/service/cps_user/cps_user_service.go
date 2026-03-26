@@ -119,7 +119,8 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	}
 
 	cpsUser := core.CPSUModel(req)
-	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, cpsUser, string(constants.RequestCpsUserCreate), constants.CREATE)
+	userForAction := core.MapForActionWithDepartment(cpsUser, department)
+	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, userForAction, string(constants.RequestCpsUserCreate), constants.CREATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
 		span.AddEvent("failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -211,8 +212,10 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 			}
 		}
 	}
+
+	var department *model.Department
 	if req.Department != "" {
-		department, err := s.departmentRepo.FindByID(ctx, req.Department)
+		department, err = s.departmentRepo.FindByID(ctx, req.Department)
 		if err != nil {
 			span.AddEvent("failed to find department", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
@@ -262,11 +265,12 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 		return errors.New("no fields to update")
 	}
 	makerData := local_util.ExtractUserFromContext(ctx)
+	userForAction := core.MapForActionWithDepartment(updated, department)
 	cpsActionModel := lib.CpsModelBuilder(
 		usercode,
 		makerData,
 		currentUser,
-		updated,
+		userForAction,
 		string(constants.RequestCpsUserUpdate),
 		constants.UPDATE,
 	)
@@ -332,7 +336,14 @@ func (s *cpsUserService) EnableUser(ctx context.Context, userCode string) error 
 	updated.PasswordDisable = false
 
 	maker := local_util.ExtractUserFromContext(ctx)
-	cpsAction := lib.CpsModelBuilder(userCode, maker, prev, updated, string(constants.RequestCpsUserEnable), constants.UPDATE)
+	department, err := s.departmentRepo.FindByID(ctx, prev.Department.Hex())
+	if err != nil {
+		span.AddEvent("failed to find department", trace.WithAttributes(attribute.String("error", err.Error())))
+		return err
+	}
+	userForAction := core.MapForActionWithDepartment(updated, department)
+
+	cpsAction := lib.CpsModelBuilder(userCode, maker, prev, userForAction, string(constants.RequestCpsUserEnable), constants.UPDATE)
 	err = s.cpsService.CreateCPSAction(ctx, &cpsAction)
 	if err != nil {
 		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -365,8 +376,14 @@ func (s *cpsUserService) DisableUser(ctx context.Context, userCode string) error
 	updated.PasswordDisable = true
 
 	maker := local_util.ExtractUserFromContext(ctx)
+	department, err := s.departmentRepo.FindByID(ctx, prev.Department.Hex())
+	if err != nil {
+		span.AddEvent("failed to find department", trace.WithAttributes(attribute.String("error", err.Error())))
+		return err
+	}
+	userForAction := core.MapForActionWithDepartment(updated, department)
 
-	cpsaction := lib.CpsModelBuilder(userCode, maker, prev, &updated, string(constants.RequestCpsUserDisable), constants.UPDATE)
+	cpsaction := lib.CpsModelBuilder(userCode, maker, prev, userForAction, string(constants.RequestCpsUserDisable), constants.UPDATE)
 	err = s.cpsService.CreateCPSAction(ctx, &cpsaction)
 	if err != nil {
 		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -497,7 +514,9 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 	switch action.RequestAction {
 	case string(constants.RequestCpsUserCreate):
 
-		cur, err := local_util.JsonUnmarshal[imodel.CPSUser](action.CurrentAction)
+		userFromAction, err := local_util.JsonUnmarshal[cpsuser.CpsUserPopulatedResponse](action.CurrentAction)
+
+		cur := core.MapFromPopulatedResponse(userFromAction)
 		// cur, err := core.BindCPSUserFromAction(action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to bind cps user from action", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -510,7 +529,9 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 		return action, nil
 
 	case string(constants.RequestCpsUserUpdate):
-		cur, err := local_util.JsonUnmarshal[imodel.CPSUser](action.CurrentAction)
+		userFromAction, err := local_util.JsonUnmarshal[cpsuser.CpsUserPopulatedResponse](action.CurrentAction)
+
+		cur := core.MapFromPopulatedResponse(userFromAction)
 		// cur, err := core.BindCPSUserUpdateFromAction(action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to bind cps user update from action", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -536,7 +557,9 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 		return action, nil
 
 	case string(constants.RequestCpsUserEnable):
-		_, err := core.BindCPSUserFromAction(action.CurrentAction)
+		_, err := local_util.JsonUnmarshal[cpsuser.CpsUserPopulatedResponse](action.CurrentAction)
+
+		// cur := core.MapFromPopulatedResponse(userFromAction)
 		if err != nil {
 			span.AddEvent("failed to bind cps user from action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
@@ -548,7 +571,9 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 		return action, nil
 
 	case string(constants.RequestCpsUserDisable):
-		_, err := core.BindCPSUserFromAction(action.CurrentAction)
+		// _, err := core.BindCPSUserFromAction(action.CurrentAction)
+		_, err := local_util.JsonUnmarshal[cpsuser.CpsUserPopulatedResponse](action.CurrentAction)
+
 		if err != nil {
 			span.AddEvent("failed to bind cps user from action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)

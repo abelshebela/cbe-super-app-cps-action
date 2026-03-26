@@ -26,6 +26,7 @@ type RoleRepository struct {
 	dbName                string
 	cpsUserCollectionName string
 	collection            *mongo.Collection
+	jobCollection         *mongo.Collection
 }
 
 func NewRoleRepository(client *mongo.Client, cfg *config.VaultConfig, database string, collection []string, logger utils.Logger) storage.RoleRepository {
@@ -35,6 +36,7 @@ func NewRoleRepository(client *mongo.Client, cfg *config.VaultConfig, database s
 		logger:                logger,
 		dbName:                database,
 		collection:            client.Database(database).Collection(collection[1]),
+		jobCollection:         client.Database(database).Collection(collection[0]),
 		cpsUserCollectionName: collection[2],
 	}
 }
@@ -201,10 +203,49 @@ func (r *RoleRepository) FindByCode(ctx context.Context, code string) (*imodel.R
 	return result, nil
 }
 
+// func (r *RoleRepository) FindAll(ctx context.Context) (*[]imodel.Role, error) {
+// 	data, err := r.mongoDal.FindAll(ctx, bson.M{"enabled": true}, nil)
+// 	if err != nil {
+// 		r.logger.Errorf("[RoleRepository][FindAll] failed to find roles: %v", err)
+// 		return nil, local_util.HandleDBError(err)
+// 	}
+// 	return &data, nil
+// }
+
 func (r *RoleRepository) FindAll(ctx context.Context) (*[]imodel.Role, error) {
-	data, err := r.mongoDal.FindAll(ctx, bson.M{"enabled": true}, nil)
+	pipeline := []bson.M{
+		{"$match": bson.M{"enabled": true}},
+		{"$lookup": bson.M{
+			"from":         "job_roles",
+			"localField":   "role",
+			"foreignField": "code",
+			"as":           "role_info",
+			"pipeline": []bson.M{
+				{"$project": bson.M{"type": 1, "role": 1, "_id": 0}},
+			},
+		}},
+		{"$unwind": bson.M{
+			"path":                       "$role_info",
+			"preserveNullAndEmptyArrays": true,
+		}},
+		{"$project": bson.M{
+			"_id":        1,
+			"job_title":  1,
+			"role":       1,
+			"enabled":    1,
+			"updated_at": 1,
+			"created_at": 1,
+			"type":       "$role_info.type",
+		}},
+	}
+	cursor, err := r.jobCollection.Aggregate(ctx, pipeline)
 	if err != nil {
-		r.logger.Errorf("[RoleRepository][FindAll] failed to find roles: %v", err)
+		r.logger.Errorf("[RoleRepository][FindAll] failed to aggregate job_roles: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	var data []imodel.Role
+	if err := cursor.All(ctx, &data); err != nil {
+		r.logger.Errorf("[RoleRepository][FindAll] failed to decode job_roles: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return &data, nil

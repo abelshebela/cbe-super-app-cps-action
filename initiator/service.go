@@ -74,7 +74,10 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, oracle OraclePersistence, logger utils.Logger, sitotagRPCClient transactionpb.TransactionServiceClient, cfg *config.VaultConfig, minioClient *s3.Client, redis storage.RedisRepository, smsService *lib.NotificationStore, clientOrchestrationProducer *kafka.ClientOrchestrationProducer, presignClient *s3.PresignClient, queueManager *queue.QueueManager) service.ServiceLayer {
+func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, oracle OraclePersistence,
+	logger utils.Logger, sitotagRPCClient transactionpb.TransactionServiceClient,
+	cfg *config.VaultConfig, minioClient *s3.Client, redis storage.RedisRepository, smsService *lib.NotificationStore,
+	clientOrchestrationProducer *kafka.ClientOrchestrationProducer, presignClient *s3.PresignClient, queueManager *queue.QueueManager) service.ServiceLayer {
 
 	// Initiate Service Layer
 	// Assign variable for minio public url

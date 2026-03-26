@@ -13,16 +13,15 @@ type VaultTiers struct {
 }
 
 type VaultCategory struct {
-	ID               string       `json:"id" bson:"_id,omitempty" gorm:"primaryKey"`
-	Name             string       `json:"name" bson:"name"`
-	CoverImageURL    string       `json:"cover_image_url" bson:"cover_image_url"`
-	InterestType     string       `json:"interest_type" bson:"interest_type"`
-	CategoryInterest string       `json:"category_interest" bson:"category_interest"`
-	Deadlock         bool         `json:"deadlock" bson:"deadlock"`
-	Tiers            []VaultTiers `json:"tiers" bson:"tiers"`
-	IsActive         bool         `json:"is_active" bson:"is_active"`
-	CreatedAt        time.Time    `json:"created_at" bson:"created_at"`
-	UpdatedAt        time.Time    `json:"updated_at" bson:"updated_at"`
+	ID            string       `json:"id" bson:"_id,omitempty" gorm:"primaryKey"`
+	Name          string       `json:"name" bson:"name"`
+	CoverImageURL string       `json:"cover_image_url" bson:"cover_image_url"`
+	InterestType  string       `json:"interest_type" bson:"interest_type"`
+	Deadlock      bool         `json:"deadlock" bson:"deadlock"`
+	Tiers         []VaultTiers `json:"tiers" bson:"tiers"`
+	IsActive      bool         `json:"is_active" bson:"is_active"`
+	CreatedAt     time.Time    `json:"created_at" bson:"created_at"`
+	UpdatedAt     time.Time    `json:"updated_at" bson:"updated_at"`
 }
 
 // type Vault struct {
