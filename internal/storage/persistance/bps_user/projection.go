@@ -50,6 +50,7 @@ func BPSUserMapper(data bps_model.BPSUser) bson.M {
 
 func BPSUserResponseMapper(data bps_model.BPSUser) *bpsUserDto.BPSUserResposenDTO {
 	return &bpsUserDto.BPSUserResposenDTO{
+		ID:                data.ID,
 		UserCode:          data.UserCode,
 		FullName:          data.FullName,
 		Username:          data.Username,
