@@ -19,13 +19,18 @@ const (
 		vault_type,
 		member_name,
 		member_account_number,
+		amount,
+		category,
+		number_of_members,
+		duration,
+		end_date,
 		status,
 		created_at,
 		updated_at
 	FROM deadlock_requests
 	WHERE id = :1`
 
-	countDeadlockRequests = `SELECT COUNT(*) FROM deadlock_requests`
+	// countDeadlockRequests = `SELECT COUNT(*) FROM deadlock_requests`
 
 	listDeadlockRequests = `SELECT
 		id,
@@ -34,9 +39,15 @@ const (
 		vault_type,
 		member_name,
 		member_account_number,
+		amount,
+		category,
+		number_of_members,
+		duration,
+		end_date,
 		status,
 		created_at,
-		updated_at
+		updated_at,
+		COUNT(*) OVER() AS total_count
 	FROM deadlock_requests
 	ORDER BY created_at DESC
 	OFFSET NVL(:1, 0) ROWS
@@ -130,6 +141,11 @@ func (r *VaultCategoryRepository) GetDeadlockRequest(ctx context.Context, id str
 		&request.VaultType,
 		&request.MemberName,
 		&request.MemberAccountNumber,
+		&request.Amount,
+		&request.Category,
+		&request.NumberOfMembers,
+		&request.Duration,
+		&request.EndDate,
 		&request.Status,
 		&request.CreatedAt,
 		&request.UpdatedAt,
@@ -147,19 +163,15 @@ func (r *VaultCategoryRepository) GetDeadlockRequest(ctx context.Context, id str
 func (r *VaultCategoryRepository) GetAllDeadlockedRequests(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.DeadlockRequest], error) {
 	limit := int64(50)
 	page := int64(1)
+
 	if filterParam.PerPage > 0 {
 		limit = int64(filterParam.PerPage)
 	}
 	if filterParam.Page > 0 {
 		page = int64(filterParam.Page)
 	}
-	offset := (page - 1) * limit
 
-	var total int64
-	if err := r.db.QueryRowContext(ctx, countDeadlockRequests).Scan(&total); err != nil {
-		r.logger.Errorf("failed to count deadlock requests: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	offset := (page - 1) * limit
 
 	rows, err := r.db.QueryContext(ctx, listDeadlockRequests, offset, limit)
 	if err != nil {
@@ -169,8 +181,11 @@ func (r *VaultCategoryRepository) GetAllDeadlockedRequests(ctx context.Context, 
 	defer rows.Close()
 
 	var list []imodel.DeadlockRequest
+	var total int64
+
 	for rows.Next() {
 		var request imodel.DeadlockRequest
+		var count int64
 
 		if err := rows.Scan(
 			&request.ID,
@@ -179,17 +194,26 @@ func (r *VaultCategoryRepository) GetAllDeadlockedRequests(ctx context.Context, 
 			&request.VaultType,
 			&request.MemberName,
 			&request.MemberAccountNumber,
+			&request.Amount,
+			&request.Category,
+			&request.NumberOfMembers,
+			&request.Duration,
+			&request.EndDate,
 			&request.Status,
 			&request.CreatedAt,
 			&request.UpdatedAt,
+			&count,
 		); err != nil {
 			r.logger.Errorf("failed to scan deadlock request: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
+
+		total = count
 		list = append(list, request)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, int(page), int(limit))
+
 	return &types.PaginatedResponse[[]imodel.DeadlockRequest]{
 		Data: list,
 		Meta: meta,
