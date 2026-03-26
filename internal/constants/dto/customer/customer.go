@@ -132,7 +132,6 @@ type FindCustomerByIDResponse struct {
 	BlockedOn            member.BlockedOn           `json:"blocked_on" bson:"blocked_on,omitempty"` // -- optional
 	IsUSSDEnabled        bool                       `json:"is_ussd_enabled" bson:"is_ussd_enabled"`
 	ISuperappEnabled     bool                       `json:"is_superapp_enabled" bson:"is_superapp_enabled"`
-	LastLogin            time.Time                  `json:"last_login" bson:"last_login"`
 	APPInstallationDate  time.Time                  `json:"application_installation_date" bson:"application_installation_date"`
 	Config               member.Config              `json:"config" bson:"config"`
 	CreatedAt            time.Time                  `json:"created_at" bson:"created_at"`

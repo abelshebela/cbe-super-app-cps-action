@@ -129,7 +129,6 @@ type BPSUserResposenDTO struct {
 	OTPLastTriedAt    time.Time     `json:"otp_last_tried_at" bson:"otp_last_tried_at"`
 	JobTitle          string        `json:"job_title" bson:"job_title"`
 	OTPLastVerifiedAt time.Time     `json:"otp_last_verified_at" bson:"otp_last_verified_at"`
-	Password          Password      `json:"login_password" bson:"login_password"`
 	IsFirstTimeLogin  bool          `json:"is_first_time_login" bson:"is_first_time_login"`
 	LastLoginAttempt  time.Time     `json:"last_login_attempt" bson:"last_login_attempt"`
 	NextLoginAttempt  time.Time     `json:"next_login_attempt" bson:"next_login_attempt"`

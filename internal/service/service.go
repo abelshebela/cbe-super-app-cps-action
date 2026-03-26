@@ -61,7 +61,7 @@ import (
 	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 
 	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
-
+	cps_roles_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
 	queue "cbe-super-app-cps-action/internal/storage/queue_system"
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
@@ -466,7 +466,7 @@ type BankService interface {
 
 type BPSUserService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	FetchUserByUserCode(ctx context.Context, userCode string) (*bps_model.BPSUser, error)
+	FetchUserByUserCode(ctx context.Context, userCode string) (*bpsUserDto.BPSUserResposenDTO, error)
 	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]bpsUserDto.BPSUserResposenDTO], error)
 	UpdateStatusBpsUser(ctx context.Context, userCode string, status bool) error
 	CreateBPSUser(ctx context.Context, req bps_model.BPSUser) error
@@ -548,6 +548,10 @@ type CPSRolesService interface {
 	DisableServiceAccess(ctx context.Context, roleID string, req cps_role_dto.ToggleServiceAccessRequest) error
 	Delete(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+
+	// CORE
+	GetGlobalLimits(ctx context.Context) (*cps_roles_dto.GlobalLimitResponse, error)
+	GetServiceLevelLimits(ctx context.Context, roleCode string, filterParam *types.Filter) (*types.PaginatedResponse[[]cps_roles_dto.ServiceLevelLimitResponse], error)
 }
 
 type ServiceLayer struct {

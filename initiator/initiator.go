@@ -38,6 +38,7 @@ func Init(ctx context.Context) {
 		Password: cfg.CbeCorePassword,
 		Url:      cfg.CbeCoreUrl,
 	}
+	coreInterface := core.NewCBECoreAPI(coreConfig)
 
 	// Initialize OpenTelemetry Tracing using platform/telemetry package
 	logger.Infof("Initializing OpenTelemetry Tracing...")
@@ -103,9 +104,7 @@ func Init(ctx context.Context) {
 	}
 
 	logger.Infof("Initializing persistence...")
-	notificationApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
-	// merchantApi := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce/cps/merchant/"
-	// merchantXAPIKey := "0e404061ea76caf9536bc7a38369ca38520aac3c"
+	notificationApi := cfg.SMSBaseURL
 
 	redis := InitRedis(cfg, logger)
 	logger.Infof("Initializing redis...")
@@ -121,7 +120,7 @@ func Init(ctx context.Context) {
 	defer queueInfra.Manager.Stop()
 	logger.Infof("Queue system initialized and started")
 
-	persistence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, notificationApi, *notificationProducer, sharedKafkaProducer, *clientOrchestrationProducer, *accessListSegmentationProducer, redisRepository, cfg, logger)
+	persistence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreInterface, notificationApi, *notificationProducer, sharedKafkaProducer, *clientOrchestrationProducer, *accessListSegmentationProducer, redisRepository, cfg, logger)
 	logger.Infof("Persistence initialized")
 
 	// Initialize CPS Action Guard (role_id + action_name authorization with TTL cache)
@@ -154,7 +153,7 @@ func Init(ctx context.Context) {
 
 	logger.Infof("initialize service layer")
 
-	serviceLayer := InitServiceLayer(mongoClient, persistence, OraclePersistence, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService, clientOrchestrationProducer, presignClient, queueInfra.Manager)
+	serviceLayer := InitServiceLayer(mongoClient, persistence, OraclePersistence, coreInterface, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService, clientOrchestrationProducer, presignClient, queueInfra.Manager)
 
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {

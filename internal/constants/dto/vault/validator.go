@@ -98,7 +98,7 @@ func (r *CreateCategoryRequest) Validate() error {
 
 	it := strings.ToUpper(r.InterestType)
 	if it != "FLAT" && it != "DYNAMIC" {
-		return errors.New("interest_type must be either 'FLAT' or 'DYNAMIC'")
+		return errors.New("interest type must be either 'FLAT' or 'DYNAMIC'")
 	}
 
 	// Validate tiers (min/max chaining + interest-type behavior)

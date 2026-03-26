@@ -74,7 +74,7 @@ func (b *BPSUserStorage) FindByOr(ctx context.Context, phone, email, username st
 	return data, nil
 }
 
-func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*bps_model.BPSUser, error) {
+func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*bpsUserDto.BPSUserResposenDTO, error) {
 	b.logger.Infof("[BPSUserStorage][GetByUserCode] fetching BPS user by user code")
 	filter := bson.M{"user_code": userCode, "is_deleted": false}
 	result, err := b.dal.FindOne(ctx, filter, bson.M{})
@@ -83,7 +83,7 @@ func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*b
 		return nil, local_util.HandleDBError(err)
 	}
 	b.logger.Infof("[BPSUserStorage][GetByUserCode] BPS user retrieved successfully")
-	return result, nil
+	return BPSUserResponseMapper(*result), nil
 }
 
 func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]bpsUserDto.BPSUserResposenDTO], error) {
@@ -93,7 +93,6 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	if enabledVal, ok := filterParam.Filters["enabled"]; ok {
 		match["enabled"] = enabledVal
 	}
-	 
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -103,7 +102,7 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			{"user_code": searchRegex},
 			{"phone_number": searchRegex},
 			{"email": searchRegex},
-			{"branch_name":searchRegex},
+			{"branch_name": searchRegex},
 		}
 	}
 

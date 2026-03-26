@@ -54,17 +54,17 @@ type VaultCategory struct {
 // 	MaturityAmount             *float64   `db:"maturity_amount" json:"maturity_amount,omitempty"`
 // }
 
-type DeadlockRequest struct {
-	ID                  string    `json:"id" bson:"_id,omitempty" gorm:"primaryKey"`
-	VaultName           string    `json:"vault_name" bson:"vault_name"`
-	VaultID             string    `json:"vault_id" bson:"vault_id"`
-	VaultType           string    `json:"vault_type" bson:"vault_type"`
-	MemberName          string    `json:"member_name" bson:"member_name"`
-	MemberAccountNumber string    `json:"member_account_number" bson:"member_account_number"`
-	Status              string    `json:"status" bson:"status"`
-	CreatedAt           time.Time `json:"created_at" bson:"created_at"`
-	UpdatedAt           time.Time `json:"updated_at" bson:"updated_at"`
-}
+// type DeadlockRequest struct {
+// 	ID                  string    `json:"id" bson:"_id,omitempty" gorm:"primaryKey"`
+// 	VaultName           string    `json:"vault_name" bson:"vault_name"`
+// 	VaultID             string    `json:"vault_id" bson:"vault_id"`
+// 	VaultType           string    `json:"vault_type" bson:"vault_type"`
+// 	MemberName          string    `json:"member_name" bson:"member_name"`
+// 	MemberAccountNumber string    `json:"member_account_number" bson:"member_account_number"`
+// 	Status              string    `json:"status" bson:"status"`
+// 	CreatedAt           time.Time `json:"created_at" bson:"created_at"`
+// 	UpdatedAt           time.Time `json:"updated_at" bson:"updated_at"`
+// }
 
 // type WithdrawalStatusHistory struct {
 // 	ID           string    `json:"id" bson:"_id,omitempty" gorm:"primaryKey"`
@@ -101,4 +101,21 @@ type VaultTransaction struct {
 	VAT                     float64   `json:"vat"`
 	VaultID                 *int64    `json:"vault_id,omitempty"`
 	VaultTxType             *string   `json:"vault_tx_type,omitempty"`
+}
+
+type DeadlockRequest struct {
+	ID                  string    `json:"id" bson:"_id,omitempty" gorm:"primaryKey"`
+	VaultName           string    `json:"vault_name" bson:"vault_name"`
+	VaultID             string    `json:"vault_id" bson:"vault_id"`
+	VaultType           string    `json:"vault_type" bson:"vault_type"`
+	MemberName          string    `json:"member_name" bson:"member_name"`
+	MemberAccountNumber string    `json:"member_account_number" bson:"member_account_number"`
+	Amount              string    `json:"amount" bson:"amount"`
+	Category            string    `json:"category" bson:"category"`
+	NumberOfMembers     string    `json:"number_of_members" bson:"number_of_members"`
+	Duration            string    `json:"duration" bson:"duration"`
+	EndDate             string    `json:"end_date" bson:"end_date"`
+	Status              string    `json:"status" bson:"status"`
+	CreatedAt           time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at" bson:"updated_at"`
 }
