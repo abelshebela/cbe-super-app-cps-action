@@ -12,4 +12,7 @@ type CPSRolesAdapter interface {
 	EnableServiceAccess(w http.ResponseWriter, r *http.Request)
 	DisableServiceAccess(w http.ResponseWriter, r *http.Request)
 	DeleteCPSRole(w http.ResponseWriter, r *http.Request)
+	//
+	GetGlobalLimits(w http.ResponseWriter, r *http.Request)
+	GetServiceLevelLimits(w http.ResponseWriter, r *http.Request)
 }

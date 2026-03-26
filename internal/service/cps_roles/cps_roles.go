@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -22,11 +23,12 @@ import (
 type cpsRoleService struct {
 	repo       storage.CPSRolesRepository
 	cpsService service.CPSActionService
+	core       core.CBECoreAPIInterface
 	logger     utils.Logger
 }
 
-func NewCPSRoleService(repo storage.CPSRolesRepository, cpsService service.CPSActionService, logger utils.Logger) service.CPSRolesService {
-	return &cpsRoleService{repo: repo, cpsService: cpsService, logger: logger}
+func NewCPSRoleService(repo storage.CPSRolesRepository, cpsService service.CPSActionService, coreInterface core.CBECoreAPIInterface, logger utils.Logger) service.CPSRolesService {
+	return &cpsRoleService{repo: repo, cpsService: cpsService, core: coreInterface, logger: logger}
 }
 
 func (r *cpsRoleService) Create(ctx context.Context, req cps_role_dto.CreateCPSRoleRequest) error {

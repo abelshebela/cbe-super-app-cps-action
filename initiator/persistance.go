@@ -76,12 +76,12 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, notificationApi string, notificationProducer kafka.NotificationProducer, sharedKafkaProducer *shared_producer.NotificationProducer, clientOrchestrationProducer kafka.ClientOrchestrationProducer, accessListSegmentationProducer kafka.AccessListSegmentationProducer, redisRepository storage.RedisRepository, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
+func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface core.CBECoreAPIInterface, notificationApi string, notificationProducer kafka.NotificationProducer, sharedKafkaProducer *shared_producer.NotificationProducer, clientOrchestrationProducer kafka.ClientOrchestrationProducer, accessListSegmentationProducer kafka.AccessListSegmentationProducer, redisRepository storage.RedisRepository, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
 	acctBlockPersistence := account_block.NewAccountBlockRepository(client, cfg, dbName, AccountBlockCollection, CPSActionsCollection, clientOrchestrationProducer, logger)
 	data := persistance.Persistence{
 		JobRolePersistence:              job_repo.NewJobRoleRepository(client, cfg, dbName, JobRolesCollection, logger),
 		DeviceVersionControlPersistence: deviceversioncontrol.NewDeviceVersionControlRepository(client, cfg, dbName, DeviceVersionControllCollection, clientOrchestrationProducer, logger),
-		AccountLookup:                   core.NewCBECoreAPI(coreConfig),
+		AccountLookup:                   coreInterface,
 		UserPersistence:                 users.NewUserRepository(client, cfg, dbName, MembersCollection, clientOrchestrationProducer, logger),
 		HQPersistence:                   hq.NewHQRepository(client, cfg, dbName, HQCollection, logger),
 		OTPPersistence:                  otp.NewOtpRepository(client, cfg, dbName, OTPsCollection, logger),

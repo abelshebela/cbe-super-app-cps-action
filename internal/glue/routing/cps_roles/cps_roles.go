@@ -83,6 +83,23 @@ func Init(router chi.Router, handler cps_role.CPSRolesAdapter, authMiddleware mi
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		// Global APIs
+		{
+			Method:  http.MethodGet,
+			Path:    "/cps-roles/global-limits",
+			Handler: handler.GetGlobalLimits,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/cps-roles/service-level-limits/{role_code}",
+			Handler: handler.GetServiceLevelLimits,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)
