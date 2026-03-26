@@ -18,7 +18,7 @@ message Wallet {
   string service_key = 9;
   string service_id = 10;
   repeated ChildServiceKey child_service_keys = 11;
-  Cap cap = 12;
+  repeated Cap cap = 12;
 }
 
 message ChildServiceKey{
@@ -33,6 +33,7 @@ message Services {
 message Cap {
   string single_cap = 1;
   string minimum_transfer_cap = 2;
+  string currency = 3;
 }
 
 message docs {

@@ -76,9 +76,9 @@ type PermissionGroupResponse struct {
 }
 
 type DepartmentResponse struct {
-	ID          bson.ObjectID `json:"id" bson:"id"`
-	Name        string        `json:"name" bson:"name"`
-	PortalCards []string      `json:"portal_cards" bson:"portal_cards"`
+	ID   bson.ObjectID `json:"id" bson:"id"`
+	Name string        `json:"name" bson:"name"`
+	// PortalCards []string      `json:"portal_cards" bson:"portal_cards"`
 }
 
 type CpsUserResponse struct {
@@ -135,6 +135,7 @@ type CpsUserPopulatedResponse struct {
 	MakerAllocations   []string                  `json:"maker_allocations" example:"[\"Action1\", \"Action2\"]"`
 	CheckerAllocations []string                  `json:"checker_allocations" example:"[[\"Action1_Checker1\", \"Action1_Checker2\"], [\"Action2_Checker1\"]]"`
 	AuditorAllocations []string                  `json:"auditor_allocations" example:"[\"Action1\", \"Action2\"]"`
+	LastLogin          time.Time                 `json:"last_login" bson:"last_login"` // optional
 }
 
 type Department struct {
@@ -149,6 +150,7 @@ type CPSUserWithDepartment struct {
 	Role         string        `json:"role,omitempty" bson:"role"`
 	Gender       string        `json:"gender,omitempty" bson:"gender"`
 	PhoneNumber  string        `json:"phone_number,omitempty" bson:"phone_number"`
+	Department   Department    `json:"department,omitempty" bson:"department"`
 	Email        string        `json:"email,omitempty" bson:"email"`
 	UserName     string        `json:"username,omitempty" bson:"username"`
 	JobTitle     string        `json:"job_title,omitempty" bson:"job_title"`

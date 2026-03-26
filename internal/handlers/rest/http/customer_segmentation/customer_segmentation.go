@@ -34,13 +34,17 @@ func NewCustomerSegmentation(svc service.CustomerSegmentationService, logger uti
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			body	body		cust_seg.CreateCustomerSegmentationRequest	true	"Customer Segmentation DTO"
-//	@Success		201		{object}	localization.StandardResponse{data=nil}
-//	@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
+//	@Param			body	body		customersegmentation.CreateCustomerSegmentationRequest	true	"Customer Segmentation DTO"
+//	@Success		201		{object}	localization.StandardResponse{data=nil}	"Customer segmentation creation request submitted successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		401		{object}	localization.StandardResponse{data=nil}	"Unauthorized"
+//	@Failure		422		{object}	localization.StandardResponse{data=nil}	"Validation error"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Router			/customer-segmentations [post]
 func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "CreateCustomerSegmentation", "handler", "customerSegmentation")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -48,27 +52,28 @@ func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.Response
 	var req cust_seg.CreateCustomerSegmentationRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		c.logger.Errorf("[CreateCustomerSegmentation] failed to decode request body: %v", err)
+		log.Errorf("[CreateCustomerSegmentation] failed to decode request body: %v", err)
 		localization.SendErrorByCodeResponse(w, "invalid request format")
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		c.logger.Errorf("[CreateCustomerSegmentation] validation error: %v", err)
+		log.Errorf("[CreateCustomerSegmentation] validation error: %v", err)
 		localization.SendErrorByCodeResponse(w, fmt.Sprintf("validation error: %v", err))
 		return
 	}
+	req.CapitilizeCustomerSegmentationRequest()
 
 	if err := c.svc.Create(ctx, req); err != nil {
 		span.RecordError(err)
-		c.logger.Errorf("[CreateCustomerSegmentation] service error: %v", err)
+		log.Errorf("[CreateCustomerSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		c.logger.Infof("[CreateCustomerSegmentation] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[CreateCustomerSegmentation] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.CustomerSegmentationCreated, nil)
 		return
 	}
@@ -85,13 +90,14 @@ func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.Response
 //	@Accept			json
 //	@Produce		json
 //	@Param			id		path		string										true	"Segmentation ID"
-//	@Param			body	body		cust_seg.UpdateCustomerSegmentationRequest	true	"Customer Segmentation DTO"
+//	@Param			body	body		customersegmentation.UpdateCustomerSegmentationRequest	true	"Customer Segmentation DTO"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}
 //	@Failure		400,401,404,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/customer-segmentations/{id}/update [patch]
 func (c *CustomerSegmentationAdapter) UpdateCustomerSegmentation(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "UpdateCustomerSegmentation", "handler", "customerSegmentation")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -99,33 +105,33 @@ func (c *CustomerSegmentationAdapter) UpdateCustomerSegmentation(w http.Response
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
 		span.RecordError(err)
-		c.logger.Errorf("[UpdateCustomerSegmentation] extractID: %v", err)
+		log.Errorf("[UpdateCustomerSegmentation] extractID: %v", err)
 		return
 	}
 
 	var req cust_seg.UpdateCustomerSegmentationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		c.logger.Errorf("[UpdateCustomerSegmentation] failed to decode request body: %v", err)
+		log.Errorf("[UpdateCustomerSegmentation] failed to decode request body: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		c.logger.Errorf("[UpdateCustomerSegmentation] validation error: %v", err)
+		log.Errorf("[UpdateCustomerSegmentation] validation error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if err := c.svc.Update(ctx, id, req); err != nil {
 		span.RecordError(err)
-		c.logger.Errorf("[UpdateCustomerSegmentation] service error: %v", err)
+		log.Errorf("[UpdateCustomerSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		c.logger.Infof("[UpdateCustomerSegmentation] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[UpdateCustomerSegmentation] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.CustomerSegmentationUpdated, nil)
 		return
 	}
@@ -142,10 +148,13 @@ func (c *CustomerSegmentationAdapter) UpdateCustomerSegmentation(w http.Response
 //	@Produce		json
 //	@Param			page		query		int	false	"Page number"
 //	@Param			per_page	query		int	false	"Items per page"
-//	@Success		200			{object}	localization.StandardResponse{data=types.PaginatedResponse[[]*imodel.CustomerSegmentation]}
-//	@Failure		400,401,500	{object}	localization.StandardResponse{data=nil}
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"Customer segmentations retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		401			{object}	localization.StandardResponse{data=nil}		"Unauthorized"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Router			/customer-segmentations [get]
 func (c *CustomerSegmentationAdapter) GetAllCustomerSegmentations(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), c.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -163,7 +172,7 @@ func (c *CustomerSegmentationAdapter) GetAllCustomerSegmentations(w http.Respons
 
 	segs, err := c.svc.FindAllWithPagination(r.Context(), filterParams)
 	if err != nil {
-		c.logger.Errorf("[GetAllCustomerSegmentations] service error: %v", err)
+		log.Errorf("[GetAllCustomerSegmentations] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -179,19 +188,23 @@ func (c *CustomerSegmentationAdapter) GetAllCustomerSegmentations(w http.Respons
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			id				path		string	true	"Segmentation ID"
-//	@Success		200				{object}	localization.StandardResponse{data=imodel.CustomerSegmentation}
-//	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Success		200				{object}	localization.StandardResponse{data=object}	"Customer segmentation retrieved successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		401				{object}	localization.StandardResponse{data=nil}		"Unauthorized"
+//	@Failure		404				{object}	localization.StandardResponse{data=nil}		"Customer segmentation not found"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Router			/customer-segmentations/{id} [get]
 func (c *CustomerSegmentationAdapter) GetCustomerSegmentation(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), c.logger)
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
-		c.logger.Errorf("[GetCustomerSegmentation] extractID: %v", err)
+		log.Errorf("[GetCustomerSegmentation] extractID: %v", err)
 		return
 	}
 
 	seg, err := c.svc.FindById(r.Context(), id)
 	if err != nil {
-		c.logger.Errorf("[GetCustomerSegmentation] service error: %v", err)
+		log.Errorf("[GetCustomerSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -213,26 +226,27 @@ func (c *CustomerSegmentationAdapter) GetCustomerSegmentation(w http.ResponseWri
 func (c *CustomerSegmentationAdapter) DeleteCustomerSegmentation(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "DeleteCustomerSegmentation", "handler", "customerSegmentation")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
-		c.logger.Errorf("[DeleteCustomerSegmentation] extractID: %v", err)
+		log.Errorf("[DeleteCustomerSegmentation] extractID: %v", err)
 		return
 	}
 
 	if err := c.svc.Delete(ctx, id); err != nil {
 		span.RecordError(err)
-		c.logger.Errorf("[DeleteCustomerSegmentation] service error: %v", err)
+		log.Errorf("[DeleteCustomerSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		c.logger.Infof("[DeleteCustomerSegmentation] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[DeleteCustomerSegmentation] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.CustomerSegmentationDeleteddSuccessfully, nil)
 		return
 	}
@@ -250,30 +264,31 @@ func (c *CustomerSegmentationAdapter) DeleteCustomerSegmentation(w http.Response
 //	@Param			id				path		string	true	"Segmentation ID"
 //	@Success		200				{object}	localization.StandardResponse{data=nil}
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/customer-segmentations/enable/{id} [patch]
+//	@Router			/customer-segmentations/{id}/enable [patch]
 func (c *CustomerSegmentationAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "Enable", "handler", "customerSegmentation")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
-		c.logger.Errorf("[Enable] extractID: %v", err)
+		log.Errorf("[Enable] extractID: %v", err)
 		return
 	}
 
 	if err := c.svc.EnableOrDisable(ctx, id, true); err != nil {
 		span.RecordError(err)
-		c.logger.Errorf("[Enable] service error: %v", err)
+		log.Errorf("[Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		c.logger.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnableSuccessfully, nil)
 		return
 	}
@@ -291,30 +306,31 @@ func (c *CustomerSegmentationAdapter) Enable(w http.ResponseWriter, r *http.Requ
 //	@Param			id				path		string	true	"Segmentation ID"
 //	@Success		200				{object}	localization.StandardResponse{data=nil}
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/customer-segmentations/disable/{id} [patch]
+//	@Router			/customer-segmentations/{id}/disable [patch]
 func (c *CustomerSegmentationAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "Disable", "handler", "customerSegmentation")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
-		c.logger.Errorf("[Disable] extractID: %v", err)
+		log.Errorf("[Disable] extractID: %v", err)
 		return
 	}
 
 	if err := c.svc.EnableOrDisable(ctx, id, false); err != nil {
 		span.RecordError(err)
-		c.logger.Errorf("[Disable] service error: %v", err)
+		log.Errorf("[Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		c.logger.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.CustomerSegmentationDisableSuccessfully, nil)
 		return
 	}

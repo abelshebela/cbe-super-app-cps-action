@@ -8,7 +8,6 @@ import (
 	"context"
 	"errors"
 
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -25,11 +24,12 @@ func CheckPortalCardsExistent(ctx context.Context, portalCards []string, portalC
 func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel.JobRole, roleRepo storage.JobRoleRepository) error {
 
 	var role *imodel.JobRole
+	var err error
 
 	if types == constants.CREATE {
-		resByName, err := roleRepo.Find(ctx, bson.M{"name": update.Name})
+		resByName, err := roleRepo.Find(ctx, bson.M{"$or": []interface{}{bson.M{"name": update.Name}, bson.M{"code": update.Code}}})
 		if err != nil {
-			if err != mongo.ErrNoDocuments {
+			if err.Error() != localization.ErrorResourceNotFound.Code {
 				return err
 			}
 		}
@@ -41,18 +41,40 @@ func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel
 		if roleId == "" {
 			return errors.New(localization.ErrorRoleIDMissing.Code)
 		}
-		resByName, err := roleRepo.Find(ctx, bson.M{"name": update.Name})
-		if err != nil {
-			return err
-		}
-		role, err = roleRepo.FindByID(ctx, roleId)
+		role, err = roleRepo.FindByCode(ctx, roleId)
 		if err != nil {
 			return err
 		}
 
-		// If another record (different ID) has same name, it's a conflict
-		if resByName != nil && role != nil && role.ID.Hex() != resByName.ID.Hex() {
-			return errors.New(localization.ErrorUsedRoleExisting.Code)
+		// Check name/type uniqueness only when provided.
+		if update.Name != "" || update.Type != "" {
+			filter := bson.M{"$or": []interface{}{}}
+			if update.Name != "" {
+				filter["$or"] = append(filter["$or"].([]interface{}), bson.M{"name": update.Name})
+			}
+			if update.Type != "" {
+				filter["$or"] = append(filter["$or"].([]interface{}), bson.M{"type": update.Type})
+			}
+			if len(filter) > 0 {
+				resByName, err := roleRepo.Find(ctx, filter)
+				if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+					return err
+				}
+				if resByName != nil && role != nil && role.ID.Hex() != resByName.ID.Hex() {
+					return errors.New(localization.ErrorUsedRoleExisting.Code)
+				}
+			}
+		}
+
+		// Check code uniqueness only when provided.
+		if update.Code != "" {
+			resByCode, err := roleRepo.Find(ctx, bson.M{"code": update.Code})
+			if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+				return err
+			}
+			if resByCode != nil && role != nil && role.ID.Hex() != resByCode.ID.Hex() {
+				return errors.New(localization.ErrorUsedRoleExisting.Code)
+			}
 		}
 	}
 

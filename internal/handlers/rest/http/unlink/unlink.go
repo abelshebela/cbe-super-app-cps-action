@@ -55,6 +55,7 @@ func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) 
 	// filter parameter
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "unlink", "unlinkAdapter", "GetArchivedUser")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -79,12 +80,12 @@ func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) 
 	archivedUser, err := a.unlinkApp.GetAllArchivedUser(ctx, filterParams)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
-		a.logger.Errorf("[GetArchivedUser] service error: %v", err)
+		log.Errorf("[GetArchivedUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	span.AddEvent("Archived users retrieved", trace.WithAttributes(attribute.Int("count", len(archivedUser.Data))))
-	a.logger.Infof("[GetArchivedUser] retrieved %d archived users", len(archivedUser.Data))
+	log.Infof("[GetArchivedUser] retrieved %d archived users", len(archivedUser.Data))
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, archivedUser)
 }
 
@@ -105,6 +106,7 @@ func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) 
 func (a *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "unlink", "unlinkAdapter", "GetUserByAccount")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	accNumber := chi.URLParam(r, "account_number")
 	if accNumber == "" {
 		span.AddEvent("Missing account_number param")
@@ -114,13 +116,13 @@ func (a *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request)
 	user, err := a.unlinkApp.GetUserByAccount(ctx, accNumber)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("account_number", accNumber)))
-		a.logger.Errorf("[GetUserByAccount] service error: %v", err)
+		log.Errorf("[GetUserByAccount] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	span.AddEvent("User retrieved", trace.WithAttributes(attribute.String("account_number", accNumber)))
-	a.logger.Infof("[GetUserByAccount] user retrieved successfully")
+	log.Infof("[GetUserByAccount] user retrieved successfully")
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, user)
 }
 
@@ -139,9 +141,9 @@ func (a *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Router			/unlink/user_cif/{user_code} [patch]
 func (a *unlinkAdapter) UnlinkUserCif(w http.ResponseWriter, r *http.Request) {
-
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "unlink", "unlinkAdapter", "UnlinkUserCif")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	userCode := chi.URLParam(r, "user_code")
@@ -153,19 +155,19 @@ func (a *unlinkAdapter) UnlinkUserCif(w http.ResponseWriter, r *http.Request) {
 	err := a.unlinkApp.UnlinkUserCif(ctx, userCode)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("user_code", userCode)))
-		a.logger.Errorf("[UnlinkUserCif] service error: %v", err)
+		log.Errorf("[UnlinkUserCif] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		a.logger.Infof("[UnlinkUserCif] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[UnlinkUserCif] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessUnlinkCif, nil)
 		return
 	}
 
 	span.AddEvent("UnlinkUserCif request sent", trace.WithAttributes(attribute.String("user_code", userCode)))
-	a.logger.Infof("[UnlinkUserCif] request sent successfully for user_code: %s", userCode)
+	log.Infof("[UnlinkUserCif] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessUnlinkCifRequestSent, nil)
 }

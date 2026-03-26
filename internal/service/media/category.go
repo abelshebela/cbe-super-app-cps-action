@@ -32,7 +32,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Media", "Authorize")
 	defer span.End()
 
-	m.logger.Infof("Media category service authorizing action: %s", cpsAction.ActionCode)
+	m.logger.Infof("[MediaCatSvc][Authorize] action: %s", cpsAction.ActionCode)
 
 	category, err := local_util.JsonUnmarshal[model.NewsCategoryModel](cpsAction.CurrentAction)
 	if err != nil {
@@ -90,7 +90,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 			return nil, err
 		}
 	default:
-		m.logger.Errorf("Unsupported request action: %s", cpsAction.RequestAction)
+		m.logger.Errorf("[MediaCatSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 		span.AddEvent("Unsupported request action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorInvalidRequest.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
@@ -99,7 +99,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 	}
 
 	cpsAction.CurrentAction = category
-	m.logger.Infof("Action %s approved for Article Category %s", cpsAction.RequestAction, category.ID)
+	m.logger.Infof("[MediaCatSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, category.ID)
 	return cpsAction, nil
 
 }

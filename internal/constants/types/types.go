@@ -7,6 +7,13 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+type OracleQuery struct {
+	WhereClause string
+	Args        map[string]interface{}
+	Offset      int64
+	Limit       int64
+}
+
 type CheckMiniAppMerchant struct {
 	BankAccountNumber string `json:"bank_account_number"`
 	Email             string `json:"email"`
@@ -143,6 +150,7 @@ type UserContext struct {
 	UserID       string
 	FullName     string
 	PhoneNumber  string
+	UserName     string
 	Department   string
 	BranchCode   []string
 	UserRole     string
@@ -478,9 +486,15 @@ type EmailKafkaMessage struct {
 	Metadata           map[string]interface{} `json:"metadata,omitempty"`
 }
 
+type Reason struct {
+	Reason    string    `bson:"reason" json:"reason"`
+	CreatedAt time.Time `bson:"created_at" json:"created_at"`
+	CreatedBy string    `bson:"created_by" json:"created_by"`
+}
+
 type EnableDisableAction struct {
 	ID      string `json:"id" bson:"id"`
 	Name    string `json:"name" bson:"name"`
 	Enabled bool   `json:"enabled" bson:"enabled"`
-	Reason  string `json:"reason,omitempty" bson:"reason,omitempty"`
+	Reason  Reason `json:"reason" bson:"reason"`
 }

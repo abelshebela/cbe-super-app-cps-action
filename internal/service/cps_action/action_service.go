@@ -2,11 +2,18 @@ package cpsaction
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"encoding/csv"
+	"encoding/json"
+	"fmt"
+	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	"cbe-super-app-cps-action/internal/storage"
@@ -14,6 +21,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -23,10 +32,14 @@ import (
 )
 
 type cpsActionService struct {
-	repo       storage.CPSActionRepository
-	roles      storage.CPSActionRoleRepository
-	logger     utils.Logger
-	dispatcher Dispatcher
+	repo         storage.CPSActionRepository
+	roles        storage.CPSActionRoleRepository
+	logger       utils.Logger
+	dispatcher   Dispatcher
+	minioClient  *s3.Client
+	buckerName   string
+	minioBaseURL string
+	cfg          config.VaultConfig
 }
 
 // IsMakerOnlyForRequest returns true if the module mapped from requestAction is configured as maker-only in CPSActionRole.
@@ -41,7 +54,6 @@ func (ca *cpsActionService) IsMakerOnlyForRequest(ctx context.Context, requestAc
 	return false, errors.New(localization.ErrorOperationNotAllowed.Code)
 }
 
-// AuditorClaim sets auditor status to INPROGRESS when caller belongs to the active group.
 func (ca *cpsActionService) AuditorClaim(ctx context.Context, actionCode string, activeGroup int) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "AuditorClaim", "CPSAction", "AuditorClaim")
 	defer span.End()
@@ -49,7 +61,7 @@ func (ca *cpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 	if err != nil || act == nil {
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
-	// compute active group from record
+
 	current := int64(0)
 	if act.CurrentAuditorIndex > 0 {
 		current = int64(act.CurrentAuditorIndex)
@@ -59,22 +71,22 @@ func (ca *cpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 	if current != 0 && current != expected {
 		return errors.New(localization.ErrorOperationNotAllowed.Code)
 	}
-	// idempotent move to INPROGRESS
+
 	upd := model.CPSAction{ActionCode: actionCode}
-	upd.AuditorStatus = "INPROGRESS"
+	upd.AuditorStatus = model.AuditorStatus(constants.AUDITORINPROGRESS)
 	_, err = ca.repo.Update(ctx, actionCode, upd)
 	return err
 }
 
-// AuditorMark records an auditor's mark and advances to the next group or finishes.
 func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "AuditorMark", "CPSAction", "AuditorMark")
 	defer span.End()
 	act, err := ca.repo.SanitizedFindOne(ctx, bson.M{"action_code": actionCode})
 	if err != nil || act == nil {
-		ca.logger.Errorf("failed to find action", trace.WithAttributes(attribute.String("error", err.Error())))
+		ca.logger.Errorf("[CpsActionSvc][AuditorMark] find err: %v", err)
 		return errors.New(localization.ErrorActionNotFound.Code)
 	}
+
 	// prevent multiple marks within the same group (any-one quorum)
 	grp := int(activeGroup)
 	for _, au := range act.AuditorUsers {
@@ -101,12 +113,17 @@ func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	return err
 }
 
-func NewCPSActionService(roles storage.CPSActionRoleRepository, repo storage.CPSActionRepository, logger utils.Logger, dispatcher Dispatcher) service.CPSActionService {
+func NewCPSActionService(roles storage.CPSActionRoleRepository, repo storage.CPSActionRepository, logger utils.Logger, dispatcher Dispatcher, minioClient *s3.Client, bucketName string, minioBaseURL string, cfg config.VaultConfig,
+) service.CPSActionService {
 	return &cpsActionService{
-		repo:       repo,
-		logger:     logger,
-		roles:      roles,
-		dispatcher: dispatcher,
+		repo:         repo,
+		logger:       logger,
+		roles:        roles,
+		dispatcher:   dispatcher,
+		minioClient:  minioClient,
+		buckerName:   bucketName,
+		minioBaseURL: minioBaseURL,
+		cfg:          cfg,
 	}
 }
 
@@ -115,18 +132,16 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	defer span.End()
 	var existing *model.CPSAction
 	var err error
+	ca.logger.Infof("[CpsActionSvc][Create] action: %s", cpsAction.RequestAction)
 
 	roleCode := ctx.Value(constants.ContextKey("role_code")).(string)
-	if strings.Contains(cpsAction.RequestAction, constants.CREATE) {
-		existing, err = ca.GetCPSActionByUniqueID(ctx, cpsAction.RequestAction, roleCode)
+	actionName, _ := ctx.Value(constants.ContextKey("action_name")).(string)
+
+	reqs := ca.pendingLockRequestActions(actionName, cpsAction.RequestAction)
+	if len(reqs) > 0 {
+		existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
 		if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
-			span.AddEvent("failed to get cps action by unique id", trace.WithAttributes(attribute.String("error", err.Error())))
-			return err
-		}
-	} else {
-		existing, err = ca.GetCPSActionByForUpdate(ctx)
-		if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
-			span.AddEvent("failed to get cps action by unique id", trace.WithAttributes(attribute.String("error", err.Error())))
+			span.AddEvent("failed to get cps action by role and request actions", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
 		}
 	}
@@ -145,29 +160,87 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	return nil
 }
 
+func (ca *cpsActionService) pendingLockRequestActions(actionName string, requestAction string) []string {
+	normalize := func(s string) string {
+		return strings.ToUpper(strings.TrimSpace(s))
+	}
+	isCreate := func(s string) bool {
+		return strings.Contains(normalize(s), constants.CREATE)
+	}
+
+	isDelete := func(s string) bool {
+		return strings.Contains(normalize(s), constants.DELETE)
+	}
+
+	defaultReq := []string{normalize(requestAction)}
+	if actionName == "" {
+		return defaultReq
+	}
+
+	lst, ok := RequestActionGroups[actionName]
+	if !ok {
+		return defaultReq
+	}
+
+	wantCreateOnly := isCreate(requestAction)
+	wantDeleteOnly := isDelete(requestAction)
+	seen := map[string]struct{}{}
+	reqs := make([]string, 0, len(lst))
+
+	for _, ra := range lst {
+		key := string(ra)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+
+		isKeyCreate := isCreate(key)
+		isKeyDelete := isDelete(key)
+		if wantCreateOnly != isKeyCreate {
+			continue
+		}
+
+		if wantDeleteOnly != isKeyDelete {
+			continue
+		}
+
+		seen[key] = struct{}{}
+		reqs = append(reqs, key)
+	}
+
+	if len(reqs) == 0 {
+		return defaultReq
+	}
+	return reqs
+}
+
 func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "ApproveCPSAction", "CPSAction", "ApproveCPSAction")
 	defer span.End()
+	ca.logger.Infof("[CpsActionSvc][Approve] action: %s", action.ActionCode)
 
 	data, err := ca.repo.Update(ctx, action.ActionCode, *action)
 	if err != nil {
 		span.AddEvent("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
+		ca.logger.Errorf("[CpsActionSvc][Approve] update err: %v", err)
 		return err
 	}
 
 	if action.ActionStatus != string(constants.Approved) {
 		return nil
 	}
+
 	approve, err := ca.dispatcher.Authorize(ctx, data)
 	if err != nil && approve == nil {
 		span.AddEvent("failed to authorize cps action", trace.WithAttributes(attribute.String("error", err.Error())))
-		RollErr := ca.RollBack(ctx, action)
-		if err.Error() == localization.ErrorTimeoutError.Code {
-			return err
-		}
+		ca.logger.Errorf("[CpsActionSvc][Approve] authorize err: %v", err)
+		RollErr := ca.RollBack(ctx, data)
 		if RollErr != nil {
 			span.AddEvent("failed to roll back cps action", trace.WithAttributes(attribute.String("error", RollErr.Error())))
+			ca.logger.Errorf("[CpsActionSvc][Approve] rollback err: %v", RollErr)
 			return RollErr
+		}
+		if err.Error() == localization.ErrorTimeoutError.Code {
+			return err
 		}
 		return err
 	}
@@ -246,7 +319,7 @@ func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		span.AddEvent("failed to parse the string to bson object", trace.WithAttributes(attribute.String("error", err.Error())))
-		ca.logger.Errorf("their is error when try to parse the string to bson object in service")
+		ca.logger.Errorf("[CpsActionSvc][GetByID] parse id err")
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	action, err := ca.repo.SanitizedFindOne(ctx, bson.M{"_id": objID, "department": department})
@@ -266,7 +339,25 @@ func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestA
 		"request_action": requestAction,
 	}
 
-	action, err := ca.repo.SanitizedFindOne(context.Background(), filter)
+	action, err := ca.repo.SanitizedFindOne(ctx, filter)
+	if err != nil {
+		span.AddEvent("failed to find one", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+	return action, nil
+}
+
+func (ca *cpsActionService) GetPendingCPSActionByRoleAndRequestActions(ctx context.Context, uniqueId string, requestActions []string) (*model.CPSAction, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetPendingCPSActionByRoleAndRequestActions", "CPSAction", "GetPendingCPSActionByRoleAndRequestActions")
+	defer span.End()
+
+	filter := bson.M{
+		"unique_id":      uniqueId,
+		"action_status":  string(constants.Pending),
+		"request_action": bson.M{"$in": requestActions},
+	}
+
+	action, err := ca.repo.SanitizedFindOne(ctx, filter)
 	if err != nil {
 		span.AddEvent("failed to find one", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
@@ -293,17 +384,19 @@ func (ca *cpsActionService) GetCPSActionByForUpdate(ctx context.Context) (*model
 			if strings.Contains(key, constants.CREATE) {
 				continue
 			}
+
 			seen[key] = struct{}{}
 			reqs = append(reqs, key)
 		}
 	}
 
 	filter := bson.M{
+		"role_code":      ctx.Value(constants.ContextKey("role_code")).(string),
 		"action_status":  string(constants.Pending),
 		"request_action": bson.M{"$in": reqs},
 	}
 
-	action, err := ca.repo.SanitizedFindOne(context.Background(), filter)
+	action, err := ca.repo.SanitizedFindOne(ctx, filter)
 	if err != nil {
 		span.AddEvent("failed to find one", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
@@ -323,16 +416,60 @@ func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, unique
 	return action, nil
 }
 
-func (ca *cpsActionService) RollBack(ctx context.Context, action *model.CPSAction) error {
+// RollBack reverts a CPS action after a failed Authorize call.
+// It receives the full DB document (data) so it can inspect CheckerCount, AuditorCount, etc.
+//   - Maker-only (CheckerCount == 0): soft-delete the action so it does not block future creations.
+//   - Multi-checker (CheckerCount > 0): revert the last checker and reset status to Pending.
+//   - Auditor fields are also reset when AuditorCount > 0.
+func (ca *cpsActionService) RollBack(ctx context.Context, data *model.CPSAction) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "RollBack", "CPSAction", "RollBack")
 	defer span.End()
-	err := ca.repo.UpdateCustome(ctx, bson.M{"action_code": action.ActionCode}, bson.M{"action_status": string(constants.Pending), "checker_id": "", "checker_name": "", "checker_phone_number": ""})
+
+	filter := bson.M{"action_code": data.ActionCode}
+
+	if data.CheckerCount == 0 {
+		err := ca.repo.UpdateCustome(ctx, filter, bson.M{
+			"action_status":   string(constants.Canceled),
+			"canceled_reason": constants.RoleBackReason,
+		})
+
+		if err != nil {
+			span.AddEvent("failed to soft-delete maker-only cps action", trace.WithAttributes(attribute.String("error", err.Error())))
+			return err
+		}
+		ca.logger.Infof("[CpsActionSvc][RollBack] soft-deleted: %s", data.ActionCode)
+		return nil
+	}
+
+	previousCheckers := data.CheckerUsers
+	if len(previousCheckers) > 0 {
+		previousCheckers = previousCheckers[:len(previousCheckers)-1]
+	}
+
+	previousIndex := data.CurrentCheckerIndex - 1
+	if previousIndex < 0 {
+		previousIndex = 0
+	}
+
+	update := bson.M{
+		"action_status":         string(constants.Pending),
+		"checker_users":         previousCheckers,
+		"current_checker_index": previousIndex,
+	}
+
+	if data.AuditorCount > 0 {
+		update["auditor_users"] = []model.Auditor{}
+		update["auditor_status"] = string(model.AUDITORNOTCHECKED)
+		update["current_auditor_index"] = 0
+	}
+
+	err := ca.repo.UpdateCustome(ctx, filter, update)
 	if err != nil {
-		span.AddEvent("failed to update custom", trace.WithAttributes(attribute.String("error", err.Error())))
+		span.AddEvent("failed to roll back cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
+	ca.logger.Infof("[CpsActionSvc][RollBack] reverted to pending: %s", data.ActionCode)
 	return nil
-	// return ca.repo.UpdateCustome(ctx, bson.M{"action_code": action.ActionCode}, bson.M{"action_status": string(constants.Pending), "checker_users": []types.Checker{}, "current_checker_index": float32(0)})
 }
 
 func (ca *cpsActionService) GetActionCountsByDepartemnt(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error) {
@@ -350,6 +487,7 @@ func (ca *cpsActionService) GetUserAuthorizerIndex(ctx context.Context, requestA
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 	var approverData imodel.CPSActionApproveIndex
 
+	ca.logger.Infof("[CpsActionSvc][GetAuthIdx] role: %s action: %s", roleCode, requestAction)
 	if mod, ok := ResolveModuleForRA(RequestAction(requestAction)); ok && ca.roles != nil {
 		if approver, err := ca.roles.FindApproverByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil {
 			approverData = approver
@@ -397,4 +535,183 @@ func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 		return nil, err
 	}
 	return result, nil
+}
+
+func (ca *cpsActionService) ExportCpsActionData(
+	ctx context.Context,
+	startDate, endDate time.Time, exportType string,
+) (string, error) {
+
+	// 1 Create temp file
+	tmpFile, err := os.CreateTemp("", "cps_actions_*.csv")
+	if err != nil {
+		return "", fmt.Errorf("create temp file: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+	defer tmpFile.Close()
+
+	writer := csv.NewWriter(tmpFile)
+
+	// 2️ Write Header
+	if err := writer.Write(CpsActionCSVHeader()); err != nil {
+		return "", fmt.Errorf("write header: %w", err)
+	}
+	var rowCount int
+	//==================================
+
+	actions, err := ca.repo.ActionByDateRange(ctx, startDate, endDate)
+	if err != nil {
+		return "", err
+	}
+
+	for _, action := range actions {
+		rowCount++
+		if err := ca.processCPSAction(writer, &action); err != nil {
+			return "", err
+		}
+	}
+
+	if rowCount == 0 {
+		ca.logger.Infof("[CpsActionSvc][Export] no data found in date range %s - %s", startDate.Format(time.RFC3339), endDate.Format(time.RFC3339))
+		return "", errors.New(localization.CpsActionDataNotFoundInDateRange.Code)
+	}
+	//=================================
+
+	// 4️Upload to MinIO
+	objectName := fmt.Sprintf(
+		"exports/cps-actions/cps_actions_%s_to_%s_%d.csv",
+		startDate.Format("20060102"),
+		endDate.Format("20060102"),
+		time.Now().Unix(),
+	)
+
+	if _, err := tmpFile.Seek(0, 0); err != nil {
+		ca.logger.Errorf("[CpsActionSvc][Export] seek temp file err: %v", err)
+		return "", errors.New(localization.CpsActionDataExportedError.Code)
+	}
+
+	stat, err := tmpFile.Stat()
+	if err != nil {
+		ca.logger.Errorf("[CpsActionSvc][Export] stat temp file err: %v", err)
+		return "", errors.New(localization.CpsActionDataExportedError.Code)
+	}
+
+	publicURL, err := lib.UploadCSVToMinio(ctx, ca.minioClient, ca.buckerName, tmpFile, stat.Size(), ca.cfg, objectName, ca.logger)
+	if err != nil {
+		ca.logger.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
+		return "", errors.New(localization.CpsActionDataExportedError.Code)
+	}
+
+	baseURL := strings.TrimSuffix(ca.minioBaseURL, "/")
+	if baseURL != "" {
+		publicURL = fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(objectName, "/"))
+	}
+
+	return publicURL, nil
+}
+
+func (ca *cpsActionService) processCPSAction(
+	writer *csv.Writer,
+	action *model.CPSAction,
+) error {
+
+	row, err := BuildCPSActionRow(action)
+	if err != nil {
+		return err
+	}
+
+	return writer.Write(row)
+}
+
+func BuildCPSActionRow(a *model.CPSAction) ([]string, error) {
+
+	checkerJSON, _ := json.Marshal(a.CheckerUsers)
+	auditorJSON, _ := json.Marshal(a.AuditorUsers)
+	prevJSON, _ := json.Marshal(a.PreviousAction)
+	currJSON, _ := json.Marshal(a.CurrentAction)
+
+	return []string{
+		a.ID.Hex(),
+		a.ActionCode,
+		a.UniqueId,
+		a.MakerID,
+		a.MakerName,
+		a.MakerPhoneNumber,
+		string(checkerJSON),
+		string(auditorJSON),
+		strconv.Itoa(int(a.AuditorCount)),
+		string(a.AuditorStatus),
+		fmt.Sprintf("%f", a.CurrentAuditorIndex),
+		strconv.Itoa(int(a.CheckerCount)),
+		fmt.Sprintf("%f", a.CurrentCheckerIndex),
+		a.RoleCode,
+		a.RejectionReason,
+		a.CanceledReason,
+		string(prevJSON),
+		string(currJSON),
+		a.ActionStatus,
+		a.ActionType,
+		strconv.FormatBool(a.IsDeleted),
+		a.RequestAction,
+		strconv.FormatInt(a.Version, 10),
+		a.ReversedByRoleID,
+		a.ReversedByID,
+		a.ReversedByName,
+		formatTime(a.ReversedAt),
+		formatTime(a.CreatedAt),
+		formatTime(a.LastModifiedAt),
+		formatTime(a.MakerActionTime),
+	}, nil
+}
+
+func CpsActionCSVHeader() []string {
+	return []string{
+		"ID",
+		"ActionCode",
+		"UniqueId",
+		"MakerID",
+		"MakerName",
+		"MakerPhoneNumber",
+		"CheckerUsers",
+		"AuditorUsers",
+		"AuditorCount",
+		"AuditorStatus",
+		"CurrentAuditorIndex",
+		"CheckerCount",
+		"CurrentCheckerIndex",
+		"RoleCode",
+		"RejectionReason",
+		"CanceledReason",
+		"PreviousAction",
+		"CurrentAction",
+		"ActionStatus",
+		"ActionType",
+		"IsDeleted",
+		"RequestAction",
+		"Version",
+		"ReversedByRoleID",
+		"ReversedByID",
+		"ReversedByName",
+		"ReversedAt",
+		"CreatedAt",
+		"LastModifiedAt",
+		"MakerActionTime",
+	}
+}
+
+func formatTime(v any) string {
+	switch t := v.(type) {
+	case time.Time:
+		if t.IsZero() {
+			return ""
+		}
+		return t.Format(time.RFC3339)
+	case *time.Time:
+		if t == nil || t.IsZero() {
+			return ""
+		}
+		return t.Format(time.RFC3339)
+	default:
+		return fmt.Sprintf("%v", v)
+	}
 }

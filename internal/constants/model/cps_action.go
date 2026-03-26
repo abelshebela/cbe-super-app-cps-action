@@ -22,13 +22,14 @@ type CPSAction struct {
 	CurrentCheckerIndex float64       `bson:"current_checker_index" json:"current_checker_index"`
 	RoleCode            string        `bson:"role_code" json:"role_code"`
 	RejectionReason     string        `bson:"rejection_reason" json:"rejection_reason,omitempty"`
+	CanceledReason      string        `bson:"canceled_reason" json:"canceled_reason,omitempty"`
 	PreviousAction      interface{}   `bson:"previous_action" json:"previous_action,omitempty"`
 	CurrentAction       interface{}   `bson:"current_action" json:"current_action,omitempty"`
 	ActionStatus        string        `bson:"action_status" json:"action_status,omitempty"`
 	ActionType          string        `bson:"action_type" json:"action_type,omitempty"`
 	IsDeleted           bool          `bson:"is_deleted" json:"is_deleted,omitempty"`
-	Version             int64         `json:"version" bson:"version"`
 	RequestAction       string        `bson:"request_action" json:"request_action"`
+	Version             int64         `json:"version" bson:"version"`
 	ReversedByRoleID    string        `bson:"reversed_by_role_id" json:"reversed_by_role_id,omitempty"`
 	ReversedByID        string        `bson:"reversed_by_id" json:"reversed_by_id,omitempty"`
 	ReversedByName      string        `bson:"reversed_by_name" json:"reversed_by_name,omitempty"`

@@ -5,12 +5,13 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"time"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
+
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func MapToDonationListResponse(donation imodel.Donation, company *imodel.DonationCompany, category *imodel.DonationCategory) *donation_dto.DonationListResponse {
+func MapToDonationListResponse(donation donation_model.Donation, company *donation_model.DonationCompany, category *donation_model.DonationCategory) *donation_dto.DonationListResponse {
 	donationImages := make([]types.DonationImage, len(donation.DonationImages))
 	for i, img := range donation.DonationImages {
 		donationImages[i] = types.DonationImage{
@@ -55,7 +56,7 @@ func MapToDonationListResponse(donation imodel.Donation, company *imodel.Donatio
 	}
 }
 
-func DonationMapper(donation imodel.Donation) bson.M {
+func DonationMapper(donation donation_model.Donation) bson.M {
 	updateData := bson.M{
 
 		"donation_code":        donation.DonationCode,

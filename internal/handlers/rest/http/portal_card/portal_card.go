@@ -43,6 +43,7 @@ func InitPortalCardAdapter(appService service.PortalCardService, logger utils.Lo
 func (s *portalCardAdapter) GetAllPortalCard(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "portalCard", "portalCardAdapter", "GetAllPortalCard")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -67,12 +68,12 @@ func (s *portalCardAdapter) GetAllPortalCard(w http.ResponseWriter, r *http.Requ
 	cards, err := s.appService.GetAll(ctx, filterParams)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[GetAllPortalCard] service error: %v", err)
+		log.Errorf("[GetAllPortalCard] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	span.AddEvent("Portal cards retrieved", trace.WithAttributes(attribute.Int("count", len(cards.Data))))
-	s.logger.Infof("[GetAllPortalCard] retrieved %d portal cards", len(cards.Data))
+	log.Infof("[GetAllPortalCard] retrieved %d portal cards", len(cards.Data))
 	localization.SendSuccessResponse(w, localization.SuccessPortalCardsFetched, cards)
 }

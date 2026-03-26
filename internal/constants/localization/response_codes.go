@@ -22,9 +22,23 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorExistUserName,
 	ErrorExistUserNameBPS,
+	CpsActionDataNotFoundInDateRange,
+	DonationDataExportedSuccess,
+	DonationDataExportedError,
+	DonationDataNotFoundInDateRange,
+	CpsActionDataExportedError,
+	CpsActionDataNotFoundInDateRange,
 
 	SuccessCPSActionCount,
 	SuccessServiceCreateRequestSubmitted,
+	SuccessServiceListCreated,
+	SuccessServiceListUpdated,
+	SuccessServiceListCreateRequestSubmitted,
+	SuccessServiceListUpdateRequestSubmitted,
+	SuccessServiceListEnableRequestSubmitted,
+	SuccessServiceListEnabled,
+	SuccessServiceListDisableRequestSubmitted,
+	SuccessServiceListDisabled,
 	SuccessServiceCreated,
 	SuccessServiceUpdateRequestSubmitted,
 	SuccessServiceUpdated,
@@ -61,13 +75,22 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDeleteBanksRequest,
 	SuccessDeleteRequestCreated,
 	SuccessGetOneBank,
+	SuccessBankCreatedRequestSent,
+	SuccessBankCreatedSuccessfully,
 	SuccessBankDisableRequestCreated,
+	SuccessBankDisabledSuccessfully,
 	SuccessBankEnableRequestCreated,
+	SuccessBankEnabledSuccessfully,
 	SuccessBankUpdatedRequestSent,
+	SuccessBankUpdated,
 	SuccessWalletEnableRequestSubmitted,
 	SuccessWalletDisableRequestSubmitted,
+	SuccessWalletEnabled,
+	SuccessWalletDisabled,
 	SuccessWalletCreationRequestSent,
 	SuccessWalletUpdateRequestSent,
+	SuccessWalletCreated,
+	SuccessWalletUpdated,
 	SuccessWalletDeleted,
 	SuccessWalletsRetrieved,
 	SuccessWalletRetrieved,
@@ -119,6 +142,13 @@ var ResponseCodesList = []ResponseCode{
 	SuccessCPSRoleFetched,
 	SuccessCPSRoleEnabled,
 	SuccessCPSRoleDisabled,
+	SuccessCPSRoleServiceEnabled,
+	SuccessCPSRoleServiceDisabled,
+	SuccessCPSRoleDeleted,
+
+	// Global
+	SuccessGlobalLimitFetched,
+	SuccessServiceLevelLimits,
 
 	// Ad related success response codes
 	SuccessAdvertCreatedSP,
@@ -166,6 +196,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDisableDistrictsRequestSent,
 
 	SuccessCityRetrieved,
+	DataRetrievedSuccessfully,
 	SuccessCitiesRetrieved,
 	SuccessCitiesEnabled,
 	SuccessCitiesDisabled,
@@ -173,6 +204,9 @@ var ResponseCodesList = []ResponseCode{
 	SuccessEnableCities,
 	SuccessDisableCities,
 	SuccessDisableCitiesRequestSent,
+
+	AutorizersLevelFetchedSuccessfully,
+	AutorizersLevelFetchedSuccessfully,
 
 	// department related success response
 	SuccessGetAllDepartments,
@@ -225,11 +259,20 @@ var ResponseCodesList = []ResponseCode{
 	SuccessActionRoleDisabledSP,
 	// event merchant success response codes
 	SuccessEventMerchantCreated,
+	SuccessEventMerchantCreateRequestSent,
 	SuccessEventMerchantDisabled,
+	SuccessEventMerchantDisableRequestSent,
 	SuccessEventMerchantEnabled,
+	SuccessEventMerchantEnableRequestSent,
 	SuccessEventMerchantUpdated,
+	SuccessEventMerchantUpdateRequestSent,
 	SuccessEventMerchantDeleted,
 	SuccessEventMerchantFetched,
+	SuccessEventMerchantCreateRequestSubmitted,
+	SuccessEventMerchantUpdateRequestSubmitted,
+	SuccessEventMerchantDeleteRequestSubmitted,
+	SuccessEventMerchantEnableRequestSubmitted,
+	SuccessEventMerchantDisableRequestSubmitted,
 
 	ErrorUsedJobTitleExisting,
 	// Error codes
@@ -304,7 +347,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorServiceNotFound,
 	ErrorChildServiceExists,
 	ErrorBankDeleteRequestFailed,
-	ErrorBankImageMissingOrInvalid,
+	ErrorBankAccountLengthRequired,
+	ErrorBankHasAlphaNumericRequired,
+	ErrorBankHasAlphaNumericInvalid,
 	ErrorGetAllBanksFailed,
 	ErrorGetAllBanksFailed,
 	ErrorGetOneBank,
@@ -317,6 +362,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCoverImageRequired,
 	ErrorInvalidAmounts,
 	ErrorAuthTierAlreadyExists,
+	ErrorCurrencyAlreadyExists,
+	ErrorCurrencyNotFound,
+	ErrorInvalidTierCascade,
 	ErrorInvalidMethod,
 	ErrorMerchantNotFound,
 	ErrorEventNotFound,
@@ -331,6 +379,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMerchantIDRequired,
 	ErrorEventVenueRequired,
 	ErrorCustomerIDRequired,
+	ErrorCustomerCountFailed,
 	ErrorStartDateRequired,
 	ErrorDueDateRequired,
 	ErrorTotalTicketCountRequired,
@@ -343,6 +392,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBankAlreadyDisabled,
 	ErrorHealthCheck,
 	ErrorActionAlreadyExists,
+	ErrorActionAlreadyDisabled,
 	ErrorNoDataProvidedForCreate,
 	ErrorNoDataProvidedForUpdate,
 	ErrorNoDataProvidedForBankUpdate,
@@ -394,6 +444,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAvatarAlreadyExist,
 	ErrorWalletNameAlreadyExists,
 	ErrorWalletCodeAlreadyExists,
+	ErrorWalletServiceIDAlreadyExists,
+	ErrorWalletWithNameOrCodeAlreadyExists,
 	ErrorWalletAlreadyDisabled,
 	ErrorWalletAlreadyEnabled,
 	ErrorWalletIDRequired,
@@ -433,6 +485,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDistrictCodeRequired,
 	ErrorRegionCodeRequired,
 	ErrorCityCodeRequired,
+	ErrorCodeRequired,
 
 	SuccessDonationCategoryCreatedSP,
 
@@ -450,10 +503,17 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorAlreadyEnabled,
 	ErrorAlreadyDisabled,
+	ErrorCannotDisableOwnRole,
+	ErrorCannotDisableOwnJobTitle,
+	ErrorRoleHasActiveJobs,
 	ErrorInvalidBulkServiceKey,
 	ErrorInvalidRequiredAction,
 	ErrorFailToUpdateParent,
 	ErrorFailToUpdateChild,
+	ErrorFailToUpdateBulkService,
+
+	ErrorServiceListAlreadyExists,
+	ErrorServiceListNotFound,
 
 	// department related error
 	ErrorDepartmentCreateRequest,
@@ -515,6 +575,7 @@ var ResponseCodesList = []ResponseCode{
 	CustomerEnableRequestCreatedSuccessfully,
 	ErrorCustomerAlreadyDisabled,
 	ErrorCustomerAlreadyEnabled,
+	ErrorCustomerNotFound,
 	ErrorIdNotSetOnQueryParam,
 	CustomerDetailSuccessfullyFetched,
 	ErrorFailedToGetBlockedCustomer,
@@ -571,6 +632,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCompanyNameAlreadyExists,
 	ErrorCompanyCodeAlreadyExists,
 	ErrorAccountNumberAlreadyExists,
+	ErrorAccountRestricted,
+	ErrorAccountCurrencyNotSupported,
 	ErrorMerchantCodeAlreadyExists,
 	ErrorEmailAlreadyExist,
 	ErrorPhonenumberAlreadyExist,
@@ -579,9 +642,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberValidationFailed,
 	ErrorAccountNumberNotActive,
 	ErrorAccountNumberNotFound,
+	ErrorAccountNumberNotValid,
 	ErrorDonationCompanyIdRequired,
 	ErrorDonationAlreadyEnabled,
 	ErrorDonationAlreadyDisabled,
+	ErrorActiveDonationExistsInCategory,
 	SuccessDonationCompanyUpdatedSP,
 	SuccessDonationCompanyCreatedSP,
 	SuccessDonationCompanyEnabledSP,
@@ -609,6 +674,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidEmail,
 	ErrorCPSRoleAlreadyEnabled,
 	ErrorCPSRoleAlreadyDisabled,
+	ErrorCPSRoleCodeAlreadyExists,
+	ErrorCPSRoleNameAlreadyExists,
 
 	// OTP related error codes
 	ErrorOTPExpired,
@@ -634,13 +701,17 @@ var ResponseCodesList = []ResponseCode{
 	//bps error
 	ErrorExistBpsUserEmail,
 	// Vault related
-	SuccessVaultGroupCategoryCreationRequestSubmitted,
-	SuccessVaultGroupCategoriesRetrieved,
-	SuccessVaultGroupCategoryRetrieved,
-	SuccessVaultGroupCategoryUpdateRequestSubmitted,
-	SuccessVaultGroupCategoryDeleteRequestSubmitted,
-	SuccessVaultGroupCategoryEnableRequestSubmitted,
-	SuccessVaultGroupCategoryDisableRequestSubmitted,
+	SuccessVaultCategoryCreationRequestSubmitted,
+	SuccessVaultCategoryCreatedSuccessfully,
+	SuccessVaultCategoriesRetrieved,
+	SuccessVaultCategoryRetrieved,
+	SuccessVaultCategoryUpdateRequestSubmitted,
+	SuccessVaultCategoryUpdatedSuccessfully,
+	SuccessVaultCategoryDeleteRequestSubmitted,
+	SuccessVaultCategoryEnableRequestSubmitted,
+	SuccessVaultCategoryDisableRequestSubmitted,
+	SuccessVaultCategoryDisabledSuccessfully,
+	SuccessVaultCategoryEnabledSuccessfully,
 	SuccessVaultAmountTierCreationRequestSubmitted,
 	SuccessVaultAmountTierFetchedSuccessfully,
 	SuccessVaultAmountTierUpdateRequestSubmitted,
@@ -658,18 +729,18 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAuditorActionOnThisActionCompleted,
 	ErrorAuditorActionWaitForPreviousAuditor,
 	ErrorDuplicateBankProduct,
-	ErrorVaultGroupCategoryNotFound,
+	ErrorVaultCategoryNotFound,
 	ErrorGroupVaultNotFound,
-	ErrorCannotDeleteActiveVaultGroupCategory,
+	ErrorCannotDeleteActiveVaultCategory,
 	ErrorNoBankProductFound,
 	ErrorCannotDeletedBankProduct,
 	ErrorCannotEnableOrDisable,
 	ErrorBankVaultProductAlreadyDeleted,
-	ErrorDuplicateGroupVaultCategory,
+	ErrorDuplicateVaultCategory,
 	ErrorBankVaultAlreadyEnabled,
 	ErrorBankVaultAlreadyDisabled,
-	ErrorVaultGroupAlreadyEnabled,
-	ErrorVaultGroupAlreadyDisabled,
+	ErrorVaultAlreadyEnabled,
+	ErrorVaultAlreadyDisabled,
 	ErrorBankAlreadyEnabled,
 	ErrorBankAlreadyDisabled,
 	ErrorBankWithNameAlreadyExists,
@@ -702,6 +773,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventMerchantInvalidSettlementMethod,
 	ErrorEventMerchantInvalidMerchantName,
 	ErrorEventMerchantInvalidBankAccountNumber,
+	ErrorEventMerchantInvalidIsEventMerchant,
 	ErrorEventMerchantInvalidEmail,
 	ErrorEventMerchantInvalidPhoneNumber,
 	ErrorMerchantIDAlreadyExists,
@@ -797,9 +869,15 @@ var ResponseCodesList = []ResponseCode{
 
 	SuccessJobRoleCreatedSP,
 	SuccessJobRoleUpdatedSP,
+	SuccessJobRoleEnabledSP,
+	SuccessJobRoleDisabledSP,
+	SuccessJobRoleDeletedSP,
 
 	SuccessRoleUpdatedSP,
 	SuccessRoleCreatedSP,
+	SuccessRoleEnabledSP,
+	SuccessRoleDisabledSP,
+	SuccessRoleDeletedSP,
 
 	SuccessNotificationEnabledSP,
 	SuccessNotificationDisabledSP,
@@ -810,6 +888,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessCPSRoleEnabledSP,
 	SuccessCPSRoleUpdatedSP,
 	SuccessCPSRoleCreatedSP,
+	SuccessCPSRoleDeletedSP,
+	ErrorBranchNotExistWithGivenBranchCode,
 }
 
 // Success Response Codes
@@ -913,6 +993,34 @@ var (
 		Type:       "success",
 	}
 
+	SuccessAmountBasedAuthCurrencyAdded = ResponseCode{
+		Code:       "SUCCESS_AMOUNT_BASED_AUTH_CURRENCY_ADDED",
+		StatusCode: StatusOK,
+		Message:    MsgAmountBasedCurrencyAdded,
+		Type:       "success",
+	}
+
+	SuccessAmountBasedAuthCurrencyAddedSP = ResponseCode{
+		Code:       "SUCCESS_AMOUNT_BASED_AUTH_CURRENCY_ADDED_SP",
+		StatusCode: StatusOK,
+		Message:    MsgAmountBasedCurrencyAddedSP,
+		Type:       "success",
+	}
+
+	SuccessAmountBasedAuthResetSent = ResponseCode{
+		Code:       "SUCCESS_AMOUNT_BASED_AUTH_RESET_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAmountBasedResetSent,
+		Type:       "success",
+	}
+
+	SuccessAmountBasedAuthResetSentSP = ResponseCode{
+		Code:       "SUCCESS_AMOUNT_BASED_AUTH_RESET_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgAmountBasedResetSentSP,
+		Type:       "success",
+	}
+
 	SuccessUserDeleted = ResponseCode{
 		Code:       "SUCCESS_USER_DELETED",
 		StatusCode: StatusOK,
@@ -1012,6 +1120,13 @@ var (
 		Type:       "success",
 	}
 
+	SuccessBankCreatedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_BANK_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgBankCreatedSuccessfully,
+		Type:       "success",
+	}
+
 	SuccessRoleCreatedRequestSent = ResponseCode{
 		Code:       "SUCCESS_Role_CREATED_REQUEST_SENT",
 		StatusCode: StatusCreated,
@@ -1038,6 +1153,49 @@ var (
 		Message:    MsgRoleUpdatedSP,
 		Type:       "success",
 	}
+
+	SuccessRoleEnabledRequestSent = ResponseCode{
+		Code:       "SUCCESS_ROLE_ENABLED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgRoleEnabledRequestSent,
+		Type:       "success",
+	}
+
+	SuccessRoleDisabledRequestSent = ResponseCode{
+		Code:       "SUCCESS_ROLE_DISABLED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgRoleDisabledRequestSent,
+		Type:       "success",
+	}
+
+	SuccessRoleEnabledSP = ResponseCode{
+		Code:       "SUCCESS_ROLE_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgRoleEnabledSP,
+		Type:       "success",
+	}
+
+	SuccessRoleDisabledSP = ResponseCode{
+		Code:       "SUCCESS_ROLE_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgRoleDisabledSP,
+		Type:       "success",
+	}
+
+	SuccessRoleDeletedRequestSent = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELETED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgRoleDeletedRequestSent,
+		Type:       "success",
+	}
+
+	SuccessRoleDeletedSP = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgRoleDeletedSP,
+		Type:       "success",
+	}
+
 	SuccessJobRolesFetchedSuccessfully = ResponseCode{
 		Code:       "SUCCESS_JOB_ROLRS_FETCHED_SUCCEESSFULLY",
 		StatusCode: StatusCreated,
@@ -1077,8 +1235,56 @@ var (
 		Type:       "success",
 	}
 
+	SuccessJobRoleEnabledRequestSent = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_ENABLED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgJobRoleEnabledRequestSent,
+		Type:       "success",
+	}
+
+	SuccessJobRoleDisabledRequestSent = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_DISABLED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgJobRoleDisabledRequestSent,
+		Type:       "success",
+	}
+
+	SuccessJobRoleEnabledSP = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgJobRoleEnabledSP,
+		Type:       "success",
+	}
+
+	SuccessJobRoleDisabledSP = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgJobRoleDisabledSP,
+		Type:       "success",
+	}
+
+	SuccessJobRoleDeletedRequestSent = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_DELETED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgJobRoleDeletedRequestSent,
+		Type:       "success",
+	}
+
+	SuccessJobRoleDeletedSP = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgJobRoleDeletedSP,
+		Type:       "success",
+	}
+
 	SuccessBankUpdatedRequestSent = ResponseCode{
 		Code:       "SUCCESS_BANK_UPDATED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgBankUpdatedRequestSent,
+		Type:       "success",
+	}
+	SuccessBankUpdated = ResponseCode{
+		Code:       "SUCCESS_BANK_UPDATED",
 		StatusCode: StatusOK,
 		Message:    MsgBankUpdatedRequestSent,
 		Type:       "success",
@@ -1430,10 +1636,73 @@ var (
 		Type:       "success",
 	}
 
+	AutorizersLevelFetchedSuccessfully = ResponseCode{
+		Code:       "AUTORIZERS_LEVEL_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgAuthorizersLevelFetchedSuccessfully,
+		Type:       "success",
+	}
+
+	CpsActionDataExportedSuccess = ResponseCode{
+		Code:       "DATA_EXPORT_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgCpsActionDataExportedSuccessfully,
+		Type:       "success",
+	}
+
+	CpsActionDataExportedError = ResponseCode{
+		Code:       "CPS_ACTION_DATA_EXPORT_ERROR",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgCpsActionDataExportFailed,
+		Type:       "error",
+	}
+
+	CpsActionDataNotFoundInDateRange = ResponseCode{
+		Code:       "CPS_ACTION_DATA_NOT_FOUND_IN_DATE_RANGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCpsActionDataNotFoundInDateRange,
+		Type:       "error",
+	}
+
+	DonationDataExportedSuccess = ResponseCode{
+		Code:       "DONATION_DATA_EXPORT_SUCCESS",
+		StatusCode: StatusOK,
+		Message:    MsgDonationDataExportedSuccessfully,
+		Type:       "success",
+	}
+
+	DonationDataExportedError = ResponseCode{
+		Code:       "DONATION_DATA_EXPORT_ERROR",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDonationDataExportFailed,
+		Type:       "error",
+	}
+
+	DonationDataNotFoundInDateRange = ResponseCode{
+		Code:       "DONATION_DATA_NOT_FOUND_IN_DATE_RANGE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationDataNotFoundInDateRange,
+		Type:       "error",
+	}
+
+	// BPS Action related success response codes
+	SuccessBPSActionsRetrieved = ResponseCode{
+		Code:       "SUCCESS_BPS_ACTIONS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgBPSActionsRetrievedSuccessfully,
+		Type:       "success",
+	}
+
 	SuccessCPSActionCount = ResponseCode{
 		Code:       "SUCCESS_CPS_ACTION_COUNT",
 		StatusCode: StatusOK,
 		Message:    MsgCPSActionCountSuccessfully,
+		Type:       "success",
+	}
+	SuccessBPSActionCount = ResponseCode{
+		Code:       "SUCCESS_BPS_ACTION_COUNT",
+		StatusCode: StatusOK,
+		Message:    MsgBPSActionCountSuccessfully,
 		Type:       "success",
 	}
 
@@ -1443,11 +1712,23 @@ var (
 		Message:    MsgCPSActionAuthorizedSuccessfully,
 		Type:       "success",
 	}
+	SuccessBPSActionAuthorized = ResponseCode{
+		Code:       "SUCCESS_BPS_ACTION_AUTHORIZED",
+		StatusCode: StatusOK,
+		Message:    MsgBPSActionAuthorizedSuccessfully,
+		Type:       "success",
+	}
 
 	SuccessCPSActionChecked = ResponseCode{
 		Code:       "SUCCESS_CPS_ACTION_CHECKED",
 		StatusCode: StatusOK,
 		Message:    MsgCPSActionCheckedSuccessfully,
+		Type:       "success",
+	}
+	SuccessBPSActionChecked = ResponseCode{
+		Code:       "SUCCESS_BPS_ACTION_CHECKED",
+		StatusCode: StatusOK,
+		Message:    MsgBPSActionCheckedSuccessfully,
 		Type:       "success",
 	}
 
@@ -1462,6 +1743,12 @@ var (
 		Code:       "SUCCESS_CPS_ACTION_REJECTED",
 		StatusCode: StatusOK,
 		Message:    MsgCPSActionRejectedSuccessfully,
+		Type:       "success",
+	}
+	SuccessBPSActionRejected = ResponseCode{
+		Code:       "SUCCESS_BPS_ACTION_REJECTED",
+		StatusCode: StatusOK,
+		Message:    MsgBPSActionRejectedSuccessfully,
 		Type:       "success",
 	}
 	SuccessCPSActionCanceled = ResponseCode{
@@ -1613,6 +1900,19 @@ var (
 		Message:    MsgCpsRolesFetched,
 		Type:       "success",
 	}
+	SuccessGlobalLimitFetched = ResponseCode{
+		Code:       "GLOBAL_LIMITS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Global limits fetched successfully",
+		Type:       "success",
+	}
+	SuccessServiceLevelLimits = ResponseCode{
+		Code:       "GLOBAL_SERVICE_LEVEL_LIMITS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Global service level limits fetched successfully",
+		Type:       "success",
+	}
+
 	SuccessCPSRoleFetched = ResponseCode{
 		Code:       "SUCCESS_CPS_ROLE_FETCHED",
 		StatusCode: StatusOK,
@@ -1660,6 +1960,34 @@ var (
 		Type:       "success",
 	}
 
+	SuccessCPSRoleServiceEnabled = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_SERVICE_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleServiceEnabled,
+		Type:       "success",
+	}
+
+	SuccessCPSRoleServiceDisabled = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_SERVICE_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleServiceDisabled,
+		Type:       "success",
+	}
+
+	SuccessCPSRoleDeleted = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_DELETE_REQUEST_SEND_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleDeleted,
+		Type:       "success",
+	}
+
+	SuccessCPSRoleDeletedSP = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleDeletedSP,
+		Type:       "success",
+	}
+
 	// Wallet related success response codes
 	SuccessWalletCreationRequestSent = ResponseCode{
 		Code:       "SUCCESS_WALLET_CREATION_REQUEST_SENT",
@@ -1672,6 +2000,19 @@ var (
 		Code:       "SUCCESS_WALLET_UPDATE_REQUEST_SENT",
 		StatusCode: StatusOK,
 		Message:    MsgWalletUpdateRequestSent,
+		Type:       "success",
+	}
+	SuccessWalletCreated = ResponseCode{
+		Code:       "SUCCESS_WALLET_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgWalletCreated,
+		Type:       "success",
+	}
+
+	SuccessWalletUpdated = ResponseCode{
+		Code:       "SUCCESS_WALLET_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgWalletUpdated,
 		Type:       "success",
 	}
 
@@ -1714,6 +2055,19 @@ var (
 		Code:       "SUCCESS_WALLET_DISABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
 		Message:    "Wallet disable request sent successfully",
+		Type:       "success",
+	}
+	SuccessWalletEnabled = ResponseCode{
+		Code:       "SUCCESS_WALLET_ENABLED",
+		StatusCode: StatusOK,
+		Message:    "Wallet enabled successfully",
+		Type:       "success",
+	}
+
+	SuccessWalletDisabled = ResponseCode{
+		Code:       "SUCCESS_WALLET_DISABLED",
+		StatusCode: StatusOK,
+		Message:    "Wallet disabled successfully",
 		Type:       "success",
 	}
 
@@ -1915,58 +2269,84 @@ var (
 	SuccessGroupVaultsRetrievedSuccessfully = ResponseCode{
 		Code:       "SUCCESS_GROUP_VAULTS_RETRIEVED_SUCCESSFULLY",
 		StatusCode: StatusOK,
-		Message:    MsgGroupVaultsRetrievedSuccessfully,
+		Message:    MsgVaultsRetrievedSuccessfully,
 		Type:       "success",
 	}
 	SuccessGroupVaultRetrievedSuccessfully = ResponseCode{
 		Code:       "SUCCESS_GROUP_VAULT_RETRIEVED_SUCCESSFULLY",
 		StatusCode: StatusOK,
-		Message:    MsgGroupVaultRetrievedSuccessfully,
+		Message:    MsgVaultRetrievedSuccessfully,
 		Type:       "success",
 	}
 	// vaultgroup category related
-	SuccessVaultGroupCategoryCreationRequestSubmitted = ResponseCode{
-		Code:       "SUCCESS_VAULTGROUPCATEGORY_CREATION_REQUEST_SUBMITTED",
+	SuccessVaultCategoryCreationRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_CATEGORY_CREATION_REQUEST_SUBMITTED",
 		StatusCode: StatusCreated,
-		Message:    MsgVaultGroupCategoryCreationRequestSubmitted,
+		Message:    MsgVaultCategoryCreationRequestSubmitted,
 		Type:       "success",
 	}
-	SuccessVaultGroupCategoriesRetrieved = ResponseCode{
+	SuccessVaultCategoryCreatedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_VAULT_CATEGORY_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgVaultCategoryCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessVaultCategoriesRetrieved = ResponseCode{
 		Code:       "SUCCESS_VAULTGROUPCATEGORIES_RETRIEVED",
 		StatusCode: StatusOK,
-		Message:    MsgVaultGroupCategoriesRetrieved,
+		Message:    MsgVaultCategoriesRetrieved,
 		Type:       "success",
 	}
-	SuccessVaultGroupCategoryRetrieved = ResponseCode{
+	SuccessVaultCategoryRetrieved = ResponseCode{
 		Code:       "SUCCESS_VAULTGROUPCATEGORY_RETRIEVED",
 		StatusCode: StatusOK,
-		Message:    MsgVaultGroupCategoryRetrieved,
+		Message:    MsgVaultCategoryRetrieved,
 		Type:       "success",
 	}
-	SuccessVaultGroupCategoryUpdateRequestSubmitted = ResponseCode{
+	SuccessVaultCategoryUpdateRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_VAULTGROUPCATEGORY_UPDATE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    MsgVaultGroupCategoryUpdateRequestSubmitted,
+		Message:    MsgVaultCategoryUpdateRequestSubmitted,
 		Type:       "success",
 	}
-	SuccessVaultGroupCategoryDeleteRequestSubmitted = ResponseCode{
+	SuccessVaultCategoryUpdatedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_VAULT_UPDATE_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgVaultCategoryUpdateUpdatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessVaultCategoryDeleteRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_VAULTGROUPCATEGORY_DELETE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    MsgVaultGroupCategoryDeleteRequestSubmitted,
+		Message:    MsgVaultCategoryDeleteRequestSubmitted,
 		Type:       "success",
 	}
-	SuccessVaultGroupCategoryEnableRequestSubmitted = ResponseCode{
+	SuccessVaultCategoryEnableRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_VAULTGROUPCATEGORY_ENABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    MsgVaultGroupCategoryEnableRequestSubmitted,
+		Message:    MsgVaultCategoryEnableRequestSubmitted,
 		Type:       "success",
 	}
-	SuccessVaultGroupCategoryDisableRequestSubmitted = ResponseCode{
+	SuccessVaultCategoryDisableRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_VAULTGROUPCATEGORY_DISABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    MsgVaultGroupCategoryDisableRequestSubmitted,
+		Message:    MsgVaultCategoryDisableRequestSubmitted,
 		Type:       "success",
 	}
+	SuccessVaultCategoryDisabledSuccessfully = ResponseCode{
+		Code:       "SUCCESS_VAULT_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgVaultCategoryDisabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessVaultCategoryEnabledSuccessfully = ResponseCode{
+		Code:       "SUCCESS_VAULT_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgVaultCategoryEnabledSuccessfully,
+		Type:       "success",
+	}
+
 	SuccessVaultAmountTierCreationRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_VAULT_AMOUNT_TIER_CREATED",
 		StatusCode: StatusCreated,
@@ -2039,6 +2419,58 @@ var (
 		Type:       "success",
 	}
 
+	SuccessVaultTransactionsRetrievedS = ResponseCode{
+		Code:       "VAULT_TRANSACTIONS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    "Vault transactions retrieved successfully",
+		Type:       "success",
+	}
+	SuccessVaultTransactionRetrievedS = ResponseCode{
+		Code:       "VAULT_TRANSACTION_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    "Vault transaction retrieved successfully",
+		Type:       "success",
+	}
+
+	// Vault deadlock unlock request
+	SuccessVaultdDeadlockUnlockRequestSubmitted = ResponseCode{
+		Code:       "VAULT_DEADLOCK_UNLOCK_REQUEST_SUBMITTED",
+		StatusCode: StatusCreated,
+		Message:    "Vault deadlock unlock request submitted successfully",
+		Type:       "success",
+	}
+	SuccessVaultDeadlockUnlockRequest = ResponseCode{
+		Code:       "VAULT_DEADLOCK_UNLOCK_REQUEST_SUCCESSFULL",
+		StatusCode: StatusCreated,
+		Message:    "Vault deadlock unlock request created successfully",
+		Type:       "success",
+	}
+
+	SuccessVaultDeadlockUnlockUpdateSubmitted = ResponseCode{
+		Code:       "VAULT_DEADLOCK_UNLOCK_UPDATED_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Vault deadlock unlock update request submitted successfully",
+		Type:       "success",
+	}
+	SuccessVaultWithdrawalUpdateRequest = ResponseCode{
+		Code:       "VAULT_DEADLOCK_UNLOCK_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    "Vault deadlock unlock request updated successfully",
+		Type:       "success",
+	}
+	SuccessVaultDeadlockUnlockRequestsFetchedSuccessfully = ResponseCode{
+		Code:       "VAULT_DEADLOCK_UNLOCK_REQUESTS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Vault deadlock unlock request retrieved successfully",
+		Type:       "success",
+	}
+	SuccessVaultDeadlockUnlockRequestFetchedSuccessfully = ResponseCode{
+		Code:       "VAULT_DEADLOCK_UNLOCK_REQUEST_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Vault deadlock unlock request retrieved successfully",
+		Type:       "success",
+	}
+
 	// Event related error response codes for bankvault
 	ErrorEventNameRequired = ResponseCode{
 		Code:       "ERROR_EVENT_NAME_REQUIRED",
@@ -2058,6 +2490,27 @@ var (
 		Code:       "ERROR_AUTH_TIER_ALREADY_EXISTS",
 		StatusCode: StatusConflict,
 		Message:    "Auth tier already exists with the same values",
+		Type:       "error",
+	}
+
+	ErrorCurrencyAlreadyExists = ResponseCode{
+		Code:       "ERROR_CURRENCY_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    "Currency configuration already exists",
+		Type:       "error",
+	}
+
+	ErrorCurrencyNotFound = ResponseCode{
+		Code:       "ERROR_CURRENCY_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Currency configuration not found",
+		Type:       "error",
+	}
+
+	ErrorInvalidTierCascade = ResponseCode{
+		Code:       "ERROR_INVALID_TIER_CASCADE",
+		StatusCode: StatusBadRequest,
+		Message:    "Tier amounts must cascade: each tier max must equal the next tier min",
 		Type:       "error",
 	}
 
@@ -2350,6 +2803,12 @@ var (
 		Code:       "ERROR_WALLET_WITH_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet with the given name already exists",
+		Type:       "error",
+	}
+	ErrorWalletWithNameOrCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_WALLET_WITH_NAME_OR_CODE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet with the given name or code already exists",
 		Type:       "error",
 	}
 	ErrorWalletCodeAlreadyExists = ResponseCode{
@@ -2668,11 +3127,23 @@ var (
 		Message:    MsgBankDisableRequestSent,
 		Type:       "success",
 	}
+	SuccessBankDisabledSuccessfully = ResponseCode{
+		Code:       "SUCCESS_BANK_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBankDisabledSuccessfully,
+		Type:       "success",
+	}
 
 	SuccessBankEnableRequestCreated = ResponseCode{
 		Code:       "SUCCESS_BANK_ENABLE_REQUEST_CREATED",
 		StatusCode: StatusOK,
 		Message:    MsgBankEnableRequestSent,
+		Type:       "success",
+	}
+	SuccessBankEnabledSuccessfully = ResponseCode{
+		Code:       "SUCCESS_BANK_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBankEnabledSuccessfully,
 		Type:       "success",
 	}
 
@@ -2758,7 +3229,7 @@ var (
 	SuccessEcommerceMerchantLookup = ResponseCode{
 		Code:       "SUCCESS_ECOMMERCE_MERCHANT_LOOKUP",
 		StatusCode: StatusOK,
-		Message:    "Notification created successfully",
+		Message:    "Ecommerce merchant looked up successfully",
 		Type:       "success",
 	}
 
@@ -3336,6 +3807,12 @@ var (
 		Message:    MsgCPSActionFetchedSuccessfully,
 		Type:       "success",
 	}
+	SuccessBPSActionFetched = ResponseCode{
+		Code:       "SUCCESS_BPS_ACTION_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgBPSActionFetchedSuccessfully,
+		Type:       "success",
+	}
 
 	SuccessPreviousServiceDataFetched = ResponseCode{
 		Code:       "SUCCESS_PREVIOUS_SERVICE_DATA_FETCHED",
@@ -3355,6 +3832,56 @@ var (
 		Code:       "SUCCESS_SERVICE_CREATE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
 		Message:    "Service create request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessServiceListCreated = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_CREATED",
+		StatusCode: StatusOK,
+		Message:    "Service list created successfully",
+		Type:       "success",
+	}
+	SuccessServiceListUpdated = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_UPDATED",
+		StatusCode: StatusOK,
+		Message:    "Service list updated successfully",
+		Type:       "success",
+	}
+
+	SuccessServiceListCreateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_CREATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Service list create request submitted successfully",
+		Type:       "success",
+	}
+	SuccessServiceListUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Service list update request submitted successfully",
+		Type:       "success",
+	}
+	SuccessServiceListEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Service list enable request submitted successfully",
+		Type:       "success",
+	}
+	SuccessServiceListEnabled = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Service list enabled successfully",
+		Type:       "success",
+	}
+	SuccessServiceListDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Service list disable request submitted successfully",
+		Type:       "success",
+	}
+	SuccessServiceListDisabled = ResponseCode{
+		Code:       "SUCCESS_SERVICE_LIST_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Service list disabled successfully",
 		Type:       "success",
 	}
 
@@ -3820,7 +4347,7 @@ var (
 	// HQ related error response codes
 
 	ErrorHQNotFound       = ResponseCode{Code: "ERROR_HQ_NOT_FOUND", StatusCode: 404, Message: "HQ record not found", Type: "error"}
-	ErrorInvalidHQRequest = ResponseCode{Code: "ERROR_INVALID_HQ_REQUEST", StatusCode: 400, Message: "Invalid HQ request", Type: "error"}
+	ErrorInvalidHQRequest = ResponseCode{Code: "ERROR_INVALID_HQ_REQUEST", StatusCode: 400, Message: "Input is too large. Enter a valid number of days.", Type: "error"}
 	ErrorCPSActionFailed  = ResponseCode{Code: "ERROR_CPS_ACTION_FAILED", StatusCode: 500, Message: "Failed to handle CPS action", Type: "error"}
 	ErrorHQIDRequired     = ResponseCode{Code: "ERROR_HQ_ID_REQUIRED", StatusCode: 400, Message: "HQ ID is required", Type: "error"}
 
@@ -4132,6 +4659,13 @@ var (
 		Type:       "success",
 	}
 
+	DataRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_DATA_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgDataSuccessfullyRetrieved,
+		Type:       "success",
+	}
+
 	SuccessCitiesRetrieved = ResponseCode{
 		Code:       "SUCCESS_CITIES_RETRIEVED",
 		StatusCode: StatusOK,
@@ -4287,6 +4821,12 @@ var (
 		Message:    MsgEventMerchantCreatedSuccessfully,
 		Type:       "success",
 	}
+	SuccessEventMerchantCreateRequestSent = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_CREATE_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgEventMerchantCreateRequestSentSuccessfully,
+		Type:       "success",
+	}
 	SuccessEventMerchantDeleted = ResponseCode{
 		Code:       "SUCCESS_EVENT_MERCHANT_DELETED",
 		StatusCode: StatusOK,
@@ -4299,10 +4839,22 @@ var (
 		Message:    MsgEventMerchantUpdatedSuccessfully,
 		Type:       "success",
 	}
+	SuccessEventMerchantUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantUpdateRequestSentSuccessfully,
+		Type:       "success",
+	}
 	SuccessEventMerchantEnabled = ResponseCode{
 		Code:       "SUCCESS_EVENT_MERCHANT_ENABLED",
 		StatusCode: StatusOK,
 		Message:    MsgEventMerchantEnabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantEnableRequestSent = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_ENABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantEnableRequestSentSuccessfully,
 		Type:       "success",
 	}
 	SuccessEventMerchantDisabled = ResponseCode{
@@ -4311,10 +4863,46 @@ var (
 		Message:    MsgEventMerchantDisabledSuccessfully,
 		Type:       "success",
 	}
+	SuccessEventMerchantDisableRequestSent = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_DISABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantDisableRequestSentSuccessfully,
+		Type:       "success",
+	}
 	SuccessEventMerchantFetched = ResponseCode{
 		Code:       "SUCCESS_EVENT_MERCHANT_FETCHED",
 		StatusCode: StatusOK,
 		Message:    MsgEventMerchantFetchedSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantCreateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_CREATE_REQUEST_SUBMITTED",
+		StatusCode: StatusCreated,
+		Message:    MsgEventMerchantCreateRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessEventMerchantUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessEventMerchantDeleteRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_DELETE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantDeleteRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessEventMerchantEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantEnableRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessEventMerchantDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantDisableRequestSubmitted,
 		Type:       "success",
 	}
 	SuccessLogisticsMerchantCreated = ResponseCode{
@@ -4413,7 +5001,7 @@ var (
 
 	SuccessUssdMerchantFetched = ResponseCode{
 		Code:       "SUCCESS_USSD_MERCHANT_FETCHED",
-		StatusCode: StatusCreated,
+		StatusCode: StatusOK,
 		Message:    MsgUssdMerchantFetchedSuccessfully,
 		Type:       "success",
 	}
@@ -4468,6 +5056,14 @@ var (
 		Message:    MsgActionAlreadyExists,
 		Type:       "error",
 	}
+
+	ErrorActionAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_ACTION_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActionAlreadyDisabled,
+		Type:       "error",
+	}
+
 	ErrorDuplicateColorExists = ResponseCode{
 		Code:       "ERROR_DUPLICATE_COLOR",
 		StatusCode: StatusBadRequest,
@@ -4513,6 +5109,27 @@ var (
 		Code:       "ERROR_USER_CODE_IS_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MSGUserCodeIsRequired,
+		Type:       "error",
+	}
+
+	ErrorCannotDisableOwnAccount = ResponseCode{
+		Code:       "ERROR_USER_CANT_DISABLE_OWN_ACCOUNT",
+		StatusCode: StatusBadRequest,
+		Message:    MSGUserCanNotDiasble,
+		Type:       "error",
+	}
+
+	ErrorCannotEnableOwnAccount = ResponseCode{
+		Code:       "ERROR_USER_CANT_ENABLE_OWN_ACCOUNT",
+		StatusCode: StatusBadRequest,
+		Message:    MSGUserCanNotEnable,
+		Type:       "error",
+	}
+
+	ErrorUserIDRequired = ResponseCode{
+		Code:       "ERROR_USER_ID_IS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MSGUserIDIsRequired,
 		Type:       "error",
 	}
 
@@ -4646,16 +5263,16 @@ var (
 		Type:       "error",
 	}
 
-	ErrorVaultGroupAlreadyEnabled = ResponseCode{
+	ErrorVaultAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_VAULT_GROUP_ALREADY_ENABLED",
 		StatusCode: StatusConflict,
-		Message:    MsgVaultGroupAlreadyEnabled,
+		Message:    MsgVaultAlreadyEnabled,
 		Type:       "error",
 	}
-	ErrorVaultGroupAlreadyDisabled = ResponseCode{
-		Code:       "ERROR_VAULT_GROUP_ALREADY_DISABLED",
+	ErrorVaultAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_VAULT_ALREADY_DISABLED",
 		StatusCode: StatusConflict,
-		Message:    MsgVaultGroupAlreadyDisabled,
+		Message:    MsgVaultAlreadyDisabled,
 		Type:       "error",
 	}
 
@@ -4993,6 +5610,20 @@ var (
 		Type:       "error",
 	}
 
+	SuccessDepartmentDeleted = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_DELETED",
+		StatusCode: StatusOK,
+		Message:    "Department deleted successfully",
+		Type:       "success",
+	}
+
+	SuccessDepartmentDeleteRequestCreated = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_DELETE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    "Department delete request created successfully",
+		Type:       "success",
+	}
+
 	ErrorServiceExists = ResponseCode{
 		Code:       "ERROR_SERVICE_EXISTS",
 		StatusCode: StatusConflict,
@@ -5032,6 +5663,30 @@ var (
 		Code:       "ERROR_BANK_IMAGE_MISSING_OR_INVALID",
 		StatusCode: StatusBadRequest,
 		Message:    MsgBankImageRequiredOrMissing,
+		Type:       "error",
+	}
+	ErrorBankAccountLengthRequired = ResponseCode{
+		Code:       "ERROR_BANK_ACCOUNT_LENGTH_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankAccountLengthRequired,
+		Type:       "error",
+	}
+	ErrorBankHasAlphaNumericRequired = ResponseCode{
+		Code:       "ERROR_BANK_HAS_ALPHA_NUMERIC_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankHasAlphaNumericRequired,
+		Type:       "error",
+	}
+	ErrorBankHasAlphaNumericInvalid = ResponseCode{
+		Code:       "ERROR_BANK_HAS_ALPHA_NUMERIC_INVALID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankHasAlphaNumericInvalid,
+		Type:       "error",
+	}
+	ErrorInvalidBankAccountLength = ResponseCode{
+		Code:       "ERROR_INVALID_BANK_ACCOUNT_LENGTH",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankAccountLengthInvalid,
 		Type:       "error",
 	}
 
@@ -5111,6 +5766,13 @@ var (
 		Code:       "ERROR_ROLE_NOT_EXIST_WITH_GIVEN_JOB_TITLE",
 		StatusCode: StatusNotFound,
 		Message:    MsgRoleNotFoundWithGivenJobTitle,
+		Type:       "error",
+	}
+
+	ErrorBranchNotExistWithGivenBranchCode = ResponseCode{
+		Code:       "ERROR_BRANCE_NOT_FOUND_WITH_GIVEN_KEY",
+		StatusCode: StatusNotFound,
+		Message:    MsgBranchNotFoundWithGivenCode,
 		Type:       "error",
 	}
 
@@ -5330,7 +5992,7 @@ var (
 	}
 
 	ErrorResourceBusy = ResponseCode{
-		Code:       "ERROR_RESOURCE_BUSY",
+		Code:       "resource is bussy",
 		StatusCode: StatusConflict,
 		Message:    MsgResourceBusy,
 		Type:       "error",
@@ -5342,6 +6004,26 @@ var (
 		Message:    MsgResourceNotFound,
 		Type:       "error",
 	}
+
+	ErrorDonationCompanyNotEnabled = ResponseCode{
+		Code:       "ERROR_DONATION_COMPANY_NOT_ENABLED",
+		StatusCode: StatusForbidden,
+		Message:    MsgDonationCompanyNotEnabled,
+		Type:       "error",
+	}
+
+	ErrorDonationCategoryNotEnabled = ResponseCode{
+		Code:       "ERROR_DONATION_CATEGORY_NOT_ENABLED",
+		StatusCode: StatusForbidden,
+		Message:    MsgDonationCategoryNotEnabled,
+		Type:       "error",
+	}
+	// ErrorRoleAlreadyExists = ResponseCode{
+	// 	Code:       "ERROR_ROLE_ALREADY_EXISTS",
+	// 	StatusCode: StatusNotFound,
+	// 	Message:    MsgRoleAlreadyExists,
+	// 	Type:       "error",
+	// }
 
 	ErrorActionListNameNotFound = ResponseCode{
 		Code:       "ERROR_ACTION_LIST_NAME_NOT_FOUND",
@@ -5720,6 +6402,19 @@ var (
 		Message:    MsgCpsRoleAlreadyDisabled,
 		Type:       "error",
 	}
+	ErrorCPSRoleCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_CPS_ROLE_CODE_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgCpsRoleCodeAlreadyExists,
+		Type:       "error",
+	}
+
+	ErrorCPSRoleNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_CPS_ROLE_NAME_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgCpsRoleNameAlreadyExists,
+		Type:       "error",
+	}
 
 	// Notification related error response codes
 	ErrorNotificationMapFailed = ResponseCode{
@@ -5963,6 +6658,15 @@ var (
 		Type:       "error",
 	}
 
+	// ErrorActiveDonationExistsInCategory is returned when disabling a category
+	// that still has at least one enabled donation referencing it.
+	ErrorActiveDonationExistsInCategory = ResponseCode{
+		Code:       "DONATION_CATEGORY_HAS_ACTIVE_DONATIONS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActiveDonationExistsInCategory,
+		Type:       "error",
+	}
+
 	ErrorCompanyNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_COMPANY_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
@@ -5980,6 +6684,18 @@ var (
 		Code:       "ERROR_ACCOUNT_NUMBER_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccountNumberAlreadyExists,
+		Type:       "error",
+	}
+	ErrorAccountCurrencyNotSupported = ResponseCode{
+		Code:       "ERROR_ACCOUNT_CURRENCY_NOT_SUPPORTED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountCurrencyNotSupported,
+		Type:       "error",
+	}
+	ErrorAccountRestricted = ResponseCode{
+		Code:       "ERROR_ACCOUNT_RESTRICTED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountRestricted,
 		Type:       "error",
 	}
 
@@ -6042,6 +6758,14 @@ var (
 		Message:    MsgAccountNotFound,
 		Type:       "error",
 	}
+
+	ErrorAccountNumberNotValid = ResponseCode{
+		Code:       "ERROR_ACCOUNT_NUMBER_NOT_VALID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountNotValid,
+		Type:       "error",
+	}
+
 	ErrorAccountNumberNotActive = ResponseCode{
 		Code:       "ERROR_ACCOUNT_NUMBER_NOT_ACTIVE",
 		StatusCode: StatusBadRequest,
@@ -6515,7 +7239,7 @@ var (
 	}
 
 	ErrorInvalidInputParameters = ResponseCode{
-		Code:       "ERROR_INVAErrorMissingOrInvalidImage,LID_INPUT_PARAMETERS",
+		Code:       "ERROR_INVALID_INPUT_PARAMETERS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidInputParameters,
 		Type:       "error",
@@ -6640,7 +7364,14 @@ var (
 
 	ErrorCityCodeRequired = ResponseCode{
 		Code:       "ERROR_CITY_CODE_REQUIRED",
-		StatusCode: StatusConflict,
+		StatusCode: StatusBadRequest,
+		Message:    MsgCityCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorCodeRequired = ResponseCode{
+		Code:       "ERROR_CODE_IS_REQUIRED",
+		StatusCode: StatusBadRequest,
 		Message:    MsgCityCodeRequired,
 		Type:       "error",
 	}
@@ -6744,6 +7475,40 @@ var (
 		Code:       "ERROR_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorServiceListAlreadyExists = ResponseCode{
+		Code:       "ERROR_SERVICE_LIST_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Service list with the same name or key already exists",
+		Type:       "error",
+	}
+	ErrorServiceListNotFound = ResponseCode{
+		Code:       "ERROR_SERVICE_LIST_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Service list not found",
+		Type:       "error",
+	}
+
+	ErrorCannotDisableOwnRole = ResponseCode{
+		Code:       "ERROR_CANNOT_DISABLE_OWN_ROLE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotDisableOwnRole,
+		Type:       "error",
+	}
+
+	ErrorCannotDisableOwnJobTitle = ResponseCode{
+		Code:       "ERROR_CANNOT_DISABLE_OWN_JOB_TITLE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotDisableOwnJobTitle,
+		Type:       "error",
+	}
+
+	ErrorRoleHasActiveJobs = ResponseCode{
+		Code:       "ERROR_ROLE_HAS_ACTIVE_JOBS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleHasActiveJobs,
 		Type:       "error",
 	}
 
@@ -7068,6 +7833,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorFailToUpdateBulkService = ResponseCode{
+		Code:       "ERROR_FAIL_TO_UPDATE_BULK_SERVICE",
+		StatusCode: StatusInternalServerError,
+		Message:    "Failed to update bulk service.",
+		Type:       "error",
+	}
+
 	ErrorFailToUpdateChild = ResponseCode{
 		Code:       "ERROR_FAIL_TO_UPDATE_CHILD",
 		StatusCode: StatusInternalServerError,
@@ -7087,28 +7859,28 @@ var (
 		Message:    "no changes detected to update",
 		Type:       "error",
 	}
-	ErrorVaultGroupCategoryNotFound = ResponseCode{
-		Code:       "ERROR_VAULT_GROUP_CATEGORY_NOT_FOUND",
+	ErrorVaultCategoryNotFound = ResponseCode{
+		Code:       "ERROR_VAULT_CATEGORY_NOT_FOUND",
 		StatusCode: StatusNotFound,
-		Message:    "Vault group category not found.",
+		Message:    "Vault category not found.",
 		Type:       "error",
 	}
 	ErrorGroupVaultNotFound = ResponseCode{
-		Code:       "ERROR_GROUP_VAULT_NOT_FOUND",
+		Code:       "ERROR_VAULT_NOT_FOUND",
 		StatusCode: StatusNotFound,
-		Message:    "Group vault not found",
+		Message:    "Vault not found",
 		Type:       "error",
 	}
-	ErrorCannotDeleteActiveVaultGroupCategory = ResponseCode{
-		Code:       "ERROR_CANNOT_DELETE_ACTIVE_VAULT_GROUP_CATEGORY",
+	ErrorCannotDeleteActiveVaultCategory = ResponseCode{
+		Code:       "ERROR_CANNOT_DELETE_ACTIVE_VAULT_CATEGORY",
 		StatusCode: StatusBadRequest,
-		Message:    "Cannot delete an active vault group category.",
+		Message:    "Cannot delete an active vault category.",
 		Type:       "error",
 	}
-	ErrorVaultGroupCategooryAlreadyDeleted = ResponseCode{
-		Code:       "ERROR_VAULT_GROUP_CATEGORY_ALREADY_DELETED",
+	ErrorVaultCategooryAlreadyDeleted = ResponseCode{
+		Code:       "ERROR_VAULT_CATEGORY_ALREADY_DELETED",
 		StatusCode: StatusBadRequest,
-		Message:    "Vault group category is already deleted.",
+		Message:    "Vault category is already deleted.",
 		Type:       "error",
 	}
 	ErrorVaultCoverImageMissedOrInvalid = ResponseCode{
@@ -7153,10 +7925,10 @@ var (
 		Type:       "error",
 	}
 
-	ErrorDuplicateGroupVaultCategory = ResponseCode{
-		Code:       "ERROR_DUPLICATE_GROUP_VAULT_CATEGORY",
+	ErrorDuplicateVaultCategory = ResponseCode{
+		Code:       "ERROR_DUPLICATE_VAULT_CATEGORY",
 		StatusCode: StatusBadRequest,
-		Message:    MsgDuplicateGroupVaultCategory,
+		Message:    MsgDuplicateVaultCategory,
 		Type:       "error",
 	}
 
@@ -7390,6 +8162,18 @@ var (
 		Message:    MsgEventMerchantInvalidAccountNumber,
 		Type:       "error",
 	}
+	ErrorEventMerchantInvalidIsEventMerchant = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_IS_EVENT_MERCHANT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidIsEventMerchant,
+		Type:       "error",
+	}
+	ErrorEcommernceMerchantInvalidIsEcommerceMerchant = ResponseCode{
+		Code:       "ERROR_ECOMMERCE_MERCHANT_INVALID_IS_ECOMMERCE_MERCHANT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEcommerceMerchantInvalidIsEcommerceMerchant,
+		Type:       "error",
+	}
 	ErrorEventMerchantInvalidEmail = ResponseCode{
 		Code:       "ERROR_EVENT_MERCHANT_INVALID_EMAIL",
 		StatusCode: StatusBadRequest,
@@ -7450,6 +8234,12 @@ var (
 		Code:       "ERROR_LOGISTIC_MERCHANT_INVALID_BANK_ACCOUNT_NUMBER",
 		StatusCode: StatusBadRequest,
 		Message:    MsgLogisticMerchantInvalidAccountNumber,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantInvalidIsLogisticsMerchant = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_INVALID_IS_LOGISTICS_MERCHANT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgLogisticMerchantInvalidIsLogisticsMerchant,
 		Type:       "error",
 	}
 	ErrorLogisticMerchantInvalidEmail = ResponseCode{

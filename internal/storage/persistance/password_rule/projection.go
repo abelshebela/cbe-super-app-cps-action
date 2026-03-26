@@ -23,6 +23,8 @@ func PasswordRuleMapper(rule local_model.PasswordRule) bson.M {
 	result["capital_letters"] = rule.CapitalLetters
 	result["small_letters"] = rule.SmallLetters
 	result["characters"] = rule.Characters
+	result["allow_sequential_numbers"] = rule.AllowSequentialNumbers
+	result["is_spaced_allowed"] = rule.IsSpacedAllowed
 	result["updated_at"] = time.Now()
 	return result
 }

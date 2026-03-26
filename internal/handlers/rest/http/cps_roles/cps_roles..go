@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	constants "cbe-super-app-cps-action/internal/constants"
@@ -28,22 +29,24 @@ func (c *cpsRolesHandler) CreateCPSRole(w http.ResponseWriter, r *http.Request) 
 
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	var req dto.CreateCPSRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		c.logger.Errorf("[CreateCPSRole] failed to decode request body: %v", err)
+		log.Errorf("[CreateCPSRole] failed to decode request body: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	req.Normalize()
 	if err := req.Validate(); err != nil {
-		c.logger.Errorf("[CreateCPSRole] validation error: %v", err)
+		log.Errorf("[CreateCPSRole] validation error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if err := c.svc.Create(ctx, req); err != nil {
-		c.logger.Errorf("[CreateCPSRole] service error: %v", err)
+		log.Errorf("[CreateCPSRole] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -57,28 +60,30 @@ func (c *cpsRolesHandler) CreateCPSRole(w http.ResponseWriter, r *http.Request) 
 func (c *cpsRolesHandler) UpdateCPSRole(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
-		c.logger.Errorf("[UpdateCPSRole] extractID: %v", err)
+		log.Errorf("[UpdateCPSRole] extractID: %v", err)
 		return
 	}
 
 	var req dto.UpdateCPSRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		c.logger.Errorf("[UpdateCPSRole] failed to decode request body: %v", err)
+		log.Errorf("[UpdateCPSRole] failed to decode request body: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	req.Normalize()
 	if err := req.Validate(); err != nil {
-		c.logger.Errorf("[UpdateCPSRole] validation error: %v", err)
+		log.Errorf("[UpdateCPSRole] validation error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if err := c.svc.Update(ctx, id, req); err != nil {
-		c.logger.Errorf("[UpdateCPSRole] service error: %v", err)
+		log.Errorf("[UpdateCPSRole] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -90,6 +95,7 @@ func (c *cpsRolesHandler) UpdateCPSRole(w http.ResponseWriter, r *http.Request) 
 }
 
 func (c *cpsRolesHandler) GetAllCPSRoles(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), c.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -107,7 +113,7 @@ func (c *cpsRolesHandler) GetAllCPSRoles(w http.ResponseWriter, r *http.Request)
 
 	roles, err := c.svc.FindAllWithPagination(r.Context(), filterParams)
 	if err != nil {
-		c.logger.Errorf("[GetAllCPSRoles] service error: %v", err)
+		log.Errorf("[GetAllCPSRoles] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -116,15 +122,16 @@ func (c *cpsRolesHandler) GetAllCPSRoles(w http.ResponseWriter, r *http.Request)
 }
 
 func (c *cpsRolesHandler) GetCPSRole(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), c.logger)
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
-		c.logger.Errorf("[GetCPSRole] extractID: %v", err)
+		log.Errorf("[GetCPSRole] extractID: %v", err)
 		return
 	}
 
 	role, err := c.svc.FindById(r.Context(), id)
 	if err != nil {
-		c.logger.Errorf("[GetCPSRole] service error: %v", err)
+		log.Errorf("[GetCPSRole] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -135,15 +142,16 @@ func (c *cpsRolesHandler) GetCPSRole(w http.ResponseWriter, r *http.Request) {
 func (c *cpsRolesHandler) EnableCPSRole(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
-		c.logger.Errorf("[EnableCPSRole] extractID: %v", err)
+		log.Errorf("[EnableCPSRole] extractID: %v", err)
 		return
 	}
 
 	if err := c.svc.EnableOrDisable(ctx, id, true); err != nil {
-		c.logger.Errorf("[EnableCPSRole] service error: %v", err)
+		log.Errorf("[EnableCPSRole] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -157,15 +165,16 @@ func (c *cpsRolesHandler) EnableCPSRole(w http.ResponseWriter, r *http.Request) 
 func (c *cpsRolesHandler) DisableCPSRole(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
-		c.logger.Errorf("[DisableCPSRole] extractID: %v", err)
+		log.Errorf("[DisableCPSRole] extractID: %v", err)
 		return
 	}
 
 	if err := c.svc.EnableOrDisable(ctx, id, false); err != nil {
-		c.logger.Errorf("[DisableCPSRole] service error: %v", err)
+		log.Errorf("[DisableCPSRole] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -174,4 +183,116 @@ func (c *cpsRolesHandler) DisableCPSRole(w http.ResponseWriter, r *http.Request)
 	} else {
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleDisabled, nil)
 	}
+}
+
+func (c *cpsRolesHandler) EnableServiceAccess(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), c.logger)
+	id, err := local_util.ExtractID(w, r)
+	if err != nil {
+		log.Errorf("[EnableServiceAccess] extractID: %v", err)
+		return
+	}
+
+	var req dto.ToggleServiceAccessRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Errorf("[EnableServiceAccess] failed to decode request body: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		log.Errorf("[EnableServiceAccess] validation error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := c.svc.EnableServiceAccess(r.Context(), id, req); err != nil {
+		log.Errorf("[EnableServiceAccess] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessCPSRoleServiceEnabled, nil)
+}
+
+func (c *cpsRolesHandler) DisableServiceAccess(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), c.logger)
+	id, err := local_util.ExtractID(w, r)
+	if err != nil {
+		log.Errorf("[DisableServiceAccess] extractID: %v", err)
+		return
+	}
+
+	var req dto.ToggleServiceAccessRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Errorf("[DisableServiceAccess] failed to decode request body: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		log.Errorf("[DisableServiceAccess] validation error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := c.svc.DisableServiceAccess(r.Context(), id, req); err != nil {
+		log.Errorf("[DisableServiceAccess] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessCPSRoleServiceDisabled, nil)
+}
+
+func (c *cpsRolesHandler) DeleteCPSRole(w http.ResponseWriter, r *http.Request) {
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	id, err := local_util.ExtractID(w, r)
+	if err != nil {
+		log.Errorf("[DeleteCPSRole] extractID: %v", err)
+		return
+	}
+
+	if err := c.svc.Delete(ctx, id); err != nil {
+		log.Errorf("[DeleteCPSRole] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessCPSRoleDeletedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessCPSRoleDeleted, nil)
+	}
+}
+
+func (c *cpsRolesHandler) GetGlobalLimits(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), c.logger)
+
+	globalLimits, err := c.svc.GetGlobalLimits(r.Context())
+	if err != nil {
+		log.Errorf("[GetGlobalLimits] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessGlobalLimitFetched, globalLimits)
+}
+
+func (c *cpsRolesHandler) GetServiceLevelLimits(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), c.logger)
+
+	roleCode := chi.URLParam(r, "role_code")
+	filterParams := local_util.ExtractFilterParams(r)
+
+	serviceLevelLimits, err := c.svc.GetServiceLevelLimits(r.Context(), roleCode, filterParams)
+	if err != nil {
+		log.Errorf("[GetServiceLevelLimits] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceLevelLimits, serviceLevelLimits)
 }

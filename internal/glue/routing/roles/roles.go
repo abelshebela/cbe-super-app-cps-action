@@ -14,6 +14,14 @@ func Init(router chi.Router, handler inbound.RolesInbound, auth middleware.AuthM
 		{
 			Method:  http.MethodGet,
 			Path:    "/roles",
+			Handler: handler.FindAllWithPagination,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/roles/all",
 			Handler: handler.FindAll,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
@@ -39,6 +47,30 @@ func Init(router chi.Router, handler inbound.RolesInbound, auth middleware.AuthM
 			Method:  http.MethodPatch,
 			Path:    "/roles/{id}",
 			Handler: handler.Update,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/roles/{id}/enable",
+			Handler: handler.Enable,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/roles/{id}/disable",
+			Handler: handler.Disable,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/roles/{id}",
+			Handler: handler.Delete,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
 			},

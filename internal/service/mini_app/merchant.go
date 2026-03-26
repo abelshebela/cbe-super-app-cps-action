@@ -46,7 +46,7 @@ func (m *miniAppMerchantService) FindByID(ctx context.Context, id string) (*mini
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindByID", "MiniAppMerchant", "FindByID")
 	defer span.End()
 
-	m.logger.Infof("Finding mini app merchant by ID: %s", id)
+	m.logger.Infof("[MiniMerchSvc][FindByID] id: %s", id)
 	result, err := m.repo.FindByID(ctx, id)
 	if err != nil {
 		span.AddEvent("Failed to find mini app merchant", trace.WithAttributes(
@@ -64,7 +64,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 
 	merchant, err := local_util.JsonUnmarshal[mini_model.MiniAppMerchant](cpsAction.CurrentAction)
 	if err != nil {
-		m.logger.Errorf("Failed to unmarshal current action into merchant: %v", err)
+		m.logger.Errorf("[MiniMerchSvc][Authorize] unmarshal err: %v", err)
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
@@ -103,7 +103,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 		if err == nil {
 			err := m.miniRepo.DeleteManyByMerchantIDs(ctx, cpsAction.UniqueId)
 			if err != nil {
-				m.logger.Errorf("Failed to cascade delete mini apps for merchant ID: %s, error: %v", cpsAction.UniqueId, err)
+				m.logger.Errorf("[MiniMerchSvc][Authorize] cascade delete err id: %s: %v", cpsAction.UniqueId, err)
 				return nil, errors.New(localization.ErrorUnexpectedError.Code)
 			}
 		}
@@ -128,12 +128,12 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 		if err == nil {
 			err := m.miniRepo.DisableManyByMerchantIDs(ctx, cpsAction.UniqueId)
 			if err != nil {
-				m.logger.Errorf("Failed to cascade disable mini apps for merchant ID: %s, error: %v", cpsAction.UniqueId, err)
+				m.logger.Errorf("[MiniMerchSvc][Authorize] cascade disable err id: %s: %v", cpsAction.UniqueId, err)
 				return nil, errors.New(localization.ErrorUnexpectedError.Code)
 			}
 		}
 	default:
-		m.logger.Errorf("Unsupported action requested, action: %s", cpsAction.RequestAction)
+		m.logger.Errorf("[MiniMerchSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
@@ -142,11 +142,11 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 	}
 
 	if err != nil {
-		m.logger.Errorf("Failed to process merchant action, action: %s, error: %v", cpsAction.RequestAction, err)
+		m.logger.Errorf("[MiniMerchSvc][Authorize] process err: %v", err)
 		return nil, err
 	}
 
 	cpsAction.CurrentAction = merchant
-	m.logger.Infof("Authorization completed for merchant action, action: %s, id: %s", cpsAction.RequestAction, merchant.ID)
+	m.logger.Infof("[MiniMerchSvc][Authorize] completed action: %s id: %s", cpsAction.RequestAction, merchant.ID)
 	return cpsAction, nil
 }

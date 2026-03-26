@@ -16,5 +16,6 @@ type PasswordRule struct {
 	AllowSequentialNumbers *bool         `bson:"allow_sequential_numbers" json:"allow_sequential_numbers"`
 	SmallLetters           *bool         `bson:"small_letters" json:"small_letters"`
 	Characters             *bool         `bson:"characters" json:"characters"`
+	IsSpacedAllowed        *bool         `json:"is_spaced_allowed" bson:"is_spaced_allowed"`
 	CreatedAt              time.Time     `bson:"created_at" json:"created_at"`
 }

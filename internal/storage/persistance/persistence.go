@@ -45,6 +45,7 @@ type Persistence struct {
 	ArchivedLinkedAccountPersistence  storage.ArchivedLinkedAccountRepository
 	AuthTierPersistence               storage.AuthTierRepository
 	BankPersistence                   storage.BankRepository
+	BankOraclePersistence             storage.BankOracleRepository
 	CpsUserPersistence                storage.CpsUserRepository
 	DonationPersistence               storage.DonationRepository
 	DonationCategoryPersistence       storage.DonationCategoryRepository

@@ -22,15 +22,18 @@ const (
 )
 
 type Bank struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Logo          string                 `protobuf:"bytes,3,opt,name=logo,proto3" json:"logo,omitempty"`
-	BicCode       string                 `protobuf:"bytes,4,opt,name=bic_code,json=bicCode,proto3" json:"bic_code,omitempty"`
-	Type          string                 `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`
-	Enabled       bool                   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Id      string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name    string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Logo    string                 `protobuf:"bytes,3,opt,name=logo,proto3" json:"logo,omitempty"`
+	BicCode string                 `protobuf:"bytes,4,opt,name=bic_code,json=bicCode,proto3" json:"bic_code,omitempty"`
+	// Deprecated: Marked as deprecated in bank.proto.
+	Type            string `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`
+	Enabled         bool   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	HasAlphaNumeric bool   `protobuf:"varint,7,opt,name=has_alpha_numeric,json=hasAlphaNumeric,proto3" json:"has_alpha_numeric,omitempty"`
+	AccountLength   int32  `protobuf:"varint,8,opt,name=account_length,json=accountLength,proto3" json:"account_length,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Bank) Reset() {
@@ -91,6 +94,7 @@ func (x *Bank) GetBicCode() string {
 	return ""
 }
 
+// Deprecated: Marked as deprecated in bank.proto.
 func (x *Bank) GetType() string {
 	if x != nil {
 		return x.Type
@@ -103,6 +107,20 @@ func (x *Bank) GetEnabled() bool {
 		return x.Enabled
 	}
 	return false
+}
+
+func (x *Bank) GetHasAlphaNumeric() bool {
+	if x != nil {
+		return x.HasAlphaNumeric
+	}
+	return false
+}
+
+func (x *Bank) GetAccountLength() int32 {
+	if x != nil {
+		return x.AccountLength
+	}
+	return 0
 }
 
 type Docs struct {
@@ -490,14 +508,16 @@ var File_bank_proto protoreflect.FileDescriptor
 const file_bank_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"bank.proto\x12\vBankService\"\x87\x01\n" +
+	"bank.proto\x12\vBankService\"\xde\x01\n" +
 	"\x04Bank\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
 	"\x04logo\x18\x03 \x01(\tR\x04logo\x12\x19\n" +
-	"\bbic_code\x18\x04 \x01(\tR\abicCode\x12\x12\n" +
-	"\x04type\x18\x05 \x01(\tR\x04type\x12\x18\n" +
-	"\aenabled\x18\x06 \x01(\bR\aenabled\"/\n" +
+	"\bbic_code\x18\x04 \x01(\tR\abicCode\x12\x16\n" +
+	"\x04type\x18\x05 \x01(\tB\x02\x18\x01R\x04type\x12\x18\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\x12*\n" +
+	"\x11has_alpha_numeric\x18\a \x01(\bR\x0fhasAlphaNumeric\x12%\n" +
+	"\x0eaccount_length\x18\b \x01(\x05R\raccountLength\"/\n" +
 	"\x04docs\x12'\n" +
 	"\x05banks\x18\x01 \x03(\v2\x11.BankService.BankR\x05banks\"#\n" +
 	"\x11GetOneBankRequest\x12\x0e\n" +

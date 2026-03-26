@@ -40,7 +40,7 @@ func (w WalletRequest) Validate(isCreate bool) error {
 		trimmed := strings.TrimSpace(w.UniqueCode)
 		if trimmed == "" && isCreate {
 			errs["unique_code"] = localization.ErrorWalletCodeRequired
-		} else if len(trimmed) != 6 || !isAlpha(trimmed) {
+		} else if len(trimmed) > 10|| !isAlpha(trimmed) {
 			errs["unique_code"] = localization.ErrorInvalidWalletCode
 		}
 		w.UniqueCode = strings.ToUpper(trimmed)
@@ -66,6 +66,8 @@ func (w WalletRequest) Validate(isCreate bool) error {
 	if len(errs) > 0 {
 		return errs
 	}
+	w.Name = strings.TrimSpace(w.Name)
+	w.UniqueCode = strings.TrimSpace(w.UniqueCode)
 
 	return nil
 }

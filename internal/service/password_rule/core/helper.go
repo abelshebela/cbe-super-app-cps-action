@@ -53,6 +53,12 @@ func PasswordRuleDtoToModel(existing local_model.PasswordRule, dto passwordrule.
 	if dto.Rule.Characters != nil {
 		existing.Characters = dto.Rule.Characters
 	}
+	if dto.Rule.AllowSequentialNumbers != nil {
+		existing.AllowSequentialNumbers = dto.Rule.AllowSequentialNumbers
+	}
+	if dto.Rule.IsSpacedAllowed != nil {
+		existing.IsSpacedAllowed = dto.Rule.IsSpacedAllowed
+	}
 
 	return existing
 }

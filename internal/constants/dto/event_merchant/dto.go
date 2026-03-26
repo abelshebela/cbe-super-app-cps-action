@@ -24,6 +24,7 @@ type CreateEventMerchantRequest struct {
 	SettlementMethod  string `json:"settlement_method" bson:"settlement_method"`
 	MerchantName      string `json:"merchant_name" bson:"merchant_name"`
 	BankAccountNumber string `json:"bank_account_number" bson:"bank_account_number"`
+	IsEventMerchant   *bool  `json:"is_event_merchant" bson:"is_event_merchant"`
 	// Email             string `json:"email" bson:"email"`
 	// PhoneNumber       string `json:"phone_number" bson:"phone_number"`
 }
@@ -34,6 +35,7 @@ type UpdateEventMerchantRequest struct {
 	SettlementMethod  string `json:"settlement_method" bson:"settlement_method"`
 	MerchantName      string `json:"merchant_name" bson:"merchant_name"`
 	BankAccountNumber string `json:"bank_account_number" bson:"bank_account_number"`
+	IsEventMerchant   *bool  `json:"is_event_merchant" bson:"is_event_merchant"`
 	// Email             string `json:"email" bson:"email"`
 	// PhoneNumber       string `json:"phone_number" bson:"phone_number"`
 }

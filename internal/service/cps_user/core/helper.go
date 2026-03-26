@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func UsernameExists(ctx context.Context, userCode string, repo storage.CpsUserRepository, username string) (bool, error) {
@@ -91,6 +92,7 @@ func ConvertToResponseDTO(portalCard []string, user *cpsuser.CpsUserPopulatedRes
 			Code: user.Role.Code,
 			Name: user.Role.Name,
 		},
+		Department:         user.Department,
 		RoleCode:           user.RoleCode,
 		Gender:             user.Gender,
 		PhoneNumber:        user.PhoneNumber,
@@ -105,17 +107,23 @@ func ConvertToResponseDTO(portalCard []string, user *cpsuser.CpsUserPopulatedRes
 		Enabled:            user.Enabled,
 		DateJoined:         user.DateJoined,
 		LastModified:       user.LastModified,
+		LastLogin:          user.LastLogin,
 		Country:            user.Country,
 		Region:             user.Region,
 	}
 }
 
 func CPSUModel(req cpsuser.CreateUserRequest) imodel.CPSUser {
+	depID, err := bson.ObjectIDFromHex(req.Department)
+	if err != nil {
+		// Handle error appropriately
+	}
 	return imodel.CPSUser{
 		UserCode:         local_util.GenerateCPSUserCode(),
 		UserName:         req.UserName,
 		FullName:         req.FullName,
 		PhoneNumber:      req.PhoneNumber,
+		Department:       depID,
 		JobTitle:         req.JobTitle,
 		Gender:           req.Gender,
 		Email:            req.Email,
@@ -200,4 +208,70 @@ func BindCPSUserUpdateFromAction(currentAction interface{}) (cpsuser.UpdateUserR
 		return updateReq, err
 	}
 	return updateReq, nil
+}
+
+func MapForActionWithDepartment(user imodel.CPSUser, department *model.Department) cpsuser.CpsUserPopulatedResponse {
+	var deptResp *cpsuser.DepartmentResponse
+	if department != nil {
+		deptResp = &cpsuser.DepartmentResponse{
+			ID:   department.ID,
+			Name: department.Department,
+		}
+	}
+
+	return cpsuser.CpsUserPopulatedResponse{
+		ID:           user.ID,
+		UserCode:     user.UserCode,
+		FullName:     user.FullName,
+		Role:         cpsuser.RoleResponse{Name: user.Role},
+		RoleCode:     user.Role,
+		Department:   deptResp,
+		JobTitle:     user.JobTitle,
+		Gender:       user.Gender,
+		PhoneNumber:  user.PhoneNumber,
+		Email:        user.Email,
+		UserName:     user.UserName,
+		Realm:        user.Realm,
+		Enabled:      user.Enabled,
+		DateJoined:   derefTime(user.DateJoined),
+		LastModified: derefTime(user.LastModified),
+		Country:      user.Country,
+		Region:       user.Region,
+		LastLogin:    user.LastLogin,
+	}
+}
+
+// Helper to safely dereference *time.Time to time.Time (zero if nil)
+func derefTime(t *time.Time) time.Time {
+	if t != nil {
+		return *t
+	}
+	return time.Time{}
+}
+
+// MapFromPopulatedResponse maps CpsUserPopulatedResponse and DepartmentResponse to imodel.CPSUser
+func MapFromPopulatedResponse(resp *cpsuser.CpsUserPopulatedResponse) *imodel.CPSUser {
+	var deptID bson.ObjectID
+	if resp.Department != nil {
+		deptID = resp.Department.ID
+	}
+	return &imodel.CPSUser{
+		ID:           resp.ID,
+		UserCode:     resp.UserCode,
+		FullName:     resp.FullName,
+		Role:         resp.Role.Name,
+		Department:   deptID,
+		JobTitle:     resp.JobTitle,
+		Gender:       resp.Gender,
+		PhoneNumber:  resp.PhoneNumber,
+		Email:        resp.Email,
+		UserName:     resp.UserName,
+		Realm:        resp.Realm,
+		Enabled:      resp.Enabled,
+		DateJoined:   &resp.DateJoined,
+		LastModified: &resp.LastModified,
+		Country:      resp.Country,
+		Region:       resp.Region,
+		LastLogin:    resp.LastLogin,
+	}
 }

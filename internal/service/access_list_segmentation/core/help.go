@@ -7,9 +7,8 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 
-	t "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	shared_type "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 )
 
 // ConvertPaginatedModelToDTO converts a paginated response of []AccessListSegmentation to a paginated response of []AccessListSegmentationResponse
@@ -57,10 +56,10 @@ func GetMissingIds(request []string, models []map[string]interface{}) []string {
 	}
 	return missingIds
 }
-func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo storage.AppAccessListRepository, accessListSegmentation []local_model.AccessListSegmentation) []model.APPAccessList {
+func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo storage.AppAccessListRepository, accessListSegmentation []model.APPAccessList) []model.APPAccessList {
 	var ids []string
 	for _, seg := range accessListSegmentation {
-		ids = append(ids, seg.AccessListKey)
+		ids = append(ids, seg.Key)
 	}
 	idSet := make(map[string]struct{}, len(ids))
 	for _, id := range ids {
@@ -75,14 +74,131 @@ func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo stor
 			continue
 		}
 		// Filter sub_access_list children whose key is in ids
-		var filteredSubs []t.SubAccessList
-		for _, sub := range al.SubAccessList {
-			if _, found := idSet[sub.Key]; !found {
-				filteredSubs = append(filteredSubs, sub)
-			}
-		}
-		al.SubAccessList = filteredSubs
+		// var filteredSubs []t.SubAccessList
+		// for _, sub := range al.SubAccessList {
+		// 	if _, found := idSet[sub.Key]; !found {
+		// 		filteredSubs = append(filteredSubs, sub)
+		// 	}
+		// }
+		// al.SubAccessList = filteredSubs
 		res = append(res, al)
 	}
 	return res
+}
+
+// func MapParentChildRelationship(accessListSegmentation []local_model.AccessListSegmentation, relations []local_model.AccessItemRelation, accessList *[]model.APPAccessList) ([]model.APPAccessList, []model.APPAccessList) {
+// 	// Build parent-child map from relations
+// 	childToParent := make(map[string]string)
+// 	parentToChildren := make(map[string][]string)
+// 	for _, rel := range relations {
+// 		childToParent[rel.ChildKey] = rel.ParentKey
+// 		parentToChildren[rel.ParentKey] = append(parentToChildren[rel.ParentKey], rel.ChildKey)
+// 	}
+
+// 	// Helper to build a map of key to APPAccessList pointer
+// 	accessListMap := make(map[string]*model.APPAccessList)
+// 	for i := range *accessList {
+// 		al := &(*accessList)[i]
+// 		accessListMap[al.Key] = al
+// 	}
+
+// 	// Prepare all as top-level initially
+// 	topLevel := make(map[string]*model.APPAccessList)
+// 	for k, v := range accessListMap {
+// 		topLevel[k] = v
+// 	}
+
+// 	// Assign children to parents for accessList
+// 	for childKey, parentKey := range childToParent {
+// 		child, okChild := accessListMap[childKey]
+// 		parent, okParent := accessListMap[parentKey]
+// 		if okChild && okParent {
+// 			// Add child as SubAccessList to parent
+// 			parent.SubAccessList = append(parent.SubAccessList,
+// 				modelToSubAccessList(child))
+// 			// Remove child from top-level
+// 			delete(topLevel, childKey)
+// 		}
+// 	}
+
+// 	// Now do the same for accessListSegmentation, but create new APPAccessList for each
+// 	segMap := make(map[string]*model.APPAccessList)
+// 	for _, seg := range accessListSegmentation {
+// 		segMap[seg.AccessListKey] = &model.APPAccessList{
+// 			Key:            seg.AccessListKey,
+// 			Enabled:        seg.Enabled,
+// 			AccessListName: seg.AccessListName,
+// 			SubAccessList:  nil,
+// 			USSDEnabled:    false, // Not available in segmentation, set default
+// 		}
+// 	}
+// 	segTopLevel := make(map[string]*model.APPAccessList)
+// 	for k, v := range segMap {
+// 		segTopLevel[k] = v
+// 	}
+// 	for childKey, parentKey := range childToParent {
+// 		child, okChild := segMap[childKey]
+// 		parent, okParent := segMap[parentKey]
+// 		if okChild && okParent {
+// 			parent.SubAccessList = append(parent.SubAccessList, modelToSubAccessList(child))
+// 			delete(segTopLevel, childKey)
+// 		}
+// 	}
+
+// 	// Collect results
+// 	var result []model.APPAccessList
+// 	for _, v := range topLevel {
+// 		result = append(result, *v)
+// 	}
+// 	var segResult []model.APPAccessList
+// 	for _, v := range segTopLevel {
+// 		segResult = append(segResult, *v)
+// 	}
+// 	return result, segResult
+// }
+
+// Helper to convert APPAccessList to SubAccessList
+func modelToSubAccessList(al *model.APPAccessList) shared_type.SubAccessList {
+	return shared_type.SubAccessList{
+		Key:            al.Key,
+		Enabled:        al.Enabled,
+		AccessListName: al.AccessListName,
+	}
+}
+
+func MapParentChildRelationship(relations []local_model.AccessItemRelation, accessList []model.APPAccessList) []model.APPAccessList {
+	var result []model.APPAccessList
+	// Build parent to children map and a set of all child keys
+	parentToChildren := make(map[string][]string)
+	childSet := make(map[string]model.APPAccessList)
+	for _, rel := range relations {
+		parentToChildren[rel.ParentKey] = append(parentToChildren[rel.ParentKey], rel.ChildKey)
+	}
+
+	for _, al := range accessList {
+		childSet[al.Key] = al
+	}
+	accountedFor := make(map[string]bool)
+	for parentKey, childKeys := range parentToChildren {
+		parent, ok := childSet[parentKey]
+		if !ok {
+			continue
+		}
+		for _, childKey := range childKeys {
+			child, ok := childSet[childKey]
+			if ok && child.Key != parentKey {
+				parent.SubAccessList = append(parent.SubAccessList, modelToSubAccessList(&child))
+			}
+			accountedFor[childKey] = true
+		}
+		result = append(result, parent)
+		accountedFor[parent.Key] = true
+	}
+
+	for _, al := range accessList {
+		if !accountedFor[al.Key] {
+			result = append(result, al)
+		}
+	}
+	return result
 }

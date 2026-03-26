@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	bank_core "cbe-super-app-cps-action/internal/service/bank/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
@@ -24,7 +25,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -33,33 +33,18 @@ type BankService struct {
 	cpsService  service.CPSActionService
 	logger      utils.Logger
 	repo        storage.BankRepository
+	oracleRepo  storage.BankOracleRepository
 	cfg         *config.VaultConfig
 	minio       *s3.Client
 	minioPubUrl string
 	bucketName  string
 }
 
-// GetOneBankByBIC implements [service.BankService].
-func (b *BankService) GetOneBankByBIC(ctx context.Context, bicCode string) (*model.Bank, error) {
-	ctx, span := local_util.TraceLogger(ctx, "service", "GetOneBankByBIC", "Bank", "GetOneBankByBIC")
-	defer span.End()
-	b.logger.Infof("[GetOneBankByBIC] fetching bank for BIC: %s", bicCode)
-	result, err := b.repo.FindByBIC(ctx, bicCode)
-	if err != nil {
-		span.AddEvent("[GetOneBankByBIC] failed to fetch bank", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("bic_code", bicCode),
-		))
-		b.logger.Errorf("[GetOneBankByBIC] failed to fetch bank: %v", err)
-		return nil, err
-	}
-	return result, nil
-}
-
-func NewBankService(logger utils.Logger, repo storage.BankRepository, cpsService service.CPSActionService, minio *s3.Client, minioPubUrl string, cfg *config.VaultConfig, bucketName string) service.BankService {
+func NewBankService(logger utils.Logger, repo storage.BankRepository, oracleRepo storage.BankOracleRepository, cpsService service.CPSActionService, minio *s3.Client, minioPubUrl string, cfg *config.VaultConfig, bucketName string) service.BankService {
 	return &BankService{
 		logger:      logger,
 		repo:        repo,
+		oracleRepo:  oracleRepo,
 		cpsService:  cpsService,
 		cfg:         cfg,
 		minio:       minio,
@@ -79,7 +64,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		b.logger.Errorf("failed to marshal CurrentAction: %v\n", err)
+		b.logger.Errorf("[BankSvc][Authorize] marshal err: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -89,32 +74,33 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		b.logger.Errorf("failed to unmarshal CurrentAction: %v\n", err)
+		b.logger.Errorf("[BankSvc][Authorize] unmarshal err: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	actionData := bank_core.Bank_mapper(actionMap.(map[string]interface{}))
-	if cpsAction.UniqueId != "" {
-		objID, err := bson.ObjectIDFromHex(cpsAction.UniqueId)
-		if err != nil {
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		actionData.ID = objID
-	}
+	// actionData := bank_core.Bank_mapper(actionMap.(map[string]interface{}))
+	// if cpsAction.UniqueId != "" {
+	// 	objID, err := bson.ObjectIDFromHex(cpsAction.UniqueId)
+	// 	if err != nil {
+	// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	// 	}
+	// 	actionData.ID = objID
+	// }
+	actionData := bank_core.Bank_oracle_mapper(actionMap.(map[string]interface{}))
 
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestCreateBank):
-		actionData.CreatedAt = time.Now()
-		err := b.repo.Create(ctx, &actionData)
+		actionData.CreateAt = time.Now().String()
+		err := b.oracleRepo.Create(ctx, &actionData)
 		if err != nil {
 			span.AddEvent("[Authorize] bank create action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			b.logger.Errorf("[Authorize] bank create action failed: %v", err)
+			b.logger.Errorf("[BankSvc][Authorize] create err: %v", err)
 			return nil, err
 		}
-		b.logger.Infof("[Authorize] bank created successfully")
+		b.logger.Infof("[BankSvc][Authorize] created")
 	case string(constants.RequestDeleteBank):
 		err := b.repo.Delete(ctx, cpsAction.UniqueId)
 		if err != nil {
@@ -122,51 +108,59 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			b.logger.Errorf("[Authorize] bank delete action failed: %v", err)
+			b.logger.Errorf("[BankSvc][Authorize] delete err: %v", err)
 			return nil, err
 		}
-		b.logger.Infof("[Authorize] bank deleted successfully for id: %s", cpsAction.UniqueId)
+		b.logger.Infof("[BankSvc][Authorize] deleted id: %s", cpsAction.UniqueId)
 
 	case string(constants.RequestEnableDisableBank):
-		err := b.repo.EnableOrDisable(ctx, cpsAction.UniqueId, actionData.Enabled)
+		actionData.UpdateAt = time.Now().String()
+		var err error
+		if actionData.IsEnabled == 1 {
+			err = b.oracleRepo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
+		} else {
+			err = b.oracleRepo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
+
+		}
 
 		if err != nil {
 			span.AddEvent("[Authorize] bank enable/disable action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			b.logger.Errorf("[Authorize] bank enable/disable action failed: %v", err)
+			b.logger.Errorf("[BankSvc][Authorize] enable/disable err: %v", err)
 			return nil, err
 		}
-		b.logger.Infof("[Authorize] bank enable/disable action completed successfully for id: %s", cpsAction.UniqueId)
+		b.logger.Infof("[BankSvc][Authorize] enable/disable done id: %s", cpsAction.UniqueId)
 	case string(constants.RequestUpdateBankLogo):
-		err := b.repo.Update(ctx, cpsAction.UniqueId, &actionData)
+		err := b.oracleRepo.Update(ctx, cpsAction.UniqueId, &actionData)
 		if err != nil {
 			span.AddEvent("[Authorize] bank update logo action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			b.logger.Errorf("[Authorize] bank update logo action failed: %v", err)
+			b.logger.Errorf("[BankSvc][Authorize] update logo err: %v", err)
 			return nil, err
 		}
-		b.logger.Infof("[Authorize] bank logo updated successfully for id: %s", cpsAction.UniqueId)
+		b.logger.Infof("[BankSvc][Authorize] logo updated id: %s", cpsAction.UniqueId)
 	case string(constants.RequestUpdateBank):
-		err := b.repo.Update(ctx, cpsAction.UniqueId, &actionData)
+		actionData.UpdateAt = time.Now().String()
+		err := b.oracleRepo.Update(ctx, cpsAction.UniqueId, &actionData)
 		if err != nil {
 			span.AddEvent("[Authorize] bank update action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			b.logger.Errorf("[Authorize] bank update action failed: %v", err)
+			b.logger.Errorf("[BankSvc][Authorize] update err: %v", err)
 			return nil, err
 		}
-		b.logger.Infof("[Authorize] bank updated successfully for id: %s", cpsAction.UniqueId)
+		b.logger.Infof("[BankSvc][Authorize] updated id: %s", cpsAction.UniqueId)
 	default:
 		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", cpsAction.RequestAction)))
-		b.logger.Errorf("[Authorize] unsupported action: %s", cpsAction.RequestAction)
+		b.logger.Errorf("[BankSvc][Authorize] unsupported: %s", cpsAction.RequestAction)
 		return nil, fmt.Errorf("%s", localization.MsgBankInvalidRequestAction)
 	}
-	b.logger.Infof("[Authorize] bank action authorized successfully: %s", cpsAction.RequestAction)
+	b.logger.Infof("[BankSvc][Authorize] done: %s", cpsAction.RequestAction)
 	return cpsAction, nil
 }
 
@@ -174,12 +168,12 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateOneBank", "Bank", "CreateOneBank")
 	defer span.End()
 
-	b.logger.Infof("[CreateOneBank] creating bank")
+	b.logger.Infof("[BankSvc][CreateOneBank] creating")
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		span.AddEvent("[CreateOneBank] incomplete user data")
-		b.logger.Errorf("[CreateOneBank] incomplete user data")
-		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
+		b.logger.Errorf("[BankSvc][CreateOneBank] incomplete user")
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, string(constants.BankFolderName), *b.cfg, "", b.logger)
@@ -188,35 +182,40 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 			attribute.String("error", err.Error()),
 			attribute.String("bank_name", bank_request.Name),
 		))
-		b.logger.Errorf("[CreateOneBank] failed to upload logo: %v", err)
+		b.logger.Errorf("[BankSvc][CreateOneBank] upload logo err: %v", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	bank := model.Bank{
-		Name:    bank_request.Name,
-		BICCode: bank_request.BICCode,
-		Type:    string(bank_request.Type),
-		Logo:    URL,
-		Enabled: false,
+	bank := imodel.BankOracle{
+		BankName:      bank_request.Name,
+		Logo:          URL,
+		BICCode:       bank_request.BICCode,
+		IsEnabled:     0,
+		AccountLength: bank_request.AccountLength,
+	}
+	if *bank_request.HasAlphaNumeric {
+		bank.HasAlphaNumeric = 1
+	} else {
+		bank.HasAlphaNumeric = 0
 	}
 
-	result, err := b.repo.FindByNameOrBIC(ctx, bank_request.BICCode, bank_request.Name)
+	result, err := b.oracleRepo.FindByNameOrBIC(ctx, bank_request.BICCode, bank_request.Name)
 
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
 		if code != localization.ErrorResourceNotFound.Code {
-			b.logger.Errorf("[CreateOneBank] failed to check for duplicate bank: %v", err)
+			b.logger.Errorf("[BankSvc][CreateOneBank] dup check err: %v", err)
 			return err
 		}
 	}
 
 	if result != nil {
 		if bank_request.BICCode != "" && result.BICCode != "" && result.BICCode == bank_request.BICCode {
-			b.logger.Errorf("[CreateOneBank] bank with BIC already exists")
+			b.logger.Errorf("[BankSvc][CreateOneBank] BIC exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
 		}
-		if bank_request.Name != "" && result.Name != "" && strings.ToLower(result.Name) == strings.ToLower(bank_request.Name) {
-			b.logger.Errorf("[CreateOneBank] bank with name already exists")
+		if bank_request.Name != "" && result.BankName != "" && strings.ToLower(result.BankName) == strings.ToLower(bank_request.Name) {
+			b.logger.Errorf("[BankSvc][CreateOneBank] name exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
 		}
 	}
@@ -229,10 +228,10 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 			attribute.String("error", err.Error()),
 			attribute.String("bank_name", bank_request.Name),
 		))
-		b.logger.Errorf("[CreateOneBank] failed to create CPS action: %v", err)
+		b.logger.Errorf("[BankSvc][CreateOneBank] cps action err: %v", err)
 		return err
 	}
-	b.logger.Infof("[CreateOneBank] bank creation request created successfully")
+	b.logger.Infof("[BankSvc][CreateOneBank] request created")
 	return nil
 }
 
@@ -240,12 +239,12 @@ func (b *BankService) DeleteOneBank(ctx context.Context, id string) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteOneBank", "Bank", "DeleteOneBank")
 	defer span.End()
 
-	b.logger.Infof("[DeleteOneBank] deleting bank for id: %s", id)
+	b.logger.Infof("[BankSvc][DeleteOneBank] id: %s", id)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		span.AddEvent("[DeleteOneBank] incomplete user data", trace.WithAttributes(attribute.String("id", id)))
-		b.logger.Errorf("[DeleteOneBank] incomplete user data")
-		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
+		b.logger.Errorf("[BankSvc][DeleteOneBank] incomplete user")
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	bank, err := b.repo.FindByID(ctx, id)
 
@@ -254,7 +253,7 @@ func (b *BankService) DeleteOneBank(ctx context.Context, id string) error {
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		b.logger.Errorf("[DeleteOneBank] failed to find bank: %v", err)
+		b.logger.Errorf("[BankSvc][DeleteOneBank] find err: %v", err)
 		return err
 	}
 
@@ -269,10 +268,10 @@ func (b *BankService) DeleteOneBank(ctx context.Context, id string) error {
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		b.logger.Errorf("[DeleteOneBank] failed to create CPS action: %v", err)
+		b.logger.Errorf("[BankSvc][DeleteOneBank] cps action err: %v", err)
 		return err
 	}
-	b.logger.Infof("[DeleteOneBank] bank deletion request created successfully for id: %s", id)
+	b.logger.Infof("[BankSvc][DeleteOneBank] request created id: %s", id)
 	return nil
 }
 
@@ -280,36 +279,40 @@ func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enable
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableBank", "Bank", "EnableOrDisableBank")
 	defer span.End()
 
-	b.logger.Infof("[EnableOrDisableBank] processing bank enable/disable for id: %s, enabled: %v", id, enableDisable)
+	b.logger.Infof("[BankSvc][EnableOrDisable] id: %s enabled: %v", id, enableDisable)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		span.AddEvent("[EnableOrDisableBank] incomplete user data", trace.WithAttributes(attribute.String("id", id)))
-		b.logger.Errorf("[EnableOrDisableBank] incomplete user data")
-		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
+		b.logger.Errorf("[BankSvc][EnableOrDisable] incomplete user")
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	bank, err := b.repo.FindByID(ctx, id)
+	bank, err := b.oracleRepo.FindByID(ctx, id)
 	if err != nil {
 		span.AddEvent("[EnableOrDisableBank] failed to find bank", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		b.logger.Errorf("[EnableOrDisableBank] failed to find bank: %v", err)
+		b.logger.Errorf("[BankSvc][EnableOrDisable] find err: %v", err)
 		return err
 	}
 
-	if bank.Enabled && enableDisable {
+	if bank.IsEnabled == 1 && enableDisable {
 		span.AddEvent("[EnableOrDisableBank] bank already enabled", trace.WithAttributes(attribute.String("id", id)))
-		b.logger.Errorf("[EnableOrDisableBank] bank already enabled")
+		b.logger.Errorf("[BankSvc][EnableOrDisable] already enabled")
 		return fmt.Errorf("%s", localization.ErrorBankAlreadyEnabled.Code)
-	} else if !bank.Enabled && !enableDisable {
+	} else if bank.IsEnabled == 0 && !enableDisable {
 		span.AddEvent("[EnableOrDisableBank] bank already disabled", trace.WithAttributes(attribute.String("id", id)))
-		b.logger.Errorf("[EnableOrDisableBank] bank already disabled")
+		b.logger.Errorf("[BankSvc][EnableOrDisable] already disabled")
 		return fmt.Errorf("%s", localization.ErrorBankAlreadyDisabled.Code)
 	}
 
 	newBankData := *bank
-	newBankData.Enabled = enableDisable
+	if enableDisable {
+		newBankData.IsEnabled = 1
+	} else {
+		newBankData.IsEnabled = 0
+	}
 
 	enable := string(constants.RequestEnableDisableBank)
 	// if !enableDisable {
@@ -324,56 +327,72 @@ func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enable
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		b.logger.Errorf("[EnableOrDisableBank] failed to create CPS action: %v", err)
+		b.logger.Errorf("[BankSvc][EnableOrDisable] cps action err: %v", err)
 		return err
 	}
-	b.logger.Infof("[EnableOrDisableBank] bank enable/disable request created successfully for id: %s", id)
+	b.logger.Infof("[BankSvc][EnableOrDisable] request created id: %s", id)
 	return nil
 }
 
-func (b *BankService) GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.Bank], error) {
+func (b *BankService) GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BankOracle], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllBank", "Bank", "GetAllBank")
 	defer span.End()
 
-	result, err := b.repo.FindAllWithPagination(ctx, *filterParams)
+	result, err := b.oracleRepo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
 		span.AddEvent("[GetAllBank] failed to fetch banks", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
-		b.logger.Errorf("[GetAllBank] failed to fetch banks: %v", err)
+		b.logger.Errorf("[BankSvc][GetAllBank] fetch err: %v", err)
 		return nil, err
 	}
-	b.logger.Infof("[GetAllBank] retrieved %d banks", len(result.Data))
+	b.logger.Infof("[BankSvc][GetAllBank] count: %d", len(result.Data))
 	return result, nil
 }
 
-func (b *BankService) GetOneBank(ctx context.Context, id string) (*model.Bank, error) {
+func (b *BankService) GetOneBank(ctx context.Context, id string) (*imodel.BankOracle, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetOneBank", "Bank", "GetOneBank")
 	defer span.End()
 
-	result, err := b.repo.FindByID(ctx, id)
+	result, err := b.oracleRepo.FindByID(ctx, id)
 	if err != nil {
 		span.AddEvent("[GetOneBank] failed to fetch bank", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		b.logger.Errorf("[GetOneBank] failed to fetch bank: %v", err)
+		b.logger.Errorf("[BankSvc][GetOneBank] fetch err: %v", err)
 		return nil, err
 	}
-	b.logger.Infof("[GetOneBank] bank retrieved successfully for id: %s", id)
+	b.logger.Infof("[BankSvc][GetOneBank] found id: %s", id)
 	return result, nil
 }
 
+// GetOneBankByBIC implements [service.BankService].
+func (b *BankService) GetOneBankByBIC(ctx context.Context, bicCode string) (*imodel.BankOracle, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetOneBankByBIC", "Bank", "GetOneBankByBIC")
+	defer span.End()
+	b.logger.Infof("[BankSvc][GetOneBankByBIC] bic: %s", bicCode)
+	result, err := b.oracleRepo.FindByBIC(ctx, bicCode)
+	if err != nil {
+		span.AddEvent("[GetOneBankByBIC] failed to fetch bank", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("bic_code", bicCode),
+		))
+		b.logger.Errorf("[BankSvc][GetOneBankByBIC] fetch err: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
 func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.UpdateLogo) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateLogo", "Bank", "UpdateLogo")
 	defer span.End()
 
-	b.logger.Infof("[UpdateLogo] updating bank logo for id: %s", id)
+	b.logger.Infof("[BankSvc][UpdateLogo] id: %s", id)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		span.AddEvent("[UpdateLogo] incomplete user data", trace.WithAttributes(attribute.String("id", id)))
-		b.logger.Errorf("[UpdateLogo] incomplete user data")
-		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
+		b.logger.Errorf("[BankSvc][UpdateLogo] incomplete user")
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	bank, err := b.repo.FindByID(ctx, id)
@@ -383,7 +402,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		b.logger.Errorf("[UpdateLogo] failed to find bank: %v", err)
+		b.logger.Errorf("[BankSvc][UpdateLogo] find err: %v", err)
 		return err
 	}
 
@@ -399,7 +418,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		b.logger.Errorf("[UpdateLogo] failed to upload logo: %v", err)
+		b.logger.Errorf("[BankSvc][UpdateLogo] upload err: %v", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
@@ -415,10 +434,10 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		b.logger.Errorf("[UpdateLogo] failed to create CPS action: %v", err)
+		b.logger.Errorf("[BankSvc][UpdateLogo] cps action err: %v", err)
 		return err
 	}
-	b.logger.Infof("[UpdateLogo] bank logo update request created successfully for id: %s", id)
+	b.logger.Infof("[BankSvc][UpdateLogo] request created id: %s", id)
 	return nil
 }
 
@@ -426,22 +445,22 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateOneBank", "Bank", "UpdateOneBank")
 	defer span.End()
 
-	b.logger.Infof("[UpdateOneBank] updating bank for id: %s", id)
-	var logoUrl string
+	b.logger.Infof("[BankSvc][UpdateOneBank] id: %s, body: %+v", id, bank_request)
+
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		span.AddEvent("[UpdateOneBank] incomplete user data", trace.WithAttributes(attribute.String("id", id)))
-		b.logger.Errorf("[UpdateOneBank] incomplete user data")
-		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
+		b.logger.Errorf("[BankSvc][UpdateOneBank] incomplete user")
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	bank, err := b.repo.FindByID(ctx, id)
+	bank, err := b.oracleRepo.FindByID(ctx, id)
 	if err != nil {
 		span.AddEvent("[UpdateOneBank] failed to find bank", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		b.logger.Errorf("[UpdateOneBank] failed to find bank: %v", err)
+		b.logger.Errorf("[BankSvc][UpdateOneBank] find err: %v", err)
 		return err
 	}
 
@@ -451,13 +470,19 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		updatedBank.BICCode = bank_request.BICCode
 	}
 	if bank_request.Name != "" {
-		updatedBank.Name = bank_request.Name
+		updatedBank.BankName = bank_request.Name
 	}
-	if bank_request.Type != "" {
-		updatedBank.Type = string(bank_request.Type)
+	if bank_request.AccountLength != 0 {
+		updatedBank.AccountLength = bank_request.AccountLength
+	}
+	if bank_request.HasAlphaNumeric != nil {
+		if *bank_request.HasAlphaNumeric {
+			updatedBank.HasAlphaNumeric = 1
+		} else {
+			updatedBank.HasAlphaNumeric = 0
+		}
 	}
 
-	logoUrl = bank.Logo
 	if bank_request.Logo != nil {
 		var objectkey string
 		if bank.Logo != "" {
@@ -479,34 +504,34 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 				attribute.String("error", err.Error()),
 				attribute.String("id", id),
 			))
-			b.logger.Errorf("UploadFileToMinio failed", "error", err)
+			b.logger.Errorf("[BankSvc][UpdateOneBank] upload err: %v", err)
 			return errors.New(localization.ErrorFileUploadFailed.Code)
 		}
 
-		logoUrl = URL
+		updatedBank.Logo = URL
 	}
 
-	result, err := b.repo.FindByNameOrBIC(ctx, bank_request.BICCode, bank_request.Name)
+	result, err := b.oracleRepo.FindByNameOrBIC(ctx, bank_request.BICCode, bank_request.Name)
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
 		if code != localization.ErrorResourceNotFound.Code {
-			b.logger.Errorf("[UpdateOneBank] failed to check for duplicate bank: %v", err)
+			b.logger.Errorf("[BankSvc][UpdateOneBank] dup check err: %v", err)
 			return err
 		}
 	}
-	if result != nil && result.ID.Hex() != id {
-		if bank_request.BICCode != "" && result.BICCode != "" && result.BICCode == bank_request.BICCode {
-			b.logger.Errorf("[UpdateOneBank] bank with BIC already exists")
+	if result != nil && result.ID != "" {
+		b.logger.Infof("[BankSvc][UpdateOneBank] found existing bank name: %s, bic: %s, id: %s", result.BankName, result.BICCode, result.ID)
+		if bank_request.BICCode != "" && result.BICCode != "" && strings.EqualFold(result.BICCode, bank_request.BICCode) && result.ID != id {
+			b.logger.Errorf("[BankSvc][UpdateOneBank] BIC exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
 		}
 
-		if bank_request.Name != "" && result.Name != "" && result.Name == bank_request.Name {
-			b.logger.Errorf("[UpdateOneBank] bank with name already exists")
+		if bank_request.Name != "" && result.BankName != "" && strings.EqualFold(result.BankName, bank_request.Name) && result.ID != id {
+			b.logger.Errorf("[BankSvc][UpdateOneBank] name exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
 		}
 	}
 
-	updatedBank.Logo = logoUrl
 	action := lib.CpsModelBuilder(id, makerData, bank, updatedBank, string(constants.RequestUpdateBank), constants.UPDATE)
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
@@ -515,9 +540,9 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		b.logger.Errorf("[UpdateOneBank] failed to create CPS action: %v", err)
+		b.logger.Errorf("[BankSvc][UpdateOneBank] cps action err: %v", err)
 		return err
 	}
-	b.logger.Infof("[UpdateOneBank] bank update request created successfully for id: %s", id)
+	b.logger.Infof("[BankSvc][UpdateOneBank] request created id: %s", id)
 	return nil
 }

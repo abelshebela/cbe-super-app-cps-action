@@ -96,6 +96,27 @@ func (s *bpsActionRoleService) GetByActionCode(ctx context.Context, actionCode s
 	return res, nil
 }
 
+// GetByActionName implements service.bpsActionRoleService.
+func (s *bpsActionRoleService) GetByActionNameCode(ctx context.Context, actionName string) (*imodel.BPSActionRole, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetByActionName", "BPSActionRole", "GetByActionName")
+	defer span.End()
+	if actionName == "" {
+		span.AddEvent("action name is empty", trace.WithAttributes(attribute.String("error", "action name is empty")))
+		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+	}
+
+	res, err := s.repo.FindByActionName(ctx, actionName)
+	if err != nil {
+		span.AddEvent("failed to find by action name", trace.WithAttributes(attribute.String("error", err.Error())))
+		code, _ := local_util.HandleMongoError(err)
+		if code == localization.ErrorResourceNotFound.Code {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		return nil, err
+	}
+	return res, nil
+}
+
 // Create implements service.bpsActionRoleService.
 func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "BPSActionRole", "Create")
@@ -397,13 +418,13 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		cur, err := local_util.JsonUnmarshal[imodel.BPSActionRole](action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to unmarshal action", trace.WithAttributes(attribute.String("error", err.Error())))
-			s.logger.Errorf("failed to unmarshal action: %v", err)
+			s.logger.Errorf("[BpsActRoleSvc][Authorize] unmarshal err: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
 
 		if err := s.UpdateActionList(ctx, cur.ActionName, true); err != nil {
 			span.AddEvent("failed to update action list", trace.WithAttributes(attribute.String("error", err.Error())))
-			s.logger.Errorf("failed to update action list: %v", err)
+			s.logger.Errorf("[BpsActRoleSvc][Authorize] update action list err: %v", err)
 			return nil, err
 		}
 
@@ -416,7 +437,7 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			span.AddEvent("failed to create action role", trace.WithAttributes(attribute.String("error", err.Error())))
 			if err := s.UpdateActionList(ctx, cur.ActionName, false); err != nil {
 				span.AddEvent("failed to update action list", trace.WithAttributes(attribute.String("error", err.Error())))
-				s.logger.Errorf("failed to update action list: %v", err)
+				s.logger.Errorf("[BpsActRoleSvc][Authorize] rollback action list err: %v", err)
 				if mongo.IsTimeout(err) {
 					return nil, errors.New(localization.ErrorInternalServerTimeout.Code)
 				}
@@ -424,7 +445,7 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			}
 		}
 
-		s.logger.Infof("Authorize: Syncing indices for Create. Makers: %d, Checkers: %d, Auditors: %d", len(ar.AssignedMakersRoles), len(ar.AssignedCheckerRoles), len(ar.AssignedAuditorRoles))
+		s.logger.Infof("[BpsActRoleSvc][Authorize] sync create makers: %d, checkers: %d, auditors: %d", len(ar.AssignedMakersRoles), len(ar.AssignedCheckerRoles), len(ar.AssignedAuditorRoles))
 		if err := s.syncIndices(ctx, "", &ar); err != nil {
 			span.AddEvent("failed to sync indices for create", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
@@ -439,17 +460,33 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		return action, nil
 
 	case string(constants.UPDATE):
+		// Handle enable/disable separately to avoid corrupting data with partial payload
+		if action.RequestAction == string(constants.RequestEnableCpsActionRole) {
+			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, true); err != nil {
+				span.AddEvent("failed to enable action role", trace.WithAttributes(attribute.String("error", err.Error())))
+				return nil, err
+			}
+			return action, nil
+		}
+		if action.RequestAction == string(constants.RequestDisableActionRole) {
+			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, false); err != nil {
+				span.AddEvent("failed to disable action role", trace.WithAttributes(attribute.String("error", err.Error())))
+				return nil, err
+			}
+			return action, nil
+		}
+
 		prev, err := local_util.JsonUnmarshal[imodel.BPSActionRoleResposne](action.PreviousAction)
 		if err != nil {
 			span.AddEvent("failed to unmarshal action", trace.WithAttributes(attribute.String("error", err.Error())))
-			s.logger.Errorf("failed to unmarshal action: %v", err)
+			s.logger.Errorf("[BpsActRoleSvc][Authorize] unmarshal prev err: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
 
 		new, err := local_util.JsonUnmarshal[imodel.BPSActionRole](action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to unmarshal new action", trace.WithAttributes(attribute.String("error", err.Error())))
-			s.logger.Errorf("failed to unmarshal new action: %v", err)
+			s.logger.Errorf("[BpsActRoleSvc][Authorize] unmarshal new err: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
 
@@ -458,7 +495,7 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return nil, err
 		}
 
-		s.logger.Infof("Authorize: Syncing indices for Create. Makers: %d, Checkers: %d, Auditors: %d", len(new.AssignedMakersRoles), len(new.AssignedCheckerRoles), len(new.AssignedAuditorRoles))
+		s.logger.Infof("[BpsActRoleSvc][Authorize] sync update makers: %d, checkers: %d, auditors: %d", len(new.AssignedMakersRoles), len(new.AssignedCheckerRoles), len(new.AssignedAuditorRoles))
 		if err := s.syncIndices(ctx, new.ActionCode, new); err != nil {
 			span.AddEvent("failed to sync indices for create", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
@@ -521,7 +558,7 @@ func (s *bpsActionRoleService) syncIndices(ctx context.Context, oldActionName st
 	defer span.End()
 	span.SetAttributes(attribute.String("old_action_name", oldActionName))
 	indices := s.generateIndices(role)
-	s.logger.Infof("syncIndices: Generated %d indices for action %s (oldName: %s)", len(indices), role.ActionName, oldActionName)
+	s.logger.Infof("[BpsActRoleSvc][SyncIndices] generated %d for action: %s (old: %s)", len(indices), role.ActionName, oldActionName)
 
 	if oldActionName == "" {
 		return s.indexRepo.SaveIndices(ctx, indices)
@@ -540,7 +577,7 @@ func (s *bpsActionRoleService) generateIndices(role *imodel.BPSActionRole) []imo
 
 	var indices []imodel.BPSActionApproveIndex
 	now := time.Now()
-	s.logger.Infof("generateIndices: Starting for action %s. Viewers: %d,%s. Makers: %d, Checkers: %d, Auditors: %d", role.ActionName, len(role.AssignedViewersRoles), len(role.AssignedMakersRoles), len(role.AssignedCheckerRoles), len(role.AssignedAuditorRoles))
+	s.logger.Infof("[BpsActRoleSvc][GenIndices] action: %s viewers: %d makers: %d checkers: %d auditors: %d", role.ActionName, len(role.AssignedViewersRoles), len(role.AssignedMakersRoles), len(role.AssignedCheckerRoles), len(role.AssignedAuditorRoles))
 
 	// Makers
 	if len(role.AssignedMakersRoles) > 0 {
@@ -555,7 +592,7 @@ func (s *bpsActionRoleService) generateIndices(role *imodel.BPSActionRole) []imo
 				CreatedAt:  now,
 			})
 			span.AddEvent("maker index generated", trace.WithAttributes(attribute.String("role_id", makerID)))
-			s.logger.Infof("generateIndices: Added Maker index for RoleID %s", makerID)
+			s.logger.Infof("[BpsActRoleSvc][GenIndices] added maker: %s", makerID)
 		}
 	}
 
@@ -582,10 +619,10 @@ func (s *bpsActionRoleService) generateIndices(role *imodel.BPSActionRole) []imo
 				})
 
 				span.AddEvent("viewer index generated", trace.WithAttributes(attribute.String("role_id", viewerID)))
-				s.logger.Infof("generateIndices: Added Viewer index for RoleID %s", viewerID)
+				s.logger.Infof("[BpsActRoleSvc][GenIndices] added viewer: %s", viewerID)
 			} else {
 				span.AddEvent("viewer index updated", trace.WithAttributes(attribute.String("role_id", viewerID)))
-				s.logger.Infof("generateIndices: Updated Viewer index for RoleID %s", viewerID)
+				s.logger.Infof("[BpsActRoleSvc][GenIndices] updated viewer: %s", viewerID)
 			}
 		}
 	}
@@ -613,10 +650,10 @@ func (s *bpsActionRoleService) generateIndices(role *imodel.BPSActionRole) []imo
 				})
 
 				span.AddEvent("viewer index generated", trace.WithAttributes(attribute.String("role_id", auditorID)))
-				s.logger.Infof("generateIndices: Added Viewer index for RoleID %s", auditorID)
+				s.logger.Infof("[BpsActRoleSvc][GenIndices] added auditor: %s", auditorID)
 			} else {
 				span.AddEvent("viewer index updated", trace.WithAttributes(attribute.String("role_id", auditorID)))
-				s.logger.Infof("generateIndices: Updated Viewer index for RoleID %s", auditorID)
+				s.logger.Infof("[BpsActRoleSvc][GenIndices] updated auditor: %s", auditorID)
 			}
 		}
 	}
@@ -645,16 +682,16 @@ func (s *bpsActionRoleService) generateIndices(role *imodel.BPSActionRole) []imo
 					})
 
 					span.AddEvent("checker index generated", trace.WithAttributes(attribute.String("role_id", checkerID)))
-					s.logger.Infof("generateIndices: Added Checker index for RoleID %s (val: %f)", checkerID, val)
+					s.logger.Infof("[BpsActRoleSvc][GenIndices] added checker: %s (val: %f)", checkerID, val)
 				} else {
 					span.AddEvent("checker index updated", trace.WithAttributes(attribute.String("role_id", checkerID)))
-					s.logger.Infof("generateIndices: Updated Checker index for RoleID %s (val: %f)", checkerID, val)
+					s.logger.Infof("[BpsActRoleSvc][GenIndices] updated checker: %s (val: %f)", checkerID, val)
 				}
 			}
 		}
 	}
 	span.AddEvent("generate indices completed", trace.WithAttributes(attribute.Int("total_indices", len(indices))))
-	s.logger.Infof("generateIndices: Completed. Total indices: %d", len(indices))
+	s.logger.Infof("[BpsActRoleSvc][GenIndices] completed total: %d", len(indices))
 
 	return indices
 }

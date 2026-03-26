@@ -1,10 +1,11 @@
 package action_role_repo
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
+	"errors"
 	"time"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -30,35 +31,50 @@ func NewBPSActionApproveIndexRepository(client *mongo.Client, database string, c
 
 func (r *BPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string, []string, []string, error) {
 	r.logger.Infof("PopulateUserApproverAllocations: Populating approver allocations for RoleID: %s", role_id)
-	var makerAllocations []string
-	var checkerAllocations []string
-	var auditorAllocations []string
+	makerSet := map[string]struct{}{}
+	checkerSet := map[string]struct{}{}
+	auditorSet := map[string]struct{}{}
 
 	cursor, err := r.collection.Find(ctx, bson.M{
 		"role_id": role_id,
 	})
 	if err != nil {
 		r.logger.Errorf("PopulateUserApproverAllocations: Find failed: %v", err)
-		return nil, nil, nil, err
+		return nil, nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 	var results []imodel.BPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
 		r.logger.Errorf("PopulateUserApproverAllocations: Cursor.All failed: %v", err)
-		return nil, nil, nil, err
+		return nil, nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	for _, v := range results {
+		actionName := v.ActionName
 		if v.MakerIndex != nil {
-			makerAllocations = append(makerAllocations, v.ActionName)
+			makerSet[actionName] = struct{}{}
 		}
 		if v.CheckerIndex != nil {
-			checkerAllocations = append(checkerAllocations, v.ActionName)
+			checkerSet[actionName] = struct{}{}
 		}
 		if v.AuditorIndex != nil {
-			auditorAllocations = append(auditorAllocations, v.ActionName)
+			auditorSet[actionName] = struct{}{}
 		}
 	}
+
+	makerAllocations := make([]string, 0, len(makerSet))
+	for k := range makerSet {
+		makerAllocations = append(makerAllocations, k)
+	}
+	checkerAllocations := make([]string, 0, len(checkerSet))
+	for k := range checkerSet {
+		checkerAllocations = append(checkerAllocations, k)
+	}
+	auditorAllocations := make([]string, 0, len(auditorSet))
+	for k := range auditorSet {
+		auditorAllocations = append(auditorAllocations, k)
+	}
+
 	r.logger.Infof("PopulateUserApproverAllocations: Found %d maker, %d checker, %d auditor allocations for RoleID: %s", len(makerAllocations), len(checkerAllocations), len(auditorAllocations), role_id)
 	return makerAllocations, checkerAllocations, auditorAllocations, nil
 }
@@ -74,7 +90,7 @@ func (r *BPSActionApproveIndexRepository) SaveIndices(ctx context.Context, indic
 	_, err := r.collection.InsertMany(ctx, docs)
 	if err != nil {
 		r.logger.Errorf("SaveIndices: InsertMany failed: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	r.logger.Infof("SaveIndices: Successfully saved %d indices", len(indices))
 	return nil
@@ -84,7 +100,8 @@ func (r *BPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldAc
 	r.logger.Infof("SyncIndices: Syncing %d indices for oldActionName: %s", len(newIndices), oldActionName)
 
 	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName}); err != nil {
-		return err
+		r.logger.Errorf("SyncIndices: DeleteMany failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if err := r.SaveIndices(ctx, newIndices); err != nil {
@@ -103,14 +120,14 @@ func (r *BPSActionApproveIndexRepository) FindMakerAllocationsByRoleID(ctx conte
 	})
 	if err != nil {
 		r.logger.Errorf("FindMakerAllocationsByRoleID: Find failed: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var results []imodel.BPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
 		r.logger.Errorf("FindMakerAllocationsByRoleID: Cursor.All failed: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	r.logger.Infof("FindMakerAllocationsByRoleID: Found %d maker allocations for RoleID: %s", len(results), roleID.Hex())
@@ -126,14 +143,14 @@ func (r *BPSActionApproveIndexRepository) FindCheckerAllocationsByRoleID(ctx con
 	})
 	if err != nil {
 		r.logger.Errorf("FindCheckerAllocationsByRoleID: Find failed: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var results []imodel.BPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
 		r.logger.Errorf("FindCheckerAllocationsByRoleID: Cursor.All failed: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	r.logger.Infof("FindCheckerAllocationsByRoleID: Found %d checker allocations for RoleID: %s", len(results), roleID.Hex())
@@ -149,14 +166,14 @@ func (r *BPSActionApproveIndexRepository) FindAuditorAllocationsByRoleID(ctx con
 	})
 	if err != nil {
 		r.logger.Errorf("FindAuditorAllocationsByRoleID: Find failed: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var results []imodel.BPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
 		r.logger.Errorf("FindAuditorAllocationsByRoleID: Cursor.All failed: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	r.logger.Infof("FindAuditorAllocationsByRoleID: Found %d auditor allocations for RoleID: %s", len(results), roleID.Hex())
@@ -180,7 +197,7 @@ func (r *BPSActionApproveIndexRepository) InsertMany(
 		models = append(models,
 			mongo.NewUpdateOneModel().
 				SetFilter(bson.M{
-					"role_id":     id,
+					"role_id":     id.Hex(),
 					"action_name": roleCode,
 				}).
 				SetUpdate(bson.M{
@@ -202,7 +219,7 @@ func (r *BPSActionApproveIndexRepository) InsertMany(
 			models = append(models,
 				mongo.NewUpdateOneModel().
 					SetFilter(bson.M{
-						"role_id":     id,
+						"role_id":     id.Hex(),
 						"action_name": roleCode,
 					}).
 					SetUpdate(bson.M{
@@ -224,7 +241,7 @@ func (r *BPSActionApproveIndexRepository) InsertMany(
 		models = append(models,
 			mongo.NewUpdateOneModel().
 				SetFilter(bson.M{
-					"role_id":     id,
+					"role_id":     id.Hex(),
 					"action_name": roleCode,
 				}).
 				SetUpdate(bson.M{
@@ -247,7 +264,7 @@ func (r *BPSActionApproveIndexRepository) InsertMany(
 	_, err := r.collection.BulkWrite(ctx, models)
 	if err != nil {
 		r.logger.Errorf("InsertMany: BulkWrite failed: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	r.logger.Infof("InsertMany: Successfully processed indices for RoleCode: %s", roleCode)
@@ -268,9 +285,13 @@ func (r *BPSActionApproveIndexRepository) DeleteMany(
 
 	// 1. Delete makers (only if NOT checker or auditor)
 	if len(makerIndex) > 0 {
+		makerIDs := make([]string, 0, len(makerIndex))
+		for _, id := range makerIndex {
+			makerIDs = append(makerIDs, id.Hex())
+		}
 		models = append(models,
 			mongo.NewDeleteManyModel().SetFilter(bson.M{
-				"role_id":     bson.M{"$in": makerIndex},
+				"role_id":     bson.M{"$in": makerIDs},
 				"action_name": roleCode,
 
 				// must be pure maker
@@ -285,10 +306,14 @@ func (r *BPSActionApproveIndexRepository) DeleteMany(
 		if len(ids) == 0 {
 			continue
 		}
+		checkerIDs := make([]string, 0, len(ids))
+		for _, id := range ids {
+			checkerIDs = append(checkerIDs, id.Hex())
+		}
 
 		models = append(models,
 			mongo.NewDeleteManyModel().SetFilter(bson.M{
-				"role_id":       bson.M{"$in": ids},
+				"role_id":       bson.M{"$in": checkerIDs},
 				"action_name":   roleCode,
 				"checker_index": i + 1, // 1-based index
 
@@ -301,9 +326,13 @@ func (r *BPSActionApproveIndexRepository) DeleteMany(
 
 	// 3. Delete auditors (only if NOT maker or checker)
 	if len(auditorIndex) > 0 {
+		auditorIDs := make([]string, 0, len(auditorIndex))
+		for _, id := range auditorIndex {
+			auditorIDs = append(auditorIDs, id.Hex())
+		}
 		models = append(models,
 			mongo.NewDeleteManyModel().SetFilter(bson.M{
-				"role_id":     bson.M{"$in": auditorIndex},
+				"role_id":     bson.M{"$in": auditorIDs},
 				"action_name": roleCode,
 
 				// must be pure auditor
@@ -321,211 +350,42 @@ func (r *BPSActionApproveIndexRepository) DeleteMany(
 	_, err := r.collection.BulkWrite(ctx, models)
 	if err != nil {
 		r.logger.Errorf("DeleteMany: BulkWrite failed: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	r.logger.Infof("DeleteMany: Successfully deleted indices for RoleCode: %s", roleCode)
 	return nil
 }
 
-func (r *BPSActionApproveIndexRepository) InsertAll(ctx context.Context, new model.CPSActionRole) error {
-	r.logger.Infof("InsertAll: Inserting indices for ActionName: %s", new.ActionName)
-	var indices []imodel.CPSActionApproveIndex
-	now := time.Now()
-
-	// Makers: 1-based index
-	for i, makerId := range new.AssignedMakersRoles {
-		idx := int64(i + 1)
-		indices = append(indices, imodel.CPSActionApproveIndex{
-			ID:           bson.NewObjectID(),
-			RoleId:       makerId,
-			ActionName:   new.ActionName,
-			MakerIndex:   &idx,
-			CheckerIndex: nil,
-			AuditorIndex: nil,
-			UpdatedAt:    now,
-			CreatedAt:    now,
-		})
+func (r *BPSActionApproveIndexRepository) InsertAll(ctx context.Context, new imodel.BPSActionApproveIndex) error {
+	if new.ID.IsZero() {
+		new.ID = bson.NewObjectID()
 	}
-
-	// Checkers: 2D slice, float index (e.g., 1.1, 2.1, ...)
-	for i, checkerGroup := range new.AssignedCheckerRoles {
-		for j, checkerId := range checkerGroup {
-			idx := float64(i+1) + float64(j+1)*0.1
-			indices = append(indices, imodel.CPSActionApproveIndex{
-				ID:           bson.NewObjectID(),
-				RoleId:       checkerId,
-				ActionName:   new.ActionName,
-				MakerIndex:   nil,
-				CheckerIndex: &idx,
-				AuditorIndex: nil,
-				UpdatedAt:    now,
-				CreatedAt:    now,
-			})
-		}
+	if new.CreatedAt.IsZero() {
+		now := time.Now()
+		new.CreatedAt = now
+		new.UpdatedAt = now
 	}
-
-	for i, auditorGroup := range new.AssignedAuditorRoles {
-		for j, auditorId := range auditorGroup {
-			idx := float64(i+1) + float64(j+1)*0.1
-			indices = append(indices, imodel.CPSActionApproveIndex{
-				ID:           bson.NewObjectID(),
-				RoleId:       auditorId,
-				ActionName:   new.ActionName,
-				MakerIndex:   nil,
-				CheckerIndex: nil,
-				AuditorIndex: &idx,
-				UpdatedAt:    now,
-				CreatedAt:    now,
-			})
-		}
-	}
-
-	if len(indices) == 0 {
-		r.logger.Infof("InsertAll: No indices to insert for ActionName: %s", new.ActionName)
-		return nil
-	}
-
-	docs := make([]interface{}, len(indices))
-	for i, v := range indices {
-		docs[i] = v
-	}
-	_, err := r.collection.InsertMany(ctx, docs)
+	_, err := r.collection.InsertOne(ctx, new)
 	if err != nil {
-		r.logger.Errorf("InsertAll: InsertMany failed: %v", err)
-		return err
+		r.logger.Errorf("InsertAll: InsertOne failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	r.logger.Infof("InsertAll: Successfully inserted %d indices for ActionName: %s", len(indices), new.ActionName)
 	return nil
 }
 
-func (r *BPSActionApproveIndexRepository) DeleteAll(ctx context.Context, prev imodel.CPSActionRoleResposne) error {
-	r.logger.Infof("DeleteAll: Deleting indices for ActionName: %s", prev.ActionName)
-	var models []mongo.WriteModel
-
-	// Makers
-	if prev.AssignedMakersRoles != nil && len(prev.AssignedMakersRoles) > 0 {
-		var makerIds []bson.ObjectID
-		for _, v := range prev.AssignedMakersRoles {
-			if v == nil {
-				continue
-			}
-			switch val := v.(type) {
-			case string:
-				if objId, err := bson.ObjectIDFromHex(val); err == nil {
-					makerIds = append(makerIds, objId)
-				}
-			case bson.ObjectID:
-				makerIds = append(makerIds, val)
-			case map[string]interface{}:
-				if idVal, ok := val["_id"]; ok {
-					switch id := idVal.(type) {
-					case bson.ObjectID:
-						makerIds = append(makerIds, id)
-					case map[string]interface{}:
-						if oid, ok := id["$oid"].(string); ok {
-							if objId, err := bson.ObjectIDFromHex(oid); err == nil {
-								makerIds = append(makerIds, objId)
-							}
-						}
-					}
-				}
-			}
-		}
-		if len(makerIds) > 0 {
-			models = append(models, mongo.NewDeleteManyModel().SetFilter(bson.M{
-				"_id":         bson.M{"$in": makerIds},
-				"action_name": prev.ActionName,
-			}))
-		}
+func (r *BPSActionApproveIndexRepository) DeleteAll(ctx context.Context, prev imodel.BPSActionApproveIndex) error {
+	filter := bson.M{}
+	if !prev.ID.IsZero() {
+		filter["_id"] = prev.ID
+	} else {
+		filter["role_id"] = prev.RoleId
+		filter["action_name"] = prev.ActionName
 	}
-
-	// Checkers
-	if prev.AssignedCheckersRoles != nil && len(prev.AssignedCheckersRoles) > 0 {
-		for _, group := range prev.AssignedCheckersRoles {
-			var checkerIds []bson.ObjectID
-			for _, v := range group {
-				if v == nil {
-					continue
-				}
-				switch val := v.(type) {
-				case string:
-					if objId, err := bson.ObjectIDFromHex(val); err == nil {
-						checkerIds = append(checkerIds, objId)
-					}
-				case bson.ObjectID:
-					checkerIds = append(checkerIds, val)
-				case map[string]interface{}:
-					if idVal, ok := val["_id"]; ok {
-						switch id := idVal.(type) {
-						case bson.ObjectID:
-							checkerIds = append(checkerIds, id)
-						case map[string]interface{}:
-							if oid, ok := id["$oid"].(string); ok {
-								if objId, err := bson.ObjectIDFromHex(oid); err == nil {
-									checkerIds = append(checkerIds, objId)
-								}
-							}
-						}
-					}
-				}
-			}
-			if len(checkerIds) > 0 {
-				models = append(models, mongo.NewDeleteManyModel().SetFilter(bson.M{
-					"_id":         bson.M{"$in": checkerIds},
-					"action_name": prev.ActionName,
-				}))
-			}
-		}
-	}
-
-	// Auditors
-	if prev.AssignedAuditorRoles != nil && len(prev.AssignedAuditorRoles) > 0 {
-		var auditorIds []bson.ObjectID
-		for _, v := range prev.AssignedAuditorRoles {
-			if v == nil {
-				continue
-			}
-			switch val := v.(type) {
-			case string:
-				if objId, err := bson.ObjectIDFromHex(val); err == nil {
-					auditorIds = append(auditorIds, objId)
-				}
-			case bson.ObjectID:
-				auditorIds = append(auditorIds, val)
-			case map[string]interface{}:
-				if idVal, ok := val["_id"]; ok {
-					switch id := idVal.(type) {
-					case bson.ObjectID:
-						auditorIds = append(auditorIds, id)
-					case map[string]interface{}:
-						if oid, ok := id["$oid"].(string); ok {
-							if objId, err := bson.ObjectIDFromHex(oid); err == nil {
-								auditorIds = append(auditorIds, objId)
-							}
-						}
-					}
-				}
-			}
-		}
-		if len(auditorIds) > 0 {
-			models = append(models, mongo.NewDeleteManyModel().SetFilter(bson.M{
-				"_id":         bson.M{"$in": auditorIds},
-				"action_name": prev.ActionName,
-			}))
-		}
-	}
-
-	if len(models) == 0 {
-		r.logger.Infof("DeleteAll: No delete models generated for ActionName: %s", prev.ActionName)
-		return nil
-	}
-
-	_, err := r.collection.BulkWrite(ctx, models)
+	_, err := r.collection.DeleteMany(ctx, filter)
 	if err != nil {
-		r.logger.Errorf("DeleteAll: BulkWrite failed: %v", err)
-		return err
+		r.logger.Errorf("DeleteAll: DeleteMany failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	r.logger.Infof("DeleteAll: Successfully deleted indices for ActionName: %s", prev.ActionName)
 	return nil
 }

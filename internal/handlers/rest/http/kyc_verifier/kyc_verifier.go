@@ -43,7 +43,7 @@ func InitKYCAdapter(app service.KYCVerifierService, logger utils.Logger) inbound
 //	@Param			kyc_approved	query		bool																	false	"Filter by KYC approved"
 //	@Param			enabled			query		bool																	false	"Filter by enabled status"
 //	@Param			search			query		string																	false	"Search term (searches kyc_status)"
-//	@Success		200				{object}	localization.StandardResponse{data=[]kyc_verifier.KYCVerifierResponse}	"KYC records fetched successfully"
+//	@Success		200				{object}	localization.StandardResponse{data=object}	"KYC records fetched successfully"
 //	@Failure		400				{object}	localization.StandardResponse{data=nil}									"Invalid query params"
 //	@Failure		500				{object}	localization.StandardResponse{data=nil}									"Internal server error"
 //	@Security		BearerAuth

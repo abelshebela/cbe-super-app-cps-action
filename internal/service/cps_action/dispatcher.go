@@ -45,6 +45,15 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "ACCOUNTBLOCK"):
 		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
 
+	case IsActionInGroup(RequestAction(action), "SINGLEBRANCHENABLEACCOUNTBLOCK"):
+		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "SINGLEBRANCHDISABLEACCOUNTBLOCK"):
+		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "MultiBRANCHENABLEACCOUNTBLOCK"):
+		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "MultiBRANCHDISABLEACCOUNTBLOCK"):
+		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
+
 	case IsActionInGroup(RequestAction(action), "ACCOUNTVALIDATION"):
 		return d.app.AccountContainer.Authorize(ctx, cpsAction)
 
@@ -139,14 +148,13 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.BudgetCategoryContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "MINIAPPCATEGORY"):
 		return d.app.MiniAppCategoryContainer.Authorize(ctx, cpsAction)
+
 	case IsActionInGroup(RequestAction(action), "CPSACTIONROLE"):
 		return d.app.CPSActionRoleContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "EVENTMERCHANT"):
 		return d.app.EventMerchantServiceContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "LOGISTICSMERCHANT"):
 		return d.app.LogisticsMerchantServiceContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "VAULTAMOUNTTIER"):
-		return d.app.VaultAmountTierContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "MINIAPPPRODUCTCODE"):
 		return d.app.MiniAppProductCodeContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "ACCESSLISTSEGMENTATION"):
@@ -163,7 +171,13 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.CPSRolesContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "CUSTOMERKYC"):
 		return d.app.CustomerKYCContainer.Authorize(ctx, cpsAction)
+	// case IsActionInGroup(RequestAction(action), "VAULT"):
+	// 	return d.app.VaultCategoryContainer.Authorize(ctx, cpsAction)
 
+	case IsActionInGroup(RequestAction(action), "VAULTCATEGORIES"):
+		return d.app.VaultCategoryContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "VAULTEMERGENCYDEADLOCKREQUEST"):
+		return d.app.VaultCategoryContainer.Authorize(ctx, cpsAction)
 	default:
 		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)

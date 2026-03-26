@@ -56,7 +56,7 @@ func (r *BPSUserCreateRequest) Validate() error {
 		validation.Field(&r.UserID, validation.Required, validation.Length(3, 10)),
 		validation.Field(&r.FullName, validation.Required),
 		validation.Field(&r.PhoneNumber, validation.Required, validation.Match(phoneRegex).Error("must be a valid Ethiopian phone number (+2519xxxxxxxx or +2517xxxxxxxx)")),
-		validation.Field(&r.Email, validation.Required, is.Email, validation.Match(regexp.MustCompile(`^[A-Za-z0-9._%+-]+@cbe\.com\.et$`)).Error("must be a valid @cbe.com.et email")),
+		validation.Field(&r.Email, validation.Required, is.Email, validation.Match(regexp.MustCompile(`^[A-Za-z0-9._-]+@cbe\.com\.et$`)).Error("must be a valid @cbe.com.et email")),
 		validation.Field(&r.JobTitle, validation.Required),
 		validation.Field(&r.BranchCode, validation.Required),
 	)
@@ -84,7 +84,7 @@ func (r *BPSUserUpdateRequest) Validate() error {
 		validation.Field(&r.UserID, validation.Required, validation.Length(3, 10)),
 		validation.Field(&r.FullName, validation.Required),
 		validation.Field(&r.PhoneNumber, validation.Required, validation.Match(phoneRegex).Error("must be a valid Ethiopian phone number (+2519xxxxxxxx or +2517xxxxxxxx)")),
-		validation.Field(&r.Email, validation.Required, is.Email, validation.Match(regexp.MustCompile(`^[A-Za-z0-9._%+-]+@cbe\.com\.et$`)).Error("must be a valid @cbe.com.et email")),
+		validation.Field(&r.Email, validation.Required, is.Email, validation.Match(regexp.MustCompile(`^[A-Za-z0-9._-]+@cbe\.com\.et$`)).Error("must be a valid @cbe.com.et email")),
 		validation.Field(&r.JobTitle, validation.Required),
 		validation.Field(&r.BranchCode, validation.Required),
 	)
@@ -129,7 +129,6 @@ type BPSUserResposenDTO struct {
 	OTPLastTriedAt    time.Time     `json:"otp_last_tried_at" bson:"otp_last_tried_at"`
 	JobTitle          string        `json:"job_title" bson:"job_title"`
 	OTPLastVerifiedAt time.Time     `json:"otp_last_verified_at" bson:"otp_last_verified_at"`
-	Password          Password      `json:"login_password" bson:"login_password"`
 	IsFirstTimeLogin  bool          `json:"is_first_time_login" bson:"is_first_time_login"`
 	LastLoginAttempt  time.Time     `json:"last_login_attempt" bson:"last_login_attempt"`
 	NextLoginAttempt  time.Time     `json:"next_login_attempt" bson:"next_login_attempt"`

@@ -49,27 +49,28 @@ func InitAvatarAdapter(avatarApplication service.AvatarService, logger utils.Log
 func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createAvatar", "handler", "avatar")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	req, err := ReqFileParse(r)
 	if err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[CreateAvatar] failed to parse file: %v", err)
+		log.Errorf("[CreateAvatar] failed to parse file: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[CreateAvatar] validation failed: %v", err)
+		log.Errorf("[CreateAvatar] validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 	span.SetAttributes(attribute.String("avatar.label", req.Label))
 	if err := a.avatarApplication.CreateAvatar(ctx, &model.Avatar{Label: req.Label}, req.Avatar); err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[CreateAvatar] service error: %v", err)
+		log.Errorf("[CreateAvatar] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -77,7 +78,7 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 		localization.SendSuccessResponse(w, localization.SuccessAvatarCreatedSP, nil)
 	} else {
 		localization.SendSuccessResponse(w, localization.SuccessAvatarCreated, nil)
-		a.logger.Infof("[CreateAvatar] request sent successfully for label: %s", req.Label)
+		log.Infof("[CreateAvatar] request sent successfully for label: %s", req.Label)
 	}
 }
 
@@ -98,6 +99,7 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteAvatar", "handler", "avatar")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
@@ -111,7 +113,7 @@ func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 
 	if err := a.avatarApplication.DeleteAvatar(ctx, id); err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[DeleteAvatar] service error: %v", err)
+		log.Errorf("[DeleteAvatar] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -119,7 +121,7 @@ func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 		localization.SendSuccessResponse(w, localization.SuccessAvatarDeletedSP, nil)
 	} else {
 		localization.SendSuccessResponse(w, localization.SuccessAvatarDeleted, nil)
-		a.logger.Infof("[DeleteAvatar] request sent successfully for id: %s", id)
+		log.Infof("[DeleteAvatar] request sent successfully for id: %s", id)
 	}
 }
 
@@ -140,6 +142,7 @@ func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableAvatar", "handler", "avatar")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
@@ -153,7 +156,7 @@ func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 
 	if err := a.avatarApplication.EnableDisable(ctx, id, true); err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[Enable] service error: %v", err)
+		log.Errorf("[Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -161,7 +164,7 @@ func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		localization.SendSuccessResponse(w, localization.SuccessAvatarEnabledSP, nil)
 	} else {
 		localization.SendSuccessResponse(w, localization.SuccessAvatarEnabled, nil)
-		a.logger.Infof("[Enable] avatar enabled successfully for id: %s", id)
+		log.Infof("[Enable] avatar enabled successfully for id: %s", id)
 	}
 }
 
@@ -182,6 +185,7 @@ func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableAvatar", "handler", "avatar")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
@@ -195,7 +199,7 @@ func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 
 	if err := a.avatarApplication.EnableDisable(ctx, id, false); err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[Disable] service error: %v", err)
+		log.Errorf("[Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -204,7 +208,7 @@ func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	} else {
 		localization.SendSuccessResponse(w, localization.SuccessAvatarDisabled, nil)
 
-		a.logger.Infof("[Disable] avatar disabled successfully for id: %s", id)
+		log.Infof("[Disable] avatar disabled successfully for id: %s", id)
 	}
 }
 
@@ -225,6 +229,7 @@ func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 func (a *avatarAdapter) FetchAvatar(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchAvatar", "handler", "avatar")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Message)
@@ -236,12 +241,12 @@ func (a *avatarAdapter) FetchAvatar(w http.ResponseWriter, r *http.Request) {
 	res, err := a.avatarApplication.FetchAvatarById(ctx, id)
 	if err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[FetchAvatar] service error: %v", err)
+		log.Errorf("[FetchAvatar] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	a.logger.Infof("[FetchAvatar] avatar retrieved successfully for id: %s", id)
+	log.Infof("[FetchAvatar] avatar retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAvatarEnabled, res)
 }
 
@@ -262,6 +267,7 @@ func (a *avatarAdapter) FetchAvatar(w http.ResponseWriter, r *http.Request) {
 func (a *avatarAdapter) FetchAvatars(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchAvatars", "handler", "avatar")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	filterParam := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -280,13 +286,13 @@ func (a *avatarAdapter) FetchAvatars(w http.ResponseWriter, r *http.Request) {
 	avatars, err := a.avatarApplication.FetchAllAvatar(ctx, *filterParam)
 	if err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[FetchAvatars] service error: %v", err)
+		log.Errorf("[FetchAvatars] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	span.SetAttributes(attribute.Int("avatar.count", len(avatars.Data)))
-	a.logger.Infof("[FetchAvatars] retrieved %d avatars", len(avatars.Data))
+	log.Infof("[FetchAvatars] retrieved %d avatars", len(avatars.Data))
 	localization.SendSuccessResponse(w, localization.SuccessAvatarRetrieved, avatars)
 }
 
@@ -309,6 +315,7 @@ func (a *avatarAdapter) FetchAvatars(w http.ResponseWriter, r *http.Request) {
 func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateAvatar", "handler", "avatar")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
@@ -323,7 +330,7 @@ func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	req, err := ReqFileParse(r)
 	if err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[UpdateAvatar] failed to parse file: %v", err)
+		log.Errorf("[UpdateAvatar] failed to parse file: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -338,7 +345,7 @@ func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	)
 	if err := a.avatarApplication.UpdateAvatar(ctx, id, &model.Avatar{Label: label}, inputData, false); err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[UpdateAvatar] service error: %v", err)
+		log.Errorf("[UpdateAvatar] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -347,6 +354,6 @@ func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	} else {
 		localization.SendSuccessResponse(w, localization.SuccessAvatarUpdated, nil)
 
-		a.logger.Infof("[UpdateAvatar] request sent successfully for id: %s", id)
+		log.Infof("[UpdateAvatar] request sent successfully for id: %s", id)
 	}
 }

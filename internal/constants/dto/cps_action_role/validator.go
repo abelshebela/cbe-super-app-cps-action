@@ -8,6 +8,14 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
+func (c *CancelRequest) Validate() error {
+	return validation.ValidateStruct(c,
+		validation.Field(&c.CancelReason,
+			validation.Required.Error("Cancel reason is required"),
+		),
+	)
+}
+
 func (r CreateActionRoleRequest) Validate() error {
 	err := validation.ValidateStruct(&r,
 		validation.Field(&r.ActionName,
@@ -94,6 +102,19 @@ func (r UpdateActionRoleRequest) Validate() error {
 					validation.By(utils.NoSpecialChars),
 				),
 			),
+		),
+	)
+}
+
+func (r UpdateIndexRoleCodeRequest) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.OldRoleCode,
+			validation.Required.Error("old_role_code is required"),
+			validation.By(utils.TrimWhiteSpace),
+		),
+		validation.Field(&r.NewRoleCode,
+			validation.Required.Error("new_role_code is required"),
+			validation.By(utils.TrimWhiteSpace),
 		),
 	)
 }

@@ -63,12 +63,7 @@ func (m *EcommerceMerchantStorage) Update(ctx context.Context, id string, mercha
 
 	_, err = m.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			m.logger.Warnf("Mini app merchant not found for update, id: %s", id)
-			return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
-		}
-		m.logger.Errorf("Failed to update mini app merchant, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	return nil
@@ -90,12 +85,7 @@ func (m *EcommerceMerchantStorage) Delete(ctx context.Context, id string) error 
 
 	_, err = m.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			m.logger.Warnf("Mini app merchant not found for deletion, id: %s", id)
-			return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
-		}
-		m.logger.Errorf("Failed to delete mini app merchant, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 
 	return nil
@@ -113,12 +103,7 @@ func (m *EcommerceMerchantStorage) EnableOrDisable(ctx context.Context, id strin
 
 	_, err = m.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			m.logger.Warnf("Mini app merchant not found for enable/disable, id: %s", id)
-			return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
-		}
-		m.logger.Errorf("Failed to enable/disable mini app merchant, id: %s, error: %v", id, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -133,12 +118,7 @@ func (m *EcommerceMerchantStorage) FindByID(ctx context.Context, id string) (*mo
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	result, err := m.dal.FindOne(context.Background(), filter, bson.M{})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			m.logger.Warnf("Mini app merchant not found, id: %s", id)
-			return nil, errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
-		}
-		m.logger.Errorf("Failed to find mini app merchant, id: %s, error: %v", id, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -185,12 +165,7 @@ func (s *EcommerceMerchantStorage) FindAllWithPagination(ctx context.Context, fi
 func (m *EcommerceMerchantStorage) FindOne(ctx context.Context, filter bson.M) (*model.EcommerceMerchant, error) {
 	result, err := m.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			m.logger.Warnf("Mini app merchant not found")
-			return nil, errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
-		}
-		m.logger.Errorf("Failed to find mini app merchant, id: %s, error: %v", filter, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }

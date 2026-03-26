@@ -15,6 +15,7 @@ func InitRedis(cfg *config.VaultConfig, log utils.Logger) *redis.Client {
 		Password: cfg.RedisPassword,
 		DB:       0,
 	})
+	log.Debugf("Initialized Redis client with URI: %s", cfg.RedisURI)
 
 	if err := client.Ping(context.Background()).Err(); err != nil {
 		log.Fatalf("Failed to connect to Redis: %v", err)

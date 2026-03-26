@@ -125,6 +125,22 @@ func Init(router chi.Router, handler cpsaction.CPSActionAdapter, authMiddleware 
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/actions/authorizer/level/raction/{request_action}/version/{action_version}",
+			Handler: handler.GetAuthorizersLevel,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/actions/export_data",
+			Handler: handler.ExportCPSActionData,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

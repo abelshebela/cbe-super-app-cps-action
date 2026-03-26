@@ -54,11 +54,7 @@ func (a *articleCategory) UpdateArticleCategory(ctx context.Context, category *m
 	update := buildCategoryUpdate(*category)
 	_, err = a.articleCategoryDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("Error updating article category in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 	return nil
 }
@@ -72,11 +68,7 @@ func (a *articleCategory) DeleteArticleCategory(ctx context.Context, id string) 
 	}
 	err = a.articleCategoryDal.DeleteOne(ctx, bson.M{"_id": objId, "is_deleted": false})
 	if err != nil {
-		a.logger.Errorf("Error deleting article category in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 	return nil
 }
@@ -92,11 +84,7 @@ func (a *articleCategory) EnableOrDisableArticleCategory(ctx context.Context, id
 	update := bson.M{"is_active": enable, "updated_at": time.Now()}
 	_, err = a.articleCategoryDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("Error enabling or disabling article category in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 	return nil
 }

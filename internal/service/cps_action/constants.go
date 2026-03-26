@@ -83,6 +83,7 @@ const (
 	RequestDeleteAmountBasedAuth RequestAction = "DELETE_AMOUNT_BASED_AUTH"
 	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"
 	RequestUpdateAmountBasedAuth RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
+	RequestResetAmountBasedAuth  RequestAction = "RESET_AMOUNT_BASED_AUTH"
 	RequestUser                  RequestAction = "USER"
 	RequestCpsUserCreate         RequestAction = "CREATE_CPS_USER"
 	RequestCpsUserUpdate         RequestAction = "UPDATE_CPS_USER"
@@ -99,9 +100,11 @@ const (
 	RequestPermissionGroup    RequestAction = "PERMISSION_GROUP"
 	RequestBulkServiceEnable  RequestAction = "ENABLE_BULK_SERVICE"
 	RequestBulkServiceDisable RequestAction = "DISABLE_BULK_SERVICE"
+
 	// RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestCreateDepartment           RequestAction = "CREATE_DEPARTMENT"
 	RequestUpdateDepartment           RequestAction = "UPDATE_DEPARTMENT"
+	RequestDeleteDepartment           RequestAction = "DELETE_DEPARTMENT"
 	RequestEnableDisableDepartment    RequestAction = "ENABLE_DISABLE_DEPARTMENT"
 	RequestEnableUser                 RequestAction = "ENABLE_USER"
 	RequestDisableUser                RequestAction = "DISABLE_USER"
@@ -143,10 +146,14 @@ const (
 	RequestDeleteEcommerceMerchant  RequestAction = "DELETE_ECOMMERCE_MERCHANT"
 
 	// Services catalog (model.Services)
-	RequestCreateService  RequestAction = "CREATE_SERVICE"
-	RequestUpdateService  RequestAction = "UPDATE_SERVICE"
-	RequestEnableService  RequestAction = "ENABLE_SERVICE"
-	RequestDisableService RequestAction = "DISABLE_SERVICE"
+	RequestCreateService      RequestAction = "CREATE_SERVICE"
+	RequestUpdateService      RequestAction = "UPDATE_SERVICE"
+	RequestEnableService      RequestAction = "ENABLE_SERVICE"
+	RequestDisableService     RequestAction = "DISABLE_SERVICE"
+	RequestCreateServiceList  RequestAction = "CREATE_SERVICE_LIST"
+	RequestUpdateServiceList  RequestAction = "UPDATE_SERVICE_LIST"
+	RequestEnableServiceList  RequestAction = "ENABLE_SERVICE_LIST"
+	RequestDisableServiceList RequestAction = "DISABLE_SERVICE_LIST"
 
 	RequestCreateTopup  RequestAction = "CREATE_TOPUP"
 	RequestUpdateTopup  RequestAction = "UPDATE_TOPUP"
@@ -303,11 +310,12 @@ const (
 	RequestDisAbleBankVault RequestAction = "DISABLE_VAULT_BANK"
 
 	// for vault group category
-	RequestCreateVaultGroupCategory  RequestAction = "CREATE_VAULT_GROUP_CATEGORY"
-	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE_VAULT_GROUP_CATEGORY"
-	RequestDeleteVaultGroupCategory  RequestAction = "DELETE_VAULT_GROUP_CATEGORY"
-	RequestEnableVaultGroupCategory  RequestAction = "ENABLE_VAULT_GROUP_CATEGORY"
-	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE_VAULT_GROUP_CATEGORY"
+	RequestCreateVaultCategory  RequestAction = "CREATE_VAULT_CATEGORY"
+	RequestUpdateVaultCategory  RequestAction = "UPDATE_VAULT_CATEGORY"
+	RequestDeleteVaultCategory  RequestAction = "DELETE_VAULT_CATEGORY"
+	RequestEnableVaultCategory  RequestAction = "ENABLE_VAULT_CATEGORY"
+	RequestDisAbleVaultCategory RequestAction = "DISABLE_VAULT_CATEGORY"
+	RequestUnlockDeadlock       RequestAction = "UNLOCK_DEADLOCK_REQUEST"
 
 	RequestCreateVaultAmountTier  RequestAction = "CREATE_VAULT_AMOUNT_TIER"
 	RequestUpdateVaultAmountTier  RequestAction = "UPDATE_VAULT_AMOUNT_TIER"
@@ -401,11 +409,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDisableCpsRole: {},
 
 	// for vault group category
-	RequestCreateVaultGroupCategory:  {},
-	RequestUpdateVaultGroupCategory:  {},
-	RequestDeleteVaultGroupCategory:  {},
-	RequestEnableVaultGroupCategory:  {},
-	RequestDisAbleVaultGroupCategory: {},
+	RequestCreateVaultCategory:  {},
+	RequestUpdateVaultCategory:  {},
+	RequestDeleteVaultCategory:  {},
+	RequestEnableVaultCategory:  {},
+	RequestDisAbleVaultCategory: {},
+	RequestUnlockDeadlock:       {},
 
 	RequestBpsUserCreate:  {},
 	RequestBpsUserUpdate:  {},
@@ -440,6 +449,7 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteAmountBasedAuth: {},
 	RequestCreateAmountBasedAuth: {},
 	RequestUpdateAmountBasedAuth: {},
+	RequestResetAmountBasedAuth:  {},
 	RequestUser:                  {},
 
 	RequestUpdateAccountValidation: {},
@@ -477,10 +487,15 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDisableWallet:   {},
 
 	// Services catalog
-	RequestCreateService:            {},
-	RequestUpdateService:            {},
-	RequestEnableService:            {},
-	RequestDisableService:           {},
+	RequestCreateService:      {},
+	RequestUpdateService:      {},
+	RequestEnableService:      {},
+	RequestDisableService:     {},
+	RequestCreateServiceList:  {},
+	RequestUpdateServiceList:  {},
+	RequestEnableServiceList:  {},
+	RequestDisableServiceList: {},
+
 	RequestUpdatePasswordExpiry:     {},
 	RequestCreateValidation:         {},
 	RequestUpdateValidation:         {},
@@ -671,6 +686,8 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateCustomerKYC: {},
 	RequestUpdateCustomerKYC: {},
 	RequestDeleteCustomerKYC: {},
+
+	RequestEnableDisableBank: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -690,17 +707,39 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"ACCOUNTBLOCK": {
 		RequestBlockUser,
-		RequestDisableSingleBranch,
+		// RequestDisableSingleBranch,
+		// RequestEnableSingleBranch,
+		// RequestDisableMultiBranches,
+		// RequestEnableMultiBranches,
+		// RequestEnableBranches,
+		// RequestDisableBranches,
+		// RequestEnableRegions,
+		// RequestDisableRegions,
+		// RequestEnableDistricts,
+		// RequestDisableDistricts,
+		// RequestEnableCities,
+		// RequestDisableCities,
+	},
+	"SINGLEBRANCHENABLEACCOUNTBLOCK": {
 		RequestEnableSingleBranch,
-		RequestDisableMultiBranches,
-		RequestEnableMultiBranches,
 		RequestEnableBranches,
+	},
+	"SINGLEBRANCHDISABLEACCOUNTBLOCK": {
+		RequestDisableSingleBranch,
 		RequestDisableBranches,
+	},
+	"MULTIBRANCHENABLEACCOUNTBLOCK": {
+		RequestEnableBranches,
+		RequestEnableSingleBranch,
 		RequestEnableRegions,
-		RequestDisableRegions,
 		RequestEnableDistricts,
-		RequestDisableDistricts,
 		RequestEnableCities,
+	},
+	"MULTIBRANCHDISABLEACCOUNTBLOCK": {
+		RequestDisableBranches,
+		RequestDisableMultiBranches,
+		RequestDisableRegions,
+		RequestDisableDistricts,
 		RequestDisableCities,
 	},
 	"ACCOUNTVALIDATION": {
@@ -727,12 +766,15 @@ var RequestActionGroups = map[string][]RequestAction{
 	"PASSWORDRULE": {
 		RequestUpdatePasswordRule,
 	},
-	"VAULTCATEGORY": {
-		RequestCreateVaultGroupCategory,
-		RequestUpdateVaultGroupCategory,
-		RequestDeleteVaultGroupCategory,
-		RequestEnableVaultGroupCategory,
-		RequestDisAbleVaultGroupCategory,
+	"VAULTCATEGORIES": {
+		RequestCreateVaultCategory,
+		RequestUpdateVaultCategory,
+		RequestDeleteVaultCategory,
+		RequestEnableVaultCategory,
+		RequestDisAbleVaultCategory,
+	},
+	"VAULTEMERGENCYDEADLOCKREQUEST": {
+		RequestUnlockDeadlock,
 	},
 
 	// Legacy/operational modules (kept as requested)
@@ -741,6 +783,10 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateService,
 		RequestEnableService,
 		RequestDisableService,
+		RequestCreateServiceList,
+		RequestUpdateServiceList,
+		RequestEnableServiceList,
+		RequestDisableServiceList,
 	},
 	"USSDMERCHANT": {
 		RequestCreateUssdMerchant,
@@ -760,6 +806,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateAmountBasedAuth,
 		RequestUpdateAmountBasedAuth,
 		RequestDeleteAmountBasedAuth,
+		RequestResetAmountBasedAuth,
 		RequestAuthTier,
 	},
 	"USER": {
@@ -786,6 +833,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateDepartment,
 		RequestUpdateDepartment,
 		RequestEnableDisableDepartment,
+		RequestDeleteDepartment,
 	},
 	"SERVICEFEE": {
 		RequestCreateServiceFee,
@@ -989,13 +1037,6 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateDonationCompany,
 		RequestEnableDonationCompany,
 		RequestDisableDonationCompany,
-	},
-	"VAULTGROUPCATEGORY": {
-		RequestCreateVaultGroupCategory,
-		RequestUpdateVaultGroupCategory,
-		RequestDeleteVaultGroupCategory,
-		RequestEnableVaultGroupCategory,
-		RequestDisAbleVaultGroupCategory,
 	},
 	"KYCVERIFIER": {
 		RequestUpdateKYCVerifier,

@@ -24,6 +24,15 @@ import (
 
 type PaginatedTopupResponse types.PaginatedResponse[[]*model.Topup]
 
+// TopupRequestForm mirrors topupDto.TopupRequest for Swagger formData only (topupDto.TopupRequest has *multipart.FileHeader which swag cannot parse).
+type TopupRequestForm struct {
+	Name  string `form:"name" json:"name"`
+	Code  string `form:"code" json:"code"`
+	Self  bool   `form:"self" json:"self"`
+	Other bool   `form:"other" json:"other"`
+	Agent bool   `form:"agent" json:"agent"`
+}
+
 type topupAdapter struct {
 	topupApp service.TopupService
 	logger   utils.Logger
@@ -43,8 +52,8 @@ func InitTopupAdapter(topupApp service.TopupService, logger utils.Logger) topupI
 //	@Tags			Topup
 //	@Accept			multipart/form-data
 //	@Produce		json
-//	@Param			data	formData	topup.TopupRequest						false	"Topup update data"
-//	@Param			avatar	formData	file									fale	"Avatar image file"
+//	@Param			data	formData	topup.TopupRequestForm	false	"Topup form data (see topupDto.TopupRequest)"
+//	@Param			avatar	formData	file					false	"Avatar image file"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Topup creation request sent successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -53,29 +62,30 @@ func InitTopupAdapter(topupApp service.TopupService, logger utils.Logger) topupI
 func (a *topupAdapter) CreateTopup(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "topup", "topupAdapter", "CreateTopup")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
-	a.logger.Infof("called the create topup handler: %s", "create_method")
+	log.Infof("[TopupH][Create] called")
 
 	var req topupDto.TopupRequest
 	req, err := topupcore.ParseTopupRequestFromMultipartForm(r, true)
 	if err != nil {
 		span.AddEvent("Failed to parse multipart form", trace.WithAttributes(attribute.String("error", err.Error())))
-		a.logger.Errorf("error fetching topup create request data")
+		log.Errorf("[TopupH][Create] parse form err")
 	}
-	a.logger.Infof("this is the topup request%+v\n", req)
+	log.Infof("[TopupH] req: %+v", req)
 
 	if err := req.AggregatedValidate(true); err != nil {
 		span.AddEvent("Validation error", trace.WithAttributes(attribute.String("error", err.Error())))
-		a.logger.Errorf("topup request validation failed: %v", err)
+		log.Errorf("[TopupH] validate err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if err := a.topupApp.CreateTopup(ctx, req); err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
-		a.logger.Errorf("failed to create topup: %v", err)
+		log.Errorf("[TopupH][Create] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -85,7 +95,7 @@ func (a *topupAdapter) CreateTopup(w http.ResponseWriter, r *http.Request) {
 	} else {
 
 		span.AddEvent("Topup creation request submitted")
-		a.logger.Infof("topup creation request submitted successfully")
+		log.Infof("[TopupH][Create] request submitted")
 		localization.SendSuccessResponse(w, localization.SuccessTopupCreationRequestSent, nil)
 	}
 }
@@ -98,8 +108,8 @@ func (a *topupAdapter) CreateTopup(w http.ResponseWriter, r *http.Request) {
 //	@Accept			multipart/form-data
 //	@Produce		json
 //	@Param			id		path		string									true	"Topup ID"
-//	@Param			data	formData	topup.TopupRequest						false	"Topup update data"
-//	@Param			avatar	formData	file									fale	"Avatar image file"
+//	@Param			data	formData	topup.TopupRequestForm	false	"Topup form data (see topupDto.TopupRequest)"
+//	@Param			avatar	formData	file					false	"Avatar image file"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Topup update request sent successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -108,15 +118,16 @@ func (a *topupAdapter) CreateTopup(w http.ResponseWriter, r *http.Request) {
 func (a *topupAdapter) UpdateTopup(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "topup", "topupAdapter", "UpdateTopup")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id := chi.URLParam(r, "id")
-	a.logger.Infof("called the topup handler update for topup with id: %s", id)
+	log.Infof("[TopupH][Update] id: %s", id)
 
 	if id == "" {
 		span.AddEvent("Missing topup ID", trace.WithAttributes(attribute.String("error", "topup ID required")))
-		a.logger.Errorf("topup ID is required for update")
+		log.Errorf("[TopupH][Update] id required")
 		localization.SendErrorResponse(w, localization.ErrorTopupIDRequired, nil, nil)
 		return
 	}
@@ -124,29 +135,29 @@ func (a *topupAdapter) UpdateTopup(w http.ResponseWriter, r *http.Request) {
 	req, err := topupcore.ParseTopupRequestFromMultipartForm(r, false)
 	if err != nil {
 		span.AddEvent("Failed to parse multipart form", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
-		a.logger.Errorf("failed to parse topup update request: %v", err)
+		log.Errorf("[TopupH][Update] parse form err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	a.logger.Infof("this is the topup request%+v\n", req)
+	log.Infof("[TopupH] req: %+v", req)
 
 	if err := req.AggregatedValidate(false); err != nil {
 		span.AddEvent("Validation error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
-		a.logger.Errorf("topup request validation failed: %v", err)
+		log.Errorf("[TopupH] validate err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if req.IsEmpty() {
 		span.AddEvent("Empty payload", trace.WithAttributes(attribute.String("id", id)))
-		a.logger.Warnf("no data provided for topup update, topup ID: %s", id)
+		log.Warnf("[TopupH][Update] empty payload id: %s", id)
 		localization.SendErrorResponse(w, localization.ErrorTopupUpdateEmptyPayload, nil, nil)
 		return
 	}
 
 	if err := a.topupApp.UpdateTopup(ctx, id, req); err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
-		a.logger.Errorf("failed to update topup (ID: %s): %v", id, err)
+		log.Errorf("[TopupH][Update] svc err id: %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -154,7 +165,7 @@ func (a *topupAdapter) UpdateTopup(w http.ResponseWriter, r *http.Request) {
 		localization.SendSuccessResponse(w, localization.SuccessTopupUpdatedSP, nil)
 	} else {
 		span.AddEvent("Topup update request submitted", trace.WithAttributes(attribute.String("id", id)))
-		a.logger.Infof("topup update request submitted successfully, topup ID: %s", id)
+		log.Infof("[TopupH][Update] request submitted id: %s", id)
 		localization.SendSuccessResponse(w, localization.SuccessTopupUpdateRequestSent, nil)
 
 	}
@@ -177,11 +188,12 @@ func (a *topupAdapter) UpdateTopup(w http.ResponseWriter, r *http.Request) {
 func (a *topupAdapter) DeleteTopup(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "topup", "topupAdapter", "DeleteTopup")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id := chi.URLParam(r, "id")
-	a.logger.Infof("called the topup handler delete for topup with id: %s", id)
+	log.Infof("[TopupH][Delete] id: %s", id)
 
 	if id == "" {
 		span.AddEvent("Missing topup ID", trace.WithAttributes(attribute.String("error", "topup ID required")))
@@ -220,11 +232,12 @@ func (a *topupAdapter) DeleteTopup(w http.ResponseWriter, r *http.Request) {
 func (a *topupAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "topup", "topupAdapter", "Enable")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id := chi.URLParam(r, "id")
-	a.logger.Infof("called the topup handler enable for topup with id: %s", id)
+	log.Infof("[TopupH][Enable] id: %s", id)
 
 	if id == "" {
 		span.AddEvent("Missing topup ID", trace.WithAttributes(attribute.String("error", "topup ID required")))
@@ -262,11 +275,12 @@ func (a *topupAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 func (a *topupAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "topup", "topupAdapter", "Disable")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id := chi.URLParam(r, "id")
-	a.logger.Infof("called the topup handler disable for topup with id: %s", id)
+	log.Infof("[TopupH][Disable] id: %s", id)
 
 	if id == "" {
 		span.AddEvent("Missing topup ID", trace.WithAttributes(attribute.String("error", "topup ID required")))
@@ -304,9 +318,10 @@ func (a *topupAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 func (a *topupAdapter) GetTopup(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "topup", "topupAdapter", "GetTopup")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 
 	id := chi.URLParam(r, "id")
-	a.logger.Infof("called the fetch topup handler  for topup with id: %s", id)
+	log.Infof("[TopupH][GetByID] id: %s", id)
 
 	if id == "" {
 		span.AddEvent("Missing topup ID", trace.WithAttributes(attribute.String("error", "topup ID required")))
@@ -342,6 +357,7 @@ func (a *topupAdapter) GetTopup(w http.ResponseWriter, r *http.Request) {
 func (a *topupAdapter) GetAllTopup(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "topup", "topupAdapter", "GetAllTopup")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -357,17 +373,17 @@ func (a *topupAdapter) GetAllTopup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.logger.Infof("fetching topups with filter: %+v", filter)
+	log.Infof("[TopupH][GetAll] filter: %+v", filter)
 
 	list, err := a.topupApp.GetAllTopup(ctx, *filterParams)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
-		a.logger.Errorf("failed to fetch topups: %v", err)
+		log.Errorf("[TopupH][GetAll] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	span.AddEvent("Topups retrieved", trace.WithAttributes(attribute.Int("count", len(list.Data))))
-	a.logger.Infof("topups fetched successfully")
+	log.Infof("[TopupH][GetAll] ok")
 	localization.SendSuccessResponse(w, localization.SuccessTopupsRetrieved, list)
 }

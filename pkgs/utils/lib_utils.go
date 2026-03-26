@@ -5,6 +5,8 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"context"
+	"crypto/rand"
+	"encoding/base32"
 	"errors"
 	"fmt"
 	"net/http"
@@ -13,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -116,6 +119,7 @@ func ExtractUserContext(r *http.Request) types.UserContext {
 		UserCode:     get("user_code"),
 		UserID:       get("user_id"),
 		FullName:     get("full_name"),
+		UserName:     get("username"),
 		PhoneNumber:  get("phone_number"),
 		Department:   get("department"),
 		UserRole:     get("user_role"),
@@ -133,6 +137,7 @@ func ExtractUserFromContext(ctx context.Context) types.UserContext {
 		UserCode:    get("user_code"),
 		UserID:      get("user_id"),
 		FullName:    get("full_name"),
+		UserName:    get("username"),
 		PhoneNumber: get("phone_number"),
 		Department:  get("department"),
 		UserRole:    get("user_role"),
@@ -331,13 +336,17 @@ func StringToObjectID(id string) (bson.ObjectID, bool) {
 	return objID, true
 }
 
-// GenerateActionCode generates a unique action code of length 20 with prefix "CBE_"
+// GenerateActionCode generates a unique action code in the format: SRM + YY + DDD + HHMMSS
+// Example: SRM26216_143025 (year 2026, 216th day, 14:30:25)
 func GenerateActionCode() string {
-	const prefix = "BANK_"
+	const prefix = "SRM"
 
-	timestamp := time.Now().Format("20060102150405")
+	now := time.Now()
+	year := now.Format("06")                        // last 2 digits of year
+	dayOfYear := fmt.Sprintf("%03d", now.YearDay()) // day of year zero-padded to 3 digits
+	timeStr := now.Format("150405.000000")          // HHMMSSmmm (milliseconds)
 
-	return prefix + timestamp
+	return prefix + year + dayOfYear + "_" + timeStr
 }
 
 func HandleMongoError(err error) (string, string) {
@@ -354,12 +363,54 @@ func HandleMongoError(err error) (string, string) {
 	return localization.ErrorUnexpectedError.Code, localization.ErrorUnexpectedError.Message
 }
 
+// func GenerateCPSUserCode() string {
+// 	// Numeric time part (last 9 digits of Unix nano for compactness)
+// 	now := time.Now().UnixNano()
+// 	timePart := fmt.Sprintf("%09d", now%1e9)
+
+// 	// Random part
+// 	const length = 6
+// 	bytes := make([]byte, length)
+// 	_, err := rand.Read(bytes)
+// 	if err != nil {
+// 		panic(err) // handle properly in production
+// 	}
+
+// 	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+// 	for i := range bytes {
+// 		bytes[i] = charset[int(bytes[i])%len(charset)]
+// 	}
+
+// 	randomPart := string(bytes)
+
+// 	return fmt.Sprintf("%s_%s", timePart, randomPart)
+// }
+
 func GenerateCPSUserCode() string {
-	const prefix = "BANKCPSUSER_"
+	// Time part (last 6 digits for shorter length)
+	now := time.Now().UnixNano()
+	timePart := fmt.Sprintf("%06d", now%1e6)
 
-	timestamp := time.Now().Format("20060102150405")
+	// Random part (4 chars instead of 6)
+	const length = 4
+	bytes := make([]byte, length)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		panic(err)
+	}
 
-	return prefix + timestamp
+	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	for i := range bytes {
+		bytes[i] = charset[int(bytes[i])%len(charset)]
+	}
+	randomPart := string(bytes)
+
+	// Short UUID (base32 encoded, trimmed)
+	u := uuid.New()
+	encoded := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(u[:])
+	shortUUID := strings.ToLower(encoded[:6]) // take first 6 chars
+
+	return fmt.Sprintf("%s_%s_%s", timePart, randomPart, shortUUID)
 }
 func GenerateBPSUserCode() string {
 	const prefix = "BANKBPSUSER_"

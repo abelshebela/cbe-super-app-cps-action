@@ -20,8 +20,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -125,7 +125,7 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 
 	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService)
 	if err != nil {
-		d.logger.Errorf("Account number validation failed: %v", err)
+		d.logger.Errorf("[DonCompSvc][Create] account validation err: %v", err)
 		span.AddEvent("Account number validation failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("account_number", donationCompany.AccountNumber),
@@ -161,7 +161,7 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 	return nil
 }
 
-func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, donationCompany dto.DonationCompanyRequest) (*model.DonationCompany, error) {
+func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, donationCompany dto.DonationCompanyRequest) (*donation_model.DonationCompany, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateDonationCompany", "DonationCompany", "UpdateDonationCompany")
 	defer span.End()
 
@@ -256,7 +256,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 	defer span.End()
 
 	if action.ActionStatus != constants.Approved {
-		d.logger.Errorf("Tried to authorize service action without cps action approval")
+		d.logger.Errorf("[DonCompSvc][Authorize] invalid status")
 		span.AddEvent("CPS action status invalid", trace.WithAttributes(
 			attribute.String("error", localization.ErrorCPSActionStatusInvalid.Code),
 			attribute.String("unique_id", action.UniqueId),
@@ -264,7 +264,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
 
-	donationCompoany, err := local_util.JsonUnmarshal[model.DonationCompany](action.CurrentAction)
+	donationCompoany, err := local_util.JsonUnmarshal[donation_model.DonationCompany](action.CurrentAction)
 	if err != nil {
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -277,7 +277,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 	case string(constants.RequestCreateDonationCompany):
 		err := d.DonationCompanyRepo.Create(ctx, donationCompoany)
 		if err != nil {
-			d.logger.Errorf("Failed to create donation company: %v", err)
+			d.logger.Errorf("[DonCompSvc][Authorize] create err: %v", err)
 			span.AddEvent("Failed to create donation company", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -287,7 +287,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 	case string(constants.RequestUpdateDonationCompany):
 		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
 		if err != nil {
-			d.logger.Errorf("Failed to update donation company: %v", err)
+			d.logger.Errorf("[DonCompSvc][Authorize] update err: %v", err)
 			span.AddEvent("Failed to update donation company", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -298,7 +298,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 
 		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
 		if err != nil {
-			d.logger.Errorf("Failed to update donation company: %v", err)
+			d.logger.Errorf("[DonCompSvc][Authorize] enable err: %v", err)
 			span.AddEvent("Failed to enable donation company", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -306,10 +306,10 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 			return nil, err
 		}
 	case string(constants.RequestDisableDonationCompany):
-
+		// 1. Persist the company disable via CPS.
 		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
 		if err != nil {
-			d.logger.Errorf("Failed to update donation company: %v", err)
+			d.logger.Errorf("[DonCompSvc][Authorize] disable err: %v", err)
 			span.AddEvent("Failed to disable donation company", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -317,48 +317,18 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 			return nil, err
 		}
 
-		// Disable all donation related with this donating company
-		obj, err := bson.ObjectIDFromHex(action.UniqueId)
-		if err != nil {
-			span.AddEvent("Failed to parse ObjectID", trace.WithAttributes(
-				attribute.String("error", err.Error()),
+		// 2. Atomically disable all enabled donations that belong to this company.
+		if err := d.DonationRepo.DisableAllByCompany(ctx, action.UniqueId); err != nil {
+			d.logger.Errorf("[DonCompSvc][Authorize] failed to disable company donations: %v", err)
+			span.AddEvent("Failed to bulk-disable donations for company", trace.WithAttributes(
+				attribute.String("error", localization.ErrorDonationUpdateFailed.Code),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		donations, err := d.DonationRepo.FindAllWithPagination(ctx, types.Filter{
-			Filters: map[string]interface{}{"company_id": obj}})
-		if err != nil {
-			if err.Error() == "mongo: no documents in result" {
-				return nil, nil
-			}
-			span.AddEvent("Failed to find donations", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", action.UniqueId),
-			))
-			return nil, err
-		}
-
-		if donations.Data != nil {
-			for _, donation := range donations.Data {
-				donationModel := core.ConvertDonationListResponseToModel(&donation)
-				donationModel.Enabled = false
-				donationModel.LastModifiedAt = time.Now()
-
-				err := d.DonationRepo.Update(ctx, donation.ID, donationModel)
-				if err != nil {
-					span.AddEvent("Failed to update donation", trace.WithAttributes(
-						attribute.String("error", localization.ErrorFailedToUpdateDonation.Code),
-						attribute.String("unique_id", action.UniqueId),
-						attribute.String("donation_id", donation.ID),
-					))
-					return nil, errors.New(localization.ErrorFailedToUpdateDonation.Code)
-				}
-			}
+			return nil, errors.New(localization.ErrorDonationUpdateFailed.Code)
 		}
 
 	default:
-		d.logger.Errorf("Unsupported action requested: %s", action.RequestAction)
+		d.logger.Errorf("[DonCompSvc][Authorize] unsupported action: %s", action.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(action.RequestAction)),
@@ -366,7 +336,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
-	d.logger.Infof("Service action authorization completed: %s", action.RequestAction)
+	d.logger.Infof("[DonCompSvc][Authorize] completed: %s", action.RequestAction)
 	return action, nil
 }
 
@@ -378,7 +348,7 @@ func (d *DonationCompany) AccountLookup(ctx context.Context, accountNumber strin
 
 	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, accountNumber, d.accountLookupService)
 	if err != nil {
-		d.logger.Errorf("Account number validation failed: %v", err)
+		d.logger.Errorf("[DonCompSvc][AccountLookup] validation err: %v", err)
 		span.AddEvent("Account number validation failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("account_number", accountNumber),

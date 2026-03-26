@@ -20,6 +20,7 @@ import (
 
 	"log"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-chi/chi/v5"
 	"github.com/hugokessem/coreio/core"
 )
@@ -37,12 +38,13 @@ func Init(ctx context.Context) {
 		Password: cfg.CbeCorePassword,
 		Url:      cfg.CbeCoreUrl,
 	}
+	coreInterface := core.NewCBECoreAPI(coreConfig)
 
 	// Initialize OpenTelemetry Tracing using platform/telemetry package
 	logger.Infof("Initializing OpenTelemetry Tracing...")
 
 	// Build OTEL config from a dedicated helper that reads env vars and provides defaults.
-	otelCfg := NewOtelConfig()
+	otelCfg := NewOtelConfig(*cfg)
 
 	if otelCfg.Enabled {
 		logger.Infof("Checking OTLP endpoint connectivity at %s...", otelCfg.OTLPEndpoint)
@@ -86,9 +88,14 @@ func Init(ctx context.Context) {
 	minioClient := InitMinio(*cfg, logger) // 24G -23G= 1G
 	logger.Infof("Minio client initialized")
 
+	presignClient := s3.NewPresignClient(minioClient)
+
 	logger.Infof("initializing kafka")
-	notificationProducer, clientOrchestrationProducer := InitKafkaService(cfg, logger) //27G - 24G= 3G
+	notificationProducer, clientOrchestrationProducer, accessListSegmentationProducer := InitKafkaService(cfg, logger) //27G - 24G= 3G
 	logger.Infof("kafka initialized")
+
+	// Expose orchestration producer to handler/middleware layer for BPS action publishing.
+	mid.InitClientOrchestrationProducer(clientOrchestrationProducer)
 
 	// Init shared kafka notification producer
 	sharedKafkaProducer, err := shared_producer.NewNotificationProducer(*cfg, logger)
@@ -97,9 +104,7 @@ func Init(ctx context.Context) {
 	}
 
 	logger.Infof("Initializing persistence...")
-	notificationApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
-	// merchantApi := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce/cps/merchant/"
-	// merchantXAPIKey := "0e404061ea76caf9536bc7a38369ca38520aac3c"
+	notificationApi := cfg.SMSBaseURL
 
 	redis := InitRedis(cfg, logger)
 	logger.Infof("Initializing redis...")
@@ -108,16 +113,23 @@ func Init(ctx context.Context) {
 
 	redisRepository := redisStorage.GetRedisRepository()
 
-	persistence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, notificationApi, *notificationProducer, sharedKafkaProducer, *clientOrchestrationProducer, redisRepository, cfg, logger)
+	// Initialize queue system (memory + Redis backends, dedup, metrics)
+	logger.Infof("Initializing queue system...")
+	queueInfra := InitQueueSystem(redis, logger)
+	queueInfra.Manager.Start(ctx, queueWorkers)
+	defer queueInfra.Manager.Stop()
+	logger.Infof("Queue system initialized and started")
+
+	persistence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreInterface, notificationApi, *notificationProducer, sharedKafkaProducer, *clientOrchestrationProducer, *accessListSegmentationProducer, redisRepository, cfg, logger)
 	logger.Infof("Persistence initialized")
 
 	// Initialize CPS Action Guard (role_id + action_name authorization with TTL cache)
-	mid.InitCPSActionGuard(persistence.CPSActionApproveIndexPersistence, 5*time.Minute, logger)
+	mid.InitCPSActionGuard(persistence.CPSActionApproveIndexPersistence, persistence.BPSActionApproveIndexPersistence, persistence.RolePersistence, 5*time.Minute, logger)
 	oracleDB := InitOracle(cfg.OracleConnectionString, logger)
 	logger.Infof("Oracle database initialized")
 
 	logger.Infof("Initializing Oracle DB client...")
-	OraclePersistence := InitOraclePersistence(oracleDB, logger)
+	OraclePersistence := InitOraclePersistence(oracleDB, cfg, *clientOrchestrationProducer, logger)
 	logger.Infof("Oracle DB client initialized")
 
 	logger.Infof("Initializing SMS service...")
@@ -140,7 +152,8 @@ func Init(ctx context.Context) {
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persistence, OraclePersistence, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService)
+
+	serviceLayer := InitServiceLayer(mongoClient, persistence, OraclePersistence, coreInterface, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService, clientOrchestrationProducer, presignClient, queueInfra.Manager)
 
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
@@ -149,7 +162,7 @@ func Init(ctx context.Context) {
 	}()
 
 	logger.Infof("initialize handler layer")
-	handlerLayer := InitHandler(serviceLayer, logger)
+	handlerLayer := InitHandler(serviceLayer, logger, queueInfra.Manager)
 
 	r := chi.NewRouter()
 	// InitRoute(ctx, r, handlerLayer, nil, logger, cfg)
@@ -161,7 +174,7 @@ func Init(ctx context.Context) {
 	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.Services, serviceLayer.Topup, logger)
 	srv := server.NewHTTPServer(cfg, otlr)
 
-	grpcServer, lis := server.StartGrpcServer(grpcHandlers, logger)
+	grpcServer, lis := server.StartGrpcServer(grpcHandlers, logger, cfg)
 
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {
@@ -179,4 +192,5 @@ func Init(ctx context.Context) {
 	logger.Infof("Shutdown signal received. Stopping servers...")
 	srv.HTTPServerStop(ctx, logger)
 	server.StopGrpcServer(grpcServer, logger)
+	// queue system stopped via deferred queueInfra.Manager.Stop()
 }

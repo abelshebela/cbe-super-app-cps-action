@@ -29,17 +29,17 @@ func NonEmptyString(s, fallback string) string {
 }
 
 func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (string, error) {
-	logger.Infof("Generating prefixed name", "prefix", prefix, "value", value)
+	logger.Infof("[WalletCore][GenPrefix] prefix: %s value: %s", prefix, value)
 
 	if prefix == "" || value == "" {
-		logger.Errorf("Invalid input for GeneratePrefixedName", "prefix", prefix, "value", value)
+		logger.Errorf("[WalletCore][GenPrefix] invalid input prefix: %s value: %s", prefix, value)
 		return "", fmt.Errorf("prefix and value must not be empty")
 	}
 
 	value = strings.ToUpper(strings.ReplaceAll(value, " ", "_"))
 	prefix = strings.ToUpper(strings.ReplaceAll(prefix, " ", "_"))
 	result := strings.Join([]string{prefix, value}, "-")
-	logger.Infof("Successfully generated prefixed name", "result", result)
+	logger.Infof("[WalletCore][GenPrefix] result: %s", result)
 	return result, nil
 
 }

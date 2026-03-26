@@ -1,10 +1,13 @@
 package action_role_repo
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
+	"errors"
+	"slices"
 	"time"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -28,28 +31,47 @@ func NewCPSActionApproveIndexRepository(client *mongo.Client, database string, c
 	}
 }
 
-func (r *CPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string, []string, []string, []string, error) {
+func (r *CPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string, []string, []string, []string, []string, error) {
 	r.logger.Infof("PopulateUserApproverAllocations: Populating approver allocations for RoleID: %s", role_id)
+	var viewerAllocations []string
 	var makerAllocations []string
 	var checkerAllocations []string
 	var auditorAllocations []string
 	var portalCard []string
 
-	cursor, err := r.collection.Find(ctx, bson.M{
-		"role_id": role_id,
-	})
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{
+			"role_id": role_id,
+		}}},
+		{{Key: "$lookup", Value: bson.M{
+			"from":         "cps_action_roles",
+			"localField":   "action_name",
+			"foreignField": "action_name",
+			"as":           "action_role_info",
+		}}},
+		{{Key: "$match", Value: bson.M{
+			"action_role_info": bson.M{
+				"$elemMatch": bson.M{"enabled": true},
+			},
+		}}},
+	}
+
+	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		r.logger.Errorf("PopulateUserApproverAllocations: Find failed: %v", err)
-		return nil, nil, nil, nil, err
+		r.logger.Errorf("PopulateUserApproverAllocations: Aggregate failed: %v", err)
+		return nil, nil, nil, nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 	var results []imodel.CPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
 		r.logger.Errorf("PopulateUserApproverAllocations: Cursor.All failed: %v", err)
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	for _, v := range results {
+		if v.ViewerIndex != nil {
+			viewerAllocations = append(viewerAllocations, v.ActionName)
+		}
 		if v.MakerIndex != nil {
 			makerAllocations = append(makerAllocations, v.ActionName)
 		}
@@ -59,10 +81,12 @@ func (r *CPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx co
 		if v.AuditorIndex != nil {
 			auditorAllocations = append(auditorAllocations, v.ActionName)
 		}
-		portalCard = append(portalCard, v.PortalCardName)
+		if !slices.Contains(portalCard, v.PortalCardName) {
+			portalCard = append(portalCard, v.PortalCardName)
+		}
 	}
-	r.logger.Infof("PopulateUserApproverAllocations: Found %d maker, %d checker, %d auditor allocations for RoleID: %s", len(makerAllocations), len(checkerAllocations), len(auditorAllocations), role_id)
-	return makerAllocations, checkerAllocations, auditorAllocations, portalCard, nil
+	r.logger.Infof("PopulateUserApproverAllocations: Found %d viewer, %d maker, %d checker, %d auditor allocations for RoleID: %s", len(viewerAllocations), len(makerAllocations), len(checkerAllocations), len(auditorAllocations), role_id)
+	return viewerAllocations, makerAllocations, checkerAllocations, auditorAllocations, portalCard, nil
 }
 func (r *CPSActionApproveIndexRepository) SaveIndices(ctx context.Context, indices []imodel.CPSActionApproveIndex) error {
 	r.logger.Infof("SaveIndices: Saving %d indices to DB: %s, Collection: %s", len(indices), r.collection.Database().Name(), r.collection.Name())
@@ -76,27 +100,30 @@ func (r *CPSActionApproveIndexRepository) SaveIndices(ctx context.Context, indic
 	_, err := r.collection.InsertMany(ctx, docs)
 	if err != nil {
 		r.logger.Errorf("SaveIndices: InsertMany failed: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	r.logger.Infof("SaveIndices: Successfully saved %d indices", len(indices))
 	return nil
 }
 
 func (r *CPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldActionName, portalCard string, newIndices []imodel.CPSActionApproveIndex, isVersionChanged bool) error {
-	r.logger.Infof("SyncIndices: Syncing %d indices for oldActionName: %s", len(newIndices), oldActionName)
+	r.logger.Infof("SyncIndices: Syncing %d indices for oldActionName: %s, isVersionChanged: %v", len(newIndices), oldActionName, isVersionChanged)
 
-	// if !isVersionChanged && len(newIndices) > 0 {
-	// 	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "version": newIndices[0].Version, "portal_card_name": portalCard}); err != nil {
-	// 		return err
-	// 	}
-	// } else {
-	// 	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "portal_card_name": portalCard}); err != nil {
-	// 		return err
+	// if !isVersionChanged {
+	// 	// Version unchanged: delete indices for the current version and re-insert
+	// 	if len(newIndices) > 0 {
+	// 		if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "version": newIndices[0].Version, "portal_card_name": portalCard}); err != nil {
+	// 			r.logger.Errorf("SyncIndices: DeleteMany (same version) failed: %v", err)
+	// 			return errors.New(localization.ErrorUnexpectedError.Code)
+	// 		}
 	// 	}
 	// }
+	// Version changed: old version indices are preserved for in-flight actions,
+	// only new version indices are inserted alongside them.
 
 	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "portal_card_name": portalCard}); err != nil {
-		return err
+		r.logger.Errorf("SyncIndices: DeleteMany (same version) failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	if err := r.SaveIndices(ctx, newIndices); err != nil {
 		return err
@@ -114,14 +141,14 @@ func (r *CPSActionApproveIndexRepository) FindMakerAllocationsByRoleID(ctx conte
 	})
 	if err != nil {
 		r.logger.Errorf("FindMakerAllocationsByRoleID: Find failed: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var results []imodel.CPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
 		r.logger.Errorf("FindMakerAllocationsByRoleID: Cursor.All failed: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	r.logger.Infof("FindMakerAllocationsByRoleID: Found %d maker allocations for RoleID: %s", len(results), roleID.Hex())
@@ -137,14 +164,14 @@ func (r *CPSActionApproveIndexRepository) FindCheckerAllocationsByRoleID(ctx con
 	})
 	if err != nil {
 		r.logger.Errorf("FindCheckerAllocationsByRoleID: Find failed: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var results []imodel.CPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
 		r.logger.Errorf("FindCheckerAllocationsByRoleID: Cursor.All failed: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	r.logger.Infof("FindCheckerAllocationsByRoleID: Found %d checker allocations for RoleID: %s", len(results), roleID.Hex())
@@ -160,14 +187,14 @@ func (r *CPSActionApproveIndexRepository) FindAuditorAllocationsByRoleID(ctx con
 	})
 	if err != nil {
 		r.logger.Errorf("FindAuditorAllocationsByRoleID: Find failed: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var results []imodel.CPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
 		r.logger.Errorf("FindAuditorAllocationsByRoleID: Cursor.All failed: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	r.logger.Infof("FindAuditorAllocationsByRoleID: Found %d auditor allocations for RoleID: %s", len(results), roleID.Hex())
@@ -258,7 +285,7 @@ func (r *CPSActionApproveIndexRepository) InsertMany(
 	_, err := r.collection.BulkWrite(ctx, models)
 	if err != nil {
 		r.logger.Errorf("InsertMany: BulkWrite failed: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	r.logger.Infof("InsertMany: Successfully processed indices for RoleCode: %s", roleCode)
@@ -332,7 +359,7 @@ func (r *CPSActionApproveIndexRepository) DeleteMany(
 	_, err := r.collection.BulkWrite(ctx, models)
 	if err != nil {
 		r.logger.Errorf("DeleteMany: BulkWrite failed: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	r.logger.Infof("DeleteMany: Successfully deleted indices for RoleCode: %s", roleCode)
@@ -404,7 +431,7 @@ func (r *CPSActionApproveIndexRepository) InsertAll(ctx context.Context, new mod
 	_, err := r.collection.InsertMany(ctx, docs)
 	if err != nil {
 		r.logger.Errorf("InsertAll: InsertMany failed: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	r.logger.Infof("InsertAll: Successfully inserted %d indices for ActionName: %s", len(indices), new.ActionName)
 	return nil
@@ -535,7 +562,7 @@ func (r *CPSActionApproveIndexRepository) DeleteAll(ctx context.Context, prev im
 	_, err := r.collection.BulkWrite(ctx, models)
 	if err != nil {
 		r.logger.Errorf("DeleteAll: BulkWrite failed: %v", err)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	r.logger.Infof("DeleteAll: Successfully deleted indices for ActionName: %s", prev.ActionName)
 	return nil

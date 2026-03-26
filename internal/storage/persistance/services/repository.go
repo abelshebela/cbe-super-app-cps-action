@@ -26,17 +26,27 @@ import (
 )
 
 type ServicesStorage struct {
+	cfg           *config.VaultConfig
 	dal           dal.MongoDal[model.Service, model.Service]
+	client        *mongo.Client
+	dbName        string
 	serviceDal    dal.MongoDal[model.ServiceList, model.ServiceList]
+	accessDal     dal.MongoDal[model.APPAccessList, model.APPAccessList]
 	kafkaProducer kafka.ClientOrchestrationProducer
+	redis         storage.RedisRepository
 	logger        utils.Logger
 }
 
-func NewServicesRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.ServicesRepository {
+func NewServicesRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collection string, kafkaProducer kafka.ClientOrchestrationProducer, redis storage.RedisRepository, logger utils.Logger) storage.ServicesRepository {
 	return &ServicesStorage{
+		cfg:           cfg,
+		client:        client,
+		dbName:        dbName,
 		dal:           dal.NewMongoDal[model.Service, model.Service](client, cfg, dbName, collection),
 		serviceDal:    dal.NewMongoDal[model.ServiceList, model.ServiceList](client, cfg, dbName, "service_list"),
+		accessDal:     dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, cfg, dbName, "access_list"),
 		kafkaProducer: kafkaProducer,
+		redis:         redis,
 		logger:        logger,
 	}
 }
@@ -53,7 +63,7 @@ func (s *ServicesStorage) Create(ctx context.Context, service *model.Service) er
 
 	createService, err := s.dal.InsertOne(ctx, *service)
 	if err != nil {
-		s.logger.Errorf("insert service failed: %v", err)
+		s.logger.Errorf("[ServicesStorage][Create] failed to insert service: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	s.kafkaProducer.PublishMessage(ctx, createService, string(constants.ClientOrchestrationServicesTopic), string(constants.ClientOrchestrationServicesTopic), "new service created")
@@ -63,6 +73,7 @@ func (s *ServicesStorage) Create(ctx context.Context, service *model.Service) er
 func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.Service) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		s.logger.Errorf("[ServicesStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -73,7 +84,8 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 
 	prev, err := s.dal.FindOne(ctx, bson.M{"_id": objID}, bson.M{})
 	if err != nil {
-		return err
+		s.logger.Errorf("[ServicesStorage][Update] failed to find previous service: %v", err)
+		return local_util.HandleDBError(err)
 	}
 
 	update := core.MapToServiceUpdate(*service, *prev)
@@ -84,20 +96,22 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 
 	updatedService, err := s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		s.logger.Errorf("update service failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		s.logger.Errorf("[ServicesStorage][Update] failed to update service: %v", err)
+		return local_util.HandleDBError(err)
 	}
 
 	s.kafkaProducer.PublishMessage(
 		ctx,
 		updatedService,
 		string(constants.ClientOrchestrationServicesTopic),
-		"cps-service-updated",
+		s.cfg.CPSServiceUpdate,
 		"service authorized and updated",
 	)
+
+	err = s.redis.Set(ctx, s.cfg.CPSServiceUpdate, updatedService, -1)
+	if err != nil {
+		s.logger.Errorf("[ServivcesStorage][Update] failed to set services updated data to redis: %v", err)
+	}
 
 	return nil
 }
@@ -105,17 +119,15 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 func (s *ServicesStorage) Delete(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		s.logger.Errorf("[ServicesStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	update := bson.M{"is_deleted": true, "deleted_at": time.Now()}
 	_, err = s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		s.logger.Errorf("delete service failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		s.logger.Errorf("[ServicesStorage][Delete] failed to delete service: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -123,17 +135,15 @@ func (s *ServicesStorage) Delete(ctx context.Context, id string) error {
 func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		s.logger.Errorf("[ServicesStorage][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	update := bson.M{"enabled": enable, "last_modified_at": time.Now()}
 	updatedService, err := s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		s.logger.Errorf("enable/disable service failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		s.logger.Errorf("[ServicesStorage][EnableOrDisable] failed to enable/disable service: %v", err)
+		return local_util.HandleDBError(err)
 	}
 
 	s.kafkaProducer.PublishMessage(ctx, updatedService, string(constants.ClientOrchestrationServicesTopic), string(constants.ClientOrchestrationServicesTopic), "service enabled/disabled")
@@ -144,16 +154,14 @@ func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable
 func (s *ServicesStorage) FindByID(ctx context.Context, id string) (*model.Service, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		s.logger.Errorf("[ServicesStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	doc, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		s.logger.Errorf("find service by id failed: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		s.logger.Errorf("[ServicesStorage][FindByID] failed to find service: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	return doc, nil
 }
@@ -193,12 +201,13 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	items, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		s.logger.Errorf("failed to get all services: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		s.logger.Errorf("[ServicesStorage][FindAllWithPagination] failed to fetch services: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		s.logger.Errorf("[ServicesStorage][FindAllWithPagination] failed to count services: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	return &types.PaginatedResponse[[]model.Service]{
@@ -208,53 +217,226 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 }
 
 func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error) {
-	allowed := []string{"service_name", "service_code", "service_type", "enabled"}
+	allowed := []string{"service_name", "service_key", "is_enabled"}
+
+	projection := bson.M{}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["$or"] = []bson.M{{"service_name": q}, {"service_code": q}, {"service_type": q}}
+		filter["$or"] = []bson.M{{"service_name": q}, {"service_key": q}, {"is_enabled": q}}
 	}
 
-	// if count < limit {
-	// 	limit = count
-	// }
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: filter}},
+	}
 
-	items, err := s.serviceDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	if len(projection) > 0 {
+		pipeline = append(pipeline, bson.D{{Key: "$project", Value: projection}})
+	}
+
+	pipeline = append(
+		pipeline,
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+		bson.D{{Key: "$skip", Value: skip}},
+		bson.D{{Key: "$limit", Value: limit}},
+	)
+
+	collection := s.client.Database(s.dbName).Collection("service_list")
+	cur, err := collection.Aggregate(ctx, pipeline)
 	if err != nil {
+		s.logger.Errorf("[GetAllServiceLists][FindAllWithPagination] failed to aggregate service lists: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	total, err := s.dal.TotalCount(ctx, filter)
-	if err != nil {
+	defer cur.Close(ctx)
+
+	var data []model.ServiceList
+	if err := cur.All(ctx, &data); err != nil {
+		s.logger.Errorf("[ServiceList][FindAllWithPagination] failed to decode service lists: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	// count, err := s.dal.TotalCount(ctx, bson.M{})
-	// if err != nil {
-	// 	return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	// }
+	total, err := s.serviceDal.TotalCount(ctx, filter)
+	if err != nil {
+		s.logger.Errorf("[ServicesStorage][FindAllServiceListWithPagination] failed to count service list: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	return &types.PaginatedResponse[[]model.ServiceList]{
-		Data: items,
+		Data: data,
 		Meta: meta,
 	}, nil
 }
 
 func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error) {
-	filter := bson.M{
-		"$or": []bson.M{
-			{"service_key": serviceKey},
-			{"service_code": serviceCode},
-			{"service_name": bson.M{"$regex": serviceName, "$options": "i"}},
-			{"service_list.service_key": serviceKey},
-			{"service_list.service_name": bson.M{"$regex": serviceName, "$options": "i"}},
-		},
+	// Build an OR filter with exact matches only.
+	// service_key, service_code and service_name must match exactly (no regex / partial match).
+	orConditions := make([]bson.M, 0, 3)
+	if serviceKey != "" {
+		orConditions = append(orConditions, bson.M{"service_key": serviceKey})
+	}
+	if serviceCode != "" {
+		orConditions = append(orConditions, bson.M{"service_code": serviceCode})
+	}
+	if serviceName != "" {
+		orConditions = append(orConditions, bson.M{"service_name": serviceName})
 	}
 
-	count, err := s.dal.TotalCount(ctx, filter)
+	// If nothing is provided, there is nothing to check.
+	if len(orConditions) == 0 {
+		return false, nil
+	}
+
+	filter := bson.M{"$or": orConditions}
+
+	// Fetch a single document instead of counting.
+	_, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		s.logger.Errorf("failed to check service existence in services: %v", err)
-		return false, errors.New(localization.ErrorUnexpectedError.Code)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return false, nil
+		}
+		s.logger.Errorf("[ServicesStorage][CheckServiceExistence] failed to check service existence: %v", err)
+		return false, local_util.HandleDBError(err)
 	}
 
-	return count > 0, nil
+	return true, nil
+}
+
+func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*model.ServiceList, error) {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		s.logger.Errorf("[UpdateServiceList][Update] invalid object id: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+	filter := bson.M{"_id": objID}
+	doc, err := s.serviceDal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New(localization.ErrorServiceListNotFound.Code)
+		}
+		s.logger.Errorf("[ServicesStorage][FindServiceListByID] failed to find service list: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return doc, nil
+}
+
+func (s *ServicesStorage) CreateServiceList(ctx context.Context, serviceList *model.ServiceList) error {
+	serviceList.ID = bson.NewObjectID()
+	serviceList.CreatedAt = time.Now()
+	serviceList.LastModifiedAt = time.Now()
+	serviceList.IsEnabled = true
+
+	_, err := s.serviceDal.InsertOne(ctx, *serviceList)
+	if err != nil {
+		s.logger.Errorf("[ServicesStorage][CreateServiceList] failed to insert service list: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	_, err = s.accessDal.InsertOne(ctx, model.APPAccessList{Key: serviceList.ServiceKey, AccessListName: serviceList.ServiceName})
+	if err != nil {
+		s.logger.Errorf("[ServicesStorage][CreateServiceList] failed to insert access list: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// s.kafkaProducer.PublishMessage(ctx, createServiceList, string(constants.ClientOrchestrationServicesTopic), string(constants.ClientOrchestrationServicesTopic), "new service list created")
+	return nil
+
+}
+
+func (s *ServicesStorage) FindServiceListByNameOrKey(ctx context.Context, name, key string) (*model.ServiceList, error) {
+	var condition []bson.M
+
+	if name != "" {
+		condition = append(condition, bson.M{"service_name": bson.M{"$regex": name, "$options": "i"}})
+	}
+	if key != "" {
+		condition = append(condition, bson.M{"service_key": key})
+	}
+
+	if len(condition) == 0 {
+		return nil, errors.New(localization.ErrorNoDataProvided.Code)
+	}
+
+	filter := bson.M{"$or": condition}
+
+	doc, err := s.serviceDal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New(localization.ErrorServiceListNotFound.Code)
+		}
+		s.logger.Errorf("[ServicesStorage][FindServiceListByNameOrKey] failed to find service list: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	return doc, nil
+}
+
+func (s *ServicesStorage) UpdateServiceList(ctx context.Context, id, serviceKey string, serviceList *model.ServiceList) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		s.logger.Errorf("[UpdateServiceList][Update] invalid object id: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+	filter := bson.M{"_id": objID}
+
+	serviceListUpdate := bson.M{}
+	if serviceList.ServiceName != "" {
+		serviceListUpdate["service_name"] = serviceList.ServiceName
+	}
+	if serviceList.ServiceKey != "" {
+		serviceListUpdate["service_key"] = serviceList.ServiceKey
+	}
+	if len(serviceListUpdate) == 0 {
+		return errors.New(localization.ErrorNoDataProvided.Code)
+	}
+
+	// update service_list collection
+	_, err = s.serviceDal.UpdateOne(ctx, filter, serviceListUpdate)
+	if err != nil {
+		s.logger.Errorf("[UpdateServiceList] failed to update service lists: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// update access_list
+	accessListUpdate := bson.M{}
+	if serviceList.ServiceName != "" {
+		accessListUpdate["access_list_name"] = serviceList.ServiceName
+	}
+	if serviceList.ServiceKey != "" {
+		accessListUpdate["key"] = serviceList.ServiceKey
+	}
+	if len(accessListUpdate) > 0 {
+		accessListUpdate["last_modified_at"] = time.Now()
+		_, err = s.accessDal.UpdateOne(ctx, bson.M{"key": serviceKey}, accessListUpdate)
+		if err != nil {
+			s.logger.Errorf("[UpdateServiceList] failed to update access lists: %v", err)
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+	}
+
+	return nil
+}
+
+func (s *ServicesStorage) EnableOrDisableServiceList(ctx context.Context, id, serviceKey string, enable bool) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		s.logger.Errorf("[UpdateServiceList][Update] invalid object id: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+	filter := bson.M{"_id": objID}
+	update := bson.M{"is_enabled": enable}
+	_, err = s.serviceDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		s.logger.Errorf("[EnableOrDisableServiceList] failed to update service list: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// Update access_list too
+	accessListUpdate := bson.M{"enabled": enable}
+	_, err = s.accessDal.UpdateOne(ctx, bson.M{"key": serviceKey}, accessListUpdate)
+	if err != nil {
+		s.logger.Errorf("[EnableOrDisableServiceList] failed to update access list: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
 }

@@ -44,6 +44,7 @@ func InitNotificationHandler(svc service.NotificationService, logger utils.Logge
 func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createNotification", "handler", "notification")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -68,7 +69,7 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 	_, err = h.service.CreateNotification(ctx, domainReq)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[CreateNotification] service error: %v", err)
+		log.Errorf("[CreateNotification] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -76,7 +77,7 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessNotificationCreatedSP, nil)
 	} else {
-		h.logger.Infof("[CreateNotification] request sent successfully by user: %s", maker.UserID)
+		log.Infof("[CreateNotification] request sent successfully by user: %s", maker.UserID)
 		localization.SendSuccessResponse(w, localization.SuccessNotificationCreationRequestSubmitted, nil)
 	}
 }
@@ -99,6 +100,7 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateNotification", "handler", "notification")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -123,15 +125,15 @@ func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
 	_, err = h.service.UpdateNotification(ctx, id, domainReq)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[UpdateNotification] service error: %v", err)
+		log.Errorf("[UpdateNotification] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	if md.IsMakerOnly {
-		h.logger.Infof("[UpdateNotification] Updated successfully for id: %s", id)
+		log.Infof("[UpdateNotification] Updated successfully for id: %s", id)
 		localization.SendSuccessResponse(w, localization.SuccessNotificationUpdatedSP, nil)
 	} else {
-		h.logger.Infof("[UpdateNotification] request sent successfully for id: %s", id)
+		log.Infof("[UpdateNotification] request sent successfully for id: %s", id)
 		localization.SendSuccessResponse(w, localization.SuccessNotificationUpdateRequestSubmitted, nil)
 	}
 }
@@ -153,6 +155,7 @@ func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
 func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteNotification", "handler", "notification")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -170,14 +173,14 @@ func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("notification.id", id))
 	if err := h.service.DeleteNotification(ctx, id); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[DeleteNotification] service error: %v", err)
+		log.Errorf("[DeleteNotification] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessNotificationDeletedSP, nil)
 	} else {
-		h.logger.Infof("[DeleteNotification] request sent successfully for id: %s", id)
+		log.Infof("[DeleteNotification] request sent successfully for id: %s", id)
 		localization.SendSuccessResponse(w, localization.SuccessNotificationDeleteRequestSubmitted, nil)
 	}
 }
@@ -199,6 +202,7 @@ func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableNotification", "handler", "notification")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
@@ -217,14 +221,14 @@ func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("notification.id", id))
 	if err := h.service.EnableNotification(ctx, id); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[EnableNotification] service error: %v", err)
+		log.Errorf("[EnableNotification] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessNotificationEnabledSP, nil)
 	} else {
-		h.logger.Infof("[EnableNotification] request sent successfully for id: %s", id)
+		log.Infof("[EnableNotification] request sent successfully for id: %s", id)
 		localization.SendSuccessResponse(w, localization.SuccessNotificationEnableRequestSubmitted, nil)
 	}
 
@@ -246,6 +250,7 @@ func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
 //	@Router			/notifications/disable/{id} [patch]
 func (h *handler) DisableNotification(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableNotification", "handler", "notification")
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
@@ -265,14 +270,14 @@ func (h *handler) DisableNotification(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("notification.id", id))
 	if err := h.service.DisableNotification(ctx, id); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[DisableNotification] service error: %v", err)
+		log.Errorf("[DisableNotification] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessNotificationDisabledSP, nil)
 	} else {
-		h.logger.Infof("[DisableNotification] request sent successfully for id: %s", id)
+		log.Infof("[DisableNotification] request sent successfully for id: %s", id)
 		localization.SendSuccessResponse(w, localization.SuccessNotificationDisableRequestSubmitted, nil)
 	}
 
@@ -295,6 +300,7 @@ func (h *handler) DisableNotification(w http.ResponseWriter, r *http.Request) {
 func (h *handler) FetchNotificationByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "fetchNotificationById", "handler", "notification")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
 		span.RecordError(err)
@@ -305,12 +311,12 @@ func (h *handler) FetchNotificationByID(w http.ResponseWriter, r *http.Request) 
 	data, err := h.service.FetchNotificationByID(ctx, id)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[FetchNotificationByID] service error: %v", err)
+		log.Errorf("[FetchNotificationByID] service error: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorNotificationFetchFailed, nil, nil)
 		return
 	}
 
-	h.logger.Infof("[FetchNotificationByID] notification retrieved successfully for id: %s", id)
+	log.Infof("[FetchNotificationByID] notification retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNotificationRetrieved, data)
 }
 
@@ -338,6 +344,7 @@ func (h *handler) FetchNotificationByID(w http.ResponseWriter, r *http.Request) 
 func (h *handler) FetchNotifications(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "fetchNotifications", "handler", "notification")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	// Assuming a utility to parse query into types.Filter exists; pass empty for now
 	filterParams := common_utils.ExtractFilterParams(r)
 
@@ -357,11 +364,11 @@ func (h *handler) FetchNotifications(w http.ResponseWriter, r *http.Request) {
 	data, err := h.service.FetchNotifications(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[FetchNotifications] service error: %v", err)
+		log.Errorf("[FetchNotifications] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	span.SetAttributes(attribute.Int("notification.count", len(data.Data)))
-	h.logger.Infof("[FetchNotifications] retrieved %d notifications", len(data.Data))
+	log.Infof("[FetchNotifications] retrieved %d notifications", len(data.Data))
 	localization.SendSuccessResponse(w, localization.SuccessNotificationsRetrieved, data)
 }

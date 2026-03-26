@@ -10,13 +10,14 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"regexp"
+	"time"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"regexp"
-	"time"
 )
 
 type UssdMerchantRepository struct {
@@ -28,9 +29,9 @@ type UssdMerchantRepository struct {
 	logger          utils.Logger
 }
 
-func NewUssdMerchant(client mongo.Client, dbName string, collection string, cfg *config.VaultConfig, logger utils.Logger) storage.UssdMerchantRepository {
+func NewUssdMerchant(client *mongo.Client, dbName string, collection string, cfg *config.VaultConfig, logger utils.Logger) storage.UssdMerchantRepository {
 	return &UssdMerchantRepository{
-		dal:             dal.NewMongoDal[imodel.UssdMerchant, imodel.UssdMerchant](&client, cfg, dbName, collection),
+		dal:             dal.NewMongoDal[imodel.UssdMerchant, imodel.UssdMerchant](client, cfg, dbName, collection),
 		mongoCollection: client.Database(dbName).Collection(collection),
 		cfg:             *cfg,
 		logger:          logger,
@@ -43,11 +44,8 @@ func (u *UssdMerchantRepository) Create(ctx context.Context, data imodel.UssdMer
 	data.CreatedAt = time.Now()
 	_, err := u.dal.InsertOne(ctx, data)
 	if err != nil {
-		u.logger.Errorf("[UssdDalCreateMerchant] Error creating ussd_merchant: %v", err)
-		if err == mongo.ErrNoDocuments {
-			return localization.ErrorResourceNotFound
-		}
-		return errors.New(localization.ErrorUnhandledServer.Code)
+		u.logger.Errorf("[UssdMerchantRepository][Create] error creating ussd_merchant: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -55,35 +53,29 @@ func (u *UssdMerchantRepository) Update(ctx context.Context, id string, update b
 
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		u.logger.Errorf("[UssdDalUpdateMerchant] Error parsing id: %v", err)
+		u.logger.Errorf("[UssdMerchantRepository][Update] error parsing id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	update["updated_at"] = time.Now()
 
 	_, err = u.dal.UpdateOne(ctx, bson.M{"_id": objID}, update)
 	if err != nil {
-		u.logger.Errorf("[UssdDalUpdateMerchant] Error creating ussd_merchant: %v", err)
-		if err == mongo.ErrNoDocuments {
-			return localization.ErrorResourceNotFound
-		}
-		return errors.New(localization.ErrorUnhandledServer.Code)
+		u.logger.Errorf("[UssdMerchantRepository][Update] error updating ussd_merchant: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 func (u *UssdMerchantRepository) FindById(ctx context.Context, id string) (ussd_merchant_dto.UssdMerchantResponse, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		u.logger.Errorf("[UssdDalUpdateMerchant] Error parsing id: %v", err)
+		u.logger.Errorf("[UssdMerchantRepository][FindById] error parsing id: %v", err)
 		return ussd_merchant_dto.UssdMerchantResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	data, err := u.dal.FindOne(ctx, bson.M{"_id": objID}, nil)
 	if err != nil {
-		u.logger.Errorf("[UssdDalFindMerchant] Error fetching ussd_merchant: %v", err)
-		if err == mongo.ErrNoDocuments {
-			return ussd_merchant_dto.UssdMerchantResponse{}, localization.ErrorResourceNotFound
-		}
-		return ussd_merchant_dto.UssdMerchantResponse{}, errors.New(localization.ErrorUnhandledServer.Code)
+		u.logger.Errorf("[UssdMerchantRepository][FindById] error fetching ussd_merchant: %v", err)
+		return ussd_merchant_dto.UssdMerchantResponse{}, local_util.HandleDBError(err)
 	}
 
 	res := ResponseMapper(*data)
@@ -95,11 +87,8 @@ func (u *UssdMerchantRepository) Find(ctx context.Context, filter bson.M) (ussd_
 
 	data, err := u.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		u.logger.Errorf("[UssdDalFindMerchant] Error fetching ussd_merchant: %v", err)
-		if err == mongo.ErrNoDocuments {
-			return ussd_merchant_dto.UssdMerchantResponse{}, localization.ErrorResourceNotFound
-		}
-		return ussd_merchant_dto.UssdMerchantResponse{}, errors.New(localization.ErrorUnhandledServer.Code)
+		u.logger.Errorf("[UssdMerchantRepository][Find] error fetching ussd_merchant: %v", err)
+		return ussd_merchant_dto.UssdMerchantResponse{}, local_util.HandleDBError(err)
 	}
 
 	res := ResponseMapper(*data)
@@ -133,12 +122,8 @@ func (u *UssdMerchantRepository) FindByOr(ctx context.Context, phone, email, acc
 	filter := bson.M{"$or": conditions}
 	data, err := u.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			u.logger.Infof("[FindByOr] no merchant found matching the criteria")
-			return imodel.UssdMerchant{}, nil
-		}
-		u.logger.Errorf("[FindByOr] failed to find merchant: %v", err)
-		return imodel.UssdMerchant{}, errors.New(localization.ErrorUnexpectedError.Code)
+		u.logger.Errorf("[UssdMerchantRepository][FindByOr] failed to find merchant: %v", err)
+		return imodel.UssdMerchant{}, local_util.HandleDBError(err)
 	}
 	return *data, nil
 }
@@ -151,20 +136,14 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["enabled"] = searchRegex
-		searchKeys["merchant_code"] = searchRegex
-		searchKeys["name"] = searchRegex
-		searchKeys["settlement_method"] = searchRegex
-		searchKeys["phone_number"] = searchRegex
-		searchKeys["service"] = searchRegex
-		searchKeys["account_number"] = searchRegex
-	}
-
-	if filterParam.Page == 0 {
-		filterParam.Page = 1
-	}
-	if filterParam.PerPage == 0 {
-		filterParam.PerPage = 10
+		searchKeys["$or"] = []bson.M{
+			{"merchant_code": searchRegex},
+			{"name": searchRegex},
+			{"settlement_method": searchRegex},
+			{"phone_number": searchRegex},
+			{"service": searchRegex},
+			{"account_number": searchRegex},
+		}
 	}
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
@@ -242,11 +221,11 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 		}}},
 	}
 
-	u.logger.Infof("[FindAllWithPagination] fetching Ussd Merchant with pagination")
+	u.logger.Infof("[UssdMerchantRepository][FindAllWithPagination] fetching Ussd Merchant with pagination")
 	cursor, err := u.mongoCollection.Aggregate(ctx, pipeline)
 	if err != nil {
-		u.logger.Errorf("[FindAllWithPagination] failed to execute aggregation pipeline: %v", err)
-		return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{}, errors.New(localization.ErrorUnexpectedError.Message)
+		u.logger.Errorf("[UssdMerchantRepository][FindAllWithPagination] failed to execute aggregation pipeline: %v", err)
+		return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
@@ -258,8 +237,8 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 	}
 
 	if err := cursor.All(ctx, &results); err != nil {
-		u.logger.Errorf("[FindAllWithPagination] failed to decode aggregation results: %v", err)
-		return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{}, errors.New(localization.ErrorUnexpectedError.Message)
+		u.logger.Errorf("[UssdMerchantRepository][FindAllWithPagination] failed to decode aggregation results: %v", err)
+		return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if len(results) == 0 {
@@ -275,7 +254,7 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	u.logger.Infof("[FindAllWithPagination] retrieved %d Ussd Merchant", len(results[0].Data))
+	u.logger.Infof("[UssdMerchantRepository][FindAllWithPagination] retrieved %d Ussd Merchant", len(results[0].Data))
 	return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{
 		Data: results[0].Data,
 		Meta: meta,

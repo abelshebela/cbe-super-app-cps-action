@@ -19,11 +19,6 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
-type (
-	_servicesCreateReqForSwagger = servicesdto.CreateServiceRequest
-	_servicesUpdateReqForSwagger = servicesdto.UpdateServiceRequest
-)
-
 type servicesAdapter struct {
 	app    service.ServicesService
 	logger utils.Logger
@@ -35,7 +30,7 @@ func InitServicesAdapter(app service.ServicesService, logger utils.Logger) inbou
 
 func decodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}, logger utils.Logger) bool {
 	if err := json.NewDecoder(r.Body).Decode(dst); err != nil {
-		logger.Errorf("Failed to decode JSON request: %v", err)
+		logger.Errorf("[ServicesH] decode body err: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorInvalidJSONPayload, nil, nil)
 		return false
 	}
@@ -49,24 +44,27 @@ func decodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}, log
 //	@Tags			Services
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		servicesdto.CreateServiceRequest		true	"Service payload"
-//	@Success		201		{object}	localization.StandardResponse{data=nil}	"CPS action created"
-//	@Failure		400,500	{object}	localization.StandardResponse{data=nil}
+//	@Param			request	body		services.CreateServiceRequest	true	"Service payload"
+//	@Success		201		{object}	localization.StandardResponse{data=nil}	"Service creation request submitted successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/services [post]
 func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "createService", "handler", "services")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	var req servicesdto.CreateServiceRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		a.logger.Errorf("Failed to decode JSON request: %v", err)
+		log.Errorf("[ServicesH][Create] decode body err: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorInvalidJSONPayload, nil, nil)
 		return
 	}
 
+	req.Normalize()
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
 		localization.SendBadRequestResponse(w, err.Error())
@@ -81,7 +79,7 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		a.logger.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessServiceCreated, nil)
 		return
 	}
@@ -97,14 +95,17 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			id			path		string									true	"Service ID"
-//	@Param			request		body		servicesdto.UpdateServiceRequest		true	"Service update payload"
-//	@Success		200			{object}	localization.StandardResponse{data=nil}	"CPS action created"
-//	@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Param			request		body		services.UpdateServiceRequest	true	"Service update payload"
+//	@Success		200			{object}	localization.StandardResponse{data=nil}	"Service update request submitted successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404			{object}	localization.StandardResponse{data=nil}	"Service not found"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/services/{id} [patch]
 func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "updateService", "handler", "services")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
@@ -119,6 +120,13 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 		span.RecordError(errors.New("invalid payload"))
 		return
 	}
+
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
+
+	req.Normalize()
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
 		localization.SendBadRequestResponse(w, err.Error())
@@ -135,7 +143,7 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		a.logger.Infof("[Update] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[Update] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessServiceUpdated, nil)
 		return
 	}
@@ -151,19 +159,27 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			id				path		string									true	"Service ID"
-//	@Success		200				{object}	localization.StandardResponse{data=nil}	"CPS action created"
-//	@Failure		400,404,409,500	{object}	localization.StandardResponse{data=nil}
+//	@Success		200				{object}	localization.StandardResponse{data=nil}	"Service enabled successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404				{object}	localization.StandardResponse{data=nil}	"Service not found"
+//	@Failure		409				{object}	localization.StandardResponse{data=nil}	"Service already enabled"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/services/{id}/enable [patch]
 func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "enableService", "handler", "services")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("service ID is required for enable"))
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
+		return
+	}
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
 		return
 	}
 
@@ -182,7 +198,7 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		a.logger.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessServiceEnabled, nil)
 		return
 	}
@@ -198,19 +214,27 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			id				path		string									true	"Service ID"
-//	@Success		200				{object}	localization.StandardResponse{data=nil}	"CPS action created"
-//	@Failure		400,404,409,500	{object}	localization.StandardResponse{data=nil}
+//	@Success		200				{object}	localization.StandardResponse{data=nil}	"Service enabled successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404				{object}	localization.StandardResponse{data=nil}	"Service not found"
+//	@Failure		409				{object}	localization.StandardResponse{data=nil}	"Service already enabled"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/services/{id}/disable [patch]
 func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "disableService", "handler", "services")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("service ID is required for disable"))
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
+		return
+	}
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
 		return
 	}
 
@@ -229,7 +253,7 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		a.logger.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessServiceDisabled, nil)
 		return
 	}
@@ -251,14 +275,16 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 //	@Param			service_type	query		string	false	"Filter by service_type"
 //	@Param			enabled			query		bool	false	"Filter by enabled status"
 //	@Param			search			query		string	false	"Search term (service_name, service_code, service_type)"
-//	@Success		200				{object}	localization.StandardResponse{data=types.PaginatedResponse}
-//	@Failure		500				{object}	localization.StandardResponse{data=nil}
+//	@Success		200				{object}	localization.StandardResponse{data=object}	"Services retrieved successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/services [get]
 func (a *servicesAdapter) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllServices", "handler", "services")
 	defer span.End()
-
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	_ = log
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -284,6 +310,85 @@ func (a *servicesAdapter) GetAll(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, list)
 }
 
+func (a *servicesAdapter) CreateServiceList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "CreateServiceList", "handler", "CreateServiceList")
+	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	var req servicesdto.CreateServiceList
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		a.logger.Errorf("Failed to decode JSON request: %v", err)
+		localization.SendErrorResponse(w, localization.ErrorInvalidJSONPayload, nil, nil)
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		span.RecordError(err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
+	if err := a.app.CreateServiceList(ctx, &req); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[CreateServiceList] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceListCreated, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceListCreateRequestSubmitted, nil)
+}
+
+func (a *servicesAdapter) UpdateServiceList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "UpdateServiceList", "handler", "UpdateServiceList")
+	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	var req servicesdto.UpdateServiceList
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		a.logger.Errorf("Failed to decode JSON request: %v", err)
+		localization.SendErrorResponse(w, localization.ErrorInvalidJSONPayload, nil, nil)
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		span.RecordError(err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+	id, err := local_util.ExtractID(w, r)
+	if err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
+
+	if err := a.app.UpdateServiceList(ctx, id, &req); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[UpdateServiceList] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceListUpdated, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceListUpdateRequestSubmitted, nil)
+}
+
 // GetAllServiceList godoc
 //
 //	@Summary		List Service List
@@ -298,14 +403,16 @@ func (a *servicesAdapter) GetAll(w http.ResponseWriter, r *http.Request) {
 //	@Param			service_type	query		string	false	"Filter by service_type"
 //	@Param			enabled			query		bool	false	"Filter by enabled status"
 //	@Param			search			query		string	false	"Search term (service_name, service_code, service_type)"
-//	@Success		200				{object}	localization.StandardResponse{data=types.PaginatedResponse}
-//	@Failure		500				{object}	localization.StandardResponse{data=nil}
+//	@Success		200				{object}	localization.StandardResponse{data=object}	"Services retrieved successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/services/list [get]
+//	@Router			/services_list [get]
 func (a *servicesAdapter) GetAllServiceList(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllServicesList", "handler", "servicesList")
 	defer span.End()
-
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	_ = log
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -339,17 +446,25 @@ func (a *servicesAdapter) GetAllServiceList(w http.ResponseWriter, r *http.Reque
 //	@Accept			json
 //	@Produce		json
 //	@Param			id			path		string	true	"Service ID"
-//	@Success		200			{object}	localization.StandardResponse{data=entities.Services}
-//	@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"Service retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		404			{object}	localization.StandardResponse{data=nil}		"Service not found"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/services/{id} [get]
 func (a *servicesAdapter) GetByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "getServiceById", "handler", "services")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	_ = log
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("service ID is required for get"))
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
+		return
+	}
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
 		return
 	}
 
@@ -361,4 +476,66 @@ func (a *servicesAdapter) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, item)
+}
+
+func (a *servicesAdapter) EnableServiceList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "EnableServiceList", "handler", "EnableServiceList")
+	defer span.End()
+
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	id := chi.URLParam(r, "id")
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
+
+	span.SetAttributes(attribute.String("service.id", id))
+	if err := a.app.EnableOrDisableServiceList(ctx, id, true); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceListEnabled, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceListEnableRequestSubmitted, nil)
+}
+
+func (a *servicesAdapter) DisableServiceList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "DisableServiceList", "handler", "DisableServiceList")
+	defer span.End()
+
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	id := chi.URLParam(r, "id")
+	if err := local_util.ValidateMongoID(id); err != nil {
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
+
+	span.SetAttributes(attribute.String("service.id", id))
+	if err := a.app.EnableOrDisableServiceList(ctx, id, false); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceListDisabled, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceListDisableRequestSubmitted, nil)
 }

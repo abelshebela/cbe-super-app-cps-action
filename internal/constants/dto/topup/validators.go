@@ -44,7 +44,7 @@ func (w TopupRequest) Validate(isCreate bool) error {
 				&w.Code,
 				validation.Required.Error(localization.ErrorTopupCodeRequired.Code),
 				validation.By(utils.TrimWhiteSpace),
-				validation.By(utils.NoSpecialChars),
+				// validation.By(utils.NoSpecialChars),
 			),
 		)
 	} else {
@@ -52,7 +52,7 @@ func (w TopupRequest) Validate(isCreate bool) error {
 			validation.Field(
 				&w.Code,
 				validation.When(w.Code != "", validation.By(utils.TrimWhiteSpace)),
-				validation.By(utils.NoSpecialChars),
+				// validation.By(utils.NoSpecialChars),
 			),
 		)
 	}
@@ -78,14 +78,14 @@ func (w TopupRequest) Validate(isCreate bool) error {
 		return err
 	}
 
-	if isCreate {
-		if !(w.Self || w.Other || w.Agent) {
-			return validation.NewError(
-				localization.ErrorTopupServiceOption.Code,
-				localization.ErrorTopupServiceOption.Message,
-			)
-		}
-	}
+	// if isCreate {
+	// 	if !(w.Self || w.Other || w.Agent) {
+	// 		return validation.NewError(
+	// 			localization.ErrorTopupServiceOption.Code,
+	// 			localization.ErrorTopupServiceOption.Message,
+	// 		)
+	// 	}
+	// }
 
 	return nil
 }
@@ -99,9 +99,9 @@ func (w TopupRequest) AggregatedValidate(isCreate bool) error {
 		if strings.TrimSpace(w.Code) == "" {
 			errs["code"] = localization.ErrorTopupCodeRequired
 		}
-		if !(w.Self || w.Other || w.Agent) {
-			errs["recharge_option"] = localization.ErrorWalletRechangeOption
-		}
+		// if !(w.Self || w.Other || w.Agent) {
+		// 	errs["recharge_option"] = localization.ErrorWalletRechangeOption
+		// }
 	}
 
 	if err := w.Validate(isCreate); err != nil {

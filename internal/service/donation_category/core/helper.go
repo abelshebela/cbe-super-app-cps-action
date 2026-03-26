@@ -9,8 +9,7 @@ import (
 	"errors"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	"go.mongodb.org/mongo-driver/v2/mongo"
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 )
 
 func DonationNameExists(
@@ -23,9 +22,6 @@ func DonationNameExists(
 	if err != nil {
 		// Check if the error message is the "not found" error code
 		if err.Error() == localization.ErrorResourceNotFound.Code {
-			return false, nil
-		}
-		if errors.Is(err, mongo.ErrNoDocuments) {
 			return false, nil
 		}
 		return false, errors.New(localization.ErrorDonationCategoryLookupFailed.Code)
@@ -42,8 +38,8 @@ func BindAction(source any, target any) error {
 	return json.Unmarshal(bytes, target)
 }
 
-func MapToDonationCategory(categoryName, iconURL string, enabled bool) *model.DonationCategory {
-	return &model.DonationCategory{
+func MapToDonationCategory(categoryName, iconURL string, enabled bool) *donation_model.DonationCategory {
+	return &donation_model.DonationCategory{
 		CategoryName:   categoryName,
 		Icon:           iconURL,
 		IsDeleted:      false,
@@ -52,7 +48,7 @@ func MapToDonationCategory(categoryName, iconURL string, enabled bool) *model.Do
 	}
 }
 
-func IsDataSimilar(request donation_category.DonationCategoryRequest, existing *model.DonationCategory) bool {
+func IsDataSimilar(request donation_category.DonationCategoryRequest, existing *donation_model.DonationCategory) bool {
 	// Check if category name is the same (if provided in request)
 	if request.CategoryName != "" && request.CategoryName != existing.CategoryName {
 		return false

@@ -12,8 +12,6 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -23,7 +21,7 @@ type feedbackServiceAdapter struct {
 	svc service.FeedbackService
 }
 
-func (a *feedbackServiceAdapter) CreateFeedback(ctx context.Context, req feedback.FeedbackRequest, userID string) (*model.Feedback, error) {
+func (a *feedbackServiceAdapter) CreateFeedback(ctx context.Context, req feedback.FeedbackRequest, userID string) (*imodel.Feedback, error) {
 	return a.svc.CreateFeedback(ctx, req, userID)
 }
 func (a *feedbackServiceAdapter) CreateSurveyFeedback(ctx context.Context, surveyFeedback feedback.SurveyFeedbackReq) (*imodel.SurveyFeedback, error) {
@@ -41,7 +39,7 @@ func InitFeedbackConsumer(feedbackSvc service.FeedbackService, cfg *config.Vault
 	// Create dead letter queue
 	deadLetterQueue := kafka.NewSimpleDeadLetterQueue(logger)
 
-	consumer, err := kafka.NewFeedbackConsumer(*kafkaConfig, logger, adapter, deadLetterQueue)
+	consumer, err := kafka.NewFeedbackConsumer(*kafkaConfig, cfg, logger, adapter, deadLetterQueue)
 	if err != nil {
 		logger.Errorf("Failed to create Kafka consumer: %v", err)
 		return err

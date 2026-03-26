@@ -13,8 +13,16 @@ func Init(router chi.Router, handler inbound.RolesInbound, auth middleware.AuthM
 	routes := []glue.Route{
 		{
 			Method:  http.MethodGet,
-			Path:    "/job_roles",
+			Path:    "/job_roles/all",
 			Handler: handler.GetAll,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/job_roles",
+			Handler: handler.GetAllWithPagination,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
 			},
@@ -39,6 +47,30 @@ func Init(router chi.Router, handler inbound.RolesInbound, auth middleware.AuthM
 			Method:  http.MethodPatch,
 			Path:    "/job_roles/{id}",
 			Handler: handler.Update,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/job_roles/{id}/enable",
+			Handler: handler.Enable,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/job_roles/{id}/disable",
+			Handler: handler.Disable,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/job_roles/{id}",
+			Handler: handler.Delete,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
 			},

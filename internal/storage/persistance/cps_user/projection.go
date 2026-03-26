@@ -30,9 +30,8 @@ func CPSUserUpdateMapper(u *imodel.CPSUser) bson.M {
 	if u.JobTitle != "" {
 		set["job_title"] = u.JobTitle
 	}
-
-	if u.JobTitle != "" {
-		set["job_title"] = u.JobTitle
+	if !u.Department.IsZero() {
+		set["department"] = u.Department
 	}
 
 	set["last_modified"] = time.Now()
@@ -160,6 +159,7 @@ func PipelineBuilder(userCode string) mongo.Pipeline {
 			"enabled":      1,
 			"job_title":    1,
 			"role_id":      "$role_doc.role_id",
+			"last_login":   1,
 		}}},
 	}
 }
@@ -194,6 +194,18 @@ func PipelineBuilderWithRole(userCode, departmentColl, rolesColl, jobRolesColl s
 			"user_code": userCode,
 		}}},
 
+		// 🔥 Convert department string → ObjectId
+		bson.D{{Key: "$addFields", Value: bson.M{
+			"department_obj_id": bson.M{
+				"$convert": bson.M{
+					"input":   "$department",
+					"to":      "objectId",
+					"onError": nil,
+					"onNull":  nil,
+				},
+			},
+		}}},
+
 		// 2️⃣ Lookup role by job_title
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from": rolesColl,
@@ -202,14 +214,12 @@ func PipelineBuilderWithRole(userCode, departmentColl, rolesColl, jobRolesColl s
 			},
 			"pipeline": mongo.Pipeline{
 
-				// match roles.job_title == user.job_title
 				bson.D{{Key: "$match", Value: bson.M{
 					"$expr": bson.M{
 						"$eq": []interface{}{"$job_title", "$$jobTitle"},
 					},
 				}}},
 
-				// lookup job_roles using role code
 				bson.D{{Key: "$lookup", Value: bson.M{
 					"from": jobRolesColl,
 					"let": bson.M{
@@ -225,47 +235,74 @@ func PipelineBuilderWithRole(userCode, departmentColl, rolesColl, jobRolesColl s
 					"as": "job_role",
 				}}},
 
-				// unwind job_role
 				bson.D{{Key: "$unwind", Value: bson.M{
 					"path":                       "$job_role",
 					"preserveNullAndEmptyArrays": false,
 				}}},
 
-				// project role_id and name from job_roles
 				bson.D{{Key: "$project", Value: bson.M{
 					"_id":     0,
 					"role_id": "$job_role._id",
 					"code":    "$job_role.code",
-					"name":    "$job_role.name", // Assuming 'name' is the field in job_roles
+					"name":    "$job_role.name",
 				}}},
 			},
 			"as": "role_doc",
 		}}},
 
-		// 3️⃣ Unwind role_doc
+		// 3️⃣ Lookup Department (NEW ✅)
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "department",
+			"localField":   "department",
+			"foreignField": "_id",
+			"as":           "department_info",
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$project", Value: bson.M{
+					"_id":        1,
+					"department": 1,
+				}}},
+			},
+		}}},
+
+		// 4️⃣ Unwind role_doc
 		bson.D{{Key: "$unwind", Value: bson.M{
 			"path":                       "$role_doc",
 			"preserveNullAndEmptyArrays": true,
 		}}},
 
-		// 4️⃣ Final projection
+		// 5️⃣ Unwind department
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$department_info",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+
+		// 6️⃣ Final projection
 		bson.D{{Key: "$project", Value: bson.M{
 			"_id":       1,
 			"user_code": 1,
+
 			"role": bson.M{
-				"code": "$role_doc.code", // Role code from user
-				"name": "$role_doc.name", // Role name from job_roles via role_doc
+				"code": "$role_doc.code",
+				"name": "$role_doc.name",
 			},
-			"role_code":    "$role_doc.code",
+			"role_code": "$role_doc.code",
+			"role_id":   "$role_doc.role_id",
+
+			// ✅ Department structured
+			"department": bson.M{
+				"id":   "$department_info._id",
+				"name": "$department_info.department",
+			},
+
 			"full_name":    1,
 			"username":     1,
 			"email":        1,
 			"phone_number": 1,
+			"last_login":   1,
 			"gender":       1,
 			"realm":        1,
 			"enabled":      1,
 			"job_title":    1,
-			"role_id":      "$role_doc.role_id",
 		}}},
 	}
 }

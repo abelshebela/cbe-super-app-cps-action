@@ -67,17 +67,18 @@ func InitEventAdapter(eventApp service.EventService, logger utils.Logger) eventI
 func (a *eventAdapter) CreateEvent(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createEvent", "handler", "event")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	req, err := eventcore.ParseEventRequestFromMultipartForm(r, true)
 	if err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("failed to parse event request from multipart form: %v", err)
+		log.Errorf("[EventH][Create] parse form err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(true); err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("event request validation failed: %v", err)
+		log.Errorf("[EventH][Create] validate err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -89,12 +90,12 @@ func (a *eventAdapter) CreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	if err := a.eventApp.CreateEvent(ctx, req); err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("failed to create event: %v", err)
+		log.Errorf("[EventH][Create] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	a.logger.Infof("event creation request submitted successfully")
+	log.Infof("[EventH][Create] request submitted")
 	localization.SendSuccessResponse(w, localization.SuccessEventCreationRequestSubmitted, nil)
 }
 
@@ -139,9 +140,10 @@ func (a *eventAdapter) CreateEvent(w http.ResponseWriter, r *http.Request) {
 func (a *eventAdapter) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateEvent", "handler", "event")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		a.logger.Errorf("event ID is required for update")
+		log.Errorf("[EventH][Update] id required")
 		localization.SendBadRequestResponse(w, localization.ErrorEventIDRequired.Message)
 		return
 	}
@@ -149,13 +151,13 @@ func (a *eventAdapter) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	req, err := eventcore.ParseEventRequestFromMultipartForm(r, false)
 	if err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("failed to parse event update request: %v", err)
+		log.Errorf("[EventH][Update] parse form err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if req.IsEmpty() {
-		a.logger.Warnf("no data provided for event update, event ID: %s", id)
+		log.Warnf("[EventH][Update] empty payload id: %s", id)
 		localization.SendBadRequestResponse(w, localization.ErrorUpdateEventEmptyPayload.Message)
 		return
 	}
@@ -167,12 +169,12 @@ func (a *eventAdapter) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 
 	if err := a.eventApp.UpdateEvent(ctx, id, req); err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("failed to update event (ID: %s): %v", id, err)
+		log.Errorf("[EventH][Update] svc err id: %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	a.logger.Infof("event update request submitted successfully, event ID: %s", id)
+	log.Infof("[EventH][Update] request submitted id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessEventUpdateRequestSubmitted, nil)
 }
 
@@ -328,6 +330,7 @@ func (a *eventAdapter) FetchEventByID(w http.ResponseWriter, r *http.Request) {
 func (a *eventAdapter) FetchEvents(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchEvents", "handler", "event")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -343,17 +346,17 @@ func (a *eventAdapter) FetchEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.logger.Infof("fetching events with filter: %+v", filterParams)
+	log.Infof("[EventH][GetAll] filter: %+v", filterParams)
 
 	list, err := a.eventApp.FetchEvent(ctx, *filterParams)
 	if err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("failed to fetch events: %v", err)
+		log.Errorf("[EventH][GetAll] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	span.SetAttributes(attribute.Int("event.count", len(list.Data)))
-	a.logger.Infof("events fetched successfully")
+	log.Infof("[EventH][GetAll] ok")
 	localization.SendSuccessResponse(w, localization.SuccessEventsRetrieved, list)
 }

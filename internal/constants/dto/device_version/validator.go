@@ -1,6 +1,8 @@
 package deviceversion
 
 import (
+	"cbe-super-app-cps-action/pkgs/utils"
+	"html"
 	"regexp"
 	"strings"
 
@@ -13,6 +15,9 @@ func (r *CreateDeviceVersionRequest) Clean() {
 	r.Platform = strings.TrimSpace(strings.ToLower(r.Platform))
 	r.LatestVersion = strings.TrimSpace(r.LatestVersion)
 	r.ReleaseNotes = strings.TrimSpace(r.ReleaseNotes)
+	r.Platform = html.EscapeString(r.Platform)
+	r.ReleaseNotes = html.EscapeString(r.ReleaseNotes)
+	r.LatestVersion = html.EscapeString(r.LatestVersion)
 }
 
 func (r CreateDeviceVersionRequest) Validate() error {
@@ -28,6 +33,8 @@ func (r CreateDeviceVersionRequest) Validate() error {
 		),
 		validation.Field(&r.ReleaseNotes,
 			validation.Length(0, 500),
+			validation.By(utils.NoSpecialChars),
+			validation.Match(regexp.MustCompile(`[0-9a-zA-Z\s.,<>!?'"()-]*`)).Error("ReleaseNotes contains invalid characters"),
 		),
 	)
 }

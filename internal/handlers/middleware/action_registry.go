@@ -275,10 +275,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			}
 
 			// Normalize actual path route (concrete values like /banks/567...)
-			relPath := r.URL.Path
-			if strings.HasPrefix(relPath, "/api/v1/cbesuperapp/cps_action/") {
-				relPath = strings.TrimPrefix(relPath, "/api/v1/cbesuperapp/cps_action/")
-			}
+			relPath := strings.TrimPrefix(r.URL.Path, "/api/v1/cbesuperapp/cps_action/")
 
 			// Allowlist (e.g., CPSAction endpoints)
 			for _, p := range whitelist {
@@ -310,7 +307,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			}
 
 			if !found {
-				if rparts := strings.Split(relPattern, "/"); rparts != nil && len(rparts) >= 1 {
+				if rparts := strings.Split(relPattern, "/"); len(rparts) > 0 {
 					relPattern = rparts[0]
 				}
 				path := method + " " + relPath
@@ -329,6 +326,31 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				return
 			}
 
+			// Check if the user's job_title role is enabled
+			if roleRepo != nil {
+				roleCacheKey := "role_enabled:" + roleCode
+				if ent, ok := roleEnabledCache.get(roleCacheKey); ok {
+					if !ent.allow {
+						localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+						return
+					}
+				} else {
+					role, err := roleRepo.FindByRole(r.Context(), roleCode)
+					if err != nil || role == nil {
+						if guardLogger != nil {
+							guardLogger.Errorf("[ActionRegistry][RouteGuard] role lookup err code: %s: %v", roleCode, err)
+						}
+						localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+						return
+					}
+					roleEnabledCache.set(roleCacheKey, allowEntry{allow: role.Enabled, exp: nowPlus(roleEnabledCache.ttl)})
+					if !role.Enabled {
+						localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+						return
+					}
+				}
+			}
+
 			action := strings.ToUpper(strings.TrimSpace(actionName))
 			cacheKey := roleCode + ":" + action
 			if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
@@ -339,7 +361,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			allowed, err := cpsApproveRepo.ExistsByRoleAndAction(r.Context(), roleCode, action)
 			if err != nil {
 				if guardLogger != nil {
-					guardLogger.Errorf("central guard lookup failed: %v", err)
+					guardLogger.Errorf("[ActionRegistry][RouteGuard] guard lookup err: %v", err)
 				}
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return

@@ -39,14 +39,14 @@ func (s *SitotaTransactionService) GetAllSitotas(ctx context.Context, filterPara
 
 	sitotas, err := s.repo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
-		s.logger.Errorf("[GetAllSitotas] failed to fetch sitotas: %v", err)
+		s.logger.Errorf("[SitotaSvc][GetAll] fetch err: %v", err)
 		span.AddEvent("Failed to fetch sitotas", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
 		return nil, err
 	}
 
-	s.logger.Infof("[GetAllSitotas] retrieved %d sitota transactions", len(sitotas.Data))
+	s.logger.Infof("[SitotaSvc][GetAll] retrieved %d", len(sitotas.Data))
 	return &types.PaginatedResponse[[]*model.SitotaTransaction]{
 		Data: sitotas.Data,
 		Meta: sitotas.Meta,
@@ -58,7 +58,7 @@ func (s *SitotaTransactionService) GetSitotaByID(ctx context.Context, id string)
 	defer span.End()
 
 	if id == "" {
-		s.logger.Errorf("[GetSitotaByID] invalid id provided")
+		s.logger.Errorf("[SitotaSvc][GetByID] invalid id")
 		span.AddEvent("Invalid id provided", trace.WithAttributes(
 			attribute.String("error", localization.ErrorInvalidID.Code),
 		))
@@ -67,7 +67,7 @@ func (s *SitotaTransactionService) GetSitotaByID(ctx context.Context, id string)
 
 	sitota, err := s.repo.Get(ctx, id)
 	if err != nil {
-		s.logger.Errorf("[GetSitotaByID] failed to get sitota transaction: %v", err)
+		s.logger.Errorf("[SitotaSvc][GetByID] fetch err: %v", err)
 		span.AddEvent("Failed to get sitota transaction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -75,6 +75,6 @@ func (s *SitotaTransactionService) GetSitotaByID(ctx context.Context, id string)
 		return nil, err
 	}
 
-	s.logger.Infof("[GetSitotaByID] sitota transaction retrieved successfully for id: %s", id)
+	s.logger.Infof("[SitotaSvc][GetByID] retrieved id: %s", id)
 	return sitota, nil
 }

@@ -2,28 +2,34 @@ package budget_category
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/pkgs/utils"
 	"mime/multipart"
 	"regexp"
-	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 var hexColorRegex = regexp.MustCompile(`^#?([a-fA-F\d]{2}){3}$`)
 
-func hasAllowedExtension(filename string, allowed []string) bool {
-	if filename == "" {
-		return false
-	}
-	filename = strings.ToLower(strings.TrimSpace(filename))
-	for _, ext := range allowed {
-		if strings.HasSuffix(filename, strings.ToLower(ext)) {
-			return true
-		}
-	}
-	return false
+var validBudgetCategoryTypes = []interface{}{
+	string(local_model.BudgetCategoryTypeCB),
+	string(local_model.BudgetCategoryTypeIFB),
+	string(local_model.BudgetCategoryTypeBOTH),
 }
+
+// func hasAllowedExtension(filename string, allowed []string) bool {
+// 	if filename == "" {
+// 		return false
+// 	}
+// 	filename = strings.ToLower(strings.TrimSpace(filename))
+// 	for _, ext := range allowed {
+// 		if strings.HasSuffix(filename, strings.ToLower(ext)) {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
 func validateBudgetIcon(value interface{}) error {
 	file, ok := value.(*multipart.FileHeader)
@@ -54,6 +60,10 @@ func (b CreateBudgetRequest) Validate() error {
 			validation.Match(hexColorRegex).Error("invalid color format, please enter a valid hex color"),
 		),
 		validation.Field(&b.Icon, validation.By(func(value interface{}) error { return validateBudgetIcon(value) })),
+		validation.Field(&b.Type,
+			validation.Required.Error("type is required"),
+			validation.In(validBudgetCategoryTypes...).Error("type must be one of: CB, IFB, BOTH"),
+		),
 	)
 }
 
@@ -74,6 +84,11 @@ func (r UpdateBudgetRequest) Validate() error {
 		validation.Field(&r.Icon,
 			validation.When(r.Icon != nil,
 				validation.By(func(value interface{}) error { return validateBudgetIcon(value) }),
+			),
+		),
+		validation.Field(&r.Type,
+			validation.When(r.Type != "",
+				validation.In(validBudgetCategoryTypes...).Error("type must be one of: CB, IFB, BOTH"),
 			),
 		),
 	)

@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/handlers/rest/http/bps_user/core"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"encoding/json"
@@ -13,8 +14,6 @@ import (
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	model "cbe-super-app-cps-action/internal/constants/model"
-
-	"go.mongodb.org/mongo-driver/v2/bson"
 
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 
@@ -63,6 +62,7 @@ func InitBPSUserMakerHandler(service service.BPSUserService, logger utils.Logger
 func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "fetchBpsUserByCode", "handler", "bpsUser")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
 		localization.SendErrorResponse(w, localization.ErrorUserCodeRequired, nil, nil)
@@ -74,12 +74,12 @@ func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Reque
 	user, err := h.Service.FetchUserByUserCode(ctx, userCode)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[FetchUserByUserCode] service error: %v", err)
+		log.Errorf("[FetchUserByUserCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	h.logger.Infof("[FetchUserByUserCode] BPS user retrieved successfully for user_code: %s", userCode)
+	log.Infof("[FetchUserByUserCode] BPS user retrieved successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, user)
 }
 
@@ -103,7 +103,7 @@ func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Reque
 // @Param		phone_number		query		string												false	"Phone number filter"
 // @Param		username			query		string												false	"Username filter"
 // @Param		search				query		string												false	"searchable fieldes (full_name,username,user_code,phone_number)"
-// @Success	200					{object}	localization.StandardResponse{data=paginated_resp}	"BPS users retrieved successfully"
+// @Success	200					{object}	localization.StandardResponse{data=object}	"BPS users retrieved successfully"
 // @Failure	400					{object}	localization.StandardResponse{data=nil}				"Bad request"
 // @Failure	500					{object}	localization.StandardResponse{data=nil}				"Internal server error"
 // @Security	BearerAuth
@@ -111,10 +111,13 @@ func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Reque
 func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllBpsUsers", "handler", "bpsUser")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	filterParams := common_utils.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
+
+	filterParams = core.PhoneModifier(filterParams)
 
 	if err := common_utils.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -129,13 +132,13 @@ func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := h.Service.GetAllBPSUsers(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[GetAllBPSUsers] service error: %v", err)
+		log.Errorf("[GetAllBPSUsers] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	span.SetAttributes(attribute.Int("bps_user.count", len(users.Data)))
-	h.logger.Infof("[GetAllBPSUsers] retrieved %d BPS users", len(users.Data))
+	log.Infof("[GetAllBPSUsers] retrieved %d BPS users", len(users.Data))
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, users)
 }
 
@@ -156,6 +159,7 @@ func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableBpsUser", "handler", "bpsUser")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
@@ -170,12 +174,12 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 	err := h.Service.UpdateStatusBpsUser(ctx, userCode, false)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[DisableUser] service error: %v", err)
+		log.Errorf("[DisableUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	if md.IsMakerOnly {
-		h.logger.Infof("[DisableUser] request sent successfully for user_code: %s", userCode)
+		log.Infof("[DisableUser] request sent successfully for user_code: %s", userCode)
 		localization.SendSuccessResponse(w, localization.SuccessBpsUserDisableRequestSentSP, map[string]string{})
 	} else {
 		localization.SendSuccessResponse(w, localization.SuccessBpsUserDisableRequestSent, map[string]string{})
@@ -200,6 +204,7 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableBpsUser", "handler", "bpsUser")
 	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	userCode := chi.URLParam(r, "user_code")
@@ -213,12 +218,12 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	err := h.Service.UpdateStatusBpsUser(ctx, userCode, true)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[EnableUser] service error: %v", err)
+		log.Errorf("[EnableUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	if md.IsMakerOnly {
-		h.logger.Infof("[EnableUser] request sent successfully for user_code: %s", userCode)
+		log.Infof("[EnableUser] request sent successfully for user_code: %s", userCode)
 		localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSentSP, map[string]string{})
 	} else {
 		localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSent, map[string]string{})
@@ -232,8 +237,8 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 //	@Tags			BPS Users
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		bps_user_dto.BPSUserCreateRequest						true	"BPS user create request"
-//	@Success		200		{object}	localization.StandardResponse{data=nil}					"BPS user created successfully"
+//	@Param			request	body		bpsuser.BPSUserCreateRequest	true	"BPS user create request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}					"BPS user creation request submitted successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}					"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}					"Internal server error"
 //	@Security		BearerAuth
@@ -241,6 +246,7 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 
 	var req bps_user_dto.BPSUserCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -275,7 +281,7 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 	err := h.Service.CreateBPSUser(ctx, NewUser)
 	if err != nil {
 		// span.RecordError(err)
-		h.logger.Errorf("[CreateUser] service error: %v", err)
+		log.Errorf("[CreateUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -294,17 +300,18 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 //	@Tags			BPS Users
 //	@Accept			json
 //	@Produce		json
-//	@Param			user_code	path		string											true	"User Code"
-//	@Param			request		body		bps_user_dto.BPSUserUpdateRequest				true	"BPS user update request"
-//	@Success		200			{object}	localization.StandardResponse{data=nil}			"BPS user updated successfully"
+//	@Param			id			path		string											true	"BPS User ID"
+//	@Param			request		body		bpsuser.BPSUserUpdateRequest	true	"BPS user update request"
+//	@Success		200			{object}	localization.StandardResponse{data=nil}			"BPS user update request submitted successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}			"Bad request"
 //	@Failure		404			{object}	localization.StandardResponse{data=nil}			"User not found"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}			"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/bps_users/{user_code} [put]
+//	@Router			/bps_users/{id} [patch]
 func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -322,14 +329,8 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		localization.SendBadRequestResponse(w, "unable to convert object id")
-		return
-	}
 
 	updatedUser := bps_model.BPSUser{
-		ID:             objID,
 		LastModifiedAt: time.Now(),
 	}
 
@@ -364,9 +365,9 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	// Always update enabled (bool, so default is false if not set)
 	// updatedUser.Enabled = req.Enabled
 
-	err = h.Service.UpdateBPSUser(ctx, id, updatedUser)
+	err := h.Service.UpdateBPSUser(ctx, id, updatedUser)
 	if err != nil {
-		h.logger.Errorf("[UpdateBPSUser] service error: %v", err)
+		log.Errorf("[UpdateBPSUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

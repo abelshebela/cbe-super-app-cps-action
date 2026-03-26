@@ -9,11 +9,10 @@ import (
 
 // StandardResponse represents the standardized API response structure
 type StandardResponse struct {
-	Ok        bool        `json:"ok"`
-	Status    int         `json:"status"`
-	TimeStamp time.Time   `json:"timestamp,omitempty"`
-	Message   string      `json:"message"`
-	Data      interface{} `json:"data,omitempty"`
+	// Ok        bool        `json:"ok"`
+	Status  int         `json:"status"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
 	// Error     *ErrorDetail `json:"error,omitempty"`
 }
 
@@ -41,11 +40,10 @@ func SendSuccessResponse(w http.ResponseWriter, responseCode ResponseCode, data 
 	w.WriteHeader(responseCode.StatusCode)
 
 	response := StandardResponse{
-		Ok:        true,
-		Status:    responseCode.StatusCode,
-		TimeStamp: time.Now(),
-		Message:   responseCode.Message,
-		Data:      data,
+		// Ok:        true,
+		Status:  responseCode.StatusCode,
+		Message: responseCode.Message,
+		Data:    data,
 	}
 	// if responseCode.Type == "error" {
 	// 	response.Ok = false
@@ -62,11 +60,8 @@ func SendErrorResponse(w http.ResponseWriter, responseCode ResponseCode, fieldEr
 	w.WriteHeader(responseCode.StatusCode)
 
 	response := StandardResponse{
-		Ok:        false,
-		TimeStamp: time.Now(),
-		Status:    responseCode.StatusCode,
-		Message:   responseCode.Message,
-		// Error:   errorDetail,
+		Status:  responseCode.StatusCode,
+		Message: responseCode.Message,
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
@@ -87,12 +82,17 @@ func SendValidationErrorResponse(w http.ResponseWriter, fieldErrors []FieldError
 
 // SendErrorByCodeResponse sends a validation error response
 func SendErrorByCodeResponse(w http.ResponseWriter, code string) {
-	responseCode, ok := GetResponseCodeByCode(code)
+	respCode, ok := GetResponseCodeByCode(code)
 	if !ok {
 		SendErrorResponse(w, ErrorFormatter(code), nil, nil)
 		return
 	}
-	SendSuccessResponse(w, responseCode, nil)
+
+	if respCode.StatusCode >= http.StatusBadRequest || respCode.Type == "error" {
+		SendErrorResponse(w, respCode, nil, nil)
+	} else {
+		SendSuccessResponse(w, respCode, nil)
+	}
 }
 
 func ErrorFormatter(code string) ResponseCode {
@@ -162,11 +162,16 @@ func SendBadRequestResponse(w http.ResponseWriter, message string) {
 		message = MsgBadRequest
 	}
 
+	m := strings.Split(message, ":")
+	msg := m[0]
+	if len(m) > 1 {
+		msg = m[1]
+	}
 	customResponseCode := ResponseCode{
 		Code:       "ERROR_BAD_REQUEST",
-		TimeStamp:  time.Now(),
+	 	TimeStamp:  time.Now(),
 		StatusCode: StatusBadRequest,
-		Message:    message,
+		Message:    msg,
 		Type:       "error",
 	}
 

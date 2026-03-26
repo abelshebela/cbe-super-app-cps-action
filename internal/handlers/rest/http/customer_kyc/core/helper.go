@@ -1,9 +1,9 @@
 package core
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"errors"
 	"net/http"
 	"regexp"
@@ -29,7 +29,7 @@ func ParseRequestFromMultipleFormData(r *http.Request) (dto.CreateCustomerKYCReq
 		return req, localization.ErrorFileParseFailed
 	}
 
-	req.AccountType = model.AccountType(r.FormValue("account_type"))
+	req.AccountType = constants.AccountType(r.FormValue("account_type"))
 	req.CustomerName = dto.CustomerInfoRequest{
 		FirstName:   r.FormValue("first_name"),
 		MiddleName:  r.FormValue("middle_name"),
@@ -50,8 +50,8 @@ func ParseRequestFromMultipleFormData(r *http.Request) (dto.CreateCustomerKYCReq
 		HouseNumber: r.FormValue("house_number"),
 	}
 	req.Nationality = r.FormValue("nationality")
-	req.MaritalStatus = model.MaritalStatus(r.FormValue("marital_status"))
-	req.EmploymentStatus = model.EmploymentStatus(r.FormValue("employment_status"))
+	req.MaritalStatus = constants.MaritalStatus(r.FormValue("marital_status"))
+	req.EmploymentStatus = constants.EmploymentStatus(r.FormValue("employment_status"))
 	req.Occupation = r.FormValue("occupation")
 	req.AverageMonthlyIncome = r.FormValue("average_monthly_income")
 	req.EducationStatus = r.FormValue("education_status")

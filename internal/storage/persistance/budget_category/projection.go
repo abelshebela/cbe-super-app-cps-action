@@ -1,12 +1,12 @@
 package budget_category
 
 import (
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func BudgetCategoryMapper(budgetCategory model.BudgetCategory) bson.M {
+func BudgetCategoryMapper(budgetCategory imodel.BudgetCategory) bson.M {
 	result := bson.M{}
 
 	if budgetCategory.Name != "" {
@@ -17,6 +17,9 @@ func BudgetCategoryMapper(budgetCategory model.BudgetCategory) bson.M {
 	}
 	if budgetCategory.Icon != "" {
 		result["icon"] = budgetCategory.Icon
+	}
+	if budgetCategory.Type != "" {
+		result["type"] = budgetCategory.Type
 	}
 	result["enabled"] = budgetCategory.Enabled
 	result["is_deleted"] = budgetCategory.IsDeleted

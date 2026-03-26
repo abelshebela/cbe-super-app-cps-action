@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
@@ -98,7 +99,7 @@ func (n *NotificationStore) PublishInAppBroadcast(ctx context.Context, inapp typ
 
 	// Note: Using KafkaEmailTopic for generic notification fanout unless
 	// a dedicated in-app topic is provided in configuration.
-	return n.producer.PublishMessage(ctx, inapp, "in_app_broadcast", "inapp_notifications", "InAppBroadcast")
+	return n.producer.PublishMessage(ctx, inapp, "in_app_broadcast", string(constants.InAppNotificationsTopic), "InAppBroadcast")
 }
 
 // PublishInAppBroadcastWithLog publishes an in-app broadcast with a custom logType
@@ -112,5 +113,5 @@ func (n *NotificationStore) PublishInAppBroadcastWithLog(ctx context.Context, in
 	if inapp.Type == "" {
 		inapp.Type = "inapp"
 	}
-	return n.producer.PublishMessage(ctx, inapp, "in_app_broadcast", "inapp_notifications", logType)
+	return n.producer.PublishMessage(ctx, inapp, "in_app_broadcast", string(constants.InAppNotificationsTopic), logType)
 }

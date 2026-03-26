@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"time"
 
-	shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
@@ -45,57 +45,69 @@ func MapToServiceModel(req service_dto.CreateServiceRequest) model.Service {
 		ServiceKey:       req.ServiceKey,
 		ServiceName:      req.ServiceName,
 		ProductGlAccount: req.ProductGlAccount,
-		Cap: model.Cap{
-			SingleCap:          formatFloatPointer(req.Cap.SingleCap),
-			MinimumTransferCap: formatFloatPointer(req.Cap.MinimumTransferCap),
-		},
-		Tiers: func() []model.Tier {
-			tiers := make([]model.Tier, 0, len(req.Tiers))
-			for _, t := range req.Tiers {
-				tiers = append(tiers, model.Tier{
-					// FeeType:   model.FeeType(service_dto.StringPointer(t.FeeType, "")),
-					FeeType:   shared_constants.FeeType(service_dto.StringPointer(t.FeeType, string(*t.FeeType))),
-					FeeAmount: formatFloatPointer(t.FeeAmount),
-					Min:       formatFloatPointer(t.Min),
-					Max:       formatFloatPointer(t.Max),
+		Cap: func() []model.Cap {
+			caps := make([]model.Cap, 0, len(req.Cap))
+
+			for _, c := range req.Cap {
+				caps = append(caps, model.Cap{
+					Source:             shared_constant.SourceApp(*c.Source),
+					Currency:           service_dto.StringPointer(c.Currency, ""),
+					SingleCap:          formatFloatPointer(c.SingleCap),
+					MinimumTransferCap: formatFloatPointer(c.MinimumTransferCap),
 				})
 			}
-			return tiers
+
+			return caps
 		}(),
-		ServiceList: func() []model.ServiceList {
-			lists := make([]model.ServiceList, 0, len(req.ServiceList))
-			for _, sl := range req.ServiceList {
-				lists = append(lists, model.ServiceList{
-					ServiceName:             service_dto.StringPointer(sl.ServiceName, ""),
-					ServiceKey:              service_dto.StringPointer(sl.ServiceKey, ""),
-					OverideProductGlAccount: service_dto.StringPointer(sl.OverideProductGlAccount, ""),
-					IsEnabled:               service_dto.BoolPointer(sl.IsEnabled, true),
-					OverideCap: func() model.Cap {
-						if sl.OverideCap == nil {
-							return model.Cap{}
-						}
-						return model.Cap{
-							SingleCap:          formatFloatPointer(sl.OverideCap.SingleCap),
-							MinimumTransferCap: formatFloatPointer(sl.OverideCap.MinimumTransferCap),
-						}
-					}(),
-					OverideTiers: func() []model.Tier {
-						tiers := make([]model.Tier, 0, len(sl.OverideTiers))
-						for _, t := range sl.OverideTiers {
-							tiers = append(tiers, model.Tier{
-								// FeeType:   model.FeeType(service_dto.StringPointer(t.FeeType, "")),
-								FeeType:   shared_constants.FeeType(service_dto.StringPointer(t.FeeType, string(*t.FeeType))),
-								FeeAmount: formatFloatPointer(t.FeeAmount),
-								Min:       formatFloatPointer(t.Min),
-								Max:       formatFloatPointer(t.Max),
-							})
-						}
-						return tiers
-					}(),
-				})
-			}
-			return lists
-		}(),
+		MinimumFraudAmount: strconv.FormatFloat(req.MinimumFraudAmount, 'f', -1, 64),
+
+		// Tiers: func() []model.Tier {
+		// 	tiers := make([]model.Tier, 0, len(req.Tiers))
+		// 	for _, t := range req.Tiers {
+		// 		tiers = append(tiers, model.Tier{
+		// 			// FeeType:   model.FeeType(service_dto.StringPointer(t.FeeType, "")),
+		// 			FeeType:   shared_constants.FeeType(service_dto.StringPointer(t.FeeType, string(*t.FeeType))),
+		// 			FeeAmount: formatFloatPointer(t.FeeAmount),
+		// 			Min:       formatFloatPointer(t.Min),
+		// 			Max:       formatFloatPointer(t.Max),
+		// 		})
+		// 	}
+		// 	return tiers
+		// }(),
+		// ServiceList: func() []model.ServiceList {
+		// 	lists := make([]model.ServiceList, 0, len(req.ServiceList))
+		// 	for _, sl := range req.ServiceList {
+		// 		lists = append(lists, model.ServiceList{
+		// 			ServiceName:             service_dto.StringPointer(sl.ServiceName, ""),
+		// 			ServiceKey:              service_dto.StringPointer(sl.ServiceKey, ""),
+		// 			OverideProductGlAccount: service_dto.StringPointer(sl.OverideProductGlAccount, ""),
+		// 			IsEnabled:               service_dto.BoolPointer(sl.IsEnabled, true),
+		// 			OverideCap: func() model.Cap {
+		// 				if sl.OverideCap == nil {
+		// 					return model.Cap{}
+		// 				}
+		// 				return model.Cap{
+		// 					SingleCap:          formatFloatPointer(sl.OverideCap.SingleCap),
+		// 					MinimumTransferCap: formatFloatPointer(sl.OverideCap.MinimumTransferCap),
+		// 				}
+		// 			}(),
+		// 			// OverideTiers: func() []model.Tier {
+		// 			// 	tiers := make([]model.Tier, 0, len(sl.OverideTiers))
+		// 			// 	for _, t := range sl.OverideTiers {
+		// 			// 		tiers = append(tiers, model.Tier{
+		// 			// 			// FeeType:   model.FeeType(service_dto.StringPointer(t.FeeType, "")),
+		// 			// 			FeeType:   shared_constants.FeeType(service_dto.StringPointer(t.FeeType, string(*t.FeeType))),
+		// 			// 			FeeAmount: formatFloatPointer(t.FeeAmount),
+		// 			// 			Min:       formatFloatPointer(t.Min),
+		// 			// 			Max:       formatFloatPointer(t.Max),
+		// 			// 		})
+		// 			// 	}
+		// 			// 	return tiers
+		// 			// }(),
+		// 		})
+		// 	}
+		// 	return lists
+		// }(),
 		Enabled:   service_dto.BoolPointer(req.Enabled, true),
 		IsDeleted: service_dto.BoolPointer(req.IsDeleted, false),
 		CreatedAt: time.Now(),
@@ -111,66 +123,93 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing mode
 	existing.ProductGlAccount = service_dto.StringPointer(req.ProductGlAccount, existing.ProductGlAccount)
 
 	if req.Cap != nil {
-		existing.Cap = model.Cap{
-			SingleCap:          formatFloatPointer(req.Cap.SingleCap),
-			MinimumTransferCap: formatFloatPointer(req.Cap.MinimumTransferCap),
-		}
-	}
+		existing.Cap = func() []model.Cap {
+			caps := make([]model.Cap, 0, len(req.Cap))
 
-	if req.Tiers != nil {
-		existing.Tiers = func() []model.Tier {
-			tiers := make([]model.Tier, 0, len(req.Tiers))
-			for _, t := range req.Tiers {
-				tiers = append(tiers, model.Tier{
-					// FeeType:   model.FeeType(service_dto.StringPointer(t.FeeType, string(existing.Tiers[0].FeeType))), // Use existing or first tier if matching is complex
-					FeeType:   shared_constants.FeeType(service_dto.StringPointer(t.FeeType, string(*t.FeeType))),
-					FeeAmount: formatFloatPointer(t.FeeAmount),
-					Min:       formatFloatPointer(t.Min),
-					Max:       formatFloatPointer(t.Max),
+			for _, c := range req.Cap {
+				caps = append(caps, model.Cap{
+					Source:             shared_constant.SourceApp(*c.Source),
+					Currency:           service_dto.StringPointer(c.Currency, ""),
+					SingleCap:          formatFloatPointer(c.SingleCap),
+					MinimumTransferCap: formatFloatPointer(c.MinimumTransferCap),
 				})
 			}
-			return tiers
+
+			return caps
 		}()
+	}
+	if req.MinimumFraudAmount != nil {
+		existing.MinimumFraudAmount = strconv.FormatFloat(*req.MinimumFraudAmount, 'f', -1, 64)
 	}
 
-	if req.ServiceList != nil {
-		existing.ServiceList = func() []model.ServiceList {
-			lists := make([]model.ServiceList, 0, len(req.ServiceList))
-			for _, sl := range req.ServiceList {
-				lists = append(lists, model.ServiceList{
-					ServiceName:             service_dto.StringPointer(sl.ServiceName, ""),
-					ServiceKey:              service_dto.StringPointer(sl.ServiceKey, ""),
-					OverideProductGlAccount: service_dto.StringPointer(sl.OverideProductGlAccount, ""),
-					OverideCap: func() model.Cap {
-						if sl.OverideCap == nil {
-							return model.Cap{}
-						}
-						return model.Cap{
-							SingleCap:          formatFloatPointer(sl.OverideCap.SingleCap),
-							MinimumTransferCap: formatFloatPointer(sl.OverideCap.MinimumTransferCap),
-						}
-					}(),
-					OverideTiers: func() []model.Tier {
-						tiers := make([]model.Tier, 0, len(sl.OverideTiers))
-						for _, t := range sl.OverideTiers {
-							tiers = append(tiers, model.Tier{
-								// FeeType:   model.FeeType(service_dto.StringPointer(t.FeeType, "")),
-								FeeType:   shared_constants.FeeType(service_dto.StringPointer(t.FeeType, string(*t.FeeType))),
-								FeeAmount: formatFloatPointer(t.FeeAmount),
-								Min:       formatFloatPointer(t.Min),
-								Max:       formatFloatPointer(t.Max),
-							})
-						}
-						return tiers
-					}(),
-					// IsEnabled: service_dto.BoolPointer(sl.IsEnabled, true),
-					IsEnabled: true,
-				})
-			}
-			return lists
-		}()
-		existing.Enabled = true
-	}
+	// if req.Tiers != nil {
+	// 	existing.Tiers = func() []model.Tier {
+	// 		tiers := make([]model.Tier, 0, len(req.Tiers))
+	// 		for _, t := range req.Tiers {
+	// 			tiers = append(tiers, model.Tier{
+	// 				// FeeType:   model.FeeType(service_dto.StringPointer(t.FeeType, string(existing.Tiers[0].FeeType))), // Use existing or first tier if matching is complex
+	// 				FeeType:   shared_constants.FeeType(service_dto.StringPointer(t.FeeType, string(*t.FeeType))),
+	// 				FeeAmount: formatFloatPointer(t.FeeAmount),
+	// 				Min:       formatFloatPointer(t.Min),
+	// 				Max:       formatFloatPointer(t.Max),
+	// 			})
+	// 		}
+	// 		return tiers
+	// 	}()
+	// }
+
+	// if req.ServiceList != nil {
+	// 	existing.ServiceList = func() []model.ServiceList {
+	// 		lists := make([]model.ServiceList, 0, len(req.ServiceList))
+	// 		for _, sl := range req.ServiceList {
+	// 			lists = append(lists, model.ServiceList{
+	// 				ServiceName:             service_dto.StringPointer(sl.ServiceName, ""),
+	// 				ServiceKey:              service_dto.StringPointer(sl.ServiceKey, ""),
+	// 				OverideProductGlAccount: service_dto.StringPointer(sl.OverideProductGlAccount, ""),
+	// 				OverideCap: func() model.Cap {
+	// 					if sl.OverideCap == nil {
+	// 						return model.Cap{}
+	// 					}
+	// 					return model.Cap{
+	// 						SingleCap:          formatFloatPointer(sl.OverideCap.SingleCap),
+	// 						MinimumTransferCap: formatFloatPointer(sl.OverideCap.MinimumTransferCap),
+	// 					}
+	// 				}(),
+	// 				// OverideTiers: func() []model.Tier {
+	// 				// 	tiers := make([]model.Tier, 0, len(sl.OverideTiers))
+	// 				// 	for _, t := range sl.OverideTiers {
+	// 				// 		tiers = append(tiers, model.Tier{
+	// 				// 			// FeeType:   model.FeeType(service_dto.StringPointer(t.FeeType, "")),
+	// 				// 			FeeType:   shared_constants.FeeType(service_dto.StringPointer(t.FeeType, string(*t.FeeType))),
+	// 				// 			FeeAmount: formatFloatPointer(t.FeeAmount),
+	// 				// 			Min:       formatFloatPointer(t.Min),
+	// 				// 			Max:       formatFloatPointer(t.Max),
+	// 				// 		})
+	// 				// 	}
+	// 				// 	return tiers
+	// 				// }(),
+	// 				// IsEnabled: service_dto.BoolPointer(sl.IsEnabled, true),
+	// 				IsEnabled: true,
+	// 			})
+	// 		}
+	// 		return lists
+	// 	}()
+	// 	existing.Enabled = true
+	// }
 
 	return existing
+}
+
+func MapServiceListDtoToModel(req *service_dto.CreateServiceList) model.ServiceList {
+	return model.ServiceList{
+		ServiceName: req.ServiceName,
+		ServiceKey:  req.ServiceKey,
+	}
+}
+
+func MapServiceListDtoUpdateToModel(req *service_dto.UpdateServiceList) model.ServiceList {
+	return model.ServiceList{
+		ServiceName: req.ServiceName,
+		ServiceKey:  req.ServiceKey,
+	}
 }

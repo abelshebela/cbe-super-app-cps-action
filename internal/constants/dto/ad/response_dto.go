@@ -12,7 +12,7 @@ type AdvertResponse struct {
 	Title         string                    `json:"title"`
 	Description   string                    `json:"description"`
 	BannerImage   string                    `json:"banner_image"`
-	AdvertFor     shared_constant.AdvertFor `json:"advert_for"`
+	AdvertFor     shared_constant.AdvertFor `json:"advert_for" swaggertype:"string" example:"ALL"`
 	Enabled       bool                      `json:"enabled"`
 	CreatedAt     time.Time                 `json:"created_at"`
 	LastUpdatedAt time.Time                 `json:"last_updated_at"`

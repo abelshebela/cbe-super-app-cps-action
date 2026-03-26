@@ -47,14 +47,14 @@ func DeleteUserDataWithLinkedAccount(ctx context.Context, userRepo storage.UserR
 			ctx, spanUser := local_util.TraceLogger(ctx, "core", "DeleteUser", "core", "core")
 			defer spanUser.End()
 			userErr = userRepo.Delete(ctx, user.ID.Hex())
-			fmt.Println("Deletion of user on the unlink error: %v", userErr)
+			fmt.Printf("Deletion of user on the unlink error: %v", userErr)
 		},
 		func() {
 			if haveAccount {
 				ctx, spanLinkedAcc := local_util.TraceLogger(ctx, "core", "DeleteLinkedAccount", "core", "core")
 				defer spanLinkedAcc.End()
 				linkedAccErr = LinkedAccountRepo.Delete(ctx, likedAccount.ID.Hex())
-				fmt.Println("Deletion account on the linked account error: %v", linkedAccErr)
+				fmt.Printf("Deletion account on the linked account error: %v", linkedAccErr)
 			}
 		},
 	)
@@ -143,7 +143,6 @@ func MapToDto(cus *member.User) customer.FindCustomerByIDResponse {
 		BlockedOn:            cus.BlockedOn,
 		IsUSSDEnabled:        cus.IsUSSDEnabled,
 		ISuperappEnabled:     cus.ISuperappEnabled,
-		LastLogin:            cus.LastLogin,
 		APPInstallationDate:  cus.APPInstallationDate,
 		Config:               cus.Config,
 		CreatedAt:            cus.CreatedAt,

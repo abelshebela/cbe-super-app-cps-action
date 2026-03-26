@@ -39,6 +39,7 @@ func InitSitotaHandler(svc service.SitotaService, logger utils.Logger) *handler 
 func (h *handler) GetAllSitotas(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllSitotas", "handler", "sitota")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	params := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -57,12 +58,12 @@ func (h *handler) GetAllSitotas(w http.ResponseWriter, r *http.Request) {
 	sitotas, err := h.svc.GetAllSitotas(ctx, params)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[GetAllSitotas] service error: %v", err)
+		log.Errorf("[GetAllSitotas] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	span.SetAttributes(attribute.Int("sitota.count", len(sitotas.Data)))
-	h.logger.Infof("[GetAllSitotas] retrieved %d sitota transactions", len(sitotas.Data))
+	log.Infof("[GetAllSitotas] retrieved %d sitota transactions", len(sitotas.Data))
 	localization.SendSuccessResponse(w, localization.SuccessAllSitotasRetrieved, sitotas)
 }
 
@@ -83,6 +84,7 @@ func (h *handler) GetAllSitotas(w http.ResponseWriter, r *http.Request) {
 func (h *handler) GetSitota(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getSitota", "handler", "sitota")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
 		span.RecordError(errors.New("sitota ID is required"))
@@ -94,10 +96,10 @@ func (h *handler) GetSitota(w http.ResponseWriter, r *http.Request) {
 	sitota, err := h.svc.GetSitotaByID(ctx, id)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[GetSitota] service error: %v", err)
+		log.Errorf("[GetSitota] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("[GetSitota] sitota transaction retrieved successfully for id: %s", id)
+	log.Infof("[GetSitota] sitota transaction retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessSitotaRetrieved, sitota)
 }

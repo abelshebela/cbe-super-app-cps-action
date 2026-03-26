@@ -17,6 +17,7 @@ func (r *BPSActionApproveIndexRepository) ExistsByRoleAndAction(ctx context.Cont
 
 	count, err := r.collection.CountDocuments(ctx, filter)
 	if err != nil {
+		r.logger.Errorf("[ExistsByRoleAndAction] failed to count documents: %v", err)
 		return false, err
 	}
 	return count > 0, nil

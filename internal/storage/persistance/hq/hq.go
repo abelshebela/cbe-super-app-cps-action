@@ -46,10 +46,8 @@ func (h *HQStorage) FindByID(ctx context.Context, id string) (*model.HQ, error) 
 
 	result, err := h.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return nil, err
+		h.logger.Errorf("[FindByID] failed to find HQ: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -61,12 +59,9 @@ func (p *HQStorage) Find(ctx context.Context, projections ...bson.M) (*model.HQ,
 	result, err := p.dal.FindOne(ctx, bson.M{}, projection)
 	if err != nil {
 		p.logger.Errorf("failed to fetch HQ: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
-	if result == nil {
-		p.logger.Errorf("HQ not found (single)")
-		return nil, errors.New(localization.ErrorFileNotFound.Code)
-	}
+
 	return result, nil
 }
 
@@ -90,7 +85,7 @@ func (p *HQStorage) Update(ctx context.Context, field string, value interface{},
 	_, err = p.dal.UpdateOne(ctx, bson.M{"_id": hqDoc.ID}, updateDoc)
 	if err != nil {
 		p.logger.Errorf("failed to update HQ field %s: %v", field, err)
-		return err
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -102,12 +97,12 @@ func (h *HQStorage) FindAllWithPagination(ctx context.Context, filterParam types
 
 	data, err := h.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	total, err := h.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)

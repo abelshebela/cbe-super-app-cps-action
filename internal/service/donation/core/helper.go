@@ -10,14 +10,14 @@ import (
 	"errors"
 	"time"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"encoding/json"
 
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
+
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	// types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
+	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 func nonEmptyBool(newVal *bool, oldVal bool) bool {
@@ -27,7 +27,7 @@ func nonEmptyBool(newVal *bool, oldVal bool) bool {
 	return oldVal
 }
 
-func MapToDonationResponse(donation *imodel.Donation) *donation_dto.DonationResponse {
+func MapToDonationResponse(donation *donation_model.Donation) *donation_dto.DonationResponse {
 	return &donation_dto.DonationResponse{
 		DonationCode:        donation.DonationCode,
 		CompanyID:           donation.CompanyID.Hex(),
@@ -36,7 +36,7 @@ func MapToDonationResponse(donation *imodel.Donation) *donation_dto.DonationResp
 		IsFeatured:          donation.IsFeatured,
 		Target:              donation.Target,
 		DonationDescription: donation.DonationDescription,
-		DonationImages:      ConvertToDonationImages(donation.DonationImages),
+		DonationImages:      ConvertToLocalDonationImages(donation.DonationImages),
 		CoverImage:          donation.CoverImage,
 		EndDate:             donation.EndDate.Format(time.RFC3339),
 		StartDate:           donation.StartDate.Format(time.RFC3339),
@@ -44,7 +44,7 @@ func MapToDonationResponse(donation *imodel.Donation) *donation_dto.DonationResp
 	}
 }
 
-func MapToDonationListResponse(donation *imodel.Donation) *donation_dto.DonationListResponse {
+func MapToDonationListResponse(donation *donation_model.Donation) *donation_dto.DonationListResponse {
 	return &donation_dto.DonationListResponse{
 		ID:                  donation.ID.Hex(),
 		DonationCode:        donation.DonationCode,
@@ -52,7 +52,7 @@ func MapToDonationListResponse(donation *imodel.Donation) *donation_dto.Donation
 		IsFeatured:          donation.IsFeatured,
 		Target:              donation.Target,
 		DonationDescription: donation.DonationDescription,
-		DonationImages:      ConvertToDonationImages(donation.DonationImages),
+		DonationImages:      ConvertToLocalDonationImages(donation.DonationImages),
 		CoverImage:          donation.CoverImage,
 		EndDate:             donation.EndDate.Format(time.RFC3339),
 		StartDate:           donation.StartDate.Format(time.RFC3339),
@@ -63,7 +63,7 @@ func MapToDonationListResponse(donation *imodel.Donation) *donation_dto.Donation
 	}
 }
 
-func MapToDonationCPSRequest(donation *imodel.Donation) *donation_dto.DonationCPSRequest {
+func MapToDonationCPSRequest(donation *donation_model.Donation) *donation_dto.DonationCPSRequest {
 	return &donation_dto.DonationCPSRequest{
 		DonationCode:        donation.DonationCode,
 		CompanyID:           donation.CompanyID.Hex(),
@@ -72,7 +72,7 @@ func MapToDonationCPSRequest(donation *imodel.Donation) *donation_dto.DonationCP
 		IsFeatured:          &donation.IsFeatured,
 		Target:              donation.Target,
 		DonationDescription: donation.DonationDescription,
-		DonationImages:      ConvertToDonationImages(donation.DonationImages),
+		DonationImages:      ConvertToLocalDonationImages(donation.DonationImages),
 		CoverImage:          donation.CoverImage,
 		EndDate:             donation.EndDate.Format(time.RFC3339),
 		StartDate:           donation.StartDate.Format(time.RFC3339),
@@ -80,14 +80,14 @@ func MapToDonationCPSRequest(donation *imodel.Donation) *donation_dto.DonationCP
 	}
 }
 
-func MapToDonation(donationCode, companyID, categoryID, title, donationDescription, coverImage, endDate, startDate string, isFeatured bool, target int32, enabled bool) *imodel.Donation {
+func MapToDonation(donationCode, companyID, categoryID, title, donationDescription, coverImage, endDate, startDate string, isFeatured bool, target int32, enabled bool) *donation_model.Donation {
 	companyObjID, _ := bson.ObjectIDFromHex(companyID)
 	categoryObjID, _ := bson.ObjectIDFromHex(categoryID)
 
 	endTime, _ := time.Parse(time.RFC3339, endDate)
 	startTime, _ := time.Parse(time.RFC3339, startDate)
 
-	return &imodel.Donation{
+	return &donation_model.Donation{
 		DonationCode:        donationCode,
 		CompanyID:           companyObjID,
 		CategoryID:          categoryObjID,
@@ -105,7 +105,19 @@ func MapToDonation(donationCode, companyID, categoryID, title, donationDescripti
 	}
 }
 
-func ConvertToDonationImages(images []types.DonationImage) []types.DonationImage {
+func ConvertToDonationImages(images []types.DonationImage) []shared_types.DonationImage {
+	result := make([]shared_types.DonationImage, len(images))
+	for i, img := range images {
+		result[i] = shared_types.DonationImage{
+			ID:        img.ID,
+			PhotoURL:  img.PhotoURL,
+			CreatedAt: img.CreatedAt,
+		}
+	}
+	return result
+}
+
+func ConvertToLocalDonationImages(images []shared_types.DonationImage) []types.DonationImage {
 	result := make([]types.DonationImage, len(images))
 	for i, img := range images {
 		result[i] = types.DonationImage{
@@ -121,8 +133,8 @@ func DonationTitleExists(ctx context.Context, title string, donationRepo storage
 	donations, err := donationRepo.FindAllWithPagination(ctx, types.Filter{
 		Search: title,
 	})
-	if err != nil && err != mongo.ErrNoDocuments {
-		return false, errors.New(localization.ErrorDonationLookupFailed.Code)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		return false, err
 	}
 
 	if donations.Data != nil {
@@ -132,7 +144,7 @@ func DonationTitleExists(ctx context.Context, title string, donationRepo storage
 	return false, nil
 }
 
-func IsDataSimilar(request donation_dto.DonationRequest, existing *imodel.Donation) bool {
+func IsDataSimilar(request donation_dto.DonationRequest, existing *donation_model.Donation) bool {
 	if request.Title != "" && request.Title != existing.Title {
 		return false
 	}
@@ -142,10 +154,10 @@ func IsDataSimilar(request donation_dto.DonationRequest, existing *imodel.Donati
 	if request.Target != "" && request.Target != existing.Target {
 		return false
 	}
-	if request.IsFeatured != &existing.IsFeatured {
+	if request.IsFeatured != nil && *request.IsFeatured != existing.IsFeatured {
 		return false
 	}
-	if *request.Enabled != existing.Enabled {
+	if request.Enabled != nil && *request.Enabled != existing.Enabled {
 		return false
 	}
 	if !request.StartDate.IsZero() && !request.StartDate.Equal(existing.StartDate) {
@@ -171,13 +183,13 @@ func BindAction(source any, target any) error {
 	return json.Unmarshal(bytes, target)
 }
 
-func CheckDataSimilarityAndValidation(ctx context.Context, request donation_dto.DonationRequest, existing *imodel.Donation, donationRepo storage.DonationRepository) error {
+func CheckDataSimilarityAndValidation(ctx context.Context, request donation_dto.DonationRequest, existing *donation_model.Donation, donationRepo storage.DonationRepository) error {
 	if IsDataSimilar(request, existing) {
 		return errors.New(localization.ErrorNoChangesToUpdate.Code)
 	}
 	if request.Title != "" && request.Title != existing.Title {
 		ok, err := DonationTitleExists(ctx, request.Title, donationRepo)
-		if err != nil && err != mongo.ErrNoDocuments {
+		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 			return err
 		}
 		if ok {
@@ -188,7 +200,7 @@ func CheckDataSimilarityAndValidation(ctx context.Context, request donation_dto.
 	return nil
 }
 
-func MapToDonationModel(cpsRequest *donation_dto.DonationCPSRequest) *imodel.Donation {
+func MapToDonationModel(cpsRequest *donation_dto.DonationCPSRequest) *donation_model.Donation {
 	companyObjID, _ := bson.ObjectIDFromHex(cpsRequest.Company.ID)
 	categoryObjID, _ := bson.ObjectIDFromHex(cpsRequest.Category.ID)
 
@@ -204,7 +216,7 @@ func MapToDonationModel(cpsRequest *donation_dto.DonationCPSRequest) *imodel.Don
 		}
 	}
 
-	return &imodel.Donation{
+	return &donation_model.Donation{
 		DonationCode:        cpsRequest.DonationCode,
 		CompanyID:           companyObjID,
 		CategoryID:          categoryObjID,
@@ -213,7 +225,7 @@ func MapToDonationModel(cpsRequest *donation_dto.DonationCPSRequest) *imodel.Don
 		Target:              cpsRequest.Target,
 		CurrentAmount:       "0",
 		DonationDescription: cpsRequest.DonationDescription,
-		DonationImages:      donationImages,
+		DonationImages:      ConvertToDonationImages(donationImages),
 		CoverImage:          cpsRequest.CoverImage,
 		EndDate:             endTime,
 		StartDate:           startTime,
@@ -254,7 +266,7 @@ func GetTimeValueOrDefault(value, defaultValue time.Time) time.Time {
 	return value
 }
 
-func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationListResponse) *imodel.Donation {
+func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationListResponse) *donation_model.Donation {
 	companyObjID, _ := bson.ObjectIDFromHex(donationResponse.Company.ID)
 	categoryObjID, _ := bson.ObjectIDFromHex(donationResponse.Category.ID)
 
@@ -274,7 +286,7 @@ func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationL
 
 	donationID, _ := bson.ObjectIDFromHex(donationResponse.ID)
 
-	return &imodel.Donation{
+	return &donation_model.Donation{
 		ID:                  donationID,
 		DonationCode:        donationResponse.DonationCode,
 		CompanyID:           companyObjID,
@@ -283,7 +295,7 @@ func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationL
 		IsFeatured:          donationResponse.IsFeatured,
 		Target:              donationResponse.Target,
 		DonationDescription: donationResponse.DonationDescription,
-		DonationImages:      donationImages,
+		DonationImages:      ConvertToDonationImages(donationImages),
 		CoverImage:          donationResponse.CoverImage,
 		StartDate:           startTime,
 		EndDate:             endTime,
@@ -309,7 +321,7 @@ func ConvertDonationListResponseToRequest(donationResponse *donation_dto.Donatio
 
 func MapDonationUpdate(
 	id string,
-	existing *imodel.Donation,
+	existing *donation_model.Donation,
 	update donation_dto.DonationRequest,
 	coverImageURL string,
 	donationImages []types.DonationImage,

@@ -39,7 +39,8 @@ func ExistingIdentifier(existing *imodel.UssdMerchant, req ussd_merchant_dto.Cre
 		}
 	}
 	// Account number duplicate
-	if strings.EqualFold(strings.TrimSpace(existing.AccountNumber), normalizedAcct) {
+
+	if normalizedAcct != "" && strings.EqualFold(strings.TrimSpace(existing.AccountNumber), normalizedAcct) {
 		return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
 	return nil

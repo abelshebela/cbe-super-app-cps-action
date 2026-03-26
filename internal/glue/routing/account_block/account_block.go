@@ -144,6 +144,14 @@ func Init(
 					authMiddleware.AuthenticateToken,
 				},
 			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/details/{id}",
+				Handler: handler.GetAccountBlockDetails,
+				Middlewares: []func(http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+				},
+			},
 		}
 
 		glue.RegisterRoutes(r, routes)

@@ -19,6 +19,7 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (budget_categ
 
 	req.Name = r.FormValue("name")
 	req.Color = r.FormValue("color")
+	req.Type = r.FormValue("type")
 
 	_, iconHeader, err := utils.ParseMultipartFormFile(r, "icon", int64(constants.MaxMemoryForUpload))
 	if err != nil {
@@ -44,6 +45,9 @@ func ParseUpdateRequestFromMultipartForm(r *http.Request) (budget_category.Updat
 	}
 	if color := r.FormValue("color"); color != "" {
 		req.Color = color
+	}
+	if typ := r.FormValue("type"); typ != "" {
+		req.Type = typ
 	}
 
 	_, iconHeader, err := utils.ParseMultipartFormFile(r, "icon", int64(constants.MaxMemoryForUpload))

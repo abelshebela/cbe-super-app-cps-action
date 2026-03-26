@@ -39,7 +39,7 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 		NewsArticleCacheKeyPattern   = "news:article:%s"
 		NewsArticleCacheDeleteErrMsg = "failed to delete cache for article %s: %v"
 	)
-	m.logger.Infof("Media service authorizing action: %s", cpsAction.ActionCode)
+	m.logger.Infof("[ArticleSvc][Authorize] action: %s", cpsAction.ActionCode)
 
 	article, err := local_util.JsonUnmarshal[model.NewsArticleDetail](cpsAction.CurrentAction)
 	if err != nil {
@@ -117,7 +117,7 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 			m.logger.Warnf(NewsArticleCacheDeleteErrMsg, article.ID, err)
 		}
 	default:
-		m.logger.Errorf("Unsupported request action: %s", cpsAction.RequestAction)
+		m.logger.Errorf("[ArticleSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 		span.AddEvent("Unsupported request action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorInvalidRequest.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
@@ -126,7 +126,7 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 	}
 
 	cpsAction.CurrentAction = article
-	m.logger.Infof("Action %s approved for Article %s", cpsAction.RequestAction, article.ID)
+	m.logger.Infof("[ArticleSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, article.ID)
 
 	return cpsAction, nil
 }

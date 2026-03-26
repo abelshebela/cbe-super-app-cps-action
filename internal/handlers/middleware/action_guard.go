@@ -9,6 +9,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -44,17 +45,28 @@ func (c *allowCache) set(key string, val allowEntry) {
 }
 
 var (
-	cpsApproveRepo storage.CPSActionApproveIndexRepository
-	cpsGuardCache  = &allowCache{data: make(map[string]allowEntry), ttl: 5 * time.Minute}
-	guardLogger    utils.Logger
+	cpsApproveRepo              storage.CPSActionApproveIndexRepository
+	bpsApproveRepo              storage.BPSActionApproveIndexRepository
+	roleRepo                    storage.RoleRepository
+	clientOrchestrationProducer *kafka.ClientOrchestrationProducer
+	cpsGuardCache               = &allowCache{data: make(map[string]allowEntry), ttl: 5 * time.Minute}
+	roleEnabledCache            = &allowCache{data: make(map[string]allowEntry), ttl: 5 * time.Minute}
+	guardLogger                 utils.Logger
 )
 
-func InitCPSActionGuard(repo storage.CPSActionApproveIndexRepository, ttl time.Duration, logger utils.Logger) {
-	cpsApproveRepo = repo
+func InitCPSActionGuard(cpsRepo storage.CPSActionApproveIndexRepository, bpsRepo storage.BPSActionApproveIndexRepository, rRepo storage.RoleRepository, ttl time.Duration, logger utils.Logger) {
+	cpsApproveRepo = cpsRepo
+	bpsApproveRepo = bpsRepo
+	roleRepo = rRepo
 	if ttl > 0 {
 		cpsGuardCache.ttl = ttl
+		roleEnabledCache.ttl = ttl
 	}
 	guardLogger = logger
+}
+
+func InitClientOrchestrationProducer(producer *kafka.ClientOrchestrationProducer) {
+	clientOrchestrationProducer = producer
 }
 
 func RequireCPSAction(actionName string) func(http.Handler) http.Handler {
@@ -85,7 +97,7 @@ func RequireCPSAction(actionName string) func(http.Handler) http.Handler {
 			allowed, err := cpsApproveRepo.ExistsByRoleAndAction(r.Context(), roleID, action)
 			if err != nil {
 				if guardLogger != nil {
-					guardLogger.Errorf("action guard lookup failed: %v", err)
+					guardLogger.Errorf("[ActionGuard][RequireCPS] lookup err: %v", err)
 				}
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
