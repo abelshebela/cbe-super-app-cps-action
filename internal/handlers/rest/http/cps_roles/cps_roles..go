@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	constants "cbe-super-app-cps-action/internal/constants"
@@ -265,4 +266,33 @@ func (c *cpsRolesHandler) DeleteCPSRole(w http.ResponseWriter, r *http.Request) 
 	} else {
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleDeleted, nil)
 	}
+}
+
+func (c *cpsRolesHandler) GetGlobalLimits(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), c.logger)
+
+	globalLimits, err := c.svc.GetGlobalLimits(r.Context())
+	if err != nil {
+		log.Errorf("[GetGlobalLimits] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessGlobalLimitFetched, globalLimits)
+}
+
+func (c *cpsRolesHandler) GetServiceLevelLimits(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), c.logger)
+
+	roleCode := chi.URLParam(r, "role_code")
+	filterParams := local_util.ExtractFilterParams(r)
+
+	serviceLevelLimits, err := c.svc.GetServiceLevelLimits(r.Context(), roleCode, filterParams)
+	if err != nil {
+		log.Errorf("[GetServiceLevelLimits] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceLevelLimits, serviceLevelLimits)
 }
