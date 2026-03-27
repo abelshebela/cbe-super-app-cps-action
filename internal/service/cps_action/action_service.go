@@ -137,6 +137,24 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	roleCode := ctx.Value(constants.ContextKey("role_code")).(string)
 	actionName, _ := ctx.Value(constants.ContextKey("action_name")).(string)
 
+	if strings.Contains(cpsAction.RequestAction, string(constants.CREATE)) {
+		cpsAction.RoleCode = roleCode
+		err = ca.repo.Save(ctx, cpsAction)
+		if err != nil {
+			span.AddEvent("failed to save cps action", trace.WithAttributes(attribute.String("error", err.Error())))
+			return err
+		}
+		return nil
+	} else if strings.Contains(cpsAction.RequestAction, string(constants.DELETE)) {
+		cpsAction.RoleCode = roleCode
+		err = ca.repo.Save(ctx, cpsAction)
+		if err != nil {
+			span.AddEvent("failed to save cps action", trace.WithAttributes(attribute.String("error", err.Error())))
+			return err
+		}
+		return nil
+	}
+
 	reqs := ca.pendingLockRequestActions(actionName, cpsAction.RequestAction)
 	if len(reqs) > 0 {
 		existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)

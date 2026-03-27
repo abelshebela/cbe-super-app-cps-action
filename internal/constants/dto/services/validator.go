@@ -3,6 +3,7 @@ package services
 import (
 	"cbe-super-app-cps-action/pkgs/utils"
 	"fmt"
+	"regexp"
 	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -202,7 +203,10 @@ func (r CreateServiceRequest) Validate() error {
 		validation.Field(&r.ServiceName, validation.Required, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ServiceKey, validation.Required, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars)),
-		validation.Field(&r.ProductGlAccount),
+		validation.Field(&r.ProductGlAccount,
+			validation.When(r.ProductGlAccount != "",
+				validation.Match(regexp.MustCompile(`^[a-zA-Z0-9]+$`)).Error("cbe_gl_product_account should be number or alphanumeric")),
+		),
 		validation.Field(&r.MinimumFraudAmount, validation.Min(0.0).Error("Minimum fraud amount must be greater or equal to zero")),
 	)
 	if err != nil {
@@ -250,6 +254,8 @@ func (r UpdateServiceRequest) Validate() error {
 	err := validation.ValidateStruct(&r,
 		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.MinimumFraudAmount, validation.Min(0.0).Error("Minimum fraud amount must be greater or equal to zero")),
+		validation.Field(&r.ProductGlAccount,
+			validation.Match(regexp.MustCompile(`^[a-zA-Z0-9]+$`)).Error("cbe_gl_product_account should be number or alphanumeric")),
 	)
 	if err != nil {
 		return err
