@@ -1378,7 +1378,6 @@ func donationCSVHeader() []string {
 		"Enabled",
 		"StartDate",
 		"EndDate",
-		"CreatedAt",
 	}
 }
 
@@ -1395,6 +1394,5 @@ func buildDonationRow(donation *donation_model.Donation) []string {
 		fmt.Sprintf("%v", donation.Enabled),
 		donation.StartDate.Format(time.RFC3339),
 		donation.EndDate.Format(time.RFC3339),
-		donation.CreatedAt.Format(time.RFC3339),
 	}
 }
