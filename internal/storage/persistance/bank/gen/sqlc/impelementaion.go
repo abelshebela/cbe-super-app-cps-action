@@ -325,8 +325,17 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	}
 	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] offset: %d, limit: %d", offset, limit)
 
+	// Determine sort order for name
+	orderBy := "create_at DESC"
+	if val, ok := filterParam.Filters["sort_name"]; ok {
+		q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] sort filter: %v", val)
+		if s, ok := val.(string); ok && (strings.ToUpper(s) == "ASC" || strings.ToUpper(s) == "DESC") {
+			orderBy = fmt.Sprintf("bank_name %s", strings.ToUpper(s))
+		}
+	}
+
 	// Fetch paginated results
-	selectQuery := fmt.Sprintf(`SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM BANKS WHERE %s ORDER BY create_at DESC OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY`, whereClause, idx, idx+1)
+	selectQuery := fmt.Sprintf(`SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM BANKS WHERE %s ORDER BY %s OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY`, whereClause, orderBy, idx, idx+1)
 	args = append(args, offset, limit)
 	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] selectQuery: %s", selectQuery)
 	rows, err := q.db.QueryContext(ctx, selectQuery, args...)
