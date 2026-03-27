@@ -116,7 +116,15 @@ func validateCreateTiers(interestType string, tiers []CreateTierDTO) error {
 
 	var previousMax decimal.Decimal
 	var flatTierInterest *decimal.Decimal
+	seen := make(map[string]bool)
+
 	for i, t := range tiers {
+
+		if seen[t.Name] {
+			return fmt.Errorf("duplicate tier name: %s", t.Name)
+		}
+		seen[t.Name] = true
+
 		name := strings.TrimSpace(t.Name)
 		minStr := strings.TrimSpace(t.Min)
 		maxStr := strings.TrimSpace(t.Max)
