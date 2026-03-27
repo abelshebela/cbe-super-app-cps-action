@@ -133,11 +133,19 @@ func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update
 	if strings.Contains(update.RequestAction, constants.DELETE) {
 		modelData = append(modelData, mongo.NewUpdateOneModel().
 			SetFilter(bson.M{"unique_id": update.UniqueId}).
-			SetUpdate(bson.M{"action_status": constants.Canceled, "canceled_reason": constants.CanceledBySystemDueToLinkedRequestAction}),
+			SetUpdate(bson.M{
+				"$set": bson.M{
+					"action_status":   constants.Canceled,
+					"canceled_reason": constants.CanceledBySystemDueToLinkedRequestAction,
+				},
+			}),
 		)
+
 		modelData = append(modelData, mongo.NewUpdateOneModel().
-			SetFilter(filterMap).
-			SetUpdate(update),
+			SetFilter(update).
+			SetUpdate(bson.M{
+				"$set": update, // assuming update is a struct or bson.M
+			}),
 		)
 
 		_, err := r.collection.BulkWrite(ctx, modelData, options.BulkWrite().SetOrdered(false))
