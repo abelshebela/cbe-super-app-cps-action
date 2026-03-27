@@ -75,16 +75,17 @@ type (
 // ---------------------------------------------------------------------------
 
 const (
-	Event               = "EVENT"
-	UpdateApp           = "Update your app"
-	DeviceFound         = "Device Successfuly Found"
-	OTPMessage          = "Your device lookup OTP is: %s. Valid for %d minutes."
-	PhoneFound          = "Phone successfuly found"
-	ImageUploadSuccess  = "image uploaded successfully"
-	ProfileUploadSucess = "Profile theme set successfuly"
-	PINResetSuccess     = "OTP verified for PIN reset"
-	IncompleteUserInfo  = "incomplete user info"
-	RoleBackReason      = "Roll back by the system because of the failed action"
+	Event                                    = "EVENT"
+	UpdateApp                                = "Update your app"
+	DeviceFound                              = "Device Successfuly Found"
+	OTPMessage                               = "Your device lookup OTP is: %s. Valid for %d minutes."
+	PhoneFound                               = "Phone successfuly found"
+	ImageUploadSuccess                       = "image uploaded successfully"
+	ProfileUploadSucess                      = "Profile theme set successfuly"
+	PINResetSuccess                          = "OTP verified for PIN reset"
+	IncompleteUserInfo                       = "incomplete user info"
+	RoleBackReason                           = "Roll back by the system because of the failed action"
+	CanceledBySystemDueToLinkedRequestAction = "Action canceled due to delete request"
 )
 
 // ---------------------------------------------------------------------------
