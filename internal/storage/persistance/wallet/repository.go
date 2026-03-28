@@ -183,7 +183,25 @@ func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 			{"unique_code": searchRegex},
 		}
 	}
-	docs, err := e.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
+	// Determine sort order by wallet name if requested
+	sort := bson.D{}
+	if val, ok := filterParam.Filters["sort_name"]; ok {
+		if s, ok := val.(string); ok {
+			switch s := s; s {
+			case "ASC", "asc":
+				sort = append(sort, bson.E{Key: "name", Value: 1})
+			case "DESC", "desc":
+				sort = append(sort, bson.E{Key: "name", Value: -1})
+			}
+		}
+	}
+	param := dal.FilterParam{
+		Filter: filter,
+		Sort:   sort,
+		Skip:   skip,
+		Limit:  limit,
+	}
+	docs, err := e.dal.FindAllWithPaginationD(ctx, param)
 	if err != nil {
 		e.logger.Errorf("[WalletStorage][FindAllWithPagination] failed to fetch wallets: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
