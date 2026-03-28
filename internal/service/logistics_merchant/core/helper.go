@@ -61,7 +61,7 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 func CheckMerchantExists(
 	ctx context.Context,
 	merchantRepo storage.LogisticsMerchantRepository,
-	data *types.CheckMiniAppMerchant,
+	data *types.CheckMerchant,
 	opts *types.MiniAppMerchantExistOptions,
 ) (bool, error) {
 	if data == nil {
