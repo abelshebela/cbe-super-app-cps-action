@@ -330,7 +330,7 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	if val, ok := filterParam.Filters["sort_name"]; ok {
 		q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] sort filter: %v", val)
 		if s, ok := val.(string); ok && (strings.ToUpper(s) == "ASC" || strings.ToUpper(s) == "DESC") {
-			orderBy = fmt.Sprintf("bank_name %s", strings.ToUpper(s))
+			orderBy = fmt.Sprintf("UPPER(bank_name) %s", strings.ToUpper(s))
 		}
 	}
 

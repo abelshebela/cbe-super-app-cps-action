@@ -19,6 +19,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type WalletStorage struct {
@@ -359,7 +360,12 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 		{{Key: "$limit", Value: limit}},
 	}
 
-	cursor, err := w.collection.Aggregate(ctx, pipeline)
+	opts := options.Aggregate().SetCollation(&options.Collation{
+		Locale:   "en",
+		Strength: 2,
+	})
+
+	cursor, err := w.collection.Aggregate(ctx, pipeline, opts)
 	if err != nil {
 		w.logger.Errorf("[WalletStorage][FindAllWithPaginationForGRPC] aggregation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
