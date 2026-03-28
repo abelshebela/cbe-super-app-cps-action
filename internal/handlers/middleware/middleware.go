@@ -66,7 +66,7 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 		AllowedOrigins: allowedOrigins,
 
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token", "Accept", "Origin", "x-api-applicationid", "x-source-secret"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token", "Accept", "Origin", "x-api-applicationid", "x-source-secret", "X-Api-Key", "x-api-key"},
 		ExposedHeaders:   []string{"X-Refreshed-Token"},
 		AllowCredentials: allowCredentials,
 		MaxAge:           300,
@@ -126,6 +126,7 @@ type authMiddleware struct {
 type AuthMiddleware interface {
 	AccessControl(allowedRoles []string) func(http.Handler) http.Handler
 	AuthenticateToken(next http.Handler) http.Handler
+	AuthenticateTokenOrMerchantIntegrationAPIKey(next http.Handler) http.Handler
 	AuthenticateTempToken(next http.Handler) http.Handler
 	RequireFormContentType() func(http.Handler) http.Handler
 }
