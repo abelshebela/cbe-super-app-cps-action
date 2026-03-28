@@ -130,8 +130,8 @@ type BPSUserResposenDTO struct {
 	Enabled           bool          `json:"enabled" bson:"enabled"`
 	IsDeleted         bool          `json:"is_deleted" bson:"is_deleted"`
 	OTPVerifyCount    uint8         `json:"otp_verfy_count" bson:"otp_verify_count"`
-	OTPLastTriedAt    time.Time     `json:"otp_last_tried_at" bson:"otp_last_tried_at"`
 	JobTitle          string        `json:"job_title" bson:"job_title"`
+	OTPLastTriedAt    time.Time     `json:"otp_last_tried_at" bson:"otp_last_tried_at"`
 	OTPLastVerifiedAt time.Time     `json:"otp_last_verified_at" bson:"otp_last_verified_at"`
 	IsFirstTimeLogin  bool          `json:"is_first_time_login" bson:"is_first_time_login"`
 	LastLoginAttempt  time.Time     `json:"last_login_attempt" bson:"last_login_attempt"`
