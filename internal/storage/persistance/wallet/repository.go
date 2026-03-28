@@ -240,6 +240,20 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 	if filterParam.Search == "enabled" {
 		filter["enabled"] = true
 	}
+	sort := bson.D{}
+	if val, ok := filterParam.Filters["sort_name"]; ok {
+		if s, ok := val.(string); ok {
+			switch s := s; s {
+			case "ASC", "asc":
+				sort = append(sort, bson.E{Key: "name", Value: 1})
+			case "DESC", "desc":
+				sort = append(sort, bson.E{Key: "name", Value: -1})
+			}
+		}
+	}
+	if len(sort) == 0 {
+		sort = append(sort, bson.E{Key: "created_at", Value: -1})
+	}
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
 
@@ -334,7 +348,7 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 				},
 			},
 		}},
-		{{Key: "$sort", Value: bson.M{"created_at": -1}}},
+		{{Key: "$sort", Value: sort}},
 		// Cleanup
 		{{Key: "$project", Value: bson.M{
 			"temp_service":   0,
