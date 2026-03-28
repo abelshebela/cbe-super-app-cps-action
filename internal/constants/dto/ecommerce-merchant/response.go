@@ -54,7 +54,7 @@ type MerchantLookUpResponse struct {
 	IsEcommerce   bool     `json:"is_ecommerce"`
 }
 
-type MiniAppMerchantResponseDTO struct {
+type EcommerceMerchantResponseDTO struct {
 	ID            string    `json:"id"`
 	Code          string    `json:"code"`
 	Type          string    `json:"type"`
@@ -69,6 +69,6 @@ type MiniAppMerchantResponseDTO struct {
 }
 
 type PaginatedMiniAppResponseResponse struct {
-	Data []MiniAppMerchantResponseDTO `json:"docs"`
-	Meta types.PaginationMeta         `json:"meta"`
+	Data []EcommerceMerchantResponseDTO `json:"docs"`
+	Meta types.PaginationMeta           `json:"meta"`
 }
