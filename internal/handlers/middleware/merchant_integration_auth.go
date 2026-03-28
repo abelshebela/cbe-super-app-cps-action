@@ -9,41 +9,30 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 )
 
-// Environment variables for server-to-server access to ecommerce-merchant APIs
-// (Option A: X-Api-Key OR Bearer JWT). Configure the key and a CPS identity that
-// exists in CPS action approve index for ecommerce merchant request actions.
-//
 // Required when clients send X-Api-Key:
-//   - ECOMMERCE_MERCHANT_INTEGRATION_API_KEY
-//   - ECOMMERCE_MERCHANT_INTEGRATION_ROLE_CODE
-//   - ECOMMERCE_MERCHANT_INTEGRATION_USER_ID
-//   - ECOMMERCE_MERCHANT_INTEGRATION_FULL_NAME
-//   - ECOMMERCE_MERCHANT_INTEGRATION_PHONE
-//   - ECOMMERCE_MERCHANT_INTEGRATION_DEPARTMENT
+//   - MERCHANT_INTEGRATION_API_KEY
+//   - MERCHANT_INTEGRATION_ROLE_CODE
+//   - MERCHANT_INTEGRATION_USER_ID
+//   - MERCHANT_INTEGRATION_FULL_NAME
+//   - MERCHANT_INTEGRATION_PHONE
+//   - MERCHANT_INTEGRATION_DEPARTMENT
 //
-// Optional (defaults shown in implementation):
-//   - ECOMMERCE_MERCHANT_INTEGRATION_USER_CODE
-//   - ECOMMERCE_MERCHANT_INTEGRATION_USERNAME
-//   - ECOMMERCE_MERCHANT_INTEGRATION_USER_ROLE
+// Optional
+//   - MERCHANT_INTEGRATION_USER_CODE
+//   - MERCHANT_INTEGRATION_USERNAME
+//   - MERCHANT_INTEGRATION_USER_ROLE
 const (
-	envEcommerceIntegrationAPIKey   = "ECOMMERCE_MERCHANT_INTEGRATION_API_KEY"
-	envEcommerceIntegrationRoleCode = "ECOMMERCE_MERCHANT_INTEGRATION_ROLE_CODE"
-	envEcommerceIntegrationUserID   = "ECOMMERCE_MERCHANT_INTEGRATION_USER_ID"
-	envEcommerceIntegrationUserCode = "ECOMMERCE_MERCHANT_INTEGRATION_USER_CODE"
-	envEcommerceIntegrationUserName = "ECOMMERCE_MERCHANT_INTEGRATION_USERNAME"
-	envEcommerceIntegrationFullName = "ECOMMERCE_MERCHANT_INTEGRATION_FULL_NAME"
-	envEcommerceIntegrationPhone    = "ECOMMERCE_MERCHANT_INTEGRATION_PHONE"
-	envEcommerceIntegrationDept     = "ECOMMERCE_MERCHANT_INTEGRATION_DEPARTMENT"
-	envEcommerceIntegrationUserRole = "ECOMMERCE_MERCHANT_INTEGRATION_USER_ROLE"
+	envIntegrationAPIKey   = "MERCHANT_INTEGRATION_API_KEY"
+	envIntegrationRoleCode = "MERCHANT_INTEGRATION_ROLE_CODE"
+	envIntegrationUserID   = "MERCHANT_INTEGRATION_USER_ID"
+	envIntegrationUserCode = "MERCHANT_INTEGRATION_USER_CODE"
+	envIntegrationUserName = "MERCHANT_INTEGRATION_USERNAME"
+	envIntegrationFullName = "MERCHANT_INTEGRATION_FULL_NAME"
+	envIntegrationPhone    = "MERCHANT_INTEGRATION_PHONE"
+	envIntegrationDept     = "MERCHANT_INTEGRATION_DEPARTMENT"
+	envIntegrationUserRole = "MERCHANT_INTEGRATION_USER_ROLE"
 )
 
-// AuthenticateTokenOrMerchantIntegrationAPIKey accepts either:
-//   - Authorization: Bearer <JWT> (same behavior as AuthenticateToken), or
-//   - X-Api-Key (or X-API-Key): must match ECOMMERCE_MERCHANT_INTEGRATION_API_KEY
-//     and required integration identity env vars; context is populated like a CPS user
-//     so handlers and CPS action creation receive role_code and maker fields.
-//
-// If the client sends a non-empty X-Api-Key header, JWT is not attempted for that request.
 func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		apiKey := strings.TrimSpace(r.Header.Get("X-Api-Key"))
@@ -52,10 +41,10 @@ func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.
 			return
 		}
 
-		configured := strings.TrimSpace(os.Getenv(envEcommerceIntegrationAPIKey))
+		configured := strings.TrimSpace(os.Getenv(envIntegrationAPIKey))
 		if configured == "" {
 			if a.logger != nil {
-				a.logger.Warnf("[AuthMW][EcomIntegration] X-Api-Key present but %s is not set", envEcommerceIntegrationAPIKey)
+				a.logger.Warnf("[AuthMW][EcomIntegration] X-Api-Key present but %s is not set", envIntegrationAPIKey)
 			}
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
@@ -69,11 +58,11 @@ func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.
 			return
 		}
 
-		roleCode := strings.TrimSpace(os.Getenv(envEcommerceIntegrationRoleCode))
-		userID := strings.TrimSpace(os.Getenv(envEcommerceIntegrationUserID))
-		fullName := strings.TrimSpace(os.Getenv(envEcommerceIntegrationFullName))
-		phone := strings.TrimSpace(os.Getenv(envEcommerceIntegrationPhone))
-		dept := strings.TrimSpace(os.Getenv(envEcommerceIntegrationDept))
+		roleCode := strings.TrimSpace(os.Getenv(envIntegrationRoleCode))
+		userID := strings.TrimSpace(os.Getenv(envIntegrationUserID))
+		fullName := strings.TrimSpace(os.Getenv(envIntegrationFullName))
+		phone := strings.TrimSpace(os.Getenv(envIntegrationPhone))
+		dept := strings.TrimSpace(os.Getenv(envIntegrationDept))
 
 		if roleCode == "" || userID == "" || fullName == "" || phone == "" || dept == "" {
 			if a.logger != nil {
@@ -83,15 +72,15 @@ func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.
 			return
 		}
 
-		userCode := strings.TrimSpace(os.Getenv(envEcommerceIntegrationUserCode))
+		userCode := strings.TrimSpace(os.Getenv(envIntegrationUserCode))
 		if userCode == "" {
 			userCode = userID
 		}
-		userName := strings.TrimSpace(os.Getenv(envEcommerceIntegrationUserName))
+		userName := strings.TrimSpace(os.Getenv(envIntegrationUserName))
 		if userName == "" {
 			userName = "ecommerce-integration"
 		}
-		userRole := strings.TrimSpace(os.Getenv(envEcommerceIntegrationUserRole))
+		userRole := strings.TrimSpace(os.Getenv(envIntegrationUserRole))
 		if userRole == "" {
 			userRole = "SERVICE"
 		}

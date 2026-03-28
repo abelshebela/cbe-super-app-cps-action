@@ -17,7 +17,7 @@ func Init(router chi.Router, handler logistics_merchant_adaptor.LogisticMerchant
 			Path:    "/logistics_merchants",
 			Handler: handler.CreateLogisticMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 			},
 		},
 		{
@@ -25,7 +25,7 @@ func Init(router chi.Router, handler logistics_merchant_adaptor.LogisticMerchant
 			Path:    "/logistics_merchants/{id}",
 			Handler: handler.UpdateLogisticMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 			},
 		},
 		{
@@ -33,7 +33,7 @@ func Init(router chi.Router, handler logistics_merchant_adaptor.LogisticMerchant
 			Path:    "/logistics_merchants/enable/{id}",
 			Handler: handler.EnableLogisticMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 			},
 		},
 		{
@@ -41,7 +41,7 @@ func Init(router chi.Router, handler logistics_merchant_adaptor.LogisticMerchant
 			Path:    "/logistics_merchants/disable/{id}",
 			Handler: handler.DisableLogisticMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 			},
 		},
 		{
@@ -49,7 +49,7 @@ func Init(router chi.Router, handler logistics_merchant_adaptor.LogisticMerchant
 			Path:    "/logistics_merchants/{id}",
 			Handler: handler.DeleteLogisticMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 			},
 		},
 		{
@@ -57,7 +57,7 @@ func Init(router chi.Router, handler logistics_merchant_adaptor.LogisticMerchant
 			Path:    "/logistics_merchants/{id}",
 			Handler: handler.GetLogisticMerchantByID,
 			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 			},
 		},
 		{
@@ -65,7 +65,7 @@ func Init(router chi.Router, handler logistics_merchant_adaptor.LogisticMerchant
 			Path:    "/logistics_merchants",
 			Handler: handler.GetLogisticMerchants,
 			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 			},
 		},
 	}
