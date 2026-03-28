@@ -115,7 +115,14 @@ func ExtractUserContext(r *http.Request) types.UserContext {
 		val, _ := r.Context().Value(constants.ContextKey(key)).(string)
 		return val
 	}
+
+	getBool := func(key string) bool {
+		val, _ := r.Context().Value(constants.ContextKey(key)).(bool)
+		return val
+	}
+
 	return types.UserContext{
+		IsErp:        getBool("is_erp"),
 		UserCode:     get("user_code"),
 		UserID:       get("user_id"),
 		FullName:     get("full_name"),
@@ -132,8 +139,13 @@ func ExtractUserFromContext(ctx context.Context) types.UserContext {
 		val, _ := ctx.Value(constants.ContextKey(key)).(string)
 		return val
 	}
+	getBool := func(key string) bool {
+		val, _ := ctx.Value(constants.ContextKey(key)).(bool)
+		return val
+	}
 
 	return types.UserContext{
+		IsErp:       getBool("is_erp"),
 		UserCode:    get("user_code"),
 		UserID:      get("user_id"),
 		FullName:    get("full_name"),

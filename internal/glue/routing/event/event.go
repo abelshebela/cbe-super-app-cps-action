@@ -19,6 +19,7 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.CreateEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
 			},
 		},
 		{
@@ -27,6 +28,7 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.UpdateEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
 			},
 		},
 		{
@@ -35,6 +37,7 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.EnableEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
 			},
 		},
 		{
@@ -43,6 +46,7 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.DisableEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
 			},
 		},
 		{
@@ -51,6 +55,7 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.DeleteEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
 			},
 		},
 		{
@@ -59,6 +64,7 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.FetchEventByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
 			},
 		},
 		{
@@ -67,6 +73,7 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Handler: handler.FetchEvents,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
 			},
 		},
 	}

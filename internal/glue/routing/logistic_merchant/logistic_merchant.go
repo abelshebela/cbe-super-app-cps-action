@@ -18,6 +18,7 @@ func Init(router chi.Router, handler logistics_merchant_adaptor.LogisticMerchant
 			Handler: handler.CreateLogisticMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
 			},
 		},
 		{
@@ -26,6 +27,7 @@ func Init(router chi.Router, handler logistics_merchant_adaptor.LogisticMerchant
 			Handler: handler.UpdateLogisticMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
 			},
 		},
 		{
@@ -34,6 +36,7 @@ func Init(router chi.Router, handler logistics_merchant_adaptor.LogisticMerchant
 			Handler: handler.EnableLogisticMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
 			},
 		},
 		{
@@ -42,6 +45,7 @@ func Init(router chi.Router, handler logistics_merchant_adaptor.LogisticMerchant
 			Handler: handler.DisableLogisticMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
 			},
 		},
 		{
@@ -50,6 +54,7 @@ func Init(router chi.Router, handler logistics_merchant_adaptor.LogisticMerchant
 			Handler: handler.DeleteLogisticMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
 			},
 		},
 		{
@@ -58,6 +63,7 @@ func Init(router chi.Router, handler logistics_merchant_adaptor.LogisticMerchant
 			Handler: handler.GetLogisticMerchantByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
 			},
 		},
 		{
@@ -66,6 +72,7 @@ func Init(router chi.Router, handler logistics_merchant_adaptor.LogisticMerchant
 			Handler: handler.GetLogisticMerchants,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
 			},
 		},
 	}
