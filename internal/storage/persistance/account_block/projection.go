@@ -107,6 +107,7 @@ func FindAccountBlocksWithParentPopulatedRecursive(
 			"city_id":         1,
 			"district_id":     1,
 			"region_id":       1,
+			"disable_reason":  1,
 			"is_deleted":      1,
 			"created_at":      1,
 			"updated_at":      1,
@@ -135,6 +136,7 @@ func FindAccountBlocksWithParentPopulatedRecursive(
 		CityID          *bson.ObjectID         `bson:"city_id,omitempty"`
 		DistrictID      *bson.ObjectID         `bson:"district_id,omitempty"`
 		RegionID        *bson.ObjectID         `bson:"region_id,omitempty"`
+		DisableReason   model.Reason           `bson:"disable_reason" json:"disable_reason"`
 		IsDeleted       bool                   `bson:"is_deleted,omitempty"`
 		CreatedAt       time.Time              `bson:"created_at"`
 		UpdatedAt       time.Time              `bson:"updated_at"`
@@ -151,20 +153,21 @@ func FindAccountBlocksWithParentPopulatedRecursive(
 	results := make([]*model.AccountBlock, 0, len(intermediateResults))
 	for _, item := range intermediateResults {
 		accountBlock := &model.AccountBlock{
-			ID:         item.ID,
-			Name:       item.Name,
-			Code:       item.Code,
-			Address:    item.Address,
-			ParentID:   item.ParentID,
-			Slug:       item.Slug,
-			Type:       item.Type,
-			IsEnabled:  item.IsEnabled,
-			CityID:     item.CityID,
-			DistrictID: item.DistrictID,
-			RegionID:   item.RegionID,
-			IsDeleted:  item.IsDeleted,
-			CreatedAt:  item.CreatedAt,
-			UpdatedAt:  item.UpdatedAt,
+			ID:            item.ID,
+			Name:          item.Name,
+			Code:          item.Code,
+			Address:       item.Address,
+			ParentID:      item.ParentID,
+			Slug:          item.Slug,
+			Type:          item.Type,
+			IsEnabled:     item.IsEnabled,
+			CityID:        item.CityID,
+			DistrictID:    item.DistrictID,
+			RegionID:      item.RegionID,
+			DisableReason: item.DisableReason,
+			IsDeleted:     item.IsDeleted,
+			CreatedAt:     item.CreatedAt,
+			UpdatedAt:     item.UpdatedAt,
 		}
 
 		// Build nested parent structure
@@ -188,20 +191,21 @@ func buildParentHierarchy(ancestors []model.AccountBlock) *model.AccountBlock {
 	ancestorMap := make(map[bson.ObjectID]*model.AccountBlock)
 	for i := range ancestors {
 		ancestor := &model.AccountBlock{
-			ID:         ancestors[i].ID,
-			Name:       ancestors[i].Name,
-			Code:       ancestors[i].Code,
-			Address:    ancestors[i].Address,
-			ParentID:   ancestors[i].ParentID,
-			Slug:       ancestors[i].Slug,
-			Type:       ancestors[i].Type,
-			IsEnabled:  ancestors[i].IsEnabled,
-			CityID:     ancestors[i].CityID,
-			DistrictID: ancestors[i].DistrictID,
-			RegionID:   ancestors[i].RegionID,
-			IsDeleted:  ancestors[i].IsDeleted,
-			CreatedAt:  ancestors[i].CreatedAt,
-			UpdatedAt:  ancestors[i].UpdatedAt,
+			ID:            ancestors[i].ID,
+			Name:          ancestors[i].Name,
+			Code:          ancestors[i].Code,
+			Address:       ancestors[i].Address,
+			ParentID:      ancestors[i].ParentID,
+			Slug:          ancestors[i].Slug,
+			Type:          ancestors[i].Type,
+			IsEnabled:     ancestors[i].IsEnabled,
+			CityID:        ancestors[i].CityID,
+			DistrictID:    ancestors[i].DistrictID,
+			RegionID:      ancestors[i].RegionID,
+			DisableReason: ancestors[i].DisableReason,
+			IsDeleted:     ancestors[i].IsDeleted,
+			CreatedAt:     ancestors[i].CreatedAt,
+			UpdatedAt:     ancestors[i].UpdatedAt,
 		}
 		ancestorMap[ancestor.ID] = ancestor
 	}

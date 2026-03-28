@@ -208,14 +208,24 @@ func (a *AccountBlockStorage) EnableOrDisableBranches(ctx context.Context, ids [
 
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
-	rsn := model.Reason{
-		Reason:    reason.Reason,
-		CreatedAt: reason.CreatedAt,
-		CreatedBy: reason.CreatedBy,
-	}
-
 	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "B"}
-	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disable_reason": rsn, "updated_at": time.Now()}}
+
+	update := make(bson.M)
+	if enabled {
+		update = bson.M{"$set": bson.M{"is_enabled": enabled, "updated_at": time.Now()}}
+	} else {
+		update = bson.M{
+			"$set": bson.M{
+				"is_enabled": enabled,
+				"disable_reason": model.Reason{
+					Reason:    reason.Reason,
+					CreatedAt: reason.CreatedAt,
+					CreatedBy: reason.CreatedBy,
+				},
+				"updated_at": time.Now(),
+			},
+		}
+	}
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -349,14 +359,24 @@ func (a *AccountBlockStorage) EnableOrDisableRegions(ctx context.Context, ids []
 
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
-	rsn := model.Reason{
-		Reason:    reason.Reason,
-		CreatedAt: reason.CreatedAt,
-		CreatedBy: reason.CreatedBy,
-	}
-
 	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "R"}
-	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disable_reason": rsn, "updated_at": time.Now()}}
+
+	update := make(bson.M)
+	if enabled {
+		update = bson.M{"$set": bson.M{"is_enabled": enabled, "updated_at": time.Now()}}
+	} else {
+		update = bson.M{
+			"$set": bson.M{
+				"is_enabled": enabled,
+				"disable_reason": model.Reason{
+					Reason:    reason.Reason,
+					CreatedAt: reason.CreatedAt,
+					CreatedBy: reason.CreatedBy,
+				},
+				"updated_at": time.Now(),
+			},
+		}
+	}
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -498,14 +518,24 @@ func (a *AccountBlockStorage) EnableOrDisableDistricts(ctx context.Context, ids 
 
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
-	rsn := model.Reason{
-		Reason:    reason.Reason,
-		CreatedAt: reason.CreatedAt,
-		CreatedBy: reason.CreatedBy,
-	}
-
 	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "D"}
-	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disable_reason": rsn, "updated_at": time.Now()}}
+
+	update := make(bson.M)
+	if enabled {
+		update = bson.M{"$set": bson.M{"is_enabled": enabled, "updated_at": time.Now()}}
+	} else {
+		update = bson.M{
+			"$set": bson.M{
+				"is_enabled": enabled,
+				"disable_reason": model.Reason{
+					Reason:    reason.Reason,
+					CreatedAt: reason.CreatedAt,
+					CreatedBy: reason.CreatedBy,
+				},
+				"updated_at": time.Now(),
+			},
+		}
+	}
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -654,14 +684,24 @@ func (a *AccountBlockStorage) EnableOrDisableCities(ctx context.Context, ids []s
 
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
-	rsn := model.Reason{
-		Reason:    reason.Reason,
-		CreatedAt: reason.CreatedAt,
-		CreatedBy: reason.CreatedBy,
-	}
-
 	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "C"}
-	update := bson.M{"$set": bson.M{"is_enabled": enabled, "disable_reason": rsn, "updated_at": time.Now()}}
+
+	update := make(bson.M)
+	if enabled {
+		update = bson.M{"$set": bson.M{"is_enabled": enabled, "updated_at": time.Now()}}
+	} else {
+		update = bson.M{
+			"$set": bson.M{
+				"is_enabled": enabled,
+				"disable_reason": model.Reason{
+					Reason:    reason.Reason,
+					CreatedAt: reason.CreatedAt,
+					CreatedBy: reason.CreatedBy,
+				},
+				"updated_at": time.Now(),
+			},
+		}
+	}
 
 	_, err := collection.UpdateMany(ctx, filter, update)
 	if err != nil {

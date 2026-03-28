@@ -20,6 +20,17 @@ func (r ResponseCode) Error() string {
 var ResponseCodesList = []ResponseCode{
 	// Success codes
 
+	CpsActionDataExportedSuccess,
+	ErrorBudgetCategoryUpdateSuccess,
+	ErrorCPSActionRejectionPayloadDecodeFailed,
+	ErrorCannotDisableOwnAccount,
+	ErrorCannotEnablCity,
+	ErrorCannotEnableOwnAccount,
+	ErrorCannotGetRole,
+	ErrorConfigurationError,
+	ErrorCustomerBlockedPermanently,
+	ErrorCustomerConvertIDFailed,
+
 	ErrorExistUserName,
 	ErrorExistUserNameBPS,
 	CpsActionDataNotFoundInDateRange,

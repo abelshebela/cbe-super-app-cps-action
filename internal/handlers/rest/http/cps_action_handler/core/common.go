@@ -116,6 +116,7 @@ func CheckActionFinalized(action *model.CPSAction) string {
 func ResolveRequestActions(modules []string) []string {
 	var reqs []string
 	seen := map[string]struct{}{}
+
 	for _, mod := range modules {
 		upper := strings.ToUpper(strings.TrimSpace(mod))
 		if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {

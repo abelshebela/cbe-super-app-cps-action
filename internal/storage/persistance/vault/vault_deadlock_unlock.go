@@ -49,9 +49,17 @@ const (
 		updated_at,
 		COUNT(*) OVER() AS total_count
 	FROM deadlock_requests
+	WHERE (:status IS NULL OR status = :status)
+	AND (
+        :search IS NULL
+        OR LOWER(vault_name) LIKE '%' || LOWER(:search) || '%'
+        OR LOWER(vault_type) LIKE '%' || LOWER(:search) || '%'
+        OR LOWER(member_name) LIKE '%' || LOWER(:search) || '%'
+        OR LOWER(member_account_number) LIKE '%' || LOWER(:search) || '%'
+	)
 	ORDER BY created_at DESC
-	OFFSET NVL(:1, 0) ROWS
-	FETCH NEXT NVL(:2, 50) ROWS ONLY`
+	OFFSET NVL(:offset, 0) ROWS
+	FETCH NEXT NVL(:limit, 50) ROWS ONLY`
 
 	updateDeadlockRequestStatus = `UPDATE deadlock_requests SET status = :1, updated_at = SYSTIMESTAMP WHERE id = :2`
 	selectVaultIDByDeadlockReq  = `SELECT vault_id FROM deadlock_requests WHERE id = :1`
@@ -171,10 +179,30 @@ func (r *VaultCategoryRepository) GetAllDeadlockedRequests(ctx context.Context, 
 	if filterParam.Page > 0 {
 		page = int64(filterParam.Page)
 	}
-
 	offset := (page - 1) * limit
 
-	rows, err := r.db.QueryContext(ctx, listDeadlockRequests, offset, limit)
+	// Search and Filtering
+	var status sql.NullString
+	var search sql.NullString
+	if filterParam.Filters != nil {
+		if v, ok := filterParam.Filters["status"].(string); ok && v != "" {
+			status = sql.NullString{String: v, Valid: true}
+		} else {
+			status = sql.NullString{Valid: false}
+		}
+	}
+	if filterParam.Search != "" {
+		search = sql.NullString{String: filterParam.Search, Valid: true}
+	} else {
+		search = sql.NullString{Valid: false}
+	}
+
+	rows, err := r.db.QueryContext(ctx, listDeadlockRequests,
+		sql.Named("status", status),
+		sql.Named("search", search),
+		sql.Named("offset", offset),
+		sql.Named("limit", limit),
+	)
 	if err != nil {
 		r.logger.Errorf("failed to list deadlock requests: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
