@@ -2,6 +2,7 @@ package bps_user_core
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -45,6 +46,7 @@ func ExistingIdentifier(existing *bps_model.BPSUser, req bps_model.BPSUser) erro
 
 func ExistingIdentifierForUpdate(existing bps_model.BPSUser, id string, req bps_model.BPSUser) error {
 	if existing.ID.IsZero() {
+		fmt.Println("Existing user ID is zero, treating as non-existent user", existing)
 		return nil
 	}
 
@@ -67,7 +69,7 @@ func ExistingIdentifierForUpdate(existing bps_model.BPSUser, id string, req bps_
 	if normalizedUsername != "" && strings.EqualFold(strings.TrimSpace(existing.Username), normalizedUsername) && existingID != id {
 		return localization.ErrorUsernameAlreadyExist
 	}
-	return nil
+	return localization.ErrorUserNotFound
 }
 func BPSUser_mapper(action map[string]interface{}) bps_model.BPSUser {
 	var user bps_model.BPSUser
