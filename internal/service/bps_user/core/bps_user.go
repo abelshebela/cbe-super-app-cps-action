@@ -54,18 +54,18 @@ func ExistingIdentifierForUpdate(existing bps_model.BPSUser, id string, req bps_
 
 	existingID := local_util.FirstHex24(existing.ID.Hex())
 	if normalizedEmail != "" && strings.EqualFold(existing.Email, normalizedEmail) && existingID != id {
-		return errors.New(localization.ErrorEmailAlreadyExist.Code)
+		return localization.ErrorEmailAlreadyExist
 	}
 
 	if normalizedPhone != "" && existingID != id {
 		storedPhone := local_util.FormatPhoneNumber(existing.PhoneNumber)
 		if storedPhone == normalizedPhone {
-			return errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
+			return localization.ErrorPhonenumberAlreadyExist
 		}
 	}
 
 	if normalizedUsername != "" && strings.EqualFold(strings.TrimSpace(existing.Username), normalizedUsername) && existingID != id {
-		return errors.New(localization.ErrorUsernameAlreadyExist.Code)
+		return localization.ErrorUsernameAlreadyExist
 	}
 	return nil
 }
