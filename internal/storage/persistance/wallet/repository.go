@@ -19,6 +19,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type WalletStorage struct {
@@ -183,7 +184,25 @@ func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 			{"unique_code": searchRegex},
 		}
 	}
-	docs, err := e.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
+	// Determine sort order by wallet name if requested
+	sort := bson.D{}
+	if val, ok := filterParam.Filters["sort_name"]; ok {
+		if s, ok := val.(string); ok {
+			switch s := s; s {
+			case "ASC", "asc":
+				sort = append(sort, bson.E{Key: "name", Value: 1})
+			case "DESC", "desc":
+				sort = append(sort, bson.E{Key: "name", Value: -1})
+			}
+		}
+	}
+	param := dal.FilterParam{
+		Filter: filter,
+		Sort:   sort,
+		Skip:   skip,
+		Limit:  limit,
+	}
+	docs, err := e.dal.FindAllWithPaginationD(ctx, param)
 	if err != nil {
 		e.logger.Errorf("[WalletStorage][FindAllWithPagination] failed to fetch wallets: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -221,6 +240,20 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 	}
 	if filterParam.Search == "enabled" {
 		filter["enabled"] = true
+	}
+	sort := bson.D{}
+	if val, ok := filterParam.Filters["sort_name"]; ok {
+		if s, ok := val.(string); ok {
+			switch s := s; s {
+			case "ASC", "asc":
+				sort = append(sort, bson.E{Key: "name", Value: 1})
+			case "DESC", "desc":
+				sort = append(sort, bson.E{Key: "name", Value: -1})
+			}
+		}
+	}
+	if len(sort) == 0 {
+		sort = append(sort, bson.E{Key: "created_at", Value: -1})
 	}
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
@@ -316,7 +349,7 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 				},
 			},
 		}},
-		{{Key: "$sort", Value: bson.M{"created_at": -1}}},
+		{{Key: "$sort", Value: sort}},
 		// Cleanup
 		{{Key: "$project", Value: bson.M{
 			"temp_service":   0,
@@ -327,7 +360,12 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 		{{Key: "$limit", Value: limit}},
 	}
 
-	cursor, err := w.collection.Aggregate(ctx, pipeline)
+	opts := options.Aggregate().SetCollation(&options.Collation{
+		Locale:   "en",
+		Strength: 2,
+	})
+
+	cursor, err := w.collection.Aggregate(ctx, pipeline, opts)
 	if err != nil {
 		w.logger.Errorf("[WalletStorage][FindAllWithPaginationForGRPC] aggregation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)

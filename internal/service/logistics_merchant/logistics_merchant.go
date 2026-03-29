@@ -197,7 +197,7 @@ func (e *LogisticsMerchantService) Create(ctx context.Context, LogisticsMerchant
 
 	e.logger.Infof("[LogisMerchSvc][Create] name: %s", LogisticsMerchant.MerchantName)
 
-	exist, err := core.CheckMerchantExists(ctx, e.repo, &types.CheckMiniAppMerchant{
+	exist, err := core.CheckMerchantExists(ctx, e.repo, &types.CheckMerchant{
 		BankAccountNumber: LogisticsMerchant.BankAccountNumber,
 		MerchantCode:      LogisticsMerchant.MerchantID,
 	}, nil)
@@ -390,7 +390,7 @@ func (e *LogisticsMerchantService) Update(ctx context.Context, id string, Logist
 
 	updated := core.MergeLogisticsMerchantData(old, &LogisticsMerchant)
 
-	var check types.CheckMiniAppMerchant
+	var check types.CheckMerchant
 
 	if updated.BankAccountNumber != old.BankAccountNumber {
 		check.BankAccountNumber = updated.BankAccountNumber

@@ -196,7 +196,7 @@ func (e *EventMerchantService) Create(ctx context.Context, eventMerchant model.E
 
 	e.logger.Infof("[EventMerchSvc][Create] name: %s", eventMerchant.MerchantName)
 
-	exist, err := core.CheckMerchantExists(ctx, e.repo, &types.CheckMiniAppMerchant{
+	exist, err := core.CheckMerchantExists(ctx, e.repo, &types.CheckMerchant{
 		BankAccountNumber: eventMerchant.BankAccountNumber,
 		MerchantCode:      eventMerchant.MerchantID,
 		Email:             eventMerchant.Email,
@@ -399,7 +399,7 @@ func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerch
 
 	updated := core.MergeEventMerchantData(old, &eventMerchant)
 
-	var check types.CheckMiniAppMerchant
+	var check types.CheckMerchant
 
 	if updated.BankAccountNumber != old.BankAccountNumber {
 		check.BankAccountNumber = updated.BankAccountNumber

@@ -66,28 +66,32 @@ func (r *BPSUserUpdateRequest) Validate() error {
 	// Trim spaces for non-nil pointers
 	if r.UserID != nil {
 		*r.UserID = strings.TrimSpace(*r.UserID)
+		if err := validation.Validate(r.UserID, validation.Required, validation.Length(3, 10)); err != nil {
+			return err
+		}
 	}
 	if r.FullName != nil {
 		*r.FullName = strings.TrimSpace(*r.FullName)
+		// Add validation here if needed in the future
 	}
 	if r.PhoneNumber != nil {
 		*r.PhoneNumber = strings.TrimSpace(*r.PhoneNumber)
+		if err := validation.Validate(r.PhoneNumber, validation.Required, validation.Match(phoneRegex).Error("must be a valid Ethiopian phone number (+2519xxxxxxxx or +2517xxxxxxxx)")); err != nil {
+			return err
+		}
 	}
 	if r.Email != nil {
 		*r.Email = strings.TrimSpace(*r.Email)
+		if err := validation.Validate(r.Email, validation.Required, is.Email, validation.Match(regexp.MustCompile(`^[A-Za-z0-9._-]+@cbe\.com\.et$`)).Error("must be a valid @cbe.com.et email")); err != nil {
+			return err
+		}
 	}
 	if r.JobTitle != nil {
 		*r.JobTitle = strings.TrimSpace(*r.JobTitle)
+		// Add validation here if needed in the future
 	}
-
-	return validation.ValidateStruct(r,
-		validation.Field(&r.UserID, validation.Required, validation.Length(3, 10)),
-		validation.Field(&r.FullName, validation.Required),
-		validation.Field(&r.PhoneNumber, validation.Required, validation.Match(phoneRegex).Error("must be a valid Ethiopian phone number (+2519xxxxxxxx or +2517xxxxxxxx)")),
-		validation.Field(&r.Email, validation.Required, is.Email, validation.Match(regexp.MustCompile(`^[A-Za-z0-9._-]+@cbe\.com\.et$`)).Error("must be a valid @cbe.com.et email")),
-		validation.Field(&r.JobTitle, validation.Required),
-		validation.Field(&r.BranchCode, validation.Required),
-	)
+	// Add more fields as needed if uncommented in the future
+	return nil
 }
 
 //before pointer
@@ -126,8 +130,8 @@ type BPSUserResposenDTO struct {
 	Enabled           bool          `json:"enabled" bson:"enabled"`
 	IsDeleted         bool          `json:"is_deleted" bson:"is_deleted"`
 	OTPVerifyCount    uint8         `json:"otp_verfy_count" bson:"otp_verify_count"`
-	OTPLastTriedAt    time.Time     `json:"otp_last_tried_at" bson:"otp_last_tried_at"`
 	JobTitle          string        `json:"job_title" bson:"job_title"`
+	OTPLastTriedAt    time.Time     `json:"otp_last_tried_at" bson:"otp_last_tried_at"`
 	OTPLastVerifiedAt time.Time     `json:"otp_last_verified_at" bson:"otp_last_verified_at"`
 	IsFirstTimeLogin  bool          `json:"is_first_time_login" bson:"is_first_time_login"`
 	LastLoginAttempt  time.Time     `json:"last_login_attempt" bson:"last_login_attempt"`

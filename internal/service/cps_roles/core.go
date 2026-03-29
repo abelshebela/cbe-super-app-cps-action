@@ -6,7 +6,6 @@ import (
 
 	cps_roles_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
 	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/hugokessem/coreio/core"
 )
@@ -50,13 +49,11 @@ func (r *cpsRoleService) GetGlobalLimits(ctx context.Context) (*cps_roles_dto.Gl
 }
 
 func (r *cpsRoleService) GetServiceLevelLimits(ctx context.Context, roleCode string, filterParam *types.Filter) (*types.PaginatedResponse[[]cps_roles_dto.ServiceLevelLimitResponse], error) {
-	serviceCode := "GLOBAL" + strings.ToUpper(roleCode)
+	serviceCode := "GLOBAL" + "-" + strings.ToUpper(roleCode)
 	limits, err := r.ServiceLevelLimit(ctx, serviceCode)
 	if err != nil {
 		return nil, err
 	}
-
-	utils.PrintJSON(limits)
 
 	serviceMap := make(map[string]*cps_roles_dto.ServiceLevelLimitResponse)
 
