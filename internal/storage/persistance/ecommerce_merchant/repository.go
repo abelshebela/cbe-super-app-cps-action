@@ -59,7 +59,7 @@ func (m *EcommerceMerchantStorage) Update(ctx context.Context, id string, mercha
 	}
 
 	filter := bson.M{"_id": objID}
-	updateData := MiniAppMerchantMapper(*merchant)
+	updateData := EcommerceMerchantMapper(*merchant)
 
 	_, err = m.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {

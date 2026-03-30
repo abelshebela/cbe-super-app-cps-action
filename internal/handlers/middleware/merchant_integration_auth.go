@@ -45,6 +45,7 @@ func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.
 		}
 
 		roleCode := strings.TrimSpace(os.Getenv(envIntegrationRoleCode))
+		// roleCode := "ERP"
 		// userID := strings.TrimSpace(os.Getenv(envIntegrationUserID))
 		// fullName := strings.TrimSpace(os.Getenv(envIntegrationFullName))
 		// phone := strings.TrimSpace(os.Getenv(envIntegrationPhone))

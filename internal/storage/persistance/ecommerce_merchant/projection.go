@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func MiniAppMerchantMapper(data model.EcommerceMerchant) bson.M {
+func EcommerceMerchantMapper(data model.EcommerceMerchant) bson.M {
 	update := bson.M{}
 
 	if data.MerchantName != "" {
