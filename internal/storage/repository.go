@@ -197,16 +197,16 @@ type CPSActionRepository interface {
 	SanitizedFindAllWithPaginationForAuditor(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	SanitizedFindAllWithPaginationCPSActions(ctx context.Context, userID, role string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	SanitizedFindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
-	ActionByDateRange(ctx context.Context, startDate, endDate time.Time) ([]model.CPSAction, error)
+	ActionByDateRange(ctx context.Context, filterParam *types.Filter) ([]model.CPSAction, error)
 	Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
-	FindByDateRange(ctx context.Context, start_date, end_date time.Time) ([]*model.CPSAction, error)
+	FindByDateRange(ctx context.Context, filterParam *types.Filter) ([]*model.CPSAction, error)
 	UpdateByActionCode(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
 	UpdateCustome(ctx context.Context, filter, update bson.M) error
 	Delete(ctx context.Context, id string) error
 	GetCountByDepartment(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error)
 	// FindByDateRange(ctx context.Context, start_date, end_date time.Time)([]*model.CPSAction,error)
 
-	StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*model.CPSAction) error) error
+	StreamByDateRange(ctx context.Context, filterParam *types.Filter, handler func(*model.CPSAction) error) error
 }
 
 // Avatar persistence
