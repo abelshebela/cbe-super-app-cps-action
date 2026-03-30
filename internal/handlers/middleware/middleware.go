@@ -66,7 +66,7 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 		AllowedOrigins: allowedOrigins,
 
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token", "Accept", "Origin", "x-api-applicationid", "x-source-secret"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token", "Accept", "Origin", "x-api-applicationid", "x-source-secret", "X-Api-Key", "x-api-key"},
 		ExposedHeaders:   []string{"X-Refreshed-Token"},
 		AllowCredentials: allowCredentials,
 		MaxAge:           300,
@@ -95,6 +95,7 @@ func WriteJSONResponse(w http.ResponseWriter, status int, message string, data i
 }
 
 type UserPayload struct {
+	IsERP       bool     `json:"is_erp,omitempty"`
 	PhoneNumber string   `json:"phone_number,omitempty"`
 	UserName    string   `json:"username,omitempty"`
 	UserRole    string   `json:"user_role,omitempty"`
@@ -126,6 +127,7 @@ type authMiddleware struct {
 type AuthMiddleware interface {
 	AccessControl(allowedRoles []string) func(http.Handler) http.Handler
 	AuthenticateToken(next http.Handler) http.Handler
+	AuthenticateTokenOrMerchantIntegrationAPIKey(next http.Handler) http.Handler
 	AuthenticateTempToken(next http.Handler) http.Handler
 	RequireFormContentType() func(http.Handler) http.Handler
 }
@@ -231,6 +233,15 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 
 func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// Skip token auth if user is erp
+		if isErp, ok := r.Context().Value(constants.ContextKey("is_erp")).(bool); ok && isErp {
+			a.logger.Infof("[AuthMW][AuthToken] Skipping bearer token validation (isERP=true)")
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Normat authentication continues
 		w.Header().Set("Access-Control-Expose-Headers", "X-Refreshed-Token")
 		authHeader := r.Header.Get("Authorization")
 		bearer := "Bearer "
@@ -459,6 +470,9 @@ func (a *authMiddleware) extractUserPayload(ctx context.Context, data string) (U
 }
 
 func (a *authMiddleware) setUserPayload(ctx context.Context, userPayload UserPayload) context.Context {
+	if userPayload.IsERP {
+		ctx = context.WithValue(ctx, constants.ContextKey("is_erp"), userPayload.IsERP)
+	}
 	ctx = context.WithValue(ctx, constants.ContextKey("user_role"), userPayload.UserRole)
 	if userPayload.RoleId != "" {
 		ctx = context.WithValue(ctx, constants.ContextKey("role_code"), userPayload.RoleId)

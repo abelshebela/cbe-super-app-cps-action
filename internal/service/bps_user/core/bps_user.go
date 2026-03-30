@@ -69,6 +69,7 @@ func ExistingIdentifierForUpdate(existing bps_model.BPSUser, id string, req bps_
 	if normalizedUsername != "" && strings.EqualFold(strings.TrimSpace(existing.Username), normalizedUsername) && existingID != id {
 		return localization.ErrorUsernameAlreadyExist
 	}
+	fmt.Printf("No existing identifier conflicts found for user ID %s existing: %v, normalizedEmail: %s, normalizedPhone: %s, normalizedUsername: %s\n", id, existing, normalizedEmail, normalizedPhone, normalizedUsername)
 	return localization.ErrorUserNotFound
 }
 func BPSUser_mapper(action map[string]interface{}) bps_model.BPSUser {
