@@ -64,7 +64,10 @@ func (b *BPSUserStorage) FindByOr(ctx context.Context, phone, email, username st
 			"email": bson.M{"$regex": "^" + regexp.QuoteMeta(email) + "$", "$options": "i"},
 		})
 	}
-
+	if len(conditions) == 0 {
+		b.logger.Infof("[BPSUserStorage][FindByOr] no search parameters provided, returning nil")
+		return nil, nil
+	}
 	filter := bson.M{"$or": conditions}
 	data, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
