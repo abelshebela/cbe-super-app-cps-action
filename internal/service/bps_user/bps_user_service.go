@@ -343,6 +343,7 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 	}
 
 	if existing != nil {
+		b.logger.Infof("[BpsUserSvc][Update] found existing user: %v for update with userID: %s, updatedUser: %v", existing, userID, updatedUser)
 		if err := bps_user_core.ExistingIdentifierForUpdate(*existing, userID, updatedUser); err != nil {
 			b.logger.Infof("[BpsUserSvc][Update] duplicate data: %v", err)
 			return err
@@ -352,7 +353,7 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 	is_exist_on_CPS, err := b.CPSUserRepo.FindByEmailOrPhoneNumberOrUserName(ctx, updatedUser.Email, updatedUser.PhoneNumber, updatedUser.Username)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		b.logger.Errorf("[UpdateBPSUser] got error while checking user data exist on cps user ")
-		return errors.New(localization.ErrorInternalServerError.Code)
+		return localization.ErrorInternalServerError
 	}
 	if is_exist_on_CPS != nil {
 		if is_exist_on_CPS.UserName != "" && is_exist_on_CPS.UserName == updatedUser.Username {
