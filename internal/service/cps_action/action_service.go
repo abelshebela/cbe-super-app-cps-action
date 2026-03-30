@@ -560,6 +560,9 @@ func (ca *cpsActionService) ExportCpsActionData(
 	exportType string,
 ) (string, error) {
 
+	var filterFields []string
+	var rowCount int
+
 	// 1 Create temp file
 	tmpFile, err := os.CreateTemp("", "cps_actions_*.csv")
 	if err != nil {
@@ -571,10 +574,21 @@ func (ca *cpsActionService) ExportCpsActionData(
 	writer := csv.NewWriter(tmpFile)
 
 	// 2️ Write Header
-	if err := writer.Write(CpsActionCSVHeader()); err != nil {
+	if filterMap.Filters == nil {
+		filterMap.Filters = map[string]interface{}{}
+	}
+	if _, ok := filterMap.Filters["fields"]; !ok {
+		return "", errors.New("fields required")
+	}
+	fields, ok := filterMap.Filters["fields"].([]string)
+	if ok {
+		filterFields = fields
+	}
+	delete(filterMap.Filters, "fields")
+
+	if err := writer.Write(CpsActionCSVHeader(filterFields)); err != nil {
 		return "", fmt.Errorf("write header: %w", err)
 	}
-	var rowCount int
 	//==================================
 
 	actions, err := ca.repo.ActionByDateRange(ctx, filterMap)
@@ -593,12 +607,10 @@ func (ca *cpsActionService) ExportCpsActionData(
 		ca.logger.Infof("[CpsActionSvc][Export] no data found in date range %s - %s", filterMap.Filters["created_at_from"].(time.Time).Format(time.RFC3339), filterMap.Filters["created_at_to"].(time.Time).Format(time.RFC3339))
 		return "", errors.New(localization.CpsActionDataNotFoundInDateRange.Code)
 	}
-	//=================================
-	ca.logger.Infof("[CpsActionSvc][Export] no data found in date range %s - %s", filterMap.Filters["file_type"], filterMap.Filters["request_action"])
 
 	// 4️Upload to MinIO
 	objectName := fmt.Sprintf(
-		"exports/cps-actions/cps_actions_%s_to_%s_%d.csv",
+		"cps_actions_%s_to_%s_%d.csv",
 		filterMap.Filters["created_at_from"],
 		filterMap.Filters["created_at_to"],
 		time.Now().Unix(),
@@ -683,8 +695,13 @@ func BuildCPSActionRow(a *model.CPSAction) ([]string, error) {
 	}, nil
 }
 
-func CpsActionCSVHeader() []string {
-	return []string{
+func CpsActionCSVHeader(fields []string) []string {
+	if fields != nil {
+		return fields
+	}
+
+	// default header if no specific fields are requested. The order of fields should match the order in BuildCPSActionRow.
+	var defaultHeader = []string{
 		"ID",
 		"ActionCode",
 		"UniqueId",
@@ -716,6 +733,8 @@ func CpsActionCSVHeader() []string {
 		"LastModifiedAt",
 		"MakerActionTime",
 	}
+
+	return defaultHeader
 }
 
 func formatTime(v any) string {

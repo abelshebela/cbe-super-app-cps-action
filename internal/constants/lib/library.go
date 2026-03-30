@@ -282,7 +282,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 					hasStart = true
 				}
 			}
-			delete(filterParam.Filters, "created_at_from")
+			// delete(filterParam.Filters, "created_at_from")
 		}
 
 		if raw, ok := filterParam.Filters["created_at_to"]; ok {
@@ -296,7 +296,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 					hasEnd = true
 				}
 			}
-			delete(filterParam.Filters, "created_at_to")
+			// delete(filterParam.Filters, "created_at_to")
 		}
 
 		if hasStart && hasEnd {
