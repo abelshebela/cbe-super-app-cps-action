@@ -3,13 +3,12 @@ package middleware
 import (
 	"crypto/subtle"
 	"net/http"
-	"os"
 	"strings"
 )
 
 const (
-	envIntegrationAPIKey   = "MERCHANT_INTEGRATION_API_KEY"
-	envIntegrationRoleCode = "MERCHANT_INTEGRATION_ROLE_CODE"
+	envIntegrationAPIKey = "MERCHANT_INTEGRATION_API_KEY"
+	// envIntegrationRoleCode = "MERCHANT_INTEGRATION_ROLE_CODE"
 	// envIntegrationUserID   = "MERCHANT_INTEGRATION_USER_ID"
 	// envIntegrationUserCode = "MERCHANT_INTEGRATION_USER_CODE"
 	// envIntegrationUserName = "MERCHANT_INTEGRATION_USERNAME"
@@ -27,7 +26,8 @@ func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.
 			return
 		}
 
-		configured := strings.TrimSpace(os.Getenv(envIntegrationAPIKey))
+		// configured := strings.TrimSpace(os.Getenv(envIntegrationAPIKey))
+		configured := a.cfg.MerchantIntegrationAPIKey
 		if configured == "" {
 			if a.logger != nil {
 				a.logger.Warnf("[AuthMW][EcomIntegration] X-Api-Key present but %s is not set", envIntegrationAPIKey)
@@ -44,7 +44,25 @@ func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.
 			return
 		}
 
-		roleCode := strings.TrimSpace(os.Getenv(envIntegrationRoleCode))
+		username := strings.TrimSpace(r.Header.Get("username"))
+		if username == "" {
+			a.AuthenticateTempToken(next).ServeHTTP(w, r)
+			return
+		}
+
+		fullname := strings.TrimSpace(r.Header.Get("fullname"))
+		if fullname == "" {
+			a.AuthenticateTempToken(next).ServeHTTP(w, r)
+			return
+		}
+
+		phone_number := strings.TrimSpace(r.Header.Get("phone_number"))
+		if phone_number == "" {
+			a.AuthenticateTempToken(next).ServeHTTP(w, r)
+			return
+		}
+
+		// roleCode := strings.TrimSpace(os.Getenv(envIntegrationRoleCode))
 		// roleCode := "ERP"
 		// userID := strings.TrimSpace(os.Getenv(envIntegrationUserID))
 		// fullName := strings.TrimSpace(os.Getenv(envIntegrationFullName))
@@ -77,7 +95,7 @@ func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.
 			// PhoneNumber: phone,
 			// UserName:    userName,
 			// UserRole:    userRole,
-			RoleId: roleCode,
+			// RoleId: roleCode,
 			// UserID:      userID,
 			// UserCode:    userCode,
 			// FullName:    fullName,
