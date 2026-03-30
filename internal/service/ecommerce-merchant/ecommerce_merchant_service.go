@@ -29,7 +29,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type miniAppMerchantService struct {
+type ecommerceMerchantService struct {
 	repo                 storage.EcommerceMerchantRepository
 	cpsService           service.CPSActionService
 	logger               utils.Logger
@@ -46,7 +46,7 @@ func NewEcommerceMerchantService(
 	accountLookupService account_lookup.Account,
 	cfg config.VaultConfig,
 ) service.EcommerceMerchantService {
-	return &miniAppMerchantService{
+	return &ecommerceMerchantService{
 		repo:                 repo,
 		cpsService:           cpsService,
 		accountLookupService: accountLookupService,
@@ -56,14 +56,14 @@ func NewEcommerceMerchantService(
 	}
 }
 
-func (m *miniAppMerchantService) Create(ctx context.Context, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, error) {
+func (m *ecommerceMerchantService) Create(ctx context.Context, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "MiniAppMerchant", "Create")
 	defer span.End()
 
 	data := core.ToEcommerceMerchantCreateModel(req)
 
 	m.logger.Infof("[EcomMerchSvc][Create] name: %s", data.MerchantName)
-	exist, err := core.CheckMerchantExists(ctx, m.repo, &types.CheckMiniAppMerchant{
+	exist, err := core.CheckMerchantExists(ctx, m.repo, &types.CheckMerchant{
 		MerchantCode: data.Code,
 	}, nil)
 	if err != nil {
@@ -123,7 +123,7 @@ func (m *miniAppMerchantService) Create(ctx context.Context, req *merchantDto.Ec
 	return data, nil
 }
 
-func (m *miniAppMerchantService) Update(ctx context.Context, id string, req *merchantDto.UpdateEcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error) {
+func (m *ecommerceMerchantService) Update(ctx context.Context, id string, req *merchantDto.UpdateEcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "MiniAppMerchant", "Update")
 	defer span.End()
 
@@ -141,7 +141,7 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, req *mer
 
 	updated := core.MergeMiniAppMerchantData(old, merchantReq)
 
-	var check types.CheckMiniAppMerchant
+	var check types.CheckMerchant
 
 	if updated.BankAccountNumber != old.BankAccountNumber {
 		check.BankAccountNumber = updated.BankAccountNumber
@@ -192,7 +192,7 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, req *mer
 	return updated, old, nil
 }
 
-func (m *miniAppMerchantService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error) {
+func (m *ecommerceMerchantService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "MiniAppMerchant", "FindAllWithPagination")
 	defer span.End()
 
@@ -207,7 +207,7 @@ func (m *miniAppMerchantService) FindAllWithPagination(ctx context.Context, filt
 	return result, nil
 }
 
-func (m *miniAppMerchantService) FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error) {
+func (m *ecommerceMerchantService) FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindByID", "MiniAppMerchant", "FindByID")
 	defer span.End()
 
@@ -224,7 +224,7 @@ func (m *miniAppMerchantService) FindByID(ctx context.Context, id string) (*mode
 	return result, nil
 }
 
-func (m *miniAppMerchantService) Delete(ctx context.Context, id string) error {
+func (m *ecommerceMerchantService) Delete(ctx context.Context, id string) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Delete", "MiniAppMerchant", "Delete")
 	defer span.End()
 
@@ -259,7 +259,7 @@ func (m *miniAppMerchantService) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+func (m *ecommerceMerchantService) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisable", "MiniAppMerchant", "EnableOrDisable")
 	defer span.End()
 
@@ -317,7 +317,7 @@ func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string,
 	return nil
 }
 
-func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (m *ecommerceMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "MiniAppMerchant", "Authorize")
 	defer span.End()
 
@@ -366,20 +366,18 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-		if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, false, m.logger); err != nil {
-			m.logger.Errorf("[EcomMerchSvc][Authorize] ERP create err: %v", err)
-			span.AddEvent("Failed to update ERP", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", cpsAction.UniqueId),
-			))
+
+		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
+		if !isErp {
+			if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, false, m.logger); err != nil {
+				m.logger.Errorf("[EcomMerchSvc][Authorize] ERP create err: %v", err)
+				span.AddEvent("Failed to update ERP", trace.WithAttributes(
+					attribute.String("error", err.Error()),
+					attribute.String("unique_id", cpsAction.UniqueId),
+				))
+			}
 		}
 	case string(constants.RequestUpdateEcommerceMerchant):
-		// err = m.updateERP(ctx, merchant)
-		// if err != nil {
-		// 	m.logger.Errorf("Failed to update ERP for merchant creation: %v", err)
-		// }
-		// constant_lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.ID.Hex(), m.logger)
-
 		err = m.repo.Update(ctx, cpsAction.UniqueId, merchant)
 		if err != nil {
 			span.AddEvent("Failed to update mini app merchant", trace.WithAttributes(
@@ -388,12 +386,15 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-		if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, false, m.logger); err != nil {
-			m.logger.Errorf("[EcomMerchSvc][Authorize] ERP update err: %v", err)
-			span.AddEvent("Failed to update ERP", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", cpsAction.UniqueId),
-			))
+		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
+		if !isErp {
+			if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, false, m.logger); err != nil {
+				m.logger.Errorf("[EcomMerchSvc][Authorize] ERP update err: %v", err)
+				span.AddEvent("Failed to update ERP", trace.WithAttributes(
+					attribute.String("error", err.Error()),
+					attribute.String("unique_id", cpsAction.UniqueId),
+				))
+			}
 		}
 	case string(constants.RequestDeleteEcommerceMerchant):
 		err = m.repo.Delete(ctx, cpsAction.UniqueId)
@@ -413,12 +414,15 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-		if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, false, m.logger); err != nil {
-			m.logger.Errorf("[EcomMerchSvc][Authorize] ERP enable err: %v", err)
-			span.AddEvent("Failed to update ERP", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", cpsAction.UniqueId),
-			))
+		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
+		if !isErp {
+			if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, false, m.logger); err != nil {
+				m.logger.Errorf("[EcomMerchSvc][Authorize] ERP enable err: %v", err)
+				span.AddEvent("Failed to update ERP", trace.WithAttributes(
+					attribute.String("error", err.Error()),
+					attribute.String("unique_id", cpsAction.UniqueId),
+				))
+			}
 		}
 	case string(constants.RequestDisableEcommerceMerchant):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
@@ -429,12 +433,15 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-		if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, false, m.logger); err != nil {
-			m.logger.Errorf("[EcomMerchSvc][Authorize] ERP disable err: %v", err)
-			span.AddEvent("Failed to update ERP", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", cpsAction.UniqueId),
-			))
+		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
+		if !isErp {
+			if err := lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.Code, false, m.logger); err != nil {
+				m.logger.Errorf("[EcomMerchSvc][Authorize] ERP disable err: %v", err)
+				span.AddEvent("Failed to update ERP", trace.WithAttributes(
+					attribute.String("error", err.Error()),
+					attribute.String("unique_id", cpsAction.UniqueId),
+				))
+			}
 		}
 	default:
 		m.logger.Errorf("[EcomMerchSvc][Authorize] unsupported: %s", cpsAction.RequestAction)
@@ -450,7 +457,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 	return cpsAction, nil
 }
 
-func (m *miniAppMerchantService) updateERP(ctx context.Context, merchant *model.EcommerceMerchant) error {
+func (m *ecommerceMerchantService) updateERP(ctx context.Context, merchant *model.EcommerceMerchant) error {
 	if merchant.Code == "" {
 		return errors.New(localization.ErrorMerchantIDRequired.Code)
 	}
@@ -482,7 +489,7 @@ func (m *miniAppMerchantService) updateERP(ctx context.Context, merchant *model.
 	return nil
 }
 
-func (m *miniAppMerchantService) DetailMiniAppByID(ctx context.Context, id string) (*model.EcommerceMerchant, error) {
+func (m *ecommerceMerchantService) DetailMiniAppByID(ctx context.Context, id string) (*model.EcommerceMerchant, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "DetailMiniAppByID", "MiniAppMerchant", "DetailMiniAppByID")
 	defer span.End()
 
@@ -498,7 +505,7 @@ func (m *miniAppMerchantService) DetailMiniAppByID(ctx context.Context, id strin
 	return result, nil
 }
 
-func (m *miniAppMerchantService) MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error) {
+func (m *ecommerceMerchantService) MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "MerchantLookup", "MiniAppMerchant", "MerchantLookup")
 	defer span.End()
 

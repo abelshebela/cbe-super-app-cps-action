@@ -14,7 +14,7 @@ type OracleQuery struct {
 	Limit       int64
 }
 
-type CheckMiniAppMerchant struct {
+type CheckMerchant struct {
 	BankAccountNumber string `json:"bank_account_number"`
 	Email             string `json:"email"`
 	PhoneNumber       string `json:"phone_number"`
@@ -146,6 +146,7 @@ type LoginPIN struct {
 }
 
 type UserContext struct {
+	IsErp        bool
 	UserCode     string
 	UserID       string
 	FullName     string

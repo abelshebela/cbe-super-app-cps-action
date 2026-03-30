@@ -109,7 +109,8 @@ func MergeMiniAppMerchantData(old, data *model.EcommerceMerchant) *model.Ecommer
 
 func HandleCPSActionForMiniAppMerchant(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	maker := local_util.ExtractUserFromContext(ctx)
-	if local_util.IsIncomplete(maker) {
+
+	if local_util.IsIncomplete(maker) && !maker.IsErp {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
@@ -142,7 +143,7 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 func CheckMerchantExists(
 	ctx context.Context,
 	merchantRepo storage.EcommerceMerchantRepository,
-	data *types.CheckMiniAppMerchant,
+	data *types.CheckMerchant,
 	opts *types.MiniAppMerchantExistOptions,
 ) (bool, error) {
 	if data == nil {
@@ -199,8 +200,8 @@ func CheckMerchantExists(
 	return true, nil
 }
 
-func ToMiniAppMerchantResponseDTO(domain *model.EcommerceMerchant) *merchantDto.MiniAppMerchantResponseDTO {
-	return &merchantDto.MiniAppMerchantResponseDTO{
+func ToMiniAppMerchantResponseDTO(domain *model.EcommerceMerchant) *merchantDto.EcommerceMerchantResponseDTO {
+	return &merchantDto.EcommerceMerchantResponseDTO{
 		ID:            domain.ID.Hex(),
 		Code:          domain.Code,
 		MerchantName:  domain.MerchantName,
