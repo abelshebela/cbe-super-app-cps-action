@@ -146,6 +146,7 @@ type LoginPIN struct {
 }
 
 type UserContext struct {
+	IsErp        bool
 	UserCode     string
 	UserID       string
 	FullName     string

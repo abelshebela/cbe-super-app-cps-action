@@ -16,15 +16,16 @@ func Init(router chi.Router, handler miniappmerchat.EcommerceMerchant, authMiddl
 			Path:    "/ecommerce-merchant",
 			Handler: handler.Create,
 			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 				authMiddleware.AuthenticateToken,
 			},
 		},
-
 		{
 			Method:  http.MethodGet,
 			Path:    "/ecommerce-merchant",
 			Handler: handler.FindAllWithPagination,
 			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 				authMiddleware.AuthenticateToken,
 			},
 		},
@@ -33,6 +34,7 @@ func Init(router chi.Router, handler miniappmerchat.EcommerceMerchant, authMiddl
 			Path:    "/ecommerce-merchant/{id}",
 			Handler: handler.FindByID,
 			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 				authMiddleware.AuthenticateToken,
 			},
 		},
@@ -41,6 +43,7 @@ func Init(router chi.Router, handler miniappmerchat.EcommerceMerchant, authMiddl
 			Path:    "/ecommerce-merchant/enable/{id}",
 			Handler: handler.Enable,
 			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 				authMiddleware.AuthenticateToken,
 			},
 		},
@@ -49,6 +52,7 @@ func Init(router chi.Router, handler miniappmerchat.EcommerceMerchant, authMiddl
 			Path:    "/ecommerce-merchant/disable/{id}",
 			Handler: handler.Disable,
 			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 				authMiddleware.AuthenticateToken,
 			},
 		},
@@ -57,6 +61,7 @@ func Init(router chi.Router, handler miniappmerchat.EcommerceMerchant, authMiddl
 			Path:    "/ecommerce-merchant/{id}",
 			Handler: handler.Update,
 			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 				authMiddleware.AuthenticateToken,
 			},
 		},
@@ -65,6 +70,7 @@ func Init(router chi.Router, handler miniappmerchat.EcommerceMerchant, authMiddl
 			Path:    "/ecommerce-merchant/{id}",
 			Handler: handler.Delete,
 			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 				authMiddleware.AuthenticateToken,
 			},
 		},
@@ -73,6 +79,7 @@ func Init(router chi.Router, handler miniappmerchat.EcommerceMerchant, authMiddl
 			Path:    "/ecommerce-merchant/merchant-lookup/{merchant_id}",
 			Handler: handler.MerchantLookup,
 			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 				authMiddleware.AuthenticateToken,
 			},
 		},
