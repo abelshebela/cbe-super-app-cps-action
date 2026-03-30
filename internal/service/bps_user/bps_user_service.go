@@ -342,9 +342,11 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 		}
 	}
 
-	if err := bps_user_core.ExistingIdentifierForUpdate(*existing, userID, updatedUser); err != nil {
-		b.logger.Infof("[BpsUserSvc][Update] duplicate data: %v", err)
-		return err
+	if existing != nil {
+		if err := bps_user_core.ExistingIdentifierForUpdate(*existing, userID, updatedUser); err != nil {
+			b.logger.Infof("[BpsUserSvc][Update] duplicate data: %v", err)
+			return err
+		}
 	}
 
 	is_exist_on_CPS, err := b.CPSUserRepo.FindByEmailOrPhoneNumberOrUserName(ctx, updatedUser.Email, updatedUser.PhoneNumber, updatedUser.Username)
@@ -385,9 +387,9 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 	updatedUser = bps_user_core.BuildUpdatedBPSUser(*curUser, updatedUser)
 	// updatedUser.Role = roles.Role
 	cpsActionModel := lib.CpsModelBuilder(
-		existing.ID.Hex(),                      // unique id
+		curUser.ID.Hex(),                       // unique id
 		makerData,                              // maker data
-		existing,                               // old data
+		curUser,                                // old data
 		updatedUser,                            // new data
 		string(constants.RequestBpsUserUpdate), // request action
 		constants.UPDATE,                       // action type
