@@ -45,7 +45,10 @@ require (
 	github.com/go-chi/httprate v0.15.0
 )
 
-require github.com/zeebo/xxh3 v1.0.2 // indirect
+require (
+	github.com/jung-kurt/gofpdf v1.16.2 // indirect
+	github.com/zeebo/xxh3 v1.0.2 // indirect
+)
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect

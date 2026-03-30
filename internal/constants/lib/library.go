@@ -36,6 +36,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/jung-kurt/gofpdf"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -692,6 +693,41 @@ func UploadFileToMinio(
 	return url, nil
 }
 
+func UploadPDFToMinio(
+	ctx context.Context,
+	s3Client *s3.Client,
+	bucketName string,
+	body io.Reader,
+	contentLength int64,
+	env config.VaultConfig,
+	objectKey string,
+	logger interface {
+		Errorf(format string, args ...any)
+	},
+) (string, error) {
+
+	// ✅ Correct content type for PDF
+	contentType := "application/pdf"
+
+	putInput := &s3.PutObjectInput{
+		Bucket:        aws.String(bucketName),
+		Key:           aws.String(objectKey),
+		Body:          body,
+		ContentType:   aws.String(contentType),
+		ContentLength: &contentLength,
+	}
+
+	if _, err := s3Client.PutObject(ctx, putInput); err != nil {
+		logger.Errorf("upload PDF failed error: %v", err)
+		return "", err
+	}
+
+	baseURL := strings.TrimSuffix(env.MinioPublicEndPoint, "/")
+	url := fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(objectKey, "/"))
+
+	return url, nil
+}
+
 // UploadCSVToMinio uploads a CSV file (from an io.Reader) to MinIO and returns
 func UploadCSVToMinio(
 	ctx context.Context,
@@ -790,6 +826,74 @@ func ExportCSVAndUpload(
 	}
 
 	// 6. Upload to MinIO
+	url, err := UploadCSVToMinio(ctx, s3Client, bucketName, tmpFile, stat.Size(), env, objectKey, logger)
+	if err != nil {
+		return "", fmt.Errorf("upload to minio: %w", err)
+	}
+
+	return url, nil
+}
+
+func ExportPDFAndUpload(
+	ctx context.Context,
+	s3Client *s3.Client,
+	bucketName string,
+	env config.VaultConfig,
+	objectKey string,
+	headers []string,
+	writeRows func(pdf *gofpdf.Fpdf) error,
+	logger interface {
+		Errorf(format string, args ...any)
+	},
+) (string, error) {
+
+	// 1. Create temp PDF file
+	tmpFile, err := os.CreateTemp("", "export_*.pdf")
+	if err != nil {
+		logger.Errorf("[ExportPDFAndUpload] create temp file: %v", err)
+		return "", fmt.Errorf("create temp file: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+	defer tmpFile.Close()
+
+	// 2. Initialize PDF
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.AddPage()
+
+	pdf.SetFont("Arial", "B", 12)
+
+	// 3. Header row
+	colWidth := 190.0 / float64(len(headers)) // auto fit
+	for _, h := range headers {
+		pdf.CellFormat(colWidth, 10, h, "1", 0, "C", false, 0, "")
+	}
+	pdf.Ln(-1)
+
+	// 4. Body rows via callback
+	pdf.SetFont("Arial", "", 10)
+
+	if err := writeRows(pdf); err != nil {
+		logger.Errorf("[ExportPDFAndUpload] write rows: %v", err)
+		return "", fmt.Errorf("write rows: %w", err)
+	}
+
+	// 5. Save PDF to temp file
+	if err := pdf.Output(tmpFile); err != nil {
+		logger.Errorf("[ExportPDFAndUpload] output pdf: %v", err)
+		return "", fmt.Errorf("output pdf: %w", err)
+	}
+
+	// 6. Seek & stat
+	if _, err := tmpFile.Seek(0, 0); err != nil {
+		return "", fmt.Errorf("seek temp file: %w", err)
+	}
+
+	stat, err := tmpFile.Stat()
+	if err != nil {
+		return "", fmt.Errorf("stat temp file: %w", err)
+	}
+
+	// 7. Upload to MinIO (reuse your existing function)
 	url, err := UploadCSVToMinio(ctx, s3Client, bucketName, tmpFile, stat.Size(), env, objectKey, logger)
 	if err != nil {
 		return "", fmt.Errorf("upload to minio: %w", err)

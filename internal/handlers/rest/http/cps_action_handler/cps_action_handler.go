@@ -1673,7 +1673,14 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 	from := r.URL.Query().Get("created_at_from")
 	to := r.URL.Query().Get("created_at_to")
 
-	reqs, filterParams, err := cpsactioncore.BuildCPSActionRequestMapAuditor(ctx, filterParams, constants.Auditor, log)
+	actor := r.URL.Query().Get("actor")
+	if actor != "" {
+		if err := local_util.NoSpecialChars(actor); err != nil {
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		}
+	}
+	reqs, filterParams, err := cpsactioncore.BuildCPSActionRequestMapAuditor(ctx, filterParams, actor, log)
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[CpsActionH][Approve] failed to fetch checker allocations: %v", err)

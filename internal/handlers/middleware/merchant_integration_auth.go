@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"crypto/subtle"
 	"net/http"
 	"os"
@@ -10,13 +11,13 @@ import (
 const (
 	envIntegrationAPIKey   = "MERCHANT_INTEGRATION_API_KEY"
 	envIntegrationRoleCode = "MERCHANT_INTEGRATION_ROLE_CODE"
-	// envIntegrationUserID   = "MERCHANT_INTEGRATION_USER_ID"
-	// envIntegrationUserCode = "MERCHANT_INTEGRATION_USER_CODE"
-	// envIntegrationUserName = "MERCHANT_INTEGRATION_USERNAME"
-	// envIntegrationFullName = "MERCHANT_INTEGRATION_FULL_NAME"
-	// envIntegrationPhone    = "MERCHANT_INTEGRATION_PHONE"
-	// envIntegrationDept     = "MERCHANT_INTEGRATION_DEPARTMENT"
-	// envIntegrationUserRole = "MERCHANT_INTEGRATION_USER_ROLE"
+	envIntegrationUserID   = "MERCHANT_INTEGRATION_USER_ID"
+	envIntegrationUserCode = "MERCHANT_INTEGRATION_USER_CODE"
+	envIntegrationUserName = "MERCHANT_INTEGRATION_USERNAME"
+	envIntegrationFullName = "MERCHANT_INTEGRATION_FULL_NAME"
+	envIntegrationPhone    = "MERCHANT_INTEGRATION_PHONE"
+	envIntegrationDept     = "MERCHANT_INTEGRATION_DEPARTMENT"
+	envIntegrationUserRole = "MERCHANT_INTEGRATION_USER_ROLE"
 )
 
 func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.Handler) http.Handler {
@@ -45,43 +46,42 @@ func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.
 		}
 
 		roleCode := strings.TrimSpace(os.Getenv(envIntegrationRoleCode))
-		// roleCode := "ERP"
-		// userID := strings.TrimSpace(os.Getenv(envIntegrationUserID))
-		// fullName := strings.TrimSpace(os.Getenv(envIntegrationFullName))
-		// phone := strings.TrimSpace(os.Getenv(envIntegrationPhone))
-		// dept := strings.TrimSpace(os.Getenv(envIntegrationDept))
+		userID := strings.TrimSpace(os.Getenv(envIntegrationUserID))
+		fullName := strings.TrimSpace(os.Getenv(envIntegrationFullName))
+		phone := strings.TrimSpace(os.Getenv(envIntegrationPhone))
+		dept := strings.TrimSpace(os.Getenv(envIntegrationDept))
 
-		// if roleCode == "" || userID == "" || fullName == "" || phone == "" || dept == "" {
-		// 	if a.logger != nil {
-		// 		a.logger.Errorf("[AuthMW][EcomIntegration] missing required integration identity env (role, user id, name, phone, or department)")
-		// 	}
-		// 	localization.SendErrorResponse(w, localization.ErrorUnexpectedError, nil, nil)
-		// 	return
-		// }
+		if roleCode == "" || userID == "" || fullName == "" || phone == "" || dept == "" {
+			if a.logger != nil {
+				a.logger.Errorf("[AuthMW][EcomIntegration] missing required integration identity env (role, user id, name, phone, or department)")
+			}
+			localization.SendErrorResponse(w, localization.ErrorUnexpectedError, nil, nil)
+			return
+		}
 
-		// userCode := strings.TrimSpace(os.Getenv(envIntegrationUserCode))
-		// if userCode == "" {
-		// 	userCode = userID
-		// }
-		// userName := strings.TrimSpace(os.Getenv(envIntegrationUserName))
-		// if userName == "" {
-		// 	userName = "ecommerce-integration"
-		// }
-		// userRole := strings.TrimSpace(os.Getenv(envIntegrationUserRole))
-		// if userRole == "" {
-		// 	userRole = "SERVICE"
-		// }
+		userCode := strings.TrimSpace(os.Getenv(envIntegrationUserCode))
+		if userCode == "" {
+			userCode = userID
+		}
+		userName := strings.TrimSpace(os.Getenv(envIntegrationUserName))
+		if userName == "" {
+			userName = "ecommerce-integration"
+		}
+		userRole := strings.TrimSpace(os.Getenv(envIntegrationUserRole))
+		if userRole == "" {
+			userRole = "SERVICE"
+		}
 
 		payload := UserPayload{
-			IsERP: true,
-			// PhoneNumber: phone,
-			// UserName:    userName,
-			// UserRole:    userRole,
-			RoleId: roleCode,
-			// UserID:      userID,
-			// UserCode:    userCode,
-			// FullName:    fullName,
-			// Department:  dept,
+			IsERP:       true,
+			PhoneNumber: phone,
+			UserName:    userName,
+			UserRole:    userRole,
+			RoleId:      roleCode,
+			UserID:      userID,
+			UserCode:    userCode,
+			FullName:    fullName,
+			Department:  dept,
 			Environment: a.cfg.GoEnv,
 			Permission:  nil,
 		}
