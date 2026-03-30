@@ -248,7 +248,7 @@ func (s *server) serviceListMapper(data []model.Service) []*servicepb.ServiceDet
 }
 func (s *server) MapServiceDetails(data *model.Service) *servicepb.ServiceDetails {
 	return &servicepb.ServiceDetails{
-		Id:          data.ID.Hex(),
+		Id:          data.ID,
 		ServiceCode: data.ServiceCode,
 		ServiceName: data.ServiceName,
 		Enabled:     data.Enabled,

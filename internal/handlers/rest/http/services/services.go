@@ -121,10 +121,10 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := local_util.ValidateMongoID(id); err != nil {
-		localization.SendBadRequestResponse(w, "invalid object id")
-		return
-	}
+	// if err := local_util.ValidateMongoID(id); err != nil {
+	// 	localization.SendBadRequestResponse(w, "invalid object id")
+	// 	return
+	// }
 
 	req.Normalize()
 	if err := req.Validate(); err != nil {
@@ -178,10 +178,10 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
 		return
 	}
-	if err := local_util.ValidateMongoID(id); err != nil {
-		localization.SendBadRequestResponse(w, "invalid object id")
-		return
-	}
+	// if err := local_util.ValidateMongoID(id); err != nil {
+	// 	localization.SendBadRequestResponse(w, "invalid object id")
+	// 	return
+	// }
 
 	if r.Header.Get("Authorization") == "" {
 		span.RecordError(errors.New("missing Authorization header"))
@@ -233,10 +233,10 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
 		return
 	}
-	if err := local_util.ValidateMongoID(id); err != nil {
-		localization.SendBadRequestResponse(w, "invalid object id")
-		return
-	}
+	// if err := local_util.ValidateMongoID(id); err != nil {
+	// 	localization.SendBadRequestResponse(w, "invalid object id")
+	// 	return
+	// }
 
 	if r.Header.Get("Authorization") == "" {
 		span.RecordError(errors.New("missing Authorization header"))
@@ -368,10 +368,10 @@ func (a *servicesAdapter) UpdateServiceList(w http.ResponseWriter, r *http.Reque
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	if err := local_util.ValidateMongoID(id); err != nil {
-		localization.SendBadRequestResponse(w, "invalid object id")
-		return
-	}
+	// if err := local_util.ValidateMongoID(id); err != nil {
+	// 	localization.SendBadRequestResponse(w, "invalid object id")
+	// 	return
+	// }
 
 	if err := a.app.UpdateServiceList(ctx, id, &req); err != nil {
 		span.RecordError(err)
@@ -463,10 +463,10 @@ func (a *servicesAdapter) GetByID(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
 		return
 	}
-	if err := local_util.ValidateMongoID(id); err != nil {
-		localization.SendBadRequestResponse(w, "invalid object id")
-		return
-	}
+	// if err := local_util.ValidateMongoID(id); err != nil {
+	// 	localization.SendBadRequestResponse(w, "invalid object id")
+	// 	return
+	// }
 
 	span.SetAttributes(attribute.String("service.id", id))
 	item, err := a.app.GetByID(ctx, id)
@@ -487,10 +487,10 @@ func (a *servicesAdapter) EnableServiceList(w http.ResponseWriter, r *http.Reque
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id := chi.URLParam(r, "id")
-	if err := local_util.ValidateMongoID(id); err != nil {
-		localization.SendBadRequestResponse(w, "invalid object id")
-		return
-	}
+	// if err := local_util.ValidateMongoID(id); err != nil {
+	// 	localization.SendBadRequestResponse(w, "invalid object id")
+	// 	return
+	// }
 
 	span.SetAttributes(attribute.String("service.id", id))
 	if err := a.app.EnableOrDisableServiceList(ctx, id, true); err != nil {
@@ -518,10 +518,10 @@ func (a *servicesAdapter) DisableServiceList(w http.ResponseWriter, r *http.Requ
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id := chi.URLParam(r, "id")
-	if err := local_util.ValidateMongoID(id); err != nil {
-		localization.SendBadRequestResponse(w, "invalid object id")
-		return
-	}
+	// if err := local_util.ValidateMongoID(id); err != nil {
+	// 	localization.SendBadRequestResponse(w, "invalid object id")
+	// 	return
+	// }
 
 	span.SetAttributes(attribute.String("service.id", id))
 	if err := a.app.EnableOrDisableServiceList(ctx, id, false); err != nil {
