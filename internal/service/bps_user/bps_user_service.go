@@ -325,10 +325,19 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 	defer span.End()
 	makerData := local_util.ExtractUserFromContext(ctx)
 
+	curUser, err := b.repo.GetByUserID(ctx, userID)
+	if err != nil {
+		span.AddEvent("[UpdateBPSUser] failed to find BPS user", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_id", userID),
+		))
+		return err
+	}
+
 	existing, err := b.repo.FindByOr(ctx, updatedUser.PhoneNumber, updatedUser.Email, updatedUser.Username)
 	if err != nil {
 		if err.Error() != localization.ErrorResourceNotFound.Code {
-			b.logger.Errorf("[BpsUserSvc][Update] check existing err: %v", err)
+			b.logger.Errorf("[BpsUserSvc][Update] check existing err: %v, existing: %v, userID: %s, updatedUser: %v", err, existing, userID, updatedUser)
 			return err
 		}
 	}
@@ -340,38 +349,40 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 
 	is_exist_on_CPS, err := b.CPSUserRepo.FindByEmailOrPhoneNumberOrUserName(ctx, updatedUser.Email, updatedUser.PhoneNumber, updatedUser.Username)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-		b.logger.Errorf("[CreateBPSUser] got error while checking user data exist on cps user ")
+		b.logger.Errorf("[UpdateBPSUser] got error while checking user data exist on cps user ")
 		return errors.New(localization.ErrorInternalServerError.Code)
 	}
 	if is_exist_on_CPS != nil {
 		if is_exist_on_CPS.UserName != "" && is_exist_on_CPS.UserName == updatedUser.Username {
-			b.logger.Errorf("[CreateBPSUser] user name already exist")
+			b.logger.Errorf("[UpdateBPSUser] user name already exist")
 			return errors.New(localization.ErrorExistUserName.Code)
 		}
 
 		if is_exist_on_CPS.Email != "" && is_exist_on_CPS.Email == updatedUser.Email {
-			b.logger.Errorf("[CreateBPSUser] email already exist")
+			b.logger.Errorf("[UpdateBPSUser] email already exist")
 			return errors.New(localization.ErrorExistEmail.Code)
 
 		}
 
 		if is_exist_on_CPS.PhoneNumber != "" && is_exist_on_CPS.PhoneNumber == updatedUser.PhoneNumber {
-			b.logger.Errorf("[CreateBPSUser] phone number already exist")
+			b.logger.Errorf("[UpdateBPSUser] phone number already exist")
 			return errors.New(localization.ErrorExistPhoneNumber.Code)
 		}
 	}
 
-	branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "code", strings.TrimSpace(updatedUser.BranchCode[0]))
-	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-		b.logger.Errorf("[UpdateBPSUser] Get error while locking branch name by branch code")
-		return errors.New(localization.ErrorInternalServerError.Code)
+	if len(updatedUser.BranchCode) > 0 {
+		branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "code", strings.TrimSpace(updatedUser.BranchCode[0]))
+		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+			b.logger.Errorf("[UpdateBPSUser] Get error while locking branch name by branch code")
+			return errors.New(localization.ErrorInternalServerError.Code)
+		}
+		if branch_detail == nil {
+			b.logger.Warnf("[UpdateBPSUser] branch not found with given branch code")
+			return errors.New(localization.ErrorBranchNotExistWithGivenBranchCode.Code)
+		}
+		updatedUser.BranchName = branch_detail.Name
 	}
-	if branch_detail == nil {
-		b.logger.Warnf("[UpdateBPSUser] branch not found with given branch code")
-		return errors.New(localization.ErrorBranchNotExistWithGivenBranchCode.Code)
-	}
-	updatedUser.BranchName = branch_detail.Name
-
+	updatedUser = bps_user_core.BuildUpdatedBPSUser(*curUser, updatedUser)
 	// updatedUser.Role = roles.Role
 	cpsActionModel := lib.CpsModelBuilder(
 		existing.ID.Hex(),                      // unique id

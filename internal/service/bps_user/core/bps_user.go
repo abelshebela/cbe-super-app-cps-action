@@ -69,6 +69,7 @@ func ExistingIdentifierForUpdate(existing bps_model.BPSUser, id string, req bps_
 	if normalizedUsername != "" && strings.EqualFold(strings.TrimSpace(existing.Username), normalizedUsername) && existingID != id {
 		return localization.ErrorUsernameAlreadyExist
 	}
+	fmt.Printf("No existing identifier conflicts found for user ID %s existing: %v, normalizedEmail: %s, normalizedPhone: %s, normalizedUsername: %s\n", id, existing, normalizedEmail, normalizedPhone, normalizedUsername)
 	return localization.ErrorUserNotFound
 }
 func BPSUser_mapper(action map[string]interface{}) bps_model.BPSUser {
@@ -290,4 +291,27 @@ func MapWithJobTitleToBPSUser(u local_model.BPSUser) model.BPSUser {
 		CreatedAt:         u.CreatedAt,
 		LastModifiedAt:    u.LastModifiedAt,
 	}
+}
+
+func BuildUpdatedBPSUser(existing bps_model.BPSUser, req bps_model.BPSUser) bps_model.BPSUser {
+	if req.FullName == "" {
+		req.FullName = existing.FullName
+	}
+	if req.Username == "" {
+		req.Username = existing.Username
+	}
+	if req.Email == "" {
+		req.Email = existing.Email
+	}
+	if req.PhoneNumber == "" {
+		req.PhoneNumber = existing.PhoneNumber
+	}
+	if len(req.BranchCode) == 0 {
+		req.BranchCode = existing.BranchCode
+		req.BranchName = existing.BranchName
+	}
+	if req.JobTitle == "" {
+		req.JobTitle = existing.JobTitle
+	}
+	return req
 }

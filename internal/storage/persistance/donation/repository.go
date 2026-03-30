@@ -207,14 +207,15 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 func (d *DonationStorage) StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*donation_model.Donation) error) error {
 	filter := bson.M{
-		"created_at": bson.M{
+		"start_date": bson.M{
 			"$gte": startDate,
 			"$lte": endDate,
 		},
+		"is_deleted": false,
 	}
 
 	opts := options.Find().
-		SetSort(bson.D{{Key: "created_at", Value: 1}}).
+		SetSort(bson.D{{Key: "start_date", Value: 1}}).
 		SetBatchSize(1000)
 
 	cursor, err := d.collection.Find(ctx, filter, opts)
