@@ -2,6 +2,7 @@ package bps_user
 
 import (
 	// "cbe-super-app-cps-action/internal/constants/lib"
+
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
@@ -64,7 +65,10 @@ func (b *BPSUserStorage) FindByOr(ctx context.Context, phone, email, username st
 			"email": bson.M{"$regex": "^" + regexp.QuoteMeta(email) + "$", "$options": "i"},
 		})
 	}
-
+	if len(conditions) == 0 {
+		b.logger.Infof("[BPSUserStorage][FindByOr] no search parameters provided, returning nil")
+		return nil, nil
+	}
 	filter := bson.M{"$or": conditions}
 	data, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -84,6 +88,22 @@ func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*b
 	}
 	b.logger.Infof("[BPSUserStorage][GetByUserCode] BPS user retrieved successfully")
 	return BPSUserResponseMapper(*result), nil
+}
+func (b *BPSUserStorage) GetByUserID(ctx context.Context, userID string) (*bps_model.BPSUser, error) {
+	b.logger.Infof("[BPSUserStorage][GetByUserID] fetching BPS user by user ID")
+	objID, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		b.logger.Errorf("[BPSUserStorage][GetByUserID] invalid user ID format: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	result, err := b.dal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		b.logger.Errorf("[BPSUserStorage][GetByUserID] failed to find BPS user: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	b.logger.Infof("[BPSUserStorage][GetByUserID] BPS user retrieved successfully")
+	return result, nil
 }
 
 func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]bpsUserDto.BPSUserResposenDTO], error) {

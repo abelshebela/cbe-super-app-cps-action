@@ -325,6 +325,15 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 	defer span.End()
 	makerData := local_util.ExtractUserFromContext(ctx)
 
+	curUser, err := b.repo.GetByUserID(ctx, userID)
+	if err != nil {
+		span.AddEvent("[UpdateBPSUser] failed to find BPS user", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_id", userID),
+		))
+		return err
+	}
+
 	existing, err := b.repo.FindByOr(ctx, updatedUser.PhoneNumber, updatedUser.Email, updatedUser.Username)
 	if err != nil {
 		if err.Error() != localization.ErrorResourceNotFound.Code {
@@ -361,17 +370,19 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 		}
 	}
 
-	branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "code", strings.TrimSpace(updatedUser.BranchCode[0]))
-	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-		b.logger.Errorf("[UpdateBPSUser] Get error while locking branch name by branch code")
-		return errors.New(localization.ErrorInternalServerError.Code)
+	if len(updatedUser.BranchCode) > 0 {
+		branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "code", strings.TrimSpace(updatedUser.BranchCode[0]))
+		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+			b.logger.Errorf("[UpdateBPSUser] Get error while locking branch name by branch code")
+			return errors.New(localization.ErrorInternalServerError.Code)
+		}
+		if branch_detail == nil {
+			b.logger.Warnf("[UpdateBPSUser] branch not found with given branch code")
+			return errors.New(localization.ErrorBranchNotExistWithGivenBranchCode.Code)
+		}
+		updatedUser.BranchName = branch_detail.Name
 	}
-	if branch_detail == nil {
-		b.logger.Warnf("[UpdateBPSUser] branch not found with given branch code")
-		return errors.New(localization.ErrorBranchNotExistWithGivenBranchCode.Code)
-	}
-	updatedUser.BranchName = branch_detail.Name
-
+	updatedUser = bps_user_core.BuildUpdatedBPSUser(*curUser, updatedUser)
 	// updatedUser.Role = roles.Role
 	cpsActionModel := lib.CpsModelBuilder(
 		existing.ID.Hex(),                      // unique id
