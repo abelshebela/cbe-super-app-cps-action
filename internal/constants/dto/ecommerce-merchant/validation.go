@@ -31,9 +31,10 @@ func (b BranchInformation) ValidateCreate() error {
 		),
 
 		validation.Field(&b.BranchOwner,
-			validation.Required,
-			validation.By(utils.TrimWhiteSpace),
-			validation.By(utils.NoSpecialChars),
+			validation.When(b.BranchOwner != "",
+				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
+			),
 		),
 
 		validation.Field(&b.BranchAccountNumber,
@@ -63,8 +64,10 @@ func (b BranchInformation) ValidateUpdate() error {
 		),
 
 		validation.Field(&b.BranchOwner,
-			validation.By(utils.TrimWhiteSpace),
-			validation.By(utils.NoSpecialChars),
+			validation.When(b.BranchOwner != "",
+				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
+			),
 		),
 
 		validation.Field(&b.BranchAccountNumber,

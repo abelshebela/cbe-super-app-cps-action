@@ -1,8 +1,10 @@
 package middleware
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"crypto/subtle"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -26,8 +28,8 @@ func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.
 			return
 		}
 
-		// configured := strings.TrimSpace(os.Getenv(envIntegrationAPIKey))
-		configured := a.cfg.MerchantIntegrationAPIKey
+		configured := strings.TrimSpace(os.Getenv(envIntegrationAPIKey))
+		// configured := a.cfg.MerchantIntegrationAPIKey
 		if configured == "" {
 			if a.logger != nil {
 				a.logger.Warnf("[AuthMW][EcomIntegration] X-Api-Key present but %s is not set", envIntegrationAPIKey)
@@ -63,19 +65,19 @@ func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.
 		}
 
 		// roleCode := strings.TrimSpace(os.Getenv(envIntegrationRoleCode))
-		// roleCode := "ERP"
+		roleCode := "ERP"
 		// userID := strings.TrimSpace(os.Getenv(envIntegrationUserID))
 		// fullName := strings.TrimSpace(os.Getenv(envIntegrationFullName))
 		// phone := strings.TrimSpace(os.Getenv(envIntegrationPhone))
 		// dept := strings.TrimSpace(os.Getenv(envIntegrationDept))
 
-		// if roleCode == "" || userID == "" || fullName == "" || phone == "" || dept == "" {
-		// 	if a.logger != nil {
-		// 		a.logger.Errorf("[AuthMW][EcomIntegration] missing required integration identity env (role, user id, name, phone, or department)")
-		// 	}
-		// 	localization.SendErrorResponse(w, localization.ErrorUnexpectedError, nil, nil)
-		// 	return
-		// }
+		if username == "" || fullname == "" || phone_number == "" {
+			if a.logger != nil {
+				a.logger.Errorf("[AuthMW][EcomIntegration] missing required headers (username, fullname, or phone_number)")
+			}
+			localization.SendErrorResponse(w, localization.ErrorUnexpectedError, nil, nil)
+			return
+		}
 
 		// userCode := strings.TrimSpace(os.Getenv(envIntegrationUserCode))
 		// if userCode == "" {
@@ -91,14 +93,14 @@ func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.
 		// }
 
 		payload := UserPayload{
-			IsERP: true,
-			// PhoneNumber: phone,
-			// UserName:    userName,
+			IsERP:       true,
+			PhoneNumber: phone_number,
+			UserName:    username,
 			// UserRole:    userRole,
-			// RoleId: roleCode,
+			RoleId: roleCode,
 			// UserID:      userID,
 			// UserCode:    userCode,
-			// FullName:    fullName,
+			FullName: fullname,
 			// Department:  dept,
 			Environment: a.cfg.GoEnv,
 			Permission:  nil,
