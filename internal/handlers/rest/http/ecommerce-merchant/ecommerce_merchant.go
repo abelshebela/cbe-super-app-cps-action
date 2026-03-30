@@ -68,7 +68,7 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 	if err := reqDTO.ValidateCreate(); err != nil {
 		span.RecordError(err)
 		log.Errorf("[EcomMerchH][Create] validate err: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -83,7 +83,7 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	_, err := h.srv.Create(ctx, &reqDTO)
+	merchant, err := h.srv.Create(ctx, &reqDTO)
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[EcomMerchH][Create] svc err: %v", err)
@@ -91,7 +91,10 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if userContext.IsErp || md.IsMakerOnly {
+	if userContext.IsErp {
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreated, merchant.ID)
+		return
+	} else if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, userContext.IsErp || md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreated, nil)
