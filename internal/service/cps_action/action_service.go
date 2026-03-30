@@ -577,9 +577,7 @@ func (ca *cpsActionService) ExportCpsActionData(
 	if filterMap.Filters == nil {
 		filterMap.Filters = map[string]interface{}{}
 	}
-	if _, ok := filterMap.Filters["fields"]; !ok {
-		return "", errors.New("fields required")
-	}
+
 	fields, ok := filterMap.Filters["fields"].([]string)
 	if ok {
 		filterFields = fields
