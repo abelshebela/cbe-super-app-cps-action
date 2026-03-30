@@ -390,7 +390,7 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
 		log.Errorf("[UpdateVaultCategory] validation: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 

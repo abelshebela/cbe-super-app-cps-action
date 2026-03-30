@@ -109,7 +109,8 @@ func MergeMiniAppMerchantData(old, data *model.EcommerceMerchant) *model.Ecommer
 
 func HandleCPSActionForMiniAppMerchant(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	maker := local_util.ExtractUserFromContext(ctx)
-	if local_util.IsIncomplete(maker) {
+
+	if local_util.IsIncomplete(maker) && !maker.IsErp {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
