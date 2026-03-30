@@ -3,7 +3,6 @@ package cpsaction
 import (
 	"context"
 	"strings"
-	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -149,12 +148,12 @@ func (s *cpsActionServiceWithRoles) GetCPSActions(ctx context.Context, userID, r
 }
 
 func (s *cpsActionServiceWithRoles) ExportCpsActionData(
-	ctx context.Context,
-	startDate, endDate time.Time, export_type string,
+	ctx context.Context, req []string, filterMap *types.Filter,
+	export_type string,
 ) (string, error) {
 	return s.base.ExportCpsActionData(
 		ctx,
-		startDate, endDate, export_type,
+		req, filterMap, export_type,
 	)
 }
 

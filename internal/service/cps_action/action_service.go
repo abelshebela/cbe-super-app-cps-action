@@ -556,8 +556,8 @@ func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 }
 
 func (ca *cpsActionService) ExportCpsActionData(
-	ctx context.Context,
-	startDate, endDate time.Time, exportType string,
+	ctx context.Context, req []string, filterMap *types.Filter,
+	exportType string,
 ) (string, error) {
 
 	// 1 Create temp file
@@ -577,7 +577,7 @@ func (ca *cpsActionService) ExportCpsActionData(
 	var rowCount int
 	//==================================
 
-	actions, err := ca.repo.ActionByDateRange(ctx, startDate, endDate)
+	actions, err := ca.repo.ActionByDateRange(ctx, filterMap)
 	if err != nil {
 		return "", err
 	}
@@ -590,16 +590,17 @@ func (ca *cpsActionService) ExportCpsActionData(
 	}
 
 	if rowCount == 0 {
-		ca.logger.Infof("[CpsActionSvc][Export] no data found in date range %s - %s", startDate.Format(time.RFC3339), endDate.Format(time.RFC3339))
+		ca.logger.Infof("[CpsActionSvc][Export] no data found in date range %s - %s", filterMap.Filters["created_at_from"].(time.Time).Format(time.RFC3339), filterMap.Filters["created_at_to"].(time.Time).Format(time.RFC3339))
 		return "", errors.New(localization.CpsActionDataNotFoundInDateRange.Code)
 	}
 	//=================================
+	ca.logger.Infof("[CpsActionSvc][Export] no data found in date range %s - %s", filterMap.Filters["file_type"], filterMap.Filters["request_action"])
 
 	// 4️Upload to MinIO
 	objectName := fmt.Sprintf(
 		"exports/cps-actions/cps_actions_%s_to_%s_%d.csv",
-		startDate.Format("20060102"),
-		endDate.Format("20060102"),
+		filterMap.Filters["created_at_from"],
+		filterMap.Filters["created_at_to"],
 		time.Now().Unix(),
 	)
 
