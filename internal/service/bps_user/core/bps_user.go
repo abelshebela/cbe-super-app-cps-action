@@ -292,3 +292,26 @@ func MapWithJobTitleToBPSUser(u local_model.BPSUser) model.BPSUser {
 		LastModifiedAt:    u.LastModifiedAt,
 	}
 }
+
+func BuildUpdatedBPSUser(existing bps_model.BPSUser, req bps_model.BPSUser) bps_model.BPSUser {
+	if req.FullName == "" {
+		req.FullName = existing.FullName
+	}
+	if req.Username == "" {
+		req.Username = existing.Username
+	}
+	if req.Email == "" {
+		req.Email = existing.Email
+	}
+	if req.PhoneNumber == "" {
+		req.PhoneNumber = existing.PhoneNumber
+	}
+	if len(req.BranchCode) == 0 {
+		req.BranchCode = existing.BranchCode
+		req.BranchName = existing.BranchName
+	}
+	if req.JobTitle == "" {
+		req.JobTitle = existing.JobTitle
+	}
+	return req
+}
