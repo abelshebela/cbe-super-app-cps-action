@@ -9,11 +9,14 @@ import (
 	cpsactionsvc "cbe-super-app-cps-action/internal/service/cps_action"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 // CheckerValidationResult holds the output of ValidateCheckerAccess so the
@@ -255,4 +258,89 @@ func FormatCheckerIndex(idx *float64) string {
 		return "nil"
 	}
 	return fmt.Sprintf("%v", *idx)
+}
+
+func BuildCPSActionRequestMapAuditor(ctx context.Context, filterParams *types.Filter, allocation string, log utils.Logger) ([]string, *types.Filter, error) {
+	// roleCode from context
+	var requestAction []string
+	rawRoleID, _ := ctx.Value(constants.ContextKey("role_code")).(string)
+	if rawRoleID == "" {
+		log.Errorf("[CpsActionH][Approve] failed to fetch checker allocations: role_code missing from context")
+		return nil, nil, errors.New(localization.ErrorOperationNotAllowed.Code)
+	}
+
+	// fetch checker allocations for this role
+	idxRepo := mid.GetCPSActionApproveRepo()
+	if idxRepo == nil {
+		log.Errorf("[CpsActionH][Approve] failed to fetch checker allocations: approve repo is nil")
+		return nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	viewerAllocations, makerAllocations, checkerAllocations, auditorAllocations, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	if err != nil {
+		log.Errorf("[CpsActionH][Approve] failed to fetch checker allocations: %v", err)
+		return nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if allocation == constants.Viewer {
+		requestAction = viewerAllocations
+	}
+	if allocation == constants.Maker {
+		requestAction = makerAllocations
+	}
+	if allocation == constants.Checker {
+		requestAction = checkerAllocations
+	}
+	if allocation == constants.Auditor {
+		requestAction = auditorAllocations
+	}
+
+	if requestAction == nil {
+		log.Errorf("[CpsActionH][Approve] failed to fetch checker allocations: no checker actions found")
+		return nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	log.Infof("[CpsActionH][Approve] checker actions: %v", requestAction)
+
+	if len(requestAction) == 0 {
+		log.Errorf("[CpsActionH][Approve] failed to fetch checker allocations: empty checker actions")
+		return nil, nil, errors.New(localization.ErrorOperationNotAllowed.Code)
+	}
+	var newAllocation []string
+	for _, v := range auditorAllocations {
+		if slices.Contains(newAllocation, v) {
+			continue
+		}
+		newAllocation = append(newAllocation, v)
+	}
+
+	// resolve action_names -> request_actions
+	var reqs []string
+	seen := map[string]struct{}{}
+	for _, mod := range newAllocation {
+		upper := strings.ToUpper(strings.TrimSpace(mod))
+		if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
+			for _, ra := range lst {
+				key := string(ra)
+				if _, ok := seen[key]; ok {
+					continue
+				}
+				seen[key] = struct{}{}
+				reqs = append(reqs, key)
+			}
+		}
+	}
+
+	if filterParams == nil {
+		filterParams = &types.Filter{}
+	}
+
+	if filterParams.Filters == nil {
+		filterParams.Filters = map[string]interface{}{}
+	}
+
+	if len(reqs) > 0 {
+		filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
+	}
+
+	return reqs, filterParams, nil
 }

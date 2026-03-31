@@ -408,7 +408,12 @@ func (r *CPSUserStorage) FindByEmailOrPhoneNumberOrUserName(ctx context.Context,
 		orFilters = append(orFilters, bson.M{"username": username})
 	}
 	if len(orFilters) == 0 {
-		return nil, errors.New("at least one of email, phoneNumber, or username must be provided")
+		return nil, nil
+	}
+
+	if len(orFilters) == 0 {
+		r.logger.Infof("[CPSUserStorage][FindByEmailOrPhoneNumberOrUserName] no search parameters provided, returning nil")
+		return nil, nil
 	}
 	filter := bson.M{"$or": orFilters}
 

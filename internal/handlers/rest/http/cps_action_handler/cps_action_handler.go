@@ -9,13 +9,13 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	mid "cbe-super-app-cps-action/internal/handlers/middleware"
+	cpsactioncore "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler/core"
 	"cbe-super-app-cps-action/internal/service"
 	cpsactionsvc "cbe-super-app-cps-action/internal/service/cps_action"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
 	"net/http"
-	"slices"
 	"strconv"
 
 	"strings"
@@ -887,56 +887,63 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 	defer span.End()
 
 	// roleCode from context
-	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
-	if rawRoleID == "" {
-		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-		return
-	}
+	// rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+	// if rawRoleID == "" {
+	// 	localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+	// 	return
+	// }
 
-	// fetch checker allocations for this role
-	idxRepo := mid.GetCPSActionApproveRepo()
-	if idxRepo == nil {
-		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
-		return
-	}
-	_, _, checkerActions, _, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	// // fetch checker allocations for this role
+	// idxRepo := mid.GetCPSActionApproveRepo()
+	// if idxRepo == nil {
+	// 	localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
+	// 	return
+	// }
+	// _, _, checkerActions, _, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	localization.SendErrorByCodeResponse(w, err.Error())
+	// 	return
+	// }
+
+	// if checkerActions == nil {
+	// 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{})
+	// 	return
+	// }
+
+	// log.Infof("[CpsActionH][Approve] checker actions: %v", checkerActions)
+
+	// // resolve action_names -> request_actions
+	// var reqs []string
+	// seen := map[string]struct{}{}
+	// for _, mod := range checkerActions {
+	// 	upper := strings.ToUpper(strings.TrimSpace(mod))
+	// 	if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
+	// 		for _, ra := range lst {
+	// 			key := string(ra)
+	// 			if _, ok := seen[key]; ok {
+	// 				continue
+	// 			}
+	// 			seen[key] = struct{}{}
+	// 			reqs = append(reqs, key)
+	// 		}
+	// 	}
+	// }
+	// if filterParams == nil {
+	// 	filterParams = &types.Filter{}
+	// }
+	// if filterParams.Filters == nil {
+	// 	filterParams.Filters = map[string]interface{}{}
+	// }
+	// if len(reqs) > 0 {
+	// 	filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
+	// }
+
+	reqs, filterParams, err := cpsactioncore.BuildCPSActionRequestMapAuditor(ctx, filterParams, constants.Checker, log)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
-	}
-
-	if checkerActions == nil {
-		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{})
-		return
-	}
-
-	log.Infof("[CpsActionH][Approve] checker actions: %v", checkerActions)
-
-	// resolve action_names -> request_actions
-	var reqs []string
-	seen := map[string]struct{}{}
-	for _, mod := range checkerActions {
-		upper := strings.ToUpper(strings.TrimSpace(mod))
-		if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
-			for _, ra := range lst {
-				key := string(ra)
-				if _, ok := seen[key]; ok {
-					continue
-				}
-				seen[key] = struct{}{}
-				reqs = append(reqs, key)
-			}
-		}
-	}
-	if filterParams == nil {
-		filterParams = &types.Filter{}
-	}
-	if filterParams.Filters == nil {
-		filterParams.Filters = map[string]interface{}{}
-	}
-	if len(reqs) > 0 {
-		filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
 	}
 
 	res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, userID, reqs, filterParams)
@@ -966,9 +973,10 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
 	defer span.End()
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 
 	filterParams := local_util.ExtractFilterParams(r)
-	var allocation []string
+	// var allocation []string
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
@@ -983,52 +991,59 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	}
 
 	// roleCode from context
-	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
-	if rawRoleID == "" {
-		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-		return
-	}
+	// rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+	// if rawRoleID == "" {
+	// 	localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+	// 	return
+	// }
 
-	// fetch checker allocations for this role
-	idxRepo := mid.GetCPSActionApproveRepo()
-	if idxRepo == nil {
-		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
-		return
-	}
+	// // fetch checker allocations for this role
+	// idxRepo := mid.GetCPSActionApproveRepo()
+	// if idxRepo == nil {
+	// 	localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
+	// 	return
+	// }
 
-	_, _, _, auditorAllocations, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	// _, _, _, auditorAllocations, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	localization.SendErrorByCodeResponse(w, err.Error())
+	// 	return
+	// }
+
+	// if auditorAllocations == nil {
+	// 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{})
+	// 	return
+	// }
+
+	// for _, v := range auditorAllocations {
+	// 	if slices.Contains(allocation, v) {
+	// 		continue
+	// 	}
+	// 	allocation = append(allocation, v)
+	// }
+	// // resolve action_names -> request_actions
+	// var reqs []string
+	// seen := map[string]struct{}{}
+	// for _, mod := range allocation {
+	// 	upper := strings.ToUpper(strings.TrimSpace(mod))
+	// 	if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
+	// 		for _, ra := range lst {
+	// 			key := string(ra)
+	// 			if _, ok := seen[key]; ok {
+	// 				continue
+	// 			}
+	// 			seen[key] = struct{}{}
+	// 			reqs = append(reqs, key)
+	// 		}
+	// 	}
+	// }
+	reqs, filterParams, err := cpsactioncore.BuildCPSActionRequestMapAuditor(ctx, filterParams, constants.Auditor, log)
 	if err != nil {
 		span.RecordError(err)
+		log.Errorf("[CpsActionH][Approve] failed to fetch checker allocations: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
-	}
-
-	if auditorAllocations == nil {
-		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{})
-		return
-	}
-
-	for _, v := range auditorAllocations {
-		if slices.Contains(allocation, v) {
-			continue
-		}
-		allocation = append(allocation, v)
-	}
-	// resolve action_names -> request_actions
-	var reqs []string
-	seen := map[string]struct{}{}
-	for _, mod := range allocation {
-		upper := strings.ToUpper(strings.TrimSpace(mod))
-		if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
-			for _, ra := range lst {
-				key := string(ra)
-				if _, ok := seen[key]; ok {
-					continue
-				}
-				seen[key] = struct{}{}
-				reqs = append(reqs, key)
-			}
-		}
 	}
 
 	// do not force action_status; let API-provided filters decide
@@ -1062,47 +1077,53 @@ func (a *cpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 	defer span.End()
 
 	// roleCode from context
-	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
-	if rawRoleID == "" {
-		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-		return
-	}
+	// rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+	// if rawRoleID == "" {
+	// 	localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+	// 	return
+	// }
 
-	idxRepo := mid.GetCPSActionApproveRepo()
-	if idxRepo == nil {
-		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
-		return
-	}
-	_, _, checkerActions, _, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	// idxRepo := mid.GetCPSActionApproveRepo()
+	// if idxRepo == nil {
+	// 	localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
+	// 	return
+	// }
+	// _, _, checkerActions, _, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	localization.SendErrorByCodeResponse(w, err.Error())
+	// 	return
+	// }
+
+	// var reqs []string
+	// seen := map[string]struct{}{}
+	// for _, mod := range checkerActions {
+	// 	upper := strings.ToUpper(strings.TrimSpace(mod))
+	// 	if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
+	// 		for _, ra := range lst {
+	// 			key := string(ra)
+	// 			if _, ok := seen[key]; ok {
+	// 				continue
+	// 			}
+	// 			seen[key] = struct{}{}
+	// 			reqs = append(reqs, key)
+	// 		}
+	// 	}
+	// }
+	// if filterParams == nil {
+	// 	filterParams = &types.Filter{}
+	// }
+	// if filterParams.Filters == nil {
+	// 	filterParams.Filters = map[string]interface{}{}
+	// }
+	// if len(reqs) > 0 {
+	// 	filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
+	// }
+	reqs, filterParams, err := cpsactioncore.BuildCPSActionRequestMapAuditor(ctx, filterParams, constants.Checker, local_util.LoggerFromCtx(r.Context(), a.logger))
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
-	}
-
-	var reqs []string
-	seen := map[string]struct{}{}
-	for _, mod := range checkerActions {
-		upper := strings.ToUpper(strings.TrimSpace(mod))
-		if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
-			for _, ra := range lst {
-				key := string(ra)
-				if _, ok := seen[key]; ok {
-					continue
-				}
-				seen[key] = struct{}{}
-				reqs = append(reqs, key)
-			}
-		}
-	}
-	if filterParams == nil {
-		filterParams = &types.Filter{}
-	}
-	if filterParams.Filters == nil {
-		filterParams.Filters = map[string]interface{}{}
-	}
-	if len(reqs) > 0 {
-		filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
 	}
 
 	userID := local_util.ExtractUserContext(r).UserID
@@ -1646,10 +1667,19 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "exportCPSaction", "handler", "cpsAction")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
+	filterParams := local_util.ExtractFilterParams(r)
 
 	fileType := r.URL.Query().Get("file_type")
-	from := r.URL.Query().Get("From")
-	to := r.URL.Query().Get("To")
+	from := r.URL.Query().Get("created_at_from")
+	to := r.URL.Query().Get("created_at_to")
+
+	reqs, filterParams, err := cpsactioncore.BuildCPSActionRequestMapAuditor(ctx, filterParams, constants.Auditor, log)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[CpsActionH][Approve] failed to fetch checker allocations: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	if fileType == "" || from == "" || to == "" {
 		log.Warnf("[CpsActionH][Export] missing required params: file_type=%q, From=%q, To=%q", fileType, from, to)
@@ -1691,7 +1721,7 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 		attribute.String("export.to", to),
 	)
 
-	fileLink, err := a.cpsActionApplication.ExportCpsActionData(ctx, startDate, endDate, fileType)
+	fileLink, err := a.cpsActionApplication.ExportCpsActionData(ctx, reqs, filterParams, fileType)
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[CpsActionH][Export] svc err: %v", err)

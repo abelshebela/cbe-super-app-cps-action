@@ -102,7 +102,7 @@ type CPSActionService interface {
 	GetCPSActionByUniqueID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error)
 
-	ExportCpsActionData(ctx context.Context, start_date, end_date time.Time, exported_to string) (string, error)
+	ExportCpsActionData(ctx context.Context, req []string, filterMap *types.Filter, exported_to string) (string, error)
 }
 
 type BPSActionService interface {
