@@ -693,12 +693,43 @@ func (r *CPSActionStorage) GetCountByDepartment(ctx context.Context, department 
 }
 
 // memory intensice hold all in memory at one good for small  amount of data  memory user O(n)
-func (r *CPSActionStorage) FindByDateRange(ctx context.Context, start_date, end_date time.Time) ([]*model.CPSAction, error) {
-	filter := buildCPSActionDateRangeFilter(start_date, end_date)
+func (r *CPSActionStorage) FindByDateRange(ctx context.Context, filterParam *types.Filter) ([]*model.CPSAction, error) {
+	// filter := buildCPSActionDateRangeFilter(start_date, end_date)
 
-	opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: 1}})
+	baseFilter := bson.M{
+		"is_deleted": false,
+	}
+	searchKeys := bson.M{}
+	//---------------------------------------
 
-	cursor, err := r.collection.Find(ctx, filter, opts)
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status"}
+
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		baseFilter["$or"] = []bson.M{
+			{"maker_name": searchRegex},
+			{"action_code": searchRegex},
+			{"maker_phone_number": searchRegex},
+			{"action_status": searchRegex},
+			{"auditor_status": searchRegex},
+			{"action_type": searchRegex},
+			{"request_action": searchRegex},
+		}
+	}
+
+	dynamicFilter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
+
+	//---------------------------------------
+	opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: 1}}).
+		SetSkip(skip).
+		SetLimit(limit).
+		SetProjection(Projection)
+
+	for k, v := range baseFilter {
+		dynamicFilter[k] = v
+	}
+
+	cursor, err := r.collection.Find(ctx, dynamicFilter, opts)
 	// actions,err := r.dal.FindAll(ctx,filter,nil)
 	if err != nil {
 		return nil, err
@@ -717,16 +748,54 @@ func (r *CPSActionStorage) FindByDateRange(ctx context.Context, start_date, end_
 // stream process constant memrory useage O(1)
 func (r *CPSActionStorage) StreamByDateRange(
 	ctx context.Context,
-	startDate, endDate time.Time,
+	filterParam *types.Filter,
 	handler func(*model.CPSAction) error,
 ) error {
-	filter := buildCPSActionDateRangeFilter(startDate, endDate)
+	// filter := buildCPSActionDa/teRangeFilter(startDate, endDate)
 
-	opts := options.Find().
-		SetSort(bson.D{{Key: "created_at", Value: 1}}).
-		SetBatchSize(1000) // very important
+	// opts := options.Find().
+	// 	SetSort(bson.D{{Key: "created_at", Value: 1}}).
+	// 	SetBatchSize(1000) // very important
 
-	cursor, err := r.collection.Find(ctx, filter, opts)
+	baseFilter := bson.M{
+		"is_deleted": false,
+	}
+	searchKeys := bson.M{}
+	//---------------------------------------
+
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status"}
+
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		baseFilter["$or"] = []bson.M{
+			{"maker_name": searchRegex},
+			{"action_code": searchRegex},
+			{"maker_phone_number": searchRegex},
+			{"action_status": searchRegex},
+			{"auditor_status": searchRegex},
+			{"action_type": searchRegex},
+			{"request_action": searchRegex},
+		}
+	}
+
+	fieldProjection := filterParam.Filters["fields"]
+	if fieldProjection == nil {
+		fieldProjection = Projection
+	}
+
+	dynamicFilter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
+
+	//---------------------------------------
+	opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: 1}}).
+		SetSkip(skip).
+		SetLimit(limit).
+		SetProjection(fieldProjection)
+
+	for k, v := range baseFilter {
+		dynamicFilter[k] = v
+	}
+
+	cursor, err := r.collection.Find(ctx, dynamicFilter, opts)
 	if err != nil {
 		return err
 	}
@@ -746,15 +815,54 @@ func (r *CPSActionStorage) StreamByDateRange(
 	return cursor.Err()
 }
 
-func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, startDate, endDate time.Time) ([]model.CPSAction, error) {
+func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, filterParam *types.Filter) ([]model.CPSAction, error) {
 	var action []model.CPSAction
-	filter := buildCPSActionDateRangeFilter(startDate, endDate)
+	// filter := buildCPSActionDateRangeFilter(startDate, endDate)
 
-	opts := options.Find().
-		SetSort(bson.D{{Key: "created_at", Value: 1}}).
-		SetBatchSize(1000) // very important
+	// opts := options.Find().
+	// 	SetSort(bson.D{{Key: "created_at", Value: 1}}).
+	// 	SetBatchSize(1000) // very important
 
-	cursor, err := r.collection.Find(ctx, filter, opts)
+	baseFilter := bson.M{
+		"is_deleted": false,
+	}
+	searchKeys := bson.M{}
+	//---------------------------------------
+
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status"}
+
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		baseFilter["$or"] = []bson.M{
+			{"maker_name": searchRegex},
+			{"action_code": searchRegex},
+			{"maker_phone_number": searchRegex},
+			{"action_status": searchRegex},
+			{"auditor_status": searchRegex},
+			{"action_type": searchRegex},
+			{"request_action": searchRegex},
+		}
+	}
+
+	fieldProjection := filterParam.Filters["fields"]
+	if fieldProjection == nil {
+		fieldProjection = Projection
+	}
+
+	dynamicFilter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
+
+	//---------------------------------------
+	opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: 1}}).
+		SetSkip(skip).
+		SetLimit(limit).
+		SetProjection(fieldProjection)
+
+	for k, v := range baseFilter {
+		dynamicFilter[k] = v
+	}
+
+	// filter, limit, _ := lib.FilterBuilder(*filterMap, nil, nil)
+	cursor, err := r.collection.Find(ctx, dynamicFilter, opts)
 	if err != nil {
 		return nil, err
 	}

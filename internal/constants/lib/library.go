@@ -36,6 +36,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/jung-kurt/gofpdf"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -149,6 +150,118 @@ func GoRoutinBaker(opts types.BakerOptions, tasks ...func()) {
 	wg.Wait()
 }
 
+// func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []string) (bson.M, int64, int64) {
+// 	var skip, limit int64
+// 	filter := bson.M{}
+
+// 	if filterParam.Search != "" {
+// 		maps.Copy(filter, searchKeys)
+// 	}
+
+// 	if filterParam.Filters != nil {
+
+// 		// --- date range filters ---
+// 		// For each allowed key, check if _from / _to variants exist in the filters.
+// 		allowedSet := make(map[string]bool, len(allowedKeys))
+// 		for _, k := range allowedKeys {
+// 			allowedSet[k] = true
+// 		}
+
+// 		for _, ak := range allowedKeys {
+// 			fromKey := ak + "_from"
+// 			toKey := ak + "_to"
+// 			dateFilter := bson.M{}
+
+// 			// exact date match: ?created_at=2026-01-05 → full day range
+// 			if raw, ok := filterParam.Filters[ak]; ok {
+// 				if str, ok := raw.(string); ok && str != "" {
+// 					if t, err := parseDateInput(str); err == nil {
+// 						if !strings.Contains(str, "T") {
+// 							// date-only → match the whole day
+// 							dateFilter["$gte"] = t
+// 							dateFilter["$lte"] = t.Add(24*time.Hour - time.Millisecond)
+// 						} else {
+// 							// exact datetime
+// 							dateFilter["$eq"] = t
+// 						}
+// 						delete(filterParam.Filters, ak)
+// 					}
+// 				}
+// 			}
+
+// 			// range: ?created_at_from=...&created_at_to=...
+// 			if raw, ok := filterParam.Filters[fromKey]; ok {
+// 				if str, ok := raw.(string); ok && str != "" {
+// 					if t, err := parseDateInput(str); err == nil {
+// 						dateFilter["$gte"] = t
+// 					}
+// 				}
+// 				delete(filterParam.Filters, fromKey)
+// 			}
+
+// 			if raw, ok := filterParam.Filters[toKey]; ok {
+// 				if str, ok := raw.(string); ok && str != "" {
+// 					if t, err := parseDateInput(str); err == nil {
+// 						// if date-only (no time component), set to end of day
+// 						if !strings.Contains(str, "T") {
+// 							t = t.Add(24*time.Hour - time.Millisecond)
+// 						}
+// 						dateFilter["$lte"] = t
+// 					}
+// 				}
+// 				delete(filterParam.Filters, toKey)
+// 			}
+
+// 			if len(dateFilter) > 0 {
+// 				filter[ak] = dateFilter
+// 			}
+// 		}
+
+// 		handler := map[string]func(interface{}) interface{}{}
+// 		includedKeys := []string{
+// 			"enabled",
+// 			"enable",
+// 			"is_enabled",
+// 			"is_deleted",
+// 			"is_blocked",
+// 			"ussd_enabled",
+// 			"is_account_active",
+// 			"is_main",
+// 			"last_linked_status",
+// 			"is_verified",
+// 			"is_blocked",
+// 			"active_account",
+// 			"account_frozen",
+// 			"account_dormant",
+// 			"debit_allowed",
+// 			"credit_allowed",
+// 			"has_restriction",
+// 			"advert_for",
+// 		}
+// 		for _, key := range includedKeys {
+// 			for _, allowedKey := range allowedKeys {
+// 				if allowedKey == key {
+// 					handler[key] = func(value interface{}) interface{} {
+// 						if str, ok := value.(string); ok {
+// 							if parsed, err := strconv.ParseBool(str); err == nil {
+// 								return parsed
+// 							}
+// 						}
+// 						return value
+// 					}
+// 				}
+// 			}
+// 		}
+// 		enhancedFilter := local_util.BuildMongoFilterWithKeys(filterParam.Filters, allowedKeys, handler)
+
+// 		maps.Copy(filter, enhancedFilter)
+// 	}
+
+// 	skip = int64((filterParam.Page - 1) * filterParam.PerPage)
+// 	limit = int64(filterParam.PerPage)
+
+//		return filter, skip, limit
+//	}
 func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []string) (bson.M, int64, int64) {
 	var skip, limit int64
 	filter := bson.M{}
@@ -159,8 +272,51 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 
 	if filterParam.Filters != nil {
 
-		// --- date range filters ---
-		// For each allowed key, check if _from / _to variants exist in the filters.
+		// --- NEW: CPS Action Date Range Filter ---
+		var startDate, endDate time.Time
+		var hasStart, hasEnd bool
+
+		if raw, ok := filterParam.Filters["created_at_from"]; ok {
+			if str, ok := raw.(string); ok && str != "" {
+				if t, err := parseDateInput(str); err == nil {
+					startDate = t
+					hasStart = true
+				}
+			}
+			// delete(filterParam.Filters, "created_at_from")
+		}
+
+		if raw, ok := filterParam.Filters["created_at_to"]; ok {
+			if str, ok := raw.(string); ok && str != "" {
+				if t, err := parseDateInput(str); err == nil {
+					// include full day if date-only
+					if !strings.Contains(str, "T") {
+						t = t.Add(24*time.Hour - time.Millisecond)
+					}
+					endDate = t
+					hasEnd = true
+				}
+			}
+			// delete(filterParam.Filters, "created_at_to")
+		}
+
+		if hasStart && hasEnd {
+			dateRangeFilter := BuildCPSActionDateRangeFilter(&filterParam, startDate, endDate)
+
+			// merge with existing filter using $and
+			if len(filter) > 0 {
+				filter = bson.M{
+					"$and": []bson.M{
+						filter,
+						dateRangeFilter,
+					},
+				}
+			} else {
+				filter = dateRangeFilter
+			}
+		}
+
+		// --- EXISTING DATE FILTER LOGIC (per-field) ---
 		allowedSet := make(map[string]bool, len(allowedKeys))
 		for _, k := range allowedKeys {
 			allowedSet[k] = true
@@ -171,16 +327,13 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 			toKey := ak + "_to"
 			dateFilter := bson.M{}
 
-			// exact date match: ?created_at=2026-01-05 → full day range
 			if raw, ok := filterParam.Filters[ak]; ok {
 				if str, ok := raw.(string); ok && str != "" {
 					if t, err := parseDateInput(str); err == nil {
 						if !strings.Contains(str, "T") {
-							// date-only → match the whole day
 							dateFilter["$gte"] = t
 							dateFilter["$lte"] = t.Add(24*time.Hour - time.Millisecond)
 						} else {
-							// exact datetime
 							dateFilter["$eq"] = t
 						}
 						delete(filterParam.Filters, ak)
@@ -188,7 +341,6 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 				}
 			}
 
-			// range: ?created_at_from=...&created_at_to=...
 			if raw, ok := filterParam.Filters[fromKey]; ok {
 				if str, ok := raw.(string); ok && str != "" {
 					if t, err := parseDateInput(str); err == nil {
@@ -201,7 +353,6 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 			if raw, ok := filterParam.Filters[toKey]; ok {
 				if str, ok := raw.(string); ok && str != "" {
 					if t, err := parseDateInput(str); err == nil {
-						// if date-only (no time component), set to end of day
 						if !strings.Contains(str, "T") {
 							t = t.Add(24*time.Hour - time.Millisecond)
 						}
@@ -216,27 +367,15 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 			}
 		}
 
+		// --- BOOLEAN HANDLER ---
 		handler := map[string]func(interface{}) interface{}{}
 		includedKeys := []string{
-			"enabled",
-			"enable",
-			"is_enabled",
-			"is_deleted",
-			"is_blocked",
-			"ussd_enabled",
-			"is_account_active",
-			"is_main",
-			"last_linked_status",
-			"is_verified",
-			"is_blocked",
-			"active_account",
-			"account_frozen",
-			"account_dormant",
-			"debit_allowed",
-			"credit_allowed",
-			"has_restriction",
-			"advert_for",
+			"enabled", "enable", "is_enabled", "is_deleted", "is_blocked",
+			"ussd_enabled", "is_account_active", "is_main", "last_linked_status",
+			"is_verified", "active_account", "account_frozen", "account_dormant",
+			"debit_allowed", "credit_allowed", "has_restriction", "advert_for",
 		}
+
 		for _, key := range includedKeys {
 			for _, allowedKey := range allowedKeys {
 				if allowedKey == key {
@@ -251,8 +390,8 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 				}
 			}
 		}
-		enhancedFilter := local_util.BuildMongoFilterWithKeys(filterParam.Filters, allowedKeys, handler)
 
+		enhancedFilter := local_util.BuildMongoFilterWithKeys(filterParam.Filters, allowedKeys, handler)
 		maps.Copy(filter, enhancedFilter)
 	}
 
@@ -445,6 +584,22 @@ func parseDateInput(s string) (time.Time, error) {
 // 	return url, nil
 // }
 
+func BuildCPSActionDateRangeFilter(filterMap *types.Filter, startDate, endDate time.Time) bson.M {
+	rangeFilter := bson.M{
+		"$gte": startDate,
+		"$lte": endDate,
+	}
+
+	// Some records use different timestamp fields; include all known variants.
+	return bson.M{
+		"$or": []bson.M{
+			{"created_at": rangeFilter},
+			// {"action_created_at": rangeFilter},
+			// {"maker_action_time": rangeFilter},
+			// {"last_modified_at": rangeFilter},
+		},
+	}
+}
 func UploadFileToMinio(
 	ctx context.Context,
 	s3Client *s3.Client,
@@ -535,6 +690,41 @@ func UploadFileToMinio(
 	}
 	// Build public URL
 	url := fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(key, "/"))
+	return url, nil
+}
+
+func UploadPDFToMinio(
+	ctx context.Context,
+	s3Client *s3.Client,
+	bucketName string,
+	body io.Reader,
+	contentLength int64,
+	env config.VaultConfig,
+	objectKey string,
+	logger interface {
+		Errorf(format string, args ...any)
+	},
+) (string, error) {
+
+	// ✅ Correct content type for PDF
+	contentType := "application/pdf"
+
+	putInput := &s3.PutObjectInput{
+		Bucket:        aws.String(bucketName),
+		Key:           aws.String(objectKey),
+		Body:          body,
+		ContentType:   aws.String(contentType),
+		ContentLength: &contentLength,
+	}
+
+	if _, err := s3Client.PutObject(ctx, putInput); err != nil {
+		logger.Errorf("upload PDF failed error: %v", err)
+		return "", err
+	}
+
+	baseURL := strings.TrimSuffix(env.MinioPublicEndPoint, "/")
+	url := fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(objectKey, "/"))
+
 	return url, nil
 }
 
@@ -636,6 +826,74 @@ func ExportCSVAndUpload(
 	}
 
 	// 6. Upload to MinIO
+	url, err := UploadCSVToMinio(ctx, s3Client, bucketName, tmpFile, stat.Size(), env, objectKey, logger)
+	if err != nil {
+		return "", fmt.Errorf("upload to minio: %w", err)
+	}
+
+	return url, nil
+}
+
+func ExportPDFAndUpload(
+	ctx context.Context,
+	s3Client *s3.Client,
+	bucketName string,
+	env config.VaultConfig,
+	objectKey string,
+	headers []string,
+	writeRows func(pdf *gofpdf.Fpdf) error,
+	logger interface {
+		Errorf(format string, args ...any)
+	},
+) (string, error) {
+
+	// 1. Create temp PDF file
+	tmpFile, err := os.CreateTemp("", "export_*.pdf")
+	if err != nil {
+		logger.Errorf("[ExportPDFAndUpload] create temp file: %v", err)
+		return "", fmt.Errorf("create temp file: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+	defer tmpFile.Close()
+
+	// 2. Initialize PDF
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.AddPage()
+
+	pdf.SetFont("Arial", "B", 12)
+
+	// 3. Header row
+	colWidth := 190.0 / float64(len(headers)) // auto fit
+	for _, h := range headers {
+		pdf.CellFormat(colWidth, 10, h, "1", 0, "C", false, 0, "")
+	}
+	pdf.Ln(-1)
+
+	// 4. Body rows via callback
+	pdf.SetFont("Arial", "", 10)
+
+	if err := writeRows(pdf); err != nil {
+		logger.Errorf("[ExportPDFAndUpload] write rows: %v", err)
+		return "", fmt.Errorf("write rows: %w", err)
+	}
+
+	// 5. Save PDF to temp file
+	if err := pdf.Output(tmpFile); err != nil {
+		logger.Errorf("[ExportPDFAndUpload] output pdf: %v", err)
+		return "", fmt.Errorf("output pdf: %w", err)
+	}
+
+	// 6. Seek & stat
+	if _, err := tmpFile.Seek(0, 0); err != nil {
+		return "", fmt.Errorf("seek temp file: %w", err)
+	}
+
+	stat, err := tmpFile.Stat()
+	if err != nil {
+		return "", fmt.Errorf("stat temp file: %w", err)
+	}
+
+	// 7. Upload to MinIO (reuse your existing function)
 	url, err := UploadCSVToMinio(ctx, s3Client, bucketName, tmpFile, stat.Size(), env, objectKey, logger)
 	if err != nil {
 		return "", fmt.Errorf("upload to minio: %w", err)

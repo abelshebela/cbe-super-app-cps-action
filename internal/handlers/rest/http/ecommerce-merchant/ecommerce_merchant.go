@@ -68,7 +68,7 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 	if err := reqDTO.ValidateCreate(); err != nil {
 		span.RecordError(err)
 		log.Errorf("[EcomMerchH][Create] validate err: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -76,14 +76,14 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 
 	// reqDTO.PhoneNumber = formattedPhone
 	userContext := local_util.ExtractUserContext(r)
-	if local_util.IsIncomplete(userContext) {
+	if local_util.IsIncomplete(userContext) && !userContext.IsErp {
 		span.RecordError(errors.New("incomplete user context"))
 		log.Warnf("[EcomMerchH][Create] incomplete user info: %+v", userContext)
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
 	}
 
-	_, err := h.srv.Create(ctx, &reqDTO)
+	merchant, err := h.srv.Create(ctx, &reqDTO)
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[EcomMerchH][Create] svc err: %v", err)
@@ -91,9 +91,12 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if md.IsMakerOnly {
+	if userContext.IsErp {
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreated, merchant.ID)
+		return
+	} else if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		log.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, userContext.IsErp || md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreated, nil)
 		return
 	}
@@ -156,9 +159,9 @@ func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if md.IsMakerOnly {
+	if userContext.IsErp || md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		log.Infof("[Update] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[Update] request sent successfully for user_code: %s is_maker_only: %v", userCode, userContext.IsErp || md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantUpdated, nil)
 		return
 	}
@@ -208,9 +211,9 @@ func (h *ecommerceMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	if md.IsMakerOnly {
+	if userContext.IsErp || md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		log.Infof("[Delete] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[Delete] request sent successfully for user_code: %s is_maker_only: %v", userCode, userContext.IsErp || md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDeleted, nil)
 		return
 	}
@@ -256,9 +259,9 @@ func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	if md.IsMakerOnly {
+	if userContext.IsErp || md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		log.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, userContext.IsErp || md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantEnable, nil)
 		return
 	}
@@ -305,9 +308,9 @@ func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Reques
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	if md.IsMakerOnly {
+	if userContext.IsErp || md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		log.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, userContext.IsErp || md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDisable, nil)
 		return
 	}
