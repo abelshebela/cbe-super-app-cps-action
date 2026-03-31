@@ -56,21 +56,21 @@ func ExistingIdentifierForUpdate(existing bps_model.BPSUser, id string, req bps_
 
 	existingID := existing.ID.Hex()
 	if normalizedEmail != "" && strings.EqualFold(existing.Email, normalizedEmail) && existingID != id {
-		return localization.ErrorEmailAlreadyExist
+		return errors.New(localization.ErrorEmailAlreadyExist.Code)
 	}
 
 	if normalizedPhone != "" && existingID != id {
 		storedPhone := local_util.FormatPhoneNumber(existing.PhoneNumber)
 		if storedPhone == normalizedPhone {
-			return localization.ErrorPhonenumberAlreadyExist
+			return errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
 		}
 	}
 
 	if normalizedUsername != "" && strings.EqualFold(strings.TrimSpace(existing.Username), normalizedUsername) && existingID != id {
-		return localization.ErrorUsernameAlreadyExist
+		return errors.New(localization.ErrorUsernameAlreadyExist.Code)
 	}
 	fmt.Printf("No existing identifier conflicts found for user ID %s existing: %v, normalizedEmail: %s, normalizedPhone: %s, normalizedUsername: %s\n", id, existing, normalizedEmail, normalizedPhone, normalizedUsername)
-	return localization.ErrorUserNotFound
+	return errors.New(localization.ErrorUserNotFound.Code)
 }
 func BPSUser_mapper(action map[string]interface{}) bps_model.BPSUser {
 	var user bps_model.BPSUser
