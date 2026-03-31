@@ -509,12 +509,13 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 	searchKeys := bson.M{}
 
 	// Exclude maker_id and checker_id from allowedKeys so request cannot override userFilter
-	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status", "unique_id", "created_at"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
 			{"maker_name": searchRegex},
+			{"unique_id": searchRegex},
 			{"action_code": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},

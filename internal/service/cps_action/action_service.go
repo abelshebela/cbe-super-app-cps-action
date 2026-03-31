@@ -145,14 +145,6 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 			return err
 		}
 		return nil
-	} else if strings.Contains(cpsAction.RequestAction, string(constants.DELETE)) {
-		cpsAction.RoleCode = roleCode
-		err = ca.repo.Save(ctx, cpsAction)
-		if err != nil {
-			span.AddEvent("failed to save cps action", trace.WithAttributes(attribute.String("error", err.Error())))
-			return err
-		}
-		return nil
 	}
 
 	reqs := ca.pendingLockRequestActions(actionName, cpsAction.RequestAction)
@@ -166,6 +158,8 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 
 	if existing != nil {
 		span.AddEvent("pending cps action exists", trace.WithAttributes(attribute.String("error", "pending cps action exists")))
+		ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), existing.ActionCode)
+		ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), existing.ActionStatus)
 		return errors.New(localization.ErrorPendingCpsActionExists.Code)
 	}
 
@@ -186,9 +180,9 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 		return strings.Contains(normalize(s), constants.CREATE)
 	}
 
-	// isDelete := func(s string) bool {
-	// 	return strings.Contains(normalize(s), constants.DELETE)
-	// }
+	isDelete := func(s string) bool {
+		return strings.Contains(normalize(s), constants.DELETE)
+	}
 
 	defaultReq := []string{normalize(requestAction)}
 	if actionName == "" {
@@ -201,7 +195,7 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 	}
 
 	wantCreateOnly := isCreate(requestAction)
-	// wantDeleteOnly := isDelete(requestAction)
+	wantDeleteOnly := isDelete(requestAction)
 	seen := map[string]struct{}{}
 	reqs := make([]string, 0, len(lst))
 
@@ -212,14 +206,14 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 		}
 
 		isKeyCreate := isCreate(key)
-		// isKeyDelete := isDelete(key)
+		isKeyDelete := isDelete(key)
 		if wantCreateOnly != isKeyCreate {
 			continue
 		}
 
-		// if wantDeleteOnly != isKeyDelete {
-		// 	continue
-		// }
+		if wantDeleteOnly != isKeyDelete {
+			continue
+		}
 
 		seen[key] = struct{}{}
 		reqs = append(reqs, key)
