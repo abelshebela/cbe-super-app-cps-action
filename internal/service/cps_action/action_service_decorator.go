@@ -34,6 +34,8 @@ func (s *cpsActionServiceWithRoles) IsMakerOnlyForRequest(ctx context.Context, r
 }
 
 func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsAction *model.CPSAction) error {
+	isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
+
 	actType := strings.ToUpper(strings.TrimSpace(cpsAction.ActionType))
 	req := strings.ToUpper(strings.TrimSpace(cpsAction.RequestAction))
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
@@ -73,12 +75,12 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 				approverData = approver
 			}
 
-			if role == nil || approverData.ID.IsZero() {
+			if !isErp && (role == nil || approverData.ID.IsZero()) {
 				s.logger.Errorf("[action_service] CreateCPSAction: role or approver not found for action %s", mod)
 				return localization.ErrorOperationNotAllowed
 			}
 
-			if approverData.MakerIndex == nil {
+			if !isErp && (approverData.MakerIndex == nil) {
 				s.logger.Errorf("[action_service] CreateCPSAction: maker index not found for action %s", mod)
 				return localization.ErrorOperationNotAllowed
 			}
@@ -98,7 +100,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			}
 
 			if role != nil {
-				if role.IsMakerOnly {
+				if role.IsMakerOnly || !isErp {
 					cpsAction.ActionStatus = string(constants.Approved)
 					if err := s.base.ApproveCPSAction(ctx, cpsAction); err != nil {
 						return err
