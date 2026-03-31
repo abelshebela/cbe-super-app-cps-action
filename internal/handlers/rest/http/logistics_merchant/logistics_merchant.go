@@ -2,10 +2,13 @@ package logistics_merchant_handler
 
 import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 
+	"cbe-super-app-cps-action/internal/constants"
 	logistics_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/logistics_merchant"
 	logistics_merchant_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/logistics_merchant"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/logistics_merchant/core"
 	"cbe-super-app-cps-action/internal/service"
 	"encoding/json"
@@ -34,7 +37,12 @@ type LogisticsMerchantHandler struct {
 //	@Security		BearerAuth
 //	@Router			/logistics_merchants [post]
 func (e *LogisticsMerchantHandler) CreateLogisticMerchant(w http.ResponseWriter, r *http.Request) {
+
+	userContext := local_util.ExtractUserContext(r)
 	log := local_util.LoggerFromCtx(r.Context(), e.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
 	var req logistics_merchant_dto.CreateLogisticsMerchantRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -48,10 +56,16 @@ func (e *LogisticsMerchantHandler) CreateLogisticMerchant(w http.ResponseWriter,
 	}
 	m := core.CreateLogisticsMerchantRequestToModel(req)
 
-	if err := e.service.Create(r.Context(), m); err != nil {
+	if err := e.service.Create(ctx, m); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	if userContext.IsErp {
+		localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreated, md.Id)
+		return
+	}
+
 	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantCreated, nil)
 }
 

@@ -9,6 +9,7 @@ import (
 // to allow the service layer to communicate information back to the handler.
 type ContextMetadata struct {
 	IsMakerOnly bool
+	Id          string
 }
 
 // GetMetadata retrieves the ContextMetadata from the context.
@@ -23,5 +24,11 @@ func GetMetadata(ctx context.Context) *ContextMetadata {
 func SetIsMakerOnly(ctx context.Context, value bool) {
 	if md := GetMetadata(ctx); md != nil {
 		md.IsMakerOnly = value
+	}
+}
+
+func SetId(ctx context.Context, id string) {
+	if md := GetMetadata(ctx); md != nil {
+		md.Id = id
 	}
 }

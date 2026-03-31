@@ -23,8 +23,21 @@ import (
 )
 
 type LogisticsMerchantRepository struct {
-	dal    dal.MongoDal[local_model.LogisticsMerchant, local_model.LogisticsMerchant]
-	logger utils.Logger
+	client     *mongo.Client
+	dbName     string
+	collection string
+	dal        dal.MongoDal[local_model.LogisticsMerchant, local_model.LogisticsMerchant]
+	logger     utils.Logger
+}
+
+func NewLogisticsMerchantRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.LogisticsMerchantRepository {
+	return &LogisticsMerchantRepository{
+		client:     client,
+		dbName:     dbName,
+		collection: collection,
+		dal:        dal.NewMongoDal[local_model.LogisticsMerchant, local_model.LogisticsMerchant](client, cfg, dbName, collection),
+		logger:     logger,
+	}
 }
 
 func (m *LogisticsMerchantRepository) Create(ctx context.Context, merchant local_model.LogisticsMerchant) error {
@@ -34,11 +47,16 @@ func (m *LogisticsMerchantRepository) Create(ctx context.Context, merchant local
 	merchant.CreatedAt = time.Now()
 	merchant.UpdatedAt = time.Time{}
 	merchant.DeletedAt = time.Time{}
-	_, err := m.dal.InsertOne(ctx, merchant)
+
+	coll := m.client.Database(m.dbName).Collection(m.collection)
+	res, err := coll.InsertOne(ctx, merchant)
 	if err != nil {
 		m.logger.Errorf("Failed to create logistics merchant: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	merchant.ID = res.InsertedID.(bson.ObjectID)
+	types.SetId(ctx, merchant.ID.Hex())
+
 	return nil
 }
 
@@ -159,11 +177,4 @@ func (m *LogisticsMerchantRepository) FindOne(ctx context.Context, filter bson.M
 		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
-}
-
-func NewLogisticsMerchantRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.LogisticsMerchantRepository {
-	return &LogisticsMerchantRepository{
-		dal:    dal.NewMongoDal[local_model.LogisticsMerchant, local_model.LogisticsMerchant](client, cfg, dbName, collection),
-		logger: logger,
-	}
 }
