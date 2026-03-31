@@ -22,13 +22,15 @@ const (
 
 func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var roleCode, userID, fullName, phone, dept string
 		apiKey := strings.TrimSpace(r.Header.Get("X-Api-Key"))
 		if apiKey == "" {
 			a.AuthenticateToken(next).ServeHTTP(w, r)
 			return
 		}
 
-		configured := strings.TrimSpace(os.Getenv(envIntegrationAPIKey))
+		// configured := strings.TrimSpace(os.Getenv(envIntegrationAPIKey))
+		configured := a.cfg.MerchantIntegrationAPIKey
 		if configured == "" {
 			if a.logger != nil {
 				a.logger.Warnf("[AuthMW][EcomIntegration] X-Api-Key present but %s is not set", envIntegrationAPIKey)
@@ -45,11 +47,30 @@ func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.
 			return
 		}
 
-		roleCode := strings.TrimSpace(os.Getenv(envIntegrationRoleCode))
-		userID := strings.TrimSpace(os.Getenv(envIntegrationUserID))
-		fullName := strings.TrimSpace(os.Getenv(envIntegrationFullName))
-		phone := strings.TrimSpace(os.Getenv(envIntegrationPhone))
-		dept := strings.TrimSpace(os.Getenv(envIntegrationDept))
+		username := strings.TrimSpace(r.Header.Get("username"))
+		if username == "" {
+			a.AuthenticateTempToken(next).ServeHTTP(w, r)
+			return
+		}
+
+		fullname := strings.TrimSpace(r.Header.Get("fullname"))
+		if fullname == "" {
+			a.AuthenticateTempToken(next).ServeHTTP(w, r)
+			return
+		}
+
+		phone_number := strings.TrimSpace(r.Header.Get("phone_number"))
+		if phone_number == "" {
+			a.AuthenticateTempToken(next).ServeHTTP(w, r)
+			return
+		}
+
+		// roleCode := strings.TrimSpace(os.Getenv(envIntegrationRoleCode))
+		// roleCode := "ERP"
+		// userID := strings.TrimSpace(os.Getenv(envIntegrationUserID))
+		// fullName := strings.TrimSpace(os.Getenv(envIntegrationFullName))
+		// phone := strings.TrimSpace(os.Getenv(envIntegrationPhone))
+		// dept := strings.TrimSpace(os.Getenv(envIntegrationDept))
 
 		if roleCode == "" || userID == "" || fullName == "" || phone == "" || dept == "" {
 			if a.logger != nil {
