@@ -219,12 +219,13 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	}
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "unique_id", "created_at"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
 			{"maker_name": searchRegex},
+			{"unique_id": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
 			{"action_type": searchRegex},
@@ -288,11 +289,12 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 	}
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "unique_id", "created_at"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
+			{"unique_id": searchRegex},
 			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
@@ -384,12 +386,13 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 	}
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"action_code", "action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "auditor_status", "auditor_users.auditor_id"}
+	allowedKeys := []string{"action_code", "action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "auditor_status", "auditor_users.auditor_id", "unique_id", "created_at"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
 			{"action_code": searchRegex},
+			{"unique_id": searchRegex},
 			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
@@ -703,12 +706,13 @@ func (r *CPSActionStorage) FindByDateRange(ctx context.Context, filterParam *typ
 	searchKeys := bson.M{}
 	//---------------------------------------
 
-	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status", "unique_id"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
 			{"maker_name": searchRegex},
+			{"unique_id": searchRegex},
 			{"action_code": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
@@ -764,12 +768,13 @@ func (r *CPSActionStorage) StreamByDateRange(
 	searchKeys := bson.M{}
 	//---------------------------------------
 
-	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status", "unique_id"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
 			{"maker_name": searchRegex},
+			{"unique_id": searchRegex},
 			{"action_code": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
@@ -830,11 +835,12 @@ func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, filterParam *t
 	searchKeys := bson.M{}
 	//---------------------------------------
 
-	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status", "unique_id"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
+			{"unique_id": searchRegex},
 			{"maker_name": searchRegex},
 			{"action_code": searchRegex},
 			{"maker_phone_number": searchRegex},
