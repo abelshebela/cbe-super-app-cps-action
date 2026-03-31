@@ -83,10 +83,8 @@ func (r *VaultCategoryRepository) FindAllWithPagination(ctx context.Context, fil
 		if v, ok := filterParam.Filters["is_active"].(bool); ok {
 			params.IsActive = sql.NullBool{Bool: v, Valid: true}
 		}
-		if v, ok := filterParam.Filters["name"].(string); ok && v != "" {
-			params.NameQuery = sql.NullString{String: v, Valid: true}
-		}
 	}
+	params.Search = sql.NullString{String: filterParam.Search, Valid: filterParam.Search != ""}
 
 	if filterParam.PerPage > 0 {
 		params.Limit = sql.NullInt64{Int64: int64(filterParam.PerPage), Valid: true}

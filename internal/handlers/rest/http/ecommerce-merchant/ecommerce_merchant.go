@@ -83,7 +83,7 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	merchant, err := h.srv.Create(ctx, &reqDTO)
+	_, err := h.srv.Create(ctx, &reqDTO)
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[EcomMerchH][Create] svc err: %v", err)
@@ -92,7 +92,7 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 	}
 
 	if userContext.IsErp {
-		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreated, merchant.ID)
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreated, md.Id)
 		return
 	} else if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)

@@ -96,11 +96,10 @@ func (e *EventMerchantHandler) CreateEventMerchant(w http.ResponseWriter, r *htt
 		return
 	}
 
-	// if userContext.IsErp {
-	// 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreated, merchant.ID)
-	// 	return
-	// } else if
-	if !userContext.IsErp && md.IsMakerOnly {
+	if userContext.IsErp {
+		localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreated, md.Id)
+		return
+	} else if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreated, nil)
 	} else {
 		e.logger.Infof("[CreateEventMerchant] request sent successfully for create event merchant")
