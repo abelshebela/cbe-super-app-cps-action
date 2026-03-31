@@ -88,7 +88,7 @@ func (b *DepartmentStorage) EnableOrDisable(ctx context.Context, id string, enab
 		b.logger.Errorf("[DepartmentStorage][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	filter := bson.M{"_id": objID}
+	filter := bson.M{"_id": objID, "is_deleted": false}
 	update := bson.M{"enabled": enable}
 	_, err = b.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -105,7 +105,7 @@ func (b *DepartmentStorage) FindByID(ctx context.Context, id string) (*model.Dep
 		b.logger.Errorf("[DepartmentStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorDepartmentInvalidID.Code)
 	}
-	filter := bson.M{"_id": objID}
+	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	result, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -165,6 +165,7 @@ func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterPar
 	// 	s.logger.Errorf("[FindAllWithPagination] failed to fetch departments: %v", err)
 	// 	return types.PaginatedResponse[[]model.Department]{}, errors.New(localization.ErrorUnexpectedError.Message)
 	// }
+	filter["is_deleted"] = false
 	results, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		s.logger.Errorf("[DepartmentStorage][FindAllWithPagination] failed to fetch departments: %v", err)

@@ -736,7 +736,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableCities,
 	},
 	"MULTIBRANCHDISABLEACCOUNTBLOCK": {
-		RequestDisableBranches,
+		// RequestDisableBranches,
 		RequestDisableMultiBranches,
 		RequestDisableRegions,
 		RequestDisableDistricts,

@@ -3,6 +3,7 @@ package cpsaction
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
@@ -34,6 +35,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 
 	action := cpsAction.RequestAction
 	span.SetAttributes(attribute.String("action", action))
+
+	fmt.Printf("Authorizing action: %s\n", cpsAction.RequestAction)
 
 	switch {
 	case IsActionInGroup(RequestAction(action), "BANK"):
