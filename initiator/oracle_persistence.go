@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	"cbe-super-app-cps-action/internal/storage/persistance/bank/gen/sqlc"
 	"cbe-super-app-cps-action/internal/storage/persistance/bankvault"
+	customersegmentaion "cbe-super-app-cps-action/internal/storage/persistance/customer_segmentaion"
 	services_repo "cbe-super-app-cps-action/internal/storage/persistance/services"
 	"cbe-super-app-cps-action/internal/storage/persistance/sitota"
 	transaction_repo "cbe-super-app-cps-action/internal/storage/persistance/transaction"
@@ -17,21 +18,23 @@ import (
 )
 
 type OraclePersistence struct {
-	BankOracle          storage.BankOracleRepository
-	BankVault           storage.BankVaultRepository
-	vaultCategory       storage.VaultCategoryRepository
-	Sitota              storage.SitotaRepository
-	Transaction         storage.TransactionRepository
-	ServicesPersistence storage.ServicesRepository
+	BankOracle           storage.BankOracleRepository
+	BankVault            storage.BankVaultRepository
+	vaultCategory        storage.VaultCategoryRepository
+	Sitota               storage.SitotaRepository
+	Transaction          storage.TransactionRepository
+	ServicesPersistence  storage.ServicesRepository
+	CustomerSegmentation storage.CustomerSegmentationRepository
 }
 
 func InitOraclePersistence(db *sql.DB, cfg *config.VaultConfig, clientOrchestrationProducer kafka.ClientOrchestrationProducer, redisRepository storage.RedisRepository, log utils.Logger) OraclePersistence {
 	return OraclePersistence{
-		BankOracle:          sqlc.NewBankRepository(db, log),
-		BankVault:           bankvault.NewBankVaultRepository(db, log),
-		vaultCategory:       vaultCategory.NewVaultCategoryRepository(db, cfg, clientOrchestrationProducer, log),
-		Sitota:              sitota.NewSitotaRepository(db, log),
-		Transaction:         transaction_repo.NewTransactionRepository(db, log),
-		ServicesPersistence: services_repo.NewServicesRepository(db, cfg, clientOrchestrationProducer, redisRepository, log),
+		BankOracle:           sqlc.NewBankRepository(db, log),
+		BankVault:            bankvault.NewBankVaultRepository(db, log),
+		vaultCategory:        vaultCategory.NewVaultCategoryRepository(db, cfg, clientOrchestrationProducer, log),
+		Sitota:               sitota.NewSitotaRepository(db, log),
+		Transaction:          transaction_repo.NewTransactionRepository(db, log),
+		ServicesPersistence:  services_repo.NewServicesRepository(db, cfg, clientOrchestrationProducer, redisRepository, log),
+		CustomerSegmentation: customersegmentaion.NewCustomerSegmentationRepository(cfg, db, clientOrchestrationProducer, log),
 	}
 }

@@ -23,7 +23,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_action"
 	cps_actionrole_repo "cbe-super-app-cps-action/internal/storage/persistance/cps_action_role"
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_user"
-	customer_segmentation_repo "cbe-super-app-cps-action/internal/storage/persistance/customer_segmentaion"
 	"cbe-super-app-cps-action/internal/storage/persistance/department"
 	"cbe-super-app-cps-action/internal/storage/persistance/device_history"
 	deviceversioncontrol "cbe-super-app-cps-action/internal/storage/persistance/device_version_control"
@@ -142,11 +141,11 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		MiniAppProductCodePersistence:     mini_app.NewMiniAppProdutCodeRepository(logger, client, cfg, dbName, MiniAppProductCodes),
 		AccessListSegmentationPersistence: access_list_segmentation_repository.NewAccessListSegmentationRepository(client, cfg, dbName, AccessListSegmentationCollection, accessListSegmentationProducer, acctBlockPersistence, logger),
 		MiniAppMerchant:                   mini_app.NewMiniAppMerchantRepository(client, cfg, dbName, MiniAppMerchantCollection, logger),
-		CustomerSegmentation:              customer_segmentation_repo.NewCustomerSegmentationRepository(client, cfg, dbName, CustomerSegmentationCollection, clientOrchestrationProducer, logger),
-		CPSRoles:                          cps_roles.NewCPSRolesStorage(client, cfg, dbName, []string{CPSRolesCollection, AccessListCollection, AccessListSegmentationCollection}, clientOrchestrationProducer, logger),
-		LogisticsMerchantPersistence:      logistics_merchant_repository.NewLogisticsMerchantRepository(client, cfg, dbName, LogisticsMerchantsCollection, logger),
-		CustomerKYCPersistence:            persistence_kyc.NewCustomerKYCRepository(client, cfg, dbName, FaydaKYCollection, logger),
-		UssdMerchantPersistence:           ussd_merchant_repo.NewUssdMerchant(client, dbName, UssdMerchantCollection, cfg, logger),
+		// CustomerSegmentation:              customer_segmentation_repo.NewCustomerSegmentationRepository(client, cfg, dbName, CustomerSegmentationCollection, clientOrchestrationProducer, logger),
+		CPSRoles:                     cps_roles.NewCPSRolesStorage(client, cfg, dbName, []string{CPSRolesCollection, AccessListCollection, AccessListSegmentationCollection}, clientOrchestrationProducer, logger),
+		LogisticsMerchantPersistence: logistics_merchant_repository.NewLogisticsMerchantRepository(client, cfg, dbName, LogisticsMerchantsCollection, logger),
+		CustomerKYCPersistence:       persistence_kyc.NewCustomerKYCRepository(client, cfg, dbName, FaydaKYCollection, logger),
+		UssdMerchantPersistence:      ussd_merchant_repo.NewUssdMerchant(client, dbName, UssdMerchantCollection, cfg, logger),
 	}
 
 	return data
