@@ -582,7 +582,7 @@ func (ca *cpsActionService) ExportCpsActionData(
 	if ok {
 		filterFields = fields
 	}
-	delete(filterMap.Filters, "fields")
+	// delete(filterMap.Filters, "fields")s
 
 	if err := writer.Write(CpsActionCSVHeader(filterFields)); err != nil {
 		return "", fmt.Errorf("write header: %w", err)
@@ -625,7 +625,30 @@ func (ca *cpsActionService) ExportCpsActionData(
 		return "", errors.New(localization.CpsActionDataExportedError.Code)
 	}
 
-	publicURL, err := lib.UploadCSVToMinio(ctx, ca.minioClient, ca.buckerName, tmpFile, stat.Size(), ca.cfg, objectName, ca.logger)
+	var fileType string
+	reqType, ok := filterMap.Filters["type"].(string)
+	if ok {
+		fileType = reqType
+	} else {
+		fileType = "text/csv"
+	}
+
+	var url string
+	// var err error
+	if fileType == "csv" {
+		url, err = lib.UploadPDFToMinio(ctx, ca.minioClient, ca.buckerName, tmpFile, stat.Size(), ca.cfg, objectName, ca.logger)
+		if err != nil {
+			ca.logger.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
+			return "", errors.New(localization.CpsActionDataExportedError.Code)
+		}
+	} else {
+
+		url, err = lib.UploadCSVToMinio(ctx, ca.minioClient, ca.buckerName, tmpFile, stat.Size(), ca.cfg, objectName, ca.logger)
+		if err != nil {
+			ca.logger.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
+			return "", errors.New(localization.CpsActionDataExportedError.Code)
+		}
+	}
 	if err != nil {
 		ca.logger.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
 		return "", errors.New(localization.CpsActionDataExportedError.Code)
@@ -633,10 +656,10 @@ func (ca *cpsActionService) ExportCpsActionData(
 
 	baseURL := strings.TrimSuffix(ca.minioBaseURL, "/")
 	if baseURL != "" {
-		publicURL = fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(objectName, "/"))
+		url = fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(objectName, "/"))
 	}
 
-	return publicURL, nil
+	return url, nil
 }
 
 func (ca *cpsActionService) processCPSAction(
