@@ -100,7 +100,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			}
 
 			if role != nil {
-				if role.IsMakerOnly {
+				if role.IsMakerOnly || !isErp {
 					cpsAction.ActionStatus = string(constants.Approved)
 					if err := s.base.ApproveCPSAction(ctx, cpsAction); err != nil {
 						return err
