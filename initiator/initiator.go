@@ -14,7 +14,9 @@ import (
 	mid "cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/platform/telemetry"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/middleware"
 	shared_producer "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/producer"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils/encryption"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -28,6 +30,7 @@ import (
 func Init(ctx context.Context) {
 	done := make(chan struct{})
 	logger := utils.NewLogger()
+	zapLogger := InitLogger()
 
 	logger.Infof("Initializing configuration...")
 	cfg := InitConfig(logger)
@@ -106,7 +109,7 @@ func Init(ctx context.Context) {
 	logger.Infof("Initializing persistence...")
 	notificationApi := cfg.SMSBaseURL
 
-	redis := InitRedis(cfg, logger)
+	redis, sharedRedis := InitRedis(cfg, logger)
 	logger.Infof("Initializing redis...")
 	redisStorage := InitRedisStorageLayer(redis, logger)
 	logger.Infof("redis initialized")
@@ -165,8 +168,10 @@ func Init(ctx context.Context) {
 	handlerLayer := InitHandler(serviceLayer, logger, queueInfra.Manager)
 
 	r := chi.NewRouter()
+	encMiddleWare := encryption.NewEncryptionImpl(cfg, zapLogger)
+	encryptionMiddleware := middleware.NewTransitMiddlware(sharedRedis, encMiddleWare, zapLogger)
 	// InitRoute(ctx, r, handlerLayer, nil, logger, cfg)
-	InitRoute(ctx, r, handlerLayer, auth_client.Client, redisRepository, logger, cfg)
+	InitRoute(ctx, r, encryptionMiddleware, handlerLayer, auth_client.Client, redisRepository, logger, cfg)
 
 	// wrap the router with OpenTelemetry instrumentation handler
 	otlr := telemetry.WrapHandler(r, "cps-action")
