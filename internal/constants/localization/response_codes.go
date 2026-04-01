@@ -6418,7 +6418,7 @@ var (
 	ErrorEcommerceMerchantDisableFailed = ResponseCode{
 		Code:       "ERROR_ECOMMERCE_MERCHANT_DISABLE_FAILED",
 		StatusCode: StatusInternalServerError,
-		Message:    "Ecommerce merchant disable failed",
+		Message:    "Ecommerce merchant disable successfully",
 		Type:       "error",
 	}
 
