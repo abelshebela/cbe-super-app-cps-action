@@ -840,11 +840,12 @@ func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, filterParam *t
 	searchKeys := bson.M{}
 	//---------------------------------------
 
-	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status", "unique_id"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status", "unique_id", "maker_id"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
+			{"maker_id": searchRegex},
 			{"unique_id": searchRegex},
 			{"maker_name": searchRegex},
 			{"action_code": searchRegex},
@@ -861,12 +862,10 @@ func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, filterParam *t
 		fieldProjection = Projection
 	}
 
-	dynamicFilter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
+	dynamicFilter, _, _ := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
 
 	//---------------------------------------
 	opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: 1}}).
-		SetSkip(skip).
-		SetLimit(limit).
 		SetProjection(fieldProjection)
 
 	for k, v := range baseFilter {
