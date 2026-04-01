@@ -54,7 +54,7 @@ func (s *customerSegmentationService) Create(ctx context.Context, req cust_seg.C
 	}
 
 	if role != nil {
-		newData.CustomerRole = imodel.CustomerRoleInfo{ID: role.ID, Name: role.Name}
+		newData.CustomerRole = imodel.CustomerRoleInfo{Name: role.Name}
 		newData.CreatedAt = time.Now()
 		newData.UpdatedAt = time.Now()
 		newData.IsEnabled = true

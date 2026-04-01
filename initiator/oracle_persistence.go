@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	"cbe-super-app-cps-action/internal/storage/persistance/bank/gen/sqlc"
 	"cbe-super-app-cps-action/internal/storage/persistance/bankvault"
+	cpsroles "cbe-super-app-cps-action/internal/storage/persistance/cps_roles"
 	customersegmentaion "cbe-super-app-cps-action/internal/storage/persistance/customer_segmentaion"
 	services_repo "cbe-super-app-cps-action/internal/storage/persistance/services"
 	"cbe-super-app-cps-action/internal/storage/persistance/sitota"
@@ -25,6 +26,7 @@ type OraclePersistence struct {
 	Transaction          storage.TransactionRepository
 	ServicesPersistence  storage.ServicesRepository
 	CustomerSegmentation storage.CustomerSegmentationRepository
+	NewCPSRolesStorage   storage.CPSRolesRepository
 }
 
 func InitOraclePersistence(db *sql.DB, cfg *config.VaultConfig, clientOrchestrationProducer kafka.ClientOrchestrationProducer, redisRepository storage.RedisRepository, log utils.Logger) OraclePersistence {
@@ -36,5 +38,6 @@ func InitOraclePersistence(db *sql.DB, cfg *config.VaultConfig, clientOrchestrat
 		Transaction:          transaction_repo.NewTransactionRepository(db, log),
 		ServicesPersistence:  services_repo.NewServicesRepository(db, cfg, clientOrchestrationProducer, redisRepository, log),
 		CustomerSegmentation: customersegmentaion.NewCustomerSegmentationRepository(cfg, db, clientOrchestrationProducer, log),
+		NewCPSRolesStorage:   cpsroles.NewCPSRolesStorage(cfg, db, clientOrchestrationProducer, log),
 	}
 }

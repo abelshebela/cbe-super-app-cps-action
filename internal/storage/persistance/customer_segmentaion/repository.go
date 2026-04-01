@@ -19,7 +19,6 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type customerStorage struct {
@@ -73,14 +72,21 @@ func parseBoolFilter(v interface{}) (bool, bool) {
 	return false, false
 }
 
-func convertRawHexToObjectID(rawHex string) bson.ObjectID {
-	rawHex = strings.TrimSpace(rawHex)
-	if len(rawHex) >= 24 {
-		if oid, err := bson.ObjectIDFromHex(rawHex[:24]); err == nil {
-			return oid
-		}
+func normalizeRawHex32(id string) (string, bool) {
+	s := strings.TrimSpace(id)
+	s = strings.TrimPrefix(s, "0x")
+	s = strings.TrimPrefix(s, "0X")
+	s = strings.ToLower(s)
+	if len(s) != 32 {
+		return "", false
 	}
-	return bson.NewObjectID()
+	for _, r := range s {
+		if (r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') {
+			continue
+		}
+		return "", false
+	}
+	return s, true
 }
 
 func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmentation) error {
@@ -98,6 +104,10 @@ func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmen
 	seg.IsDeleted = false
 
 	var id string
+	roleIDHex, ok := normalizeRawHex32(seg.CustomerRole.ID)
+	if !ok {
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
 
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -108,19 +118,19 @@ func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmen
 
 	const insertSegQ = `
 INSERT INTO CUSTOMER_SEGMENTATIONS (
-  ROLE_NAME,
+  ROLE_ID,
   IS_ENABLED,
   IS_DELETED,
   CREATED_AT,
   UPDATED_AT
 )
 VALUES (
-  :1,:2,:3,:4,:5
+  HEXTORAW(:1),:2,:3,:4,:5
 )
 RETURNING RAWTOHEX(ID) INTO :6`
 
 	if _, err := tx.ExecContext(ctx, insertSegQ,
-		seg.CustomerRole.Name,
+		roleIDHex,
 		boolToOracleNumber(seg.IsEnabled),
 		boolToOracleNumber(seg.IsDeleted),
 		seg.CreatedAt,
@@ -179,6 +189,10 @@ func (r *customerStorage) Update(ctx context.Context, id string, seg *imodel.Cus
 	if seg == nil {
 		return errors.New(localization.ErrorNoDataProvided.Code)
 	}
+	roleIDHex, ok := normalizeRawHex32(seg.CustomerRole.ID)
+	if !ok {
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
 
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -190,12 +204,12 @@ func (r *customerStorage) Update(ctx context.Context, id string, seg *imodel.Cus
 	const updateSegQ = `
 UPDATE CUSTOMER_SEGMENTATIONS
 SET
-  ROLE_NAME   = :1,
+  ROLE_ID     = HEXTORAW(:1),
   UPDATED_AT  = SYSTIMESTAMP
 WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
 
 	res, err := tx.ExecContext(ctx, updateSegQ,
-		seg.CustomerRole.Name,
+		roleIDHex,
 		id,
 	)
 	if err != nil {
@@ -308,17 +322,20 @@ func (r *customerStorage) FindByID(ctx context.Context, id string) (*imodel.Cust
 
 	const segQ = `
 SELECT
-  RAWTOHEX(ID),
-  ROLE_NAME,
-  IS_ENABLED,
-  IS_DELETED,
-  CREATED_AT,
-  UPDATED_AT
-FROM CUSTOMER_SEGMENTATIONS
-WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
+  RAWTOHEX(cs.ID),
+  RAWTOHEX(cs.ROLE_ID),
+  cr.NAME,
+  cs.IS_ENABLED,
+  cs.IS_DELETED,
+  cs.CREATED_AT,
+  cs.UPDATED_AT
+FROM CUSTOMER_SEGMENTATIONS cs
+JOIN CPS_ROLES cr ON cr.ID = cs.ROLE_ID
+WHERE cs.ID = HEXTORAW(:1) AND cs.IS_DELETED = 0 AND cr.IS_DELETED = 0`
 
 	var (
 		segID     string
+		roleID    string
 		roleName  sql.NullString
 		isEnabled int
 		isDeleted int
@@ -328,6 +345,7 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
 	err := r.db.QueryRowContext(ctx, segQ, id).Scan(
 		&segID,
+		&roleID,
 		&roleName,
 		&isEnabled,
 		&isDeleted,
@@ -343,11 +361,9 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 	}
 
 	seg := imodel.CustomerSegmentation{
-		ID: convertRawHexToObjectID(segID),
+		ID: segID,
 		CustomerRole: imodel.CustomerRoleInfo{
-			// Oracle schema stores only role name, so use segmentation-derived ID
-			// to avoid returning zero ObjectID in responses.
-			ID:   convertRawHexToObjectID(segID),
+			ID:   roleID,
 			Name: roleName.String,
 		},
 		IsEnabled: isEnabled == 1,
@@ -366,7 +382,7 @@ SELECT
   CUSTOMER_GROUP,
   CUSTOMER_SEGMENT
 FROM CUSTOMER_SUB_SEGMENTS
-WHERE CUSTOMER_SEG_ID = HEXTORAW(:1)
+WHERE CUSTOMER_SEG_ID = :1
 ORDER BY ID`
 
 	rows, err := r.db.QueryContext(ctx, subQ, segID)
@@ -412,7 +428,7 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 	if search != "" {
 		clauses = append(clauses,
 			`(
-				LOWER(cs.ROLE_NAME) LIKE '%' || LOWER(:search) || '%'
+				LOWER(cr.NAME) LIKE '%' || LOWER(:search) || '%'
 				OR EXISTS (
 					SELECT 1 FROM CUSTOMER_SUB_SEGMENTS css
 					WHERE css.CUSTOMER_SEG_ID = cs.ID
@@ -438,7 +454,7 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	where := strings.Join(clauses, " AND ")
 
-	countQ := fmt.Sprintf(`SELECT COUNT(*) FROM %s cs WHERE %s`, customerSegmentationTable, where)
+	countQ := fmt.Sprintf(`SELECT COUNT(*) FROM %s cs JOIN CPS_ROLES cr ON cr.ID = cs.ROLE_ID WHERE %s AND cr.IS_DELETED = 0`, customerSegmentationTable, where)
 	var total int64
 	if err := r.db.QueryRowContext(ctx, countQ, args...).Scan(&total); err != nil {
 		r.logger.Errorf("[CustomerSegmentation][FindAllWithPagination] count failed: %v", err)
@@ -448,13 +464,15 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 	listQ := fmt.Sprintf(`
 SELECT
   RAWTOHEX(cs.ID),
-  cs.ROLE_NAME,
+  RAWTOHEX(cs.ROLE_ID),
+  cr.NAME,
   cs.IS_ENABLED,
   cs.IS_DELETED,
   cs.CREATED_AT,
   cs.UPDATED_AT
 FROM %s cs
-WHERE %s
+JOIN CPS_ROLES cr ON cr.ID = cs.ROLE_ID
+WHERE %s AND cr.IS_DELETED = 0
 ORDER BY cs.CREATED_AT DESC
 OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, customerSegmentationTable, where)
 
@@ -470,12 +488,14 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, customerSegmentationTable, whe
 	for rows.Next() {
 		var (
 			segID                    string
+			roleID                   string
 			roleName                 sql.NullString
 			isEnabled, isDeleted     int
 			createdAt, updatedAtTime sql.NullTime
 		)
 		if err := rows.Scan(
 			&segID,
+			&roleID,
 			&roleName,
 			&isEnabled,
 			&isDeleted,
@@ -487,9 +507,9 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, customerSegmentationTable, whe
 		}
 
 		seg := imodel.CustomerSegmentation{
-			ID: convertRawHexToObjectID(segID),
+			ID: segID,
 			CustomerRole: imodel.CustomerRoleInfo{
-				ID:   convertRawHexToObjectID(segID),
+				ID:   roleID,
 				Name: roleName.String,
 			},
 			IsEnabled: isEnabled == 1,
@@ -550,13 +570,16 @@ func (r *customerStorage) FindByCustomerSegmentation(ctx context.Context, custom
 	const q = `
 SELECT
   RAWTOHEX(cs.ID),
-  cs.ROLE_NAME,
+  RAWTOHEX(cs.ROLE_ID),
+  cr.NAME,
   cs.IS_ENABLED,
   cs.IS_DELETED,
   cs.CREATED_AT,
   cs.UPDATED_AT
 FROM CUSTOMER_SEGMENTATIONS cs
+JOIN CPS_ROLES cr ON cr.ID = cs.ROLE_ID
 WHERE cs.IS_DELETED = 0
+  AND cr.IS_DELETED = 0
   AND EXISTS (
     SELECT 1 FROM CUSTOMER_SUB_SEGMENTS css
     WHERE css.CUSTOMER_SEG_ID = cs.ID
@@ -566,6 +589,7 @@ FETCH FIRST 1 ROWS ONLY`
 
 	var (
 		segID                    string
+		roleID                   string
 		roleName                 sql.NullString
 		isEnabled, isDeleted     int
 		createdAt, updatedAtTime sql.NullTime
@@ -573,6 +597,7 @@ FETCH FIRST 1 ROWS ONLY`
 
 	err := r.db.QueryRowContext(ctx, q, customerSegment).Scan(
 		&segID,
+		&roleID,
 		&roleName,
 		&isEnabled,
 		&isDeleted,
@@ -588,9 +613,9 @@ FETCH FIRST 1 ROWS ONLY`
 	}
 
 	seg := imodel.CustomerSegmentation{
-		ID: convertRawHexToObjectID(segID),
+		ID: segID,
 		CustomerRole: imodel.CustomerRoleInfo{
-			ID:   convertRawHexToObjectID(segID),
+			ID:   roleID,
 			Name: roleName.String,
 		},
 		IsEnabled: isEnabled == 1,
