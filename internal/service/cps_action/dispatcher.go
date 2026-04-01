@@ -45,16 +45,18 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "KYCVERIFIER"):
 		return d.app.KYCVerifierContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "ACCOUNTBLOCK"):
-		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
+	// case IsActionInGroup(RequestAction(action), "ACCOUNTBLOCK"):
+	// 	return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "SINGLEBRANCHENABLEACCOUNTBLOCK"):
 		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "SINGLEBRANCHDISABLEACCOUNTBLOCK"):
 		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "MultiBRANCHENABLEACCOUNTBLOCK"):
+		fmt.Printf("Authorizing MultiBRANCHENABLEACCOUNTBLOCK action: %s\n", cpsAction.RequestAction)
 		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "MultiBRANCHDISABLEACCOUNTBLOCK"):
+		fmt.Printf("Authorizing MultiBRANCHDISABLEACCOUNTBLOCK action: %s\n", cpsAction.RequestAction)
 		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "ACCOUNTVALIDATION"):
