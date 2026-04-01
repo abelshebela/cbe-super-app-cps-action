@@ -54,7 +54,7 @@ func (s *customerSegmentationService) Create(ctx context.Context, req cust_seg.C
 	}
 
 	if role != nil {
-		newData.CustomerRole = imodel.CustomerRoleInfo{Name: role.Name}
+		newData.CustomerRole = imodel.CustomerRoleInfo{ID: role.ID, Name: role.Name}
 		newData.CreatedAt = time.Now()
 		newData.UpdatedAt = time.Now()
 		newData.IsEnabled = true
@@ -168,6 +168,15 @@ func (s *customerSegmentationService) EnableOrDisable(ctx context.Context, id st
 		s.logger.Warnf("[CustSegSvc][EnableDisable] already in state id: %s, enable: %v", id, enable)
 		return errors.New("already in desired state")
 	}
+
+	// 	if enable && *existing.Enabled {
+	// 	r.logger.Warnf("[CpsRoleSvc][EnableDisable] already enabled id: %s", id)
+	// 	return errors.New(localization.ErrorCPSRoleAlreadyEnabled.Code)
+	// }
+	// if !enable && !*existing.Enabled {
+	// 	r.logger.Warnf("[CpsRoleSvc][EnableDisable] already disabled id: %s", id)
+	// 	return errors.New(localization.ErrorCPSRoleAlreadyDisabled.Code)
+	// }
 
 	updated := *existing
 	updated.IsEnabled = enable

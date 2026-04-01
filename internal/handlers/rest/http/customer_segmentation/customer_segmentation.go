@@ -251,7 +251,7 @@ func (c *CustomerSegmentationAdapter) DeleteCustomerSegmentation(w http.Response
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.CustomerSegmentationDeleteddSuccessfully, nil)
+	localization.SendSuccessResponse(w, localization.CustomerSegmentationDeleteRequestSubmittedSuccessfully, nil)
 }
 
 // Enable Customer Segmentation

@@ -301,7 +301,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.EventMerchantServiceContainer = eventMerchantService
 	serviceContainer.LogisticsMerchantServiceContainer = logisticsMerchantService
 	accessListSegmentationService = access_list_segmentation_service.NewAccessListSegmentationService(persistence.AccessListSegmentationPersistence, cpsActionService, persistence.AccessListPersistence, persistence.AccountBlockPersistence, persistence.CustomerService, persistence.CPSRoles, logger)
-	customerSegmentationService = customer_segmentation.NewCustomerSegmentation(oracle.CustomerSegmentation, persistence.CPSRoles, cpsActionService, logger)
+	customerSegmentationService = customer_segmentation.NewCustomerSegmentation(oracle.CustomerSegmentation, oracle.NewCPSRolesStorage, cpsActionService, logger)
 	jobRoleService = job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, cpsActionService, *cfg, logger)
 	RoleService = roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, cpsActionService, *cfg, logger)
 	CPSRolesService = cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, cpsActionService, coreInterface, logger)

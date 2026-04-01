@@ -150,7 +150,7 @@ INSERT INTO CUSTOMER_SUB_SEGMENTS (
   CUSTOMER_SEGMENT
 )
 VALUES (
-  HEXTORAW(:1),:2,:3,:4
+  HEXTORAW(:1),UPPER(:2),UPPER(:3),UPPER(:4)
 )`
 
 		for _, sub := range seg.CustomerSubSegments {
@@ -236,7 +236,7 @@ INSERT INTO CUSTOMER_SUB_SEGMENTS (
   CUSTOMER_SEGMENT
 )
 VALUES (
-  HEXTORAW(:1),:2,:3,:4
+  HEXTORAW(:1),UPPER(:2),UPPER(:3),UPPER(:4)
 )`
 		for _, sub := range seg.CustomerSubSegments {
 			if _, err := tx.ExecContext(ctx, insertSubQ,
