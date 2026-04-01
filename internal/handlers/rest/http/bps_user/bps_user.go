@@ -162,6 +162,7 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
@@ -180,8 +181,10 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 		log.Infof("[DisableUser] request sent successfully for user_code: %s", userCode)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBpsUserDisableRequestSentSP, map[string]string{})
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBpsUserDisableRequestSent, map[string]string{})
 
 	}
@@ -207,6 +210,7 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
 		localization.SendErrorResponse(w, localization.ErrorUserCodeRequired, nil, nil)
@@ -224,8 +228,10 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 		log.Infof("[EnableUser] request sent successfully for user_code: %s", userCode)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSentSP, map[string]string{})
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSent, map[string]string{})
 	}
 }
@@ -246,6 +252,7 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
 
 	var req bps_user_dto.BPSUserCreateRequest
@@ -286,8 +293,10 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBPSUserCreatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBPSUserCreated, nil)
 
 	}
@@ -311,6 +320,7 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
 
 	id := chi.URLParam(r, "id")
@@ -372,8 +382,10 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBPSUserUpdatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBPSUserUpdated, nil)
 	}
 }

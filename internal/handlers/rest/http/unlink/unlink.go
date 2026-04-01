@@ -146,6 +146,7 @@ func (a *unlinkAdapter) UnlinkUserCif(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
 		span.AddEvent("Missing user_code param")

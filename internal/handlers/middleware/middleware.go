@@ -194,6 +194,7 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 		}
 
 		ctx := a.setUserPayload(r.Context(), userPayload)
+		localization.UpdateWriterContext(w, ctx)
 		// isOTPVerified := ctx.Value("is_otp_verified")
 		// if isOTPVerified != "true" {
 		// 	localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
@@ -273,6 +274,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		}
 
 		ctx := a.setUserPayload(r.Context(), userPayload)
+		localization.UpdateWriterContext(w, ctx)
 		now := time.Now().Unix()
 
 		remainTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutesRemain)

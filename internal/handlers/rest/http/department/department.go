@@ -101,6 +101,9 @@ func (d *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createDepartment", "handler", "department")
 	defer span.End()
 	log := common_utils.LoggerFromCtx(ctx, d.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	var departmentRequest department_dto.CreateDepartmentRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&departmentRequest); err != nil {
@@ -127,6 +130,7 @@ func (d *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	log.Infof("[CreateDepartment] request sent successfully for department: %s", departmentRequest.Department)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessDepartmentCreateRequestCreated, nil)
 }
 
@@ -148,6 +152,9 @@ func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateDepartment", "handler", "department")
 	defer span.End()
 	log := common_utils.LoggerFromCtx(ctx, d.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
 		log.Errorf("[UpdateDepartmentRequest] missing department ID")
@@ -181,6 +188,7 @@ func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 		return
 	}
 	log.Infof("[UpdateDepartmentRequest] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessDepartmentUpdateRequestCreated, nil)
 }
 
@@ -240,6 +248,9 @@ func (d *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Requ
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableDepartment", "handler", "department")
 	defer span.End()
 	log := common_utils.LoggerFromCtx(ctx, d.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
 		log.Errorf("[EnableDepartment] missing department ID")
@@ -257,6 +268,7 @@ func (d *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	log.Infof("[EnableDepartment] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessDepartmentEnableRequestCreated, nil)
 }
 
@@ -278,6 +290,9 @@ func (d *DepartmentHandler) DisableDepartment(w http.ResponseWriter, r *http.Req
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableDepartment", "handler", "department")
 	defer span.End()
 	log := common_utils.LoggerFromCtx(ctx, d.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
 		log.Errorf("[DisableDepartment] missing department ID")
@@ -295,6 +310,7 @@ func (d *DepartmentHandler) DisableDepartment(w http.ResponseWriter, r *http.Req
 		return
 	}
 	log.Infof("[DisableDepartment] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessDepartmentDisableRequestCreated, nil)
 }
 
@@ -304,6 +320,7 @@ func (d *DepartmentHandler) DeleteDepartment(w http.ResponseWriter, r *http.Requ
 	log := common_utils.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
@@ -324,9 +341,11 @@ func (d *DepartmentHandler) DeleteDepartment(w http.ResponseWriter, r *http.Requ
 
 	if md.IsMakerOnly {
 		log.Infof("[DeleteDepartment] soft delete request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDepartmentDeleted, nil)
 		return
 	}
 	log.Infof("[DeleteDepartment] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessDepartmentDeleteRequestCreated, nil)
 }

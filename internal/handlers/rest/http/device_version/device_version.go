@@ -48,6 +48,7 @@ func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *htt
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var req dvdto.CreateDeviceVersionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -78,8 +79,10 @@ func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *htt
 
 	if md.IsMakerOnly {
 		log.Infof("[CreateDeviceVersion] request sent successfully for platform: %s", req.Platform)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionCreatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionCreateRequestSubmitted, nil)
 
 	}
@@ -106,6 +109,7 @@ func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *htt
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -146,8 +150,10 @@ func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *htt
 
 	if md.IsMakerOnly {
 		log.Infof("[UpdateDeviceVersion] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionUpdatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionUpdateRequestSubmitted, nil)
 
 	}
@@ -265,6 +271,7 @@ func (h *deviceVersionAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -279,8 +286,10 @@ func (h *deviceVersionAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 		log.Infof("[Enable] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionEnabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionEnableRequestSubmitted, nil)
 
 	}
@@ -306,6 +315,7 @@ func (h *deviceVersionAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -321,8 +331,10 @@ func (h *deviceVersionAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 		log.Infof("[Disable] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionDisabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionDisableRequestSubmitted, nil)
 
 	}

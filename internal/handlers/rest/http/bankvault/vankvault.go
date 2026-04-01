@@ -237,6 +237,7 @@ func (h *handler) UpdateBankVault(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Infof("[UpdateBankVault] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankVaultUpdateRequestSubmitted, nil)
 }
 
@@ -285,6 +286,7 @@ func (h *handler) DeleteBankVault(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Infof("[DeleteBankVault] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankVaultDeleteRequestSubmitted, nil)
 }
 
@@ -332,6 +334,7 @@ func (h *handler) DisableBankVault(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Infof("[DisableBankVault] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankVaultDisableRequestSubmitted, nil)
 }
 
@@ -379,6 +382,7 @@ func (h *handler) EnableBankVault(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Infof("[EnableBankVault] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankVaultEnableRequestSubmitted, nil)
 }
 
