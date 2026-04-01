@@ -126,6 +126,27 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		}
 	}
 
+	// Count total documents (for pagination metadata)
+	total, err := s.collection.CountDocuments(ctx, match)
+	if err != nil {
+		s.logger.Errorf("[BPSUserStorage][FindAllWithPagination] failed to count users: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	offset := filterParam.PerPage * (filterParam.Page - 1)
+	if offset >= int(total) {
+		// No data for this page, return empty result
+		meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+		s.logger.Infof("[BPSUserStorage][FindAllWithPagination] offset >= total, returning empty result")
+		return &types.PaginatedResponse[[]bpsUserDto.BPSUserResposenDTO]{
+			Data: []bpsUserDto.BPSUserResposenDTO{},
+			Meta: meta,
+		}, nil
+	}
+	if offset+filterParam.PerPage > int(total) {
+		filterParam.PerPage = int(total) - offset
+	}
+
 	pipeline := mongo.Pipeline{
 
 		bson.D{{Key: "$match", Value: match}},
@@ -180,13 +201,6 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	var users []bpsUserDto.BPSUserResposenDTO
 	if err := cursor.All(ctx, &users); err != nil {
 		s.logger.Errorf("[BPSUserStorage][FindAllWithPagination] failed to decode users: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	// Count total documents (for pagination metadata)
-	total, err := s.collection.CountDocuments(ctx, match)
-	if err != nil {
-		s.logger.Errorf("[BPSUserStorage][FindAllWithPagination] failed to count users: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
