@@ -42,6 +42,7 @@ func (e *LogisticsMerchantHandler) CreateLogisticMerchant(w http.ResponseWriter,
 	log := local_util.LoggerFromCtx(r.Context(), e.logger)
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var req logistics_merchant_dto.CreateLogisticsMerchantRequest
 
@@ -62,10 +63,12 @@ func (e *LogisticsMerchantHandler) CreateLogisticMerchant(w http.ResponseWriter,
 	}
 
 	if userContext.IsErp {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreated, md.Id)
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantCreated, nil)
 }
 
@@ -84,6 +87,8 @@ func (e *LogisticsMerchantHandler) CreateLogisticMerchant(w http.ResponseWriter,
 //	@Security		BearerAuth
 //	@Router			/logistics_merchants/{id} [delete]
 func (e *LogisticsMerchantHandler) DeleteLogisticMerchant(w http.ResponseWriter, r *http.Request) {
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
@@ -93,6 +98,7 @@ func (e *LogisticsMerchantHandler) DeleteLogisticMerchant(w http.ResponseWriter,
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantDeleted, nil)
 }
 
@@ -111,6 +117,8 @@ func (e *LogisticsMerchantHandler) DeleteLogisticMerchant(w http.ResponseWriter,
 //	@Security		BearerAuth
 //	@Router			/logistics_merchants/disable/{id} [patch]
 func (e *LogisticsMerchantHandler) DisableLogisticMerchant(w http.ResponseWriter, r *http.Request) {
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
@@ -120,10 +128,13 @@ func (e *LogisticsMerchantHandler) DisableLogisticMerchant(w http.ResponseWriter
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantDisabled, nil)
 }
 
 func (e *LogisticsMerchantHandler) EnableLogisticMerchant(w http.ResponseWriter, r *http.Request) {
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
@@ -133,6 +144,7 @@ func (e *LogisticsMerchantHandler) EnableLogisticMerchant(w http.ResponseWriter,
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantEnabled, nil)
 }
 
@@ -205,6 +217,8 @@ func (e *LogisticsMerchantHandler) GetLogisticMerchants(w http.ResponseWriter, r
 //	@Router			/logistics_merchants/{id} [patch]
 func (e *LogisticsMerchantHandler) UpdateLogisticMerchant(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), e.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
@@ -225,6 +239,7 @@ func (e *LogisticsMerchantHandler) UpdateLogisticMerchant(w http.ResponseWriter,
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantUpdated, nil)
 }
 

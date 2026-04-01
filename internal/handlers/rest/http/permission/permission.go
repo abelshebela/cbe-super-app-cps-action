@@ -75,6 +75,7 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 
 	span.AddEvent("Permission group created", trace.WithAttributes(attribute.String("user_id", userContext.UserID)))
 	log.Infof("[CreatePermissionGroup] request sent successfully by user: %s", userContext.UserID)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessPermissionGroupRequestCreated, nil)
 }
 
@@ -243,6 +244,7 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 
 	span.AddEvent("Permission group updated", trace.WithAttributes(attribute.String("user_id", userContext.UserID), attribute.String("id", id)))
 	log.Infof("[UpdatePermissionGroup] request sent successfully by user: %s", userContext.UserID)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessPermissionGroupRequestUpdated, nil)
 }
 

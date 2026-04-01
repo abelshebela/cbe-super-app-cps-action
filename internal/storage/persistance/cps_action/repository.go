@@ -51,7 +51,12 @@ func (r *CPSActionStorage) Save(ctx context.Context, cpsAction *model.CPSAction)
 		r.logger.Errorf("[CPSAction][Save] failed to save CPS action: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	r.logger.Infof("[CPSAction][Save] CPS action saved successfully with id: %s", cps.ID.Hex())
+
+	cpsAction.ActionCode = cps.ActionCode
+	if md := types.GetMetadata(ctx); md != nil {
+		md.CPSActionCode = cps.ActionCode
+	}
+	r.logger.Infof("[CPSAction][Save] CPS action saved successfully with code: %s", cps.ActionCode)
 	return nil
 }
 

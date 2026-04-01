@@ -18,6 +18,7 @@ import (
 
 // 	md := &types.ContextMetadata{}
 // 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+// 	localization.UpdateWriterContext(w, ctx)
 
 // 	var req vault_category_dto.CreateWithdrawalRequest
 // 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -61,6 +62,7 @@ func (h *handler) UlockDeadlockRequest(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil || id == "" {
@@ -81,11 +83,13 @@ func (h *handler) UlockDeadlockRequest(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[UnlockDeadlockRequest] withdrawal request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessVaultWithdrawalUpdateRequest, nil)
 		return
 	}
 
 	log.Infof("[UnlockDeadlockRequest] withdrawal request submitted successfully")
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessVaultDeadlockUnlockUpdateSubmitted, nil)
 }
 

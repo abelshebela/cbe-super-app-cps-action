@@ -1,11 +1,13 @@
 package customer
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	"cbe-super-app-cps-action/internal/constants/interfaces/customer"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/customer/core"
+	"context"
 	"encoding/json"
 
 	"cbe-super-app-cps-action/internal/service"
@@ -105,6 +107,7 @@ func (c *customerAdapter) SetEnableCustomerSession(w http.ResponseWriter, r *htt
 		return
 	}
 	log.Infof("[SetEnableCustomerSession] OTP generated successfully for customer id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.CustomerEnableRequestSessionCreatedSuccessfully, dto.CustomerEnableSessionResponse{
 		Otp: otp,
 	})
@@ -130,6 +133,9 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 	ctx, span := util.TraceLogger(r.Context(), "handler", "disableCustomer", "handler", "customer")
 	defer span.End()
 	log := util.LoggerFromCtx(ctx, c.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[CustomerH] id not set")
@@ -164,6 +170,7 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 		return
 	}
 	log.Infof("[DisableCustomer] request sent successfully for customer id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.CustomerDisableRequestCreatedSuccessfully, nil)
 }
 
@@ -208,6 +215,7 @@ func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	log.Infof("[EnableCustomer] request sent successfully for customer id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.CustomerEnableRequestCreatedSuccessfully, nil)
 }
 
@@ -410,6 +418,9 @@ func (c customerAdapter) ApproveFaydaCustomer(w http.ResponseWriter, r *http.Req
 	ctx, span := util.TraceLogger(r.Context(), "handler", "approveFaydaCustomer", "handler", "customer")
 	defer span.End()
 	log := util.LoggerFromCtx(ctx, c.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	var req dto.FaydaApproveRequest
 	id := chi.URLParam(r, "id")
 	if id == "" {

@@ -56,6 +56,7 @@ func (u *UssdMerchantHandler) CreateUssdMerchant(w http.ResponseWriter, r *http.
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var CreateDto ussd_merchant_dto.CreateUssdMerchantRequest
 	file, fileHeader, err := core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), u.Logger)
@@ -89,11 +90,13 @@ func (u *UssdMerchantHandler) CreateUssdMerchant(w http.ResponseWriter, r *http.
 
 	if md.IsMakerOnly {
 		log.Infof("[CreateUssdMerchantHandler] request sent successfully: is_maker_only: %v", md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessUssdMerchantCreated, nil)
 		return
 	}
 
 	log.Infof("[CreateUssdMerchantHandler] successfully created ussd merchant")
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantRequestCreated, "Ussd merchant created successfully")
 }
 
@@ -127,6 +130,7 @@ func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.
 	var err error
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -194,11 +198,13 @@ func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.
 
 	if md.IsMakerOnly {
 		log.Infof("[UpdateUssdMerchantHandler] request sent successfully: is_maker_only: %v", md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessUssdMerchantUpdated, nil)
 		return
 	}
 
 	log.Infof("[UpdateUssdMerchantHandler] successfully updated ussd merchant")
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantUpdateRequestCreated, nil)
 }
 func (u *UssdMerchantHandler) EnableUssdMerchant(w http.ResponseWriter, r *http.Request) {
@@ -208,6 +214,7 @@ func (u *UssdMerchantHandler) EnableUssdMerchant(w http.ResponseWriter, r *http.
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -224,11 +231,13 @@ func (u *UssdMerchantHandler) EnableUssdMerchant(w http.ResponseWriter, r *http.
 
 	if md.IsMakerOnly {
 		log.Infof("[EnableUssdMerchantHandler] request sent successfully: is_maker_only: %v", md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessUssdMerchantEnabled, nil)
 		return
 	}
 
 	log.Infof("[EnableUssdMerchantHandler] successfully updated ussd merchant")
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantEnableRequestCreated, nil)
 }
 
@@ -253,6 +262,7 @@ func (u *UssdMerchantHandler) DisableUssdMerchant(w http.ResponseWriter, r *http
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -269,11 +279,13 @@ func (u *UssdMerchantHandler) DisableUssdMerchant(w http.ResponseWriter, r *http
 
 	if md.IsMakerOnly {
 		log.Infof("[DisableUssdMerchantHandler] request sent successfully: is_maker_only: %v", md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessUssdMerchantDisabled, nil)
 		return
 	}
 
 	log.Infof("[DisableUssdMerchantHandler] successfully updated ussd merchant")
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantDisableRequestCreated, nil)
 }
 func (u *UssdMerchantHandler) GetUssdMerchant(w http.ResponseWriter, r *http.Request) {

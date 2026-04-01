@@ -107,6 +107,7 @@ func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.
 		}
 
 		ctx := a.setUserPayload(r.Context(), payload)
+		localization.UpdateWriterContext(w, ctx)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
