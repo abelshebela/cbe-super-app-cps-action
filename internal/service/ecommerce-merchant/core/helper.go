@@ -220,12 +220,19 @@ func convertDtoBranches(dto []merchantDto.BranchInformation) []model.BranchInfor
 	}
 	result := make([]model.BranchInformation, len(dto))
 	for i, b := range dto {
-		var branch string
+		var address, owner string
+		if b.BranchAddress != nil {
+			address = *b.BranchAddress
+		}
+		if b.BranchOwner != nil {
+			owner = *b.BranchOwner
+		}
+
 		result[i] = model.BranchInformation{
 			BranchCode:          b.BranchCode,
 			BranchName:          b.BranchName,
-			BranchAddress:       branch,
-			BranchOwner:         b.BranchOwner,
+			BranchAddress:       address,
+			BranchOwner:         owner,
 			BranchAccountNumber: b.BranchAccountNumber,
 		}
 	}
