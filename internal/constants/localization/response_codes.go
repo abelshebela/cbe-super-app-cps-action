@@ -5972,6 +5972,12 @@ var (
 		Type:       "error",
 	}
 
+	ErrorActionActorRequeired = ResponseCode{
+		Code:       "ERROR_ACTION_ACTOR_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActionActorRequired,
+		Type:       "error",
+	}
 	ErrorAuditorAlreadyChecked = ResponseCode{
 		Code:       "ERROR_AUDITOR_ALREADY_CHECKED",
 		StatusCode: StatusForbidden,

@@ -659,6 +659,7 @@ const (
 	MsgTransactionFailed   = "Transaction failed"
 	MsgLimitExceeded       = "Limit exceeded"
 	MsgOperationNotAllowed = "Access Denied"
+	MsgActionActorRequired = "Action actor is required"
 	// MsgOperationNotAllowed                 = "Operation not allowed"
 	MsgAuditorAlreadyChecked               = "Auditor already checked this action"
 	MsgAuditorActionOnThisRoleCompleted    = "Action Auditing on this role is already completed"
