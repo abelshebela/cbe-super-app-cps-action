@@ -842,3 +842,22 @@ type BankOracleRepository interface {
 	FindByNameOrBIC(ctx context.Context, bic, name string) (*imodel.BankOracle, error)
 	FindByBIC(ctx context.Context, bic string) (*imodel.BankOracle, error)
 }
+
+type AccessListSegmentationRepositoryOracle interface {
+	CreateAccountSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error
+	CreateBlockSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.AccessListSegmentation], error)
+	FindByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error)
+	FindBySegmentationAndServiceID(ctx context.Context, segmentationID, serviceID string) (*local_model.AccessListSegmentation, error)
+	FindByAccountSegmentationAndAccessListKeys(ctx context.Context, customerSegments string, segmentKeys []string) (*local_model.AccessListSegmentation, error)
+	FindByIDS(ctx context.Context, ids []string, t string) (*local_model.AccessListSegmentation, error)
+	FindByIDAndType(ctx context.Context, ids string, t string) (*local_model.AccessListSegmentation, error)
+	FindBySegmentIDAndAccessListKeys(ctx context.Context, id string, keys []string) (*local_model.AccessListSegmentation, error)
+	Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
+	FindAllBySegmentIDorSegmentCodeAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
+	BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error
+
+	FindParentChildRelationship(ctx context.Context) ([]local_model.AccessItemRelation, error)
+}
