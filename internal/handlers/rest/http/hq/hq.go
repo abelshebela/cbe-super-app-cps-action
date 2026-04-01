@@ -209,6 +209,7 @@ func (a *hqAdapter) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Reques
 	defer span.End()
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var request hqDto.UpdateBlockTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -228,9 +229,11 @@ func (a *hqAdapter) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessHQBlockTimeUpdatedSP, nil)
 
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessHQBlockTimeUpdateRequestSubmitted, nil)
 
 	}
@@ -255,6 +258,7 @@ func (a *hqAdapter) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Requ
 	defer span.End()
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var request hqDto.UpdateArchiveTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -275,9 +279,11 @@ func (a *hqAdapter) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessHQArchiveTimeUpdatedSP, nil)
 
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessHQArchiveTimeUpdateRequestSubmitted, nil)
 	}
 
@@ -301,6 +307,7 @@ func (a *hqAdapter) UpdatePasswordExpiryRequest(w http.ResponseWriter, r *http.R
 	defer span.End()
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var request hqDto.UpdatePasswordExpiryRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -321,9 +328,11 @@ func (a *hqAdapter) UpdatePasswordExpiryRequest(w http.ResponseWriter, r *http.R
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessHQPasswordExpiryUpdatedSP, nil)
 
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessHQPasswordExpiryUpdateRequestSubmitted, nil)
 
 	}

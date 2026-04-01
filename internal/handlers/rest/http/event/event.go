@@ -175,6 +175,7 @@ func (a *eventAdapter) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Infof("[EventH][Update] request submitted id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessEventUpdateRequestSubmitted, nil)
 }
 
@@ -209,6 +210,7 @@ func (a *eventAdapter) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessEventDeleteRequestSubmitted, nil)
 }
 
@@ -242,6 +244,7 @@ func (a *eventAdapter) EnableEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessEventEnableRequestSubmitted, nil)
 }
 
@@ -275,6 +278,7 @@ func (a *eventAdapter) DisableEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessEventDisableRequestSubmitted, nil)
 }
 

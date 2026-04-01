@@ -52,6 +52,7 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	req, err := ReqFileParse(r)
 	if err != nil {
@@ -75,8 +76,10 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAvatarCreatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAvatarCreated, nil)
 		log.Infof("[CreateAvatar] request sent successfully for label: %s", req.Label)
 	}
@@ -102,6 +105,7 @@ func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -118,8 +122,10 @@ func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAvatarDeletedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAvatarDeleted, nil)
 		log.Infof("[DeleteAvatar] request sent successfully for id: %s", id)
 	}
@@ -145,6 +151,7 @@ func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -161,8 +168,10 @@ func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAvatarEnabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAvatarEnabled, nil)
 		log.Infof("[Enable] avatar enabled successfully for id: %s", id)
 	}
@@ -188,6 +197,7 @@ func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -204,8 +214,10 @@ func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAvatarDisabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAvatarDisabled, nil)
 
 		log.Infof("[Disable] avatar disabled successfully for id: %s", id)
@@ -247,6 +259,7 @@ func (a *avatarAdapter) FetchAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Infof("[FetchAvatar] avatar retrieved successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessAvatarEnabled, res)
 }
 
@@ -318,6 +331,7 @@ func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	var inputData *multipart.FileHeader
@@ -350,8 +364,10 @@ func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAvatarUpdatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAvatarUpdated, nil)
 
 		log.Infof("[UpdateAvatar] request sent successfully for id: %s", id)

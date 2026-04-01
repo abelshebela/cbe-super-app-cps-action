@@ -99,6 +99,8 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	}
 	// Logger middleware runs after trace context is injected so logs include trace/span ids
 	router.Use(customeMiddleware.ChiLogger(logger))
+	// Bind request context to response writer so Send*Response helpers include trace_id/request_id
+	router.Use(customeMiddleware.BindRequestContext)
 
 	router.Use(customeMiddleware.HandlePanic(logger))
 	router.Use(middleware.Timeout(30 * time.Second))

@@ -1,12 +1,15 @@
 package newscategory_handler
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	newscategory_dto "cbe-super-app-cps-action/internal/constants/dto/news_category"
 	newscategory_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_category"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/news_category/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -45,6 +48,8 @@ func NewNewsCategoryHandler(newsCategoryService service.NewsCategoryService, log
 // CreateNewsCategory implements newscategory_adaptor.NewsCategoryAdaptor.
 func (n NewsCategoryHandler) CreateNewsCategory(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), n.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	var req newscategory_dto.CreateNewsCategoryRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -65,6 +70,7 @@ func (n NewsCategoryHandler) CreateNewsCategory(w http.ResponseWriter, r *http.R
 	}
 
 	log.Infof("[CreateNewsCategory] request sent successfully for category_name: %s", req.CategoryName)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessNewsCategoryCreated, nil)
 }
 
@@ -82,6 +88,8 @@ func (n NewsCategoryHandler) CreateNewsCategory(w http.ResponseWriter, r *http.R
 //	@Router			/news/category/{id} [delete]
 func (n NewsCategoryHandler) DeleteNewsCategory(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), n.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[NewsCatH] id not set")
@@ -96,6 +104,7 @@ func (n NewsCategoryHandler) DeleteNewsCategory(w http.ResponseWriter, r *http.R
 	}
 
 	log.Infof("[DeleteNewsCategory] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessNewsCategoryDeleted, nil)
 }
 
@@ -201,6 +210,8 @@ func (n NewsCategoryHandler) GetNewsCategoryByID(w http.ResponseWriter, r *http.
 // UpdateNewsCategory implements newscategory_adaptor.NewsCategoryAdaptor.
 func (n NewsCategoryHandler) UpdateNewsCategory(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), n.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[NewsCatH] id not set")
@@ -229,5 +240,6 @@ func (n NewsCategoryHandler) UpdateNewsCategory(w http.ResponseWriter, r *http.R
 	}
 
 	log.Infof("[UpdateNewsCategory] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessNewsCategoryUpdated, nil)
 }
