@@ -14,12 +14,10 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 
-	"github.com/google/uuid"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 )
@@ -44,14 +42,10 @@ func NewServicesRepository(db *sql.DB, cfg *config.VaultConfig, kafkaProducer ka
 
 const (
 	servicesTable        = "services"
-	appAccessListTable   = "app_access_list"
+	appAccessListTable   = "access_list"
 	serviceKeysTable     = "service_keys"
 	maxPaginationDefault = 50
 )
-
-func generateUUID() string {
-	return uuid.New().String()
-}
 
 func boolToOracleNumber(v bool) int {
 	if v {
@@ -83,19 +77,11 @@ func parseBoolFilter(v interface{}) (bool, bool) {
 	return false, false
 }
 
-// func parseObjectIDHex(id string) (bson.ObjectID, error) {
-// 	oid, err := bson.ObjectIDFromHex(id)
-// 	if err != nil {
-// 		return bson.NilObjectID, errors.New(localization.ErrorInvalidID.Code)
-// 	}
-// 	return oid, nil
-// }
-
 func (s *ServicesStorage) getServiceCaps(ctx context.Context, serviceID string) ([]model.Cap, error) {
 	const q = `
 SELECT source, currency, single_cap, minimum_transfer_cap
 FROM service_cap
-WHERE service_id = :1`
+WHERE service_id = HEXTORAW(:1)`
 
 	rows, err := s.db.QueryContext(ctx, q, serviceID)
 	if err != nil {
@@ -124,16 +110,16 @@ WHERE service_id = :1`
 }
 
 func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, service *model.Service) error {
-	serviceID := generateUUID()
 	deletedAtVal := time.Now()
 	if service.DeletedAt != nil {
 		deletedAtVal = *service.DeletedAt
 	}
 
+	var id string
+
 	// Insert the main service row (caps are stored in service_cap).
 	const q = `
 INSERT INTO services (
-  id,
   service_name,
   service_code,
   service_key,
@@ -148,11 +134,11 @@ INSERT INTO services (
 ) 
 VALUES (
   :1,:2,:3,:4,:5,:6,:7,
-  :8,:9,:10,:11,:12
-)`
+  :8,:9,:10,:11
+)
+RETURNING RAWTOHEX(id) INTO :12`
 
 	_, err := tx.ExecContext(ctx, q,
-		serviceID,
 		service.ServiceName,
 		service.ServiceCode,
 		service.ServiceKey,
@@ -164,6 +150,7 @@ VALUES (
 		service.CreatedAt,
 		service.LastModifiedAt,
 		deletedAtVal,
+		sql.Out{Dest: &id},
 	)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][insertService] insert failed: %v", err)
@@ -177,7 +164,6 @@ VALUES (
 
 	const capQ = `
 INSERT INTO service_cap (
-  id,
   service_id,
   source,
   currency,
@@ -185,13 +171,12 @@ INSERT INTO service_cap (
   minimum_transfer_cap
 )
 VALUES (
-  :1,:2,:3,:4,:5,:6
+  HEXTORAW(:1),:2,:3,:4,:5
 )`
 
 	for _, cap := range service.Cap {
 		_, err := tx.ExecContext(ctx, capQ,
-			generateUUID(),
-			serviceID,
+			id,
 			string(cap.Source),
 			cap.Currency,
 			cap.SingleCap,
@@ -207,7 +192,7 @@ VALUES (
 }
 
 func (s *ServicesStorage) updateServiceCaps(ctx context.Context, tx *sql.Tx, serviceID string, caps []model.Cap) error {
-	const deleteCapsQ = `DELETE FROM service_cap WHERE service_id = :1`
+	const deleteCapsQ = `DELETE FROM service_cap WHERE service_id = HEXTORAW(:1)`
 	if _, err := tx.ExecContext(ctx, deleteCapsQ, serviceID); err != nil {
 		s.logger.Errorf("[ServicesRepo][updateServiceCaps] delete caps failed: %v", err)
 		return local_util.HandleDBError(err)
@@ -219,7 +204,6 @@ func (s *ServicesStorage) updateServiceCaps(ctx context.Context, tx *sql.Tx, ser
 
 	const capQ = `
 INSERT INTO service_cap (
-  id,
   service_id,
   source,
   currency,
@@ -227,12 +211,11 @@ INSERT INTO service_cap (
   minimum_transfer_cap
 )
 VALUES (
-  :1,:2,:3,:4,:5,:6
+  HEXTORAW(:1),:2,:3,:4,:5
 )`
 
 	for _, cap := range caps {
 		if _, err := tx.ExecContext(ctx, capQ,
-			generateUUID(),
 			serviceID,
 			string(cap.Source),
 			cap.Currency,
@@ -248,7 +231,6 @@ VALUES (
 }
 
 func (s *ServicesStorage) Create(ctx context.Context, service *model.Service) error {
-	service.ID = generateUUID()
 	if service.CreatedAt.IsZero() {
 		service.CreatedAt = time.Now()
 	}
@@ -286,15 +268,6 @@ func (s *ServicesStorage) Create(ctx context.Context, service *model.Service) er
 }
 
 func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.Service) error {
-	// if _, err := parseObjectIDHex(id); err != nil {
-	// 	return err
-	// }
-
-	updatedServiceID := id
-	// if service != nil && service.ID != bson.NilObjectID {
-	// 	updatedServiceID = service.ID.Hex()
-	// }
-
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][Update] begin tx failed: %v", err)
@@ -314,7 +287,7 @@ UPDATE services SET
   enabled = :7,
   is_deleted = :8,
   last_modified_at = SYSTIMESTAMP
-WHERE id = :9 AND is_deleted = 0`
+WHERE id = HEXTORAW(:9) AND is_deleted = 0`
 
 	res, err := tx.ExecContext(ctx, q,
 		service.ServiceName,
@@ -325,7 +298,7 @@ WHERE id = :9 AND is_deleted = 0`
 		service.ProductGlAccountCurrency,
 		boolToOracleNumber(service.Enabled),
 		boolToOracleNumber(service.IsDeleted),
-		updatedServiceID,
+		id,
 	)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][Update] update service failed: %v", err)
@@ -338,7 +311,7 @@ WHERE id = :9 AND is_deleted = 0`
 	}
 
 	// 2) Replace caps.
-	if err := s.updateServiceCaps(ctx, tx, updatedServiceID, service.Cap); err != nil {
+	if err := s.updateServiceCaps(ctx, tx, id, service.Cap); err != nil {
 		return err
 	}
 
@@ -360,10 +333,6 @@ WHERE id = :9 AND is_deleted = 0`
 }
 
 func (s *ServicesStorage) Delete(ctx context.Context, id string) error {
-	// if _, err := parseObjectIDHex(id); err != nil {
-	// 	return err
-	// }
-
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][Delete] begin tx failed: %v", err)
@@ -371,7 +340,7 @@ func (s *ServicesStorage) Delete(ctx context.Context, id string) error {
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	const deleteCapsQ = `DELETE FROM service_cap WHERE service_id = :1`
+	const deleteCapsQ = `DELETE FROM service_cap WHERE service_id = HEXTORAW(:1)`
 	if _, err := tx.ExecContext(ctx, deleteCapsQ, id); err != nil {
 		s.logger.Errorf("[ServicesRepo][Delete] delete caps failed: %v", err)
 		return local_util.HandleDBError(err)
@@ -382,7 +351,7 @@ UPDATE services SET
   is_deleted = 1,
   deleted_at = SYSTIMESTAMP,
   last_modified_at = SYSTIMESTAMP
-WHERE id = :1`
+WHERE id = HEXTORAW(:1)`
 
 	res, err := tx.ExecContext(ctx, q, id)
 	if err != nil {
@@ -403,16 +372,12 @@ WHERE id = :1`
 }
 
 func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	// if _, err := parseObjectIDHex(id); err != nil {
-	// 	return err
-	// }
-
 	const q = `
 UPDATE services
 SET
   enabled = :1,
   last_modified_at = SYSTIMESTAMP
-WHERE id = :2 AND is_deleted = 0`
+WHERE id = HEXTORAW(:2) AND is_deleted = 0`
 
 	res, err := s.db.ExecContext(ctx, q, boolToOracleNumber(enable), id)
 	if err != nil {
@@ -429,13 +394,9 @@ WHERE id = :2 AND is_deleted = 0`
 }
 
 func (s *ServicesStorage) FindByID(ctx context.Context, id string) (*model.Service, error) {
-	// if _, err := parseObjectIDHex(id); err != nil {
-	// 	return nil, err
-	// }
-
 	const q = `
 SELECT
-  id,
+  RAWTOHEX(id),
   service_name,
   service_code,
   service_key,
@@ -448,7 +409,7 @@ SELECT
   last_modified_at,
   deleted_at
 FROM services
-WHERE id = :1 AND is_deleted = 0`
+WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 
 	var serviceID string
 	var svc model.Service
@@ -473,10 +434,6 @@ WHERE id = :1 AND is_deleted = 0`
 		return nil, local_util.HandleDBError(err)
 	}
 
-	// oid, err := bson.ObjectIDFromHex(serviceID)
-	// if err != nil {
-	// 	return nil, errors.New(localization.ErrorInvalidID.Code)
-	// }
 	svc.ID = serviceID
 	if deletedAt.Valid {
 		svc.DeletedAt = &deletedAt.Time
@@ -556,7 +513,7 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	listQ := fmt.Sprintf(`
 SELECT
-  id,
+  RAWTOHEX(id),
   service_name,
   service_code,
   service_key,
@@ -716,7 +673,7 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 
 	listQ := fmt.Sprintf(`
 SELECT
-  id,
+  RAWTOHEX(id),
   service_name,
   service_key,
   is_enabled,
@@ -751,10 +708,6 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, serviceKeysTable, where)
 			return nil, local_util.HandleDBError(err)
 		}
 
-		// oid, err := bson.ObjectIDFromHex(listID)
-		// if err != nil {
-		// 	return nil, errors.New(localization.ErrorInvalidID.Code)
-		// }
 		item.ID = listID
 
 		list = append(list, item)
@@ -765,14 +718,10 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, serviceKeysTable, where)
 }
 
 func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*model.ServiceList, error) {
-	// if _, err := parseObjectIDHex(id); err != nil {
-	// 	return nil, err
-	// }
-
 	const q = `
-SELECT id, service_name, service_key, is_enabled, created_at, last_modified_at
+SELECT RAWTOHEX(id), service_name, service_key, is_enabled, created_at, last_modified_at
 FROM service_keys
-WHERE id = :1`
+WHERE id = HEXTORAW(:1)`
 
 	var item model.ServiceList
 	var listID string
@@ -791,10 +740,6 @@ WHERE id = :1`
 		return nil, local_util.HandleDBError(err)
 	}
 
-	// oid, err := bson.ObjectIDFromHex(listID)
-	// if err != nil {
-	// 	return nil, errors.New(localization.ErrorInvalidID.Code)
-	// }
 	item.ID = listID
 
 	return &item, nil
@@ -819,7 +764,7 @@ func (s *ServicesStorage) FindServiceListByNameOrKey(ctx context.Context, name, 
 
 	where := strings.Join(conds, " OR ")
 	query := fmt.Sprintf(`
-SELECT id, service_name, service_key, is_enabled, created_at, last_modified_at
+SELECT RAWTOHEX(id), service_name, service_key, is_enabled, created_at, last_modified_at
 FROM %s
 WHERE (%s)
 FETCH FIRST 1 ROWS ONLY`, serviceKeysTable, where)
@@ -841,16 +786,11 @@ FETCH FIRST 1 ROWS ONLY`, serviceKeysTable, where)
 		return nil, local_util.HandleDBError(err)
 	}
 
-	// oid, err := bson.ObjectIDFromHex(listID)
-	// if err != nil {
-	// 	return nil, errors.New(localization.ErrorInvalidID.Code)
-	// }
 	item.ID = listID
 	return &item, nil
 }
 
 func (s *ServicesStorage) CreateServiceList(ctx context.Context, serviceList *model.ServiceList) error {
-	serviceList.ID = generateUUID()
 	now := time.Now()
 	if serviceList.CreatedAt.IsZero() {
 		serviceList.CreatedAt = now
@@ -870,7 +810,6 @@ func (s *ServicesStorage) CreateServiceList(ctx context.Context, serviceList *mo
 
 	const q = `
 INSERT INTO service_keys (
-  id,
   service_name,
   service_key,
   is_enabled,
@@ -878,11 +817,10 @@ INSERT INTO service_keys (
   last_modified_at
 )
 VALUES (
-  :1,:2,:3,:4,:5,:6
+  :1,:2,:3,:4,:5
 )`
 
 	if _, err := tx.ExecContext(ctx, q,
-		serviceList.ID,
 		serviceList.ServiceName,
 		serviceList.ServiceKey,
 		boolToOracleNumber(serviceList.IsEnabled),
@@ -893,10 +831,9 @@ VALUES (
 		return local_util.HandleDBError(err)
 	}
 
-	// Synchronize app_access_list with this service list
+	// Synchronize access_list with this service list
 	const accessQ = `
-INSERT INTO app_access_list (
-  id,
+INSERT INTO access_list (
   key,
   enabled,
   access_list_name,
@@ -905,11 +842,9 @@ INSERT INTO app_access_list (
   last_modified_at
 )
 VALUES (
-  :1,:2,:3,:4,:5,:6,:7
+  :1,:2,:3,:4,:5,:6
 )`
-	accessID := bson.NewObjectID().Hex()
 	if _, err := tx.ExecContext(ctx, accessQ,
-		accessID,
 		serviceList.ServiceKey,
 		boolToOracleNumber(serviceList.IsEnabled),
 		serviceList.ServiceName,
@@ -939,10 +874,6 @@ VALUES (
 }
 
 func (s *ServicesStorage) UpdateServiceList(ctx context.Context, id, serviceKey string, serviceList *model.ServiceList) error {
-	// if _, err := parseObjectIDHex(id); err != nil {
-	// 	return err
-	// }
-
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][UpdateServiceList] begin tx failed: %v", err)
@@ -972,12 +903,8 @@ WHERE id = :3 AND service_key = :4`
 		return errors.New(localization.ErrorServiceListNotFound.Code)
 	}
 
-	// Synchronize Oracle app_access_list with this update.
-	// Old Mongo logic updated:
-	// - access_list_name -> serviceList.ServiceName
-	// - key -> serviceList.ServiceKey
 	const accessUpdateQ = `
-UPDATE app_access_list
+UPDATE access_list
 SET
   key = :1,
   access_list_name = :2,
@@ -1000,10 +927,6 @@ WHERE key = :3`
 }
 
 func (s *ServicesStorage) EnableOrDisableServiceList(ctx context.Context, id, serviceKey string, enable bool) error {
-	// if _, err := parseObjectIDHex(id); err != nil {
-	// 	return err
-	// }
-
 	const q = `
 UPDATE service_keys
 SET
@@ -1021,9 +944,8 @@ WHERE id = :2 AND service_key = :3`
 		return errors.New(localization.ErrorServiceListNotFound.Code)
 	}
 
-	// Synchronize Oracle app_access_list enable/disable with this toggle.
 	const accessEnableQ = `
-UPDATE app_access_list
+UPDATE access_list
 SET
   enabled = :1,
   last_modified_at = SYSTIMESTAMP

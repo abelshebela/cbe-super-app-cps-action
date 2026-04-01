@@ -1,6 +1,6 @@
 
 CREATE TABLE services (
-    id                  VARCHAR2(36)     PRIMARY KEY,
+    id                  RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
     service_name        VARCHAR2(255)    NOT NULL,
     service_code        VARCHAR2(100)    NOT NULL,
     service_key         VARCHAR2(150)    NOT NULL,
@@ -15,8 +15,8 @@ CREATE TABLE services (
 );
 
 CREATE TABLE service_cap (
-    id                      VARCHAR2(36) PRIMARY KEY,
-    service_id              VARCHAR2(36) NOT NULL,
+    id                      RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
+    service_id              RAW(16) NOT NULL,
     source                  VARCHAR2(50),      -- POS, USSD, ATM, ECOMMERCE
     currency                VARCHAR2(10) NOT NULL,
     single_cap              VARCHAR2(50),
@@ -29,11 +29,10 @@ CREATE TABLE service_cap (
 );
 
 CREATE TABLE service_keys (
-    id               VARCHAR2(36) PRIMARY KEY,
+    id               RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
     service_name     VARCHAR2(255) NOT NULL,
     service_key      VARCHAR2(150) NOT NULL,
     is_enabled       NUMBER(1) DEFAULT 1,
     created_at       TIMESTAMP(6) WITH TIME ZONE DEFAULT SYSTIMESTAMP,
     last_modified_at TIMESTAMP(6) WITH TIME ZONE DEFAULT SYSTIMESTAMP NOT NULL
 );
-
