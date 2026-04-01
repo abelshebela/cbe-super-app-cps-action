@@ -17,7 +17,10 @@ type accessListSegmentationOracle struct {
 }
 
 func NewAccessListSegmentationOracle(db DBTX, logger utils.Logger) storage.AccessListSegmentationRepository {
-	return &accessListSegmentationOracle{db: db, logger: logger}
+	return &accessListSegmentationOracle{
+		db:     db,
+		logger: logger,
+	}
 }
 
 // BulkDisable implements [storage.AccessListSegmentationRepository].
