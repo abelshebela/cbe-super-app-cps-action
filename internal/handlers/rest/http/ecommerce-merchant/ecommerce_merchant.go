@@ -150,7 +150,7 @@ func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request
 	}
 
 	userContext := local_util.ExtractUserContext(r)
-	if local_util.IsIncomplete(userContext) {
+	if !userContext.IsErp && local_util.IsIncomplete(userContext) {
 		span.RecordError(errors.New("incomplete user context"))
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
@@ -205,7 +205,7 @@ func (h *ecommerceMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request
 	}
 
 	userContext := local_util.ExtractUserContext(r)
-	if local_util.IsIncomplete(userContext) {
+	if !userContext.IsErp && local_util.IsIncomplete(userContext) {
 		span.RecordError(errors.New("incomplete user context"))
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
@@ -259,7 +259,7 @@ func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request
 	}
 
 	userContext := local_util.ExtractUserContext(r)
-	if local_util.IsIncomplete(userContext) {
+	if !userContext.IsErp && local_util.IsIncomplete(userContext) {
 		span.RecordError(errors.New("incomplete user context"))
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
@@ -310,7 +310,7 @@ func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Reques
 	}
 
 	userContext := local_util.ExtractUserContext(r)
-	if local_util.IsIncomplete(userContext) {
+	if !userContext.IsErp && local_util.IsIncomplete(userContext) {
 		span.RecordError(errors.New("incomplete user context"))
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
