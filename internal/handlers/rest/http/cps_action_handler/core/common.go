@@ -283,15 +283,14 @@ func BuildCPSActionRequestMapAuditor(ctx context.Context, filterParams *types.Fi
 
 	if allocation == constants.Viewer {
 		requestAction = viewerAllocations
-	}
-	if allocation == constants.Maker {
+	} else if allocation == constants.Maker {
 		requestAction = makerAllocations
-	}
-	if allocation == constants.Checker {
+	} else if allocation == constants.Checker {
 		requestAction = checkerAllocations
-	}
-	if allocation == constants.Auditor {
+	} else if allocation == constants.Auditor {
 		requestAction = auditorAllocations
+	} else {
+		return nil, nil, errors.New(localization.ErrorActionActorRequeired.Code)
 	}
 
 	if requestAction == nil {
