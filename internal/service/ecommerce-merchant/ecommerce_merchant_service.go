@@ -322,10 +322,6 @@ func (m *ecommerceMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("unique_id", cpsAction.UniqueId),
-		))
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
