@@ -623,7 +623,7 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 	}
 	offset := (page - 1) * limit
 
-	clauses := []string{"is_enabled = is_enabled"} // placeholder to keep join logic simple
+	clauses := []string{"is_enabled = is_enabled"}
 	clauses = []string{}
 	args := []interface{}{}
 
@@ -639,7 +639,7 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 	}
 
 	if filterParam.Filters != nil {
-		if v, ok := filterParam.Filters["enabled"]; ok {
+		if v, ok := filterParam.Filters["is_enabled"]; ok {
 			if b, ok2 := parseBoolFilter(v); ok2 {
 				clauses = append(clauses, "is_enabled = :enabled")
 				args = append(args, sql.Named("enabled", boolToOracleNumber(b)))
