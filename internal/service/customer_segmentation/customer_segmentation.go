@@ -164,19 +164,15 @@ func (s *customerSegmentationService) EnableOrDisable(ctx context.Context, id st
 		return err
 	}
 
-	if existing.IsEnabled == enable {
-		s.logger.Warnf("[CustSegSvc][EnableDisable] already in state id: %s, enable: %v", id, enable)
-		return errors.New("already in desired state")
+	if existing.IsEnabled && enable {
+		s.logger.Warnf("[CustSegSvc][EnableDisable] already in state id: %s, enabled: %v", id, enable)
+		return errors.New("database key already enabled")
 	}
 
-	// 	if enable && *existing.Enabled {
-	// 	r.logger.Warnf("[CpsRoleSvc][EnableDisable] already enabled id: %s", id)
-	// 	return errors.New(localization.ErrorCPSRoleAlreadyEnabled.Code)
-	// }
-	// if !enable && !*existing.Enabled {
-	// 	r.logger.Warnf("[CpsRoleSvc][EnableDisable] already disabled id: %s", id)
-	// 	return errors.New(localization.ErrorCPSRoleAlreadyDisabled.Code)
-	// }
+	if !existing.IsEnabled && !enable {
+		s.logger.Warnf("[CustSegSvc][EnableDisable] already in state id: %s, disabled: %v", id, enable)
+		return errors.New("database key already disabled")
+	}
 
 	updated := *existing
 	updated.IsEnabled = enable

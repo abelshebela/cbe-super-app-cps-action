@@ -289,7 +289,7 @@ func (c *CustomerSegmentationAdapter) Enable(w http.ResponseWriter, r *http.Requ
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
-		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnableSuccessfully, nil)
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnabledSuccessfully, nil)
 		return
 	}
 
@@ -331,7 +331,7 @@ func (c *CustomerSegmentationAdapter) Disable(w http.ResponseWriter, r *http.Req
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
-		localization.SendSuccessResponse(w, localization.CustomerSegmentationDisableSuccessfully, nil)
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationDisabledSuccessfully, nil)
 		return
 	}
 
