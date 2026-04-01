@@ -24,7 +24,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -82,11 +81,6 @@ func (m *ecommerceMerchantService) Create(ctx context.Context, req *merchantDto.
 		))
 		return nil, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
-
-	if data.ID.IsZero() {
-		data.ID = bson.NewObjectID()
-	}
-
 	// _, err = core.ValidateAccountNumberWithExternalAPI(ctx, data.BankAccountNumber, m.accountLookupService)
 	// if err != nil {
 	// 	m.logger.Errorf("Account number validation failed: %v", err)
