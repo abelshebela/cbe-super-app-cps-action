@@ -319,18 +319,18 @@ func (e *LogisticsMerchantService) EnableOrDisable(ctx context.Context, id strin
 	if enable && prevMerchant.Enabled {
 		e.logger.Warnf("[LogisMerchSvc][EnableDisable] already enabled id: %s", id)
 		span.AddEvent("Merchant already enabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorLogisticMerchantEnableFailed.Code),
+			attribute.String("error", localization.ErrorLogisticMerchantAlreadyEnabled.Code),
 			attribute.String("id", id),
 		))
-		return errors.New(localization.ErrorLogisticMerchantEnableFailed.Code)
+		return localization.ErrorLogisticMerchantAlreadyEnabled
 	}
 	if !enable && !prevMerchant.Enabled {
 		e.logger.Warnf("[LogisMerchSvc][EnableDisable] already disabled id: %s", id)
 		span.AddEvent("Merchant already disabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorLogisticMerchantDisableFailed.Code),
+			attribute.String("error", localization.ErrorLogisticMerchantAlreadyDisabled.Code),
 			attribute.String("id", id),
 		))
-		return errors.New(localization.ErrorLogisticMerchantDisableFailed.Code)
+		return localization.ErrorLogisticMerchantAlreadyDisabled
 	}
 
 	updatedMerchant := *prevMerchant
