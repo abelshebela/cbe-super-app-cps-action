@@ -726,9 +726,9 @@ const (
 	MsgEcommerceMerchantCreated              = "Ecommerce merchant created request submitted successfully"
 	MsgEcommerceMerchantCreatedSuccessfully  = "Ecommerce merchant created successfully"
 	MsgEcommerceMerchantUpdatedSuccessfylly  = "Ecommerce merchant updated successfully"
-	MsgEcommerceMerchantDeletedSuccessfylly  = "Ecommerce merchant updated successfully"
-	MsgEcommerceMerchantEnabledSuccessfylly  = "Ecommerce merchant updated successfully"
-	MsgEcommerceMerchantDisabledSuccessfylly = "Ecommerce merchant updated successfully"
+	MsgEcommerceMerchantDeletedSuccessfylly  = "Ecommerce merchant deleted successfully"
+	MsgEcommerceMerchantEnabledSuccessfylly  = "Ecommerce merchant enabled successfully"
+	MsgEcommerceMerchantDisabledSuccessfylly = "Ecommerce merchant disabled successfully"
 
 	MsgEcommerceMerchantUpdated  = "Ecommerce merchant updated request submitted successfully"
 	MsgEcommerceMerchantDeleted  = "Ecommerce merchant delete request submitted successfully"
@@ -831,13 +831,13 @@ const (
 	MsgPermissionCatagoryNotFound      = "Permission category not found"
 
 	// Mini App Merchant related error messages
-	MsgMiniAppMerchantNotFound       = "Mini app merchant not found"
-	MsgMiniAppMerchantCreationFailed = "Failed to create mini app merchant"
-	MsgMiniAppMerchantDeletionFailed = "Failed to delete mini app merchant"
-	MsgMiniAppMerchantDisableFailed  = "ecommerce merchant is already disabled"
-	MsgMiniAppMerchantEnableFailed   = "ecommerce merchant is already enabled"
-	MsgMiniAppMerchantInvalidFormat  = "Invalid mini app merchant format"
-	MsgMiniAppMerchantRequired       = "Mini app merchant is required"
+	MsgEcommerceAppMerchantNotFound       = "Ecommerce merchant not found"
+	MsgEcommerceAppMerchantCreationFailed = "Failed to create ecommerce merchant"
+	MsgEcommerceAppMerchantDeletionFailed = "Failed to delete ecommerce merchant"
+	MsgEcommerceAppMerchantDisableFailed  = "ecommerce merchant is already disabled"
+	MsgEcommerceMerchantEnableFailed      = "ecommerce merchant is already enabled"
+	MsgEcommerceAppMerchantInvalidFormat  = "Invalid ecommerce merchant format"
+	MsgEcommerceAppMerchantRequired       = "Ecommerce merchant is required"
 
 	// Notification related error messages
 	MsgNotificationNotFound       = "Notification not found"

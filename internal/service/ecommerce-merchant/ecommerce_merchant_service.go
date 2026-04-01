@@ -263,27 +263,27 @@ func (m *ecommerceMerchantService) EnableOrDisable(ctx context.Context, id strin
 	if err != nil {
 		m.logger.Errorf("[EcomMerchSvc][EnableDisable] find err id=%s: %v", id, err)
 		span.AddEvent("Merchant not found", trace.WithAttributes(
-			attribute.String("error", localization.ErrorMiniAppMerchantNotFound.Code),
+			attribute.String("error", localization.ErrorEcommerceMerchantNotFound.Code),
 			attribute.String("id", id),
 		))
-		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+		return errors.New(localization.ErrorEcommerceMerchantNotFound.Code)
 	}
 
 	if enable && prevMerchant.Enabled {
 		m.logger.Warnf("[EcomMerchSvc][EnableDisable] already enabled id: %s", id)
 		span.AddEvent("Merchant already enabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorMiniAppMerchantEnableFailed.Code),
+			attribute.String("error", localization.ErrorEcommerceMerchantEnableFailed.Code),
 			attribute.String("id", id),
 		))
-		return errors.New(localization.ErrorMiniAppMerchantEnableFailed.Code)
+		return errors.New(localization.ErrorEcommerceMerchantEnableFailed.Code)
 	}
 	if !enable && !prevMerchant.Enabled {
 		m.logger.Warnf("[EcomMerchSvc][EnableDisable] already disabled id: %s", id)
 		span.AddEvent("Merchant already disabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorMiniAppMerchantDisableFailed.Code),
+			attribute.String("error", localization.ErrorEcommerceMerchantDisableFailed.Code),
 			attribute.String("id", id),
 		))
-		return errors.New(localization.ErrorMiniAppMerchantDisableFailed.Code)
+		return errors.New(localization.ErrorEcommerceMerchantDisableFailed.Code)
 	}
 
 	updatedMerchant := *prevMerchant
