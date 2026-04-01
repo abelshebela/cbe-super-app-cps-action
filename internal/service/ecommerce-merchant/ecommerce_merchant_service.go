@@ -275,7 +275,7 @@ func (m *ecommerceMerchantService) EnableOrDisable(ctx context.Context, id strin
 			attribute.String("error", localization.ErrorEcommerceMerchantEnableFailed.Code),
 			attribute.String("id", id),
 		))
-		return errors.New(localization.ErrorEcommerceMerchantEnableFailed.Code)
+		return errors.New("Ecommerce merchant is already enabled")
 	}
 	if !enable && !prevMerchant.Enabled {
 		m.logger.Warnf("[EcomMerchSvc][EnableDisable] already disabled id: %s", id)
@@ -283,7 +283,7 @@ func (m *ecommerceMerchantService) EnableOrDisable(ctx context.Context, id strin
 			attribute.String("error", localization.ErrorEcommerceMerchantDisableFailed.Code),
 			attribute.String("id", id),
 		))
-		return errors.New(localization.ErrorEcommerceMerchantDisableFailed.Code)
+		return errors.New("Ecommerce merchant is already disabled")
 	}
 
 	updatedMerchant := *prevMerchant
