@@ -1,4 +1,4 @@
-package sqlc
+package wallet_oracle
 
 import (
 	"context"
