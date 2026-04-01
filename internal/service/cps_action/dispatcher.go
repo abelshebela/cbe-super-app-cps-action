@@ -185,6 +185,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.VaultCategoryContainer.Authorize(ctx, cpsAction)
 	default:
 		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))
+		fmt.Printf("Unsupported action---------------------: %s\n", action)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 }
