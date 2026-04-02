@@ -1,12 +1,15 @@
 package newstag_handler
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	newstag_dto "cbe-super-app-cps-action/internal/constants/dto/news_tag"
 	newstag_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_tag"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/news_tag/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -43,6 +46,8 @@ func NewNewsTagHandler(newsTagService service.NewsTagService, logger utils.Logge
 //	@Router			/news/tags/create [post]
 func (n NewsTagHandler) CreateNewsTags(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), n.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	var req newstag_dto.CreateNewsTagRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -63,6 +68,7 @@ func (n NewsTagHandler) CreateNewsTags(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Infof("[CreateNewsTags] request sent successfully for tag_name: %s", req.TagName)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessNewsTagCreated, nil)
 }
 
@@ -82,6 +88,8 @@ func (n NewsTagHandler) CreateNewsTags(w http.ResponseWriter, r *http.Request) {
 // DeleteNewsTag implements newstag_adaptor.NewsTagAdaptor.
 func (n NewsTagHandler) DeleteNewsTag(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), n.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[NewsTagH] id not set")
@@ -96,6 +104,7 @@ func (n NewsTagHandler) DeleteNewsTag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Infof("[DeleteNewsTag] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessNewsTagDeleted, nil)
 }
 
@@ -202,6 +211,8 @@ func (n NewsTagHandler) GetNewsTagByID(w http.ResponseWriter, r *http.Request) {
 // UpdateNewsTag implements newstag_adaptor.NewsTagAdaptor.
 func (n NewsTagHandler) UpdateNewsTag(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), n.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[NewsTagH] id not set")
@@ -229,5 +240,6 @@ func (n NewsTagHandler) UpdateNewsTag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Infof("[UpdateNewsTag] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessNewsTagUpdated, nil)
 }

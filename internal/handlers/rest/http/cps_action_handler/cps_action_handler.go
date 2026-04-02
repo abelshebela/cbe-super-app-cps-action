@@ -1733,6 +1733,13 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 		attribute.String("export.to", to),
 	)
 
+	if actor != "" {
+		span.SetAttributes(attribute.String("export.actor", actor))
+		if actor == constants.Maker {
+			filterParams.Filters["maker_id"] = local_util.ExtractUserContext(r).UserName
+		}
+	}
+
 	fileLink, err := a.cpsActionApplication.ExportCpsActionData(ctx, reqs, filterParams, fileType)
 	if err != nil {
 		span.RecordError(err)

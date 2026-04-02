@@ -29,6 +29,7 @@ func (c *cpsRolesHandler) CreateCPSRole(w http.ResponseWriter, r *http.Request) 
 
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	var req dto.CreateCPSRoleRequest
@@ -51,8 +52,10 @@ func (c *cpsRolesHandler) CreateCPSRole(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleCreatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleCreated, nil)
 	}
 }
@@ -60,6 +63,7 @@ func (c *cpsRolesHandler) CreateCPSRole(w http.ResponseWriter, r *http.Request) 
 func (c *cpsRolesHandler) UpdateCPSRole(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	id, err := local_util.ExtractID(w, r)
@@ -88,8 +92,10 @@ func (c *cpsRolesHandler) UpdateCPSRole(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleUpdatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleUpdated, nil)
 	}
 }
@@ -142,6 +148,7 @@ func (c *cpsRolesHandler) GetCPSRole(w http.ResponseWriter, r *http.Request) {
 func (c *cpsRolesHandler) EnableCPSRole(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	id, err := local_util.ExtractID(w, r)
@@ -156,8 +163,10 @@ func (c *cpsRolesHandler) EnableCPSRole(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleEnabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleEnabled, nil)
 	}
 }
@@ -165,6 +174,7 @@ func (c *cpsRolesHandler) EnableCPSRole(w http.ResponseWriter, r *http.Request) 
 func (c *cpsRolesHandler) DisableCPSRole(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	id, err := local_util.ExtractID(w, r)
@@ -179,14 +189,19 @@ func (c *cpsRolesHandler) DisableCPSRole(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleDisabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleDisabled, nil)
 	}
 }
 
 func (c *cpsRolesHandler) EnableServiceAccess(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), c.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
 		log.Errorf("[EnableServiceAccess] extractID: %v", err)
@@ -212,11 +227,15 @@ func (c *cpsRolesHandler) EnableServiceAccess(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessCPSRoleServiceEnabled, nil)
 }
 
 func (c *cpsRolesHandler) DisableServiceAccess(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), c.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
 		log.Errorf("[DisableServiceAccess] extractID: %v", err)
@@ -242,12 +261,14 @@ func (c *cpsRolesHandler) DisableServiceAccess(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessCPSRoleServiceDisabled, nil)
 }
 
 func (c *cpsRolesHandler) DeleteCPSRole(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	id, err := local_util.ExtractID(w, r)
@@ -262,8 +283,10 @@ func (c *cpsRolesHandler) DeleteCPSRole(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleDeletedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleDeleted, nil)
 	}
 }

@@ -56,6 +56,7 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	req, err := core.ParseBannerImage(r, true)
 	if err != nil {
@@ -92,9 +93,11 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAdvertCreatedSP, nil)
 	} else {
 		log.Infof("[CreateAdvert] request sent successfully for title: %s", req.Title)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAdvertCreateRequestSent, nil)
 	}
 
@@ -218,6 +221,7 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -262,9 +266,11 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAdvertUpdatedSP, nil)
 	} else {
 		log.Infof("[UpdateAdvert] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAdvertUpdateRequestSent, nil)
 	}
 
@@ -290,6 +296,7 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -307,9 +314,11 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAdvertDeletedSP, nil)
 	} else {
 		log.Infof("[DeleteAdvert] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAdvertDeleteRequestSent, nil)
 	}
 }
@@ -334,6 +343,7 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -352,9 +362,11 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAdvertEnabledSP, nil)
 	} else {
 		log.Infof("[EnableAdvert] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAdvertEnableRequestSent, nil)
 	}
 
@@ -381,6 +393,7 @@ func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -400,9 +413,11 @@ func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAdvertDisabledSP, nil)
 	} else {
 		log.Infof("[DisableAdvert] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAdvertDisableRequestSent, nil)
 	}
 }

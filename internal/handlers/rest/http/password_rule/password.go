@@ -96,6 +96,7 @@ func (p *passwordRuleHandler) RequestPasswordRuleUpdate(w http.ResponseWriter, r
 	log := local_util.LoggerFromCtx(ctx, p.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	var req dto.PasswordRuleUpdate
@@ -131,8 +132,10 @@ func (p *passwordRuleHandler) RequestPasswordRuleUpdate(w http.ResponseWriter, r
 	if md.IsMakerOnly {
 		span.AddEvent("PasswordRuleUpdate request sent", trace.WithAttributes(attribute.String("id", id)))
 		log.Infof("[RequestPasswordRuleUpdate] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessUpdatePasswordRuleSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessUpdatePasswordRule, nil)
 	}
 }

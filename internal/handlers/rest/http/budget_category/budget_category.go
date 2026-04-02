@@ -53,6 +53,7 @@ func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *h
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
@@ -85,8 +86,10 @@ func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *h
 	}
 	if md.IsMakerOnly {
 		log.Infof("[CreateBudgetCategory] request sent successfully")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryCreatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryCreateRequestSubmittedForApproval, nil)
 
 	}
@@ -115,6 +118,7 @@ func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *h
 	log := common_util.LoggerFromCtx(ctx, b.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
@@ -156,8 +160,10 @@ func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *h
 	}
 	if md.IsMakerOnly {
 		log.Infof("[UpdateBudgetCategory] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryUpdatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryUpdateSubmittedForApproval, nil)
 
 	}
@@ -271,6 +277,7 @@ func (b *budgetCategoryAdapter) DeleteBudgetCategory(w http.ResponseWriter, r *h
 	log := common_util.LoggerFromCtx(ctx, b.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
@@ -298,8 +305,10 @@ func (b *budgetCategoryAdapter) DeleteBudgetCategory(w http.ResponseWriter, r *h
 	if md.IsMakerOnly {
 
 		log.Infof("[DeleteBudgetCategory] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryDeletedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryDeleteSubmittedForApproval, nil)
 
 	}
@@ -324,6 +333,7 @@ func (b *budgetCategoryAdapter) EnableBudgetCategory(w http.ResponseWriter, r *h
 	log := common_util.LoggerFromCtx(ctx, b.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
@@ -351,8 +361,10 @@ func (b *budgetCategoryAdapter) EnableBudgetCategory(w http.ResponseWriter, r *h
 
 	if md.IsMakerOnly {
 		log.Infof("[EnableBudgetCategory] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryEnabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryEnableSubmittedForApproval, nil)
 
 	}
@@ -377,6 +389,7 @@ func (b *budgetCategoryAdapter) DisableBudgetCategory(w http.ResponseWriter, r *
 	log := common_util.LoggerFromCtx(ctx, b.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
@@ -404,8 +417,10 @@ func (b *budgetCategoryAdapter) DisableBudgetCategory(w http.ResponseWriter, r *
 
 	if md.IsMakerOnly {
 		log.Infof("[DisableBudgetCategory] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryDisabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryDisableSubmittedForApproval, nil)
 
 	}

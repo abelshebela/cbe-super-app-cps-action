@@ -64,6 +64,7 @@ func (d *donationAdapter) CreateDonation(w http.ResponseWriter, r *http.Request)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	fmt.Println(">>> [HANDLER] CreateDonation - parsing multipart form")
 	req, err := core.ParseRequestFromMultipartForm(r, true)
@@ -101,8 +102,10 @@ func (d *donationAdapter) CreateDonation(w http.ResponseWriter, r *http.Request)
 	}
 	fmt.Println(">>> [HANDLER] CreateDonation - service call SUCCESS, isMakerOnly:", md.IsMakerOnly)
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationCreatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationCreateRequestSent, nil)
 	}
 	fmt.Println(">>> [HANDLER] CreateDonation - EXIT")
@@ -140,6 +143,7 @@ func (d *donationAdapter) UpdateDonation(w http.ResponseWriter, r *http.Request)
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := core.ExtractIDFromURL(r)
 	fmt.Println(">>> [HANDLER] UpdateDonation - extracted id:", id)
@@ -181,8 +185,10 @@ func (d *donationAdapter) UpdateDonation(w http.ResponseWriter, r *http.Request)
 	}
 	fmt.Println(">>> [HANDLER] UpdateDonation - service call SUCCESS")
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationUpdatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationUpdateRequestSent, nil)
 	}
 	fmt.Println(">>> [HANDLER] UpdateDonation - EXIT")
@@ -313,6 +319,7 @@ func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Req
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
@@ -344,8 +351,10 @@ func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Req
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationImageUpdatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationImageUpdateRequestSent, nil)
 	}
 }
@@ -370,6 +379,7 @@ func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Req
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
@@ -403,8 +413,10 @@ func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Req
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationImageDeletedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationImageDeleteRequestSent, nil)
 	}
 }
@@ -430,6 +442,7 @@ func (d *donationAdapter) AddDonationImage(w http.ResponseWriter, r *http.Reques
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
@@ -488,6 +501,7 @@ func (d *donationAdapter) EnableDonation(w http.ResponseWriter, r *http.Request)
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := core.ExtractIDFromURL(r)
 	fmt.Println(">>> [HANDLER] EnableDonation - id:", id)
@@ -508,8 +522,10 @@ func (d *donationAdapter) EnableDonation(w http.ResponseWriter, r *http.Request)
 	}
 	fmt.Println(">>> [HANDLER] EnableDonation - SUCCESS")
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationEnabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationEnableRequestSent, nil)
 	}
 	fmt.Println(">>> [HANDLER] EnableDonation - EXIT")
@@ -536,6 +552,7 @@ func (d *donationAdapter) DisableDonation(w http.ResponseWriter, r *http.Request
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := core.ExtractIDFromURL(r)
 	fmt.Println(">>> [HANDLER] DisableDonation - id:", id)
@@ -556,8 +573,10 @@ func (d *donationAdapter) DisableDonation(w http.ResponseWriter, r *http.Request
 	}
 	fmt.Println(">>> [HANDLER] DisableDonation - SUCCESS")
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationDisabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationDisableRequestSent, nil)
 	}
 	fmt.Println(">>> [HANDLER] DisableDonation - EXIT")

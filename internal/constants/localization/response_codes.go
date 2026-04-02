@@ -786,6 +786,24 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventMerchantInvalidEmail,
 	ErrorEventMerchantInvalidPhoneNumber,
 	ErrorMerchantIDAlreadyExists,
+	ErrorEventMerchantAlreadyDisabled,
+	ErrorEventMerchantAlreadyEnabled,
+
+	// logistic merchant
+	ErrorLogisticMerchantInvalidMerchantID,
+	ErrorLogisticMerchantInvalidMerchantType,
+	ErrorLogisticMerchantInvalidSettlementMethod,
+	ErrorLogisticMerchantInvalidMerchantName,
+	ErrorLogisticMerchantInvalidBankAccountNumber,
+	ErrorLogisticMerchantInvalidIsLogisticsMerchant,
+	ErrorLogisticMerchantInvalidEmail,
+	ErrorLogisticMerchantInvalidPhoneNumber,
+	ErrorLogisticMerchantNotFound,
+	ErrorLogisticMerchantDisableFailed,
+	ErrorLogisticMerchantEnableFailed,
+
+	ErrorLogisticMerchantAlreadyDisabled,
+	ErrorLogisticMerchantAlreadyEnabled,
 
 	// Access List Segmentation Success Codes
 	SuccessAccessListSegmentationCreated,
@@ -5972,6 +5990,12 @@ var (
 		Type:       "error",
 	}
 
+	ErrorActionActorRequeired = ResponseCode{
+		Code:       "ERROR_ACTION_ACTOR_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActionActorRequired,
+		Type:       "error",
+	}
 	ErrorAuditorAlreadyChecked = ResponseCode{
 		Code:       "ERROR_AUDITOR_ALREADY_CHECKED",
 		StatusCode: StatusForbidden,
@@ -6744,6 +6768,20 @@ var (
 		Code:       "ERROR_CODE_ALREADY_EXIST",
 		StatusCode: StatusBadRequest,
 		Message:    MsgCodeAlreadyExists,
+		Type:       "error",
+	}
+
+	ErrorMiniAppMerchantNotFound = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgMiniAppMerchantNotFound,
+		Type:       "error",
+	}
+
+	ErrorMiniAppMerchantDisableFailed = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_DISABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgMiniAppMerchantDisableFailed,
 		Type:       "error",
 	}
 
@@ -8214,6 +8252,18 @@ var (
 		Message:    MsgEventMerchantEnableFailed,
 		Type:       "error",
 	}
+	ErrorEventMerchantAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgEventMerchantAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorEventMerchantAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgEventMerchantAlreadyDisabled,
+		Type:       "error",
+	}
 
 	ErrorLogisticMerchantInvalidMerchantID = ResponseCode{
 		Code:       "ERROR_LOGISTIC_MERCHANT_INVALID_MERCHANT_ID",
@@ -8280,6 +8330,18 @@ var (
 		Code:       "ERROR_LOGISTIC_MERCHANT_ENABLE_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgLogisticMerchantEnableFailed,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgLogisticMerchantAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgLogisticMerchantAlreadyDisabled,
 		Type:       "error",
 	}
 

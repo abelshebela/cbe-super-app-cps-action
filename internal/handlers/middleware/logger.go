@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/localization"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -23,6 +24,17 @@ type responseWriter struct {
 func (rw *responseWriter) WriteHeader(code int) {
 	rw.statusCode = code
 	rw.ResponseWriter.WriteHeader(code)
+}
+
+// BindRequestContext wraps the http.ResponseWriter with a ContextResponseWriter
+// so that downstream response helpers (SendErrorResponse, SendSuccessResponse, etc.)
+// can access the request context (trace_id, x-request-id, user info).
+// Place this middleware AFTER ChiLogger and TraceContextMiddleware in the chain.
+func BindRequestContext(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cw := localization.NewContextResponseWriter(w, r.Context())
+		next.ServeHTTP(cw, r)
+	})
 }
 
 func ChiLogger(log utils.Logger) func(next http.Handler) http.Handler {

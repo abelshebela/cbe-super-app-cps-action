@@ -51,7 +51,12 @@ func (r *CPSActionStorage) Save(ctx context.Context, cpsAction *model.CPSAction)
 		r.logger.Errorf("[CPSAction][Save] failed to save CPS action: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	r.logger.Infof("[CPSAction][Save] CPS action saved successfully with id: %s", cps.ID.Hex())
+
+	cpsAction.ActionCode = cps.ActionCode
+	if md := types.GetMetadata(ctx); md != nil {
+		md.CPSActionCode = cps.ActionCode
+	}
+	r.logger.Infof("[CPSAction][Save] CPS action saved successfully with code: %s", cps.ActionCode)
 	return nil
 }
 
@@ -835,11 +840,12 @@ func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, filterParam *t
 	searchKeys := bson.M{}
 	//---------------------------------------
 
-	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status", "unique_id"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status", "unique_id", "maker_id"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
+			{"maker_id": searchRegex},
 			{"unique_id": searchRegex},
 			{"maker_name": searchRegex},
 			{"action_code": searchRegex},
@@ -856,12 +862,10 @@ func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, filterParam *t
 		fieldProjection = Projection
 	}
 
-	dynamicFilter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
+	dynamicFilter, _, _ := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
 
 	//---------------------------------------
 	opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: 1}}).
-		SetSkip(skip).
-		SetLimit(limit).
 		SetProjection(fieldProjection)
 
 	for k, v := range baseFilter {
