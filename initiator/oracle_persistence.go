@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"cbe-super-app-cps-action/internal/storage/kafka"
+	account_block_repo "cbe-super-app-cps-action/internal/storage/persistance/account_block"
 	"cbe-super-app-cps-action/internal/storage/persistance/bank/gen/sqlc"
 	"cbe-super-app-cps-action/internal/storage/persistance/bankvault"
 	"cbe-super-app-cps-action/internal/storage/persistance/sitota"
@@ -21,6 +22,7 @@ type OraclePersistence struct {
 	vaultCategory storage.VaultCategoryRepository
 	Sitota        storage.SitotaRepository
 	Transaction   storage.TransactionRepository
+	AccountBlock  storage.AccountBlockRepository
 }
 
 func InitOraclePersistence(db *sql.DB, cfg *config.VaultConfig, clientOrchestrationProducer kafka.ClientOrchestrationProducer, log utils.Logger) OraclePersistence {
@@ -30,5 +32,6 @@ func InitOraclePersistence(db *sql.DB, cfg *config.VaultConfig, clientOrchestrat
 		vaultCategory: vaultCategory.NewVaultCategoryRepository(db, cfg, clientOrchestrationProducer, log),
 		Sitota:        sitota.NewSitotaRepository(db, log),
 		Transaction:   transaction_repo.NewTransactionRepository(db, log),
+		AccountBlock:  account_block_repo.NewAccountBlockRepository(db, log),
 	}
 }

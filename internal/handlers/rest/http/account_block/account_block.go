@@ -59,9 +59,9 @@ func (a *accountBlockAdapter) GetBranchById(w http.ResponseWriter, r *http.Reque
 		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
 		return
 	}
-	if err := local_util.ValidateMongoID(branchId); err != nil {
+	if branchId == "" {
 		log.Errorf("[AccBlockH] invalid id: %s", branchId)
-		localization.SendBadRequestResponse(w, "invalid object id")
+		localization.SendBadRequestResponse(w, "invalid id")
 		return
 	}
 
@@ -153,9 +153,9 @@ func (a *accountBlockAdapter) GetRegionById(w http.ResponseWriter, r *http.Reque
 		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
 	}
-	if err := local_util.ValidateMongoID(regionId); err != nil {
+	if regionId == "" {
 		log.Errorf("[AccBlockH] invalid id: %s", regionId)
-		localization.SendBadRequestResponse(w, "invalid object id")
+		localization.SendBadRequestResponse(w, "invalid id")
 		return
 	}
 
@@ -246,9 +246,9 @@ func (a *accountBlockAdapter) GetDistrictById(w http.ResponseWriter, r *http.Req
 		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
 	}
-	if err := local_util.ValidateMongoID(districtId); err != nil {
+	if districtId == "" {
 		log.Errorf("[AccBlockH] invalid id: %s", districtId)
-		localization.SendBadRequestResponse(w, "invalid object id")
+		localization.SendBadRequestResponse(w, "invalid id")
 		return
 	}
 
@@ -338,9 +338,9 @@ func (a *accountBlockAdapter) GetCityById(w http.ResponseWriter, r *http.Request
 		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Code)
 		return
 	}
-	if err := local_util.ValidateMongoID(cityId); err != nil {
+	if cityId == "" {
 		log.Errorf("[AccBlockH] invalid id: %s", cityId)
-		localization.SendBadRequestResponse(w, "invalid object id")
+		localization.SendBadRequestResponse(w, "invalid id")
 		return
 	}
 
@@ -967,9 +967,9 @@ func (a *accountBlockAdapter) GetAccountBlockDetails(w http.ResponseWriter, r *h
 		localization.SendBadRequestResponse(w, localization.ErrorCodeRequired.Code)
 		return
 	}
-	if err := local_util.ValidateMongoID(id); err != nil {
+	if id == "" {
 		log.Errorf("[AccBlockH] invalid id: %s", id)
-		localization.SendBadRequestResponse(w, "invalid object id")
+		localization.SendBadRequestResponse(w, "invalid id")
 		return
 	}
 
