@@ -63,7 +63,8 @@ func (m *ecommerceMerchantService) Create(ctx context.Context, req *merchantDto.
 
 	m.logger.Infof("[EcomMerchSvc][Create] name: %s", data.MerchantName)
 	exist, err := core.CheckMerchantExists(ctx, m.repo, &types.CheckMerchant{
-		MerchantCode: data.Code,
+		MerchantCode:      data.Code,
+		BankAccountNumber: data.BankAccountNumber,
 	}, nil)
 	if err != nil {
 		m.logger.Errorf("[EcomMerchSvc][Create] exist check err: %v", err)
@@ -81,15 +82,18 @@ func (m *ecommerceMerchantService) Create(ctx context.Context, req *merchantDto.
 		))
 		return nil, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
-	// _, err = core.ValidateAccountNumberWithExternalAPI(ctx, data.BankAccountNumber, m.accountLookupService)
-	// if err != nil {
-	// 	m.logger.Errorf("Account number validation failed: %v", err)
-	// 	span.AddEvent("Account number validation failed", trace.WithAttributes(
-	// 		attribute.String("error", err.Error()),
-	// 		attribute.String("bank_account_number", data.BankAccountNumber),
-	// 	))
-	// 	return nil, err
-	// }
+
+	if data.BankAccountNumber != "" {
+		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, data.BankAccountNumber, m.accountLookupService)
+		if err != nil {
+			m.logger.Errorf("Account number validation failed: %v", err)
+			span.AddEvent("Account number validation failed", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("bank_account_number", data.BankAccountNumber),
+			))
+			return nil, err
+		}
+	}
 
 	now := time.Now()
 	data.CreatedAt = now
