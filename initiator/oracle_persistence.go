@@ -23,14 +23,9 @@ type OraclePersistence struct {
 	// DB is the shared Oracle *sql.DB used by bulk-service relation proxy and other Oracle repos.
 	DB *sql.DB
 
-	BankOracle            storage.BankOracleRepository
-	BankVault             storage.BankVaultRepository
-	vaultCategory         storage.VaultCategoryRepository
 	BudgetCategoryOracle  storage.BudgetCategoryOracleRepository
 	AmountBasedAuthOracle storage.AmountBasedAuthOracleRepository
 	AccessListOracle      storage.BulkServiceRepository
-	Sitota                storage.SitotaRepository
-	Transaction           storage.TransactionRepository
 	AccessListSegmentaion storage.AccessListSegmentationRepositoryOracle
 	BankOracle            storage.BankOracleRepository
 	BankVault             storage.BankVaultRepository
@@ -52,10 +47,5 @@ func InitOraclePersistence(db *sql.DB, cfg *config.VaultConfig, clientOrchestrat
 		Sitota:                sitota.NewSitotaRepository(db, log),
 		Transaction:           transaction_repo.NewTransactionRepository(db, log),
 		AccessListSegmentaion: access_list_segmentation_oracle.NewAccessListSegmentationOracle(db, *cfg, accessListSegmentationProducer, log),
-		BankOracle:            sqlc.NewBankRepository(db, log),
-		BankVault:             bankvault.NewBankVaultRepository(db, log),
-		vaultCategory:         vaultCategory.NewVaultCategoryRepository(db, cfg, clientOrchestrationProducer, log),
-		Sitota:                sitota.NewSitotaRepository(db, log),
-		Transaction:           transaction_repo.NewTransactionRepository(db, log),
 	}
 }
