@@ -42,7 +42,7 @@ func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 
-		if action.SegmentType == "Block" {
+		if action.SegmentType == "block" {
 			if err := a.repo.CreateBlockSegment(ctx, *action); err != nil {
 				a.logger.Errorf("[AccessListSegSvc][Authorize] create block err: %v", err)
 				return nil, err

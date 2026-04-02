@@ -114,11 +114,14 @@ func (q *accessListSegmentationOracle) CreateAccountSegment(ctx context.Context,
 	docs := make([]local_model.AccessListSegmentation, 0, n)
 
 	for i, key := range accessListSegmentation.AccessListKeys {
-		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), :access_list_key%d, :segmented_id, :enabled)", i))
+		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), :access_list_key%d, :segmented_id, :enabled, :created_at, :updated_at, :deleted_at)", i))
 		valueArgs = append(valueArgs,
 			key,                                   // access_list_key
 			accessListSegmentation.SegmentationID, // segmented_id
 			1,                                     // enabled
+			time.Now(),                            // created_at
+			time.Now(),                            // updated_at
+			nil,                                   // deleted_at
 		)
 		docs = append(docs, local_model.AccessListSegmentation{
 			AccessListKey: key,
@@ -129,7 +132,7 @@ func (q *accessListSegmentationOracle) CreateAccountSegment(ctx context.Context,
 
 	stmt := `
 	       INSERT INTO ACCESS_LIST_CUSTOMER_SEG (
-		   id, access_list_key, segmented_id, enabled
+		   id, access_list_key, segmented_id, enabled, created_at, updated_at, deleted_at
 	       ) VALUES ` + strings.Join(valueStrings, ",")
 
 	_, err := q.db.ExecContext(ctx, stmt, valueArgs...)
@@ -161,17 +164,7 @@ func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, a
 	valueStrings := make([]string, 0, n)
 	valueArgs := make([]interface{}, 0, n*8)
 
-	// Collect inserted docs for Kafka
-	type AccessListGeoSegDoc struct {
-		AccessListKey string     `json:"access_list_key"`
-		SegmentedID   string     `json:"segmented_id"`
-		Type          string     `json:"type"`
-		Enabled       bool       `json:"enabled"`
-		CreatedAt     time.Time  `json:"created_at"`
-		UpdatedAt     time.Time  `json:"updated_at"`
-		DeletedAt     *time.Time `json:"deleted_at"`
-	}
-	docs := make([]AccessListGeoSegDoc, 0, n)
+	docs := make([]local_model.AccessListSegmentation, 0, n)
 
 	for i, key := range accessListSegmentation.AccessListKeys {
 		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), :access_list_key%d, :segmented_id, :type, :enabled, :created, :updated, :deleted)", i))
@@ -179,19 +172,15 @@ func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, a
 			key,                                   // access_list_key
 			accessListSegmentation.SegmentationID, // segmented_id
 			accessListSegmentation.Type,           // type
-			true,                                  // enabled
+			1,                                     // enabled
 			now,                                   // created_at
 			now,                                   // updated_at
 			nil,                                   // deleted_at
 		)
-		docs = append(docs, AccessListGeoSegDoc{
+		docs = append(docs, local_model.AccessListSegmentation{
 			AccessListKey: key,
 			SegmentedID:   accessListSegmentation.SegmentationID,
-			Type:          accessListSegmentation.Type,
 			Enabled:       true,
-			CreatedAt:     now,
-			UpdatedAt:     now,
-			DeletedAt:     nil,
 		})
 	}
 
@@ -262,11 +251,15 @@ func (q *accessListSegmentationOracle) FindBySegmentIDAndAccessListKeys(ctx cont
 	for _, k := range keys {
 		args = append(args, k)
 	}
-	query := fmt.Sprintf(`SELECT RAWTOHEX(id), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), type, enabled, created_at, updated_at, deleted_at FROM ACCESS_LIST_GEO_SEG WHERE segmented_id = HEXTORAW(:1) AND access_list_key IN (%s)`, strings.Join(placeholders, ","))
+	query := fmt.Sprintf(`SELECT RAWTOHEX(id), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), enabled, created_at, updated_at, deleted_at FROM ACCESS_LIST_GEO_SEG WHERE segmented_id = HEXTORAW(:1) AND access_list_key IN (%s)`, strings.Join(placeholders, ","))
 	row := q.db.QueryRowContext(ctx, query, args...)
 	var seg model.AccessListSegmentation
 	err := row.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
 	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			q.logger.Errorf("[AccessListSegmentationOracle][FindBySegmentIDAndAccessListKeys] query failed: %v", err)
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &seg, nil
@@ -287,11 +280,15 @@ func (q *accessListSegmentationOracle) FindByAccountSegmentationAndAccessListKey
 	for _, k := range segmentKeys {
 		args = append(args, k)
 	}
-	query := fmt.Sprintf(`SELECT RAWTOHEX(id), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), enabled, created_at, updated_at, deleted_at FROM ACCESS_LIST_CUSTOMER_SEG WHERE segmented_id = HEXTORAW(:1) AND access_list_key IN (%s)`, strings.Join(placeholders, ","))
+	query := fmt.Sprintf(`SELECT RAWTOHEX(id), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), enabled, created_at, updated_at, deleted_at FROM ACCESS_LIST_CUSTOMER_SEG WHERE SEGMENTED_ID = HEXTORAW(:1) AND access_list_key IN (%s)`, strings.Join(placeholders, ","))
 	row := q.db.QueryRowContext(ctx, query, args...)
 	var seg model.AccessListSegmentation
 	err := row.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
-	if err != nil && err.Error() == "sql: no rows in result set" {
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			q.logger.Errorf("[AccessListSegmentationOracle][FindByAccountSegmentationAndAccessListKeys] query failed: %v", err)
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &seg, nil
