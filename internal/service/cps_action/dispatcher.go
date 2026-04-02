@@ -45,18 +45,17 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "KYCVERIFIER"):
 		return d.app.KYCVerifierContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "ACCOUNTBLOCK"):
-		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
+	// case IsActionInGroup(RequestAction(action), "ACCOUNTBLOCK"):
+	// 	return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "SINGLEBRANCHENABLEACCOUNTBLOCK"):
 		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "SINGLEBRANCHDISABLEACCOUNTBLOCK"):
 		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "MultiBRANCHENABLEACCOUNTBLOCK"):
+	case IsActionInGroup(RequestAction(action), "MULTIBRANCHENABLEACCOUNTBLOCK"):
 		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "MultiBRANCHDISABLEACCOUNTBLOCK"):
+	case IsActionInGroup(RequestAction(action), "MULTIBRANCHDISABLEACCOUNTBLOCK"):
 		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
-
 	case IsActionInGroup(RequestAction(action), "ACCOUNTVALIDATION"):
 		return d.app.AccountContainer.Authorize(ctx, cpsAction)
 
@@ -183,6 +182,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.VaultCategoryContainer.Authorize(ctx, cpsAction)
 	default:
 		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))
+		fmt.Printf("Unsupported action---------------------: %s\n", action)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 }

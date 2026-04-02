@@ -97,6 +97,7 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 

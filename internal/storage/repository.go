@@ -248,14 +248,15 @@ type BPSActionRepository interface {
 	GetBPSActionByUserID(ctx context.Context, userID string, filter types.Filter) (types.PaginatedResponse[[]bps_model.BPSAction], error)
 }
 
-type BudgetCategoryRepository interface {
-	CreateBudgetCategory(ctx context.Context, budgetCategory *imodel.BudgetCategory) error
-	UpdateBudgetCategory(ctx context.Context, id string, budgetCategory *imodel.BudgetCategory) error
-	FindBudgetCategoryByID(ctx context.Context, id string) (*imodel.BudgetCategory, error)
-	FindAllBudgetCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BudgetCategory], error)
-	DeleteBudgetCategory(ctx context.Context, id string) error
-	EnableOrDisableBudgetCategory(ctx context.Context, id string, enable bool) error
-	FindByName(ctx context.Context, name string) (*imodel.BudgetCategory, error)
+// Oracle
+type BudgetCategoryOracleRepository interface {
+	Create(ctx context.Context, item *imodel.BudgetCategoryOracle) error
+	Update(ctx context.Context, id string, item *imodel.BudgetCategoryOracle) error
+	Delete(ctx context.Context, id string) error // soft delete internally
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*imodel.BudgetCategoryOracle, error)
+	FindAllWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BudgetCategoryOracle], error)
+	FindByName(ctx context.Context, name string) (*imodel.BudgetCategoryOracle, error)
 }
 
 // AmountBasedAuth persistence
@@ -267,6 +268,28 @@ type AmountBasedAuthRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.AuthTier], error)
 	FindByID(ctx context.Context, id string) (*local_model.AuthTier, error)
 	FindByCurrency(ctx context.Context, currency string) ([]local_model.AuthTier, error)
+	CurrencyExists(ctx context.Context, currency string) (bool, error)
+	DeleteByCurrency(ctx context.Context, currency string) error
+}
+
+// AmountBasedAuthOracleRepository is the Oracle DAL for amount-based auth tiers.
+// It avoids Mongo-specific bson.ObjectID and bson.M filters.
+type AmountBasedAuthOracleRepository interface {
+	Create(ctx context.Context, tier *local_model.AuthTierOracle) error
+	CreateMany(ctx context.Context, tiers []local_model.AuthTierOracle) error
+	Update(ctx context.Context, id string, update *local_model.AuthTierOracle) error
+	FindByID(ctx context.Context, id string) (*local_model.AuthTierOracle, error)
+
+	// FindActiveByCurrencyAndMethod returns all active tiers for (currency, method).
+	// The service assumes at most one active tier; callers should take [0] after checking len.
+	FindActiveByCurrencyAndMethod(ctx context.Context, currency string, method constants.Method) ([]local_model.AuthTierOracle, error)
+
+	// FindActiveByCurrency returns all active tiers for a currency.
+	FindActiveByCurrency(ctx context.Context, currency string) ([]local_model.AuthTierOracle, error)
+
+	// FindAllActiveForSearch returns active tiers for grouping.
+	FindAllActiveForSearch(ctx context.Context, search string) ([]local_model.AuthTierOracle, error)
+
 	CurrencyExists(ctx context.Context, currency string) (bool, error)
 	DeleteByCurrency(ctx context.Context, currency string) error
 }

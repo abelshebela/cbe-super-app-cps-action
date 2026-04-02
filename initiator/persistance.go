@@ -41,7 +41,6 @@ import (
 
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_user"
-	"cbe-super-app-cps-action/internal/storage/persistance/budget_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation_company"
 	ecommerce_merchant "cbe-super-app-cps-action/internal/storage/persistance/ecommerce_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/fayda"
@@ -102,7 +101,6 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		ArchivedLinkedAccountPersistence:  archived_linked_account.NewArchivedLinkedAccountRepository(client, cfg, dbName, ArchievedLinkedAccountCollection, logger),
 		AuthTierPersistence:               auth_tier.NewAuthTierRepository(client, cfg, dbName, AuthTierCollection, logger),
 		BankPersistence:                   bank.NewBankRepository(client, cfg, dbName, BanksCollection, logger),
-		BudgetCategoryPersistence:         budget_category.NewBudgetCategoryRepository(client, cfg, dbName, BudgetCategoryCollection, clientOrchestrationProducer, logger),
 		BulkService:                       bulk_service.InitBulkServicePersistence(client, cfg, dbName, []string{CPSActionsCollection, AccessListCollection}, clientOrchestrationProducer, notificationProducer, logger),
 		CustomerService:                   customer.InitCustomerDetail(client, cfg, dbName, []string{MembersCollection, LinkedAccountsCollection}, clientOrchestrationProducer, logger),
 		CpsUserPersistence:                cps_user.NewCPSUserRepository(client, redisRepository, cfg, dbName, CPSUsersCollection, []string{DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection, RolesCollection, JobRolesCollection}, logger),

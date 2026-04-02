@@ -131,6 +131,7 @@ func (h *kycAdapter) UpdateKYC(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var req kyc_verifier.UpdateKYCRequest
 	id := chi.URLParam(r, "id")
@@ -152,9 +153,11 @@ func (h *kycAdapter) UpdateKYC(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessKYCUpdatedSP, nil)
 
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessKYCUpdatedRequestSent, nil)
 
 	}

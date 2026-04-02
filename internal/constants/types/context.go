@@ -8,8 +8,9 @@ import (
 // ContextMetadata is a pointer-based metadata object that can be passed through context
 // to allow the service layer to communicate information back to the handler.
 type ContextMetadata struct {
-	IsMakerOnly bool
-	Id          string
+	IsMakerOnly   bool
+	CPSActionCode string
+	Id            string
 }
 
 // GetMetadata retrieves the ContextMetadata from the context.
@@ -24,6 +25,12 @@ func GetMetadata(ctx context.Context) *ContextMetadata {
 func SetIsMakerOnly(ctx context.Context, value bool) {
 	if md := GetMetadata(ctx); md != nil {
 		md.IsMakerOnly = value
+	}
+}
+
+func SetCPSActionCode(ctx context.Context, value string) {
+	if md := GetMetadata(ctx); md != nil {
+		md.CPSActionCode = value
 	}
 }
 

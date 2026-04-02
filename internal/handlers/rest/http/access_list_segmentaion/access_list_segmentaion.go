@@ -40,6 +40,7 @@ func (a *accessListSegmentation) CreateAccessListSegmentation(w http.ResponseWri
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var req access_list_segmentation_dto.CreateAccessListSegmentationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -57,10 +58,14 @@ func (a *accessListSegmentation) CreateAccessListSegmentation(w http.ResponseWri
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationCreatedSP, nil)
 		return
 	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationCreated, nil)
 }
 
@@ -81,6 +86,8 @@ func (a *accessListSegmentation) CreateAccessListSegmentation(w http.ResponseWri
 //	@Router			/access_list_segmentation/disable/{id} [patch]
 func (a *accessListSegmentation) DisableAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[DisableAccessListSegmentation] missing id parameter")
@@ -106,12 +113,16 @@ func (a *accessListSegmentation) DisableAccessListSegmentation(w http.ResponseWr
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationDisabled, nil)
 }
 
 // EnableAccessListSegmentation implements accesslistsegmentation.AccessListSegmentationHandler.
 func (a *accessListSegmentation) EnableAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[EnableAccessListSegmentation] missing id parameter")
@@ -123,6 +134,7 @@ func (a *accessListSegmentation) EnableAccessListSegmentation(w http.ResponseWri
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationEnabled, nil)
 }
 
@@ -201,6 +213,9 @@ func (a *accessListSegmentation) GetAllAccessListSegmentation(w http.ResponseWri
 // UpdateAccessListSegmentation implements accesslistsegmentation.AccessListSegmentationHandler.
 func (a *accessListSegmentation) UpdateAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[UpdateAccessListSegmentation] missing id parameter")
@@ -224,6 +239,7 @@ func (a *accessListSegmentation) UpdateAccessListSegmentation(w http.ResponseWri
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationUpdated, nil)
 }
 

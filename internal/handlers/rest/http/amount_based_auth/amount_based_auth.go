@@ -101,6 +101,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	log := common_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	method, ok := common_util.GetParam(r, "method")
 	if !ok {
@@ -192,6 +193,7 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 	log.Infof("[RejectAmountBasedAuth] rejection request processed for id: %s", idParam)
 	// For rejection, just return success since the actual rejection
 	// would be handled by the CPS action system
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessUserUpdated, cpsReq)
 }
 
@@ -215,6 +217,7 @@ func (a *AmountBasedAuthHandler) AddCurrency(w http.ResponseWriter, r *http.Requ
 	log := common_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var request amount_based_auth_dto.AddCurrencyRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -267,6 +270,7 @@ func (a *AmountBasedAuthHandler) ResetConfig(w http.ResponseWriter, r *http.Requ
 	log := common_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	currencyParam, ok := common_util.GetParam(r, "currency")
 	if !ok {

@@ -129,7 +129,7 @@ func SetMerchantDetails(ctx context.Context, merchantService service.EcommerceMe
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
 			log.Println("Failed to get merchant details", "merchantID", event.MerchantID, "error", err)
-			return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+			return errors.New(localization.ErrorEcommerceMerchantNotFound.Code)
 		}
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
