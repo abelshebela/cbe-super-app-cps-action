@@ -30,7 +30,7 @@ func MapModelToDTO(model local_model.AccessListSegmentation) access_list_segment
 		SegmentType:    model.SegmentationType,
 		SegmentCode:    model.SegmentationCode,
 		SegmentName:    model.SegmentationName,
-		SegmentedID:    model.SegmentedID.Hex(),
+		SegmentedID:    model.SegmentedID,
 		AccessListKey:  model.AccessListKey,
 		AccessListName: model.AccessListName,
 		Enabled:        model.Enabled,

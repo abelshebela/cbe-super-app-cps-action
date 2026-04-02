@@ -12,7 +12,7 @@ type AccessListSegmentation struct {
 	SegmentationType string        `json:"segmentation_type" bson:"segmentation_type"`
 	AccessListKey    string        `json:"access_list_key" bson:"access_list_key"`
 	AccessListName   string        `json:"access_list_name" bson:"access_list_name"`
-	SegmentedID      bson.ObjectID `json:"segmented_id" bson:"segmented_id"`
+	SegmentedID      string        `json:"segmented_id" bson:"segmented_id"`
 	SegmentationCode string        `json:"segmentation_code" bson:"segmentation_code"`
 	SegmentationName string        `json:"segmentation_name" bson:"segmentation_name"`
 	Enabled          bool          `json:"enabled" bson:"enabled"`

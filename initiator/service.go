@@ -141,7 +141,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	logisticsMerchantService := logistics_merchant_service.NewLogisticsMerchantService(persistence.LogisticsMerchantPersistence, nil, accountLookupAdapter, cfg, logger)
 	servicesService := services_svc.NewServicesService(persistence.ServicesPersistence, nil, logger)
 	miniAppProductCodeContainer := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
-	accessListSegmentationService := access_list_segmentation_service.NewAccessListSegmentationService(persistence.AccessListSegmentationPersistence, nil, persistence.AccessListPersistence, persistence.AccountBlockPersistence, persistence.CustomerService, persistence.CPSRoles, logger)
+	accessListSegmentationService := access_list_segmentation_service.NewAccessListSegmentationService(oracle.AccessListSegmentaion, nil, persistence.AccessListPersistence, persistence.AccountBlockPersistence, persistence.CustomerService, persistence.CPSRoles, logger)
 	customerSegmentationService := customer_segmentation.NewCustomerSegmentation(persistence.CustomerSegmentation, persistence.CPSRoles, nil, logger)
 	jobRoleService := job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, nil, *cfg, logger)
 	RoleService := roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, nil, *cfg, logger)
@@ -298,7 +298,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	serviceContainer.EventMerchantServiceContainer = eventMerchantService
 	serviceContainer.LogisticsMerchantServiceContainer = logisticsMerchantService
-	accessListSegmentationService = access_list_segmentation_service.NewAccessListSegmentationService(persistence.AccessListSegmentationPersistence, cpsActionService, persistence.AccessListPersistence, persistence.AccountBlockPersistence, persistence.CustomerService, persistence.CPSRoles, logger)
+	accessListSegmentationService = access_list_segmentation_service.NewAccessListSegmentationService(oracle.AccessListSegmentaion, cpsActionService, persistence.AccessListPersistence, persistence.AccountBlockPersistence, persistence.CustomerService, persistence.CPSRoles, logger)
 	customerSegmentationService = customer_segmentation.NewCustomerSegmentation(persistence.CustomerSegmentation, persistence.CPSRoles, cpsActionService, logger)
 	jobRoleService = job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, cpsActionService, *cfg, logger)
 	RoleService = roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, cpsActionService, *cfg, logger)

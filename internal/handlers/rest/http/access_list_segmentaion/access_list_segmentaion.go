@@ -100,7 +100,7 @@ func (a *accessListSegmentation) DisableAccessListSegmentation(w http.ResponseWr
 		return
 	}
 
-	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, false, req.AccessListKeys); err != nil {
+	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, false, req.AccessListKeys, req.SegmentationType); err != nil {
 		log.Errorf("[DisableAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -118,7 +118,7 @@ func (a *accessListSegmentation) EnableAccessListSegmentation(w http.ResponseWri
 		localization.SendErrorByCodeResponse(w, localization.ErrorAccessListSegmentationInvalidID.Code)
 		return
 	}
-	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, true, nil); err != nil {
+	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, true, nil, ""); err != nil {
 		log.Errorf("[EnableAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
