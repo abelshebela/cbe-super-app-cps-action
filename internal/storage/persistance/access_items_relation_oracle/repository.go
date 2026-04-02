@@ -1,0 +1,48 @@
+package access_items_relation_oracle
+
+import (
+	"context"
+	"database/sql"
+
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+)
+
+type Repository struct {
+	db     *sql.DB
+	logger utils.Logger
+}
+
+func NewRepository(db *sql.DB, logger utils.Logger) *Repository {
+	return &Repository{
+		db:     db,
+		logger: logger,
+	}
+}
+
+// FindParentChildRelationship implements the same contract as Mongo aggregation on access_items_relation.
+func (r *Repository) FindParentChildRelationship(ctx context.Context) ([]local_model.AccessItemRelation, error) {
+	q := `SELECT parent_key, child_key FROM ACCESS_ITEMS_RELATION ORDER BY parent_key, child_key`
+	rows, err := r.db.QueryContext(ctx, q)
+	if err != nil {
+		r.logger.Errorf("[AccessItemsRelationOracle][FindParentChildRelationship] query failed: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	defer rows.Close()
+
+	var out []local_model.AccessItemRelation
+	for rows.Next() {
+		var rel local_model.AccessItemRelation
+		if err := rows.Scan(&rel.ParentKey, &rel.ChildKey); err != nil {
+			r.logger.Errorf("[AccessItemsRelationOracle][FindParentChildRelationship] scan failed: %v", err)
+			return nil, local_util.HandleDBError(err)
+		}
+		out = append(out, rel)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+	return out, nil
+}

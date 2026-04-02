@@ -47,10 +47,10 @@ func (r *Repository) Create(ctx context.Context, tier *local_model.AuthTierOracl
 		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, :6, :7, :8)`
 
 	_, err := r.db.ExecContext(ctx, q,
-		tier.Currency,
+		string(tier.Currency),
 		tier.MinAmount,
 		tier.MaxAmount,
-		tier.Method,
+		string(tier.Method),
 		tier.Enabled,
 		tier.IsDeleted,
 		tier.CreatedAt,
@@ -89,10 +89,10 @@ func (r *Repository) Update(ctx context.Context, id string, update *local_model.
 		WHERE id = :8 AND is_deleted = 0`
 
 	_, err := r.db.ExecContext(ctx, q,
-		update.Currency,
+		string(update.Currency),
 		update.MinAmount,
 		update.MaxAmount,
-		update.Method,
+		string(update.Method),
 		update.Enabled,
 		update.IsDeleted,
 		update.LastModified,
@@ -171,7 +171,7 @@ func (r *Repository) FindActiveByCurrencyAndMethod(ctx context.Context, currency
 		WHERE currency = :1 AND method = :2 AND is_deleted = 0
 		ORDER BY last_modified DESC`
 
-	rows, err := r.db.QueryContext(ctx, q, currency, method)
+	rows, err := r.db.QueryContext(ctx, q, currency, string(method))
 	if err != nil {
 		return nil, local_util.HandleDBError(err)
 	}

@@ -1,0 +1,2 @@
+-- Optional rollback: only if you added IS_ENABLED via 000006 and no app depends on it.
+-- ALTER TABLE BUDGET_CATEGORIES DROP COLUMN IS_ENABLED;

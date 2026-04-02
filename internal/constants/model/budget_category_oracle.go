@@ -6,7 +6,7 @@ type BudgetCategoryOracle struct {
 	Color     string `sqlx:"color" json:"color"`
 	Icon      string `sqlx:"icon" json:"icon"`
 	Type      string `sqlx:"type" json:"type"`
-	IsEnabled int    `sqlx:"is_enabled" json:"is_enabled"`
+	IsEnabled int    `sqlx:"enabled" json:"enabled"`
 	IsDeleted int    `sqlx:"is_deleted" json:"is_deleted"`
 	CreateAt  string `sqlx:"create_at" json:"create_at,omitempty"`
 	UpdateAt  string `sqlx:"update_at" json:"update_at,omitempty"`
