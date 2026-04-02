@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"strings"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
@@ -184,16 +185,16 @@ func CheckMerchantExists(
 		return false, nil
 	}
 
-	// if res.BankAccountNumber == data.BankAccountNumber {
-	// 	return false, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
-	// }
+	if strings.EqualFold(res.BankAccountNumber, data.BankAccountNumber) {
+		return false, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
+	}
 	// if res.Email == data.Email {
 	// 	return false, errors.New(localization.ErrorEmailAlreadyExist.Code)
 	// }
 	// if res.PhoneNumber == data.PhoneNumber {
 	// 	return false, errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
 	// }
-	if res.Code == data.MerchantCode {
+	if strings.EqualFold(res.Code, data.MerchantCode) {
 		return false, errors.New(localization.ErrorCodeAlreadyExist.Code)
 	}
 
