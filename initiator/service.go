@@ -116,10 +116,10 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	donationService := donation.NewDonationService(mongoClient, persistence.DonationPersistence, persistence.DonationCategoryPersistence, persistence.DonationCompanyPersistence, nil, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	kycService := kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, persistence.UserPersistence, accountLookupAdapter, nil, persistence.LinkedAccountPersistence, *cfg, logger)
 	permissionService := permission.InitPermissionService(persistence.PermissionPersistence, persistence.DepartmentPersistence, nil, logger)
-	budgetCategoryService := budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, nil, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
+	budgetCategoryService := budgetCategorySvc.NewBudgetCategoryService(oracle.BudgetCategoryOracle, nil, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	cpsUserService := cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.RolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.DepartmentPersistence, permissionService, nil, nil, logger)
 	notificationsvc := notification.InitNotificationService(persistence.NotificationPersistence, logger, nil, smsService)
-	amountBased := amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, nil, cfg, logger)
+	amountBased := amount_based_auth.NewAmountBasedAuthService(oracle.AmountBasedAuthOracle, nil, cfg, logger)
 	unlinkService := unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, persistence.AccountBlockPersistence, nil, logger)
 	bpsUserService := bpsuser.NewBPSUserService(persistence.BPSUserPersistence, persistence.RolePersistence, nil, persistence.CpsUserPersistence, persistence.AccountBlockPersistence, logger)
 	articleService := media.NewMediaService(persistence.ArticlePersistence, redis, logger)
@@ -246,7 +246,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	notificationsvc = notification.InitNotificationService(persistence.NotificationPersistence, logger, cpsActionService, smsService)
 	deviceVersionService = deviceversion.NewDeviceVersionService(persistence.DeviceVersionControlPersistence, cpsActionService, clientOrchestrationProducer, logger)
 	serviceContainer.DeviceVersionContainer = deviceVersionService
-	budgetCategoryService = budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
+	budgetCategoryService = budgetCategorySvc.NewBudgetCategoryService(oracle.BudgetCategoryOracle, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	serviceContainer.UnlinkContainer = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, persistence.AccountBlockPersistence, cpsActionService, logger)
 	bpsUserService = bpsuser.NewBPSUserService(persistence.BPSUserPersistence, persistence.RolePersistence, cpsActionService, persistence.CpsUserPersistence, persistence.AccountBlockPersistence, logger)
 	serviceContainer.BPSUserContainer = bpsUserService
@@ -255,7 +255,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	avatarService = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, cfg.S3BucketName, minioPubUrl, *cfg)
 	permissionService = permission.InitPermissionService(persistence.PermissionPersistence, persistence.DepartmentPersistence, cpsActionService, logger)
 	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.RolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, persistence.BPSUserPersistence, logger)
-	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, cfg, logger)
+	amountBased = amount_based_auth.NewAmountBasedAuthService(oracle.AmountBasedAuthOracle, cpsActionService, cfg, logger)
 	serviceContainer.AmountBasedAuthContainer = amountBased
 	bpsActionRoleService = bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.JobRolePersistence, cpsActionService, logger)
 	serviceContainer.BPSActionRoleContainer = bpsActionRoleService
