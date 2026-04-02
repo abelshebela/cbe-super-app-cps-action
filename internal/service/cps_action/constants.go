@@ -1,7 +1,5 @@
 package cpsaction
 
-import "fmt"
-
 type ActionStatus string
 
 const (
@@ -1173,11 +1171,6 @@ func IsActionInGroup(action RequestAction, group string) bool {
 		return false
 	}
 
-	if group == "MULTIBRANCHDISABLEACCOUNTBLOCK" {
-		fmt.Println("Special case: MULTIBRANCHDISABLEACCOUNTBLOCK is considered part of the group", actions)
-		// Special case for MULTIBRANCHDISABLEACCOUNTBLOCK which is not directly in the group but is related to it
-		return true
-	}
 	for _, a := range actions {
 		if a == action {
 			return true
