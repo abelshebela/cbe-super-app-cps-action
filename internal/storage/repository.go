@@ -296,32 +296,32 @@ type AmountBasedAuthOracleRepository interface {
 
 // AccountBlock persistence
 type AccountBlockRepository interface {
-	CreateBranch(ctx context.Context, branch *model.AccountBlock) error
+	CreateBranch(ctx context.Context, branch *local_model.AccountBlock) error
 	DeleteBranch(ctx context.Context, id string) error
-	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
 	EnableOrDisableBranches(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
-	GetBranchesByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
-	FindByFilterKey(ctx context.Context, field, value string) (*model.AccountBlock, error)
+	GetBranchesByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
+	FindByFilterKey(ctx context.Context, field, value string) (*local_model.AccountBlock, error)
 
-	CreateCity(ctx context.Context, city *model.AccountBlock) error
+	CreateCity(ctx context.Context, city *local_model.AccountBlock) error
 	DeleteCity(ctx context.Context, id string) error
-	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
 	EnableOrDisableCities(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
-	GetCitiesByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
+	GetCitiesByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
 
-	CreateRegion(ctx context.Context, region *model.AccountBlock) error
+	CreateRegion(ctx context.Context, region *local_model.AccountBlock) error
 	DeleteRegion(ctx context.Context, id string) error
-	FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
 	EnableOrDisableRegions(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
-	GetRegionsByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
+	GetRegionsByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
 
-	CreateDistrict(ctx context.Context, district *model.AccountBlock) error
+	CreateDistrict(ctx context.Context, district *local_model.AccountBlock) error
 	DeleteDistrict(ctx context.Context, id string) error
-	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
 	EnableOrDisableDistricts(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
-	GetDistrictsByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
+	GetDistrictsByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
 	GetAccountBlockDetails(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error)
-	GetAllBranches(ctx context.Context, id string) ([]model.AccountBlock, error)
+	GetAllBranches(ctx context.Context, id string) ([]local_model.AccountBlock, error)
 }
 
 type AdvertRepository interface {
@@ -815,6 +815,7 @@ type AccessListSegmentationRepository interface {
 	BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error
 
 	FindParentChildRelationship(ctx context.Context) ([]local_model.AccessItemRelation, error)
+	SetAccountBlockRepository(repo AccountBlockRepository)
 }
 
 type MiniAppMerchant interface {
@@ -885,4 +886,16 @@ type AccessListSegmentationRepositoryOracle interface {
 	BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error
 
 	FindParentChildRelationship(ctx context.Context) ([]local_model.AccessItemRelation, error)
+}
+type WalletOracleRepository interface {
+	Create(ctx context.Context, wallet *local_model.WalletOracle) error
+	Update(ctx context.Context, id string, wallet *local_model.WalletOracle) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+
+	FindByID(ctx context.Context, id string) (*local_model.WalletOracle, error)
+	Find(ctx context.Context, key, value string) (*local_model.WalletOracle, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
+	FindByIDForGRPC(ctx context.Context, id string) (*local_model.WalletOracle, error)
+	FindAllWithPaginationForGRPC(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
 }

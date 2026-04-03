@@ -376,8 +376,8 @@ type WalletService interface {
 	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest) error
 	DeleteWallet(ctx context.Context, id string) error
 	EnableOrDisableWallet(ctx context.Context, id string, enable bool) error
-	GetWallet(ctx context.Context, id string) (*local_model.Wallet, error)
-	GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error)
+	GetWallet(ctx context.Context, id string) (*local_model.WalletOracle, error)
+	GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 	// GetWalletForGRPC(ctx context.Context, id string) (*local_model.GRPCWallet, error)
 	// GetAllWalletForGRPC(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.GRPCWallet], error)
@@ -394,14 +394,14 @@ type TopupService interface {
 }
 
 type AccountBlockService interface {
-	GetBranchById(ctx context.Context, id string) (*model.AccountBlock, error)
-	GetAllBranches(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	GetRegionById(ctx context.Context, id string) (*model.AccountBlock, error)
-	GetAllRegions(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	GetDistrictById(ctx context.Context, id string) (*model.AccountBlock, error)
-	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	GetCityById(ctx context.Context, Id string) (*model.AccountBlock, error)
-	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	GetBranchById(ctx context.Context, id string) (*local_model.AccountBlock, error)
+	GetAllBranches(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
+	GetRegionById(ctx context.Context, id string) (*local_model.AccountBlock, error)
+	GetAllRegions(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
+	GetDistrictById(ctx context.Context, id string) (*local_model.AccountBlock, error)
+	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
+	GetCityById(ctx context.Context, Id string) (*local_model.AccountBlock, error)
+	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
 	EnableOrDisableBranches(ctx context.Context, branchIds []string, reason string, enabled bool) error
 	EnableOrDisableRegions(ctx context.Context, regionIds []string, reason string, enabled bool) error
 	EnableOrDisableDistricts(ctx context.Context, regionIds []string, reason string, enabled bool) error

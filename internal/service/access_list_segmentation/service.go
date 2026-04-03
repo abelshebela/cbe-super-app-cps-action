@@ -295,7 +295,7 @@ func (a *AccessListSegmentationService) CheckALLIdsExist(ctx context.Context, t 
 		} else if len(r) != len(ids) {
 			var modelMaps []map[string]interface{}
 			for _, d := range r {
-				modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID.Hex()})
+				modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID})
 			}
 			missingids := access_list_segmentation_core.GetMissingIds(ids, modelMaps)
 			return fmt.Errorf("some Branch ids do not exist:%v", missingids)
@@ -306,7 +306,7 @@ func (a *AccessListSegmentationService) CheckALLIdsExist(ctx context.Context, t 
 		} else if len(r) != len(ids) {
 			var modelMaps []map[string]interface{}
 			for _, d := range r {
-				modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID.Hex()})
+				modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID})
 			}
 			missingids := access_list_segmentation_core.GetMissingIds(ids, modelMaps)
 			return fmt.Errorf("some Region ids do not exist:%v", missingids)
@@ -317,7 +317,7 @@ func (a *AccessListSegmentationService) CheckALLIdsExist(ctx context.Context, t 
 		} else if len(r) != len(ids) {
 			var modelMaps []map[string]interface{}
 			for _, d := range r {
-				modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID.Hex()})
+				modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID})
 			}
 			missingids := access_list_segmentation_core.GetMissingIds(ids, modelMaps)
 			return fmt.Errorf("some District ids do not exist:%v", missingids)
@@ -328,7 +328,7 @@ func (a *AccessListSegmentationService) CheckALLIdsExist(ctx context.Context, t 
 		} else if len(r) != len(ids) {
 			var modelMaps []map[string]interface{}
 			for _, d := range r {
-				modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID.Hex()})
+				modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID})
 			}
 			missingids := access_list_segmentation_core.GetMissingIds(ids, modelMaps)
 			return fmt.Errorf("some City ids do not exist:%v", missingids)
