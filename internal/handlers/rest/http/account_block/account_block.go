@@ -262,8 +262,9 @@ func (a *accountBlockAdapter) GetDistrictById(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	data := core.ToAccountBlockResponse(district)
 	log.Infof("[AccBlockH][GetDistrictById] ok: %s", districtId)
-	localization.SendSuccessResponse(w, localization.SuccessDistrictRetrieved, district)
+	localization.SendSuccessResponse(w, localization.SuccessDistrictRetrieved, data)
 }
 
 // GetAllDistricts godoc
@@ -354,8 +355,9 @@ func (a *accountBlockAdapter) GetCityById(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	data := core.ToAccountBlockResponse(city)
 	log.Infof("[AccBlockH][GetCityById] ok: %s", cityId)
-	localization.SendSuccessResponse(w, localization.SuccessCityRetrieved, city)
+	localization.SendSuccessResponse(w, localization.SuccessCityRetrieved, data)
 }
 
 // GetAllCities godoc
