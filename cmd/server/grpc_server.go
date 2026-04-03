@@ -6,6 +6,7 @@ import (
 
 	topuppb "cbe-super-app-cps-action/grpc/topup/proto"
 	walletpb "cbe-super-app-cps-action/grpc/wallet/proto"
+	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -219,14 +220,14 @@ func buildPaginationService(meta types.PaginationMeta) *servicepb.Meta {
 		HasPrevPage: meta.HasPrevPage,
 	}
 }
-func (s *server) serviceListMapper(data []model.Service) []*servicepb.ServiceDetails {
+func (s *server) serviceListMapper(data []service_dto.ServiceResponse) []*servicepb.ServiceDetails {
 	var services []*servicepb.ServiceDetails
 	for i := range data {
 		services = append(services, s.MapServiceDetails(&data[i]))
 	}
 	return services
 }
-func (s *server) MapServiceDetails(data *model.Service) *servicepb.ServiceDetails {
+func (s *server) MapServiceDetails(data *service_dto.ServiceResponse) *servicepb.ServiceDetails {
 	return &servicepb.ServiceDetails{
 		Id:          data.ID,
 		ServiceCode: data.ServiceCode,

@@ -146,7 +146,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, nil, logger)
 	eventMerchantService := event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, nil, accountLookupAdapter, persistence.MerchantLookup, cfg, logger)
 	logisticsMerchantService := logistics_merchant_service.NewLogisticsMerchantService(persistence.LogisticsMerchantPersistence, nil, accountLookupAdapter, cfg, logger)
-	// servicesService := services_svc.NewServicesService(persistence.ServicesPersistence, nil, logger)
 	servicesService := services_svc.NewServicesService(oracle.ServicesPersistence, nil, logger)
 	miniAppProductCodeContainer := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
 	accessListSegmentationService := access_list_segmentation_service.NewAccessListSegmentationService(persistence.AccessListSegmentationPersistence, nil, persistence.AccessListPersistence, oracle.AccountBlock, persistence.CustomerService, persistence.CPSRoles, logger)

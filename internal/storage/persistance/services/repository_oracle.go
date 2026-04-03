@@ -14,6 +14,8 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 
+	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -109,57 +111,70 @@ WHERE service_id = HEXTORAW(:1)`
 	return caps, nil
 }
 
-func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, service *model.Service) error {
-	deletedAtVal := time.Now()
-	if service.DeletedAt != nil {
-		deletedAtVal = *service.DeletedAt
+func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, service *model.Service) (string, error) {
+	var serviceID string
+	if strings.TrimSpace(service.ServiceKeyId) == "" {
+		return "", errors.New(localization.ErrorInvalidID.Code)
 	}
 
-	var id string
+	// 1) Update service_keys enabled/disabled state by ID.
+	// 	const qKey = `
+	// UPDATE service_keys
+	// SET
+	//   is_enabled = :1,
+	//   is_deleted = :2,
+	//   last_modified_at = SYSTIMESTAMP,
+	//   deleted_at = CASE WHEN :2 = 1 THEN SYSTIMESTAMP ELSE NULL END
+	// WHERE id = HEXTORAW(:3)`
 
-	// Insert the main service row (caps are stored in service_cap).
+	// 	res, err := tx.ExecContext(ctx, qKey,
+	// 		boolToOracleNumber(service.Enabled),
+	// 		boolToOracleNumber(service.IsDeleted),
+	// 		service.ServiceKeyId,
+	// 	)
+	// 	if err != nil {
+	// 		s.logger.Errorf("[ServicesRepo][insertService] update service_keys failed: %v", err)
+	// 		return "", local_util.HandleDBError(err)
+	// 	}
+
+	// 	rows, _ := res.RowsAffected()
+	// 	if rows == 0 {
+	// 		return "", errors.New(localization.ErrorServiceNotFound.Code)
+	// 	}
+
+	// 2) Insert into services (service enabled/disabled state comes from service_keys).
 	const q = `
 INSERT INTO services (
-  service_name,
+  service_key_id,
   service_code,
-  service_key,
   minimum_fraud_amount,
   product_gl_account,
   product_gl_account_currency,
-  enabled,
-  is_deleted,
   created_at,
-  last_modified_at,
-  deleted_at
-) 
-VALUES (
-  :1,:2,:3,:4,:5,:6,:7,
-  :8,:9,:10,:11
+  last_modified_at
 )
-RETURNING RAWTOHEX(id) INTO :12`
+VALUES (
+  HEXTORAW(:1),:2,:3,:4,:5,:6,:7
+)
+RETURNING RAWTOHEX(id) INTO :8`
 
-	_, err := tx.ExecContext(ctx, q,
-		service.ServiceName,
+	if _, err := tx.ExecContext(ctx, q,
+		service.ServiceKeyId,
 		service.ServiceCode,
-		service.ServiceKey,
 		service.MinimumFraudAmount,
 		service.ProductGlAccount,
 		service.ProductGlAccountCurrency,
-		boolToOracleNumber(service.Enabled),
-		boolToOracleNumber(service.IsDeleted),
 		service.CreatedAt,
 		service.LastModifiedAt,
-		deletedAtVal,
-		sql.Out{Dest: &id},
-	)
-	if err != nil {
-		s.logger.Errorf("[ServicesRepo][insertService] insert failed: %v", err)
-		return local_util.HandleDBError(err)
+		sql.Out{Dest: &serviceID},
+	); err != nil {
+		s.logger.Errorf("[ServicesRepo][insertService] insert services failed: %v", err)
+		return "", local_util.HandleDBError(err)
 	}
 
-	// Insert cap rows (one row per cap entry).
+	// 3) Insert cap rows (one row per cap entry).
 	if len(service.Cap) == 0 {
-		return nil
+		return serviceID, nil
 	}
 
 	const capQ = `
@@ -175,20 +190,19 @@ VALUES (
 )`
 
 	for _, cap := range service.Cap {
-		_, err := tx.ExecContext(ctx, capQ,
-			id,
+		if _, err := tx.ExecContext(ctx, capQ,
+			serviceID,
 			string(cap.Source),
 			cap.Currency,
 			cap.SingleCap,
 			cap.MinimumTransferCap,
-		)
-		if err != nil {
+		); err != nil {
 			s.logger.Errorf("[ServicesRepo][insertService] insert cap failed: %v", err)
-			return local_util.HandleDBError(err)
+			return "", local_util.HandleDBError(err)
 		}
 	}
 
-	return nil
+	return serviceID, nil
 }
 
 func (s *ServicesStorage) updateServiceCaps(ctx context.Context, tx *sql.Tx, serviceID string, caps []model.Cap) error {
@@ -245,9 +259,11 @@ func (s *ServicesStorage) Create(ctx context.Context, service *model.Service) er
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	if err := s.insertService(ctx, tx, service); err != nil {
+	serviceID, err := s.insertService(ctx, tx, service)
+	if err != nil {
 		return err
 	}
+	service.ID = serviceID
 
 	if err := tx.Commit(); err != nil {
 		s.logger.Errorf("[ServicesRepo][Create] commit failed: %v", err)
@@ -274,34 +290,73 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
+	serviceKeyID := strings.TrimSpace(service.ServiceKeyId)
 
-	// 1) Update main services row.
+	// 	// Ensure service exists before inserting/updating service_keys.
+	// 	const svcExistsQ = `
+	// SELECT 1
+	// FROM services
+	// WHERE id = HEXTORAW(:1)
+	// FETCH FIRST 1 ROWS ONLY`
+	// 	var exists int
+	// 	if err := tx.QueryRowContext(ctx, svcExistsQ, id).Scan(&exists); err != nil {
+	// 		if errors.Is(err, sql.ErrNoRows) {
+	// 			return errors.New(localization.ErrorServiceNotFound.Code)
+	// 		}
+	// 		s.logger.Errorf("[ServicesRepo][Update] service exists check failed: %v", err)
+	// 		return local_util.HandleDBError(err)
+	// 	}
+
+	// 	if serviceKeyID == "" {
+	// 		return errors.New(localization.ErrorInvalidID.Code)
+	// 	}
+
+	// 	// Sync enabled/disabled state on the related service_keys row.
+	// 	const qKey = `
+	// UPDATE service_keys
+	// SET
+	//   is_enabled = :1,
+	//   is_deleted = :2,
+	//   last_modified_at = SYSTIMESTAMP,
+	//   deleted_at = CASE WHEN :2 = 1 THEN SYSTIMESTAMP ELSE NULL END
+	// WHERE id = HEXTORAW(:3)`
+
+	// 	resKey, err := tx.ExecContext(ctx, qKey,
+	// 		boolToOracleNumber(service.Enabled),
+	// 		boolToOracleNumber(service.IsDeleted),
+	// 		serviceKeyID,
+	// 	)
+	// 	if err != nil {
+	// 		s.logger.Errorf("[ServicesRepo][Update] update service_keys failed: %v", err)
+	// 		return local_util.HandleDBError(err)
+	// 	}
+	// 	rowsKey, _ := resKey.RowsAffected()
+	// 	if rowsKey == 0 {
+	// 		return errors.New(localization.ErrorServiceNotFound.Code)
+	// 	}
+
+	// 1) Update services row fields.
 	const q = `
-UPDATE services SET
-  service_name = :1,
+UPDATE services
+SET
+  service_key_id = HEXTORAW(:1),
   service_code = :2,
-  service_key = :3,
-  minimum_fraud_amount = :4,
-  product_gl_account = :5,
-  product_gl_account_currency = :6,
-  enabled = :7,
-  is_deleted = :8,
+  minimum_fraud_amount = :3,
+  product_gl_account = :4,
+  product_gl_account_currency = :5,
   last_modified_at = SYSTIMESTAMP
-WHERE id = HEXTORAW(:9) AND is_deleted = 0`
+WHERE id = HEXTORAW(:6)`
 
 	res, err := tx.ExecContext(ctx, q,
-		service.ServiceName,
+		serviceKeyID,
 		service.ServiceCode,
-		service.ServiceKey,
 		service.MinimumFraudAmount,
 		service.ProductGlAccount,
 		service.ProductGlAccountCurrency,
-		boolToOracleNumber(service.Enabled),
-		boolToOracleNumber(service.IsDeleted),
 		id,
 	)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][Update] update service failed: %v", err)
+		s.logger.Errorf("[ServicesRepo][Update] update services failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
@@ -346,12 +401,19 @@ func (s *ServicesStorage) Delete(ctx context.Context, id string) error {
 		return local_util.HandleDBError(err)
 	}
 
+	// Soft-delete by marking the related service_keys row as deleted.
 	const q = `
-UPDATE services SET
+UPDATE service_keys
+SET
   is_deleted = 1,
   deleted_at = SYSTIMESTAMP,
   last_modified_at = SYSTIMESTAMP
-WHERE id = HEXTORAW(:1)`
+WHERE id = (
+  SELECT service_key_id
+  FROM services
+  WHERE id = HEXTORAW(:1)
+)
+  AND is_deleted = 0`
 
 	res, err := tx.ExecContext(ctx, q, id)
 	if err != nil {
@@ -373,11 +435,16 @@ WHERE id = HEXTORAW(:1)`
 
 func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	const q = `
-UPDATE services
+UPDATE service_keys
 SET
-  enabled = :1,
+  is_enabled = :1,
   last_modified_at = SYSTIMESTAMP
-WHERE id = HEXTORAW(:2) AND is_deleted = 0`
+WHERE id = (
+  SELECT service_key_id
+  FROM services
+  WHERE id = HEXTORAW(:2)
+)
+  AND is_deleted = 0`
 
 	res, err := s.db.ExecContext(ctx, q, boolToOracleNumber(enable), id)
 	if err != nil {
@@ -390,36 +457,46 @@ WHERE id = HEXTORAW(:2) AND is_deleted = 0`
 		return errors.New(localization.ErrorServiceNotFound.Code)
 	}
 
+	// Keep services last_modified_at consistent for audit purposes.
+	_, err = s.db.ExecContext(ctx, `UPDATE services SET last_modified_at = SYSTIMESTAMP WHERE id = HEXTORAW(:1)`, id)
+	if err != nil {
+		s.logger.Errorf("[ServicesRepo][EnableOrDisable] update services last_modified_at failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
 	return nil
 }
 
-func (s *ServicesStorage) FindByID(ctx context.Context, id string) (*model.Service, error) {
+func (s *ServicesStorage) FindByID(ctx context.Context, id string) (*service_dto.ServiceResponse, error) {
 	const q = `
 SELECT
-  RAWTOHEX(id),
-  service_name,
-  service_code,
-  service_key,
-  minimum_fraud_amount,
-  product_gl_account,
-  product_gl_account_currency,
-  enabled,
-  is_deleted,
-  created_at,
-  last_modified_at,
-  deleted_at
-FROM services
-WHERE id = HEXTORAW(:1) AND is_deleted = 0`
+  RAWTOHEX(s.id),
+  RAWTOHEX(s.service_key_id),
+  sk.service_name,
+  sk.service_key,
+  s.service_code,
+  s.minimum_fraud_amount,
+  s.product_gl_account,
+  s.product_gl_account_currency,
+  sk.is_enabled,
+  sk.is_deleted,
+  s.created_at,
+  s.last_modified_at,
+  sk.deleted_at
+FROM services s
+JOIN service_keys sk ON sk.id = s.service_key_id
+WHERE s.id = HEXTORAW(:1) AND sk.is_deleted = 0`
 
 	var serviceID string
-	var svc model.Service
+	var svc service_dto.ServiceResponse
 	var deletedAt sql.NullTime
 
 	err := s.db.QueryRowContext(ctx, q, id).Scan(
 		&serviceID,
+		&svc.ServiceKeyId,
 		&svc.ServiceName,
-		&svc.ServiceCode,
 		&svc.ServiceKey,
+		&svc.ServiceCode,
 		&svc.MinimumFraudAmount,
 		&svc.ProductGlAccount,
 		&svc.ProductGlAccountCurrency,
@@ -448,7 +525,7 @@ WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 	return &svc, nil
 }
 
-func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Service], error) {
+func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error) {
 	limit := int64(maxPaginationDefault)
 	page := int64(1)
 	if filterParam.PerPage > 0 {
@@ -459,16 +536,17 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 	}
 	offset := (page - 1) * limit
 
-	clauses := []string{"s.is_deleted = 0"}
+	fromClause := fmt.Sprintf(`FROM %s s JOIN %s sk ON sk.id = s.service_key_id`, servicesTable, serviceKeysTable)
+
+	clauses := []string{"sk.is_deleted = 0"}
 	var args []interface{}
 
 	search := strings.TrimSpace(filterParam.Search)
 	if search != "" {
 		clauses = append(clauses,
 			`(
-				LOWER(s.service_name) LIKE '%' || LOWER(:search) || '%'
+				LOWER(RAWTOHEX(s.service_key_id)) LIKE '%' || LOWER(:search) || '%'
 				OR LOWER(s.service_code) LIKE '%' || LOWER(:search) || '%'
-				OR LOWER(s.service_key) LIKE '%' || LOWER(:search) || '%'
 			)`,
 		)
 		args = append(args, sql.Named("search", search))
@@ -477,14 +555,14 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 	if filterParam.Filters != nil {
 		if v, ok := filterParam.Filters["enabled"]; ok {
 			if b, ok2 := parseBoolFilter(v); ok2 {
-				clauses = append(clauses, "s.enabled = :enabled")
+				clauses = append(clauses, "sk.is_enabled = :enabled")
 				args = append(args, sql.Named("enabled", boolToOracleNumber(b)))
 			}
 		}
 
 		if v, ok := filterParam.Filters["service_name"]; ok {
 			if sName, ok2 := v.(string); ok2 && strings.TrimSpace(sName) != "" {
-				clauses = append(clauses, "LOWER(s.service_name) = LOWER(:service_name)")
+				clauses = append(clauses, "LOWER(sk.service_name) = LOWER(:service_name)")
 				args = append(args, sql.Named("service_name", sName))
 			}
 		}
@@ -496,7 +574,7 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 		}
 		if v, ok := filterParam.Filters["service_key"]; ok {
 			if sKey, ok2 := v.(string); ok2 && strings.TrimSpace(sKey) != "" {
-				clauses = append(clauses, "LOWER(s.service_key) = LOWER(:service_key)")
+				clauses = append(clauses, "LOWER(sk.service_key) = LOWER(:service_key)")
 				args = append(args, sql.Named("service_key", sKey))
 			}
 		}
@@ -504,7 +582,7 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	where := strings.Join(clauses, " AND ")
 
-	countQ := fmt.Sprintf(`SELECT COUNT(*) FROM %s s WHERE %s`, servicesTable, where)
+	countQ := fmt.Sprintf(`SELECT COUNT(*) %s WHERE %s`, fromClause, where)
 	var total int64
 	if err := s.db.QueryRowContext(ctx, countQ, args...).Scan(&total); err != nil {
 		s.logger.Errorf("[ServicesRepo][FindAllWithPagination] count failed: %v", err)
@@ -513,22 +591,23 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	listQ := fmt.Sprintf(`
 SELECT
-  RAWTOHEX(id),
-  service_name,
-  service_code,
-  service_key,
-  minimum_fraud_amount,
-  product_gl_account,
-  product_gl_account_currency,
-  enabled,
-  is_deleted,
-  created_at,
-  last_modified_at,
-  deleted_at
-FROM %s s
+  RAWTOHEX(s.id),
+  RAWTOHEX(s.service_key_id),
+  sk.service_name,
+  sk.service_key,
+  s.service_code,
+  s.minimum_fraud_amount,
+  s.product_gl_account,
+  s.product_gl_account_currency,
+  sk.is_enabled,
+  sk.is_deleted,
+  s.created_at,
+  s.last_modified_at,
+  sk.deleted_at
+%s
 WHERE %s
-ORDER BY created_at DESC
-OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, servicesTable, where)
+ORDER BY s.created_at DESC
+OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, fromClause, where)
 
 	listArgs := append(args, sql.Named("offset", offset), sql.Named("limit", limit))
 	rows, err := s.db.QueryContext(ctx, listQ, listArgs...)
@@ -538,17 +617,18 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, servicesTable, where)
 	}
 	defer rows.Close()
 
-	var list []model.Service
+	var list []service_dto.ServiceResponse
 	for rows.Next() {
 		var serviceID string
-		var svc model.Service
+		var svc service_dto.ServiceResponse
 		var deletedAt sql.NullTime
 
 		if err := rows.Scan(
 			&serviceID,
+			&svc.ServiceKeyId,
 			&svc.ServiceName,
-			&svc.ServiceCode,
 			&svc.ServiceKey,
+			&svc.ServiceCode,
 			&svc.MinimumFraudAmount,
 			&svc.ProductGlAccount,
 			&svc.ProductGlAccountCurrency,
@@ -577,7 +657,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, servicesTable, where)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, int(page), int(limit))
-	return &types.PaginatedResponse[[]model.Service]{Data: list, Meta: meta}, nil
+	return &types.PaginatedResponse[[]service_dto.ServiceResponse]{Data: list, Meta: meta}, nil
 }
 
 func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error) {
@@ -585,15 +665,15 @@ func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode
 	args := make([]interface{}, 0, 3)
 
 	if strings.TrimSpace(serviceCode) != "" {
-		clauses = append(clauses, "service_code = :service_code")
+		clauses = append(clauses, "s.service_code = :service_code")
 		args = append(args, sql.Named("service_code", serviceCode))
 	}
 	if strings.TrimSpace(serviceKey) != "" {
-		clauses = append(clauses, "service_key = :service_key")
+		clauses = append(clauses, "sk.service_key = :service_key")
 		args = append(args, sql.Named("service_key", serviceKey))
 	}
 	if strings.TrimSpace(serviceName) != "" {
-		clauses = append(clauses, "service_name = :service_name")
+		clauses = append(clauses, "sk.service_name = :service_name")
 		args = append(args, sql.Named("service_name", serviceName))
 	}
 	if len(clauses) == 0 {
@@ -601,7 +681,12 @@ func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode
 	}
 
 	where := strings.Join(clauses, " OR ")
-	q := fmt.Sprintf(`SELECT COUNT(*) FROM services WHERE is_deleted = 0 AND (%s)`, where)
+	q := fmt.Sprintf(
+		`SELECT COUNT(*) FROM %s s JOIN %s sk ON sk.id = s.service_key_id WHERE sk.is_deleted = 0 AND (%s)`,
+		servicesTable,
+		serviceKeysTable,
+		where,
+	)
 
 	var count int64
 	if err := s.db.QueryRowContext(ctx, q, args...).Scan(&count); err != nil {
@@ -612,7 +697,7 @@ func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode
 	return count > 0, nil
 }
 
-func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error) {
+func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceKey], error) {
 	limit := int64(maxPaginationDefault)
 	page := int64(1)
 	if filterParam.PerPage > 0 {
@@ -692,10 +777,10 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, serviceKeysTable, where)
 	}
 	defer rows.Close()
 
-	var list []model.ServiceList
+	var list []model.ServiceKey
 	for rows.Next() {
 		var listID string
-		var item model.ServiceList
+		var item model.ServiceKey
 		if err := rows.Scan(
 			&listID,
 			&item.ServiceName,
@@ -714,16 +799,16 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, serviceKeysTable, where)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, int(page), int(limit))
-	return &types.PaginatedResponse[[]model.ServiceList]{Data: list, Meta: meta}, nil
+	return &types.PaginatedResponse[[]model.ServiceKey]{Data: list, Meta: meta}, nil
 }
 
-func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*model.ServiceList, error) {
+func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*model.ServiceKey, error) {
 	const q = `
 SELECT RAWTOHEX(id), service_name, service_key, is_enabled, created_at, last_modified_at
 FROM service_keys
 WHERE id = HEXTORAW(:1)`
 
-	var item model.ServiceList
+	var item model.ServiceKey
 	var listID string
 	err := s.db.QueryRowContext(ctx, q, id).Scan(
 		&listID,
@@ -745,7 +830,7 @@ WHERE id = HEXTORAW(:1)`
 	return &item, nil
 }
 
-func (s *ServicesStorage) FindServiceListByNameOrKey(ctx context.Context, name, key string) (*model.ServiceList, error) {
+func (s *ServicesStorage) FindServiceListByNameOrKey(ctx context.Context, name, key string) (*model.ServiceKey, error) {
 	conds := make([]string, 0, 2)
 	args := make([]interface{}, 0, 2)
 
@@ -769,7 +854,7 @@ FROM %s
 WHERE (%s)
 FETCH FIRST 1 ROWS ONLY`, serviceKeysTable, where)
 
-	var item model.ServiceList
+	var item model.ServiceKey
 	var listID string
 	err := s.db.QueryRowContext(ctx, query, args...).Scan(
 		&listID,
@@ -790,20 +875,12 @@ FETCH FIRST 1 ROWS ONLY`, serviceKeysTable, where)
 	return &item, nil
 }
 
-func (s *ServicesStorage) CreateServiceList(ctx context.Context, serviceList *model.ServiceList) error {
-	now := time.Now()
-	if serviceList.CreatedAt.IsZero() {
-		serviceList.CreatedAt = now
-	}
-	if serviceList.LastModifiedAt.IsZero() {
-		serviceList.LastModifiedAt = now
-	}
-
+func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *model.ServiceKey) error {
 	serviceList.IsEnabled = true
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][CreateServiceList] begin tx failed: %v", err)
+		s.logger.Errorf("[ServicesRepo][CreateServiceKey] begin tx failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
@@ -812,22 +889,18 @@ func (s *ServicesStorage) CreateServiceList(ctx context.Context, serviceList *mo
 INSERT INTO service_keys (
   service_name,
   service_key,
-  is_enabled,
-  created_at,
-  last_modified_at
+  is_enabled
 )
 VALUES (
-  :1,:2,:3,:4,:5
+  :1,:2,:3
 )`
 
 	if _, err := tx.ExecContext(ctx, q,
 		serviceList.ServiceName,
 		serviceList.ServiceKey,
 		boolToOracleNumber(serviceList.IsEnabled),
-		serviceList.CreatedAt,
-		serviceList.LastModifiedAt,
 	); err != nil {
-		s.logger.Errorf("[ServicesRepo][CreateServiceList] insert failed: %v", err)
+		s.logger.Errorf("[ServicesRepo][CreateServiceKey] insert failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
@@ -852,12 +925,12 @@ VALUES (
 		serviceList.CreatedAt,
 		serviceList.LastModifiedAt,
 	); err != nil {
-		s.logger.Errorf("[ServicesRepo][CreateServiceList] insert access_list failed: %v", err)
+		s.logger.Errorf("[ServicesRepo][CreateServiceKey] insert access_list failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		s.logger.Errorf("[ServicesRepo][CreateServiceList] commit failed: %v", err)
+		s.logger.Errorf("[ServicesRepo][CreateServiceKey] commit failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -873,10 +946,10 @@ VALUES (
 	return nil
 }
 
-func (s *ServicesStorage) UpdateServiceList(ctx context.Context, id, serviceKey string, serviceList *model.ServiceList) error {
+func (s *ServicesStorage) UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *model.ServiceKey) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][UpdateServiceList] begin tx failed: %v", err)
+		s.logger.Errorf("[ServicesRepo][UpdateServiceKey] begin tx failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
@@ -895,7 +968,7 @@ WHERE id = :3 AND service_key = :4`
 		serviceKey,
 	)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][UpdateServiceList] update failed: %v", err)
+		s.logger.Errorf("[ServicesRepo][UpdateServiceKey] update failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	rows, _ := res.RowsAffected()
@@ -915,26 +988,26 @@ WHERE key = :3`
 		serviceList.ServiceName,
 		serviceKey,
 	); err != nil {
-		s.logger.Errorf("[ServicesRepo][UpdateServiceList] update access_list failed: %v", err)
+		s.logger.Errorf("[ServicesRepo][UpdateServiceKey] update access_list failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		s.logger.Errorf("[ServicesRepo][UpdateServiceList] commit failed: %v", err)
+		s.logger.Errorf("[ServicesRepo][UpdateServiceKey] commit failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 
-func (s *ServicesStorage) EnableOrDisableServiceList(ctx context.Context, id, serviceKey string, enable bool) error {
+func (s *ServicesStorage) EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error {
 	const q = `
 UPDATE service_keys
 SET
   is_enabled = :1,
   last_modified_at = SYSTIMESTAMP
-WHERE id = :2 AND service_key = :3`
+WHERE id = :2`
 
-	res, err := s.db.ExecContext(ctx, q, boolToOracleNumber(enable), id, serviceKey)
+	res, err := s.db.ExecContext(ctx, q, boolToOracleNumber(enable), id)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][EnableOrDisableServiceList] update failed: %v", err)
 		return local_util.HandleDBError(err)
@@ -944,13 +1017,19 @@ WHERE id = :2 AND service_key = :3`
 		return errors.New(localization.ErrorServiceListNotFound.Code)
 	}
 
+	result, err := s.FindServiceListByID(ctx, id)
+	if err != nil {
+		s.logger.Errorf("[ServicesRepo][EnableOrDisableServiceList] find service list failed: %v", err)
+		return err
+	}
+
 	const accessEnableQ = `
-UPDATE access_list
-SET
-  enabled = :1,
-  last_modified_at = SYSTIMESTAMP
-WHERE key = :2`
-	if _, err := s.db.ExecContext(ctx, accessEnableQ, boolToOracleNumber(enable), serviceKey); err != nil {
+	UPDATE access_list
+	SET
+	  enabled = :1,
+	  last_modified_at = SYSTIMESTAMP
+	WHERE key = :2`
+	if _, err := s.db.ExecContext(ctx, accessEnableQ, boolToOracleNumber(enable), result.ServiceKey); err != nil {
 		s.logger.Errorf("[ServicesRepo][EnableOrDisableServiceList] update access_list failed: %v", err)
 		return local_util.HandleDBError(err)
 	}

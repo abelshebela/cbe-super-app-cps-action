@@ -418,7 +418,7 @@ func (w *WalletStorage) FindByIDForGRPC(ctx context.Context, id string) (*local_
 	// Enrich if found
 	if service != nil {
 		grpcWallet.ServiceCode = service.ServiceCode
-		grpcWallet.ServiceKey = service.ServiceName
+		// grpcWallet.ServiceKey = service.ServiceName
 	}
 
 	return &grpcWallet, nil
