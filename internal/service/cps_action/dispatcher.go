@@ -56,7 +56,6 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "MULTIBRANCHDISABLEACCOUNTBLOCK"):
 		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
-
 	case IsActionInGroup(RequestAction(action), "ACCOUNTVALIDATION"):
 		return d.app.AccountContainer.Authorize(ctx, cpsAction)
 
