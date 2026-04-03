@@ -7,15 +7,28 @@ import (
 )
 
 func ToAccountBlockResponse(ab *imodel.AccountBlock) *ab_dto.AccountBlockResponse {
-	var parentID string
+	var parentID, cityID, regionID, districtID string
 	if ab.ParentID != nil {
 		parentID = *ab.ParentID
 	}
+	if ab.CityID != nil {
+		cityID = *ab.CityID
+	}
+	if ab.RegionID != nil {
+		regionID = *ab.RegionID
+	}
+	if ab.DistrictID != nil {
+		districtID = *ab.DistrictID
+	}
 
-	// Convert parent to shared-compatible form if present
 	var parent *imodel.AccountBlock
 	if ab.Parent != nil {
 		parent = ab.Parent
+	}
+
+	dr := ab.DisableReason
+	if dr == nil {
+		dr = []imodel.AccountBlockReason{}
 	}
 
 	return &ab_dto.AccountBlockResponse{
@@ -27,7 +40,10 @@ func ToAccountBlockResponse(ab *imodel.AccountBlock) *ab_dto.AccountBlockRespons
 		Type:          string(ab.Type),
 		ParentID:      parentID,
 		Parent:        parent,
-		DisableReason: ab.DisableReason,
+		CityID:        cityID,
+		RegionID:      regionID,
+		DistrictID:    districtID,
+		DisableReason: dr,
 		IsEnabled:     ab.IsEnabled,
 		CreatedAt:     ab.CreatedAt,
 		UpdatedAt:     ab.UpdatedAt,

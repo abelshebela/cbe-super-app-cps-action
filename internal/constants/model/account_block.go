@@ -26,13 +26,15 @@ type AccountBlock struct {
 	CityID        *string            `json:"city_id,omitempty"`
 	RegionID      *string            `json:"region_id,omitempty"`
 	DistrictID    *string            `json:"district_id,omitempty"`
-	DisableReason AccountBlockReason `json:"disable_reason"`
-	IsDeleted     bool               `json:"-"`
-	CreatedAt     time.Time          `json:"created_at"`
-	UpdatedAt     time.Time          `json:"updated_at"`
+	DisableReason []AccountBlockReason `json:"disable_reason"`
+	IsDeleted     bool                 `json:"-"`
+	CreatedAt     time.Time            `json:"created_at"`
+	UpdatedAt     time.Time            `json:"updated_at"`
 }
 
+// AccountBlockReason is one disable event (stored in account_block_disable_reasons).
 type AccountBlockReason struct {
+	ID        string    `json:"id,omitempty"`
 	Reason    string    `json:"reason"`
 	CreatedAt time.Time `json:"created_at"`
 	CreatedBy string    `json:"created_by"`

@@ -1,0 +1,1 @@
+DROP TABLE account_block_disable_reasons;

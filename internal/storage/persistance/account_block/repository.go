@@ -146,6 +146,49 @@ func nullStr(s *string) interface{} {
 	return *s
 }
 
+const maxParentDepth = 64
+
+// fetchBlockByID loads one row by primary key (any type), for parent_id resolution.
+func (a *AccountBlockStorage) fetchBlockByID(ctx context.Context, id string) (*imodel.AccountBlock, error) {
+	row := a.db.QueryRowContext(ctx, selectAccountBlockByID, sql.Named("id", id))
+	return scanAccountBlockFromRow(row)
+}
+
+// populateParentChain walks parent_id and sets Parent to the loaded row (recursive).
+func (a *AccountBlockStorage) populateParentChain(ctx context.Context, b *imodel.AccountBlock, depth int) error {
+	if b == nil || depth > maxParentDepth {
+		return nil
+	}
+	if b.ParentID == nil || strings.TrimSpace(*b.ParentID) == "" {
+		return nil
+	}
+	pid := strings.TrimSpace(*b.ParentID)
+	parent, err := a.fetchBlockByID(ctx, pid)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+		return err
+	}
+	if err := a.populateParentChain(ctx, parent, depth+1); err != nil {
+		return err
+	}
+	b.Parent = parent
+	return nil
+}
+
+func (a *AccountBlockStorage) populateParentsAndReasons(ctx context.Context, blocks []*imodel.AccountBlock) error {
+	for _, b := range blocks {
+		if b == nil {
+			continue
+		}
+		if err := a.populateParentChain(ctx, b, 0); err != nil {
+			return err
+		}
+	}
+	return a.attachReasons(ctx, blocks)
+}
+
 // ─── Create methods ─────────────────────────────────────────────────────────
 
 func (a *AccountBlockStorage) createBlock(ctx context.Context, block *imodel.AccountBlock) error {
@@ -306,6 +349,10 @@ func (a *AccountBlockStorage) findByIDWithParents(ctx context.Context, id string
 		blocks[i-1].Parent = blocks[i]
 	}
 
+	if err := a.attachReasons(ctx, []*imodel.AccountBlock{blocks[0]}); err != nil {
+		return nil, err
+	}
+
 	return blocks[0], nil
 }
 
@@ -328,6 +375,12 @@ func (a *AccountBlockStorage) FindByFilterKey(ctx context.Context, field, value 
 			return nil, nil
 		}
 		a.logger.Errorf("[AccountBlockStorage][FindByFilterKey] failed: %v", err)
+		return nil, err
+	}
+	if err := a.populateParentChain(ctx, ab, 0); err != nil {
+		return nil, err
+	}
+	if err := a.attachReasons(ctx, []*imodel.AccountBlock{ab}); err != nil {
 		return nil, err
 	}
 	return ab, nil
@@ -415,6 +468,15 @@ func (a *AccountBlockStorage) getByIds(ctx context.Context, ids []string, entity
 			return nil, err
 		}
 		results = append(results, ab)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if len(results) == 0 {
+		return results, nil
+	}
+	if err := a.populateParentsAndReasons(ctx, results); err != nil {
+		return nil, err
 	}
 	return results, nil
 }
@@ -534,6 +596,10 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		results = append(results, &ab)
 	}
 
+	if err := a.populateParentsAndReasons(ctx, results); err != nil {
+		return nil, err
+	}
+
 	totalPages := int((totalCount + int64(filterParam.PerPage) - 1) / int64(filterParam.PerPage))
 	var prevPage, nextPage *int
 	if filterParam.Page > 1 {
@@ -600,6 +666,19 @@ func (a *AccountBlockStorage) enableOrDisable(ctx context.Context, ids []string,
 		sql.Named("is_enabled", isEnabledToInt(enabled)),
 		sql.Named("type", string(entityType)),
 	)
+
+	if enabled {
+		if err := a.deleteReasonsForBlockIDs(ctx, ids); err != nil {
+			return err
+		}
+	} else {
+		if err := a.deleteReasonsForBlockIDs(ctx, ids); err != nil {
+			return err
+		}
+		if err := a.insertDisableReasonForBlocks(ctx, ids, reason); err != nil {
+			return err
+		}
+	}
 
 	query := fmt.Sprintf(`UPDATE account_blocks
 		SET is_enabled = :is_enabled,
@@ -703,6 +782,13 @@ func (a *AccountBlockStorage) GetAllBranches(ctx context.Context, id string) ([]
 			return nil, err
 		}
 		results = append(results, *ab)
+	}
+	ptrs := make([]*imodel.AccountBlock, len(results))
+	for i := range results {
+		ptrs[i] = &results[i]
+	}
+	if err := a.populateParentsAndReasons(ctx, ptrs); err != nil {
+		return nil, err
 	}
 	return results, nil
 }
