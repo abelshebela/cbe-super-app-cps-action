@@ -148,8 +148,13 @@ func (a *AccessListSegmentationService) EnableDisableAccessListSegmentation(ctx 
 		a.logger.Errorf("[AccessListSegSvc][EnableDisable] incomplete user")
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
-
-	accessListSegmentation, err := a.repo.FindAllBySegmentIDorSegmentCodeAndKeys(ctx, id, keys)
+	var accessListSegmentation []local_model.AccessListSegmentation
+	var err error
+	if segmentation_type == "block" {
+		accessListSegmentation, err = a.repo.FindAllByBlockAndKeys(ctx, id, keys)
+	} else {
+		accessListSegmentation, err = a.repo.FindAllByAccountAndKeys(ctx, id, keys)
+	}
 	if err != nil {
 		a.logger.Errorf("[AccessListSegSvc][EnableDisable] find err: %v", err)
 		return err
@@ -181,9 +186,21 @@ func (a *AccessListSegmentationService) EnableDisableAccessListSegmentation(ctx 
 	return nil
 }
 
-// GetAccessListSegmentationByID implements service.AccessListSegmentationService.
-func (a *AccessListSegmentationService) GetAccessListSegmentationByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error) {
-	model, err := a.repo.FindByID(ctx, id)
+// GetAccessListSegmentationForAccountByID implements service.AccessListSegmentationService.
+func (a *AccessListSegmentationService) GetAccessListSegmentationForAccountByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error) {
+	model, err := a.repo.FindAccountSegmentByID(ctx, id)
+	if err != nil {
+		a.logger.Errorf("[AccessListSegSvc][GetByID] err: %v", err)
+		return access_list_segmentation_dto.AccessListSegmentationResponse{}, err
+	}
+	resp := access_list_segmentation_core.MapModelToDTO(*model)
+
+	return resp, nil
+}
+
+// GetAccessListSegmentationForBlockByID implements service.AccessListSegmentationService.
+func (a *AccessListSegmentationService) GetAccessListSegmentationForBlockByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error) {
+	model, err := a.repo.FindBlockSegmentByID(ctx, id)
 	if err != nil {
 		a.logger.Errorf("[AccessListSegSvc][GetByID] err: %v", err)
 		return access_list_segmentation_dto.AccessListSegmentationResponse{}, err
@@ -212,7 +229,7 @@ func (a *AccessListSegmentationService) UpdateAccessListSegmentation(ctx context
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	accessListSegmentation, err := a.repo.FindByID(ctx, req.ID)
+	accessListSegmentation, err := a.repo.FindAccountSegmentByID(ctx, req.ID)
 	if err != nil {
 		a.logger.Errorf("[AccessListSegSvc][Update] find err: %v", err)
 		return err
@@ -339,8 +356,30 @@ func (a *AccessListSegmentationService) CheckALLIdsExist(ctx context.Context, t 
 	return nil
 }
 
-func (a *AccessListSegmentationService) GetAllAccessListSegmentationBySegmentIDorSegmentCode(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error) {
-	accessListSegmentation, err := a.repo.FindAllBySegmentIDorSegmentCode(ctx, segmentIdentifier)
+func (a *AccessListSegmentationService) GetAllAccessListSegmentationForBlock(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error) {
+	accessListSegmentation, err := a.repo.FindAllForBlock(ctx, segmentIdentifier)
+	if err != nil {
+		a.logger.Errorf("[AccessListSegSvc][GetBySegID] err: %v", err)
+		return nil, nil, err
+	}
+
+	accessList := access_list_segmentation_core.FindNoneSegmentedAccessList(ctx, a.accessListServiceRepo, accessListSegmentation)
+
+	realtions, err := a.repo.FindParentChildRelationship(ctx)
+	if err != nil {
+		a.logger.Errorf("[AccessListSegSvc][GetBySegID] parent-child err: %v", err)
+		return nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	accessList = access_list_segmentation_core.MapParentChildRelationship(realtions, accessList)
+	accessListSegmentation = access_list_segmentation_core.MapParentChildRelationship(realtions, accessListSegmentation)
+
+	return accessList, accessListSegmentation, nil
+}
+
+func (a *AccessListSegmentationService) GetAllAccessListSegmentationForAccount(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error) {
+	accessListSegmentation, err := a.repo.FindAllForAccount(ctx, segmentIdentifier)
+
 	if err != nil {
 		a.logger.Errorf("[AccessListSegSvc][GetBySegID] err: %v", err)
 		return nil, nil, err

@@ -874,15 +874,19 @@ type AccessListSegmentationRepositoryOracle interface {
 	CreateAccountSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error
 	CreateBlockSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.AccessListSegmentation], error)
-	FindByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error)
+	// FindByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error)
+	FindAccountSegmentByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error)
+	FindBlockSegmentByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error)
 	FindBySegmentationAndServiceID(ctx context.Context, segmentationID, serviceID string) (*local_model.AccessListSegmentation, error)
 	FindByAccountSegmentationAndAccessListKeys(ctx context.Context, customerSegments string, segmentKeys []string) (*local_model.AccessListSegmentation, error)
 	FindByIDS(ctx context.Context, ids []string, t string) (*local_model.AccessListSegmentation, error)
 	FindByIDAndType(ctx context.Context, ids string, t string) (*local_model.AccessListSegmentation, error)
 	FindBySegmentIDAndAccessListKeys(ctx context.Context, id string, keys []string) (*local_model.AccessListSegmentation, error)
 	Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error
-	FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
-	FindAllBySegmentIDorSegmentCodeAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
+	FindAllForAccount(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
+	FindAllForBlock(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
+	FindAllByBlockAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
+	FindAllByAccountAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
 	BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error
 
 	FindParentChildRelationship(ctx context.Context) ([]local_model.AccessItemRelation, error)

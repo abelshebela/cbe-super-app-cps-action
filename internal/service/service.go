@@ -802,11 +802,13 @@ type AccessListSegmentationService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateAccessListSegmentation(ctx context.Context, req access_list_segmentation_dto.CreateAccessListSegmentationRequest) error
 	GetAllAccessListSegmentation(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]access_list_segmentation_dto.AccessListSegmentationResponse], error)
-	GetAccessListSegmentationByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error)
+	GetAccessListSegmentationForBlockByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error)
+	GetAccessListSegmentationForAccountByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error)
 	UpdateAccessListSegmentation(ctx context.Context, req access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error
 	EnableDisableAccessListSegmentation(ctx context.Context, id string, enabled bool, keys []string, segmentation_type string) error
 	CheckALLIdsExist(ctx context.Context, t string, ids []string) error
-	GetAllAccessListSegmentationBySegmentIDorSegmentCode(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error)
+	GetAllAccessListSegmentationForAccount(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error)
+	GetAllAccessListSegmentationForBlock(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error)
 }
 
 type UssdMerchantService interface {
