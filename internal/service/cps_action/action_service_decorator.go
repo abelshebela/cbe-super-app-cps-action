@@ -34,8 +34,7 @@ func (s *cpsActionServiceWithRoles) IsMakerOnlyForRequest(ctx context.Context, r
 }
 
 func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsAction *model.CPSAction) error {
-	// Exist early if the user is from ERP
-	isERP, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
+	isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
 
 	actType := strings.ToUpper(strings.TrimSpace(cpsAction.ActionType))
 	req := strings.ToUpper(strings.TrimSpace(cpsAction.RequestAction))
@@ -68,19 +67,21 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			}
 			if role != nil {
 				ctx = context.WithValue(ctx, constants.ContextKey("is_maker_only"), role.IsMakerOnly)
+				ctx = context.WithValue(ctx, constants.ContextKey("cps_action_code"), cpsAction.ActionCode)
 				ctx = context.WithValue(ctx, constants.ContextKey("action_name"), mod)
 				types.SetIsMakerOnly(ctx, role.IsMakerOnly)
+				types.SetCPSActionCode(ctx, cpsAction.ActionCode)
 			}
 			if approver, err := s.roles.FindApproverByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil {
 				approverData = approver
 			}
 
-			if !isERP && (role == nil || approverData.ID.IsZero()) {
+			if !isErp && (role == nil || approverData.ID.IsZero()) {
 				s.logger.Errorf("[action_service] CreateCPSAction: role or approver not found for action %s", mod)
 				return localization.ErrorOperationNotAllowed
 			}
 
-			if !isERP && (approverData.MakerIndex == nil) {
+			if !isErp && (approverData.MakerIndex == nil) {
 				s.logger.Errorf("[action_service] CreateCPSAction: maker index not found for action %s", mod)
 				return localization.ErrorOperationNotAllowed
 			}
@@ -98,9 +99,10 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			if err := s.base.CreateCPSAction(ctx, cpsAction); err != nil {
 				return err
 			}
+			types.SetCPSActionCode(ctx, cpsAction.ActionCode)
 
 			if role != nil {
-				if role.IsMakerOnly || isERP {
+				if role.IsMakerOnly || isErp {
 					cpsAction.ActionStatus = string(constants.Approved)
 					if err := s.base.ApproveCPSAction(ctx, cpsAction); err != nil {
 						return err

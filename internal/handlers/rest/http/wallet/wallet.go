@@ -60,6 +60,7 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var req walletDto.WalletRequest
 	req, err := walletcore.ParseWalletRequestFromMultipartForm(r, true)
@@ -91,6 +92,7 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 		a.logger.Infof("[WalletH][Create]  create wallet successfully")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletCreated, nil)
 	} else {
 		a.logger.Infof("[WalletH][Create] request sent successfully for create wallet")
@@ -125,6 +127,7 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	if id == "" {
 		span.RecordError(errors.New("wallet ID is required for update"))
@@ -167,9 +170,11 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 
 	if md.IsMakerOnly {
 		a.logger.Infof("[WalletH][Update]  update wallet successfully")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletUpdated, nil)
 	} else {
 		a.logger.Infof("[WalletH][Update] request sent successfully for update wallet")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletUpdateRequestSent, nil)
 	}
 }
@@ -206,6 +211,7 @@ func (a *walletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessWalletDeleted, nil)
 }
 
@@ -229,6 +235,7 @@ func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -245,9 +252,11 @@ func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 		a.logger.Infof("[WalletH][Enable]  enable wallet successfully")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletEnabled, nil)
 	} else {
 		a.logger.Infof("[WalletH][Enable] request sent successfully for enable wallet")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletEnableRequestSubmitted, nil)
 	}
 }
@@ -271,6 +280,7 @@ func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -287,9 +297,11 @@ func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 		a.logger.Infof("[WalletH][Disable]  disable wallet successfully")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletDisabled, nil)
 	} else {
 		a.logger.Infof("[WalletH][Disable] request sent successfully for disable wallet")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessWalletDisableRequestSubmitted, nil)
 	}
 }

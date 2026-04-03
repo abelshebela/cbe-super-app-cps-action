@@ -181,6 +181,7 @@ func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	var req actionrole_dto.CreateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
@@ -214,8 +215,10 @@ func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleCreatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleCreateRequestCreated, nil)
 	}
 }
@@ -242,6 +245,7 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	code := chi.URLParam(r, "code")
 	if code == "" {
@@ -266,8 +270,10 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleUpdatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleUpdateRequestCreated, nil)
 	}
 }
@@ -293,6 +299,7 @@ func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	code := chi.URLParam(r, "code")
 	if code == "" {
@@ -307,8 +314,10 @@ func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleEnabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleEnableRequestCreated, nil)
 	}
 }
@@ -334,6 +343,7 @@ func (h *BPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	code := chi.URLParam(r, "code")
 	if code == "" {
@@ -348,8 +358,10 @@ func (h *BPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleDisabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleDisableRequestCreated, nil)
 	}
 }

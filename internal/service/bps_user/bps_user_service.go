@@ -346,7 +346,9 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 		b.logger.Infof("[BpsUserSvc][Update] found existing user: %v for update with userID: %s, updatedUser: %v", existing, userID, updatedUser)
 		if err := bps_user_core.ExistingIdentifierForUpdate(*existing, userID, updatedUser); err != nil {
 			b.logger.Infof("[BpsUserSvc][Update] duplicate data: %v", err)
-			return err
+			if !errors.Is(err, localization.ErrorUserNotFound) {
+				return err
+			}
 		}
 	}
 

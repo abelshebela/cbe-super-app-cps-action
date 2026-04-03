@@ -42,11 +42,18 @@ func NewEcommerceMerchantRepository(client *mongo.Client, cfg *config.VaultConfi
 }
 
 func (m *EcommerceMerchantStorage) Create(ctx context.Context, merchant *model.EcommerceMerchant) (*model.EcommerceMerchant, error) {
-	createdMerchant, err := m.dal.InsertOne(ctx, *merchant)
+	createdMerchant := *merchant
+
+	coll := m.client.Database(m.dbName).Collection(m.collection)
+	res, err := coll.InsertOne(ctx, createdMerchant)
 	if err != nil {
 		m.logger.Errorf("Failed to create mini app merchant: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	createdMerchant.ID = res.InsertedID.(bson.ObjectID)
+
+	types.SetId(ctx, createdMerchant.ID.Hex())
 
 	return &createdMerchant, nil
 }

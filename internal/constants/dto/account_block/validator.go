@@ -2,24 +2,8 @@ package accountblock
 
 import (
 	"errors"
-	"regexp"
 	"strings"
-
-	validation "github.com/go-ozzo/ozzo-validation"
-	"github.com/go-playground/validator/v10"
 )
-
-var mongoIDRegex = regexp.MustCompile(`^[a-fA-F0-9]{24}$`)
-
-func ValidateMongoID(id string) error {
-	return validation.Validate(
-		id,
-		validation.Required,
-		validation.Match(mongoIDRegex).Error("invalid MongoDB ObjectID"),
-	)
-}
-
-var validate = validator.New()
 
 func (e *EnableOrDisableBranches) Clean() {
 	for i, code := range e.BranchIds {
@@ -50,8 +34,8 @@ func (e *EnableOrDisableBranches) Validate() error {
 		return errors.New("reason is required")
 	}
 	for _, id := range e.BranchIds {
-		if err := ValidateMongoID(id); err != nil {
-			return errors.New("invalid branch ID: " + id)
+		if strings.TrimSpace(id) == "" {
+			return errors.New("invalid branch ID: empty value")
 		}
 	}
 	return nil
@@ -62,8 +46,8 @@ func (e *EnableOrDisableRegions) Validate() error {
 		return errors.New("reason is required")
 	}
 	for _, id := range e.RegionIds {
-		if err := ValidateMongoID(id); err != nil {
-			return errors.New("invalid region ID: " + id)
+		if strings.TrimSpace(id) == "" {
+			return errors.New("invalid region ID: empty value")
 		}
 	}
 	return nil
@@ -74,8 +58,8 @@ func (e *EnableOrDisableDistricts) Validate() error {
 		return errors.New("reason is required")
 	}
 	for _, id := range e.DistrictIds {
-		if err := ValidateMongoID(id); err != nil {
-			return errors.New("invalid district ID: " + id)
+		if strings.TrimSpace(id) == "" {
+			return errors.New("invalid district ID: empty value")
 		}
 	}
 	return nil
@@ -85,10 +69,9 @@ func (e *EnableOrDisableCities) Validate() error {
 	if e.Reason == "" {
 		return errors.New("reason is required")
 	}
-
 	for _, id := range e.CityIds {
-		if err := ValidateMongoID(id); err != nil {
-			return errors.New("invalid city ID: " + id)
+		if strings.TrimSpace(id) == "" {
+			return errors.New("invalid city ID: empty value")
 		}
 	}
 	return nil
