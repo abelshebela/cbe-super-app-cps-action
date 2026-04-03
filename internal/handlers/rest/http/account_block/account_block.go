@@ -56,7 +56,7 @@ func (a *accountBlockAdapter) GetBranchById(w http.ResponseWriter, r *http.Reque
 	if !ok {
 		span.AddEvent("missing branch_id param")
 		log.Errorf("[AccBlockH][GetBranchById] missing param")
-		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
+		localization.SendErrorByCodeResponse(w, localization.ErrorBranchCodeRequired.Code)
 		return
 	}
 	if branchId == "" {
@@ -150,7 +150,7 @@ func (a *accountBlockAdapter) GetRegionById(w http.ResponseWriter, r *http.Reque
 	regionId, ok := local_util.GetParam(r, "region_id")
 	if !ok {
 		log.Errorf("[AccBlockH][GetRegionById] missing param")
-		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
+		localization.SendErrorByCodeResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
 	}
 	if regionId == "" {
@@ -243,7 +243,7 @@ func (a *accountBlockAdapter) GetDistrictById(w http.ResponseWriter, r *http.Req
 	districtId, ok := local_util.GetParam(r, "district_id")
 	if !ok {
 		log.Errorf("[AccBlockH][GetDistrictById] missing param")
-		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Code)
+		localization.SendErrorByCodeResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
 	}
 	if districtId == "" {
@@ -335,7 +335,7 @@ func (a *accountBlockAdapter) GetCityById(w http.ResponseWriter, r *http.Request
 	cityId, ok := local_util.GetParam(r, "city_id")
 	if !ok {
 		log.Errorf("[AccBlockH][GetCityById] missing param")
-		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Code)
+		localization.SendErrorByCodeResponse(w, localization.ErrorCityCodeRequired.Code)
 		return
 	}
 	if cityId == "" {
@@ -446,7 +446,7 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 	if len(req.BranchIds) == 0 {
 		span.AddEvent("missing branch ids")
 		log.Errorf("[AccBlockH] branch ids required")
-		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
+		localization.SendErrorByCodeResponse(w, localization.ErrorBranchCodeRequired.Code)
 		return
 	}
 
@@ -500,7 +500,7 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
 		log.Errorf("[AccBlockH] decode body err: %v", err)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
 
@@ -517,7 +517,7 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 	if len(req.BranchIds) == 0 {
 		span.AddEvent("missing branch ids")
 		log.Errorf("[AccBlockH] branch ids required")
-		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
+		localization.SendErrorByCodeResponse(w, localization.ErrorBranchCodeRequired.Code)
 		return
 	}
 
@@ -571,7 +571,7 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
 		log.Errorf("[AccBlockH] decode body err: %v", err)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
 
@@ -588,7 +588,7 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 	if len(req.RegionIds) == 0 {
 		span.AddEvent("missing region ids")
 		log.Errorf("[AccBlockH] region ids required")
-		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
+		localization.SendErrorByCodeResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
 	}
 
@@ -660,7 +660,7 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 	if len(req.RegionIds) == 0 {
 		span.AddEvent("missing region ids")
 		log.Errorf("[AccBlockH] region ids required")
-		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
+		localization.SendErrorByCodeResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
 	}
 
@@ -730,7 +730,7 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 	if len(req.DistrictIds) == 0 {
 		span.AddEvent("missing district ids")
 		log.Errorf("[AccBlockH] district ids required")
-		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Code)
+		localization.SendErrorByCodeResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
 	}
 
@@ -797,7 +797,7 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 
 	if len(req.DistrictIds) == 0 {
 		span.AddEvent("missing district ids")
-		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Code)
+		localization.SendErrorByCodeResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
 	}
 
@@ -863,7 +863,7 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 
 	if len(req.CityIds) == 0 {
 		span.AddEvent("missing city ids")
-		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Type)
+		localization.SendErrorByCodeResponse(w, localization.ErrorCityCodeRequired.Code)
 		return
 	}
 
@@ -929,7 +929,7 @@ func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Reque
 
 	if len(req.CityIds) == 0 {
 		span.AddEvent("missing city ids")
-		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Type)
+		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Code)
 		return
 	}
 
@@ -964,7 +964,7 @@ func (a *accountBlockAdapter) GetAccountBlockDetails(w http.ResponseWriter, r *h
 	id, ok := local_util.GetParam(r, "id")
 	if !ok {
 		log.Errorf("[AccBlockH][GetDetails] missing param")
-		localization.SendBadRequestResponse(w, localization.ErrorCodeRequired.Code)
+		localization.SendErrorByCodeResponse(w, localization.ErrorCodeRequired.Code)
 		return
 	}
 	if id == "" {

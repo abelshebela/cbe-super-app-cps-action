@@ -10,8 +10,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
-	"strings"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -206,9 +204,9 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 	}
 
 	if len(alreadyEnabled) > 0 {
-		return fmt.Errorf("some of the branches your requested to enable are already enabled")
+		return errors.New(localization.ErrorBranchAlreadyEnabled.Code)
 	} else if len(alreadyDisabled) > 0 {
-		return fmt.Errorf("some of the branches your requested to disable are already disabled")
+		return errors.New(localization.ErrorBranchAlreadyDisabled.Code)
 	}
 
 	var actionType constants.ActionType
@@ -284,9 +282,9 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 	}
 
 	if len(alreadyEnabled) > 0 {
-		return fmt.Errorf("some of the regions you requested to enable are already enabled.")
+		return errors.New(localization.ErrorRegionAlreadyEnabled.Code)
 	} else if len(alreadyDisabled) > 0 {
-		return fmt.Errorf("some of the regions you requested to disable are already disabled.")
+		return errors.New(localization.ErrorRegionAlreadyDisabled.Code)
 	}
 
 	var actionType constants.ActionType
@@ -390,9 +388,9 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 	}
 
 	if len(alreadyEnabled) > 0 {
-		return fmt.Errorf("some of the districts you requested to enable are already enabled.")
+		return errors.New(localization.ErrorDistrictAlreadyEnabled.Code)
 	} else if len(alreadyDisabled) > 0 {
-		return fmt.Errorf("some of the districts you requested to disable are already disabled.")
+		return errors.New(localization.ErrorDistrictAlreadyDisabled.Code)
 	}
 
 	var actionType constants.ActionType
@@ -457,10 +455,10 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 
 		for _, city := range cities {
 			if city.DistrictID == nil {
-				return errors.New(localization.ErrorCannotEnableDistrict.Code)
+				return errors.New(localization.ErrorCannotEnablCity.Code)
 			}
 			if isDistrictEnabled, exists := districtMap[*city.DistrictID]; !exists || !isDistrictEnabled {
-				return errors.New(localization.ErrorCannotEnableDistrict.Code)
+				return errors.New(localization.ErrorCannotEnablCity.Code)
 			}
 		}
 	}
@@ -495,9 +493,9 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 	}
 
 	if len(alreadyEnabled) > 0 {
-		return fmt.Errorf("these cities are already enabled: %s", strings.Join(alreadyEnabled, ", "))
+		return errors.New(localization.ErrorCityAlreadyEnabled.Code)
 	} else if len(alreadyDisabled) > 0 {
-		return fmt.Errorf("these cities are already disabled: %s", strings.Join(alreadyDisabled, ", "))
+		return errors.New(localization.ErrorCityAlreadyDisabled.Code)
 	}
 
 	var actionType constants.ActionType
