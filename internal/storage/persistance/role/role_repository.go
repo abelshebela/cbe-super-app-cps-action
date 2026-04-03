@@ -214,7 +214,7 @@ func (r *RoleRepository) FindByCode(ctx context.Context, code string) (*imodel.R
 
 func (r *RoleRepository) FindAll(ctx context.Context) (*[]imodel.Role, error) {
 	pipeline := []bson.M{
-		{"$match": bson.M{"enabled": true}},
+		{"$match": bson.M{"enabled": true, "is_deleted": bson.M{"$ne": true}}},
 		{"$lookup": bson.M{
 			"from":         "job_roles",
 			"localField":   "role",

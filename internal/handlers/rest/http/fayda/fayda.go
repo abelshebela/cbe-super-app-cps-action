@@ -60,6 +60,7 @@ func (f *faydaAccountHandler) InitiateEnableFaydaAccount(w http.ResponseWriter, 
 	}
 
 	log.Infof("[InitiateEnableFaydaAccount] request sent successfully for user_code: %s", user_code)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessFaydaEnableActionCreated, nil)
 }
 
@@ -97,5 +98,6 @@ func (f *faydaAccountHandler) InitiateDisableFaydaAccount(w http.ResponseWriter,
 	}
 
 	log.Infof("[InitiateDisableFaydaAccount] request sent successfully for user_code: %s", user_code)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessFaydaDisableActionCreated, nil)
 }

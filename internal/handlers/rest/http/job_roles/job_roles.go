@@ -134,6 +134,7 @@ func (j *JobRoleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	var body roles_dto.RequestRolesCreate
@@ -160,8 +161,10 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleCreatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleCreatedRequestSent, nil)
 	}
 }
@@ -184,6 +187,7 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
@@ -218,8 +222,10 @@ func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleUpdatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleUpdatedRequestSent, nil)
 	}
 }
@@ -241,6 +247,7 @@ func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (j *JobRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
@@ -256,8 +263,10 @@ func (j *JobRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleEnabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleEnabledRequestSent, nil)
 	}
 }
@@ -279,6 +288,7 @@ func (j *JobRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 func (j *JobRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
@@ -294,8 +304,10 @@ func (j *JobRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleDisabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleDisabledRequestSent, nil)
 	}
 }
@@ -317,6 +329,7 @@ func (j *JobRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 func (j *JobRoleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
@@ -332,8 +345,10 @@ func (j *JobRoleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleDeletedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleDeletedRequestSent, nil)
 	}
 }

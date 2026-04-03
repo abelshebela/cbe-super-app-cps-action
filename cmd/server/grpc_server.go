@@ -64,42 +64,22 @@ func (s *server) GetBankByBIC(ctx context.Context, req *bankpb.GetOneBankByBICRe
 	}
 	return &bankpb.GetOneBankResponse{Bank: s.bankMapper(data)}, nil
 }
-func (s *server) walletMapper(data *local_model.Wallet) *walletpb.Wallet {
+func (s *server) walletMapper(data *local_model.WalletOracle) *walletpb.Wallet {
 	return &walletpb.Wallet{
-		Id:          data.ID.Hex(),
+		Id:          data.ID,
 		Name:        data.Name,
 		Avatar:      data.Avatar,
 		UniqueCode:  data.UniqueCode,
 		ServiceCode: data.ServiceCode,
 		ServiceKey:  data.ServiceKey,
 		ServiceId:   data.ServiceID,
-		ChildServiceKeys: func() []*walletpb.ChildServiceKey {
-			var keys []*walletpb.ChildServiceKey
-			for _, k := range data.ChildServiceKeys {
-				keys = append(keys, &walletpb.ChildServiceKey{
-					ServiceKey:  k.ServiceKey,
-					ServiceName: k.ServiceName,
-				})
-			}
-			return keys
-		}(),
-		Cap: func() []*walletpb.Cap {
-			var caps []*walletpb.Cap
-			for _, c := range data.Cap {
-				caps = append(caps, &walletpb.Cap{
-					SingleCap:          c.SingleCap,
-					MinimumTransferCap: c.MinimumTransferCap,
-					Currency:           c.Currency,
-				})
-			}
-			return caps
-		}(),
+
 		IsDeleted: data.IsDeleted,
 		Enabled:   data.Enabled,
 		Services: &walletpb.Services{
-			Self:  data.Services.Self,
-			Other: data.Services.Other,
-			Agent: data.Services.Agent,
+			Self:  data.Self,
+			Other: data.Other,
+			Agent: data.Agent,
 		},
 	}
 }
@@ -197,7 +177,7 @@ func buildPaginationWallet(meta types.PaginationMeta) *walletpb.Meta {
 		// HasPrevPage: meta.HasPrevPage,
 	}
 }
-func (s *server) walletListMapper(data []local_model.Wallet) []*walletpb.Wallet {
+func (s *server) walletListMapper(data []local_model.WalletOracle) []*walletpb.Wallet {
 	var wallets []*walletpb.Wallet
 	for i := range data {
 		wallets = append(wallets, s.walletMapper(&data[i]))

@@ -33,7 +33,6 @@ type Persistence struct {
 	EventPersistence                storage.EventRepository
 	CustomerService                 storage.CustomerRepository
 	BulkService                     storage.BulkServiceRepository
-	BudgetCategoryPersistence       storage.BudgetCategoryRepository
 	RedisService                    storage.RedisRepository
 	IconPersistence                 storage.IconRepository
 	// Additional repositories

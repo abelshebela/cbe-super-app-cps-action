@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"crypto/subtle"
 	"net/http"
-	"os"
 	"strings"
 )
 
@@ -28,8 +27,7 @@ func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.
 			return
 		}
 
-		configured := strings.TrimSpace(os.Getenv(envIntegrationAPIKey))
-		// configured := a.cfg.MerchantIntegrationAPIKey
+		configured := a.cfg.MerchantIntegrationAPIKey
 		if configured == "" {
 			if a.logger != nil {
 				a.logger.Warnf("[AuthMW][EcomIntegration] X-Api-Key present but %s is not set", envIntegrationAPIKey)
@@ -107,6 +105,7 @@ func (a *authMiddleware) AuthenticateTokenOrMerchantIntegrationAPIKey(next http.
 		}
 
 		ctx := a.setUserPayload(r.Context(), payload)
+		localization.UpdateWriterContext(w, ctx)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

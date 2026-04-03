@@ -134,6 +134,7 @@ func (j *RoleHandler) FindById(w http.ResponseWriter, r *http.Request) {
 func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	var body roles_dto.CreateJobRoleRequest
@@ -162,8 +163,10 @@ func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessRoleCreatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessRoleCreatedRequestSent, nil)
 	}
 }
@@ -186,6 +189,7 @@ func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	log.Infof("[Role Handler] Update role started")
@@ -229,8 +233,10 @@ func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessRoleUpdatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessRoleUpdatedRequestSent, nil)
 
 	}
@@ -253,6 +259,7 @@ func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (j *RoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
@@ -268,8 +275,10 @@ func (j *RoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessRoleEnabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessRoleEnabledRequestSent, nil)
 	}
 }
@@ -291,6 +300,7 @@ func (j *RoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 func (j *RoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
@@ -306,8 +316,10 @@ func (j *RoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessRoleDisabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessRoleDisabledRequestSent, nil)
 	}
 }
@@ -329,6 +341,7 @@ func (j *RoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 func (j *RoleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
@@ -344,8 +357,10 @@ func (j *RoleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessRoleDeletedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessRoleDeletedRequestSent, nil)
 	}
 }

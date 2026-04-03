@@ -248,14 +248,15 @@ type BPSActionRepository interface {
 	GetBPSActionByUserID(ctx context.Context, userID string, filter types.Filter) (types.PaginatedResponse[[]bps_model.BPSAction], error)
 }
 
-type BudgetCategoryRepository interface {
-	CreateBudgetCategory(ctx context.Context, budgetCategory *imodel.BudgetCategory) error
-	UpdateBudgetCategory(ctx context.Context, id string, budgetCategory *imodel.BudgetCategory) error
-	FindBudgetCategoryByID(ctx context.Context, id string) (*imodel.BudgetCategory, error)
-	FindAllBudgetCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BudgetCategory], error)
-	DeleteBudgetCategory(ctx context.Context, id string) error
-	EnableOrDisableBudgetCategory(ctx context.Context, id string, enable bool) error
-	FindByName(ctx context.Context, name string) (*imodel.BudgetCategory, error)
+// Oracle
+type BudgetCategoryOracleRepository interface {
+	Create(ctx context.Context, item *imodel.BudgetCategoryOracle) error
+	Update(ctx context.Context, id string, item *imodel.BudgetCategoryOracle) error
+	Delete(ctx context.Context, id string) error // soft delete internally
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*imodel.BudgetCategoryOracle, error)
+	FindAllWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BudgetCategoryOracle], error)
+	FindByName(ctx context.Context, name string) (*imodel.BudgetCategoryOracle, error)
 }
 
 // AmountBasedAuth persistence
@@ -271,34 +272,56 @@ type AmountBasedAuthRepository interface {
 	DeleteByCurrency(ctx context.Context, currency string) error
 }
 
+// AmountBasedAuthOracleRepository is the Oracle DAL for amount-based auth tiers.
+// It avoids Mongo-specific bson.ObjectID and bson.M filters.
+type AmountBasedAuthOracleRepository interface {
+	Create(ctx context.Context, tier *local_model.AuthTierOracle) error
+	CreateMany(ctx context.Context, tiers []local_model.AuthTierOracle) error
+	Update(ctx context.Context, id string, update *local_model.AuthTierOracle) error
+	FindByID(ctx context.Context, id string) (*local_model.AuthTierOracle, error)
+
+	// FindActiveByCurrencyAndMethod returns all active tiers for (currency, method).
+	// The service assumes at most one active tier; callers should take [0] after checking len.
+	FindActiveByCurrencyAndMethod(ctx context.Context, currency string, method constants.Method) ([]local_model.AuthTierOracle, error)
+
+	// FindActiveByCurrency returns all active tiers for a currency.
+	FindActiveByCurrency(ctx context.Context, currency string) ([]local_model.AuthTierOracle, error)
+
+	// FindAllActiveForSearch returns active tiers for grouping.
+	FindAllActiveForSearch(ctx context.Context, search string) ([]local_model.AuthTierOracle, error)
+
+	CurrencyExists(ctx context.Context, currency string) (bool, error)
+	DeleteByCurrency(ctx context.Context, currency string) error
+}
+
 // AccountBlock persistence
 type AccountBlockRepository interface {
-	CreateBranch(ctx context.Context, branch *model.AccountBlock) error
+	CreateBranch(ctx context.Context, branch *local_model.AccountBlock) error
 	DeleteBranch(ctx context.Context, id string) error
-	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
 	EnableOrDisableBranches(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
-	GetBranchesByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
-	FindByFilterKey(ctx context.Context, field, value string) (*model.AccountBlock, error)
+	GetBranchesByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
+	FindByFilterKey(ctx context.Context, field, value string) (*local_model.AccountBlock, error)
 
-	CreateCity(ctx context.Context, city *model.AccountBlock) error
+	CreateCity(ctx context.Context, city *local_model.AccountBlock) error
 	DeleteCity(ctx context.Context, id string) error
-	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
 	EnableOrDisableCities(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
-	GetCitiesByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
+	GetCitiesByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
 
-	CreateRegion(ctx context.Context, region *model.AccountBlock) error
+	CreateRegion(ctx context.Context, region *local_model.AccountBlock) error
 	DeleteRegion(ctx context.Context, id string) error
-	FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
 	EnableOrDisableRegions(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
-	GetRegionsByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
+	GetRegionsByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
 
-	CreateDistrict(ctx context.Context, district *model.AccountBlock) error
+	CreateDistrict(ctx context.Context, district *local_model.AccountBlock) error
 	DeleteDistrict(ctx context.Context, id string) error
-	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
 	EnableOrDisableDistricts(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
-	GetDistrictsByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
+	GetDistrictsByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
 	GetAccountBlockDetails(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error)
-	GetAllBranches(ctx context.Context, id string) ([]model.AccountBlock, error)
+	GetAllBranches(ctx context.Context, id string) ([]local_model.AccountBlock, error)
 }
 
 type AdvertRepository interface {
@@ -789,6 +812,7 @@ type AccessListSegmentationRepository interface {
 	BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error
 
 	FindParentChildRelationship(ctx context.Context) ([]local_model.AccessItemRelation, error)
+	SetAccountBlockRepository(repo AccountBlockRepository)
 }
 
 type MiniAppMerchant interface {
@@ -841,4 +865,17 @@ type BankOracleRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.BankOracle], error)
 	FindByNameOrBIC(ctx context.Context, bic, name string) (*imodel.BankOracle, error)
 	FindByBIC(ctx context.Context, bic string) (*imodel.BankOracle, error)
+}
+
+type WalletOracleRepository interface {
+	Create(ctx context.Context, wallet *local_model.WalletOracle) error
+	Update(ctx context.Context, id string, wallet *local_model.WalletOracle) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+
+	FindByID(ctx context.Context, id string) (*local_model.WalletOracle, error)
+	Find(ctx context.Context, key, value string) (*local_model.WalletOracle, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
+	FindByIDForGRPC(ctx context.Context, id string) (*local_model.WalletOracle, error)
+	FindAllWithPaginationForGRPC(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
 }

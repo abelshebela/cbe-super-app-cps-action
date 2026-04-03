@@ -246,8 +246,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessMiniAppsRetrieved,
 	SuccessMiniAppFetchedByID,
 	SuccessMiniAppActionCompleted,
-	ErrorMiniAppMerchantNotFound,
-	ErrorMiniAppMerchantDisabled,
+	ErrorEcommerceMerchantNotFound,
+	ErrorEcommerceMerchantDisabled,
 
 	// Sitota Related success
 	SuccessAllSitotasRetrieved,
@@ -675,10 +675,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCategoryIsNotEnabled,
 	ErrorDonationCategoryNotFound,
 	ErrorDonationLookupFailed,
-	ErrorMiniAppMerchantEnableFailed,
-	ErrorMiniAppMerchantDisableFailed,
-	ErrorMiniAppMerchantDeleteFailed,
-	ErrorMiniAppMerchantUpdateFailed,
+	ErrorEcommerceMerchantEnableFailed,
+	ErrorEcommerceMerchantDisableFailed,
 	ErrorExistEmail,
 	ErrorInvalidPhoneNumber,
 	ErrorExistPhoneNumber,
@@ -788,6 +786,24 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventMerchantInvalidEmail,
 	ErrorEventMerchantInvalidPhoneNumber,
 	ErrorMerchantIDAlreadyExists,
+	ErrorEventMerchantAlreadyDisabled,
+	ErrorEventMerchantAlreadyEnabled,
+
+	// logistic merchant
+	ErrorLogisticMerchantInvalidMerchantID,
+	ErrorLogisticMerchantInvalidMerchantType,
+	ErrorLogisticMerchantInvalidSettlementMethod,
+	ErrorLogisticMerchantInvalidMerchantName,
+	ErrorLogisticMerchantInvalidBankAccountNumber,
+	ErrorLogisticMerchantInvalidIsLogisticsMerchant,
+	ErrorLogisticMerchantInvalidEmail,
+	ErrorLogisticMerchantInvalidPhoneNumber,
+	ErrorLogisticMerchantNotFound,
+	ErrorLogisticMerchantDisableFailed,
+	ErrorLogisticMerchantEnableFailed,
+
+	ErrorLogisticMerchantAlreadyDisabled,
+	ErrorLogisticMerchantAlreadyEnabled,
 
 	// Access List Segmentation Success Codes
 	SuccessAccessListSegmentationCreated,
@@ -5977,6 +5993,12 @@ var (
 		Type:       "error",
 	}
 
+	ErrorActionActorRequeired = ResponseCode{
+		Code:       "ERROR_ACTION_ACTOR_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActionActorRequired,
+		Type:       "error",
+	}
 	ErrorAuditorAlreadyChecked = ResponseCode{
 		Code:       "ERROR_AUDITOR_ALREADY_CHECKED",
 		StatusCode: StatusForbidden,
@@ -6286,14 +6308,14 @@ var (
 		Message:    MsgMiniAppMerchantMarshalFailed,
 		Type:       "error",
 	}
-	ErrorMiniAppMerchantNotFound = ResponseCode{
-		Code:       "ERROR_MINI_APP_MERCHANT_NOT_FOUND",
+	ErrorEcommerceMerchantNotFound = ResponseCode{
+		Code:       "ERROR_ECOMMERCE_MERCHANT_NOT_FOUND",
 		StatusCode: StatusNotFound,
-		Message:    "MiniApp merchant not found",
+		Message:    "Ecommerce merchant not found",
 		Type:       "error",
 	}
-	ErrorMiniAppMerchantDisabled = ResponseCode{
-		Code:       "ERROR_MINI_APP_MERCHANT_DISABLED",
+	ErrorEcommerceMerchantDisabled = ResponseCode{
+		Code:       "ERROR_ECOMMERCE_MERCHANT_DISABLED",
 		StatusCode: StatusBadRequest,
 		Message:    "MiniApp merchant is Disabled",
 		Type:       "error",
@@ -6389,17 +6411,17 @@ var (
 		Type:       "error",
 	}
 
-	ErrorMiniAppMerchantEnableFailed = ResponseCode{
-		Code:       "ERROR_MINI_APP_MERCHANT_ENABLE_FAILED",
+	ErrorEcommerceMerchantEnableFailed = ResponseCode{
+		Code:       "ERROR_ECOMMERCE_MERCHANT_ENABLE_FAILED",
 		StatusCode: StatusInternalServerError,
-		Message:    MsgMiniAppMerchantEnableFailed,
+		Message:    MsgEcommerceMerchantEnableFailed,
 		Type:       "error",
 	}
 
-	ErrorMiniAppMerchantDisableFailed = ResponseCode{
-		Code:       "ERROR_MINI_APP_MERCHANT_DISABLE_FAILED",
+	ErrorEcommerceMerchantDisableFailed = ResponseCode{
+		Code:       "ERROR_ECOMMERCE_MERCHANT_DISABLE_FAILED",
 		StatusCode: StatusInternalServerError,
-		Message:    MsgMiniAppMerchantDisableFailed,
+		Message:    "Ecommerce merchant disable successfully",
 		Type:       "error",
 	}
 
@@ -6770,6 +6792,20 @@ var (
 		Code:       "ERROR_CODE_ALREADY_EXIST",
 		StatusCode: StatusBadRequest,
 		Message:    MsgCodeAlreadyExists,
+		Type:       "error",
+	}
+
+	ErrorMiniAppMerchantNotFound = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgMiniAppMerchantNotFound,
+		Type:       "error",
+	}
+
+	ErrorMiniAppMerchantDisableFailed = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_DISABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgMiniAppMerchantDisableFailed,
 		Type:       "error",
 	}
 
@@ -8240,6 +8276,18 @@ var (
 		Message:    MsgEventMerchantEnableFailed,
 		Type:       "error",
 	}
+	ErrorEventMerchantAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgEventMerchantAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorEventMerchantAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgEventMerchantAlreadyDisabled,
+		Type:       "error",
+	}
 
 	ErrorLogisticMerchantInvalidMerchantID = ResponseCode{
 		Code:       "ERROR_LOGISTIC_MERCHANT_INVALID_MERCHANT_ID",
@@ -8306,6 +8354,18 @@ var (
 		Code:       "ERROR_LOGISTIC_MERCHANT_ENABLE_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgLogisticMerchantEnableFailed,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgLogisticMerchantAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgLogisticMerchantAlreadyDisabled,
 		Type:       "error",
 	}
 

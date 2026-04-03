@@ -10,7 +10,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance"
 	"cbe-super-app-cps-action/internal/storage/persistance/access_list"
 	access_list_segmentation_repository "cbe-super-app-cps-action/internal/storage/persistance/access_list_segmentation"
-	"cbe-super-app-cps-action/internal/storage/persistance/account_block"
 	accountvalidation "cbe-super-app-cps-action/internal/storage/persistance/account_validation"
 	"cbe-super-app-cps-action/internal/storage/persistance/advert"
 	"cbe-super-app-cps-action/internal/storage/persistance/amount_based_auth"
@@ -40,7 +39,6 @@ import (
 
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_user"
-	"cbe-super-app-cps-action/internal/storage/persistance/budget_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation_company"
 	ecommerce_merchant "cbe-super-app-cps-action/internal/storage/persistance/ecommerce_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/fayda"
@@ -74,24 +72,23 @@ import (
 )
 
 func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface core.CBECoreAPIInterface, notificationApi string, notificationProducer kafka.NotificationProducer, sharedKafkaProducer *shared_producer.NotificationProducer, clientOrchestrationProducer kafka.ClientOrchestrationProducer, accessListSegmentationProducer kafka.AccessListSegmentationProducer, redisRepository storage.RedisRepository, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
-	acctBlockPersistence := account_block.NewAccountBlockRepository(client, cfg, dbName, AccountBlockCollection, CPSActionsCollection, clientOrchestrationProducer, logger)
+	// AccountBlock now uses Oracle — initialized in OraclePersistence, wired in service.go
 	data := persistance.Persistence{
-		JobRolePersistence:              job_repo.NewJobRoleRepository(client, cfg, dbName, JobRolesCollection, logger),
-		DeviceVersionControlPersistence: deviceversioncontrol.NewDeviceVersionControlRepository(client, cfg, dbName, DeviceVersionControllCollection, clientOrchestrationProducer, logger),
-		AccountLookup:                   coreInterface,
-		UserPersistence:                 users.NewUserRepository(client, cfg, dbName, MembersCollection, clientOrchestrationProducer, logger),
-		HQPersistence:                   hq.NewHQRepository(client, cfg, dbName, HQCollection, logger),
-		OTPPersistence:                  otp.NewOtpRepository(client, cfg, dbName, OTPsCollection, logger),
-		DeviceLinkHistoryPersistence:    device_history.NewDeviceLinkHistoryRepository(client, cfg, dbName, MemberDevicesHistoryCollection, logger),
-		ResetSessionPersistence:         reset_session.NewResetSessionRepository(client, cfg, dbName, PINResetsCollection, logger),
-		CPSAction:                       cps_action.NewCPSActionRepository(client, cfg, dbName, CPSActionsCollection, logger),
-		AmountBasedAuthPersistence:      amount_based_auth.NewAmountBasedAuthRepository(client, cfg, dbName, AuthTierCollection, logger),
-		AccountBlockPersistence:         acctBlockPersistence,
-		PortalCardPersistence:           portal_card.NewPortalCardRepository(client, cfg, dbName, CardsCollection, logger),
-		MiniAppPersistence:              mini_app.NewMiniAppRepository(client, cfg, dbName, MiniAppsCollection, logger),
-		MerchantLookup:                  *merchant_lookup.NewMerchantLookupAdapter(*cfg, logger),
-		SMSSenderApi:                    notificationProducer,
-		// Additional repositories
+		JobRolePersistence:               job_repo.NewJobRoleRepository(client, cfg, dbName, JobRolesCollection, logger),
+		DeviceVersionControlPersistence:  deviceversioncontrol.NewDeviceVersionControlRepository(client, cfg, dbName, DeviceVersionControllCollection, clientOrchestrationProducer, logger),
+		AccountLookup:                    coreInterface,
+		UserPersistence:                  users.NewUserRepository(client, cfg, dbName, MembersCollection, clientOrchestrationProducer, logger),
+		HQPersistence:                    hq.NewHQRepository(client, cfg, dbName, HQCollection, logger),
+		OTPPersistence:                   otp.NewOtpRepository(client, cfg, dbName, OTPsCollection, logger),
+		DeviceLinkHistoryPersistence:     device_history.NewDeviceLinkHistoryRepository(client, cfg, dbName, MemberDevicesHistoryCollection, logger),
+		ResetSessionPersistence:          reset_session.NewResetSessionRepository(client, cfg, dbName, PINResetsCollection, logger),
+		CPSAction:                        cps_action.NewCPSActionRepository(client, cfg, dbName, CPSActionsCollection, logger),
+		AmountBasedAuthPersistence:       amount_based_auth.NewAmountBasedAuthRepository(client, cfg, dbName, AuthTierCollection, logger),
+		AccountBlockPersistence:          nil, // Set from OraclePersistence in service.go
+		PortalCardPersistence:            portal_card.NewPortalCardRepository(client, cfg, dbName, CardsCollection, logger),
+		MiniAppPersistence:               mini_app.NewMiniAppRepository(client, cfg, dbName, MiniAppsCollection, logger),
+		MerchantLookup:                   *merchant_lookup.NewMerchantLookupAdapter(*cfg, logger),
+		SMSSenderApi:                     notificationProducer,
 		AccessListPersistence:            access_list.NewAccessListRepository(client, cfg, dbName, AccessListCollection, clientOrchestrationProducer, logger),
 		AvatarPersistence:                avatar.NewAvatarRepository(client, cfg, dbName, AvatarsCollection, logger),
 		BPSUserPersistence:               bps_user.NewBPSUserRepository(client, cfg, dbName, BranchUserCollection, logger),
@@ -99,23 +96,22 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		ArchivedLinkedAccountPersistence: archived_linked_account.NewArchivedLinkedAccountRepository(client, cfg, dbName, ArchievedLinkedAccountCollection, logger),
 		AuthTierPersistence:              auth_tier.NewAuthTierRepository(client, cfg, dbName, AuthTierCollection, logger),
 		BankPersistence:                  bank.NewBankRepository(client, cfg, dbName, BanksCollection, logger),
-		BudgetCategoryPersistence:        budget_category.NewBudgetCategoryRepository(client, cfg, dbName, BudgetCategoryCollection, clientOrchestrationProducer, logger),
-		BulkService:                      bulk_service.InitBulkServicePersistence(client, cfg, dbName, []string{CPSActionsCollection, AccessListCollection}, clientOrchestrationProducer, notificationProducer, logger),
-		CustomerService:                  customer.InitCustomerDetail(client, cfg, dbName, []string{MembersCollection, LinkedAccountsCollection}, clientOrchestrationProducer, logger),
-		CpsUserPersistence:               cps_user.NewCPSUserRepository(client, redisRepository, cfg, dbName, CPSUsersCollection, []string{DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection, RolesCollection, JobRolesCollection}, logger),
-		DonationPersistence:              donation.NewDonationRepository(client, cfg, dbName, DonationsCollection, clientOrchestrationProducer, logger),
-		DonationCategoryPersistence:      donation_category.NewDonationCategoryRepository(client, cfg, dbName, DonationCategoriesCollection, clientOrchestrationProducer, logger),
-		ArchivedUserPersistence:          archived_user.NewArchivedUserRepository(client, cfg, dbName, ArchievedUsersCollection, logger),
-		DonationCompanyPersistence:       donation_company.NewDonationCompanyRepository(client, cfg, dbName, DonationCompaniesCollection, clientOrchestrationProducer, logger),
-		EventPersistence:                 event.NewEventRepository(client, cfg, dbName, EventsCollection, logger),
-		PasswordRulePersistent:           password.NewPasswordRuleRepository(client, cfg, dbName, PasswordRulesCollection, logger),
-		FeedbackPersistence:              feedback.NewFeedbackRepository(client, cfg, dbName, FeedbackCollection, CustomerFeedbackCollection, SurveyFeedbackCollection, logger),
-		IconPersistence:                  icon.NewIconRepository(client, cfg, dbName, IconsCollection, logger),
-		LinkedAccountPersistence:         linked_account.NewLinkedAccountRepository(client, cfg, dbName, LinkedAccountsCollection, clientOrchestrationProducer, logger),
-		EcommerceMerchantPersistence:     ecommerce_merchant.NewEcommerceMerchantRepository(client, cfg, dbName, EcommerceMerchantCollection, logger),
-		NotificationPersistence:          notification.NewNotificationRepository(client, cfg, dbName, NotificationsCollection, notificationProducer, logger),
-		PasswordRulePersistence:          password.NewPasswordRuleRepository(client, cfg, dbName, PasswordRulesCollection, logger),
-		// ServicesPersistence:               services_repo.NewServicesRepository(client, cfg, dbName, ServicesCollection, clientOrchestrationProducer, redisRepository, logger),
+		// BudgetCategoryPersistence:         budget_category.NewBudgetCategoryRepository(client, cfg, dbName, BudgetCategoryCollection, clientOrchestrationProducer, logger),
+		BulkService:                       bulk_service.InitBulkServicePersistence(client, cfg, dbName, []string{CPSActionsCollection, AccessListCollection}, clientOrchestrationProducer, notificationProducer, logger),
+		CustomerService:                   customer.InitCustomerDetail(client, cfg, dbName, []string{MembersCollection, LinkedAccountsCollection}, clientOrchestrationProducer, logger),
+		CpsUserPersistence:                cps_user.NewCPSUserRepository(client, redisRepository, cfg, dbName, CPSUsersCollection, []string{DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection, RolesCollection, JobRolesCollection}, logger),
+		DonationPersistence:               donation.NewDonationRepository(client, cfg, dbName, DonationsCollection, clientOrchestrationProducer, logger),
+		DonationCategoryPersistence:       donation_category.NewDonationCategoryRepository(client, cfg, dbName, DonationCategoriesCollection, clientOrchestrationProducer, logger),
+		ArchivedUserPersistence:           archived_user.NewArchivedUserRepository(client, cfg, dbName, ArchievedUsersCollection, logger),
+		DonationCompanyPersistence:        donation_company.NewDonationCompanyRepository(client, cfg, dbName, DonationCompaniesCollection, clientOrchestrationProducer, logger),
+		EventPersistence:                  event.NewEventRepository(client, cfg, dbName, EventsCollection, logger),
+		PasswordRulePersistent:            password.NewPasswordRuleRepository(client, cfg, dbName, PasswordRulesCollection, logger),
+		FeedbackPersistence:               feedback.NewFeedbackRepository(client, cfg, dbName, FeedbackCollection, CustomerFeedbackCollection, SurveyFeedbackCollection, logger),
+		IconPersistence:                   icon.NewIconRepository(client, cfg, dbName, IconsCollection, logger),
+		LinkedAccountPersistence:          linked_account.NewLinkedAccountRepository(client, cfg, dbName, LinkedAccountsCollection, clientOrchestrationProducer, logger),
+		EcommerceMerchantPersistence:      ecommerce_merchant.NewEcommerceMerchantRepository(client, cfg, dbName, EcommerceMerchantCollection, logger),
+		NotificationPersistence:           notification.NewNotificationRepository(client, cfg, dbName, NotificationsCollection, notificationProducer, logger),
+		PasswordRulePersistence:           password.NewPasswordRuleRepository(client, cfg, dbName, PasswordRulesCollection, logger),
 		ValidationRulePersistence:         accountvalidation.NewAccountValidationStore(client, cfg, dbName, ValidationRulesCollection, clientOrchestrationProducer, logger),
 		WalletPersistence:                 wallet.NewWalletRepository(client, cfg, dbName, WalletsCollection, ServicesCollection, logger),
 		BpsActionPersistence:              bps_action.NewBPSActionRepository(client, dbName, BPSActionsCollection, logger, cfg),
@@ -138,7 +134,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		CPSActionApproveIndexPersistence:  cps_actionrole_repo.NewCPSActionApproveIndexRepository(client, dbName, CPSActionApproveIndexCollection, logger),
 		EventMerchantPersistence:          event_merchant_repository.NewEventMerchantRepository(client, cfg, dbName, EventMerchantsCollection, logger),
 		MiniAppProductCodePersistence:     mini_app.NewMiniAppProdutCodeRepository(logger, client, cfg, dbName, MiniAppProductCodes),
-		AccessListSegmentationPersistence: access_list_segmentation_repository.NewAccessListSegmentationRepository(client, cfg, dbName, AccessListSegmentationCollection, accessListSegmentationProducer, acctBlockPersistence, logger),
+		AccessListSegmentationPersistence: access_list_segmentation_repository.NewAccessListSegmentationRepository(client, cfg, dbName, AccessListSegmentationCollection, accessListSegmentationProducer, nil, logger), // AccountBlock injected in service.go
 		MiniAppMerchant:                   mini_app.NewMiniAppMerchantRepository(client, cfg, dbName, MiniAppMerchantCollection, logger),
 		// CustomerSegmentation:              customer_segmentation_repo.NewCustomerSegmentationRepository(client, cfg, dbName, CustomerSegmentationCollection, clientOrchestrationProducer, logger),
 		// CPSRoles:                     cps_roles.NewCPSRolesStorage(client, cfg, dbName, []string{CPSRolesCollection, AccessListCollection, AccessListSegmentationCollection}, clientOrchestrationProducer, logger),
