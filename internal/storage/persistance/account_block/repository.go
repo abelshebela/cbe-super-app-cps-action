@@ -95,12 +95,13 @@ func scanAccountBlock(scanner interface{ Scan(dest ...any) error }) (*imodel.Acc
 	var ab imodel.AccountBlock
 	var parentID, cityID, districtID, regionID sql.NullString
 	var isEnabledInt, isDeletedInt int
+	var createdAt, updatedAt sql.NullTime
 
 	err := scanner.Scan(
 		&ab.ID, &ab.Name, &ab.Code, &ab.Address,
 		&parentID, &ab.Slug, &ab.Type,
 		&isEnabledInt, &cityID, &districtID, &regionID,
-		&isDeletedInt, &ab.CreatedAt, &ab.UpdatedAt,
+		&isDeletedInt, &createdAt, &updatedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -109,6 +110,12 @@ func scanAccountBlock(scanner interface{ Scan(dest ...any) error }) (*imodel.Acc
 	ab.IsEnabled = isEnabledInt == 1
 	ab.IsDeleted = isDeletedInt == 1
 
+	if createdAt.Valid {
+		ab.CreatedAt = createdAt.Time
+	}
+	if updatedAt.Valid {
+		ab.UpdatedAt = updatedAt.Time
+	}
 	if parentID.Valid {
 		ab.ParentID = &parentID.String
 	}
@@ -253,12 +260,13 @@ func (a *AccountBlockStorage) findByIDWithParents(ctx context.Context, id string
 		var ab imodel.AccountBlock
 		var parentID, cityID, districtID, regionID sql.NullString
 		var isEnabledInt, isDeletedInt, depth int
+		var createdAt, updatedAt sql.NullTime
 
 		err := rows.Scan(
 			&ab.ID, &ab.Name, &ab.Code, &ab.Address,
 			&parentID, &ab.Slug, &ab.Type,
 			&isEnabledInt, &cityID, &districtID, &regionID,
-			&isDeletedInt, &ab.CreatedAt, &ab.UpdatedAt,
+			&isDeletedInt, &createdAt, &updatedAt,
 			&depth,
 		)
 		if err != nil {
@@ -267,6 +275,12 @@ func (a *AccountBlockStorage) findByIDWithParents(ctx context.Context, id string
 
 		ab.IsEnabled = isEnabledInt == 1
 		ab.IsDeleted = isDeletedInt == 1
+		if createdAt.Valid {
+			ab.CreatedAt = createdAt.Time
+		}
+		if updatedAt.Valid {
+			ab.UpdatedAt = updatedAt.Time
+		}
 		if parentID.Valid {
 			ab.ParentID = &parentID.String
 		}
@@ -330,12 +344,13 @@ func scanAccountBlockFromRow(row *sql.Row) (*imodel.AccountBlock, error) {
 	var ab imodel.AccountBlock
 	var parentID, cityID, districtID, regionID sql.NullString
 	var isEnabledInt, isDeletedInt int
+	var createdAt, updatedAt sql.NullTime
 
 	err := row.Scan(
 		&ab.ID, &ab.Name, &ab.Code, &ab.Address,
 		&parentID, &ab.Slug, &ab.Type,
 		&isEnabledInt, &cityID, &districtID, &regionID,
-		&isDeletedInt, &ab.CreatedAt, &ab.UpdatedAt,
+		&isDeletedInt, &createdAt, &updatedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -343,6 +358,12 @@ func scanAccountBlockFromRow(row *sql.Row) (*imodel.AccountBlock, error) {
 
 	ab.IsEnabled = isEnabledInt == 1
 	ab.IsDeleted = isDeletedInt == 1
+	if createdAt.Valid {
+		ab.CreatedAt = createdAt.Time
+	}
+	if updatedAt.Valid {
+		ab.UpdatedAt = updatedAt.Time
+	}
 	if parentID.Valid {
 		ab.ParentID = &parentID.String
 	}
@@ -477,12 +498,13 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		var ab imodel.AccountBlock
 		var parentID, cityID, districtID, regionID sql.NullString
 		var isEnabledInt, isDeletedInt int
+		var createdAt, updatedAt sql.NullTime
 
 		err := rows.Scan(
 			&ab.ID, &ab.Name, &ab.Code, &ab.Address,
 			&parentID, &ab.Slug, &ab.Type,
 			&isEnabledInt, &cityID, &districtID, &regionID,
-			&isDeletedInt, &ab.CreatedAt, &ab.UpdatedAt,
+			&isDeletedInt, &createdAt, &updatedAt,
 			&totalCount,
 		)
 		if err != nil {
@@ -491,6 +513,12 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 
 		ab.IsEnabled = isEnabledInt == 1
 		ab.IsDeleted = isDeletedInt == 1
+		if createdAt.Valid {
+			ab.CreatedAt = createdAt.Time
+		}
+		if updatedAt.Valid {
+			ab.UpdatedAt = updatedAt.Time
+		}
 		if parentID.Valid {
 			ab.ParentID = &parentID.String
 		}
