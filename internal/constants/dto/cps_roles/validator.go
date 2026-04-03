@@ -35,7 +35,6 @@ func (r CreateCPSRoleRequest) Validate() error {
 			validation.By(utils.NoSpecialChars),
 		),
 		validation.Field(&r.Description,
-			validation.Required,
 			validation.By(utils.NoSpecialChars),
 		),
 	)

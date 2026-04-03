@@ -33,12 +33,13 @@ import (
 
 	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
 
+	bps_user_dto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
+	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
+
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
-	bps_user_dto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
@@ -87,15 +88,15 @@ type ServicesRepository interface {
 	Update(ctx context.Context, id string, service *model.Service) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.Service, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Service], error)
+	FindByID(ctx context.Context, id string) (*service_dto.ServiceResponse, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error)
 	CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error)
-	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error)
-	FindServiceListByID(ctx context.Context, id string) (*model.ServiceList, error)
-	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*model.ServiceList, error)
-	CreateServiceList(ctx context.Context, serviceList *model.ServiceList) error
-	UpdateServiceList(ctx context.Context, id, serviceKey string, serviceList *model.ServiceList) error
-	EnableOrDisableServiceList(ctx context.Context, id, serviceKey string, enable bool) error
+	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceKey], error)
+	FindServiceListByID(ctx context.Context, id string) (*model.ServiceKey, error)
+	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*model.ServiceKey, error)
+	CreateServiceKey(ctx context.Context, serviceList *model.ServiceKey) error
+	UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *model.ServiceKey) error
+	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
 }
 
 type OTPRepository interface {
