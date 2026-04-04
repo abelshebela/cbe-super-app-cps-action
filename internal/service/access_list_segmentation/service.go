@@ -295,17 +295,6 @@ func (a *AccessListSegmentationService) UpdateAccessListSegmentation(ctx context
 
 func (a *AccessListSegmentationService) CheckALLIdsExist(ctx context.Context, t string, ids []string) error {
 	switch t {
-	case "U":
-		if r, err := a.memberRepo.FindCustomerByIDs(ctx, ids); err != nil {
-			return err
-		} else if len(r) != len(ids) {
-			var modelMaps []map[string]interface{}
-			for _, d := range r {
-				modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID.Hex()})
-			}
-			missingids := access_list_segmentation_core.GetMissingIds(ids, modelMaps)
-			return fmt.Errorf("some user ids do not exist:%v", missingids)
-		}
 	case "B":
 		if r, err := a.accBlock.GetBranchesByIds(ctx, ids); err != nil {
 			return err
@@ -329,6 +318,10 @@ func (a *AccessListSegmentationService) CheckALLIdsExist(ctx context.Context, t 
 			return fmt.Errorf("some Region ids do not exist:%v", missingids)
 		}
 	case "D":
+		if a.accBlock == nil {
+			a.logger.Errorf("[AccessListSegSvc][CheckALLIdsExist] accBlock repo is nil")
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
 		if r, err := a.accBlock.GetDistrictsByIds(ctx, ids); err != nil {
 			return err
 		} else if len(r) != len(ids) {

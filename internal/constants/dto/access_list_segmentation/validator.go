@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func (c EnableDisableAccessListSegmentationRequest) Validate() error {
+func (c *EnableDisableAccessListSegmentationRequest) Validate() error {
 	if c.AccessListKeys == nil {
 		return errors.New(localization.ErrorAccessListKeysRequired.Code)
 	}
@@ -15,7 +15,7 @@ func (c EnableDisableAccessListSegmentationRequest) Validate() error {
 	}
 	return nil
 }
-func (c CreateAccessListSegmentationRequest) Validate() error {
+func (c *CreateAccessListSegmentationRequest) Validate() error {
 	if c.AccessListKeys == nil {
 		return errors.New(localization.ErrorAccessListKeysRequired.Code)
 	}
@@ -31,7 +31,7 @@ func (c CreateAccessListSegmentationRequest) Validate() error {
 	return nil
 }
 
-func (u UpdateAccessListSegmentationRequest) Validate() error {
+func (u *UpdateAccessListSegmentationRequest) Validate() error {
 	if strings.TrimSpace(u.ID) == "" {
 		return errors.New("id is required")
 	}
