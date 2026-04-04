@@ -9,7 +9,9 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	"cbe-super-app-cps-action/internal/storage/persistance/access_list_segmentation/core"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"errors"
 	"fmt"
 
 	"strings"
@@ -355,7 +357,87 @@ func (q *accessListSegmentationOracle) FindAllByAccountAndKeys(ctx context.Conte
 
 // FindAllWithPagination implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.AccessListSegmentation], error) {
-	panic("unimplemented")
+	q.logger.Infof("[AccessListSegmentation][FindAllWithPagination] filter params: %+v", filterParam)
+
+	// Validate pagination params
+	if filterParam.Page < 1 || filterParam.PerPage < 1 {
+		return nil, fmt.Errorf("invalid pagination: page and perPage must be >= 1")
+	}
+
+	// Validate filter keys
+	allowedKeys := map[string]struct{}{"type": {}, "segmented_id": {}, "created_at": {}, "updated_at": {}, "enabled": {}}
+	for key := range filterParam.Filters {
+		if _, ok := allowedKeys[key]; !ok {
+			return nil, fmt.Errorf("invalid filter key: %s", key)
+		}
+	}
+
+	// Build WHERE clause
+	var whereClauses []string
+	var args []interface{}
+	if filterParam.Search != "" {
+		whereClauses = append(whereClauses, "(LOWER(type) LIKE :search OR LOWER(enabled) LIKE :search)")
+		args = append(args, "%"+strings.ToLower(filterParam.Search)+"%")
+	}
+	for key := range allowedKeys {
+		if val, ok := filterParam.Filters[key]; ok && val != "" {
+			whereClauses = append(whereClauses, fmt.Sprintf("%s = :%s", key, key))
+			args = append(args, val)
+		}
+	}
+	whereSQL := ""
+	if len(whereClauses) > 0 {
+		whereSQL = "WHERE " + strings.Join(whereClauses, " AND ")
+	}
+
+	// Count query
+	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM ACCESS_LIST_GEO_SEG %s`, whereSQL)
+	countRow := q.db.QueryRowContext(ctx, countQuery, args...)
+	var total int64
+	if err := countRow.Scan(&total); err != nil {
+		q.logger.Errorf("[AccessListSegmentation][FindAllWithPagination] count error: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	page := filterParam.Page
+	perPage := filterParam.PerPage
+	offset := (page - 1) * perPage
+
+	if int64(offset+perPage) >= total {
+		q.logger.Infof("[AccessListSegmentation][FindAllWithPagination] offset %d exceeds total %d, returning empty result", offset, total)
+		return &types.PaginatedResponse[[]model.AccessListSegmentation]{
+			Data: []model.AccessListSegmentation{},
+			Meta: local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage),
+		}, nil
+	}
+
+	// Main query
+	query := fmt.Sprintf(`SELECT RAWTOHEX(id), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), type, enabled, created_at, updated_at, deleted_at FROM ACCESS_LIST_GEO_SEG %s ORDER BY created_at DESC OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, whereSQL)
+	argsWithPag := append(args, offset, perPage)
+	rows, err := q.db.QueryContext(ctx, query, argsWithPag...)
+	if err != nil {
+		q.logger.Errorf("[AccessListSegmentation][FindAllWithPagination] query failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer rows.Close()
+	var data []model.AccessListSegmentation
+	for rows.Next() {
+		var seg model.AccessListSegmentation
+		err := rows.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
+		if err != nil {
+			q.logger.Errorf("[AccessListSegmentation][FindAllWithPagination] scan error: %v", err)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		data = append(data, seg)
+	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	q.logger.Infof("[AccessListSegmentation][FindAllWithPagination] retrieved %d segmentations", len(data))
+
+	return &types.PaginatedResponse[[]model.AccessListSegmentation]{
+		Data: data,
+		Meta: meta,
+	}, nil
 }
 
 // FindBlockSegmentByID implements [storage.AccessListSegmentationRepository].
