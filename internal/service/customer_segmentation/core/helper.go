@@ -5,17 +5,18 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 )
 
-func MapCustomerSegmentationToMap(seg imodel.CustomerSegmentation) map[string]interface{} {
+func MapCustomerSegmentationToMap(seg imodel.CustomerSegmentation, removedSegmentIds []string) map[string]interface{} {
 	subSegments := make([]map[string]interface{}, 0)
-	for _, sub := range seg.CustomerSubSegments {
+	for _, sub := range seg.CustomerSegments {
 		subSegments = append(subSegments, map[string]interface{}{
-			"name":         sub.Name,
-			"cust_group":   sub.CustomerGroup,
-			"cust_segment": sub.CustomerSegment,
+			"cus_sub_segment": sub.CustomerSubSegment,
+			"cust_group":      sub.CustomerGroup,
+			"cust_segment":    sub.CustomerSegment,
 		})
 	}
 
 	return map[string]interface{}{
+		"removed_customer_segment_ids": removedSegmentIds,
 		"customer_role": map[string]interface{}{
 			"id":   seg.CustomerRole.ID,
 			"name": seg.CustomerRole.Name,
