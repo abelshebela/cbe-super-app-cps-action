@@ -850,6 +850,7 @@ type CPSRolesRepository interface {
 	EnableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error
 	DisableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error
 	Delete(ctx context.Context, id string) error
+	FindByCustomerSegmentationByID(ctx context.Context, customerSegment string) (*imodel.CPSRoles, error)
 }
 
 type CustomerKYCRepository interface {

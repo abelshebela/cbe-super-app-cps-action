@@ -117,7 +117,7 @@ func (q *accessListSegmentationOracle) CreateAccountSegment(ctx context.Context,
 	docs := make([]local_model.AccessListSegmentation, 0, n)
 
 	for i, key := range accessListSegmentation.AccessListKeys {
-		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), :access_list_key%d, :segmented_id, :enabled, :created_at, :updated_at, :deleted_at)", i))
+		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), :access_list_key%d, RAWTOHEX(:segmented_id), :enabled, :created_at, :updated_at, :deleted_at)", i))
 		valueArgs = append(valueArgs,
 			key,                                   // access_list_key
 			accessListSegmentation.SegmentationID, // segmented_id
@@ -170,7 +170,7 @@ func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, a
 	docs := make([]local_model.AccessListSegmentation, 0, n)
 
 	for i, key := range accessListSegmentation.AccessListKeys {
-		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), :access_list_key%d, :segmented_id, :type, :enabled, :created, :updated, :deleted)", i))
+		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), :access_list_key%d, RAWTOHEX(:segmented_id), :type, :enabled, :created, :updated, :deleted)", i))
 		valueArgs = append(valueArgs,
 			key,                                   // access_list_key
 			accessListSegmentation.SegmentationID, // segmented_id

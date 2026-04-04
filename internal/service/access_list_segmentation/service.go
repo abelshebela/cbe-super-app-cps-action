@@ -121,7 +121,7 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 		// add checks for
 		// 1. if the passed segment code is valid
 		// 2. if service id and segment code combination already exists
-		seg, err := a.customerSeg.FindByCustomerSegmentation(ctx, req.SegmentationID)
+		seg, err := a.customerSeg.FindByCustomerSegmentationByID(ctx, req.SegmentationID)
 		if err != nil || seg == nil {
 			a.logger.Errorf("[AccessListSegSvc][Create] seg code not found: %v", err)
 			return errors.New(localization.ErrorCustomerSegmentationCodeNotFound.Code)
@@ -269,7 +269,7 @@ func (a *AccessListSegmentationService) UpdateAccessListSegmentation(ctx context
 	}
 
 	if req.NewSegmentationID != "" {
-		seg, err := a.customerSeg.FindByCustomerSegmentation(ctx, req.NewSegmentationID)
+		seg, err := a.customerSeg.FindByCustomerSegmentationByID(ctx, req.NewSegmentationID)
 		if err != nil || seg == nil {
 			a.logger.Errorf("[AccessListSegSvc][Update] seg code not found: %v", err)
 			return errors.New(localization.ErrorCustomerSegmentationCodeNotFound.Code)
