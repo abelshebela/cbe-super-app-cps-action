@@ -37,7 +37,7 @@ func NewCPSRolesStorage(cfg *config.VaultConfig, db *sql.DB, kafkaProducer kafka
 	}
 }
 
-const cpsRolesTable = "cps_roles"
+const superAppRoleTable = "SUPERAPP_ROLE"
 
 func boolToOracleNumber(v bool) int {
 	if v {
@@ -105,14 +105,14 @@ func (m *cpsRoleStorage) Create(ctx context.Context, req imodel.CPSRoles) error 
 
 	var id string
 	const q = `
-INSERT INTO CPS_ROLES (
+INSERT INTO SUPERAPP_ROLE (
   NAME,
   ROLE_CODE,
   DESCRIPTION,
   ENABLED,
   IS_DELETED,
   CREATED_AT,
-  UPDATED_AT
+  LAST_MODIFIED_AT
 )
 VALUES (
   UPPER(:1),:2,:3,:4,0,:5,:6
@@ -153,7 +153,7 @@ func (m *cpsRoleStorage) Update(ctx context.Context, id string, req imodel.CPSRo
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
-	sets := []string{"UPDATED_AT = SYSTIMESTAMP"}
+	sets := []string{"LAST_MODIFIED_AT = SYSTIMESTAMP"}
 	var args []interface{}
 
 	if strings.TrimSpace(req.Name) != "" {
@@ -176,7 +176,7 @@ func (m *cpsRoleStorage) Update(ctx context.Context, id string, req imodel.CPSRo
 	q := fmt.Sprintf(`
 UPDATE %s
 SET %s
-WHERE ID = HEXTORAW(:id) AND IS_DELETED = 0`, cpsRolesTable, strings.Join(sets, ", "))
+WHERE ID = HEXTORAW(:id) AND IS_DELETED = 0`, superAppRoleTable, strings.Join(sets, ", "))
 	args = append(args, sql.Named("id", idHex))
 
 	res, err := m.db.ExecContext(ctx, q, args...)
@@ -238,7 +238,7 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	where := strings.Join(clauses, " AND ")
 
-	countQ := fmt.Sprintf(`SELECT COUNT(*) FROM %s WHERE %s`, cpsRolesTable, where)
+	countQ := fmt.Sprintf(`SELECT COUNT(*) FROM %s WHERE %s`, superAppRoleTable, where)
 	var total int64
 	if err := m.db.QueryRowContext(ctx, countQ, args...).Scan(&total); err != nil {
 		m.logger.Errorf("[CPSRolesStorage][FindAllWithPagination] count failed: %v", err)
@@ -254,12 +254,12 @@ SELECT
   ENABLED,
   IS_DELETED,
   CREATED_AT,
-  UPDATED_AT,
+  LAST_MODIFIED_AT,
   DELETED_AT
 FROM %s
 WHERE %s
 ORDER BY CREATED_AT DESC
-OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, cpsRolesTable, where)
+OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, superAppRoleTable, where)
 
 	listArgs := append(args, sql.Named("offset", offset), sql.Named("limit", limit))
 	rows, err := m.db.QueryContext(ctx, listQ, listArgs...)
@@ -323,9 +323,9 @@ SELECT
   ENABLED,
   IS_DELETED,
   CREATED_AT,
-  UPDATED_AT,
+  LAST_MODIFIED_AT,
   DELETED_AT
-FROM CPS_ROLES
+FROM SUPERAPP_ROLE
 WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
 	var (
@@ -411,11 +411,11 @@ SELECT
   ENABLED,
   IS_DELETED,
   CREATED_AT,
-  UPDATED_AT,
+  LAST_MODIFIED_AT,
   DELETED_AT
 FROM %s
 WHERE IS_DELETED = 0 AND (%s)
-FETCH FIRST 1 ROWS ONLY`, cpsRolesTable, cond)
+FETCH FIRST 1 ROWS ONLY`, superAppRoleTable, cond)
 
 	var (
 		id                         string
@@ -471,10 +471,10 @@ func (m *cpsRoleStorage) EnableOrDisable(ctx context.Context, id string, enable 
 	}
 
 	const q = `
-UPDATE CPS_ROLES
+UPDATE SUPERAPP_ROLE
 SET
   ENABLED    = :1,
-  UPDATED_AT = SYSTIMESTAMP
+  LAST_MODIFIED_AT = SYSTIMESTAMP
 WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
 
 	res, err := m.db.ExecContext(ctx, q, boolToOracleNumber(enable), idHex)
@@ -495,7 +495,7 @@ func (m *cpsRoleStorage) FindByCustomerSegmentation(ctx context.Context, custome
 		return nil, errors.New(localization.ErrorNoDataProvided.Code)
 	}
 
-	// If a segment exists, return its role (only if both are enabled and not deleted).
+	// Resolve superapp role for a customer segmentation code (CUSTOMER_SEGMENTATIONS.NAME) via sub-segments.
 	const q = `
 SELECT
   RAWTOHEX(cr.ID),
@@ -505,19 +505,16 @@ SELECT
   cr.ENABLED,
   cr.IS_DELETED,
   cr.CREATED_AT,
-  cr.UPDATED_AT,
+  cr.LAST_MODIFIED_AT,
   cr.DELETED_AT
 FROM CUSTOMER_SEGMENTATIONS cs
-JOIN CPS_ROLES cr ON cr.ID = cs.ROLE_ID
+JOIN CUSTOMER_SUB_SEGMENTS css
+  ON css.CUSTOMER_SEGMENTATIONS_ID = cs.ID AND css.IS_DELETED = 0 AND css.IS_ENABLED = 1
+JOIN SUPERAPP_ROLE cr
+  ON cr.ID = css.SUPERAPP_ROLE_ID AND cr.IS_DELETED = 0 AND cr.ENABLED = 1
 WHERE cs.IS_DELETED = 0
   AND cs.IS_ENABLED = 1
-  AND cr.IS_DELETED = 0
-  AND cr.ENABLED = 1
-  AND EXISTS (
-    SELECT 1 FROM CUSTOMER_SUB_SEGMENTS css
-    WHERE css.CUSTOMER_SEG_ID = cs.ID
-      AND css.CUSTOMER_SEGMENT = :1
-  )
+  AND UPPER(TRIM(cs.NAME)) = UPPER(TRIM(:1))
 FETCH FIRST 1 ROWS ONLY`
 
 	var (
@@ -586,10 +583,10 @@ func (m *cpsRoleStorage) Delete(ctx context.Context, id string) error {
 	}
 
 	const q = `
-UPDATE CPS_ROLES
+UPDATE SUPERAPP_ROLE
 SET
   IS_DELETED = 1,
-  UPDATED_AT = SYSTIMESTAMP,
+  LAST_MODIFIED_AT = SYSTIMESTAMP,
   DELETED_AT = SYSTIMESTAMP
 WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
