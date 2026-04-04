@@ -62,3 +62,5 @@ __debug_bin*
 .env.sh
 postman/FULL CPS  New.txt
 postman/automation  FULL CPS ACTION.postman_collection
+db/migrations/create_account_blocks.sql
+db/migrations/accounts_block_migration.sql

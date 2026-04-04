@@ -265,6 +265,33 @@ func (d *DonationStorage) HasActiveDonationsByCategory(ctx context.Context, cate
 	return count > 0, nil
 }
 
+func (d *DonationStorage) HasActiveDonationsByCompany(ctx context.Context, companyID string) (bool, error) {
+	d.logger.Infof("[DonationStorage][HasActiveDonationsByCompany] checking active donations for company: %s", companyID)
+
+	objID, err := bson.ObjectIDFromHex(companyID)
+	if err != nil {
+		d.logger.Errorf("[DonationStorage][HasActiveDonationsByCompany] invalid company id: %v", err)
+		return false, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	filter := bson.M{
+		"company_id": objID,
+		"enabled":    true,
+		"is_deleted": false,
+	}
+
+	count, err := d.dal.TotalCount(ctx, filter)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		d.logger.Errorf("[DonationStorage][HasActiveDonationsByCompany] count failed: %v", err)
+		return false, local_util.HandleDBError(err)
+	}
+
+	return count > 0, nil
+}
+
 func (d *DonationStorage) DisableAllByCompany(ctx context.Context, companyID string) error {
 	d.logger.Infof("[DonationStorage][DisableAllByCompany] disabling all active donations for company: %s", companyID)
 
