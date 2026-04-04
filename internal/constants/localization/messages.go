@@ -122,6 +122,7 @@ const (
 	MsgDonationCategoryUpdated           = "Donation category update request submitted successfully"
 
 	MsgDonationCategoryDisableRequestSent = "Donation category Disable request submitted successfully"
+	MsgDonationCategoryDeleteRequestSent = "Donation category Delete request submitted successfully"
 	MsgDonationCompanyEnableRequestSent   = "Donation Company Enable request submitted successfully"
 	MsgDonationCompanyDisableRequestSent  = "Donation company Disable request submitted successfully"
 	MsgDonationCategoryEnableRequestSent  = "Donation category Enable request submitted successfully"
@@ -160,6 +161,7 @@ const (
 	MsgDonationCategoryUpdatedSuccessfullySP  = "Donation category updated successfully"
 	MsgDonationCategoryEnabledSuccessfullySP  = "Donation category enabled successfully"
 	MsgDonationCategoryDisabledSuccessfullySP = "Donation category disabled successfully"
+	MsgDonationCategoryDeleteSuccessfullySP = "Donation Category Deleted successfully"
 
 	// =======================
 	// Donation Company – Messages
@@ -1277,6 +1279,7 @@ const (
 
 	MsgAlreadyEnabled  = "Already enabled"
 	MsgAlreadyDisabled = "Already disabled"
+	MsgAlreadyDeleted = "Already Deleted"
 
 	MsgBucketNotFound = "bucket not found"
 

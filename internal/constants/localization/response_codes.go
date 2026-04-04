@@ -70,6 +70,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDonationCompanyFetched,
 	SuccessDonationCategoryEnableRequestSent,
 	SuccessDonationCategoryDisableRequestSent,
+	SuccessDonationCategoryDeleteRequestSent,
 	SuccessDonationCompanyEnableRequestSent,
 	SuccessDonationCompanyDisableRequestSent,
 	SuccessAccountInfoFetched,
@@ -514,6 +515,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorAlreadyEnabled,
 	ErrorAlreadyDisabled,
+	ErrorAlreadyDeleted,
 	ErrorCannotDisableOwnRole,
 	ErrorCannotDisableOwnJobTitle,
 	ErrorRoleHasActiveJobs,
@@ -665,6 +667,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDonationCompanyDisabledSP,
 	SuccessDonationCategoryEnabledSP,
 	SuccessDonationCategoryDisabledSP,
+	SuccessDonationCategoryDeleteSP,
 
 	ErrorDonationTitleDuplicated,
 	ErrorDonationImageUploaded,
@@ -1424,6 +1427,12 @@ var (
 		Message:    MsgDonationCategoryDisableRequestSent,
 		Type:       "success",
 	}
+	SuccessDonationCategoryDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_DONATION_CATEGORY_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDonationCategoryDeleteRequestSent,
+		Type:       "success",
+	}
 	SuccessDonationCompanyEnableRequestSent = ResponseCode{
 		Code:       "SUCCESS_DONATION_COMPANY_ENABLE_REQUEST_SENT",
 		StatusCode: StatusOK,
@@ -1488,6 +1497,13 @@ var (
 		Code:       "SUCCESS_DONATION_CATEGORY_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgDonationCategoryDisabledSuccessfullySP,
+		Type:       "success",
+	}
+	//delete
+	SuccessDonationCategoryDeleteSP = ResponseCode{
+		Code:       "SUCCESS_DONATION_CATEGORY_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgDonationCategoryDeleteSuccessfullySP,
 		Type:       "success",
 	}
 
@@ -7546,6 +7562,12 @@ var (
 		Code:       "ERROR_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorAlreadyDeleted = ResponseCode{
+		Code:       "ERROR_ALREADY_DELETED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAlreadyDeleted,
 		Type:       "error",
 	}
 

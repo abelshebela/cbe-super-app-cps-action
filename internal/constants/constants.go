@@ -976,7 +976,7 @@ const (
 	RequestUpdateDonationCategory  RequestAction = "UPDATE_DONATION_CATEGORY"
 	RequestEnableDonationCategory  RequestAction = "ENABLE_DONATION_CATEGORY"
 	RequestDisableDonationCategory RequestAction = "DISABLE_DONATION_CATEGORY"
-
+RequestDeleteDonationCategory RequestAction = "DELETE_DONATION_CATEGORY"
 	// Donation Company
 	RequestCreateDonationCompany  RequestAction = "CREATE_DONATION_COMPANY"
 	RequestUpdateDonationCompany  RequestAction = "UPDATE_DONATION_COMPANY"

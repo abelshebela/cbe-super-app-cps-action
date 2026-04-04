@@ -216,6 +216,7 @@ type DonationCategoryService interface {
 	UpdateDonationCategory(ctx context.Context, id string, donation donationCat_dto.DonationCategoryRequest) (donationCat_dto.DonationCategoryRequest, error)
 	EnableDonationCategory(ctx context.Context, id string) error
 	DisableDonationCategory(ctx context.Context, id string) error
+	DeleteDonationCategory(ctx context.Context, id string) error
 }
 
 type DonationCompanyService interface {
