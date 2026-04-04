@@ -8,7 +8,7 @@ import (
 
 type ServiceResponse struct {
 	ID                       string      `bson:"_id,omitempty" json:"id"`
-	ServiceKeyId             string      `json:"service_key_id"`
+	ServiceKeyId             string      `json:"service_key_id" bson:"service_key_id"`
 	ServiceName              string      `bson:"service_name" json:"service_name"`
 	ServiceKey               string      `bson:"service_key" json:"service_key"`
 	ServiceCode              string      `bson:"service_code" json:"service_code"`
