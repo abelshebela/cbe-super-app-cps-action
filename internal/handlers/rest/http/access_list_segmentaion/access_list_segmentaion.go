@@ -11,6 +11,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -107,7 +108,7 @@ func (a *accessListSegmentation) DisableAccessListSegmentation(w http.ResponseWr
 		return
 	}
 
-	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, false, req.AccessListKeys, req.SegmentationType); err != nil {
+	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, false, req.AccessListKeys, strings.ToLower(req.SegmentationType)); err != nil {
 		log.Errorf("[DisableAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

@@ -25,7 +25,7 @@ type AccessListSegmentationService struct {
 	accBlock              storage.AccountBlockRepository
 	customerSeg           storage.CPSRolesRepository
 	memberRepo            storage.CustomerRepository
-	accessListServiceRepo storage.AppAccessListRepository
+	accessListServiceRepo storage.BulkServiceRepository
 	cpsAction             service.CPSActionService
 	logger                utils.Logger
 }
@@ -97,7 +97,7 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	found, err := a.accessListServiceRepo.FindByKeys(ctx, req.AccessListKeys)
+	found, err := a.accessListServiceRepo.FindAllByKeys(ctx, req.AccessListKeys)
 	if err != nil || found == nil {
 		a.logger.Errorf("[AccessListSegSvc][Create] find keys err: %v", err)
 		return err
@@ -152,8 +152,11 @@ func (a *AccessListSegmentationService) EnableDisableAccessListSegmentation(ctx 
 	var err error
 	if segmentation_type == "block" {
 		accessListSegmentation, err = a.repo.FindAllByBlockAndKeys(ctx, id, keys)
-	} else {
+	} else if segmentation_type == "account" {
 		accessListSegmentation, err = a.repo.FindAllByAccountAndKeys(ctx, id, keys)
+	} else {
+		a.logger.Errorf("[AccessListSegSvc][EnableDisable] invalid segmentation type: %s", segmentation_type)
+		return localization.ErrorUnexpectedError
 	}
 	if err != nil {
 		a.logger.Errorf("[AccessListSegSvc][EnableDisable] find err: %v", err)
@@ -392,7 +395,7 @@ func (a *AccessListSegmentationService) GetAllAccessListSegmentationForAccount(c
 	return accessList, accessListSegmentation, nil
 }
 
-func NewAccessListSegmentationService(repo storage.AccessListSegmentationRepositoryOracle, cpsAction service.CPSActionService, accessListServiceRepo storage.AppAccessListRepository, accBlock storage.AccountBlockRepository, memberRepo storage.CustomerRepository, customerSeg storage.CPSRolesRepository, logger utils.Logger) service.AccessListSegmentationService {
+func NewAccessListSegmentationService(repo storage.AccessListSegmentationRepositoryOracle, cpsAction service.CPSActionService, accessListServiceRepo storage.BulkServiceRepository, accBlock storage.AccountBlockRepository, memberRepo storage.CustomerRepository, customerSeg storage.CPSRolesRepository, logger utils.Logger) service.AccessListSegmentationService {
 	return &AccessListSegmentationService{
 		repo:                  repo,
 		cpsAction:             cpsAction,

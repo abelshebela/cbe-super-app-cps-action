@@ -8,7 +8,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
-	"cbe-super-app-cps-action/internal/storage/persistance/access_list_segmentation/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
@@ -44,64 +43,35 @@ func (q *accessListSegmentationOracle) BulkDisable(ctx context.Context, req acce
 	q.logger.Infof("[AccessListSegmentation][BulkDisable] bulk disable request: %+v", req)
 	var filter string
 	var args []interface{}
-	var segType string
-	if req.SegmentationType == "Account" {
-		filter = "segmentation_code = :1 AND access_list_key IN ("
-		args = append(args, req.ID)
-		for i, key := range req.Keys {
-			if i > 0 {
-				filter += ","
-			}
-			filter += fmt.Sprintf(":key%d", i+2)
-			args = append(args, key)
-		}
-		filter += ")"
-		segType = "account-segment"
-	} else {
-		filter = "segmentation_id = :1 AND access_list_key IN ("
-		args = append(args, req.ID)
-		for i, key := range req.Keys {
-			if i > 0 {
-				filter += ","
-			}
-			filter += fmt.Sprintf(":key%d", i+2)
-			args = append(args, key)
-		}
-		filter += ")"
-		segType = "block-segment"
+	if len(req.Keys) == 0 {
+		return nil
 	}
+	// Build IN clause with positional parameters and HEXTORAW for each key
+	inClause := make([]string, len(req.Keys))
+	args = append(args, req.ID)
+	for i := range req.Keys {
+		inClause[i] = fmt.Sprintf("HEXTORAW(:%d)", i+2)
+		args = append(args, req.Keys[i])
+	}
+
 	var stmt string
-	if req.SegmentationType == "Account" {
+	switch req.SegmentationType {
+	case "account":
+		filter = fmt.Sprintf("segmented_id = HEXTORAW(:1) AND access_list_key IN (%s)", strings.Join(inClause, ","))
 		stmt = "DELETE FROM access_list_customer_seg WHERE " + filter
-
-	} else {
+	case "block":
+		filter = fmt.Sprintf("segmented_id = :1 AND access_list_key IN (%s)", strings.Join(inClause, ","))
 		stmt = "DELETE FROM access_list_geo_seg WHERE " + filter
-
+	default:
+		return localization.ErrorUnexpectedError
 	}
+
 	_, err := q.db.ExecContext(ctx, stmt, args...)
 	if err != nil {
 		q.logger.Errorf("[AccessListSegmentation][BulkDisable] failed to bulk disable access list segmentation: %v", err)
-		return err
+		return localization.ErrorUnexpectedError
 	}
 
-	branches := core.GetAllBranches(ctx, req.ID, q.accBlock)
-
-	// Prepare Kafka message
-	als := make([]local_model.AccessListSegmentation, len(req.Keys))
-	for i, key := range req.Keys {
-		doc := local_model.AccessListSegmentation{
-			AccessListKey: key,
-			Enabled:       req.Enabled,
-		}
-		doc.SegmentedID = req.ID
-		als[i] = doc
-	}
-	res := map[string]any{
-		"docs":     als,
-		"type":     segType,
-		"branches": branches,
-	}
-	q.kafkaProducer.PublishMessage(ctx, res, "delete", q.cfg.KafkaCustomerSegmentaionTopic, "bulk delete access-list-segmentation")
 	return nil
 }
 
@@ -117,7 +87,7 @@ func (q *accessListSegmentationOracle) CreateAccountSegment(ctx context.Context,
 	docs := make([]local_model.AccessListSegmentation, 0, n)
 
 	for i, key := range accessListSegmentation.AccessListKeys {
-		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), :access_list_key%d, RAWTOHEX(:segmented_id), :enabled, :created_at, :updated_at, :deleted_at)", i))
+		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), HEXTORAW(:access_list_key%d), HEXTORAW(:segmented_id), :enabled, :created_at, :updated_at, :deleted_at)", i))
 		valueArgs = append(valueArgs,
 			key,                                   // access_list_key
 			accessListSegmentation.SegmentationID, // segmented_id
@@ -170,7 +140,7 @@ func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, a
 	docs := make([]local_model.AccessListSegmentation, 0, n)
 
 	for i, key := range accessListSegmentation.AccessListKeys {
-		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), :access_list_key%d, RAWTOHEX(:segmented_id), :type, :enabled, :created, :updated, :deleted)", i))
+		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), HEXTORAW(:access_list_key%d), :segmented_id, :type, :enabled, :created, :updated, :deleted)", i))
 		valueArgs = append(valueArgs,
 			key,                                   // access_list_key
 			accessListSegmentation.SegmentationID, // segmented_id
@@ -210,10 +180,10 @@ func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, a
 // FindAllForBlock implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geographicalID string) ([]shared_model.APPAccessList, error) {
 
-	query := `SELECT RAWTOHEX(g.access_list_key), a.access_list_name, g.enabled
+	query := `SELECT RAWTOHEX(g.access_list_key), a.name,a.service_key, g.enabled
 		FROM ACCESS_LIST_GEO_SEG g
 		JOIN ACCESS_LIST a ON g.access_list_key = a.id
-		WHERE g.segmented_id = HEXTORAW(:1)`
+		WHERE g.segmented_id = :1`
 	rows, err := q.db.QueryContext(ctx, query, geographicalID)
 	if err != nil {
 		q.logger.Errorf("[AccessListSegmentation][FindAllForBlock] query failed: %v", err)
@@ -222,9 +192,9 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 	defer rows.Close()
 	var result []shared_model.APPAccessList
 	for rows.Next() {
-		var key, accessListName string
+		var key, accessListName, accessListServiceKey string
 		var enabled bool
-		err := rows.Scan(&key, &accessListName, &enabled)
+		err := rows.Scan(&key, &accessListName, &accessListServiceKey, &enabled)
 		if err != nil {
 			if err.Error() == "sql: no rows in result set" {
 				q.logger.Infof("[AccessListSegmentation][FindAllForBlock] no access list segmentation found for geographicalID: %s", geographicalID)
@@ -233,9 +203,9 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 			q.logger.Errorf("[AccessListSegmentation][FindAllForBlock] query failed: %v", err)
 			return nil, err
 		}
-		q.logger.Infof("[AccessListSegmentation][FindAllForBlock] found access list segmentation: key=%s, name=%s, enabled=%v", key, accessListName, enabled)
+		q.logger.Infof("[AccessListSegmentation][FindAllForBlock] found access list segmentation: key=%s, name=%s, service_key=%s, enabled=%v", key, accessListName, accessListServiceKey, enabled)
 		result = append(result, shared_model.APPAccessList{
-			Key:            key,
+			Key:            accessListServiceKey,
 			AccessListName: accessListName,
 			Enabled:        enabled,
 		})
@@ -246,7 +216,7 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 // FindAllBySegmentIDorSegmentCode implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, customer_seg_id string) ([]shared_model.APPAccessList, error) {
 
-	query := `SELECT RAWTOHEX(g.access_list_key), a.access_list_name, g.enabled
+	query := `SELECT RAWTOHEX(g.access_list_key), a.name,a.service_key, g.enabled
 		FROM ACCESS_LIST_CUSTOMER_SEG g
 		JOIN ACCESS_LIST a ON g.access_list_key = a.id
 		WHERE g.segmented_id = HEXTORAW(:1)`
@@ -258,9 +228,9 @@ func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, cu
 	defer rows.Close()
 	var result []shared_model.APPAccessList
 	for rows.Next() {
-		var key, accessListName string
+		var key, accessListName, accessListServiceKey string
 		var enabled bool
-		err := rows.Scan(&key, &accessListName, &enabled)
+		err := rows.Scan(&key, &accessListName, &accessListServiceKey, &enabled)
 		if err != nil {
 			if err.Error() == "sql: no rows in result set" {
 				q.logger.Infof("[AccessListSegmentation][FindAllForAccount] no access list segmentation found for customer_seg_id: %s", customer_seg_id)
@@ -269,9 +239,9 @@ func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, cu
 			q.logger.Errorf("[AccessListSegmentation][FindAllForAccount] query failed: %v", err)
 			return nil, err
 		}
-		q.logger.Infof("[AccessListSegmentation][FindAllForAccount] found access list segmentation: key=%s, name=%s, enabled=%v", key, accessListName, enabled)
+		q.logger.Infof("[AccessListSegmentation][FindAllForAccount] found access list segmentation: key=%s, name=%s, service_key=%s, enabled=%v", key, accessListName, accessListServiceKey, enabled)
 		result = append(result, shared_model.APPAccessList{
-			Key:            key,
+			Key:            accessListServiceKey,
 			AccessListName: accessListName,
 			Enabled:        enabled,
 		})
@@ -323,7 +293,7 @@ func (q *accessListSegmentationOracle) FindAllByAccountAndKeys(ctx context.Conte
 	if len(keys) == 0 {
 		return nil, fmt.Errorf("no keys provided")
 	}
-	query := `SELECT RAWTOHEX(id), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), type, enabled, created_at, updated_at, deleted_at FROM ACCESS_LIST_CUSTOMER_SEG WHERE segmented_id = HEXTORAW(:1) AND access_list_key IN (`
+	query := `SELECT RAWTOHEX(ID), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), enabled, created_at, updated_at FROM ACCESS_LIST_CUSTOMER_SEG WHERE segmented_id = HEXTORAW(:1) AND access_list_key IN (`
 	placeholders := make([]string, len(keys))
 	args := make([]interface{}, 0, len(keys)+1)
 	args = append(args, segmentIDorCode)
@@ -340,8 +310,9 @@ func (q *accessListSegmentationOracle) FindAllByAccountAndKeys(ctx context.Conte
 	defer rows.Close()
 	var result []model.AccessListSegmentation
 	for rows.Next() {
+		var segID string
 		var seg model.AccessListSegmentation
-		err := rows.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
+		err := rows.Scan(&segID, &seg.AccessListKey, &seg.SegmentedID, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt)
 		if err != nil {
 			if err.Error() == "sql: no rows in result set" {
 				q.logger.Infof("[AccessListSegmentationOracle][FindAllByAccountAndKeys] no access list segmentation found for segmentIDorCode: %s and keys: %v", segmentIDorCode, keys)
@@ -568,7 +539,7 @@ func (q *accessListSegmentationOracle) FindBySegmentationAndServiceID(ctx contex
 // FindParentChildRelationship implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindParentChildRelationship(ctx context.Context) ([]model.AccessItemRelation, error) {
 
-	query := `SELECT RAWTOHEX(parent_key), RAWTOHEX(child_key) FROM ACCESS_ITEM_RELATIONS`
+	query := `SELECT RAWTOHEX(parent_key), RAWTOHEX(child_key) FROM ACCESS_ITEMS_RELATION`
 	rows, err := q.db.QueryContext(ctx, query)
 	if err != nil {
 		q.logger.Errorf("[AccessListSegmentation][FindParentChildRelationship] query failed: %v", err)
