@@ -83,10 +83,13 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 
 	r := chi.NewRouter()
 
+	router.Use(customeMiddleware.CORS(cfg))
+	// middleware for encryption and decryption of request and response body
+	router.Use(encryptionMiddleware.SecureTunnelMiddleware())
+
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
 	// CORS must run early so preflight OPTIONS requests are handled before auth/logging
-	router.Use(customeMiddleware.CORS(cfg))
 	// Security http rate limitter
 	router.Use(httprate.LimitByIP(100, 1*time.Minute))
 	// Security headers: HSTS, X-Content-Type-Options, X-Frame-Options, CSP, Cache-Control
