@@ -51,9 +51,9 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 	case "staging":
 		allowedOrigins = []string{"0.0.0.0:3000", "https://staging-cbe-super-app-central-portal.vercel.app"}
 	case "qa":
-		allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "0.0.0.0:3000", "https://qa-cbe-super-app-central-portal.vercel.app"}
+		allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "0.0.0.0:3000", "https://qa-cbe-super-app-central-portal.vercel.app", "https://dev-cbe-super-app-central-portal.vercel.app"}
 	case "dev":
-		allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "0.0.0.0:3000", "https://dev-cbe-super-app-central-portal.vercel.app"}
+		allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "0.0.0.0:3000", "https://dev-cbe-super-app-central-portal.vercel.app", "https://dev-cbe-super-app-central-portal.vercel.app/"}
 	default:
 		allowedOrigins = []string{"*"}
 		allowCredentials = false // credentials cannot be used with wildcard origin
@@ -194,6 +194,7 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 		}
 
 		ctx := a.setUserPayload(r.Context(), userPayload)
+		localization.UpdateWriterContext(w, ctx)
 		// isOTPVerified := ctx.Value("is_otp_verified")
 		// if isOTPVerified != "true" {
 		// 	localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
@@ -273,6 +274,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		}
 
 		ctx := a.setUserPayload(r.Context(), userPayload)
+		localization.UpdateWriterContext(w, ctx)
 		now := time.Now().Unix()
 
 		remainTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutesRemain)

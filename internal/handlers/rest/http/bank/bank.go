@@ -58,6 +58,7 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var bankRequest bank_dto.CreateBankRequest
 
@@ -128,10 +129,12 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 
 	if md.IsMakerOnly {
 		log.Infof("[CreateOneBank] bank created successfully for bic_code: %s", bankRequest.BICCode)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBankCreatedSuccessfully, nil)
 		return
 	}
 	log.Infof("[CreateOneBank] request sent successfully for bank bic_code: %s", bankRequest.BICCode)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankCreatedRequestSent, nil)
 }
 
@@ -172,6 +175,7 @@ func (b *bankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Infof("[DeleteOneBank] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessDeleteRequestCreated, nil)
 }
 
@@ -196,6 +200,7 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	span.SetAttributes(attribute.String("bank.id", id))
@@ -213,14 +218,17 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Infof("[BankDisable] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankDisableRequestCreated, nil)
 
 	if md.IsMakerOnly {
 		log.Infof("[BankDisable] bank disabled successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBankDisabledSuccessfully, nil)
 		return
 	}
 	log.Infof("[BankDisable] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankDisableRequestCreated, nil)
 
 }
@@ -246,6 +254,7 @@ func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	span.SetAttributes(attribute.String("bank.id", id))
@@ -264,10 +273,12 @@ func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 		log.Infof("[BankEnable] bank enabled successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBankEnabledSuccessfully, nil)
 		return
 	}
 	log.Infof("[BankEnable] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankEnableRequestCreated, nil)
 }
 
@@ -436,6 +447,7 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	span.SetAttributes(attribute.String("bank.id", id))
@@ -503,10 +515,12 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 		log.Infof("[UpdateOneBank] bank updated successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBankUpdated, nil)
 		return
 	}
 	log.Infof("[UpdateOneBank] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankUpdatedRequestSent, nil)
 
 }

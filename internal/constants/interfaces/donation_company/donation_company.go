@@ -10,4 +10,5 @@ type DonationCompanyAdapter interface {
 	AccountLookup(w http.ResponseWriter, r *http.Request)
 	EnableDonationCompany(w http.ResponseWriter, r *http.Request)
 	DisableDonationCompany(w http.ResponseWriter, r *http.Request)
+	DeleteDonationCompany(w http.ResponseWriter, r *http.Request)
 }

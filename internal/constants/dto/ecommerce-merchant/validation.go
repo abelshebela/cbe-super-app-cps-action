@@ -31,9 +31,10 @@ func (b BranchInformation) ValidateCreate() error {
 		),
 
 		validation.Field(&b.BranchOwner,
-			validation.Required,
-			validation.By(utils.TrimWhiteSpace),
-			validation.By(utils.NoSpecialChars),
+			validation.When(b.BranchOwner != nil && *b.BranchOwner != "",
+				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
+			),
 		),
 
 		validation.Field(&b.BranchAccountNumber,
@@ -44,27 +45,26 @@ func (b BranchInformation) ValidateCreate() error {
 	)
 }
 
-func (b BranchInformation) ValidateUpdate() error {
+func (b BranchInformation) ValidateBranchInfoUpdate() error {
 	return validation.ValidateStruct(&b,
 
 		validation.Field(&b.BranchCode,
-			validation.By(utils.TrimWhiteSpace),
 			validation.By(utils.NoSpecialChars),
 		),
 
 		validation.Field(&b.BranchName,
-			validation.By(utils.TrimWhiteSpace),
 			validation.By(utils.NoSpecialChars),
 		),
 
 		validation.Field(&b.BranchAddress,
-			validation.By(utils.TrimWhiteSpace),
 			validation.By(utils.NoSpecialChars),
 		),
 
 		validation.Field(&b.BranchOwner,
-			validation.By(utils.TrimWhiteSpace),
-			validation.By(utils.NoSpecialChars),
+			validation.When(b.BranchOwner != nil && *b.BranchOwner != "",
+				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
+			),
 		),
 
 		validation.Field(&b.BranchAccountNumber,
@@ -114,7 +114,7 @@ func validateBranchesUpdate(value interface{}) error {
 			seen[b.BranchCode] = true
 		}
 
-		if err := b.ValidateUpdate(); err != nil {
+		if err := b.ValidateBranchInfoUpdate(); err != nil {
 			return fmt.Errorf("branch[%d]: %w", i, err)
 		}
 	}

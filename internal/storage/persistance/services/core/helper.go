@@ -14,8 +14,8 @@ func MapToServiceUpdate(service model.Service, existing model.Service) bson.M {
 	}
 
 	update["service_code"] = service.ServiceCode
-	update["service_key"] = service.ServiceKey
-	update["service_name"] = service.ServiceName
+	// update["service_key"] = service.ServiceKey
+	// update["service_name"] = service.ServiceName
 	update["product_gl_account"] = service.ProductGlAccount
 	update["minimum_fraud_amount"] = service.MinimumFraudAmount
 
@@ -27,8 +27,8 @@ func MapToServiceUpdate(service model.Service, existing model.Service) bson.M {
 		update["cap"] = service.Cap
 	}
 
-	update["enabled"] = existing.Enabled
-	update["is_deleted"] = existing.IsDeleted
+	// update["enabled"] = existing.Enabled
+	// update["is_deleted"] = existing.IsDeleted
 
 	return update
 }

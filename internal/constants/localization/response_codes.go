@@ -70,8 +70,10 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDonationCompanyFetched,
 	SuccessDonationCategoryEnableRequestSent,
 	SuccessDonationCategoryDisableRequestSent,
+	SuccessDonationCategoryDeleteRequestSent,
 	SuccessDonationCompanyEnableRequestSent,
 	SuccessDonationCompanyDisableRequestSent,
+	SuccessDonationCompanyDeleteRequestSent,
 	SuccessAccountInfoFetched,
 	SuccessUnlinkCif,
 
@@ -246,8 +248,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessMiniAppsRetrieved,
 	SuccessMiniAppFetchedByID,
 	SuccessMiniAppActionCompleted,
-	ErrorMiniAppMerchantNotFound,
-	ErrorMiniAppMerchantDisabled,
+	ErrorEcommerceMerchantNotFound,
+	ErrorEcommerceMerchantDisabled,
 
 	// Sitota Related success
 	SuccessAllSitotasRetrieved,
@@ -514,6 +516,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorAlreadyEnabled,
 	ErrorAlreadyDisabled,
+	ErrorAlreadyDeleted,
 	ErrorCannotDisableOwnRole,
 	ErrorCannotDisableOwnJobTitle,
 	ErrorRoleHasActiveJobs,
@@ -658,13 +661,16 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationAlreadyEnabled,
 	ErrorDonationAlreadyDisabled,
 	ErrorActiveDonationExistsInCategory,
+	ErrorActiveDonationExistsInCompany,
 	SuccessDonationCompanyUpdatedSP,
 	SuccessDonationCompanyCreatedSP,
 	SuccessDonationCompanyEnabledSP,
 	SuccessDonationCompanyEnabledSP,
 	SuccessDonationCompanyDisabledSP,
+	SuccessDonationCompanyDeleteSP,
 	SuccessDonationCategoryEnabledSP,
 	SuccessDonationCategoryDisabledSP,
+	SuccessDonationCategoryDeleteSP,
 
 	ErrorDonationTitleDuplicated,
 	ErrorDonationImageUploaded,
@@ -675,10 +681,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCategoryIsNotEnabled,
 	ErrorDonationCategoryNotFound,
 	ErrorDonationLookupFailed,
-	ErrorMiniAppMerchantEnableFailed,
-	ErrorMiniAppMerchantDisableFailed,
-	ErrorMiniAppMerchantDeleteFailed,
-	ErrorMiniAppMerchantUpdateFailed,
+	ErrorEcommerceMerchantEnableFailed,
+	ErrorEcommerceMerchantDisableFailed,
 	ErrorExistEmail,
 	ErrorInvalidPhoneNumber,
 	ErrorExistPhoneNumber,
@@ -788,6 +792,24 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventMerchantInvalidEmail,
 	ErrorEventMerchantInvalidPhoneNumber,
 	ErrorMerchantIDAlreadyExists,
+	ErrorEventMerchantAlreadyDisabled,
+	ErrorEventMerchantAlreadyEnabled,
+
+	// logistic merchant
+	ErrorLogisticMerchantInvalidMerchantID,
+	ErrorLogisticMerchantInvalidMerchantType,
+	ErrorLogisticMerchantInvalidSettlementMethod,
+	ErrorLogisticMerchantInvalidMerchantName,
+	ErrorLogisticMerchantInvalidBankAccountNumber,
+	ErrorLogisticMerchantInvalidIsLogisticsMerchant,
+	ErrorLogisticMerchantInvalidEmail,
+	ErrorLogisticMerchantInvalidPhoneNumber,
+	ErrorLogisticMerchantNotFound,
+	ErrorLogisticMerchantDisableFailed,
+	ErrorLogisticMerchantEnableFailed,
+
+	ErrorLogisticMerchantAlreadyDisabled,
+	ErrorLogisticMerchantAlreadyEnabled,
 
 	// Access List Segmentation Success Codes
 	SuccessAccessListSegmentationCreated,
@@ -826,8 +848,11 @@ var ResponseCodesList = []ResponseCode{
 	CustomerSegmentationUpdateSubmittedSuccessfully,
 	CustomerSegmentationFetchedSuccessfully,
 	CustomerSegmentationDeleteddSuccessfully,
+	CustomerSegmentationDeleteRequestSubmittedSuccessfully,
 	CustomerSegmentationEnableSuccessfully,
+	CustomerSegmentationEnabledSuccessfully,
 	CustomerSegmentationDisableSuccessfully,
+	CustomerSegmentationDisabledSuccessfully,
 	CustomerSegmentationCreated,
 	CustomerSegmentationUpdated,
 	CustomerSegmentationEnabled,
@@ -1405,6 +1430,12 @@ var (
 		Message:    MsgDonationCategoryDisableRequestSent,
 		Type:       "success",
 	}
+	SuccessDonationCategoryDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_DONATION_CATEGORY_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDonationCategoryDeleteRequestSent,
+		Type:       "success",
+	}
 	SuccessDonationCompanyEnableRequestSent = ResponseCode{
 		Code:       "SUCCESS_DONATION_COMPANY_ENABLE_REQUEST_SENT",
 		StatusCode: StatusOK,
@@ -1471,6 +1502,13 @@ var (
 		Message:    MsgDonationCategoryDisabledSuccessfullySP,
 		Type:       "success",
 	}
+	//delete
+	SuccessDonationCategoryDeleteSP = ResponseCode{
+		Code:       "SUCCESS_DONATION_CATEGORY_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgDonationCategoryDeleteSuccessfullySP,
+		Type:       "success",
+	}
 
 	// =======================
 	// Donation Company – Response Codes
@@ -1505,6 +1543,20 @@ var (
 		Code:       "SUCCESS_DONATION_COMPANY_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgDonationCompanyDisabledSuccessfullySP,
+		Type:       "success",
+	}
+
+	// Delete
+	SuccessDonationCompanyDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_DONATION_COMPANY_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDonationCompanyDeleteRequestSent,
+		Type:       "success",
+	}
+	SuccessDonationCompanyDeleteSP = ResponseCode{
+		Code:       "SUCCESS_DONATION_COMPANY_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgDonationCompanyDeleteSuccessfullySP,
 		Type:       "success",
 	}
 
@@ -1636,6 +1688,20 @@ var (
 		Code:       "SUCCESS_DONATION_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgDonationDisabledSuccessfullySP,
+		Type:       "success",
+	}
+
+	// Delete Donation
+	SuccessDonationDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_DONATION_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDonationDeleteRequestSent,
+		Type:       "success",
+	}
+	SuccessDonationDeleteSP = ResponseCode{
+		Code:       "SUCCESS_DONATION_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgDonationDeleteSuccessfullySP,
 		Type:       "success",
 	}
 
@@ -5974,6 +6040,12 @@ var (
 		Type:       "error",
 	}
 
+	ErrorActionActorRequeired = ResponseCode{
+		Code:       "ERROR_ACTION_ACTOR_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActionActorRequired,
+		Type:       "error",
+	}
 	ErrorAuditorAlreadyChecked = ResponseCode{
 		Code:       "ERROR_AUDITOR_ALREADY_CHECKED",
 		StatusCode: StatusForbidden,
@@ -6283,14 +6355,14 @@ var (
 		Message:    MsgMiniAppMerchantMarshalFailed,
 		Type:       "error",
 	}
-	ErrorMiniAppMerchantNotFound = ResponseCode{
-		Code:       "ERROR_MINI_APP_MERCHANT_NOT_FOUND",
+	ErrorEcommerceMerchantNotFound = ResponseCode{
+		Code:       "ERROR_ECOMMERCE_MERCHANT_NOT_FOUND",
 		StatusCode: StatusNotFound,
-		Message:    "MiniApp merchant not found",
+		Message:    "Ecommerce merchant not found",
 		Type:       "error",
 	}
-	ErrorMiniAppMerchantDisabled = ResponseCode{
-		Code:       "ERROR_MINI_APP_MERCHANT_DISABLED",
+	ErrorEcommerceMerchantDisabled = ResponseCode{
+		Code:       "ERROR_ECOMMERCE_MERCHANT_DISABLED",
 		StatusCode: StatusBadRequest,
 		Message:    "MiniApp merchant is Disabled",
 		Type:       "error",
@@ -6386,17 +6458,17 @@ var (
 		Type:       "error",
 	}
 
-	ErrorMiniAppMerchantEnableFailed = ResponseCode{
-		Code:       "ERROR_MINI_APP_MERCHANT_ENABLE_FAILED",
+	ErrorEcommerceMerchantEnableFailed = ResponseCode{
+		Code:       "ERROR_ECOMMERCE_MERCHANT_ENABLE_FAILED",
 		StatusCode: StatusInternalServerError,
-		Message:    MsgMiniAppMerchantEnableFailed,
+		Message:    MsgEcommerceMerchantEnableFailed,
 		Type:       "error",
 	}
 
-	ErrorMiniAppMerchantDisableFailed = ResponseCode{
-		Code:       "ERROR_MINI_APP_MERCHANT_DISABLE_FAILED",
+	ErrorEcommerceMerchantDisableFailed = ResponseCode{
+		Code:       "ERROR_ECOMMERCE_MERCHANT_DISABLE_FAILED",
 		StatusCode: StatusInternalServerError,
-		Message:    MsgMiniAppMerchantDisableFailed,
+		Message:    "Ecommerce merchant disable successfully",
 		Type:       "error",
 	}
 
@@ -6561,15 +6633,36 @@ var (
 	CustomerSegmentationDeleteddSuccessfully = ResponseCode{
 		Code:       "CUSTOMER_SEGMENTATIONS_DELETED_SUCCESSFULLY",
 		StatusCode: StatusOK,
-		Message:    "Customer segmentations deleted request submitted successfully",
+		Message:    "Customer segmentations deleted successfully",
 		Type:       "success",
 	}
+	CustomerSegmentationDeleteRequestSubmittedSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATIONS_DELETE_REQUEST_SUBMITTED__SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer segmentations delete request submitted successfully",
+		Type:       "success",
+	}
+
+	CustomerSegmentationEnabledSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATION_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer segmentation enabled successfully",
+		Type:       "success",
+	}
+
 	CustomerSegmentationEnableSuccessfully = ResponseCode{
 		Code:       "CUSTOMER_SEGMENTATION_ENABLE_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    MsgCustomerSegmentationEnableSuccessfully,
 		Type:       "success",
 	}
+	CustomerSegmentationDisabledSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATION_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer segmentation disabled successfully",
+		Type:       "success",
+	}
+
 	CustomerSegmentationDisableSuccessfully = ResponseCode{
 		Code:       "CUSTOMER_SEGMENTATION_DISABLE_SUCCESSFULLY",
 		StatusCode: StatusOK,
@@ -6678,6 +6771,15 @@ var (
 		Type:       "error",
 	}
 
+	// ErrorActiveDonationExistsInCompany is returned when deleting a company
+	// that still has at least one enabled donation referencing it.
+	ErrorActiveDonationExistsInCompany = ResponseCode{
+		Code:       "DONATION_COMPANY_HAS_ACTIVE_DONATIONS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActiveDonationExistsInCompany,
+		Type:       "error",
+	}
+
 	ErrorCompanyNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_COMPANY_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
@@ -6746,6 +6848,20 @@ var (
 		Code:       "ERROR_CODE_ALREADY_EXIST",
 		StatusCode: StatusBadRequest,
 		Message:    MsgCodeAlreadyExists,
+		Type:       "error",
+	}
+
+	ErrorMiniAppMerchantNotFound = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgMiniAppMerchantNotFound,
+		Type:       "error",
+	}
+
+	ErrorMiniAppMerchantDisableFailed = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_DISABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgMiniAppMerchantDisableFailed,
 		Type:       "error",
 	}
 
@@ -7488,6 +7604,12 @@ var (
 		Message:    MsgAlreadyDisabled,
 		Type:       "error",
 	}
+	ErrorAlreadyDeleted = ResponseCode{
+		Code:       "ERROR_ALREADY_DELETED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAlreadyDeleted,
+		Type:       "error",
+	}
 
 	ErrorServiceListAlreadyExists = ResponseCode{
 		Code:       "ERROR_SERVICE_LIST_ALREADY_EXISTS",
@@ -8216,6 +8338,18 @@ var (
 		Message:    MsgEventMerchantEnableFailed,
 		Type:       "error",
 	}
+	ErrorEventMerchantAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgEventMerchantAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorEventMerchantAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgEventMerchantAlreadyDisabled,
+		Type:       "error",
+	}
 
 	ErrorLogisticMerchantInvalidMerchantID = ResponseCode{
 		Code:       "ERROR_LOGISTIC_MERCHANT_INVALID_MERCHANT_ID",
@@ -8282,6 +8416,18 @@ var (
 		Code:       "ERROR_LOGISTIC_MERCHANT_ENABLE_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgLogisticMerchantEnableFailed,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgLogisticMerchantAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgLogisticMerchantAlreadyDisabled,
 		Type:       "error",
 	}
 

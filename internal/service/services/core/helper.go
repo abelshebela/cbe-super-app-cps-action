@@ -24,10 +24,6 @@ func formatFloatPointer(f *float64) string {
 
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	userData := local_util.ExtractUserFromContext(ctx)
-	// if incomplet := local_util.IsIncomplete(userData); incomplet {
-	// 	log.Println("User data incomplete for CPS action", "userCode", userData.UserCode)
-	// 	return errors.New(localization.ErrorIncompleteUserInfo.Code)
-	// }
 
 	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(actionType))
 
@@ -41,10 +37,10 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 
 func MapToServiceModel(req service_dto.CreateServiceRequest) model.Service {
 	mapped := model.Service{
-		ServiceCode:      req.ServiceCode,
-		ServiceKey:       req.ServiceKey,
-		ServiceName:      req.ServiceName,
-		ProductGlAccount: req.ProductGlAccount,
+		ServiceCode:              req.ServiceCode,
+		ServiceKeyId:             req.ServiceKeyId,
+		ProductGlAccount:         req.ProductGlAccount,
+		ProductGlAccountCurrency: req.ProductGlAccountCurrency,
 		Cap: func() []model.Cap {
 			caps := make([]model.Cap, 0, len(req.Cap))
 
@@ -108,18 +104,20 @@ func MapToServiceModel(req service_dto.CreateServiceRequest) model.Service {
 		// 	}
 		// 	return lists
 		// }(),
-		Enabled:   service_dto.BoolPointer(req.Enabled, true),
-		IsDeleted: service_dto.BoolPointer(req.IsDeleted, false),
+		// Enabled:   service_dto.BoolPointer(req.Enabled, true),
+		// IsDeleted: service_dto.BoolPointer(req.IsDeleted, false),
 		CreatedAt: time.Now(),
 	}
 
 	return mapped
 }
 
-func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing model.Service) model.Service {
+func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing service_dto.ServiceResponse) service_dto.ServiceResponse {
 	existing.ServiceCode = service_dto.StringPointer(req.ServiceCode, existing.ServiceCode)
-	existing.ServiceKey = service_dto.StringPointer(req.ServiceKey, existing.ServiceKey)
-	existing.ServiceName = service_dto.StringPointer(req.ServiceName, existing.ServiceName)
+	existing.ServiceKeyId = service_dto.StringPointer(req.ServiceKeyId, existing.ServiceKeyId)
+	existing.ProductGlAccountCurrency = service_dto.StringPointer(req.ProductGlAccountCurrency, existing.ProductGlAccountCurrency)
+	// existing.ServiceKey = service_dto.StringPointer(req.ServiceKey, existing.ServiceKey)
+	// existing.ServiceName = service_dto.StringPointer(req.ServiceName, existing.ServiceName)
 	existing.ProductGlAccount = service_dto.StringPointer(req.ProductGlAccount, existing.ProductGlAccount)
 
 	if req.Cap != nil {
@@ -200,15 +198,15 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing mode
 	return existing
 }
 
-func MapServiceListDtoToModel(req *service_dto.CreateServiceList) model.ServiceList {
-	return model.ServiceList{
+func MapServiceListDtoToModel(req *service_dto.CreateServiceList) model.ServiceKey {
+	return model.ServiceKey{
 		ServiceName: req.ServiceName,
 		ServiceKey:  req.ServiceKey,
 	}
 }
 
-func MapServiceListDtoUpdateToModel(req *service_dto.UpdateServiceList) model.ServiceList {
-	return model.ServiceList{
+func MapServiceListDtoUpdateToModel(req *service_dto.UpdateServiceList) model.ServiceKey {
+	return model.ServiceKey{
 		ServiceName: req.ServiceName,
 		ServiceKey:  req.ServiceKey,
 	}

@@ -3,31 +3,30 @@ package accountblock
 import (
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	"go.mongodb.org/mongo-driver/v2/bson"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 )
 
 // AccountBlockResponse represents any region, district, city, or branch
 type AccountBlockResponse struct {
-	ID            string              `json:"id,omitempty"`
-	Name          string              `json:"name"`
-	Code          string              `json:"code"`
-	Address       string              `json:"address"`
-	Slug          string              `json:"slug"`
-	ParentID      string              `json:"parent_id,omitempty"`
-	Parent        *model.AccountBlock `json:"parent,omitempty"`
-	Type          string              `json:"type"` // R=Region, D=District, C=City, B=Branch
-	CityID        string              `bson:"city_id,omitempty" json:"city_id,omitempty"`
-	RegionID      string              `bson:"region_id,omitempty" json:"region_id,omitempty"`
-	DistrictID    string              `bson:"district_id,omitempty" json:"district_id,omitempty"`
-	DisableReason model.Reason        `bson:"disable_reason" json:"disable_reason"`
-	IsEnabled     bool                `json:"is_enabled"`
-	CreatedAt     time.Time           `json:"created_at"`
-	UpdatedAt     time.Time           `json:"updated_at"`
+	ID            string                    `json:"id,omitempty"`
+	Name          string                    `json:"name"`
+	Code          string                    `json:"code"`
+	Address       string                    `json:"address"`
+	Slug          string                    `json:"slug"`
+	ParentID      string                    `json:"parent_id,omitempty"`
+	Parent        *imodel.AccountBlock      `json:"parent,omitempty"`
+	Type          string                    `json:"type"` // R=Region, D=District, C=City, B=Branch
+	CityID        string                    `json:"city_id,omitempty"`
+	RegionID      string                    `json:"region_id,omitempty"`
+	DistrictID    string                    `json:"district_id,omitempty"`
+	DisableReason []imodel.AccountBlockReason `json:"disable_reason"`
+	IsEnabled     bool                      `json:"is_enabled"`
+	CreatedAt     time.Time                 `json:"created_at"`
+	UpdatedAt     time.Time                 `json:"updated_at"`
 }
 
 type AccountBlockActionResponse struct {
-	ID                  bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	ID                  string        `json:"id,omitempty"`
 	ActionCode          string        `bson:"action_code" json:"action_code"`
 	UniqueId            string        `bson:"unique_id" json:"unique_id,omitempty"`
 	MakerID             string        `bson:"maker_id" json:"maker_id"`

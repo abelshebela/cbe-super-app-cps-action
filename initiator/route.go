@@ -66,21 +66,20 @@ import (
 
 	ussd_merchant_rout "cbe-super-app-cps-action/internal/glue/routing/ussd_merchant"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	sharedMiddleware "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/middleware"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.uber.org/zap"
 
 	"cbe-super-app-cps-action/docs"
 
 	"github.com/go-chi/httprate"
-	shared_middleware "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/middleware"
 )
 
-func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared_middleware.TransitMiddleware, handlerLayer Handler, client cps_auth.CpsAuthServiceClient, redisRepository storage.RedisRepository, logger utils.Logger, cfg *config.VaultConfig) {
+func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware sharedMiddleware.TransitMiddleware, handlerLayer Handler, client cps_auth.CpsAuthServiceClient, redisRepository storage.RedisRepository, logger utils.Logger, cfg *config.VaultConfig) {
 
 	r := chi.NewRouter()
 
@@ -103,6 +102,8 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	}
 	// Logger middleware runs after trace context is injected so logs include trace/span ids
 	router.Use(customeMiddleware.ChiLogger(logger))
+	// Bind request context to response writer so Send*Response helpers include trace_id/request_id
+	router.Use(customeMiddleware.BindRequestContext)
 
 	router.Use(customeMiddleware.HandlePanic(logger))
 	router.Use(middleware.Timeout(30 * time.Second))
@@ -188,7 +189,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	secured.Group(func(r chi.Router) {
 		// Auth first
 		r.Use(authMiddleware.AuthenticateToken)
-
+		r.Use(encryptionMiddleware.SecureTunnelMiddleware())
 		// CPS Action Guard
 		// // r.Use(customeMiddleware.CPSActionRouteGuard([]string{
 		// // 	"/actions",

@@ -445,6 +445,13 @@ func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_lis
 	return nil
 }
 
+// SetAccountBlockRepository injects the AccountBlock dependency after construction.
+// This is needed because Oracle persistence (which owns AccountBlock) is initialised
+// after the Mongo persistence layer.
+func (a *AccessListSegmentation) SetAccountBlockRepository(repo storage.AccountBlockRepository) {
+	a.accBlock = repo
+}
+
 func NewAccessListSegmentationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collectionName string, customerSegmentationProducer kafka.AccessListSegmentationProducer, accountBlock storage.AccountBlockRepository, logger utils.Logger) storage.AccessListSegmentationRepository {
 	return &AccessListSegmentation{
 		repo:           dal.NewMongoDal[local_model.AccessListSegmentation, local_model.AccessListSegmentation](client, cfg, dbName, collectionName),

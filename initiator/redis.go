@@ -3,15 +3,14 @@ package initiator
 import (
 	"context"
 
-	shared_reddis "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config/redis"
-
 	"github.com/redis/go-redis/extra/redisotel/v9"
 	"github.com/redis/go-redis/v9"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	shared_redis "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config/redis"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func InitRedis(cfg *config.VaultConfig, log utils.Logger) (*redis.Client, *shared_reddis.RedisClient) {
+func InitRedis(cfg *config.VaultConfig, log utils.Logger) (*redis.Client, *shared_redis.RedisClient) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     cfg.RedisURI,
 		Password: cfg.RedisPassword,
@@ -27,7 +26,8 @@ func InitRedis(cfg *config.VaultConfig, log utils.Logger) (*redis.Client, *share
 	if err := redisotel.InstrumentTracing(client); err != nil {
 		log.Warnf("Failed to instrument Redis with OpenTelemetry: %v", err)
 	}
-	sharedReddis := shared_reddis.NewRedisClient(client, *cfg)
 
-	return client, sharedReddis
+	sharedRedis := shared_redis.NewRedisClient(client, *cfg)
+
+	return client, sharedRedis
 }

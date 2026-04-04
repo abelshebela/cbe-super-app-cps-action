@@ -12,12 +12,14 @@ import (
 	"cbe-super-app-cps-action/internal/storage/api"
 
 	mid "cbe-super-app-cps-action/internal/handlers/middleware"
+
 	"cbe-super-app-cps-action/platform/telemetry"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/middleware"
 	shared_producer "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/producer"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils/encryption"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/middleware"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"log"
@@ -114,6 +116,9 @@ func Init(ctx context.Context) {
 	redisStorage := InitRedisStorageLayer(redis, logger)
 	logger.Infof("redis initialized")
 
+	encMiddleWare := encryption.NewEncryptionImpl(zapLogger)
+	encryptionMiddleware := middleware.NewTransitMiddlware(sharedRedis, encMiddleWare, zapLogger)
+
 	redisRepository := redisStorage.GetRedisRepository()
 
 	// Initialize queue system (memory + Redis backends, dedup, metrics)
@@ -132,8 +137,9 @@ func Init(ctx context.Context) {
 	logger.Infof("Oracle database initialized")
 
 	logger.Infof("Initializing Oracle DB client...")
-	OraclePersistence := InitOraclePersistence(oracleDB, cfg, *clientOrchestrationProducer, logger)
+	OraclePersistence := InitOraclePersistence(oracleDB, cfg, *clientOrchestrationProducer, redisRepository, logger)
 	logger.Infof("Oracle DB client initialized")
+	logger.Infof("Oracle DB client initialized", cfg.OracleConnectionString)
 
 	logger.Infof("Initializing SMS service...")
 	smsService := lib.InitNotificationStore(logger, cfg, notificationProducer)

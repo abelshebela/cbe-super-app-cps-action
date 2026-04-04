@@ -102,15 +102,15 @@ OFFSET NVL(:offset, 0) ROWS
 FETCH NEXT NVL(:limit, 50) ROWS ONLY`
 
 type FindVaultCategoryParams struct {
-	IsActive  sql.NullBool   `json:"is_active"`
-	NameQuery sql.NullString `json:"name"`
-	Page      sql.NullInt64  `json:"page"`
-	Limit     sql.NullInt64  `json:"limit"`
+	IsActive sql.NullBool   `json:"is_active"`
+	Search   sql.NullString `json:"search"`
+	Page     sql.NullInt64  `json:"page"`
+	Limit    sql.NullInt64  `json:"limit"`
 }
 
 func (q *Queries) FindVaultCategories(ctx context.Context, arg FindVaultCategoryParams) ([]VaultCategory, error) {
 
-	namePtr := utils.NullStringToPtrLike(arg.NameQuery)
+	namePtr := utils.NullStringToPtrLike(arg.Search)
 	limitPtr := utils.NullInt64ToPtr(arg.Limit)
 	var offsetPtr *int64
 	if arg.Page.Valid && arg.Limit.Valid {

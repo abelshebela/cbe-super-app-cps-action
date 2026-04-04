@@ -15,8 +15,7 @@ const (
 )
 
 func (r CreateServiceRequest) Normalize() {
-	r.ServiceName = strings.TrimSpace(r.ServiceName)
-	r.ServiceKey = strings.TrimSpace(r.ServiceKey)
+	r.ServiceKeyId = strings.TrimSpace(r.ServiceKeyId)
 	r.ServiceCode = strings.TrimSpace(r.ServiceCode)
 	r.ProductGlAccount = strings.TrimSpace(r.ProductGlAccount)
 
@@ -33,11 +32,8 @@ func (r CreateServiceRequest) Normalize() {
 }
 
 func (r UpdateServiceRequest) Normalize() {
-	if r.ServiceName != nil {
-		*r.ServiceName = strings.TrimSpace(*r.ServiceName)
-	}
-	if r.ServiceKey != nil {
-		*r.ServiceKey = strings.TrimSpace(*r.ServiceKey)
+	if r.ServiceKeyId != nil {
+		*r.ServiceKeyId = strings.TrimSpace(*r.ServiceKeyId)
 	}
 	if r.ServiceCode != nil {
 		*r.ServiceCode = strings.TrimSpace(*r.ServiceCode)
@@ -200,8 +196,7 @@ func validateCap(cap CapRequest) error {
 
 func (r CreateServiceRequest) Validate() error {
 	err := validation.ValidateStruct(&r,
-		validation.Field(&r.ServiceName, validation.Required, validation.By(utils.NoSpecialChars)),
-		validation.Field(&r.ServiceKey, validation.Required, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.ServiceKeyId, validation.Required, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ProductGlAccount,
 			validation.When(r.ProductGlAccount != "",

@@ -122,11 +122,13 @@ const (
 	MsgDonationCategoryUpdated           = "Donation category update request submitted successfully"
 
 	MsgDonationCategoryDisableRequestSent = "Donation category Disable request submitted successfully"
+	MsgDonationCategoryDeleteRequestSent  = "Donation category Delete request submitted successfully"
 	MsgDonationCompanyEnableRequestSent   = "Donation Company Enable request submitted successfully"
 	MsgDonationCompanyDisableRequestSent  = "Donation company Disable request submitted successfully"
 	MsgDonationCategoryEnableRequestSent  = "Donation category Enable request submitted successfully"
 
 	MsgActiveDonationExistsInCategory    = "Please disable all active donations in this category before disabling the category"
+	MsgActiveDonationExistsInCompany     = "Please disable all active donations in this company before deleting the company"
 	MsgDonationCompanyCreateRequestSent  = "Donation company create request submitted successfully"
 	MsgDonationCompaniesFetched          = "Donation companies fetched successfully"
 	MsgDonationCompanyFetched            = "Donation company fetched successfully"
@@ -160,6 +162,7 @@ const (
 	MsgDonationCategoryUpdatedSuccessfullySP  = "Donation category updated successfully"
 	MsgDonationCategoryEnabledSuccessfullySP  = "Donation category enabled successfully"
 	MsgDonationCategoryDisabledSuccessfullySP = "Donation category disabled successfully"
+	MsgDonationCategoryDeleteSuccessfullySP   = "Donation Category Deleted successfully"
 
 	// =======================
 	// Donation Company – Messages
@@ -168,6 +171,8 @@ const (
 	MsgDonationCompanyUpdatedSuccessfullySP  = "Donation company updated successfully"
 	MsgDonationCompanyEnabledSuccessfullySP  = "Donation company enabled successfully"
 	MsgDonationCompanyDisabledSuccessfullySP = "Donation company disabled successfully"
+	MsgDonationCompanyDeleteRequestSent      = "Donation company delete request submitted successfully"
+	MsgDonationCompanyDeleteSuccessfullySP   = "Donation company deleted successfully"
 
 	MsgDonationCreatedSuccessfullySP = "Donation created successfully"
 	MsgDonationUpdatedSuccessfullySP = "Donation updated successfully"
@@ -180,6 +185,8 @@ const (
 	// State changes
 	MsgDonationEnabledSuccessfullySP  = "Donation enabled successfully"
 	MsgDonationDisabledSuccessfullySP = "Donation disabled successfully"
+	MsgDonationDeleteRequestSent      = "Donation delete request submitted successfully"
+	MsgDonationDeleteSuccessfullySP   = "Donation deleted successfully"
 
 	// CPS Action related success messages
 	MsgCPSActionsRetrievedSuccessfully     = "CPS Actions retrieved successfully"
@@ -493,30 +500,30 @@ const (
 	MsgBpsUserCreateSuccess   = "BPS user create request submitted successfully"
 	MsgBpsUserCreateSuccessSP = "BPS user created successfully"
 
-	// CPS Roles
-	MsgCpsRoleCreated           = "CPS role create request submitted successfully"
-	MsgCpsRoleUpdated           = "CPS role update request submitted successfully"
-	MsgCpsRolesFetched          = "CPS roles fetched successfully"
-	MsgCpsRoleFetched           = "CPS role fetched successfully"
-	MsgCpsRoleEnabled           = "CPS role enable request submitted successfully"
-	MsgCpsRoleDisabled          = "CPS role disable request submitted successfully"
-	MsgCpsRoleAlreadyEnabled    = "CPS role already enabled"
-	MsgCpsRoleAlreadyDisabled   = "CPS role already disabled"
-	MsgCpsRoleNameAlreadyExists = "CPS role name already exists"
-	MsgCpsRoleCodeAlreadyExists = "CPS role code already exists"
+	// Customer Roles
+	MsgCpsRoleCreated           = "Customer role create request submitted successfully"
+	MsgCpsRoleUpdated           = "Customer role update request submitted successfully"
+	MsgCpsRolesFetched          = "Customer roles fetched successfully"
+	MsgCpsRoleFetched           = "Customer role fetched successfully"
+	MsgCpsRoleEnabled           = "Customer role enable request submitted successfully"
+	MsgCpsRoleDisabled          = "Customer role disable request submitted successfully"
+	MsgCpsRoleAlreadyEnabled    = "Customer role already enabled"
+	MsgCpsRoleAlreadyDisabled   = "Customer role already disabled"
+	MsgCpsRoleNameAlreadyExists = "Customer role name already exists"
+	MsgCpsRoleCodeAlreadyExists = "Customer role code already exists"
 
-	MsgCpsRoleCreatedSP  = "CPS role created successfully"
-	MsgCpsRoleUpdatedSP  = "CPS role updated successfully"
-	MsgCpsRoleEnabledSP  = "CPS role enabled successfully"
-	MsgCpsRoleDisabledSP = "CPS role disabled successfully"
+	MsgCpsRoleCreatedSP  = "Customer role created successfully"
+	MsgCpsRoleUpdatedSP  = "Customer role updated successfully"
+	MsgCpsRoleEnabledSP  = "Customer role enabled successfully"
+	MsgCpsRoleDisabledSP = "Customer role disabled successfully"
 
 	MsgCannotDisableOwnRole     = "You cannot disable your own role"
 	MsgCannotDisableOwnJobTitle = "You cannot disable your own job title"
 	MsgRoleHasActiveJobs        = "There are active jobs for this role, you can't disable it"
-	MsgCpsRoleServiceEnabled    = "Service access enabled for CPS role successfully"
-	MsgCpsRoleServiceDisabled   = "Service access disabled for CPS role successfully"
-	MsgCpsRoleDeleted           = "CPS role delete request submitted successfully"
-	MsgCpsRoleDeletedSP         = "CPS role deleted successfully"
+	MsgCpsRoleServiceEnabled    = "Service access enabled for Customer role successfully"
+	MsgCpsRoleServiceDisabled   = "Service access disabled for Customer role successfully"
+	MsgCpsRoleDeleted           = "Customer role delete request submitted successfully"
+	MsgCpsRoleDeletedSP         = "Customer role deleted successfully"
 
 	// Feedback Handler related success messages
 	MsgFeedbackCreatedSuccessfullySP = "Feedback created successfully"
@@ -659,6 +666,7 @@ const (
 	MsgTransactionFailed   = "Transaction failed"
 	MsgLimitExceeded       = "Limit exceeded"
 	MsgOperationNotAllowed = "Access Denied"
+	MsgActionActorRequired = "Action actor is required"
 	// MsgOperationNotAllowed                 = "Operation not allowed"
 	MsgAuditorAlreadyChecked               = "Auditor already checked this action"
 	MsgAuditorActionOnThisRoleCompleted    = "Action Auditing on this role is already completed"
@@ -710,6 +718,8 @@ const (
 	MsgEmailAlreadyExists                = "this email already exist"
 	MsgPhoneAlreadyExists                = "this phone number already exist"
 	MsgCodeAlreadyExists                 = "Ecommerce merchant with this code/id already exists"
+	MsgMiniAppMerchantNotFound           = "MiniApp merchant not found"
+	MsgMiniAppMerchantDisableFailed      = "Failed to disable MiniApp merchant"
 	MsgLogoIsRequired                    = "Company logo is required"
 	MsgAccountNumberValidationFailed     = "Account number validation failed"
 	MsgAccountNotFound                   = "Account number not found"
@@ -726,9 +736,9 @@ const (
 	MsgEcommerceMerchantCreated              = "Ecommerce merchant created request submitted successfully"
 	MsgEcommerceMerchantCreatedSuccessfully  = "Ecommerce merchant created successfully"
 	MsgEcommerceMerchantUpdatedSuccessfylly  = "Ecommerce merchant updated successfully"
-	MsgEcommerceMerchantDeletedSuccessfylly  = "Ecommerce merchant updated successfully"
-	MsgEcommerceMerchantEnabledSuccessfylly  = "Ecommerce merchant updated successfully"
-	MsgEcommerceMerchantDisabledSuccessfylly = "Ecommerce merchant updated successfully"
+	MsgEcommerceMerchantDeletedSuccessfylly  = "Ecommerce merchant deleted successfully"
+	MsgEcommerceMerchantEnabledSuccessfylly  = "Ecommerce merchant enabled successfully"
+	MsgEcommerceMerchantDisabledSuccessfylly = "Ecommerce merchant disabled successfully"
 
 	MsgEcommerceMerchantUpdated  = "Ecommerce merchant updated request submitted successfully"
 	MsgEcommerceMerchantDeleted  = "Ecommerce merchant delete request submitted successfully"
@@ -831,13 +841,13 @@ const (
 	MsgPermissionCatagoryNotFound      = "Permission category not found"
 
 	// Mini App Merchant related error messages
-	MsgMiniAppMerchantNotFound       = "Mini app merchant not found"
-	MsgMiniAppMerchantCreationFailed = "Failed to create mini app merchant"
-	MsgMiniAppMerchantDeletionFailed = "Failed to delete mini app merchant"
-	MsgMiniAppMerchantDisableFailed  = "ecommerce merchant is already disabled"
-	MsgMiniAppMerchantEnableFailed   = "ecommerce merchant is already enabled"
-	MsgMiniAppMerchantInvalidFormat  = "Invalid mini app merchant format"
-	MsgMiniAppMerchantRequired       = "Mini app merchant is required"
+	MsgEcommerceAppMerchantNotFound       = "Ecommerce merchant not found"
+	MsgEcommerceAppMerchantCreationFailed = "Failed to create ecommerce merchant"
+	MsgEcommerceAppMerchantDeletionFailed = "Failed to delete ecommerce merchant"
+	MsgEcommerceAppMerchantDisableFailed  = "ecommerce merchant is already disabled"
+	MsgEcommerceMerchantEnableFailed      = "ecommerce merchant is already enabled"
+	MsgEcommerceAppMerchantInvalidFormat  = "Invalid ecommerce merchant format"
+	MsgEcommerceAppMerchantRequired       = "Ecommerce merchant is required"
 
 	// Notification related error messages
 	MsgNotificationNotFound       = "Notification not found"
@@ -1274,6 +1284,7 @@ const (
 
 	MsgAlreadyEnabled  = "Already enabled"
 	MsgAlreadyDisabled = "Already disabled"
+	MsgAlreadyDeleted  = "Already Deleted"
 
 	MsgBucketNotFound = "bucket not found"
 
@@ -1339,6 +1350,8 @@ const (
 	MsgEventMerchantInvalidPhoneNumber             = "merchant phone number invalid or empty"
 	MsgEventMerchantEnableFailed                   = "event merchant already enabled"
 	MsgEventMerchantDisableFailed                  = "event merchant already disabled"
+	MsgEventMerchantAlreadyDisabled                = "event merchant already disabled"
+	MsgEventMerchantAlreadyEnabled                 = "event merchant already enabled"
 	MsgEventMerchantNotFound                       = "event merchant not found"
 	MsgEventMerchantDisabledSuccessfully           = "event merchant disabled successfully"
 	MsgEventMerchantDisableRequestSentSuccessfully = "event merchant disable request sent successfully"
@@ -1366,6 +1379,8 @@ const (
 	MsgLogisticMerchantInvalidPhoneNumber         = "merchant phone number invalid or empty"
 	MsgLogisticMerchantEnableFailed               = "logistic merchant already enabled"
 	MsgLogisticMerchantDisableFailed              = "logistic merchant already disabled"
+	MsgLogisticMerchantAlreadyEnabled             = "logistic merchant already enabled"
+	MsgLogisticMerchantAlreadyDisabled            = "logistic merchant already disabled"
 	MsgLogisticMerchantNotFound                   = "logistic merchant not found"
 	MsgLogisticMerchantDisabledSuccessfully       = "logistic merchant disabled successfully"
 	MsgLogisticMerchantEnabledSuccessfully        = "logistic merchant enabled successfully"

@@ -38,11 +38,11 @@ func BindAction(source any, target any) error {
 	return json.Unmarshal(bytes, target)
 }
 
-func MapToDonationCategory(categoryName, iconURL string, enabled bool) *donation_model.DonationCategory {
+func MapToDonationCategory(categoryName, iconURL string, enabled bool,is_deleted bool) *donation_model.DonationCategory {
 	return &donation_model.DonationCategory{
 		CategoryName:   categoryName,
 		Icon:           iconURL,
-		IsDeleted:      false,
+		IsDeleted:      is_deleted,
 		Enabled:        enabled,
 		LastModifiedAt: time.Now(),
 	}
