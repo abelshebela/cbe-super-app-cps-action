@@ -70,8 +70,10 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDonationCompanyFetched,
 	SuccessDonationCategoryEnableRequestSent,
 	SuccessDonationCategoryDisableRequestSent,
+	SuccessDonationCategoryDeleteRequestSent,
 	SuccessDonationCompanyEnableRequestSent,
 	SuccessDonationCompanyDisableRequestSent,
+	SuccessDonationCompanyDeleteRequestSent,
 	SuccessAccountInfoFetched,
 	SuccessUnlinkCif,
 
@@ -514,6 +516,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorAlreadyEnabled,
 	ErrorAlreadyDisabled,
+	ErrorAlreadyDeleted,
 	ErrorCannotDisableOwnRole,
 	ErrorCannotDisableOwnJobTitle,
 	ErrorRoleHasActiveJobs,
@@ -658,13 +661,16 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationAlreadyEnabled,
 	ErrorDonationAlreadyDisabled,
 	ErrorActiveDonationExistsInCategory,
+	ErrorActiveDonationExistsInCompany,
 	SuccessDonationCompanyUpdatedSP,
 	SuccessDonationCompanyCreatedSP,
 	SuccessDonationCompanyEnabledSP,
 	SuccessDonationCompanyEnabledSP,
 	SuccessDonationCompanyDisabledSP,
+	SuccessDonationCompanyDeleteSP,
 	SuccessDonationCategoryEnabledSP,
 	SuccessDonationCategoryDisabledSP,
+	SuccessDonationCategoryDeleteSP,
 
 	ErrorDonationTitleDuplicated,
 	ErrorDonationImageUploaded,
@@ -1425,6 +1431,12 @@ var (
 		Message:    MsgDonationCategoryDisableRequestSent,
 		Type:       "success",
 	}
+	SuccessDonationCategoryDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_DONATION_CATEGORY_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDonationCategoryDeleteRequestSent,
+		Type:       "success",
+	}
 	SuccessDonationCompanyEnableRequestSent = ResponseCode{
 		Code:       "SUCCESS_DONATION_COMPANY_ENABLE_REQUEST_SENT",
 		StatusCode: StatusOK,
@@ -1491,6 +1503,13 @@ var (
 		Message:    MsgDonationCategoryDisabledSuccessfullySP,
 		Type:       "success",
 	}
+	//delete
+	SuccessDonationCategoryDeleteSP = ResponseCode{
+		Code:       "SUCCESS_DONATION_CATEGORY_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgDonationCategoryDeleteSuccessfullySP,
+		Type:       "success",
+	}
 
 	// =======================
 	// Donation Company – Response Codes
@@ -1525,6 +1544,20 @@ var (
 		Code:       "SUCCESS_DONATION_COMPANY_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgDonationCompanyDisabledSuccessfullySP,
+		Type:       "success",
+	}
+
+	// Delete
+	SuccessDonationCompanyDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_DONATION_COMPANY_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDonationCompanyDeleteRequestSent,
+		Type:       "success",
+	}
+	SuccessDonationCompanyDeleteSP = ResponseCode{
+		Code:       "SUCCESS_DONATION_COMPANY_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgDonationCompanyDeleteSuccessfullySP,
 		Type:       "success",
 	}
 
@@ -1656,6 +1689,20 @@ var (
 		Code:       "SUCCESS_DONATION_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgDonationDisabledSuccessfullySP,
+		Type:       "success",
+	}
+
+	// Delete Donation
+	SuccessDonationDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_DONATION_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDonationDeleteRequestSent,
+		Type:       "success",
+	}
+	SuccessDonationDeleteSP = ResponseCode{
+		Code:       "SUCCESS_DONATION_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgDonationDeleteSuccessfullySP,
 		Type:       "success",
 	}
 
@@ -6725,6 +6772,15 @@ var (
 		Type:       "error",
 	}
 
+	// ErrorActiveDonationExistsInCompany is returned when deleting a company
+	// that still has at least one enabled donation referencing it.
+	ErrorActiveDonationExistsInCompany = ResponseCode{
+		Code:       "DONATION_COMPANY_HAS_ACTIVE_DONATIONS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActiveDonationExistsInCompany,
+		Type:       "error",
+	}
+
 	ErrorCompanyNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_COMPANY_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
@@ -7547,6 +7603,12 @@ var (
 		Code:       "ERROR_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorAlreadyDeleted = ResponseCode{
+		Code:       "ERROR_ALREADY_DELETED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAlreadyDeleted,
 		Type:       "error",
 	}
 

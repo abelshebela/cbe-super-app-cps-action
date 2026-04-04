@@ -446,6 +446,7 @@ type DonationRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation.DonationListResponse], error)
 	StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*donation_model.Donation) error) error
 	HasActiveDonationsByCategory(ctx context.Context, categoryID string) (bool, error)
+	HasActiveDonationsByCompany(ctx context.Context, companyID string) (bool, error)
 	DisableAllByCompany(ctx context.Context, companyID string) error
 }
 

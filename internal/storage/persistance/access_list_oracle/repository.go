@@ -8,8 +8,10 @@ import (
 	"strconv"
 	"strings"
 
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -18,12 +20,14 @@ import (
 
 type Repository struct {
 	db     *sql.DB
+	redis  storage.RedisRepository
 	logger utils.Logger
 }
 
-func NewAccessListOracleRepository(db *sql.DB, logger utils.Logger) *Repository {
+func NewAccessListOracleRepository(db *sql.DB, redis storage.RedisRepository, logger utils.Logger) *Repository {
 	return &Repository{
 		db:     db,
+		redis:  redis,
 		logger: logger,
 	}
 }
@@ -212,6 +216,7 @@ func (r *Repository) Update(ctx context.Context, keys []string, state bool) erro
 		}
 	}
 
+	storage.BumpRedisCacheKey(ctx, r.redis, constants.RedisCacheKeyAccessList)
 	return nil
 }
 

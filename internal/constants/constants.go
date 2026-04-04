@@ -976,12 +976,13 @@ const (
 	RequestUpdateDonationCategory  RequestAction = "UPDATE_DONATION_CATEGORY"
 	RequestEnableDonationCategory  RequestAction = "ENABLE_DONATION_CATEGORY"
 	RequestDisableDonationCategory RequestAction = "DISABLE_DONATION_CATEGORY"
-
+	RequestDeleteDonationCategory  RequestAction = "DELETE_DONATION_CATEGORY"
 	// Donation Company
 	RequestCreateDonationCompany  RequestAction = "CREATE_DONATION_COMPANY"
 	RequestUpdateDonationCompany  RequestAction = "UPDATE_DONATION_COMPANY"
 	RequestEnableDonationCompany  RequestAction = "ENABLE_DONATION_COMPANY"
 	RequestDisableDonationCompany RequestAction = "DISABLE_DONATION_COMPANY"
+	RequestDeleteDonationCompany  RequestAction = "DELETE_DONATION_COMPANY"
 
 	// Donation
 	RequestCreateDonation      RequestAction = "CREATE_DONATION"
@@ -991,6 +992,7 @@ const (
 	RequestAddDonationImage    RequestAction = "ADD_DONATION_IMAGE"
 	RequestEnableDonation      RequestAction = "ENABLE_DONATION"
 	RequestDisableDonation     RequestAction = "DISABLE_DONATION"
+	RequestDeleteDonation      RequestAction = "DELETE_DONATION"
 
 	// Article
 	RequestCreateArticle  RequestAction = "CREATE_ARTICLE"
@@ -1193,11 +1195,18 @@ const (
 )
 
 // ---------------------------------------------------------------------------
-// Redis Key Prefixes
+// Redis keys (prefixes and full keys)
 // ---------------------------------------------------------------------------
 
 const (
 	RedisCPSUserDeviceIDPrefix = "cps:auth:device"
+
+	// RedisCacheKeyWallet, RedisCacheKeyAccessList, RedisCacheKeyAccountBlock are
+	// centralized full key names for cache / invalidation until Vault supplies them
+	// (e.g. map to VaultConfig fields later and replace usages).
+	RedisCacheKeyWallet       = "cache:wallet"
+	RedisCacheKeyAccessList   = "cache:access_list"
+	RedisCacheKeyAccountBlock = "cache:account_block"
 )
 
 // ---------------------------------------------------------------------------

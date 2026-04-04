@@ -3,6 +3,7 @@ package wallet_oracle
 import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -18,12 +19,14 @@ import (
 
 type WalletStorage struct {
 	db     DBTX
+	redis  storage.RedisRepository
 	logger utils.Logger
 }
 
-func NewWalletOracleRepository(db *sql.DB, log utils.Logger) storage.WalletOracleRepository {
+func NewWalletOracleRepository(db *sql.DB, redis storage.RedisRepository, log utils.Logger) storage.WalletOracleRepository {
 	return &WalletStorage{
 		db:     db,
+		redis:  redis,
 		logger: log,
 	}
 }
@@ -59,6 +62,7 @@ func (q *WalletStorage) Create(ctx context.Context, wallet *model.WalletOracle) 
 		q.logger.Errorf("[WalletStorage][Create] failed to insert wallet: %v", err)
 		return err
 	}
+	storage.BumpRedisCacheKey(ctx, q.redis, constants.RedisCacheKeyWallet)
 	q.logger.Infof("[WalletStorage][Create] Successfully created wallet with UniqueCode: %s", wallet.UniqueCode)
 	return nil
 }
@@ -70,6 +74,7 @@ func (q *WalletStorage) Delete(ctx context.Context, id string) error {
 		q.logger.Errorf("[WalletStorage][Delete] failed to delete wallet: %v", err)
 		return err
 	}
+	storage.BumpRedisCacheKey(ctx, q.redis, constants.RedisCacheKeyWallet)
 	return nil
 }
 
@@ -87,6 +92,7 @@ func (q *WalletStorage) EnableOrDisable(ctx context.Context, id string, enable b
 		q.logger.Errorf("[WalletStorage][EnableOrDisable] failed: %v", err)
 		return err
 	}
+	storage.BumpRedisCacheKey(ctx, q.redis, constants.RedisCacheKeyWallet)
 	return nil
 }
 
@@ -374,5 +380,6 @@ func (q *WalletStorage) Update(ctx context.Context, id string, wallet *model.Wal
 		q.logger.Errorf("[WalletStorage][Update] failed: %v", err)
 		return err
 	}
+	storage.BumpRedisCacheKey(ctx, q.redis, constants.RedisCacheKeyWallet)
 	return nil
 }

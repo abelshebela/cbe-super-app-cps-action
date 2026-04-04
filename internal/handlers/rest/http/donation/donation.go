@@ -673,3 +673,50 @@ func (a *donationAdapter) ExportDonationList(w http.ResponseWriter, r *http.Requ
 	localization.SendSuccessResponse(w, localization.DonationDataExportedSuccess, fileLink)
 	fmt.Println(">>> [HANDLER] ExportDonationList - EXIT")
 }
+
+//DeleteDonation
+
+// DeleteDonation godoc
+//
+//	@Summary		Delete a donation
+//	@Description	Delete a donation by ID
+//	@Tags			Donation
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Donation ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Donation delete request sent successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Donation not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/donation/delete/{id} [patch]
+func (d *donationAdapter) DeleteDonation(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "DeleteDonation", "handler", "donation")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	id := core.ExtractIDFromURL(r)
+	if id == "" {
+		log.Errorf("[DonationH] id required")
+		localization.SendBadRequestResponse(w, "donation ID is required")
+		return
+	}
+
+	span.SetAttributes(attribute.String("donation.id", id))
+	if err := d.donationApp.DeleteDonation(ctx, id); err != nil {
+		span.RecordError(err)
+		log.Errorf("[DonationH][Delete] svc err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessDonationDeleteSP, nil)
+	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessDonationDeleteRequestSent, nil)
+	}
+}

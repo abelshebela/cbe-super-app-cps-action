@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -76,15 +77,18 @@ const (
 
 type AccountBlockStorage struct {
 	db     *sql.DB
+	redis  storage.RedisRepository
 	logger utils.Logger
 }
 
 func NewAccountBlockRepository(
 	db *sql.DB,
+	redis storage.RedisRepository,
 	logger utils.Logger,
 ) storage.AccountBlockRepository {
 	return &AccountBlockStorage{
 		db:     db,
+		redis:  redis,
 		logger: logger,
 	}
 }
@@ -205,7 +209,11 @@ func (a *AccountBlockStorage) createBlock(ctx context.Context, block *imodel.Acc
 		sql.Named("district_id", nullStr(block.DistrictID)),
 		sql.Named("region_id", nullStr(block.RegionID)),
 	)
-	return err
+	if err != nil {
+		return err
+	}
+	storage.BumpRedisCacheKey(ctx, a.redis, constants.RedisCacheKeyAccountBlock)
+	return nil
 }
 
 func (a *AccountBlockStorage) CreateBranch(ctx context.Context, branch *imodel.AccountBlock) error {
@@ -267,6 +275,7 @@ func (a *AccountBlockStorage) deleteBlock(ctx context.Context, id string, entity
 	if rows == 0 {
 		return fmt.Errorf("%s not found", entity)
 	}
+	storage.BumpRedisCacheKey(ctx, a.redis, constants.RedisCacheKeyAccountBlock)
 	a.logger.Infof("[AccountBlockStorage][Delete%s] deleted: %s", entity, id)
 	return nil
 }
@@ -686,7 +695,11 @@ func (a *AccountBlockStorage) enableOrDisable(ctx context.Context, ids []string,
 		WHERE id IN (%s) AND type = :type`, strings.Join(placeholders, ","))
 
 	_, err := a.db.ExecContext(ctx, query, args...)
-	return err
+	if err != nil {
+		return err
+	}
+	storage.BumpRedisCacheKey(ctx, a.redis, constants.RedisCacheKeyAccountBlock)
+	return nil
 }
 
 func (a *AccountBlockStorage) EnableOrDisableBranches(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error {

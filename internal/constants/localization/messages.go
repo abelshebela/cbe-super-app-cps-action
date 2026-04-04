@@ -122,11 +122,13 @@ const (
 	MsgDonationCategoryUpdated           = "Donation category update request submitted successfully"
 
 	MsgDonationCategoryDisableRequestSent = "Donation category Disable request submitted successfully"
+	MsgDonationCategoryDeleteRequestSent  = "Donation category Delete request submitted successfully"
 	MsgDonationCompanyEnableRequestSent   = "Donation Company Enable request submitted successfully"
 	MsgDonationCompanyDisableRequestSent  = "Donation company Disable request submitted successfully"
 	MsgDonationCategoryEnableRequestSent  = "Donation category Enable request submitted successfully"
 
 	MsgActiveDonationExistsInCategory    = "Please disable all active donations in this category before disabling the category"
+	MsgActiveDonationExistsInCompany     = "Please disable all active donations in this company before deleting the company"
 	MsgDonationCompanyCreateRequestSent  = "Donation company create request submitted successfully"
 	MsgDonationCompaniesFetched          = "Donation companies fetched successfully"
 	MsgDonationCompanyFetched            = "Donation company fetched successfully"
@@ -160,6 +162,7 @@ const (
 	MsgDonationCategoryUpdatedSuccessfullySP  = "Donation category updated successfully"
 	MsgDonationCategoryEnabledSuccessfullySP  = "Donation category enabled successfully"
 	MsgDonationCategoryDisabledSuccessfullySP = "Donation category disabled successfully"
+	MsgDonationCategoryDeleteSuccessfullySP   = "Donation Category Deleted successfully"
 
 	// =======================
 	// Donation Company – Messages
@@ -168,6 +171,8 @@ const (
 	MsgDonationCompanyUpdatedSuccessfullySP  = "Donation company updated successfully"
 	MsgDonationCompanyEnabledSuccessfullySP  = "Donation company enabled successfully"
 	MsgDonationCompanyDisabledSuccessfullySP = "Donation company disabled successfully"
+	MsgDonationCompanyDeleteRequestSent      = "Donation company delete request submitted successfully"
+	MsgDonationCompanyDeleteSuccessfullySP   = "Donation company deleted successfully"
 
 	MsgDonationCreatedSuccessfullySP = "Donation created successfully"
 	MsgDonationUpdatedSuccessfullySP = "Donation updated successfully"
@@ -180,6 +185,8 @@ const (
 	// State changes
 	MsgDonationEnabledSuccessfullySP  = "Donation enabled successfully"
 	MsgDonationDisabledSuccessfullySP = "Donation disabled successfully"
+	MsgDonationDeleteRequestSent      = "Donation delete request submitted successfully"
+	MsgDonationDeleteSuccessfullySP   = "Donation deleted successfully"
 
 	// CPS Action related success messages
 	MsgCPSActionsRetrievedSuccessfully     = "CPS Actions retrieved successfully"
@@ -1277,6 +1284,7 @@ const (
 
 	MsgAlreadyEnabled  = "Already enabled"
 	MsgAlreadyDisabled = "Already disabled"
+	MsgAlreadyDeleted  = "Already Deleted"
 
 	MsgBucketNotFound = "bucket not found"
 
