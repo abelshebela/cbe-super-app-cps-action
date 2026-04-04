@@ -5,7 +5,7 @@
     },
     "editor.tabCompletion": "on",
     "diffEditor.codeLens": true,
-    "MutableAI.upsell": true,
+    "MutableAI.upsell": false,
     "go.buildFlags": [
     "-gcflags=all=-N -l -dwarf=4"
 ]
