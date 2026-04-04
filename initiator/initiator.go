@@ -19,7 +19,6 @@ import (
 	shared_producer "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/producer"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils/encryption"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/middleware"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"log"
@@ -174,8 +173,7 @@ func Init(ctx context.Context) {
 	handlerLayer := InitHandler(serviceLayer, logger, queueInfra.Manager)
 
 	r := chi.NewRouter()
-	encMiddleWare := encryption.NewEncryptionImpl(cfg, zapLogger)
-	encryptionMiddleware := middleware.NewTransitMiddlware(sharedRedis, encMiddleWare, zapLogger)
+
 	// InitRoute(ctx, r, handlerLayer, nil, logger, cfg)
 	InitRoute(ctx, r, encryptionMiddleware, handlerLayer, auth_client.Client, redisRepository, logger, cfg)
 
