@@ -73,6 +73,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDonationCategoryDeleteRequestSent,
 	SuccessDonationCompanyEnableRequestSent,
 	SuccessDonationCompanyDisableRequestSent,
+	SuccessDonationCompanyDeleteRequestSent,
 	SuccessAccountInfoFetched,
 	SuccessUnlinkCif,
 
@@ -660,11 +661,13 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationAlreadyEnabled,
 	ErrorDonationAlreadyDisabled,
 	ErrorActiveDonationExistsInCategory,
+	ErrorActiveDonationExistsInCompany,
 	SuccessDonationCompanyUpdatedSP,
 	SuccessDonationCompanyCreatedSP,
 	SuccessDonationCompanyEnabledSP,
 	SuccessDonationCompanyEnabledSP,
 	SuccessDonationCompanyDisabledSP,
+	SuccessDonationCompanyDeleteSP,
 	SuccessDonationCategoryEnabledSP,
 	SuccessDonationCategoryDisabledSP,
 	SuccessDonationCategoryDeleteSP,
@@ -1543,6 +1546,20 @@ var (
 		Type:       "success",
 	}
 
+	// Delete
+	SuccessDonationCompanyDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_DONATION_COMPANY_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDonationCompanyDeleteRequestSent,
+		Type:       "success",
+	}
+	SuccessDonationCompanyDeleteSP = ResponseCode{
+		Code:       "SUCCESS_DONATION_COMPANY_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgDonationCompanyDeleteSuccessfullySP,
+		Type:       "success",
+	}
+
 	SuccessKYCApproved = ResponseCode{
 		Code:       "SUCCESS_KYC_APPROVE_REQUESTED",
 		StatusCode: StatusOK,
@@ -1671,6 +1688,20 @@ var (
 		Code:       "SUCCESS_DONATION_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgDonationDisabledSuccessfullySP,
+		Type:       "success",
+	}
+
+	// Delete Donation
+	SuccessDonationDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_DONATION_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDonationDeleteRequestSent,
+		Type:       "success",
+	}
+	SuccessDonationDeleteSP = ResponseCode{
+		Code:       "SUCCESS_DONATION_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgDonationDeleteSuccessfullySP,
 		Type:       "success",
 	}
 
@@ -6737,6 +6768,15 @@ var (
 		Code:       "DONATION_CATEGORY_HAS_ACTIVE_DONATIONS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgActiveDonationExistsInCategory,
+		Type:       "error",
+	}
+
+	// ErrorActiveDonationExistsInCompany is returned when deleting a company
+	// that still has at least one enabled donation referencing it.
+	ErrorActiveDonationExistsInCompany = ResponseCode{
+		Code:       "DONATION_COMPANY_HAS_ACTIVE_DONATIONS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActiveDonationExistsInCompany,
 		Type:       "error",
 	}
 
