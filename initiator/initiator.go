@@ -12,10 +12,13 @@ import (
 	"cbe-super-app-cps-action/internal/storage/api"
 
 	mid "cbe-super-app-cps-action/internal/handlers/middleware"
+
 	"cbe-super-app-cps-action/platform/telemetry"
 
 	shared_producer "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/producer"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils/encryption"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/middleware"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"log"
@@ -28,6 +31,7 @@ import (
 func Init(ctx context.Context) {
 	done := make(chan struct{})
 	logger := utils.NewLogger()
+	zapLogger := InitLogger()
 
 	logger.Infof("Initializing configuration...")
 	cfg := InitConfig(logger)
@@ -106,10 +110,13 @@ func Init(ctx context.Context) {
 	logger.Infof("Initializing persistence...")
 	notificationApi := cfg.SMSBaseURL
 
-	redis := InitRedis(cfg, logger)
+	redis, sharedRedis := InitRedis(cfg, logger)
 	logger.Infof("Initializing redis...")
 	redisStorage := InitRedisStorageLayer(redis, logger)
 	logger.Infof("redis initialized")
+
+	encMiddleWare := encryption.NewEncryptionImpl(zapLogger)
+	encryptionMiddleware := middleware.NewTransitMiddlware(sharedRedis, encMiddleWare, zapLogger)
 
 	redisRepository := redisStorage.GetRedisRepository()
 
@@ -131,7 +138,7 @@ func Init(ctx context.Context) {
 	logger.Infof("Initializing Oracle DB client...")
 	OraclePersistence := InitOraclePersistence(oracleDB, cfg, *clientOrchestrationProducer, redisRepository, logger)
 	logger.Infof("Oracle DB client initialized")
-	logger.Infof("Oracle DB client initializedrrrrrrrrrrrrrrrrrrrrrrrrr", cfg.OracleConnectionString)
+	logger.Infof("Oracle DB client initialized", cfg.OracleConnectionString)
 
 	logger.Infof("Initializing SMS service...")
 	smsService := lib.InitNotificationStore(logger, cfg, notificationProducer)
@@ -167,7 +174,7 @@ func Init(ctx context.Context) {
 
 	r := chi.NewRouter()
 	// InitRoute(ctx, r, handlerLayer, nil, logger, cfg)
-	InitRoute(ctx, r, handlerLayer, auth_client.Client, redisRepository, logger, cfg)
+	InitRoute(ctx, r, encryptionMiddleware, handlerLayer, auth_client.Client, redisRepository, logger, cfg)
 
 	// wrap the router with OpenTelemetry instrumentation handler
 	otlr := telemetry.WrapHandler(r, "cps-action")
