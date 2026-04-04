@@ -843,8 +843,11 @@ var ResponseCodesList = []ResponseCode{
 	CustomerSegmentationUpdateSubmittedSuccessfully,
 	CustomerSegmentationFetchedSuccessfully,
 	CustomerSegmentationDeleteddSuccessfully,
+	CustomerSegmentationDeleteRequestSubmittedSuccessfully,
 	CustomerSegmentationEnableSuccessfully,
+	CustomerSegmentationEnabledSuccessfully,
 	CustomerSegmentationDisableSuccessfully,
+	CustomerSegmentationDisabledSuccessfully,
 	CustomerSegmentationCreated,
 	CustomerSegmentationUpdated,
 	CustomerSegmentationEnabled,
@@ -6584,15 +6587,36 @@ var (
 	CustomerSegmentationDeleteddSuccessfully = ResponseCode{
 		Code:       "CUSTOMER_SEGMENTATIONS_DELETED_SUCCESSFULLY",
 		StatusCode: StatusOK,
-		Message:    "Customer segmentations deleted request submitted successfully",
+		Message:    "Customer segmentations deleted successfully",
 		Type:       "success",
 	}
+	CustomerSegmentationDeleteRequestSubmittedSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATIONS_DELETE_REQUEST_SUBMITTED__SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer segmentations delete request submitted successfully",
+		Type:       "success",
+	}
+
+	CustomerSegmentationEnabledSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATION_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer segmentation enabled successfully",
+		Type:       "success",
+	}
+
 	CustomerSegmentationEnableSuccessfully = ResponseCode{
 		Code:       "CUSTOMER_SEGMENTATION_ENABLE_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    MsgCustomerSegmentationEnableSuccessfully,
 		Type:       "success",
 	}
+	CustomerSegmentationDisabledSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATION_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer segmentation disabled successfully",
+		Type:       "success",
+	}
+
 	CustomerSegmentationDisableSuccessfully = ResponseCode{
 		Code:       "CUSTOMER_SEGMENTATION_DISABLE_SUCCESSFULLY",
 		StatusCode: StatusOK,

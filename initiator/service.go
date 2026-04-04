@@ -89,7 +89,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// Assign variable for minio public url
 	minioPubUrl := cfg.MinioPublicEndPoint
 
-	bulkSegRepo := access_list_segmentation_oracle.NewAccessListSegmentationProxy(persistence.AccessListSegmentationPersistence, oracle.DB, logger)
+	bulkSegRepo := access_list_segmentation_oracle.NewAccessListSegmentationProxy(persistence.AccessListSegmentationPersistence, oracle.Db, logger)
 
 	mediaProducer := media.CreateKafkaProducer(logger, cfg)
 	accountLookupAdapter := account_lookup.NewCoreAccountLookupAdapter(persistence.AccountLookup, cfg.CbeCoreUrl, time.Duration(cfg.ServerTimeout), logger)
@@ -146,13 +146,13 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, nil, logger)
 	eventMerchantService := event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, nil, accountLookupAdapter, persistence.MerchantLookup, cfg, logger)
 	logisticsMerchantService := logistics_merchant_service.NewLogisticsMerchantService(persistence.LogisticsMerchantPersistence, nil, accountLookupAdapter, cfg, logger)
-	servicesService := services_svc.NewServicesService(persistence.ServicesPersistence, nil, logger)
+	servicesService := services_svc.NewServicesService(oracle.ServicesPersistence, nil, logger)
 	miniAppProductCodeContainer := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
 	accessListSegmentationService := access_list_segmentation_service.NewAccessListSegmentationService(oracle.AccessListSegmentaion, nil, persistence.AccessListPersistence, persistence.AccountBlockPersistence, persistence.CustomerService, persistence.CPSRoles, logger)
 	customerSegmentationService := customer_segmentation.NewCustomerSegmentation(persistence.CustomerSegmentation, persistence.CPSRoles, nil, logger)
 	jobRoleService := job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, nil, *cfg, logger)
 	RoleService := roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, nil, *cfg, logger)
-	CPSRolesService := cps_role.NewCPSRoleService(persistence.CPSRoles, nil, coreInterface, logger)
+	CPSRolesService := cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, nil, coreInterface, logger)
 	customerKYCService := kyc_service.NewCustomerKYCService(persistence.CustomerKYCPersistence, nil, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 
 	// Attach Service to Container
@@ -274,7 +274,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.CPSActionContainer = cpsActionService
 
 	// Services catalog service (uses CPSAction for maker-checker)
-	servicesService = services_svc.NewServicesService(persistence.ServicesPersistence, cpsActionService, logger)
+	// servicesService = services_svc.NewServicesService(persistence.ServicesPersistence, cpsActionService, logger)
+	servicesService = services_svc.NewServicesService(oracle.ServicesPersistence, cpsActionService, logger)
 	// serviceContainer.ServicesContainer = servicesService
 	// miniAppMerchantService = ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, cpsActionService, persistence.MerchantLookup, logger, accountLookupAdapter)
 	serviceContainer.MiniAppMerchantContainer = miniMerchant
@@ -307,9 +308,11 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.LogisticsMerchantServiceContainer = logisticsMerchantService
 	accessListSegmentationService = access_list_segmentation_service.NewAccessListSegmentationService(oracle.AccessListSegmentaion, cpsActionService, persistence.AccessListPersistence, persistence.AccountBlockPersistence, persistence.CustomerService, persistence.CPSRoles, logger)
 	customerSegmentationService = customer_segmentation.NewCustomerSegmentation(persistence.CustomerSegmentation, persistence.CPSRoles, cpsActionService, logger)
+	accessListSegmentationService = access_list_segmentation_service.NewAccessListSegmentationService(oracle.AccessListSegmentaion, cpsActionService, persistence.AccessListPersistence, oracle.AccountBlock, persistence.CustomerService, persistence.CPSRoles, logger)
+	customerSegmentationService = customer_segmentation.NewCustomerSegmentation(oracle.CustomerSegmentation, oracle.NewCPSRolesStorage, cpsActionService, logger)
 	jobRoleService = job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, cpsActionService, *cfg, logger)
 	RoleService = roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, cpsActionService, *cfg, logger)
-	CPSRolesService = cps_role.NewCPSRoleService(persistence.CPSRoles, cpsActionService, coreInterface, logger)
+	CPSRolesService = cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, cpsActionService, coreInterface, logger)
 	customerKYCService = kyc_service.NewCustomerKYCService(persistence.CustomerKYCPersistence, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 
 	return service.ServiceLayer{

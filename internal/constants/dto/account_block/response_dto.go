@@ -19,7 +19,7 @@ type AccountBlockResponse struct {
 	CityID        string                    `json:"city_id,omitempty"`
 	RegionID      string                    `json:"region_id,omitempty"`
 	DistrictID    string                    `json:"district_id,omitempty"`
-	DisableReason imodel.AccountBlockReason `json:"disable_reason"`
+	DisableReason []imodel.AccountBlockReason `json:"disable_reason"`
 	IsEnabled     bool                      `json:"is_enabled"`
 	CreatedAt     time.Time                 `json:"created_at"`
 	UpdatedAt     time.Time                 `json:"updated_at"`

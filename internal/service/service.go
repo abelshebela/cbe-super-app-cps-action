@@ -74,12 +74,12 @@ type ServicesService interface {
 	Update(ctx context.Context, id string, req service_dto.UpdateServiceRequest) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
-	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.Service], error)
+	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error)
 	CreateServiceList(ctx context.Context, req *service_dto.CreateServiceList) error
 	UpdateServiceList(ctx context.Context, id string, req *service_dto.UpdateServiceList) error
-	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error)
+	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.ServiceKey], error)
 	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
-	GetByID(ctx context.Context, id string) (*model.Service, error)
+	GetByID(ctx context.Context, id string) (*service_dto.ServiceResponse, error)
 }
 type CPSActionService interface {
 	ApproveCPSAction(ctx context.Context, action *model.CPSAction) error

@@ -162,13 +162,17 @@ func (c *cpsRolesHandler) EnableCPSRole(w http.ResponseWriter, r *http.Request) 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	if md.IsMakerOnly {
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleEnabledSP, nil)
+		return
 	} else {
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleEnabled, nil)
 	}
+
+	localization.SendSuccessResponse(w, localization.SuccessCPSRoleEnabled, nil)
 }
 
 func (c *cpsRolesHandler) DisableCPSRole(w http.ResponseWriter, r *http.Request) {
@@ -191,10 +195,12 @@ func (c *cpsRolesHandler) DisableCPSRole(w http.ResponseWriter, r *http.Request)
 	if md.IsMakerOnly {
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleDisabledSP, nil)
+		return
 	} else {
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleDisabled, nil)
 	}
+	localization.SendSuccessResponse(w, localization.SuccessCPSRoleDisabled, nil)
 }
 
 func (c *cpsRolesHandler) EnableServiceAccess(w http.ResponseWriter, r *http.Request) {

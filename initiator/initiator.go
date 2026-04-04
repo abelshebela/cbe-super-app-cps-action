@@ -129,9 +129,8 @@ func Init(ctx context.Context) {
 	logger.Infof("Oracle database initialized")
 
 	logger.Infof("Initializing Oracle DB client...")
-	OraclePersistence := InitOraclePersistence(oracleDB, cfg, *clientOrchestrationProducer, accessListSegmentationProducer, logger)
+	OraclePersistence := InitOraclePersistence(oracleDB, cfg, *clientOrchestrationProducer, accessListSegmentationProducer, redisRepository, logger)
 	logger.Infof("Oracle DB client initialized")
-	logger.Infof("Oracle DB client initializedrrrrrrrrrrrrrrrrrrrrrrrrr", cfg.OracleConnectionString)
 
 	logger.Infof("Initializing SMS service...")
 	smsService := lib.InitNotificationStore(logger, cfg, notificationProducer)

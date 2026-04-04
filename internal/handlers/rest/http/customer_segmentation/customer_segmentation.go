@@ -3,7 +3,6 @@ package customersegmentation
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
-	seg "cbe-super-app-cps-action/internal/constants/interfaces/customer_segmentation"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
@@ -11,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 
+	seg "cbe-super-app-cps-action/internal/constants/interfaces/customer_segmentation"
 	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -259,7 +259,7 @@ func (c *CustomerSegmentationAdapter) DeleteCustomerSegmentation(w http.Response
 	}
 
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-	localization.SendSuccessResponse(w, localization.CustomerSegmentationDeleteddSuccessfully, nil)
+	localization.SendSuccessResponse(w, localization.CustomerSegmentationDeleteRequestSubmittedSuccessfully, nil)
 }
 
 // Enable Customer Segmentation
@@ -299,7 +299,7 @@ func (c *CustomerSegmentationAdapter) Enable(w http.ResponseWriter, r *http.Requ
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnableSuccessfully, nil)
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnabledSuccessfully, nil)
 		return
 	}
 
@@ -344,7 +344,7 @@ func (c *CustomerSegmentationAdapter) Disable(w http.ResponseWriter, r *http.Req
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.CustomerSegmentationDisableSuccessfully, nil)
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationDisabledSuccessfully, nil)
 		return
 	}
 
