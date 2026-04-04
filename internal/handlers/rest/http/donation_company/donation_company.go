@@ -373,3 +373,48 @@ func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r
 		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyDisableRequestSent, nil)
 	}
 }
+
+// DeleteDonationCompany godoc
+//
+//	@Summary		Delete a donation company
+//	@Description	Delete a donation company by ID
+//	@Tags			Donation Company
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string										true	"Donation company ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Donation company delete request sent successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Donation company not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/donation_company/delete/{id} [delete]
+func (d *donationCompanyAdapter) DeleteDonationCompany(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteDonationCompany", "handler", "donationCompany")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		log.Errorf("[DonCompH][Delete] id required")
+		localization.SendErrorResponse(w, localization.ErrorDonationCompanyIdRequired, nil, nil)
+		return
+	}
+
+	span.SetAttributes(attribute.String("donation_company.id", id))
+	if err := d.donationCompanyApp.DeleteDonationCompany(ctx, id); err != nil {
+		span.RecordError(err)
+		log.Errorf("[DonCompH][Delete] svc err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyDeleteSP, nil)
+	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyDeleteRequestSent, nil)
+	}
+}

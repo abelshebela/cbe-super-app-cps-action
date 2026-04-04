@@ -9,4 +9,5 @@ type DonationCategoryAdapter interface {
 	FetchDonationCategoryByID(w http.ResponseWriter, r *http.Request)
 	EnableDonationCategory(w http.ResponseWriter, r *http.Request)
 	DisableDonationCategory(w http.ResponseWriter, r *http.Request)
+	DeleteDonationCategory(w http.ResponseWriter, r *http.Request)
 }

@@ -13,5 +13,6 @@ type DonationHandler interface {
 	AddDonationImage(w http.ResponseWriter, r *http.Request)
 	EnableDonation(w http.ResponseWriter, r *http.Request)
 	DisableDonation(w http.ResponseWriter, r *http.Request)
+	DeleteDonation(w http.ResponseWriter, r *http.Request)
 	ExportDonationList(w http.ResponseWriter, r *http.Request)
 }
