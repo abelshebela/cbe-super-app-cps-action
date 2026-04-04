@@ -622,6 +622,8 @@ type BulkServiceRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]model.APPAccessList], error)
 	Update(ctx context.Context, keys []string, state bool) error
 	FindAll(ctx context.Context) ([]model.APPAccessList, error)
+	FindAllByKeys(ctx context.Context, keys []string) ([]model.APPAccessList, error)
+	FindByKeys(ctx context.Context, keys []string) (map[string]string, error)
 }
 type PermissionRepository interface {
 	Create(ctx context.Context, permissionGroup *model.PermissionGroup) error
@@ -799,8 +801,11 @@ type UssdMerchantRepository interface {
 
 type AccessListSegmentationRepository interface {
 	CreateAccountSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error
+
 	CreateBlockSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error
+
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.AccessListSegmentation], error)
+
 	FindByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error)
 	FindBySegmentationAndServiceID(ctx context.Context, segmentationID, serviceID string) (*local_model.AccessListSegmentation, error)
 	FindByAccountSegmentationAndAccessListKeys(ctx context.Context, customerSegments string, segmentKeys []string) (*local_model.AccessListSegmentation, error)
@@ -808,7 +813,7 @@ type AccessListSegmentationRepository interface {
 	FindByIDAndType(ctx context.Context, ids string, t string) (*local_model.AccessListSegmentation, error)
 	FindBySegmentIDAndAccessListKeys(ctx context.Context, id string, keys []string) (*local_model.AccessListSegmentation, error)
 	Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
+
 	FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
 	FindAllBySegmentIDorSegmentCodeAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
 	BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error
@@ -849,6 +854,7 @@ type CPSRolesRepository interface {
 	EnableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error
 	DisableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error
 	Delete(ctx context.Context, id string) error
+	FindByCustomerSegmentationByID(ctx context.Context, customerSegment string) (*imodel.CPSRoles, error)
 }
 
 type CustomerKYCRepository interface {
@@ -870,6 +876,27 @@ type BankOracleRepository interface {
 	FindByBIC(ctx context.Context, bic string) (*imodel.BankOracle, error)
 }
 
+type AccessListSegmentationRepositoryOracle interface {
+	CreateAccountSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error
+	CreateBlockSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.AccessListSegmentation], error)
+	// FindByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error)
+	FindAccountSegmentByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error)
+	FindBlockSegmentByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error)
+	FindBySegmentationAndServiceID(ctx context.Context, segmentationID, serviceID string) (*local_model.AccessListSegmentation, error)
+	FindByAccountSegmentationAndAccessListKeys(ctx context.Context, customerSegments string, segmentKeys []string) (*local_model.AccessListSegmentation, error)
+	FindByIDS(ctx context.Context, ids []string, t string) (*local_model.AccessListSegmentation, error)
+	FindByIDAndType(ctx context.Context, ids string, t string) (*local_model.AccessListSegmentation, error)
+	FindBySegmentIDAndAccessListKeys(ctx context.Context, id string, keys []string) (*local_model.AccessListSegmentation, error)
+	Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error
+	FindAllForAccount(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
+	FindAllForBlock(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
+	FindAllByBlockAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
+	FindAllByAccountAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
+	BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error
+
+	FindParentChildRelationship(ctx context.Context) ([]local_model.AccessItemRelation, error)
+}
 type WalletOracleRepository interface {
 	Create(ctx context.Context, wallet *local_model.WalletOracle) error
 	Update(ctx context.Context, id string, wallet *local_model.WalletOracle) error

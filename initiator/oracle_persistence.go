@@ -6,6 +6,7 @@ import (
 
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	access_list_oracle "cbe-super-app-cps-action/internal/storage/persistance/access_list_oracle"
+	access_list_segmentation_oracle "cbe-super-app-cps-action/internal/storage/persistance/access_list_segmentation/oracle"
 	account_block_repo "cbe-super-app-cps-action/internal/storage/persistance/account_block"
 	amount_based_auth_oracle "cbe-super-app-cps-action/internal/storage/persistance/amount_based_auth_oracle"
 	"cbe-super-app-cps-action/internal/storage/persistance/bank/gen/sqlc"
@@ -37,10 +38,11 @@ type OraclePersistence struct {
 	BudgetCategoryOracle  storage.BudgetCategoryOracleRepository
 	AmountBasedAuthOracle storage.AmountBasedAuthOracleRepository
 	AccessListOracle      storage.BulkServiceRepository
+	AccessListSegmentaion storage.AccessListSegmentationRepositoryOracle
 	AccountBlock          storage.AccountBlockRepository
 }
 
-func InitOraclePersistence(db *sql.DB, cfg *config.VaultConfig, clientOrchestrationProducer kafka.ClientOrchestrationProducer, redisRepository storage.RedisRepository, log utils.Logger) OraclePersistence {
+func InitOraclePersistence(db *sql.DB, cfg *config.VaultConfig, clientOrchestrationProducer kafka.ClientOrchestrationProducer, accessListSegmentationProducer *kafka.AccessListSegmentationProducer, redisRepository storage.RedisRepository, log utils.Logger) OraclePersistence {
 	return OraclePersistence{
 		Db:                    db,
 		BankOracle:            sqlc.NewBankRepository(db, log),
@@ -55,6 +57,7 @@ func InitOraclePersistence(db *sql.DB, cfg *config.VaultConfig, clientOrchestrat
 		BudgetCategoryOracle:  budget_category_oracle.NewBudgetCategoryOracleRepository(db, clientOrchestrationProducer, log),
 		AmountBasedAuthOracle: amount_based_auth_oracle.NewAmountBasedAuthOracleRepository(db, log),
 		AccessListOracle:      access_list_oracle.NewAccessListOracleRepository(db, redisRepository, log),
+		AccessListSegmentaion: access_list_segmentation_oracle.NewAccessListSegmentationOracle(db, *cfg, accessListSegmentationProducer, log),
 		AccountBlock:          account_block_repo.NewAccountBlockRepository(db, redisRepository, log),
 	}
 }

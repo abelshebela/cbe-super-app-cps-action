@@ -219,3 +219,114 @@ func (r *Repository) Update(ctx context.Context, keys []string, state bool) erro
 	storage.BumpRedisCacheKey(ctx, r.redis, constants.RedisCacheKeyAccessList)
 	return nil
 }
+
+func (r *Repository) FindAllByKeys(ctx context.Context, keys []string) ([]model.APPAccessList, error) {
+	r.logger.Infof("[AccessListOracle][FindAllKeys] checking access list for keys")
+	if len(keys) == 0 {
+		return nil, nil
+	}
+
+	// Build the IN clause with the correct number of bind variables
+	inClause := make([]string, len(keys))
+	args := make([]interface{}, len(keys))
+	for i, key := range keys {
+		inClause[i] = fmt.Sprintf("HEXTORAW(:%d)", i+1)
+		args[i] = strings.TrimSpace(key)
+	}
+	query := `SELECT RAWTOHEX(ID), NAME, SERVICE_KEY, IS_ENABLED FROM ACCESS_LIST WHERE IS_ENABLED = 1 AND IS_DELETED = 0 AND ID IN (` + strings.Join(inClause, ",") + ")"
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		r.logger.Errorf("[AccessListOracle][FindAllKeys] query failed: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	defer rows.Close()
+
+	// Map from hex key to APPAccessList
+	found := make(map[string]model.APPAccessList)
+	for rows.Next() {
+		var idHex, name, serviceKey string
+		var isEn int
+		if err := rows.Scan(&idHex, &name, &serviceKey, &isEn); err != nil {
+			r.logger.Errorf("[AccessListOracle][FindAllKeys] scan failed: %v", err)
+			return nil, local_util.HandleDBError(err)
+		}
+		found[strings.ToUpper(strings.TrimSpace(idHex))] = model.APPAccessList{
+			Key:            serviceKey,
+			AccessListName: name,
+			Enabled:        isEn == 1,
+			USSDEnabled:    false,
+		}
+	}
+	if err := rows.Err(); err != nil {
+		r.logger.Errorf("[AccessListOracle][FindAllKeys] rows: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	// Build result, returning the hex key if not found
+	result := make([]model.APPAccessList, len(keys))
+	for i, key := range keys {
+		hexKey := strings.ToUpper(strings.TrimSpace(key))
+		if item, ok := found[hexKey]; ok {
+			result[i] = item
+		} else {
+			return nil, errors.New(fmt.Sprintf("Access list with id %s not found", key))
+		}
+	}
+	return result, nil
+}
+
+func (r *Repository) FindByKeys(ctx context.Context, keys []string) (map[string]string, error) {
+	r.logger.Infof("[AccessListOracle][FindByKeys] checking access list for keys")
+	if len(keys) == 0 {
+		return map[string]string{}, nil
+	}
+
+	// Build the IN clause for SERVICE_KEY
+	inClause := make([]string, len(keys))
+	args := make([]interface{}, len(keys))
+	for i, key := range keys {
+		inClause[i] = fmt.Sprintf(":%d", i+1)
+		args[i] = strings.TrimSpace(key)
+	}
+	query := `SELECT SERVICE_KEY, NAME FROM ACCESS_LIST WHERE IS_DELETED = 0 AND SERVICE_KEY IN (` + strings.Join(inClause, ",") + ")"
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		r.logger.Errorf("[AccessListOracle][FindByKeys] query failed: %v", err)
+		return map[string]string{}, local_util.HandleDBError(err)
+	}
+	defer rows.Close()
+
+	found := make(map[string]string)
+	for rows.Next() {
+		var serviceKey, name string
+		if err := rows.Scan(&serviceKey, &name); err != nil {
+			r.logger.Errorf("[AccessListOracle][FindByKeys] scan failed: %v", err)
+			return map[string]string{}, local_util.HandleDBError(err)
+		}
+		found[strings.TrimSpace(serviceKey)] = name
+	}
+	if err := rows.Err(); err != nil {
+		r.logger.Errorf("[AccessListOracle][FindByKeys] rows: %v", err)
+		return map[string]string{}, local_util.HandleDBError(err)
+	}
+
+	// Check for missing keys and build result
+	var missing []string
+	for _, key := range keys {
+		k := strings.TrimSpace(key)
+		if _, ok := found[k]; !ok {
+			missing = append(missing, k)
+		}
+	}
+	if len(missing) > 0 {
+		msg := "keys: " + strings.Join(missing, ", ") + " not found in access list"
+		if len(missing) == 1 {
+			msg = "key: " + strings.Join(missing, ", ") + " not found in access list"
+		}
+		r.logger.Errorf("[AccessListOracle][FindByKeys] %s", msg)
+		return map[string]string{}, errors.New(msg)
+	}
+	return found, nil
+}

@@ -136,7 +136,7 @@ func Init(ctx context.Context) {
 	logger.Infof("Oracle database initialized")
 
 	logger.Infof("Initializing Oracle DB client...")
-	OraclePersistence := InitOraclePersistence(oracleDB, cfg, *clientOrchestrationProducer, redisRepository, logger)
+	OraclePersistence := InitOraclePersistence(oracleDB, cfg, *clientOrchestrationProducer, accessListSegmentationProducer, redisRepository, logger)
 	logger.Infof("Oracle DB client initialized")
 	logger.Infof("Oracle DB client initialized", cfg.OracleConnectionString)
 

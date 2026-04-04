@@ -564,6 +564,80 @@ FETCH FIRST 1 ROWS ONLY`
 	return out, nil
 }
 
+func (m *cpsRoleStorage) FindByCustomerSegmentationByID(ctx context.Context, customerSegment string) (*imodel.CPSRoles, error) {
+	customerSegment = strings.TrimSpace(customerSegment)
+	if customerSegment == "" {
+		return nil, errors.New(localization.ErrorNoDataProvided.Code)
+	}
+
+	const q = `
+SELECT
+  RAWTOHEX(cr.ID),
+  cr.NAME,
+  cr.ROLE_CODE,
+  cr.DESCRIPTION,
+  cr.ENABLED,
+  cr.IS_DELETED,
+  cr.CREATED_AT,
+  cr.LAST_MODIFIED_AT,
+  cr.DELETED_AT
+FROM CUSTOMER_SEGMENTATIONS cs
+JOIN CUSTOMER_SUB_SEGMENTS css
+  ON css.CUSTOMER_SEGMENTATIONS_ID = cs.ID AND css.IS_DELETED = 0 AND css.IS_ENABLED = 1
+JOIN SUPERAPP_ROLE cr
+  ON cr.ID = css.SUPERAPP_ROLE_ID AND cr.IS_DELETED = 0 AND cr.ENABLED = 1
+WHERE cs.IS_DELETED = 0
+  AND cs.IS_ENABLED = 1
+  AND cs.ID = HEXTORAW(:1)
+FETCH FIRST 1 ROWS ONLY`
+
+	var (
+		id                         string
+		name, roleCode, desc       sql.NullString
+		enabledN, isDeletedN       int
+		createdAt, updatedAt, delT sql.NullTime
+	)
+
+	err := m.db.QueryRowContext(ctx, q, customerSegment).Scan(
+		&id,
+		&name,
+		&roleCode,
+		&desc,
+		&enabledN,
+		&isDeletedN,
+		&createdAt,
+		&updatedAt,
+		&delT,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		m.logger.Errorf("[CPSRolesStorage][FindByCustomerSegmentationByID] query failed: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	enabled := enabledN == 1
+	out := &imodel.CPSRoles{
+		ID:          id,
+		Name:        name.String,
+		RoleCode:    roleCode.String,
+		Description: desc.String,
+		Enabled:     &enabled,
+		IsDeleted:   isDeletedN == 1,
+	}
+	if createdAt.Valid {
+		out.CreatedAt = createdAt.Time
+	}
+	if updatedAt.Valid {
+		out.UpdatedAt = updatedAt.Time
+	}
+	if delT.Valid {
+		out.DeletedAt = delT.Time
+	}
+	return out, nil
+}
+
 func (m *cpsRoleStorage) EnableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error {
 	// Oracle schema for access-list segmentation is not yet available in this service.
 	m.logger.Warnf("[CPSRolesStorage][EnableServiceAccess] not implemented for oracle; roleID=%s keys=%v", roleID, accessListKeys)
