@@ -1193,11 +1193,18 @@ const (
 )
 
 // ---------------------------------------------------------------------------
-// Redis Key Prefixes
+// Redis keys (prefixes and full keys)
 // ---------------------------------------------------------------------------
 
 const (
 	RedisCPSUserDeviceIDPrefix = "cps:auth:device"
+
+	// RedisCacheKeyWallet, RedisCacheKeyAccessList, RedisCacheKeyAccountBlock are
+	// centralized full key names for cache / invalidation until Vault supplies them
+	// (e.g. map to VaultConfig fields later and replace usages).
+	RedisCacheKeyWallet       = "cache:wallet"
+	RedisCacheKeyAccessList   = "cache:access_list"
+	RedisCacheKeyAccountBlock = "cache:account_block"
 )
 
 // ---------------------------------------------------------------------------

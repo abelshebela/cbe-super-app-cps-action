@@ -51,10 +51,10 @@ func InitOraclePersistence(db *sql.DB, cfg *config.VaultConfig, clientOrchestrat
 		ServicesPersistence:   services_repo.NewServicesRepository(db, cfg, clientOrchestrationProducer, redisRepository, log),
 		CustomerSegmentation:  customersegmentaion.NewCustomerSegmentationRepository(cfg, db, clientOrchestrationProducer, log),
 		NewCPSRolesStorage:    cpsroles.NewCPSRolesStorage(cfg, db, clientOrchestrationProducer, log),
-		WalletOracle:          wallet_oracle.NewWalletOracleRepository(db, log),
+		WalletOracle:          wallet_oracle.NewWalletOracleRepository(db, redisRepository, log),
 		BudgetCategoryOracle:  budget_category_oracle.NewBudgetCategoryOracleRepository(db, clientOrchestrationProducer, log),
 		AmountBasedAuthOracle: amount_based_auth_oracle.NewAmountBasedAuthOracleRepository(db, log),
-		AccessListOracle:      access_list_oracle.NewAccessListOracleRepository(db, log),
-		AccountBlock:          account_block_repo.NewAccountBlockRepository(db, log),
+		AccessListOracle:      access_list_oracle.NewAccessListOracleRepository(db, redisRepository, log),
+		AccountBlock:          account_block_repo.NewAccountBlockRepository(db, redisRepository, log),
 	}
 }
