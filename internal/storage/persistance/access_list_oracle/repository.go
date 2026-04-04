@@ -55,20 +55,48 @@ func normalizePagination(filterParams types.Filter) (int, int) {
 	return page, perPage
 }
 
+// accessListSelectCols matches ACCESS_LIST (Oracle): NAME, SERVICE_KEY, flags, timestamps.
+const accessListSelectCols = `ID, NAME, SERVICE_KEY, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT`
+
+func scanRowToAPPAccessList(scanner interface {
+	Scan(dest ...any) error
+}) (model.APPAccessList, error) {
+	var idRaw []byte
+	var name, serviceKey string
+	var isEn, isDel int
+	var createdAt, lastMod, deletedAt sql.NullTime
+
+	if err := scanner.Scan(&idRaw, &name, &serviceKey, &isEn, &isDel, &createdAt, &lastMod, &deletedAt); err != nil {
+		return model.APPAccessList{}, err
+	}
+
+	_ = idRaw
+	_ = deletedAt
+	_ = createdAt
+	_ = lastMod
+	_ = isDel
+
+	return model.APPAccessList{
+		Key:            serviceKey,
+		AccessListName: name,
+		Enabled:        isEn == 1,
+		USSDEnabled:    false,
+	}, nil
+}
+
 func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]model.APPAccessList], error) {
 	page, perPage := normalizePagination(filterParams)
 	offset := (page - 1) * perPage
 
-	// ACCESS_LIST may exist without IS_DELETED (legacy / minimal DDL); do not filter on it.
-	whereParts := []string{"1=1"}
+	whereParts := []string{"IS_DELETED = 0"}
 	args := []interface{}{}
 	argIdx := 1
 
 	if strings.TrimSpace(filterParams.Search) != "" {
 		search := "%" + strings.ToUpper(strings.TrimSpace(filterParams.Search)) + "%"
-		whereParts = append(whereParts, fmt.Sprintf("(UPPER(access_list_name) LIKE :%d OR UPPER(key) LIKE :%d)", argIdx, argIdx))
-		args = append(args, search)
-		argIdx++
+		whereParts = append(whereParts, fmt.Sprintf("(UPPER(NAME) LIKE :%d OR UPPER(SERVICE_KEY) LIKE :%d)", argIdx, argIdx+1))
+		args = append(args, search, search)
+		argIdx += 2
 	}
 
 	if filterParams.Filters != nil {
@@ -78,18 +106,7 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams typ
 				if b {
 					n = 1
 				}
-				whereParts = append(whereParts, fmt.Sprintf("enabled = :%d", argIdx))
-				args = append(args, n)
-				argIdx++
-			}
-		}
-		if v, ok := filterParams.Filters["ussd_enabled"]; ok {
-			if b, valid := parseBoolFilter(v); valid {
-				n := 0
-				if b {
-					n = 1
-				}
-				whereParts = append(whereParts, fmt.Sprintf("ussd_enabled = :%d", argIdx))
+				whereParts = append(whereParts, fmt.Sprintf("IS_ENABLED = :%d", argIdx))
 				args = append(args, n)
 				argIdx++
 			}
@@ -113,7 +130,8 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams typ
 		}, nil
 	}
 
-	query := "SELECT key, enabled, access_list_name, ussd_enabled FROM ACCESS_LIST WHERE " + whereClause + fmt.Sprintf(" ORDER BY access_list_name OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY", argIdx, argIdx+1)
+	query := "SELECT " + accessListSelectCols + " FROM ACCESS_LIST WHERE " + whereClause +
+		fmt.Sprintf(" ORDER BY NAME OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY", argIdx, argIdx+1)
 	args = append(args, offset, perPage)
 
 	rows, err := r.db.QueryContext(ctx, query, args...)
@@ -125,15 +143,16 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams typ
 
 	result := []model.APPAccessList{}
 	for rows.Next() {
-		var item model.APPAccessList
-		var enabled, ussdEnabled int
-		if err := rows.Scan(&item.Key, &enabled, &item.AccessListName, &ussdEnabled); err != nil {
+		item, err := scanRowToAPPAccessList(rows)
+		if err != nil {
 			r.logger.Errorf("[AccessListOracle][FindAllWithPagination] scan failed: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
-		item.Enabled = enabled == 1
-		item.USSDEnabled = ussdEnabled == 1
 		result = append(result, item)
+	}
+	if err := rows.Err(); err != nil {
+		r.logger.Errorf("[AccessListOracle][FindAllWithPagination] rows: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return &types.PaginatedResponse[[]model.APPAccessList]{
@@ -143,9 +162,10 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams typ
 }
 
 func (r *Repository) FindAll(ctx context.Context) ([]model.APPAccessList, error) {
-	query := `SELECT key, enabled, access_list_name, ussd_enabled
+	query := `SELECT ` + accessListSelectCols + `
 		FROM ACCESS_LIST
-		ORDER BY access_list_name`
+		WHERE IS_DELETED = 0
+		ORDER BY NAME`
 
 	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
@@ -156,15 +176,15 @@ func (r *Repository) FindAll(ctx context.Context) ([]model.APPAccessList, error)
 
 	result := []model.APPAccessList{}
 	for rows.Next() {
-		var item model.APPAccessList
-		var enabled, ussdEnabled int
-		if err := rows.Scan(&item.Key, &enabled, &item.AccessListName, &ussdEnabled); err != nil {
+		item, err := scanRowToAPPAccessList(rows)
+		if err != nil {
 			r.logger.Errorf("[AccessListOracle][FindAll] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
-		item.Enabled = enabled == 1
-		item.USSDEnabled = ussdEnabled == 1
 		result = append(result, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return result, nil
@@ -180,10 +200,10 @@ func (r *Repository) Update(ctx context.Context, keys []string, state bool) erro
 		next = 1
 	}
 
-	// Minimal ACCESS_LIST DDL may omit UPDATE_AT; only toggle enabled.
 	query := `UPDATE ACCESS_LIST
-		SET enabled = :1
-		WHERE UPPER(key) = UPPER(:2)`
+		SET IS_ENABLED = :1,
+		    LAST_MODIFIED_AT = SYSTIMESTAMP
+		WHERE UPPER(SERVICE_KEY) = UPPER(:2)` //nolint:goconst // Oracle positional binds
 
 	for _, key := range keys {
 		if _, err := r.db.ExecContext(ctx, query, next, strings.TrimSpace(key)); err != nil {
@@ -194,4 +214,3 @@ func (r *Repository) Update(ctx context.Context, keys []string, state bool) erro
 
 	return nil
 }
-
