@@ -834,6 +834,7 @@ type CustomerSegmentationRepository interface {
 	FindByID(ctx context.Context, id string) (*imodel.CustomerSegmentation, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerSegmentation], error)
 	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CustomerSegmentation, error)
+	CheckIfCustomerSubSegmentExists(ctx context.Context, id string) (bool, error)
 }
 
 type CPSRolesRepository interface {

@@ -53,6 +53,16 @@ func (s *customerSegmentationService) Create(ctx context.Context, req cust_seg.C
 		}
 	}
 
+	exist, err := s.repo.CheckIfCustomerSubSegmentExists(ctx, role.ID)
+	if err != nil {
+		s.logger.Errorf("[CustSegSvc][Create] sub-segment check err: %s, %v", role.ID, err)
+		return err
+	}
+	if exist {
+		s.logger.Errorf("[CustSegSvc][Create] sub-segment already exists: %s", role.ID)
+		return fmt.Errorf("Customer segmentation already exists")
+	}
+
 	if role != nil {
 		newData.CustomerRole = imodel.CustomerRoleInfo{ID: role.ID, Name: role.Name}
 		newData.CreatedAt = time.Now()
