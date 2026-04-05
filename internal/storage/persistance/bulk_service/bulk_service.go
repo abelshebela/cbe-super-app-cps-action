@@ -137,3 +137,6 @@ func (b BulkServicePersistence) FindAllByKeys(ctx context.Context, keys []string
 func (b BulkServicePersistence) FindByKeys(ctx context.Context, keys []string) (map[string]string, error) {
 	panic("unimplemented")
 }
+func (b BulkServicePersistence) FindAllForSegmentation(ctx context.Context) ([]model.APPAccessList, error) {
+	panic("unimplemented")
+}
