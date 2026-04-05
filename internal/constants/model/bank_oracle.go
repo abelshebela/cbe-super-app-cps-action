@@ -5,6 +5,7 @@ type BankOracle struct {
 	BankName        string `sqlx:"bank_name" json:"bank_name"`
 	Logo            string `sqlx:"logo" json:"logo"`
 	BICCode         string `sqlx:"bic_code" json:"bic_code"`
+	IS_CBE          int    `sqlx:"is_cbe" json:"is_cbe"`
 	IsEnabled       int    `sqlx:"is_enabled" json:"is_enabled"`
 	AccountLength   int    `sqlx:"account_length" json:"account_length"`
 	HasAlphaNumeric int    `sqlx:"has_alpha_numeric" json:"has_alpha_numeric"`
