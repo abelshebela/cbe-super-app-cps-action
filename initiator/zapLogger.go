@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func InitLogger() logge.Logger {
+func InitZapLogger() logge.Logger {
 	zapLogger, err := zap.NewProduction()
 	if err != nil {
 		log.Fatalf("failed to initiate zap logger %v", err)
