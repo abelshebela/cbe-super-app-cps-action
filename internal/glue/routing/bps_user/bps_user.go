@@ -60,6 +60,14 @@ func Init(router chi.Router, handler bps_user.BPSUserHandler, authMiddleware mid
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/bps_users/delete/{id}",
+			Handler: handler.DeleteBPSUser,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

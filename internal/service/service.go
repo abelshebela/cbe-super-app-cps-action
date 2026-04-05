@@ -474,6 +474,7 @@ type BPSUserService interface {
 	UpdateStatusBpsUser(ctx context.Context, userCode string, status bool) error
 	CreateBPSUser(ctx context.Context, req bps_model.BPSUser) error
 	UpdateBPSUser(ctx context.Context, userCode string, updatedUser bps_model.BPSUser) error
+	DeleteBPSUser(ctx context.Context, userID string) error
 }
 
 type AccountSearchService interface {
