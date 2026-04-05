@@ -88,7 +88,7 @@ func (r *customerStorage) assertSuperAppRoleExistsTx(ctx context.Context, tx *sq
 	const q = `
 SELECT 1
 FROM SUPERAPP_ROLE
-WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND ENABLED = 1`
+WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND IS_ENABLED = 1`
 	var one int
 	err := tx.QueryRowContext(ctx, q, roleHex).Scan(&one)
 	if err != nil {
@@ -150,7 +150,7 @@ func (r *customerStorage) findOrCreateSegmentationTx(ctx context.Context, tx *sq
 	const findQ = `
 SELECT RAWTOHEX(ID)
 FROM CUSTOMER_SEGMENTATIONS
-WHERE CUSTOMER_GROUPS_ID = HEXTORAW(:1)
+WHERE CUSTOMER_GROUP_ID = HEXTORAW(:1)
   AND UPPER(TRIM(NAME)) = UPPER(TRIM(:2))
   AND IS_DELETED = 0`
 	var existing string
@@ -167,7 +167,7 @@ WHERE CUSTOMER_GROUPS_ID = HEXTORAW(:1)
 	const insertQ = `
 INSERT INTO CUSTOMER_SEGMENTATIONS (
   NAME,
-  CUSTOMER_GROUPS_ID,
+  CUSTOMER_GROUP_ID,
   IS_ENABLED,
   IS_DELETED,
   CREATED_AT,
@@ -200,7 +200,7 @@ func (r *customerStorage) resolveSuperAppRoleIDTx(ctx context.Context, tx *sql.T
 	const roleFromSegQ = `
 SELECT RAWTOHEX(css.SUPERAPP_ROLE_ID)
 FROM CUSTOMER_SUB_SEGMENTS css
-WHERE css.CUSTOMER_SEGMENTATIONS_ID = HEXTORAW(:1)
+WHERE css.CUSTOMER_SEGMENTATION_ID = HEXTORAW(:1)
   AND css.IS_DELETED = 0
   AND css.IS_ENABLED = 1
 FETCH FIRST 1 ROWS ONLY`
@@ -256,7 +256,7 @@ func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmen
 	const insertSubQ = `
 INSERT INTO CUSTOMER_SUB_SEGMENTS (
   NAME,
-  CUSTOMER_SEGMENTATIONS_ID,
+  CUSTOMER_SEGMENTATION_ID,
   SUPERAPP_ROLE_ID,
   IS_ENABLED,
   IS_DELETED,
@@ -335,7 +335,7 @@ func (r *customerStorage) Update(ctx context.Context, id string, seg *imodel.Cus
 	const touchRoleQ = `
 UPDATE SUPERAPP_ROLE
 SET LAST_MODIFIED_AT = SYSTIMESTAMP
-WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND ENABLED = 1`
+WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND IS_ENABLED = 1`
 	res, err := tx.ExecContext(ctx, touchRoleQ, roleIDHex)
 	if err != nil {
 		r.logger.Errorf("[CustomerSegmentation][Update] touch role failed: %v", err)
@@ -371,7 +371,7 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND ENABLED = 1`
 	const insertSubQ = `
 INSERT INTO CUSTOMER_SUB_SEGMENTS (
   NAME,
-  CUSTOMER_SEGMENTATIONS_ID,
+  CUSTOMER_SEGMENTATION_ID,
   SUPERAPP_ROLE_ID,
   IS_ENABLED,
   IS_DELETED,
@@ -467,7 +467,7 @@ func (r *customerStorage) Delete(ctx context.Context, id string) error {
 	const softSubQ = `
 UPDATE CUSTOMER_SUB_SEGMENTS
 SET IS_DELETED = 1, LAST_MODIFIED_AT = SYSTIMESTAMP
-WHERE CUSTOMER_SEGMENTATIONS_ID = HEXTORAW(:1) AND IS_DELETED = 0`
+WHERE CUSTOMER_SEGMENTATION_ID = HEXTORAW(:1) AND IS_DELETED = 0`
 	if _, err := tx.ExecContext(ctx, softSubQ, idHex); err != nil {
 		r.logger.Errorf("[CustomerSegmentation][Delete] soft-delete sub segments failed: %v", err)
 		return local_util.HandleDBError(err)
@@ -502,20 +502,20 @@ func (r *customerStorage) fillAggregateBySuperAppRoleID(ctx context.Context, rol
 SELECT
   RAWTOHEX(sar.ID),
   sar.NAME,
-  sar.ENABLED,
+  sar.IS_ENABLED,
   sar.IS_DELETED,
   MIN(cs.IS_ENABLED),
   MIN(css.IS_ENABLED),
   MIN(css.CREATED_AT),
   MAX(GREATEST(cs.LAST_MODIFIED_AT, css.LAST_MODIFIED_AT))
 FROM CUSTOMER_SUB_SEGMENTS css
-JOIN SUPERAPP_ROLE sar ON sar.ID = css.SUPERAPP_ROLE_ID AND sar.IS_DELETED = 0 AND sar.ENABLED = 1
-JOIN CUSTOMER_SEGMENTATIONS cs ON cs.ID = css.CUSTOMER_SEGMENTATIONS_ID AND cs.IS_DELETED = 0
-JOIN CUSTOMER_GROUPS cg ON cg.ID = cs.CUSTOMER_GROUPS_ID AND cg.IS_DELETED = 0 AND cg.IS_ENABLED = 1
+JOIN SUPERAPP_ROLE sar ON sar.ID = css.SUPERAPP_ROLE_ID AND sar.IS_DELETED = 0 AND sar.IS_ENABLED = 1
+JOIN CUSTOMER_SEGMENTATIONS cs ON cs.ID = css.CUSTOMER_SEGMENTATION_ID AND cs.IS_DELETED = 0
+JOIN CUSTOMER_GROUPS cg ON cg.ID = cs.CUSTOMER_GROUP_ID AND cg.IS_DELETED = 0 AND cg.IS_ENABLED = 1
 WHERE css.SUPERAPP_ROLE_ID = HEXTORAW(:1)
   AND css.IS_DELETED = 0
   AND css.IS_ENABLED = 1
-GROUP BY sar.ID, sar.NAME, sar.ENABLED, sar.IS_DELETED`
+GROUP BY sar.ID, sar.NAME, sar.IS_ENABLED, sar.IS_DELETED`
 
 	var (
 		roleID, roleName        string
@@ -564,9 +564,9 @@ SELECT
   cs.NAME,
   css.NAME
 FROM CUSTOMER_SUB_SEGMENTS css
-JOIN CUSTOMER_SEGMENTATIONS cs ON cs.ID = css.CUSTOMER_SEGMENTATIONS_ID AND cs.IS_DELETED = 0
-JOIN CUSTOMER_GROUPS cg ON cg.ID = cs.CUSTOMER_GROUPS_ID AND cg.IS_DELETED = 0 AND cg.IS_ENABLED = 1
-JOIN SUPERAPP_ROLE sar ON sar.ID = css.SUPERAPP_ROLE_ID AND sar.IS_DELETED = 0 AND sar.ENABLED = 1
+JOIN CUSTOMER_SEGMENTATIONS cs ON cs.ID = css.CUSTOMER_SEGMENTATION_ID AND cs.IS_DELETED = 0
+JOIN CUSTOMER_GROUPS cg ON cg.ID = cs.CUSTOMER_GROUP_ID AND cg.IS_DELETED = 0 AND cg.IS_ENABLED = 1
+JOIN SUPERAPP_ROLE sar ON sar.ID = css.SUPERAPP_ROLE_ID AND sar.IS_DELETED = 0 AND sar.IS_ENABLED = 1
 WHERE css.SUPERAPP_ROLE_ID = HEXTORAW(:1)
   AND css.IS_DELETED = 0
   AND css.IS_ENABLED = 1
@@ -609,8 +609,8 @@ func (r *customerStorage) FindByID(ctx context.Context, id string) (*imodel.Cust
 	const roleFromSegQ = `
 SELECT RAWTOHEX(css.SUPERAPP_ROLE_ID)
 FROM CUSTOMER_SUB_SEGMENTS css
-JOIN SUPERAPP_ROLE sar ON sar.ID = css.SUPERAPP_ROLE_ID AND sar.IS_DELETED = 0 AND sar.ENABLED = 1
-WHERE css.CUSTOMER_SEGMENTATIONS_ID = HEXTORAW(:1)
+JOIN SUPERAPP_ROLE sar ON sar.ID = css.SUPERAPP_ROLE_ID AND sar.IS_DELETED = 0 AND sar.IS_ENABLED = 1
+WHERE css.CUSTOMER_SEGMENTATION_ID = HEXTORAW(:1)
   AND css.IS_DELETED = 0
   AND css.IS_ENABLED = 1
 FETCH FIRST 1 ROWS ONLY`
@@ -632,7 +632,7 @@ FETCH FIRST 1 ROWS ONLY`
 	const roleOnlyQ = `
 SELECT 1
 FROM SUPERAPP_ROLE
-WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND ENABLED = 1`
+WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND IS_ENABLED = 1`
 	var one int
 	if err := r.db.QueryRowContext(ctx, roleOnlyQ, idHex).Scan(&one); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -645,7 +645,7 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND ENABLED = 1`
 	const docIDQ = `
 SELECT RAWTOHEX(MIN(cs.ID))
 FROM CUSTOMER_SUB_SEGMENTS css
-JOIN CUSTOMER_SEGMENTATIONS cs ON cs.ID = css.CUSTOMER_SEGMENTATIONS_ID AND cs.IS_DELETED = 0
+JOIN CUSTOMER_SEGMENTATIONS cs ON cs.ID = css.CUSTOMER_SEGMENTATION_ID AND cs.IS_DELETED = 0
 WHERE css.SUPERAPP_ROLE_ID = HEXTORAW(:1)
   AND css.IS_DELETED = 0
   AND css.IS_ENABLED = 1`
@@ -679,7 +679,7 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 		"cg.IS_DELETED = 0",
 		"cg.IS_ENABLED = 1",
 		"sar.IS_DELETED = 0",
-		"sar.ENABLED = 1",
+		"sar.IS_ENABLED = 1",
 	}
 	var args []interface{}
 
@@ -709,8 +709,8 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 	where := strings.Join(clauses, " AND ")
 	joinFrom := `
 FROM CUSTOMER_SUB_SEGMENTS css
-JOIN CUSTOMER_SEGMENTATIONS cs ON cs.ID = css.CUSTOMER_SEGMENTATIONS_ID
-JOIN CUSTOMER_GROUPS cg ON cg.ID = cs.CUSTOMER_GROUPS_ID
+JOIN CUSTOMER_SEGMENTATIONS cs ON cs.ID = css.CUSTOMER_SEGMENTATION_ID
+JOIN CUSTOMER_GROUPS cg ON cg.ID = cs.CUSTOMER_GROUP_ID
 JOIN SUPERAPP_ROLE sar ON sar.ID = css.SUPERAPP_ROLE_ID`
 
 	countQ := fmt.Sprintf(`
@@ -786,9 +786,9 @@ SELECT
   RAWTOHEX(css.SUPERAPP_ROLE_ID),
   RAWTOHEX(MIN(cs.ID))
 FROM CUSTOMER_SEGMENTATIONS cs
-JOIN CUSTOMER_SUB_SEGMENTS css ON css.CUSTOMER_SEGMENTATIONS_ID = cs.ID
-JOIN SUPERAPP_ROLE sar ON sar.ID = css.SUPERAPP_ROLE_ID AND sar.IS_DELETED = 0 AND sar.ENABLED = 1
-JOIN CUSTOMER_GROUPS cg ON cg.ID = cs.CUSTOMER_GROUPS_ID AND cg.IS_DELETED = 0 AND cg.IS_ENABLED = 1
+JOIN CUSTOMER_SUB_SEGMENTS css ON css.CUSTOMER_SEGMENTATION_ID = cs.ID
+JOIN SUPERAPP_ROLE sar ON sar.ID = css.SUPERAPP_ROLE_ID AND sar.IS_DELETED = 0 AND sar.IS_ENABLED = 1
+JOIN CUSTOMER_GROUPS cg ON cg.ID = cs.CUSTOMER_GROUP_ID AND cg.IS_DELETED = 0 AND cg.IS_ENABLED = 1
 WHERE cs.IS_DELETED = 0
   AND css.IS_DELETED = 0
   AND css.IS_ENABLED = 1

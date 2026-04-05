@@ -109,7 +109,7 @@ INSERT INTO SUPERAPP_ROLE (
   NAME,
   ROLE_CODE,
   DESCRIPTION,
-  ENABLED,
+  IS_ENABLED,
   IS_DELETED,
   CREATED_AT,
   LAST_MODIFIED_AT
@@ -230,7 +230,7 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	if filterParam.Filters != nil {
 		if v, ok := filterParam.Filters["enabled"]; ok {
 			if b, ok2 := parseBoolFilter(v); ok2 {
-				clauses = append(clauses, "ENABLED = :enabled")
+				clauses = append(clauses, "IS_ENABLED = :enabled")
 				args = append(args, sql.Named("enabled", boolToOracleNumber(b)))
 			}
 		}
@@ -251,7 +251,7 @@ SELECT
   NAME,
   ROLE_CODE,
   DESCRIPTION,
-  ENABLED,
+  IS_ENABLED,
   IS_DELETED,
   CREATED_AT,
   LAST_MODIFIED_AT,
@@ -320,7 +320,7 @@ SELECT
   NAME,
   ROLE_CODE,
   DESCRIPTION,
-  ENABLED,
+  IS_ENABLED,
   IS_DELETED,
   CREATED_AT,
   LAST_MODIFIED_AT,
@@ -408,7 +408,7 @@ SELECT
   NAME,
   ROLE_CODE,
   DESCRIPTION,
-  ENABLED,
+  IS_ENABLED,
   IS_DELETED,
   CREATED_AT,
   LAST_MODIFIED_AT,
@@ -473,7 +473,7 @@ func (m *cpsRoleStorage) EnableOrDisable(ctx context.Context, id string, enable 
 	const q = `
 UPDATE SUPERAPP_ROLE
 SET
-  ENABLED    = :1,
+  IS_ENABLED    = :1,
   LAST_MODIFIED_AT = SYSTIMESTAMP
 WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
 
@@ -502,16 +502,16 @@ SELECT
   cr.NAME,
   cr.ROLE_CODE,
   cr.DESCRIPTION,
-  cr.ENABLED,
+  cr.IS_ENABLED,
   cr.IS_DELETED,
   cr.CREATED_AT,
   cr.LAST_MODIFIED_AT,
   cr.DELETED_AT
 FROM CUSTOMER_SEGMENTATIONS cs
 JOIN CUSTOMER_SUB_SEGMENTS css
-  ON css.CUSTOMER_SEGMENTATIONS_ID = cs.ID AND css.IS_DELETED = 0 AND css.IS_ENABLED = 1
+  ON css.CUSTOMER_SEGMENTATION_ID = cs.ID AND css.IS_DELETED = 0 AND css.IS_ENABLED = 1
 JOIN SUPERAPP_ROLE cr
-  ON cr.ID = css.SUPERAPP_ROLE_ID AND cr.IS_DELETED = 0 AND cr.ENABLED = 1
+  ON cr.ID = css.SUPERAPP_ROLE_ID AND cr.IS_DELETED = 0 AND cr.IS_ENABLED = 1
 WHERE cs.IS_DELETED = 0
   AND cs.IS_ENABLED = 1
   AND UPPER(TRIM(cs.NAME)) = UPPER(TRIM(:1))
