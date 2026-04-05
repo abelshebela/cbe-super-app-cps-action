@@ -66,9 +66,15 @@ func (q *accessListSegmentationOracle) BulkDisable(ctx context.Context, req acce
 		return localization.ErrorUnexpectedError
 	}
 
-	_, err := q.db.ExecContext(ctx, stmt, args...)
+	res, err := q.db.ExecContext(ctx, stmt, args...)
 	if err != nil {
 		q.logger.Errorf("[AccessListSegmentation][BulkDisable] failed to bulk disable access list segmentation: %v", err)
+		return localization.ErrorUnexpectedError
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		q.logger.Warnf("[AccessListSegmentation][BulkDisable] no rows deleted for filter: %s", filter)
+		// Optionally, return a specific error or nil if that's not an error in your logic
 		return localization.ErrorUnexpectedError
 	}
 
@@ -180,7 +186,7 @@ func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, a
 // FindAllForBlock implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geographicalID string) ([]shared_model.APPAccessList, error) {
 
-	query := `SELECT RAWTOHEX(g.access_list_key), a.name,a.service_key, g.enabled
+	query := `SELECT RAWTOHEX(g.access_list_key), a.name,a.service_key, RAWTOHEX(a.id), g.enabled
 		FROM ACCESS_LIST_GEO_SEG g
 		JOIN ACCESS_LIST a ON g.access_list_key = a.id
 		WHERE g.segmented_id = :1`
@@ -192,9 +198,9 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 	defer rows.Close()
 	var result []shared_model.APPAccessList
 	for rows.Next() {
-		var key, accessListName, accessListServiceKey string
+		var key, accessListName, accessListServiceKey, accessListID string
 		var enabled bool
-		err := rows.Scan(&key, &accessListName, &accessListServiceKey, &enabled)
+		err := rows.Scan(&key, &accessListName, &accessListServiceKey, &accessListID, &enabled)
 		if err != nil {
 			if err.Error() == "sql: no rows in result set" {
 				q.logger.Infof("[AccessListSegmentation][FindAllForBlock] no access list segmentation found for geographicalID: %s", geographicalID)
@@ -203,9 +209,9 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 			q.logger.Errorf("[AccessListSegmentation][FindAllForBlock] query failed: %v", err)
 			return nil, err
 		}
-		q.logger.Infof("[AccessListSegmentation][FindAllForBlock] found access list segmentation: key=%s, name=%s, service_key=%s, enabled=%v", key, accessListName, accessListServiceKey, enabled)
+		q.logger.Infof("[AccessListSegmentation][FindAllForBlock] found access list segmentation: key=%s, name=%s, service_key=%s, id=%s, enabled=%v", key, accessListName, accessListServiceKey, accessListID, enabled)
 		result = append(result, shared_model.APPAccessList{
-			Key:            accessListServiceKey,
+			Key:            accessListID,
 			AccessListName: accessListName,
 			Enabled:        enabled,
 		})
@@ -216,7 +222,7 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 // FindAllBySegmentIDorSegmentCode implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, customer_seg_id string) ([]shared_model.APPAccessList, error) {
 
-	query := `SELECT RAWTOHEX(g.access_list_key), a.name,a.service_key, g.enabled
+	query := `SELECT RAWTOHEX(g.access_list_key), a.name,a.service_key, RAWTOHEX(a.id), g.enabled
 		FROM ACCESS_LIST_CUSTOMER_SEG g
 		JOIN ACCESS_LIST a ON g.access_list_key = a.id
 		WHERE g.segmented_id = HEXTORAW(:1)`
@@ -228,9 +234,9 @@ func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, cu
 	defer rows.Close()
 	var result []shared_model.APPAccessList
 	for rows.Next() {
-		var key, accessListName, accessListServiceKey string
+		var key, accessListName, accessListServiceKey, accessListID string
 		var enabled bool
-		err := rows.Scan(&key, &accessListName, &accessListServiceKey, &enabled)
+		err := rows.Scan(&key, &accessListName, &accessListServiceKey, &accessListID, &enabled)
 		if err != nil {
 			if err.Error() == "sql: no rows in result set" {
 				q.logger.Infof("[AccessListSegmentation][FindAllForAccount] no access list segmentation found for customer_seg_id: %s", customer_seg_id)
@@ -239,9 +245,9 @@ func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, cu
 			q.logger.Errorf("[AccessListSegmentation][FindAllForAccount] query failed: %v", err)
 			return nil, err
 		}
-		q.logger.Infof("[AccessListSegmentation][FindAllForAccount] found access list segmentation: key=%s, name=%s, service_key=%s, enabled=%v", key, accessListName, accessListServiceKey, enabled)
+		q.logger.Infof("[AccessListSegmentation][FindAllForAccount] found access list segmentation: key=%s, name=%s, service_key=%s, id=%s, enabled=%v", key, accessListName, accessListServiceKey, accessListID, enabled)
 		result = append(result, shared_model.APPAccessList{
-			Key:            accessListServiceKey,
+			Key:            accessListID,
 			AccessListName: accessListName,
 			Enabled:        enabled,
 		})
