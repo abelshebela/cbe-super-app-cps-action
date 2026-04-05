@@ -622,6 +622,7 @@ type BulkServiceRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]model.APPAccessList], error)
 	Update(ctx context.Context, keys []string, state bool) error
 	FindAll(ctx context.Context) ([]model.APPAccessList, error)
+	FindAllForSegmentation(ctx context.Context) ([]model.APPAccessList, error)
 	FindAllByKeys(ctx context.Context, keys []string) ([]model.APPAccessList, error)
 	FindByKeys(ctx context.Context, keys []string) (map[string]string, error)
 }

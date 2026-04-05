@@ -221,6 +221,7 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 
 // FindAllBySegmentIDorSegmentCode implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, customer_seg_id string) ([]shared_model.APPAccessList, error) {
+	q.logger.Infof("[AccessListSegmentationOracle][FindAllForAccount] called with customer_seg_id: %s", customer_seg_id)
 
 	query := `SELECT RAWTOHEX(g.access_list_key), a.name,a.service_key, RAWTOHEX(a.id), g.enabled
 		FROM ACCESS_LIST_CUSTOMER_SEG g
@@ -252,6 +253,7 @@ func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, cu
 			Enabled:        enabled,
 		})
 	}
+	q.logger.Infof("[AccessListSegmentation][FindAllForAccount] total access list segmentations found for customer_seg_id %s: %d", customer_seg_id, len(result))
 	return result, nil
 }
 
