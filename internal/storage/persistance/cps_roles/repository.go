@@ -576,8 +576,7 @@ SELECT
   NAME,
   IS_ENABLED
 FROM SUPERAPP_ROLE 
-WHERE  ID = :1
-FETCH FIRST 1 ROWS ONLY`
+WHERE  ID = ':1'`
 
 	var (
 		id                         string
