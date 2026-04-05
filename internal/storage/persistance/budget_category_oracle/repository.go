@@ -35,15 +35,16 @@ func NewBudgetCategoryOracleRepository(db *sql.DB, kafkaProducer kafka.ClientOrc
 }
 
 func (r *Repository) Create(ctx context.Context, bc *imodel.BudgetCategoryOracle) error {
-	q := `INSERT INTO BUDGET_CATEGORIES (id, name, color, icon, type, enabled, is_deleted, create_at, update_at)
-		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, :6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
+	// Oracle column ENABLED (legacy); not IS_ENABLED. See db/migrations/000010_budget_categories_normalize_enabled_column.up.sql.
+	// No IS_DELETED; removals use DELETE FROM (see Delete).
+	q := `INSERT INTO BUDGET_CATEGORIES (ID, NAME, COLOR, ICON, TYPE, ENABLED, CREATE_AT, UPDATE_AT)
+		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
 	_, err := r.db.ExecContext(ctx, q,
 		bc.Name,
 		bc.Color,
 		bc.Icon,
 		bc.Type,
 		bc.IsEnabled,
-		bc.IsDeleted,
 	)
 	if err != nil {
 		r.logger.Errorf("[BudgetCategoryOracle][Create] insert failed: %v", err)
@@ -60,14 +61,13 @@ func (r *Repository) Create(ctx context.Context, bc *imodel.BudgetCategoryOracle
 }
 
 func (r *Repository) Update(ctx context.Context, id string, bc *imodel.BudgetCategoryOracle) error {
-	q := `UPDATE BUDGET_CATEGORIES SET name = :1, color = :2, icon = :3, type = :4, enabled = :5, is_deleted = :6, update_at = CURRENT_TIMESTAMP WHERE id = :7 AND is_deleted = 0`
+	q := `UPDATE BUDGET_CATEGORIES SET NAME = :1, COLOR = :2, ICON = :3, TYPE = :4, ENABLED = :5, UPDATE_AT = CURRENT_TIMESTAMP WHERE ID = HEXTORAW(:6)`
 	_, err := r.db.ExecContext(ctx, q,
 		bc.Name,
 		bc.Color,
 		bc.Icon,
 		bc.Type,
 		bc.IsEnabled,
-		bc.IsDeleted,
 		id,
 	)
 	if err != nil {
@@ -85,7 +85,7 @@ func (r *Repository) Update(ctx context.Context, id string, bc *imodel.BudgetCat
 }
 
 func (r *Repository) Delete(ctx context.Context, id string) error {
-	q := `UPDATE BUDGET_CATEGORIES SET is_deleted = 1, update_at = CURRENT_TIMESTAMP WHERE id = :1 AND is_deleted = 0`
+	q := `DELETE FROM BUDGET_CATEGORIES WHERE ID = HEXTORAW(:1)`
 	_, err := r.db.ExecContext(ctx, q, id)
 	if err != nil {
 		r.logger.Errorf("[BudgetCategoryOracle][Delete] failed: %v", err)
@@ -95,7 +95,7 @@ func (r *Repository) Delete(ctx context.Context, id string) error {
 }
 
 func (r *Repository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	q := `UPDATE BUDGET_CATEGORIES SET enabled = :1, update_at = CURRENT_TIMESTAMP WHERE id = :2 AND is_deleted = 0`
+	q := `UPDATE BUDGET_CATEGORIES SET ENABLED = :1, UPDATE_AT = CURRENT_TIMESTAMP WHERE ID = HEXTORAW(:2)`
 	var v int
 	if enable {
 		v = 1
@@ -118,8 +118,8 @@ func (r *Repository) EnableOrDisable(ctx context.Context, id string, enable bool
 }
 
 func (r *Repository) FindByID(ctx context.Context, id string) (*imodel.BudgetCategoryOracle, error) {
-	q := `SELECT RAWTOHEX(ID) AS id, name, color, icon, type, enabled, is_deleted, create_at, update_at
-		FROM BUDGET_CATEGORIES WHERE id = :1 AND is_deleted = 0`
+	q := `SELECT RAWTOHEX(ID) AS id, NAME, COLOR, ICON, TYPE, ENABLED, CREATE_AT, UPDATE_AT
+		FROM BUDGET_CATEGORIES WHERE ID = HEXTORAW(:1)`
 	row := r.db.QueryRowContext(ctx, q, id)
 	var bc imodel.BudgetCategoryOracle
 	var createAt, updateAt sql.NullTime
@@ -130,7 +130,6 @@ func (r *Repository) FindByID(ctx context.Context, id string) (*imodel.BudgetCat
 		&bc.Icon,
 		&bc.Type,
 		&bc.IsEnabled,
-		&bc.IsDeleted,
 		&createAt,
 		&updateAt,
 	)
@@ -140,14 +139,15 @@ func (r *Repository) FindByID(ctx context.Context, id string) (*imodel.BudgetCat
 	if err != nil {
 		return nil, err
 	}
+	bc.IsDeleted = 0
 	bc.CreateAt = formatNullTime(createAt)
 	bc.UpdateAt = formatNullTime(updateAt)
 	return &bc, nil
 }
 
 func (r *Repository) FindByName(ctx context.Context, name string) (*imodel.BudgetCategoryOracle, error) {
-	q := `SELECT RAWTOHEX(ID) AS id, name, color, icon, type, enabled, is_deleted, create_at, update_at
-		FROM BUDGET_CATEGORIES WHERE UPPER(name) = UPPER(:1) AND is_deleted = 0`
+	q := `SELECT RAWTOHEX(ID) AS id, NAME, COLOR, ICON, TYPE, ENABLED, CREATE_AT, UPDATE_AT
+		FROM BUDGET_CATEGORIES WHERE UPPER(NAME) = UPPER(:1)`
 	row := r.db.QueryRowContext(ctx, q, name)
 	var bc imodel.BudgetCategoryOracle
 	var createAt, updateAt sql.NullTime
@@ -158,7 +158,6 @@ func (r *Repository) FindByName(ctx context.Context, name string) (*imodel.Budge
 		&bc.Icon,
 		&bc.Type,
 		&bc.IsEnabled,
-		&bc.IsDeleted,
 		&createAt,
 		&updateAt,
 	)
@@ -168,6 +167,7 @@ func (r *Repository) FindByName(ctx context.Context, name string) (*imodel.Budge
 	if err != nil {
 		return nil, err
 	}
+	bc.IsDeleted = 0
 	bc.CreateAt = formatNullTime(createAt)
 	bc.UpdateAt = formatNullTime(updateAt)
 	return &bc, nil
@@ -189,11 +189,9 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *ty
 	var args []interface{}
 	idx := 1
 
-	filters = append(filters, "is_deleted = 0")
-
 	if filterParams.Search != "" {
 		search := "%" + strings.ToUpper(filterParams.Search) + "%"
-		filters = append(filters, fmt.Sprintf("(UPPER(name) LIKE :%d OR UPPER(type) LIKE :%d)", idx, idx))
+		filters = append(filters, fmt.Sprintf("(UPPER(NAME) LIKE :%d OR UPPER(TYPE) LIKE :%d)", idx, idx))
 		args = append(args, search)
 		idx++
 	}
@@ -208,28 +206,31 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *ty
 				on = strings.EqualFold(b, "true") || b == "1"
 			}
 			if on {
-				filters = append(filters, "enabled = 1")
+				filters = append(filters, "ENABLED = 1")
 			} else {
-				filters = append(filters, "enabled = 0")
+				filters = append(filters, "ENABLED = 0")
 			}
 		}
 		if v, ok := filterParams.Filters["name"]; ok {
 			if s, ok := v.(string); ok && s != "" {
-				filters = append(filters, fmt.Sprintf("UPPER(name) = UPPER(:%d)", idx))
+				filters = append(filters, fmt.Sprintf("UPPER(NAME) = UPPER(:%d)", idx))
 				args = append(args, s)
 				idx++
 			}
 		}
 		if v, ok := filterParams.Filters["type"]; ok {
 			if s, ok := v.(string); ok && s != "" {
-				filters = append(filters, fmt.Sprintf("UPPER(type) = UPPER(:%d)", idx))
+				filters = append(filters, fmt.Sprintf("UPPER(TYPE) = UPPER(:%d)", idx))
 				args = append(args, s)
 				idx++
 			}
 		}
 	}
 
-	whereClause := strings.Join(filters, " AND ")
+	whereClause := "1=1"
+	if len(filters) > 0 {
+		whereClause = strings.Join(filters, " AND ")
+	}
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM BUDGET_CATEGORIES WHERE %s", whereClause)
 	var total int64
 	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
@@ -261,8 +262,8 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *ty
 	}
 
 	selectQuery := fmt.Sprintf(
-		`SELECT RAWTOHEX(ID) AS id, name, color, icon, type, enabled, is_deleted, create_at, update_at
-		 FROM BUDGET_CATEGORIES WHERE %s ORDER BY create_at DESC OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY`,
+		`SELECT RAWTOHEX(ID) AS id, NAME, COLOR, ICON, TYPE, ENABLED, CREATE_AT, UPDATE_AT
+		 FROM BUDGET_CATEGORIES WHERE %s ORDER BY CREATE_AT DESC OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY`,
 		whereClause, idx, idx+1,
 	)
 	args = append(args, offset, limit)
@@ -285,12 +286,12 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *ty
 			&bc.Icon,
 			&bc.Type,
 			&bc.IsEnabled,
-			&bc.IsDeleted,
 			&createAt,
 			&updateAt,
 		); err != nil {
 			return nil, err
 		}
+		bc.IsDeleted = 0
 		bc.CreateAt = formatNullTime(createAt)
 		bc.UpdateAt = formatNullTime(updateAt)
 		list = append(list, bc)

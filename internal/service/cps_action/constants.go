@@ -290,8 +290,10 @@ const (
 	RequestCreateDonationCategory  RequestAction = "CREATE_DONATION_CATEGORY"
 	RequestUpdateDonationCategory  RequestAction = "UPDATE_DONATION_CATEGORY"
 	RequestEnableDonationCategory  RequestAction = "ENABLE_DONATION_CATEGORY"
+	RequestDeleteDonationCategory  RequestAction = "DELETE_DONATION_CATEGORY"
 	RequestDisableDonationCategory RequestAction = "DISABLE_DONATION_CATEGORY"
 	RequestEnableDonationCompany   RequestAction = "ENABLE_DONATION_COMPANY"
+	RequestDeleteDonationCompany   RequestAction = "DELETE_DONATION_COMPANY"
 	RequestDisableDonationCompany  RequestAction = "DISABLE_DONATION_COMPANY"
 	RequestCreateDonationCompany   RequestAction = "CREATE_DONATION_COMPANY"
 	RequestUpdateDonationCompany   RequestAction = "UPDATE_DONATION_COMPANY"
@@ -302,6 +304,7 @@ const (
 	RequestAddDonationImage        RequestAction = "ADD_DONATION_IMAGE"
 	RequestEnableDonation          RequestAction = "ENABLE_DONATION"
 	RequestDisableDonation         RequestAction = "DISABLE_DONATION"
+	RequestDeleteDonation		RequestAction = "DELETE_DONATION"
 	// for bankvault
 	RequestCreateBankVault  RequestAction = "CREATE_VAULT_BANK"
 	RequestUpdateBankVault  RequestAction = "UPDATE_VAULT_BANK"
@@ -436,6 +439,8 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableDonationCompany:   {},
 	RequestDisableDonationCompany:  {},
 	RequestEnableDonationCategory:  {},
+	RequestDeleteDonationCategory:  {},
+	RequestDeleteDonationCompany:   {},
 
 	RequestUpdateDonationCompany: {},
 	RequestCreateDonation:        {},
@@ -444,6 +449,7 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteDonationImage:   {},
 	RequestAddDonationImage:      {},
 	RequestEnableDonation:        {},
+	RequestDeleteDonation: {},
 	RequestDisableDonation:       {},
 	RequestAccountUpdate:         {},
 	RequestDeleteAmountBasedAuth: {},
@@ -1022,18 +1028,22 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateDonationImage,
 		RequestDeleteDonationImage,
 		RequestEnableDonation,
+		RequestDeleteDonation,
+		
 	},
 	"DONATIONCATEGORY": {
 		RequestCreateDonationCategory,
 		RequestUpdateDonationCategory,
 		RequestDisableDonationCategory,
 		RequestEnableDonationCategory,
+		RequestDeleteDonationCategory,
 	},
 	"DONATIONCOMPANY": {
 		RequestCreateDonationCompany,
 		RequestUpdateDonationCompany,
 		RequestEnableDonationCompany,
 		RequestDisableDonationCompany,
+		RequestDeleteDonationCompany,
 	},
 	"KYCVERIFIER": {
 		RequestUpdateKYCVerifier,

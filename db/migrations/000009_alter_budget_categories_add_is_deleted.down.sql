@@ -1,0 +1,2 @@
+-- Optional rollback: only if you added IS_DELETED via 000009 and no app depends on it.
+-- ALTER TABLE BUDGET_CATEGORIES DROP COLUMN IS_DELETED;

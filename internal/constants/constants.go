@@ -492,6 +492,17 @@ const (
 	IFBT MemberType = "IFB"
 )
 
+type SourceApp string
+
+const (
+	APP             SourceApp = "APP"
+	USSD            SourceApp = "USSD"
+	InternetBanking SourceApp = "INTERNET_BANKING"
+	ATM             SourceApp = "ATM"
+	POS             SourceApp = "POS"
+	PaperLess       SourceApp = "PAPERLESS"
+)
+
 // ---------------------------------------------------------------------------
 // OTP For
 // ---------------------------------------------------------------------------
@@ -977,6 +988,7 @@ const (
 	RequestEnableDonationCategory  RequestAction = "ENABLE_DONATION_CATEGORY"
 	RequestDisableDonationCategory RequestAction = "DISABLE_DONATION_CATEGORY"
 	RequestDeleteDonationCategory  RequestAction = "DELETE_DONATION_CATEGORY"
+
 	// Donation Company
 	RequestCreateDonationCompany  RequestAction = "CREATE_DONATION_COMPANY"
 	RequestUpdateDonationCompany  RequestAction = "UPDATE_DONATION_COMPANY"
@@ -1204,7 +1216,7 @@ const (
 	// RedisCacheKeyWallet, RedisCacheKeyAccessList, RedisCacheKeyAccountBlock are
 	// centralized full key names for cache / invalidation until Vault supplies them
 	// (e.g. map to VaultConfig fields later and replace usages).
-	RedisCacheKeyWallet       = "cache:wallet"
+	RedisCacheKeyWallet       = "cps:cache:wallet"
 	RedisCacheKeyAccessList   = "cache:access_list"
 	RedisCacheKeyAccountBlock = "cache:account_block"
 )

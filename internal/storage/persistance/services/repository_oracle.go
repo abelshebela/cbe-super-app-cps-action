@@ -10,6 +10,7 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
@@ -17,7 +18,7 @@ import (
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
-	shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	// shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -79,7 +80,7 @@ func parseBoolFilter(v interface{}) (bool, bool) {
 	return false, false
 }
 
-func (s *ServicesStorage) getServiceCaps(ctx context.Context, serviceID string) ([]model.Cap, error) {
+func (s *ServicesStorage) getServiceCaps(ctx context.Context, serviceID string) ([]imodel.Cap, error) {
 	const q = `
 SELECT source, currency, single_cap, minimum_transfer_cap
 FROM service_cap
@@ -92,7 +93,7 @@ WHERE service_id = HEXTORAW(:1)`
 	}
 	defer rows.Close()
 
-	var caps []model.Cap
+	var caps []imodel.Cap
 	for rows.Next() {
 		var sourceStr string
 		var currency, singleCap, minTransferCap string
@@ -101,8 +102,8 @@ WHERE service_id = HEXTORAW(:1)`
 			return nil, local_util.HandleDBError(err)
 		}
 
-		caps = append(caps, model.Cap{
-			Source:             shared_constants.SourceApp(sourceStr),
+		caps = append(caps, imodel.Cap{
+			Source:             constants.SourceApp(sourceStr),
 			Currency:           currency,
 			SingleCap:          singleCap,
 			MinimumTransferCap: minTransferCap,
@@ -111,7 +112,7 @@ WHERE service_id = HEXTORAW(:1)`
 	return caps, nil
 }
 
-func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, service *model.Service) (string, error) {
+func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, service *imodel.Service) (string, error) {
 	var serviceID string
 	if strings.TrimSpace(service.ServiceKeyId) == "" {
 		return "", errors.New(localization.ErrorInvalidID.Code)
@@ -205,7 +206,7 @@ VALUES (
 	return serviceID, nil
 }
 
-func (s *ServicesStorage) updateServiceCaps(ctx context.Context, tx *sql.Tx, serviceID string, caps []model.Cap) error {
+func (s *ServicesStorage) updateServiceCaps(ctx context.Context, tx *sql.Tx, serviceID string, caps []imodel.Cap) error {
 	const deleteCapsQ = `DELETE FROM service_cap WHERE service_id = HEXTORAW(:1)`
 	if _, err := tx.ExecContext(ctx, deleteCapsQ, serviceID); err != nil {
 		s.logger.Errorf("[ServicesRepo][updateServiceCaps] delete caps failed: %v", err)
@@ -244,7 +245,7 @@ VALUES (
 	return nil
 }
 
-func (s *ServicesStorage) Create(ctx context.Context, service *model.Service) error {
+func (s *ServicesStorage) Create(ctx context.Context, service *imodel.Service) error {
 	if service.CreatedAt.IsZero() {
 		service.CreatedAt = time.Now()
 	}
@@ -282,7 +283,7 @@ func (s *ServicesStorage) Create(ctx context.Context, service *model.Service) er
 	return nil
 }
 
-func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.Service) error {
+func (s *ServicesStorage) Update(ctx context.Context, id string, service *imodel.Service) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][Update] begin tx failed: %v", err)
@@ -335,6 +336,7 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 	// 	}
 
 	// 1) Update services row fields.
+	s.logger.Debugf("Updating service with ID %s and ServiceKeyId %s", id, serviceKeyID)
 	const q = `
 UPDATE services
 SET

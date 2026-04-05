@@ -343,6 +343,9 @@ const (
 	MsgBPSUserApprovedSuccessfully  = "BPS user approved successfully"
 	MsgBPSUserUpdatedSuccessfully   = "BPS user update successfully submitted"
 	MsgBPSUserUpdatedSuccessfullySP = "BPS user updated successfully submitted"
+	MsgBPSUserDeletedSuccessfullySP = "BPS user deleted successfully"
+	MsgBPSUserDeleteRequestSent 	= "BPS user delete request sent successfully"
+
 
 	// Account Validation related success messages
 	MsgValidationRuleApprovedSuccessfully   = "account validation Update request submitted for approval"
@@ -499,6 +502,9 @@ const (
 
 	MsgBpsUserCreateSuccess   = "BPS user create request submitted successfully"
 	MsgBpsUserCreateSuccessSP = "BPS user created successfully"
+
+	MsgBpsUserDeleteRequestSent    = "BPS user delete request submitted successfully"
+	MsgBpsUserDeleteSuccessfullySP = "BPS user deleted successfully"
 
 	// Customer Roles
 	MsgCpsRoleCreated           = "Customer role create request submitted successfully"

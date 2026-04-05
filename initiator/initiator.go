@@ -31,7 +31,7 @@ import (
 func Init(ctx context.Context) {
 	done := make(chan struct{})
 	logger := utils.NewLogger()
-	zapLogger := InitLogger()
+	zapLogger := InitZapLogger()
 
 	logger.Infof("Initializing configuration...")
 	cfg := InitConfig(logger)

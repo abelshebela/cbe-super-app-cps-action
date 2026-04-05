@@ -7,6 +7,7 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -171,7 +172,7 @@ func (s *servicesService) EnableOrDisableServiceList(ctx context.Context, id str
 }
 
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	serviceDoc, err := local_util.JsonUnmarshal[model.Service](action.CurrentAction)
+	serviceDoc, err := local_util.JsonUnmarshal[imodel.Service](action.CurrentAction)
 	if err != nil {
 		return nil, localization.ErrorInvalidActionData
 	}
