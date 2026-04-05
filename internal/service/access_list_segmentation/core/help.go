@@ -68,7 +68,7 @@ func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo stor
 	}
 
 	var res []model.APPAccessList
-	als, _ := accessListServiceRepo.FindAll(ctx)
+	als, _ := accessListServiceRepo.FindAllForSegmentation(ctx)
 	for _, al := range als {
 		// Skip parent if its key is in ids
 		if _, found := idSet[al.Key]; found {

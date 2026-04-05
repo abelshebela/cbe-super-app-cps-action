@@ -194,6 +194,46 @@ func (r *Repository) FindAll(ctx context.Context) ([]model.APPAccessList, error)
 	return result, nil
 }
 
+func (r *Repository) FindAllForSegmentation(ctx context.Context) ([]model.APPAccessList, error) {
+	query := `SELECT RAWTOHEX(ID), NAME, SERVICE_KEY, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT
+		FROM ACCESS_LIST
+		WHERE IS_DELETED = 0
+		ORDER BY NAME`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		r.logger.Errorf("[AccessListOracle][FindAllForSegmentation] query failed: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	defer rows.Close()
+
+	result := []model.APPAccessList{}
+	for rows.Next() {
+		var idRaw string
+		var name, serviceKey string
+		var isEn, isDel int
+		var createdAt, lastMod, deletedAt sql.NullTime
+
+		if err := rows.Scan(&idRaw, &name, &serviceKey, &isEn, &isDel, &createdAt, &lastMod, &deletedAt); err != nil {
+			return nil, err
+		}
+		if err != nil {
+			r.logger.Errorf("[AccessListOracle][FindAllForSegmentation] scan failed: %v", err)
+			return nil, local_util.HandleDBError(err)
+		}
+		result = append(result, model.APPAccessList{
+			Key:            idRaw,
+			AccessListName: name,
+			Enabled:        isEn == 1,
+		})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return result, nil
+}
+
 func (r *Repository) Update(ctx context.Context, keys []string, state bool) error {
 	if len(keys) == 0 {
 		return nil
@@ -221,7 +261,7 @@ func (r *Repository) Update(ctx context.Context, keys []string, state bool) erro
 }
 
 func (r *Repository) FindAllByKeys(ctx context.Context, keys []string) ([]model.APPAccessList, error) {
-	r.logger.Infof("[AccessListOracle][FindAllKeys] checking access list for keys")
+	r.logger.Infof("[AccessListOracle][FindAllByKeys] checking access list for keys")
 	if len(keys) == 0 {
 		return nil, nil
 	}
