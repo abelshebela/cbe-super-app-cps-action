@@ -1,6 +1,7 @@
 package model
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"time"
 )
 
@@ -56,8 +57,19 @@ type Service struct {
 // }
 
 type Cap struct {
-	Source             string `bson:"source" json:"source"`
-	Currency           string `bson:"currency" json:"currency"`
-	SingleCap          string `bson:"single_cap" json:"single_cap"`
-	MinimumTransferCap string `bson:"minimum_transfer_cap" json:"minimum_transfer_cap"`
+	Source             constants.SourceApp `bson:"source" json:"source"`
+	Currency           string              `bson:"currency" json:"currency"`
+	SingleCap          string              `bson:"single_cap" json:"single_cap"`
+	MinimumTransferCap string              `bson:"minimum_transfer_cap" json:"minimum_transfer_cap"`
+}
+
+type ServiceKey struct {
+	ID             string     `json:"id,omitempty"`
+	ServiceName    string     `json:"service_name"`
+	ServiceKey     string     `json:"service_key"`
+	IsEnabled      bool       `json:"is_enabled"`
+	IsDeleted      bool       `json:"is_deleted"`
+	CreatedAt      time.Time  `json:"created_at"`
+	LastModifiedAt time.Time  `json:"last_modified_at"`
+	DeletedAt      *time.Time `json:"deleted_at,omitempty"`
 }

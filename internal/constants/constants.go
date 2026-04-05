@@ -492,6 +492,17 @@ const (
 	IFBT MemberType = "IFB"
 )
 
+type SourceApp string
+
+const (
+	APP             SourceApp = "APP"
+	USSD            SourceApp = "USSD"
+	InternetBanking SourceApp = "INTERNET_BANKING"
+	ATM             SourceApp = "ATM"
+	POS             SourceApp = "POS"
+	PaperLess       SourceApp = "PAPERLESS"
+)
+
 // ---------------------------------------------------------------------------
 // OTP For
 // ---------------------------------------------------------------------------

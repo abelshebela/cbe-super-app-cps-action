@@ -18,7 +18,7 @@ import (
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
-	shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	// shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -80,7 +80,7 @@ func parseBoolFilter(v interface{}) (bool, bool) {
 	return false, false
 }
 
-func (s *ServicesStorage) getServiceCaps(ctx context.Context, serviceID string) ([]model.Cap, error) {
+func (s *ServicesStorage) getServiceCaps(ctx context.Context, serviceID string) ([]imodel.Cap, error) {
 	const q = `
 SELECT source, currency, single_cap, minimum_transfer_cap
 FROM service_cap
@@ -93,7 +93,7 @@ WHERE service_id = HEXTORAW(:1)`
 	}
 	defer rows.Close()
 
-	var caps []model.Cap
+	var caps []imodel.Cap
 	for rows.Next() {
 		var sourceStr string
 		var currency, singleCap, minTransferCap string
@@ -102,8 +102,8 @@ WHERE service_id = HEXTORAW(:1)`
 			return nil, local_util.HandleDBError(err)
 		}
 
-		caps = append(caps, model.Cap{
-			Source:             shared_constants.SourceApp(sourceStr),
+		caps = append(caps, imodel.Cap{
+			Source:             constants.SourceApp(sourceStr),
 			Currency:           currency,
 			SingleCap:          singleCap,
 			MinimumTransferCap: minTransferCap,
