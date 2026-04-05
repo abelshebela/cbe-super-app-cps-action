@@ -82,6 +82,7 @@ type AccountBlockStorage struct {
 }
 
 func NewAccountBlockRepository(
+
 	db *sql.DB,
 	redis storage.RedisRepository,
 	logger utils.Logger,
@@ -98,6 +99,46 @@ func NewAccountBlockRepository(
 		var cnt int
 		err := db.QueryRow("SELECT COUNT(*) FROM USER_CONSTRAINTS WHERE CONSTRAINT_NAME = :1", strings.ToUpper(name)).Scan(&cnt)
 		return err == nil && cnt > 0
+	}
+	// ACCESS_LIST_CUSTOMER_SEG
+	if !tableExists("ACCESS_LIST_CUSTOMER_SEG") {
+		stmt := `CREATE TABLE ACCESS_LIST_CUSTOMER_SEG (
+			   ID RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
+			   ACCESS_LIST_KEY RAW(16),
+			   SEGMENTED_ID RAW(16),
+			   ENABLED NUMBER(1) DEFAULT 1,
+			   CREATED_AT TIMESTAMP,
+			   UPDATED_AT TIMESTAMP,
+			   DELETED_AT TIMESTAMP,
+			   CONSTRAINT FK_AL_CUSTOMER_ACCESS_LIST FOREIGN KEY (ACCESS_LIST_KEY) REFERENCES ACCESS_LIST (id) ON DELETE CASCADE,
+			   CONSTRAINT FK_AL_CUSTOMER_SEGMENT FOREIGN KEY (SEGMENTED_ID) REFERENCES CUSTOMER_SEGMENTATIONS (ID) ON DELETE CASCADE
+		   )`
+		if _, err := db.Exec(stmt); err != nil {
+			logger.Warnf("ACCESS_LIST_CUSTOMER_SEG table creation: %v", err)
+		} else {
+			logger.Infof("ACCESS_LIST_CUSTOMER_SEG table created successfully")
+		}
+	}
+
+	// ACCESS_LIST_GEO_SEG
+	if !tableExists("ACCESS_LIST_GEO_SEG") {
+		stmt := `CREATE TABLE ACCESS_LIST_GEO_SEG (
+			   ID RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
+			   ACCESS_LIST_KEY RAW(16),
+			   SEGMENTED_ID VARCHAR2(32),
+			   TYPE VARCHAR2(1),
+			   ENABLED NUMBER(1) DEFAULT 1,
+			   CREATED_AT TIMESTAMP,
+			   UPDATED_AT TIMESTAMP,
+			   DELETED_AT TIMESTAMP,
+			   CONSTRAINT FK_AL_GEO_ACCESS_LIST FOREIGN KEY (ACCESS_LIST_KEY) REFERENCES ACCESS_LIST (ID) ON DELETE CASCADE,
+			   CONSTRAINT FK_AL_GEO_BLOCK FOREIGN KEY (SEGMENTED_ID) REFERENCES ACCOUNT_BLOCKS (ID) ON DELETE CASCADE
+		   )`
+		if _, err := db.Exec(stmt); err != nil {
+			logger.Warnf("ACCESS_LIST_GEO_SEG table creation: %v", err)
+		} else {
+			logger.Infof("ACCESS_LIST_GEO_SEG table created successfully")
+		}
 	}
 
 	// ACCOUNT_BLOCKS table
