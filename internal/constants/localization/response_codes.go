@@ -874,6 +874,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessBpsUserDisableRequestSentSP,
 	SuccessBPSUserCreated,
 	SuccessBPSUserCreatedSP,
+	SuccessBpsUserDeleteRequestSent,
+	SuccessBpsUserDeletedSP,
 
 	SuccessBudgetCategoryCreatedSP,
 	SuccessBudgetCategoryUpdatedSP,
@@ -1956,6 +1958,20 @@ var (
 		Code:       "SUCCESS_BPS_USER_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgBpsUserCreateSuccessSP,
+		Type:       "success",
+	}
+
+	// Delete BPS User
+	SuccessBpsUserDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_BPS_USER_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgBpsUserDeleteRequestSent,
+		Type:       "success",
+	}
+	SuccessBpsUserDeletedSP = ResponseCode{
+		Code:       "SUCCESS_BPS_USER_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgBpsUserDeleteSuccessfullySP,
 		Type:       "success",
 	}
 
