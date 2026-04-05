@@ -15,6 +15,22 @@ import (
 )
 
 func NewBankRepository(db *sql.DB, log utils.Logger) storage.BankOracleRepository {
+
+	query := ` alter table banks add is_cbe number default 0`
+	_, err := db.Exec(query)
+	if err != nil {
+		log.Errorf("failed to add is_cbe column: %v", err)
+	} else {
+		query = `update banks set is_cbe = 1 where ID = hextoraw('4D619A3FA26982B5E0630B6F030AEFE6')`
+		_, err = db.Exec(query)
+		if err != nil {
+			log.Errorf("failed to update is_cbe column: %v", err)
+		} else {
+			log.Infof("is_cbe column updated successfully for CBE bank")
+		}
+		log.Infof("is_cbe column added successfully (or already exists)")
+
+	}
 	return &Queries{
 		db:     db,
 		logger: log,
