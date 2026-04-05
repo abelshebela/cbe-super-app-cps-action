@@ -85,7 +85,17 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 
 	router.Use(customeMiddleware.CORS(cfg))
 	// middleware for encryption and decryption of request and response body
-	router.Use(encryptionMiddleware.SecureTunnelMiddleware())
+	// router.Use(encryptionMiddleware.SecureTunnelMiddleware())
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			header := sharedMiddleware.ExtractHeader(req)
+			if header.EnableEncryption.IsValid() && header.EnableEncryption == sharedMiddleware.Enabled {
+				encryptionMiddleware.SecureTunnelMiddleware()(next).ServeHTTP(w, req)
+				return
+			}
+			next.ServeHTTP(w, req)
+		})
+	})
 
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
@@ -189,7 +199,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	secured.Group(func(r chi.Router) {
 		// Auth first
 		r.Use(authMiddleware.AuthenticateToken)
-		r.Use(encryptionMiddleware.SecureTunnelMiddleware())
+
 		// CPS Action Guard
 		// // r.Use(customeMiddleware.CPSActionRouteGuard([]string{
 		// // 	"/actions",
