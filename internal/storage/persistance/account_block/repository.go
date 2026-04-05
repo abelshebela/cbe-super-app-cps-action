@@ -86,9 +86,60 @@ func NewAccountBlockRepository(
 	redis storage.RedisRepository,
 	logger utils.Logger,
 ) storage.AccountBlockRepository {
-	// One-time table creation (safe to ignore errors if already exist)
-	createStmts := []string{
-		`CREATE TABLE CUSTOMER_GROUPS (
+	// One-time table/constraint creation with existence checks
+	// Helper: check if table exists
+	tableExists := func(name string) bool {
+		var cnt int
+		err := db.QueryRow("SELECT COUNT(*) FROM USER_TABLES WHERE TABLE_NAME = :1", strings.ToUpper(name)).Scan(&cnt)
+		return err == nil && cnt > 0
+	}
+	// Helper: check if constraint exists
+	constraintExists := func(name string) bool {
+		var cnt int
+		err := db.QueryRow("SELECT COUNT(*) FROM USER_CONSTRAINTS WHERE CONSTRAINT_NAME = :1", strings.ToUpper(name)).Scan(&cnt)
+		return err == nil && cnt > 0
+	}
+
+	// ACCOUNT_BLOCKS table
+	if !tableExists("ACCOUNT_BLOCKS") {
+		stmt := `CREATE TABLE ACCOUNT_BLOCKS (
+			   ID RAW(24) PRIMARY KEY,
+			   NAME VARCHAR2(255),
+			   CODE VARCHAR2(100) UNIQUE,
+			   ADDRESS VARCHAR2(500),
+			   PARENT_ID RAW(24),
+			   SLUG VARCHAR2(255),
+			   TYPE VARCHAR2(1),
+			   IS_ENABLED NUMBER(1) DEFAULT 1,
+			   CITY_ID RAW(24),
+			   REGION_ID RAW(24),
+			   DISTRICT_ID RAW(24),
+			   IS_DELETED NUMBER(1) DEFAULT 0,
+			   CREATED_AT TIMESTAMP,
+			   UPDATED_AT TIMESTAMP,
+			   CONSTRAINT FK_ACCOUNT_BLOCK_PARENT FOREIGN KEY (CITY_ID) REFERENCES ACCOUNT_BLOCKS (ID) ON DELETE CASCADE,
+			   CONSTRAINT FK_ACCOUNT_BLOCK_PARENT2 FOREIGN KEY (REGION_ID) REFERENCES ACCOUNT_BLOCKS (ID) ON DELETE CASCADE,
+			   CONSTRAINT FK_ACCOUNT_BLOCK_PARENT3 FOREIGN KEY (DISTRICT_ID) REFERENCES ACCOUNT_BLOCKS (ID) ON DELETE CASCADE
+		   )`
+		if _, err := db.Exec(stmt); err != nil {
+			logger.Warnf("ACCOUNT_BLOCKS table creation: %v", err)
+		} else {
+			logger.Infof("ACCOUNT_BLOCKS table created successfully")
+		}
+	}
+	// Add type check constraint if not exists
+	if !constraintExists("CHK_AB_TYPE") {
+		stmt := `ALTER TABLE ACCOUNT_BLOCKS ADD CONSTRAINT CHK_AB_TYPE CHECK (TYPE IN ('R', 'D', 'C', 'B'))`
+		if _, err := db.Exec(stmt); err != nil {
+			logger.Warnf("CHK_AB_TYPE constraint: %v", err)
+		} else {
+			logger.Infof("CHK_AB_TYPE constraint added successfully")
+		}
+	}
+
+	// CUSTOMER_GROUPS
+	if !tableExists("CUSTOMER_GROUPS") {
+		stmt := `CREATE TABLE CUSTOMER_GROUPS (
 			   ID RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
 			   NAME VARCHAR2(32) NOT NULL,
 			   IS_ENABLED NUMBER(1) DEFAULT 1,
@@ -96,8 +147,16 @@ func NewAccountBlockRepository(
 			   CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			   LAST_MODIFIED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			   DELETED_AT TIMESTAMP
-		   )`,
-		`CREATE TABLE SUPERAPP_ROLE (
+		   )`
+		if _, err := db.Exec(stmt); err != nil {
+			logger.Warnf("CUSTOMER_GROUPS table creation: %v", err)
+		} else {
+			logger.Infof("CUSTOMER_GROUPS table created successfully")
+		}
+	}
+	// SUPERAPP_ROLE
+	if !tableExists("SUPERAPP_ROLE") {
+		stmt := `CREATE TABLE SUPERAPP_ROLE (
 			   ID RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
 			   NAME VARCHAR2(32) NOT NULL,
 			   ROLE_CODE VARCHAR2(32) NOT NULL UNIQUE,
@@ -107,8 +166,16 @@ func NewAccountBlockRepository(
 			   CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			   LAST_MODIFIED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			   DELETED_AT TIMESTAMP
-		   )`,
-		`CREATE TABLE CUSTOMER_SEGMENTATIONS (
+		   )`
+		if _, err := db.Exec(stmt); err != nil {
+			logger.Warnf("SUPERAPP_ROLE table creation: %v", err)
+		} else {
+			logger.Infof("SUPERAPP_ROLE table created successfully")
+		}
+	}
+	// CUSTOMER_SEGMENTATIONS
+	if !tableExists("CUSTOMER_SEGMENTATIONS") {
+		stmt := `CREATE TABLE CUSTOMER_SEGMENTATIONS (
 			   ID RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
 			   NAME VARCHAR2(32) NOT NULL,
 			   CUSTOMER_GROUPS_ID RAW(16) NOT NULL,
@@ -118,8 +185,16 @@ func NewAccountBlockRepository(
 			   LAST_MODIFIED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			   DELETED_AT TIMESTAMP,
 			   CONSTRAINT FK_CUSTOMER_GROUPS FOREIGN KEY (CUSTOMER_GROUPS_ID) REFERENCES CUSTOMER_GROUPS (ID) ON DELETE CASCADE
-		   )`,
-		`CREATE TABLE CUSTOMER_SUB_SEGMENTS (
+		   )`
+		if _, err := db.Exec(stmt); err != nil {
+			logger.Warnf("CUSTOMER_SEGMENTATIONS table creation: %v", err)
+		} else {
+			logger.Infof("CUSTOMER_SEGMENTATIONS table created successfully")
+		}
+	}
+	// CUSTOMER_SUB_SEGMENTS
+	if !tableExists("CUSTOMER_SUB_SEGMENTS") {
+		stmt := `CREATE TABLE CUSTOMER_SUB_SEGMENTS (
 			   ID RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
 			   NAME VARCHAR2(32) NOT NULL,
 			   CUSTOMER_SEGMENTATIONS_ID RAW(16) NOT NULL,
@@ -131,13 +206,11 @@ func NewAccountBlockRepository(
 			   DELETED_AT TIMESTAMP,
 			   CONSTRAINT FK_CUSTOMER_SEGMENTATIONS FOREIGN KEY (CUSTOMER_SEGMENTATIONS_ID) REFERENCES CUSTOMER_SEGMENTATIONS (ID) ON DELETE CASCADE,
 			   CONSTRAINT FK_SUB_SEG_SUPERAPP_ROLE FOREIGN KEY (SUPERAPP_ROLE_ID) REFERENCES SUPERAPP_ROLE (ID)
-		   )`,
-	}
-	for _, stmt := range createStmts {
+		   )`
 		if _, err := db.Exec(stmt); err != nil {
-			logger.Warnf("Table creation (may already exist): %v", err)
+			logger.Warnf("CUSTOMER_SUB_SEGMENTS table creation: %v", err)
 		} else {
-			logger.Infof("Table created successfully: %s", stmt)
+			logger.Infof("CUSTOMER_SUB_SEGMENTS table created successfully")
 		}
 	}
 	return &AccountBlockStorage{
