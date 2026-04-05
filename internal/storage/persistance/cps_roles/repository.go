@@ -572,23 +572,11 @@ func (m *cpsRoleStorage) FindByCustomerSegmentationByID(ctx context.Context, cus
 
 	const q = `
 SELECT
-  RAWTOHEX(cr.ID),
-  cr.NAME,
-  cr.ROLE_CODE,
-  cr.DESCRIPTION,
-  cr.ENABLED,
-  cr.IS_DELETED,
-  cr.CREATED_AT,
-  cr.LAST_MODIFIED_AT,
-  cr.DELETED_AT
-FROM CUSTOMER_SEGMENTATIONS cs
-JOIN CUSTOMER_SUB_SEGMENTS css
-  ON css.CUSTOMER_SEGMENTATIONS_ID = cs.ID AND css.IS_DELETED = 0 AND css.IS_ENABLED = 1
-JOIN SUPERAPP_ROLE cr
-  ON cr.ID = css.SUPERAPP_ROLE_ID AND cr.IS_DELETED = 0 AND cr.ENABLED = 1
-WHERE cs.IS_DELETED = 0
-  AND cs.IS_ENABLED = 1
-  AND cs.ID = HEXTORAW(:1)
+  RAWTOHEX(ID),
+  NAME,
+  IS_ENABLED
+FROM CUSTOMER_SEGMENTATIONS 
+WHERE  ID = HEXTORAW(:1)
 FETCH FIRST 1 ROWS ONLY`
 
 	var (
@@ -601,13 +589,7 @@ FETCH FIRST 1 ROWS ONLY`
 	err := m.db.QueryRowContext(ctx, q, customerSegment).Scan(
 		&id,
 		&name,
-		&roleCode,
-		&desc,
 		&enabledN,
-		&isDeletedN,
-		&createdAt,
-		&updatedAt,
-		&delT,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
