@@ -10,6 +10,7 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
@@ -111,7 +112,7 @@ WHERE service_id = HEXTORAW(:1)`
 	return caps, nil
 }
 
-func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, service *model.Service) (string, error) {
+func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, service *imodel.Service) (string, error) {
 	var serviceID string
 	if strings.TrimSpace(service.ServiceKeyId) == "" {
 		return "", errors.New(localization.ErrorInvalidID.Code)
@@ -205,7 +206,7 @@ VALUES (
 	return serviceID, nil
 }
 
-func (s *ServicesStorage) updateServiceCaps(ctx context.Context, tx *sql.Tx, serviceID string, caps []model.Cap) error {
+func (s *ServicesStorage) updateServiceCaps(ctx context.Context, tx *sql.Tx, serviceID string, caps []imodel.Cap) error {
 	const deleteCapsQ = `DELETE FROM service_cap WHERE service_id = HEXTORAW(:1)`
 	if _, err := tx.ExecContext(ctx, deleteCapsQ, serviceID); err != nil {
 		s.logger.Errorf("[ServicesRepo][updateServiceCaps] delete caps failed: %v", err)
@@ -244,7 +245,7 @@ VALUES (
 	return nil
 }
 
-func (s *ServicesStorage) Create(ctx context.Context, service *model.Service) error {
+func (s *ServicesStorage) Create(ctx context.Context, service *imodel.Service) error {
 	if service.CreatedAt.IsZero() {
 		service.CreatedAt = time.Now()
 	}
@@ -282,7 +283,7 @@ func (s *ServicesStorage) Create(ctx context.Context, service *model.Service) er
 	return nil
 }
 
-func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.Service) error {
+func (s *ServicesStorage) Update(ctx context.Context, id string, service *imodel.Service) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][Update] begin tx failed: %v", err)

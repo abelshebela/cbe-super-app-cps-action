@@ -56,6 +56,7 @@ type Service struct {
 // }
 
 type Cap struct {
+	Source             string `bson:"source" json:"source"`
 	Currency           string `bson:"currency" json:"currency"`
 	SingleCap          string `bson:"single_cap" json:"single_cap"`
 	MinimumTransferCap string `bson:"minimum_transfer_cap" json:"minimum_transfer_cap"`

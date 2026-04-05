@@ -133,10 +133,10 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	case string(constants.RequestDisableBPSUser):
 		actionData.Enabled = false
 		b.logger.Infof("[BpsUserSvc][Authorize] disabling id: %s", cpsAction.UniqueId)
-	case string(constants.RequestBpsUserDelete):
-		actionData.IsDeleted = true
-		// fmt.Println("LOLOLOLO IN AUTHORIZE DELETE")
-		b.logger.Infof("[BpsUserSvc][Authorize] deleting id: %s", cpsAction.UniqueId)
+	// case string(constants.RequestBpsUserDelete):
+	// 	actionData.IsDeleted = true
+	// 	// fmt.Println("LOLOLOLO IN AUTHORIZE DELETE")
+	// 	b.logger.Infof("[BpsUserSvc][Authorize] deleting id: %s", cpsAction.UniqueId)
 	default:
 		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", cpsAction.RequestAction)))
 		b.logger.Errorf("[BpsUserSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
@@ -468,7 +468,7 @@ func (b *bpsUserService) DeleteBPSUser(ctx context.Context, userID string) error
 	updatedUser := *existingUser
 	updatedUser.IsDeleted = true
 	updatedUser.LastModifiedAt = time.Now()
-// fmt.Println("LOLOLOLO IN FUNCTION DELETE")
+	// fmt.Println("LOLOLOLO IN FUNCTION DELETE")
 	cpsActionData := lib.CpsModelBuilder(existingUser.ID.Hex(), makerData, existingUser, updatedUser, string(constants.RequestBpsUserDelete), constants.DELETE)
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		span.AddEvent("[DeleteBPSUser] failed to create CPS action", trace.WithAttributes(
