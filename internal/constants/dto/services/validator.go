@@ -57,7 +57,8 @@ func (r UpdateServiceRequest) Normalize() {
 func (c CapRequest) Validate() error {
 	return validation.ValidateStruct(&c,
 		validation.Field(&c.Source, validation.NotNil,
-			validation.In("APP", "USSD", "INTERNET_BANKING", "ATM", "POS", "PAPERLESS").Error("source must be one of (APP, USSD, INTERNET_BANKING, ATM, POS, PAPERLESS)"),
+			// validation.In("APP", "USSD", "INTERNET_BANKING", "ATM", "POS", "PAPERLESS").Error("source must be one of (APP, USSD, INTERNET_BANKING, ATM, POS, PAPERLESS)"),
+			validation.In("app", "ussd", "internet_banking").Error("source must be one of (app, ussd, internet_banking)"),
 		),
 		validation.Field(&c.Currency, validation.NotNil, is.CurrencyCode),
 		validation.Field(&c.SingleCap,
