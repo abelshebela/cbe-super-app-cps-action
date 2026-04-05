@@ -291,24 +291,48 @@ func (s *cpsUserService) DeleteUserRequest(ctx context.Context, userCode string)
 		return errors.New(localization.ErrorUserCodeRequired.Code)
 	}
 
+	maker := local_util.ExtractUserFromContext(ctx)
+	if incomplet := local_util.IsIncomplete(maker); incomplet {
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", localization.ErrorIncompleteUserInfo.Code),
+			attribute.String("user_code", userCode),
+		))
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+
 	existing, err := s.repo.FindByID(ctx, userCode)
 	if err != nil {
 		span.AddEvent("failed to find user by id", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
-
-	maker := local_util.ExtractUserFromContext(ctx)
-	payload := model.CPSUser{
-		UserCode:  userCode,
-		IsDeleted: true,
+	if existing == nil {
+		span.AddEvent("CPS user not found", trace.WithAttributes(
+			attribute.String("error", localization.ErrorUserNotFound.Code),
+			attribute.String("user_code", userCode),
+		))
+		return errors.New(localization.ErrorUserNotFound.Code)
+	}
+	if existing.IsDeleted {
+		span.AddEvent("CPS user already deleted", trace.WithAttributes(
+			attribute.String("error", localization.ErrorAlreadyDeleted.Code),
+			attribute.String("user_code", userCode),
+		))
+		return errors.New(localization.ErrorAlreadyDeleted.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(userCode, maker, existing, payload, string(constants.RequestCpsUserDelete), constants.DELETE)
-	err = s.cpsService.CreateCPSAction(ctx, &cpsAction)
-	if err != nil {
+	updatedUser := *existing
+	updatedUser.IsDeleted = true
+	now := time.Now()
+	updatedUser.LastModified = &now
+
+	cpsAction := lib.CpsModelBuilder(userCode, maker, existing, updatedUser, string(constants.RequestCpsUserDelete), constants.DELETE)
+	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))
+		return err
 	}
-	return err
+
+	s.logger.Infof("[CpsUserSvc][Delete] request created code: %s", userCode)
+	return nil
 }
 
 func (s *cpsUserService) EnableUser(ctx context.Context, userCode string) error {
