@@ -115,6 +115,18 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		}
 		b.logger.Infof("[BpsUserSvc][Authorize] updated id: %s", cpsAction.UniqueId)
 		return nil, nil
+	case string(constants.RequestBpsUserDelete):
+		actionData.IsDeleted = true
+		if err := b.repo.Update(ctx, &actionData); err != nil {
+			span.AddEvent("[Authorize] failed to soft-delete BPS user", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			b.logger.Errorf("[BpsUserSvc][Authorize] delete err: %v", err)
+			return nil, err
+		}
+		b.logger.Infof("[BpsUserSvc][Authorize] soft-deleted id: %s", cpsAction.UniqueId)
+		return nil, nil
 	case string(constants.RequestEnableBPSUser):
 		actionData.Enabled = true
 		b.logger.Infof("[BpsUserSvc][Authorize] enabling id: %s", cpsAction.UniqueId)
