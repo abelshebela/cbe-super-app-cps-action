@@ -196,6 +196,30 @@ RETURNING RAWTOHEX(ID) INTO :6`
 	return strings.ToLower(newID), nil
 }
 
+func (r *customerStorage) resolveSuperAppRoleIDTx(ctx context.Context, tx *sql.Tx, idHex string) (string, error) {
+	const roleFromSegQ = `
+SELECT RAWTOHEX(css.SUPERAPP_ROLE_ID)
+FROM CUSTOMER_SUB_SEGMENTS css
+WHERE css.CUSTOMER_SEGMENTATIONS_ID = HEXTORAW(:1)
+  AND css.IS_DELETED = 0
+  AND css.IS_ENABLED = 1
+FETCH FIRST 1 ROWS ONLY`
+	var roleHex string
+	err := tx.QueryRowContext(ctx, roleFromSegQ, idHex).Scan(&roleHex)
+	if err == nil {
+		return strings.ToLower(roleHex), nil
+	}
+	if !errors.Is(err, sql.ErrNoRows) {
+		r.logger.Errorf("[CustomerSegmentation][resolveSuperAppRoleIDTx] role-from-seg query failed: %v", err)
+		return "", local_util.HandleDBError(err)
+	}
+
+	if err := r.assertSuperAppRoleExistsTx(ctx, tx, idHex); err != nil {
+		return "", err
+	}
+	return idHex, nil
+}
+
 func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmentation) error {
 	if seg == nil {
 		return errors.New(localization.ErrorNoDataProvided.Code)
@@ -303,23 +327,18 @@ func (r *customerStorage) Update(ctx context.Context, id string, seg *imodel.Cus
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	if len(seg.CustomerSegments) > 0 {
-		roleIDHex, ok := normalizeRawHex32(seg.CustomerRole.ID)
-		if !ok {
-			return errors.New(localization.ErrorInvalidID.Code)
-		}
-		if err := r.assertSuperAppRoleExistsTx(ctx, tx, roleIDHex); err != nil {
-			return err
-		}
+	roleIDHex, err := r.resolveSuperAppRoleIDTx(ctx, tx, idHex)
+	if err != nil {
+		return err
 	}
 
-	const touchSegQ = `
-UPDATE CUSTOMER_SEGMENTATIONS
+	const touchRoleQ = `
+UPDATE SUPERAPP_ROLE
 SET LAST_MODIFIED_AT = SYSTIMESTAMP
-WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
-	res, err := tx.ExecContext(ctx, touchSegQ, idHex)
+WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND ENABLED = 1`
+	res, err := tx.ExecContext(ctx, touchRoleQ, roleIDHex)
 	if err != nil {
-		r.logger.Errorf("[CustomerSegmentation][Update] touch segmentation failed: %v", err)
+		r.logger.Errorf("[CustomerSegmentation][Update] touch role failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	rows, _ := res.RowsAffected()
@@ -327,8 +346,8 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
-	const deleteSubQ = `DELETE FROM CUSTOMER_SUB_SEGMENTS WHERE CUSTOMER_SEGMENTATIONS_ID = HEXTORAW(:1)`
-	if _, err := tx.ExecContext(ctx, deleteSubQ, idHex); err != nil {
+	const deleteSubQ = `DELETE FROM CUSTOMER_SUB_SEGMENTS WHERE SUPERAPP_ROLE_ID = HEXTORAW(:1)`
+	if _, err := tx.ExecContext(ctx, deleteSubQ, roleIDHex); err != nil {
 		r.logger.Errorf("[CustomerSegmentation][Update] delete sub segments failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
@@ -348,7 +367,6 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 		return nil
 	}
 
-	roleIDHex, _ := normalizeRawHex32(seg.CustomerRole.ID)
 	now := time.Now()
 	const insertSubQ = `
 INSERT INTO CUSTOMER_SUB_SEGMENTS (
@@ -378,10 +396,6 @@ VALUES (
 		segHex, err := r.findOrCreateSegmentationTx(ctx, tx, groupHex, sub.CustomerSegment, now, seg.IsEnabled)
 		if err != nil {
 			return err
-		}
-		if segHex != idHex {
-			r.logger.Errorf("[CustomerSegmentation][Update] sub segment does not belong to segmentation %s", id)
-			return errors.New(localization.ErrorNoDataProvided.Code)
 		}
 		if _, err := tx.ExecContext(ctx, insertSubQ,
 			sub.CustomerSubSegment,
@@ -483,8 +497,6 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 	return nil
 }
 
-// fillAggregateBySuperAppRoleID returns one API document: all (group, segment, sub-segment) rows for the role,
-// nested under customer_role. topLevelID is the resource id exposed as JSON "id" (distinct from customer_role.id when desired).
 func (r *customerStorage) fillAggregateBySuperAppRoleID(ctx context.Context, roleHex, topLevelID string) (*imodel.CustomerSegmentation, error) {
 	const metaQ = `
 SELECT
@@ -547,6 +559,7 @@ GROUP BY sar.ID, sar.NAME, sar.ENABLED, sar.IS_DELETED`
 
 	const rowsQ = `
 SELECT
+  RAWTOHEX(css.ID),
   cg.NAME,
   cs.NAME,
   css.NAME
@@ -567,12 +580,13 @@ ORDER BY css.CREATED_AT, css.ID`
 	defer detailRows.Close()
 
 	for detailRows.Next() {
-		var gName, sName, subName sql.NullString
-		if err := detailRows.Scan(&gName, &sName, &subName); err != nil {
+		var cssId, gName, sName, subName sql.NullString
+		if err := detailRows.Scan(&cssId, &gName, &sName, &subName); err != nil {
 			r.logger.Errorf("[CustomerSegmentation][fillAggregateBySuperAppRoleID] detail scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 		seg.CustomerSegments = append(seg.CustomerSegments, imodel.CustSegment{
+			Id:                 cssId.String,
 			CustomerGroup:      gName.String,
 			CustomerSegment:    sName.String,
 			CustomerSubSegment: subName.String,
@@ -802,4 +816,13 @@ FETCH FIRST 1 ROWS ONLY`
 		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	return r.fillAggregateBySuperAppRoleID(ctx, rh, dh)
+}
+
+func (s *customerStorage) CheckIfCustomerSubSegmentExists(ctx context.Context, id string) (bool, error) {
+	q := fmt.Sprintf(`SELECT COUNT(*) FROM CUSTOMER_SUB_SEGMENTS WHERE SUPERAPP_ROLE_ID = '%s'`, id)
+	var count int
+	if err := s.db.QueryRowContext(ctx, q).Scan(&count); err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
