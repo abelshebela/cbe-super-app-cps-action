@@ -96,8 +96,7 @@ func IsValidImage(fileHeader *multipart.FileHeader) bool {
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
 	switch ext {
 	case ".jpg", ".jpeg", ".png", ".gif", ".webp":
-		// ok
-		return true
+		// extension ok; continue to name and content checks
 	default:
 		return false
 	}

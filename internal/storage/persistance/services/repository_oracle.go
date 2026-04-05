@@ -335,6 +335,7 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 	// 	}
 
 	// 1) Update services row fields.
+	s.logger.Debugf("Updating service with ID %s and ServiceKeyId %s", id, serviceKeyID)
 	const q = `
 UPDATE services
 SET
