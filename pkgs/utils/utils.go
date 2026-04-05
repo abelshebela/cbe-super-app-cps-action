@@ -120,7 +120,14 @@ func IsValidImage(fileHeader *multipart.FileHeader) bool {
 	}
 
 	contentType := http.DetectContentType(buffer)
-	return allowedMIMETypes[contentType]
+	if allowedMIMETypes[contentType] {
+		return true
+	}
+	// Many clients (mobile, WebView, some browsers) send images as octet-stream; extension already vetted above.
+	if contentType == "application/octet-stream" || contentType == "binary/octet-stream" {
+		return true
+	}
+	return false
 }
 
 func IsValidVideo(fileHeader *multipart.FileHeader) bool {
