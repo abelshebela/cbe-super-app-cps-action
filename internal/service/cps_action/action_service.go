@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -131,6 +132,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateCPSAction", "CPSAction", "CreateCPSAction")
 	defer span.End()
 	var existing *model.CPSAction
+
 	var err error
 	ca.logger.Infof("[CpsActionSvc][Create] action: %s", cpsAction.RequestAction)
 
@@ -147,8 +149,16 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		return nil
 	}
 
+	RAList := local_util.GetRAListForUpdateAction(constants.RequestAction(cpsAction.RequestAction), actionName, RequestActionGroups)
+
 	reqs := ca.pendingLockRequestActions(actionName, cpsAction.RequestAction)
 	if len(reqs) > 0 {
+		for _, r := range RAList {
+			if slices.Contains(reqs, string(r)) {
+				continue
+			}
+			reqs = append(reqs, r)
+		}
 		existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
 		if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
 			span.AddEvent("failed to get cps action by role and request actions", trace.WithAttributes(attribute.String("error", err.Error())))
