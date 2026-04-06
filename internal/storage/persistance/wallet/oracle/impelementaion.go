@@ -240,6 +240,7 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 	// 		OFFSET %d ROWS FETCH NEXT %d ROWS ONLY
 	// 	`, whereClause, sortClause, offset, perPage)
 
+	q.logger.Infof("************************WALLETS***********")
 	query := fmt.Sprintf(`
 			SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id), w.avatar, w.enabled, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at
 			FROM wallets w
