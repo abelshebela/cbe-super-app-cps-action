@@ -32,6 +32,7 @@ type ServiceKey struct {
 	ID             string     `json:"id,omitempty" bson:"_id,omitempty"`
 	ServiceName    string     `json:"service_name" bson:"service_name"`
 	ServiceKey     string     `json:"service_key" bson:"service_key"`
+	IsUSSDEnabled  bool       `json:"is_ussd_enabled" bson:"is_ussd_enabled"`
 	IsEnabled      bool       `json:"is_enabled" bson:"is_enabled"`
 	IsDeleted      bool       `json:"is_deleted" bson:"is_deleted"`
 	CreatedAt      time.Time  `json:"created_at" bson:"created_at"`
@@ -41,7 +42,7 @@ type ServiceKey struct {
 
 type Service struct {
 	ID                       string    `json:"id" bson:"_id"`
-	ServiceKeyId             string    `json:"service" bson:"service"`
+	ServiceKeyId             string    `json:"service_key_id" bson:"service_key_id"`
 	ServiceCode              string    `json:"service_code" bson:"service_code"`
 	Cap                      []Cap     `json:"cap" bson:"cap"`
 	MinimumFraudAmount       string    `json:"minimum_fraud_amount" bson:"minimum_fraud_amount"`
