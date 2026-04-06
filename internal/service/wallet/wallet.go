@@ -239,7 +239,8 @@ func (s *walletService) EnableOrDisableWallet(ctx context.Context, id string, en
 }
 
 func (s *walletService) GetWallet(ctx context.Context, id string) (*local_model.WalletOracle, error) {
-	w, err := s.repo.FindByID(ctx, id)
+	// Same enrichment as list/gRPC: join services + access_lists for SERVICE_CODE / SERVICE_KEY.
+	w, err := s.repo.FindByIDForGRPC(ctx, id)
 	if err != nil {
 		return nil, err
 	}
