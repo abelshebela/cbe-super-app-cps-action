@@ -275,6 +275,7 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 
 	args = append(args, offset, perPage)
 
+	fmt.Printf("Final Query: %s\n", query)
 	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		q.logger.Errorf("[WalletStorage][FindAllWithPaginationForGRPC] query failed: %v", err)
