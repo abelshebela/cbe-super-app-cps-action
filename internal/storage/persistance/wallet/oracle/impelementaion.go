@@ -287,6 +287,7 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 		wallets = append(wallets, wallet)
 	}
 
+	q.logger.Infof("[WalletStorage][FindAllWithPaginationForGRPC]************* found %d wallets", len(wallets))
 	meta := local_util.BuildPaginationMeta(int64(total), filterParam.Page, filterParam.PerPage)
 
 	return &types.PaginatedResponse[[]model.WalletOracle]{

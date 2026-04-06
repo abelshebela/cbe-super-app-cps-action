@@ -14,13 +14,16 @@ const (
 	maximunTransferCapLimit = 1000000000.0
 )
 
-func (r CreateServiceRequest) Normalize() {
+func (r *CreateServiceRequest) Normalize() {
+	if strings.TrimSpace(r.ServiceKeyId) == "" && strings.TrimSpace(r.ServiceKey) != "" {
+		r.ServiceKeyId = strings.TrimSpace(r.ServiceKey)
+	}
 	r.ServiceKeyId = strings.TrimSpace(r.ServiceKeyId)
 	r.ServiceCode = strings.TrimSpace(r.ServiceCode)
 	r.ProductGlAccount = strings.TrimSpace(r.ProductGlAccount)
 
 	for i := range r.Cap {
-		if r.Cap[i].Currency != nil {
+		if r.Cap[i].Currency != nil && r.Cap[i].Source != nil {
 			source := strings.TrimSpace(*r.Cap[i].Source)
 			currency := strings.TrimSpace(*r.Cap[i].Currency)
 			currency = strings.ToUpper(currency)
@@ -31,7 +34,11 @@ func (r CreateServiceRequest) Normalize() {
 
 }
 
-func (r UpdateServiceRequest) Normalize() {
+func (r *UpdateServiceRequest) Normalize() {
+	if (r.ServiceKeyId == nil || strings.TrimSpace(*r.ServiceKeyId) == "") && strings.TrimSpace(r.ServiceKey) != "" {
+		s := strings.TrimSpace(r.ServiceKey)
+		r.ServiceKeyId = &s
+	}
 	if r.ServiceKeyId != nil {
 		*r.ServiceKeyId = strings.TrimSpace(*r.ServiceKeyId)
 	}
@@ -43,7 +50,7 @@ func (r UpdateServiceRequest) Normalize() {
 	}
 
 	for i := range r.Cap {
-		if r.Cap[i].Currency != nil {
+		if r.Cap[i].Currency != nil && r.Cap[i].Source != nil {
 			source := strings.TrimSpace(*r.Cap[i].Source)
 			currency := strings.TrimSpace(*r.Cap[i].Currency)
 			currency = strings.ToUpper(currency)
