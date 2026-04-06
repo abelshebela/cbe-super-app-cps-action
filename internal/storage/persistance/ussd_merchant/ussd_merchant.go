@@ -50,17 +50,38 @@ func (u *UssdMerchantRepository) Create(ctx context.Context, data imodel.UssdMer
 	return nil
 }
 func (u *UssdMerchantRepository) Update(ctx context.Context, id string, update bson.M) error {
-
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		u.logger.Errorf("[UssdMerchantRepository][Update] error parsing id: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
-	update["updated_at"] = time.Now()
 
-	_, err = u.dal.UpdateOne(ctx, bson.M{"_id": objID}, update)
+	filter := bson.M{"_id": objID}
+	_, err = u.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		u.logger.Errorf("[UssdMerchantRepository][Update] error updating ussd_merchant: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	return nil
+}
+
+func (u *UssdMerchantRepository) Delete(ctx context.Context, id string) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		u.logger.Errorf("[UssdMerchantRepository][Delete] error parsing id: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"_id": objID}
+	update := bson.M{
+		"is_deleted": true,
+		"deleted_at": time.Now(),
+		"updated_at": time.Now(),
+	}
+
+	_, err = u.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		u.logger.Errorf("[UssdMerchantRepository][Delete] error deleting ussd_merchant: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
