@@ -91,11 +91,11 @@ type ServicesRepository interface {
 	FindByID(ctx context.Context, id string) (*service_dto.ServiceResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error)
 	CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error)
-	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceKey], error)
-	FindServiceListByID(ctx context.Context, id string) (*model.ServiceKey, error)
-	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*model.ServiceKey, error)
-	CreateServiceKey(ctx context.Context, serviceList *model.ServiceKey) error
-	UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *model.ServiceKey) error
+	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceKey], error)
+	FindServiceListByID(ctx context.Context, id string) (*imodel.ServiceKey, error)
+	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error)
+	CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) error
+	UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error
 	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
 }
 

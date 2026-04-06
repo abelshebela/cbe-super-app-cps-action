@@ -18,8 +18,6 @@ import (
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
-	// shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
-	model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -716,7 +714,7 @@ func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode
 	return count > 0, nil
 }
 
-func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceKey], error) {
+func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceKey], error) {
 	limit := int64(maxPaginationDefault)
 	page := int64(1)
 	if filterParam.PerPage > 0 {
@@ -796,10 +794,10 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 	}
 	defer rows.Close()
 
-	var list []model.ServiceKey
+	var list []imodel.ServiceKey
 	for rows.Next() {
 		var listID string
-		var item model.ServiceKey
+		var item imodel.ServiceKey
 		if err := rows.Scan(
 			&listID,
 			&item.ServiceName,
@@ -818,16 +816,16 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, int(page), int(limit))
-	return &types.PaginatedResponse[[]model.ServiceKey]{Data: list, Meta: meta}, nil
+	return &types.PaginatedResponse[[]imodel.ServiceKey]{Data: list, Meta: meta}, nil
 }
 
-func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*model.ServiceKey, error) {
+func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*imodel.ServiceKey, error) {
 	const q = `
 SELECT RAWTOHEX(id), name, service_key, is_enabled, created_at, last_modified_at
 FROM access_lists
 WHERE id = HEXTORAW(:1)`
 
-	var item model.ServiceKey
+	var item imodel.ServiceKey
 	var listID string
 	err := s.db.QueryRowContext(ctx, q, id).Scan(
 		&listID,
@@ -849,7 +847,7 @@ WHERE id = HEXTORAW(:1)`
 	return &item, nil
 }
 
-func (s *ServicesStorage) FindServiceListByNameOrKey(ctx context.Context, name, key string) (*model.ServiceKey, error) {
+func (s *ServicesStorage) FindServiceListByNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error) {
 	conds := make([]string, 0, 2)
 	args := make([]interface{}, 0, 2)
 
@@ -873,7 +871,7 @@ FROM %s
 WHERE (%s)
 FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
 
-	var item model.ServiceKey
+	var item imodel.ServiceKey
 	var listID string
 	err := s.db.QueryRowContext(ctx, query, args...).Scan(
 		&listID,
@@ -894,7 +892,7 @@ FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
 	return &item, nil
 }
 
-func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *model.ServiceKey) error {
+func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) error {
 	serviceList.IsEnabled = true
 
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -965,7 +963,7 @@ VALUES (
 	return nil
 }
 
-func (s *ServicesStorage) UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *model.ServiceKey) error {
+func (s *ServicesStorage) UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][UpdateServiceKey] begin tx failed: %v", err)
