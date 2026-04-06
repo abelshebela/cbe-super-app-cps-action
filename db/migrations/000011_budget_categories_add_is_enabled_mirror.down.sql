@@ -1,0 +1,1 @@
+-- Optional: DROP COLUMN IS_ENABLED if added only by 000011 and app no longer needs it.
