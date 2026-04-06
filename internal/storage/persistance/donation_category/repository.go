@@ -108,7 +108,6 @@ func (s *DonationCategoryStorage) FindByName(ctx context.Context, name string) (
 
 func (s *DonationCategoryStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_category.DonationCategoryListResponse], error) {
 
-	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
@@ -121,6 +120,7 @@ func (s *DonationCategoryStorage) FindAllWithPagination(ctx context.Context, fil
 
 	projection := bson.M{}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	filter["is_deleted"] = bson.M{"$ne": true}
 
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, projection, skip, limit)

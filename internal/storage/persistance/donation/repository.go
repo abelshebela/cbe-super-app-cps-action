@@ -161,6 +161,7 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 		}
 	}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	filter["is_deleted"] = bson.M{"$ne": true}
 	data, err := d.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		d.logger.Errorf("[DonationStorage][FindAllWithPagination] failed to fetch donations: %v", err)
