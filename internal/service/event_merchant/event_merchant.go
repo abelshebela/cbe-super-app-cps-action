@@ -289,7 +289,7 @@ func (e *EventMerchantService) Delete(ctx context.Context, id string) error {
 	deletedMerchant.IsDeleted = true
 	deletedMerchant.DeletedAt = now
 
-	err = core.HandleCPSActionForEventMerchant(ctx, e.cpsService, id, constants.RequestDeleteMiniAppMerchant, deletedMerchant, *prev, constants.ActionDelete)
+	err = core.HandleCPSActionForEventMerchant(ctx, e.cpsService, id, constants.RequestDeleteEventMerchant, deletedMerchant, *prev, constants.ActionDelete)
 	if err != nil {
 		e.logger.Errorf("[EventMerchSvc][Delete] cps action err id=%s: %v", id, err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
