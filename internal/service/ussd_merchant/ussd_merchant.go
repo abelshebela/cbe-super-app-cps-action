@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -191,6 +192,40 @@ func (s *ussdMerchantService) DisableUssdMerchant(ctx context.Context, id string
 
 	return nil
 }
+
+func (s *ussdMerchantService) DeleteUssdMerchant(ctx context.Context, id string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteUssdMerchant", "UssdMerchant", "Delete")
+	defer span.End()
+
+	makerData := local_util.ExtractUserFromContext(ctx)
+	if local_util.IsIncomplete(makerData) {
+		s.logger.Errorf("[UssdMerchSvc][Delete] incomplete user")
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+
+	prevData, err := s.repo.FindById(ctx, id)
+	if err != nil {
+		s.logger.Errorf("[UssdMerchSvc][Delete] find err: %v", err)
+		return err
+	}
+
+	if prevData.IsDeleted {
+		s.logger.Errorf("[UssdMerchSvc][Delete] already deleted")
+		return errors.New(localization.ErrorAlreadyDeleted.Code)
+	}
+
+	currentData := prevData
+	currentData.IsDeleted = true
+	currentData.DeletedAt = time.Now()
+
+	cpsActionModel := lib.CpsModelBuilder(id, makerData, prevData, currentData, constants.RequestDeleteUssdMerchant, constants.DELETE)
+	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
+		s.logger.Errorf("[UssdMerchSvc][Delete] cps action err: %v", err)
+		return err
+	}
+
+	return nil
+}
 func (s *ussdMerchantService) UpdateUssdMerchant(ctx context.Context, id string, req ussd_merchant_dto.UpdateUssdMerchantRequest) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateUssdMerchantService", "UssdMerchant", "Update")
 	defer span.End()
@@ -295,6 +330,11 @@ func (s *ussdMerchantService) Authorize(ctx context.Context, cpsAction *model.CP
 	case string(constants.RequestDisableUssdMerchant):
 		if err := s.repo.Update(ctx, cpsAction.UniqueId, bson.M{"enabled": false}); err != nil {
 			s.logger.Errorf("[UssdMerchSvc][Authorize] disable err: %v", err)
+			return nil, err
+		}
+	case constants.RequestDeleteUssdMerchant:
+		if err := s.repo.Delete(ctx, cpsAction.UniqueId); err != nil {
+			s.logger.Errorf("[UssdMerchSvc][Authorize] delete err: %v", err)
 			return nil, err
 		}
 	default:

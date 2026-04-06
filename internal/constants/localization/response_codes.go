@@ -5100,6 +5100,20 @@ var (
 		Message:    MsgUssdMerchantFetchedSuccessfully,
 		Type:       "success",
 	}
+
+	SuccessUssdMerchantDeleted = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgUssdMerchantDeletedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantDeleteRequestCreated = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_DELETE_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgUssdMerchantDeleteRequestCreatedSuccessfully,
+		Type:       "success",
+	}
 )
 
 // Error Response Codes
