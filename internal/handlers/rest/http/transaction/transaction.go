@@ -23,6 +23,13 @@ type TransactionHandler struct {
 	logger  utils.Logger
 }
 
+func NewTransactionHandler(service service.TransactionService, logger utils.Logger) transaction.TransactionInterface {
+	return &TransactionHandler{
+		service: service,
+		logger:  logger,
+	}
+}
+
 // FindTransactionByCifOrAccountNumberOrFT godoc
 //
 //	@Summary		Search transaction by CIF, account number, or FT number
@@ -145,11 +152,4 @@ func (t *TransactionHandler) FetchTransactionByID(w http.ResponseWriter, r *http
 	span.AddEvent("Transaction retrieved", trace.WithAttributes(attribute.String("id", id)))
 	localization.SendSuccessResponse(w, localization.SuccessTransactionRetrieved, transaction)
 
-}
-
-func NewTransactionHandler(service service.TransactionService, logger utils.Logger) transaction.TransactionInterface {
-	return &TransactionHandler{
-		service: service,
-		logger:  logger,
-	}
 }

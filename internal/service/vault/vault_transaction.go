@@ -41,7 +41,7 @@ func (s *vaultCategoryService) FindVaultTransaction(ctx context.Context, id stri
 	entity, err := s.repo.FindVaultTransaction(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) || err.Error() == localization.ErrorResourceNotFound.Code {
-			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
+			return nil, errors.New(localization.ErrorVaultTransactionNotFound.Code)
 		}
 		s.logger.Errorf("[VaultTxnSvc][FindByID] fetch err: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)

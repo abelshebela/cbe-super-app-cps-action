@@ -17,7 +17,6 @@ import (
 	"cbe-super-app-cps-action/internal/service/media"
 	newscategory_service "cbe-super-app-cps-action/internal/service/news_category"
 	newstag_service "cbe-super-app-cps-action/internal/service/news_tag"
-	"cbe-super-app-cps-action/internal/service/transaction"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	queue "cbe-super-app-cps-action/internal/storage/queue_system"
@@ -136,10 +135,10 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	newsTagsService := media.NewMediaTagsService(persistence.NewsTagsServiceContainer, logger)
 	deviceVersionService := deviceversion.NewDeviceVersionService(persistence.DeviceVersionControlPersistence, nil, clientOrchestrationProducer, logger)
 	sitotaService := sitota_service.NewSitotaTransactionService(oracle.Sitota, logger)
-	transactionService := transaction.NewVaultTransactionService(oracle.vaultTransaction, logger)
+	// transactionService := transaction.NewVaultTransactionService(oracle.vaultTransaction, logger)
 	encryptionService := encryption_service.NewEncryptionService(cfg, logger)
 	// bankVaultProductService := bankvault.NewBankVaultService(oracle.BankVault, nil, logger)
-	vaultCategoryService := vault_category.NewVaultCategoryService(oracle.vaultCategory, nil, logger, minioClient, minioPubUrl, VaultCategoryBucketName, cfg)
+	vault := vault_category.NewVaultCategoryService(oracle.Vault, nil, logger, minioClient, minioPubUrl, VaultCategoryBucketName, cfg)
 	bpsActionRoleService := bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.JobRolePersistence, nil, logger)
 	miniAppCategory := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
 	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, nil, logger)
@@ -193,13 +192,13 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		NewsTagContainer:           newsTagService,
 		NewsCategoryContainer:      newsCategoryService,
 		SitotaContainer:            sitotaService,
-		TransactionContainer:       transactionService,
-		KYCVerifierContainer:       kycService,
-		DeviceVersionContainer:     deviceVersionService,
-		NewsTagsServiceContainer:   newsTagsService,
-		EncryptionContainer:        encryptionService,
+		// TransactionContainer:       transactionService,
+		KYCVerifierContainer:     kycService,
+		DeviceVersionContainer:   deviceVersionService,
+		NewsTagsServiceContainer: newsTagsService,
+		EncryptionContainer:      encryptionService,
 		// BankProductContainer:              bankVaultProductService,
-		VaultCategoryContainer:            vaultCategoryService,
+		VaultCategoryContainer:            vault,
 		BPSActionRoleContainer:            bpsActionRoleService,
 		MiniAppCategoryContainer:          miniAppCategory,
 		CPSActionRoleContainer:            cpsActionRoleService,
@@ -290,7 +289,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	customerService = customer.NewCustomerService(persistence.CustomerService, persistence.BpsActionPersistence, cpsActionService, redis, smsService, accountLookupAdapter, cfg, logger)
 	kycService = kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, persistence.UserPersistence, accountLookupAdapter, cpsActionService, persistence.LinkedAccountPersistence, *cfg, logger)
 	sitotaService = sitota_service.NewSitotaTransactionService(oracle.Sitota, logger)
-	transactionService = transaction.NewVaultTransactionService(oracle.vaultTransaction, logger)
+	// transactionService = transaction.NewVaultTransactionService(oracle.vaultTransaction, logger)
 	newsTagService = newstag_service.NewNewsTagService(persistence.NewsTagPersistence, cpsActionService, logger)
 	encryptionService = encryption_service.NewEncryptionService(cfg, logger)
 	newsCategoryService = newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, cpsActionService, logger)
@@ -298,7 +297,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	articleService = media.NewMediaService(persistence.ArticlePersistence, redis, logger)
 	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, oracle.AccountBlock, cpsActionService, logger)
 	// bankVaultProductService = bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
-	vaultCategoryService = vault_category.NewVaultCategoryService(oracle.vaultCategory, cpsActionService, logger, minioClient, minioPubUrl, cfg.S3BucketName, cfg)
+	vault = vault_category.NewVaultCategoryService(oracle.Vault, cpsActionService, logger, minioClient, minioPubUrl, cfg.S3BucketName, cfg)
 	eventMerchantService = event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, cpsActionService, accountLookupAdapter, persistence.MerchantLookup, cfg, logger)
 
 	logisticsMerchantService = logistics_merchant_service.NewLogisticsMerchantService(persistence.LogisticsMerchantPersistence, cpsActionService, accountLookupAdapter, cfg, logger)
@@ -356,13 +355,13 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		NewsTagService:         newsTagService,
 		NewsCategoryService:    newsCategoryService,
 		Sitota:                 sitotaService,
-		TransactionService:     transactionService,
-		KYCVerifier:            kycService,
-		NewsTagsService:        newsTagsService,
-		DeviceVersion:          deviceVersionService,
-		Encryption:             encryptionService,
+		// TransactionService:     transactionService,
+		KYCVerifier:     kycService,
+		NewsTagsService: newsTagsService,
+		DeviceVersion:   deviceVersionService,
+		Encryption:      encryptionService,
 		// BankVault:                     bankVaultProductService,
-		VaultCategoryService:          vaultCategoryService,
+		VaultCategoryService:          vault,
 		BPSActionRole:                 bpsActionRoleService,
 		MiniAppCategory:               miniAppCategory,
 		CPSActionRole:                 cpsActionRoleService,
