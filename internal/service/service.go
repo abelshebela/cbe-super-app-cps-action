@@ -781,9 +781,9 @@ type MiniAppCategoryService interface {
 }
 
 type TransactionService interface {
-	FetchTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
-	FetchAllTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
-	FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.FullTransaction, error)
+	FetchTransactionByID(ctx context.Context, id string) (transaction_dto.VaultTransaction, error)
+	FetchAllTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]transaction_dto.VaultTransaction], error)
+	FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.VaultTransaction, error)
 }
 type CPSActionRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
