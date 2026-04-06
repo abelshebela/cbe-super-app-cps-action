@@ -262,23 +262,26 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 	}
 
 	query := fmt.Sprintf(`
-	SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id),
-	       w.enabled, w.avatar, w.services_self, w.services_other,
-	       w.services_agent, w.is_deleted, w.created_at,
-	       w.last_modified_at, w.deleted_at
-	FROM WALLETS w
-	
-	%s
-	%s
-	OFFSET :2 ROWS FETCH NEXT :3 ROWS ONLY
-`, whereClause, sortClause)
+SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id),
+       w.enabled, w.avatar, w.services_self, w.services_other,
+       w.services_agent, w.is_deleted, w.created_at,
+       w.last_modified_at, w.deleted_at,
+       sk.service_key, s.service_code
+FROM WALLETS w
+LEFT JOIN services s ON w.service_id = s.id
+LEFT JOIN access_lists sk ON sk.id = s.access_list_id
+%s
+%s
+OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY
+`, whereClause, sortClause, idx, idx+1)
 
 	args = append(args, offset, perPage)
 
 	fmt.Printf("Final Query: %s\n", query)
+	fmt.Printf("Args: %+v\n", args)
+
 	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		q.logger.Errorf("[WalletStorage][FindAllWithPaginationForGRPC] query failed: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
