@@ -163,7 +163,7 @@ func NewAccountBlockRepository(
 			   CONSTRAINT FK_ACCOUNT_BLOCK_PARENT3 FOREIGN KEY (DISTRICT_ID) REFERENCES ACCOUNT_BLOCKS (ID) ON DELETE CASCADE
 		   )`
 		if _, err := db.Exec(stmt); err != nil {
-			logger.Warnf("ACCOUNT_BLOCKS table creation: %v", err)
+			logger.Errorf("ACCOUNT_BLOCKS table creation failed (API will return ORA-00942 until migration or DDL succeeds): %v", err)
 		} else {
 			logger.Infof("ACCOUNT_BLOCKS table created successfully")
 		}
@@ -172,7 +172,7 @@ func NewAccountBlockRepository(
 	if !constraintExists("CHK_AB_TYPE") {
 		stmt := `ALTER TABLE ACCOUNT_BLOCKS ADD CONSTRAINT CHK_AB_TYPE CHECK (TYPE IN ('R', 'D', 'C', 'B'))`
 		if _, err := db.Exec(stmt); err != nil {
-			logger.Warnf("CHK_AB_TYPE constraint: %v", err)
+			logger.Errorf("CHK_AB_TYPE constraint on ACCOUNT_BLOCKS failed: %v", err)
 		} else {
 			logger.Infof("CHK_AB_TYPE constraint added successfully")
 		}
