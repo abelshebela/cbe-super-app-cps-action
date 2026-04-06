@@ -243,7 +243,6 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 	query := fmt.Sprintf(`
 			SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id), w.avatar, w.enabled, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at
 			FROM wallets w
-			LEFT JOIN services s ON w.service_id = s.id
 			%s
 			%s
 			OFFSET %d ROWS FETCH NEXT %d ROWS ONLY
