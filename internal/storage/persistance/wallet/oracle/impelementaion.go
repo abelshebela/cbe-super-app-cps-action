@@ -265,11 +265,9 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 	SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id),
 	       w.enabled, w.avatar, w.services_self, w.services_other,
 	       w.services_agent, w.is_deleted, w.created_at,
-	       w.last_modified_at, w.deleted_at,
-	       sk.service_key, s.service_code
+	       w.last_modified_at, w.deleted_at
 	FROM WALLETS w
-	LEFT JOIN services s ON w.service_id = s.id
-	LEFT JOIN access_lists sk ON sk.id = s.access_list_id
+	
 	%s
 	%s
 	OFFSET :2 ROWS FETCH NEXT :3 ROWS ONLY
