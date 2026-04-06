@@ -188,7 +188,7 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 
 	query := `SELECT RAWTOHEX(g.access_list_key), a.name,a.service_key, RAWTOHEX(a.id), g.enabled
 		FROM ACCESS_LIST_GEO_SEG g
-		JOIN ACCESS_LIST a ON g.access_list_key = a.id
+		JOIN ACCESS_LISTS a ON g.access_list_key = a.id
 		WHERE g.segmented_id = :1`
 	rows, err := q.db.QueryContext(ctx, query, geographicalID)
 	if err != nil {
@@ -225,7 +225,7 @@ func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, cu
 
 	query := `SELECT RAWTOHEX(g.access_list_key), a.name,a.service_key, RAWTOHEX(a.id), g.enabled
 		FROM ACCESS_LIST_CUSTOMER_SEG g
-		JOIN ACCESS_LIST a ON g.access_list_key = a.id
+		JOIN ACCESS_LISTS a ON g.access_list_key = a.id
 		WHERE g.segmented_id = HEXTORAW(:1)`
 	rows, err := q.db.QueryContext(ctx, query, customer_seg_id)
 	if err != nil {
