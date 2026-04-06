@@ -745,6 +745,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAuditorActionWaitForPreviousAuditor,
 	ErrorDuplicateBankProduct,
 	ErrorVaultCategoryNotFound,
+	ErrorVaultTransactionNotFound,
 	ErrorGroupVaultNotFound,
 	ErrorCannotDeleteActiveVaultCategory,
 	ErrorNoBankProductFound,
@@ -8013,6 +8014,12 @@ var (
 		Code:       "ERROR_VAULT_CATEGORY_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    "Vault category not found.",
+		Type:       "error",
+	}
+	ErrorVaultTransactionNotFound = ResponseCode{
+		Code:       "ERROR_VAULT_TRANSACTION_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Vault transaction not found.",
 		Type:       "error",
 	}
 	ErrorGroupVaultNotFound = ResponseCode{

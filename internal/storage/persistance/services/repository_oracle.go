@@ -45,7 +45,7 @@ func NewServicesRepository(db *sql.DB, cfg *config.VaultConfig, kafkaProducer ka
 
 const (
 	servicesTable   = "services"
-	accessListTable = "access_list"
+	accessListTable = "access_lists"
 	// serviceKeysTable     = "service_keys"
 	maxPaginationDefault = 50
 )
@@ -396,14 +396,34 @@ func (s *ServicesStorage) Delete(ctx context.Context, id string) error {
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	const deleteCapsQ = `DELETE FROM service_cap WHERE service_id = HEXTORAW(:1)`
-	if _, err := tx.ExecContext(ctx, deleteCapsQ, id); err != nil {
-		s.logger.Errorf("[ServicesRepo][Delete] delete caps failed: %v", err)
+	const updateCapsQ = `
+UPDATE service_cap
+SET
+  is_deleted = 1,
+  deleted_at = SYSTIMESTAMP,
+  last_modified_at = SYSTIMESTAMP
+WHERE service_id = HEXTORAW(:1)
+  AND is_deleted = 0`
+	if _, err := tx.ExecContext(ctx, updateCapsQ, id); err != nil {
+		s.logger.Errorf("[ServicesRepo][Delete] update service_cap failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
+	const updateServiceQ = `
+UPDATE services
+SET
+  is_deleted = 1,
+  deleted_at = SYSTIMESTAMP,
+  last_modified_at = SYSTIMESTAMP
+WHERE id = HEXTORAW(:1)
+  AND is_deleted = 0`
+	if _, err := tx.ExecContext(ctx, updateServiceQ, id); err != nil {
+		s.logger.Errorf("[ServicesRepo][Delete] update services failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
 	const q = `
-UPDATE access_list
+UPDATE access_lists
 SET
   is_deleted = 1,
   deleted_at = SYSTIMESTAMP,
@@ -435,7 +455,7 @@ WHERE id = (
 
 func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	const q = `
-UPDATE access_list
+UPDATE access_lists
 SET
   is_enabled = :1,
   last_modified_at = SYSTIMESTAMP
@@ -483,7 +503,7 @@ SELECT
   s.last_modified_at,
   sk.deleted_at
 FROM services s
-JOIN access_list sk ON sk.id = s.access_list_id
+JOIN access_lists sk ON sk.id = s.access_list_id
 WHERE s.id = HEXTORAW(:1) AND sk.is_deleted = 0`
 
 	var serviceID string
@@ -804,7 +824,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*model.ServiceKey, error) {
 	const q = `
 SELECT RAWTOHEX(id), name, service_key, is_enabled, created_at, last_modified_at
-FROM access_list
+FROM access_lists
 WHERE id = HEXTORAW(:1)`
 
 	var item model.ServiceKey
@@ -885,7 +905,7 @@ func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *mod
 	defer func() { _ = tx.Rollback() }()
 
 	const q = `
-INSERT INTO access_list (
+INSERT INTO access_lists (
   name,
   service_key,
   is_enabled
@@ -953,7 +973,7 @@ func (s *ServicesStorage) UpdateServiceKey(ctx context.Context, id, serviceKey s
 	}
 	defer func() { _ = tx.Rollback() }()
 	const q = `
-UPDATE access_list
+UPDATE access_lists
 SET
   name = :1,
   service_key = :2,
@@ -1000,7 +1020,7 @@ WHERE id = :3 AND service_key = :4`
 
 func (s *ServicesStorage) EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error {
 	const q = `
-UPDATE access_list
+UPDATE access_lists
 SET
   is_enabled = :1,
   last_modified_at = SYSTIMESTAMP
