@@ -1,4 +1,5 @@
--- Same as 000013_create_account_blocks_schema.up.sql (use numbered migration in CI/CD).
+-- Core hierarchy: regions (R), districts (D), cities (C), branches (B).
+-- Required for account_block list/detail APIs (Oracle).
 CREATE TABLE account_blocks (
     id RAW(24) PRIMARY KEY,
     name VARCHAR2(255),

@@ -318,6 +318,17 @@ func nullStr(s *string) interface{} {
 	return *s
 }
 
+// nullIfEmptyFilter treats "", whitespace-only strings as SQL NULL for optional id filters.
+func nullIfEmptyFilter(v interface{}) interface{} {
+	if v == nil {
+		return nil
+	}
+	if s, ok := v.(string); ok && strings.TrimSpace(s) == "" {
+		return nil
+	}
+	return v
+}
+
 const maxParentDepth = 64
 
 // fetchBlockByID loads one row by primary key (any type), for parent_id resolution.
@@ -700,13 +711,13 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 	// Extract filters from map
 	if filterParam.Filters != nil {
 		if v, ok := filterParam.Filters["region_id"]; ok {
-			regionIDFilter = v
+			regionIDFilter = nullIfEmptyFilter(v)
 		}
 		if v, ok := filterParam.Filters["district_id"]; ok {
-			districtIDFilter = v
+			districtIDFilter = nullIfEmptyFilter(v)
 		}
 		if v, ok := filterParam.Filters["city_id"]; ok {
-			cityIDFilter = v
+			cityIDFilter = nullIfEmptyFilter(v)
 		}
 		if v, ok := filterParam.Filters["is_enabled"]; ok {
 			if enabled, isBool := v.(bool); isBool {
