@@ -153,7 +153,7 @@ INSERT INTO services (
   last_modified_at
 )
 VALUES (
-  :1,:2,:3,:4,:5,:6,:7
+  HEXTORAW(:1),:2,:3,:4,:5,:6,:7
 )
 RETURNING RAWTOHEX(id) INTO :8`
 
