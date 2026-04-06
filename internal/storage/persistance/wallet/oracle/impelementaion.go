@@ -169,7 +169,7 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 		idx++
 	}
 	if filterParam.Filters["enabled"] != nil {
-		filters = append(filters, fmt.Sprintf("w.is_enabled = :%d", idx))
+		filters = append(filters, fmt.Sprintf("w.enabled = :%d", idx))
 		args = append(args, filterParam.Filters["enabled"])
 		idx++
 	}
@@ -179,7 +179,7 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 		idx += 2
 	}
 	if filterParam.Search == "enabled" {
-		filters = append(filters, "w.is_enabled = 1")
+		filters = append(filters, "w.enabled = 1")
 	}
 	whereClause := ""
 	if len(filters) > 0 {
@@ -218,32 +218,21 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 		return nil, err
 	}
 
-	// Out-of-bounds validation
-	if offset+perPage >= total && total > 0 {
-		// meta := local_util.BuildPaginationMeta(int64(total), filterParam.Page, filterParam.PerPage)
-		// return &types.PaginatedResponse[[]model.WalletOracle]{
-		// 	Data: []model.WalletOracle{},
-		// 	Meta: meta,
-		// }, nil
-		offset = 0
-		perPage = 10
+	if total > 0 && offset >= total {
+		meta := local_util.BuildPaginationMeta(int64(total), filterParam.Page, filterParam.PerPage)
+		return &types.PaginatedResponse[[]model.WalletOracle]{
+			Data: []model.WalletOracle{},
+			Meta: meta,
+		}, nil
 	}
 
-	// Query
-	// query := fmt.Sprintf(`
-	// 		SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id), w.avatar, w.enabled, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at,
-	// 			   s.service_key, s.service_code
-	// 		FROM wallets w
-	// 		LEFT JOIN services s ON w.service_id = s.id
-	// 		%s
-	// 		%s
-	// 		OFFSET %d ROWS FETCH NEXT %d ROWS ONLY
-	// 	`, whereClause, sortClause, offset, perPage)
-
-	q.logger.Infof("************************WALLETS***********")
+	// service_key lives on access_lists; service_code on services (matches services repo joins).
 	query := fmt.Sprintf(`
-			SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id), w.avatar, w.enabled, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at
+			SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id), w.avatar, w.enabled, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at,
+			       sk.service_key, s.service_code
 			FROM wallets w
+			LEFT JOIN services s ON w.service_id = s.id
+			LEFT JOIN access_lists sk ON sk.id = s.access_list_id
 			%s
 			%s
 			OFFSET %d ROWS FETCH NEXT %d ROWS ONLY
@@ -287,7 +276,7 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 		wallets = append(wallets, wallet)
 	}
 
-	q.logger.Infof("[WalletStorage][FindAllWithPaginationForGRPC]************* found %d wallets", len(wallets))
+	q.logger.Infof("[WalletStorage][FindAllWithPaginationForGRPC] found %d wallets", len(wallets))
 	meta := local_util.BuildPaginationMeta(int64(total), filterParam.Page, filterParam.PerPage)
 
 	return &types.PaginatedResponse[[]model.WalletOracle]{
@@ -322,12 +311,14 @@ func (q *WalletStorage) FindByID(ctx context.Context, id string) (*model.WalletO
 func (q *WalletStorage) FindByIDForGRPC(ctx context.Context, id string) (*model.WalletOracle, error) {
 	q.logger.Infof("[WalletStorage][FindByIDForGRPC] Finding wallet with ID: %s", id)
 	row := q.db.QueryRowContext(ctx, `
-			SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id), w.avatar, w.is_enabled, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at,
-				   s.service_key, s.service_code
+			SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id), w.avatar, w.enabled, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at,
+				   sk.service_key, s.service_code
 			FROM wallets w
 			LEFT JOIN services s ON w.service_id = s.id
+			LEFT JOIN access_lists sk ON sk.id = s.access_list_id
 			WHERE w.id = HEXTORAW(:1)`, id)
 	var wallet model.WalletOracle
+	var serviceKey, serviceCode sql.NullString
 	err := row.Scan(
 		&wallet.ID,
 		&wallet.Name,
@@ -339,9 +330,17 @@ func (q *WalletStorage) FindByIDForGRPC(ctx context.Context, id string) (*model.
 		&wallet.CreatedAt,
 		&wallet.LastModifiedAt,
 		&wallet.DeletedAt,
-		&wallet.ServiceKey,
-		&wallet.ServiceCode,
+		&serviceKey,
+		&serviceCode,
 	)
+	if err == nil {
+		if serviceKey.Valid {
+			wallet.ServiceKey = serviceKey.String
+		}
+		if serviceCode.Valid {
+			wallet.ServiceCode = serviceCode.String
+		}
+	}
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {

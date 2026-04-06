@@ -239,7 +239,14 @@ func (s *walletService) EnableOrDisableWallet(ctx context.Context, id string, en
 }
 
 func (s *walletService) GetWallet(ctx context.Context, id string) (*local_model.WalletOracle, error) {
-	return s.repo.FindByID(ctx, id)
+	w, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if w == nil {
+		return nil, errors.New(localization.ErrorWalletNotFound.Code)
+	}
+	return w, nil
 }
 
 func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error) {
@@ -253,7 +260,14 @@ func (s *walletService) GetAllWalletForGRPC(ctx context.Context, filterParams ty
 
 // GetWalletForGRPC implements service.WalletService.
 func (s *walletService) GetWalletForGRPC(ctx context.Context, id string) (*local_model.WalletOracle, error) {
-	return s.repo.FindByIDForGRPC(ctx, id)
+	w, err := s.repo.FindByIDForGRPC(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if w == nil {
+		return nil, errors.New(localization.ErrorWalletNotFound.Code)
+	}
+	return w, nil
 }
 
 func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
