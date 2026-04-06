@@ -794,6 +794,7 @@ type LogisticsMerchantRepository interface {
 type UssdMerchantRepository interface {
 	Create(ctx context.Context, data imodel.UssdMerchant) error
 	Update(ctx context.Context, id string, update bson.M) error
+	Delete(ctx context.Context, id string) error
 	FindById(ctx context.Context, id string) (ussd_merchant_dto.UssdMerchantResponse, error)
 	FindByOr(ctx context.Context, phone, email, account_number string) (imodel.UssdMerchant, error)
 	Find(ctx context.Context, filter bson.M) (ussd_merchant_dto.UssdMerchantResponse, error)
