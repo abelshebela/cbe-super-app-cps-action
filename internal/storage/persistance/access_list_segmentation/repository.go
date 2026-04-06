@@ -127,14 +127,11 @@ func (a *AccessListSegmentation) FindByIDS(ctx context.Context, ids []string, t 
 
 func (a *AccessListSegmentation) CreateAccountSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error {
 	docs := []local_model.AccessListSegmentation{}
-	for i, idStr := range accessListSegmentation.AccessListKeys {
+	for _, idStr := range accessListSegmentation.AccessListKeys {
 		doc := local_model.AccessListSegmentation{
 			ID:               bson.NewObjectID(),
 			Type:             accessListSegmentation.Type,
 			AccessListKey:    idStr,
-			AccessListName:   accessListSegmentation.AccessListNames[i],
-			SegmentationCode: accessListSegmentation.SegmentCode,
-			SegmentationName: accessListSegmentation.SegmentName,
 			SegmentationType: accessListSegmentation.SegmentType,
 			Enabled:          true,
 			CreatedAt:        time.Now(),
@@ -158,25 +155,24 @@ func (a *AccessListSegmentation) CreateAccountSegment(ctx context.Context, acces
 }
 
 func (a *AccessListSegmentation) CreateBlockSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error {
-	if len(accessListSegmentation.SegmentedID) == 0 {
+	if len(accessListSegmentation.SegmentationID) == 0 {
 		return errors.New(localization.ErrorAccessListSegmentationIDSRequired.Code)
 	}
-	objID, err := bson.ObjectIDFromHex(accessListSegmentation.SegmentedID)
-	if err != nil {
-		a.logger.Errorf("[AccessListSegmentation][CreateBlockSegment] invalid ObjectID: %s", accessListSegmentation.SegmentedID)
-		return errors.New(localization.ErrorUnhandledServer.Code)
-	}
+	// objID, err := bson.ObjectIDFromHex(accessListSegmentation.SegmentationID)
+	// if err != nil {
+	// 	a.logger.Errorf("[AccessListSegmentation][CreateBlockSegment] invalid ObjectID: %s", accessListSegmentation.SegmentationID)
+	// 	return errors.New(localization.ErrorUnhandledServer.Code)
+	// }
 
 	var docs []interface{}
-	for i, idStr := range accessListSegmentation.AccessListKeys {
+	for _, idStr := range accessListSegmentation.AccessListKeys {
 
 		doc := local_model.AccessListSegmentation{
 			ID:               bson.NewObjectID(),
 			Type:             accessListSegmentation.Type,
 			AccessListKey:    idStr,
-			AccessListName:   accessListSegmentation.AccessListNames[i],
 			SegmentationType: accessListSegmentation.SegmentType,
-			SegmentedID:      objID,
+			SegmentedID:      accessListSegmentation.SegmentationID,
 			CreatedAt:        time.Now(),
 			UpdatedAt:        time.Now(),
 			Enabled:          true,
@@ -185,12 +181,12 @@ func (a *AccessListSegmentation) CreateBlockSegment(ctx context.Context, accessL
 	}
 
 	collection := a.client.Database(a.dbName).Collection(a.collectionName)
-	_, err = collection.InsertMany(ctx, docs)
+	_, err := collection.InsertMany(ctx, docs)
 	if err != nil {
 		a.logger.Errorf("[AccessListSegmentation][CreateBlockSegment] failed to insert documents: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	branches := core.GetAllBranches(ctx, accessListSegmentation.SegmentedID, a.accBlock)
+	branches := core.GetAllBranches(ctx, accessListSegmentation.SegmentationID, a.accBlock)
 	res := map[string]any{
 		"branches": branches,
 		"docs":     docs,
@@ -307,7 +303,7 @@ func (a *AccessListSegmentation) Update(ctx context.Context, id string, accessLi
 	if accessListSegmentation.SegmentationType != "" {
 		update["segmentation_type"] = accessListSegmentation.SegmentationType
 	}
-	if !accessListSegmentation.SegmentedID.IsZero() {
+	if accessListSegmentation.SegmentedID != "" {
 		update["segmented_id"] = accessListSegmentation.SegmentedID
 	}
 	if accessListSegmentation.AccessListKey != "" {
@@ -433,7 +429,7 @@ func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_lis
 		a.logger.Infof("[AccessListSegmentation][BulkDisable] bulk disable by segmented id, preparing kafka message")
 		for i, key := range req.Keys {
 			als[i] = local_model.AccessListSegmentation{
-				SegmentedID:   objID,
+				SegmentedID:   req.ID,
 				AccessListKey: key,
 				Enabled:       req.Enabled,
 			}

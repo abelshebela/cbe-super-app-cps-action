@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+	// "fmt"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	model "cbe-super-app-cps-action/internal/constants/model"
@@ -387,5 +388,55 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBPSUserUpdated, nil)
+	}
+}
+
+// DeleteBPSUser deletes a BPS user (soft delete via Maker-Checker)
+//
+//	@Summary		Delete BPS user
+//	@Description	Deletes a BPS user account (soft delete)
+//	@Tags			BPS Users
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"BPS User ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"BPS user delete request submitted successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"User not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/bps_users/delete/{id} [delete]
+func (h BPSUserHandler) DeleteBPSUser(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteBpsUser", "handler", "bpsUser")
+	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameter, nil, nil)
+		return
+	}
+
+	span.SetAttributes(attribute.String("bps_user.id", id))
+
+	err := h.Service.DeleteBPSUser(ctx, id)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[DeleteBPSUser] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if md.IsMakerOnly {
+		log.Infof("[DeleteBPSUser] request sent successfully for id: %s", id)
+		// fmt.Println("LOLOLOLO IN HANDLER DELETE---is making only")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+
+		localization.SendSuccessResponse(w, localization.SuccessBpsUserDeletedSP, nil)
+	} else {
+		// fmt.Println("LOLOLOLO IN HANDLER DELETE---is cps action")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessBpsUserDeleteRequestSent, nil)
 	}
 }

@@ -67,7 +67,7 @@ func (q *Queries) EnableOrDisable(ctx context.Context, id string, enable bool) e
 }
 
 func (q *Queries) FindByID(ctx context.Context, id string) (*imodel.BankOracle, error) {
-	query := `SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM BANKS WHERE id = :1`
+	query := `SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at, is_cbe FROM BANKS WHERE id = :1`
 	row := q.db.QueryRowContext(ctx, query, id)
 	var bank imodel.BankOracle
 	err := row.Scan(
@@ -80,6 +80,7 @@ func (q *Queries) FindByID(ctx context.Context, id string) (*imodel.BankOracle, 
 		&bank.HasAlphaNumeric,
 		&bank.CreateAt,
 		&bank.UpdateAt,
+		&bank.IS_CBE,
 	)
 	if err == sql.ErrNoRows {
 		return nil, localization.ErrorResourceNotFound
@@ -91,7 +92,7 @@ func (q *Queries) FindByID(ctx context.Context, id string) (*imodel.BankOracle, 
 }
 
 func (q *Queries) FindByBIC(ctx context.Context, bic string) (*imodel.BankOracle, error) {
-	query := `SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM BANKS WHERE bic_code = :1 AND is_enabled = 1`
+	query := `SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at, is_cbe FROM BANKS WHERE bic_code = :1 AND is_enabled = 1`
 	row := q.db.QueryRowContext(ctx, query, bic)
 	var bank imodel.BankOracle
 	err := row.Scan(
@@ -104,6 +105,7 @@ func (q *Queries) FindByBIC(ctx context.Context, bic string) (*imodel.BankOracle
 		&bank.HasAlphaNumeric,
 		&bank.CreateAt,
 		&bank.UpdateAt,
+		&bank.IS_CBE,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -132,7 +134,7 @@ func (q *Queries) FindByNameOrBIC(ctx context.Context, bic, name string) (*imode
 	if len(conditions) == 0 {
 		return nil, nil
 	}
-	query := fmt.Sprintf(`SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM BANKS WHERE %s`, strings.Join(conditions, " OR "))
+	query := fmt.Sprintf(`SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at, is_cbe FROM BANKS WHERE %s`, strings.Join(conditions, " OR "))
 	row := q.db.QueryRowContext(ctx, query, args...)
 	var bank imodel.BankOracle
 	err := row.Scan(
@@ -143,6 +145,7 @@ func (q *Queries) FindByNameOrBIC(ctx context.Context, bic, name string) (*imode
 		&bank.IsEnabled,
 		&bank.AccountLength,
 		&bank.HasAlphaNumeric,
+		&bank.IS_CBE,
 		&bank.CreateAt,
 		&bank.UpdateAt,
 	)
@@ -226,7 +229,7 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	}
 
 	// Fetch paginated results
-	selectQuery := fmt.Sprintf(`SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at FROM BANKS WHERE %s ORDER BY %s OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY`, whereClause, orderBy, idx, idx+1)
+	selectQuery := fmt.Sprintf(`SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at, is_cbe FROM BANKS WHERE %s ORDER BY %s OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY`, whereClause, orderBy, idx, idx+1)
 	args = append(args, offset, limit)
 	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] selectQuery: %s", selectQuery)
 	rows, err := q.db.QueryContext(ctx, selectQuery, args...)
@@ -249,6 +252,7 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 			&bank.HasAlphaNumeric,
 			&bank.CreateAt,
 			&bank.UpdateAt,
+			&bank.IS_CBE,
 		)
 		if err != nil {
 			q.logger.Errorf("[BankOracleRepository][FindAllWithPagination] failed to scan row: %v", err)

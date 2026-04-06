@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
+	"sort"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_type "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
@@ -30,7 +31,7 @@ func MapModelToDTO(model local_model.AccessListSegmentation) access_list_segment
 		SegmentType:    model.SegmentationType,
 		SegmentCode:    model.SegmentationCode,
 		SegmentName:    model.SegmentationName,
-		SegmentedID:    model.SegmentedID.Hex(),
+		SegmentedID:    model.SegmentedID,
 		AccessListKey:  model.AccessListKey,
 		AccessListName: model.AccessListName,
 		Enabled:        model.Enabled,
@@ -56,7 +57,7 @@ func GetMissingIds(request []string, models []map[string]interface{}) []string {
 	}
 	return missingIds
 }
-func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo storage.AppAccessListRepository, accessListSegmentation []model.APPAccessList) []model.APPAccessList {
+func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo storage.BulkServiceRepository, accessListSegmentation []model.APPAccessList) []model.APPAccessList {
 	var ids []string
 	for _, seg := range accessListSegmentation {
 		ids = append(ids, seg.Key)
@@ -67,7 +68,7 @@ func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo stor
 	}
 
 	var res []model.APPAccessList
-	als, _ := accessListServiceRepo.FindAllByKeys(ctx, ids)
+	als, _ := accessListServiceRepo.FindAllForSegmentation(ctx)
 	for _, al := range als {
 		// Skip parent if its key is in ids
 		if _, found := idSet[al.Key]; found {
@@ -167,28 +168,41 @@ func modelToSubAccessList(al *model.APPAccessList) shared_type.SubAccessList {
 }
 
 func MapParentChildRelationship(relations []local_model.AccessItemRelation, accessList []model.APPAccessList) []model.APPAccessList {
-	var result []model.APPAccessList
-	// Build parent to children map and a set of all child keys
-	parentToChildren := make(map[string][]string)
-	childSet := make(map[string]model.APPAccessList)
-	for _, rel := range relations {
-		parentToChildren[rel.ParentKey] = append(parentToChildren[rel.ParentKey], rel.ChildKey)
+	// Kept in sync with service/bulk/core.MapParentChildRelationship
+	nodesByKey := make(map[string]model.APPAccessList, len(accessList))
+	for _, al := range accessList {
+		nodesByKey[al.Key] = al
 	}
 
-	for _, al := range accessList {
-		childSet[al.Key] = al
+	parentChildren := make(map[string]map[string]struct{})
+	for _, rel := range relations {
+		if parentChildren[rel.ParentKey] == nil {
+			parentChildren[rel.ParentKey] = make(map[string]struct{})
+		}
+		parentChildren[rel.ParentKey][rel.ChildKey] = struct{}{}
 	}
+
 	accountedFor := make(map[string]bool)
-	for parentKey, childKeys := range parentToChildren {
-		parent, ok := childSet[parentKey]
+	var result []model.APPAccessList
+
+	for parentKey, childSet := range parentChildren {
+		parent, ok := nodesByKey[parentKey]
 		if !ok {
 			continue
 		}
-		for _, childKey := range childKeys {
-			child, ok := childSet[childKey]
-			if ok && child.Key != parentKey {
-				parent.SubAccessList = append(parent.SubAccessList, modelToSubAccessList(&child))
+		childKeys := make([]string, 0, len(childSet))
+		for ck := range childSet {
+			if ck != parentKey {
+				childKeys = append(childKeys, ck)
 			}
+		}
+		sort.Strings(childKeys)
+		for _, childKey := range childKeys {
+			child, ok := nodesByKey[childKey]
+			if !ok {
+				continue
+			}
+			parent.SubAccessList = append(parent.SubAccessList, modelToSubAccessList(&child))
 			accountedFor[childKey] = true
 		}
 		result = append(result, parent)

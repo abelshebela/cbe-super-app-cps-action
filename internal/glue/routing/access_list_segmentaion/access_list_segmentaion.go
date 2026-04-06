@@ -37,16 +37,32 @@ func Init(router chi.Router, handler accesslistsegmentation.AccessListSegmentati
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/access_list_segmentation/{id}",
-			Handler: handler.GetAccessListSegmentationByID,
+			Path:    "/access_list_segmentation/account/segmentation/{id}",
+			Handler: handler.GetAllAccessListSegmentationForAccount,
 			Middlewares: []func(http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/access_list_segmentation/all/{id}",
-			Handler: handler.GetAllAccessListSegmentationBySegmentIDorSegmentCode,
+			Path:    "/access_list_segmentation/block/segmentation/{id}",
+			Handler: handler.GetAllAccessListSegmentationForBlock,
+			Middlewares: []func(http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/access_list_segmentation/block/{id}",
+			Handler: handler.GetAllAccessListSegmentation,
+			Middlewares: []func(http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/access_list_segmentation/account/{id}",
+			Handler: handler.GetAllAccessListSegmentationForAccount,
 			Middlewares: []func(http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},

@@ -94,6 +94,14 @@ func Init(router chi.Router, handler donation.DonationHandler, authMiddleware mi
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/donation/delete/{id}",
+			Handler: handler.DeleteDonation,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

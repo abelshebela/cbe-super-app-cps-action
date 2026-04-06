@@ -205,6 +205,7 @@ type DonationService interface {
 	AddDonationImage(ctx context.Context, id string, image donation_dto.DonationRequest) error
 	EnableDonation(ctx context.Context, id string) error
 	DisableDonation(ctx context.Context, id string) error
+	DeleteDonation(ctx context.Context, id string) error
 	ExportDonationData(ctx context.Context, startDate, endDate time.Time, fileType string) (string, error)
 }
 
@@ -216,6 +217,7 @@ type DonationCategoryService interface {
 	UpdateDonationCategory(ctx context.Context, id string, donation donationCat_dto.DonationCategoryRequest) (donationCat_dto.DonationCategoryRequest, error)
 	EnableDonationCategory(ctx context.Context, id string) error
 	DisableDonationCategory(ctx context.Context, id string) error
+	DeleteDonationCategory(ctx context.Context, id string) error
 }
 
 type DonationCompanyService interface {
@@ -227,6 +229,7 @@ type DonationCompanyService interface {
 	AccountLookup(ctx context.Context, accountNumber string) (*model.AccountDetail, error)
 	EnableDonationCompany(ctx context.Context, id string) error
 	DisableDonationCompany(ctx context.Context, id string) error
+	DeleteDonationCompany(ctx context.Context, id string) error
 }
 
 type EventService interface {
@@ -471,6 +474,7 @@ type BPSUserService interface {
 	UpdateStatusBpsUser(ctx context.Context, userCode string, status bool) error
 	CreateBPSUser(ctx context.Context, req bps_model.BPSUser) error
 	UpdateBPSUser(ctx context.Context, userCode string, updatedUser bps_model.BPSUser) error
+	DeleteBPSUser(ctx context.Context, userID string) error
 }
 
 type AccountSearchService interface {
@@ -802,11 +806,13 @@ type AccessListSegmentationService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateAccessListSegmentation(ctx context.Context, req access_list_segmentation_dto.CreateAccessListSegmentationRequest) error
 	GetAllAccessListSegmentation(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]access_list_segmentation_dto.AccessListSegmentationResponse], error)
-	GetAccessListSegmentationByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error)
+	GetAccessListSegmentationForBlockByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error)
+	GetAccessListSegmentationForAccountByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error)
 	UpdateAccessListSegmentation(ctx context.Context, req access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error
-	EnableDisableAccessListSegmentation(ctx context.Context, id string, enabled bool, keys []string) error
+	EnableDisableAccessListSegmentation(ctx context.Context, id string, enabled bool, keys []string, segmentation_type string) error
 	CheckALLIdsExist(ctx context.Context, t string, ids []string) error
-	GetAllAccessListSegmentationBySegmentIDorSegmentCode(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error)
+	GetAllAccessListSegmentationForAccount(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error)
+	GetAllAccessListSegmentationForBlock(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error)
 }
 
 type UssdMerchantService interface {

@@ -365,6 +365,13 @@ func (b *BudgetCategoryService) DeleteBudgetCategory(ctx context.Context, id str
 
 	b.logger.Infof("[BudgetCatSvc][Delete] id: %s", id)
 	makerUser := local_util.ExtractUserFromContext(ctx)
+	if incomplet := local_util.IsIncomplete(makerUser); incomplet {
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", localization.ErrorIncompleteUserInfo.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
 
 	existingBudgetCategory, err := b.budgetCategoryRepo.FindByID(ctx, id)
 	if err != nil {
@@ -375,8 +382,26 @@ func (b *BudgetCategoryService) DeleteBudgetCategory(ctx context.Context, id str
 		b.logger.Errorf("[BudgetCatSvc][Delete] find err: %v", err)
 		return err
 	}
+	if existingBudgetCategory == nil {
+		span.AddEvent("Budget category not found", trace.WithAttributes(
+			attribute.String("error", localization.ErrorFileNotFound.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorFileNotFound.Code)
+	}
+	if existingBudgetCategory.IsDeleted == 1 {
+		span.AddEvent("Budget category already deleted", trace.WithAttributes(
+			attribute.String("error", localization.ErrorAlreadyDeleted.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorAlreadyDeleted.Code)
+	}
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, existingBudgetCategory, existingBudgetCategory, string(constants.RequestDeleteBudgetCategory), constants.DELETE)
+	deletedCategory := *existingBudgetCategory
+	deletedCategory.IsDeleted = 1
+	deletedCategory.UpdateAt = time.Now().UTC().Format(time.RFC3339)
+
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, existingBudgetCategory, &deletedCategory, string(constants.RequestDeleteBudgetCategory), constants.DELETE)
 
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		span.AddEvent("[DeleteBudgetCategory] failed to create CPS action", trace.WithAttributes(

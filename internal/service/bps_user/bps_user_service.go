@@ -115,12 +115,28 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		}
 		b.logger.Infof("[BpsUserSvc][Authorize] updated id: %s", cpsAction.UniqueId)
 		return nil, nil
+	case string(constants.RequestBpsUserDelete):
+		actionData.IsDeleted = true
+		if err := b.repo.Update(ctx, &actionData); err != nil {
+			span.AddEvent("[Authorize] failed to soft-delete BPS user", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			b.logger.Errorf("[BpsUserSvc][Authorize] delete err: %v", err)
+			return nil, err
+		}
+		b.logger.Infof("[BpsUserSvc][Authorize] soft-deleted id: %s", cpsAction.UniqueId)
+		return nil, nil
 	case string(constants.RequestEnableBPSUser):
 		actionData.Enabled = true
 		b.logger.Infof("[BpsUserSvc][Authorize] enabling id: %s", cpsAction.UniqueId)
 	case string(constants.RequestDisableBPSUser):
 		actionData.Enabled = false
 		b.logger.Infof("[BpsUserSvc][Authorize] disabling id: %s", cpsAction.UniqueId)
+	// case string(constants.RequestBpsUserDelete):
+	// 	actionData.IsDeleted = true
+	// 	// fmt.Println("LOLOLOLO IN AUTHORIZE DELETE")
+	// 	b.logger.Infof("[BpsUserSvc][Authorize] deleting id: %s", cpsAction.UniqueId)
 	default:
 		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", cpsAction.RequestAction)))
 		b.logger.Errorf("[BpsUserSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
@@ -409,5 +425,60 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 	}
 
 	b.logger.Infof("[BpsUserSvc][Update] request created id: %s", userID)
+	return nil
+}
+
+func (b *bpsUserService) DeleteBPSUser(ctx context.Context, userID string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteBPSUser", "BPS User", "DeleteBPSUser")
+	defer span.End()
+
+	makerData := local_util.ExtractUserFromContext(ctx)
+	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", localization.ErrorIncompleteUserInfo.Code),
+			attribute.String("user_id", userID),
+		))
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+
+	existingUser, err := b.repo.GetByUserID(ctx, userID)
+	if err != nil {
+		span.AddEvent("[DeleteBPSUser] failed to find BPS user", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_id", userID),
+		))
+		b.logger.Errorf("[BpsUserSvc][Delete] find err: %v", err)
+		return err
+	}
+	if existingUser == nil {
+		span.AddEvent("BPS user not found", trace.WithAttributes(
+			attribute.String("error", localization.ErrorUserNotFound.Code),
+			attribute.String("user_id", userID),
+		))
+		return errors.New(localization.ErrorUserNotFound.Code)
+	}
+	if existingUser.IsDeleted {
+		span.AddEvent("BPS user already deleted", trace.WithAttributes(
+			attribute.String("error", localization.ErrorAlreadyDeleted.Code),
+			attribute.String("user_id", userID),
+		))
+		return errors.New(localization.ErrorAlreadyDeleted.Code)
+	}
+
+	updatedUser := *existingUser
+	updatedUser.IsDeleted = true
+	updatedUser.LastModifiedAt = time.Now()
+	// fmt.Println("LOLOLOLO IN FUNCTION DELETE")
+	cpsActionData := lib.CpsModelBuilder(existingUser.ID.Hex(), makerData, existingUser, updatedUser, string(constants.RequestBpsUserDelete), constants.DELETE)
+	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+		span.AddEvent("[DeleteBPSUser] failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_id", userID),
+		))
+		b.logger.Errorf("[BpsUserSvc][Delete] cps action err: %v", err)
+		return err
+	}
+
+	b.logger.Infof("[BpsUserSvc][Delete] request created id: %s", userID)
 	return nil
 }

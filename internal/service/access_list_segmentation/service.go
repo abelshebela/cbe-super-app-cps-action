@@ -16,17 +16,16 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 )
 
 type AccessListSegmentationService struct {
-	repo                  storage.AccessListSegmentationRepository
+	repo                  storage.AccessListSegmentationRepositoryOracle
 	accBlock              storage.AccountBlockRepository
 	customerSeg           storage.CPSRolesRepository
 	memberRepo            storage.CustomerRepository
-	accessListServiceRepo storage.AppAccessListRepository
+	accessListServiceRepo storage.BulkServiceRepository
 	cpsAction             service.CPSActionService
 	logger                utils.Logger
 }
@@ -43,7 +42,7 @@ func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 
-		if action.SegmentType == "Block" {
+		if action.SegmentType == "block" {
 			if err := a.repo.CreateBlockSegment(ctx, *action); err != nil {
 				a.logger.Errorf("[AccessListSegSvc][Authorize] create block err: %v", err)
 				return nil, err
@@ -98,29 +97,23 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	found, err := a.accessListServiceRepo.FindByKeys(ctx, req.AccessListKeys)
-	if err != nil {
+	found, err := a.accessListServiceRepo.FindAllByKeys(ctx, req.AccessListKeys)
+	if err != nil || found == nil {
 		a.logger.Errorf("[AccessListSegSvc][Create] find keys err: %v", err)
 		return err
 	}
-	for _, key := range req.AccessListKeys {
-		if _, ok := found[key]; !ok {
-			a.logger.Errorf("[AccessListSegSvc][Create] key not found: %s", key)
-			return fmt.Errorf("access list key not found: %s", key)
-		}
-		req.AccessListNames = append(req.AccessListNames, found[key])
-	}
 
-	if req.SegmentType == "Block" {
-		if als, err := a.repo.FindBySegmentIDAndAccessListKeys(ctx, req.SegmentedID, req.AccessListKeys); err != nil && err.Error() != localization.ErrorAccessListSegmentationNotFound.Code {
+	if req.SegmentType == "block" {
+		//  first check if the passed segmented id and access list key combination already exists, if yes throw error, if no then check if the segmented id exists in the respective collection based but at higher level on the type (B,R,D,C,U)
+		if als, err := a.repo.FindBySegmentIDAndAccessListKeys(ctx, req.SegmentationID, req.AccessListKeys); err != nil && err.Error() != localization.ErrorAccessListSegmentationNotFound.Code {
 			a.logger.Errorf("[AccessListSegSvc][Create] find seg err: %v", err)
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		} else if als != nil {
-			a.logger.Errorf("[AccessListSegSvc][Create] already exists id: %s", req.SegmentedID)
-			return fmt.Errorf("access list segmentation with id: %v and access list key: %v already exists", req.SegmentedID, als.AccessListKey)
+			a.logger.Errorf("[AccessListSegSvc][Create] already exists id: %s", req.SegmentationID)
+			return fmt.Errorf("access list segmentation with id: %v and access list key: %v already exists", req.SegmentationID, als.AccessListKey)
 		}
 
-		if err := a.CheckALLIdsExist(ctx, req.Type, []string{req.SegmentedID}); err != nil {
+		if err := a.CheckALLIdsExist(ctx, req.Type, []string{req.SegmentationID}); err != nil {
 			a.logger.Errorf("[AccessListSegSvc][Create] check IDs err: %v", err)
 			return err
 		}
@@ -128,13 +121,13 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 		// add checks for
 		// 1. if the passed segment code is valid
 		// 2. if service id and segment code combination already exists
-		seg, err := a.customerSeg.FindByCustomerSegmentation(ctx, req.SegmentCode)
+		seg, err := a.customerSeg.FindByCustomerSegmentationByID(ctx, req.SegmentationID)
 		if err != nil || seg == nil {
 			a.logger.Errorf("[AccessListSegSvc][Create] seg code not found: %v", err)
 			return errors.New(localization.ErrorCustomerSegmentationCodeNotFound.Code)
 		}
 
-		if seg, err := a.repo.FindByAccountSegmentationAndAccessListKeys(ctx, req.SegmentCode, req.AccessListKeys); err != nil || seg != nil {
+		if seg, err := a.repo.FindByAccountSegmentationAndAccessListKeys(ctx, req.SegmentationID, req.AccessListKeys); err != nil || seg != nil {
 			a.logger.Errorf("[AccessListSegSvc][Create] seg+key exists: %v", err)
 			return errors.New(localization.ErrorAccessListSegmentationNameAlreadyExists.Code)
 		}
@@ -149,14 +142,22 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 }
 
 // EnableDisableAccessListSegmentation implements service.AccessListSegmentationService.
-func (a *AccessListSegmentationService) EnableDisableAccessListSegmentation(ctx context.Context, id string, enabled bool, keys []string) error {
+func (a *AccessListSegmentationService) EnableDisableAccessListSegmentation(ctx context.Context, id string, enabled bool, keys []string, segmentation_type string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplete := local_util.IsIncomplete(makerData); incomplete {
 		a.logger.Errorf("[AccessListSegSvc][EnableDisable] incomplete user")
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
-
-	accessListSegmentation, err := a.repo.FindAllBySegmentIDorSegmentCodeAndKeys(ctx, id, keys)
+	var accessListSegmentation []local_model.AccessListSegmentation
+	var err error
+	if segmentation_type == "block" {
+		accessListSegmentation, err = a.repo.FindAllByBlockAndKeys(ctx, id, keys)
+	} else if segmentation_type == "account" {
+		accessListSegmentation, err = a.repo.FindAllByAccountAndKeys(ctx, id, keys)
+	} else {
+		a.logger.Errorf("[AccessListSegSvc][EnableDisable] invalid segmentation type: %s", segmentation_type)
+		return localization.ErrorUnexpectedError
+	}
 	if err != nil {
 		a.logger.Errorf("[AccessListSegSvc][EnableDisable] find err: %v", err)
 		return err
@@ -167,8 +168,9 @@ func (a *AccessListSegmentationService) EnableDisableAccessListSegmentation(ctx 
 		return errors.New(localization.ErrorAccessListSegmentationKeyNotFound.Code)
 	}
 	bulkDisable := access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest{
-		Keys: keys,
-		ID:   id,
+		Keys:             keys,
+		ID:               id,
+		SegmentationType: segmentation_type,
 	}
 	bulkDisable.Enabled = enabled
 
@@ -187,9 +189,21 @@ func (a *AccessListSegmentationService) EnableDisableAccessListSegmentation(ctx 
 	return nil
 }
 
-// GetAccessListSegmentationByID implements service.AccessListSegmentationService.
-func (a *AccessListSegmentationService) GetAccessListSegmentationByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error) {
-	model, err := a.repo.FindByID(ctx, id)
+// GetAccessListSegmentationForAccountByID implements service.AccessListSegmentationService.
+func (a *AccessListSegmentationService) GetAccessListSegmentationForAccountByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error) {
+	model, err := a.repo.FindAccountSegmentByID(ctx, id)
+	if err != nil {
+		a.logger.Errorf("[AccessListSegSvc][GetByID] err: %v", err)
+		return access_list_segmentation_dto.AccessListSegmentationResponse{}, err
+	}
+	resp := access_list_segmentation_core.MapModelToDTO(*model)
+
+	return resp, nil
+}
+
+// GetAccessListSegmentationForBlockByID implements service.AccessListSegmentationService.
+func (a *AccessListSegmentationService) GetAccessListSegmentationForBlockByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error) {
+	model, err := a.repo.FindBlockSegmentByID(ctx, id)
 	if err != nil {
 		a.logger.Errorf("[AccessListSegSvc][GetByID] err: %v", err)
 		return access_list_segmentation_dto.AccessListSegmentationResponse{}, err
@@ -218,7 +232,7 @@ func (a *AccessListSegmentationService) UpdateAccessListSegmentation(ctx context
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	accessListSegmentation, err := a.repo.FindByID(ctx, req.ID)
+	accessListSegmentation, err := a.repo.FindAccountSegmentByID(ctx, req.ID)
 	if err != nil {
 		a.logger.Errorf("[AccessListSegSvc][Update] find err: %v", err)
 		return err
@@ -230,13 +244,13 @@ func (a *AccessListSegmentationService) UpdateAccessListSegmentation(ctx context
 	}
 
 	updatedAccessListSegmentation := *accessListSegmentation
-	if req.NewSegmentedID != "" {
-		objID, err := bson.ObjectIDFromHex(req.NewSegmentedID)
-		if err != nil {
-			a.logger.Errorf("[AccessListSegSvc][Update] invalid seg id: %v", err)
-			return errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
-		}
-		updatedAccessListSegmentation.SegmentedID = objID
+	if req.NewSegmentationID != "" {
+		// objID, err := bson.ObjectIDFromHex(req.NewSegmentedID)
+		// if err != nil {
+		// 	a.logger.Errorf("[AccessListSegSvc][Update] invalid seg id: %v", err)
+		// 	return errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
+		// }
+		updatedAccessListSegmentation.SegmentedID = req.NewSegmentationID
 	}
 	if req.NewAccessListKey != "" {
 
@@ -257,18 +271,18 @@ func (a *AccessListSegmentationService) UpdateAccessListSegmentation(ctx context
 		updatedAccessListSegmentation.Type = req.Type
 	}
 
-	if req.SegmentCode != "" {
-		seg, err := a.customerSeg.FindByCustomerSegmentation(ctx, req.SegmentCode)
+	if req.NewSegmentationID != "" {
+		seg, err := a.customerSeg.FindByCustomerSegmentationByID(ctx, req.NewSegmentationID)
 		if err != nil || seg == nil {
 			a.logger.Errorf("[AccessListSegSvc][Update] seg code not found: %v", err)
 			return errors.New(localization.ErrorCustomerSegmentationCodeNotFound.Code)
 		}
 		// req.SegmentName = seg.CustomerSubSegments[0].CustomerGroup
-		updatedAccessListSegmentation.SegmentationCode = req.SegmentCode
+		updatedAccessListSegmentation.SegmentationCode = req.NewSegmentationID
 		// updatedAccessListSegmentation.SegmentationName = seg.CustomerSubSegment
 	}
 
-	if seg, err := a.repo.FindByAccountSegmentationAndAccessListKeys(ctx, req.NewSegmentedID, []string{req.NewAccessListKey}); err != nil || seg != nil {
+	if seg, err := a.repo.FindByAccountSegmentationAndAccessListKeys(ctx, req.NewSegmentationID, []string{req.NewAccessListKey}); err != nil || seg != nil {
 		a.logger.Errorf("[AccessListSegSvc][Update] seg+key exists: %v", err)
 		return errors.New(localization.ErrorAccessListSegmentationNameAlreadyExists.Code)
 	}
@@ -284,17 +298,6 @@ func (a *AccessListSegmentationService) UpdateAccessListSegmentation(ctx context
 
 func (a *AccessListSegmentationService) CheckALLIdsExist(ctx context.Context, t string, ids []string) error {
 	switch t {
-	case "U":
-		if r, err := a.memberRepo.FindCustomerByIDs(ctx, ids); err != nil {
-			return err
-		} else if len(r) != len(ids) {
-			var modelMaps []map[string]interface{}
-			for _, d := range r {
-				modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID.Hex()})
-			}
-			missingids := access_list_segmentation_core.GetMissingIds(ids, modelMaps)
-			return fmt.Errorf("some user ids do not exist:%v", missingids)
-		}
 	case "B":
 		if r, err := a.accBlock.GetBranchesByIds(ctx, ids); err != nil {
 			return err
@@ -318,6 +321,10 @@ func (a *AccessListSegmentationService) CheckALLIdsExist(ctx context.Context, t 
 			return fmt.Errorf("some Region ids do not exist:%v", missingids)
 		}
 	case "D":
+		if a.accBlock == nil {
+			a.logger.Errorf("[AccessListSegSvc][CheckALLIdsExist] accBlock repo is nil")
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
 		if r, err := a.accBlock.GetDistrictsByIds(ctx, ids); err != nil {
 			return err
 		} else if len(r) != len(ids) {
@@ -345,8 +352,8 @@ func (a *AccessListSegmentationService) CheckALLIdsExist(ctx context.Context, t 
 	return nil
 }
 
-func (a *AccessListSegmentationService) GetAllAccessListSegmentationBySegmentIDorSegmentCode(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error) {
-	accessListSegmentation, err := a.repo.FindAllBySegmentIDorSegmentCode(ctx, segmentIdentifier)
+func (a *AccessListSegmentationService) GetAllAccessListSegmentationForBlock(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error) {
+	accessListSegmentation, err := a.repo.FindAllForBlock(ctx, segmentIdentifier)
 	if err != nil {
 		a.logger.Errorf("[AccessListSegSvc][GetBySegID] err: %v", err)
 		return nil, nil, err
@@ -366,7 +373,29 @@ func (a *AccessListSegmentationService) GetAllAccessListSegmentationBySegmentIDo
 	return accessList, accessListSegmentation, nil
 }
 
-func NewAccessListSegmentationService(repo storage.AccessListSegmentationRepository, cpsAction service.CPSActionService, accessListServiceRepo storage.AppAccessListRepository, accBlock storage.AccountBlockRepository, memberRepo storage.CustomerRepository, customerSeg storage.CPSRolesRepository, logger utils.Logger) service.AccessListSegmentationService {
+func (a *AccessListSegmentationService) GetAllAccessListSegmentationForAccount(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error) {
+	accessListSegmentation, err := a.repo.FindAllForAccount(ctx, segmentIdentifier)
+
+	if err != nil {
+		a.logger.Errorf("[AccessListSegSvc][GetBySegID] err: %v", err)
+		return nil, nil, err
+	}
+
+	accessList := access_list_segmentation_core.FindNoneSegmentedAccessList(ctx, a.accessListServiceRepo, accessListSegmentation)
+
+	realtions, err := a.repo.FindParentChildRelationship(ctx)
+	if err != nil {
+		a.logger.Errorf("[AccessListSegSvc][GetBySegID] parent-child err: %v", err)
+		return nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	accessList = access_list_segmentation_core.MapParentChildRelationship(realtions, accessList)
+	accessListSegmentation = access_list_segmentation_core.MapParentChildRelationship(realtions, accessListSegmentation)
+
+	return accessList, accessListSegmentation, nil
+}
+
+func NewAccessListSegmentationService(repo storage.AccessListSegmentationRepositoryOracle, cpsAction service.CPSActionService, accessListServiceRepo storage.BulkServiceRepository, accBlock storage.AccountBlockRepository, memberRepo storage.CustomerRepository, customerSeg storage.CPSRolesRepository, logger utils.Logger) service.AccessListSegmentationService {
 	return &AccessListSegmentationService{
 		repo:                  repo,
 		cpsAction:             cpsAction,
