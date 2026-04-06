@@ -98,14 +98,15 @@ func (r *Repository) Delete(ctx context.Context, id string) error {
 }
 
 func (r *Repository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	q := `UPDATE BUDGET_CATEGORIES SET ENABLED = :1, IS_ENABLED = :1, UPDATE_AT = CURRENT_TIMESTAMP WHERE ID = HEXTORAW(:2)`
+	// Each :n is a distinct bind for godror; repeating :1 still expects one value per placeholder.
+	q := `UPDATE BUDGET_CATEGORIES SET ENABLED = :1, IS_ENABLED = :2, UPDATE_AT = CURRENT_TIMESTAMP WHERE ID = HEXTORAW(:3)`
 	var v int
 	if enable {
 		v = 1
 	} else {
 		v = 0
 	}
-	_, err := r.db.ExecContext(ctx, q, v, id)
+	_, err := r.db.ExecContext(ctx, q, v, v, id)
 	if err != nil {
 		r.logger.Errorf("[BudgetCategoryOracle][EnableOrDisable] failed: %v", err)
 		return err

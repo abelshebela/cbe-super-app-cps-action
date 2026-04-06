@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// WalletOracle maps to WALLETS: wallet_code → UniqueCode; services_self/other/agent → Self/Other/Agent.
 type WalletOracle struct {
 	ID             string     `json:"id" bson:"_id"`
 	Name           string     `json:"name" bson:"name"`
