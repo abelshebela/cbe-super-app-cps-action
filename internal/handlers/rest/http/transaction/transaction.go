@@ -15,8 +15,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type paginated_transaction_resp types.PaginatedResponse[[]transaction_dto.FullTransaction]
-type transaction_by_id transaction_dto.FullTransaction
+type paginated_transaction_resp types.PaginatedResponse[[]transaction_dto.VaultTransaction]
+type transaction_by_id transaction_dto.VaultTransaction
 
 type TransactionHandler struct {
 	service service.TransactionService

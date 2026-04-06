@@ -576,7 +576,7 @@ SELECT
   NAME,
   IS_ENABLED
 FROM SUPERAPP_ROLE 
-WHERE  ID = ':1'`
+WHERE  ID = HEXTORAW(:1)`
 
 	var (
 		id                         string

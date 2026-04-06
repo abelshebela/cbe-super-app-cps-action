@@ -10,7 +10,6 @@ import (
 	account_block_repo "cbe-super-app-cps-action/internal/storage/persistance/account_block"
 	amount_based_auth_oracle "cbe-super-app-cps-action/internal/storage/persistance/amount_based_auth_oracle"
 	"cbe-super-app-cps-action/internal/storage/persistance/bank/gen/sqlc"
-	"cbe-super-app-cps-action/internal/storage/persistance/bankvault"
 	budget_category_oracle "cbe-super-app-cps-action/internal/storage/persistance/budget_category_oracle"
 	cpsroles "cbe-super-app-cps-action/internal/storage/persistance/cps_roles"
 	customersegmentaion "cbe-super-app-cps-action/internal/storage/persistance/customer_segmentaion"
@@ -27,10 +26,9 @@ import (
 type OraclePersistence struct {
 	Db                    *sql.DB
 	BankOracle            storage.BankOracleRepository
-	BankVault             storage.BankVaultRepository
+	vaultTransaction      storage.TransactionRepository
 	vaultCategory         storage.VaultCategoryRepository
 	Sitota                storage.SitotaRepository
-	Transaction           storage.TransactionRepository
 	ServicesPersistence   storage.ServicesRepository
 	CustomerSegmentation  storage.CustomerSegmentationRepository
 	NewCPSRolesStorage    storage.CPSRolesRepository
@@ -46,10 +44,9 @@ func InitOraclePersistence(db *sql.DB, cfg *config.VaultConfig, clientOrchestrat
 	return OraclePersistence{
 		Db:                    db,
 		BankOracle:            sqlc.NewBankRepository(db, log),
-		BankVault:             bankvault.NewBankVaultRepository(db, log),
 		vaultCategory:         vaultCategory.NewVaultCategoryRepository(db, cfg, clientOrchestrationProducer, log),
 		Sitota:                sitota.NewSitotaRepository(db, log),
-		Transaction:           transaction_repo.NewTransactionRepository(db, log),
+		vaultTransaction:      transaction_repo.NewTransactionRepository(db, log),
 		ServicesPersistence:   services_repo.NewServicesRepository(db, cfg, clientOrchestrationProducer, redisRepository, log),
 		CustomerSegmentation:  customersegmentaion.NewCustomerSegmentationRepository(cfg, db, clientOrchestrationProducer, log),
 		NewCPSRolesStorage:    cpsroles.NewCPSRolesStorage(cfg, db, clientOrchestrationProducer, log),

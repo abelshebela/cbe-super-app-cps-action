@@ -59,7 +59,7 @@ func normalizePagination(filterParams types.Filter) (int, int) {
 	return page, perPage
 }
 
-// accessListSelectCols matches ACCESS_LIST (Oracle): NAME, SERVICE_KEY, flags, timestamps.
+// accessListSelectCols matches ACCESS_LISTS (Oracle): NAME, SERVICE_KEY, flags, timestamps.
 const accessListSelectCols = `ID, NAME, SERVICE_KEY, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT`
 
 func scanRowToAPPAccessList(scanner interface {
@@ -118,7 +118,7 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams typ
 	}
 
 	whereClause := strings.Join(whereParts, " AND ")
-	countQuery := "SELECT COUNT(*) FROM ACCESS_LIST WHERE " + whereClause
+	countQuery := "SELECT COUNT(*) FROM ACCESS_LISTS WHERE " + whereClause
 
 	var total int64
 	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
@@ -134,7 +134,7 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams typ
 		}, nil
 	}
 
-	query := "SELECT " + accessListSelectCols + " FROM ACCESS_LIST WHERE " + whereClause +
+	query := "SELECT " + accessListSelectCols + " FROM ACCESS_LISTS WHERE " + whereClause +
 		fmt.Sprintf(" ORDER BY NAME OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY", argIdx, argIdx+1)
 	args = append(args, offset, perPage)
 
@@ -167,7 +167,7 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams typ
 
 func (r *Repository) FindAll(ctx context.Context) ([]model.APPAccessList, error) {
 	query := `SELECT ` + accessListSelectCols + `
-		FROM ACCESS_LIST
+		FROM ACCESS_LISTS
 		WHERE IS_DELETED = 0
 		ORDER BY NAME`
 
@@ -196,7 +196,7 @@ func (r *Repository) FindAll(ctx context.Context) ([]model.APPAccessList, error)
 
 func (r *Repository) FindAllForSegmentation(ctx context.Context) ([]model.APPAccessList, error) {
 	query := `SELECT RAWTOHEX(ID), NAME, SERVICE_KEY, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT
-		FROM ACCESS_LIST
+		FROM ACCESS_LISTS
 		WHERE IS_DELETED = 0
 		ORDER BY NAME`
 
@@ -244,7 +244,7 @@ func (r *Repository) Update(ctx context.Context, keys []string, state bool) erro
 		next = 1
 	}
 
-	query := `UPDATE ACCESS_LIST
+	query := `UPDATE ACCESS_LISTS
 		SET IS_ENABLED = :1,
 		    LAST_MODIFIED_AT = SYSTIMESTAMP
 		WHERE UPPER(SERVICE_KEY) = UPPER(:2)` //nolint:goconst // Oracle positional binds
@@ -273,7 +273,7 @@ func (r *Repository) FindAllByKeys(ctx context.Context, keys []string) ([]model.
 		inClause[i] = fmt.Sprintf("HEXTORAW(:%d)", i+1)
 		args[i] = strings.TrimSpace(key)
 	}
-	query := `SELECT RAWTOHEX(ID), NAME, SERVICE_KEY, IS_ENABLED FROM ACCESS_LIST WHERE IS_ENABLED = 1 AND IS_DELETED = 0 AND ID IN (` + strings.Join(inClause, ",") + ")"
+	query := `SELECT RAWTOHEX(ID), NAME, SERVICE_KEY, IS_ENABLED FROM ACCESS_LISTS WHERE IS_ENABLED = 1 AND IS_DELETED = 0 AND ID IN (` + strings.Join(inClause, ",") + ")"
 
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -329,7 +329,7 @@ func (r *Repository) FindByKeys(ctx context.Context, keys []string) (map[string]
 		inClause[i] = fmt.Sprintf(":%d", i+1)
 		args[i] = strings.TrimSpace(key)
 	}
-	query := `SELECT SERVICE_KEY, NAME FROM ACCESS_LIST WHERE IS_DELETED = 0 AND SERVICE_KEY IN (` + strings.Join(inClause, ",") + ")"
+	query := `SELECT SERVICE_KEY, NAME FROM ACCESS_LISTS WHERE IS_DELETED = 0 AND SERVICE_KEY IN (` + strings.Join(inClause, ",") + ")"
 
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
