@@ -187,41 +187,57 @@ func (q *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 	return &types.PaginatedResponse[[]model.WalletOracle]{}, nil
 }
 
-func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.WalletOracle], error) {
+func (q *WalletStorage) FindAllWithPaginationForGRPC(
+	ctx context.Context,
+	filterParam types.Filter,
+) (*types.PaginatedResponse[[]model.WalletOracle], error) {
+
 	q.logger.Infof("[WalletStorage][FindAllWithPaginationForGRPC] called with filter: %+v", filterParam)
 
 	var filters []string
 	var args []interface{}
 	idx := 1
+
+	// Base filter
 	filters = append(filters, "w.is_deleted = 0")
-	if filterParam.Filters["name"] != nil {
+
+	// Name filter
+	if val, ok := filterParam.Filters["name"]; ok && val != nil {
 		filters = append(filters, fmt.Sprintf("LOWER(w.name) LIKE :%d", idx))
-		args = append(args, "%"+strings.ToLower(fmt.Sprint(filterParam.Filters["name"]))+"%")
+		args = append(args, "%"+strings.ToLower(fmt.Sprint(val))+"%")
 		idx++
 	}
-	if filterParam.Filters["code"] != nil {
+
+	// Code filter
+	if val, ok := filterParam.Filters["code"]; ok && val != nil {
 		filters = append(filters, fmt.Sprintf("LOWER(w.unique_code) LIKE :%d", idx))
-		args = append(args, "%"+strings.ToLower(fmt.Sprint(filterParam.Filters["code"]))+"%")
+		args = append(args, "%"+strings.ToLower(fmt.Sprint(val))+"%")
 		idx++
 	}
-	if filterParam.Filters["enabled"] != nil {
+
+	// ✅ Optional enabled filter (FIXED)
+	if val, ok := filterParam.Filters["enabled"]; ok && val != nil {
 		filters = append(filters, fmt.Sprintf("w.enabled = :%d", idx))
-		args = append(args, filterParam.Filters["enabled"])
+		args = append(args, val)
 		idx++
 	}
-	if filterParam.Search != "" && filterParam.Search != "enabled" {
-		filters = append(filters, fmt.Sprintf("(LOWER(w.name) LIKE :%d OR LOWER(w.unique_code) LIKE :%d)", idx, idx+1))
-		args = append(args, "%"+strings.ToLower(filterParam.Search)+"%", "%"+strings.ToLower(filterParam.Search)+"%")
+
+	// Search filter
+	if filterParam.Search != "" {
+		search := "%" + strings.ToLower(filterParam.Search) + "%"
+		filters = append(filters,
+			fmt.Sprintf("(LOWER(w.name) LIKE :%d OR LOWER(w.unique_code) LIKE :%d)", idx, idx+1))
+		args = append(args, search, search)
 		idx += 2
 	}
-	if filterParam.Search == "enabled" {
-		filters = append(filters, "w.enabled = 1")
-	}
+
+	// WHERE clause
 	whereClause := ""
 	if len(filters) > 0 {
 		whereClause = "WHERE " + strings.Join(filters, " AND ")
 	}
 
+	// Sorting
 	sortClause := "ORDER BY w.created_at DESC"
 	if val, ok := filterParam.Filters["sort_name"]; ok {
 		if s, ok := val.(string); ok {
@@ -234,16 +250,22 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 		}
 	}
 
+	// Pagination
 	page := filterParam.Page
 	perPage := filterParam.PerPage
+
 	if page < 1 {
 		page = 1
 	}
 	if perPage < 1 {
 		perPage = 10
 	}
+
 	offset := (page - 1) * perPage
+
+	// Count query
 	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM wallets w %s`, whereClause)
+
 	var total int
 	err := q.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
 	if err != nil {
@@ -251,16 +273,15 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 		return nil, err
 	}
 
-	q.logger.Infof("***************WALLETS******************")
-	q.logger.Infof("[WalletStorage][FindAllWithPaginationForGRPC] total wallets matching filters: %d", total)
 	if total > 0 && offset >= total {
-		meta := local_util.BuildPaginationMeta(int64(total), filterParam.Page, filterParam.PerPage)
+		meta := local_util.BuildPaginationMeta(int64(total), page, perPage)
 		return &types.PaginatedResponse[[]model.WalletOracle]{
 			Data: []model.WalletOracle{},
 			Meta: meta,
 		}, nil
 	}
 
+	// Main query (FIXED placeholder indexing)
 	query := fmt.Sprintf(`
 SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id),
        w.enabled, w.avatar, w.services_self, w.services_other,
@@ -275,36 +296,46 @@ LEFT JOIN access_lists sk ON sk.id = s.access_list_id
 OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY
 `, whereClause, sortClause, idx, idx+1)
 
+	// Append pagination args ONCE
 	args = append(args, offset, perPage)
 
-	fmt.Printf("Final Query: %s\n", query)
-	fmt.Printf("Args: %+v\n", args)
+	// Debug logs
+	q.logger.Infof("Final Query: %s", query)
+	q.logger.Infof("Args: %+v", args)
 
 	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
+		q.logger.Errorf("[WalletStorage][FindAllWithPaginationForGRPC] query failed: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
 
 	var wallets []model.WalletOracle
+
 	for rows.Next() {
 		var wallet model.WalletOracle
 		var serviceKey, serviceCode sql.NullString
+
 		if err := scanWalletOracleCore(rows, &wallet, true, &serviceKey, &serviceCode); err != nil {
 			q.logger.Warnf("[WalletStorage][FindAllWithPaginationForGRPC] scan failed: %v", err)
 			continue
 		}
+
 		if serviceKey.Valid {
 			wallet.ServiceKey = serviceKey.String
 		}
 		if serviceCode.Valid {
 			wallet.ServiceCode = serviceCode.String
 		}
+
 		wallets = append(wallets, wallet)
 	}
 
-	q.logger.Infof("[WalletStorage][FindAllWithPaginationForGRPC] found %d wallets", len(wallets))
-	meta := local_util.BuildPaginationMeta(int64(total), filterParam.Page, filterParam.PerPage)
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	meta := local_util.BuildPaginationMeta(int64(total), page, perPage)
 
 	return &types.PaginatedResponse[[]model.WalletOracle]{
 		Data: wallets,

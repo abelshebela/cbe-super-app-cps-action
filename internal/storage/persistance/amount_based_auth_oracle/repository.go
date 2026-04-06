@@ -84,7 +84,7 @@ func (r *Repository) Update(ctx context.Context, id string, update *local_model.
 			enabled = :5,
 			is_deleted = :6,
 			last_modified = SYSTIMESTAMP
-		WHERE id = :8 AND is_deleted = 0`
+		WHERE id = HEXTORAW(:7) AND is_deleted = 0`
 
 	_, err := r.db.ExecContext(ctx, q,
 		string(update.Currency),
@@ -132,7 +132,7 @@ func (r *Repository) FindByID(ctx context.Context, id string) (*local_model.Auth
 			currency, min_amount, max_amount, method,
 			enabled, is_deleted, created_at, last_modified
 		FROM AMOUNT_BASED_AUTH_TIERS
-		WHERE id = :1 AND is_deleted = 0`
+		WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 
 	row := r.db.QueryRowContext(ctx, q, id)
 	var tier local_model.AuthTierOracle
