@@ -150,7 +150,7 @@ func (u *UssdMerchantRepository) FindByOr(ctx context.Context, phone, email, acc
 }
 
 func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse], error) {
-	filter := bson.M{}
+	filter := bson.M{"is_deleted": bson.M{"$ne": true}}
 	searchKeys := bson.M{}
 
 	allowedKeys := []string{"enabled", "merchant_code", "name", "settlement_method", "phone_number", "service", "account_number"}
@@ -184,6 +184,7 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 			"credential":        1,
 			"account_number":    1,
 			"logo":              1,
+			"is_deleted":        1,
 			"updated_at":        1,
 			"created_at":        1,
 		}}},
