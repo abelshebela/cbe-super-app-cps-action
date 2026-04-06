@@ -49,57 +49,6 @@ func (w *WalletOracle) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// MarshalJSON matches Oracle-style responses (UPPERCASE keys, "0"/"1" for flags) used by other services in this stack.
-func (w WalletOracle) MarshalJSON() ([]byte, error) {
-	out := map[string]interface{}{
-		"ID":               w.ID,
-		"NAME":             w.Name,
-		"UNIQUE_CODE":      w.UniqueCode,
-		"SERVICE_ID":       w.ServiceID,
-		"AVATAR":           w.Avatar,
-		"ENABLED":          boolTo01(w.Enabled),
-		"IS_DELETED":       boolTo01(w.IsDeleted),
-		"SERVICES_SELF":    boolTo01(w.Self),
-		"SERVICES_OTHER":   boolTo01(w.Other),
-		"SERVICES_AGENT":   boolTo01(w.Agent),
-		"CREATED_AT":       formatRFC3339Nano(w.CreatedAt),
-		"LAST_MODIFIED_AT": formatRFC3339Nano(w.LastModifiedAt),
-	}
-	if w.ServiceCode != "" {
-		out["SERVICE_CODE"] = w.ServiceCode
-	}
-	if w.ServiceKey != "" {
-		out["SERVICE_KEY"] = w.ServiceKey
-	}
-	if w.DeletedAt != nil {
-		out["DELETED_AT"] = formatRFC3339NanoPtr(w.DeletedAt)
-	} else {
-		out["DELETED_AT"] = nil
-	}
-	return json.Marshal(out)
-}
-
-func boolTo01(b bool) string {
-	if b {
-		return "1"
-	}
-	return "0"
-}
-
-func formatRFC3339Nano(t time.Time) string {
-	if t.IsZero() {
-		return ""
-	}
-	return t.UTC().Format(time.RFC3339Nano)
-}
-
-func formatRFC3339NanoPtr(t *time.Time) string {
-	if t == nil || t.IsZero() {
-		return ""
-	}
-	return t.UTC().Format(time.RFC3339Nano)
-}
-
 func pickString(m map[string]interface{}, keys ...string) string {
 	v, _ := pickRaw(m, keys...)
 	if v == nil {
