@@ -79,9 +79,9 @@ func scanWalletOracleCore(
 }
 
 // Create implements [storage.WalletOracleRepository].
-// Table WALLETS: wallet_code, services_self, services_other, services_agent (see db/migrations).
+// Table WALLETS: UNIQUE_CODE, SERVICES_SELF, SERVICES_OTHER, SERVICES_AGENT (see db/migrations).
 func (q *WalletStorage) Create(ctx context.Context, wallet *model.WalletOracle) error {
-	q.logger.Infof("[WalletStorage][Create] Creating wallet with wallet_code: %s", wallet.UniqueCode)
+	q.logger.Infof("[WalletStorage][Create] Creating wallet with unique_code: %s", wallet.UniqueCode)
 
 	enabled, deleted := 0, 0
 	if wallet.Enabled {
@@ -103,7 +103,7 @@ func (q *WalletStorage) Create(ctx context.Context, wallet *model.WalletOracle) 
 
 	query := `
 			INSERT INTO wallets (
-				id, name, wallet_code, service_id, enabled, avatar,
+				id, name, unique_code, service_id, enabled, avatar,
 				services_self, services_other, services_agent, is_deleted,
 				created_at, last_modified_at, deleted_at
 			) VALUES (
@@ -126,7 +126,7 @@ func (q *WalletStorage) Create(ctx context.Context, wallet *model.WalletOracle) 
 		return err
 	}
 	storage.BumpRedisCacheKey(ctx, q.redis, constants.RedisCacheKeyWallet)
-	q.logger.Infof("[WalletStorage][Create] Successfully created wallet with wallet_code: %s", wallet.UniqueCode)
+	q.logger.Infof("[WalletStorage][Create] Successfully created wallet with unique_code: %s", wallet.UniqueCode)
 	return nil
 }
 
@@ -160,19 +160,19 @@ func (q *WalletStorage) EnableOrDisable(ctx context.Context, id string, enable b
 }
 
 func (q *WalletStorage) Find(ctx context.Context, code string, name string) (*model.WalletOracle, error) {
-	q.logger.Infof("[WalletStorage][Find] Finding wallet with wallet_code: %s and Name: %s", code, name)
+	q.logger.Infof("[WalletStorage][Find] Finding wallet with unique_code: %s and Name: %s", code, name)
 
 	if code == "" && name == "" {
-		q.logger.Warnf("[WalletStorage][Find] wallet_code and name are empty")
+		q.logger.Warnf("[WalletStorage][Find] unique_code and name are empty")
 		return nil, localization.ErrorUnexpectedError
 	}
 
-	query := `SELECT RAWTOHEX(id), name, wallet_code, RAWTOHEX(service_id), enabled, avatar, services_self, services_other, services_agent, is_deleted, created_at, last_modified_at, deleted_at FROM wallets WHERE UPPER(wallet_code)=:1 AND UPPER(name)=:2 AND is_deleted=0`
+	query := `SELECT RAWTOHEX(id), name, unique_code, RAWTOHEX(service_id), enabled, avatar, services_self, services_other, services_agent, is_deleted, created_at, last_modified_at, deleted_at FROM wallets WHERE UPPER(unique_code)=:1 AND UPPER(name)=:2 AND is_deleted=0`
 	row := q.db.QueryRowContext(ctx, query, strings.ToUpper(code), strings.ToUpper(name))
 	var wallet model.WalletOracle
 	if err := scanWalletOracleCore(row, &wallet, false, nil, nil); err != nil {
 		if err == sql.ErrNoRows {
-			q.logger.Infof("[WalletStorage][Find] No wallet found with wallet_code: %s and Name: %s", code, name)
+			q.logger.Infof("[WalletStorage][Find] No wallet found with unique_code: %s and Name: %s", code, name)
 			return nil, nil
 		}
 		q.logger.Errorf("[WalletStorage][Find] failed: %v", err)
@@ -198,7 +198,7 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 		idx++
 	}
 	if filterParam.Filters["code"] != nil {
-		filters = append(filters, fmt.Sprintf("LOWER(w.wallet_code) LIKE :%d", idx))
+		filters = append(filters, fmt.Sprintf("LOWER(w.unique_code) LIKE :%d", idx))
 		args = append(args, "%"+strings.ToLower(fmt.Sprint(filterParam.Filters["code"]))+"%")
 		idx++
 	}
@@ -208,7 +208,7 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 		idx++
 	}
 	if filterParam.Search != "" && filterParam.Search != "enabled" {
-		filters = append(filters, fmt.Sprintf("(LOWER(w.name) LIKE :%d OR LOWER(w.wallet_code) LIKE :%d)", idx, idx+1))
+		filters = append(filters, fmt.Sprintf("(LOWER(w.name) LIKE :%d OR LOWER(w.unique_code) LIKE :%d)", idx, idx+1))
 		args = append(args, "%"+strings.ToLower(filterParam.Search)+"%", "%"+strings.ToLower(filterParam.Search)+"%")
 		idx += 2
 	}
@@ -258,7 +258,7 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 	}
 
 	query := fmt.Sprintf(`
-			SELECT RAWTOHEX(w.id), w.name, w.wallet_code, RAWTOHEX(w.service_id), w.enabled, w.avatar, w.services_self, w.services_other, w.services_agent, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at,
+			SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id), w.enabled, w.avatar, w.services_self, w.services_other, w.services_agent, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at,
 			       sk.service_key, s.service_code
 			FROM wallets w
 			LEFT JOIN services s ON w.service_id = s.id
@@ -303,7 +303,7 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 
 func (q *WalletStorage) FindByID(ctx context.Context, id string) (*model.WalletOracle, error) {
 	q.logger.Infof("[WalletStorage][FindByID] Finding wallet with ID: %s", id)
-	row := q.db.QueryRowContext(ctx, `SELECT RAWTOHEX(id), name, wallet_code, RAWTOHEX(service_id), enabled, avatar, services_self, services_other, services_agent, is_deleted, created_at, last_modified_at, deleted_at FROM wallets WHERE id=HEXTORAW(:1)`, id)
+	row := q.db.QueryRowContext(ctx, `SELECT RAWTOHEX(id), name, unique_code, RAWTOHEX(service_id), enabled, avatar, services_self, services_other, services_agent, is_deleted, created_at, last_modified_at, deleted_at FROM wallets WHERE id=HEXTORAW(:1)`, id)
 	var wallet model.WalletOracle
 	if err := scanWalletOracleCore(row, &wallet, false, nil, nil); err != nil {
 		if err == sql.ErrNoRows {
@@ -318,7 +318,7 @@ func (q *WalletStorage) FindByID(ctx context.Context, id string) (*model.WalletO
 func (q *WalletStorage) FindByIDForGRPC(ctx context.Context, id string) (*model.WalletOracle, error) {
 	q.logger.Infof("[WalletStorage][FindByIDForGRPC] Finding wallet with ID: %s", id)
 	row := q.db.QueryRowContext(ctx, `
-			SELECT RAWTOHEX(w.id), w.name, w.wallet_code, RAWTOHEX(w.service_id), w.enabled, w.avatar, w.services_self, w.services_other, w.services_agent, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at,
+			SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id), w.enabled, w.avatar, w.services_self, w.services_other, w.services_agent, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at,
 				   sk.service_key, s.service_code
 			FROM wallets w
 			LEFT JOIN services s ON w.service_id = s.id
@@ -359,7 +359,7 @@ func (q *WalletStorage) Update(ctx context.Context, id string, wallet *model.Wal
 	query := `
 			UPDATE wallets SET
 				name = :1,
-				wallet_code = :2,
+				unique_code = :2,
 				service_id = HEXTORAW(:3),
 				avatar = :4,
 				services_self = :5,

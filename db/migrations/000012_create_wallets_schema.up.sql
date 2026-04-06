@@ -1,8 +1,7 @@
--- WALLETS (Oracle) — aligned with internal/storage/persistance/wallet/oracle
 CREATE TABLE wallets (
     id RAW(16) PRIMARY KEY,
     name VARCHAR2(255),
-    wallet_code VARCHAR2(255),
+    unique_code VARCHAR2(255),
     service_id RAW(16),
     enabled NUMBER(1) DEFAULT 0,
     avatar VARCHAR2(255),
