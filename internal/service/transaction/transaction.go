@@ -15,24 +15,24 @@ type TransactionService struct {
 	logger utils.Logger
 }
 
-// FindTransactionByCifOrAccountNumberOrFT implements service.TransactionService.
-func (t *TransactionService) FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.FullTransaction, error) {
-	return t.repo.FindTransactionByCifOrAccountNumberOrFT(ctx, identifier)
-}
-
-// FetchAllTransactions implements service.TransactionService.
-func (t *TransactionService) FetchAllTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error) {
-	return t.repo.FindAllWithPagination(ctx, *filterParams)
-}
-
-// FetchTransactionByID implements service.TransactionService.
-func (t *TransactionService) FetchTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error) {
-	return t.repo.FindTransactionByID(ctx, id)
-}
-
-func NewTransactionService(repo storage.TransactionRepository, logger utils.Logger) service.TransactionService {
+func NewVaultTransactionService(repo storage.TransactionRepository, logger utils.Logger) service.TransactionService {
 	return &TransactionService{
 		repo:   repo,
 		logger: logger,
 	}
+}
+
+// FindTransactionByCifOrAccountNumberOrFT implements service.TransactionService.
+func (t *TransactionService) FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.VaultTransaction, error) {
+	return t.repo.FindTransactionByCifOrAccountNumberOrFT(ctx, identifier)
+}
+
+// FetchAllTransactions implements service.TransactionService.
+func (t *TransactionService) FetchAllTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]transaction_dto.VaultTransaction], error) {
+	return t.repo.FindAllWithPagination(ctx, *filterParams)
+}
+
+// FetchTransactionByID implements service.TransactionService.
+func (t *TransactionService) FetchTransactionByID(ctx context.Context, id string) (transaction_dto.VaultTransaction, error) {
+	return t.repo.FindTransactionByID(ctx, id)
 }

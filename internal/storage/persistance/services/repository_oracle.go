@@ -18,8 +18,6 @@ import (
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
-	// shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
-	model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -45,7 +43,7 @@ func NewServicesRepository(db *sql.DB, cfg *config.VaultConfig, kafkaProducer ka
 
 const (
 	servicesTable   = "services"
-	accessListTable = "access_list"
+	accessListTable = "access_lists"
 	// serviceKeysTable     = "service_keys"
 	maxPaginationDefault = 50
 )
@@ -396,14 +394,34 @@ func (s *ServicesStorage) Delete(ctx context.Context, id string) error {
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	const deleteCapsQ = `DELETE FROM service_cap WHERE service_id = HEXTORAW(:1)`
-	if _, err := tx.ExecContext(ctx, deleteCapsQ, id); err != nil {
-		s.logger.Errorf("[ServicesRepo][Delete] delete caps failed: %v", err)
+	const updateCapsQ = `
+UPDATE service_cap
+SET
+  is_deleted = 1,
+  deleted_at = SYSTIMESTAMP,
+  last_modified_at = SYSTIMESTAMP
+WHERE service_id = HEXTORAW(:1)
+  AND is_deleted = 0`
+	if _, err := tx.ExecContext(ctx, updateCapsQ, id); err != nil {
+		s.logger.Errorf("[ServicesRepo][Delete] update service_cap failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
+	const updateServiceQ = `
+UPDATE services
+SET
+  is_deleted = 1,
+  deleted_at = SYSTIMESTAMP,
+  last_modified_at = SYSTIMESTAMP
+WHERE id = HEXTORAW(:1)
+  AND is_deleted = 0`
+	if _, err := tx.ExecContext(ctx, updateServiceQ, id); err != nil {
+		s.logger.Errorf("[ServicesRepo][Delete] update services failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
 	const q = `
-UPDATE access_list
+UPDATE access_lists
 SET
   is_deleted = 1,
   deleted_at = SYSTIMESTAMP,
@@ -435,7 +453,7 @@ WHERE id = (
 
 func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	const q = `
-UPDATE access_list
+UPDATE access_lists
 SET
   is_enabled = :1,
   last_modified_at = SYSTIMESTAMP
@@ -483,7 +501,7 @@ SELECT
   s.last_modified_at,
   sk.deleted_at
 FROM services s
-JOIN access_list sk ON sk.id = s.access_list_id
+JOIN access_lists sk ON sk.id = s.access_list_id
 WHERE s.id = HEXTORAW(:1) AND sk.is_deleted = 0`
 
 	var serviceID string
@@ -696,7 +714,7 @@ func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode
 	return count > 0, nil
 }
 
-func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceKey], error) {
+func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceKey], error) {
 	limit := int64(maxPaginationDefault)
 	page := int64(1)
 	if filterParam.PerPage > 0 {
@@ -776,10 +794,10 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 	}
 	defer rows.Close()
 
-	var list []model.ServiceKey
+	var list []imodel.ServiceKey
 	for rows.Next() {
 		var listID string
-		var item model.ServiceKey
+		var item imodel.ServiceKey
 		if err := rows.Scan(
 			&listID,
 			&item.ServiceName,
@@ -798,16 +816,16 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, int(page), int(limit))
-	return &types.PaginatedResponse[[]model.ServiceKey]{Data: list, Meta: meta}, nil
+	return &types.PaginatedResponse[[]imodel.ServiceKey]{Data: list, Meta: meta}, nil
 }
 
-func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*model.ServiceKey, error) {
+func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*imodel.ServiceKey, error) {
 	const q = `
 SELECT RAWTOHEX(id), name, service_key, is_enabled, created_at, last_modified_at
-FROM access_list
+FROM access_lists
 WHERE id = HEXTORAW(:1)`
 
-	var item model.ServiceKey
+	var item imodel.ServiceKey
 	var listID string
 	err := s.db.QueryRowContext(ctx, q, id).Scan(
 		&listID,
@@ -829,7 +847,7 @@ WHERE id = HEXTORAW(:1)`
 	return &item, nil
 }
 
-func (s *ServicesStorage) FindServiceListByNameOrKey(ctx context.Context, name, key string) (*model.ServiceKey, error) {
+func (s *ServicesStorage) FindServiceListByNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error) {
 	conds := make([]string, 0, 2)
 	args := make([]interface{}, 0, 2)
 
@@ -853,7 +871,7 @@ FROM %s
 WHERE (%s)
 FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
 
-	var item model.ServiceKey
+	var item imodel.ServiceKey
 	var listID string
 	err := s.db.QueryRowContext(ctx, query, args...).Scan(
 		&listID,
@@ -874,7 +892,7 @@ FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
 	return &item, nil
 }
 
-func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *model.ServiceKey) error {
+func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) error {
 	serviceList.IsEnabled = true
 
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -885,7 +903,7 @@ func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *mod
 	defer func() { _ = tx.Rollback() }()
 
 	const q = `
-INSERT INTO access_list (
+INSERT INTO access_lists (
   name,
   service_key,
   is_enabled
@@ -945,7 +963,7 @@ VALUES (
 	return nil
 }
 
-func (s *ServicesStorage) UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *model.ServiceKey) error {
+func (s *ServicesStorage) UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][UpdateServiceKey] begin tx failed: %v", err)
@@ -953,7 +971,7 @@ func (s *ServicesStorage) UpdateServiceKey(ctx context.Context, id, serviceKey s
 	}
 	defer func() { _ = tx.Rollback() }()
 	const q = `
-UPDATE access_list
+UPDATE access_lists
 SET
   name = :1,
   service_key = :2,
@@ -1000,7 +1018,7 @@ WHERE id = :3 AND service_key = :4`
 
 func (s *ServicesStorage) EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error {
 	const q = `
-UPDATE access_list
+UPDATE access_lists
 SET
   is_enabled = :1,
   last_modified_at = SYSTIMESTAMP
