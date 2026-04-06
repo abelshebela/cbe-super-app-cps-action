@@ -34,7 +34,7 @@ type CapRequest struct {
 type CreateServiceRequest struct {
 	// ServiceName      string `json:"service_name" example:"Transfer To Other bank"`
 	// ServiceKey       string `json:"service_key" example:"Transfer To Other bank"`
-	ServiceKeyId             string `json:"id"`
+	ServiceKeyId             string `json:"service_key_id"`
 	ServiceCode              string `json:"service_code" example:"JKSJBDJB"`
 	ProductGlAccount         string `json:"cbe_gl_product_account" example:"234353354"`
 	ProductGlAccountCurrency string `json:"product_gl_account_currency"`
@@ -51,7 +51,7 @@ type CreateServiceRequest struct {
 type UpdateServiceRequest struct {
 	// ServiceName      *string      `json:"service_name" example:"Transfer To Other bank"`
 	// ServiceKey       *string      `json:"service_key" example:"Transfer To Other bank"`
-	ServiceKeyId             *string `json:"id"`
+	ServiceKeyId             *string `json:"service_key_id"`
 	ServiceCode              *string `json:"service_code" example:"JKSJBDJB"`
 	ProductGlAccount         *string `json:"cbe_gl_product_account" example:"234353354"`
 	ProductGlAccountCurrency *string `json:"product_gl_account_currency"`
