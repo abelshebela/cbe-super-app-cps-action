@@ -217,9 +217,13 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(
 
 	// ✅ Optional enabled filter (FIXED)
 	if val, ok := filterParam.Filters["enabled"]; ok && val != nil {
-		filters = append(filters, fmt.Sprintf("w.enabled = :%d", idx))
-		args = append(args, val)
-		idx++
+		_, ok := val.(bool)
+		if ok {
+			filters = append(filters, fmt.Sprintf("w.enabled = :%d", idx))
+			args = append(args, val)
+			idx++
+		}
+
 	}
 
 	// Search filter
