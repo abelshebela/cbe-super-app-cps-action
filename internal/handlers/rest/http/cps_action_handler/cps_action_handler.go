@@ -93,7 +93,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	}
 
 	actionName := ""
-	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(constants.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
 
@@ -304,7 +304,7 @@ func (a *cpsActionAdapter) ReverseCPSAction(w http.ResponseWriter, r *http.Reque
 	}
 
 	actionName := ""
-	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(constants.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
 	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
@@ -392,7 +392,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	// Validate approver role's checker_index via cps_action_approver_index (grouped: 0.* -> 1.*, 1.* -> 2.*)
 	actionName := ""
 	var idxDoc *imodel.CPSActionApproveIndex
-	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(constants.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
 
@@ -529,7 +529,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 	// Validate approver role's checker_index via cps_action_approver_index (grouped: 0.* -> 1.*, 1.* -> 2.*)
 	actionName := ""
 	var idxDoc *imodel.CPSActionApproveIndex
-	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(constants.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
 
@@ -1603,7 +1603,7 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 
 	actionName := ""
 	var idxDoc *imodel.CPSActionApproveIndex
-	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(requestAction)); ok {
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(constants.RequestAction(requestAction)); ok {
 		actionName = mod
 	}
 

@@ -2,6 +2,7 @@ CREATE TABLE ACCESS_LISTS (
     ID RAW (16) DEFAULT SYS_GUID () PRIMARY KEY,
     NAME VARCHAR2 (64) NOT NULL,
     SERVICE_KEY VARCHAR2 (32) NOT NULL,
+    IS_USSD_ENABLED NUMBER(1) DEFAULT 0 NOT NULL, 
     IS_ENABLED NUMBER (1) DEFAULT 1,
     IS_DELETED NUMBER (1) DEFAULT 0,
     CREATED_AT TIMESTAMP DEFAULT SYSTIMESTAMP,
@@ -40,10 +41,18 @@ CREATE TABLE SERVICE_CAP (
     CONSTRAINT FK_SERVICE_CAPS_SERVICE_ID FOREIGN KEY (SERVICE_ID) REFERENCES SERVICES (ID),
     CONSTRAINT CHECK_SERVICE_CAPS_IS_DELETED CHECK (IS_DELETED IN (0, 1)),
     CONSTRAINT CHECK_SERVICE_CAPS_SOURCE CHECK (
-        SOURCE IN (
-            'app',
-            'ussd',
-            'internet_banking'
+            SOURCE IN (
+                'APP',
+                'USSD',
+                'INTERNET_BANKING'
+            )
+        ),
+    CONSTRAINT CHECK_SERVICE_CAPS_CURRENCY CHECK (
+            CURRENCY IN (
+                'ETB',
+                'USD',
+                'EUR',
+                'GBP'
+            )
         )
-    )
 );
