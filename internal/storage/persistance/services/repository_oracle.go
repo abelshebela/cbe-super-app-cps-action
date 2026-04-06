@@ -804,7 +804,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*model.ServiceKey, error) {
 	const q = `
 SELECT RAWTOHEX(id), name, service_key, is_enabled, created_at, last_modified_at
-FROM access_list
+FROM access_lists
 WHERE id = HEXTORAW(:1)`
 
 	var item model.ServiceKey

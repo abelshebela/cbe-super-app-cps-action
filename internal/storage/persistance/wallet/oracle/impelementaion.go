@@ -169,7 +169,7 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 		idx++
 	}
 	if filterParam.Filters["enabled"] != nil {
-		filters = append(filters, fmt.Sprintf("w.enabled = :%d", idx))
+		filters = append(filters, fmt.Sprintf("w.is_enabled = :%d", idx))
 		args = append(args, filterParam.Filters["enabled"])
 		idx++
 	}
@@ -179,7 +179,7 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 		idx += 2
 	}
 	if filterParam.Search == "enabled" {
-		filters = append(filters, "w.enabled = 1")
+		filters = append(filters, "w.is_enabled = 1")
 	}
 	whereClause := ""
 	if len(filters) > 0 {
@@ -231,7 +231,7 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(ctx context.Context, filter
 
 	// Query
 	query := fmt.Sprintf(`
-			SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id), w.avatar, w.enabled, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at,
+			SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id), w.avatar, w.is_enabled, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at,
 				   s.service_key, s.service_code
 			FROM wallets w
 			LEFT JOIN services s ON w.service_id = s.id
@@ -312,7 +312,7 @@ func (q *WalletStorage) FindByID(ctx context.Context, id string) (*model.WalletO
 func (q *WalletStorage) FindByIDForGRPC(ctx context.Context, id string) (*model.WalletOracle, error) {
 	q.logger.Infof("[WalletStorage][FindByIDForGRPC] Finding wallet with ID: %s", id)
 	row := q.db.QueryRowContext(ctx, `
-			SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id), w.avatar, w.enabled, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at,
+			SELECT RAWTOHEX(w.id), w.name, w.unique_code, RAWTOHEX(w.service_id), w.avatar, w.is_enabled, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at,
 				   s.service_key, s.service_code
 			FROM wallets w
 			LEFT JOIN services s ON w.service_id = s.id
