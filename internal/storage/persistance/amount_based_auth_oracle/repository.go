@@ -44,7 +44,7 @@ func (r *Repository) Create(ctx context.Context, tier *local_model.AuthTierOracl
 
 	q := `INSERT INTO AMOUNT_BASED_AUTH_TIERS
 		(id, currency, min_amount, max_amount, method, enabled, is_deleted, created_at, last_modified)
-		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, :6, :7, :8)`
+		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, :6, SYSTIMESTAMP, SYSTIMESTAMP)`
 
 	_, err := r.db.ExecContext(ctx, q,
 		string(tier.Currency),
@@ -53,8 +53,6 @@ func (r *Repository) Create(ctx context.Context, tier *local_model.AuthTierOracl
 		string(tier.Method),
 		tier.Enabled,
 		tier.IsDeleted,
-		tier.CreatedAt,
-		tier.LastModified,
 	)
 	if err != nil {
 		r.logger.Errorf("[AmountBasedAuthOracle][Create] failed: %v", err)
@@ -85,7 +83,7 @@ func (r *Repository) Update(ctx context.Context, id string, update *local_model.
 			method = :4,
 			enabled = :5,
 			is_deleted = :6,
-			last_modified = :7
+			last_modified = SYSTIMESTAMP
 		WHERE id = :8 AND is_deleted = 0`
 
 	_, err := r.db.ExecContext(ctx, q,
@@ -95,7 +93,6 @@ func (r *Repository) Update(ctx context.Context, id string, update *local_model.
 		string(update.Method),
 		update.Enabled,
 		update.IsDeleted,
-		update.LastModified,
 		id,
 	)
 	if err != nil {
