@@ -666,6 +666,7 @@ const (
 	RequestEnableUssdMerchant  string = "ENABLE_USSD_MERCHANT"
 	RequestDisableUssdMerchant string = "DISABLE_USSD_MERCHANT"
 
+
 	// Ecommerce Merchant
 	RequestCreateEcommerceMerchant  RequestAction = "CREATE_ECOMMERCE_MERCHANT"
 	RequestUpdateEcommerceMerchant  RequestAction = "UPDATE_ECOMMERCE_MERCHANT"

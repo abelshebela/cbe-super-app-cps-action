@@ -71,7 +71,7 @@ func Init(router chi.Router, handler donation_company.DonationCompanyAdapter, au
 		},
 		{
 			Method:  http.MethodDelete,
-			Path:    "/donation_company/delete/{id}",
+			Path:    "/donation_company/{id}",
 			Handler: handler.DeleteDonationCompany,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

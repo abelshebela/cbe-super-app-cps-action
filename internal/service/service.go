@@ -823,6 +823,7 @@ type UssdMerchantService interface {
 	EnableUssdMerchant(ctx context.Context, id string) error
 	DisableUssdMerchant(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	DeleteUssdMerchant(ctx context.Context,id string) error
 }
 
 type CustomerKYCService interface {
