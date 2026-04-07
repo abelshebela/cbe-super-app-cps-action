@@ -823,7 +823,6 @@ type UssdMerchantService interface {
 	UpdateUssdMerchant(ctx context.Context, id string, req ussd_merchant_dto.UpdateUssdMerchantRequest) error
 	EnableUssdMerchant(ctx context.Context, id string) error
 	DisableUssdMerchant(ctx context.Context, id string) error
-	DeleteUssdMerchant(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	DeleteUssdMerchant(ctx context.Context,id string) error
 }
