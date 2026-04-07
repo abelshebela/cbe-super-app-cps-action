@@ -32,7 +32,10 @@ func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionSe
 
 func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServiceRequest) error {
 	filterParam := types.Filter{
-		Search: req.ServiceKeyId,
+		Search: req.ServiceCode,
+		Filters: map[string]interface{}{
+			"access_list_key": req.ServiceKeyId,
+		},
 	}
 
 	services, err := s.repo.FindAllWithPagination(ctx, filterParam)
@@ -169,6 +172,16 @@ func (s *servicesService) EnableOrDisableServiceList(ctx context.Context, id str
 		requestAction = constants.RequestDisableServiceList
 	}
 	return core.HandleCPSAction(ctx, s.cps, id, requestAction, payload, prev, constants.ActionUpdate)
+}
+
+func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error {
+	_, err := s.repo.FindServiceListByID(ctx, id)
+	if err != nil {
+		if err.Error() == localization.ErrorServiceListNotFound.Code {
+			return errors.New(localization.ErrorServiceListNotFound.Code)
+		}
+	}
+	return s.repo.DeleteServiceList(ctx, id)
 }
 
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {

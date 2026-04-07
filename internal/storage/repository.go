@@ -99,6 +99,7 @@ type ServicesRepository interface {
 	CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) error
 	UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error
 	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
+	DeleteServiceList(ctx context.Context, id string) error
 }
 
 type OTPRepository interface {
@@ -899,6 +900,7 @@ type AccessListSegmentationRepositoryOracle interface {
 	Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error
 	FindAllForAccount(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
 	FindAllForBlock(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
+	FindAllForBlockParents(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
 	FindAllByBlockAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
 	FindAllByAccountAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
 	BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error
@@ -912,7 +914,7 @@ type WalletOracleRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 
 	FindByID(ctx context.Context, id string) (*local_model.WalletOracle, error)
-	Find(ctx context.Context, key, value string) (*local_model.WalletOracle, error)
+	Find(ctx context.Context, key, value, service_id string) (*local_model.WalletOracle, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
 	FindByIDForGRPC(ctx context.Context, id string) (*local_model.WalletOracle, error)
 	FindAllWithPaginationForGRPC(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
