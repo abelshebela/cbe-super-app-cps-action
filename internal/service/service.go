@@ -812,7 +812,7 @@ type AccessListSegmentationService interface {
 	EnableDisableAccessListSegmentation(ctx context.Context, id string, enabled bool, keys []string, segmentation_type string) error
 	CheckALLIdsExist(ctx context.Context, t string, ids []string) error
 	GetAllAccessListSegmentationForAccount(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error)
-	GetAllAccessListSegmentationForBlock(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error)
+	GetAllAccessListSegmentationForBlock(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, []model.APPAccessList, error)
 }
 
 type UssdMerchantService interface {

@@ -895,6 +895,7 @@ type AccessListSegmentationRepositoryOracle interface {
 	Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error
 	FindAllForAccount(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
 	FindAllForBlock(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
+	FindAllForBlockParents(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
 	FindAllByBlockAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
 	FindAllByAccountAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
 	BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error
