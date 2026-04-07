@@ -59,6 +59,14 @@ func Init(router chi.Router, handler ussd_merchant_interface.UssdMerchantInbound
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/ussd_merchant/{id}",
+			Handler: handler.DeleteUssdMerchant,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

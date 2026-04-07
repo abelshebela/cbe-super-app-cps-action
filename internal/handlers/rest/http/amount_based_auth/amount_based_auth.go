@@ -123,13 +123,13 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 		return
 	}
 
-	// Validate the method parameter
-	methodEnum := shared_constant.Method(method)
-	if methodEnum == shared_constant.OPEN || methodEnum == shared_constant.PIN || methodEnum == shared_constant.OTPANDPIN {
-	} else {
+	// Map path segment (e.g. OTP_PIN) to stored method (PIN_OTP); validate against catalog.
+	cm := amount_based_auth_dto.CanonicalMethodFromPath(method)
+	if !amount_based_auth_dto.ValidMethods[cm] {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidMethod.Message)
 		return
 	}
+	methodEnum := shared_constant.Method(cm)
 
 	if !request.Validate(methodEnum) {
 		span.SetAttributes(attribute.String("amount_based_auth.method", string(methodEnum)))

@@ -122,11 +122,13 @@ const (
 	MsgDonationCategoryUpdated           = "Donation category update request submitted successfully"
 
 	MsgDonationCategoryDisableRequestSent = "Donation category Disable request submitted successfully"
+	MsgDonationCategoryDeleteRequestSent  = "Donation category Delete request submitted successfully"
 	MsgDonationCompanyEnableRequestSent   = "Donation Company Enable request submitted successfully"
 	MsgDonationCompanyDisableRequestSent  = "Donation company Disable request submitted successfully"
 	MsgDonationCategoryEnableRequestSent  = "Donation category Enable request submitted successfully"
 
 	MsgActiveDonationExistsInCategory    = "Please disable all active donations in this category before disabling the category"
+	MsgActiveDonationExistsInCompany     = "Please disable all active donations in this company before deleting the company"
 	MsgDonationCompanyCreateRequestSent  = "Donation company create request submitted successfully"
 	MsgDonationCompaniesFetched          = "Donation companies fetched successfully"
 	MsgDonationCompanyFetched            = "Donation company fetched successfully"
@@ -160,6 +162,7 @@ const (
 	MsgDonationCategoryUpdatedSuccessfullySP  = "Donation category updated successfully"
 	MsgDonationCategoryEnabledSuccessfullySP  = "Donation category enabled successfully"
 	MsgDonationCategoryDisabledSuccessfullySP = "Donation category disabled successfully"
+	MsgDonationCategoryDeleteSuccessfullySP   = "Donation Category Deleted successfully"
 
 	// =======================
 	// Donation Company – Messages
@@ -168,6 +171,8 @@ const (
 	MsgDonationCompanyUpdatedSuccessfullySP  = "Donation company updated successfully"
 	MsgDonationCompanyEnabledSuccessfullySP  = "Donation company enabled successfully"
 	MsgDonationCompanyDisabledSuccessfullySP = "Donation company disabled successfully"
+	MsgDonationCompanyDeleteRequestSent      = "Donation company delete request submitted successfully"
+	MsgDonationCompanyDeleteSuccessfullySP   = "Donation company deleted successfully"
 
 	MsgDonationCreatedSuccessfullySP = "Donation created successfully"
 	MsgDonationUpdatedSuccessfullySP = "Donation updated successfully"
@@ -180,6 +185,8 @@ const (
 	// State changes
 	MsgDonationEnabledSuccessfullySP  = "Donation enabled successfully"
 	MsgDonationDisabledSuccessfullySP = "Donation disabled successfully"
+	MsgDonationDeleteRequestSent      = "Donation delete request submitted successfully"
+	MsgDonationDeleteSuccessfullySP   = "Donation deleted successfully"
 
 	// CPS Action related success messages
 	MsgCPSActionsRetrievedSuccessfully     = "CPS Actions retrieved successfully"
@@ -336,6 +343,8 @@ const (
 	MsgBPSUserApprovedSuccessfully  = "BPS user approved successfully"
 	MsgBPSUserUpdatedSuccessfully   = "BPS user update successfully submitted"
 	MsgBPSUserUpdatedSuccessfullySP = "BPS user updated successfully submitted"
+	MsgBPSUserDeletedSuccessfullySP = "BPS user deleted successfully"
+	MsgBPSUserDeleteRequestSent     = "BPS user delete request sent successfully"
 
 	// Account Validation related success messages
 	MsgValidationRuleApprovedSuccessfully   = "account validation Update request submitted for approval"
@@ -493,30 +502,33 @@ const (
 	MsgBpsUserCreateSuccess   = "BPS user create request submitted successfully"
 	MsgBpsUserCreateSuccessSP = "BPS user created successfully"
 
-	// CPS Roles
-	MsgCpsRoleCreated           = "CPS role create request submitted successfully"
-	MsgCpsRoleUpdated           = "CPS role update request submitted successfully"
-	MsgCpsRolesFetched          = "CPS roles fetched successfully"
-	MsgCpsRoleFetched           = "CPS role fetched successfully"
-	MsgCpsRoleEnabled           = "CPS role enable request submitted successfully"
-	MsgCpsRoleDisabled          = "CPS role disable request submitted successfully"
-	MsgCpsRoleAlreadyEnabled    = "CPS role already enabled"
-	MsgCpsRoleAlreadyDisabled   = "CPS role already disabled"
-	MsgCpsRoleNameAlreadyExists = "CPS role name already exists"
-	MsgCpsRoleCodeAlreadyExists = "CPS role code already exists"
+	MsgBpsUserDeleteRequestSent    = "BPS user delete request submitted successfully"
+	MsgBpsUserDeleteSuccessfullySP = "BPS user deleted successfully"
 
-	MsgCpsRoleCreatedSP  = "CPS role created successfully"
-	MsgCpsRoleUpdatedSP  = "CPS role updated successfully"
-	MsgCpsRoleEnabledSP  = "CPS role enabled successfully"
-	MsgCpsRoleDisabledSP = "CPS role disabled successfully"
+	// Customer Roles
+	MsgCpsRoleCreated           = "Customer role create request submitted successfully"
+	MsgCpsRoleUpdated           = "Customer role update request submitted successfully"
+	MsgCpsRolesFetched          = "Customer roles fetched successfully"
+	MsgCpsRoleFetched           = "Customer role fetched successfully"
+	MsgCpsRoleEnabled           = "Customer role enable request submitted successfully"
+	MsgCpsRoleDisabled          = "Customer role disable request submitted successfully"
+	MsgCpsRoleAlreadyEnabled    = "Customer role already enabled"
+	MsgCpsRoleAlreadyDisabled   = "Customer role already disabled"
+	MsgCpsRoleNameAlreadyExists = "Customer role name already exists"
+	MsgCpsRoleCodeAlreadyExists = "Customer role code already exists"
+
+	MsgCpsRoleCreatedSP  = "Customer role created successfully"
+	MsgCpsRoleUpdatedSP  = "Customer role updated successfully"
+	MsgCpsRoleEnabledSP  = "Customer role enabled successfully"
+	MsgCpsRoleDisabledSP = "Customer role disabled successfully"
 
 	MsgCannotDisableOwnRole     = "You cannot disable your own role"
 	MsgCannotDisableOwnJobTitle = "You cannot disable your own job title"
 	MsgRoleHasActiveJobs        = "There are active jobs for this role, you can't disable it"
-	MsgCpsRoleServiceEnabled    = "Service access enabled for CPS role successfully"
-	MsgCpsRoleServiceDisabled   = "Service access disabled for CPS role successfully"
-	MsgCpsRoleDeleted           = "CPS role delete request submitted successfully"
-	MsgCpsRoleDeletedSP         = "CPS role deleted successfully"
+	MsgCpsRoleServiceEnabled    = "Service access enabled for Customer role successfully"
+	MsgCpsRoleServiceDisabled   = "Service access disabled for Customer role successfully"
+	MsgCpsRoleDeleted           = "Customer role delete request submitted successfully"
+	MsgCpsRoleDeletedSP         = "Customer role deleted successfully"
 
 	// Feedback Handler related success messages
 	MsgFeedbackCreatedSuccessfullySP = "Feedback created successfully"
@@ -1277,6 +1289,7 @@ const (
 
 	MsgAlreadyEnabled  = "Already enabled"
 	MsgAlreadyDisabled = "Already disabled"
+	MsgAlreadyDeleted  = "Already Deleted"
 
 	MsgBucketNotFound = "bucket not found"
 
@@ -1390,6 +1403,8 @@ const (
 	MsgUssdMerchantUpdatedSuccessfully               = "Ussd merchant updated successfully"
 	MsgUssdMerchantCreatedSuccessfully               = "Ussd merchant created successfully"
 	MsgUssdMerchantRequestCreatedSuccessfully        = "Ussd merchant request created successfully"
+	MsgUssdMerchantDeletedSuccessfully               = "Ussd merchant deleted successfully"
+	MsgUssdMerchantDeleteRequestCreatedSuccessfully  = "Ussd merchant delete request created successfully"
 
 	// access list segmentation related messages
 	MsgAccessListSegmentationCreatedSuccessfully    = "Access list segmentation create request sent successfully"
@@ -1411,5 +1426,6 @@ const (
 	MsgCustomerSegmentationEnableSuccessfully      = "Customer segmentation enable request submitted successfully"
 	MsgCustomerSegmentationDisableSuccessfully     = "Customer segmentation disable request submitted successfully"
 	MsgAccessListKeysRequired                      = "Access List Keys are required"
+	MsgSegmentationTypeRequired                    = "Segmentation type is required"
 	MsgAccessListSegmentationKeyNotFound           = "Access List Segmentation Key not found"
 )

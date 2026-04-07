@@ -6,6 +6,8 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+// APPAccessList is the app/bulk-service shape (Mongo + API). Oracle persistence uses
+// AccessListOracle (SERVICE_KEY → Key, NAME → AccessListName, IS_ENABLED → Enabled).
 type APPAccessList struct {
 	ID             bson.ObjectID         `json:"_id" bson:"_id"`
 	Key            string                `json:"key" bson:"key"`

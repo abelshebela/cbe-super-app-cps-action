@@ -7,6 +7,7 @@ type UssdMerchantInbound interface {
 	UpdateUssdMerchant(w http.ResponseWriter, r *http.Request)
 	EnableUssdMerchant(w http.ResponseWriter, r *http.Request)
 	DisableUssdMerchant(w http.ResponseWriter, r *http.Request)
+	DeleteUssdMerchant(w http.ResponseWriter, r *http.Request)
 	GetUssdMerchant(w http.ResponseWriter, r *http.Request)
 	GetAllUssdMerchant(w http.ResponseWriter, r *http.Request)
 }

@@ -111,7 +111,6 @@ func (s *DonationCompanyStorage) FindByAccountNumber(ctx context.Context, accoun
 
 func (s *DonationCompanyStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_company.DonationCompanyListResponse], error) {
 	// 1. Base filter (only active records)
-	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
@@ -124,6 +123,7 @@ func (s *DonationCompanyStorage) FindAllWithPagination(ctx context.Context, filt
 
 	projection := bson.M{}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	filter["is_deleted"] = bson.M{"$ne": true}
 
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, projection, skip, limit)

@@ -145,7 +145,7 @@ func (d *DonationStorage) FindByID(ctx context.Context, id string) (*donation_dt
 func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_dto.DonationListResponse], error) {
 
 	searchKeys := bson.M{}
-	allowedKeys := []string{"search", "title", "is_featured", "enabled", "donation_code", "target", "end_date"}
+	allowedKeys := []string{"search", "title", "is_featured", "enabled", "donation_code", "target", "end_date", "is_expired", "start_date"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -161,6 +161,7 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 		}
 	}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	filter["is_deleted"] = bson.M{"$ne": true}
 	data, err := d.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		d.logger.Errorf("[DonationStorage][FindAllWithPagination] failed to fetch donations: %v", err)
@@ -259,6 +260,33 @@ func (d *DonationStorage) HasActiveDonationsByCategory(ctx context.Context, cate
 			return false, nil
 		}
 		d.logger.Errorf("[DonationStorage][HasActiveDonationsByCategory] count failed: %v", err)
+		return false, local_util.HandleDBError(err)
+	}
+
+	return count > 0, nil
+}
+
+func (d *DonationStorage) HasActiveDonationsByCompany(ctx context.Context, companyID string) (bool, error) {
+	d.logger.Infof("[DonationStorage][HasActiveDonationsByCompany] checking active donations for company: %s", companyID)
+
+	objID, err := bson.ObjectIDFromHex(companyID)
+	if err != nil {
+		d.logger.Errorf("[DonationStorage][HasActiveDonationsByCompany] invalid company id: %v", err)
+		return false, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	filter := bson.M{
+		"company_id": objID,
+		"enabled":    true,
+		"is_deleted": false,
+	}
+
+	count, err := d.dal.TotalCount(ctx, filter)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		d.logger.Errorf("[DonationStorage][HasActiveDonationsByCompany] count failed: %v", err)
 		return false, local_util.HandleDBError(err)
 	}
 

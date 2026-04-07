@@ -74,12 +74,12 @@ type ServicesService interface {
 	Update(ctx context.Context, id string, req service_dto.UpdateServiceRequest) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
-	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.Service], error)
+	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error)
 	CreateServiceList(ctx context.Context, req *service_dto.CreateServiceList) error
 	UpdateServiceList(ctx context.Context, id string, req *service_dto.UpdateServiceList) error
-	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error)
+	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.ServiceKey], error)
 	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
-	GetByID(ctx context.Context, id string) (*model.Service, error)
+	GetByID(ctx context.Context, id string) (*service_dto.ServiceResponse, error)
 }
 type CPSActionService interface {
 	ApproveCPSAction(ctx context.Context, action *model.CPSAction) error
@@ -205,6 +205,7 @@ type DonationService interface {
 	AddDonationImage(ctx context.Context, id string, image donation_dto.DonationRequest) error
 	EnableDonation(ctx context.Context, id string) error
 	DisableDonation(ctx context.Context, id string) error
+	DeleteDonation(ctx context.Context, id string) error
 	ExportDonationData(ctx context.Context, startDate, endDate time.Time, fileType string) (string, error)
 }
 
@@ -216,6 +217,7 @@ type DonationCategoryService interface {
 	UpdateDonationCategory(ctx context.Context, id string, donation donationCat_dto.DonationCategoryRequest) (donationCat_dto.DonationCategoryRequest, error)
 	EnableDonationCategory(ctx context.Context, id string) error
 	DisableDonationCategory(ctx context.Context, id string) error
+	DeleteDonationCategory(ctx context.Context, id string) error
 }
 
 type DonationCompanyService interface {
@@ -227,6 +229,7 @@ type DonationCompanyService interface {
 	AccountLookup(ctx context.Context, accountNumber string) (*model.AccountDetail, error)
 	EnableDonationCompany(ctx context.Context, id string) error
 	DisableDonationCompany(ctx context.Context, id string) error
+	DeleteDonationCompany(ctx context.Context, id string) error
 }
 
 type EventService interface {
@@ -376,8 +379,8 @@ type WalletService interface {
 	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest) error
 	DeleteWallet(ctx context.Context, id string) error
 	EnableOrDisableWallet(ctx context.Context, id string, enable bool) error
-	GetWallet(ctx context.Context, id string) (*local_model.Wallet, error)
-	GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error)
+	GetWallet(ctx context.Context, id string) (*local_model.WalletOracle, error)
+	GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 	// GetWalletForGRPC(ctx context.Context, id string) (*local_model.GRPCWallet, error)
 	// GetAllWalletForGRPC(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.GRPCWallet], error)
@@ -394,14 +397,14 @@ type TopupService interface {
 }
 
 type AccountBlockService interface {
-	GetBranchById(ctx context.Context, id string) (*model.AccountBlock, error)
-	GetAllBranches(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	GetRegionById(ctx context.Context, id string) (*model.AccountBlock, error)
-	GetAllRegions(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	GetDistrictById(ctx context.Context, id string) (*model.AccountBlock, error)
-	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	GetCityById(ctx context.Context, Id string) (*model.AccountBlock, error)
-	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	GetBranchById(ctx context.Context, id string) (*local_model.AccountBlock, error)
+	GetAllBranches(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
+	GetRegionById(ctx context.Context, id string) (*local_model.AccountBlock, error)
+	GetAllRegions(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
+	GetDistrictById(ctx context.Context, id string) (*local_model.AccountBlock, error)
+	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
+	GetCityById(ctx context.Context, Id string) (*local_model.AccountBlock, error)
+	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
 	EnableOrDisableBranches(ctx context.Context, branchIds []string, reason string, enabled bool) error
 	EnableOrDisableRegions(ctx context.Context, regionIds []string, reason string, enabled bool) error
 	EnableOrDisableDistricts(ctx context.Context, regionIds []string, reason string, enabled bool) error
@@ -471,6 +474,7 @@ type BPSUserService interface {
 	UpdateStatusBpsUser(ctx context.Context, userCode string, status bool) error
 	CreateBPSUser(ctx context.Context, req bps_model.BPSUser) error
 	UpdateBPSUser(ctx context.Context, userCode string, updatedUser bps_model.BPSUser) error
+	DeleteBPSUser(ctx context.Context, userID string) error
 }
 
 type AccountSearchService interface {
@@ -777,9 +781,9 @@ type MiniAppCategoryService interface {
 }
 
 type TransactionService interface {
-	FetchTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
-	FetchAllTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
-	FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.FullTransaction, error)
+	FetchTransactionByID(ctx context.Context, id string) (transaction_dto.VaultTransaction, error)
+	FetchAllTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]transaction_dto.VaultTransaction], error)
+	FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.VaultTransaction, error)
 }
 type CPSActionRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -802,11 +806,13 @@ type AccessListSegmentationService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateAccessListSegmentation(ctx context.Context, req access_list_segmentation_dto.CreateAccessListSegmentationRequest) error
 	GetAllAccessListSegmentation(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]access_list_segmentation_dto.AccessListSegmentationResponse], error)
-	GetAccessListSegmentationByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error)
+	GetAccessListSegmentationForBlockByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error)
+	GetAccessListSegmentationForAccountByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error)
 	UpdateAccessListSegmentation(ctx context.Context, req access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error
-	EnableDisableAccessListSegmentation(ctx context.Context, id string, enabled bool, keys []string) error
+	EnableDisableAccessListSegmentation(ctx context.Context, id string, enabled bool, keys []string, segmentation_type string) error
 	CheckALLIdsExist(ctx context.Context, t string, ids []string) error
-	GetAllAccessListSegmentationBySegmentIDorSegmentCode(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error)
+	GetAllAccessListSegmentationForAccount(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error)
+	GetAllAccessListSegmentationForBlock(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error)
 }
 
 type UssdMerchantService interface {
@@ -816,6 +822,7 @@ type UssdMerchantService interface {
 	UpdateUssdMerchant(ctx context.Context, id string, req ussd_merchant_dto.UpdateUssdMerchantRequest) error
 	EnableUssdMerchant(ctx context.Context, id string) error
 	DisableUssdMerchant(ctx context.Context, id string) error
+	DeleteUssdMerchant(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

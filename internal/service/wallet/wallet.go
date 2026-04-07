@@ -31,7 +31,7 @@ import (
 )
 
 type walletService struct {
-	repo        storage.WalletRepository
+	repo        storage.WalletOracleRepository
 	cpsService  service.CPSActionService
 	serviceRepo storage.ServicesRepository
 	logger      utils.Logger
@@ -41,7 +41,7 @@ type walletService struct {
 	cfg         *config.VaultConfig
 }
 
-func NewWalletService(repo storage.WalletRepository, cps service.CPSActionService, serviceRepo storage.ServicesRepository, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.WalletService {
+func NewWalletService(repo storage.WalletOracleRepository, cps service.CPSActionService, serviceRepo storage.ServicesRepository, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.WalletService {
 	return &walletService{
 		repo:        repo,
 		cpsService:  cps,
@@ -114,7 +114,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
-		if exist != nil && local_util.FirstHex24(exist.ID.Hex()) != id {
+		if exist != nil && exist.ID != id {
 			if strings.EqualFold(strings.TrimSpace(exist.Name), strings.TrimSpace(req.Name)) {
 				span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
 				return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
@@ -129,7 +129,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
-		if exist != nil && local_util.FirstHex24(exist.ID.Hex()) != id {
+		if exist != nil && exist.ID != id {
 			if strings.EqualFold(strings.TrimSpace(exist.UniqueCode), strings.TrimSpace(req.UniqueCode)) {
 				span.AddEvent("Wallet code already exists", trace.WithAttributes(attribute.String("unique_code", req.UniqueCode)))
 				return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
@@ -187,7 +187,7 @@ func (s *walletService) DeleteWallet(ctx context.Context, id string) error {
 	now := time.Now()
 	deletedWallet := *prevWallet
 	deletedWallet.IsDeleted = true
-	deletedWallet.DeletedAt = now
+	deletedWallet.DeletedAt = &now
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestDeleteWallet, deletedWallet, *prevWallet, constants.ActionDelete); err != nil {
 		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("unique_code", deletedWallet.UniqueCode)))
@@ -238,29 +238,44 @@ func (s *walletService) EnableOrDisableWallet(ctx context.Context, id string, en
 	return nil
 }
 
-func (s *walletService) GetWallet(ctx context.Context, id string) (*local_model.Wallet, error) {
-	return s.repo.FindByID(ctx, id)
+func (s *walletService) GetWallet(ctx context.Context, id string) (*local_model.WalletOracle, error) {
+	// Same enrichment as list/gRPC: join services + access_lists for SERVICE_CODE / SERVICE_KEY.
+	w, err := s.repo.FindByIDForGRPC(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if w == nil {
+		return nil, errors.New(localization.ErrorWalletNotFound.Code)
+	}
+	return w, nil
 }
 
-func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error) {
+func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error) {
 	return s.repo.FindAllWithPaginationForGRPC(ctx, filterParams)
 }
 
 // GetAllWalletForGRPC implements service.WalletService.
-func (s *walletService) GetAllWalletForGRPC(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error) {
+func (s *walletService) GetAllWalletForGRPC(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error) {
 	return s.repo.FindAllWithPaginationForGRPC(ctx, filterParams)
 }
 
 // GetWalletForGRPC implements service.WalletService.
-func (s *walletService) GetWalletForGRPC(ctx context.Context, id string) (*local_model.GRPCWallet, error) {
-	return s.repo.FindByIDForGRPC(ctx, id)
+func (s *walletService) GetWalletForGRPC(ctx context.Context, id string) (*local_model.WalletOracle, error) {
+	w, err := s.repo.FindByIDForGRPC(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if w == nil {
+		return nil, errors.New(localization.ErrorWalletNotFound.Code)
+	}
+	return w, nil
 }
 
 func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "walletService", "walletService")
 	defer span.End()
 
-	wallet, err := local_util.JsonUnmarshal[local_model.Wallet](action.CurrentAction)
+	wallet, err := local_util.JsonUnmarshal[local_model.WalletOracle](action.CurrentAction)
 	if err != nil {
 		span.AddEvent("JsonUnmarshal error", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)

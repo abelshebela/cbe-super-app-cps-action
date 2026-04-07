@@ -1,4 +1,4 @@
-package sqlc
+package wallet_oracle
 
 import (
 	"context"
@@ -11,16 +11,12 @@ type DBTX interface {
 	QueryRowContext(context.Context, string, ...interface{}) *sql.Row
 }
 
-func New(db DBTX) *Queries {
-	return &Queries{db: db}
+func New(db DBTX) *WalletStorage {
+	return &WalletStorage{db: db}
 }
 
-type Queries struct {
-	db DBTX
-}
-
-func (q *Queries) WithTx(tx *sql.Tx) *Queries {
-	return &Queries{
+func (q *WalletStorage) WithTx(tx *sql.Tx) *WalletStorage {
+	return &WalletStorage{
 		db: tx,
 	}
 }

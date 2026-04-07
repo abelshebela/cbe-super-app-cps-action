@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -44,7 +45,7 @@ type cpsActionService struct {
 
 // IsMakerOnlyForRequest returns true if the module mapped from requestAction is configured as maker-only in CPSActionRole.
 func (ca *cpsActionService) IsMakerOnlyForRequest(ctx context.Context, requestAction string) (bool, error) {
-	if mod, ok := ResolveModuleForRA(RequestAction(requestAction)); ok && ca.roles != nil {
+	if mod, ok := ResolveModuleForRA(constants.RequestAction(requestAction)); ok && ca.roles != nil {
 		role, err := ca.roles.FindByActionName(ctx, mod)
 		if err != nil || role == nil {
 			return false, errors.New(localization.ErrorOperationNotAllowed.Code)
@@ -74,7 +75,7 @@ func (ca *cpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 
 	upd := model.CPSAction{ActionCode: actionCode}
 	upd.AuditorStatus = model.AuditorStatus(constants.AUDITORINPROGRESS)
-	_, err = ca.repo.Update(ctx, actionCode, upd)
+	_, err = ca.repo.Update(ctx, actionCode, upd, "", nil)
 	return err
 }
 
@@ -131,6 +132,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateCPSAction", "CPSAction", "CreateCPSAction")
 	defer span.End()
 	var existing *model.CPSAction
+
 	var err error
 	ca.logger.Infof("[CpsActionSvc][Create] action: %s", cpsAction.RequestAction)
 
@@ -147,8 +149,16 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		return nil
 	}
 
+	RAList := local_util.GetRAListForUpdateAction(constants.RequestAction(cpsAction.RequestAction), actionName, RequestActionGroups)
+
 	reqs := ca.pendingLockRequestActions(actionName, cpsAction.RequestAction)
 	if len(reqs) > 0 {
+		for _, r := range RAList {
+			if slices.Contains(reqs, string(r)) {
+				continue
+			}
+			reqs = append(reqs, r)
+		}
 		existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
 		if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
 			span.AddEvent("failed to get cps action by role and request actions", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -230,7 +240,14 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 	defer span.End()
 	ca.logger.Infof("[CpsActionSvc][Approve] action: %s", action.ActionCode)
 
-	data, err := ca.repo.Update(ctx, action.ActionCode, *action)
+	mod, ok := ResolveModuleForRA(constants.RequestAction(action.RequestAction))
+	if !ok {
+		span.AddEvent("failed to resolve module for request action", trace.WithAttributes(attribute.String("error", "failed to resolve module for request action")))
+		ca.logger.Errorf("[CpsActionSvc][Approve] failed to resolve module for request action: %s", action.RequestAction)
+		return errors.New(localization.ErrorOperationNotAllowed.Code)
+	}
+
+	data, err := ca.repo.Update(ctx, action.ActionCode, *action, mod, RequestActionGroups)
 	if err != nil {
 		span.AddEvent("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		ca.logger.Errorf("[CpsActionSvc][Approve] update err: %v", err)
@@ -262,7 +279,7 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 func (ca *cpsActionService) RejectCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "RejectCPSAction", "CPSAction", "RejectCPSAction")
 	defer span.End()
-	_, err := ca.repo.Update(ctx, action_code, *action)
+	_, err := ca.repo.Update(ctx, action_code, *action, "", nil)
 	if err != nil {
 		span.AddEvent("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
@@ -272,7 +289,7 @@ func (ca *cpsActionService) RejectCPSAction(ctx context.Context, action_code str
 func (ca *cpsActionService) CancelCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "CancelCPSAction", "CPSAction", "CancelCPSAction")
 	defer span.End()
-	_, err := ca.repo.Update(ctx, action_code, *action)
+	_, err := ca.repo.Update(ctx, action_code, *action, "", nil)
 	if err != nil {
 		span.AddEvent("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
@@ -500,7 +517,7 @@ func (ca *cpsActionService) GetUserAuthorizerIndex(ctx context.Context, requestA
 	var approverData imodel.CPSActionApproveIndex
 
 	ca.logger.Infof("[CpsActionSvc][GetAuthIdx] role: %s action: %s", roleCode, requestAction)
-	if mod, ok := ResolveModuleForRA(RequestAction(requestAction)); ok && ca.roles != nil {
+	if mod, ok := ResolveModuleForRA(constants.RequestAction(requestAction)); ok && ca.roles != nil {
 		if approver, err := ca.roles.FindApproverByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil {
 			approverData = approver
 		}

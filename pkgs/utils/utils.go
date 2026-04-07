@@ -96,8 +96,7 @@ func IsValidImage(fileHeader *multipart.FileHeader) bool {
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
 	switch ext {
 	case ".jpg", ".jpeg", ".png", ".gif", ".webp":
-		// ok
-		return true
+		// extension ok; continue to name and content checks
 	default:
 		return false
 	}
@@ -121,7 +120,14 @@ func IsValidImage(fileHeader *multipart.FileHeader) bool {
 	}
 
 	contentType := http.DetectContentType(buffer)
-	return allowedMIMETypes[contentType]
+	if allowedMIMETypes[contentType] {
+		return true
+	}
+	// Many clients (mobile, WebView, some browsers) send images as octet-stream; extension already vetted above.
+	if contentType == "application/octet-stream" || contentType == "binary/octet-stream" {
+		return true
+	}
+	return false
 }
 
 func IsValidVideo(fileHeader *multipart.FileHeader) bool {
@@ -482,18 +488,15 @@ func TrimWhiteSpace(value interface{}) error {
 }
 
 func JsonUnmarshal[T any](data any) (*T, error) {
-
-	var jsonData *T
-	byte, err := json.Marshal(data)
+	b, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
-
-	if err = json.Unmarshal(byte, &jsonData); err != nil {
+	var out T
+	if err := json.Unmarshal(b, &out); err != nil {
 		return nil, err
 	}
-
-	return jsonData, nil
+	return &out, nil
 }
 
 func ExtraSpaceRemover(s string) string {

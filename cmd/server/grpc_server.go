@@ -6,6 +6,7 @@ import (
 
 	topuppb "cbe-super-app-cps-action/grpc/topup/proto"
 	walletpb "cbe-super-app-cps-action/grpc/wallet/proto"
+	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -64,42 +65,22 @@ func (s *server) GetBankByBIC(ctx context.Context, req *bankpb.GetOneBankByBICRe
 	}
 	return &bankpb.GetOneBankResponse{Bank: s.bankMapper(data)}, nil
 }
-func (s *server) walletMapper(data *local_model.Wallet) *walletpb.Wallet {
+func (s *server) walletMapper(data *local_model.WalletOracle) *walletpb.Wallet {
 	return &walletpb.Wallet{
-		Id:          data.ID.Hex(),
+		Id:          data.ID,
 		Name:        data.Name,
 		Avatar:      data.Avatar,
 		UniqueCode:  data.UniqueCode,
 		ServiceCode: data.ServiceCode,
 		ServiceKey:  data.ServiceKey,
 		ServiceId:   data.ServiceID,
-		ChildServiceKeys: func() []*walletpb.ChildServiceKey {
-			var keys []*walletpb.ChildServiceKey
-			for _, k := range data.ChildServiceKeys {
-				keys = append(keys, &walletpb.ChildServiceKey{
-					ServiceKey:  k.ServiceKey,
-					ServiceName: k.ServiceName,
-				})
-			}
-			return keys
-		}(),
-		Cap: func() []*walletpb.Cap {
-			var caps []*walletpb.Cap
-			for _, c := range data.Cap {
-				caps = append(caps, &walletpb.Cap{
-					SingleCap:          c.SingleCap,
-					MinimumTransferCap: c.MinimumTransferCap,
-					Currency:           c.Currency,
-				})
-			}
-			return caps
-		}(),
+
 		IsDeleted: data.IsDeleted,
 		Enabled:   data.Enabled,
 		Services: &walletpb.Services{
-			Self:  data.Services.Self,
-			Other: data.Services.Other,
-			Agent: data.Services.Agent,
+			Self:  data.Self,
+			Other: data.Other,
+			Agent: data.Agent,
 		},
 	}
 }
@@ -197,7 +178,7 @@ func buildPaginationWallet(meta types.PaginationMeta) *walletpb.Meta {
 		// HasPrevPage: meta.HasPrevPage,
 	}
 }
-func (s *server) walletListMapper(data []local_model.Wallet) []*walletpb.Wallet {
+func (s *server) walletListMapper(data []local_model.WalletOracle) []*walletpb.Wallet {
 	var wallets []*walletpb.Wallet
 	for i := range data {
 		wallets = append(wallets, s.walletMapper(&data[i]))
@@ -239,16 +220,16 @@ func buildPaginationService(meta types.PaginationMeta) *servicepb.Meta {
 		HasPrevPage: meta.HasPrevPage,
 	}
 }
-func (s *server) serviceListMapper(data []model.Service) []*servicepb.ServiceDetails {
+func (s *server) serviceListMapper(data []service_dto.ServiceResponse) []*servicepb.ServiceDetails {
 	var services []*servicepb.ServiceDetails
 	for i := range data {
 		services = append(services, s.MapServiceDetails(&data[i]))
 	}
 	return services
 }
-func (s *server) MapServiceDetails(data *model.Service) *servicepb.ServiceDetails {
+func (s *server) MapServiceDetails(data *service_dto.ServiceResponse) *servicepb.ServiceDetails {
 	return &servicepb.ServiceDetails{
-		Id:          data.ID.Hex(),
+		Id:          data.ID,
 		ServiceCode: data.ServiceCode,
 		ServiceName: data.ServiceName,
 		Enabled:     data.Enabled,
