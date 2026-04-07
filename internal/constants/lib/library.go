@@ -373,7 +373,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 			"enabled", "enable", "is_enabled", "is_deleted", "is_blocked",
 			"ussd_enabled", "is_account_active", "is_main", "last_linked_status",
 			"is_verified", "active_account", "account_frozen", "account_dormant",
-			"debit_allowed", "credit_allowed", "has_restriction", "advert_for",
+			"debit_allowed", "credit_allowed", "has_restriction", "advert_for", "is_expired",
 		}
 
 		for _, key := range includedKeys {
@@ -439,7 +439,7 @@ func BuildOracleFilter(
 		boolKeys := map[string]bool{
 			"enabled": true, "enable": true, "is_enabled": true,
 			"is_deleted": true, "is_blocked": true,
-			"is_verified": true, "active_account": true,
+			"is_verified": true, "active_account": true, "is_expired": true,
 		}
 
 		for key, val := range filterParam.Filters {
