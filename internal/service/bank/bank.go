@@ -113,7 +113,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 		}
 		b.logger.Infof("[BankSvc][Authorize] deleted id: %s", cpsAction.UniqueId)
 
-	case string(constants.RequestEnableDisableBank):
+	case string(constants.RequestDisableBank), string(constants.RequestEnableBank):
 		actionData.UpdateAt = time.Now().String()
 		var err error
 		if actionData.IsEnabled == 1 {
@@ -314,11 +314,12 @@ func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enable
 		newBankData.IsEnabled = 0
 	}
 
-	enable := string(constants.RequestEnableDisableBank)
-	// if !enableDisable {
-	// 	enable = string(constants.RequestDisableBank)
-	// }
-
+	var enable string
+	if enableDisable {
+		enable = string(constants.RequestEnableBank)
+	} else {
+		enable = string(constants.RequestDisableBank)
+	}
 	action := lib.CpsModelBuilder(id, makerData, bank, newBankData, enable, constants.UPDATE)
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
