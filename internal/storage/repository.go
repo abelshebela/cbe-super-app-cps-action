@@ -802,6 +802,8 @@ type UssdMerchantRepository interface {
 	FindByOr(ctx context.Context, phone, email, account_number string) (imodel.UssdMerchant, error)
 	Find(ctx context.Context, filter bson.M) (ussd_merchant_dto.UssdMerchantResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse], error)
+	// Delete(ctx context.Context, id string) error
+
 }
 
 type AccessListSegmentationRepository interface {

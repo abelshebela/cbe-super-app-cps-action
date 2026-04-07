@@ -10,4 +10,5 @@ type UssdMerchantInbound interface {
 	DeleteUssdMerchant(w http.ResponseWriter, r *http.Request)
 	GetUssdMerchant(w http.ResponseWriter, r *http.Request)
 	GetAllUssdMerchant(w http.ResponseWriter, r *http.Request)
+	DelereUssdMerchant(w http.ResponseWriter,r *http.Request)
 }

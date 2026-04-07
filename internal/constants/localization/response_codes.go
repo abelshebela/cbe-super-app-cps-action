@@ -933,6 +933,10 @@ var ResponseCodesList = []ResponseCode{
 	SuccessCPSRoleCreatedSP,
 	SuccessCPSRoleDeletedSP,
 	ErrorBranchNotExistWithGivenBranchCode,
+
+	SucccessDeleteUssdMerchant,
+	SucccessUssdMerchantDeleteRequest,
+	ErrorUssdMerchantNotFound,
 }
 
 // Success Response Codes
@@ -5123,6 +5127,31 @@ var (
 		Message:    MsgUssdMerchantFetchedSuccessfully,
 		Type:       "success",
 	}
+	SucccessDeleteUssdMerchant = ResponseCode{
+		Code:"SUCCESS_DELETE_MERCHANT_USSD",
+		StatusCode :StatusOK,
+		Message : MsgUssdMerchantDeletedSuccessfully,
+		Type : "success",
+
+	}
+
+	SucccessUssdMerchantDeleteRequest = ResponseCode{
+		Code:"SUCCESS_MERCHANT_USSD_DELETE_REQUEST",
+		StatusCode :StatusOK,
+		Message : MsgUssdMerchantDeleteRequestCreatedSuccessfully,
+		Type : "success",
+
+	}
+	ErrorUssdMerchantNotFound = ResponseCode{
+		Code:       "ERROR_USSD_MERCHANT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "ussd mercahant not found",
+		Type:       "error",
+	}
+
+	
+	
+
 
 	SuccessUssdMerchantDeleted = ResponseCode{
 		Code:       "SUCCESS_USSD_MERCHANT_DELETED",
