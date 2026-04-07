@@ -84,7 +84,7 @@ func (a *AccountBlockStorage) fetchReasonsMap(ctx context.Context, blockIDs []st
 	}
 	q := fmt.Sprintf(`
 		SELECT id, account_block_id, reason_text, created_by, created_at
-		FROM ACCOUNT_BLOCKS_DISABLED_REASONS
+		FROM account_block_disable_reasons
 		WHERE account_block_id IN (%s)
 		ORDER BY created_at ASC`, strings.Join(ph, ","))
 	rows, err := a.db.QueryContext(ctx, q, args...)
