@@ -332,7 +332,7 @@ func (a *accessListSegmentation) GetAllAccessListSegmentationForBlock(w http.Res
 		localization.SendErrorByCodeResponse(w, localization.ErrorAccessListSegmentationInvalidID.Code)
 		return
 	}
-	accesssList, accessListSegmentations, err := a.service.GetAllAccessListSegmentationForBlock(r.Context(), id)
+	accesssList, accessListSegmentations, accessListSegmentationFromParent, err := a.service.GetAllAccessListSegmentationForBlock(r.Context(), id)
 	if err != nil {
 		log.Errorf("[GetAllAccessListSegmentationForBlock] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -340,8 +340,9 @@ func (a *accessListSegmentation) GetAllAccessListSegmentationForBlock(w http.Res
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationRetrieved, map[string]interface{}{
-		"access_lists":              accesssList,
-		"access_list_segmentations": accessListSegmentations,
+		"access_lists":                          accesssList,
+		"access_list_segmentations":             accessListSegmentations,
+		"access_list_segmentations_from_parent": accessListSegmentationFromParent,
 	})
 }
 

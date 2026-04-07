@@ -50,7 +50,7 @@ func Init(router chi.Router, handler event_merchant_port.EventMerchantInboundAda
 		},
 		{
 			Method:  http.MethodDelete,
-			Path:    "/event_merchant/{id}",
+			Path:    "/event_merchants/{id}",
 			Handler: handler.DeleteEventMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,

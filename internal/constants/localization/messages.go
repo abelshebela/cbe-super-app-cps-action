@@ -344,8 +344,7 @@ const (
 	MsgBPSUserUpdatedSuccessfully   = "BPS user update successfully submitted"
 	MsgBPSUserUpdatedSuccessfullySP = "BPS user updated successfully submitted"
 	MsgBPSUserDeletedSuccessfullySP = "BPS user deleted successfully"
-	MsgBPSUserDeleteRequestSent 	= "BPS user delete request sent successfully"
-
+	MsgBPSUserDeleteRequestSent     = "BPS user delete request sent successfully"
 
 	// Account Validation related success messages
 	MsgValidationRuleApprovedSuccessfully   = "account validation Update request submitted for approval"
@@ -1404,9 +1403,8 @@ const (
 	MsgUssdMerchantUpdatedSuccessfully               = "Ussd merchant updated successfully"
 	MsgUssdMerchantCreatedSuccessfully               = "Ussd merchant created successfully"
 	MsgUssdMerchantRequestCreatedSuccessfully        = "Ussd merchant request created successfully"
-	MsgUssdMerchantDeleteSuccessfully ="Ussd merchant Delete succcessfully"
-	MsgUssdMerchantDeleteRequestCreatedSuccessfully ="Ussd merchant Delete succcessfully"
-
+	MsgUssdMerchantDeletedSuccessfully               = "Ussd merchant deleted successfully"
+	MsgUssdMerchantDeleteRequestCreatedSuccessfully  = "Ussd merchant delete request created successfully"
 
 	// access list segmentation related messages
 	MsgAccessListSegmentationCreatedSuccessfully    = "Access list segmentation create request sent successfully"

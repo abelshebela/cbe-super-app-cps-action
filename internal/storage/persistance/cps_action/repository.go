@@ -129,15 +129,17 @@ func (r *CPSActionStorage) FindOne(ctx context.Context, filter bson.M) (*model.C
 	return data, nil
 }
 
-func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error) {
+func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update model.CPSAction, Group string, RequestActionGroups map[string][]constants.RequestAction) (*model.CPSAction, error) {
 	r.logger.Infof("[CPSAction][Update] updating CPS action for action code: %s", actionCode)
 	filterMap := BuildCPSActionFilter(update)
 	updateMap := BuildCPSActionUpdateMap(update)
 	modelData := []mongo.WriteModel{}
 
 	if strings.Contains(update.RequestAction, constants.DELETE) {
+		RAUpdateList := local_utils.GetRAListForUpdateAction(constants.RequestAction(update.RequestAction), Group, RequestActionGroups)
+
 		modelData = append(modelData, mongo.NewUpdateOneModel().
-			SetFilter(bson.M{"unique_id": update.UniqueId}).
+			SetFilter(bson.M{"unique_id": update.UniqueId, "is_deleted": false, "request_action": bson.M{"$in": RAUpdateList}}).
 			SetUpdate(bson.M{
 				"$set": bson.M{
 					"action_status":   constants.Canceled,
@@ -147,7 +149,7 @@ func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update
 		)
 
 		modelData = append(modelData, mongo.NewUpdateOneModel().
-			SetFilter(update).
+			SetFilter(bson.M{"action_code": actionCode}).
 			SetUpdate(bson.M{
 				"$set": update, // assuming update is a struct or bson.M
 			}),

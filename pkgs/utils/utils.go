@@ -488,18 +488,15 @@ func TrimWhiteSpace(value interface{}) error {
 }
 
 func JsonUnmarshal[T any](data any) (*T, error) {
-
-	var jsonData *T
-	byte, err := json.Marshal(data)
+	b, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
-
-	if err = json.Unmarshal(byte, &jsonData); err != nil {
+	var out T
+	if err := json.Unmarshal(b, &out); err != nil {
 		return nil, err
 	}
-
-	return jsonData, nil
+	return &out, nil
 }
 
 func ExtraSpaceRemover(s string) string {

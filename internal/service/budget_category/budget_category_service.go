@@ -100,7 +100,9 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 		}
 		b.logger.Infof("[BudgetCatSvc][Authorize] updated id: %s", action.UniqueId)
 	case string(constants.RequestDisableBudgetCategory):
-		err = b.budgetCategoryRepo.Update(ctx, action.UniqueId, budgetCategory)
+		// Do not use CurrentAction for flags: CPS/Oracle JSON often uses uppercase keys (ENABLED),
+		// so encoding/json leaves IsEnabled at 0 and Update would persist wrong values.
+		err = b.budgetCategoryRepo.EnableOrDisable(ctx, action.UniqueId, false)
 		if err != nil {
 			span.AddEvent("[Authorize] failed to disable budget category", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -111,7 +113,7 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 		}
 		b.logger.Infof("[BudgetCatSvc][Authorize] disabled id: %s", action.UniqueId)
 	case string(constants.RequestEnableBudgetCategory):
-		err = b.budgetCategoryRepo.Update(ctx, action.UniqueId, budgetCategory)
+		err = b.budgetCategoryRepo.EnableOrDisable(ctx, action.UniqueId, true)
 		if err != nil {
 			span.AddEvent("[Authorize] failed to enable budget category", trace.WithAttributes(
 				attribute.String("error", err.Error()),

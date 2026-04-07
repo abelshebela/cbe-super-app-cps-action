@@ -62,7 +62,7 @@ func Init(router chi.Router, handler ussd_merchant_interface.UssdMerchantInbound
 		{
 			Method:  http.MethodDelete,
 			Path:    "/ussd_merchant/{id}",
-			Handler: handler.DelereUssdMerchant,
+			Handler: handler.DeleteUssdMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},

@@ -91,12 +91,15 @@ type ServicesRepository interface {
 	FindByID(ctx context.Context, id string) (*service_dto.ServiceResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error)
 	CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error)
-	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceKey], error)
-	FindServiceListByID(ctx context.Context, id string) (*model.ServiceKey, error)
-	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*model.ServiceKey, error)
-	CreateServiceKey(ctx context.Context, serviceList *model.ServiceKey) error
-	UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *model.ServiceKey) error
+	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceKey], error)
+	FindServiceListByID(ctx context.Context, id string) (*imodel.ServiceKey, error)
+	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error)
+	// FindServiceListByExactNameOrKey matches whole name/key (case-insensitive), only non-deleted rows — for create uniqueness checks.
+	FindServiceListByExactNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error)
+	CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) error
+	UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error
 	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
+	DeleteServiceList(ctx context.Context, id string) error
 }
 
 type OTPRepository interface {
@@ -199,7 +202,7 @@ type CPSActionRepository interface {
 	SanitizedFindAllWithPaginationCPSActions(ctx context.Context, userID, role string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	SanitizedFindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
 	ActionByDateRange(ctx context.Context, filterParam *types.Filter) ([]model.CPSAction, error)
-	Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
+	Update(ctx context.Context, actionCode string, update model.CPSAction, Group string, RequestActionGroups map[string][]constants.RequestAction) (*model.CPSAction, error)
 	FindByDateRange(ctx context.Context, filterParam *types.Filter) ([]*model.CPSAction, error)
 	UpdateByActionCode(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
 	UpdateCustome(ctx context.Context, filter, update bson.M) error
@@ -767,9 +770,9 @@ type MiniAppProductCodeRepository interface {
 }
 
 type TransactionRepository interface {
-	FindTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
-	FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.FullTransaction, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
+	FindTransactionByID(ctx context.Context, id string) (transaction_dto.VaultTransaction, error)
+	FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.VaultTransaction, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]transaction_dto.VaultTransaction], error)
 }
 
 type EventMerchantRepository interface {
@@ -794,6 +797,7 @@ type LogisticsMerchantRepository interface {
 type UssdMerchantRepository interface {
 	Create(ctx context.Context, data imodel.UssdMerchant) error
 	Update(ctx context.Context, id string, update bson.M) error
+	Delete(ctx context.Context, id string) error
 	FindById(ctx context.Context, id string) (ussd_merchant_dto.UssdMerchantResponse, error)
 	FindByOr(ctx context.Context, phone, email, account_number string) (imodel.UssdMerchant, error)
 	Find(ctx context.Context, filter bson.M) (ussd_merchant_dto.UssdMerchantResponse, error)
@@ -894,6 +898,7 @@ type AccessListSegmentationRepositoryOracle interface {
 	Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error
 	FindAllForAccount(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
 	FindAllForBlock(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
+	FindAllForBlockParents(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error)
 	FindAllByBlockAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
 	FindAllByAccountAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
 	BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error

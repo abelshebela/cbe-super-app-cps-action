@@ -18,8 +18,6 @@ import (
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
-	// shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
-	model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -45,7 +43,7 @@ func NewServicesRepository(db *sql.DB, cfg *config.VaultConfig, kafkaProducer ka
 
 const (
 	servicesTable   = "services"
-	accessListTable = "access_list"
+	accessListTable = "access_lists"
 	// serviceKeysTable     = "service_keys"
 	maxPaginationDefault = 50
 )
@@ -396,14 +394,34 @@ func (s *ServicesStorage) Delete(ctx context.Context, id string) error {
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	const deleteCapsQ = `DELETE FROM service_cap WHERE service_id = HEXTORAW(:1)`
-	if _, err := tx.ExecContext(ctx, deleteCapsQ, id); err != nil {
-		s.logger.Errorf("[ServicesRepo][Delete] delete caps failed: %v", err)
+	const updateCapsQ = `
+UPDATE service_cap
+SET
+  is_deleted = 1,
+  deleted_at = SYSTIMESTAMP,
+  last_modified_at = SYSTIMESTAMP
+WHERE service_id = HEXTORAW(:1)
+  AND is_deleted = 0`
+	if _, err := tx.ExecContext(ctx, updateCapsQ, id); err != nil {
+		s.logger.Errorf("[ServicesRepo][Delete] update service_cap failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
+	const updateServiceQ = `
+UPDATE services
+SET
+  is_deleted = 1,
+  deleted_at = SYSTIMESTAMP,
+  last_modified_at = SYSTIMESTAMP
+WHERE id = HEXTORAW(:1)
+  AND is_deleted = 0`
+	if _, err := tx.ExecContext(ctx, updateServiceQ, id); err != nil {
+		s.logger.Errorf("[ServicesRepo][Delete] update services failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
 	const q = `
-UPDATE access_list
+UPDATE access_lists
 SET
   is_deleted = 1,
   deleted_at = SYSTIMESTAMP,
@@ -435,7 +453,7 @@ WHERE id = (
 
 func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	const q = `
-UPDATE access_list
+UPDATE access_lists
 SET
   is_enabled = :1,
   last_modified_at = SYSTIMESTAMP
@@ -483,7 +501,7 @@ SELECT
   s.last_modified_at,
   sk.deleted_at
 FROM services s
-JOIN access_list sk ON sk.id = s.access_list_id
+JOIN access_lists sk ON sk.id = s.access_list_id
 WHERE s.id = HEXTORAW(:1) AND sk.is_deleted = 0`
 
 	var serviceID string
@@ -581,7 +599,7 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	where := strings.Join(clauses, " AND ")
 
-	countQ := fmt.Sprintf(`SELECT COUNT(*) %s WHERE %s`, fromClause, where)
+	countQ := fmt.Sprintf(`SELECT COUNT(*) %s WHERE %s AND is_deleted = 0`, fromClause, where)
 	var total int64
 	if err := s.db.QueryRowContext(ctx, countQ, args...).Scan(&total); err != nil {
 		s.logger.Errorf("[ServicesRepo][FindAllWithPagination] count failed: %v", err)
@@ -696,7 +714,7 @@ func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode
 	return count > 0, nil
 }
 
-func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceKey], error) {
+func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceKey], error) {
 	limit := int64(maxPaginationDefault)
 	page := int64(1)
 	if filterParam.PerPage > 0 {
@@ -748,7 +766,7 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 		where = strings.Join(clauses, " AND ")
 	}
 
-	countQ := fmt.Sprintf(`SELECT COUNT(*) FROM %s WHERE %s`, accessListTable, where)
+	countQ := fmt.Sprintf(`SELECT COUNT(*) FROM %s WHERE %s AND is_deleted = 0`, accessListTable, where)
 	var total int64
 	if err := s.db.QueryRowContext(ctx, countQ, args...).Scan(&total); err != nil {
 		s.logger.Errorf("[ServicesRepo][FindAllServiceListWithPagination] count failed: %v", err)
@@ -764,7 +782,7 @@ SELECT
   created_at,
   last_modified_at
 FROM %s
-WHERE %s
+WHERE %s AND is_deleted = 0
 ORDER BY created_at DESC
 OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 
@@ -776,10 +794,10 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 	}
 	defer rows.Close()
 
-	var list []model.ServiceKey
+	var list []imodel.ServiceKey
 	for rows.Next() {
 		var listID string
-		var item model.ServiceKey
+		var item imodel.ServiceKey
 		if err := rows.Scan(
 			&listID,
 			&item.ServiceName,
@@ -798,16 +816,16 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, int(page), int(limit))
-	return &types.PaginatedResponse[[]model.ServiceKey]{Data: list, Meta: meta}, nil
+	return &types.PaginatedResponse[[]imodel.ServiceKey]{Data: list, Meta: meta}, nil
 }
 
-func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*model.ServiceKey, error) {
+func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*imodel.ServiceKey, error) {
 	const q = `
 SELECT RAWTOHEX(id), name, service_key, is_enabled, created_at, last_modified_at
-FROM access_list
-WHERE id = HEXTORAW(:1)`
+FROM access_lists
+WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 
-	var item model.ServiceKey
+	var item imodel.ServiceKey
 	var listID string
 	err := s.db.QueryRowContext(ctx, q, id).Scan(
 		&listID,
@@ -829,7 +847,7 @@ WHERE id = HEXTORAW(:1)`
 	return &item, nil
 }
 
-func (s *ServicesStorage) FindServiceListByNameOrKey(ctx context.Context, name, key string) (*model.ServiceKey, error) {
+func (s *ServicesStorage) FindServiceListByNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error) {
 	conds := make([]string, 0, 2)
 	args := make([]interface{}, 0, 2)
 
@@ -853,7 +871,7 @@ FROM %s
 WHERE (%s)
 FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
 
-	var item model.ServiceKey
+	var item imodel.ServiceKey
 	var listID string
 	err := s.db.QueryRowContext(ctx, query, args...).Scan(
 		&listID,
@@ -874,7 +892,54 @@ FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
 	return &item, nil
 }
 
-func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *model.ServiceKey) error {
+// FindServiceListByExactNameOrKey returns a row when an active access_list exists with the same
+// name or service_key as the given values (full-string equality, case-insensitive). Used before create.
+func (s *ServicesStorage) FindServiceListByExactNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error) {
+	conds := make([]string, 0, 2)
+	args := make([]interface{}, 0, 2)
+
+	if strings.TrimSpace(name) != "" {
+		conds = append(conds, "LOWER(TRIM(name)) = LOWER(TRIM(:svc_name))")
+		args = append(args, sql.Named("svc_name", strings.TrimSpace(name)))
+	}
+	if strings.TrimSpace(key) != "" {
+		conds = append(conds, "LOWER(TRIM(service_key)) = LOWER(TRIM(:svc_key))")
+		args = append(args, sql.Named("svc_key", strings.TrimSpace(key)))
+	}
+
+	if len(conds) == 0 {
+		return nil, errors.New(localization.ErrorNoDataProvided.Code)
+	}
+
+	where := strings.Join(conds, " OR ")
+	query := fmt.Sprintf(`
+SELECT RAWTOHEX(id), name, service_key, is_enabled, created_at, last_modified_at
+FROM %s
+WHERE is_deleted = 0 AND (%s)
+FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
+
+	var item imodel.ServiceKey
+	var listID string
+	err := s.db.QueryRowContext(ctx, query, args...).Scan(
+		&listID,
+		&item.ServiceName,
+		&item.ServiceKey,
+		&item.IsEnabled,
+		&item.CreatedAt,
+		&item.LastModifiedAt,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New(localization.ErrorServiceListNotFound.Code)
+		}
+		return nil, local_util.HandleDBError(err)
+	}
+
+	item.ID = listID
+	return &item, nil
+}
+
+func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) error {
 	serviceList.IsEnabled = true
 
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -885,7 +950,7 @@ func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *mod
 	defer func() { _ = tx.Rollback() }()
 
 	const q = `
-INSERT INTO access_list (
+INSERT INTO access_lists (
   name,
   service_key,
   is_enabled
@@ -945,7 +1010,7 @@ VALUES (
 	return nil
 }
 
-func (s *ServicesStorage) UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *model.ServiceKey) error {
+func (s *ServicesStorage) UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][UpdateServiceKey] begin tx failed: %v", err)
@@ -953,7 +1018,7 @@ func (s *ServicesStorage) UpdateServiceKey(ctx context.Context, id, serviceKey s
 	}
 	defer func() { _ = tx.Rollback() }()
 	const q = `
-UPDATE access_list
+UPDATE access_lists
 SET
   name = :1,
   service_key = :2,
@@ -1000,7 +1065,7 @@ WHERE id = :3 AND service_key = :4`
 
 func (s *ServicesStorage) EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error {
 	const q = `
-UPDATE access_list
+UPDATE access_lists
 SET
   is_enabled = :1,
   last_modified_at = SYSTIMESTAMP
@@ -1032,6 +1097,58 @@ WHERE id = :2`
 	// 	s.logger.Errorf("[ServicesRepo][EnableOrDisableServiceList] update access_list failed: %v", err)
 	// 	return local_util.HandleDBError(err)
 	// }
+
+	return nil
+}
+
+func (s *ServicesStorage) DeleteServiceList(ctx context.Context, id string) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		s.logger.Errorf("[ServicesRepo][Create] begin tx failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	// Delete the service list from access_lists and then delete the service which has the access_list_id
+	const q = `
+	UPDATE access_lists 
+	SET
+		is_deleted = 1, 
+		deleted_at = SYSTIMESTAMP, 
+		last_modified_at = SYSTIMESTAMP 
+	WHERE id = HEXTORAW(:1) AND is_deleted = 0`
+	res, err := tx.ExecContext(ctx, q, id)
+	if err != nil {
+		s.logger.Errorf("[ServicesRepo][DeleteServiceList] delete failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return errors.New(localization.ErrorServiceListNotFound.Code)
+	}
+
+	const deleteServiceQ = `
+UPDATE services
+SET
+  is_deleted = 1,
+  deleted_at = SYSTIMESTAMP,
+  last_modified_at = SYSTIMESTAMP
+WHERE access_list_id = HEXTORAW(:1)
+  AND is_deleted = 0`
+	if _, err := tx.ExecContext(ctx, deleteServiceQ, id); err != nil {
+		s.logger.Errorf("[ServicesRepo][DeleteServiceList] delete services failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
+	rows, _ = res.RowsAffected()
+	if rows == 0 {
+		return errors.New(localization.ErrorServiceNotFound.Code)
+	}
+
+	if err := tx.Commit(); err != nil {
+		s.logger.Errorf("[ServicesRepo][DeleteServiceList] commit failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
 
 	return nil
 }

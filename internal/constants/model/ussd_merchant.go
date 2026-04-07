@@ -19,9 +19,8 @@ type UssdMerchant struct {
 	AccountNumber    string                     `bson:"account_number" json:"account_number"`
 	Logo             string                     `bson:"logo" json:"logo"`
 	Enabled          bool                       `bson:"enabled" json:"enabled"`
+	IsDeleted        bool                       `bson:"is_deleted" json:"is_deleted"`
 	CreatedAt        time.Time                  `bson:"created_at" json:"created_at"`
 	UpdatedAt        time.Time                  `bson:"updated_at" json:"updated_at"`
 	DeletedAt        time.Time                  `bson:"deleted_at" json:"deleted_at"`
-	Deleted          bool                       `bson:"deleted" json:"deleted"`
-
 }

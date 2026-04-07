@@ -50,6 +50,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessServiceListEnabled,
 	SuccessServiceListDisableRequestSubmitted,
 	SuccessServiceListDisabled,
+	SuccessServiceKeyDeleted,
+	SuccessServiceKeyDeleteRequestSubmitted,
 	SuccessServiceCreated,
 	SuccessServiceUpdateRequestSubmitted,
 	SuccessServiceUpdated,
@@ -745,6 +747,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAuditorActionWaitForPreviousAuditor,
 	ErrorDuplicateBankProduct,
 	ErrorVaultCategoryNotFound,
+	ErrorVaultTransactionNotFound,
 	ErrorGroupVaultNotFound,
 	ErrorCannotDeleteActiveVaultCategory,
 	ErrorNoBankProductFound,
@@ -3983,6 +3986,20 @@ var (
 		Type:       "success",
 	}
 
+	SuccessServiceKeyDeleted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_KEY_DELETED",
+		StatusCode: StatusNoContent,
+		Message:    "service & key deleted successfully",
+		Type:       "success",
+	}
+
+	SuccessServiceKeyDeleteRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_KEY_DELETE_REQUEST_SUBMITTED",
+		StatusCode: StatusNoContent,
+		Message:    "Service & key delete request submitted successfully",
+		Type:       "success",
+	}
+
 	SuccessServiceCreated = ResponseCode{
 		Code:       "SERVICE_CREATED",
 		StatusCode: StatusOK,
@@ -5106,7 +5123,7 @@ var (
 	SucccessDeleteUssdMerchant = ResponseCode{
 		Code:"SUCCESS_DELETE_MERCHANT_USSD",
 		StatusCode :StatusOK,
-		Message : MsgUssdMerchantDeleteSuccessfully,
+		Message : MsgUssdMerchantDeletedSuccessfully,
 		Type : "success",
 
 	}
@@ -5128,6 +5145,20 @@ var (
 	
 	
 
+
+	SuccessUssdMerchantDeleted = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgUssdMerchantDeletedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantDeleteRequestCreated = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_DELETE_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgUssdMerchantDeleteRequestCreatedSuccessfully,
+		Type:       "success",
+	}
 )
 
 // Error Response Codes
@@ -7666,7 +7697,7 @@ var (
 	ErrorServiceListNotFound = ResponseCode{
 		Code:       "ERROR_SERVICE_LIST_NOT_FOUND",
 		StatusCode: StatusNotFound,
-		Message:    "Service list not found",
+		Message:    "service key not found",
 		Type:       "error",
 	}
 
@@ -8042,6 +8073,12 @@ var (
 		Code:       "ERROR_VAULT_CATEGORY_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    "Vault category not found.",
+		Type:       "error",
+	}
+	ErrorVaultTransactionNotFound = ResponseCode{
+		Code:       "ERROR_VAULT_TRANSACTION_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Vault transaction not found.",
 		Type:       "error",
 	}
 	ErrorGroupVaultNotFound = ResponseCode{

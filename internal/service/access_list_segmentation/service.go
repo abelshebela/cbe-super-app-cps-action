@@ -352,25 +352,31 @@ func (a *AccessListSegmentationService) CheckALLIdsExist(ctx context.Context, t 
 	return nil
 }
 
-func (a *AccessListSegmentationService) GetAllAccessListSegmentationForBlock(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error) {
+func (a *AccessListSegmentationService) GetAllAccessListSegmentationForBlock(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, []model.APPAccessList, error) {
 	accessListSegmentation, err := a.repo.FindAllForBlock(ctx, segmentIdentifier)
 	if err != nil {
-		a.logger.Errorf("[AccessListSegSvc][GetBySegID] err: %v", err)
-		return nil, nil, err
+		a.logger.Errorf("[AccessListSegSvc][GetAllAccessListSegmentationForBlock] err: %v", err)
+		return nil, nil, nil, err
+	}
+	accessListSegmentationFromParent, err := a.repo.FindAllForBlockParents(ctx, segmentIdentifier)
+	if err != nil {
+		a.logger.Errorf("[AccessListSegSvc][GetAllAccessListSegmentationForBlock][FindAllForBlockParents] err: %v", err)
+		return nil, nil, nil, err
 	}
 
-	accessList := access_list_segmentation_core.FindNoneSegmentedAccessList(ctx, a.accessListServiceRepo, accessListSegmentation)
+	accessList := access_list_segmentation_core.FindNoneSegmentedAccessList(ctx, a.accessListServiceRepo, accessListSegmentation, accessListSegmentationFromParent)
 
 	realtions, err := a.repo.FindParentChildRelationship(ctx)
 	if err != nil {
-		a.logger.Errorf("[AccessListSegSvc][GetBySegID] parent-child err: %v", err)
-		return nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
+		a.logger.Errorf("[AccessListSegSvc][GetAllAccessListSegmentationForBlock] parent-child err: %v", err)
+		return nil, nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	accessList = access_list_segmentation_core.MapParentChildRelationship(realtions, accessList)
 	accessListSegmentation = access_list_segmentation_core.MapParentChildRelationship(realtions, accessListSegmentation)
+	accessListSegmentationFromParent = access_list_segmentation_core.MapParentChildRelationship(realtions, accessListSegmentationFromParent)
 
-	return accessList, accessListSegmentation, nil
+	return accessList, accessListSegmentation, accessListSegmentationFromParent, nil
 }
 
 func (a *AccessListSegmentationService) GetAllAccessListSegmentationForAccount(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error) {
@@ -381,7 +387,7 @@ func (a *AccessListSegmentationService) GetAllAccessListSegmentationForAccount(c
 		return nil, nil, err
 	}
 
-	accessList := access_list_segmentation_core.FindNoneSegmentedAccessList(ctx, a.accessListServiceRepo, accessListSegmentation)
+	accessList := access_list_segmentation_core.FindNoneSegmentedAccessList(ctx, a.accessListServiceRepo, accessListSegmentation, []model.APPAccessList{})
 
 	realtions, err := a.repo.FindParentChildRelationship(ctx)
 	if err != nil {

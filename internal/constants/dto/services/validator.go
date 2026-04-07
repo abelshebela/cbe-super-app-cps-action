@@ -14,13 +14,16 @@ const (
 	maximunTransferCapLimit = 1000000000.0
 )
 
-func (r CreateServiceRequest) Normalize() {
+func (r *CreateServiceRequest) Normalize() {
+	if strings.TrimSpace(r.ServiceKeyId) == "" && strings.TrimSpace(r.ServiceKey) != "" {
+		r.ServiceKeyId = strings.TrimSpace(r.ServiceKey)
+	}
 	r.ServiceKeyId = strings.TrimSpace(r.ServiceKeyId)
 	r.ServiceCode = strings.TrimSpace(r.ServiceCode)
 	r.ProductGlAccount = strings.TrimSpace(r.ProductGlAccount)
 
 	for i := range r.Cap {
-		if r.Cap[i].Currency != nil {
+		if r.Cap[i].Currency != nil && r.Cap[i].Source != nil {
 			source := strings.TrimSpace(*r.Cap[i].Source)
 			currency := strings.TrimSpace(*r.Cap[i].Currency)
 			currency = strings.ToUpper(currency)
@@ -31,7 +34,11 @@ func (r CreateServiceRequest) Normalize() {
 
 }
 
-func (r UpdateServiceRequest) Normalize() {
+func (r *UpdateServiceRequest) Normalize() {
+	if (r.ServiceKeyId == nil || strings.TrimSpace(*r.ServiceKeyId) == "") && strings.TrimSpace(r.ServiceKey) != "" {
+		s := strings.TrimSpace(r.ServiceKey)
+		r.ServiceKeyId = &s
+	}
 	if r.ServiceKeyId != nil {
 		*r.ServiceKeyId = strings.TrimSpace(*r.ServiceKeyId)
 	}
@@ -43,7 +50,7 @@ func (r UpdateServiceRequest) Normalize() {
 	}
 
 	for i := range r.Cap {
-		if r.Cap[i].Currency != nil {
+		if r.Cap[i].Currency != nil && r.Cap[i].Source != nil {
 			source := strings.TrimSpace(*r.Cap[i].Source)
 			currency := strings.TrimSpace(*r.Cap[i].Currency)
 			currency = strings.ToUpper(currency)
@@ -57,9 +64,12 @@ func (r UpdateServiceRequest) Normalize() {
 func (c CapRequest) Validate() error {
 	return validation.ValidateStruct(&c,
 		validation.Field(&c.Source, validation.NotNil,
-			validation.In("APP", "USSD", "INTERNET_BANKING", "ATM", "POS", "PAPERLESS").Error("source must be one of (APP, USSD, INTERNET_BANKING, ATM, POS, PAPERLESS)"),
+			// validation.In("APP", "USSD", "INTERNET_BANKING", "ATM", "POS", "PAPERLESS").Error("source must be one of (APP, USSD, INTERNET_BANKING, ATM, POS, PAPERLESS)"),
+			validation.In("APP", "USSD", "INTERNET_BANKING").Error("source must be one of (APP, USSD, INTERNET_BANKING)"),
 		),
-		validation.Field(&c.Currency, validation.NotNil, is.CurrencyCode),
+		validation.Field(&c.Currency, validation.NotNil, is.CurrencyCode,
+			validation.In("ETB", "USD", "EUR", "GBP").Error("currency must be one of (ETB, USD, EUR, GBP)"),
+		),
 		validation.Field(&c.SingleCap,
 			validation.NotNil,
 			validation.Min(0.0),

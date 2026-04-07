@@ -373,7 +373,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 			"enabled", "enable", "is_enabled", "is_deleted", "is_blocked",
 			"ussd_enabled", "is_account_active", "is_main", "last_linked_status",
 			"is_verified", "active_account", "account_frozen", "account_dormant",
-			"debit_allowed", "credit_allowed", "has_restriction", "advert_for",
+			"debit_allowed", "credit_allowed", "has_restriction", "advert_for", "is_expired",
 		}
 
 		for _, key := range includedKeys {
@@ -439,12 +439,39 @@ func BuildOracleFilter(
 		boolKeys := map[string]bool{
 			"enabled": true, "enable": true, "is_enabled": true,
 			"is_deleted": true, "is_blocked": true,
-			"is_verified": true, "active_account": true,
+			"is_verified": true, "active_account": true, "is_expired": true,
 		}
 
 		for key, val := range filterParam.Filters {
 			if !allowedSet[key] {
 				continue
+			}
+
+			// --- DERIVED FILTER: is_expired -> created_at ---
+			if key == "is_expired" {
+				now := time.Now()
+				switch v := val.(type) {
+				case bool:
+					if v {
+						filters = append(filters, fmt.Sprintf("created_at < :%d", idx))
+					} else {
+						filters = append(filters, fmt.Sprintf("created_at >= :%d", idx))
+					}
+					args = append(args, now)
+					idx++
+					continue
+				case string:
+					if parsed, err := strconv.ParseBool(v); err == nil {
+						if parsed {
+							filters = append(filters, fmt.Sprintf("created_at < :%d", idx))
+						} else {
+							filters = append(filters, fmt.Sprintf("created_at >= :%d", idx))
+						}
+						args = append(args, now)
+						idx++
+						continue
+					}
+				}
 			}
 
 			// --- DATE RANGE ---
@@ -1076,3 +1103,31 @@ func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, bo
 	logger.Infof("ERP update successful for merchant %s with response status %d, response body: %s", merchantID, resp.StatusCode, string(bodyBytes))
 	return nil
 }
+
+// func ResolveModuleForRABelongsToUpdate(action constants.RequestAction,RequestActionGroups map[string][]constants.RequestAction) (string, bool) {
+
+// 	var RAUpdateList = []string{}
+// 	// First, check in priority order to mirror dispatcher behavior
+// 	for _, mod := range modulePriority {
+// 		if local_util.IsActionInGroup(action, mod, RequestActionGroups) {
+// 			return mod, true
+// 		}
+// 	}
+
+// 	// Then, scan any remaining groups not explicitly prioritized
+// 	for mod := range RequestActionGroups {
+// 		// skip already-checked modules
+// 		if local_util.Contains(modulePriority, mod) {
+// 			continue
+// 		}
+
+// 		if IsActionInGroup(action, mod) {
+// 			return mod, true
+// 		}
+// 	}
+// 	// Fallback: infer module from request action string patterns
+// 	if mod, ok := lib.FallbackModuleForRA(constants.RequestAction(action)); ok {
+// 		return mod, true
+// 	}
+// 	return "", false
+// }
