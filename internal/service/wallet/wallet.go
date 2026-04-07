@@ -58,7 +58,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 	defer span.End()
 	s.logger.Infof("[WalletSvc][Create] name: %s", req.Name)
 
-	exist, err := s.repo.Find(ctx, req.UniqueCode, req.Name)
+	exist, err := s.repo.Find(ctx, req.UniqueCode, req.Name, req.ServiceID)
 	if err != nil {
 		span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
@@ -109,7 +109,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	}
 
 	if req.Name != "" {
-		exist, err := s.repo.Find(ctx, "", req.Name)
+		exist, err := s.repo.Find(ctx, "", req.Name, "")
 		if err != nil {
 			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 			return errors.New(localization.ErrorUnhandledServer.Code)
@@ -124,7 +124,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 		}
 	}
 	if req.UniqueCode != "" {
-		exist, err := s.repo.Find(ctx, req.UniqueCode, "")
+		exist, err := s.repo.Find(ctx, req.UniqueCode, "", "")
 		if err != nil {
 			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 			return errors.New(localization.ErrorUnhandledServer.Code)
@@ -137,6 +137,19 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 		} else {
 			s.logger.Infof("[WalletSvc][Update] no code conflict: %s", req.UniqueCode)
 		}
+	}
+
+	if req.ServiceID != "" {
+		exist, err := s.repo.Find(ctx, "", "", req.ServiceID)
+		if err != nil {
+			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
+			return errors.New(localization.ErrorUnhandledServer.Code)
+		}
+		if exist != nil && exist.ID != id {
+			span.AddEvent("Wallet service already exists", trace.WithAttributes(attribute.String("service_id", req.ServiceID)))
+			return errors.New(localization.ErrorWalletServiceAlreadyExists.Code)
+		}
+		s.logger.Infof("[WalletSvc][Update] no service_id conflict: %s", req.ServiceID)
 	}
 
 	var avatarURL string

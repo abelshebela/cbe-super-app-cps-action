@@ -910,7 +910,7 @@ type WalletOracleRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 
 	FindByID(ctx context.Context, id string) (*local_model.WalletOracle, error)
-	Find(ctx context.Context, key, value string) (*local_model.WalletOracle, error)
+	Find(ctx context.Context, key, value, service_id string) (*local_model.WalletOracle, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
 	FindByIDForGRPC(ctx context.Context, id string) (*local_model.WalletOracle, error)
 	FindAllWithPaginationForGRPC(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
