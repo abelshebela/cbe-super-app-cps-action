@@ -2,41 +2,44 @@ package donation_company
 
 import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"time"
+
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func MapToDonationCompanyListResponse(company *model.DonationCompany) *dto.DonationCompanyListResponse {
+func MapToDonationCompanyListResponse(company *donation_model.DonationCompany) *dto.DonationCompanyListResponse {
 	return &dto.DonationCompanyListResponse{
-		ID:                company.ID.Hex(),
-		CompanyName:       company.CompanyName,
-		CompanyCode:       company.CompanyCode,
-		CompanyLogo:       company.CompanyLogo,
-		AccountNumber:     company.AccountNumber,
-		AccountHolderName: company.AccountHolderName,
-		PhoneNumber:       company.PhoneNumber,
-		Email:             company.Email,
-		Address:           company.Address,
-		IsDeleted:         company.IsDeleted,
-		Enabled:           company.Enabled,
-		CreatedAt:         company.CreatedAt.Format(time.RFC3339),
-		LastModifiedAt:    company.LastModifiedAt.Format(time.RFC3339),
+		ID:                 company.ID.Hex(),
+		CompanyName:        company.CompanyName,
+		CompanyCode:        company.CompanyCode,
+		CompanyLogo:        company.CompanyLogo,
+		AccountNumber:      company.AccountNumber,
+		CompanyDescription: company.CompanyDescription,
+		AccountHolderName:  company.AccountHolderName,
+		PhoneNumber:        company.PhoneNumber,
+		Email:              company.Email,
+		Address:            company.Address,
+		IsDeleted:          company.IsDeleted,
+		Enabled:            company.Enabled,
+		CreatedAt:          company.CreatedAt.Format(time.RFC3339),
+		LastModifiedAt:     company.LastModifiedAt.Format(time.RFC3339),
 	}
 }
 
-func MapToDonationCompanyListResponses(companies []*model.DonationCompany) []dto.DonationCompanyListResponse {
+func MapToDonationCompanyListResponses(companies []donation_model.DonationCompany) []dto.DonationCompanyListResponse {
 	responses := make([]dto.DonationCompanyListResponse, len(companies))
-	for i, company := range companies {
-		responses[i] = *MapToDonationCompanyListResponse(company)
+	for i := range companies {
+		responses[i] = *MapToDonationCompanyListResponse(&companies[i])
 	}
 	return responses
 }
 
-func DonationCompanyMapper(company model.DonationCompany) bson.M {
+func DonationCompanyMapper(company donation_model.DonationCompany) bson.M {
 	return bson.M{
 		"company_name":        company.CompanyName,
+		"company_description": company.CompanyDescription,
 		"company_logo":        company.CompanyLogo,
 		"company_code":        company.CompanyCode,
 		"account_number":      company.AccountNumber,

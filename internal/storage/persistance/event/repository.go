@@ -7,11 +7,13 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -23,9 +25,9 @@ type EventStorage struct {
 	logger utils.Logger
 }
 
-func NewEventRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.EventRepository {
+func NewEventRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.EventRepository {
 	return &EventStorage{
-		dal:    dal.NewMongoDal[model.EventDocument, model.EventDocument](client, dbName, collection),
+		dal:    dal.NewMongoDal[model.EventDocument, model.EventDocument](client, cfg, dbName, collection),
 		logger: logger,
 	}
 }
@@ -40,7 +42,7 @@ func (e *EventStorage) Create(ctx context.Context, event *model.Event) error {
 
 	_, err := e.dal.InsertOne(ctx, *eventDoc)
 	if err != nil {
-		e.logger.Errorf("Create Event failed", err)
+		e.logger.Errorf("[EventStorage][Create] failed to create event: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -49,6 +51,7 @@ func (e *EventStorage) Create(ctx context.Context, event *model.Event) error {
 func (e *EventStorage) Update(ctx context.Context, id string, event *model.Event) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		e.logger.Errorf("[EventStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -59,11 +62,8 @@ func (e *EventStorage) Update(ctx context.Context, id string, event *model.Event
 
 	_, err = e.dal.UpdateOne(ctx, filter, updateDoc)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		e.logger.Errorf("Update Event failed", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		e.logger.Errorf("[EventStorage][Update] failed to update event: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -71,6 +71,7 @@ func (e *EventStorage) Update(ctx context.Context, id string, event *model.Event
 func (e *EventStorage) Delete(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		e.logger.Errorf("[EventStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -81,11 +82,8 @@ func (e *EventStorage) Delete(ctx context.Context, id string) error {
 
 	_, err = e.dal.UpdateOne(ctx, filter, updateFields)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		e.logger.Errorf("Delete Event failed", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		e.logger.Errorf("[EventStorage][Delete] failed to delete event: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -93,6 +91,7 @@ func (e *EventStorage) Delete(ctx context.Context, id string) error {
 func (e *EventStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		e.logger.Errorf("[EventStorage][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -102,28 +101,23 @@ func (e *EventStorage) EnableOrDisable(ctx context.Context, id string, enable bo
 	}
 	_, err = e.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		e.logger.Errorf("EnableOrDisable Event failed", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		e.logger.Errorf("[EventStorage][EnableOrDisable] failed to enable/disable event: %v", err)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 func (e *EventStorage) FindByID(ctx context.Context, id string) (*model.Event, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		e.logger.Errorf("[EventStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	doc, err := e.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		e.logger.Errorf("FindByID Event failed", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		e.logger.Errorf("[EventStorage][FindByID] failed to find event: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	result := EventMapper(doc)
@@ -132,7 +126,7 @@ func (e *EventStorage) FindByID(ctx context.Context, id string) (*model.Event, e
 
 func (e *EventStorage) Find(ctx context.Context, name string) (*model.Event, error) {
 	if name == "" {
-		e.logger.Warnf("FindByName called with empty name")
+		e.logger.Warnf("[EventStorage][Find] called with empty name")
 		return nil, errors.New(localization.ErrorEventNameRequired.Code)
 	}
 
@@ -144,18 +138,18 @@ func (e *EventStorage) Find(ctx context.Context, name string) (*model.Event, err
 	doc, err := e.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			e.logger.Warnf("No event found with name: %s", name)
+			e.logger.Warnf("[EventStorage][Find] no event found with name: %s", name)
 			return nil, nil
 		}
-		e.logger.Errorf("FindByName Event failed for name %s: %v", name, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		e.logger.Errorf("[EventStorage][Find] failed to find event by name %s: %v", name, err)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	result := EventMapper(doc)
 	return &result, nil
 }
 
-func (e *EventStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Event], error) {
+func (e *EventStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Event], error) {
 	allowedKeys := []string{"event_city", "event_venue", "enabled", "status", "has_restriction"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
 
@@ -169,29 +163,29 @@ func (e *EventStorage) FindAllWithPagination(ctx context.Context, filterParam ty
 		}
 	}
 
-	docs, err := e.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	docs, err := e.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		e.logger.Errorf("FindAllWithPagination Event failed", err)
+		e.logger.Errorf("[EventStorage][FindAllWithPagination] failed to fetch events: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	var events []*model.Event
+	var events []model.Event
 	for _, doc := range docs {
-		event := EventMapper(doc)
-		events = append(events, &event)
+		event := EventMapper(&doc)
+		events = append(events, event)
 	}
 
 	total, err := e.dal.TotalCount(ctx, filter)
 	if err != nil {
-		e.logger.Errorf("Count Event failed", err)
+		e.logger.Errorf("[EventStorage][FindAllWithPagination] failed to count events: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	e.logger.Infof("FindAllWithPagination returning %d events, total: %d", len(events), total)
+	e.logger.Infof("[EventStorage][FindAllWithPagination] returning %d events, total: %d", len(events), total)
 
-	return &types.PaginatedResponse[[]*model.Event]{
+	return &types.PaginatedResponse[[]model.Event]{
 		Data: events,
 		Meta: meta,
 	}, nil

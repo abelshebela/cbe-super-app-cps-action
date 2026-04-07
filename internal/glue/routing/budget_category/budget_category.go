@@ -3,7 +3,6 @@ package budget_category
 import (
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/constants"
 	budget_category "cbe-super-app-cps-action/internal/constants/interfaces/budget_category"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -20,7 +19,6 @@ func Init(router chi.Router, handler budget_category.BudgetCategoryPortHandler, 
 			Handler: handler.CreateBudgetCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker}),
 			},
 		},
 		{
@@ -29,7 +27,6 @@ func Init(router chi.Router, handler budget_category.BudgetCategoryPortHandler, 
 			Handler: handler.GetAllBudgetCategories,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
 			},
 		},
 		{
@@ -38,7 +35,6 @@ func Init(router chi.Router, handler budget_category.BudgetCategoryPortHandler, 
 			Handler: handler.GetBudgetCategoryByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
 			},
 		},
 		{
@@ -47,7 +43,6 @@ func Init(router chi.Router, handler budget_category.BudgetCategoryPortHandler, 
 			Handler: handler.UpdateBudgetCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker}),
 			},
 		},
 		{
@@ -56,7 +51,6 @@ func Init(router chi.Router, handler budget_category.BudgetCategoryPortHandler, 
 			Handler: handler.DeleteBudgetCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker}),
 			},
 		},
 		{
@@ -65,7 +59,6 @@ func Init(router chi.Router, handler budget_category.BudgetCategoryPortHandler, 
 			Handler: handler.EnableBudgetCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker}),
 			},
 		},
 		{
@@ -74,7 +67,6 @@ func Init(router chi.Router, handler budget_category.BudgetCategoryPortHandler, 
 			Handler: handler.DisableBudgetCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker}),
 			},
 		},
 	}

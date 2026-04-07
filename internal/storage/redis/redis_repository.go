@@ -58,7 +58,7 @@ func (r *RedisRepository) Get(ctx context.Context, key string) (string, error) {
 	if err != nil {
 		if err == redis.Nil {
 			r.logger.Warnf("Key not found: %s", key)
-			return "", fmt.Errorf("key not found: %s", key)
+			return "", err
 		}
 		r.logger.Errorf("Failed to get key %s: %v", key, err)
 		return "", err

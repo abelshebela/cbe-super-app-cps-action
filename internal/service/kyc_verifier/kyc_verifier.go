@@ -5,7 +5,6 @@ import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	core "cbe-super-app-cps-action/internal/service/kyc_verifier/core"
@@ -17,6 +16,8 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.opentelemetry.io/otel/attribute"
@@ -45,7 +46,7 @@ func NewKYCVerifierService(client *mongo.Client, repo storage.KYCVerifierReposit
 	}
 }
 
-func (s *KYCVerifier) FetchKYCList(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dto.KYCVerifierResponse], error) {
+func (s *KYCVerifier) FetchKYCList(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]dto.KYCVerifierResponse], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchKYCList", "KYCVerifier", "FetchKYCList")
 	defer span.End()
 
@@ -141,13 +142,22 @@ func (s *KYCVerifier) ApproveKYC(ctx context.Context, id string, req dto.Approve
 		))
 		return err
 	}
+
+	// 	type KYCStatus string
+
+	// const (
+	// 	KYCStatusPending  KYCStatus = "PENDING"
+	// 	KYCStatusApproved KYCStatus = "APPROVED"
+	// 	KYCStatusRejected KYCStatus = "REJECTED"
+	// )
+
 	// Build the fully updated KYC document to include in CurrentAction
 	updated := *prev
 	updated.KYCApproved = req.Approve
 	if req.Approve {
-		updated.KYCStatus = constants.KYCStatusApproved
+		updated.KYCStatus = shared_constant.KYCStatusApproved
 	} else {
-		updated.KYCStatus = constants.KYCStatusRejected
+		updated.KYCStatus = shared_constant.KYCStatusRejected
 	}
 	updated.KYCActivityBy = map[string]any{"admin_id": makerData.UserID, "full_name": makerData.FullName, "role": "kyc_verifier"}
 	if !req.Approve {
@@ -169,7 +179,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 	defer span.End()
 
 	if action.ActionStatus != constants.Approved {
-		s.logger.Errorf("Tried to authorize KYC action without approval")
+		s.logger.Errorf("[KycVerifSvc][Authorize] invalid status")
 		span.AddEvent("CPS action status invalid", trace.WithAttributes(
 			attribute.String("error", localization.ErrorCPSActionStatusInvalid.Code),
 			attribute.String("unique_id", action.UniqueId),
@@ -190,7 +200,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 
 		lib.GoRoutinBaker(types.BakerOptions{}, func() {
 			if err := s.repo.Update(ctx, action.UniqueId, updated); err != nil {
-				s.logger.Errorf("[KYCVerifier] Error updating KYC in job proccess: %v", err)
+				s.logger.Errorf("[KycVerifSvc][Authorize] update kyc job err: %v", err)
 				span.AddEvent("Failed to update KYC in job process", trace.WithAttributes(
 					attribute.String("error", err.Error()),
 					attribute.String("unique_id", action.UniqueId),
@@ -202,7 +212,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 
 			user, err := s.userRepo.FindById(bgCtx, action.UniqueId)
 			if err != nil {
-				s.logger.Errorf("[KYCVerifier] Error finding user in job proccess: %v", err)
+				s.logger.Errorf("[KycVerifSvc][Authorize] find user job err: %v", err)
 				span.AddEvent("Failed to find user in job process", trace.WithAttributes(
 					attribute.String("error", err.Error()),
 					attribute.String("unique_id", action.UniqueId),
@@ -210,7 +220,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 			}
 
 			if err := core.AccountCreateAndLink(bgCtx, *action, action.UniqueId, *user, s.accountService, s.userRepo, s.linkedAccountRepo, s.logger); err != nil {
-				s.logger.Errorf("[KYCVerifier] Error creating account in job proccess: %v", err)
+				s.logger.Errorf("[KycVerifSvc][Authorize] create account job err: %v", err)
 				span.AddEvent("Failed to create account in job process", trace.WithAttributes(
 					attribute.String("error", err.Error()),
 					attribute.String("unique_id", action.UniqueId),
@@ -239,14 +249,14 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 
 		// update user
 		if err := core.MapandUpdateuserFromKYC(ctx, s.userRepo, *updated, s.logger); err != nil {
-			s.logger.Errorf("[KYCVerifier] Error updating user in job proccess: %v", err)
+			s.logger.Errorf("[KycVerifSvc][Authorize] update user err: %v", err)
 			span.AddEvent("Failed to update user", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
 		}
 	default:
-		s.logger.Errorf("Unsupported action requested: %s", action.RequestAction)
+		s.logger.Errorf("[KycVerifSvc][Authorize] unsupported action: %s", action.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(action.RequestAction)),

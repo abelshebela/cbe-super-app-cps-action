@@ -3,7 +3,6 @@ package eventhandler
 import (
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/constants"
 	event "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -19,8 +18,8 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Path:    "/events",
 			Handler: handler.CreateEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -28,8 +27,8 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Path:    "/events/{id}",
 			Handler: handler.UpdateEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -37,8 +36,8 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Path:    "/events/enable/{id}",
 			Handler: handler.EnableEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -46,8 +45,8 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Path:    "/events/disable/{id}",
 			Handler: handler.DisableEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -55,8 +54,8 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Path:    "/events/{id}",
 			Handler: handler.DeleteEvent,
 			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -64,8 +63,8 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Path:    "/events/{id}",
 			Handler: handler.FetchEventByID,
 			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker, constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -73,8 +72,8 @@ func Init(router chi.Router, handler event.EventAdapter, authMiddleware middlewa
 			Path:    "/events",
 			Handler: handler.FetchEvents,
 			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker, constants.Maker, constants.IFBMaker}),
 			},
 		},
 	}

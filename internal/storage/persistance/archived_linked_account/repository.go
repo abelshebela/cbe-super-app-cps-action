@@ -2,13 +2,15 @@ package archived_linked_account
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -23,13 +25,13 @@ type ArchivedLinkedAccountStorage struct {
 
 type ArchivedLinkedAccountRepository interface {
 	Create(ctx context.Context, user *model.LinkedAccount) error
-	FindByID(ctx context.Context, id string) (*model.ArchivedLinkedAccount, error)
+	FindByID(ctx context.Context, id string, isUserId bool) (*model.ArchivedLinkedAccount, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedLinkedAccount], error)
 }
 
-func NewArchivedLinkedAccountRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.ArchivedLinkedAccountRepository {
+func NewArchivedLinkedAccountRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.ArchivedLinkedAccountRepository {
 	return &ArchivedLinkedAccountStorage{
-		dal:    dal.NewMongoDal[model.LinkedAccount, model.ArchivedLinkedAccount](client, dbName, collection),
+		dal:    dal.NewMongoDal[model.LinkedAccount, model.ArchivedLinkedAccount](client, cfg, dbName, collection),
 		client: client,
 		logger: logger,
 	}
@@ -42,10 +44,8 @@ func (l *ArchivedLinkedAccountStorage) FindByCustomerNumber(ctx context.Context,
 
 	result, err := l.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][FindByCustomerNumber] failed to find archived linked account: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -53,6 +53,7 @@ func (l *ArchivedLinkedAccountStorage) FindByCustomerNumber(ctx context.Context,
 func (l *ArchivedLinkedAccountStorage) Create(ctx context.Context, account *model.LinkedAccount) error {
 	_, err := l.dal.InsertOne(ctx, *account)
 	if err != nil {
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][Create] failed to create archived linked account: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -61,23 +62,36 @@ func (l *ArchivedLinkedAccountStorage) Create(ctx context.Context, account *mode
 func (l *ArchivedLinkedAccountStorage) Delete(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	return l.dal.DeleteOne(ctx, filter)
+	if err := l.dal.DeleteOne(ctx, filter); err != nil {
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][Delete] failed to delete archived linked account: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
 }
 
-func (l *ArchivedLinkedAccountStorage) FindByID(ctx context.Context, id string) (*model.ArchivedLinkedAccount, error) {
+func (l *ArchivedLinkedAccountStorage) FindByID(ctx context.Context, id string, isUserId bool) (*model.ArchivedLinkedAccount, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
+
+	var filter bson.M
+	if isUserId {
+		filter = bson.M{"user_id": objID}
+	} else {
+		filter = bson.M{"_id": objID}
+	}
 
 	result, err := l.dal.FindOne(ctx, filter, nil)
 
 	if err != nil {
-		return nil, err
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][FindByID] failed to find archived linked account: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -88,16 +102,14 @@ func (l *ArchivedLinkedAccountStorage) FindByAccountNumber(ctx context.Context, 
 	}
 	result, err := l.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][FindByAccountNumber] failed to find archived linked account: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return result, nil
 }
 
-func (l *ArchivedLinkedAccountStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedLinkedAccount], error) {
+func (l *ArchivedLinkedAccountStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ArchivedLinkedAccount], error) {
 	filter := bson.M{
 		"is_deleted": false,
 	}
@@ -113,19 +125,21 @@ func (l *ArchivedLinkedAccountStorage) FindAllWithPagination(ctx context.Context
 	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
 	limit := int64(filterParam.PerPage)
 
-	data, err := l.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := l.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, err
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][FindAllWithPagination] failed to fetch archived linked accounts: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := l.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, err
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][FindAllWithPagination] failed to count archived linked accounts: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*model.ArchivedLinkedAccount]{
+	return &types.PaginatedResponse[[]model.ArchivedLinkedAccount]{
 		Data: data,
 		Meta: meta,
 	}, nil

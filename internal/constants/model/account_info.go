@@ -14,5 +14,3 @@ type AccountDetail struct {
 	CustomerID     string `json:"customer_id"`
 	AccountType    string `json:"account_type"`
 }
-
-

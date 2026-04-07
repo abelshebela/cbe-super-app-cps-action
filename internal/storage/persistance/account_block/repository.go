@@ -1,17 +1,22 @@
 package account_block
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
 	"time"
 
+	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -19,25 +24,68 @@ import (
 )
 
 type AccountBlockStorage struct {
-	accountBlock dal.MongoDal[model.AccountBlock, model.AccountBlock]
-	client       *mongo.Client
-	dbName       string
-	logger       utils.Logger
+	cfg           *config.VaultConfig
+	accountBlock  dal.MongoDal[model.AccountBlock, model.AccountBlock]
+	cpsActionRepo dal.MongoDal[model.CPSAction, model.CPSAction]
+	client        *mongo.Client
+	dbName        string
+	abCollection  string
+	cpsCollection string
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
-func NewAccountBlockRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.AccountBlockRepository {
+func NewAccountBlockRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, abCollection, cpsCollection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.AccountBlockRepository {
 	return &AccountBlockStorage{
-		accountBlock: dal.NewMongoDal[model.AccountBlock, model.AccountBlock](client, dbName, collection),
-		client:       client,
-		dbName:       dbName,
-		logger:       logger,
+		cfg:           cfg,
+		accountBlock:  dal.NewMongoDal[model.AccountBlock, model.AccountBlock](client, cfg, dbName, abCollection),
+		cpsActionRepo: dal.NewMongoDal[model.CPSAction, model.CPSAction](client, cfg, dbName, cpsCollection),
+		client:        client,
+		dbName:        dbName,
+		abCollection:  abCollection,
+		cpsCollection: cpsCollection,
+		kafkaProducer: kafkaProducer,
+		logger:        logger,
 	}
 }
 
-// Standard CRUD operations for Branch
+// GetAllBranches implements [storage.AccountBlockRepository].
+func (a *AccountBlockStorage) GetAllBranches(ctx context.Context, id string) ([]model.AccountBlock, error) {
+	a.logger.Infof("[AccountBlockStorage][GetAllBranches] fetching all branches for segmented ID: %s", id)
+	collection := a.client.Database(a.dbName).Collection("account_block")
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		a.logger.Errorf("[AccountBlockStorage][GetAllBranches] invalid ObjectID: %s", id)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{
+			"type": "B",
+			"$or": []bson.M{
+				{"city_id": objID},
+				{"region_id": objID},
+				{"district_id": objID},
+				{"_id": objID},
+			},
+		}}},
+	}
+	cursor, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		a.logger.Errorf("[AccountBlockStorage][GetAllBranches] Error aggregating account blocks: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer cursor.Close(ctx)
 
-func (a *AccountBlockStorage) GetBranchById(ctx context.Context, id string) (*model.AccountBlock, error) {
-	a.logger.Infof("[GetBranchByCode] fetching branch by code: %s", id)
+	var results []model.AccountBlock
+	if err := cursor.All(ctx, &results); err != nil {
+		a.logger.Errorf("[AccountBlockStorage][GetAllBranches] Error decoding account blocks: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return results, nil
+}
+func (a *AccountBlockStorage) GetBranchByIds(ctx context.Context, id string) (*model.AccountBlock, error) {
+	a.logger.Infof("[AccountBlockStorage][GetBranchByIds] fetching branch by id: %s", id)
+
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
 	obj, err := bson.ObjectIDFromHex(id)
@@ -47,59 +95,23 @@ func (a *AccountBlockStorage) GetBranchById(ctx context.Context, id string) (*mo
 	filter := bson.M{"_id": obj}
 	filter["type"] = "B"
 
-	result, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, 1, a.logger)
+	branch, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, 1, a.logger)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			a.logger.Errorf("[GetBranchByCode] branch not found")
-			return nil, errors.New(localization.ErrorBranchNotFound.Code)
-		}
-		a.logger.Errorf("[GetBranchByCode] failed to fetch branch: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		a.logger.Errorf("[AccountBlockStorage][GetBranchByIds] failed to fetch branch: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 
-	if len(result) == 0 {
-		a.logger.Errorf("[GetBranchByCode] branch not found")
+	if len(branch) == 0 {
+		a.logger.Errorf("[AccountBlockStorage][GetBranchByIds] branch not found")
 		return nil, errors.New(localization.ErrorBranchNotFound.Code)
 	}
 
-	a.logger.Infof("[GetBranchByCode] branch retrieved successfully")
-	return result[0], nil
+	a.logger.Infof("[AccountBlockStorage][GetBranchByIds] branch retrieved successfully")
+	return branch[0], nil
 }
 
-// func (a *AccountBlockStorage) GetBranchByIds(ctx context.Context, id string) (*model.AccountBlock, error) {
-// 	a.logger.Infof("[GetBranchByIds] fetching branch by id: %s", id)
-
-// 	collection := a.client.Database(a.dbName).Collection("account_block")
-
-// 	obj, err := bson.ObjectIDFromHex(id)
-// 	if err != nil {
-// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-// 	}
-// 	filter := bson.M{"_id": obj}
-// 	filter["type"] = "B"
-
-// 	branch, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, 1, a.logger)
-// 	if err != nil {
-// 		if err == mongo.ErrNoDocuments {
-// 			a.logger.Errorf("[GetBranchByIds] branch not found")
-// 			return nil, errors.New(localization.ErrorBranchNotFound.Code)
-// 		}
-// 		a.logger.Errorf("[GetBranchByIds] failed to fetch branch: %v", err)
-// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-// 	}
-
-// 	fmt.Println("=============", branch)
-// 	if len(branch) == 0 {
-// 		a.logger.Errorf("[GetBranchByIds] branch not found")
-// 		return nil, errors.New(localization.ErrorBranchNotFound.Code)
-// 	}
-
-// 	a.logger.Infof("[GetBranchByIds] branch retrieved successfully")
-// 	return branch[0], nil
-// }
-
 func (a *AccountBlockStorage) CreateBranch(ctx context.Context, branch *model.AccountBlock) error {
-	a.logger.Infof("[CreateBranch] creating branch")
+	a.logger.Infof("[AccountBlockStorage][CreateBranch] creating branch")
 	if branch.ID.IsZero() {
 		branch.ID = bson.NewObjectID()
 	}
@@ -108,42 +120,22 @@ func (a *AccountBlockStorage) CreateBranch(ctx context.Context, branch *model.Ac
 	branch.CreatedAt = now
 	branch.UpdatedAt = now
 
-	_, err := a.accountBlock.InsertOne(ctx, *branch)
+	newBranch, err := a.accountBlock.InsertOne(ctx, *branch)
 	if err != nil {
-		a.logger.Errorf("[CreateBranch] failed to create branch: %v", err)
+		a.logger.Errorf("[AccountBlockStorage][CreateBranch] failed to create branch: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	a.logger.Infof("[CreateBranch] branch created successfully")
-	return nil
-}
+	a.logger.Infof("[AccountBlockStorage][CreateBranch] branch created successfully")
 
-func (a *AccountBlockStorage) UpdateBranch(ctx context.Context, id string, branch *model.AccountBlock) error {
-	a.logger.Infof("[UpdateBranch] updating branch for id: %s", id)
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		a.logger.Errorf("[UpdateBranch] invalid object id: %v", err)
-		return errors.New(localization.ErrorInvalidID.Code)
-	}
-
-	filter := bson.M{"_id": objID}
-	filter["type"] = "B"
-
-	update := AccountBlockMapperForUpdate(*branch)
-
-	_, err = a.accountBlock.UpdateOne(ctx, filter, update)
-	if err != nil {
-		a.logger.Errorf("[UpdateBranch] failed to update branch: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	a.logger.Infof("[UpdateBranch] branch updated successfully")
+	a.kafkaProducer.PublishMessage(ctx, newBranch, string(constants.ClientOrchestrationAccountBlockTopic), string(constants.ClientOrchestrationAccountBlockTopic), "create new branch")
 	return nil
 }
 
 func (a *AccountBlockStorage) DeleteBranch(ctx context.Context, id string) error {
-	a.logger.Infof("[DeleteBranch] deleting branch for id: %s", id)
+	a.logger.Infof("[AccountBlockStorage][DeleteBranch] deleting branch for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[DeleteBranch] invalid object id: %v", err)
+		a.logger.Errorf("[AccountBlockStorage][DeleteBranch] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -151,57 +143,11 @@ func (a *AccountBlockStorage) DeleteBranch(ctx context.Context, id string) error
 
 	err = a.accountBlock.DeleteOne(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("[DeleteBranch] failed to delete branch: %v", err)
+		a.logger.Errorf("[AccountBlockStorage][DeleteBranch] failed to delete branch: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	a.logger.Infof("[DeleteBranch] branch deleted successfully")
+	a.logger.Infof("[AccountBlockStorage][DeleteBranch] branch deleted successfully")
 	return nil
-}
-
-func (a *AccountBlockStorage) EnableOrDisableBranch(ctx context.Context, id string, reason string, enabled bool) error {
-	a.logger.Infof("[EnableOrDisableBranch] processing branch enable/disable")
-
-	obj, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	filter := bson.M{"_id": obj}
-	update := bson.M{"is_enabled": enabled, "updated_at": time.Now()}
-
-	_, err = a.accountBlock.UpdateOne(ctx, filter, update)
-	if err != nil {
-		a.logger.Errorf("[EnableOrDisableBranch] failed to enable/disable branch: %v", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorBranchNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	a.logger.Infof("[EnableOrDisableBranch] branch enable/disable completed successfully")
-	return nil
-}
-
-func (a *AccountBlockStorage) FindBranchByID(ctx context.Context, id string) (*model.AccountBlock, error) {
-	a.logger.Infof("[FindBranchByID] fetching branch by id: %s", id)
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		a.logger.Errorf("[FindBranchByID] invalid object id: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	filter := bson.M{"_id": objID}
-	filter["type"] = "B"
-
-	branch, err := a.accountBlock.FindOne(ctx, filter, nil)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			a.logger.Errorf("[FindBranchByID] branch not found")
-			return nil, errors.New(localization.ErrorBranchNotFound.Code)
-		}
-		a.logger.Errorf("[FindBranchByID] failed to find branch: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	a.logger.Infof("[FindBranchByID] branch retrieved successfully")
-	return branch, nil
 }
 
 func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
@@ -211,9 +157,9 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
-			{"name": searchRegex},
+			{"name": bson.M{"$regex": "^" + filterParam.Search + "$", "$options": "i"}},
 			{"code": searchRegex},
-			{"address": searchRegex},
+			// {"address": searchRegex},
 			{"city_id": searchRegex},
 			{"district_id": searchRegex},
 			{"region_id": searchRegex},
@@ -231,18 +177,18 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 	collection := a.client.Database(a.dbName).Collection("account_block")
 	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)
 	if err != nil {
-		a.logger.Errorf("[FindAllBranchesWithPagination] failed to find branches: %v", err)
-		return nil, err
+		a.logger.Errorf("[AccountBlockStorage][FindAllBranchesWithPagination] failed to find branches: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := a.accountBlock.TotalCount(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("[FindAllBranchesWithPagination] failed to count branches: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		a.logger.Errorf("[AccountBlockStorage][FindAllBranchesWithPagination] failed to count branches: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	a.logger.Infof("[FindAllBranchesWithPagination] retrieved %d branches", len(results))
+	a.logger.Infof("[AccountBlockStorage][FindAllBranchesWithPagination] retrieved %d branches", len(results))
 
 	return &types.PaginatedResponse[[]*model.AccountBlock]{
 		Data: results,
@@ -250,24 +196,84 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 	}, nil
 }
 
-func (a *AccountBlockStorage) GetRegionById(ctx context.Context, id string) (*model.AccountBlock, error) {
-	obj, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	filter := bson.M{"_id": obj}
-	filter["type"] = "R"
-
-	region, err := a.accountBlock.FindOne(ctx, filter, nil)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorRegionNotFound.Code)
+func (a *AccountBlockStorage) EnableOrDisableBranches(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error {
+	var objIDs []bson.ObjectID
+	for _, id := range ids {
+		objID, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
-		a.logger.Errorf("Error finding region by ID: %v", err)
+		objIDs = append(objIDs, objID)
+	}
+
+	collection := a.client.Database(a.dbName).Collection("account_block")
+
+	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "B"}
+
+	update := make(bson.M)
+	if enabled {
+		update = bson.M{"$set": bson.M{"is_enabled": enabled, "updated_at": time.Now()}}
+	} else {
+		update = bson.M{
+			"$set": bson.M{
+				"is_enabled": enabled,
+				"disable_reason": model.Reason{
+					Reason:    reason.Reason,
+					CreatedAt: reason.CreatedAt,
+					CreatedBy: reason.CreatedBy,
+				},
+				"updated_at": time.Now(),
+			},
+		}
+	}
+
+	_, err := collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		a.logger.Errorf("[AccountBlockStorage][EnableOrDisableBranches] failed to update branches: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	descendantsFilter := bson.M{"region_id": bson.M{"$in": objIDs}}
+	_, err = collection.UpdateMany(ctx, descendantsFilter, update)
+	if err != nil {
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	updatedBranches, err := a.GetBranchesByIds(ctx, ids)
+
+	a.kafkaProducer.PublishMessage(
+		ctx,
+		updatedBranches,
+		string(constants.ClientOrchestrationServicesTopic),
+		a.cfg.AccountBlockUpdate,
+		"account block enable status updated",
+	)
+
+	return nil
+}
+
+func (a *AccountBlockStorage) GetBranchesByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error) {
+	var objIDs []bson.ObjectID
+	for _, id := range ids {
+		objID, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		objIDs = append(objIDs, objID)
+	}
+
+	collection := a.client.Database(a.dbName).Collection("account_block")
+	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "B"}
+
+	block, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, int64(len(ids)), a.logger)
+	if err != nil {
+		a.logger.Errorf("[AccountBlockStorage][GetBranchesByIds] failed to fetch branches: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return region, nil
+	if len(block) == 0 {
+		return nil, errors.New(localization.ErrorBranchNotFound.Code)
+	}
+	return block, nil
 }
 
 func (a *AccountBlockStorage) CreateRegion(ctx context.Context, region *model.AccountBlock) error {
@@ -278,31 +284,12 @@ func (a *AccountBlockStorage) CreateRegion(ctx context.Context, region *model.Ac
 	region.CreatedAt = now
 	region.UpdatedAt = now
 
-	_, err := a.accountBlock.InsertOne(ctx, *region)
+	newRegion, err := a.accountBlock.InsertOne(ctx, *region)
 	if err != nil {
-		a.logger.Errorf("Error creating region: %v", err)
+		a.logger.Errorf("[AccountBlockStorage][CreateRegion] failed to create region: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
-	return nil
-}
-
-func (a *AccountBlockStorage) UpdateRegion(ctx context.Context, id string, region *model.AccountBlock) error {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return errors.New(localization.ErrorInvalidID.Code)
-	}
-
-	filter := bson.M{"_id": objID}
-	filter["type"] = "R"
-
-	update := AccountBlockMapperForUpdate(*region)
-
-	_, err = a.accountBlock.UpdateOne(ctx, filter, update)
-	if err != nil {
-		a.logger.Errorf("Error updating region: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	a.kafkaProducer.PublishMessage(ctx, newRegion, string(constants.ClientOrchestrationAccountBlockTopic), string(constants.ClientOrchestrationAccountBlockTopic), "create new region")
 
 	return nil
 }
@@ -318,120 +305,11 @@ func (a *AccountBlockStorage) DeleteRegion(ctx context.Context, id string) error
 
 	err = a.accountBlock.DeleteOne(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("Error deleting region: %v", err)
+		a.logger.Errorf("[AccountBlockStorage][DeleteRegion] failed to delete region: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return nil
-}
-
-func (a *AccountBlockStorage) EnableOrDisableRegion(ctx context.Context, id string, reason string, enabled bool) error {
-	obj, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	filter := bson.M{"_id": obj}
-	filter["type"] = "R"
-
-	update := bson.M{"is_enabled": enabled, "updated_at": time.Now()}
-
-	_, err = a.accountBlock.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return err
-	}
-
-	// Get the districts within that region id
-	districtFilter := types.Filter{
-		Filters: map[string]interface{}{"region_id": obj},
-		Page:    1,
-		PerPage: 1000,
-	}
-
-	districts, err := a.FindAllDistrictsWithPagination(ctx, districtFilter)
-	if err != nil {
-		return err
-	}
-	// Iterate over those districts and get all districts enabled/disabled
-	for _, district := range districts.Data {
-		filter := bson.M{"_id": district.ID}
-		filter["type"] = "D"
-
-		update := bson.M{"is_enabled": enabled, "updated_at": time.Now()}
-
-		_, err := a.accountBlock.UpdateOne(ctx, filter, update)
-		if err != nil {
-			a.logger.Errorf("Error enabling/disabling district: %v", err)
-			return errors.New(localization.ErrorUnexpectedError.Code)
-		}
-
-		// That district has many cities
-		cityFilter := types.Filter{
-			Filters: map[string]interface{}{"district_id": district.ID},
-			Page:    1,
-			PerPage: 1000,
-		}
-
-		cities, err := a.FindAllCitiesWithPagination(ctx, cityFilter)
-		if err != nil {
-			return err
-		}
-		for _, city := range cities.Data {
-			filter := bson.M{"_id": city.ID}
-
-			update := bson.M{"is_enabled": enabled, "updated_at": time.Now()}
-
-			_, err = a.accountBlock.UpdateOne(ctx, filter, update)
-			if err != nil {
-				a.logger.Errorf("Error enabling/disabling branches: %v", err)
-				return errors.New(localization.ErrorUnexpectedError.Code)
-			}
-
-			// That one district has many branches, enable/disable them all too
-			branchFilter := types.Filter{
-				Filters: map[string]interface{}{"city_id": city.ID},
-				Page:    1,
-				PerPage: 1000,
-			}
-			branches, err := a.FindAllBranchesWithPagination(ctx, branchFilter)
-			if err != nil {
-				return err
-			}
-
-			for _, branch := range branches.Data {
-				filter := bson.M{"_id": branch.ID}
-				branchUpdate := bson.M{"is_enabled": enabled, "updated_at": time.Now()}
-
-				_, err := a.accountBlock.UpdateOne(ctx, filter, branchUpdate)
-				if err != nil {
-					a.logger.Errorf("Error enabling/disabling branches: %v", err)
-					return errors.New(localization.ErrorUnexpectedError.Code)
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
-func (a *AccountBlockStorage) FindRegionByID(ctx context.Context, id string) (*model.AccountBlock, error) {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	filter := bson.M{"_id": objID}
-	filter["type"] = "R"
-
-	region, err := a.accountBlock.FindOne(ctx, filter, nil)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorRegionNotFound.Code)
-		}
-		a.logger.Errorf("Error finding region by ID: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	return region, nil
 }
 
 func (a *AccountBlockStorage) FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
@@ -447,57 +325,111 @@ func (a *AccountBlockStorage) FindAllRegionsWithPagination(ctx context.Context, 
 		}
 	}
 
-	// Build filter + pagination
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	filter["type"] = "R"
 
-	// Fetch paginated data
 	collection := a.client.Database(a.dbName).Collection("account_block")
 	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)
 	if err != nil {
-		a.logger.Errorf("Error finding cities with pagination: %v", err)
-		return nil, err
+		a.logger.Errorf("[AccountBlockStorage][FindAllRegionsWithPagination] failed to find regions: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	total, err := a.accountBlock.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	// Return paginated response (always return results, even if Search is empty)
 	return &types.PaginatedResponse[[]*model.AccountBlock]{
 		Data: results,
 		Meta: meta,
 	}, nil
 }
 
-// Standard CRUD operations for District
+func (a *AccountBlockStorage) EnableOrDisableRegions(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error {
+	var objIDs []bson.ObjectID
+	for _, id := range ids {
+		objID, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		objIDs = append(objIDs, objID)
+	}
 
-func (a *AccountBlockStorage) GetDistrictById(ctx context.Context, id string) (*model.AccountBlock, error) {
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
-	obj, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	filter := bson.M{"_id": obj}
-	filter["type"] = "D"
+	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "R"}
 
-	districts, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, 1, a.logger)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorDistrictNotFound.Code)
+	update := make(bson.M)
+	if enabled {
+		update = bson.M{"$set": bson.M{"is_enabled": enabled, "updated_at": time.Now()}}
+	} else {
+		update = bson.M{
+			"$set": bson.M{
+				"is_enabled": enabled,
+				"disable_reason": model.Reason{
+					Reason:    reason.Reason,
+					CreatedAt: reason.CreatedAt,
+					CreatedBy: reason.CreatedBy,
+				},
+				"updated_at": time.Now(),
+			},
 		}
+	}
+
+	_, err := collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		a.logger.Errorf("[AccountBlockStorage][EnableOrDisableRegions] failed to update regions: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// descendantsFilter := bson.M{"region_id": bson.M{"$in": objIDs}}
+	// _, err = collection.UpdateMany(ctx, descendantsFilter, update)
+	// if err != nil {
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
+
+	// regions, err := a.GetRegionsByIds(ctx, ids)
+	// if err != nil {
+	// 	a.logger.Errorf("Error fetching updated regions: %v", err)
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
+
+	// a.kafkaProducer.PublishMessage(
+	// 	ctx,
+	// 	regions,
+	// 	string(constants.ClientOrchestrationServicesTopic),
+	// 	a.cfg.AccountBlockUpdate,
+	// 	"account block enable status updated",
+	// )
+
+	return nil
+}
+
+func (a *AccountBlockStorage) GetRegionsByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error) {
+	var objIDs []bson.ObjectID
+	for _, id := range ids {
+		objID, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		objIDs = append(objIDs, objID)
+	}
+
+	collection := a.client.Database(a.dbName).Collection("account_block")
+	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "R"}
+
+	block, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, int64(len(ids)), a.logger)
+	if err != nil {
+		a.logger.Errorf("[AccountBlockStorage][GetRegionsByIds] failed to fetch regions: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
-	if len(districts) == 0 {
-		a.logger.Errorf("[GetDistrictById] district not found")
-		return nil, errors.New(localization.ErrorDistrictNotFound.Code)
+	if len(block) == 0 {
+		return nil, errors.New(localization.ErrorRegionNotFound.Code)
 	}
+	return block, nil
 
-	return districts[0], nil
 }
 
 func (a *AccountBlockStorage) CreateDistrict(ctx context.Context, district *model.AccountBlock) error {
@@ -508,31 +440,12 @@ func (a *AccountBlockStorage) CreateDistrict(ctx context.Context, district *mode
 	district.CreatedAt = now
 	district.UpdatedAt = now
 
-	_, err := a.accountBlock.InsertOne(ctx, *district)
+	newDistrict, err := a.accountBlock.InsertOne(ctx, *district)
 	if err != nil {
-		a.logger.Errorf("Error creating district: %v", err)
+		a.logger.Errorf("[AccountBlockStorage][CreateDistrict] failed to create district: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
-	return nil
-}
-
-func (a *AccountBlockStorage) UpdateDistrict(ctx context.Context, id string, district *model.AccountBlock) error {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return errors.New(localization.ErrorInvalidID.Code)
-	}
-
-	filter := bson.M{"_id": objID}
-	filter["type"] = "D"
-
-	update := AccountBlockMapperForUpdate(*district)
-
-	_, err = a.accountBlock.UpdateOne(ctx, filter, update)
-	if err != nil {
-		a.logger.Errorf("Error updating district: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	a.kafkaProducer.PublishMessage(ctx, newDistrict, string(constants.ClientOrchestrationAccountBlockTopic), string(constants.ClientOrchestrationAccountBlockTopic), "create new district")
 
 	return nil
 }
@@ -547,90 +460,11 @@ func (a *AccountBlockStorage) DeleteDistrict(ctx context.Context, id string) err
 
 	err = a.accountBlock.DeleteOne(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("Error deleting district: %v", err)
+		a.logger.Errorf("[AccountBlockStorage][DeleteDistrict] failed to delete district: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return nil
-}
-
-func (a *AccountBlockStorage) EnableOrDisableDistrict(ctx context.Context, id string, reason string, enabled bool) error {
-	obj, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	districtFilter := bson.M{"_id": obj}
-
-	districtUpdate := bson.M{"is_enabled": enabled, "updated_at": time.Now()}
-	_, err = a.accountBlock.UpdateOne(ctx, districtFilter, districtUpdate)
-	if err != nil {
-		return err
-	}
-
-	cityDistrictFilter := types.Filter{
-		Filters: map[string]interface{}{"district_id": obj},
-		Page:    1,
-		PerPage: 1000,
-	}
-
-	cities, err := a.FindAllCitiesWithPagination(ctx, cityDistrictFilter)
-	if err != nil {
-		return err
-	}
-	for _, city := range cities.Data {
-		filter := bson.M{"_id": city.ID}
-		update := bson.M{"is_enabled": enabled, "updated_at": time.Now()}
-
-		_, err = a.accountBlock.UpdateOne(ctx, filter, update)
-		if err != nil {
-			a.logger.Errorf("Error enabling/disabling branches: %v", err)
-			return errors.New(localization.ErrorUnexpectedError.Code)
-		}
-
-		branchFilter := types.Filter{
-			Filters: map[string]interface{}{"district_id": obj},
-			Page:    1,
-			PerPage: 1000,
-		}
-		branches, err := a.FindAllBranchesWithPagination(ctx, branchFilter)
-		if err != nil {
-			return err
-		}
-		for _, branch := range branches.Data {
-			filter := bson.M{"_id": branch.ID}
-			update := bson.M{"is_enabled": enabled, "updated_at": time.Now()}
-
-			_, err = a.accountBlock.UpdateOne(ctx, filter, update)
-			if err != nil {
-				a.logger.Errorf("Error enabling/disabling branches: %v", err)
-				return errors.New(localization.ErrorUnexpectedError.Code)
-			}
-		}
-
-	}
-
-	return nil
-}
-
-func (a *AccountBlockStorage) FindDistrictByID(ctx context.Context, id string) (*model.AccountBlock, error) {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	filter := bson.M{"_id": objID}
-	filter["type"] = "D"
-
-	district, err := a.accountBlock.FindOne(ctx, filter, nil)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorDistrictNotFound.Code)
-		}
-		a.logger.Errorf("Error finding district by ID: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	return district, nil
 }
 
 func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
@@ -647,23 +481,16 @@ func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context
 		}
 	}
 
-	// Build filter + pagination using FilterBuilder
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	filter["type"] = "D"
 
-	if regionId, ok := filterParam.Filters["region_id"].(string); ok && regionId != "" {
-		objID, err := bson.ObjectIDFromHex(regionId)
-		if err == nil {
-			filter["region_id"] = objID
-		}
-	}
+	ApplyIDFilter(filter, filterParam.Filters, "region_id")
 
-	// Fetch paginated results
 	collection := a.client.Database(a.dbName).Collection("account_block")
 	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)
 	if err != nil {
-		a.logger.Errorf("Error finding cities with pagination: %v", err)
-		return nil, err
+		a.logger.Errorf("[AccountBlockStorage][FindAllDistrictsWithPagination] failed to find districts: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := a.accountBlock.TotalCount(ctx, filter)
@@ -673,40 +500,94 @@ func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	// Return proper paginated response
 	return &types.PaginatedResponse[[]*model.AccountBlock]{
 		Data: results,
 		Meta: meta,
 	}, nil
 }
 
-// Standard CRUD operations for City
+func (a *AccountBlockStorage) EnableOrDisableDistricts(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error {
+	var objIDs []bson.ObjectID
+	for _, id := range ids {
+		objID, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		objIDs = append(objIDs, objID)
+	}
 
-func (a *AccountBlockStorage) GetCityById(ctx context.Context, id string) (*model.AccountBlock, error) {
 	collection := a.client.Database(a.dbName).Collection("account_block")
 
-	obj, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "D"}
 
-	filter := bson.M{"_id": obj}
-	filter["type"] = "C"
-
-	result, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, 1, a.logger)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorCityNotFound.Code)
+	update := make(bson.M)
+	if enabled {
+		update = bson.M{"$set": bson.M{"is_enabled": enabled, "updated_at": time.Now()}}
+	} else {
+		update = bson.M{
+			"$set": bson.M{
+				"is_enabled": enabled,
+				"disable_reason": model.Reason{
+					Reason:    reason.Reason,
+					CreatedAt: reason.CreatedAt,
+					CreatedBy: reason.CreatedBy,
+				},
+				"updated_at": time.Now(),
+			},
 		}
+	}
+
+	_, err := collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		a.logger.Errorf("[AccountBlockStorage][EnableOrDisableDistricts] failed to update districts: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// descendantsFilter := bson.M{"district_id": bson.M{"$in": objIDs}}
+	// _, err = collection.UpdateMany(ctx, descendantsFilter, update)
+	// if err != nil {
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
+
+	// districts, err := a.GetDistrictsByIds(ctx, ids)
+	// if err != nil {
+	// 	a.logger.Errorf("Error fetching updated regions: %v", err)
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
+
+	// a.kafkaProducer.PublishMessage(
+	// 	ctx,
+	// 	districts,
+	// 	string(constants.ClientOrchestrationServicesTopic),
+	// 	a.cfg.AccountBlockUpdate,
+	// 	"account block enable status updated",
+	// )
+
+	return nil
+}
+
+func (a *AccountBlockStorage) GetDistrictsByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error) {
+	var objIDs []bson.ObjectID
+	for _, id := range ids {
+		objID, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		objIDs = append(objIDs, objID)
+	}
+
+	collection := a.client.Database(a.dbName).Collection("account_block")
+	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "D"}
+
+	block, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, int64(len(ids)), a.logger)
+	if err != nil {
+		a.logger.Errorf("[AccountBlockStorage][GetDistrictsByIds] failed to fetch districts: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
-	if len(result) == 0 {
-		a.logger.Errorf("[GetCityById] branch not found")
-		return nil, errors.New(localization.ErrorCityNotFound.Code)
+	if len(block) == 0 {
+		return nil, errors.New(localization.ErrorDistrictNotFound.Code)
 	}
-
-	return result[0], nil
+	return block, nil
 }
 
 func (a *AccountBlockStorage) CreateCity(ctx context.Context, city *model.AccountBlock) error {
@@ -718,29 +599,13 @@ func (a *AccountBlockStorage) CreateCity(ctx context.Context, city *model.Accoun
 	city.CreatedAt = now
 	city.UpdatedAt = now
 
-	_, err := a.accountBlock.InsertOne(ctx, *city)
+	newCity, err := a.accountBlock.InsertOne(ctx, *city)
 	if err != nil {
-		a.logger.Errorf("Error creating city: %v", err)
+		a.logger.Errorf("[AccountBlockStorage][CreateCity] failed to create city: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	return nil
-}
-
-func (a *AccountBlockStorage) UpdateCity(ctx context.Context, id string, city *model.AccountBlock) error {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return errors.New(localization.ErrorInvalidID.Code)
-	}
-
-	filter := bson.M{"_id": objID}
-	update := AccountBlockMapperForUpdate(*city)
-
-	_, err = a.accountBlock.UpdateOne(ctx, filter, update)
-	if err != nil {
-		a.logger.Errorf("Error updating city: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	a.kafkaProducer.PublishMessage(ctx, newCity, string(constants.ClientOrchestrationAccountBlockTopic), string(constants.ClientOrchestrationAccountBlockTopic), "create new city")
 
 	return nil
 }
@@ -755,69 +620,11 @@ func (a *AccountBlockStorage) DeleteCity(ctx context.Context, id string) error {
 
 	err = a.accountBlock.DeleteOne(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("Error deleting city: %v", err)
+		a.logger.Errorf("[AccountBlockStorage][DeleteCity] failed to delete city: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return nil
-}
-
-func (a *AccountBlockStorage) EnableOrDisableCity(ctx context.Context, id string, reason string, enabled bool) error {
-	obj, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return errors.New(localization.ErrorInvalidID.Code)
-	}
-	filter := bson.M{"_id": obj}
-	update := bson.M{"is_enabled": enabled, "updated_at": time.Now()}
-
-	_, err = a.accountBlock.UpdateOne(ctx, filter, update)
-	if err != nil {
-		a.logger.Errorf("Error enabling/disabling city: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	branchFilter := types.Filter{
-		Filters: map[string]interface{}{"city_id": obj},
-		Page:    1,
-		PerPage: 1000,
-	}
-	branches, err := a.FindAllBranchesWithPagination(ctx, branchFilter)
-	if err != nil {
-		return err
-	}
-	for _, branch := range branches.Data {
-		filter := bson.M{"_id": branch.ID}
-		update := bson.M{"is_enabled": enabled, "updated_at": time.Now()}
-
-		_, err = a.accountBlock.UpdateOne(ctx, filter, update)
-		if err != nil {
-			a.logger.Errorf("Error enabling/disabling branches: %v", err)
-			return errors.New(localization.ErrorUnexpectedError.Code)
-		}
-	}
-
-	return nil
-}
-
-func (a *AccountBlockStorage) FindCityByID(ctx context.Context, id string) (*model.AccountBlock, error) {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	filter := bson.M{"_id": objID}
-	filter["type"] = "C"
-
-	city, err := a.accountBlock.FindOne(ctx, filter, nil)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorCityNotFound.Code)
-		}
-		a.logger.Errorf("Error finding city by ID: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	return city, nil
 }
 
 func (a *AccountBlockStorage) FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
@@ -847,14 +654,13 @@ func (a *AccountBlockStorage) FindAllCitiesWithPagination(ctx context.Context, f
 	collection := a.client.Database(a.dbName).Collection("account_block")
 	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)
 	if err != nil {
-		a.logger.Errorf("Error finding cities with pagination: %v", err)
-		return nil, err
+		a.logger.Errorf("[AccountBlockStorage][FindAllCitiesWithPagination] failed to find cities: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	// Get total count
 	totalCount, err := a.accountBlock.TotalCount(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("Error counting cities: %v", err)
+		a.logger.Errorf("[AccountBlockStorage][FindAllCitiesWithPagination] failed to count cities: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -864,4 +670,302 @@ func (a *AccountBlockStorage) FindAllCitiesWithPagination(ctx context.Context, f
 		Data: results,
 		Meta: meta,
 	}, nil
+}
+
+func (a *AccountBlockStorage) EnableOrDisableCities(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error {
+	var objIDs []bson.ObjectID
+	for _, id := range ids {
+		objID, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		objIDs = append(objIDs, objID)
+	}
+
+	collection := a.client.Database(a.dbName).Collection("account_block")
+
+	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "C"}
+
+	update := make(bson.M)
+	if enabled {
+		update = bson.M{"$set": bson.M{"is_enabled": enabled, "updated_at": time.Now()}}
+	} else {
+		update = bson.M{
+			"$set": bson.M{
+				"is_enabled": enabled,
+				"disable_reason": model.Reason{
+					Reason:    reason.Reason,
+					CreatedAt: reason.CreatedAt,
+					CreatedBy: reason.CreatedBy,
+				},
+				"updated_at": time.Now(),
+			},
+		}
+	}
+
+	_, err := collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		a.logger.Errorf("[AccountBlockStorage][EnableOrDisableCities] failed to update cities: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// descendantsFilter := bson.M{"city_id": bson.M{"$in": objIDs}}
+	// _, err = collection.UpdateMany(ctx, descendantsFilter, update)
+	// if err != nil {
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
+
+	// cities, err := a.GetCitiesByIds(ctx, ids)
+	// if err != nil {
+	// 	a.logger.Errorf("Error fetching updated regions: %v", err)
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
+
+	// a.kafkaProducer.PublishMessage(
+	// 	ctx,
+	// 	cities,
+	// 	string(constants.ClientOrchestrationServicesTopic),
+	// 	a.cfg.AccountBlockUpdate,
+	// 	"account block enable status updated",
+	// )
+
+	return nil
+}
+
+func (a *AccountBlockStorage) GetCitiesByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error) {
+	var objIDs []bson.ObjectID
+	for _, id := range ids {
+		objID, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		objIDs = append(objIDs, objID)
+	}
+
+	collection := a.client.Database(a.dbName).Collection("account_block")
+	filter := bson.M{"_id": bson.M{"$in": objIDs}, "type": "C"}
+
+	block, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, int64(len(ids)), a.logger)
+	if err != nil {
+		a.logger.Errorf("[AccountBlockStorage][GetCitiesByIds] failed to fetch cities: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	if len(block) == 0 {
+		return nil, errors.New(localization.ErrorCityNotFound.Code)
+	}
+	return block, nil
+
+}
+
+func (a *AccountBlockStorage) GetAccountBlockDetails(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error) {
+	a.logger.Infof("[AccountBlockStorage][GetAccountBlockDetails] fetching CPS actions for account block id: %s", id)
+
+	if _, err := bson.ObjectIDFromHex(id); err != nil {
+		a.logger.Errorf("[AccountBlockStorage][GetAccountBlockDetails] invalid object id: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	cpsCollection := a.client.Database(a.dbName).Collection(a.cpsCollection)
+
+	accountBlockRequestActions := []string{
+		string(constants.RequestEnableBranches),
+		string(constants.RequestDisableBranches),
+		string(constants.RequestEnableCities),
+		string(constants.RequestDisableCities),
+		string(constants.RequestEnableDistricts),
+		string(constants.RequestDisableDistricts),
+		string(constants.RequestEnableRegions),
+		string(constants.RequestDisableRegions),
+	}
+
+	matchFilter := bson.M{
+		"is_deleted":         false,
+		"previous_action.id": id,
+		"request_action":     bson.M{"$in": accountBlockRequestActions},
+	}
+
+	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
+	limit := int64(filterParam.PerPage)
+
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: matchFilter}},
+		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+		{{Key: "$skip", Value: skip}},
+		{{Key: "$limit", Value: limit}},
+	}
+
+	cur, err := cpsCollection.Aggregate(ctx, pipeline)
+	if err != nil {
+		a.logger.Errorf("[AccountBlockStorage][GetAccountBlockDetails] aggregation failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer func() { _ = cur.Close(ctx) }()
+
+	var results []model.CPSAction
+	if err := cur.All(ctx, &results); err != nil {
+		a.logger.Errorf("[AccountBlockStorage][GetAccountBlockDetails] failed to decode CPS actions: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if len(results) == 0 {
+		a.logger.Errorf("[AccountBlockStorage][GetAccountBlockDetails] no CPS actions found for id: %s", id)
+		return nil, errors.New(localization.ErrorActionNotFound.Code)
+	}
+
+	total, err := cpsCollection.CountDocuments(ctx, matchFilter)
+	if err != nil {
+		a.logger.Errorf("[GetAccountBlockDetails] failed to count CPS actions: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	response := make([]account_block_dto.AccountBlockActionResponse, 0, len(results))
+	for _, cpsAction := range results {
+		actionResponse := account_block_dto.AccountBlockActionResponse{
+			ID:                  cpsAction.ID,
+			ActionCode:          cpsAction.ActionCode,
+			UniqueId:            cpsAction.UniqueId,
+			MakerID:             cpsAction.MakerID,
+			MakerName:           cpsAction.MakerName,
+			MakerPhoneNumber:    cpsAction.MakerPhoneNumber,
+			CheckerUsers:        convertCheckers(cpsAction.CheckerUsers),
+			AuditorUsers:        convertAuditors(cpsAction.AuditorUsers),
+			AuditorCount:        cpsAction.AuditorCount,
+			AuditorStatus:       account_block_dto.AuditorStatus(cpsAction.AuditorStatus),
+			CurrentAuditorIndex: cpsAction.CurrentAuditorIndex,
+			CheckerCount:        cpsAction.CheckerCount,
+			CurrentCheckerIndex: cpsAction.CurrentCheckerIndex,
+			RoleCode:            cpsAction.RoleCode,
+			RejectionReason:     cpsAction.RejectionReason,
+			CanceledReason:      cpsAction.CanceledReason,
+			ActionStatus:        cpsAction.ActionStatus,
+			ActionType:          cpsAction.ActionType,
+			IsDeleted:           cpsAction.IsDeleted,
+			RequestAction:       cpsAction.RequestAction,
+			Version:             cpsAction.Version,
+			ReversedByRoleID:    cpsAction.ReversedByRoleID,
+			ReversedByID:        cpsAction.ReversedByID,
+			ReversedByName:      cpsAction.ReversedByName,
+			ReversedAt:          cpsAction.ReversedAt,
+			CreatedAt:           cpsAction.CreatedAt,
+			LastModifiedAt:      cpsAction.LastModifiedAt,
+			MakerActionTime:     cpsAction.MakerActionTime,
+		}
+
+		var previousAction interface{}
+		if cpsAction.ActionStatus == string(constants.ActionApproved) {
+			previousAction = getMatchingAction(cpsAction.CurrentAction, id, a.logger)
+		} else if cpsAction.ActionStatus == string(constants.ActionPending) || cpsAction.ActionStatus == string(constants.ActionRejected) {
+			previousAction = getMatchingAction(cpsAction.PreviousAction, id, a.logger)
+		} else {
+			previousAction = getMatchingAction(cpsAction.PreviousAction, id, a.logger)
+		}
+
+		actionResponse.PreviousAction = previousAction
+		response = append(response, actionResponse)
+	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	a.logger.Infof("[AccountBlockStorage][GetAccountBlockDetails] successfully mapped %d CPS actions", len(response))
+
+	return &types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse]{
+		Data: response,
+		Meta: meta,
+	}, nil
+}
+
+func getMatchingAction(actionData interface{}, accountBlockID string, logger utils.Logger) interface{} {
+	if actionData == nil {
+		return nil
+	}
+
+	// Try to unmarshal as array of EnableDisableAction
+	actions, err := local_util.JsonUnmarshal[[]types.EnableDisableAction](actionData)
+	if err == nil && actions != nil {
+		// Find the action matching the account block id
+		for _, action := range *actions {
+			if action.ID == accountBlockID {
+				return action
+			}
+		}
+		// If no match found, return nil
+		return nil
+	}
+
+	// Try to unmarshal as single EnableDisableAction
+	singleAction, err := local_util.JsonUnmarshal[types.EnableDisableAction](actionData)
+	if err == nil && singleAction != nil {
+		if singleAction.ID == accountBlockID {
+			return *singleAction
+		}
+		return nil
+	}
+
+	// If unmarshaling fails, check if it's already a map/object with id field
+	if actionMap, ok := actionData.(map[string]interface{}); ok {
+		if id, exists := actionMap["id"]; exists {
+			if idStr, ok := id.(string); ok && idStr == accountBlockID {
+				return actionMap
+			}
+		}
+	}
+
+	logger.Warnf("[AccountBlockStorage][getMatchingAction] failed to extract matching action for id: %s", accountBlockID)
+	return nil
+}
+
+// convertCheckers converts model.Checker to account_block_dto.Checker
+func convertCheckers(checkers []model.Checker) []account_block_dto.Checker {
+	result := make([]account_block_dto.Checker, 0, len(checkers))
+	for _, c := range checkers {
+		result = append(result, account_block_dto.Checker{
+			CheckerID:          c.CheckerID,
+			RoleID:             c.RoleID,
+			CheckerIndex:       c.CheckerIndex,
+			CheckerName:        c.CheckerName,
+			CheckerPhoneNumber: c.CheckerPhoneNumber,
+			ApprovedAt:         c.ApprovedAt,
+		})
+	}
+	return result
+}
+
+// convertAuditors converts model.Auditor to account_block_dto.Auditor
+func convertAuditors(auditors []model.Auditor) []account_block_dto.Auditor {
+	result := make([]account_block_dto.Auditor, 0, len(auditors))
+	for _, a := range auditors {
+		result = append(result, account_block_dto.Auditor{
+			AuditorID:          a.AuditorID,
+			RoleID:             a.RoleID,
+			AuditorIndex:       a.AuditorIndex,
+			AuditorName:        a.AuditorName,
+			AuditorPhoneNumber: a.AuditorPhoneNumber,
+			AuditorReason:      a.AuditorReason,
+			AuditorMark:        account_block_dto.AuditorMark(a.AuditorMark),
+			ApprovedAt:         a.ApprovedAt,
+		})
+	}
+	return result
+}
+
+func (a *AccountBlockStorage) FindByFilterKey(ctx context.Context, field, value string) (*model.AccountBlock, error) {
+	a.logger.Infof("[AccountBlockStorage][FindByFilterKey] searching Account Block by %s: %s", field, value)
+	var filter bson.M
+
+	if field == "id" {
+		field = "_id"
+		objID, err := bson.ObjectIDFromHex(value)
+		if err != nil {
+			a.logger.Errorf("[BPSUserStorage][FindByFilterKey] invalid ObjectID: %v", err)
+			return nil, errors.New(localization.ErrorInvalidID.Code)
+		}
+		filter = bson.M{field: objID, "is_deleted": false}
+	} else {
+		filter = bson.M{field: value, "is_deleted": false}
+	}
+	result, err := a.accountBlock.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		a.logger.Errorf("[AccountBlockStorage][FindByFilterKey] failed to find Account block: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	return result, nil
 }

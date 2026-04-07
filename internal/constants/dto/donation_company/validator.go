@@ -12,7 +12,7 @@ import (
 
 func (d DonationCompanyRequest) ValidateForUpdate() error {
 	// First check if at least one field is provided
-	if d.CompanyName == "" && d.CompanyLogo == nil && d.AccountNumber == "" && d.PhoneNumber == "" && d.Email == "" && d.Address == "" {
+	if d.CompanyName == "" && d.CompanyLogo == nil && d.AccountNumber == "" && d.PhoneNumber == "" && d.Email == "" && d.Address == "" && d.CompanyDescription == "" {
 		return validation.NewError("validation_at_least_one_field", "at least one field must be provided for update")
 	}
 
@@ -53,6 +53,9 @@ func (d DonationCompanyRequest) Validate() error {
 			validation.Length(3, 100).Error("company name must be between 3 and 100 characters"),
 			validation.By(utils.NoSpecialChars),
 		),
+		validation.Field(&d.CompanyDescription,
+			validation.Length(10, 500).Error("description must be between 10 and 500 characters"),
+		),
 		validation.Field(&d.CompanyLogo,
 			validation.Required.Error("company logo is required"),
 			validation.By(validateImage),
@@ -82,8 +85,8 @@ func validateImage(value interface{}) error {
 		return localization.ErrorMissingOrInvalidImage
 	}
 
-	if file.Size > (15 << 20) {
-		return validation.NewError("logo", localization.MsgFileTooLarge)
+	if file.Size > (10 << 20) {
+		return validation.NewError("logo", "file size exceeds 10MB limit")
 	}
 
 	return nil

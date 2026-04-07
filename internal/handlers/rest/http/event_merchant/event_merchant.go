@@ -2,10 +2,14 @@ package event_merchant_handler
 
 import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
+	"errors"
 
+	"cbe-super-app-cps-action/internal/constants"
 	event_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/event_merchant"
 	event_merchant_port "cbe-super-app-cps-action/internal/constants/interfaces/event_merchant"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/event_merchant/core"
 	"cbe-super-app-cps-action/internal/service"
 	"encoding/json"
@@ -13,6 +17,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type EventMerchantHandler struct {
@@ -20,66 +25,209 @@ type EventMerchantHandler struct {
 	logger  utils.Logger
 }
 
-func (e *EventMerchantHandler) CreateEventMerchant(w http.ResponseWriter, r *http.Request) {
-	var req event_merchant_dto.CreateEventMerchantRequest
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		e.logger.Errorf("[CreateEventMerchant] decode: %v", err)
-		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
+// Event Merchant Lookup
+// @Summary Event Merchant Lookup
+// @Description Retrieves a merchant by ID
+// @Tags event-merchant
+// @Security BearerAuth
+// @Produce json
+// @Param merchant_id path string true "Merchant ID"
+// @Success 200 {object} localization.StandardResponse{data=object}
+// @Failure 400,401,404,500 {object} localization.StandardResponse{data=nil}
+// @Router /event-merchant/merchant-lookup/{merchant_id} [get]
+func (e *EventMerchantHandler) EventMerchantLookup(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "EventMerchantLookup", "handler", "EventMerchant")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, e.logger)
+	_ = log
+	merchantID := chi.URLParam(r, "merchant_id")
+	if merchantID == "" {
+		span.RecordError(errors.New("missing or invalid parameter 'merchant_id'"))
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return
 	}
-	if err := event_merchant_dto.Validation(req); err != nil {
-		localization.SendBadRequestResponse(w, err.Error())
-		return
-	}
-	m := core.CreateEventMerchantRequestToModel(req)
-
-	if err := e.service.Create(r.Context(), m); err != nil {
+	span.SetAttributes(attribute.String("ecommerce_merchant_dto.id", merchantID))
+	result, err := e.service.EventMerchantLookup(ctx, merchantID)
+	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreated, nil)
+
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppDetailsFetched, result)
 }
 
+// CreateEventMerchant godoc
+//
+//	@Summary		Create event merchant
+//	@Description	Create a new event merchant with the provided information
+//	@Tags			Event Merchant
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		event_merchant_dto.CreateEventMerchantRequest	true	"Create event merchant request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Event merchant created successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/event_merchants [post]
+func (e *EventMerchantHandler) CreateEventMerchant(w http.ResponseWriter, r *http.Request) {
+	ctx, _ := local_util.TraceLogger(r.Context(), "handler", "createAdvert", "handler", "advert")
+	userContext := local_util.ExtractUserContext(r)
+
+	log := local_util.LoggerFromCtx(ctx, e.logger)
+	var req event_merchant_dto.CreateEventMerchantRequest
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Errorf("[CreateEventMerchant] decode: %v", err)
+		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
+		return
+	}
+	if err := req.Validate(); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	e.logger.Infof("[CreateEventMerchant] request received to create event merchant: %v", req)
+	m := core.CreateEventMerchantRequestToModel(req)
+
+	if err := e.service.Create(ctx, m); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if userContext.IsErp {
+		localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreated, md.Id)
+		return
+	} else if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreated, nil)
+	} else {
+		e.logger.Infof("[CreateEventMerchant] request sent successfully for create event merchant")
+		localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreateRequestSent, nil)
+	}
+}
+
+// DeleteEventMerchant godoc
+//
+//	@Summary		Delete event merchant
+//	@Description	Delete an event merchant by ID
+//	@Tags			Event Merchant
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Event merchant ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Event merchant deleted successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Event merchant not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/event_merchant/{id} [delete]
 func (e *EventMerchantHandler) DeleteEventMerchant(w http.ResponseWriter, r *http.Request) {
+	ctx, _ := local_util.TraceLogger(r.Context(), "handler", "deleteEventMerchant", "handler", "event_merchant")
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := e.service.Delete(r.Context(), id); err != nil {
+	if err := e.service.Delete(ctx, id); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	localization.SendSuccessResponse(w, localization.SuccessEventMerchantDeleted, nil)
 }
 
+// DisableEventMerchant godoc
+//
+//	@Summary		Disable event merchant
+//	@Description	Disable an event merchant by ID
+//	@Tags			Event Merchant
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Event merchant ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Event merchant disabled successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Event merchant not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/event_merchants/disable/{id} [patch]
 func (e *EventMerchantHandler) DisableEventMerchant(w http.ResponseWriter, r *http.Request) {
+	ctx, _ := local_util.TraceLogger(r.Context(), "handler", "disableEventMerchant", "handler", "event_merchant")
+	userContext := local_util.ExtractUserContext(r)
+
+	md := &types.ContextMetadata{}
 	id := chi.URLParam(r, "id")
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := e.service.EnableOrDisable(r.Context(), id, false); err != nil {
+	if err := e.service.EnableOrDisable(ctx, id, false); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessEventMerchantDisabled, nil)
+
+	if userContext.IsErp && md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessEventMerchantDisabled, nil)
+	} else {
+		e.logger.Infof("[DisableEventMerchant] request sent successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessEventMerchantDisableRequestSent, nil)
+	}
 }
 
+// EnableEventMerchant godoc
+//
+//	@Summary		Enable event merchant
+//	@Description	Enable an event merchant by ID
+//	@Tags			Event Merchant
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Event merchant ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Event merchant enabled successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Event merchant not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/event_merchants/enable/{id} [patch]
 func (e *EventMerchantHandler) EnableEventMerchant(w http.ResponseWriter, r *http.Request) {
+	ctx, _ := local_util.TraceLogger(r.Context(), "handler", "enableEventMerchant", "handler", "event_merchant")
+	userContext := local_util.ExtractUserContext(r)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := e.service.EnableOrDisable(r.Context(), id, true); err != nil {
+	if err := e.service.EnableOrDisable(ctx, id, true); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessEventMerchantEnabled, nil)
+
+	if userContext.IsErp && md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessEventMerchantEnabled, nil)
+	} else {
+		e.logger.Infof("[EnableEventMerchant] request sent successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessEventMerchantEnableRequestSent, nil)
+	}
 }
 
+// GetEventMerchantByID godoc
+//
+//	@Summary		Get event merchant by ID
+//	@Description	Retrieve a single event merchant by its identifier
+//	@Tags			Event Merchant
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string													true	"Event merchant ID"
+//	@Success		200	{object}	localization.StandardResponse{data=event_merchant_dto.EventMerchantResponse}	"Event merchant retrieved successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}					"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}					"Event merchant not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}					"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/event_merchants/{id} [get]
 func (e *EventMerchantHandler) GetEventMerchantByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -94,9 +242,38 @@ func (e *EventMerchantHandler) GetEventMerchantByID(w http.ResponseWriter, r *ht
 	localization.SendSuccessResponse(w, localization.SuccessEventMerchantFetched, result)
 }
 
+// GetEventMerchants godoc
+//
+//	@Summary		Get all event merchants
+//	@Description	Retrieve all event merchants with pagination and optional search
+//	@Tags			Event Merchant
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int									false	"Page number"		default(1)
+//	@Param			per_page	query		int									false	"Items per page"	default(10)
+//	@Param			search		query		string								false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"Event merchants retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/event_merchants [get]
 func (e *EventMerchantHandler) GetEventMerchants(w http.ResponseWriter, r *http.Request) {
-	filter := local_util.ExtractFilterParams(r)
-	result, err := e.service.FindAllWithPagination(r.Context(), *filter)
+	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	result, err := e.service.FindAllWithPagination(r.Context(), *filterParams)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -104,7 +281,29 @@ func (e *EventMerchantHandler) GetEventMerchants(w http.ResponseWriter, r *http.
 	localization.SendSuccessResponse(w, localization.SuccessEventMerchantFetched, result)
 }
 
+// UpdateEventMerchant godoc
+//
+//	@Summary		Update event merchant
+//	@Description	Update an existing event merchant by ID. Provide only fields to change.
+//	@Tags			Event Merchant
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string										true	"Event merchant ID"
+//	@Param			body	body		event_merchant_dto.UpdateEventMerchantRequest	true	"Update event merchant request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}		"Event merchant updated successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		404		{object}	localization.StandardResponse{data=nil}		"Event merchant not found"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/event_merchants/{id} [patch]
 func (e *EventMerchantHandler) UpdateEventMerchant(w http.ResponseWriter, r *http.Request) {
+	ctx, _ := local_util.TraceLogger(r.Context(), "handler", "updateEventMerchant", "handler", "event_merchant")
+	userContext := local_util.ExtractUserContext(r)
+
+	md := &types.ContextMetadata{}
+	log := local_util.LoggerFromCtx(ctx, e.logger)
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
@@ -112,20 +311,25 @@ func (e *EventMerchantHandler) UpdateEventMerchant(w http.ResponseWriter, r *htt
 	}
 	var req event_merchant_dto.UpdateEventMerchantRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		e.logger.Errorf("[UpdateEventMerchant] decode: %v", err)
+		log.Errorf("[UpdateEventMerchant] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := event_merchant_dto.Validation(req); err != nil {
-		localization.SendBadRequestResponse(w, err.Error())
-		return
-	}
-	m := core.UpdateEventMerchantRequestToModel(req)
-	if err := e.service.Update(r.Context(), id, m); err != nil {
+	if err := req.Validate(); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessEventMerchantUpdated, nil)
+	m := core.UpdateEventMerchantRequestToModel(req)
+	if err := e.service.Update(ctx, id, m); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if userContext.IsErp && md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessEventMerchantUpdated, nil)
+	} else {
+		log.Infof("[UpdateEventMerchant] request sent successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessEventMerchantUpdateRequestSent, nil)
+	}
 }
 
 func NewEventMerchantHandler(service service.EventMerchantService, logger utils.Logger) event_merchant_port.EventMerchantInboundAdaptor {

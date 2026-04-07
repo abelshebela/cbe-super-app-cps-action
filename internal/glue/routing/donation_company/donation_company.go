@@ -3,7 +3,6 @@ package donation_company
 import (
 	"net/http"
 
-	role "cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/interfaces/donation_company"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -20,7 +19,6 @@ func Init(router chi.Router, handler donation_company.DonationCompanyAdapter, au
 			Handler: handler.CreateDonationCompany,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -29,7 +27,6 @@ func Init(router chi.Router, handler donation_company.DonationCompanyAdapter, au
 			Handler: handler.UpdateDonationCompany,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -38,7 +35,6 @@ func Init(router chi.Router, handler donation_company.DonationCompanyAdapter, au
 			Handler: handler.FetchDonationCompany,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
 			},
 		},
 		{
@@ -47,7 +43,6 @@ func Init(router chi.Router, handler donation_company.DonationCompanyAdapter, au
 			Handler: handler.FetchDonationCompanyByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
 			},
 		},
 		{
@@ -56,7 +51,6 @@ func Init(router chi.Router, handler donation_company.DonationCompanyAdapter, au
 			Handler: handler.AccountLookup,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
 			},
 		},
 		{
@@ -65,7 +59,6 @@ func Init(router chi.Router, handler donation_company.DonationCompanyAdapter, au
 			Handler: handler.EnableDonationCompany,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -74,7 +67,6 @@ func Init(router chi.Router, handler donation_company.DonationCompanyAdapter, au
 			Handler: handler.DisableDonationCompany,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 	}

@@ -7,32 +7,14 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-// type KYCInformation struct {
-// 	Name  string `json:"name" bson:"name"`
-// 	Email string `json:"email" bson:"email"`
-// 	Phone string `json:"phone" bson:"phone"`
-// }
+type OracleQuery struct {
+	WhereClause string
+	Args        map[string]interface{}
+	Offset      int64
+	Limit       int64
+}
 
-// type KYC struct {
-// 	Status         KYCStatus      `json:"status" bson:"status"`
-// 	Representative KYCInformation `json:"representative" bson:"representative"`
-// }
-
-// type BranchInformation struct {
-// 	BranchCode          string `json:"branch_code"`
-// 	BranchName          string `json:"branch_name"`
-// 	BranchAddress       string `json:"branch_address"`
-// 	BranchOwner         string `json:"branch_owner"`
-// 	BranchAccountNumber string `json:"branch_account_number"`
-// }
-
-// type MiniApps struct {
-// 	ID        string `json:"id" bson:"id"`
-// 	Enabled   bool   `json:"enabled" bson:"enabled"`
-// 	IsDeleted bool   `json:"is_deleted" bson:"is_deleted"`
-// }
-
-type CheckMiniAppMerchant struct {
+type CheckMerchant struct {
 	BankAccountNumber string `json:"bank_account_number"`
 	Email             string `json:"email"`
 	PhoneNumber       string `json:"phone_number"`
@@ -41,7 +23,16 @@ type CheckMiniAppMerchant struct {
 type MiniAppMerchantExistOptions struct {
 	ExcludeID string
 }
-
+type Auditor struct {
+	AuditorID          string                `bson:"auditor_id" json:"auditor_id,omitempty"`
+	RoleID             string                `bson:"role_id" json:"role_id,omitempty"`
+	AuditorIndex       int32                 `bson:"auditor_index" json:"auditor_index,omitempty"`
+	AuditorName        string                `bson:"auditor_name" json:"auditor_name,omitempty"`
+	AuditorPhoneNumber string                `bson:"auditor_phone_number" json:"auditor_phone_number,omitempty"`
+	AuditorReason      string                `bson:"auditor_reason" json:"auditor_reason"`
+	AuditorMark        constants.AuditorMark `bson:"auditor_mark" json:"auditor_mark,omitempty"`
+	ApprovedAt         time.Time             `bson:"approved_at" json:"approved_at,omitempty"`
+}
 type BakerOptions struct {
 	Sequential bool
 	UseMutex   bool
@@ -155,13 +146,16 @@ type LoginPIN struct {
 }
 
 type UserContext struct {
-	UserCode    string
-	UserID      string
-	FullName    string
-	PhoneNumber string
-	Department  string
-	BranchCode  []string
-	UserRole    string
+	IsErp        bool
+	UserCode     string
+	UserID       string
+	FullName     string
+	PhoneNumber  string
+	UserName     string
+	Department   string
+	BranchCode   []string
+	UserRole     string
+	CheckerIndex string
 }
 
 type RegistrationRecord struct {
@@ -215,6 +209,15 @@ type Password struct {
 	CurrentPassword  string    `json:"current_password" bson:"current_password"`
 	OldPassword      [4]string `json:"old_password" bson:"old_password,omitempty"`
 	PasswordChangeAt time.Time `json:"password_changed_at" bson:"password_changed_at"`
+}
+
+type Checker struct {
+	CheckerID          string    `bson:"checker_id" json:"checker_id,omitempty"`
+	RoleID             string    `bson:"role_id" json:"role_id,omitempty"`
+	CheckerIndex       int32     `bson:"checker_index" json:"checker_index,omitempty"`
+	CheckerName        string    `bson:"checker_name" json:"checker_name,omitempty"`
+	CheckerPhoneNumber string    `bson:"checker_phone_number" json:"checker_phone_number,omitempty"`
+	ApprovedAt         time.Time `bson:"approved_at" json:"approved_at,omitempty"`
 }
 
 // ==================================
@@ -321,6 +324,16 @@ type TicketInformation struct {
 	TotalNumberOfTicket          uint64 `json:"total_number_of_ticket" bson:"total_number_of_ticket"`
 	TotalNumberOfAvailableTicket uint64 `json:"total_number_of_available_ticket" bson:"total_number_of_available_ticket"`
 	TotalNumberOFUnsoldTicket    uint64 `json:"total_number_of_unsold_ticket" bson:"total_number_of_unsold_ticket"`
+}
+
+// InAppBroadcastMessage is the payload for in-app broadcast notifications
+// that will be wrapped by shared/notification/dto.NewNotificationMessage
+// and sent to Kafka with type "in_app_broadcast".
+type InAppBroadcastMessage struct {
+	Title     string    `json:"title"`
+	Message   string    `json:"message"`
+	Type      string    `json:"type"`       // should be "inapp"
+	ExpiresAt time.Time `json:"expires_at"` // RFC3339 when marshaled
 }
 
 type EventInformation struct {
@@ -472,4 +485,17 @@ type EmailKafkaMessage struct {
 	TransactionDetails map[string]interface{} `json:"transaction_details,omitempty"`
 	Priority           int                    `json:"priority,omitempty"`
 	Metadata           map[string]interface{} `json:"metadata,omitempty"`
+}
+
+type Reason struct {
+	Reason    string    `bson:"reason" json:"reason"`
+	CreatedAt time.Time `bson:"created_at" json:"created_at"`
+	CreatedBy string    `bson:"created_by" json:"created_by"`
+}
+
+type EnableDisableAction struct {
+	ID      string `json:"id" bson:"id"`
+	Name    string `json:"name" bson:"name"`
+	Enabled bool   `json:"enabled" bson:"enabled"`
+	Reason  Reason `json:"reason" bson:"reason"`
 }

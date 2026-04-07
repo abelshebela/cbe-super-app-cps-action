@@ -1,8 +1,10 @@
 package core
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"strconv"
 
 	"cbe-super-app-cps-action/pkgs/utils"
 	"errors"
@@ -16,6 +18,13 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
+func StringToInt32(s string) (int32, error) {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, err
+	}
+	return int32(i), nil
+}
 func ParseImageUpdateRequestFromMultipartForm(r *http.Request) (donation.DonationImageUpdateRequest, error) {
 	var req donation.DonationImageUpdateRequest
 
@@ -28,7 +37,7 @@ func ParseImageUpdateRequestFromMultipartForm(r *http.Request) (donation.Donatio
 		return req, errors.New("image_id is required")
 	}
 
-	_, imageHeader, err := utils.ParseMultipartFormFile(r, "donation_images", 10<<20)
+	_, imageHeader, err := utils.ParseMultipartFormFile(r, "donation_images", int64(constants.MaxMemoryForUpload))
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
 			return req, errors.New("image file is required")
@@ -61,16 +70,16 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (donation.Don
 	}
 
 	if targetStr := r.FormValue("target"); targetStr != "" {
-		converter := utils.NewNumericConverter()
-		if target, err := converter.ToInt32(targetStr, "target"); err != nil {
-			return req, err
-		} else {
-			req.Target = target
+		targetInt, err := strconv.ParseInt(targetStr, 10, 64)
+		if err != nil {
+			return req, errors.New("target must be a valid integer")
 		}
+		req.Target = strconv.FormatInt(targetInt, 10)
 	}
 
 	if enabledStr := r.FormValue("enabled"); enabledStr != "" {
-		req.Enabled = enabledStr == "true"
+		tempval := enabledStr == "true"
+		req.Enabled = &tempval
 	}
 
 	var endDate, startDate time.Time
@@ -94,7 +103,7 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (donation.Don
 		req.StartDate = time.Now()
 	}
 
-	_, coverImageHeader, err := utils.ParseMultipartFormFile(r, "cover_image", 10<<20)
+	_, coverImageHeader, err := utils.ParseMultipartFormFile(r, "cover_image", int64(constants.MaxMemoryForUpload))
 	if err != nil {
 		if !errors.Is(err, http.ErrMissingFile) {
 			return req, err
@@ -119,8 +128,8 @@ func ValidateForUpdate(req donation.DonationRequest) error {
 			validation.When(req.Title != "", validation.By(utils.NoSpecialChars)),
 		),
 		validation.Field(&req.Target,
-			validation.When(req.Target != 0,
-				validation.Min(0).Error("donation amount must be greater than or equal to 0"),
+			validation.When(req.Target != "",
+				// validation.Min(0).Error("donation amount must be greater than or equal to 0"),
 				validation.By(validateDonationAmount)),
 		),
 		validation.Field(&req.DonationImages,
@@ -169,19 +178,28 @@ func ExtractIDFromURL(r *http.Request) string {
 }
 
 func validateDonationAmount(value interface{}) error {
-	amount, ok := value.(int32)
-	if !ok {
-		return validation.NewError("validation_amount_invalid", "invalid donation amount")
+	var amount int64
+	switch v := value.(type) {
+	case string:
+		a, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return validation.NewError("validation_amount_invalid", "donation amount must be a valid number")
+		}
+		amount = a
+	case int:
+		amount = int64(v)
+	case int64:
+		amount = v
+	default:
+		return validation.NewError("validation_amount_invalid", "invalid donation amount type")
 	}
 
 	if amount <= 0 {
 		return validation.NewError("validation_amount_zero", "donation amount must be greater than zero")
 	}
-
 	if amount > 100000000 {
 		return validation.NewError("validation_amount_too_large", "donation amount must not exceed 100,000,000")
 	}
-
 	return nil
 }
 
@@ -272,8 +290,8 @@ func validateImage(value interface{}) error {
 		return localization.ErrorMissingOrInvalidImage
 	}
 
-	if file.Size > (15 << 20) {
-		return validation.NewError("logo", localization.MsgFileTooLarge)
+	if file.Size > (10 << 20) {
+		return validation.NewError("logo", "file size exceeds 10MB limit")
 	}
 
 	return nil

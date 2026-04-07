@@ -156,7 +156,7 @@ func sanitizeString(s string) (string, error) {
 	return trimmed, nil
 }
 
-var reISO4217 = regexp.MustCompile(`^[A-Z]{3}$`)
+// var reISO4217 = regexp.MustCompile(`^[A-Z]{3}$`)
 
 func noSpecialChars(value interface{}) error {
 	var s string

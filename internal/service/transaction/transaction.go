@@ -15,6 +15,11 @@ type TransactionService struct {
 	logger utils.Logger
 }
 
+// FindTransactionByCifOrAccountNumberOrFT implements service.TransactionService.
+func (t *TransactionService) FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.FullTransaction, error) {
+	return t.repo.FindTransactionByCifOrAccountNumberOrFT(ctx, identifier)
+}
+
 // FetchAllTransactions implements service.TransactionService.
 func (t *TransactionService) FetchAllTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error) {
 	return t.repo.FindAllWithPagination(ctx, *filterParams)

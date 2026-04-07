@@ -1,168 +1,222 @@
-package miniappmerchant
+package ecommercemerchant
 
 import (
-	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/pkgs/utils"
+	"fmt"
 	"regexp"
-	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
-type BranchInformation struct {
-	BranchCode    string `json:"branch_code"`
-	BranchName    string `json:"branch_name"`
-	BranchAddress string `json:"branch_address"`
-	BranchOwner   string `json:"branch_owner"`
-}
+func (b BranchInformation) ValidateCreate() error {
+	return validation.ValidateStruct(&b,
 
-func isBranchEmpty(branch types.BranchInformation) bool {
-	return strings.TrimSpace(branch.BranchCode) == "" &&
-		strings.TrimSpace(branch.BranchName) == "" &&
-		strings.TrimSpace(branch.BranchAddress) == "" &&
-		strings.TrimSpace(branch.BranchOwner) == ""
-}
+		validation.Field(&b.BranchCode,
+			validation.Required,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
 
-func (dto MiniAppMerchantDTO) IsEmpty() bool {
-	if strings.TrimSpace(dto.MerchantName) != "" ||
-		strings.TrimSpace(dto.PhoneNumber) != "" ||
-		strings.TrimSpace(dto.Email) != "" ||
-		strings.TrimSpace(dto.AccountNumber) != "" {
-		return false
-	}
+		validation.Field(&b.BranchName,
+			validation.Required,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
 
-	// branches empty = slice empty OR all branches empty
-	if len(dto.Branches) == 0 {
-		return true
-	}
-
-	for _, b := range dto.Branches {
-		if !isBranchEmpty(b) {
-			return false
-		}
-	}
-
-	return true
-}
-
-func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
-	if !isCreate && dto.IsEmpty() {
-		return nil
-	}
-
-	var rules []*validation.FieldRules
-
-	if isCreate {
-		rules = []*validation.FieldRules{
-			// validation.Field(&dto.Type,
-			// 	validation.Required.Error("type is required"),
-			// 	validation.By(utils.NoSpecialChars),
-			// 	validation.By(utils.TrimWhiteSpace),
-			// 	validation.In("3-click", "merchant").Error("type must be either '3-click' or 'merchant'"),
-			// ),
-			validation.Field(&dto.MerchantName,
-				validation.Required.Error("merchant name is required"),
+		validation.Field(&b.BranchAddress,
+			validation.When(b.BranchAddress != nil && *b.BranchAddress != "",
 				validation.By(utils.TrimWhiteSpace),
 				validation.By(utils.NoSpecialChars),
 			),
-			validation.Field(&dto.MerchantCode,
-				validation.By(func(value interface{}) error {
-					// if dto.Type != "3-click" {
-					// 	return nil
-					// }
-					validation.By(utils.TrimWhiteSpace)
-					if err := validation.Required.Error("mercahnt code is required").Validate(value); err != nil {
-						return err
-					}
-					validation.By(utils.NoSpecialChars)
-					return nil
-				}),
-			),
-			// validation.Field(&dto.MerchantRepresentativeName,
-			// 	validation.By(func(value interface{}) error {
-			// 		// if dto.Type != "merchant" {
-			// 		// 	return nil
-			// 		// }
-			// 		// if err := validation.Required.Error("representative name is required").Validate(value); err != nil {
-			// 		// 	return err
-			// 		// }
-			// 		validation.By(utils.TrimWhiteSpace)
-			// 		validation.By(utils.NoSpecialChars)
+		),
 
-			// 		return nil
-			// 	}),
-			// ),
-			validation.Field(&dto.PhoneNumber,
-				validation.Required.Error("phone number is required"),
-				validation.Match(regexp.MustCompile(`^(?:\+251|251|0)(9|7)\d{8}$`)).Error("invalid phone number format"),
-				validation.By(utils.TrimWhiteSpace),
-			),
-			validation.Field(&dto.SettlementMethod,
-				validation.Required.Error("Settlement method is required"),
+		validation.Field(&b.BranchOwner,
+			validation.When(b.BranchOwner != "",
 				validation.By(utils.TrimWhiteSpace),
 				validation.By(utils.NoSpecialChars),
 			),
-			validation.Field(&dto.Email,
-				validation.Required.Error("email is required"),
-				is.Email.Error("email must be a valid email address"),
+		),
+
+		validation.Field(&b.BranchAccountNumber,
+			validation.Required,
+			validation.Match(regexp.MustCompile(`^[0-9]+$`)).
+				Error("Invalid branch account number"),
+		),
+	)
+}
+
+func (b BranchInformation) ValidateUpdate() error {
+	return validation.ValidateStruct(&b,
+
+		validation.Field(&b.BranchCode,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&b.BranchName,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&b.BranchAddress,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&b.BranchOwner,
+			validation.When(b.BranchOwner != "",
 				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
 			),
-			validation.Field(&dto.AccountNumber,
-				validation.By(func(value interface{}) error {
-					// if dto.Type != "merchant" {
-					// 	return nil
-					// }
-					// if err := validation.Required.Error("account number is required").Validate(value); err != nil {
-					// 	return err
-					// }
-					validation.By(utils.TrimWhiteSpace)
-					validation.By(utils.NoSpecialChars)
-					validation.By(utils.NumbersOnly)
-					if err := validation.Length(13, 13).Error("account number must be 13 digits").Validate(value); err != nil {
-						return err
-					}
+		),
 
-					return nil
-				}),
-			),
-		}
-	} else {
-		// if strings.TrimSpace(dto.Type) != "" {
-		// 	rules = append(rules, validation.Field(&dto.Type,
-		// 		validation.By(utils.NoSpecialChars)),
-		// 	)
-		// }
-		if strings.TrimSpace(dto.MerchantName) != "" {
-			rules = append(rules, validation.Field(&dto.MerchantName, validation.By(utils.NoSpecialChars)))
-		}
-		// if strings.TrimSpace(dto.MerchantRepresentativeName) != "" {
-		// 	rules = append(rules, validation.Field(&dto.MerchantRepresentativeName, validation.By(utils.NoSpecialChars)))
-		// }
-		if strings.TrimSpace(dto.PhoneNumber) != "" {
-			rules = append(rules, validation.Field(&dto.PhoneNumber,
-				validation.Length(9, 15).Error("phone number must be between 9 and 15 digits"),
-				validation.Match(regexp.MustCompile(`^(?:\+251|251|0)9\d{8}$`)).Error("invalid phone number format"),
-			))
-		}
-		if strings.TrimSpace(dto.Email) != "" {
+		validation.Field(&b.BranchAccountNumber,
+			validation.Match(regexp.MustCompile(`^[0-9]+$`)).
+				Error("Invalid branch account number"),
+		),
+	)
+}
 
-			rules = append(rules, validation.Field(&dto.Email,
-				is.Email.Error("email must be a valid email address"),
-				validation.By(utils.TrimWhiteSpace),
-			))
-		}
-
-		if strings.TrimSpace(dto.AccountNumber) != "" {
-			rules = append(rules, validation.Field(&dto.AccountNumber, validation.By(utils.NoSpecialChars)))
-		}
+func validateBranchesCreate(value interface{}) error {
+	branches, ok := value.([]BranchInformation)
+	if !ok {
+		return fmt.Errorf("invalid branches format")
 	}
 
-	if len(rules) > 0 {
-		if err := validation.ValidateStruct(&dto, rules...); err != nil {
-			return err
+	seen := make(map[string]bool)
+
+	for i, b := range branches {
+
+		if seen[b.BranchCode] {
+			return fmt.Errorf("duplicate branch_code: %s", b.BranchCode)
+		}
+		seen[b.BranchCode] = true
+
+		if err := b.ValidateCreate(); err != nil {
+			return fmt.Errorf("branch[%d]: %w", i, err)
 		}
 	}
 
 	return nil
+}
+
+func validateBranchesUpdate(value interface{}) error {
+	branches, ok := value.([]BranchInformation)
+	if !ok {
+		return fmt.Errorf("invalid branches format")
+	}
+
+	seen := make(map[string]bool)
+
+	for i, b := range branches {
+
+		if b.BranchCode != "" {
+			if seen[b.BranchCode] {
+				return fmt.Errorf("duplicate branch_code: %s", b.BranchCode)
+			}
+			seen[b.BranchCode] = true
+		}
+
+		if err := b.ValidateUpdate(); err != nil {
+			return fmt.Errorf("branch[%d]: %w", i, err)
+		}
+	}
+
+	return nil
+}
+
+func (r EcommerceMerchant) ValidateCreate() error {
+	return validation.ValidateStruct(&r,
+
+		validation.Field(&r.MerchantName,
+			validation.Required,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&r.MerchantCode,
+			validation.Required,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&r.AccountNumber,
+			validation.Required,
+			validation.Match(regexp.MustCompile(`^[0-9]+$`)).
+				Error("Invalid account number"),
+		),
+
+		validation.Field(&r.SettlementMethod,
+			validation.Required,
+			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+		),
+
+		validation.Field(&r.Branches,
+			validation.By(validateBranchesCreate),
+		),
+		validation.Field(&r.IsEcommerceMerchant,
+			validation.Required,
+			validation.By(func(value interface{}) error {
+				isEcommerceMerchant, ok := value.(*bool)
+				if !ok || !*isEcommerceMerchant {
+					return fmt.Errorf("merchant type should be ecommerce")
+				}
+				return nil
+			}),
+		),
+	)
+}
+
+func (r UpdateEcommerceMerchant) ValidateUpdate() error {
+	return validation.ValidateStruct(&r,
+
+		// validation.Field(&r.IsEcommerceMerchant,
+		// 	validation.Required,
+		// 	validation.By(func(value interface{}) error {
+		// 		isEcommerceMerchant, ok := value.(*bool)
+		// 		if !ok || isEcommerceMerchant == nil {
+		// 			return fmt.Errorf("is_ecommerce_merchant is required")
+		// 		}
+		// 		if !*isEcommerceMerchant {
+		// 			return fmt.Errorf("is_ecommerce_merchant must be true")
+		// 		}
+		// 		return nil
+		// 	}),
+		// ),
+
+		validation.Field(&r.MerchantName,
+			validation.When(r.MerchantName != nil && *r.MerchantName != "",
+				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
+			),
+		),
+
+		validation.Field(&r.MerchantCode,
+			validation.When(r.MerchantCode != nil && *r.MerchantCode != "",
+				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
+			),
+		),
+
+		validation.Field(&r.AccountNumber,
+			validation.When(r.AccountNumber != nil && *r.AccountNumber != "",
+				validation.Match(regexp.MustCompile(`^[0-9]+$`)).
+					Error("Invalid account number"),
+			),
+		),
+
+		validation.Field(&r.SettlementMethod,
+			validation.When(r.SettlementMethod != nil && *r.SettlementMethod != "",
+				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
+			),
+		),
+
+		validation.Field(&r.Branches,
+			validation.When(r.Branches != nil,
+				validation.By(validateBranchesUpdate),
+			),
+		),
+	)
 }

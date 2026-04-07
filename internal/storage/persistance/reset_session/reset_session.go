@@ -2,12 +2,14 @@ package reset_session
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -19,9 +21,9 @@ type ResetSessionRepository struct {
 	logger          utils.Logger
 }
 
-func NewResetSessionRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.ResetSessionRepository {
+func NewResetSessionRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.ResetSessionRepository {
 	return &ResetSessionRepository{
-		resetSessionDal: dal.NewMongoDal[model.PinResetSession, model.PinResetSession](client, dbName, collection),
+		resetSessionDal: dal.NewMongoDal[model.PinResetSession, model.PinResetSession](client, cfg, dbName, collection),
 		logger:          logger,
 	}
 }
@@ -44,12 +46,7 @@ func (r *ResetSessionRepository) FindById(ctx context.Context, id string) (*mode
 
 	session, err := r.resetSessionDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("No reset session found for the provided id")
-			return nil, errors.New(localization.ErrorSessionNotFound.Code)
-		}
-		r.logger.Errorf("Unexpected error while finding reset session by id. error=%v, id=%s", err, id)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	r.logger.Infof("Reset session found by id successfully. id=%s", id)
 	return session, nil
@@ -63,12 +60,7 @@ func (r *ResetSessionRepository) FindByPhoneNumber(ctx context.Context, phoneNum
 	session, err := r.resetSessionDal.FindOne(ctx, filter, projection)
 	if err != nil {
 
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("No reset session found for the provided phone number")
-			return nil, errors.New(localization.ErrorSessionNotFound.Code)
-		}
-		r.logger.Errorf("Unexpected error while finding reset session by phone number. error=%v, phoneNumber=%s", err, phoneNumber)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	r.logger.Infof("Reset session found by phone number successfully. phoneNumber=%s", phoneNumber)
 	return session, nil
@@ -82,12 +74,7 @@ func (r *ResetSessionRepository) FindByDeviceUUID(ctx context.Context, deviceUUI
 
 	session, err := r.resetSessionDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("No reset session found for the provided deviceUUID")
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		r.logger.Errorf("Unexpected error while finding reset session by deviceUUID. error=%v, deviceUUID=%s", err, deviceUUID)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	r.logger.Infof("Reset session found by deviceUUID successfully. deviceUUID=%s", deviceUUID)
 	return session, nil
@@ -134,11 +121,11 @@ func (r *ResetSessionRepository) Delete(ctx context.Context, id string) error {
 
 	if err != nil {
 		r.logger.Errorf("Delete OTP failed: error creating filter. error=%v, id=%s", err, id)
-		return err
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	if err := r.resetSessionDal.DeleteOne(ctx, filter); err != nil {
 		r.logger.Errorf("Delete OTP failed: error deleting OTP. error=%v, id=%s", err, id)
-		return err
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	r.logger.Infof("OTP deleted successfully. id=%s", id)
 	return nil

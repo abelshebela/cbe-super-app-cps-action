@@ -3,7 +3,6 @@ package bankvault
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance/bankvault/gen/sqlc"
@@ -12,8 +11,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/shopspring/decimal"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -46,10 +47,14 @@ func (r *bankVaultRepositary) ExecuteInTransaction(ctx context.Context, fn func(
 	}
 
 	if err := fn(txRepo); err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		r.logger.Errorf("[BankVaultRepository][ExecuteInTransaction] failed to commit transaction: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
 }
 
 func (r *bankVaultRepositary) Create(ctx context.Context, product *model.BankVaultProduct) (string, error) {
@@ -57,7 +62,7 @@ func (r *bankVaultRepositary) Create(ctx context.Context, product *model.BankVau
 		Name:       product.Name,
 		Currency:   product.Currency,
 		Interest:   product.Interest,
-		Method:     product.Method,
+		Method:     string(product.Method),
 		Frequency:  product.Frequency,
 		LockPeriod: product.LockPeriod,
 		MinAmount:  product.MinAmount,
@@ -72,7 +77,12 @@ func (r *bankVaultRepositary) Create(ctx context.Context, product *model.BankVau
 		},
 	}
 
-	return r.queries.SaveBankVault(ctx, params)
+	id, err := r.queries.SaveBankVault(ctx, params)
+	if err != nil {
+		r.logger.Errorf("[BankVaultRepository][Create] failed to save bank vault: %v", err)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return id, nil
 }
 
 func (r *bankVaultRepositary) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.BankVaultProduct], error) {
@@ -110,7 +120,7 @@ func (r *bankVaultRepositary) FindAllWithPagination(ctx context.Context, filterP
 			Name:                       row.Name,
 			Currency:                   row.Currency,
 			Interest:                   row.Interest,
-			Method:                     constants.AccrualMethod(row.Method),
+			Method:                     string(row.Method),
 			Frequency:                  row.Frequency,
 			LockPeriod:                 row.LockPeriod,
 			MinAmount:                  row.MinAmount,
@@ -146,8 +156,12 @@ func (r *bankVaultRepositary) FindAllBankLockedVaultsWithPagination(ctx context.
 
 	rows, err := r.queries.GetAllLockedVaults(ctx, params)
 	if err != nil {
-		r.logger.Errorf("failed to get locked vaults: %v", err)
-		return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		if err == sql.ErrNoRows {
+
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		r.logger.Errorf("[BankVaultRepository][FindAllBankLockedVaultsWithPagination] failed to get locked vaults: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	lockedVaults := make([]*model.LockedVault, 0, len(rows))
@@ -214,37 +228,58 @@ func (r *bankVaultRepositary) FindAllGroupVaultWithPagination(ctx context.Contex
 
 	rows, err := r.queries.GetAllGroupVaults(ctx, params)
 	if err != nil {
-		r.logger.Errorf("failed to get group vaults: %v", err)
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
+		}
+		r.logger.Errorf("[BankVaultRepository][FindAllGroupVaultWithPagination] failed to get group vaults: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	groupVaults := make([]*model.GroupVault, 0, len(rows))
 	var total int64
 
 	for _, row := range rows {
-		memberCount := row.MemberCount
-		occVersion := row.OccVersion
-
 		gv := &model.GroupVault{
-			ID:              row.ID,
-			VaultName:       row.VaultName,
-			VaultCategory:   row.VaultCategory,
-			Purpose:         row.Purpose,
-			TargetAmount:    row.TargetAmount,
-			CollectedAmount: row.CollectedAmount,
-			MemberCount:     memberCount,
-			EndDate:         row.EndDate,
-			VaultType:       row.VaultType,
-			Status:          row.Status,
-			AdminUserID:     row.AdminUserID,
-			Recurrence:      row.Recurrence,
-			NextRun:         row.NextRun,
-			Reminder:        row.Reminder,
-			TCVersion:       row.TCVersion,
-			OccVersion:      occVersion,
-			CreatedAt:       row.CreatedAt,
-			UpdatedAt:       row.UpdatedAt,
-			DeletedAt:       row.DeletedAt,
+			ID:            row.ID,
+			VaultName:     row.VaultName,
+			VaultCategory: row.VaultCategory,
+			TargetAmount:  row.TargetAmount,
+			// IsDeadlock: row.IsDeadlock,
+			VaultType: row.VaultType,
+			// InterestRate: row.InterestRate,
+			Status: row.Status,
+			// CreatedAt:  row.CreatedAt,
+			// UpdatedAt:  row.UpdatedAt,
+			// DeletedAt:  row.DeletedAt,
+		}
+
+		if row.CreatedAt.Valid {
+			t, err := time.Parse(time.RFC3339, row.CreatedAt.String)
+			if err == nil {
+				gv.CreatedAt = t
+			} else {
+				// Try another common format if RFC3339 fails, or log it
+				// For now assuming RFC3339 based on codebase convention, but catching error
+				r.logger.Errorf("[BankVaultRepository][FindAllGroupVaultWithPagination] failed to parse CreatedAt: %v", err)
+			}
+		}
+
+		if row.UpdatedAt.Valid {
+			t, err := time.Parse(time.RFC3339, row.UpdatedAt.String)
+			if err == nil {
+				gv.UpdatedAt = t
+			} else {
+				r.logger.Errorf("[BankVaultRepository][FindAllGroupVaultWithPagination] failed to parse UpdatedAt: %v", err)
+			}
+		}
+
+		if row.DeletedAt.Valid {
+			t, err := time.Parse(time.RFC3339, row.DeletedAt.String)
+			if err == nil {
+				gv.DeletedAt = &t
+			} else {
+				r.logger.Errorf("[BankVaultRepository][FindAllGroupVaultWithPagination] failed to parse DeletedAt: %v", err)
+			}
 		}
 
 		groupVaults = append(groupVaults, gv)
@@ -267,10 +302,7 @@ func (r *bankVaultRepositary) FindAllGroupVaultWithPagination(ctx context.Contex
 func (r *bankVaultRepositary) FindByID(ctx context.Context, id string) (*model.BankVaultProduct, error) {
 	row, err := r.queries.FindBankVaultById(ctx, id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.New(localization.ErrorNoBankProductFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, utils.HandleDBError(err)
 	}
 
 	product := &model.BankVaultProduct{
@@ -278,7 +310,7 @@ func (r *bankVaultRepositary) FindByID(ctx context.Context, id string) (*model.B
 		Name:                       row.Name,
 		Currency:                   row.Currency,
 		Interest:                   row.Interest,
-		Method:                     constants.AccrualMethod(row.Method),
+		Method:                     string(row.Method),
 		Frequency:                  row.Frequency,
 		LockPeriod:                 row.LockPeriod,
 		MinAmount:                  row.MinAmount,
@@ -301,7 +333,8 @@ func (r *bankVaultRepositary) FindByID(ctx context.Context, id string) (*model.B
 func (r *bankVaultRepositary) FindBankVaultByName(ctx context.Context, name string) error {
 	_, err := r.queries.FindBankVaultByName(ctx, name)
 	if err != nil {
-		return err
+		r.logger.Errorf("[BankVaultRepository][FindBankVaultByName] failed to find bank vault by name: %v", err)
+		return utils.HandleDBError(err)
 	}
 	return nil
 }
@@ -309,11 +342,11 @@ func (r *bankVaultRepositary) FindBankVaultByName(ctx context.Context, name stri
 func (r *bankVaultRepositary) Update(ctx context.Context, id string, product *model.BankVaultProduct) error {
 	existingProduct, err := r.FindByID(ctx, id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return utils.HandleDBError(err)
 	}
 
 	if existingProduct.IsDeleted {
-		return fmt.Errorf("CANNOT_UPDATE_DELETED_BANK_PRODUCT %s", id)
+		return errors.New(localization.ErrorCannotDeletedBankProduct.Code)
 	}
 
 	params := sqlc.UpdateBankVaultParams{ID: id}
@@ -326,13 +359,17 @@ func (r *bankVaultRepositary) Update(ctx context.Context, id string, product *mo
 	}
 
 	_, err = r.queries.UpdateBankVault(ctx, params)
-	return err
+	if err != nil {
+		r.logger.Errorf("[BankVaultRepository][Update] failed to update bank vault: %v", err)
+		return utils.HandleDBError(err)
+	}
+	return nil
 }
 
 func (r *bankVaultRepositary) Delete(ctx context.Context, id string) (string, error) {
 	bankvaultProduct, err := r.queries.FindBankVaultAndLocks(ctx, id)
 	if err != nil && err != sql.ErrNoRows {
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
+		return "", utils.HandleDBError(err)
 	}
 
 	if bankvaultProduct.IsActive.Bool {
@@ -345,7 +382,7 @@ func (r *bankVaultRepositary) Delete(ctx context.Context, id string) (string, er
 
 	_, err = r.queries.DeleteBankVault(ctx, id)
 	if err != nil {
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
+		return "", utils.HandleDBError(err)
 	}
 
 	return "", nil
@@ -355,7 +392,7 @@ func (r *bankVaultRepositary) EnableOrDisable(ctx context.Context, id string, en
 
 	product, err := r.FindByID(ctx, id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return utils.HandleDBError(err)
 	}
 
 	if product.IsDeleted {
@@ -365,14 +402,14 @@ func (r *bankVaultRepositary) EnableOrDisable(ctx context.Context, id string, en
 	if enable {
 		_, err = r.queries.ActivateBankVault(ctx, id)
 		if err != nil {
-			return errors.New(localization.ErrorUnexpectedError.Code)
+			return utils.HandleDBError(err)
 		}
 		return nil
 	}
 
 	_, err = r.queries.DeactivateBankVault(ctx, id)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return utils.HandleDBError(err)
 	}
 	return nil
 }

@@ -3,8 +3,9 @@ package bulk_service
 import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/bulk_service"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	// "fmt"
 
@@ -41,31 +42,49 @@ func InitBulkServiceAdapter(bulk_service service.BulkService, logger utils.Logge
 //	@Tags			Bulk Services
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query		int																	false	"Page number"		default(1)
-//	@Param			per_page	query		int																	false	"Items per page"	default(10)
-//	@Param			search		query		string																false	"Search term access_list_name and key"
-//	@Param			ussd_enabled		query		string														false	"Search term"
-//	@Param			enabled		query		string																false	"Search term"
-//	@Success		200			{object}	localization.StandardResponse{data=bulk_services_paginated_resp}	"Bulk services retrieved successfully"
-//	@Failure		400			{object}	localization.StandardResponse{data=nil}								"Bad request"
-//	@Failure		500			{object}	localization.StandardResponse{data=nil}								"Internal server error"
+//	@Param			page			query		int																	false	"Page number"		default(1)
+//	@Param			per_page		query		int																	false	"Items per page"	default(10)
+//	@Param			search			query		string																false	"Search term access_list_name and key"
+//	@Param			ussd_enabled	query		string																false	"Search term"
+//	@Param			enabled			query		string																false	"Search term"
+//	@Success		200				{object}	localization.StandardResponse{data=bulk_services_paginated_resp}	"Bulk services retrieved successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}								"Bad request"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}								"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/bulk_services [get]
 func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.Request) {
 	ctx, span := util.TraceLogger(r.Context(), "handler", "getAllBulkServices", "handler", "bulkService")
 	defer span.End()
+	log := util.LoggerFromCtx(ctx, h.logger)
 	filter_params := util.ExtractFilterParams(r)
-	bulk_services, err := h.bulkService.GetAllBulkServices(ctx, filter_params)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	enabled, disabled, err := h.bulkService.GetAllBulkServices(ctx, filter_params)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[GetAllBulkServices] service error: %v", err)
+		log.Errorf("[GetAllBulkServices] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.UnableToFetchBulkService.Code)
 		return
 	}
-	span.SetAttributes(attribute.Int("bulk_service.count", len(bulk_services.Data)))
-	h.logger.Infof("[GetAllBulkServices] retrieved %d bulk services", len(bulk_services.Data))
-	localization.SendSuccessResponse(w, localization.BulkServiceFetchSuccessfully, bulk_services)
 
+	span.SetAttributes(attribute.Int("bulk_service.enabled_count", len(enabled)), attribute.Int("bulk_service.disabled_count", len(disabled)))
+	log.Infof("[GetAllBulkServices] retrieved %d enabled and %d disabled bulk services", len(enabled), len(disabled))
+	localization.SendSuccessResponse(w, localization.BulkServiceFetchSuccessfully, map[string]interface{}{
+		"enabled":  enabled,
+		"disabled": disabled,
+	})
 }
 
 // EnableBulkService enables one or more bulk services
@@ -84,11 +103,12 @@ func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.
 func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.Request) {
 	ctx, span := util.TraceLogger(r.Context(), "handler", "enableBulkService", "handler", "bulkService")
 	defer span.End()
+	log := util.LoggerFromCtx(ctx, h.logger)
 	var req dto.BulkServiceDTO
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[EnableBulkService] failed to decode request: %v", err)
+		log.Errorf("[EnableBulkService] failed to decode request: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
@@ -97,12 +117,12 @@ func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.R
 	err := h.bulkService.EnableBulkService(ctx, req.Keys)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[EnableBulkService] service error: %v", err)
+		log.Errorf("[EnableBulkService] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	h.logger.Infof("[EnableBulkService] request sent successfully for %d service keys", len(req.Keys))
+	log.Infof("[EnableBulkService] request sent successfully for %d service keys", len(req.Keys))
 	localization.SendSuccessResponse(w, localization.BulkServiceEnableRequestSuccess, nil)
 }
 
@@ -122,11 +142,12 @@ func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.R
 func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.Request) {
 	ctx, span := util.TraceLogger(r.Context(), "handler", "disableBulkService", "handler", "bulkService")
 	defer span.End()
+	log := util.LoggerFromCtx(ctx, h.logger)
 	var req dto.BulkServiceDTO
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[DisableBulkService] failed to decode request: %v", err)
+		log.Errorf("[DisableBulkService] failed to decode request: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
@@ -135,10 +156,10 @@ func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.
 	err := h.bulkService.DisableBulkService(ctx, req.Keys)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[DisableBulkService] service error: %v", err)
+		log.Errorf("[DisableBulkService] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("[DisableBulkService] request sent successfully for %d service keys", len(req.Keys))
+	log.Infof("[DisableBulkService] request sent successfully for %d service keys", len(req.Keys))
 	localization.SendSuccessResponse(w, localization.BulkServiceDisableRequestSuccess, nil)
 }

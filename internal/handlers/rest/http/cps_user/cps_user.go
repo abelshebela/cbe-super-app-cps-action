@@ -1,15 +1,18 @@
 package cps_user
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
 
+	"cbe-super-app-cps-action/internal/constants"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
 
 	"go.opentelemetry.io/otel/attribute"
 
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -34,7 +37,8 @@ func InitCPSUserHandler(svc service.CPSUserService, logger utils.Logger) *handle
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		cpsuser.CreateUserRequest				true	"CPS user creation request"
-//	@Success		201		{object}	localization.StandardResponse{data=nil}	"CPS user creation request submitted successfully"
+//	@Success		200		{object}	localization.StandardResponse{data=object}	"CPS user creation request submitted successfully"
+//	@Success		201		{object}	localization.StandardResponse{data=object}	"CPS user created successfully (maker only)"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Invalid input"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
@@ -42,18 +46,24 @@ func InitCPSUserHandler(svc service.CPSUserService, logger utils.Logger) *handle
 func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createCpsUserRequest", "handler", "cpsUser")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	var req cpsuser.CreateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[CreateUserRequest] decode: %v", err)
+		log.Errorf("[CreateUserRequest] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
+
 	// Normalize and validate request
 	req.Normalize()
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[CreateUserRequest] validation: %v", err)
+		log.Errorf("[CreateUserRequest] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -64,12 +74,19 @@ func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("cps_user.phone", formattedPhone))
 	if err := h.svc.CreateUserRequest(ctx, req); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[CreateUserRequest] service error: %v", err)
+		log.Errorf("[CreateUserRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	h.logger.Infof("[CreateUserRequest] request sent successfully for user_code")
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[CreateUserRequest] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessCpsUserCreated, nil)
+		return
+	}
+
+	log.Infof("[CreateUserRequest] request sent successfully for user_code")
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserCreationRequestSubmitted, nil)
 }
 
@@ -90,6 +107,11 @@ func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
 func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateCpsUserRequest", "handler", "cpsUser")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorUserCodeRequired.Code)
@@ -99,33 +121,37 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 	var req cpsuser.UpdateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[UpdateUserRequest] decode: %v", err)
+		log.Errorf("[UpdateUserRequest] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-
-	// ensure the request carries the target user code from the path
-	req.UserCode = userCode
 
 	req.Normalize()
 
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[UpdateUserRequest] validation: %v", err)
+		log.Errorf("[UpdateUserRequest] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	span.SetAttributes(attribute.String("cps_user.code", userCode))
 
-	if err := h.svc.UpdateUserRequest(ctx, req); err != nil {
+	if err := h.svc.UpdateUserRequest(ctx, userCode, req); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[UpdateUserRequest] service error: %v", err)
+		log.Errorf("[UpdateUserRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	h.logger.Infof("[UpdateUserRequest] request sent successfully for user_code: %s", userCode)
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[UpdateUserRequest] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessCpsUserUpdated, nil)
+		return
+	}
+
+	log.Infof("[UpdateUserRequest] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserUpdateRequestSubmitted, nil)
 }
 
@@ -137,9 +163,7 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			user_code	path		string									true	"User Code"
-//
-// // @Success 200 {object} localization.StandardResponse{data=cps_user_resp} "CPS user retrieved successfully"
-//
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"CPS user retrieved successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request - User code required"
 //	@Failure		404			{object}	localization.StandardResponse{data=nil}	"User not found"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -148,9 +172,17 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 func (h *handler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchCpsUserByCode", "handler", "cpsUser")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	userData := local_util.ExtractUserFromContext(ctx)
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorUserCodeRequired.Code)
+		return
+	}
+
+	if userCode != userData.UserCode {
+		h.logger.Errorf("[FetchUserByUserCode] user code does not match maker code: %s", userCode)
+		localization.SendErrorByCodeResponse(w, localization.ErrorUserUnauthorized.Code)
 		return
 	}
 
@@ -159,48 +191,86 @@ func (h *handler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
 	user, err := h.svc.GetCpsUserDetail(ctx, userCode)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[FetchUserByUserCode] service error: %v", err)
+		log.Errorf("[FetchUserByUserCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	h.logger.Infof("[FetchUserByUserCode] CPS user retrieved successfully for user_code: %s", userCode)
+	log.Infof("[FetchUserByUserCode] CPS user retrieved successfully for user_code: %s", userCode)
+	localization.SendSuccessResponse(w, localization.SuccessCpsUserRetrieved, user)
+}
+
+func (h *handler) FetchUserByCode(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchCpsUserByCode", "handler", "cpsUser")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	userCode := strings.TrimSpace(chi.URLParam(r, "code"))
+	if userCode == "" {
+		localization.SendErrorByCodeResponse(w, localization.ErrorUserIDRequired.Code)
+		return
+	}
+
+	// Build detailed response in the service layer
+	span.SetAttributes(attribute.String("cps_user.code", userCode))
+	user, err := h.svc.GetCpsUserDetail(ctx, userCode)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[FetchUserByCode] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	log.Infof("[FetchUserByCode] CPS user retrieved successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserRetrieved, user)
 }
 
 // GetAllCPSUsers retrieves all CPS users with pagination
 //
-//		@Summary		Get all CPS users
-//		@Description	Retrieves a paginated list of all CPS users with optional filtering
-//		@Tags			CPS Users
-//		@Accept			json
-//		@Produce		json
-//		@Param			page		query		int										false	"Page number"		default(1)
-//		@Param			per_page	query		int										false	"Items per page"	default(10)
-//		@Param			search		query		string								false	"Search terms(full_name,email,username,user_code,phone_number)"
-//		@Param			enabled		query		bool							false	"true or false"
-//		@Param			department   query  	string							false	"CPS user department"
-//		@Param			role   query  	string							false	"CPS user department"
-//	//  @Success 200 {object} localization.StandardResponse{data=cps_users_paginated_resp} "CPS users retrieved successfully"
-//		@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
-//		@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//		@Security		BearerAuth
-//		@Router			/cps_users [get]
+//	@Summary		Get all CPS users
+//	@Description	Retrieves a paginated list of all CPS users with optional filtering
+//	@Tags			CPS Users
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int										false	"Page number"		default(1)
+//	@Param			per_page	query		int										false	"Items per page"	default(10)
+//	@Param			search		query		string									false	"Search terms(full_name,email,username,user_code,phone_number)"
+//	@Param			enabled		query		bool									false	"true or false"
+//	@Param			department	query		string									false	"CPS user department"
+//	@Param			role		query		string									false	"CPS user department"
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"CPS users retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/cps_users [get]
 func (h *handler) GetAllCPSUsers(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCpsUsers", "handler", "cpsUser")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	filterParasm := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	users, err := h.svc.GetAllCPSUsers(ctx, filterParasm)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[GetAllCPSUsers] service error: %v", err)
+		log.Errorf("[GetAllCPSUsers] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	span.SetAttributes(attribute.Int("cps_user.count", len(users.Data)))
-	h.logger.Infof("[GetAllCPSUsers] retrieved %d CPS users", len(users.Data))
+	log.Infof("[GetAllCPSUsers] retrieved %d CPS users", len(users.Data))
 	localization.SendSuccessResponse(w, localization.SuccessCpsUsersRetrieved, users)
 }
 
@@ -221,6 +291,11 @@ func (h *handler) GetAllCPSUsers(w http.ResponseWriter, r *http.Request) {
 func (h *handler) DeleteUserRequest(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteCpsUserRequest", "handler", "cpsUser")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorUserCodeRequired.Code)
@@ -231,12 +306,19 @@ func (h *handler) DeleteUserRequest(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.svc.DeleteUserRequest(ctx, userCode); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[DeleteUserRequest] service error: %v", err)
+		log.Errorf("[DeleteUserRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	h.logger.Infof("[DeleteUserRequest] request sent successfully for user_code: %s", userCode)
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[DeleteUserRequest] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessCPSUserDeleted, nil)
+		return
+	}
+
+	log.Infof("[DeleteUserRequest] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserDeleted, nil)
 }
 
@@ -257,22 +339,40 @@ func (h *handler) DeleteUserRequest(w http.ResponseWriter, r *http.Request) {
 func (h *handler) DisableUser(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableCpsUser", "handler", "cpsUser")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorUserCodeRequired.Code)
 		return
 	}
 
+	userData := local_util.ExtractUserFromContext(r.Context())
+
+	if userCode == userData.UserCode {
+		log.Errorf("[EnableUser] cannot enable own account")
+		localization.SendErrorByCodeResponse(w, localization.ErrorCannotEnableOwnAccount.Code)
+		return
+	}
 	span.SetAttributes(attribute.String("cps_user.code", userCode))
 
 	if err := h.svc.DisableUser(ctx, userCode); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[DisableUser] service error: %v", err)
+		log.Errorf("[DisableUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	h.logger.Infof("[DisableUser] request sent successfully for user_code: %s", userCode)
+	if md.IsMakerOnly {
+		log.Infof("[DisableUser] CPS user with user_code: %s is successfully disabled and is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessCPSUserDisable, nil)
+		return
+	}
+
+	log.Infof("[DisableUser] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserDisabled, nil)
 }
 
@@ -293,9 +393,21 @@ func (h *handler) DisableUser(w http.ResponseWriter, r *http.Request) {
 func (h *handler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableCpsUser", "handler", "cpsUser")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	userData := local_util.ExtractUserFromContext(r.Context())
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
+		log.Errorf("[EnableUser] user code is required")
 		localization.SendErrorByCodeResponse(w, localization.ErrorUserCodeRequired.Code)
+		return
+	}
+
+	if userCode == userData.UserCode {
+		log.Errorf("[EnableUser] cannot enable own account")
+		localization.SendErrorByCodeResponse(w, localization.ErrorCannotDisableOwnAccount.Code)
 		return
 	}
 
@@ -303,11 +415,18 @@ func (h *handler) EnableUser(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.svc.EnableUser(ctx, userCode); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[EnableUser] service error: %v", err)
+		log.Errorf("[EnableUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	h.logger.Infof("[EnableUser] request sent successfully for user_code: %s", userCode)
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[EnableUser] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessCPSUserEnabled, nil)
+		return
+	}
+
+	log.Infof("[EnableUser] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SucessCpsUserEnabled, nil)
 }

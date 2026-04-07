@@ -1,7 +1,9 @@
 package bank_core
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 // Bank_mapper maps a map[string]interface{} to a model.Bank.
@@ -19,22 +21,12 @@ func Bank_mapper(action map[string]interface{}) model.Bank {
 			bank.Logo = logo
 		}
 	}
-	if v, ok := action["code"]; ok {
-		if code, ok := v.(string); ok {
-			bank.Code = code
+	if v, ok := action["bic_code"]; ok {
+		if bicCode, ok := v.(string); ok {
+			bank.BICCode = bicCode
 		}
 	}
-	if v, ok := action["bic"]; ok {
-		if bic, ok := v.(string); ok {
-			bank.BIC = bic
-		}
-	}
-	if v, ok := action["account_length"]; ok {
-		if accountLength, ok := v.(float64); ok {
-			bank.AccountLength = int(accountLength)
-		}
-	}
-	if v, ok := action["enabled"]; ok {
+	if v, ok := action["is_enabled"]; ok {
 		if enabled, ok := v.(bool); ok {
 			bank.Enabled = enabled
 		}
@@ -47,6 +39,42 @@ func Bank_mapper(action map[string]interface{}) model.Bank {
 	if v, ok := action["type"]; ok {
 		if bankType, ok := v.(string); ok {
 			bank.Type = bankType
+		}
+	}
+
+	return bank
+}
+func Bank_oracle_mapper(action map[string]interface{}) imodel.BankOracle {
+	bank := imodel.BankOracle{}
+
+	if v, ok := action["bankname"]; ok {
+		if name, ok := v.(string); ok {
+			bank.BankName = name
+		}
+	}
+	if v, ok := action["logo"]; ok {
+		if logo, ok := v.(string); ok {
+			bank.Logo = logo
+		}
+	}
+	if v, ok := action["biccode"]; ok {
+		if bicCode, ok := v.(string); ok {
+			bank.BICCode = bicCode
+		}
+	}
+	if v, ok := action["isenabled"]; ok {
+		if enabled, ok := v.(float64); ok {
+			bank.IsEnabled = int(enabled)
+		}
+	}
+	if v, ok := action["hasalphanumeric"]; ok {
+		if has_alpha_numeric, ok := v.(float64); ok {
+			bank.HasAlphaNumeric = int(has_alpha_numeric)
+		}
+	}
+	if v, ok := action["accountlength"]; ok {
+		if accountLength, ok := v.(float64); ok {
+			bank.AccountLength = int(accountLength)
 		}
 	}
 

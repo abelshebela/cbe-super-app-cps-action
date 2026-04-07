@@ -5,7 +5,6 @@ import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	core "cbe-super-app-cps-action/internal/service/donation_category/core"
@@ -15,6 +14,9 @@ import (
 	"errors"
 	"path"
 	"time"
+
+	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -26,15 +28,16 @@ import (
 
 type DonationCategory struct {
 	DonationCategoryRepo storage.DonationCategoryRepository
-	cpsService           service.CPSActionService
-	logger               utils.Logger
-	minio                *s3.Client
-	bucketName           string
-	cfg                  *config.VaultConfig
-	minioEndPoint        string
+	DonationRepo  storage.DonationRepository
+	cpsService    service.CPSActionService
+	logger        utils.Logger
+	minio         *s3.Client
+	bucketName    string
+	cfg           *config.VaultConfig
+	minioEndPoint string
 }
 
-func NewDonationCategoryService(client *mongo.Client, DonationCategoryRepo storage.DonationCategoryRepository, cpsAction service.CPSActionService, logger utils.Logger, minio *s3.Client,
+func NewDonationCategoryService(client *mongo.Client, DonationCategoryRepo storage.DonationCategoryRepository, DonationRepo storage.DonationRepository, cpsAction service.CPSActionService, logger utils.Logger, minio *s3.Client,
 	bucketName string,
 	cfg *config.VaultConfig,
 	minioEndPoint string,
@@ -42,6 +45,7 @@ func NewDonationCategoryService(client *mongo.Client, DonationCategoryRepo stora
 
 	return &DonationCategory{
 		DonationCategoryRepo: DonationCategoryRepo,
+		DonationRepo:         DonationRepo,
 		cpsService:           cpsAction,
 		logger:               logger,
 		minio:                minio,
@@ -112,15 +116,15 @@ func (d *DonationCategory) CreateDonationCategory(ctx context.Context, donationC
 		))
 		return errors.New(localization.ErrorDonationCategoryIDRequired.Code)
 	}
-	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationIcon), *d.cfg, "", d.logger)
+	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationCategoryFolderName), *d.cfg, "", d.logger)
 	if err != nil {
-		d.logger.Errorf("failed to upload image to minio: %v", err)
+		d.logger.Errorf("[DonCatSvc][Create] upload err: %v", err)
 		span.AddEvent("Failed to upload image to minio", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
 		return err
 	}
-	result := model.DonationCategory{
+	result := donation_model.DonationCategory{
 		CategoryName:   donationCategory.CategoryName,
 		Icon:           url,
 		Enabled:        true,
@@ -170,7 +174,7 @@ func (d *DonationCategory) UpdateDonationCategory(ctx context.Context, id string
 	}
 
 	// Convert DTO to model for similarity check
-	existingModel := &model.DonationCategory{
+	existingModel := &donation_model.DonationCategory{
 		CategoryName: existingCategory.CategoryName,
 		Icon:         existingCategory.Icon,
 		IsDeleted:    existingCategory.IsDeleted,
@@ -211,7 +215,7 @@ func (d *DonationCategory) UpdateDonationCategory(ctx context.Context, id string
 			objectkey = path.Base(existingCategory.Icon)
 		}
 
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationIcon), *d.cfg, objectkey, d.logger)
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationCategoryFolderName), *d.cfg, objectkey, d.logger)
 		if err != nil {
 			span.AddEvent("Failed to upload image to minio", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -247,17 +251,17 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 
 	// requestedAction := action.RequestAction
 	if action.ActionStatus != constants.Approved {
-		d.logger.Errorf("Tried to authorize service action without cps action approval")
+		d.logger.Errorf("[DonCatSvc][Authorize] invalid status")
 		span.AddEvent("CPS action status invalid", trace.WithAttributes(
 			attribute.String("error", localization.ErrorCPSActionStatusInvalid.Code),
 			attribute.String("unique_id", action.UniqueId),
 		))
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
-	var donationCPS *model.DonationCategory
+	var donationCPS *donation_model.DonationCategory
 	bindErr := core.BindAction(action.CurrentAction, &donationCPS)
 	if bindErr != nil {
-		d.logger.Errorf("failed to bind current action to donation Category: %v", bindErr)
+		d.logger.Errorf("[DonCatSvc][Authorize] bind err: %v", bindErr)
 		span.AddEvent("Failed to bind current action", trace.WithAttributes(
 			attribute.String("error", bindErr.Error()),
 			attribute.String("unique_id", action.UniqueId),
@@ -270,7 +274,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 
 		err := d.DonationCategoryRepo.Create(ctx, donationCPS)
 		if err != nil {
-			d.logger.Errorf("Failed to create donation category: %v", err)
+			d.logger.Errorf("[DonCatSvc][Authorize] create err: %v", err)
 			span.AddEvent("Failed to create donation category", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -281,7 +285,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 	case string(constants.RequestUpdateDonationCategory):
 		err := d.DonationCategoryRepo.Update(ctx, action.UniqueId, donationCPS)
 		if err != nil {
-			d.logger.Errorf("Failed to update donation category: %v", err)
+			d.logger.Errorf("[DonCatSvc][Authorize] update err: %v", err)
 			span.AddEvent("Failed to update donation category", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -290,9 +294,9 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 		}
 
 	case string(constants.RequestEnableDonationCategory):
-		err := d.DonationCategoryRepo.Update(ctx, action.UniqueId, donationCPS)
+		err := d.DonationCategoryRepo.EnableDisable(ctx, action.UniqueId, true)
 		if err != nil {
-			d.logger.Errorf("Failed to update donation category: %v", err)
+			d.logger.Errorf("[DonCatSvc][Authorize] enable err: %v", err)
 			span.AddEvent("Failed to enable donation category", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -300,9 +304,9 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 			return nil, err
 		}
 	case string(constants.RequestDisableDonationCategory):
-		err := d.DonationCategoryRepo.Update(ctx, action.UniqueId, donationCPS)
+		err := d.DonationCategoryRepo.EnableDisable(ctx, action.UniqueId, false)
 		if err != nil {
-			d.logger.Errorf("Failed to update donation category: %v", err)
+			d.logger.Errorf("[DonCatSvc][Authorize] disable err: %v", err)
 			span.AddEvent("Failed to disable donation category", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -311,7 +315,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 		}
 
 	default:
-		d.logger.Errorf("Unsupported action requested: %s", action.RequestAction)
+		d.logger.Errorf("[DonCatSvc][Authorize] unsupported action: %s", action.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(action.RequestAction)),
@@ -319,7 +323,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
-	d.logger.Infof("Service action authorization completed: %s", action.RequestAction)
+	d.logger.Infof("[DonCatSvc][Authorize] completed: %s", action.RequestAction)
 	return action, nil
 
 }
@@ -407,6 +411,24 @@ func (d *DonationCategory) DisableDonationCategory(ctx context.Context, id strin
 		))
 		return errors.New(localization.ErrorAlreadyDisabled.Code)
 	}
+
+	// Guard: block the disable if there are still enabled donations using this category.
+	hasActive, err := d.DonationRepo.HasActiveDonationsByCategory(ctx, id)
+	if err != nil {
+		span.AddEvent("Failed to check active donations for category", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+	if hasActive {
+		span.AddEvent("Category has active donations — disable blocked", trace.WithAttributes(
+			attribute.String("error", localization.ErrorActiveDonationExistsInCategory.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorActiveDonationExistsInCategory.Code)
+	}
+
 	Enabled := false
 	DonationCategory := core.MapToDonationCategory(existingDonationCategory.CategoryName, existingDonationCategory.Icon, Enabled)
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCategory, DonationCategory, string(constants.RequestDisableDonationCategory), constants.UPDATE)

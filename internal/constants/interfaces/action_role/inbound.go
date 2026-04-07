@@ -4,7 +4,9 @@ import "net/http"
 
 type BPSActionRoleHandler interface {
 	GetAll(w http.ResponseWriter, r *http.Request)
+	GetAllActionList(w http.ResponseWriter, r *http.Request)
 	GetByActionCode(w http.ResponseWriter, r *http.Request)
+	GetByActionNameCode(w http.ResponseWriter, r *http.Request)
 	Create(w http.ResponseWriter, r *http.Request)
 	Update(w http.ResponseWriter, r *http.Request)
 	Enable(w http.ResponseWriter, r *http.Request)

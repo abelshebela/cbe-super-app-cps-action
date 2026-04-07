@@ -11,8 +11,9 @@ type UpdateDeviceVersionRequest struct {
 	ID            string `json:"_id" bson:"_id"`
 	LatestVersion string `json:"version" bson:"latest_version"`
 	Platform      string `json:"platform" bson:"platform"`
-	ForceUpdate   bool   `json:"force_update" bson:"force_update"`
+	ForceUpdate   *bool   `json:"force_update" bson:"force_update"`
 	ReleaseNotes  string `json:"release_notes" bson:"release_notes"`
+	Enabled *bool   `json:"enabled" bson:"enabled"`
 }
 
 type EnableOrDisableDeviceVersion struct {

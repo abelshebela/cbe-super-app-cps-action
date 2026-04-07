@@ -14,10 +14,15 @@ func (c AdvertRequest) Validate(isUpdate bool) error {
 	err := validation.ValidateStruct(&c,
 		validation.Field(&c.Title,
 			validation.When(!isUpdate, validation.Required.Error("title is required")),
-			validation.Length(3, 20).Error(localization.ErrorTitleLength3To20.Code),
+			validation.Length(3, 50).Error(localization.ErrorTitleLength3To20.Message),
+			validation.By(utils.NoSpecialChars),
+		),
+		validation.Field(&c.Description,
+			validation.By(utils.NoSpecialChars),
 		),
 		validation.Field(&c.AdvertFor,
 			validation.When(!isUpdate, validation.Required.Error("advert for is required")),
+			validation.By(utils.NoSpecialChars),
 			validation.In(string(constants.BOTH_ADVERT_FOR), string(constants.IFB_ADVERT_FOR), string(constants.CB_ADVERT_FOR)).Error("invalid advert for field"),
 		),
 		validation.Field(&c.BannerImage,
@@ -39,8 +44,8 @@ func validateBannerImage(value interface{}) error {
 		return localization.ErrorMissingOrInvalidImage
 	}
 
-	if file.Size > (15 << 20) {
-		return validation.NewError("logo", localization.MsgFileTooLarge)
+	if file.Size > (10 << 20) {
+		return validation.NewError("logo", "file size exceeds 10MB limit")
 	}
 
 	return nil

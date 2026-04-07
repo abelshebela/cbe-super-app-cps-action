@@ -6,13 +6,15 @@ import (
 
 	topuppb "cbe-super-app-cps-action/grpc/topup/proto"
 	walletpb "cbe-super-app-cps-action/grpc/wallet/proto"
-	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
-	"cbe-super-app-cps-action/internal/constants/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"net"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	otelgrpc "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
@@ -29,12 +31,12 @@ type server struct {
 	topuppb.UnimplementedTopupServiceServer
 	bankHandler    service.BankService
 	walletHandler  service.WalletService
-	serviceHandler service.ServiceService
+	serviceHandler service.ServicesService
 	topupHandler   service.TopupService
 	logger         utils.Logger
 }
 
-func NewGrpcServer(bankHandler service.BankService, walletHandler service.WalletService, serviceHandler service.ServiceService, topupHandler service.TopupService, logger utils.Logger) *server {
+func NewGrpcServer(bankHandler service.BankService, walletHandler service.WalletService, serviceHandler service.ServicesService, topupHandler service.TopupService, logger utils.Logger) *server {
 	return &server{
 		bankHandler:    bankHandler,
 		walletHandler:  walletHandler,
@@ -54,13 +56,44 @@ func (s *server) GetOneBank(ctx context.Context, req *bankpb.GetOneBankRequest) 
 	}
 	return &bankpb.GetOneBankResponse{Bank: s.bankMapper(data)}, nil
 }
-
-func (s *server) walletMapper(data *model.Wallet) *walletpb.Wallet {
+func (s *server) GetBankByBIC(ctx context.Context, req *bankpb.GetOneBankByBICRequest) (*bankpb.GetOneBankResponse, error) {
+	data, err := s.bankHandler.GetOneBankByBIC(ctx, req.BicCode)
+	if err != nil {
+		s.logger.Errorf("Failed to get bank by BIC: %v", err)
+		return nil, err
+	}
+	return &bankpb.GetOneBankResponse{Bank: s.bankMapper(data)}, nil
+}
+func (s *server) walletMapper(data *local_model.Wallet) *walletpb.Wallet {
 	return &walletpb.Wallet{
-		Id:        data.ID.Hex(),
-		Name:      data.Name,
-		Avatar:    data.Avatar,
-		Code:      data.Code,
+		Id:          data.ID.Hex(),
+		Name:        data.Name,
+		Avatar:      data.Avatar,
+		UniqueCode:  data.UniqueCode,
+		ServiceCode: data.ServiceCode,
+		ServiceKey:  data.ServiceKey,
+		ServiceId:   data.ServiceID,
+		ChildServiceKeys: func() []*walletpb.ChildServiceKey {
+			var keys []*walletpb.ChildServiceKey
+			for _, k := range data.ChildServiceKeys {
+				keys = append(keys, &walletpb.ChildServiceKey{
+					ServiceKey:  k.ServiceKey,
+					ServiceName: k.ServiceName,
+				})
+			}
+			return keys
+		}(),
+		Cap: func() []*walletpb.Cap {
+			var caps []*walletpb.Cap
+			for _, c := range data.Cap {
+				caps = append(caps, &walletpb.Cap{
+					SingleCap:          c.SingleCap,
+					MinimumTransferCap: c.MinimumTransferCap,
+					Currency:           c.Currency,
+				})
+			}
+			return caps
+		}(),
 		IsDeleted: data.IsDeleted,
 		Enabled:   data.Enabled,
 		Services: &walletpb.Services{
@@ -71,10 +104,10 @@ func (s *server) walletMapper(data *model.Wallet) *walletpb.Wallet {
 	}
 }
 
-func (s *server) bankListMapper(data []*model.Bank) []*bankpb.Bank {
+func (s *server) bankListMapper(data []imodel.BankOracle) []*bankpb.Bank {
 	var banks []*bankpb.Bank
-	for _, bank := range data {
-		banks = append(banks, s.bankMapper(bank))
+	for i := range data {
+		banks = append(banks, s.bankMapper(&data[i]))
 	}
 	return banks
 }
@@ -89,30 +122,53 @@ func (s *server) GetAllBank(ctx context.Context, req *bankpb.GetAllBankRequest) 
 
 	return &bankpb.GetAllBankResponse{Banks: s.bankListMapper(data.Data), Metadata: buildPagination(data.Meta)}, nil
 }
-func (s *server) bankMapper(data *model.Bank) *bankpb.Bank {
-	return &bankpb.Bank{
-		Id:      data.ID.Hex(),
-		Name:    data.Name,
-		Bic:     data.BIC,
-		Code:    data.Code,
-		Logo:    data.Logo,
-		Enabled: data.Enabled,
+func (s *server) bankMapper(data *imodel.BankOracle) *bankpb.Bank {
+	grpcData := bankpb.Bank{
+		Id:            data.ID,
+		Name:          data.BankName,
+		BicCode:       data.BICCode,
+		Logo:          data.Logo,
+		AccountLength: int32(data.AccountLength),
 	}
+	if data.IsEnabled == 1 {
+		grpcData.Enabled = true
+	} else {
+		grpcData.Enabled = false
+	}
+	if data.HasAlphaNumeric == 1 {
+		grpcData.HasAlphaNumeric = true
+	} else {
+		grpcData.HasAlphaNumeric = false
+	}
+	return &grpcData
 }
 func buildPagination(meta types.PaginationMeta) *bankpb.Meta {
+	var nextPage int32
+	if meta.NextPage != nil {
+		nextPage = int32(*meta.NextPage)
+	}
 	return &bankpb.Meta{
 		TotalPages:  int32(meta.TotalPages),
 		Limit:       int32(meta.Limit),
 		TotalDocs:   int32(meta.TotalDocs),
 		Page:        int32(meta.Page),
 		HasNextPage: meta.HasNextPage,
-		NextPage:    int32(*meta.NextPage),
+		NextPage:    nextPage,
 		HasPrevPage: meta.HasPrevPage,
 	}
 }
 
 // ///////////////////wallet///////////////////
 func (s *server) GetAllWallet(ctx context.Context, req *walletpb.GetAllWalletRequest) (*walletpb.GetAllWalletResponse, error) {
+	if req.Page < 1 {
+		req.Page = 1
+	}
+	if req.PerPage < 1 {
+		req.PerPage = 10
+	}
+	if req.PerPage > 100 {
+		req.PerPage = 100
+	}
 	data, err := s.walletHandler.GetAllWallet(ctx, types.Filter{Page: int(req.Page), PerPage: int(req.PerPage), Search: req.Search})
 	if err != nil {
 		s.logger.Errorf("Failed to get all wallets: %v", err)
@@ -141,17 +197,17 @@ func buildPaginationWallet(meta types.PaginationMeta) *walletpb.Meta {
 		// HasPrevPage: meta.HasPrevPage,
 	}
 }
-func (s *server) walletListMapper(data []*model.Wallet) []*walletpb.Wallet {
+func (s *server) walletListMapper(data []local_model.Wallet) []*walletpb.Wallet {
 	var wallets []*walletpb.Wallet
-	for _, wallet := range data {
-		wallets = append(wallets, s.walletMapper(wallet))
+	for i := range data {
+		wallets = append(wallets, s.walletMapper(&data[i]))
 	}
 	return wallets
 }
 
 // //////////////////////////service Details//////////////
 func (s *server) GetAllServices(ctx context.Context, req *servicepb.GetAllServiceDetailsRequest) (*servicepb.GetAllServiceDetailsResponse, error) {
-	data, err := s.serviceHandler.GetAllService(ctx, &types.Filter{Page: int(req.Page), PerPage: int(req.PerPage), Search: req.Search})
+	data, err := s.serviceHandler.GetAll(ctx, types.Filter{Page: int(req.Page), PerPage: int(req.PerPage), Search: req.Search})
 	if err != nil {
 		s.logger.Errorf("Failed to get all wallets: %v", err)
 		return nil, err
@@ -160,62 +216,61 @@ func (s *server) GetAllServices(ctx context.Context, req *servicepb.GetAllServic
 }
 
 func (s *server) GetOneServiceDetail(ctx context.Context, req *servicepb.GetOneServiceDetailRequest) (*servicepb.GetServiceDetailResponse, error) {
-	data, err := s.serviceHandler.GetServiceFeeDetail(ctx, req.Id)
+	data, err := s.serviceHandler.GetByID(ctx, req.Id)
 	if err != nil {
 		s.logger.Errorf("Failed to get wallet: %v", err)
 		return nil, err
 	}
-	return &servicepb.GetServiceDetailResponse{Service: s.MapOneServiceDetail(data)}, nil
+	return &servicepb.GetServiceDetailResponse{Service: s.MapServiceDetails(data)}, nil
 }
 
 func buildPaginationService(meta types.PaginationMeta) *servicepb.Meta {
+	var nextPage int32
+	if meta.NextPage != nil {
+		nextPage = int32(*meta.NextPage)
+	}
 	return &servicepb.Meta{
 		TotalPages:  int32(meta.TotalPages),
 		Limit:       int32(meta.Limit),
 		TotalDocs:   int32(meta.TotalDocs),
 		Page:        int32(meta.Page),
 		HasNextPage: meta.HasNextPage,
-		NextPage:    int32(*meta.NextPage),
+		NextPage:    nextPage,
 		HasPrevPage: meta.HasPrevPage,
 	}
 }
-func (s *server) serviceListMapper(data []*model.ServiceDetails) []*servicepb.ServiceDetails {
+func (s *server) serviceListMapper(data []model.Service) []*servicepb.ServiceDetails {
 	var services []*servicepb.ServiceDetails
-	for _, service := range data {
-		services = append(services, s.MapServiceDetails(service))
+	for i := range data {
+		services = append(services, s.MapServiceDetails(&data[i]))
 	}
 	return services
 }
-func (s *server) MapServiceDetails(data *model.ServiceDetails) *servicepb.ServiceDetails {
+func (s *server) MapServiceDetails(data *model.Service) *servicepb.ServiceDetails {
 	return &servicepb.ServiceDetails{
-		Id:              data.ID.Hex(),
-		ServiceCode:     data.ServiceCode,
-		ServiceName:     data.ServiceName,
-		ServiceType:     data.ServiceType,
-		Key:             data.Key,
-		AboveAmount:     data.AboveAmount,
-		AboveServiceFee: data.AboveServiceFee,
-		PaymentType:     data.PaymentType,
-		Enabled:         data.Enabled,
-		IsDeleted:       data.IsDeleted,
+		Id:          data.ID.Hex(),
+		ServiceCode: data.ServiceCode,
+		ServiceName: data.ServiceName,
+		Enabled:     data.Enabled,
+		IsDeleted:   data.IsDeleted,
 	}
 }
 
 // dtoService.ServiceFeeDetailResponse
-func (s *server) MapOneServiceDetail(data *dto.ServiceFeeDetailResponse) *servicepb.ServiceDetails {
-	return &servicepb.ServiceDetails{
-		Id:              data.ID.Hex(),
-		ServiceCode:     data.ServiceCode,
-		ServiceName:     data.ServiceName,
-		ServiceType:     data.ServiceType,
-		Key:             data.Key,
-		AboveAmount:     data.AboveAmount,
-		AboveServiceFee: data.AboveServiceFee,
-		PaymentType:     data.PaymentType,
-		Enabled:         data.Enabled,
-		IsDeleted:       data.IsDeleted,
-	}
-}
+// func (s *server) MapOneServiceDetail(data *dto.ServiceFeeDetailResponse) *servicepb.ServiceDetails {
+// 	return &servicepb.ServiceDetails{
+// 		Id:              data.ID.Hex(),
+// 		ServiceCode:     data.ServiceCode,
+// 		ServiceName:     data.ServiceName,
+// 		ServiceType:     data.ServiceType,
+// 		Key:             data.Key,
+// 		AboveAmount:     data.AboveAmount,
+// 		AboveServiceFee: data.AboveServiceFee,
+// 		PaymentType:     data.PaymentType,
+// 		Enabled:         data.Enabled,
+// 		IsDeleted:       data.IsDeleted,
+// 	}
+// }
 
 func (s *server) GetAllTopup(ctx context.Context, req *topuppb.TopupRequest) (*topuppb.TopupResponse, error) {
 	data, err := s.topupHandler.GetAllTopup(ctx, types.Filter{})
@@ -226,31 +281,27 @@ func (s *server) GetAllTopup(ctx context.Context, req *topuppb.TopupRequest) (*t
 	return &topuppb.TopupResponse{Topups: s.TopupMapper(data.Data)}, nil
 }
 
-func (s *server) TopupMapper(data []*model.Topup) []*topuppb.Topup {
+func (s *server) TopupMapper(data []model.Topup) []*topuppb.Topup {
 	var topups []*topuppb.Topup
-	for _, topup := range data {
+	for i := range data {
 		topups = append(topups, &topuppb.Topup{
-			Id:      topup.ID.Hex(),
-			Name:    topup.Name,
-			Code:    topup.Code,
-			Avatar:  topup.Avatar,
-			Enabled: topup.Enabled,
-			Services: &topuppb.Services{
-				Self:  topup.Services.Self,
-				Other: topup.Services.Other,
-				Agent: topup.Services.Agent,
-			},
-			IsDeleted:      topup.IsDeleted,
-			CreatedAt:      timestamppb.New(topup.CreatedAt),
-			LastModifiedAt: timestamppb.New(topup.LastModifiedAt),
-			DeletedAt:      timestamppb.New(topup.DeletedAt),
+			Id:             data[i].ID.Hex(),
+			Name:           data[i].Name,
+			Code:           data[i].Code,
+			Avatar:         data[i].Avatar,
+			Enabled:        data[i].Enabled,
+			IsDeleted:      data[i].IsDeleted,
+			CreatedAt:      timestamppb.New(data[i].CreatedAt),
+			LastModifiedAt: timestamppb.New(data[i].LastModifiedAt),
+			DeletedAt:      timestamppb.New(data[i].DeletedAt),
 		})
 	}
 	return topups
 }
 
-func StartGrpcServer(s *server, logger utils.Logger) (*grpc.Server, net.Listener) {
+func StartGrpcServer(s *server, logger utils.Logger, cfg *config.VaultConfig) (*grpc.Server, net.Listener) {
 
+	// lis, err := net.Listen("tcp", cfg.CPSActionGrpcAddress)
 	lis, err := net.Listen("tcp", ":50051")
 
 	if err != nil {
@@ -265,7 +316,7 @@ func StartGrpcServer(s *server, logger utils.Logger) (*grpc.Server, net.Listener
 	walletpb.RegisterWalletServiceServer(grpcServer, s)
 	servicepb.RegisterServiceDetailsServiceServer(grpcServer, s)
 	topuppb.RegisterTopupServiceServer(grpcServer, s)
-	logger.Infof("gRPC server listening on port 50051")
+	logger.Infof("gRPC server listening on port %s", cfg.CPSActionGrpcAddress)
 	return grpcServer, lis
 }
 

@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/hq/core"
@@ -13,6 +12,8 @@ import (
 	"context"
 	"errors"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -33,7 +34,7 @@ func NewHQService(repo storage.HQRepository, cpsActionService service.CPSActionS
 	}
 }
 
-func (a *hqService) GetHQDetail(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.HQ], error) {
+func (a *hqService) GetHQDetail(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]model.HQ], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetHQDetail", "HQ", "GetHQDetail")
 	defer span.End()
 
@@ -71,7 +72,7 @@ func (a *hqService) GetBlockTime(ctx context.Context) (hqDto.BlockTimeResponse, 
 
 	hq, err := a.repo.Find(ctx)
 	if err != nil {
-		a.logger.Errorf("failed to fetch HQ: %v", err)
+		a.logger.Errorf("[HqSvc][GetBlockTime] fetch err: %v", err)
 		span.AddEvent("Failed to fetch HQ", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -90,7 +91,7 @@ func (a *hqService) GetArchiveTime(ctx context.Context) (hqDto.ArchiveTimeRespon
 
 	hq, err := a.repo.Find(ctx)
 	if err != nil {
-		a.logger.Errorf("failed to fetch HQ: %v", err)
+		a.logger.Errorf("[HqSvc][GetArchiveTime] fetch err: %v", err)
 		span.AddEvent("Failed to fetch HQ", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -110,7 +111,7 @@ func (a *hqService) GetPasswordExpiry(ctx context.Context) (hqDto.PasswordExpiry
 
 	hq, err := a.repo.Find(ctx)
 	if err != nil {
-		a.logger.Errorf("failed to fetch HQ: %v", err)
+		a.logger.Errorf("[HqSvc][GetPwdExpiry] fetch err: %v", err)
 		span.AddEvent("Failed to fetch HQ", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -129,7 +130,7 @@ func (a *hqService) UpdateBlockTime(ctx context.Context, request hqDto.UpdateBlo
 
 	originalHQ, err := a.repo.Find(ctx)
 	if err != nil {
-		a.logger.Errorf("failed to fetch HQ: %v", err)
+		a.logger.Errorf("[HqSvc][UpdateBlockTime] fetch err: %v", err)
 		span.AddEvent("Failed to fetch HQ", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -140,7 +141,7 @@ func (a *hqService) UpdateBlockTime(ctx context.Context, request hqDto.UpdateBlo
 	updatedHQ.BlockTime = request.BlockTime
 
 	if err := core.HandleCPSAction(ctx, a.cpsService, originalHQ.ID.Hex(), constants.RequestUpdateHQBlockTime, updatedHQ, *originalHQ, constants.ActionUpdate); err != nil {
-		a.logger.Errorf("CPS action failed for BlockTime %s: %v", updatedHQ.BlockTime, err)
+		a.logger.Errorf("[HqSvc][UpdateBlockTime] cps action err: %v", err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", originalHQ.ID.Hex()),
@@ -156,7 +157,7 @@ func (a *hqService) UpdateArchiveTime(ctx context.Context, request hqDto.UpdateA
 
 	originalHQ, err := a.repo.Find(ctx)
 	if err != nil {
-		a.logger.Errorf("failed to fetch HQ: %v", err)
+		a.logger.Errorf("[HqSvc][UpdateArchiveTime] fetch err: %v", err)
 		span.AddEvent("Failed to fetch HQ", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -167,7 +168,7 @@ func (a *hqService) UpdateArchiveTime(ctx context.Context, request hqDto.UpdateA
 	updatedHQ.ArchiveTime = request.ArchiveTime
 
 	if err := core.HandleCPSAction(ctx, a.cpsService, originalHQ.ID.Hex(), constants.RequestUpdateHQArchiveTime, updatedHQ, *originalHQ, constants.ActionUpdate); err != nil {
-		a.logger.Errorf("CPS action failed for ArchiveTime %v: %v", updatedHQ.ArchiveTime, err)
+		a.logger.Errorf("[HqSvc][UpdateArchiveTime] cps action err: %v", err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", originalHQ.ID.Hex()),
@@ -184,7 +185,7 @@ func (a *hqService) UpdatePasswordExpiry(ctx context.Context, request hqDto.Upda
 
 	originalHQ, err := a.repo.Find(ctx)
 	if err != nil {
-		a.logger.Errorf("failed to fetch HQ: %v", err)
+		a.logger.Errorf("[HqSvc][UpdatePwdExpiry] fetch err: %v", err)
 		span.AddEvent("Failed to fetch HQ", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -195,7 +196,7 @@ func (a *hqService) UpdatePasswordExpiry(ctx context.Context, request hqDto.Upda
 	updatedHQ.PasswordExpiry = request.PasswordExpiry
 
 	if err := core.HandleCPSAction(ctx, a.cpsService, originalHQ.ID.Hex(), constants.RequestUpdatePasswordExpiry, updatedHQ, *originalHQ, constants.ActionUpdate); err != nil {
-		a.logger.Errorf("CPS action failed for PasswordExpiry %v: %v", updatedHQ.PasswordExpiry, err)
+		a.logger.Errorf("[HqSvc][UpdatePwdExpiry] cps action err: %v", err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", originalHQ.ID.Hex()),
@@ -262,6 +263,6 @@ func (s *hqService) Authorize(ctx context.Context, action *model.CPSAction) (*mo
 
 	action.CurrentAction = hq
 	action.ActionStatus = constants.Approved
-	s.logger.Infof("HQ action approved", "action_code", action.ActionCode, "request", requestedAction)
+	s.logger.Infof("[HqSvc][Authorize] approved action: %s code: %s", requestedAction, action.ActionCode)
 	return action, nil
 }

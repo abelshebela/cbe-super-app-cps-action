@@ -4,12 +4,13 @@ import (
 	newscategory_dto "cbe-super-app-cps-action/internal/constants/dto/news_category"
 	newscategory_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_category"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	_ "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/news_category/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"net/http"
+
+	_ "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -43,10 +44,11 @@ func NewNewsCategoryHandler(newsCategoryService service.NewsCategoryService, log
 //
 // CreateNewsCategory implements newscategory_adaptor.NewsCategoryAdaptor.
 func (n NewsCategoryHandler) CreateNewsCategory(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), n.logger)
 	var req newscategory_dto.CreateNewsCategoryRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		n.logger.Errorf("failed to decode create news category request: %v", err)
+		log.Errorf("[NewsCatH][Create] decode body err: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
 	}
@@ -57,12 +59,12 @@ func (n NewsCategoryHandler) CreateNewsCategory(w http.ResponseWriter, r *http.R
 	}
 
 	if err := n.service.CreateNewsCategory(r.Context(), req.CategoryName); err != nil {
-		n.logger.Errorf("[CreateNewsCategory] service error: %v", err)
+		log.Errorf("[CreateNewsCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	n.logger.Infof("[CreateNewsCategory] request sent successfully for category_name: %s", req.CategoryName)
+	log.Infof("[CreateNewsCategory] request sent successfully for category_name: %s", req.CategoryName)
 	localization.SendSuccessResponse(w, localization.SuccessNewsCategoryCreated, nil)
 }
 
@@ -79,20 +81,21 @@ func (n NewsCategoryHandler) CreateNewsCategory(w http.ResponseWriter, r *http.R
 //	@Security		BearerAuth
 //	@Router			/news/category/{id} [delete]
 func (n NewsCategoryHandler) DeleteNewsCategory(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), n.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		n.logger.Errorf("id not set on param")
+		log.Errorf("[NewsCatH] id not set")
 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
 		return
 	}
 
 	if err := n.service.DeleteNewsCategory(r.Context(), id); err != nil {
-		n.logger.Errorf("[DeleteNewsCategory] service error: %v", err)
+		log.Errorf("[DeleteNewsCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	n.logger.Infof("[DeleteNewsCategory] request sent successfully for id: %s", id)
+	log.Infof("[DeleteNewsCategory] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNewsCategoryDeleted, nil)
 }
 
@@ -111,7 +114,22 @@ func (n NewsCategoryHandler) DeleteNewsCategory(w http.ResponseWriter, r *http.R
 //	@Security		BearerAuth
 //	@Router			/news/category [get]
 func (n NewsCategoryHandler) FetchNewsCategories(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), n.logger)
 	filterPtr := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	ftr := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(ftr); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	filter := *filterPtr
 
 	if filter.Page < 0 || filter.PerPage < 0 {
@@ -121,12 +139,12 @@ func (n NewsCategoryHandler) FetchNewsCategories(w http.ResponseWriter, r *http.
 
 	list, err := n.service.FindAllWithPagination(r.Context(), filter)
 	if err != nil {
-		n.logger.Errorf("[FetchNewsCategories] service error: %v", err)
+		log.Errorf("[FetchNewsCategories] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	n.logger.Infof("[FetchNewsCategories] retrieved %d news categories", len(list.Data))
+	log.Infof("[FetchNewsCategories] retrieved %d news categories", len(list.Data))
 	// return as-is
 	localization.SendSuccessResponse(w, localization.SuccessNewsCategoryFetched, list)
 }
@@ -146,21 +164,22 @@ func (n NewsCategoryHandler) FetchNewsCategories(w http.ResponseWriter, r *http.
 //
 // GetNewsCategoryByID implements newscategory_adaptor.NewsCategoryAdaptor.
 func (n NewsCategoryHandler) GetNewsCategoryByID(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), n.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		n.logger.Errorf("id not set on param")
+		log.Errorf("[NewsCatH] id not set")
 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
 		return
 	}
 
 	data, err := n.service.GetNewsCategoryByID(r.Context(), id)
 	if err != nil {
-		n.logger.Errorf("[GetNewsCategoryByID] service error: %v", err)
+		log.Errorf("[GetNewsCategoryByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	n.logger.Infof("[GetNewsCategoryByID] news category retrieved successfully for id: %s", id)
+	log.Infof("[GetNewsCategoryByID] news category retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNewsCategoryFetched, data)
 }
 
@@ -181,9 +200,10 @@ func (n NewsCategoryHandler) GetNewsCategoryByID(w http.ResponseWriter, r *http.
 //
 // UpdateNewsCategory implements newscategory_adaptor.NewsCategoryAdaptor.
 func (n NewsCategoryHandler) UpdateNewsCategory(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), n.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		n.logger.Errorf("id not set on param")
+		log.Errorf("[NewsCatH] id not set")
 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
 		return
 	}
@@ -191,7 +211,7 @@ func (n NewsCategoryHandler) UpdateNewsCategory(w http.ResponseWriter, r *http.R
 	var req newscategory_dto.UpdateNewsCategoryRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		n.logger.Errorf("failed to decode update news category request: %v", err)
+		log.Errorf("[NewsCatH][Update] decode body err: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
 	}
@@ -203,11 +223,11 @@ func (n NewsCategoryHandler) UpdateNewsCategory(w http.ResponseWriter, r *http.R
 
 	// Note: service.UpdateNewsCategory signature accepts only the category name.
 	if err := n.service.UpdateNewsCategory(r.Context(), id, req.CategoryName); err != nil {
-		n.logger.Errorf("[UpdateNewsCategory] service error: %v", err)
+		log.Errorf("[UpdateNewsCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	n.logger.Infof("[UpdateNewsCategory] request sent successfully for id: %s", id)
+	log.Infof("[UpdateNewsCategory] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNewsCategoryUpdated, nil)
 }

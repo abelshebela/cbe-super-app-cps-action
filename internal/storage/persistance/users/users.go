@@ -5,34 +5,39 @@ import (
 	"errors"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type userRepository struct {
-	userDal    dal.MongoDal[model.User, model.User]
-	client     *mongo.Client
-	logger     utils.Logger
-	dbName     string
-	collection string
+	userDal       dal.MongoDal[member.User, member.User]
+	client        *mongo.Client
+	logger        utils.Logger
+	dbName        string
+	collection    string
+	kafkaProducer kafka.ClientOrchestrationProducer
 }
 
-func NewUserRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.UserRepository {
+func NewUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.UserRepository {
 	return &userRepository{
-		userDal:    dal.NewMongoDal[model.User, model.User](client, dbName, collection),
-		logger:     logger,
-		client:     client,
-		dbName:     dbName,
-		collection: collection,
+		userDal:       dal.NewMongoDal[member.User, member.User](client, cfg, dbName, collection),
+		logger:        logger,
+		client:        client,
+		dbName:        dbName,
+		collection:    collection,
+		kafkaProducer: clientOrchestrationProducer,
 	}
 }
 
-func (r *userRepository) Save(ctx context.Context, user *model.User) error {
+func (r *userRepository) Save(ctx context.Context, user *member.User) error {
 
 	if _, err := r.userDal.InsertOne(ctx, *user); err != nil {
 		r.logger.Errorf("failed to insert user ")
@@ -42,7 +47,7 @@ func (r *userRepository) Save(ctx context.Context, user *model.User) error {
 	return nil
 }
 
-func (r *userRepository) FindById(ctx context.Context, id string) (*model.User, error) {
+func (r *userRepository) FindById(ctx context.Context, id string) (*member.User, error) {
 	// projection := UserProjection()
 	filter, err := UserIdFilterAttachMent(id)
 	if err != nil {
@@ -52,39 +57,28 @@ func (r *userRepository) FindById(ctx context.Context, id string) (*model.User, 
 
 	user, err := r.userDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("no user found for the provided id")
-			return nil, errors.New(localization.ErrorUserNotFound.Code)
-		}
-		r.logger.Errorf("unexpected error during FindById")
-		return nil, errors.New(localization.ErrorInternalServerError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	r.logger.Infof("user found by id")
 	return user, nil
 }
 
-func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.User, error) {
+func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber string) (*member.User, error) {
 
 	projection := UserProjection()
 	filter := UserPhoneFilterAttachment(phoneNumber)
 
 	user, err := r.userDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Errorf("failed to find user by phone number", err)
-
-			return nil, errors.New(localization.ErrorUserNotFound.Code)
-		}
-		r.logger.Errorf("failed to find user by phone number")
-		return nil, errors.New(localization.ErrorInternalServerError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	r.logger.Infof("user found by phone number")
 	return user, nil
 }
 
-func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string) (*model.User, error) {
+func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string) (*member.User, error) {
 
 	projection := UserProjection()
 
@@ -92,19 +86,14 @@ func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string
 
 	user, err := r.userDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("no user found for the provided deviceUUID")
-			return nil, errors.New(localization.ErrorUserNotFound.Code)
-		}
-		r.logger.Errorf("unexpected error during FindByDeviceUUID: %v", err)
-		return nil, errors.New(localization.ErrorInternalServerError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	r.logger.Infof("user found by deviceUUID")
 	return user, nil
 }
 
-func (r *userRepository) Update(ctx context.Context, id string, update *model.User) error {
+func (r *userRepository) Update(ctx context.Context, id string, update *member.User) error {
 
 	filter, _ := UserIdFilterAttachMent(id)
 	req := UserBuilder(*update)
@@ -118,38 +107,32 @@ func (r *userRepository) Update(ctx context.Context, id string, update *model.Us
 	return nil
 }
 
-func (r *userRepository) FindByUserCode(ctx context.Context, userCode string) (*model.User, error) {
+func (r *userRepository) FindByUserCode(ctx context.Context, userCode string) (*member.User, error) {
 	filter := bson.M{
 		"user_code": userCode,
 	}
 	// projection := UserProjection()
 	user, err := r.userDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorUserNotFound.Code)
-		}
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return user, nil
 }
 
-func (r *userRepository) FindByCustomerNumber(ctx context.Context, customerNumber string) (*model.User, error) {
+func (r *userRepository) FindByCustomerNumber(ctx context.Context, customerNumber string) (*member.User, error) {
 	filter := bson.M{
 		"customer_number": customerNumber,
 	}
 	projection := UserProjection()
 	user, err := r.userDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorUserNotFound.Code)
-		}
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	return user, nil
 }
 
-func (r *userRepository) GetUserByAccount(ctx context.Context, accNumber string) (*model.User, error) {
+func (r *userRepository) GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error) {
 	linkedAccountCollection := r.client.Database(r.dbName).Collection("linked_accounts")
 	linkedAccountFilter := bson.M{"account_number": accNumber}
 	var linkedAccount struct {
@@ -157,12 +140,7 @@ func (r *userRepository) GetUserByAccount(ctx context.Context, accNumber string)
 	}
 	err := linkedAccountCollection.FindOne(ctx, linkedAccountFilter).Decode(&linkedAccount)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("no linked account found for the provided account number")
-			return nil, errors.New(localization.ErrorUserNotFound.Code)
-		}
-		r.logger.Errorf("unexpected error during GetUserByAccount (linked account): %v", err)
-		return nil, errors.New(localization.ErrorInternalServerError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	userFilter := bson.M{
@@ -171,12 +149,7 @@ func (r *userRepository) GetUserByAccount(ctx context.Context, accNumber string)
 	projection := UserProjection()
 	user, err := r.userDal.FindOne(ctx, userFilter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("no user found for the provided customer number")
-			return nil, errors.New(localization.ErrorUserNotFound.Code)
-		}
-		r.logger.Errorf("unexpected error during GetUserByAccount (user): %v", err)
-		return nil, errors.New(localization.ErrorInternalServerError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	r.logger.Infof("user found by account number via linked account")

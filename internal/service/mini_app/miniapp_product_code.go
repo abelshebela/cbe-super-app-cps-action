@@ -3,12 +3,13 @@ package miniapp
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -25,7 +26,7 @@ func NewMiniAppProductCodeService(repo storage.MiniAppProductCodeRepository, log
 }
 
 func (m *miniappProductCodeService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	m.logger.Infof("Mini app service authorizing action: %s", cpsAction.ActionCode)
+	m.logger.Infof("[MiniProdCodeSvc][Authorize] action: %s", cpsAction.ActionCode)
 
 	miniappProductCode, err := local_util.JsonUnmarshal[model.MiniAppProductCode](cpsAction.CurrentAction)
 	if err != nil {
@@ -41,18 +42,17 @@ func (m *miniappProductCodeService) Authorize(ctx context.Context, cpsAction *mo
 	case string(constants.RequestDisableMiniappProductCode):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
 	default:
-		m.logger.Errorf("Unsupported request action: %s", cpsAction.RequestAction)
+		m.logger.Errorf("[MiniProdCodeSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	if err != nil {
-		m.logger.Errorf("Failed to process action %s: %v", cpsAction.RequestAction, err)
+		m.logger.Errorf("[MiniProdCodeSvc][Authorize] process err: %v", err)
 		return nil, err
 	}
 
 	cpsAction.CurrentAction = miniappProductCode
-	m.logger.Infof("Action %s approved for mini app product code %s", cpsAction.RequestAction, miniappProductCode.ID)
+	m.logger.Infof("[MiniProdCodeSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, miniappProductCode.ID)
 	return cpsAction, nil
 
 }
-

@@ -19,6 +19,17 @@ type TransactionRepository struct {
 	logger utils.Logger
 }
 
+// FindTransactionByCifOrAccountNumberOrFT implements storage.TransactionRepository.
+func (t *TransactionRepository) FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.FullTransaction, error) {
+	q := sqlc.New(t.db)
+	transaction, err := q.FindTransactionByCifOrAccountNumberOrFT(ctx, identifier)
+	if err != nil {
+		t.logger.Errorf("failed to find transaction by CIF/AccountNumber/FT: %v", err)
+		return transaction_dto.FullTransaction{}, errors.New(localization.ErrorResourceNotFound.Code)
+	}
+	return transaction_core.MapFullTransactionToNative(transaction), nil
+}
+
 // FindAllWithPagination implements storage.TransactionRepository.
 func (t *TransactionRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error) {
 	q := sqlc.New(t.db)

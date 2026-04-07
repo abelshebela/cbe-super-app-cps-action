@@ -29,7 +29,7 @@ func (p PaginatedResponse[T]) MarshalJSON() ([]byte, error) {
 }
 
 type PaginatedResponseForFeedback[T any] struct {
-	Data T              `json:"docs"`
-	Meta PaginationMeta `json:"meta"`
-	AverageRatings map[string]float64        `json:"average_ratings,omitempty" bson:"average_ratings,omitempty"`
+	Data           T                  `json:"docs"`
+	Meta           PaginationMeta     `json:"meta"`
+	AverageRatings map[string]float64 `json:"average_ratings,omitempty" bson:"average_ratings,omitempty"`
 }

@@ -2,32 +2,34 @@ package mini_app
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
+	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-
-
 type miniAppProductCode struct {
-	logger             shared_utils.Logger
+	logger                shared_utils.Logger
 	miniAppProductCodeDal dal.MongoDal[model.MiniAppProductCode, model.MiniAppProductCode]
-	client             *mongo.Client
+	client                *mongo.Client
 }
 
-func NewMiniAppProdutCodeRepository(logger shared_utils.Logger, client *mongo.Client, dbName, collectionName string) storage.MiniAppProductCodeRepository {
+func NewMiniAppProdutCodeRepository(logger shared_utils.Logger, client *mongo.Client, cfg *config.VaultConfig, dbName, collectionName string) storage.MiniAppProductCodeRepository {
 	return &miniAppProductCode{
-		logger:             logger,
-		miniAppProductCodeDal: dal.NewMongoDal[model.MiniAppProductCode, model.MiniAppProductCode](client, dbName, collectionName),
-		client:             client,
+		logger:                logger,
+		miniAppProductCodeDal: dal.NewMongoDal[model.MiniAppProductCode, model.MiniAppProductCode](client, cfg, dbName, collectionName),
+		client:                client,
 	}
 }
 
@@ -50,15 +52,10 @@ func (a *miniAppProductCode) Update(ctx context.Context, productCode *model.Mini
 	update := buildProductCodeUpdate(*productCode)
 	_, err = a.miniAppProductCodeDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("Error updating mini app product code in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
-
 
 func (a *miniAppProductCode) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objId, err := bson.ObjectIDFromHex(id)
@@ -71,11 +68,7 @@ func (a *miniAppProductCode) EnableOrDisable(ctx context.Context, id string, ena
 	update := bson.M{"is_enabled": enable, "updated_at": time.Now()}
 	_, err = a.miniAppProductCodeDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("Error enabling or disabling mini app product code in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
 	return nil
 }
@@ -103,4 +96,3 @@ func buildProductCodeUpdate(updateFields model.MiniAppProductCode) bson.M {
 
 	return update
 }
-

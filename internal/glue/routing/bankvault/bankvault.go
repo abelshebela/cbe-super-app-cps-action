@@ -1,7 +1,6 @@
 package bankvault
 
 import (
-	role "cbe-super-app-cps-action/internal/constants"
 	bankvault "cbe-super-app-cps-action/internal/constants/interfaces/bankvault"
 
 	"cbe-super-app-cps-action/internal/glue"
@@ -19,7 +18,6 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 			Handler: handler.CreateBankVault,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -28,7 +26,6 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 			Handler: handler.FindAllBankVaults,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 			},
 		},
 		{
@@ -37,7 +34,6 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 			Handler: handler.GetBankVault,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 			},
 		},
 		{
@@ -46,7 +42,6 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 			Handler: handler.UpdateBankVault,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -55,7 +50,6 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 			Handler: handler.DeleteBankVault,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -64,7 +58,6 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 			Handler: handler.DisableBankVault,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -73,7 +66,6 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 			Handler: handler.EnableBankVault,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -82,7 +74,6 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 			Handler: handler.GetAllLockedBankVaults,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		// {
@@ -91,7 +82,6 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 		// 	Handler: handler.GetTransaction,
 		// 	Middlewares: []func(next http.Handler) http.Handler{
 		// 		authMiddleware.AuthenticateToken,
-		// 		authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 		// 	},
 		// },
 		{
@@ -100,7 +90,6 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 			Handler: handler.GetAllGroupVaults,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		// {
@@ -109,7 +98,6 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 		// 	Handler: handler.GetGroupVault,
 		// 	Middlewares: []func(next http.Handler) http.Handler{
 		// 		authMiddleware.AuthenticateToken,
-		// 		authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 		// 	},
 		// },
 	}

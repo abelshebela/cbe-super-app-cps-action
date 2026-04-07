@@ -1,6 +1,7 @@
 package core
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/budget_category"
 	"cbe-super-app-cps-action/pkgs/utils"
 	"errors"
@@ -18,8 +19,9 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (budget_categ
 
 	req.Name = r.FormValue("name")
 	req.Color = r.FormValue("color")
+	req.Type = r.FormValue("type")
 
-	_, iconHeader, err := utils.ParseMultipartFormFile(r, "icon", 10<<20)
+	_, iconHeader, err := utils.ParseMultipartFormFile(r, "icon", int64(constants.MaxMemoryForUpload))
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
 			return req, errors.New("icon file is required")
@@ -44,8 +46,11 @@ func ParseUpdateRequestFromMultipartForm(r *http.Request) (budget_category.Updat
 	if color := r.FormValue("color"); color != "" {
 		req.Color = color
 	}
+	if typ := r.FormValue("type"); typ != "" {
+		req.Type = typ
+	}
 
-	_, iconHeader, err := utils.ParseMultipartFormFile(r, "icon", 10<<20)
+	_, iconHeader, err := utils.ParseMultipartFormFile(r, "icon", int64(constants.MaxMemoryForUpload))
 	if err != nil {
 		fmt.Println("///error for icon", err)
 		if !errors.Is(err, http.ErrMissingFile) {

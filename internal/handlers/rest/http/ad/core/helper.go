@@ -1,6 +1,7 @@
 package core
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/ad"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -9,7 +10,7 @@ import (
 
 	"net/http"
 
-	cps_entities "cbe-super-app-cps-action/internal/constants/model"
+	cps_entities "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -73,7 +74,7 @@ func ParseTime(timeStr, fieldName string, isOptional bool, logger utils.Logger) 
 func ParseBannerImage(r *http.Request, isCreate bool) (ad.AdvertRequest, error) {
 	var req ad.AdvertRequest
 
-	_, fileHeader, err := local_util.ParseMultipartFormFile(r, "banner_image", 15<<20)
+	_, fileHeader, err := local_util.ParseMultipartFormFile(r, "banner_image", int64(constants.MaxMemoryForUpload))
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
 			if isCreate {

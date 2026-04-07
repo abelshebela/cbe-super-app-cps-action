@@ -5,7 +5,6 @@ import (
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/event/core"
@@ -15,6 +14,8 @@ import (
 	"errors"
 	"path"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -26,7 +27,7 @@ import (
 type eventService struct {
 	repo            storage.EventRepository
 	cpsService      service.CPSActionService
-	merchantService service.MiniAppMerchantService
+	merchantService service.EcommerceMerchantService
 	userRepo        storage.UserRepository
 	bucketName      string
 	logger          utils.Logger
@@ -35,7 +36,7 @@ type eventService struct {
 	cfg             *config.VaultConfig
 }
 
-func NewEventService(repo storage.EventRepository, cpsActionService service.CPSActionService, merchantService service.MiniAppMerchantService, userRepo storage.UserRepository, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.EventService {
+func NewEventService(repo storage.EventRepository, cpsActionService service.CPSActionService, merchantService service.EcommerceMerchantService, userRepo storage.UserRepository, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.EventService {
 	return &eventService{
 		repo:            repo,
 		cpsService:      cpsActionService,
@@ -53,10 +54,10 @@ func (e *eventService) CreateEvent(ctx context.Context, event eventdto.EventRequ
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateEvent", "Event", "CreateEvent")
 	defer span.End()
 
-	e.logger.Infof("CreateEvent called", "event_name", event.EventName)
+	e.logger.Infof("[EventSvc][Create] name: %s", event.EventName)
 
 	if err := core.SetMerchantDetails(ctx, e.merchantService, &event); err != nil {
-		e.logger.Errorf("SetMerchantDetails failed", "error", err)
+		e.logger.Errorf("[EventSvc][Create] merchant details err: %v", err)
 		span.AddEvent("SetMerchantDetails failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("event_name", event.EventName),
@@ -66,7 +67,7 @@ func (e *eventService) CreateEvent(ctx context.Context, event eventdto.EventRequ
 
 	exist, err := e.repo.Find(ctx, event.EventName)
 	if err != nil {
-		e.logger.Errorf("FindByName failed: %v", err)
+		e.logger.Errorf("[EventSvc][Create] find err: %v", err)
 		span.AddEvent("Failed to find event", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("event_name", event.EventName),
@@ -75,7 +76,7 @@ func (e *eventService) CreateEvent(ctx context.Context, event eventdto.EventRequ
 	}
 
 	if exist != nil {
-		e.logger.Warnf("Event already exists: %s", event.EventName)
+		e.logger.Warnf("[EventSvc][Create] already exists: %s", event.EventName)
 		span.AddEvent("Event already exists", trace.WithAttributes(
 			attribute.String("error", localization.ErrorEventAlreadyExists.Code),
 			attribute.String("event_name", event.EventName),
@@ -85,7 +86,7 @@ func (e *eventService) CreateEvent(ctx context.Context, event eventdto.EventRequ
 
 	code, err := core.GeneratePrefixedName("EVE", event.EventName, e.logger)
 	if err != nil {
-		e.logger.Errorf("GeneratePrefixedName failed", "error", err)
+		e.logger.Errorf("[EventSvc][Create] gen name err: %v", err)
 		span.AddEvent("GeneratePrefixedName failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("event_name", event.EventName),
@@ -93,9 +94,9 @@ func (e *eventService) CreateEvent(ctx context.Context, event eventdto.EventRequ
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", *e.cfg, "", e.logger)
+	URL, err := lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, string(constants.EventFolderName), *e.cfg, "", e.logger)
 	if err != nil {
-		e.logger.Errorf("UploadFileToMinio failed", "error", err)
+		e.logger.Errorf("[EventSvc][Create] upload err: %v", err)
 		span.AddEvent("UploadFileToMinio failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("event_name", event.EventName),
@@ -105,9 +106,9 @@ func (e *eventService) CreateEvent(ctx context.Context, event eventdto.EventRequ
 
 	result := core.CreateEventMapper(event, code, URL)
 
-	e.logger.Infof("Event created successfully", "event_code", code)
+	e.logger.Infof("[EventSvc][Create] created code: %s", code)
 	if err := core.HandleCPSAction(ctx, e.cpsService, "", constants.RequestCreateEvent, result, nil, constants.ActionCreate); err != nil {
-		e.logger.Errorf("CPS action failed for event %s: %v", code, err)
+		e.logger.Errorf("[EventSvc][Create] cps action err for %s: %v", code, err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("event_code", code),
@@ -120,10 +121,10 @@ func (e *eventService) UpdateEvent(ctx context.Context, id string, event eventdt
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateEvent", "Event", "UpdateEvent")
 	defer span.End()
 
-	e.logger.Infof("UpdateEvent called", "event_id", id)
+	e.logger.Infof("[EventSvc][Update] id: %s", id)
 
 	if err := core.SetMerchantDetails(ctx, e.merchantService, &event); err != nil {
-		e.logger.Errorf("SetMerchantDetails failed", "event_id", id, "error", err)
+		e.logger.Errorf("[EventSvc][Update] merchant details err: %v", err)
 		span.AddEvent("SetMerchantDetails failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -133,7 +134,7 @@ func (e *eventService) UpdateEvent(ctx context.Context, id string, event eventdt
 
 	prevEvent, err := e.repo.FindByID(ctx, id)
 	if err != nil {
-		e.logger.Errorf("FindByID failed", "event_id", id, "error", err)
+		e.logger.Errorf("[EventSvc][Update] find err: %v", err)
 		span.AddEvent("Failed to find event", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -148,9 +149,9 @@ func (e *eventService) UpdateEvent(ctx context.Context, id string, event eventdt
 			objectkey = path.Base(prevEvent.EventInformation.Cover)
 		}
 
-		URL, err = lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", *e.cfg, objectkey, e.logger)
+		URL, err = lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, string(constants.EventFolderName), *e.cfg, objectkey, e.logger)
 		if err != nil {
-			e.logger.Errorf("UploadFileToMinio failed", "event_id", id, "error", err)
+			e.logger.Errorf("[EventSvc][Update] upload err: %v", err)
 			span.AddEvent("UploadFileToMinio failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("id", id),
@@ -163,10 +164,10 @@ func (e *eventService) UpdateEvent(ctx context.Context, id string, event eventdt
 
 	curAction := core.EventMapperForUpdate(prevEvent, event, URL)
 
-	e.logger.Infof("Event updated successfully", "event_id", id)
+	e.logger.Infof("[EventSvc][Update] updated id: %s", id)
 	err = core.HandleCPSAction(ctx, e.cpsService, id, constants.RequestUpdateEvent, curAction, *prevEvent, constants.ActionUpdate)
 	if err != nil {
-		e.logger.Errorf("CPS action failed for event %s: %v", curAction.EventName, err)
+		e.logger.Errorf("[EventSvc][Update] cps action err: %v", err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -195,7 +196,7 @@ func (e *eventService) DeleteEvent(ctx context.Context, id string) error {
 
 	err = core.HandleCPSAction(ctx, e.cpsService, id, constants.RequestDeleteEvent, curData, *prevEvent, constants.ActionDelete)
 	if err != nil {
-		e.logger.Errorf("CPS action failed for event %s: %v", curData.EventName, err)
+		e.logger.Errorf("[EventSvc][Delete] cps action err: %v", err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -209,11 +210,11 @@ func (e *eventService) EnableDisableEvent(ctx context.Context, id string, enable
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableDisableEvent", "Event", "EnableDisableEvent")
 	defer span.End()
 
-	e.logger.Infof("EnableDisableEvent called", "event_id", id, "enable", enable)
+	e.logger.Infof("[EventSvc][EnableDisable] id: %s, enable: %v", id, enable)
 
 	prevEvent, err := e.repo.FindByID(ctx, id)
 	if err != nil {
-		e.logger.Errorf("FindByID failed", "event_id", id, "error", err)
+		e.logger.Errorf("[EventSvc][EnableDisable] find err: %v", err)
 		span.AddEvent("Event not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorEventNotFound.Code),
 			attribute.String("id", id),
@@ -222,7 +223,7 @@ func (e *eventService) EnableDisableEvent(ctx context.Context, id string, enable
 	}
 
 	if enable && prevEvent.Enabled {
-		e.logger.Warnf("Event already enabled", "event_id", id)
+		e.logger.Warnf("[EventSvc][EnableDisable] already enabled: %s", id)
 		span.AddEvent("Event already enabled", trace.WithAttributes(
 			attribute.String("error", localization.ErrorEventAlreadyEnabled.Code),
 			attribute.String("id", id),
@@ -230,7 +231,7 @@ func (e *eventService) EnableDisableEvent(ctx context.Context, id string, enable
 		return errors.New(localization.ErrorEventAlreadyEnabled.Code)
 	}
 	if !enable && !prevEvent.Enabled {
-		e.logger.Warnf("Event already disabled", "event_id", id)
+		e.logger.Warnf("[EventSvc][EnableDisable] already disabled: %s", id)
 		span.AddEvent("Event already disabled", trace.WithAttributes(
 			attribute.String("error", localization.ErrorEventAlreadyDisabled.Code),
 			attribute.String("id", id),
@@ -249,10 +250,10 @@ func (e *eventService) EnableDisableEvent(ctx context.Context, id string, enable
 		action = constants.RequestDisableEvent
 	}
 
-	e.logger.Infof("Event enable/disable action handled", "event_id", id, "enable", enable)
+	e.logger.Infof("[EventSvc][EnableDisable] handled id: %s, enable: %v", id, enable)
 	err = core.HandleCPSAction(ctx, e.cpsService, id, action, curData, *prevEvent, constants.ActionUpdate)
 	if err != nil {
-		e.logger.Errorf("CPS action failed for event %s: %v", curData.EventName, err)
+		e.logger.Errorf("[EventSvc][EnableDisable] cps action err: %v", err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -277,7 +278,7 @@ func (e *eventService) FetchEventByID(ctx context.Context, id string) (*model.Ev
 	return result, nil
 }
 
-func (e *eventService) FetchEvent(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Event], error) {
+func (e *eventService) FetchEvent(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Event], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchEvent", "Event", "FetchEvent")
 	defer span.End()
 

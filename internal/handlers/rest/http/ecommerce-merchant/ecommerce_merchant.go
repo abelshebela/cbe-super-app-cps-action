@@ -1,13 +1,16 @@
 package ecommercemerchant
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 
-	miniappmerchant "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
-	miniappmerchat "cbe-super-app-cps-action/internal/constants/interfaces/mini_app_merchant"
+	"cbe-super-app-cps-action/internal/constants"
+	ecomerceDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
+	ecommerce_merchant "cbe-super-app-cps-action/internal/constants/interfaces/ecommerce_merchant"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -16,132 +19,179 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
-type miniAppMerchantAdapter struct {
-	miniappMerchantService service.MiniAppMerchantService
-	logger                 shared_utils.Logger
+// EcommerceMerchantRequest mirrors miniappmerchant.EcommerceMerchant for Swagger @Param only
+type EcommerceMerchantRequest struct {
+	MerchantName     string `json:"merchant_name"`
+	MerchantCode     string `json:"merchant_code"`
+	AccountNumber    string `json:"account_number"`
+	SettlementMethod string `json:"settlement_method"`
 }
 
-func NewMiniAppMerchantAdapter(miniappMerchantService service.MiniAppMerchantService, logger shared_utils.Logger) miniappmerchat.MiniAppMerchant {
-	return &miniAppMerchantAdapter{miniappMerchantService: miniappMerchantService, logger: logger}
+type ecommerceMerchantAdapter struct {
+	srv    service.EcommerceMerchantService
+	logger shared_utils.Logger
 }
 
-// Create Mini App Merchant
+func NewEcommerceMerchantdapter(srv service.EcommerceMerchantService, logger shared_utils.Logger) ecommerce_merchant.EcommerceMerchant {
+	return &ecommerceMerchantAdapter{srv: srv, logger: logger}
+}
+
+// Create Ecommerce Merchant
 //
-//	@Summary		Create Mini App Merchant
-//	@Description	Creates a new mini app merchant
-//	@Tags			MiniAppMerchant
+//	@Summary		Create  Ecommerce Merchant
+//	@Description	Creates a new  Ecommerce Merchant
+//	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			body			body		miniappmerchant.MiniAppMerchantDTO	true	"Mini App Merchant DTO"
-//	@Success		201				{object}	localization.StandardResponse{data=model.MiniAppMerchant}
+//	@Param			body			body		ecommercemerchant.EcommerceMerchantRequest	true	"Mini App Merchant (see miniappmerchant.EcommerceMerchant)"
+//	@Success		201				{object}	localization.StandardResponse{data=nil}
 //	@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/mini-app-merchants [post]
-func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createMiniAppMerchant", "handler", "miniAppMerchant")
+//	@Router			/ecommerce-merchant [post]
+func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "createMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
-	var req miniappmerchant.MiniAppMerchantDTO
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 
-	// Decode request body
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	var reqDTO ecomerceDto.EcommerceMerchant
+
+	if err := json.NewDecoder(r.Body).Decode(&reqDTO); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("Failed to decode request body: %v", err)
+		log.Errorf("[EcomMerchH][Create] decode body err: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantMarshalFailed, nil, nil)
 		return
 	}
 
-	// Validate DTO
-	if err := req.Validate(true); err != nil {
+	if err := reqDTO.ValidateCreate(); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("Validation failed: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
-		return
-	}
-
-	formattedPhone := local_util.FormatPhoneNumber(req.PhoneNumber)
-	req.PhoneNumber = formattedPhone
-
-	createdMerchant, err := h.miniappMerchantService.Create(ctx, &req)
-	if err != nil {
-		span.RecordError(err)
-		h.logger.Errorf("Failed to create merchant: %v", err)
+		log.Errorf("[EcomMerchH][Create] validate err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Debugf("Created merchant: %+v", createdMerchant)
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantCreateRequestCreated, nil)
+
+	// formattedPhone := local_util.FormatPhoneNumber(reqDTO.PhoneNumber)
+
+	// reqDTO.PhoneNumber = formattedPhone
+	userContext := local_util.ExtractUserContext(r)
+	if local_util.IsIncomplete(userContext) && !userContext.IsErp {
+		span.RecordError(errors.New("incomplete user context"))
+		log.Warnf("[EcomMerchH][Create] incomplete user info: %+v", userContext)
+		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
+		return
+	}
+
+	_, err := h.srv.Create(ctx, &reqDTO)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[EcomMerchH][Create] svc err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if userContext.IsErp {
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreated, md.Id)
+		return
+	} else if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, userContext.IsErp || md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreated, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreatedSuccessfully, nil)
 }
 
-// Update Mini App Merchant
+// Update  Ecommerce Merchant
 //
-//	@Summary		Update Mini App Merchant
-//	@Description	Updates an existing mini app merchant
-//	@Tags			MiniAppMerchant
+//	@Summary		Update  Ecommerce Merchant
+//	@Description	Updates an existing  Ecommerce Merchant
+//	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
 //	@Param			id					path		string								true	"Merchant ID"
-//	@Param			body				body		miniappmerchant.MiniAppMerchantDTO	true	"Mini App Merchant DTO"
+//	@Param			body				body		ecommercemerchant.EcommerceMerchantRequest	true	"Mini App Merchant (see miniappmerchant.EcommerceMerchant)"
 //	@Success		200					{object}	localization.StandardResponse
 //	@Failure		400,401,404,422,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/mini-app-merchants/{id} [patch]
-func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateMiniAppMerchant", "handler", "miniAppMerchant")
+//	@Router			/ecommerce-merchant/{id} [patch]
+func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "Update", "handler", "Update")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return
 	}
 
-	var req miniappmerchant.MiniAppMerchantDTO
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	var reqDTO ecomerceDto.UpdateEcommerceMerchant
+	if err := json.NewDecoder(r.Body).Decode(&reqDTO); err != nil {
 		span.RecordError(err)
 		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantMarshalFailed, nil, nil)
 		return
 	}
 
-	if req.IsEmpty() {
-		span.RecordError(errors.New("no data provided for update"))
-		localization.SendErrorResponse(w, localization.ErrorNoDataProvidedForUpdate, nil, nil)
-		return
-	}
-
-	if err := req.Validate(false); err != nil {
+	if err := reqDTO.ValidateUpdate(); err != nil {
 		span.RecordError(err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
-	span.SetAttributes(attribute.String("mini_app_merchant.id", id))
-	_, _, err := h.miniappMerchantService.Update(ctx, id, &req)
+	userContext := local_util.ExtractUserContext(r)
+	if local_util.IsIncomplete(userContext) {
+		span.RecordError(errors.New("incomplete user context"))
+		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
+		return
+	}
+
+	span.SetAttributes(attribute.String("ecommerce_merchant_dto.id", id))
+	_, _, err := h.srv.Update(ctx, id, &reqDTO)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantUpdateRequestCreated, nil)
+	if userContext.IsErp || md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[Update] request sent successfully for user_code: %s is_maker_only: %v", userCode, userContext.IsErp || md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantUpdated, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantUpdatedSuccessfully, nil)
 }
 
-// Delete Mini App Merchant
+// Delete  Ecommerce Merchant
 //
-//	@Summary		Delete Mini App Merchant
+//	@Summary		Delete  Ecommerce Merchant
 //	@Description	Deletes a mini app merchant by ID
-//	@Tags			MiniAppMerchant
+//	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			id				path		string	true	"Merchant ID"
 //	@Success		200				{object}	localization.StandardResponse
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/mini-app-merchants/{id} [delete]
-func (h *miniAppMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteMiniAppMerchant", "handler", "miniAppMerchant")
+//	@Router			/ecommerce-merchant/{id} [delete]
+func (h *ecommerceMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("missing or invalid parameter 'id'"))
-		h.logger.Errorf("missing or invalid parameter 'id'")
+		log.Errorf("[EcomMerchH][Delete] missing id param")
 		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameters, nil, nil)
 		return
 	}
@@ -153,32 +203,43 @@ func (h *miniAppMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	span.SetAttributes(attribute.String("mini_app_merchant.id", id))
-	err := h.miniappMerchantService.Delete(ctx, id)
+	span.SetAttributes(attribute.String("ecommerce_merchant_dto.id", id))
+	err := h.srv.Delete(ctx, id)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("failed to delete merchant %s: %v", id, err)
+		log.Errorf("[EcomMerchH][Delete] svc err id: %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	if userContext.IsErp || md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[Delete] request sent successfully for user_code: %s is_maker_only: %v", userCode, userContext.IsErp || md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDeleted, nil)
+		return
+	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantDeleteRequestCreated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDeletedSuccessfully, nil)
 }
 
-// Enable Mini App Merchant
+// Enable  Ecommerce Merchant
 //
-//	@Summary		Enable Mini App Merchant
+//	@Summary		Enable  Ecommerce Merchant
 //	@Description	Enables a mini app merchant by ID
-//	@Tags			MiniAppMerchant
+//	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			id				path		string	true	"Merchant ID"
 //	@Success		200				{object}	localization.StandardResponse
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/mini-app-merchants/enable/{id} [patch]
-func (h *miniAppMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableMiniAppMerchant", "handler", "miniAppMerchant")
+//	@Router			/ecommerce-merchant/enable/{id} [patch]
+func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "enableMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("missing or invalid parameter 'id'"))
@@ -192,30 +253,41 @@ func (h *miniAppMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) 
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
 	}
-	span.SetAttributes(attribute.String("mini_app_merchant.id", id))
-	if err := h.miniappMerchantService.EnableOrDisable(ctx, id, true); err != nil {
+	span.SetAttributes(attribute.String("ecommerce_merchant_dto.id", id))
+	if err := h.srv.EnableOrDisable(ctx, id, true); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	if userContext.IsErp || md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, userContext.IsErp || md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantEnable, nil)
+		return
+	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantEnableRequestCreated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantEnableSuccessfully, nil)
 }
 
-// Disable Mini App Merchant
+// Disable  Ecommerce Merchant
 //
-//	@Summary		Disable Mini App Merchant
+//	@Summary		Disable  Ecommerce Merchant
 //	@Description	Disables a mini app merchant by ID
-//	@Tags			MiniAppMerchant
+//	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			id				path		string	true	"Merchant ID"
 //	@Success		200				{object}	localization.StandardResponse
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/mini-app-merchants/disable/{id} [patch]
-func (h *miniAppMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableMiniAppMerchant", "handler", "miniAppMerchant")
+//	@Router			/ecommerce-merchant/disable/{id} [patch]
+func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "disableMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("missing or invalid parameter 'id'"))
@@ -230,14 +302,20 @@ func (h *miniAppMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	span.SetAttributes(attribute.String("mini_app_merchant.id", id))
-	if err := h.miniappMerchantService.EnableOrDisable(ctx, id, false); err != nil {
+	span.SetAttributes(attribute.String("ecommerce_merchant_dto.id", id))
+	if err := h.srv.EnableOrDisable(ctx, id, false); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	if userContext.IsErp || md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, userContext.IsErp || md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDisable, nil)
+		return
+	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantDisableRequestCreated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDisableSuccessfully, nil)
 }
 
 // {
@@ -247,111 +325,120 @@ func (h *miniAppMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request)
 //   "message": "User is not authorized"
 // }
 
-// Get Mini App Merchant by ID
+// Get  Ecommerce Merchant by ID
 //
-//	@Summary		Get Mini App Merchant by ID
+//	@Summary		Get  Ecommerce Merchant by ID
 //	@Description	Retrieves a mini app merchant by ID
-//	@Tags			MiniAppMerchant
+//	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			id				path		string	true	"Merchant ID"
-//	@Success		200				{object}	localization.StandardResponse{data=model.MiniAppMerchant}
+//	@Success		200				{object}	localization.StandardResponse{data=object}
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/mini-app-merchants/{id} [get]
-func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "findMiniAppMerchantById", "handler", "miniAppMerchant")
+//	@Router			/ecommerce-merchant/{id} [get]
+func (h *ecommerceMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "findMiniAppMerchantById", "handler", "miniAppMerchant")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	_ = log
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return
 	}
 
-	span.SetAttributes(attribute.String("mini_app_merchant.id", id))
-	result, err := h.miniappMerchantService.FindByID(ctx, id)
+	span.SetAttributes(attribute.String("ecommerce_merchant_dto.id", id))
+	result, err := h.srv.FindByID(ctx, id)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppDetailsFetched, result)
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantFetchedSuccessfully, result)
 }
 
-// List Mini App Merchants with Pagination
+// List  Ecommerce Merchants with Pagination
 //
-//	@Summary		List Mini App Merchants
-//	@Description	Retrieves a paginated list of mini app merchants. Searchable fields: merchant_id, bank_account_number, merchant_name, merchant_code, phone_number, email.
-//	@Tags			MiniAppMerchant
+//	@Summary		List  Ecommerce Merchants
+//	@Description	Retrieves a paginated list of  Ecommerce Merchants
+//	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Param			page				query	int		false	"Page number"
-//	@Param			per_page			query	int		false	"Items per page"
-//	@Param			merchant_type		query	string	false	"Filter by merchant type"
-//	@Param			merchant_code		query	string	false	"Filter by merchant code"
-//	@Param			merchant_name		query	string	false	"Filter by merchant name"
-//	@Param			email				query	string	false	"Filter by email"
-//	@Param			phone_number		query	string	false	"Filter by phone number"
-//	@Param			enabled				query	bool	false	"Filter by enabled status"
-//	@Param			bank_account_number	query	string	false	"Filter by bank account number"
-//	@Param			search				query	string	false	"Search term (searches merchant_id, bank_account_number, merchant_name, merchant_code, phone_number, email)"
-//	@Success		200	{object}	localization.StandardResponse{data=[]model.MiniAppMerchant}
+//	@Param			page		query		int	false	"Page number"
+//	@Param			per_page	query		int	false	"Items per page"
+//	@Success		200			{object}	localization.StandardResponse{data=object}
 //	@Failure		400,401,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/mini-app-merchants [get]
-func (h *miniAppMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "findAllMiniAppMerchants", "handler", "miniAppMerchant")
+//	@Router			/ecommerce-merchant [get]
+func (h *ecommerceMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "findAllMiniAppMerchants", "handler", "miniAppMerchant")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	_ = log
 	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
 	}
 
 	phoneNumber, ok := filterParams.Filters["phone_number"].(string)
-	if !ok {
-		h.logger.Errorf("Phone number is not present")
+	if ok {
+		formattedPhone := local_util.FormatPhoneNumber(phoneNumber)
+		filterParams.Filters["phone_number"] = formattedPhone
 	}
-	formattedPhone := local_util.FormatPhoneNumber(phoneNumber)
 
-	filterParams.Filters["phone_number"] = formattedPhone
-
-	miniAppMerchant, err := h.miniappMerchantService.FindAllWithPagination(ctx, filterParams)
+	miniAppMerchant, err := h.srv.FindAllWithPagination(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppDetailsFetched, miniAppMerchant)
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantsFetchedSuccessfully, miniAppMerchant)
 }
 
-// // Merchant Lookup
-// //@Summary Merchant Lookup
-// //@Description Retrieves a merchant by ID
-// //@Tags MiniAppMerchant
-// //@Security BearerAuth
-// // @Produce json
-// // @Param merchant_id path string true "Merchant ID"
-// // @Success 200 {object} localization.StandardResponse{data=merchant_lookup.MerchantLookUpResponse}
-// // @Failure 400,401,404,500 {object} localization.StandardResponse{data=nil}
-// // @Router /mini-app-merchants/merchant-lookup/{merchant_id} [get]
-func (h *miniAppMerchantAdapter) MerchantLookup(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "miniAppMerchantLookup", "handler", "miniAppMerchant")
+// Merchant Lookup
+// @Summary Merchant Lookup
+// @Description Retrieves a merchant by ID
+// @Tags ecommerce-merchant
+// @Security BearerAuth
+// @Produce json
+// @Param merchant_id path string true "Merchant ID"
+// @Success 200 {object} localization.StandardResponse{data=object}
+// @Failure 400,401,404,500 {object} localization.StandardResponse{data=nil}
+// @Router /ecommerce-merchant/merchant-lookup/{merchant_id} [get]
+func (h *ecommerceMerchantAdapter) MerchantLookup(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "miniAppMerchantLookup", "handler", "miniAppMerchant")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	_ = log
 	merchantID := chi.URLParam(r, "merchant_id")
 	if merchantID == "" {
 		span.RecordError(errors.New("missing or invalid parameter 'merchant_id'"))
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return
 	}
-
-	span.SetAttributes(attribute.String("mini_app_merchant.id", merchantID))
-	result, err := h.miniappMerchantService.MerchantLookup(ctx, merchantID)
+	span.SetAttributes(attribute.String("ecommerce_merchant_dto.id", merchantID))
+	result, err := h.srv.MerchantLookup(ctx, merchantID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppDetailsFetched, result)
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantLookup, result)
 }

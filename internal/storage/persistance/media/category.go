@@ -2,13 +2,15 @@ package media
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -25,10 +27,10 @@ type articleCategory struct {
 	client             *mongo.Client
 }
 
-func NewArticleCategoryRepository(logger shared_utils.Logger, client *mongo.Client, dbName, collectionName string) storage.ArticleCategoryRepository {
+func NewArticleCategoryRepository(logger shared_utils.Logger, client *mongo.Client, cfg *config.VaultConfig, dbName, collectionName string) storage.ArticleCategoryRepository {
 	return &articleCategory{
 		logger:             logger,
-		articleCategoryDal: dal.NewMongoDal[model.NewsCategoryModel, model.NewsCategoryModel](client, dbName, collectionName),
+		articleCategoryDal: dal.NewMongoDal[model.NewsCategoryModel, model.NewsCategoryModel](client, cfg, dbName, collectionName),
 		client:             client,
 	}
 }
@@ -52,11 +54,7 @@ func (a *articleCategory) UpdateArticleCategory(ctx context.Context, category *m
 	update := buildCategoryUpdate(*category)
 	_, err = a.articleCategoryDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("Error updating article category in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 	return nil
 }
@@ -70,11 +68,7 @@ func (a *articleCategory) DeleteArticleCategory(ctx context.Context, id string) 
 	}
 	err = a.articleCategoryDal.DeleteOne(ctx, bson.M{"_id": objId, "is_deleted": false})
 	if err != nil {
-		a.logger.Errorf("Error deleting article category in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 	return nil
 }
@@ -90,11 +84,7 @@ func (a *articleCategory) EnableOrDisableArticleCategory(ctx context.Context, id
 	update := bson.M{"is_active": enable, "updated_at": time.Now()}
 	_, err = a.articleCategoryDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("Error enabling or disabling article category in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 	return nil
 }

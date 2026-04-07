@@ -11,125 +11,86 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
+const specialChars = "`~!@#$%^&*()-_=+[]{}\\|;:'\",<.>/?"
+
 func (w WalletRequest) IsEmpty() bool {
 	return strings.TrimSpace(w.Name) == "" &&
-		strings.TrimSpace(w.Code) == "" &&
-		w.Avatar == nil &&
-		strings.TrimSpace(w.Type) == ""
+		strings.TrimSpace(w.UniqueCode) == "" &&
+		w.Self == nil &&
+		w.Other == nil &&
+		w.Agent == nil &&
+		w.Avatar == nil
 }
 
 func (w WalletRequest) Validate(isCreate bool) error {
-	if !isCreate && w.IsEmpty() {
-		return nil
-	}
-
-	var rules []*validation.FieldRules
-
-	validateString := func(fieldName, value string, required bool, errCode string) validation.RuleFunc {
-		return func(_ interface{}) error {
-			if required && strings.TrimSpace(value) == "" {
-				return errors.New(errCode)
-			}
-			return nil
-		}
-	}
-
-	if isCreate {
-		rules = append(rules, validation.Field(&w.Name, validation.By(validateString("name", w.Name, true, localization.ErrorWalletNameRequired.Code)), validation.By(utils.TrimWhiteSpace)))
-	} else if w.Name != "" {
-		rules = append(rules, validation.Field(&w.Name, validation.By(validateString("name", w.Name, false, localization.ErrorWalletNameRequired.Code))))
-	}
-
-	if isCreate {
-		rules = append(rules, validation.Field(&w.Code, validation.By(validateString("code", w.Code, true, localization.ErrorWalletCodeRequired.Code)), validation.By(utils.TrimWhiteSpace)))
-	} else if w.Code != "" {
-		rules = append(rules, validation.Field(&w.Code, validation.By(validateString("code", w.Code, false, localization.ErrorWalletCodeRequired.Code))))
-	}
-
-	if isCreate {
-		rules = append(rules, validation.Field(&w.Avatar,
-			validation.Required.Error(localization.ErrorWalletAvatarRequired.Code),
-			validation.By(func(value interface{}) error { return validateAvatar(value) }),
-		))
-	} else if w.Avatar != nil {
-		rules = append(rules, validation.Field(&w.Avatar,
-			validation.By(func(value interface{}) error { return validateAvatar(value) }),
-		))
-	}
-
-	if isCreate {
-		rules = append(rules, validation.Field(&w.Type, validation.By(validateString("type", w.Type, true, localization.ErrorWalletTypeRequired.Code))))
-	} else if w.Type != "" {
-		rules = append(rules, validation.Field(&w.Type, validation.By(validateString("type", w.Type, false, localization.ErrorWalletTypeRequired.Code))))
-	}
-
-	if len(rules) > 0 {
-		if err := validation.ValidateStruct(&w, rules...); err != nil {
-			return err
-		}
-	}
-	if !(w.Self || w.Other || w.Agent) {
-		return validation.NewError(localization.ErrorWalletRechangeOption.Code, localization.ErrorWalletRechangeOption.Message)
-	}
-
-	return nil
-}
-
-func (w WalletRequest) AggregatedValidate(isCreate bool) error {
 	errs := validation.Errors{}
 
-	if isCreate {
-		if strings.TrimSpace(w.Name) == "" {
+	if isCreate || w.Name != "" {
+		if strings.TrimSpace(w.Name) == "" && isCreate {
 			errs["name"] = localization.ErrorWalletNameRequired
 		}
-		if strings.TrimSpace(w.Code) == "" {
-			errs["code"] = localization.ErrorWalletCodeRequired
+	}
+	if isCreate || w.ServiceID != "" {
+		if strings.TrimSpace(w.ServiceID) == "" && isCreate {
+			errs["service_id"] = localization.ErrorWalletServiceIDRequired
 		}
-		if !(w.Self || w.Other || w.Agent) {
-			errs["recharge_option"] = localization.ErrorWalletRechangeOption
+	}
+	// --- Code ---
+	if isCreate || w.UniqueCode != "" {
+		trimmed := strings.TrimSpace(w.UniqueCode)
+		if trimmed == "" && isCreate {
+			errs["unique_code"] = localization.ErrorWalletCodeRequired
+		} else if len(trimmed) > 10|| !isAlpha(trimmed) {
+			errs["unique_code"] = localization.ErrorInvalidWalletCode
 		}
+		w.UniqueCode = strings.ToUpper(trimmed)
+	}
+
+	if isCreate {
 		if w.Avatar == nil {
 			errs["avatar"] = localization.ErrorWalletAvatarRequired
 		} else if err := validateAvatar(w.Avatar); err != nil {
 			errs["avatar"] = err
 		}
-		if strings.TrimSpace(w.Type) == "" {
-			errs["type"] = localization.ErrorWalletTypeRequired
-		}
-	} else {
-		if w.Name != "" && strings.TrimSpace(w.Name) == "" {
-			errs["name"] = localization.ErrorWalletNameRequired
-		}
-		if w.Code != "" && strings.TrimSpace(w.Code) == "" {
-			errs["code"] = localization.ErrorWalletCodeRequired
-		}
-		if w.Avatar != nil {
-			if err := validateAvatar(w.Avatar); err != nil {
-				errs["avatar"] = err
-			}
-		}
-		if w.Type != "" && strings.TrimSpace(w.Type) == "" {
-			errs["type"] = localization.ErrorWalletTypeRequired
+	} else if w.Avatar != nil {
+		if err := validateAvatar(w.Avatar); err != nil {
+			errs["avatar"] = err
 		}
 	}
+
+	// --- Services check (cannot be set) ---
+	// if w.Self != nil || w.Other != nil || w.Agent != nil {
+	// 	errs["recharge_option"] = localization.ErrorWalletRechangeOption
+	// }
 
 	if len(errs) > 0 {
 		return errs
 	}
+	w.Name = strings.TrimSpace(w.Name)
+	w.UniqueCode = strings.TrimSpace(w.UniqueCode)
+
 	return nil
 }
 
-func validateAvatar(value interface{}) error {
-	file, ok := value.(*multipart.FileHeader)
-	if !ok || file == nil {
+func validateAvatar(file *multipart.FileHeader) error {
+	if file == nil {
 		return localization.ErrorWalletAvatarInvalid
 	}
 	if !utils.IsValidImage(file) {
 		return errors.New(localization.ErrorWalletAvatarInvalidType.Code)
 	}
-	if file.Size > (15 << 20) {
-		return validation.NewError("logo", localization.MsgFileTooLarge)
+	if file.Size > (10 << 20) {
+		return validation.NewError("logo", "file size exceeds 10MB limit")
 	}
-
 	return nil
+}
+
+// Helper: check if string is all alphabetic
+func isAlpha(s string) bool {
+	for _, r := range s {
+		if (r < 'A' || r > 'Z') && (r < 'a' || r > 'z') {
+			return false
+		}
+	}
+	return true
 }

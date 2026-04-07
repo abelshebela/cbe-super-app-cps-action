@@ -3,7 +3,6 @@ package services
 import (
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/constants"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/services"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -19,7 +18,7 @@ func Init(router chi.Router, handler inbound.ServicesHandler, auth middleware.Au
 			Handler: handler.Create,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
-				auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+				// auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -28,7 +27,7 @@ func Init(router chi.Router, handler inbound.ServicesHandler, auth middleware.Au
 			Handler: handler.Update,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
-				auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+				// auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -37,7 +36,7 @@ func Init(router chi.Router, handler inbound.ServicesHandler, auth middleware.Au
 			Handler: handler.Enable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
-				auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+				// auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -46,7 +45,7 @@ func Init(router chi.Router, handler inbound.ServicesHandler, auth middleware.Au
 			Handler: handler.Disable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
-				auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+				// auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -55,7 +54,7 @@ func Init(router chi.Router, handler inbound.ServicesHandler, auth middleware.Au
 			Handler: handler.GetByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
-				auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+				// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -64,7 +63,52 @@ func Init(router chi.Router, handler inbound.ServicesHandler, auth middleware.Au
 			Handler: handler.GetAll,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
-				auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+				// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/services_list",
+			Handler: handler.GetAllServiceList,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+				// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+			},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/services_list",
+			Handler: handler.CreateServiceList,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+				// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/services_list/{id}",
+			Handler: handler.UpdateServiceList,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+				// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/services_list/{id}/enable",
+			Handler: handler.EnableServiceList,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+				// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/services_list/{id}/disable",
+			Handler: handler.DisableServiceList,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+				// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 	}

@@ -1,7 +1,7 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	ab_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
 )
@@ -13,17 +13,18 @@ func ToAccountBlockResponse(ab *model.AccountBlock) *ab_dto.AccountBlockResponse
 	}
 
 	return &ab_dto.AccountBlockResponse{
-		ID:        ab.ID.Hex(),
-		Name:      ab.Name,
-		Code:      ab.Code,
-		Address:   ab.Address,
-		Slug:      ab.Slug,
-		Type:      string(ab.Type),
-		ParentID:  parentID,
-		Parent:    ab.Parent,
-		IsEnabled: ab.IsEnabled,
-		CreatedAt: ab.CreatedAt,
-		UpdatedAt: ab.UpdatedAt,
+		ID:            ab.ID.Hex(),
+		Name:          ab.Name,
+		Code:          ab.Code,
+		Address:       ab.Address,
+		Slug:          ab.Slug,
+		Type:          string(ab.Type),
+		ParentID:      parentID,
+		Parent:        ab.Parent,
+		DisableReason: ab.DisableReason,
+		IsEnabled:     ab.IsEnabled,
+		CreatedAt:     ab.CreatedAt,
+		UpdatedAt:     ab.UpdatedAt,
 	}
 }
 

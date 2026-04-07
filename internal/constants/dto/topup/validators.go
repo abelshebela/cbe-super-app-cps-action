@@ -10,15 +10,6 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
-// const maxFileSize = 2 * 1024 * 1024
-
-// var allowedMIMETypes = map[string]bool{
-// 	"image/jpeg": true,
-// 	"image/png":  true,
-// 	"image/gif":  true,
-// 	"image/webp": true,
-// }
-
 func (w TopupRequest) IsEmpty() bool {
 	return strings.TrimSpace(w.Name) == "" &&
 		strings.TrimSpace(w.Code) == "" &&
@@ -34,13 +25,15 @@ func (w TopupRequest) Validate(isCreate bool) error {
 				&w.Name,
 				validation.Required.Error(localization.ErrorTopupNameRequired.Code),
 				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
 			),
 		)
 	} else {
 		rules = append(rules,
 			validation.Field(
 				&w.Name,
-				validation.By(utils.TrimWhiteSpace),
+				validation.When(w.Name != "", validation.By(utils.TrimWhiteSpace)),
+				validation.By(utils.NoSpecialChars),
 			),
 		)
 	}
@@ -51,13 +44,15 @@ func (w TopupRequest) Validate(isCreate bool) error {
 				&w.Code,
 				validation.Required.Error(localization.ErrorTopupCodeRequired.Code),
 				validation.By(utils.TrimWhiteSpace),
+				// validation.By(utils.NoSpecialChars),
 			),
 		)
 	} else {
 		rules = append(rules,
 			validation.Field(
 				&w.Code,
-				validation.By(utils.TrimWhiteSpace),
+				validation.When(w.Code != "", validation.By(utils.TrimWhiteSpace)),
+				// validation.By(utils.NoSpecialChars),
 			),
 		)
 	}
@@ -83,29 +78,36 @@ func (w TopupRequest) Validate(isCreate bool) error {
 		return err
 	}
 
-	if isCreate {
-		if !(w.Self || w.Other || w.Agent) {
-			return validation.NewError(
-				localization.ErrorTopupServiceOption.Code,
-				localization.ErrorTopupServiceOption.Message,
-			)
-		}
-	}
+	// if isCreate {
+	// 	if !(w.Self || w.Other || w.Agent) {
+	// 		return validation.NewError(
+	// 			localization.ErrorTopupServiceOption.Code,
+	// 			localization.ErrorTopupServiceOption.Message,
+	// 		)
+	// 	}
+	// }
 
 	return nil
 }
 
 func (w TopupRequest) AggregatedValidate(isCreate bool) error {
 	errs := validation.Errors{}
-	if strings.TrimSpace(w.Name) == "" {
-		errs["name"] = localization.ErrorWalletNameRequired
+	if isCreate {
+		if strings.TrimSpace(w.Name) == "" {
+			errs["name"] = localization.ErrorTopupNameRequired
+		}
+		if strings.TrimSpace(w.Code) == "" {
+			errs["code"] = localization.ErrorTopupCodeRequired
+		}
+		// if !(w.Self || w.Other || w.Agent) {
+		// 	errs["recharge_option"] = localization.ErrorWalletRechangeOption
+		// }
 	}
-	if strings.TrimSpace(w.Code) == "" {
-		errs["code"] = localization.ErrorWalletCodeRequired
+
+	if err := w.Validate(isCreate); err != nil {
+		return err
 	}
-	if !(w.Self || w.Other || w.Agent) {
-		errs["recharge_option"] = localization.ErrorWalletRechangeOption
-	}
+
 	if isCreate {
 		if w.Avatar == nil {
 			errs["avatar"] = localization.ErrorWalletAvatarRequired
@@ -132,8 +134,8 @@ func validateImage(value interface{}) error {
 		return localization.ErrorMissingOrInvalidImage
 	}
 
-	if file.Size > (15 << 20) {
-		return validation.NewError("logo", localization.MsgFileTooLarge)
+	if file.Size > (10 << 20) {
+		return validation.NewError("logo", "file size exceeds 10MB limit")
 	}
 
 	return nil

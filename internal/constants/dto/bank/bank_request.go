@@ -5,25 +5,23 @@ import (
 )
 
 type CreateBankRequest struct {
-	Name          string                `form:"name" json:"name"`
-	Logo          *multipart.FileHeader `form:"logo" json:"logo"`
-	Code          string                `form:"code" json:"code"`
-	BIC           string                `form:"bic" json:"bic"`
-	Type          string                `form:"type" json:"type"`
-	AccountLength *int                  `form:"account_length" json:"account_length"`
+	Name            string                `form:"name" json:"name" binding:"required"`
+	Logo            *multipart.FileHeader `form:"logo" json:"logo" binding:"required" swaggertype:"string" format:"binary"`
+	BICCode         string                `form:"bic_code" json:"bic_code" binding:"required"`
+	HasAlphaNumeric *bool                 `form:"has_alpha_numeric" json:"has_alpha_numeric"`
+	AccountLength   int                   `form:"account_length" json:"account_length"`
 }
 
 type UpdateBankRequest struct {
-	ID            string                `json:"_id" bson:"_id"`
-	Logo          *multipart.FileHeader `form:"logo" json:"logo"`
-	Name          string                `json:"name" bson:"name"`
-	Code          string                `json:"code" bson:"code"`
-	BIC           string                `json:"bic" bson:"bic"`
-	Type          string                `form:"type" json:"type"`
-	AccountLength *int                  `form:"account_length" json:"account_length"`
+	ID              string                `json:"_id" bson:"_id"`
+	Logo            *multipart.FileHeader `form:"logo" json:"logo" swaggertype:"string" format:"binary"`
+	Name            string                `json:"name" bson:"name"`
+	BICCode         string                `json:"bic_code" bson:"bic_code"`
+	HasAlphaNumeric *bool                 `form:"has_alpha_numeric" json:"has_alpha_numeric"`
+	AccountLength   int                   `form:"account_length" json:"account_length"`
 }
 
 type UpdateLogo struct {
 	ID   string                `json:"_id" bson:"_id"`
-	Logo *multipart.FileHeader `form:"logo" json:"logo"`
+	Logo *multipart.FileHeader `form:"logo" json:"logo" swaggertype:"string" format:"binary"`
 }

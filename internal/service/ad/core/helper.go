@@ -1,8 +1,7 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
-
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 // generateAdvert creates a copy of an advert

@@ -3,11 +3,12 @@ package portalcard
 import (
 	"cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -42,7 +43,22 @@ func InitPortalCardAdapter(appService service.PortalCardService, logger utils.Lo
 func (s *portalCardAdapter) GetAllPortalCard(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "portalCard", "portalCardAdapter", "GetAllPortalCard")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
 		span.AddEvent("Invalid pagination params", trace.WithAttributes(attribute.Int("page", filterParams.Page), attribute.Int("per_page", filterParams.PerPage)))
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
@@ -52,12 +68,12 @@ func (s *portalCardAdapter) GetAllPortalCard(w http.ResponseWriter, r *http.Requ
 	cards, err := s.appService.GetAll(ctx, filterParams)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[GetAllPortalCard] service error: %v", err)
+		log.Errorf("[GetAllPortalCard] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	span.AddEvent("Portal cards retrieved", trace.WithAttributes(attribute.Int("count", len(cards.Data))))
-	s.logger.Infof("[GetAllPortalCard] retrieved %d portal cards", len(cards.Data))
+	log.Infof("[GetAllPortalCard] retrieved %d portal cards", len(cards.Data))
 	localization.SendSuccessResponse(w, localization.SuccessPortalCardsFetched, cards)
 }

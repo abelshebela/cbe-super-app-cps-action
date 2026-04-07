@@ -3,8 +3,9 @@ package core
 import (
 	helper "cbe-super-app-cps-action/internal/constants/dto/bankvault"
 
-	"cbe-super-app-cps-action/internal/constants/model"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func ToDomainCreateBankVaultRequest(req helper.CreateBankVaultProductRequest, lockPeriodDays float64) *model.BankVaultProduct {
@@ -12,7 +13,7 @@ func ToDomainCreateBankVaultRequest(req helper.CreateBankVaultProductRequest, lo
 		Name:                       req.Name,
 		Currency:                   "ETB",
 		Interest:                   req.Interest,
-		Method:                     helper.ToDomainMethod("COMPOUND"),
+		Method:                     "SIMPLE",
 		Frequency:                  req.Frequency,
 		LockPeriod:                 lockPeriodDays,
 		MinAmount:                  req.MinAmount,

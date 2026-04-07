@@ -5,11 +5,11 @@ import (
 )
 
 type WalletRequest struct {
-	Name   string                `form:"name" json:"name"`
-	Avatar *multipart.FileHeader `form:"avatar" json:"avatar"`
-	Code   string                `form:"code" json:"code"`
-	Self   bool                  `form:"self" json:"self"`
-	Other  bool                  `form:"other" json:"other"`
-	Agent  bool                  `form:"agent" json:"agent"`
-	Type   string                `form:"type" json:"type"`
+	Name       string                `form:"name" json:"name"`
+	Avatar     *multipart.FileHeader `form:"avatar" json:"avatar"`
+	ServiceID  string                `form:"service_id" json:"service_id"`
+	UniqueCode string                `form:"unique_code" json:"unique_code"`
+	Self       *bool                 `form:"self" json:"self"`
+	Other      *bool                 `form:"other" json:"other"`
+	Agent      *bool                 `form:"agent" json:"agent"`
 }

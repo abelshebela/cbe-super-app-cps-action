@@ -17,7 +17,7 @@ func ParseAndValidateNotificationRequest(w http.ResponseWriter, r *http.Request,
 	}
 
 	if err := req.Validate(isCreate); err != nil {
-		localization.SendErrorResponse(w, localization.ErrorValidationFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return notify.NotificationRequest{}, false
 	}
 	return req, true

@@ -2,89 +2,146 @@ package core
 
 import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
-	"cbe-super-app-cps-action/internal/constants/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
+	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-// UsernameExists checks if a username already exists in the database
-func UsernameExists(ctx context.Context, repo storage.CpsUserRepository, username string) (bool, error) {
+func UsernameExists(ctx context.Context, userCode string, repo storage.CpsUserRepository, username string) (bool, error) {
 	user, err := repo.FindByUsername(ctx, username)
 	if err != nil {
 		return false, err
 	}
+	if user == nil {
+		return false, nil
+	}
+	if userCode != "" && userCode == user.UserCode {
+		return false, nil
+	}
 	return user != nil, nil
 }
 
-func EmailExists(ctx context.Context, repo storage.CpsUserRepository, email string) (bool, error) {
+func EmailExists(ctx context.Context, user_code string, repo storage.CpsUserRepository, email string) (bool, error) {
 	user, err := repo.FindByEmail(ctx, email)
 	if err != nil {
 		return false, err
 	}
+
+	if user == nil {
+		return false, nil
+	}
+
+	if user_code != "" && user_code == user.UserCode {
+		return false, nil
+	}
+
 	return user != nil, nil
 }
-func PhoneNumberExists(ctx context.Context, repo storage.CpsUserRepository, phoneNumber string) (bool, error) {
+
+func PhoneNumberExists(ctx context.Context, user_code string, repo storage.CpsUserRepository, phoneNumber string) (bool, error) {
 	user, err := repo.FindByPhoneNumber(ctx, phoneNumber)
 	if err != nil {
 		return false, err
+	}
+	if user == nil {
+		return false, nil
+	}
+	if user_code != "" && user_code == user.UserCode {
+		return false, nil
 	}
 	return user != nil, nil
 }
 
 // ConvertToDTO converts a CPSUser model to CPSUserDTO
-func ConvertToDTO(user *model.CPSUser) *cpsuser.CPSUserDTO {
-	return &cpsuser.CPSUserDTO{
-		ID:                 user.ID,
+func ConvertToDTO(portalCard []string, user *cpsuser.CpsUserResponse, makerAlloc, checkerAlloc, auditorAlloc []string) *cpsuser.CPSUserResponse {
+	return &cpsuser.CPSUserResponse{
+		ID:                 user.ID.Hex(),
 		UserCode:           user.UserCode,
 		FullName:           user.FullName,
 		Role:               user.Role,
-		Department:         user.Department,
 		Gender:             user.Gender,
 		PhoneNumber:        user.PhoneNumber,
 		Email:              user.Email,
 		UserName:           user.UserName,
 		Realm:              user.Realm,
-		PermissionCategory: user.PermissionCategory,
-		PermissionGroup:    user.PermissionGroup,
+		JobTitle:           user.JobTitle,
+		MakerAllocations:   makerAlloc,
+		CheckerAllocations: checkerAlloc,
+		AuditorAllocations: auditorAlloc,
+		PortalCards:        portalCard,
 		Enabled:            user.Enabled,
-		DateJoined:         user.DateJoined,
-		LastModified:       user.LastModified,
+		DateJoined:         &user.DateJoined,
+		LastModified:       &user.LastModified,
 		Country:            user.Country,
 		Region:             user.Region,
 	}
 }
 
-func CPSUModel(req cpsuser.CreateUserRequest) model.CPSUser {
-	return model.CPSUser{
-		UserCode:           local_util.GenerateCPSUserCode(),
-		UserName:           req.UserName,
-		FullName:           req.FullName,
-		Department:         req.Department,
-		PhoneNumber:        req.PhoneNumber,
-		Role:               req.Role,
-		Gender:             req.Gender,
-		Email:              req.Email,
-		PermissionCategory: req.PermissionCategory,
-		PermissionGroup:    req.PermissionGroups,
-		PasswordDisable:    false,
-		IsFirstTimeLogin:   true,
-		Enabled:            true,
+func ConvertToResponseDTO(portalCard []string, user *cpsuser.CpsUserPopulatedResponse, makerAlloc, checkerAlloc, auditorAlloc []string) *cpsuser.CpsUserPopulatedResponse {
+	return &cpsuser.CpsUserPopulatedResponse{
+		ID:       user.ID,
+		UserCode: user.UserCode,
+		FullName: user.FullName,
+		Role: cpsuser.RoleResponse{
+			Code: user.Role.Code,
+			Name: user.Role.Name,
+		},
+		Department:         user.Department,
+		RoleCode:           user.RoleCode,
+		Gender:             user.Gender,
+		PhoneNumber:        user.PhoneNumber,
+		Email:              user.Email,
+		UserName:           user.UserName,
+		Realm:              user.Realm,
+		JobTitle:           user.JobTitle,
+		MakerAllocations:   makerAlloc,
+		CheckerAllocations: checkerAlloc,
+		AuditorAllocations: auditorAlloc,
+		PortalCards:        portalCard,
+		Enabled:            user.Enabled,
+		DateJoined:         user.DateJoined,
+		LastModified:       user.LastModified,
+		LastLogin:          user.LastLogin,
+		Country:            user.Country,
+		Region:             user.Region,
+	}
+}
+
+func CPSUModel(req cpsuser.CreateUserRequest) imodel.CPSUser {
+	depID, err := bson.ObjectIDFromHex(req.Department)
+	if err != nil {
+		// Handle error appropriately
+	}
+	return imodel.CPSUser{
+		UserCode:         local_util.GenerateCPSUserCode(),
+		UserName:         req.UserName,
+		FullName:         req.FullName,
+		PhoneNumber:      req.PhoneNumber,
+		Department:       depID,
+		JobTitle:         req.JobTitle,
+		Gender:           req.Gender,
+		Email:            req.Email,
+		PasswordDisable:  false,
+		IsFirstTimeLogin: true,
+		Enabled:          true,
+		CreatedAt:        time.Now(),
 	}
 }
 
 func CPSUUpdateModel(req cpsuser.UpdateUserRequest) *model.CPSUser {
 	return &model.CPSUser{
-		FullName:           req.FullName,
-		Role:               req.Role,
-		Department:         req.Department,
-		Gender:             req.Gender,
-		PhoneNumber:        req.PhoneNumber,
-		Email:              req.Email,
-		UserName:           req.UserName,
-		PermissionCategory: req.PermissionCategory,
-		PermissionGroup:    req.PermissionGroups,
+		UserName:    req.UserName,
+		FullName:    req.FullName,
+		PhoneNumber: req.PhoneNumber,
+		Gender:      req.Gender,
+		Email:       req.Email,
+		JobTitle:    req.JobTitle,
 	}
 }
 
@@ -124,30 +181,25 @@ func BindCPSUserFromAction(currentAction interface{}) (model.CPSUser, error) {
 		return user, nil
 	}
 
-	// Fallback: try to unmarshal directly as CPSUser
 	if err := json.Unmarshal(bytes, &user); err != nil {
 		return user, err
 	}
 	return user, nil
 }
 
-// BindCPSUserUpdateFromAction decodes action.CurrentAction into cpsuser.UpdateUserRequest
 func BindCPSUserUpdateFromAction(currentAction interface{}) (cpsuser.UpdateUserRequest, error) {
 	var updateReq cpsuser.UpdateUserRequest
 
-	// Fast-path if already the correct type
 	if v, ok := currentAction.(cpsuser.UpdateUserRequest); ok {
 		return v, nil
 	}
 
-	// If stored as JSON string
 	if s, ok := currentAction.(string); ok {
 		if err := json.Unmarshal([]byte(s), &updateReq); err == nil {
 			return updateReq, nil
 		}
 	}
 
-	// Generic path: marshal then unmarshal
 	bytes, err := json.Marshal(currentAction)
 	if err != nil {
 		return updateReq, err
@@ -156,4 +208,70 @@ func BindCPSUserUpdateFromAction(currentAction interface{}) (cpsuser.UpdateUserR
 		return updateReq, err
 	}
 	return updateReq, nil
+}
+
+func MapForActionWithDepartment(user imodel.CPSUser, department *model.Department) cpsuser.CpsUserPopulatedResponse {
+	var deptResp *cpsuser.DepartmentResponse
+	if department != nil {
+		deptResp = &cpsuser.DepartmentResponse{
+			ID:   department.ID,
+			Name: department.Department,
+		}
+	}
+
+	return cpsuser.CpsUserPopulatedResponse{
+		ID:           user.ID,
+		UserCode:     user.UserCode,
+		FullName:     user.FullName,
+		Role:         cpsuser.RoleResponse{Name: user.Role},
+		RoleCode:     user.Role,
+		Department:   deptResp,
+		JobTitle:     user.JobTitle,
+		Gender:       user.Gender,
+		PhoneNumber:  user.PhoneNumber,
+		Email:        user.Email,
+		UserName:     user.UserName,
+		Realm:        user.Realm,
+		Enabled:      user.Enabled,
+		DateJoined:   derefTime(user.DateJoined),
+		LastModified: derefTime(user.LastModified),
+		Country:      user.Country,
+		Region:       user.Region,
+		LastLogin:    user.LastLogin,
+	}
+}
+
+// Helper to safely dereference *time.Time to time.Time (zero if nil)
+func derefTime(t *time.Time) time.Time {
+	if t != nil {
+		return *t
+	}
+	return time.Time{}
+}
+
+// MapFromPopulatedResponse maps CpsUserPopulatedResponse and DepartmentResponse to imodel.CPSUser
+func MapFromPopulatedResponse(resp *cpsuser.CpsUserPopulatedResponse) *imodel.CPSUser {
+	var deptID bson.ObjectID
+	if resp.Department != nil {
+		deptID = resp.Department.ID
+	}
+	return &imodel.CPSUser{
+		ID:           resp.ID,
+		UserCode:     resp.UserCode,
+		FullName:     resp.FullName,
+		Role:         resp.Role.Name,
+		Department:   deptID,
+		JobTitle:     resp.JobTitle,
+		Gender:       resp.Gender,
+		PhoneNumber:  resp.PhoneNumber,
+		Email:        resp.Email,
+		UserName:     resp.UserName,
+		Realm:        resp.Realm,
+		Enabled:      resp.Enabled,
+		DateJoined:   &resp.DateJoined,
+		LastModified: &resp.LastModified,
+		Country:      resp.Country,
+		Region:       resp.Region,
+		LastLogin:    resp.LastLogin,
+	}
 }

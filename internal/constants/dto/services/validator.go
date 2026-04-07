@@ -1,149 +1,317 @@
-package servicesdto
+package services
 
 import (
+	"cbe-super-app-cps-action/pkgs/utils"
 	"fmt"
+	"regexp"
 	"strings"
 
-	local_utils "cbe-super-app-cps-action/pkgs/utils"
-
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
-func (c *CapRequest) Validate() error {
-	if c == nil {
-		return nil
+const (
+	maximunTransferCapLimit = 1000000000.0
+)
+
+func (r CreateServiceRequest) Normalize() {
+	r.ServiceName = strings.TrimSpace(r.ServiceName)
+	r.ServiceKey = strings.TrimSpace(r.ServiceKey)
+	r.ServiceCode = strings.TrimSpace(r.ServiceCode)
+	r.ProductGlAccount = strings.TrimSpace(r.ProductGlAccount)
+
+	for i := range r.Cap {
+		if r.Cap[i].Currency != nil {
+			source := strings.TrimSpace(*r.Cap[i].Source)
+			currency := strings.TrimSpace(*r.Cap[i].Currency)
+			currency = strings.ToUpper(currency)
+			r.Cap[i].Currency = &currency
+			r.Cap[i].Source = &source
+		}
 	}
-	if err := validation.ValidateStruct(
-		c,
+
+}
+
+func (r UpdateServiceRequest) Normalize() {
+	if r.ServiceName != nil {
+		*r.ServiceName = strings.TrimSpace(*r.ServiceName)
+	}
+	if r.ServiceKey != nil {
+		*r.ServiceKey = strings.TrimSpace(*r.ServiceKey)
+	}
+	if r.ServiceCode != nil {
+		*r.ServiceCode = strings.TrimSpace(*r.ServiceCode)
+	}
+	if r.ProductGlAccount != nil {
+		*r.ProductGlAccount = strings.TrimSpace(*r.ProductGlAccount)
+	}
+
+	for i := range r.Cap {
+		if r.Cap[i].Currency != nil {
+			source := strings.TrimSpace(*r.Cap[i].Source)
+			currency := strings.TrimSpace(*r.Cap[i].Currency)
+			currency = strings.ToUpper(currency)
+			r.Cap[i].Currency = &currency
+			r.Cap[i].Source = &source
+		}
+	}
+
+}
+
+func (c CapRequest) Validate() error {
+	return validation.ValidateStruct(&c,
+		validation.Field(&c.Source, validation.NotNil,
+			validation.In("APP", "USSD", "INTERNET_BANKING", "ATM", "POS", "PAPERLESS").Error("source must be one of (APP, USSD, INTERNET_BANKING, ATM, POS, PAPERLESS)"),
+		),
+		validation.Field(&c.Currency, validation.NotNil, is.CurrencyCode),
 		validation.Field(&c.SingleCap,
-			validation.Required.Error("cap.single_cap is required"),
-			validation.Min(int64(1)).Error("cap.single_cap must be greater than 0"),
+			validation.NotNil,
+			validation.Min(0.0),
+			validation.Max(maximunTransferCapLimit).Error("must be no greater than 1,000,000,000"),
 		),
 		validation.Field(&c.MinimumTransferCap,
-			validation.Required.Error("cap.minimum_transfer_cap is required"),
-			validation.Min(int64(1)).Error("cap.minimum_transfer_cap must be greater than 0"),
-		),
-	); err != nil {
+			validation.NotNil,
+			validation.Min(0.0),
+			validation.By(func(value interface{}) error {
+				if c.SingleCap == nil || c.MinimumTransferCap == nil {
+					return nil
+				}
+				if *c.MinimumTransferCap > *c.SingleCap {
+					return fmt.Errorf("minimum transfer cap must not be greater than the single maximum transfer cap")
+				}
+				return nil
+			})),
+	)
+}
+
+// func (t AdditionalFees) validate() error {
+// 	return validation.ValidateStruct(&t,
+// 		validation.Field(&t.FeeName, validation.Required, validation.By(utils.NoSpecialChars)),
+// 		validation.Field(&t.FeeType, validation.Required, validation.In("PERCENT", "FLAT").Error("fee type must be either 'PERCENT' or 'FLAT'")),
+// 		validation.Field(
+// 			&t.FeeAmount,
+// 			validation.NotNil,
+// 			validation.Min(0.0),
+// 			validation.By(func(value interface{}) error {
+// 				if *t.FeeType == "PERCENT" && t.FeeAmount != nil && *t.FeeAmount > 100 {
+// 					return fmt.Errorf("fee amount cannot be greater than 100 percent when fee type is PERCENT")
+// 				}
+// 				return nil
+// 			}),
+// 		),
+// 	)
+// }
+
+// func (t TierRequest) Validate() error {
+// 	return validation.ValidateStruct(&t,
+// 		validation.Field(&t.Min, validation.NotNil, validation.Min(0.0)),
+// 		validation.Field(&t.Max, validation.NotNil, validation.Min(0.0), validation.By(func(value interface{}) error {
+// 			if t.Min == nil || t.Max == nil {
+// 				return nil
+// 			}
+// 			if *t.Max < *t.Min {
+// 				return fmt.Errorf("maximum amount cannot be less than minimum amount")
+// 			}
+// 			return nil
+// 		})),
+// 		validation.Field(&t.FeeType, validation.Required, validation.In("PERCENT", "FLAT").Error("fee type must be either 'PERCENT' or 'FLAT'")),
+// 		validation.Field(
+// 			&t.FeeAmount,
+// 			validation.NotNil,
+// 			validation.Min(0.0),
+// 			validation.By(func(value interface{}) error {
+// 				if *t.FeeType == "PERCENT" && t.FeeAmount != nil && *t.FeeAmount > 100 {
+// 					return fmt.Errorf("fee amount cannot be greater than 100 percent when fee type is PERCENT")
+// 				}
+// 				return nil
+// 			}),
+// 		),
+// 		// validation.Field(&t.AdditionalFees, validation.When(t.AdditionalFees != nil, validation.By(func(value interface{}) error {
+// 		// 	if t.AdditionalFees == nil {
+// 		// 		return nil
+// 		// 	}
+// 		// 	return t.AdditionalFees.validate()
+// 		// }))),
+// 	)
+// }
+
+// func validateCapAndTiers(cap CapRequest, tiers []TierRequest) error {
+// 	if err := cap.Validate(); err != nil {
+// 		return err
+// 	}
+
+// 	for i, tier := range tiers {
+// 		if err := tier.Validate(); err != nil {
+// 			return fmt.Errorf("tier %d: %w", i, err)
+// 		}
+
+// 		// Tier chaining: first tier's max amount is the seconds min amount
+// 		if i > 0 {
+// 			if *tier.Min != *tiers[i-1].Max {
+// 				return fmt.Errorf("tier %d: minimum amount (%f) must be equal to previous tier's maximum amount (%f)", i, *tier.Min, *tiers[i-1].Max)
+// 			}
+// 		}
+
+// 		// Tiers max amount cannot be greater than the single maximum transfer cap
+// 		if cap.SingleCap != nil && *tier.Max > *cap.SingleCap {
+// 			return fmt.Errorf("tier %d: max amount (%f) cannot be greater than single maximum transfer cap (%f)", i, *tier.Max, *cap.SingleCap)
+// 		}
+
+// 		// Tiers min amount cannot be less than the minimum transfer cap
+// 		if i == 0 && cap.MinimumTransferCap != nil && *tier.Min < *cap.MinimumTransferCap {
+// 			return fmt.Errorf("first tier: min amount (%f) cannot be less than minimum transfer cap (%f)", *tier.Min, *cap.MinimumTransferCap)
+// 		}
+// 	}
+// 	return nil
+// }
+
+func validateCap(cap CapRequest) error {
+	if err := cap.Validate(); err != nil {
 		return err
 	}
-	if c.MinimumTransferCap > c.SingleCap {
-		return fmt.Errorf("cap.minimum_transfer_cap (%d) cannot exceed cap.single_cap (%d)", c.MinimumTransferCap, c.SingleCap)
-	}
+
 	return nil
 }
 
-func (t *TierRequest) Validate() error {
-	if t == nil {
-		return nil
-	}
-	if err := validation.ValidateStruct(
-		t,
-		validation.Field(&t.Min,
-			validation.Required.Error("tiers.min is required"),
-			validation.Min(int64(0)).Error("tiers.min must be >= 0"),
-		),
-		validation.Field(&t.Max,
-			validation.Required.Error("tiers.max is required"),
-			validation.Min(int64(0)).Error("tiers.max must be >= 0"),
-		),
-		validation.Field(&t.FeeAmount,
-			validation.Required.Error("tiers.fee_amount is required"),
-			validation.Min(uint8(0)).Error("tiers.fee_amount must be >= 0"),
-		),
-	); err != nil {
-		return err
-	}
-	if t.Min >= t.Max {
-		return fmt.Errorf("tiers.min (%d) must be less than tiers.max (%d)", t.Min, t.Max)
-	}
-	if strings.EqualFold(t.FeeType, "PERCENT") && t.FeeAmount > 100 {
-		return fmt.Errorf("tiers.fee_amount cannot exceed 100 when fee_type is PERCENT")
-	}
-	return nil
-}
+// func (s ServiceList) Validate() error {
+// 	err := validation.ValidateStruct(&s,
+// 		validation.Field(&s.ServiceName, validation.Required, validation.By(utils.NoSpecialChars)),
+// 		validation.Field(&s.ServiceKey, validation.Required, validation.By(utils.NoSpecialChars)),
+// 		validation.Field(&s.OverideProductGlAccount),
+// 	)
+// 	if err != nil {
+// 		return err
+// 	}
 
-func (r *CreateServiceRequest) Validate() error {
-	if err := validation.ValidateStruct(
-		r,
-		validation.Field(&r.ServiceCode,
-			validation.Required.Error("service_code is required"),
-			validation.By(local_utils.NoSpecialChars),
-		),
-		validation.Field(&r.ServiceName,
-			validation.Required.Error("service_name is required"),
-		),
-		validation.Field(&r.ServiceType,
-			validation.Required.Error("service_type is required"),
-			validation.By(local_utils.NoSpecialChars),
-		),
-		validation.Field(&r.Key,
-			validation.Required.Error("key is required"),
-		),
-		validation.Field(&r.ChargeCode,
-			validation.Required.Error("charge_code is required"),
-			validation.By(local_utils.NoSpecialChars),
-		),
-		// CommissionCode optional
-		validation.Field(&r.CbeGLProductAccount,
-			validation.Required.Error("cbe_gl_product_account is required"),
-			validation.By(local_utils.NoSpecialChars),
-		),
-		validation.Field(&r.PaymentType,
-			validation.Required.Error("payment_type is required"),
-		),
-		validation.Field(&r.Tiers,
-			validation.Required.Error("tiers are required"),
-			validation.Length(1, 0).Error("at least one tier is required"),
-		),
-	); err != nil {
-		return err
-	}
-	if err := r.Cap.Validate(); err != nil {
-		return err
-	}
-	for i := range r.Tiers {
-		if err := r.Tiers[i].Validate(); err != nil {
-			return fmt.Errorf("tier %d validation failed: %w", i+1, err)
-		}
-	}
-	return nil
-}
+// 	if BoolPointer(s.HaveAnOverideTiers, false) {
+// 		err := validation.ValidateStruct(&s,
+// 			validation.Field(&s.OverideCap, validation.Required),
+// 			// validation.Field(&s.OverideTiers, validation.Required, validation.Length(1, 0)),
+// 		)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		// return validateCapAndTiers(*s.OverideCap, s.OverideTiers)
+// 		return validateCap(*s.OverideCap)
+// 	}
 
-func (r *UpdateServiceRequest) Validate() error {
-	// All fields optional; validate if provided
-	// if r.ServiceCode != "" {
-	// 	if err := validation.Validate(&r.ServiceCode, validation.By(local_utils.NoSpecialChars)); err != nil {
-	// 		return err
-	// 	}
-	// }
-	// if r.ServiceType != "" {
-	// 	if err := validation.Validate(&r.ServiceType, validation.By(local_utils.NoSpecialChars)); err != nil {
-	// 		return err
-	// 	}
-	// }
-	// if r.ChargeCode != "" {
-	// 	if err := validation.Validate(&r.ChargeCode, validation.By(local_utils.NoSpecialChars)); err != nil {
-	// 		return err
-	// 	}
-	// }
-	if r.CbeGLProductAccount != "" {
-		if err := validation.Validate(&r.CbeGLProductAccount, validation.By(local_utils.NoSpecialChars)); err != nil {
+// 	return nil
+// }
+
+func (r CreateServiceRequest) Validate() error {
+	err := validation.ValidateStruct(&r,
+		validation.Field(&r.ServiceName, validation.Required, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.ServiceKey, validation.Required, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.ProductGlAccount,
+			validation.When(r.ProductGlAccount != "",
+				validation.Match(regexp.MustCompile(`^[a-zA-Z0-9]+$`)).Error("cbe_gl_product_account should be number or alphanumeric")),
+		),
+		validation.Field(&r.MinimumFraudAmount, validation.Min(0.0).Error("Minimum fraud amount must be greater or equal to zero")),
+	)
+	if err != nil {
+		return err
+	}
+
+	for _, c := range r.Cap {
+		if err := validateCap(c); err != nil {
 			return err
 		}
 	}
-	// Validate cap if provided (any field set)
-	if r.Cap.MinimumTransferCap != 0 || r.Cap.SingleCap != 0 || r.Cap.KYCLevel != "" {
-		if err := r.Cap.Validate(); err != nil {
-			return err
-		}
+
+	// if r.HaveATier {
+	// 	err := validation.ValidateStruct(&r,
+	// 		validation.Field(&r.Cap, validation.Required),
+	// 		// validation.Field(&r.Tiers, validation.Required, validation.Length(1, 0)),
+	// 	)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	// if err := validateCapAndTiers(r.Cap, r.Tiers); err != nil {
+	// 	if err := validateCap(r.Cap); err != nil {
+	// 		return err
+	// 	}
+	// }
+
+	// if r.HaveAChild {
+	// 	err := validation.ValidateStruct(&r,
+	// 		validation.Field(&r.ServiceList, validation.Required, validation.Length(1, 0), validation.Each(validation.Required)),
+	// 	)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	for i, sl := range r.ServiceList {
+	// 		if err := sl.Validate(); err != nil {
+	// 			return fmt.Errorf("service list %d: %w", i, err)
+	// 		}
+	// 	}
+	// }
+
+	return nil
+}
+
+func (r UpdateServiceRequest) Validate() error {
+	err := validation.ValidateStruct(&r,
+		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.MinimumFraudAmount, validation.Min(0.0).Error("Minimum fraud amount must be greater or equal to zero")),
+		validation.Field(&r.ProductGlAccount,
+			validation.Match(regexp.MustCompile(`^[a-zA-Z0-9]+$`)).Error("cbe_gl_product_account should be number or alphanumeric")),
+	)
+	if err != nil {
+		return err
 	}
-	// Validate tiers if provided
-	if len(r.Tiers) > 0 {
-		for i := range r.Tiers {
-			if err := r.Tiers[i].Validate(); err != nil {
-				return fmt.Errorf("tier %d validation failed: %w", i+1, err)
+
+	if r.Cap != nil {
+		for _, c := range r.Cap {
+			if c.Source != nil || c.Currency != nil || c.SingleCap != nil || c.MinimumTransferCap != nil {
+				if err := validateCap(c); err != nil {
+					return err
+				}
 			}
 		}
 	}
+
+	// if r.MinimumFraudAmount != nil {
+	// 	err := validation.Field(&r.MinimumFraudAmount, validation.Required, validation.Min(1).Error("minimum_fraud_amount must be greater thatn 0"))
+	// 	return err
+	// }
+	// if BoolPointer(r.HaveATier, false) {
+	// 	// if r.Cap != nil && (r.Cap.SingleCap != nil || r.Cap.MinimumTransferCap != nil) || len(r.Tiers) > 0 {
+	// 	if r.Cap != nil && (r.Cap.SingleCap != nil || r.Cap.MinimumTransferCap != nil) {
+	// 		// if err := validateCapAndTiers(*r.Cap, r.Tiers); err != nil {
+	// 		if err := validateCap(*r.Cap); err != nil {
+	// 			return err
+	// 		}
+	// 	}
+	// }
+
+	// if BoolPointer(r.HaveAChild, false) {
+	// 	err := validation.ValidateStruct(&r,
+	// 		validation.Field(&r.ServiceList, validation.Each(validation.Required)),
+	// 	)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	for i, sl := range r.ServiceList {
+	// 		if err := sl.Validate(); err != nil {
+	// 			return fmt.Errorf("service list %d: %w", i, err)
+	// 		}
+	// 	}
+	// }
+
 	return nil
+}
+
+func (r CreateServiceList) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.ServiceKey, validation.Required, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.ServiceName, validation.Required, validation.By(utils.NoSpecialChars)),
+	)
+}
+
+func (r UpdateServiceList) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.ServiceKey, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.ServiceName, validation.By(utils.NoSpecialChars)),
+	)
 }

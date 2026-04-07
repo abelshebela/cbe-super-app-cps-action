@@ -5,10 +5,12 @@ import (
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/types"
+
+	// "cbe-super-app-cps-action/internal/constants/types"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"errors"
@@ -27,53 +29,53 @@ func NonEmptyString(s, fallback string) string {
 }
 
 func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (string, error) {
-	logger.Infof("Generating prefixed name", "prefix", prefix, "value", value)
+	logger.Infof("[WalletCore][GenPrefix] prefix: %s value: %s", prefix, value)
 
 	if prefix == "" || value == "" {
-		logger.Errorf("Invalid input for GeneratePrefixedName", "prefix", prefix, "value", value)
+		logger.Errorf("[WalletCore][GenPrefix] invalid input prefix: %s value: %s", prefix, value)
 		return "", fmt.Errorf("prefix and value must not be empty")
 	}
 
 	value = strings.ToUpper(strings.ReplaceAll(value, " ", "_"))
 	prefix = strings.ToUpper(strings.ReplaceAll(prefix, " ", "_"))
 	result := strings.Join([]string{prefix, value}, "-")
-	logger.Infof("Successfully generated prefixed name", "result", result)
+	logger.Infof("[WalletCore][GenPrefix] result: %s", result)
 	return result, nil
 
 }
 
-func ToCreateWalletDoc(name, code, URL string, self, other, agent bool, walletType string) *model.Wallet {
-	return &model.Wallet{
-		Name:   name,
-		Code:   code,
-		Avatar: URL,
+func ToCreateWalletDoc(name, code, URL, serviceID string, self, other, agent *bool) *local_model.Wallet {
+	return &local_model.Wallet{
+		Name:       name,
+		UniqueCode: code,
+		Avatar:     URL,
+		ServiceID:  serviceID,
 		Services: types.Services{
-			Self:  self,
-			Other: other,
-			Agent: agent,
+			Self:  *self,
+			Other: *other,
+			Agent: *agent,
 		},
-		Type: walletType,
 	}
 }
 
 // note: this comparision might not be needed if the existing data is first in the request form and the user update those values
-func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest, fieldsProvided map[string]bool) (*model.Wallet, int) {
+func ToUpdateWalletDoc(existing local_model.Wallet, req walletDto.WalletRequest, serviceID string) (*local_model.Wallet, int) {
 	wallet := existing
 	changeCount := 0
 
-	if fieldsProvided["self"] && req.Self != existing.Services.Self {
+	if req.Self != nil && *req.Self != existing.Services.Self {
 		changeCount++
-		wallet.Services.Self = req.Self
+		wallet.Services.Self = *req.Self
 	}
 
-	if fieldsProvided["other"] && req.Other != existing.Services.Other {
+	if req.Other != nil && *req.Other != existing.Services.Other {
 		changeCount++
-		wallet.Services.Other = req.Other
+		wallet.Services.Other = *req.Other
 	}
 
-	if fieldsProvided["agent"] && req.Agent != existing.Services.Agent {
+	if req.Agent != nil && *req.Agent != existing.Services.Agent {
 		changeCount++
-		wallet.Services.Agent = req.Agent
+		wallet.Services.Agent = *req.Agent
 	}
 
 	if req.Name != "" && req.Name != existing.Name {
@@ -81,17 +83,18 @@ func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest, field
 		wallet.Name = req.Name
 	}
 
-	if req.Code != "" && req.Code != existing.Code {
+	if req.UniqueCode != "" && req.UniqueCode != existing.UniqueCode {
 		changeCount++
-		wallet.Code = req.Code
+		wallet.UniqueCode = req.UniqueCode
 	}
-	if req.Type != "" && req.Type != existing.Type {
+	if serviceID != "" && serviceID != existing.ServiceID {
 		changeCount++
-		wallet.Type = req.Type
+		wallet.ServiceID = serviceID
 	}
 
 	return &wallet, changeCount
 }
+
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	userData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(userData); incomplet {

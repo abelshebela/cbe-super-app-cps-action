@@ -36,6 +36,7 @@ func (r PasswordRuleUpdate) Validate() error {
 		),
 		validation.Field(&r.Rule.MaxLength,
 			validation.Min(1),
+			validation.Max(20),
 			validation.By(func(value interface{}) error {
 				if r.Rule.MinLength > r.Rule.MaxLength {
 					return validation.NewError("validation_max_length", "max_length must be greater than or equal to min_length")

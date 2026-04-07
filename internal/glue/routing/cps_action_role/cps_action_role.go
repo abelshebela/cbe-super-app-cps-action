@@ -1,14 +1,12 @@
 package cps_actionrole_routing
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	actionrole_inbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action_role"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-
 )
 
 func Init(router chi.Router, handler actionrole_inbound.CPSActionRoleHandler, auth middleware.AuthMiddleware) {
@@ -19,7 +17,14 @@ func Init(router chi.Router, handler actionrole_inbound.CPSActionRoleHandler, au
 			Handler: handler.GetAll,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
-				auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/cps-action-list",
+			Handler: handler.GetAllActionList,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
 			},
 		},
 		{
@@ -28,7 +33,6 @@ func Init(router chi.Router, handler actionrole_inbound.CPSActionRoleHandler, au
 			Handler: handler.GetByActionCode,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
-				auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -37,7 +41,6 @@ func Init(router chi.Router, handler actionrole_inbound.CPSActionRoleHandler, au
 			Handler: handler.Create,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
-				auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -46,7 +49,6 @@ func Init(router chi.Router, handler actionrole_inbound.CPSActionRoleHandler, au
 			Handler: handler.Update,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
-				auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -55,7 +57,6 @@ func Init(router chi.Router, handler actionrole_inbound.CPSActionRoleHandler, au
 			Handler: handler.Enable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
-				auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -64,10 +65,33 @@ func Init(router chi.Router, handler actionrole_inbound.CPSActionRoleHandler, au
 			Handler: handler.Disable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
-				auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/cps-action-roles/{code}/versions",
+			Handler: handler.GetVersions,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/cps-action-roles/{code}/roles",
+			Handler: handler.GetConfiguredRoles,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/cps-action-roles/{code}/versions/{version}/role",
+			Handler: handler.UpdateVersionRoleCode,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
 			},
 		},
 	}
-	
+
 	glue.RegisterRoutes(router, routes)
 }

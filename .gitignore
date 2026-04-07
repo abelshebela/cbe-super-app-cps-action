@@ -28,6 +28,7 @@ go.work.sum
 # cmd/
 # env file
 .env
+env.sh
 reserve
 # Editor/IDE
 # .idea/
@@ -50,3 +51,14 @@ docs/modules
 docs/templates
 definition_of_done.md
 definition_of_ready.md
+
+tools
+docs
+./cmd/__debug*
+__debug_bin*
+.tools
+.vscode
+.idea
+.env.sh
+postman/FULL CPS  New.txt
+postman/automation  FULL CPS ACTION.postman_collection

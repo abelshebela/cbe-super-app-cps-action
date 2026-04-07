@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
@@ -81,4 +82,36 @@ func (n *NotificationStore) PublishEmailMessage(ctx context.Context, emailMsg ty
 	}
 	return nil
 
+}
+
+// PublishInAppBroadcast publishes an in-app broadcast payload to Kafka using
+// the shared notification wrapper with type "in_app_broadcast". The payload
+// Type should be "inapp".
+func (n *NotificationStore) PublishInAppBroadcast(ctx context.Context, inapp types.InAppBroadcastMessage) error {
+	// Validate minimal required fields
+	if inapp.Title == "" || inapp.Message == "" {
+		n.logger.Errorf("in-app broadcast: title and message are required")
+		return errors.New("title and message are required")
+	}
+	if inapp.Type == "" {
+		inapp.Type = "inapp"
+	}
+
+	// Note: Using KafkaEmailTopic for generic notification fanout unless
+	// a dedicated in-app topic is provided in configuration.
+	return n.producer.PublishMessage(ctx, inapp, "in_app_broadcast", string(constants.InAppNotificationsTopic), "InAppBroadcast")
+}
+
+// PublishInAppBroadcastWithLog publishes an in-app broadcast with a custom logType
+// (e.g., notification.CREATE_PUBLIC_NOTIFICATION.maker|checker) so downstream
+// systems can segment maker vs checker events per module/action.
+func (n *NotificationStore) PublishInAppBroadcastWithLog(ctx context.Context, inapp types.InAppBroadcastMessage, logType string) error {
+	if inapp.Title == "" || inapp.Message == "" {
+		n.logger.Errorf("in-app broadcast: title and message are required")
+		return errors.New("title and message are required")
+	}
+	if inapp.Type == "" {
+		inapp.Type = "inapp"
+	}
+	return n.producer.PublishMessage(ctx, inapp, "in_app_broadcast", string(constants.InAppNotificationsTopic), logType)
 }

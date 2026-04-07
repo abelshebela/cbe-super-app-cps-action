@@ -4,7 +4,6 @@ import (
 	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -14,6 +13,9 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -34,16 +36,17 @@ var _ storage.PermissionRepository = (*PermissionPersistence)(nil)
 
 func InitPermission(
 	client *mongo.Client,
+	cfg *config.VaultConfig,
 	dbName string,
 	collectionNames []string,
 	timeout time.Duration,
 	logger utils.Logger,
 ) *PermissionPersistence {
 
-	permissionGroupsDal := dal.NewMongoDal[model.PermissionGroup, model.PermissionGroup](client, dbName, collectionNames[0])
-	permissionCategoryDal := dal.NewMongoDal[model.PermissionCategory, model.PermissionCategory](client, dbName, collectionNames[1])
-	permissionDal := dal.NewMongoDal[model.Permission, model.Permission](client, dbName, collectionNames[2])
-	cpsdal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[3])
+	permissionGroupsDal := dal.NewMongoDal[model.PermissionGroup, model.PermissionGroup](client, cfg, dbName, collectionNames[0])
+	permissionCategoryDal := dal.NewMongoDal[model.PermissionCategory, model.PermissionCategory](client, cfg, dbName, collectionNames[1])
+	permissionDal := dal.NewMongoDal[model.Permission, model.Permission](client, cfg, dbName, collectionNames[2])
+	cpsdal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, cfg, dbName, collectionNames[3])
 
 	// build []mongo.Collection
 	var cols []mongo.Collection
@@ -66,15 +69,19 @@ func InitPermission(
 // Basic CRUD operations
 func (r *PermissionPersistence) Create(ctx context.Context, permissionGroup *model.PermissionGroup) error {
 	_, err := r.collections[0].InsertOne(ctx, *permissionGroup)
-	return err
+	if err != nil {
+		r.logger.Errorf("[PermissionStorage][Create] failed to create permission group: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
 }
 
 func (r *PermissionPersistence) Update(ctx context.Context, id string, permissionGroup *model.PermissionGroup) error {
-	r.logger.Infof("[Update] updating permission group for id: %s", id)
+	r.logger.Infof("[PermissionStorage][Update] updating permission group for id: %s", id)
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorf("[Update] invalid object id: %v", err)
-		return err
+		r.logger.Errorf("[PermissionStorage][Update] invalid object id: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objectID}
@@ -83,19 +90,19 @@ func (r *PermissionPersistence) Update(ctx context.Context, id string, permissio
 
 	_, err = r.collections[0].UpdateOne(ctx, filter, update)
 	if err != nil {
-		r.logger.Errorf("[Update] failed to update permission group: %v", err)
-		return err
+		r.logger.Errorf("[PermissionStorage][Update] failed to update permission group: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	r.logger.Infof("[Update] permission group updated successfully")
+	r.logger.Infof("[PermissionStorage][Update] permission group updated successfully")
 	return nil
 }
 
 func (r *PermissionPersistence) Delete(ctx context.Context, id string) error {
-	r.logger.Infof("[Delete] deleting permission group for id: %s", id)
+	r.logger.Infof("[PermissionStorage][Delete] deleting permission group for id: %s", id)
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorf("[Delete] invalid object id: %v", err)
-		return err
+		r.logger.Errorf("[PermissionStorage][Delete] invalid object id: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objectID}
@@ -103,18 +110,18 @@ func (r *PermissionPersistence) Delete(ctx context.Context, id string) error {
 
 	_, err = r.collections[0].UpdateOne(ctx, filter, update)
 	if err != nil {
-		r.logger.Errorf("[Delete] failed to delete permission group: %v", err)
-		return err
+		r.logger.Errorf("[PermissionStorage][Delete] failed to delete permission group: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	r.logger.Infof("[Delete] permission group deleted successfully")
+	r.logger.Infof("[PermissionStorage][Delete] permission group deleted successfully")
 	return nil
 }
 
 func (r *PermissionPersistence) FindByID(ctx context.Context, id string) (*model.PermissionGroup, error) {
-	r.logger.Infof("[FindByID] fetching permission group by id: %s", id)
+	r.logger.Infof("[PermissionStorage][FindByID] fetching permission group by id: %s", id)
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorf("[FindByID] invalid object id: %v", err)
+		r.logger.Errorf("[PermissionStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -123,21 +130,17 @@ func (r *PermissionPersistence) FindByID(ctx context.Context, id string) (*model
 	var result model.PermissionGroup
 	err = r.collections[0].FindOne(ctx, filter).Decode(&result)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Errorf("[FindByID] permission group not found")
-			return nil, errors.New(localization.ErrorPermissionGroupNotFound.Code)
-		}
-		r.logger.Errorf("[FindByID] failed to find permission group: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		r.logger.Errorf("[PermissionStorage][FindByID] failed to find permission group: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
-	r.logger.Infof("[FindByID] permission group retrieved successfully")
+	r.logger.Infof("[PermissionStorage][FindByID] permission group retrieved successfully")
 	return &result, nil
 }
 func (r *PermissionPersistence) FindByIDPopulated(ctx context.Context, id string) (cps_user_dto.PermissionGroupResponse, error) {
-	r.logger.Infof("[FindByIDPopulated] fetching populated permission group by id: %s", id)
+	r.logger.Infof("[PermissionStorage][FindByIDPopulated] fetching populated permission group by id: %s", id)
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorf("[FindByIDPopulated] invalid object id: %v", err)
+		r.logger.Errorf("[PermissionStorage][FindByIDPopulated] invalid object id: %v", err)
 		return cps_user_dto.PermissionGroupResponse{}, errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -187,22 +190,22 @@ func (r *PermissionPersistence) FindByIDPopulated(ctx context.Context, id string
 
 	cursor, err := r.collections[0].Aggregate(ctx, pipeline)
 	if err != nil {
-		r.logger.Errorf("[FindByIDPopulated] failed to aggregate permission group: %v", err)
+		r.logger.Errorf("[PermissionStorage][FindByIDPopulated] failed to aggregate permission group: %v", err)
 		return cps_user_dto.PermissionGroupResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var groups []cps_user_dto.PermissionGroupResponse
 	if err := cursor.All(ctx, &groups); err != nil {
-		r.logger.Errorf("[FindByIDPopulated] failed to decode aggregation results: %v", err)
+		r.logger.Errorf("[PermissionStorage][FindByIDPopulated] failed to decode aggregation results: %v", err)
 		return cps_user_dto.PermissionGroupResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if len(groups) == 0 {
-		r.logger.Errorf("[FindByIDPopulated] permission group not found")
+		r.logger.Errorf("[PermissionStorage][FindByIDPopulated] permission group not found")
 		return cps_user_dto.PermissionGroupResponse{}, errors.New(localization.ErrorPermissionGroupNotFound.Code)
 	}
-	r.logger.Infof("[FindByIDPopulated] populated permission group retrieved successfully")
+	r.logger.Infof("[PermissionStorage][FindByIDPopulated] populated permission group retrieved successfully")
 	return groups[0], nil
 }
 
@@ -226,30 +229,30 @@ func (s *PermissionPersistence) FindAllWithPagination(ctx context.Context, filte
 	// 5. Fetch data
 	pipeline := PermissionGroupsPipeline(filter, skip, limit)
 
-	s.logger.Infof("[FindAllWithPagination] fetching permission groups with pagination")
+	s.logger.Infof("[PermissionStorage][FindAllWithPagination] fetching permission groups with pagination")
 	cursor, err := s.collections[0].Aggregate(ctx, pipeline)
 	if err != nil {
-		s.logger.Errorf("[FindAllWithPagination] failed to aggregate permission groups: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		s.logger.Errorf("[PermissionStorage][FindAllWithPagination] failed to aggregate permission groups: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var data []*model.PermissionGroup
 	if err := cursor.All(ctx, &data); err != nil {
-		s.logger.Errorf("[FindAllWithPagination] failed to decode aggregation results: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		s.logger.Errorf("[PermissionStorage][FindAllWithPagination] failed to decode aggregation results: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := s.collections[0].CountDocuments(ctx, filter)
 	if err != nil {
-		s.logger.Errorf("[FindAllWithPagination] failed to count permission groups: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		s.logger.Errorf("[PermissionStorage][FindAllWithPagination] failed to count permission groups: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	s.logger.Infof("[FindAllWithPagination] retrieved %d permission groups", len(data))
+	s.logger.Infof("[PermissionStorage][FindAllWithPagination] retrieved %d permission groups", len(data))
 
 	// 8. Return standard paginated response
 	return &types.PaginatedResponse[[]*model.PermissionGroup]{
@@ -274,18 +277,21 @@ func (s *PermissionPersistence) FindAllGroupsWithPagination(ctx context.Context,
 
 	cursor, err := s.collections[0].Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		s.logger.Errorf("[PermissionStorage][FindAllGroupsWithPagination] failed to aggregate permission groups: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var data []*model.PermissionGroup
 	if err := cursor.All(ctx, &data); err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		s.logger.Errorf("[PermissionStorage][FindAllGroupsWithPagination] failed to decode aggregation results: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := s.collections[0].CountDocuments(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		s.logger.Errorf("[PermissionStorage][FindAllGroupsWithPagination] failed to count permission groups: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, page, int(limit))
@@ -306,7 +312,7 @@ func (r *PermissionPersistence) ValidatePermissionCategories(ctx context.Context
 	for _, id := range categoryIDs {
 		objectID, err := bson.ObjectIDFromHex(id)
 		if err != nil {
-			return nil, err
+			return nil, errors.New(localization.ErrorInvalidID.Code)
 		}
 		objectIDs = append(objectIDs, objectID)
 	}
@@ -319,12 +325,14 @@ func (r *PermissionPersistence) ValidatePermissionCategories(ctx context.Context
 	var categories []model.PermissionCategory
 	cursor, err := r.collections[1].Find(ctx, filter)
 	if err != nil {
-		return nil, err
+		r.logger.Errorf("[PermissionStorage][ValidatePermissionCategories] failed to find categories: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	if err := cursor.All(ctx, &categories); err != nil {
-		return nil, err
+		r.logger.Errorf("[PermissionStorage][ValidatePermissionCategories] failed to decode categories: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	validIDs := make([]string, 0, len(categories))
@@ -341,12 +349,14 @@ func (r *PermissionPersistence) GetAllPermissionCategoriesWithPermissions(ctx co
 	var categories []model.PermissionCategory
 	cursor, err := r.collections[1].Find(ctx, filter)
 	if err != nil {
-		return nil, err
+		r.logger.Errorf("[PermissionStorage][GetAllPermissionCategoriesWithPermissions] failed to find categories: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	if err := cursor.All(ctx, &categories); err != nil {
-		return nil, err
+		r.logger.Errorf("[PermissionStorage][GetAllPermissionCategoriesWithPermissions] failed to decode categories: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	result := make([]*model.PermissionCategory, len(categories))
@@ -366,7 +376,7 @@ func (r *PermissionPersistence) ValidatePermissionGroups(ctx context.Context, gr
 	for _, id := range groupIDs {
 		objectID, err := bson.ObjectIDFromHex(id)
 		if err != nil {
-			return nil, err
+			return nil, errors.New(localization.ErrorInvalidID.Code)
 		}
 		objectIDs = append(objectIDs, objectID)
 	}
@@ -379,12 +389,14 @@ func (r *PermissionPersistence) ValidatePermissionGroups(ctx context.Context, gr
 	var groups []model.PermissionGroup
 	cursor, err := r.collections[0].Find(ctx, filter)
 	if err != nil {
-		return nil, err
+		r.logger.Errorf("[PermissionStorage][ValidatePermissionGroups] failed to find groups: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	if err := cursor.All(ctx, &groups); err != nil {
-		return nil, err
+		r.logger.Errorf("[PermissionStorage][ValidatePermissionGroups] failed to decode groups: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	validIDs := make([]string, 0, len(groups))
@@ -404,7 +416,7 @@ func (r *PermissionPersistence) CheckPermissionGroupExists(groupName string) boo
 	var result model.PermissionGroup
 	err := r.collections[0].FindOne(ctx, filter).Decode(&result)
 	if err != nil {
-		r.logger.Errorf("CheckPermissionGroupExists failed: %v", err)
+		r.logger.Errorf("[PermissionStorage][CheckPermissionGroupExists] failed: %v", err)
 		return false
 	}
 
@@ -420,7 +432,8 @@ func (r *PermissionPersistence) GetPermissionGroup(groupName string) (*model.Per
 	var group model.PermissionGroup
 	err := r.collections[0].FindOne(ctx, filter).Decode(&group)
 	if err != nil {
-		return nil, err
+		r.logger.Errorf("[PermissionStorage][GetPermissionGroup] failed to find permission group: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	if group.ID.IsZero() {
 		return nil, nil
@@ -532,7 +545,7 @@ func (p *PermissionPersistence) ValidatePermissionGroupByID(ctx context.Context,
 	for _, idStr := range cleaned {
 		oid, err := bson.ObjectIDFromHex(idStr)
 		if err != nil {
-			return false, fmt.Errorf("invalid id: %s: %w", idStr, err)
+			return false, errors.New(localization.ErrorInvalidID.Code)
 		}
 		objectIDs = append(objectIDs, oid)
 	}
@@ -540,11 +553,12 @@ func (p *PermissionPersistence) ValidatePermissionGroupByID(ctx context.Context,
 
 	count, err := p.collections[0].CountDocuments(ctx, filter)
 	if err != nil {
-		return false, fmt.Errorf("DB_ERROR: %w", err)
+		p.logger.Errorf("[PermissionStorage][ValidatePermissionGroupByID] failed to count documents: %v", err)
+		return false, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if count != int64(len(cleaned)) {
-		return false, fmt.Errorf("PERMISSION_GROUP_NOT_FOUND")
+		return false, errors.New(localization.ErrorPermissionGroupNotFound.Code)
 	}
 
 	return true, nil
@@ -561,12 +575,14 @@ func (p *PermissionPersistence) GetAllPermissionCategories(
 	var categories []model.PermissionCategory
 	cursor, err := p.collections[1].Find(ctx, mongoFilter)
 	if err != nil {
-		return nil, err
+		p.logger.Errorf("[PermissionStorage][GetAllPermissionCategories] failed to find categories: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	if err := cursor.All(ctx, &categories); err != nil {
-		return nil, err
+		p.logger.Errorf("[PermissionStorage][GetAllPermissionCategories] failed to decode categories: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	result := make([]*model.PermissionCategory, len(categories))
@@ -584,7 +600,7 @@ func (p *PermissionPersistence) GetPopulatedPermissionCategories(ctx context.Con
 	for _, id := range categoryIDs {
 		objectID, err := bson.ObjectIDFromHex(id)
 		if err != nil {
-			return nil, err
+			return nil, errors.New(localization.ErrorInvalidID.Code)
 		}
 		objectIDs = append(objectIDs, objectID)
 	}
@@ -597,12 +613,14 @@ func (p *PermissionPersistence) GetPopulatedPermissionCategories(ctx context.Con
 	var categories []model.PermissionCategory
 	cursor, err := p.collections[1].Find(ctx, filter)
 	if err != nil {
-		return nil, err
+		p.logger.Errorf("[PermissionStorage][GetPopulatedPermissionCategories] failed to find categories: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	if err := cursor.All(ctx, &categories); err != nil {
-		return nil, err
+		p.logger.Errorf("[PermissionStorage][GetPopulatedPermissionCategories] failed to decode categories: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	result := make([]cps_user_dto.PermissionCategoryResponse, 0, len(categories))
@@ -646,7 +664,7 @@ func (p *PermissionPersistence) GetPopulatedPermissionGroups(ctx context.Context
 	for _, id := range groupIDs {
 		objectID, err := bson.ObjectIDFromHex(id)
 		if err != nil {
-			return nil, err
+			return nil, errors.New(localization.ErrorInvalidID.Code)
 		}
 		objectIDs = append(objectIDs, objectID)
 	}
@@ -701,15 +719,15 @@ func (p *PermissionPersistence) GetPopulatedPermissionGroups(ctx context.Context
 
 	cursor, err := p.collections[0].Aggregate(ctx, pipeline)
 	if err != nil {
-		p.logger.Errorf("Failed to aggregate Permission Groups, groupIDs: %v, error: %v", groupIDs, err)
-		return nil, err
+		p.logger.Errorf("[PermissionStorage][GetPopulatedPermissionGroups] failed to aggregate permission groups, groupIDs: %v, error: %v", groupIDs, err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var groups []cps_user_dto.PermissionGroupResponse
 	if err := cursor.All(ctx, &groups); err != nil {
-		p.logger.Errorf("Failed to decode Permission Groups aggregation, groupIDs: %v, error: %v", groupIDs, err)
-		return nil, err
+		p.logger.Errorf("[PermissionStorage][GetPopulatedPermissionGroups] failed to decode permission groups aggregation, groupIDs: %v, error: %v", groupIDs, err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return groups, nil

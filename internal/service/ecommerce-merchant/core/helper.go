@@ -6,16 +6,17 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
-	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"errors"
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
+
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -49,18 +50,18 @@ func nonEmpty(a, b string) string {
 	return b
 }
 
-func MergeBranches(oldBranches, newBranches []types.BranchInformation) []types.BranchInformation {
-	oldMap := make(map[string]types.BranchInformation, len(oldBranches))
+func MergeBranches(oldBranches, newBranches []model.BranchInformation) []model.BranchInformation {
+	oldMap := make(map[string]model.BranchInformation, len(oldBranches))
 	for _, ob := range oldBranches {
 		oldMap[ob.BranchCode] = ob
 	}
 
-	merged := make([]types.BranchInformation, 0, len(newBranches))
+	merged := make([]model.BranchInformation, 0, len(newBranches))
 
 	for _, nb := range newBranches {
 		// If the branch code exists in old branches, merge the information
 		if ob, ok := oldMap[nb.BranchCode]; ok {
-			merged = append(merged, types.BranchInformation{
+			merged = append(merged, model.BranchInformation{
 				BranchCode:          ob.BranchCode,
 				BranchName:          nonEmpty(nb.BranchName, ob.BranchName),
 				BranchAddress:       nonEmpty(nb.BranchAddress, ob.BranchAddress),
@@ -69,7 +70,7 @@ func MergeBranches(oldBranches, newBranches []types.BranchInformation) []types.B
 			})
 			delete(oldMap, nb.BranchCode)
 		} else {
-			merged = append(merged, types.BranchInformation{
+			merged = append(merged, model.BranchInformation{
 				BranchCode:          nb.BranchCode,
 				BranchName:          nb.BranchName,
 				BranchAddress:       nb.BranchAddress,
@@ -86,38 +87,30 @@ func MergeBranches(oldBranches, newBranches []types.BranchInformation) []types.B
 	return merged
 }
 
-func MergeMiniAppMerchantData(old, data *model.MiniAppMerchant) *model.MiniAppMerchant {
+func MergeMiniAppMerchantData(old, data *model.EcommerceMerchant) *model.EcommerceMerchant {
 	now := time.Now()
 
 	updatedBranches := MergeBranches(old.Branches, data.Branches)
 
-	return &model.MiniAppMerchant{
-		ID:           old.ID,
-		Code:         old.Code,
-		MerchantName: local_util.NonEmptyString(data.MerchantName, old.MerchantName),
-		// MerchantType:      local_util.NonEmptyString(data.MerchantType, old.MerchantType),
+	return &model.EcommerceMerchant{
+		ID:                old.ID,
+		Code:              old.Code,
+		MerchantName:      local_util.NonEmptyString(data.MerchantName, old.MerchantName),
 		PhoneNumber:       local_util.NonEmptyString(data.PhoneNumber, old.PhoneNumber),
 		Email:             local_util.NonEmptyString(data.Email, old.Email),
 		BankAccountNumber: local_util.NonEmptyString(data.BankAccountNumber, old.BankAccountNumber),
 		Enabled:           old.Enabled,
 		IsDeleted:         old.IsDeleted,
 		CreatedAt:         old.CreatedAt,
-		LastModifiedAt:    now,
-		// KYC: types.KYC{
-		// 	Status: old.KYC.Status,
-		// 	Representative: types.KYCInformation{
-		// 		Name:  local_util.NonEmptyString(data.KYC.Representative.Name, old.KYC.Representative.Name),
-		// 		Email: local_util.NonEmptyString(data.KYC.Representative.Email, old.KYC.Representative.Email),
-		// 		Phone: local_util.NonEmptyString(data.KYC.Representative.Phone, old.KYC.Representative.Phone),
-		// 	},
-		// },
-		Branches: updatedBranches,
+		UpdatedAt:         now,
+		Branches:          updatedBranches,
 	}
 }
 
 func HandleCPSActionForMiniAppMerchant(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	maker := local_util.ExtractUserFromContext(ctx)
-	if local_util.IsIncomplete(maker) {
+
+	if local_util.IsIncomplete(maker) && !maker.IsErp {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
@@ -129,54 +122,6 @@ func HandleCPSActionForMiniAppMerchant(ctx context.Context, cpsService service.C
 	}
 	return nil
 }
-
-// func CascadeEnableDisableMiniApps(ctx context.Context, miniRepo storage.MiniAppRepository, merchantID string, enabled bool) error {
-// 	filter := types.Filter{Filters: map[string]interface{}{"merchant_id": merchantID, "is_deleted": false}, Page: 1, PerPage: 100}
-// 	for {
-// 		res, err := miniRepo.FindAllWithPagination(ctx, filter)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		if res == nil || len(res.Data) == 0 {
-// 			return nil
-// 		}
-// 		lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false},
-// 			func() {
-// 				for _, m := range res.Data {
-// 					_ = miniRepo.EnableOrDisable(ctx, m.ID.Hex(), enabled)
-// 				}
-// 			},
-// 		)
-// 		if len(res.Data) < filter.PerPage {
-// 			return nil
-// 		}
-// 		filter.Page++
-// 	}
-// }
-
-// func CascadeDeleteMiniApps(ctx context.Context, miniRepo storage.MiniAppRepository, merchantID string) error {
-// 	filter := types.Filter{Filters: map[string]interface{}{"merchant_id": merchantID, "is_deleted": false}, Page: 1, PerPage: 100}
-// 	for {
-// 		res, err := miniRepo.FindAllWithPagination(ctx, filter)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		if res == nil || len(res.Data) == 0 {
-// 			return nil
-// 		}
-// 		lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false},
-// 			func() {
-// 				for _, m := range res.Data {
-// 					_ = miniRepo.Delete(ctx, m.ID.Hex())
-// 				}
-// 			},
-// 		)
-// 		if len(res.Data) < filter.PerPage {
-// 			return nil
-// 		}
-// 		filter.Page++
-// 	}
-// }
 
 func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*model.AccountDetail, error) {
 	accountRequest := model.AccountLookUpRequest{
@@ -194,10 +139,11 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 
 	return accountDetail, nil
 }
+
 func CheckMerchantExists(
 	ctx context.Context,
-	merchantRepo storage.MiniAppMerchantRepository,
-	data *types.CheckMiniAppMerchant,
+	merchantRepo storage.EcommerceMerchantRepository,
+	data *types.CheckMerchant,
 	opts *types.MiniAppMerchantExistOptions,
 ) (bool, error) {
 	if data == nil {
@@ -205,16 +151,6 @@ func CheckMerchantExists(
 	}
 
 	var conditions []bson.M
-
-	// if data.BankAccountNumber != "" {
-	// 	conditions = append(conditions, bson.M{"bank_account_number": data.BankAccountNumber})
-	// }
-	// if data.Email != "" {
-	// 	conditions = append(conditions, bson.M{"kyc.representative.email": data.Email})
-	// }
-	// if data.PhoneNumber != "" {
-	// 	conditions = append(conditions, bson.M{"kyc.representative.phone": data.PhoneNumber})
-	// }
 	if data.MerchantCode != "" {
 		conditions = append(conditions, bson.M{"merchant_code": data.MerchantCode})
 	}
@@ -238,7 +174,7 @@ func CheckMerchantExists(
 
 	res, err := merchantRepo.FindOne(ctx, filter)
 	if err != nil {
-		if err.Error() == localization.ErrorMiniAppMerchantNotFound.Code {
+		if err.Error() == localization.ErrorMiniAppMerchantNotFound.Code || err.Error() == localization.ErrorResourceNotFound.Code {
 			return false, nil
 		}
 		return false, err
@@ -258,57 +194,81 @@ func CheckMerchantExists(
 	// 	return false, errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
 	// }
 	if res.Code == data.MerchantCode {
-		fmt.Println("+============", res.Code)
 		return false, errors.New(localization.ErrorCodeAlreadyExist.Code)
 	}
 
 	return true, nil
 }
 
-func ToMiniAppMerchantResponseDTO(domain *model.MiniAppMerchant) *merchantDto.MiniAppMerchantResponseDTO {
-	return &merchantDto.MiniAppMerchantResponseDTO{
-		ID:   domain.ID.Hex(),
-		Code: domain.Code,
-		// Type:         domain.MerchantType,
-		MerchantName: domain.MerchantName,
-		// KYC: merchantDto.KYCDTO{
-		// 	Status: string(domain.KYC.Status),
-		// 	Representative: merchantDto.RepresentativeDTO{
-		// 		Name:  domain.KYC.Representative.Name,
-		// 		Phone: domain.KYC.Representative.Phone,
-		// 		Email: domain.KYC.Representative.Email,
-		// 	},
-		// },
+func ToMiniAppMerchantResponseDTO(domain *model.EcommerceMerchant) *merchantDto.EcommerceMerchantResponseDTO {
+	return &merchantDto.EcommerceMerchantResponseDTO{
+		ID:            domain.ID.Hex(),
+		Code:          domain.Code,
+		MerchantName:  domain.MerchantName,
 		AccountNumber: domain.BankAccountNumber,
 		Enabled:       domain.Enabled,
 		IsDeleted:     domain.IsDeleted,
 		CreatedAt:     domain.CreatedAt,
-		LastModified:  domain.LastModifiedAt,
+		LastModified:  domain.UpdatedAt,
 	}
 }
 
-// Convert DTO to Domain model for service layer
-func ToMiniAppMerchantDomainFromUpdateDTO(d *merchantDto.MiniAppMerchantDTO) *model.MiniAppMerchant {
-	return &model.MiniAppMerchant{
+// convertDtoBranches converts slice of dto branch info to model branch info.
+func convertDtoBranches(dto []merchantDto.BranchInformation) []model.BranchInformation {
+	if dto == nil {
+		return nil
+	}
+	result := make([]model.BranchInformation, len(dto))
+	for i, b := range dto {
+		var branch string
+		result[i] = model.BranchInformation{
+			BranchCode:          b.BranchCode,
+			BranchName:          b.BranchName,
+			BranchAddress:       branch,
+			BranchOwner:         b.BranchOwner,
+			BranchAccountNumber: b.BranchAccountNumber,
+		}
+	}
+	return result
+}
+
+func ToEcommerceMerchantCreateModel(d *merchantDto.EcommerceMerchant) *model.EcommerceMerchant {
+	return &model.EcommerceMerchant{
 		ID:                bson.NewObjectID(),
 		Code:              d.MerchantCode,
 		MerchantName:      d.MerchantName,
 		BankAccountNumber: d.AccountNumber,
-		Email:             d.Email,
-		PhoneNumber:       d.PhoneNumber,
 		SettlementMethod:  d.SettlementMethod,
-		// KYC: types.KYC{
-		// 	Representative: types.KYCInformation{
-		// 		// Name:  d.MerchantRepresentativeName,
-		// 		Phone: d.PhoneNumber,
-		// 		Email: d.Email,
-		// 	},
-		// 	Status: "",
-		// },
-		Branches:       d.Branches,
-		Enabled:        true,
-		IsDeleted:      false,
-		CreatedAt:      time.Now(),
-		LastModifiedAt: time.Now(),
+		Branches:          convertDtoBranches(d.Branches),
+		Enabled:           true,
+		IsDeleted:         false,
+		CreatedAt:         time.Now(),
+		UpdatedAt:         time.Now(),
 	}
+}
+
+func ToEcommerceMerchantDomainFromUpdateDTO(d *merchantDto.UpdateEcommerceMerchant) *model.EcommerceMerchant {
+	updatedEcommerceMerchant := &model.EcommerceMerchant{}
+
+	if d.MerchantCode != nil {
+		updatedEcommerceMerchant.Code = *d.MerchantCode
+	}
+	if d.MerchantName != nil {
+		updatedEcommerceMerchant.MerchantName = *d.MerchantName
+	}
+	if d.AccountNumber != nil {
+		updatedEcommerceMerchant.BankAccountNumber = *d.AccountNumber
+	}
+	if d.SettlementMethod != nil {
+		updatedEcommerceMerchant.SettlementMethod = *d.SettlementMethod
+	}
+	if d.Branches != nil {
+		updatedEcommerceMerchant.Branches = convertDtoBranches(d.Branches)
+	}
+	updatedEcommerceMerchant.Enabled = true
+	updatedEcommerceMerchant.IsDeleted = false
+	updatedEcommerceMerchant.CreatedAt = time.Now()
+	updatedEcommerceMerchant.UpdatedAt = time.Now()
+
+	return updatedEcommerceMerchant
 }
