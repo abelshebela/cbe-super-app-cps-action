@@ -599,7 +599,7 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	where := strings.Join(clauses, " AND ")
 
-	countQ := fmt.Sprintf(`SELECT COUNT(*) %s WHERE %s`, fromClause, where)
+	countQ := fmt.Sprintf(`SELECT COUNT(*) %s WHERE %s AND is_deleted = 0`, fromClause, where)
 	var total int64
 	if err := s.db.QueryRowContext(ctx, countQ, args...).Scan(&total); err != nil {
 		s.logger.Errorf("[ServicesRepo][FindAllWithPagination] count failed: %v", err)
@@ -766,7 +766,7 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 		where = strings.Join(clauses, " AND ")
 	}
 
-	countQ := fmt.Sprintf(`SELECT COUNT(*) FROM %s WHERE %s`, accessListTable, where)
+	countQ := fmt.Sprintf(`SELECT COUNT(*) FROM %s WHERE %s AND is_deleted = 0`, accessListTable, where)
 	var total int64
 	if err := s.db.QueryRowContext(ctx, countQ, args...).Scan(&total); err != nil {
 		s.logger.Errorf("[ServicesRepo][FindAllServiceListWithPagination] count failed: %v", err)
@@ -782,7 +782,7 @@ SELECT
   created_at,
   last_modified_at
 FROM %s
-WHERE %s
+WHERE %s AND is_deleted = 0
 ORDER BY created_at DESC
 OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 
@@ -823,7 +823,7 @@ func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*
 	const q = `
 SELECT RAWTOHEX(id), name, service_key, is_enabled, created_at, last_modified_at
 FROM access_lists
-WHERE id = HEXTORAW(:1)`
+WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 
 	var item imodel.ServiceKey
 	var listID string
@@ -1097,6 +1097,58 @@ WHERE id = :2`
 	// 	s.logger.Errorf("[ServicesRepo][EnableOrDisableServiceList] update access_list failed: %v", err)
 	// 	return local_util.HandleDBError(err)
 	// }
+
+	return nil
+}
+
+func (s *ServicesStorage) DeleteServiceList(ctx context.Context, id string) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		s.logger.Errorf("[ServicesRepo][Create] begin tx failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	// Delete the service list from access_lists and then delete the service which has the access_list_id
+	const q = `
+	UPDATE access_lists 
+	SET
+		is_deleted = 1, 
+		deleted_at = SYSTIMESTAMP, 
+		last_modified_at = SYSTIMESTAMP 
+	WHERE id = HEXTORAW(:1) AND is_deleted = 0`
+	res, err := tx.ExecContext(ctx, q, id)
+	if err != nil {
+		s.logger.Errorf("[ServicesRepo][DeleteServiceList] delete failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return errors.New(localization.ErrorServiceListNotFound.Code)
+	}
+
+	const deleteServiceQ = `
+UPDATE services
+SET
+  is_deleted = 1,
+  deleted_at = SYSTIMESTAMP,
+  last_modified_at = SYSTIMESTAMP
+WHERE access_list_id = HEXTORAW(:1)
+  AND is_deleted = 0`
+	if _, err := tx.ExecContext(ctx, deleteServiceQ, id); err != nil {
+		s.logger.Errorf("[ServicesRepo][DeleteServiceList] delete services failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
+	rows, _ = res.RowsAffected()
+	if rows == 0 {
+		return errors.New(localization.ErrorServiceNotFound.Code)
+	}
+
+	if err := tx.Commit(); err != nil {
+		s.logger.Errorf("[ServicesRepo][DeleteServiceList] commit failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
 
 	return nil
 }
