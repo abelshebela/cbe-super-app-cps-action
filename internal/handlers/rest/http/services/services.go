@@ -563,3 +563,37 @@ func (a *servicesAdapter) DisableServiceList(w http.ResponseWriter, r *http.Requ
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessServiceListDisableRequestSubmitted, nil)
 }
+
+func (a *servicesAdapter) DeleteServiceKey(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "DeleteServiceKey", "handler", "DeleteServiceKey")
+	defer span.End()
+
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		span.RecordError(errors.New("service key ID is required for delete"))
+		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
+		return
+	}
+
+	if err := a.app.DeleteServiceKey(ctx, id); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[DeleteServiceKey] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessServiceKeyDeleted, nil)
+		return
+	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	localization.SendSuccessResponse(w, localization.SuccessServiceKeyDeleteRequestSubmitted, nil)
+}

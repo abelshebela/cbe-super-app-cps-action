@@ -174,6 +174,16 @@ func (s *servicesService) EnableOrDisableServiceList(ctx context.Context, id str
 	return core.HandleCPSAction(ctx, s.cps, id, requestAction, payload, prev, constants.ActionUpdate)
 }
 
+func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error {
+	_, err := s.repo.FindServiceListByID(ctx, id)
+	if err != nil {
+		if err.Error() == localization.ErrorServiceListNotFound.Code {
+			return errors.New(localization.ErrorServiceListNotFound.Code)
+		}
+	}
+	return s.repo.DeleteServiceList(ctx, id)
+}
+
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	serviceDoc, err := local_util.JsonUnmarshal[imodel.Service](action.CurrentAction)
 	if err != nil {

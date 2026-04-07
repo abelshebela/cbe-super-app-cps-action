@@ -50,6 +50,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessServiceListEnabled,
 	SuccessServiceListDisableRequestSubmitted,
 	SuccessServiceListDisabled,
+	SuccessServiceKeyDeleted,
+	SuccessServiceKeyDeleteRequestSubmitted,
 	SuccessServiceCreated,
 	SuccessServiceUpdateRequestSubmitted,
 	SuccessServiceUpdated,
@@ -3980,6 +3982,20 @@ var (
 		Type:       "success",
 	}
 
+	SuccessServiceKeyDeleted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_KEY_DELETED",
+		StatusCode: StatusNoContent,
+		Message:    "service & key deleted successfully",
+		Type:       "success",
+	}
+
+	SuccessServiceKeyDeleteRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_KEY_DELETE_REQUEST_SUBMITTED",
+		StatusCode: StatusNoContent,
+		Message:    "Service & key delete request submitted successfully",
+		Type:       "success",
+	}
+
 	SuccessServiceCreated = ResponseCode{
 		Code:       "SERVICE_CREATED",
 		StatusCode: StatusOK,
@@ -7652,7 +7668,7 @@ var (
 	ErrorServiceListNotFound = ResponseCode{
 		Code:       "ERROR_SERVICE_LIST_NOT_FOUND",
 		StatusCode: StatusNotFound,
-		Message:    "Service list not found",
+		Message:    "service key not found",
 		Type:       "error",
 	}
 

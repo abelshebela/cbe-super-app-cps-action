@@ -111,6 +111,15 @@ func Init(router chi.Router, handler inbound.ServicesHandler, auth middleware.Au
 				// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/services_list/{id}",
+			Handler: handler.DeleteServiceKey,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+				// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+			},
+		},
 	}
 	glue.RegisterRoutes(router, routes)
 }
