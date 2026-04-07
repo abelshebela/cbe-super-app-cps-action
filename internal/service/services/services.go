@@ -44,7 +44,7 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 	}
 
 	for _, svc := range services.Data {
-		if strings.EqualFold(svc.ServiceKeyId, req.ServiceKeyId) || strings.EqualFold(svc.ServiceCode, req.ServiceCode) {
+		if strings.EqualFold(svc.ServiceKeyId, req.ServiceKeyId) {
 			return errors.New(localization.ErrorServiceExists.Code)
 		}
 	}
