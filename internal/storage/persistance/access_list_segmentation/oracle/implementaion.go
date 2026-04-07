@@ -10,6 +10,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -190,6 +191,78 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 		FROM ACCESS_LIST_GEO_SEG g
 		JOIN ACCESS_LISTS a ON g.access_list_key = a.id
 		WHERE g.segmented_id = :1`
+	rows, err := q.db.QueryContext(ctx, query, geographicalID)
+	if err != nil {
+		q.logger.Errorf("[AccessListSegmentation][FindAllForBlock] query failed: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+	var result []shared_model.APPAccessList
+	for rows.Next() {
+		var key, accessListName, accessListServiceKey, accessListID string
+		var enabled bool
+		err := rows.Scan(&key, &accessListName, &accessListServiceKey, &accessListID, &enabled)
+		if err != nil {
+			if err.Error() == "sql: no rows in result set" {
+				q.logger.Infof("[AccessListSegmentation][FindAllForBlock] no access list segmentation found for geographicalID: %s", geographicalID)
+				return nil, localization.ErrorResourceNotFound
+			}
+			q.logger.Errorf("[AccessListSegmentation][FindAllForBlock] query failed: %v", err)
+			return nil, err
+		}
+		q.logger.Infof("[AccessListSegmentation][FindAllForBlock] found access list segmentation: key=%s, name=%s, service_key=%s, id=%s, enabled=%v", key, accessListName, accessListServiceKey, accessListID, enabled)
+		result = append(result, shared_model.APPAccessList{
+			Key:            accessListID,
+			AccessListName: accessListName,
+			Enabled:        enabled,
+		})
+	}
+	return result, nil
+}
+
+// FindAllForBlockParents implements [storage.AccessListSegmentationRepositoryOracle].
+func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Context, geographicalID string) ([]shared_model.APPAccessList, error) {
+	// Step 1: Fetch city_id, region_id, district_id for the given account block id
+	var cityID, regionID, districtID sql.NullString
+	err := q.db.QueryRowContext(ctx, `
+    SELECT city_id, region_id, district_id
+    FROM ACCOUNT_BLOCKS
+    WHERE id = :1
+`, geographicalID).Scan(&cityID, &regionID, &districtID)
+	if err != nil {
+		q.logger.Errorf("[AccessListSegmentation][FindAllForBlockParents] failed to fetch block: %v", err)
+		return nil, err
+	}
+
+	// Step 2: Build a slice of non-null IDs
+	var ids []string
+	if cityID.Valid {
+		ids = append(ids, cityID.String)
+	}
+	if regionID.Valid {
+		ids = append(ids, regionID.String)
+	}
+	if districtID.Valid {
+		ids = append(ids, districtID.String)
+	}
+	if len(ids) == 0 {
+		return nil, nil // No city/region/district to look up
+	}
+
+	// Step 3: Query ACCESS_LIST_GEO_SEG for these IDs
+	placeholders := make([]string, len(ids))
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		placeholders[i] = fmt.Sprintf(":%d", i+1)
+		args[i] = id
+	}
+	query := fmt.Sprintf(`
+    SELECT RAWTOHEX(g.access_list_key), a.name, a.service_key, RAWTOHEX(a.id), g.enabled
+    FROM ACCESS_LIST_GEO_SEG g
+    JOIN ACCESS_LISTS a ON g.access_list_key = a.id
+    WHERE g.segmented_id IN (%s)
+`, strings.Join(placeholders, ","))
+
 	rows, err := q.db.QueryContext(ctx, query, geographicalID)
 	if err != nil {
 		q.logger.Errorf("[AccessListSegmentation][FindAllForBlock] query failed: %v", err)
@@ -481,25 +554,54 @@ func (q *accessListSegmentationOracle) FindByIDS(ctx context.Context, ids []stri
 
 // FindBySegmentIDAndAccessListKeys implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindBySegmentIDAndAccessListKeys(ctx context.Context, id string, keys []string) (*model.AccessListSegmentation, error) {
-	// Check if a record exists in ACCESS_LIST_GEO_SEG with the given segmented_id and any of the keys
-
-	// Inputs are hex strings, convert to RAW for query, output as hex
+	q.logger.Infof("[AccessListSegmentationOracle][FindBySegmentIDAndAccessListKeys] called with id: %s, keys: %v", id, keys)
+	var cityID, regionID, districtID sql.NullString
+	err := q.db.QueryRowContext(ctx, `
+		SELECT city_id, region_id, district_id
+		FROM ACCOUNT_BLOCKS
+		WHERE id = :1
+	`, id).Scan(&cityID, &regionID, &districtID)
+	if err != nil {
+		q.logger.Errorf("[AccessListSegmentation][FindBySegmentIDAndAccessListKeys] failed to fetch block: %v", err)
+		return nil, err
+	}
 	if len(keys) == 0 {
 		return nil, fmt.Errorf("no keys provided")
 	}
-	placeholders := make([]string, len(keys))
-	for i := range keys {
-		placeholders[i] = fmt.Sprintf("HEXTORAW(:key%d)", i)
+	// Build list of non-null ids (city, region, district)
+	var ids []string
+	if cityID.Valid && strings.TrimSpace(cityID.String) != "" {
+		ids = append(ids, cityID.String)
 	}
-	args := make([]interface{}, 0, len(keys)+1)
-	args = append(args, id)
-	for _, k := range keys {
-		args = append(args, k)
+	if regionID.Valid && strings.TrimSpace(regionID.String) != "" {
+		ids = append(ids, regionID.String)
 	}
-	query := fmt.Sprintf(`SELECT RAWTOHEX(id), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), enabled, created_at, updated_at, deleted_at FROM ACCESS_LIST_GEO_SEG WHERE segmented_id = HEXTORAW(:1) AND access_list_key IN (%s)`, strings.Join(placeholders, ","))
+	if districtID.Valid && strings.TrimSpace(districtID.String) != "" {
+		ids = append(ids, districtID.String)
+	}
+	if len(ids) == 0 {
+		return nil, nil // No city/region/district to look up
+	}
+	// Build IN clause for segmented_id
+	segPlaceholders := make([]string, len(ids))
+	segArgs := make([]interface{}, len(ids))
+	for i, v := range ids {
+		segPlaceholders[i] = fmt.Sprintf(":seg%d", i)
+		segArgs[i] = v
+	}
+	// Build IN clause for access_list_key
+	keyPlaceholders := make([]string, len(keys))
+	keyArgs := make([]interface{}, len(keys))
+	for i, k := range keys {
+		keyPlaceholders[i] = fmt.Sprintf("HEXTORAW(:key%d)", i)
+		keyArgs[i] = k
+	}
+	// Combine all args: first seg ids, then keys
+	args := append(segArgs, keyArgs...)
+	query := fmt.Sprintf(`SELECT RAWTOHEX(id), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), enabled, created_at, updated_at, deleted_at FROM ACCESS_LIST_GEO_SEG WHERE segmented_id IN (%s) AND access_list_key IN (%s)`, strings.Join(segPlaceholders, ","), strings.Join(keyPlaceholders, ","))
 	row := q.db.QueryRowContext(ctx, query, args...)
 	var seg model.AccessListSegmentation
-	err := row.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
+	err = row.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			q.logger.Errorf("[AccessListSegmentationOracle][FindBySegmentIDAndAccessListKeys] query failed: %v", err)

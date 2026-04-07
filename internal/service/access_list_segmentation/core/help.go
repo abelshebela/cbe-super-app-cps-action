@@ -57,9 +57,12 @@ func GetMissingIds(request []string, models []map[string]interface{}) []string {
 	}
 	return missingIds
 }
-func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo storage.BulkServiceRepository, accessListSegmentation []model.APPAccessList) []model.APPAccessList {
+func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo storage.BulkServiceRepository, accessListSegmentation, accessListSegmentationFromParents []model.APPAccessList) []model.APPAccessList {
 	var ids []string
 	for _, seg := range accessListSegmentation {
+		ids = append(ids, seg.Key)
+	}
+	for _, seg := range accessListSegmentationFromParents {
 		ids = append(ids, seg.Key)
 	}
 	idSet := make(map[string]struct{}, len(ids))
