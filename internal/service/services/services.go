@@ -110,7 +110,7 @@ func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*typ
 }
 
 func (s *servicesService) CreateServiceList(ctx context.Context, req *service_dto.CreateServiceList) error {
-	list, err := s.repo.FindServiceListByNameOrKey(ctx, req.ServiceName, req.ServiceKey)
+	list, err := s.repo.FindServiceListByExactNameOrKey(ctx, req.ServiceName, req.ServiceKey)
 	if err != nil && err.Error() != localization.ErrorServiceListNotFound.Code {
 		return err
 	}

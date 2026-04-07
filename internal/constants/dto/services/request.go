@@ -35,6 +35,7 @@ type CreateServiceRequest struct {
 	// ServiceName      string `json:"service_name" example:"Transfer To Other bank"`
 	// ServiceKey       string `json:"service_key" example:"Transfer To Other bank"`
 	ServiceKeyId             string `json:"service_key_id"`
+	ServiceKey               string `json:"service_key,omitempty"` // alias for service_key_id when clients omit service_key_id
 	ServiceCode              string `json:"service_code" example:"JKSJBDJB"`
 	ProductGlAccount         string `json:"cbe_gl_product_account" example:"234353354"`
 	ProductGlAccountCurrency string `json:"product_gl_account_currency"`
@@ -52,6 +53,7 @@ type UpdateServiceRequest struct {
 	// ServiceName      *string      `json:"service_name" example:"Transfer To Other bank"`
 	// ServiceKey       *string      `json:"service_key" example:"Transfer To Other bank"`
 	ServiceKeyId             *string `json:"service_key_id"`
+	ServiceKey               string  `json:"service_key,omitempty"` // alias for service_key_id
 	ServiceCode              *string `json:"service_code" example:"JKSJBDJB"`
 	ProductGlAccount         *string `json:"cbe_gl_product_account" example:"234353354"`
 	ProductGlAccountCurrency *string `json:"product_gl_account_currency"`

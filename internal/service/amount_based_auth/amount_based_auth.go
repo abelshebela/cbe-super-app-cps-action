@@ -410,8 +410,8 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 	now := time.Now()
 	currency := string(existingTier.Currency)
 
-	switch method {
-	case shared_constant.OPEN:
+	switch constants.Method(method) {
+	case constants.OPEN:
 		existingTier.MaxAmount = request.MaxAmount
 		pinTiers, err := s.Repository.FindActiveByCurrencyAndMethod(ctx, currency, constants.PIN)
 		if err != nil {
@@ -447,7 +447,7 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 		s.logger.Infof("[AmountAuthSvc][Update] OPEN tier request done")
 		return nil
 
-	case shared_constant.PIN:
+	case constants.PIN:
 		existingTier.MinAmount = request.MinAmount
 		existingTier.MaxAmount = request.MaxAmount
 
@@ -496,7 +496,7 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 		s.logger.Infof("[AmountAuthSvc][Update] PIN tier request done")
 		return nil
 
-	case shared_constant.OTPANDPIN:
+	case constants.OTPANDPIN:
 		existingTier.MinAmount = request.MinAmount
 
 		pinTiers, err := s.Repository.FindActiveByCurrencyAndMethod(ctx, currency, constants.PIN)

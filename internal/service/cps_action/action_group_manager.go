@@ -13,7 +13,7 @@ type ActionGroupManager interface {
 	// ResolveModuleFor resolves the parent module for a request action string.
 	ResolveModuleFor(action string) (string, bool)
 	// ResolveModuleForRA resolves the parent module for a RequestAction.
-	ResolveModuleForRA(action RequestAction) (string, bool)
+	ResolveModuleForRA(action constants.RequestAction) (string, bool)
 	// ListModules returns the known modules (priority first, then remaining).
 	ListModules() []string
 }
@@ -77,7 +77,7 @@ func (m *actionGroupManager) ResolveModuleFor(action string) (string, bool) {
 	return ResolveModuleFor(action)
 }
 
-func (m *actionGroupManager) ResolveModuleForRA(action RequestAction) (string, bool) {
+func (m *actionGroupManager) ResolveModuleForRA(action constants.RequestAction) (string, bool) {
 	return ResolveModuleForRA(action)
 }
 
@@ -87,11 +87,11 @@ func (m *actionGroupManager) ListModules() []string {
 
 // ResolveModuleFor resolves a request action string to a parent module name.
 func ResolveModuleFor(action string) (string, bool) {
-	return ResolveModuleForRA(RequestAction(action))
+	return ResolveModuleForRA(constants.RequestAction(action))
 }
 
-// ResolveModuleForRA resolves a RequestAction to a parent module name.
-func ResolveModuleForRA(action RequestAction) (string, bool) {
+// ResolveModuleForRA resolves a constants.RequestAction to a parent module name.
+func ResolveModuleForRA(action constants.RequestAction) (string, bool) {
 
 	// First, check in priority order to mirror dispatcher behavior
 	for _, mod := range modulePriority {

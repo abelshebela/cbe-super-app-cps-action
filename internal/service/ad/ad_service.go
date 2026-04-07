@@ -49,7 +49,7 @@ func NewAdvertService(repository storage.AdvertRepository, cpsService service.CP
 }
 
 // handleCPSAction encapsulates the common CPS action logic
-func (s *advertService) handleCPSAction(ctx context.Context, uniqueID string, requestAction cpsaction.RequestAction, curData, prevData interface{}, actionType cpsaction.ActionType) error {
+func (s *advertService) handleCPSAction(ctx context.Context, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType cpsaction.ActionType) error {
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		s.logger.Errorf("[AdSvc][handleCPSAction] incomplete user")
@@ -289,11 +289,11 @@ func (s *advertService) EnableDisableAdvert(ctx context.Context, id string, enab
 	curAdvert.Enabled = enable
 	curAdvert.LastUpdatedAt = time.Now()
 
-	var action cpsaction.RequestAction
+	var action constants.RequestAction
 	if enable {
-		action = cpsaction.RequestEnableAdvert
+		action = constants.RequestEnableAdvert
 	} else {
-		action = cpsaction.RequestDisableAdvert
+		action = constants.RequestDisableAdvert
 	}
 
 	err = s.handleCPSAction(ctx, curAdvert.ID.Hex(), action, curAdvert, prevAdvert, cpsaction.ActionUpdate)

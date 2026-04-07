@@ -22,6 +22,45 @@ import (
 var counter uint64
 var reHex24 = regexp.MustCompile(`(?i)[0-9a-f]{24}`)
 
+func Contains(list []string, v string) bool {
+	for _, s := range list {
+		if s == v {
+			return true
+		}
+	}
+	return false
+}
+
+func IsActionInGroup(action constants.RequestAction, group string, RequestActionGroups map[string][]constants.RequestAction) bool {
+	actions, exists := RequestActionGroups[group]
+	if !exists {
+		return false
+	}
+
+	for _, a := range actions {
+		if a == action {
+			return true
+		}
+	}
+	return false
+}
+
+func GetRAListForUpdateAction(action constants.RequestAction, group string, RequestActionGroups map[string][]constants.RequestAction) []string {
+	var RAUpdateList = []string{}
+	actions, exists := RequestActionGroups[group]
+	if !exists {
+		return []string{}
+	}
+
+	for _, a := range actions {
+		if strings.Contains(string(a), "UPDATE") || strings.Contains(string(a), "ENABLE") || strings.Contains(string(a), "DISABLE") {
+			RAUpdateList = append(RAUpdateList, string(a))
+			return RAUpdateList
+		}
+	}
+	return RAUpdateList
+}
+
 func RemoveDuplicates(slice []string) []string {
 	if slice == nil {
 		return nil

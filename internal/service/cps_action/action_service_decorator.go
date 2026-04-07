@@ -53,7 +53,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 
 		cpsAction.CurrentCheckerIndex = 0.0
 
-		if mod, ok := ResolveModuleForRA(RequestAction(cpsAction.RequestAction)); ok && s.roles != nil {
+		if mod, ok := ResolveModuleForRA(constants.RequestAction(cpsAction.RequestAction)); ok && s.roles != nil {
 
 			var role *imodel.CPSActionRole
 			var approverData imodel.CPSActionApproveIndex
@@ -65,6 +65,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			if role != nil && !role.Enabled {
 				return localization.ErrorActionAlreadyDisabled
 			}
+
 			if role != nil {
 				ctx = context.WithValue(ctx, constants.ContextKey("is_maker_only"), role.IsMakerOnly)
 				ctx = context.WithValue(ctx, constants.ContextKey("cps_action_code"), cpsAction.ActionCode)

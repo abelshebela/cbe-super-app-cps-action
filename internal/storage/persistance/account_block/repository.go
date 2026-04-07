@@ -22,7 +22,7 @@ import (
 // ─── SQL constants ───────────────────────────────────────────────────────────
 
 const (
-	insertAccountBlock = `INSERT INTO account_blocks (
+	insertAccountBlock = `INSERT INTO ACCOUNT_BLOCKS (
 		id, name, code, address, parent_id, slug, type,
 		is_enabled, city_id, district_id, region_id,
 		is_deleted, created_at, updated_at
@@ -32,7 +32,7 @@ const (
 		0, SYSTIMESTAMP, SYSTIMESTAMP
 	)`
 
-	softDeleteAccountBlock = `UPDATE account_blocks
+	softDeleteAccountBlock = `UPDATE ACCOUNT_BLOCKS
 		SET is_deleted = 1, updated_at = SYSTIMESTAMP
 		WHERE id = :id AND is_deleted = 0`
 
@@ -40,14 +40,14 @@ const (
 		id, name, code, address, parent_id, slug, type,
 		is_enabled, city_id, district_id, region_id,
 		is_deleted, created_at, updated_at
-	FROM account_blocks
+	FROM ACCOUNT_BLOCKS
 	WHERE id = :id AND is_deleted = 0`
 
 	selectWithAncestors = `SELECT
 		id, name, code, address, parent_id, slug, type,
 		is_enabled, city_id, district_id, region_id,
 		is_deleted, created_at, updated_at, LEVEL as depth
-	FROM account_blocks
+	FROM ACCOUNT_BLOCKS
 	WHERE is_deleted = 0
 	START WITH id = :id
 	CONNECT BY PRIOR parent_id = id
@@ -58,7 +58,7 @@ const (
 		is_enabled, city_id, district_id, region_id,
 		is_deleted, created_at, updated_at,
 		COUNT(*) OVER() AS total_count
-	FROM account_blocks
+	FROM ACCOUNT_BLOCKS
 	WHERE type = :type
 	  AND is_deleted = 0
 	  AND (:search IS NULL
@@ -163,7 +163,7 @@ func NewAccountBlockRepository(
 			   CONSTRAINT FK_ACCOUNT_BLOCK_PARENT3 FOREIGN KEY (DISTRICT_ID) REFERENCES ACCOUNT_BLOCKS (ID) ON DELETE CASCADE
 		   )`
 		if _, err := db.Exec(stmt); err != nil {
-			logger.Warnf("ACCOUNT_BLOCKS table creation: %v", err)
+			logger.Errorf("ACCOUNT_BLOCKS table creation failed (API will return ORA-00942 until migration or DDL succeeds): %v", err)
 		} else {
 			logger.Infof("ACCOUNT_BLOCKS table created successfully")
 		}
@@ -172,7 +172,7 @@ func NewAccountBlockRepository(
 	if !constraintExists("CHK_AB_TYPE") {
 		stmt := `ALTER TABLE ACCOUNT_BLOCKS ADD CONSTRAINT CHK_AB_TYPE CHECK (TYPE IN ('R', 'D', 'C', 'B'))`
 		if _, err := db.Exec(stmt); err != nil {
-			logger.Warnf("CHK_AB_TYPE constraint: %v", err)
+			logger.Errorf("CHK_AB_TYPE constraint on ACCOUNT_BLOCKS failed: %v", err)
 		} else {
 			logger.Infof("CHK_AB_TYPE constraint added successfully")
 		}
@@ -318,6 +318,17 @@ func nullStr(s *string) interface{} {
 	return *s
 }
 
+// nullIfEmptyFilter treats "", whitespace-only strings as SQL NULL for optional id filters.
+func nullIfEmptyFilter(v interface{}) interface{} {
+	if v == nil {
+		return nil
+	}
+	if s, ok := v.(string); ok && strings.TrimSpace(s) == "" {
+		return nil
+	}
+	return v
+}
+
 const maxParentDepth = 64
 
 // fetchBlockByID loads one row by primary key (any type), for parent_id resolution.
@@ -350,15 +361,26 @@ func (a *AccountBlockStorage) populateParentChain(ctx context.Context, b *imodel
 }
 
 func (a *AccountBlockStorage) populateParentsAndReasons(ctx context.Context, blocks []*imodel.AccountBlock) error {
-	for _, b := range blocks {
+	a.logger.Debugf("[populateParentsAndReasons] called with %d blocks", len(blocks))
+	for i, b := range blocks {
 		if b == nil {
+			a.logger.Warnf("[populateParentsAndReasons] block at index %d is nil, skipping", i)
 			continue
 		}
+		a.logger.Debugf("[populateParentsAndReasons] populating parent chain for block index %d, id=%v", i, b.ID)
 		if err := a.populateParentChain(ctx, b, 0); err != nil {
+			a.logger.Errorf("[populateParentsAndReasons] error populating parent chain for block index %d, id=%v: %v", i, b.ID, err)
 			return err
 		}
 	}
-	return a.attachReasons(ctx, blocks)
+	a.logger.Debugf("[populateParentsAndReasons] finished parent chains, attaching reasons...")
+	err := a.attachReasons(ctx, blocks)
+	if err != nil {
+		a.logger.Errorf("[populateParentsAndReasons] error attaching reasons: %v", err)
+		return err
+	}
+	a.logger.Debugf("[populateParentsAndReasons] completed successfully")
+	return nil
 }
 
 // ─── Create methods ─────────────────────────────────────────────────────────
@@ -567,7 +589,7 @@ const selectByFilterKey = `SELECT
 	id, name, code, address, parent_id, slug, type,
 	is_enabled, city_id, district_id, region_id,
 	is_deleted, created_at, updated_at
-FROM account_blocks
+FROM ACCOUNT_BLOCKS
 WHERE %s = :val AND is_deleted = 0`
 
 func scanAccountBlockFromRow(row *sql.Row) (*imodel.AccountBlock, error) {
@@ -612,7 +634,9 @@ func scanAccountBlockFromRow(row *sql.Row) (*imodel.AccountBlock, error) {
 // ─── Get by IDs ─────────────────────────────────────────────────────────────
 
 func (a *AccountBlockStorage) getByIds(ctx context.Context, ids []string, entityType imodel.AccountBlockType) ([]*imodel.AccountBlock, error) {
+	a.logger.Infof("[getByIds] called with %d ids, entityType=%s", len(ids), entityType)
 	if len(ids) == 0 {
+		a.logger.Warnf("[getByIds] empty ids slice, returning nil")
 		return nil, nil
 	}
 
@@ -622,39 +646,53 @@ func (a *AccountBlockStorage) getByIds(ctx context.Context, ids []string, entity
 		paramName := fmt.Sprintf("id_%d", i)
 		placeholders[i] = ":" + paramName
 		args = append(args, sql.Named(paramName, id))
+		a.logger.Debugf("[getByIds] param: %s = %s", paramName, id)
 	}
 	args = append(args, sql.Named("type", string(entityType)))
 
 	query := fmt.Sprintf(`SELECT
-		id, name, code, address, parent_id, slug, type,
-		is_enabled, city_id, district_id, region_id,
-		is_deleted, created_at, updated_at
-	FROM account_blocks
-	WHERE id IN (%s) AND type = :type AND is_deleted = 0`, strings.Join(placeholders, ","))
+			id, name, code, address, parent_id, slug, type,
+			is_enabled, city_id, district_id, region_id,
+			is_deleted, created_at, updated_at
+		FROM ACCOUNT_BLOCKS
+		WHERE id IN (%s) AND type = :type AND is_deleted = 0`, strings.Join(placeholders, ","))
+
+	a.logger.Debugf("[getByIds] query: %s", query)
+	a.logger.Debugf("[getByIds] args: %+v", args)
 
 	rows, err := a.db.QueryContext(ctx, query, args...)
 	if err != nil {
+		a.logger.Errorf("[getByIds] QueryContext error: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
 
 	var results []*imodel.AccountBlock
+	rowNum := 0
 	for rows.Next() {
 		ab, err := scanAccountBlock(rows)
 		if err != nil {
+			a.logger.Errorf("[getByIds] scanAccountBlock error at row %d: %v", rowNum, err)
 			return nil, err
 		}
+		a.logger.Debugf("[getByIds] scanned row %d: %+v", rowNum, ab)
 		results = append(results, ab)
+		rowNum++
 	}
 	if err := rows.Err(); err != nil {
+		a.logger.Errorf("[getByIds] rows.Err: %v", err)
 		return nil, err
 	}
+	a.logger.Infof("[getByIds] fetched %d rows", len(results))
 	if len(results) == 0 {
+		a.logger.Warnf("[getByIds] no results found for ids: %v", ids)
 		return results, nil
 	}
 	if err := a.populateParentsAndReasons(ctx, results); err != nil {
+		a.logger.Errorf("[getByIds] populateParentsAndReasons error: %v", err)
 		return nil, err
 	}
+	a.logger.Infof("[getByIds] returning %d results", len(results))
 	return results, nil
 }
 
@@ -700,13 +738,13 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 	// Extract filters from map
 	if filterParam.Filters != nil {
 		if v, ok := filterParam.Filters["region_id"]; ok {
-			regionIDFilter = v
+			regionIDFilter = nullIfEmptyFilter(v)
 		}
 		if v, ok := filterParam.Filters["district_id"]; ok {
-			districtIDFilter = v
+			districtIDFilter = nullIfEmptyFilter(v)
 		}
 		if v, ok := filterParam.Filters["city_id"]; ok {
-			cityIDFilter = v
+			cityIDFilter = nullIfEmptyFilter(v)
 		}
 		if v, ok := filterParam.Filters["is_enabled"]; ok {
 			if enabled, isBool := v.(bool); isBool {
@@ -857,7 +895,7 @@ func (a *AccountBlockStorage) enableOrDisable(ctx context.Context, ids []string,
 		}
 	}
 
-	query := fmt.Sprintf(`UPDATE account_blocks
+	query := fmt.Sprintf(`UPDATE ACCOUNT_BLOCKS
 		SET is_enabled = :is_enabled,
 		    updated_at = SYSTIMESTAMP
 		WHERE id IN (%s) AND type = :type`, strings.Join(placeholders, ","))
@@ -945,7 +983,7 @@ func (a *AccountBlockStorage) GetAllBranches(ctx context.Context, id string) ([]
 		id, name, code, address, parent_id, slug, type,
 		is_enabled, city_id, district_id, region_id,
 		is_deleted, created_at, updated_at
-	FROM account_blocks
+	FROM ACCOUNT_BLOCKS
 	WHERE type = 'B' AND is_deleted = 0 AND (
 		city_id = :id OR district_id = :id OR region_id = :id
 	)`

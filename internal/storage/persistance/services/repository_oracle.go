@@ -892,6 +892,53 @@ FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
 	return &item, nil
 }
 
+// FindServiceListByExactNameOrKey returns a row when an active access_list exists with the same
+// name or service_key as the given values (full-string equality, case-insensitive). Used before create.
+func (s *ServicesStorage) FindServiceListByExactNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error) {
+	conds := make([]string, 0, 2)
+	args := make([]interface{}, 0, 2)
+
+	if strings.TrimSpace(name) != "" {
+		conds = append(conds, "LOWER(TRIM(name)) = LOWER(TRIM(:svc_name))")
+		args = append(args, sql.Named("svc_name", strings.TrimSpace(name)))
+	}
+	if strings.TrimSpace(key) != "" {
+		conds = append(conds, "LOWER(TRIM(service_key)) = LOWER(TRIM(:svc_key))")
+		args = append(args, sql.Named("svc_key", strings.TrimSpace(key)))
+	}
+
+	if len(conds) == 0 {
+		return nil, errors.New(localization.ErrorNoDataProvided.Code)
+	}
+
+	where := strings.Join(conds, " OR ")
+	query := fmt.Sprintf(`
+SELECT RAWTOHEX(id), name, service_key, is_enabled, created_at, last_modified_at
+FROM %s
+WHERE is_deleted = 0 AND (%s)
+FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
+
+	var item imodel.ServiceKey
+	var listID string
+	err := s.db.QueryRowContext(ctx, query, args...).Scan(
+		&listID,
+		&item.ServiceName,
+		&item.ServiceKey,
+		&item.IsEnabled,
+		&item.CreatedAt,
+		&item.LastModifiedAt,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New(localization.ErrorServiceListNotFound.Code)
+		}
+		return nil, local_util.HandleDBError(err)
+	}
+
+	item.ID = listID
+	return &item, nil
+}
+
 func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) error {
 	serviceList.IsEnabled = true
 

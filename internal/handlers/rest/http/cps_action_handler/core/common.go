@@ -44,7 +44,7 @@ func ValidateCheckerAccess(
 
 	// Resolve module name from request_action
 	actionName := ""
-	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(constants.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
 
@@ -249,7 +249,7 @@ func GetApproveRepo() interface {
 // ResolveModuleName resolves the module name from a request action string.
 // Returns ("", false) if no mapping is found.
 func ResolveModuleName(requestAction string) (string, bool) {
-	return cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(requestAction))
+	return cpsactionsvc.ResolveModuleForRA(constants.RequestAction(requestAction))
 }
 
 // FormatCheckerIndex is a helper to avoid repeated nil-check + dereference.

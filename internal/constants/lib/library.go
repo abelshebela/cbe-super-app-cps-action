@@ -1076,3 +1076,31 @@ func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, bo
 	logger.Infof("ERP update successful for merchant %s with response status %d, response body: %s", merchantID, resp.StatusCode, string(bodyBytes))
 	return nil
 }
+
+// func ResolveModuleForRABelongsToUpdate(action constants.RequestAction,RequestActionGroups map[string][]constants.RequestAction) (string, bool) {
+
+// 	var RAUpdateList = []string{}
+// 	// First, check in priority order to mirror dispatcher behavior
+// 	for _, mod := range modulePriority {
+// 		if local_util.IsActionInGroup(action, mod, RequestActionGroups) {
+// 			return mod, true
+// 		}
+// 	}
+
+// 	// Then, scan any remaining groups not explicitly prioritized
+// 	for mod := range RequestActionGroups {
+// 		// skip already-checked modules
+// 		if local_util.Contains(modulePriority, mod) {
+// 			continue
+// 		}
+
+// 		if IsActionInGroup(action, mod) {
+// 			return mod, true
+// 		}
+// 	}
+// 	// Fallback: infer module from request action string patterns
+// 	if mod, ok := lib.FallbackModuleForRA(constants.RequestAction(action)); ok {
+// 		return mod, true
+// 	}
+// 	return "", false
+// }

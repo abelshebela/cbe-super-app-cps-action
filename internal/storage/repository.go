@@ -94,6 +94,8 @@ type ServicesRepository interface {
 	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceKey], error)
 	FindServiceListByID(ctx context.Context, id string) (*imodel.ServiceKey, error)
 	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error)
+	// FindServiceListByExactNameOrKey matches whole name/key (case-insensitive), only non-deleted rows — for create uniqueness checks.
+	FindServiceListByExactNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error)
 	CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) error
 	UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error
 	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
@@ -199,7 +201,7 @@ type CPSActionRepository interface {
 	SanitizedFindAllWithPaginationCPSActions(ctx context.Context, userID, role string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	SanitizedFindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
 	ActionByDateRange(ctx context.Context, filterParam *types.Filter) ([]model.CPSAction, error)
-	Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
+	Update(ctx context.Context, actionCode string, update model.CPSAction, Group string, RequestActionGroups map[string][]constants.RequestAction) (*model.CPSAction, error)
 	FindByDateRange(ctx context.Context, filterParam *types.Filter) ([]*model.CPSAction, error)
 	UpdateByActionCode(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
 	UpdateCustome(ctx context.Context, filter, update bson.M) error
@@ -794,6 +796,7 @@ type LogisticsMerchantRepository interface {
 type UssdMerchantRepository interface {
 	Create(ctx context.Context, data imodel.UssdMerchant) error
 	Update(ctx context.Context, id string, update bson.M) error
+	Delete(ctx context.Context, id string) error
 	FindById(ctx context.Context, id string) (ussd_merchant_dto.UssdMerchantResponse, error)
 	FindByOr(ctx context.Context, phone, email, account_number string) (imodel.UssdMerchant, error)
 	Find(ctx context.Context, filter bson.M) (ussd_merchant_dto.UssdMerchantResponse, error)
