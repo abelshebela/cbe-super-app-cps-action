@@ -163,7 +163,7 @@ func NewAccountBlockRepository(
 			   CONSTRAINT FK_ACCOUNT_BLOCK_PARENT3 FOREIGN KEY (DISTRICT_ID) REFERENCES ACCOUNT_BLOCKS (ID) ON DELETE CASCADE
 		   )`
 		if _, err := db.Exec(stmt); err != nil {
-			logger.Warnf("ACCOUNT_BLOCKS table creation: %v", err)
+			logger.Errorf("ACCOUNT_BLOCKS table creation failed (API will return ORA-00942 until migration or DDL succeeds): %v", err)
 		} else {
 			logger.Infof("ACCOUNT_BLOCKS table created successfully")
 		}
@@ -172,7 +172,7 @@ func NewAccountBlockRepository(
 	if !constraintExists("CHK_AB_TYPE") {
 		stmt := `ALTER TABLE ACCOUNT_BLOCKS ADD CONSTRAINT CHK_AB_TYPE CHECK (TYPE IN ('R', 'D', 'C', 'B'))`
 		if _, err := db.Exec(stmt); err != nil {
-			logger.Warnf("CHK_AB_TYPE constraint: %v", err)
+			logger.Errorf("CHK_AB_TYPE constraint on ACCOUNT_BLOCKS failed: %v", err)
 		} else {
 			logger.Infof("CHK_AB_TYPE constraint added successfully")
 		}
@@ -316,6 +316,17 @@ func nullStr(s *string) interface{} {
 		return nil
 	}
 	return *s
+}
+
+// nullIfEmptyFilter treats "", whitespace-only strings as SQL NULL for optional id filters.
+func nullIfEmptyFilter(v interface{}) interface{} {
+	if v == nil {
+		return nil
+	}
+	if s, ok := v.(string); ok && strings.TrimSpace(s) == "" {
+		return nil
+	}
+	return v
 }
 
 const maxParentDepth = 64
@@ -700,13 +711,13 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 	// Extract filters from map
 	if filterParam.Filters != nil {
 		if v, ok := filterParam.Filters["region_id"]; ok {
-			regionIDFilter = v
+			regionIDFilter = nullIfEmptyFilter(v)
 		}
 		if v, ok := filterParam.Filters["district_id"]; ok {
-			districtIDFilter = v
+			districtIDFilter = nullIfEmptyFilter(v)
 		}
 		if v, ok := filterParam.Filters["city_id"]; ok {
-			cityIDFilter = v
+			cityIDFilter = nullIfEmptyFilter(v)
 		}
 		if v, ok := filterParam.Filters["is_enabled"]; ok {
 			if enabled, isBool := v.(bool); isBool {
