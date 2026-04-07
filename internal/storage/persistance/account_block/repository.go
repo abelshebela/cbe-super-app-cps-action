@@ -394,6 +394,24 @@ func (a *AccountBlockStorage) populateParentChain(ctx context.Context, b *imodel
 	if err := a.populateParentChain(ctx, parent, depth+1); err != nil {
 		return err
 	}
+
+	// For branches, keep district as direct parent and make sure region is attached
+	// as the next parent even when district row is incomplete.
+	if b.Type == imodel.TypeBranch &&
+		parent.Type == imodel.TypeDistrict &&
+		parent.Parent == nil &&
+		b.RegionID != nil {
+		rid := strings.TrimSpace(*b.RegionID)
+		if rid != "" && rid != parent.ID {
+			region, rErr := a.fetchBlockByID(ctx, rid)
+			if rErr == nil {
+				parent.Parent = region
+			} else if !errors.Is(rErr, sql.ErrNoRows) {
+				return rErr
+			}
+		}
+	}
+
 	b.Parent = parent
 	return nil
 }
