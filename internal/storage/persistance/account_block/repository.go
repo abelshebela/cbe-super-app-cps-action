@@ -640,7 +640,7 @@ func (a *AccountBlockStorage) getByIds(ctx context.Context, ids []string, entity
 		id, name, code, address, parent_id, slug, type,
 		is_enabled, city_id, district_id, region_id,
 		is_deleted, created_at, updated_at
-	FROM account_blocks
+	FROM ACCOUNT_BLOCKS
 	WHERE id IN (%s) AND type = :type AND is_deleted = 0`, strings.Join(placeholders, ","))
 
 	rows, err := a.db.QueryContext(ctx, query, args...)
