@@ -114,8 +114,13 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 		b.logger.Infof("[BankSvc][Authorize] deleted id: %s", cpsAction.UniqueId)
 
 	case string(constants.RequestEnableBank), string(constants.RequestDisableBank):
-		err := b.repo.EnableOrDisable(ctx, cpsAction.UniqueId, actionData.Enabled)
+		var err error
+		if actionData.IsEnabled == 1 {
+			err = b.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
+		} else {
+			err = b.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
 
+		}
 		if err != nil {
 			span.AddEvent("[Authorize] bank enable/disable action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -301,12 +306,14 @@ func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enable
 	}
 
 	newBankData := *bank
-	newBankData.Enabled = enableDisable
+	// newBankData.Enabled = enableDisable
 
 	var enable string
 	if enableDisable {
+		newBankData.IsEnabled = 1
 		enable = string(constants.RequestEnableBank)
 	} else {
+		newBankData.IsEnabled = 0
 		enable = string(constants.RequestDisableBank)
 	}
 	// if !enableDisable {
