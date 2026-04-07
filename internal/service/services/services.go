@@ -32,7 +32,10 @@ func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionSe
 
 func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServiceRequest) error {
 	filterParam := types.Filter{
-		Search: req.ServiceKeyId,
+		Search: req.ServiceCode,
+		Filters: map[string]interface{}{
+			"access_list_key": req.ServiceKeyId,
+		},
 	}
 
 	services, err := s.repo.FindAllWithPagination(ctx, filterParam)
@@ -41,7 +44,7 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 	}
 
 	for _, svc := range services.Data {
-		if strings.EqualFold(svc.ServiceKeyId, req.ServiceKeyId) {
+		if strings.EqualFold(svc.ServiceKeyId, req.ServiceKeyId) || strings.EqualFold(svc.ServiceCode, req.ServiceCode) {
 			return errors.New(localization.ErrorServiceExists.Code)
 		}
 	}
