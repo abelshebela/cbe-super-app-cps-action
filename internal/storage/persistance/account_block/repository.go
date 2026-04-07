@@ -337,15 +337,53 @@ func (a *AccountBlockStorage) fetchBlockByID(ctx context.Context, id string) (*i
 	return scanAccountBlockFromRow(row)
 }
 
-// populateParentChain walks parent_id and sets Parent to the loaded row (recursive).
+func directParentIDByType(b *imodel.AccountBlock) string {
+	if b == nil {
+		return ""
+	}
+
+	trimmed := func(s *string) string {
+		if s == nil {
+			return ""
+		}
+		return strings.TrimSpace(*s)
+	}
+
+	switch b.Type {
+	case imodel.TypeRegion:
+		// Region is the top-most level in current hierarchy.
+		return ""
+	case imodel.TypeDistrict:
+		return trimmed(b.RegionID)
+	case imodel.TypeCity:
+		// City usually belongs to a district; fallback to region if needed.
+		if id := trimmed(b.DistrictID); id != "" {
+			return id
+		}
+		return trimmed(b.RegionID)
+	case imodel.TypeBranch:
+		// Branch should resolve to district first, then city, then region.
+		if id := trimmed(b.DistrictID); id != "" {
+			return id
+		}
+		if id := trimmed(b.CityID); id != "" {
+			return id
+		}
+		return trimmed(b.RegionID)
+	default:
+		return ""
+	}
+}
+
+// populateParentChain resolves hierarchy from type-specific foreign keys and sets Parent recursively.
 func (a *AccountBlockStorage) populateParentChain(ctx context.Context, b *imodel.AccountBlock, depth int) error {
 	if b == nil || depth > maxParentDepth {
 		return nil
 	}
-	if b.ParentID == nil || strings.TrimSpace(*b.ParentID) == "" {
+	pid := directParentIDByType(b)
+	if pid == "" {
 		return nil
 	}
-	pid := strings.TrimSpace(*b.ParentID)
 	parent, err := a.fetchBlockByID(ctx, pid)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -356,6 +394,24 @@ func (a *AccountBlockStorage) populateParentChain(ctx context.Context, b *imodel
 	if err := a.populateParentChain(ctx, parent, depth+1); err != nil {
 		return err
 	}
+
+	// For branches, keep district as direct parent and make sure region is attached
+	// as the next parent even when district row is incomplete.
+	if b.Type == imodel.TypeBranch &&
+		parent.Type == imodel.TypeDistrict &&
+		parent.Parent == nil &&
+		b.RegionID != nil {
+		rid := strings.TrimSpace(*b.RegionID)
+		if rid != "" && rid != parent.ID {
+			region, rErr := a.fetchBlockByID(ctx, rid)
+			if rErr == nil {
+				parent.Parent = region
+			} else if !errors.Is(rErr, sql.ErrNoRows) {
+				return rErr
+			}
+		}
+	}
+
 	b.Parent = parent
 	return nil
 }
@@ -812,6 +868,7 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 	}
 
 	if err := a.populateParentsAndReasons(ctx, results); err != nil {
+		a.logger.Errorf("[AccountBlock][findAllWithPagination] error-----: %v", err)
 		return nil, err
 	}
 

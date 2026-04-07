@@ -13,6 +13,14 @@ import (
 	"github.com/google/uuid"
 )
 
+func isOracleTableMissingErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	// Oracle: ORA-00942 table or view does not exist
+	return strings.Contains(strings.ToUpper(err.Error()), "ORA-00942")
+}
+
 func bindOracleTime(t time.Time) time.Time {
 	if t.IsZero() {
 		return time.Now().UTC()
@@ -84,11 +92,17 @@ func (a *AccountBlockStorage) fetchReasonsMap(ctx context.Context, blockIDs []st
 	}
 	q := fmt.Sprintf(`
 		SELECT id, account_block_id, reason_text, created_by, created_at
-		FROM ACCOUNT_BLOCKS_DISABLED_REASONS
+		FROM account_block_disable_reasons
 		WHERE account_block_id IN (%s)
 		ORDER BY created_at ASC`, strings.Join(ph, ","))
 	rows, err := a.db.QueryContext(ctx, q, args...)
 	if err != nil {
+		// Keep account-block APIs available even if disable-reason table
+		// is not present in a given environment yet.
+		if isOracleTableMissingErr(err) {
+			a.logger.Warnf("[AccountBlockStorage][fetchReasonsMap] reason table missing, continuing without reasons: %v", err)
+			return out, nil
+		}
 		return nil, err
 	}
 	defer rows.Close()
