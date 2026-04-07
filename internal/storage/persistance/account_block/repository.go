@@ -34,28 +34,28 @@ const (
 
 	softDeleteAccountBlock = `UPDATE ACCOUNT_BLOCKS
 		SET is_deleted = 1, updated_at = SYSTIMESTAMP
-		WHERE id = :id AND is_deleted = 0`
+		WHERE id = HEXTORAW(:id) AND is_deleted = 0`
 
 	selectAccountBlockByID = `SELECT
-		id, name, code, address, parent_id, slug, type,
-		is_enabled, city_id, district_id, region_id,
+		RAWTOHEX(id), name, code, address, RAWTOHEX(parent_id), slug, type,
+		is_enabled, RAWTOHEX(city_id), RAWTOHEX(district_id), RAWTOHEX(region_id),
 		is_deleted, created_at, updated_at
 	FROM ACCOUNT_BLOCKS
-	WHERE id = :id AND is_deleted = 0`
+	WHERE id = HEXTORAW(:id) AND is_deleted = 0`
 
 	selectWithAncestors = `SELECT
-		id, name, code, address, parent_id, slug, type,
-		is_enabled, city_id, district_id, region_id,
+		RAWTOHEX(id), name, code, address, RAWTOHEX(parent_id), slug, type,
+		is_enabled, RAWTOHEX(city_id), RAWTOHEX(district_id), RAWTOHEX(region_id),
 		is_deleted, created_at, updated_at, LEVEL as depth
 	FROM ACCOUNT_BLOCKS
 	WHERE is_deleted = 0
-	START WITH id = :id
+	START WITH id = HEXTORAW(:id)
 	CONNECT BY PRIOR parent_id = id
 	ORDER BY LEVEL ASC`
 
 	listAccountBlocksByType = `SELECT
-		id, name, code, address, parent_id, slug, type,
-		is_enabled, city_id, district_id, region_id,
+		RAWTOHEX(id), name, code, address, RAWTOHEX(parent_id), slug, type,
+		is_enabled, RAWTOHEX(city_id), RAWTOHEX(district_id), RAWTOHEX(region_id),
 		is_deleted, created_at, updated_at,
 		COUNT(*) OVER() AS total_count
 	FROM ACCOUNT_BLOCKS
@@ -65,9 +65,9 @@ const (
 	       OR LOWER(name) LIKE '%%' || LOWER(:search) || '%%'
 	       OR LOWER(code) LIKE '%%' || LOWER(:search) || '%%'
 	       OR LOWER(address) LIKE '%%' || LOWER(:search) || '%%')
-	  AND (:region_id IS NULL OR region_id = :region_id)
-	  AND (:district_id IS NULL OR district_id = :district_id)
-	  AND (:city_id IS NULL OR city_id = :city_id)
+	  AND (:region_id IS NULL OR region_id = HEXTORAW(:region_id))
+	  AND (:district_id IS NULL OR district_id = HEXTORAW(:district_id))
+	  AND (:city_id IS NULL OR city_id = HEXTORAW(:city_id))
 	  AND (:is_enabled IS NULL OR is_enabled = :is_enabled)
 	ORDER BY created_at DESC
 	OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`
@@ -642,8 +642,8 @@ func (a *AccountBlockStorage) FindByFilterKey(ctx context.Context, field, value 
 }
 
 const selectByFilterKey = `SELECT
-	id, name, code, address, parent_id, slug, type,
-	is_enabled, city_id, district_id, region_id,
+	RAWTOHEX(id), name, code, address, RAWTOHEX(parent_id), slug, type,
+	is_enabled, RAWTOHEX(city_id), RAWTOHEX(district_id), RAWTOHEX(region_id),
 	is_deleted, created_at, updated_at
 FROM ACCOUNT_BLOCKS
 WHERE %s = :val AND is_deleted = 0`
@@ -700,15 +700,15 @@ func (a *AccountBlockStorage) getByIds(ctx context.Context, ids []string, entity
 	args := make([]interface{}, 0, len(ids)+1)
 	for i, id := range ids {
 		paramName := fmt.Sprintf("id_%d", i)
-		placeholders[i] = ":" + paramName
+		placeholders[i] = "HEXTORAW(:" + paramName + ")"
 		args = append(args, sql.Named(paramName, id))
 		a.logger.Debugf("[getByIds] param: %s = %s", paramName, id)
 	}
 	args = append(args, sql.Named("type", string(entityType)))
 
 	query := fmt.Sprintf(`SELECT
-			id, name, code, address, parent_id, slug, type,
-			is_enabled, city_id, district_id, region_id,
+			RAWTOHEX(id), name, code, address, RAWTOHEX(parent_id), slug, type,
+			is_enabled, RAWTOHEX(city_id), RAWTOHEX(district_id), RAWTOHEX(region_id),
 			is_deleted, created_at, updated_at
 		FROM ACCOUNT_BLOCKS
 		WHERE id IN (%s) AND type = :type AND is_deleted = 0`, strings.Join(placeholders, ","))
@@ -930,7 +930,7 @@ func (a *AccountBlockStorage) enableOrDisable(ctx context.Context, ids []string,
 	args := make([]interface{}, 0, len(ids)+5)
 	for i, id := range ids {
 		paramName := fmt.Sprintf("id_%d", i)
-		placeholders[i] = ":" + paramName
+		placeholders[i] = "HEXTORAW(:" + paramName + ")"
 		args = append(args, sql.Named(paramName, id))
 	}
 
@@ -1037,12 +1037,12 @@ func (a *AccountBlockStorage) GetAllBranches(ctx context.Context, id string) ([]
 	a.logger.Infof("[AccountBlockStorage][GetAllBranches] parent_id=%s", id)
 
 	query := `SELECT
-		id, name, code, address, parent_id, slug, type,
-		is_enabled, city_id, district_id, region_id,
+		RAWTOHEX(id), name, code, address, RAWTOHEX(parent_id), slug, type,
+		is_enabled, RAWTOHEX(city_id), RAWTOHEX(district_id), RAWTOHEX(region_id),
 		is_deleted, created_at, updated_at
 	FROM ACCOUNT_BLOCKS
 	WHERE type = 'B' AND is_deleted = 0 AND (
-		city_id = :id OR district_id = :id OR region_id = :id
+		city_id = HEXTORAW(:id) OR district_id = HEXTORAW(:id) OR region_id = HEXTORAW(:id)
 	)`
 
 	rows, err := a.db.QueryContext(ctx, query, sql.Named("id", id))

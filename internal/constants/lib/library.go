@@ -447,6 +447,33 @@ func BuildOracleFilter(
 				continue
 			}
 
+			// --- DERIVED FILTER: is_expired -> created_at ---
+			if key == "is_expired" {
+				now := time.Now()
+				switch v := val.(type) {
+				case bool:
+					if v {
+						filters = append(filters, fmt.Sprintf("created_at < :%d", idx))
+					} else {
+						filters = append(filters, fmt.Sprintf("created_at >= :%d", idx))
+					}
+					args = append(args, now)
+					idx++
+					continue
+				case string:
+					if parsed, err := strconv.ParseBool(v); err == nil {
+						if parsed {
+							filters = append(filters, fmt.Sprintf("created_at < :%d", idx))
+						} else {
+							filters = append(filters, fmt.Sprintf("created_at >= :%d", idx))
+						}
+						args = append(args, now)
+						idx++
+						continue
+					}
+				}
+			}
+
 			// --- DATE RANGE ---
 			if strings.HasSuffix(key, "_from") {
 				column := strings.TrimSuffix(key, "_from")
