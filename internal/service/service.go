@@ -438,6 +438,7 @@ type AmountBasedAuthService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]amountauthdto.CurrencyGroup], error)
 	UpdateAmountBasedAuth(ctx context.Context, id string, method shared_constant.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error
+	DeleteAmountBasedAuth(ctx context.Context, id string) error
 	AddCurrency(ctx context.Context, request amountauthdto.AddCurrencyRequest) error
 	ResetConfig(ctx context.Context, currency constants.CurrencyType, request amountauthdto.ResetConfigRequest) error
 }
@@ -698,6 +699,7 @@ type BPSActionRoleService interface {
 	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error
 	Enable(ctx context.Context, actionCode string) error
 	Disable(ctx context.Context, actionCode string) error
+	Delete(ctx context.Context, actionCode string) error
 }
 
 type BankVaultService interface {
@@ -794,6 +796,7 @@ type CPSActionRoleService interface {
 	Update(ctx context.Context, actionCode string, req cps_actionrole_dto.UpdateActionRoleRequest) error
 	Enable(ctx context.Context, actionCode string) error
 	Disable(ctx context.Context, actionCode string) error
+	Delete(ctx context.Context, actionCode string) error
 	GetVersionsByActionCode(ctx context.Context, actionCode string) ([]int64, error)
 	GetConfiguredRoles(ctx context.Context, actionCode string) (*cps_actionrole_dto.ConfiguredRolesResponse, error)
 	UpdateIndexRoleCode(ctx context.Context, actionCode string, version int64, oldRoleCode, newRoleCode string) (int64, error)

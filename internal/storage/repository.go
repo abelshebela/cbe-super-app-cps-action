@@ -172,6 +172,7 @@ type CPSActionRoleRepository interface {
 	Create(ctx context.Context, actionRole *imodel.CPSActionRole) error
 	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *imodel.CPSActionRole) error
 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
+	DeleteByActionCode(ctx context.Context, actionCode, portalCard string) error
 	FindByActionCode(ctx context.Context, actionCode string) (*cps_actionrole_dto.GetActionRoleByActionCodeRes, error)
 	UpdateActionList(ctx context.Context, actionCode, portalCard string, status bool) error
 	FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CPSActionList], error)
@@ -295,6 +296,8 @@ type AmountBasedAuthOracleRepository interface {
 
 	CurrencyExists(ctx context.Context, currency string) (bool, error)
 	DeleteByCurrency(ctx context.Context, currency string) error
+	// DeleteByID soft-deletes a single tier row (is_deleted = 1).
+	DeleteByID(ctx context.Context, id string) error
 }
 
 // AccountBlock persistence
@@ -707,6 +710,7 @@ type BPSActionRoleRepository interface {
 	Create(ctx context.Context, actionRole *imodel.BPSActionRole) error
 	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *imodel.BPSActionRole) error
 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
+	DeleteByActionCode(ctx context.Context, actionCode string) error
 	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
 	UpdateActionList(ctx context.Context, actionCode string, status bool) error
 	FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.BPSActionList], error)
