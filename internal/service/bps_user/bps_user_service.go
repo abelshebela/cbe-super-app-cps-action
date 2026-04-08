@@ -279,7 +279,9 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 	is_exist_on_CPS, err := b.CPSUserRepo.FindByEmailOrPhoneNumberOrUserName(ctx, req.Email, req.PhoneNumber, req.Username)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		b.logger.Errorf("[CreateBPSUser] got error while checking user data exist on cps user ")
-		return errors.New(localization.ErrorInternalServerError.Code)
+		if !errors.Is(err, localization.ErrorResourceNotFound) {
+			return errors.New(localization.ErrorInternalServerError.Code)
+		}
 	}
 
 	if is_exist_on_CPS != nil {
