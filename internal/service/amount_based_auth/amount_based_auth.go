@@ -3,6 +3,7 @@ package amount_based_auth
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
@@ -56,10 +57,25 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 		return s.authorizeReset(ctx, action, span)
 	case string(constants.RequestUpdateAmountBasedAuth):
 		return s.authorizeUpdate(ctx, action, span)
+	case string(constants.RequestDeleteAmountBasedAuth):
+		return s.authorizeDelete(ctx, action, span)
 	default:
 		s.logger.Errorf("[AmountAuthSvc][Authorize] unsupported request action: %s", action.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
+}
+
+func (s *amountBasedAuthService) authorizeDelete(ctx context.Context, action *model.CPSAction, span trace.Span) (*model.CPSAction, error) {
+	s.logger.Infof("[AmountAuthSvc][authorizeDelete] processing DELETE")
+	if strings.TrimSpace(action.UniqueId) == "" {
+		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+	}
+	if err := s.Repository.DeleteByID(ctx, action.UniqueId); err != nil {
+		s.logger.Errorf("[AmountAuthSvc][authorizeDelete] delete err: %v", err)
+		return nil, err
+	}
+	s.logger.Infof("[AmountAuthSvc][authorizeDelete] DELETE done")
+	return action, nil
 }
 
 // authorizeCreate persists new currency tiers when a CREATE action is approved
@@ -368,6 +384,38 @@ func groupTiersByCurrency(tiers []local_model.AuthTierOracle) []amountauthdto.Cu
 		groups[orderMap[currency]] = *group
 	}
 	return groups
+}
+
+// DeleteAmountBasedAuth submits a CPS action to soft-delete a tier by id.
+func (s *amountBasedAuthService) DeleteAmountBasedAuth(ctx context.Context, id string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteAmountBasedAuth", "Amount Based Auth", "DeleteAmountBasedAuth")
+	defer span.End()
+
+	if strings.TrimSpace(id) == "" {
+		return errors.New(localization.ErrorInvalidInputParameter.Code)
+	}
+
+	existing, err := s.Repository.FindByID(ctx, id)
+	if err != nil {
+		span.AddEvent("tier not found", trace.WithAttributes(attribute.String("id", id)))
+		return err
+	}
+
+	maker := local_util.ExtractUserFromContext(ctx)
+	if local_util.IsIncomplete(maker) {
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+
+	deleted := *existing
+	deleted.IsDeleted = 1
+
+	cps := lib.CpsModelBuilder(id, maker, existing, &deleted, string(constants.RequestDeleteAmountBasedAuth), constants.DELETE)
+	if err := s.cpsService.CreateCPSAction(ctx, &cps); err != nil {
+		s.logger.Errorf("[AmountAuthSvc][Delete] cps action err: %v", err)
+		return err
+	}
+	s.logger.Infof("[AmountAuthSvc][Delete] delete request submitted id=%s", id)
+	return nil
 }
 
 // UpdateAmountBasedAuth updates any tier type and applies appropriate cascading logic

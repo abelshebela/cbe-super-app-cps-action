@@ -10,6 +10,7 @@ type CPSActionRoleHandler interface {
 	Update(w http.ResponseWriter, r *http.Request)
 	Enable(w http.ResponseWriter, r *http.Request)
 	Disable(w http.ResponseWriter, r *http.Request)
+	Delete(w http.ResponseWriter, r *http.Request)
 	GetVersions(w http.ResponseWriter, r *http.Request)
 	GetConfiguredRoles(w http.ResponseWriter, r *http.Request)
 	UpdateVersionRoleCode(w http.ResponseWriter, r *http.Request)

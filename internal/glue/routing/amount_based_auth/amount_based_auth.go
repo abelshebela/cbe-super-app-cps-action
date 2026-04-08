@@ -13,6 +13,14 @@ func Init(router chi.Router, handler amount_based.AmountBasedAuthAdapter, authMi
 
 	routes := []glue.Route{
 		{
+			Method:  http.MethodDelete,
+			Path:    "/amount_based_auth/{id}",
+			Handler: handler.DeleteAmountBasedAuth,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
 			Method:  http.MethodPatch,
 			Path:    "/amount_based_auth/update/{method}/{id}",
 			Handler: handler.UpdateAmountBasedAuth,

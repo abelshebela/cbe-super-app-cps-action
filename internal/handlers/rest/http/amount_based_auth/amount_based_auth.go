@@ -156,6 +156,44 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	}
 }
 
+// DeleteAmountBasedAuth godoc
+//
+//	@Summary		Delete an amount-based auth tier (maker)
+//	@Description	Submit a CPS delete action; approvers authorize soft-delete in Oracle.
+//	@Tags			Amount-Based-Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string										true	"Tier ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Delete request created"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Tier not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Server error"
+//	@Security		BearerAuth
+//	@Router			/amount_based_auth/{id} [delete]
+func (a *AmountBasedAuthHandler) DeleteAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_util.TraceLogger(r.Context(), "handler", "deleteAmountBasedAuth", "handler", "amountBasedAuth")
+	defer span.End()
+	log := common_util.LoggerFromCtx(ctx, a.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	id, ok := common_util.GetParam(r, "id")
+	if !ok || id == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Message)
+		return
+	}
+	span.SetAttributes(attribute.String("amount_based_auth.id", id))
+	if err := a.Service.DeleteAmountBasedAuth(ctx, id); err != nil {
+		span.RecordError(err)
+		log.Errorf("[DeleteAmountBasedAuth] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	localization.SendSuccessResponse(w, localization.SuccessDeleteRequestCreated, nil)
+}
+
 // RejectAmountBasedAuth godoc
 //
 //	@Summary		Reject an amount-based auth action
