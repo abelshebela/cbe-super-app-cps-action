@@ -72,7 +72,8 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	bankRequest.Name = r.FormValue("name")
-	bankRequest.BICCode = r.FormValue("bic_code")
+	BICCode := r.FormValue("bic_code")
+	bankRequest.BICCode = strings.ToUpper(BICCode)
 
 	if accountLength := r.FormValue("account_length"); accountLength != "" {
 		length, err := strconv.Atoi(accountLength)
