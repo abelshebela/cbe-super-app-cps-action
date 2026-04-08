@@ -118,6 +118,21 @@ func (r *BPSActionRoleRepository) EnableOrDisableByActionCode(ctx context.Contex
 	}
 	return nil
 }
+
+func (r *BPSActionRoleRepository) DeleteByActionCode(ctx context.Context, actionCode string) error {
+	err := r.mongoDal.DeleteOne(ctx, bson.M{"action_code": actionCode})
+	if err != nil {
+		r.logger.Errorf("[BPSActionRoleRepository][DeleteByActionCode] failed to delete action code %s: %v", actionCode, err)
+		return local_util.HandleDBError(err)
+	}
+
+	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": actionCode}); err != nil {
+		r.logger.Errorf("SyncIndices: DeleteMany failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
+}
+
 func (r *BPSActionRoleRepository) FindByActionCode(
 	ctx context.Context,
 	actionCode string,

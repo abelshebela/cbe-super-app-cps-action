@@ -449,28 +449,16 @@ func BuildOracleFilter(
 
 			// --- DERIVED FILTER: is_expired -> created_at ---
 			if key == "is_expired" {
-				now := time.Now()
-				switch v := val.(type) {
-				case bool:
-					if v {
-						filters = append(filters, fmt.Sprintf("created_at < :%d", idx))
-					} else {
-						filters = append(filters, fmt.Sprintf("created_at >= :%d", idx))
+				expired, ok := boolFromInterface(val)
+				if ok {
+					operator := "<"
+					if !expired {
+						operator = ">="
 					}
-					args = append(args, now)
+					filters = append(filters, fmt.Sprintf("created_at %s :%d", operator, idx))
+					args = append(args, time.Now())
 					idx++
 					continue
-				case string:
-					if parsed, err := strconv.ParseBool(v); err == nil {
-						if parsed {
-							filters = append(filters, fmt.Sprintf("created_at < :%d", idx))
-						} else {
-							filters = append(filters, fmt.Sprintf("created_at >= :%d", idx))
-						}
-						args = append(args, now)
-						idx++
-						continue
-					}
 				}
 			}
 
@@ -506,14 +494,12 @@ func BuildOracleFilter(
 
 			// --- BOOLEAN ---
 			if boolKeys[key] {
-				if str, ok := val.(string); ok {
-					if parsed, err := strconv.ParseBool(str); err == nil {
-						filters = append(filters,
-							fmt.Sprintf("%s = :%d", key, idx))
-						args = append(args, parsed)
-						idx++
-						continue
-					}
+				if parsed, ok := boolFromInterface(val); ok {
+					filters = append(filters,
+						fmt.Sprintf("%s = :%d", key, idx))
+					args = append(args, parsed)
+					idx++
+					continue
 				}
 			}
 
@@ -530,6 +516,21 @@ func BuildOracleFilter(
 	limit := int64(filterParam.PerPage)
 
 	return strings.Join(filters, " AND "), args, offset, limit
+}
+
+func boolFromInterface(v interface{}) (bool, bool) {
+	switch b := v.(type) {
+	case bool:
+		return b, true
+	case string:
+		parsed, err := strconv.ParseBool(b)
+		if err != nil {
+			return false, false
+		}
+		return parsed, true
+	default:
+		return false, false
+	}
 }
 
 // parseDateInput parses a date string that can be either date-only ("2026-01-05")
