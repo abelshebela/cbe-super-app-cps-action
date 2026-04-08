@@ -77,6 +77,15 @@ func Bank_oracle_mapper(action map[string]interface{}) imodel.BankOracle {
 			bank.AccountLength = int(accountLength)
 		}
 	}
+	if v, ok := action["is_cbe"]; ok {
+		if is_cbe, ok := v.(bool); ok {
+			if is_cbe {
+				bank.IS_CBE = 1
+			} else {
+				bank.IS_CBE = 0
+			}
+		}
+	}
 
 	return bank
 }
