@@ -38,7 +38,7 @@ func (r *Repository) Create(ctx context.Context, bc *imodel.BudgetCategoryOracle
 	// Oracle column ENABLED (legacy); not IS_ENABLED. See db/migrations/000010_budget_categories_normalize_enabled_column.up.sql.
 	// No IS_DELETED; removals use DELETE FROM (see Delete).
 	// Write both when present so DBs with legacy ENABLED + IS_ENABLED stay consistent.
-	q := `INSERT INTO BUDGET_CATEGORIES (ID, NAME, COLOR, ICON, TYPE, ENABLED, IS_ENABLED, CREATE_AT, UPDATE_AT)
+	q := `INSERT INTO BUDGET_CATEGORIES (ID, NAME, COLOR, ICON, "TYPE", ENABLED, IS_ENABLED, CREATE_AT, UPDATE_AT)
 		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, :6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
 	_, err := r.db.ExecContext(ctx, q,
 		bc.Name,
@@ -63,14 +63,12 @@ func (r *Repository) Create(ctx context.Context, bc *imodel.BudgetCategoryOracle
 }
 
 func (r *Repository) Update(ctx context.Context, id string, bc *imodel.BudgetCategoryOracle) error {
-	q := `UPDATE BUDGET_CATEGORIES SET NAME = :1, COLOR = :2, ICON = :3, TYPE = :4, ENABLED = :5, IS_ENABLED = :6, UPDATE_AT = CURRENT_TIMESTAMP WHERE ID = HEXTORAW(:7)`
+	q := `UPDATE BUDGET_CATEGORIES SET NAME = :1, COLOR = :2, ICON = :3, "TYPE" = :4, UPDATE_AT = CURRENT_TIMESTAMP WHERE ID = HEXTORAW(:7)`
 	_, err := r.db.ExecContext(ctx, q,
 		bc.Name,
 		bc.Color,
 		bc.Icon,
 		bc.Type,
-		bc.IsEnabled,
-		bc.IsEnabled,
 		id,
 	)
 	if err != nil {
@@ -151,7 +149,7 @@ func (r *Repository) FindByID(ctx context.Context, id string) (*imodel.BudgetCat
 }
 
 func (r *Repository) FindByName(ctx context.Context, name string) (*imodel.BudgetCategoryOracle, error) {
-	q := `SELECT RAWTOHEX(ID) AS id, NAME, COLOR, ICON, TYPE, NVL(IS_ENABLED, ENABLED) AS eff_enabled, CREATE_AT, UPDATE_AT
+	q := `SELECT RAWTOHEX(ID) AS id, NAME, COLOR, ICON, "TYPE", NVL(IS_ENABLED, ENABLED) AS eff_enabled, CREATE_AT, UPDATE_AT
 		FROM BUDGET_CATEGORIES WHERE UPPER(NAME) = UPPER(:1)`
 	row := r.db.QueryRowContext(ctx, q, name)
 	var bc imodel.BudgetCategoryOracle
@@ -196,7 +194,7 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *ty
 
 	if filterParams.Search != "" {
 		search := "%" + strings.ToUpper(filterParams.Search) + "%"
-		filters = append(filters, fmt.Sprintf("(UPPER(NAME) LIKE :%d OR UPPER(TYPE) LIKE :%d)", idx, idx))
+		filters = append(filters, fmt.Sprintf(`(UPPER(NAME) LIKE :%d OR UPPER("TYPE") LIKE :%d)`, idx, idx))
 		args = append(args, search)
 		idx++
 	}
@@ -267,7 +265,7 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *ty
 	}
 
 	selectQuery := fmt.Sprintf(
-		`SELECT RAWTOHEX(ID) AS id, NAME, COLOR, ICON, TYPE, NVL(IS_ENABLED, ENABLED) AS eff_enabled, CREATE_AT, UPDATE_AT
+		`SELECT RAWTOHEX(ID) AS id, NAME, COLOR, ICON, "TYPE", NVL(IS_ENABLED, ENABLED) AS eff_enabled, CREATE_AT, UPDATE_AT
 		 FROM BUDGET_CATEGORIES WHERE %s ORDER BY CREATE_AT DESC OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY`,
 		whereClause, idx, idx+1,
 	)
