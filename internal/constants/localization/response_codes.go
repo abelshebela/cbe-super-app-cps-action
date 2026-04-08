@@ -3366,7 +3366,7 @@ var (
 	SuccessNotificationCreationRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_NOTIFICATION_CREATION_REQUEST_SUBMITTED",
 		StatusCode: StatusCreated,
-		Message:    "Notification created successfully",
+		Message:    "Notification create request sent successfully",
 		Type:       "success",
 	}
 	SuccessNotificationUpdateRequestSubmitted = ResponseCode{
