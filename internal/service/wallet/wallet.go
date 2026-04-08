@@ -58,25 +58,42 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 	defer span.End()
 	s.logger.Infof("[WalletSvc][Create] name: %s", req.Name)
 
-	exist, err := s.repo.Find(ctx, req.UniqueCode, req.Name, req.ServiceID)
-	if err != nil {
-		span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
-		return err
-	}
-
-	if exist != nil {
-		span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-		if strings.EqualFold(strings.TrimSpace(exist.Name), strings.TrimSpace(req.Name)) {
+	// Check name, code, and service_id independently (Find uses OR only when multiple args are set; we run ordered checks for clear errors).
+	if strings.TrimSpace(req.Name) != "" {
+		exist, err := s.repo.Find(ctx, "", req.Name, "")
+		if err != nil {
+			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
+			return err
+		}
+		if exist != nil {
+			span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
 			return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
 		}
-		if strings.EqualFold(strings.TrimSpace(exist.UniqueCode), strings.TrimSpace(req.UniqueCode)) {
+	}
+	if strings.TrimSpace(req.UniqueCode) != "" {
+		exist, err := s.repo.Find(ctx, req.UniqueCode, "", "")
+		if err != nil {
+			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
+			return err
+		}
+		if exist != nil {
+			span.AddEvent("Wallet code already exists", trace.WithAttributes(attribute.String("unique_code", req.UniqueCode)))
 			return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
 		}
-		s.logger.Errorf("[WalletSvc][Create] already exists: %v", exist)
-		return errors.New(localization.ErrorWalletServiceIDAlreadyExists.Code)
+	}
+	if strings.TrimSpace(req.ServiceID) != "" {
+		exist, err := s.repo.Find(ctx, "", "", req.ServiceID)
+		if err != nil {
+			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
+			return err
+		}
+		if exist != nil {
+			span.AddEvent("Wallet service already exists", trace.WithAttributes(attribute.String("service_id", req.ServiceID)))
+			return errors.New(localization.ErrorWalletServiceIDAlreadyExists.Code)
+		}
 	}
 
-	code := strings.ToUpper(req.UniqueCode)
+	code := strings.ToUpper(strings.TrimSpace(req.UniqueCode))
 
 	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, string(constants.WalletFolderName), *s.cfg, "", s.logger)
 	if err != nil {
@@ -114,13 +131,9 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
-		if exist != nil && exist.ID != id {
-			if strings.EqualFold(strings.TrimSpace(exist.Name), strings.TrimSpace(req.Name)) {
-				span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-				return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
-			}
-		} else {
-			s.logger.Infof("[WalletSvc][Update] no name conflict: %s", req.Name)
+		if exist != nil && !strings.EqualFold(strings.TrimSpace(exist.ID), strings.TrimSpace(id)) {
+			span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
+			return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
 		}
 	}
 	if req.UniqueCode != "" {
@@ -129,13 +142,9 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
-		if exist != nil && exist.ID != id {
-			if strings.EqualFold(strings.TrimSpace(exist.UniqueCode), strings.TrimSpace(req.UniqueCode)) {
-				span.AddEvent("Wallet code already exists", trace.WithAttributes(attribute.String("unique_code", req.UniqueCode)))
-				return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
-			}
-		} else {
-			s.logger.Infof("[WalletSvc][Update] no code conflict: %s", req.UniqueCode)
+		if exist != nil && !strings.EqualFold(strings.TrimSpace(exist.ID), strings.TrimSpace(id)) {
+			span.AddEvent("Wallet code already exists", trace.WithAttributes(attribute.String("unique_code", req.UniqueCode)))
+			return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
 		}
 	}
 
@@ -145,7 +154,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
-		if exist != nil && exist.ID != id {
+		if exist != nil && !strings.EqualFold(strings.TrimSpace(exist.ID), strings.TrimSpace(id)) {
 			span.AddEvent("Wallet service already exists", trace.WithAttributes(attribute.String("service_id", req.ServiceID)))
 			return errors.New(localization.ErrorWalletServiceAlreadyExists.Code)
 		}
@@ -297,6 +306,27 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 	switch action.RequestAction {
 	case string(constants.RequestCreateWallet):
 		span.AddEvent("Creating wallet", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
+		if strings.TrimSpace(wallet.Name) != "" {
+			if exist, e := s.repo.Find(ctx, "", wallet.Name, ""); e != nil {
+				return nil, e
+			} else if exist != nil {
+				return nil, errors.New(localization.ErrorWalletNameAlreadyExists.Code)
+			}
+		}
+		if strings.TrimSpace(wallet.UniqueCode) != "" {
+			if exist, e := s.repo.Find(ctx, wallet.UniqueCode, "", ""); e != nil {
+				return nil, e
+			} else if exist != nil {
+				return nil, errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
+			}
+		}
+		if strings.TrimSpace(wallet.ServiceID) != "" {
+			if exist, e := s.repo.Find(ctx, "", "", wallet.ServiceID); e != nil {
+				return nil, e
+			} else if exist != nil {
+				return nil, errors.New(localization.ErrorWalletServiceIDAlreadyExists.Code)
+			}
+		}
 		err = s.repo.Create(ctx, wallet)
 	case string(constants.RequestUpdateWallet):
 		span.AddEvent("Updating wallet", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))

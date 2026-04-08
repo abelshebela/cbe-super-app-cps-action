@@ -63,7 +63,7 @@ func (r *Repository) Create(ctx context.Context, bc *imodel.BudgetCategoryOracle
 }
 
 func (r *Repository) Update(ctx context.Context, id string, bc *imodel.BudgetCategoryOracle) error {
-	q := `UPDATE BUDGET_CATEGORIES SET NAME = :1, COLOR = :2, ICON = :3, "TYPE" = :4, UPDATE_AT = CURRENT_TIMESTAMP WHERE ID = HEXTORAW(:7)`
+	q := `UPDATE BUDGET_CATEGORIES SET NAME = :1, COLOR = :2, ICON = :3, "TYPE" = :4, UPDATE_AT = CURRENT_TIMESTAMP WHERE ID = HEXTORAW(:5)`
 	_, err := r.db.ExecContext(ctx, q,
 		bc.Name,
 		bc.Color,
@@ -194,9 +194,10 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *ty
 
 	if filterParams.Search != "" {
 		search := "%" + strings.ToUpper(filterParams.Search) + "%"
-		filters = append(filters, fmt.Sprintf(`(UPPER(NAME) LIKE :%d OR UPPER("TYPE") LIKE :%d)`, idx, idx))
-		args = append(args, search)
-		idx++
+		// Each :n is a distinct bind for godror; repeating the same idx still expects one value per placeholder.
+		filters = append(filters, fmt.Sprintf(`(UPPER(NAME) LIKE :%d OR UPPER("TYPE") LIKE :%d)`, idx, idx+1))
+		args = append(args, search, search)
+		idx += 2
 	}
 
 	if filterParams.Filters != nil {
