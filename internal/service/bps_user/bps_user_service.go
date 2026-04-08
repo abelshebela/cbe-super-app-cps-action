@@ -304,8 +304,20 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		}
 	}
 
+	if b.Branch_blocks == nil {
+		b.logger.Errorf("[CreateBPSUser] account block repository is not configured")
+		return errors.New(localization.ErrorInternalServerError.Code)
+	}
+	if len(req.BranchCode) == 0 {
+		return errors.New(localization.ErrorBranchCodeRequired.Code)
+	}
+	branchCode := strings.TrimSpace(req.BranchCode[0])
+	if branchCode == "" {
+		return errors.New(localization.ErrorBranchCodeRequired.Code)
+	}
+
 	b.logger.Infof("[PASS]------------------------1 %v", req.BranchCode)
-	branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "code", strings.TrimSpace(req.BranchCode[0]))
+	branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "code", branchCode)
 	if err != nil {
 		b.logger.Errorf("[CreateBPSUser] Get error while locking branch name by branch code")
 		if err.Error() == localization.ErrorResourceNotFound.Code {
