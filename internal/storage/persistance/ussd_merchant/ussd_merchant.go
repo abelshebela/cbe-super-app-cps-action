@@ -283,3 +283,21 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 	}, nil
 
 }
+
+// func (w *UssdMerchantRepository) Delete(ctx context.Context, id string) error {
+// 	objID, err := bson.ObjectIDFromHex(id)
+// 	if err != nil {
+// 		w.logger.Errorf("[UssdMerchantStorage][Delete] invalid object id: %v", err)
+// 		return errors.New(localization.ErrorInvalidID.Code)
+// 	}
+
+// 	filter := bson.M{"_id": objID, "deleted": false}
+// 	update := bson.M{"deleted": true, "deleted_at": time.Now()}
+
+// 	_, err = w.dal.UpdateOne(ctx, filter, update)
+// 	if err != nil {
+// 		w.logger.Errorf("[UssdMerchantStorage][Delete] failed to delete USSD Merchant: %v", err)
+// 		return local_util.HandleDBError(err)
+// 	}
+// 	return nil
+// }
