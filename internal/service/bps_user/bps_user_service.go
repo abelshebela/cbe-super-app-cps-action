@@ -316,7 +316,6 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		return errors.New(localization.ErrorBranchCodeRequired.Code)
 	}
 
-	b.logger.Infof("[PASS]------------------------1 %v", req.BranchCode)
 	branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "code", branchCode)
 	if err != nil {
 		b.logger.Errorf("[CreateBPSUser] Get error while locking branch name by branch code")
@@ -324,22 +323,14 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 			return errors.New(localization.ErrorBranchNotExistWithGivenBranchCode.Code)
 		}
 		return err
-		// return errors.New(localization.ErrorInternalServerError.Code)
 	}
 	if branch_detail == nil {
 		b.logger.Warnf("[CreateBPSUser] branch not found with given branch code")
 		return errors.New(localization.ErrorBranchNotExistWithGivenBranchCode.Code)
 	}
 
-	b.logger.Infof("[PASS]------------------------2")
-
 	req.BranchName = branch_detail.Name
-
-	b.logger.Infof("[PASS]------------------------3")
-
 	req.UserCode = local_util.UniqueIdGenerator()
-
-	b.logger.Infof("[PASS]------------------------4")
 
 	// Build CPS action model for create
 	cpsActionModel := lib.CpsModelBuilder(
