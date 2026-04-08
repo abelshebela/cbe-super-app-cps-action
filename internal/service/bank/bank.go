@@ -193,10 +193,20 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		IsEnabled:     0,
 		AccountLength: bank_request.AccountLength,
 	}
-	if *bank_request.HasAlphaNumeric {
-		bank.HasAlphaNumeric = 1
-	} else {
-		bank.HasAlphaNumeric = 0
+	if bank_request.HasAlphaNumeric != nil {
+		if *bank_request.HasAlphaNumeric {
+			bank.HasAlphaNumeric = 1
+		} else {
+			bank.HasAlphaNumeric = 0
+		}
+	}
+
+	if bank_request.IsCBE != nil {
+		if *bank_request.IsCBE {
+			bank.IS_CBE = 1
+		} else {
+			bank.IS_CBE = 0
+		}
 	}
 
 	result, err := b.oracleRepo.FindByNameOrBIC(ctx, bank_request.BICCode, bank_request.Name)
@@ -481,6 +491,13 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 			updatedBank.HasAlphaNumeric = 1
 		} else {
 			updatedBank.HasAlphaNumeric = 0
+		}
+	}
+	if bank_request.IsCBE != nil {
+		if *bank_request.IsCBE {
+			updatedBank.IS_CBE = 1
+		} else {
+			updatedBank.IS_CBE = 0
 		}
 	}
 

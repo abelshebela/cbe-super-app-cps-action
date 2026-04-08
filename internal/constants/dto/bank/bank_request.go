@@ -10,6 +10,7 @@ type CreateBankRequest struct {
 	BICCode         string                `form:"bic_code" json:"bic_code" binding:"required"`
 	HasAlphaNumeric *bool                 `form:"has_alpha_numeric" json:"has_alpha_numeric"`
 	AccountLength   int                   `form:"account_length" json:"account_length"`
+	IsCBE           *bool                 `form:"is_cbe" json:"is_cbe"`
 }
 
 type UpdateBankRequest struct {
@@ -19,6 +20,7 @@ type UpdateBankRequest struct {
 	BICCode         string                `json:"bic_code" bson:"bic_code"`
 	HasAlphaNumeric *bool                 `form:"has_alpha_numeric" json:"has_alpha_numeric"`
 	AccountLength   int                   `form:"account_length" json:"account_length"`
+	IsCBE           *bool                 `form:"is_cbe" json:"is_cbe"`
 }
 
 type UpdateLogo struct {

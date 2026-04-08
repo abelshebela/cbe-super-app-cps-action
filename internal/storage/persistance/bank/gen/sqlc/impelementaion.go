@@ -21,8 +21,8 @@ func NewBankRepository(db *sql.DB, log utils.Logger) storage.BankOracleRepositor
 	}
 }
 func (q *Queries) Create(ctx context.Context, bank *imodel.BankOracle) error {
-	query := `INSERT INTO banks (id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, created_at, last_modified_at)
-		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, :6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
+	query := `INSERT INTO banks (id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, created_at, last_modified_at, is_cbe)
+		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, :6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :7)`
 	_, err := q.db.ExecContext(ctx, query,
 		bank.BankName,
 		bank.Logo,
@@ -30,12 +30,13 @@ func (q *Queries) Create(ctx context.Context, bank *imodel.BankOracle) error {
 		bank.IsEnabled,
 		bank.AccountLength,
 		bank.HasAlphaNumeric,
+		bank.IS_CBE,
 	)
 	return err
 }
 
 func (q *Queries) Update(ctx context.Context, id string, bank *imodel.BankOracle) error {
-	query := `UPDATE banks SET bank_name = :1, logo = :2, bic_code = :3, is_enabled = :4, account_length = :5, has_alpha_numeric = :6, last_modified_at = CURRENT_TIMESTAMP WHERE id = :7`
+	query := `UPDATE banks SET bank_name = :1, logo = :2, bic_code = :3, is_enabled = :4, account_length = :5, has_alpha_numeric = :6, last_modified_at = CURRENT_TIMESTAMP, is_cbe = :7 WHERE id = :8`
 	_, err := q.db.ExecContext(ctx, query,
 		bank.BankName,
 		bank.Logo,
@@ -43,6 +44,7 @@ func (q *Queries) Update(ctx context.Context, id string, bank *imodel.BankOracle
 		bank.IsEnabled,
 		bank.AccountLength,
 		bank.HasAlphaNumeric,
+		bank.IS_CBE,
 		id,
 	)
 	return err
