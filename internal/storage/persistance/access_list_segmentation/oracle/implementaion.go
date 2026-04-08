@@ -227,9 +227,13 @@ func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Contex
 	err := q.db.QueryRowContext(ctx, `
     SELECT city_id, region_id, district_id
     FROM ACCOUNT_BLOCKS
-    WHERE id = :1
+    WHERE id = HEXTORAW(:1)
 `, geographicalID).Scan(&cityID, &regionID, &districtID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			q.logger.Infof("[AccessListSegmentation][FindAllForBlockParents] no account block for id: %s", geographicalID)
+			return nil, nil
+		}
 		q.logger.Errorf("[AccessListSegmentation][FindAllForBlockParents] failed to fetch block: %v", err)
 		return nil, err
 	}
@@ -263,7 +267,7 @@ func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Contex
     WHERE g.segmented_id IN (%s)
 `, strings.Join(placeholders, ","))
 
-	rows, err := q.db.QueryContext(ctx, query, geographicalID)
+	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		q.logger.Errorf("[AccessListSegmentation][FindAllForBlock] query failed: %v", err)
 		return nil, err
@@ -559,9 +563,12 @@ func (q *accessListSegmentationOracle) FindBySegmentIDAndAccessListKeys(ctx cont
 	err := q.db.QueryRowContext(ctx, `
 		SELECT city_id, region_id, district_id
 		FROM ACCOUNT_BLOCKS
-		WHERE id = :1
+		WHERE id = HEXTORAW(:1)
 	`, id).Scan(&cityID, &regionID, &districtID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
+		}
 		q.logger.Errorf("[AccessListSegmentation][FindBySegmentIDAndAccessListKeys] failed to fetch block: %v", err)
 		return nil, err
 	}
@@ -598,7 +605,7 @@ func (q *accessListSegmentationOracle) FindBySegmentIDAndAccessListKeys(ctx cont
 	}
 	// Combine all args: first seg ids, then keys
 	args := append(segArgs, keyArgs...)
-	query := fmt.Sprintf(`SELECT RAWTOHEX(id), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), enabled, created_at, updated_at, deleted_at FROM ACCESS_LIST_GEO_SEG WHERE segmented_id IN (%s) AND access_list_key IN (%s)`, strings.Join(segPlaceholders, ","), strings.Join(keyPlaceholders, ","))
+	query := fmt.Sprintf(`SELECT RAWTOHEX(id), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), type, enabled, created_at, updated_at, deleted_at FROM ACCESS_LIST_GEO_SEG WHERE segmented_id IN (%s) AND access_list_key IN (%s)`, strings.Join(segPlaceholders, ","), strings.Join(keyPlaceholders, ","))
 	row := q.db.QueryRowContext(ctx, query, args...)
 	var seg model.AccessListSegmentation
 	err = row.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
