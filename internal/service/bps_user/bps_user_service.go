@@ -286,6 +286,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 
 	b.logger.Infof("[CreateBPSUser] existing user on CPS: %v", is_exist_on_CPS)
 	if is_exist_on_CPS != nil {
+		b.logger.Infof("[CreateBPSUser] found existing user on CPS----------------: %v", is_exist_on_CPS)
 		if is_exist_on_CPS.UserName != "" && is_exist_on_CPS.UserName == req.Username {
 			b.logger.Errorf("[CreateBPSUser] user name already exist")
 			return errors.New(localization.ErrorExistUserName.Code)
@@ -304,9 +305,13 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 	}
 
 	branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "code", strings.TrimSpace(req.BranchCode[0]))
-	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+	if err != nil {
 		b.logger.Errorf("[CreateBPSUser] Get error while locking branch name by branch code")
-		return errors.New(localization.ErrorInternalServerError.Code)
+		if err.Error() == localization.ErrorResourceNotFound.Code {
+			return errors.New(localization.ErrorBranchNotExistWithGivenBranchCode.Code)
+		}
+		return err
+		// return errors.New(localization.ErrorInternalServerError.Code)
 	}
 	if branch_detail == nil {
 		b.logger.Warnf("[CreateBPSUser] branch not found with given branch code")
