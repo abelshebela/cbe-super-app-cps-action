@@ -1334,6 +1334,11 @@ const (
 	MsgCpsActionRoleNotFound = "CPS action role not found"
 	MsgRoleNotFound          = "Role not found"
 	MsgExistingUsedRole      = "You used Existing Role data in the request"
+		MsgExistingUsedRoleCode     = "You used Existing Role code in the request"
+			MsgExistingUsedRoleName      = "You used Existing Role name in the request"
+
+
+
 	MsgRoleIDMissing         = "Role ID is missing in the request"
 	// transaction related messages
 	MsgTransactionsRetrievedSuccess  = "Transactions retrieved successfully"
