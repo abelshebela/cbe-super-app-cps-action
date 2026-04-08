@@ -15,6 +15,7 @@ type ServiceResponse struct {
 	MinimumFraudAmount       string       `bson:"minimum_fraud_amount" json:"minimum_fraud_amount"`
 	ProductGlAccount         string       `bson:"product_gl_account" json:"product_gl_account"`
 	ProductGlAccountCurrency string       `bson:"product_gl_account_currency" json:"product_gl_account_currency"`
+	Enabled                  bool         `bson:"enabled" json:"enabled"`
 	IsDeleted                bool         `bson:"is_deleted" json:"is_deleted"`
 	CreatedAt                time.Time    `bson:"created_at" json:"created_at"`
 	LastModifiedAt           time.Time    `bson:"last_modified_at" json:"last_modified_at"`
