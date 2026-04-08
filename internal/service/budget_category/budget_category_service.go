@@ -340,7 +340,7 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 	}
 
 	newBudgetCategory.UpdateAt = time.Now().UTC().Format(time.RFC3339)
-
+	newBudgetCategory.IsEnabled = existingBudgetCategory.IsEnabled
 	cpsActionData := lib.CpsModelBuilder(
 		id,
 		makerUser,
