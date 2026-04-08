@@ -240,11 +240,13 @@ func PipelineBuilderWithRole(userCode, departmentColl, rolesColl, jobRolesColl s
 					"preserveNullAndEmptyArrays": false,
 				}}},
 
+				// type, code, name: all from job_roles (job_role doc after $unwind)
 				bson.D{{Key: "$project", Value: bson.M{
-					"_id":     0,
-					"role_id": "$job_role._id",
-					"code":    "$job_role.code",
-					"name":    "$job_role.name",
+					"_id":       0,
+					"role_id":   "$job_role._id",
+					"code":      "$job_role.code",
+					"name":      "$job_role.name",
+					"role_type": "$job_role.type",
 				}}},
 			},
 			"as": "role_doc",
@@ -284,6 +286,7 @@ func PipelineBuilderWithRole(userCode, departmentColl, rolesColl, jobRolesColl s
 			"role": bson.M{
 				"code": "$role_doc.code",
 				"name": "$role_doc.name",
+				"type": "$role_doc.role_type",
 			},
 			"role_code": "$role_doc.code",
 			"role_id":   "$role_doc.role_id",
@@ -302,7 +305,12 @@ func PipelineBuilderWithRole(userCode, departmentColl, rolesColl, jobRolesColl s
 			"gender":       1,
 			"realm":        1,
 			"enabled":      1,
-			"job_title":    1,
+			"job_title": bson.M{
+				"title":    "$job_title",
+				"type":     bson.M{"$ifNull": []interface{}{"$role_doc.role_type", ""}},
+				"role_code": bson.M{"$ifNull": []interface{}{"$role_doc.code", ""}},
+				"role_name": bson.M{"$ifNull": []interface{}{"$role_doc.name", ""}},
+			},
 		}}},
 	}
 }
