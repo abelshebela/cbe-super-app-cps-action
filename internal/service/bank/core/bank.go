@@ -1,6 +1,9 @@
 package bank_core
 
 import (
+	"encoding/json"
+	"fmt"
+
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -47,39 +50,33 @@ func Bank_mapper(action map[string]interface{}) model.Bank {
 func Bank_oracle_mapper(action map[string]interface{}) imodel.BankOracle {
 	bank := imodel.BankOracle{}
 
-	if v, ok := action["bankname"]; ok {
-		if name, ok := v.(string); ok {
-			bank.BankName = name
-		}
-	}
-	if v, ok := action["logo"]; ok {
-		if logo, ok := v.(string); ok {
-			bank.Logo = logo
-		}
-	}
-	if v, ok := action["biccode"]; ok {
-		if bicCode, ok := v.(string); ok {
-			bank.BICCode = bicCode
-		}
-	}
-	if v, ok := action["isenabled"]; ok {
-		if enabled, ok := v.(float64); ok {
-			bank.IsEnabled = int(enabled)
-		}
-	}
-	if v, ok := action["hasalphanumeric"]; ok {
-		if has_alpha_numeric, ok := v.(float64); ok {
-			bank.HasAlphaNumeric = int(has_alpha_numeric)
-		}
-	}
-	if v, ok := action["accountlength"]; ok {
-		if accountLength, ok := v.(float64); ok {
-			bank.AccountLength = int(accountLength)
-		}
-	}
+	// CurrentAction is JSON from BankOracle (tags: bank_name, bic_code, …) or legacy/alternate keys.
+	bank.BankName = stringField(action, "bank_name", "bankname", "name")
+	bank.Logo = stringField(action, "logo")
+	bank.BICCode = stringField(action, "bic_code", "biccode", "bic")
+	bank.IsEnabled = intField(action, "is_enabled", "isenabled", "enabled")
+	bank.HasAlphaNumeric = intField(action, "has_alpha_numeric", "hasalphanumeric")
+	bank.AccountLength = intField(action, "account_length", "accountlength")
+	bank.ID = stringField(action, "id")
+	bank.CreateAt = stringField(action, "create_at", "created_at")
+	bank.UpdateAt = stringField(action, "update_at", "last_modified_at")
+
 	if v, ok := action["is_cbe"]; ok {
-		if is_cbe, ok := v.(bool); ok {
-			if is_cbe {
+		switch x := v.(type) {
+		case bool:
+			if x {
+				bank.IS_CBE = 1
+			} else {
+				bank.IS_CBE = 0
+			}
+		case float64:
+			if int(x) != 0 {
+				bank.IS_CBE = 1
+			} else {
+				bank.IS_CBE = 0
+			}
+		case int:
+			if x != 0 {
 				bank.IS_CBE = 1
 			} else {
 				bank.IS_CBE = 0
@@ -88,4 +85,46 @@ func Bank_oracle_mapper(action map[string]interface{}) imodel.BankOracle {
 	}
 
 	return bank
+}
+
+func stringField(m map[string]interface{}, keys ...string) string {
+	for _, k := range keys {
+		if v, ok := m[k]; ok && v != nil {
+			switch x := v.(type) {
+			case string:
+				return x
+			case fmt.Stringer:
+				return x.String()
+			default:
+				return fmt.Sprint(x)
+			}
+		}
+	}
+	return ""
+}
+
+func intField(m map[string]interface{}, keys ...string) int {
+	for _, k := range keys {
+		if v, ok := m[k]; ok && v != nil {
+			switch x := v.(type) {
+			case float64:
+				return int(x)
+			case int:
+				return x
+			case int64:
+				return int(x)
+			case json.Number:
+				i, err := x.Int64()
+				if err == nil {
+					return int(i)
+				}
+			case bool:
+				if x {
+					return 1
+				}
+				return 0
+			}
+		}
+	}
+	return 0
 }
