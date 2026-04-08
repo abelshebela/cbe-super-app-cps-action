@@ -284,6 +284,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		}
 	}
 
+	b.logger.Infof("[CreateBPSUser] existing user on CPS: %v", is_exist_on_CPS)
 	if is_exist_on_CPS != nil {
 		if is_exist_on_CPS.UserName != "" && is_exist_on_CPS.UserName == req.Username {
 			b.logger.Errorf("[CreateBPSUser] user name already exist")
