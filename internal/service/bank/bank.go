@@ -406,7 +406,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	bank, err := b.oracleRepo.FindByID(ctx, id)
+	bank, err := b.repo.FindByID(ctx, id)
 
 	if err != nil {
 		span.AddEvent("[UpdateLogo] failed to find bank", trace.WithAttributes(
