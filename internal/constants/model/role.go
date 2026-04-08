@@ -13,7 +13,8 @@ type Role struct {
 	Enabled   bool          `json:"enabled" bson:"enabled"`
 	UpdateAt  time.Time     `json:"updated_at" bson:"updated_at"`
 	CreatedAt time.Time     `json:"created_at" bson:"created_at"`
-	Type      string        `json:"type" bson:"type"` // from job_roles.type (aggregation)
-	RoleCode  string        `json:"role_code,omitempty" bson:"role_code,omitempty"`
-	RoleName  string        `json:"role_name,omitempty" bson:"role_name,omitempty"`
+	// Type, RoleCode, RoleName are populated on read when using RoleRepository aggregation (GET /job_roles*), not stored on the roles document.
+	Type     string `json:"type" bson:"type"`
+	RoleCode string `json:"role_code,omitempty" bson:"role_code,omitempty"`
+	RoleName string `json:"role_name,omitempty" bson:"role_name,omitempty"`
 }
