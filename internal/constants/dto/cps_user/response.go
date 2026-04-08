@@ -136,6 +136,9 @@ type CpsUserPopulatedResponse struct {
 	CheckerAllocations []string                  `json:"checker_allocations" example:"[[\"Action1_Checker1\", \"Action1_Checker2\"], [\"Action2_Checker1\"]]"`
 	AuditorAllocations []string                  `json:"auditor_allocations" example:"[\"Action1\", \"Action2\"]"`
 	LastLogin          time.Time                 `json:"last_login" bson:"last_login"` // optional
+	PasswordDisable    bool                      `json:"password_disable" bson:"password_disable"`
+	IsFirstTimeLogin   bool                      `json:"is_first_time_login" bson:"is_first_time_login"`
+	CreatedAt          time.Time                 `json:"created_at" bson:"created_at"`
 }
 
 type Department struct {

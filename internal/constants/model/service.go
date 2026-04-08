@@ -34,7 +34,6 @@ type ServiceKey struct {
 	ServiceKey     string     `json:"service_key" bson:"service_key"`
 	IsUSSDEnabled  bool       `json:"is_ussd_enabled" bson:"is_ussd_enabled"`
 	IsEnabled      bool       `json:"is_enabled" bson:"is_enabled"`
-	IsDeleted      bool       `json:"is_deleted" bson:"is_deleted"`
 	CreatedAt      time.Time  `json:"created_at" bson:"created_at"`
 	LastModifiedAt time.Time  `json:"last_modified_at" bson:"last_modified_at"`
 	DeletedAt      *time.Time `json:"deleted_at,omitempty" bson:"deleted_at,omitempty"`

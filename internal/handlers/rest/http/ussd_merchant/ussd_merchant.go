@@ -388,3 +388,35 @@ func (u *UssdMerchantHandler) GetAllUssdMerchant(w http.ResponseWriter, r *http.
 
 	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantFetched, result)
 }
+
+
+func (u *UssdMerchantHandler)DelereUssdMerchant(w http.ResponseWriter,r *http.Request){
+	ctx,span := local_util.TraceLogger(r.Context(),"handler","DeleteUssdMerchant","handler","ussdMerchant")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx,u.Logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		log.Errorf("[GetUssdMerchantHandler] missing id parameter in request path")
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidID.Code)
+		return
+	}
+	
+	err := u.UssdMerchantService.DeleteUssdMerchant(ctx,id)
+	if err != nil{
+		log.Errorf("[DeleteUssdMerchant]failed to delete ussd merchant: %v",err)
+		localization.SendErrorByCodeResponse(w,err.Error())
+		return
+	}
+	if md.IsMakerOnly{
+			w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+			localization.SendSuccessResponse(w,localization.SucccessDeleteUssdMerchant,nil)
+
+	} else {
+		span.AddEvent("USSD merchant delete request submitted")
+		log.Infof("[USSD merchant][Delete] request submitted")
+		localization.SendSuccessResponse(w,localization.SucccessUssdMerchantDeleteRequest,nil)
+}}
+

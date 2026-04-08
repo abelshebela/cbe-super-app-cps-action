@@ -161,16 +161,16 @@ func (q *WalletStorage) EnableOrDisable(ctx context.Context, id string, enable b
 	return nil
 }
 
-func (q *WalletStorage) Find(ctx context.Context, code string, name string) (*model.WalletOracle, error) {
+func (q *WalletStorage) Find(ctx context.Context, code string, name string, service_id string) (*model.WalletOracle, error) {
 	q.logger.Infof("[WalletStorage][Find] Finding wallet with unique_code: %s and Name: %s", code, name)
 
-	if code == "" && name == "" {
-		q.logger.Warnf("[WalletStorage][Find] unique_code and name are empty")
+	if code == "" && name == "" && service_id == "" {
+		q.logger.Warnf("[WalletStorage][Find] unique_code, name, and service_id are empty")
 		return nil, localization.ErrorUnexpectedError
 	}
 
-	query := `SELECT RAWTOHEX(id), name, unique_code, RAWTOHEX(service_id), enabled, avatar, services_self, services_other, services_agent, is_deleted, created_at, last_modified_at, deleted_at FROM wallets WHERE UPPER(unique_code)=:1 AND UPPER(name)=:2 AND is_deleted=0`
-	row := q.db.QueryRowContext(ctx, query, strings.ToUpper(code), strings.ToUpper(name))
+	query := `SELECT RAWTOHEX(id), name, unique_code, RAWTOHEX(service_id), enabled, avatar, services_self, services_other, services_agent, is_deleted, created_at, last_modified_at, deleted_at FROM wallets WHERE UPPER(unique_code)=:1 AND UPPER(name)=:2 AND RAWTOHEX(service_id)=:3 AND is_deleted=0`
+	row := q.db.QueryRowContext(ctx, query, strings.ToUpper(code), strings.ToUpper(name), service_id)
 	var wallet model.WalletOracle
 	if err := scanWalletOracleCore(row, &wallet, false, nil, nil); err != nil {
 		if err == sql.ErrNoRows {

@@ -50,6 +50,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessServiceListEnabled,
 	SuccessServiceListDisableRequestSubmitted,
 	SuccessServiceListDisabled,
+	SuccessServiceKeyDeleted,
+	SuccessServiceKeyDeleteRequestSubmitted,
 	SuccessServiceCreated,
 	SuccessServiceUpdateRequestSubmitted,
 	SuccessServiceUpdated,
@@ -457,6 +459,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAvatarAlreadyExist,
 	ErrorWalletNameAlreadyExists,
 	ErrorWalletCodeAlreadyExists,
+	ErrorWalletServiceAlreadyExists,
 	ErrorWalletServiceIDAlreadyExists,
 	ErrorWalletWithNameOrCodeAlreadyExists,
 	ErrorWalletAlreadyDisabled,
@@ -930,6 +933,10 @@ var ResponseCodesList = []ResponseCode{
 	SuccessCPSRoleCreatedSP,
 	SuccessCPSRoleDeletedSP,
 	ErrorBranchNotExistWithGivenBranchCode,
+
+	SucccessDeleteUssdMerchant,
+	SucccessUssdMerchantDeleteRequest,
+	ErrorUssdMerchantNotFound,
 }
 
 // Success Response Codes
@@ -2912,6 +2919,12 @@ var (
 		Message:    "Wallet with the given code already exists",
 		Type:       "error",
 	}
+	ErrorWalletServiceAlreadyExists = ResponseCode{
+		Code:       "ERROR_WALLET_WITH_SERVICE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet with the given service already exists",
+		Type:       "error",
+	}
 	ErrorWalletServiceIDAlreadyExists = ResponseCode{
 		Code:       "ERROR_WALLET_WITH_SERVICE_ID_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
@@ -3977,6 +3990,20 @@ var (
 		Code:       "SUCCESS_SERVICE_LIST_DISABLED_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    "Service list disabled successfully",
+		Type:       "success",
+	}
+
+	SuccessServiceKeyDeleted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_KEY_DELETED",
+		StatusCode: StatusNoContent,
+		Message:    "service & key deleted successfully",
+		Type:       "success",
+	}
+
+	SuccessServiceKeyDeleteRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_KEY_DELETE_REQUEST_SUBMITTED",
+		StatusCode: StatusNoContent,
+		Message:    "Service & key delete request submitted successfully",
 		Type:       "success",
 	}
 
@@ -5100,6 +5127,31 @@ var (
 		Message:    MsgUssdMerchantFetchedSuccessfully,
 		Type:       "success",
 	}
+	SucccessDeleteUssdMerchant = ResponseCode{
+		Code:"SUCCESS_DELETE_MERCHANT_USSD",
+		StatusCode :StatusOK,
+		Message : MsgUssdMerchantDeletedSuccessfully,
+		Type : "success",
+
+	}
+
+	SucccessUssdMerchantDeleteRequest = ResponseCode{
+		Code:"SUCCESS_MERCHANT_USSD_DELETE_REQUEST",
+		StatusCode :StatusOK,
+		Message : MsgUssdMerchantDeleteRequestCreatedSuccessfully,
+		Type : "success",
+
+	}
+	ErrorUssdMerchantNotFound = ResponseCode{
+		Code:       "ERROR_USSD_MERCHANT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "ussd mercahant not found",
+		Type:       "error",
+	}
+
+	
+	
+
 
 	SuccessUssdMerchantDeleted = ResponseCode{
 		Code:       "SUCCESS_USSD_MERCHANT_DELETED",
@@ -7652,7 +7704,7 @@ var (
 	ErrorServiceListNotFound = ResponseCode{
 		Code:       "ERROR_SERVICE_LIST_NOT_FOUND",
 		StatusCode: StatusNotFound,
-		Message:    "Service list not found",
+		Message:    "service key not found",
 		Type:       "error",
 	}
 
