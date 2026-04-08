@@ -147,9 +147,9 @@ func (q *Queries) FindByNameOrBIC(ctx context.Context, bic, name string) (*imode
 		&bank.IsEnabled,
 		&bank.AccountLength,
 		&bank.HasAlphaNumeric,
-		&bank.IS_CBE,
 		&bank.CreateAt,
 		&bank.UpdateAt,
+		&bank.IS_CBE,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
