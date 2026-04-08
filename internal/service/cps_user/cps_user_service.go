@@ -491,8 +491,8 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 
 	var makerAlloc, checkerAlloc, auditorAlloc, portalCard []string
 	var roles *imodel.Role
-	if populated.JobTitle.Title != "" {
-		roles, err = s.roleRepo.FindByName(ctx, populated.JobTitle.Title)
+	if populated.JobTitle != "" {
+		roles, err = s.roleRepo.FindByName(ctx, populated.JobTitle)
 		if err != nil {
 			span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
