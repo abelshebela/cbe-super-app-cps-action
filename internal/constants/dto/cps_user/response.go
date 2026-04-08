@@ -113,7 +113,7 @@ type RoleResponse struct {
 	Type string `json:"type" bson:"type"`
 }
 
-// JobTitleEnriched is the populated job_title: stored title plus role type, role_code, and role name from roles/job_roles.
+// JobTitleEnriched is the populated job_title: title from the user doc; type, role_code, and role_name from job_roles.
 type JobTitleEnriched struct {
 	Title    string `json:"title" bson:"title"`
 	Type     string `json:"type" bson:"type"`
