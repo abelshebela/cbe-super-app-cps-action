@@ -140,6 +140,9 @@ func Init(ctx context.Context) {
 	logger.Infof("Oracle DB client initialized")
 	logger.Infof("Oracle DB client initialized", cfg.OracleConnectionString)
 
+	// Account blocks live in Oracle; persistence was initialized with nil — wire before any service uses it (e.g. BPS user create).
+	persistence.AccountBlockPersistence = OraclePersistence.AccountBlock
+
 	logger.Infof("Initializing SMS service...")
 	smsService := lib.InitNotificationStore(logger, cfg, notificationProducer)
 	logger.Infof("SMS service initialized")
