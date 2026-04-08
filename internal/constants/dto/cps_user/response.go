@@ -1,6 +1,7 @@
 package cpsuser
 
 import (
+	"encoding/json"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -109,6 +110,74 @@ type CpsUserResponse struct {
 type RoleResponse struct {
 	Code string `json:"code" bson:"code"`
 	Name string `json:"name" bson:"name"`
+	Type string `json:"type" bson:"type"`
+}
+
+// JobTitleEnriched is the populated job_title: stored title plus role type, role_code, and role name from roles/job_roles.
+type JobTitleEnriched struct {
+	Title    string `json:"title" bson:"title"`
+	Type     string `json:"type" bson:"type"`
+	RoleCode string `json:"role_code" bson:"role_code"`
+	RoleName string `json:"role_name" bson:"role_name"`
+}
+
+// UnmarshalBSON supports legacy string job_title or embedded document from aggregation.
+func (j *JobTitleEnriched) UnmarshalBSON(data []byte) error {
+	var v interface{}
+	if err := bson.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	return j.fillFromAny(v)
+}
+
+// UnmarshalJSON supports legacy string job_title in action payloads or enriched object.
+func (j *JobTitleEnriched) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 || string(data) == "null" {
+		return nil
+	}
+	if data[0] == '"' {
+		var s string
+		if err := json.Unmarshal(data, &s); err != nil {
+			return err
+		}
+		j.Title = s
+		return nil
+	}
+	var m map[string]interface{}
+	if err := json.Unmarshal(data, &m); err != nil {
+		return err
+	}
+	return j.fillFromAny(m)
+}
+
+func (j *JobTitleEnriched) fillFromAny(v interface{}) error {
+	switch x := v.(type) {
+	case string:
+		j.Title = x
+		return nil
+	case bson.M:
+		j.Title = stringFromAny(x["title"])
+		j.Type = stringFromAny(x["type"])
+		j.RoleCode = stringFromAny(x["role_code"])
+		j.RoleName = stringFromAny(x["role_name"])
+		return nil
+	case map[string]interface{}:
+		j.Title = stringFromAny(x["title"])
+		j.Type = stringFromAny(x["type"])
+		j.RoleCode = stringFromAny(x["role_code"])
+		j.RoleName = stringFromAny(x["role_name"])
+		return nil
+	default:
+		return nil
+	}
+}
+
+func stringFromAny(v interface{}) string {
+	if v == nil {
+		return ""
+	}
+	s, _ := v.(string)
+	return s
 }
 
 type CpsUserPopulatedResponse struct {
@@ -118,7 +187,7 @@ type CpsUserPopulatedResponse struct {
 	Role               RoleResponse              `json:"role,omitempty" bson:"role"` // optional, can keep empty
 	RoleCode           string                    `json:"role_code" bson:"role_code"`
 	Department         *DepartmentResponse       `json:"department" bson:"department"` // populated via $lookup
-	JobTitle           string                    `json:"job_title" bson:"job_title"`
+	JobTitle           JobTitleEnriched          `json:"job_title" bson:"job_title"`
 	Gender             string                    `json:"gender" bson:"gender"`
 	PhoneNumber        string                    `json:"phone_number" bson:"phone_number"`
 	Email              string                    `json:"email" bson:"email"`
