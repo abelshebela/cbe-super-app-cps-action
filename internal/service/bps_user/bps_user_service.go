@@ -304,7 +304,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		}
 	}
 
-	b.logger.Infof("[PASS]------------------------1")
+	b.logger.Infof("[PASS]------------------------1 %v", req.BranchCode)
 	branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "code", strings.TrimSpace(req.BranchCode[0]))
 	if err != nil {
 		b.logger.Errorf("[CreateBPSUser] Get error while locking branch name by branch code")
