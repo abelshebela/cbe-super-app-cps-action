@@ -245,15 +245,34 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(
 		idx++
 	}
 
-	// ✅ Optional enabled filter (FIXED)
+	// Optional enabled filter — Oracle column is NUMBER; godror rejects Go bool binds (ORA-00932).
 	if val, ok := filterParam.Filters["enabled"]; ok && val != nil {
-		_, ok := val.(bool)
-		if ok {
+		var on bool
+		var apply bool
+		switch b := val.(type) {
+		case bool:
+			on = b
+			apply = true
+		case string:
+			s := strings.TrimSpace(b)
+			if s == "" {
+				break
+			}
+			on = strings.EqualFold(s, "true") || s == "1"
+			apply = true
+		case float64:
+			on = b != 0
+			apply = true
+		}
+		if apply {
+			n := 0
+			if on {
+				n = 1
+			}
 			filters = append(filters, fmt.Sprintf("w.enabled = :%d", idx))
-			args = append(args, val)
+			args = append(args, n)
 			idx++
 		}
-
 	}
 
 	// Search filter
