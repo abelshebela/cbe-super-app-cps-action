@@ -22,6 +22,9 @@ import (
 	types "cbe-super-app-cps-action/internal/constants/types"
 )
 
+// JobRoleHandler serves /job_roles routes backed by the roles collection (job_title ↔ role code)
+// via RoleRepository. GET responses are imodel.Role; type, role_code, and role_name are filled
+// from the job_roles collection join in storage (see role_repo.roleWithJobRolePipeline).
 type JobRoleHandler struct {
 	service service.JobRoleService
 	logger  utils.Logger
@@ -34,10 +37,10 @@ func NewJobRoleHandler(service service.JobRoleService, logger utils.Logger) inbo
 	}
 }
 
-// GetAll godoc
+// GetAllWithPagination godoc
 //
-//	@Summary		Get all job roles
-//	@Description	Retrieve all job roles with pagination and optional search
+//	@Summary		List job-title↔role rows (paginated)
+//	@Description	Paginated roles collection rows with optional search. Each doc includes job_roles-derived type, role_code, and role_name (see imodel.Role). Response data.docs + data.meta.
 //	@Tags			Job Title with Role
 //	@Accept			json
 //	@Produce		json
@@ -76,6 +79,17 @@ func (j *JobRoleHandler) GetAllWithPagination(w http.ResponseWriter, r *http.Req
 	localization.SendSuccessResponse(w, localization.SuccessJobRolesFetchedSuccessfully, resp)
 }
 
+// GetAll godoc
+//
+//	@Summary		List all enabled job-title↔role rows
+//	@Description	Same projection as paginated list: roles collection with job_roles join (type, role_code, role_name on each imodel.Role).
+//	@Tags			Job Title with Role
+//	@Accept			json
+//	@Produce		json
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"Job roles retrieved successfully"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/job_roles/all [get]
 func (j *JobRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	log := common_utils.LoggerFromCtx(r.Context(), j.logger)
 	data, err := j.service.FindAll(r.Context())
@@ -91,7 +105,7 @@ func (j *JobRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 // GetByID godoc
 //
 //	@Summary		Get job role by ID
-//	@Description	Retrieve a job role by its ID
+//	@Description	Returns one roles document by _id with job_roles join fields (type, role_code, role_name) when a matching job_roles row exists.
 //	@Tags			Job Title with Role
 //	@Accept			json
 //	@Produce		json

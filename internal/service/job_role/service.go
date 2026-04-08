@@ -62,6 +62,7 @@ func (j *jobRoleService) Create(ctx context.Context, role imodel.Role) error {
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 
+// FindAll returns enabled rows from the roles collection with job_roles fields (type, role_code, role_name) via RoleRepository aggregation. Used by GET /job_roles/all.
 func (j *jobRoleService) FindAll(ctx context.Context) (*[]imodel.Role, error) {
 	return j.roleRepository.FindAll(ctx)
 }
@@ -163,10 +164,12 @@ func (j *jobRoleService) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
+// FindById returns one roles document by id with job_roles join fields. Used by GET /job_roles/{id}.
 func (j *jobRoleService) FindById(ctx context.Context, id string) (*imodel.Role, error) {
 	return j.roleRepository.FindByID(ctx, id)
 }
 
+// FindAllWithPagination lists roles collection rows with filters and job_roles enrichment. Used by GET /job_roles.
 func (j *jobRoleService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Role], error) {
 	return j.roleRepository.FindAllWithPagination(ctx, filterParam)
 }
