@@ -491,7 +491,7 @@ func (s *vaultCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 		// 	return cpsAction, fmt.Errorf("withdrawal status required")
 		// }
 
-		if err := s.AuthorizeDeadlockStatusUpdate(ctx, cpsAction.UniqueId, "COMPLETED"); err != nil {
+		if err := s.AuthorizeDeadlockStatusUpdate(ctx, cpsAction.UniqueId, "DISABLED"); err != nil {
 			span.AddEvent("Failed to update deadlock request", trace.WithAttributes(attribute.String("error", err.Error())))
 			s.logger.Errorf("[VaultCatSvc][Authorize] deadlock update err: %v", err)
 			return nil, err
