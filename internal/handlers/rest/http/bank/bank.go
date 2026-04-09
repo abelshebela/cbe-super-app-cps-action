@@ -71,7 +71,8 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	bankRequest.Name = r.FormValue("name")
+	Name := r.FormValue("name")
+	bankRequest.Name = strings.ToUpper(Name)
 	BICCode := r.FormValue("bic_code")
 	bankRequest.BICCode = strings.ToUpper(BICCode)
 
@@ -476,7 +477,8 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 		log.Infof("[BankH][Update] no logo, skipping")
 	}
 
-	updateRequest.Name = r.FormValue("name")
+	Name := r.FormValue("name")
+	updateRequest.Name = strings.ToUpper(Name)
 	updateRequest.BICCode = r.FormValue("bic_code")
 	BICCode := r.FormValue("bic_code")
 	updateRequest.BICCode = strings.ToUpper(BICCode)
