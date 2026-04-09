@@ -8327,6 +8327,18 @@ var (
 		Message:    MsgExistingUsedRole,
 		Type:       "error",
 	}
+	ErrorUsedRoleCodeExisting = ResponseCode{
+		Code:       "ERROR_USED_ROLE_CODE_EXISTING",
+		StatusCode: StatusBadRequest,
+		Message:    MsgExistingUsedRoleCode,
+		Type:       "error",
+	}
+	ErrorUsedRoleNameExisting = ResponseCode{
+		Code:       "ERROR_USED_ROLE_NAME_EXISTING",
+		StatusCode: StatusBadRequest,
+		Message:    MsgExistingUsedRoleName,
+		Type:       "error",
+	}
 
 	ErrorRoleIDMissing = ResponseCode{
 		Code:       "ERROR_ROLE_ID_MISSING",
