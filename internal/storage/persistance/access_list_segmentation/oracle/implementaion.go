@@ -223,12 +223,12 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 // FindAllForBlockParents implements [storage.AccessListSegmentationRepositoryOracle].
 func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Context, geographicalID string) ([]shared_model.APPAccessList, error) {
 	// Step 1: Fetch city_id, region_id, district_id for the given account block id
-	var cityID, regionID, districtID sql.NullString
+	var regionID, districtID sql.NullString
 	err := q.db.QueryRowContext(ctx, `
-    SELECT city_id, region_id, district_id
+    SELECT region_id, district_id
     FROM ACCOUNT_BLOCKS
     WHERE id = HEXTORAW(:1)
-`, geographicalID).Scan(&cityID, &regionID, &districtID)
+`, geographicalID).Scan(&regionID, &districtID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			q.logger.Infof("[AccessListSegmentation][FindAllForBlockParents] no account block for id: %s", geographicalID)
@@ -240,9 +240,6 @@ func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Contex
 
 	// Step 2: Build a slice of non-null IDs
 	var ids []string
-	if cityID.Valid {
-		ids = append(ids, cityID.String)
-	}
 	if regionID.Valid {
 		ids = append(ids, regionID.String)
 	}
@@ -250,6 +247,7 @@ func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Contex
 		ids = append(ids, districtID.String)
 	}
 	if len(ids) == 0 {
+		q.logger.Infof("[AccessListSegmentation][FindAllForBlockParents] no region or district for block id: %s", geographicalID)
 		return nil, nil // No city/region/district to look up
 	}
 
@@ -263,7 +261,7 @@ func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Contex
 	query := fmt.Sprintf(`
     SELECT RAWTOHEX(g.access_list_key), a.name, a.service_key, RAWTOHEX(a.id), g.enabled
     FROM ACCESS_LIST_GEO_SEG g
-    JOIN ACCESS_LISTS a ON g.access_list_key = a.id
+    JOIN ACCESS_LISTS a ON HEXTORAW(g.access_list_key) = a.id
     WHERE g.segmented_id IN (%s)
 `, strings.Join(placeholders, ","))
 
