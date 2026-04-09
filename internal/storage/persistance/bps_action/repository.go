@@ -74,13 +74,13 @@ func NewBPSActionRepository(client *mongo.Client, dbName string, collection stri
 // GetBPSActionByUserID implements [storage.BPSActionRepository].
 func (b *bpsActionRepository) GetBPSActionByUserID(ctx context.Context, userID string, filterParam types.Filter) (types.PaginatedResponse[[]bps_action.BPSAction], error) {
 	b.logger.Infof("[BPSAction][GetBPSActionByUserID] fetching BPS actions for user ID: %s", userID)
-	objID, err := bson.ObjectIDFromHex(userID)
-	if err != nil {
-		b.logger.Errorf("[BPSAction][GetBPSActionByUserID] invalid user ID: %v", err)
-		return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New(localization.ErrorInvalidID.Code)
-	}
+	// objID, err := bson.ObjectIDFromHex(userID)
+	// if err != nil {
+	// 	b.logger.Errorf("[BPSAction][GetBPSActionByUserID] invalid user ID: %v", err)
+	// 	return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New(localization.ErrorInvalidID.Code)
+	// }
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, nil)
-	filter["user_information.user_id"] = objID
+	filter["user_information.user_code"] = userID
 
 	cus, err := b.actionDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
@@ -88,7 +88,7 @@ func (b *bpsActionRepository) GetBPSActionByUserID(ctx context.Context, userID s
 		return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	filter = bson.M{"user_information.user_id": objID}
+	filter = bson.M{"user_information.user_code": userID}
 	total, err := b.actionDal.TotalCount(ctx, filter)
 	if err != nil {
 		b.logger.Errorf("[BPSAction][GetBPSActionByUserID] failed to fetch total count: %v", err)
