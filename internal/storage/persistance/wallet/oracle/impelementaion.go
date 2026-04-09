@@ -161,20 +161,50 @@ func (q *WalletStorage) EnableOrDisable(ctx context.Context, id string, enable b
 	return nil
 }
 
+// Find returns a non-deleted wallet matching any provided criterion (OR).
+// Pass only the fields you want to check: e.g. ("", name, "") for name uniqueness, or (code, "", "") for code.
+// Previously this used AND across all three, so duplicates on name or code alone were never detected.
 func (q *WalletStorage) Find(ctx context.Context, code string, name string, service_id string) (*model.WalletOracle, error) {
-	q.logger.Infof("[WalletStorage][Find] Finding wallet with unique_code: %s and Name: %s", code, name)
+	code = strings.TrimSpace(code)
+	name = strings.TrimSpace(name)
+	service_id = strings.TrimSpace(service_id)
+
+	q.logger.Infof("[WalletStorage][Find] code=%q name=%q service_id=%q", code, name, service_id)
 
 	if code == "" && name == "" && service_id == "" {
 		q.logger.Warnf("[WalletStorage][Find] unique_code, name, and service_id are empty")
 		return nil, localization.ErrorUnexpectedError
 	}
 
-	query := `SELECT RAWTOHEX(id), name, unique_code, RAWTOHEX(service_id), enabled, avatar, services_self, services_other, services_agent, is_deleted, created_at, last_modified_at, deleted_at FROM wallets WHERE UPPER(unique_code)=:1 AND UPPER(name)=:2 AND RAWTOHEX(service_id)=:3 AND is_deleted=0`
-	row := q.db.QueryRowContext(ctx, query, strings.ToUpper(code), strings.ToUpper(name), service_id)
+	var parts []string
+	var args []interface{}
+	idx := 1
+	if code != "" {
+		parts = append(parts, fmt.Sprintf("UPPER(TRIM(unique_code)) = UPPER(TRIM(:%d))", idx))
+		args = append(args, code)
+		idx++
+	}
+	if name != "" {
+		parts = append(parts, fmt.Sprintf("UPPER(TRIM(name)) = UPPER(TRIM(:%d))", idx))
+		args = append(args, name)
+		idx++
+	}
+	if service_id != "" {
+		parts = append(parts, fmt.Sprintf("RAWTOHEX(service_id) = UPPER(:%d)", idx))
+		args = append(args, strings.ToUpper(service_id))
+		idx++
+	}
+
+	query := fmt.Sprintf(
+		`SELECT RAWTOHEX(id), name, unique_code, RAWTOHEX(service_id), enabled, avatar, services_self, services_other, services_agent, is_deleted, created_at, last_modified_at, deleted_at
+		 FROM wallets WHERE is_deleted = 0 AND (%s) FETCH FIRST 1 ROW ONLY`,
+		strings.Join(parts, " OR "),
+	)
+	row := q.db.QueryRowContext(ctx, query, args...)
 	var wallet model.WalletOracle
 	if err := scanWalletOracleCore(row, &wallet, false, nil, nil); err != nil {
 		if err == sql.ErrNoRows {
-			q.logger.Infof("[WalletStorage][Find] No wallet found with unique_code: %s and Name: %s", code, name)
+			q.logger.Infof("[WalletStorage][Find] no wallet matched for code=%q name=%q service_id=%q", code, name, service_id)
 			return nil, nil
 		}
 		q.logger.Errorf("[WalletStorage][Find] failed: %v", err)
@@ -215,15 +245,34 @@ func (q *WalletStorage) FindAllWithPaginationForGRPC(
 		idx++
 	}
 
-	// ✅ Optional enabled filter (FIXED)
+	// Optional enabled filter — Oracle column is NUMBER; godror rejects Go bool binds (ORA-00932).
 	if val, ok := filterParam.Filters["enabled"]; ok && val != nil {
-		_, ok := val.(bool)
-		if ok {
+		var on bool
+		var apply bool
+		switch b := val.(type) {
+		case bool:
+			on = b
+			apply = true
+		case string:
+			s := strings.TrimSpace(b)
+			if s == "" {
+				break
+			}
+			on = strings.EqualFold(s, "true") || s == "1"
+			apply = true
+		case float64:
+			on = b != 0
+			apply = true
+		}
+		if apply {
+			n := 0
+			if on {
+				n = 1
+			}
 			filters = append(filters, fmt.Sprintf("w.enabled = :%d", idx))
-			args = append(args, val)
+			args = append(args, n)
 			idx++
 		}
-
 	}
 
 	// Search filter

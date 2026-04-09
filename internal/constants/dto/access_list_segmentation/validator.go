@@ -27,6 +27,9 @@ func (c *CreateAccessListSegmentationRequest) Validate() error {
 	if st != "block" && st != "account" {
 		return errors.New("segment type must be either 'Block' or 'Account'")
 	}
+	if strings.TrimSpace(c.SegmentationID) == "" {
+		return errors.New(localization.ErrorAccessListSegmentationIDSRequired.Code)
+	}
 	c.SegmentType = st
 	return nil
 }

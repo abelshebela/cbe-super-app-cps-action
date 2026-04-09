@@ -116,6 +116,27 @@ func (r *Repository) DeleteByCurrency(ctx context.Context, currency string) erro
 	return nil
 }
 
+func (r *Repository) DeleteByID(ctx context.Context, id string) error {
+	q := `UPDATE AMOUNT_BASED_AUTH_TIERS
+		SET is_deleted = 1,
+			last_modified = SYSTIMESTAMP
+		WHERE id = HEXTORAW(:1) AND is_deleted = 0`
+
+	res, err := r.db.ExecContext(ctx, q, id)
+	if err != nil {
+		r.logger.Errorf("[AmountBasedAuthOracle][DeleteByID] failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return local_util.HandleDBError(err)
+	}
+	if n == 0 {
+		return errors.New(localization.ErrorResourceNotFound.Code)
+	}
+	return nil
+}
+
 func (r *Repository) CurrencyExists(ctx context.Context, currency string) (bool, error) {
 	q := `SELECT COUNT(*) FROM AMOUNT_BASED_AUTH_TIERS WHERE currency = :1 AND is_deleted = 0`
 

@@ -75,6 +75,14 @@ func Init(router chi.Router, handler actionrole_inbound.BPSActionRoleHandler, au
 				auth.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/bps-action-roles/{code}",
+			Handler: handler.Delete,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

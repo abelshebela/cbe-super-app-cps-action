@@ -599,7 +599,8 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	where := strings.Join(clauses, " AND ")
 
-	countQ := fmt.Sprintf(`SELECT COUNT(*) %s WHERE %s AND is_deleted = 0`, fromClause, where)
+	// Do not append bare "is_deleted = 0" — both s and sk may have that column (ORA-00918). Clauses already include sk.is_deleted.
+	countQ := fmt.Sprintf(`SELECT COUNT(*) %s WHERE %s`, fromClause, where)
 	var total int64
 	if err := s.db.QueryRowContext(ctx, countQ, args...).Scan(&total); err != nil {
 		s.logger.Errorf("[ServicesRepo][FindAllWithPagination] count failed: %v", err)

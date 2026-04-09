@@ -21,8 +21,8 @@ func NewBankRepository(db *sql.DB, log utils.Logger) storage.BankOracleRepositor
 	}
 }
 func (q *Queries) Create(ctx context.Context, bank *imodel.BankOracle) error {
-	query := `INSERT INTO banks (id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at)
-		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, :6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
+	query := `INSERT INTO banks (id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, created_at, last_modified_at, is_cbe)
+		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, :6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :7)`
 	_, err := q.db.ExecContext(ctx, query,
 		bank.BankName,
 		bank.Logo,
@@ -30,12 +30,13 @@ func (q *Queries) Create(ctx context.Context, bank *imodel.BankOracle) error {
 		bank.IsEnabled,
 		bank.AccountLength,
 		bank.HasAlphaNumeric,
+		bank.IS_CBE,
 	)
 	return err
 }
 
 func (q *Queries) Update(ctx context.Context, id string, bank *imodel.BankOracle) error {
-	query := `UPDATE banks SET bank_name = :1, logo = :2, bic_code = :3, is_enabled = :4, account_length = :5, has_alpha_numeric = :6, update_at = CURRENT_TIMESTAMP WHERE id = :7`
+	query := `UPDATE banks SET bank_name = :1, logo = :2, bic_code = :3, is_enabled = :4, account_length = :5, has_alpha_numeric = :6, last_modified_at = CURRENT_TIMESTAMP, is_cbe = :7 WHERE id = :8`
 	_, err := q.db.ExecContext(ctx, query,
 		bank.BankName,
 		bank.Logo,
@@ -43,6 +44,7 @@ func (q *Queries) Update(ctx context.Context, id string, bank *imodel.BankOracle
 		bank.IsEnabled,
 		bank.AccountLength,
 		bank.HasAlphaNumeric,
+		bank.IS_CBE,
 		id,
 	)
 	return err
@@ -55,7 +57,7 @@ func (q *Queries) Delete(ctx context.Context, id string) error {
 }
 
 func (q *Queries) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	query := `UPDATE banks SET is_enabled = :1, update_at = CURRENT_TIMESTAMP WHERE id = :2`
+	query := `UPDATE banks SET is_enabled = :1, last_modified_at = CURRENT_TIMESTAMP WHERE id = :2`
 	var err error
 	if enable {
 		_, err = q.db.ExecContext(ctx, query, 1, id)
@@ -67,7 +69,7 @@ func (q *Queries) EnableOrDisable(ctx context.Context, id string, enable bool) e
 }
 
 func (q *Queries) FindByID(ctx context.Context, id string) (*imodel.BankOracle, error) {
-	query := `SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at, is_cbe FROM BANKS WHERE id = :1`
+	query := `SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, created_at, last_modified_at, is_cbe FROM BANKS WHERE id = :1 AND is_deleted = 0`
 	row := q.db.QueryRowContext(ctx, query, id)
 	var bank imodel.BankOracle
 	err := row.Scan(
@@ -92,7 +94,7 @@ func (q *Queries) FindByID(ctx context.Context, id string) (*imodel.BankOracle, 
 }
 
 func (q *Queries) FindByBIC(ctx context.Context, bic string) (*imodel.BankOracle, error) {
-	query := `SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at, is_cbe FROM BANKS WHERE bic_code = :1 AND is_enabled = 1`
+	query := `SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, created_at, last_modified_at, is_cbe FROM BANKS WHERE bic_code = :1 AND is_enabled = 1 AND is_deleted = 0`
 	row := q.db.QueryRowContext(ctx, query, bic)
 	var bank imodel.BankOracle
 	err := row.Scan(
@@ -134,7 +136,7 @@ func (q *Queries) FindByNameOrBIC(ctx context.Context, bic, name string) (*imode
 	if len(conditions) == 0 {
 		return nil, nil
 	}
-	query := fmt.Sprintf(`SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at, is_cbe FROM BANKS WHERE %s`, strings.Join(conditions, " OR "))
+	query := fmt.Sprintf(`SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, created_at, last_modified_at, is_cbe FROM BANKS WHERE %s AND is_deleted = 0`, strings.Join(conditions, " OR "))
 	row := q.db.QueryRowContext(ctx, query, args...)
 	var bank imodel.BankOracle
 	err := row.Scan(
@@ -145,9 +147,9 @@ func (q *Queries) FindByNameOrBIC(ctx context.Context, bic, name string) (*imode
 		&bank.IsEnabled,
 		&bank.AccountLength,
 		&bank.HasAlphaNumeric,
-		&bank.IS_CBE,
 		&bank.CreateAt,
 		&bank.UpdateAt,
+		&bank.IS_CBE,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -187,7 +189,7 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] whereClause: %s, args: %+v", whereClause, args)
 
 	// Count total
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM BANKS WHERE %s", whereClause)
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM BANKS WHERE %s AND is_deleted = 0", whereClause)
 	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] countQuery: %s", countQuery)
 	var total int64
 
@@ -220,7 +222,7 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] offset: %d, limit: %d", offset, limit)
 
 	// Determine sort order for name
-	orderBy := "create_at DESC"
+	orderBy := "created_at DESC"
 	if val, ok := filterParam.Filters["sort_name"]; ok {
 		q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] sort filter: %v", val)
 		if s, ok := val.(string); ok && (strings.ToUpper(s) == "ASC" || strings.ToUpper(s) == "DESC") {
@@ -229,7 +231,7 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	}
 
 	// Fetch paginated results
-	selectQuery := fmt.Sprintf(`SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, create_at, update_at, is_cbe FROM BANKS WHERE %s ORDER BY %s OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY`, whereClause, orderBy, idx, idx+1)
+	selectQuery := fmt.Sprintf(`SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, created_at, last_modified_at, is_cbe FROM BANKS WHERE %s AND is_deleted = 0 ORDER BY %s OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY`, whereClause, orderBy, idx, idx+1)
 	args = append(args, offset, limit)
 	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] selectQuery: %s", selectQuery)
 	rows, err := q.db.QueryContext(ctx, selectQuery, args...)

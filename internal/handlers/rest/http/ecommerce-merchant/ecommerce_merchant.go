@@ -94,6 +94,7 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 
 	if userContext.IsErp {
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		log.Infof("[Create] request sent successfully for  ISERP: %v", userContext.IsErp)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreated, md.Id)
 		return
 	} else if md.IsMakerOnly {

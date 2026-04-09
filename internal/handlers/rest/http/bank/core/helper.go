@@ -113,6 +113,7 @@ func MapBankToAddBool(oracleBank []imodel.BankOracle) []bank_dto.BankOracleRespo
 			HasAlphaNumeric: bank.HasAlphaNumeric == 1,
 			CreateAt:        bank.CreateAt,
 			UpdateAt:        bank.UpdateAt,
+			IsCBE:           bank.IS_CBE == 1,
 		})
 
 	}
@@ -132,6 +133,7 @@ func MapSingleBankToAddBool(oracleBank imodel.BankOracle) bank_dto.BankOracleRes
 		HasAlphaNumeric: oracleBank.HasAlphaNumeric == 1,
 		CreateAt:        oracleBank.CreateAt,
 		UpdateAt:        oracleBank.UpdateAt,
+		IsCBE:           oracleBank.IS_CBE == 1,
 	}
 
 	return banks
