@@ -478,6 +478,8 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 
 	updateRequest.Name = r.FormValue("name")
 	updateRequest.BICCode = r.FormValue("bic_code")
+	BICCode := r.FormValue("bic_code")
+	updateRequest.BICCode = strings.ToUpper(BICCode)
 
 	if accountLength := r.FormValue("account_length"); accountLength != "" {
 		length, err := strconv.Atoi(accountLength)
