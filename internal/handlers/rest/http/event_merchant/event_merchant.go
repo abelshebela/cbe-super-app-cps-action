@@ -336,7 +336,7 @@ func (e *EventMerchantHandler) UpdateEventMerchant(w http.ResponseWriter, r *htt
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	if userContext.IsErp && md.IsMakerOnly {
+	if userContext.IsErp || md.IsMakerOnly {
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantUpdated, nil)
 	} else {

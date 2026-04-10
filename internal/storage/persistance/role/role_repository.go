@@ -335,5 +335,9 @@ func roleWithJobRolePipeline(match bson.M, jobRolesCollName string, skip, limit 
 	if limit > 0 {
 		p = append(p, bson.M{"$limit": limit})
 	}
+
+	if skip > 0 || limit > 0 {
+		p = append(p, bson.M{"$sort": bson.M{"created_at": -1}})
+	}
 	return p
 }

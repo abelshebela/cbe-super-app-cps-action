@@ -133,10 +133,7 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	case string(constants.RequestDisableBPSUser):
 		actionData.Enabled = false
 		b.logger.Infof("[BpsUserSvc][Authorize] disabling id: %s", cpsAction.UniqueId)
-	// case string(constants.RequestBpsUserDelete):
-	// 	actionData.IsDeleted = true
-	// 	// fmt.Println("LOLOLOLO IN AUTHORIZE DELETE")
-	// 	b.logger.Infof("[BpsUserSvc][Authorize] deleting id: %s", cpsAction.UniqueId)
+
 	default:
 		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", cpsAction.RequestAction)))
 		b.logger.Errorf("[BpsUserSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
@@ -324,6 +321,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		}
 		return err
 	}
+
 	if branch_detail == nil {
 		b.logger.Warnf("[CreateBPSUser] branch not found with given branch code")
 		return errors.New(localization.ErrorBranchNotExistWithGivenBranchCode.Code)
