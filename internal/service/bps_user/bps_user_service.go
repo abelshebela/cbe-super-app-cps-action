@@ -385,7 +385,7 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 			}
 		}
 	}
-
+	updatedUser.Enabled=curUser.Enabled
 	is_exist_on_CPS, err := b.CPSUserRepo.FindByEmailOrPhoneNumberOrUserName(ctx, updatedUser.Email, updatedUser.PhoneNumber, updatedUser.Username)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		b.logger.Errorf("[UpdateBPSUser] got error while checking user data exist on cps user ")

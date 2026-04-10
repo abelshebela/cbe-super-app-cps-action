@@ -164,7 +164,10 @@ func (s *servicesService) EnableOrDisableServiceList(ctx context.Context, id str
 		}
 		return localization.ErrorAlreadyDisabled
 	}
-	payload := imodel.ServiceKey{IsEnabled: enable}
+	// payload := imodel.ServiceKey{IsEnabled: enable}
+	payload := prev
+	payload.IsEnabled=enable
+
 	var requestAction constants.RequestAction
 	if enable {
 		requestAction = constants.RequestEnableServiceList
