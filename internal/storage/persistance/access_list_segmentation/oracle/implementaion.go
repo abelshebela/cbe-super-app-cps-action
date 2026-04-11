@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
-	shared_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -185,7 +184,7 @@ func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, a
 }
 
 // FindAllForBlock implements [storage.AccessListSegmentationRepository].
-func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geographicalID string) ([]shared_model.APPAccessList, error) {
+func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geographicalID string) ([]local_model.APPAccessList, error) {
 
 	query := `SELECT RAWTOHEX(g.access_list_key), a.name,a.service_key, RAWTOHEX(a.id), g.enabled
 		FROM ACCESS_LIST_GEO_SEG g
@@ -197,7 +196,7 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 		return nil, err
 	}
 	defer rows.Close()
-	var result []shared_model.APPAccessList
+	var result []local_model.APPAccessList
 	for rows.Next() {
 		var key, accessListName, accessListServiceKey, accessListID string
 		var enabled bool
@@ -211,8 +210,9 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 			return nil, err
 		}
 		q.logger.Infof("[AccessListSegmentation][FindAllForBlock] found access list segmentation: key=%s, name=%s, service_key=%s, id=%s, enabled=%v", key, accessListName, accessListServiceKey, accessListID, enabled)
-		result = append(result, shared_model.APPAccessList{
-			Key:            accessListID,
+		result = append(result, local_model.APPAccessList{
+			ID:             accessListID,
+			Key:            key,
 			AccessListName: accessListName,
 			Enabled:        enabled,
 		})
@@ -221,7 +221,7 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 }
 
 // FindAllForBlockParents implements [storage.AccessListSegmentationRepositoryOracle].
-func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Context, geographicalID string) ([]shared_model.APPAccessList, error) {
+func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Context, geographicalID string) ([]local_model.APPAccessList, error) {
 	// Step 1: Fetch city_id, region_id, district_id for the given account block id
 	var regionID, districtID sql.NullString
 	err := q.db.QueryRowContext(ctx, `
@@ -271,7 +271,7 @@ func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Contex
 		return nil, err
 	}
 	defer rows.Close()
-	var result []shared_model.APPAccessList
+	var result []local_model.APPAccessList
 	for rows.Next() {
 		var key, accessListName, accessListServiceKey, accessListID string
 		var enabled bool
@@ -285,8 +285,9 @@ func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Contex
 			return nil, err
 		}
 		q.logger.Infof("[AccessListSegmentation][FindAllForBlock] found access list segmentation: key=%s, name=%s, service_key=%s, id=%s, enabled=%v", key, accessListName, accessListServiceKey, accessListID, enabled)
-		result = append(result, shared_model.APPAccessList{
-			Key:            accessListID,
+		result = append(result, local_model.APPAccessList{
+			ID:             accessListID,
+			Key:            key,
 			AccessListName: accessListName,
 			Enabled:        enabled,
 		})
@@ -295,7 +296,7 @@ func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Contex
 }
 
 // FindAllBySegmentIDorSegmentCode implements [storage.AccessListSegmentationRepository].
-func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, customer_seg_id string) ([]shared_model.APPAccessList, error) {
+func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, customer_seg_id string) ([]local_model.APPAccessList, error) {
 	q.logger.Infof("[AccessListSegmentationOracle][FindAllForAccount] called with customer_seg_id: %s", customer_seg_id)
 
 	query := `SELECT RAWTOHEX(g.access_list_key), a.name,a.service_key, RAWTOHEX(a.id), g.enabled
@@ -308,7 +309,7 @@ func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, cu
 		return nil, err
 	}
 	defer rows.Close()
-	var result []shared_model.APPAccessList
+	var result []local_model.APPAccessList
 	for rows.Next() {
 		var key, accessListName, accessListServiceKey, accessListID string
 		var enabled bool
@@ -322,8 +323,9 @@ func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, cu
 			return nil, err
 		}
 		q.logger.Infof("[AccessListSegmentation][FindAllForAccount] found access list segmentation: key=%s, name=%s, service_key=%s, id=%s, enabled=%v", key, accessListName, accessListServiceKey, accessListID, enabled)
-		result = append(result, shared_model.APPAccessList{
-			Key:            accessListID,
+		result = append(result, local_model.APPAccessList{
+			ID:             accessListID,
+			Key:            key,
 			AccessListName: accessListName,
 			Enabled:        enabled,
 		})

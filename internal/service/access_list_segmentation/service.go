@@ -352,7 +352,7 @@ func (a *AccessListSegmentationService) CheckALLIdsExist(ctx context.Context, t 
 	return nil
 }
 
-func (a *AccessListSegmentationService) GetAllAccessListSegmentationForBlock(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, []model.APPAccessList, error) {
+func (a *AccessListSegmentationService) GetAllAccessListSegmentationForBlock(ctx context.Context, segmentIdentifier string) ([]local_model.APPAccessList, []local_model.APPAccessList, []local_model.APPAccessList, error) {
 	accessListSegmentation, err := a.repo.FindAllForBlock(ctx, segmentIdentifier)
 	if err != nil {
 		a.logger.Errorf("[AccessListSegSvc][GetAllAccessListSegmentationForBlock] err: %v", err)
@@ -379,7 +379,7 @@ func (a *AccessListSegmentationService) GetAllAccessListSegmentationForBlock(ctx
 	return accessList, accessListSegmentation, accessListSegmentationFromParent, nil
 }
 
-func (a *AccessListSegmentationService) GetAllAccessListSegmentationForAccount(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error) {
+func (a *AccessListSegmentationService) GetAllAccessListSegmentationForAccount(ctx context.Context, segmentIdentifier string) ([]local_model.APPAccessList, []local_model.APPAccessList, error) {
 	accessListSegmentation, err := a.repo.FindAllForAccount(ctx, segmentIdentifier)
 
 	if err != nil {
@@ -387,7 +387,7 @@ func (a *AccessListSegmentationService) GetAllAccessListSegmentationForAccount(c
 		return nil, nil, err
 	}
 
-	accessList := access_list_segmentation_core.FindNoneSegmentedAccessList(ctx, a.accessListServiceRepo, accessListSegmentation, []model.APPAccessList{})
+	accessList := access_list_segmentation_core.FindNoneSegmentedAccessList(ctx, a.accessListServiceRepo, accessListSegmentation, []local_model.APPAccessList{})
 
 	realtions, err := a.repo.FindParentChildRelationship(ctx)
 	if err != nil {
