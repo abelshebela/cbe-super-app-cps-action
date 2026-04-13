@@ -23,18 +23,20 @@ import (
 )
 
 type customerSegmentationService struct {
-	repo        storage.CustomerSegmentationRepository
-	cpsRoleRepo storage.CPSRolesRepository
-	cpsService  service.CPSActionService
-	logger      utils.Logger
+	repo             storage.CustomerSegmentationRepository
+	cpsRoleRepo      storage.CPSRolesRepository
+	cpsService       service.CPSActionService
+	segmentationRepo storage.AccessListSegmentationRepository
+	logger           utils.Logger
 }
 
-func NewCustomerSegmentation(repo storage.CustomerSegmentationRepository, cpsRoleRepo storage.CPSRolesRepository, cpsService service.CPSActionService, logger utils.Logger) *customerSegmentationService {
+func NewCustomerSegmentation(repo storage.CustomerSegmentationRepository, cpsRoleRepo storage.CPSRolesRepository, cpsService service.CPSActionService, segmentationRepo storage.AccessListSegmentationRepository, logger utils.Logger) *customerSegmentationService {
 	return &customerSegmentationService{
-		repo:        repo,
-		cpsRoleRepo: cpsRoleRepo,
-		cpsService:  cpsService,
-		logger:      logger,
+		repo:             repo,
+		cpsRoleRepo:      cpsRoleRepo,
+		cpsService:       cpsService,
+		segmentationRepo: segmentationRepo,
+		logger:           logger,
 	}
 }
 
@@ -213,6 +215,16 @@ func (s *customerSegmentationService) Delete(ctx context.Context, id string) err
 		s.logger.Errorf("[CustSegSvc][Delete] find err: %v", err)
 		return err
 	}
+
+	// exist, err := s.segmentationRepo.FindBySegmentationAndServiceID(ctx, existing.CustomerRole.Name, constants.CustomerSegmentationServiceID)
+	// if err != nil {
+	// 	s.logger.Errorf("[CustSegSvc][Delete] customer segmentation check err: %s, %v", existing.CustomerRole.Name, err)
+	// 	return err
+	// }
+	// if exist != nil {
+	// 	s.logger.Errorf("[CustSegSvc][Delete] sub-segment already exists: %s", existing.CustomerRole.ID)
+	// 	return fmt.Errorf("Customer segmentation already exists for this customer role you can't delete it")
+	// }
 
 	updated := *existing
 	updated.IsDeleted = true
