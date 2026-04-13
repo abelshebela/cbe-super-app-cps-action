@@ -10,7 +10,9 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
+
 	// "fmt"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -128,6 +130,16 @@ func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 	if err := common_utils.NoSpecialChars(filter); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
+	}
+
+	if filterParams.Filters["search"] != nil {
+
+		search := strings.TrimSpace(search)
+		if phoneNumber, ok := filterParams.Filters["search"].(string); ok {
+			phoneNumber = common_utils.FormatPhoneNumber(phoneNumber)
+			filterParams.Filters["search"] = phoneNumber
+		}
+		filterParams.Filters["search"] = search
 	}
 
 	users, err := h.Service.GetAllBPSUsers(ctx, filterParams)
@@ -272,13 +284,14 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userCodeGenerated := local_utils.RandomGenerator(8)
+	phoneNumber := common_utils.FormatPhoneNumber(req.PhoneNumber)
 
 	NewUser := bps_model.BPSUser{
 		Username:         req.UserID,
 		FullName:         req.FullName,
 		JobTitle:         req.JobTitle,
 		UserCode:         userCodeGenerated,
-		PhoneNumber:      req.PhoneNumber,
+		PhoneNumber:      phoneNumber,
 		BranchCode:       req.BranchCode,
 		Email:            req.Email,
 		FirstPasswordSet: true,
@@ -350,7 +363,8 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 		updatedUser.FullName = *req.FullName
 	}
 	if req.PhoneNumber != nil {
-		updatedUser.PhoneNumber = *req.PhoneNumber
+		phoneNumber := common_utils.FormatPhoneNumber(*req.PhoneNumber)
+		updatedUser.PhoneNumber = phoneNumber
 	}
 	if req.JobTitle != nil {
 		updatedUser.JobTitle = *req.JobTitle
@@ -361,20 +375,9 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	if req.Email != nil {
 		updatedUser.Email = *req.Email
 	}
-	// if req.Role != "" {
-	// 	updatedUser.Role = req.Role
-	// }
 	if len(req.BranchCode) > 0 {
 		updatedUser.BranchCode = req.BranchCode
 	}
-	// if req.HomeBranch != "" {
-	// 	updatedUser.HomeBranch = req.HomeBranch
-	// }
-	// if req.Realm != "" {
-	// 	updatedUser.Realm = req.Realm
-	// }
-	// Always update enabled (bool, so default is false if not set)
-	// updatedUser.Enabled = req.Enabled
 
 	err := h.Service.UpdateBPSUser(ctx, id, updatedUser)
 	if err != nil {
