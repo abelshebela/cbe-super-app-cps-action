@@ -124,6 +124,7 @@ func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *htt
 		return
 	}
 	req.ID = id
+	req.Platform = strings.ToUpper(req.Platform)
 	req.Clean()
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
@@ -200,6 +201,12 @@ func (h *deviceVersionAdapter) GetAllDeviceVersions(w http.ResponseWriter, r *ht
 	if err := common_utils.NoSpecialChars(filter); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
+	}
+
+	if filterParams.Filters["platform"] != nil {
+		platforms := filterParams.Filters["platform"].(string)
+		platforms = strings.ToUpper(platforms)
+		filterParams.Filters["platform"] = platforms
 	}
 
 	res, err := h.svc.GetAllDeviceVersions(ctx, filterParams)

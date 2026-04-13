@@ -174,7 +174,7 @@ func (e *EventMerchantHandler) DisableEventMerchant(w http.ResponseWriter, r *ht
 		return
 	}
 
-	if userContext.IsErp && md.IsMakerOnly {
+	if userContext.IsErp || md.IsMakerOnly {
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantDisabled, nil)
 	} else {
@@ -215,7 +215,7 @@ func (e *EventMerchantHandler) EnableEventMerchant(w http.ResponseWriter, r *htt
 		return
 	}
 
-	if userContext.IsErp && md.IsMakerOnly {
+	if userContext.IsErp || md.IsMakerOnly {
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantEnabled, nil)
 	} else {
