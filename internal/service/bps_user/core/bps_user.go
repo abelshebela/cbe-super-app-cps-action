@@ -1,7 +1,6 @@
 package bps_user_core
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -29,17 +28,17 @@ func ExistingIdentifier(existing *bps_model.BPSUser, req bps_model.BPSUser) erro
 	normalizedUsername := strings.TrimSpace(req.Username)
 
 	if normalizedEmail != "" && strings.EqualFold(strings.TrimSpace(existing.Email), normalizedEmail) {
-		return errors.New(localization.ErrorEmailAlreadyExist.Code)
+		return localization.ErrorEmailAlreadyExist
 	}
 
 	if normalizedPhone != "" {
 		storedPhone := local_util.FormatPhoneNumber(existing.PhoneNumber)
 		if storedPhone == normalizedPhone {
-			return errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
+			return localization.ErrorPhonenumberAlreadyExist
 		}
 	}
 	if strings.EqualFold(strings.TrimSpace(existing.Username), normalizedUsername) {
-		return errors.New(localization.ErrorUsernameAlreadyExist.Code)
+		return localization.ErrorUsernameAlreadyExist
 	}
 	return nil
 }
