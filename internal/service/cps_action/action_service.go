@@ -613,7 +613,8 @@ func (ca *cpsActionService) ExportCpsActionData(
 	}
 
 	if rowCount == 0 {
-		ca.logger.Infof("[CpsActionSvc][Export] no data found in date range %s - %s", filterMap.Filters["created_at_from"].(time.Time).Format(time.RFC3339), filterMap.Filters["created_at_to"].(time.Time).Format(time.RFC3339))
+		ca.logger.Infof("[CpsActionSvc][Export] no data found in date range %v - %v",
+			filterMap.Filters["created_at_from"], filterMap.Filters["created_at_to"])
 		return "", errors.New(localization.CpsActionDataNotFoundInDateRange.Code)
 	}
 
@@ -636,33 +637,25 @@ func (ca *cpsActionService) ExportCpsActionData(
 		return "", errors.New(localization.CpsActionDataExportedError.Code)
 	}
 
-	var fileType string
-	reqType, ok := filterMap.Filters["type"].(string)
-	if ok {
-		fileType = reqType
-	} else {
-		fileType = "text/csv"
+	// exportType comes from the handler (e.g. query file_type=csv); default to csv for this endpoint.
+	ft := strings.TrimSpace(strings.ToLower(exportType))
+	if ft == "" {
+		ft = "csv"
 	}
 
 	var url string
-	// var err error
-	if fileType == "csv" {
-		url, err = lib.UploadPDFToMinio(ctx, ca.minioClient, ca.buckerName, tmpFile, stat.Size(), ca.cfg, objectName, ca.logger)
-		if err != nil {
-			ca.logger.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
-			return "", errors.New(localization.CpsActionDataExportedError.Code)
-		}
-	} else {
-
+	if ft == "csv" {
 		url, err = lib.UploadCSVToMinio(ctx, ca.minioClient, ca.buckerName, tmpFile, stat.Size(), ca.cfg, objectName, ca.logger)
 		if err != nil {
 			ca.logger.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
 			return "", errors.New(localization.CpsActionDataExportedError.Code)
 		}
-	}
-	if err != nil {
-		ca.logger.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
-		return "", errors.New(localization.CpsActionDataExportedError.Code)
+	} else {
+		url, err = lib.UploadPDFToMinio(ctx, ca.minioClient, ca.buckerName, tmpFile, stat.Size(), ca.cfg, objectName, ca.logger)
+		if err != nil {
+			ca.logger.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
+			return "", errors.New(localization.CpsActionDataExportedError.Code)
+		}
 	}
 
 	baseURL := strings.TrimSuffix(ca.minioBaseURL, "/")

@@ -395,6 +395,8 @@ const (
 	RequestCreateAccessListSegmentation        constants.RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION"
 	RequestUpdateAccessListSegmentation        constants.RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION"
 	RequestEnableDisableAccessListSegmentation constants.RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION"
+	RequestEnableAccessListSegmentation        constants.RequestAction = "ENABLE_ACCESS_LIST_SEGMENTATION"
+	RequestDisableAccessListSegmentation       constants.RequestAction = "DISABLE_ACCESS_LIST_SEGMENTATION"
 )
 
 var validRequestActions = map[constants.RequestAction]struct{}{
@@ -1152,6 +1154,8 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestCreateAccessListSegmentation,
 		RequestUpdateAccessListSegmentation,
 		RequestEnableDisableAccessListSegmentation,
+		RequestEnableAccessListSegmentation,
+		RequestDisableAccessListSegmentation,
 	},
 	"CUSTOMERSEGMENTATIONS": {
 		RequestCreateCustomerSegmentation,
