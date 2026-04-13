@@ -121,7 +121,7 @@ func (r *Repository) EnableOrDisable(ctx context.Context, id string, enable bool
 
 func (r *Repository) FindByID(ctx context.Context, id string) (*imodel.BudgetCategoryOracle, error) {
 	// Prefer IS_ENABLED when both legacy columns exist (ENABLED can be stale).
-	q := `SELECT RAWTOHEX(ID) AS id, NAME, COLOR, ICON, TYPE, NVL(IS_ENABLED, ENABLED) AS eff_enabled, CREATE_AT, UPDATE_AT
+	q := `SELECT RAWTOHEX(ID) AS id, NAME, COLOR, ICON, "TYPE", NVL(IS_ENABLED, ENABLED) AS eff_enabled, CREATE_AT, UPDATE_AT
 		FROM BUDGET_CATEGORIES WHERE ID = HEXTORAW(:1)`
 	row := r.db.QueryRowContext(ctx, q, id)
 	var bc imodel.BudgetCategoryOracle
@@ -224,7 +224,7 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *ty
 		}
 		if v, ok := filterParams.Filters["type"]; ok {
 			if s, ok := v.(string); ok && s != "" {
-				filters = append(filters, fmt.Sprintf("UPPER(TYPE) = UPPER(:%d)", idx))
+				filters = append(filters, fmt.Sprintf(`UPPER("TYPE") = UPPER(:%d)`, idx))
 				args = append(args, s)
 				idx++
 			}
