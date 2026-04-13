@@ -170,17 +170,16 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 				 u.contact_phone,
 				 '' AS branch_code,
 				 u.gender,
-				 u.created_at,
 				 u.is_blocked,
 				 ac.account_number
 			 FROM users u
 			 LEFT JOIN linked_accounts la ON la.user_code = u.user_code
-			 Left JOIN accounts ac ON ac.id = la.account_id 
+			 LEFT JOIN accounts ac ON ac.id = la.account_id 
 			 WHERE (
-				 u.contact_phone = ':1'
-				 OR u.customer_number = ':1'
-				 OR u.user_code = ':1'
-				 OR ac.account_number = ':1'
+				 u.contact_phone = :1
+				 OR u.customer_number = :1
+				 OR u.user_code = :1
+				 OR ac.account_number = :1
 			 )
 			 AND u.is_active = 1
 			 AND (la.is_active = 1 OR la.is_active IS NULL)
@@ -192,7 +191,7 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 		createdAt                                                                                     time.Time
 		isBlocked                                                                                     int
 	)
-	err := row.Scan(&id, &userCode, &email, &customerNumber, &fullName, &phoneNumber, &branchCode, &gender, &createdAt, &isBlocked, &accountNumber)
+	err := row.Scan(&id, &userCode, &email, &customerNumber, &fullName, &phoneNumber, &branchCode, &gender, &isBlocked, &accountNumber)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, localization.ErrorCustomerNotFound
