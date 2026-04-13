@@ -26,11 +26,11 @@ type customerSegmentationService struct {
 	repo             storage.CustomerSegmentationRepository
 	cpsRoleRepo      storage.CPSRolesRepository
 	cpsService       service.CPSActionService
-	segmentationRepo storage.CustomerSegmentationRepository
+	segmentationRepo storage.AccessListSegmentationRepository
 	logger           utils.Logger
 }
 
-func NewCustomerSegmentation(repo storage.CustomerSegmentationRepository, cpsRoleRepo storage.CPSRolesRepository, cpsService service.CPSActionService, segmentationRepo storage.CustomerSegmentationRepository, logger utils.Logger) *customerSegmentationService {
+func NewCustomerSegmentation(repo storage.CustomerSegmentationRepository, cpsRoleRepo storage.CPSRolesRepository, cpsService service.CPSActionService, segmentationRepo storage.AccessListSegmentationRepository, logger utils.Logger) *customerSegmentationService {
 	return &customerSegmentationService{
 		repo:             repo,
 		cpsRoleRepo:      cpsRoleRepo,
@@ -216,15 +216,15 @@ func (s *customerSegmentationService) Delete(ctx context.Context, id string) err
 		return err
 	}
 
-	exist, err := s.segmentationRepo.FindByCustomerSegmentation(ctx, existing.CustomerRole.Name)
-	if err != nil {
-		s.logger.Errorf("[CustSegSvc][Delete] customer segmentation check err: %s, %v", existing.CustomerRole.Name, err)
-		return err
-	}
-	if exist != nil {
-		s.logger.Errorf("[CustSegSvc][Delete] sub-segment already exists: %s", existing.CustomerRole.ID)
-		return fmt.Errorf("Customer segmentation already exists for this customer role you can't delete it")
-	}
+	// exist, err := s.segmentationRepo.FindBySegmentationAndServiceID(ctx, existing.CustomerRole.Name, constants.CustomerSegmentationServiceID)
+	// if err != nil {
+	// 	s.logger.Errorf("[CustSegSvc][Delete] customer segmentation check err: %s, %v", existing.CustomerRole.Name, err)
+	// 	return err
+	// }
+	// if exist != nil {
+	// 	s.logger.Errorf("[CustSegSvc][Delete] sub-segment already exists: %s", existing.CustomerRole.ID)
+	// 	return fmt.Errorf("Customer segmentation already exists for this customer role you can't delete it")
+	// }
 
 	updated := *existing
 	updated.IsDeleted = true
