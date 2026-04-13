@@ -177,10 +177,10 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 			 LEFT JOIN linked_accounts la ON la.user_code = u.user_code
 			 Left JOIN accounts ac ON ac.id = la.account_id 
 			 WHERE (
-				 u.contact_phone = :1
-				 OR u.customer_number = :1
-				 OR u.user_code = :1
-				 OR ac.account_number = :1
+				 u.contact_phone = ':1'
+				 OR u.customer_number = ':1'
+				 OR u.user_code = ':1'
+				 OR ac.account_number = ':1'
 			 )
 			 AND u.is_active = 1
 			 AND (la.is_active = 1 OR la.is_active IS NULL)
