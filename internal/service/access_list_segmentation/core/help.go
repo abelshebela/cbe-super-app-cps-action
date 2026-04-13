@@ -9,7 +9,6 @@ import (
 	"sort"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	shared_type "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 )
 
 // ConvertPaginatedModelToDTO converts a paginated response of []AccessListSegmentation to a paginated response of []AccessListSegmentationResponse
@@ -57,7 +56,7 @@ func GetMissingIds(request []string, models []map[string]interface{}) []string {
 	}
 	return missingIds
 }
-func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo storage.BulkServiceRepository, accessListSegmentation, accessListSegmentationFromParents []model.APPAccessList) []model.APPAccessList {
+func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo storage.BulkServiceRepository, accessListSegmentation, accessListSegmentationFromParents []local_model.APPAccessList) []local_model.APPAccessList {
 	var ids []string
 	for _, seg := range accessListSegmentation {
 		ids = append(ids, seg.Key)
@@ -86,6 +85,19 @@ func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo stor
 		// }
 		// al.SubAccessList = filteredSubs
 		res = append(res, al)
+	}
+
+	return Maptolocal(res)
+}
+func Maptolocal(shared []model.APPAccessList) []local_model.APPAccessList {
+	var res []local_model.APPAccessList
+	for _, s := range shared {
+		res = append(res, local_model.APPAccessList{
+			Key:            s.Key,
+			Enabled:        s.Enabled,
+			AccessListName: s.AccessListName,
+			USSDEnabled:    s.USSDEnabled,
+		})
 	}
 	return res
 }
@@ -162,17 +174,17 @@ func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo stor
 // }
 
 // Helper to convert APPAccessList to SubAccessList
-func modelToSubAccessList(al *model.APPAccessList) shared_type.SubAccessList {
-	return shared_type.SubAccessList{
+func modelToSubAccessList(al *local_model.APPAccessList) types.SubAccessList {
+	return types.SubAccessList{
 		Key:            al.Key,
 		Enabled:        al.Enabled,
 		AccessListName: al.AccessListName,
 	}
 }
 
-func MapParentChildRelationship(relations []local_model.AccessItemRelation, accessList []model.APPAccessList) []model.APPAccessList {
+func MapParentChildRelationship(relations []local_model.AccessItemRelation, accessList []local_model.APPAccessList) []local_model.APPAccessList {
 	// Kept in sync with service/bulk/core.MapParentChildRelationship
-	nodesByKey := make(map[string]model.APPAccessList, len(accessList))
+	nodesByKey := make(map[string]local_model.APPAccessList, len(accessList))
 	for _, al := range accessList {
 		nodesByKey[al.Key] = al
 	}
@@ -186,7 +198,7 @@ func MapParentChildRelationship(relations []local_model.AccessItemRelation, acce
 	}
 
 	accountedFor := make(map[string]bool)
-	var result []model.APPAccessList
+	var result []local_model.APPAccessList
 
 	for parentKey, childSet := range parentChildren {
 		parent, ok := nodesByKey[parentKey]
