@@ -7,8 +7,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"sort"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 // ConvertPaginatedModelToDTO converts a paginated response of []AccessListSegmentation to a paginated response of []AccessListSegmentationResponse
@@ -69,7 +67,7 @@ func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo stor
 		idSet[id] = struct{}{}
 	}
 
-	var res []model.APPAccessList
+	var res []local_model.APPAccessList
 	als, _ := accessListServiceRepo.FindAllForSegmentation(ctx)
 	for _, al := range als {
 		// Skip parent if its key is in ids
@@ -87,20 +85,22 @@ func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo stor
 		res = append(res, al)
 	}
 
-	return Maptolocal(res)
-}
-func Maptolocal(shared []model.APPAccessList) []local_model.APPAccessList {
-	var res []local_model.APPAccessList
-	for _, s := range shared {
-		res = append(res, local_model.APPAccessList{
-			Key:            s.Key,
-			Enabled:        s.Enabled,
-			AccessListName: s.AccessListName,
-			USSDEnabled:    s.USSDEnabled,
-		})
-	}
 	return res
 }
+
+// func Maptolocal(shared []model.APPAccessList) []local_model.APPAccessList {
+// 	var res []local_model.APPAccessList
+// 	for _, s := range shared {
+// 		res = append(res, local_model.APPAccessList{
+// 			ID:             s.ID,
+// 			Key:            s.Key,
+// 			Enabled:        s.Enabled,
+// 			AccessListName: s.AccessListName,
+// 			USSDEnabled:    s.USSDEnabled,
+// 		})
+// 	}
+// 	return res
+// }
 
 // func MapParentChildRelationship(accessListSegmentation []local_model.AccessListSegmentation, relations []local_model.AccessItemRelation, accessList *[]model.APPAccessList) ([]model.APPAccessList, []model.APPAccessList) {
 // 	// Build parent-child map from relations
