@@ -51,7 +51,7 @@ func (q *Queries) Update(ctx context.Context, id string, bank *imodel.BankOracle
 }
 
 func (q *Queries) Delete(ctx context.Context, id string) error {
-	query := `DELETE FROM BANKS WHERE id = :1`
+	query := `UPDATE BANKS SET is_deleted = 1 WHERE id = :1`
 	_, err := q.db.ExecContext(ctx, query, id)
 	return err
 }
