@@ -574,6 +574,13 @@ func (ca *cpsActionService) ExportCpsActionData(
 	var filterFields []string
 	var rowCount int
 
+	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(filterMap.Filters["created_at_from"].(string), filterMap.Filters["created_at_to"].(string))
+	if err != nil {
+		return "", err
+	}
+
+	filterMap.Filters["created_at_from"] = startDate
+	filterMap.Filters["created_at_to"] = endDate
 	// 1 Create temp file
 	tmpFile, err := os.CreateTemp("", "cps_actions_*.csv")
 	if err != nil {
