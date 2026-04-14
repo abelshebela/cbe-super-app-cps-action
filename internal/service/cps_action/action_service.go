@@ -574,13 +574,6 @@ func (ca *cpsActionService) ExportCpsActionData(
 	var filterFields []string
 	var rowCount int
 
-	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(filterMap.Filters["created_at_from"].(string), filterMap.Filters["created_at_to"].(string))
-	if err != nil {
-		return "", err
-	}
-
-	filterMap.Filters["created_at_from"] = startDate
-	filterMap.Filters["created_at_to"] = endDate
 	// 1 Create temp file
 	tmpFile, err := os.CreateTemp("", "cps_actions_*.csv")
 	if err != nil {
@@ -607,12 +600,12 @@ func (ca *cpsActionService) ExportCpsActionData(
 	}
 	//==================================
 
-	actions, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterMap, "")
+	actions, err := ca.repo.ActionByDateRange(ctx, *filterMap, req)
 	if err != nil {
 		return "", err
 	}
 
-	for _, action := range actions.Data {
+	for _, action := range actions {
 		rowCount++
 		if err := ca.processCPSAction(writer, action); err != nil {
 			return "", err
@@ -628,8 +621,8 @@ func (ca *cpsActionService) ExportCpsActionData(
 	// 4️Upload to MinIO
 	objectName := fmt.Sprintf(
 		"cps_actions_%s_to_%s_%d.csv",
-		startDate.Format("20060102"),
-		endDate.Format("20060102"),
+		filterMap.Filters["created_at_from"],
+		filterMap.Filters["created_at_to"],
 		time.Now().Unix(),
 	)
 
