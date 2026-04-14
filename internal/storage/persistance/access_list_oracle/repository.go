@@ -10,6 +10,7 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -194,7 +195,7 @@ func (r *Repository) FindAll(ctx context.Context) ([]model.APPAccessList, error)
 	return result, nil
 }
 
-func (r *Repository) FindAllForSegmentation(ctx context.Context) ([]model.APPAccessList, error) {
+func (r *Repository) FindAllForSegmentation(ctx context.Context) ([]local_model.APPAccessList, error) {
 	query := `SELECT RAWTOHEX(ID), NAME, SERVICE_KEY, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT
 		FROM ACCESS_LISTS
 		WHERE IS_DELETED = 0
@@ -207,7 +208,7 @@ func (r *Repository) FindAllForSegmentation(ctx context.Context) ([]model.APPAcc
 	}
 	defer rows.Close()
 
-	result := []model.APPAccessList{}
+	result := []local_model.APPAccessList{}
 	for rows.Next() {
 		var idRaw string
 		var name, serviceKey string
@@ -221,8 +222,9 @@ func (r *Repository) FindAllForSegmentation(ctx context.Context) ([]model.APPAcc
 			r.logger.Errorf("[AccessListOracle][FindAllForSegmentation] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
-		result = append(result, model.APPAccessList{
-			Key:            idRaw,
+		result = append(result, local_model.APPAccessList{
+			ID:             idRaw,
+			Key:            serviceKey,
 			AccessListName: name,
 			Enabled:        isEn == 1,
 		})

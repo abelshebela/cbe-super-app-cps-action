@@ -10,6 +10,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -137,6 +138,6 @@ func (b BulkServicePersistence) FindAllByKeys(ctx context.Context, keys []string
 func (b BulkServicePersistence) FindByKeys(ctx context.Context, keys []string) (map[string]string, error) {
 	panic("unimplemented")
 }
-func (b BulkServicePersistence) FindAllForSegmentation(ctx context.Context) ([]model.APPAccessList, error) {
+func (b BulkServicePersistence) FindAllForSegmentation(ctx context.Context) ([]local_model.APPAccessList, error) {
 	panic("unimplemented")
 }
