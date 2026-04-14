@@ -2,6 +2,7 @@ package access_list_segmentation_core
 
 import (
 	access_list_segmentation_dto "cbe-super-app-cps-action/internal/constants/dto/access_list_segmentation"
+	"cbe-super-app-cps-action/internal/constants/model"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
@@ -182,11 +183,59 @@ func modelToSubAccessList(al *local_model.APPAccessList) types.SubAccessList {
 	}
 }
 
-func MapParentChildRelationship(relations []local_model.AccessItemRelation, accessList []local_model.APPAccessList) []local_model.APPAccessList {
-	// Kept in sync with service/bulk/core.MapParentChildRelationship
-	nodesByKey := make(map[string]local_model.APPAccessList, len(accessList))
-	for _, al := range accessList {
-		nodesByKey[al.Key] = al
+// func MapParentChildRelationship(relations []local_model.AccessItemRelation, accessList []local_model.APPAccessList) []local_model.APPAccessList {
+// 	// Kept in sync with service/bulk/core.MapParentChildRelationship
+// 	nodesByKey := make(map[string]local_model.APPAccessList, len(accessList))
+// 	for _, al := range accessList {
+// 		nodesByKey[al.Key] = al
+// 	}
+
+// 	parentChildren := make(map[string]map[string]struct{})
+// 	for _, rel := range relations {
+// 		if parentChildren[rel.ParentKey] == nil {
+// 			parentChildren[rel.ParentKey] = make(map[string]struct{})
+// 		}
+// 		parentChildren[rel.ParentKey][rel.ChildKey] = struct{}{}
+// 	}
+
+// 	accountedFor := make(map[string]bool)
+// 	var result []local_model.APPAccessList
+
+// 	for parentKey, childSet := range parentChildren {
+// 		parent, ok := nodesByKey[parentKey]
+// 		if !ok {
+// 			continue
+// 		}
+// 		childKeys := make([]string, 0, len(childSet))
+// 		for ck := range childSet {
+// 			if ck != parentKey {
+// 				childKeys = append(childKeys, ck)
+// 			}
+// 		}
+// 		sort.Strings(childKeys)
+// 		for _, childKey := range childKeys {
+// 			child, ok := nodesByKey[childKey]
+// 			if !ok {
+// 				continue
+// 			}
+// 			parent.SubAccessList = append(parent.SubAccessList, modelToSubAccessList(&child))
+// 			accountedFor[childKey] = true
+// 		}
+// 		result = append(result, parent)
+// 		accountedFor[parent.Key] = true
+// 	}
+
+//		for _, al := range accessList {
+//			if !accountedFor[al.Key] {
+//				result = append(result, al)
+//			}
+//		}
+//		return result
+//	}
+func MapParentChildRelationship(relations []local_model.AccessItemRelation, accessList []model.APPAccessList) []model.APPAccessList {
+	nodesByKey := make(map[string]*model.APPAccessList, len(accessList))
+	for i := range accessList {
+		nodesByKey[accessList[i].Key] = &accessList[i]
 	}
 
 	parentChildren := make(map[string]map[string]struct{})
@@ -198,7 +247,7 @@ func MapParentChildRelationship(relations []local_model.AccessItemRelation, acce
 	}
 
 	accountedFor := make(map[string]bool)
-	var result []local_model.APPAccessList
+	var result []model.APPAccessList
 
 	for parentKey, childSet := range parentChildren {
 		parent, ok := nodesByKey[parentKey]
@@ -217,10 +266,10 @@ func MapParentChildRelationship(relations []local_model.AccessItemRelation, acce
 			if !ok {
 				continue
 			}
-			parent.SubAccessList = append(parent.SubAccessList, modelToSubAccessList(&child))
+			parent.SubAccessList = append(parent.SubAccessList, modelToSubAccessList(child))
 			accountedFor[childKey] = true
 		}
-		result = append(result, parent)
+		result = append(result, *parent)
 		accountedFor[parent.Key] = true
 	}
 
