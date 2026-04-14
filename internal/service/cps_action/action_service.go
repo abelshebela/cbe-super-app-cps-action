@@ -628,8 +628,8 @@ func (ca *cpsActionService) ExportCpsActionData(
 	// 4️Upload to MinIO
 	objectName := fmt.Sprintf(
 		"cps_actions_%s_to_%s_%d.csv",
-		filterMap.Filters["created_at_from"],
-		filterMap.Filters["created_at_to"],
+		startDate.Format("20060102"),
+		endDate.Format("20060102"),
 		time.Now().Unix(),
 	)
 
