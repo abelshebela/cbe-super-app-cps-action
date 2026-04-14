@@ -13,14 +13,14 @@ import (
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/service/amount_based_auth/core"
+	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -64,14 +64,11 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 }
-
 func (s *amountBasedAuthService) authorizeDelete(ctx context.Context, action *model.CPSAction, span trace.Span) (*model.CPSAction, error) {
 	s.logger.Infof("[AmountAuthSvc][authorizeDelete] processing DELETE")
-	if strings.TrimSpace(action.UniqueId) == "" {
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
-	}
-	if err := s.Repository.DeleteByID(ctx, action.UniqueId); err != nil {
-		s.logger.Errorf("[AmountAuthSvc][authorizeDelete] delete err: %v", err)
+	currency := action.UniqueId
+	if err := s.Repository.DeleteByCurrency(ctx, currency); err != nil {
+		s.logger.Errorf("[AmountAuthSvc][authorizeDelete] delete by currency err: %v", err)
 		return nil, err
 	}
 	s.logger.Infof("[AmountAuthSvc][authorizeDelete] DELETE done")
@@ -387,17 +384,17 @@ func groupTiersByCurrency(tiers []local_model.AuthTierOracle) []amountauthdto.Cu
 }
 
 // DeleteAmountBasedAuth submits a CPS action to soft-delete a tier by id.
-func (s *amountBasedAuthService) DeleteAmountBasedAuth(ctx context.Context, id string) error {
+func (s *amountBasedAuthService) DeleteAmountBasedAuth(ctx context.Context, currency string) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteAmountBasedAuth", "Amount Based Auth", "DeleteAmountBasedAuth")
 	defer span.End()
 
-	if strings.TrimSpace(id) == "" {
+	if strings.TrimSpace(currency) == "" {
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
 
-	existing, err := s.Repository.FindByID(ctx, id)
+	existing, err := s.Repository.FindActiveByCurrency(ctx, currency)
 	if err != nil {
-		span.AddEvent("tier not found", trace.WithAttributes(attribute.String("id", id)))
+		span.AddEvent("tier not found", trace.WithAttributes(attribute.String("currency", currency)))
 		return err
 	}
 
@@ -406,15 +403,19 @@ func (s *amountBasedAuthService) DeleteAmountBasedAuth(ctx context.Context, id s
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	deleted := *existing
-	deleted.IsDeleted = 1
+	deleted := existing
 
-	cps := lib.CpsModelBuilder(id, maker, existing, &deleted, string(constants.RequestDeleteAmountBasedAuth), constants.DELETE)
+	for _, tier := range deleted {
+		tier.IsDeleted = 1
+		tier.LastModified = time.Now()
+	}
+
+	cps := lib.CpsModelBuilder(currency, maker, existing, &deleted, string(constants.RequestDeleteAmountBasedAuth), constants.DELETE)
 	if err := s.cpsService.CreateCPSAction(ctx, &cps); err != nil {
 		s.logger.Errorf("[AmountAuthSvc][Delete] cps action err: %v", err)
 		return err
 	}
-	s.logger.Infof("[AmountAuthSvc][Delete] delete request submitted id=%s", id)
+	s.logger.Infof("[AmountAuthSvc][Delete] delete request submitted currency=%s", currency)
 	return nil
 }
 

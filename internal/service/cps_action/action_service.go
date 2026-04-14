@@ -584,6 +584,13 @@ func (ca *cpsActionService) ExportCpsActionData(
 
 	writer := csv.NewWriter(tmpFile)
 
+	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(filterMap.Filters["created_at_from"].(string), filterMap.Filters["created_at_to"].(string))
+	if err != nil {
+		ca.logger.Errorf("[CpsActionSvc][Export] format date range to UTC strings err: %v", err)
+		return "", errors.New(localization.ErrorInvalidDateFormat.Code)
+	}
+	filterMap.Filters["created_at_from"] = startDate
+	filterMap.Filters["created_at_to"] = endDate
 	// 2️ Write Header
 	if filterMap.Filters == nil {
 		filterMap.Filters = map[string]interface{}{}
@@ -602,13 +609,15 @@ func (ca *cpsActionService) ExportCpsActionData(
 
 	actions, err := ca.repo.ActionByDateRange(ctx, *filterMap, req)
 	if err != nil {
-		return "", err
+		ca.logger.Errorf("[CpsActionSvc][Export] find all with date range err: %v", err)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	for _, action := range actions {
 		rowCount++
 		if err := ca.processCPSAction(writer, action); err != nil {
-			return "", err
+			ca.logger.Errorf("[CpsActionSvc][Export] process CPS action err: %v", err)
+			return "", errors.New(localization.ErrorUnexpectedError.Code)
 		}
 	}
 
@@ -621,20 +630,20 @@ func (ca *cpsActionService) ExportCpsActionData(
 	// 4️Upload to MinIO
 	objectName := fmt.Sprintf(
 		"cps_actions_%s_to_%s_%d.csv",
-		filterMap.Filters["created_at_from"],
-		filterMap.Filters["created_at_to"],
+		startDate.Format("20060102"),
+		endDate.Format("20060102"),
 		time.Now().Unix(),
 	)
 
 	if _, err := tmpFile.Seek(0, 0); err != nil {
 		ca.logger.Errorf("[CpsActionSvc][Export] seek temp file err: %v", err)
-		return "", errors.New(localization.CpsActionDataExportedError.Code)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	stat, err := tmpFile.Stat()
 	if err != nil {
 		ca.logger.Errorf("[CpsActionSvc][Export] stat temp file err: %v", err)
-		return "", errors.New(localization.CpsActionDataExportedError.Code)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// exportType comes from the handler (e.g. query file_type=csv); default to csv for this endpoint.
