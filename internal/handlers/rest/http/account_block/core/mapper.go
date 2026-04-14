@@ -7,19 +7,13 @@ import (
 )
 
 func ToAccountBlockResponse(ab *imodel.AccountBlock) *ab_dto.AccountBlockResponse {
-	var parentID, cityID, regionID, districtID string
+	parentID := ""
 	if ab.ParentID != nil {
 		parentID = *ab.ParentID
 	}
-	if ab.CityID != nil {
-		cityID = *ab.CityID
-	}
-	if ab.RegionID != nil {
-		regionID = *ab.RegionID
-	}
-	if ab.DistrictID != nil {
-		districtID = *ab.DistrictID
-	}
+	cityID := ab.CityID
+	regionID := ab.RegionID
+	districtID := ab.DistrictID
 
 	var parent *imodel.AccountBlock
 	if ab.Parent != nil {
@@ -40,9 +34,9 @@ func ToAccountBlockResponse(ab *imodel.AccountBlock) *ab_dto.AccountBlockRespons
 		Type:          string(ab.Type),
 		ParentID:      parentID,
 		Parent:        parent,
-		CityID:        cityID,
-		RegionID:      regionID,
-		DistrictID:    districtID,
+		CityID:        *cityID,
+		RegionID:      *regionID,
+		DistrictID:    *districtID,
 		DisableReason: dr,
 		IsEnabled:     ab.IsEnabled,
 		CreatedAt:     ab.CreatedAt,

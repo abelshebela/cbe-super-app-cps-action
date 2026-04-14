@@ -153,6 +153,7 @@ func (d *DeviceVersionControlRepository) FindAllWithPagination(ctx context.Conte
 
 	// filter["is_deleted"] = false
 	d.logger.Infof("[DeviceVersionControl][FindAllWithPagination] applying filter: %v, skip: %d, limit: %d", filter, skip, limit)
+
 	// 5. Fetch data
 	data, err := d.deviceDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {

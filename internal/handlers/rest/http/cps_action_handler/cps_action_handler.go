@@ -1731,8 +1731,8 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 	if filterParams.Filters == nil {
 		filterParams.Filters = map[string]interface{}{}
 	}
-	filterParams.Filters["created_at_from"] = startDate
-	filterParams.Filters["created_at_to"] = endDate
+	// filterParams.Filters["created_at_from"] = startDate
+	// filterParams.Filters["created_at_to"] = endDate
 	for _, k := range []string{"action_status", "action_type", "action_code", "unique_id"} {
 		if v, ok := filterParams.Filters[k]; ok {
 			if s, ok := local_util.StringFromFilterValue(v); ok {
