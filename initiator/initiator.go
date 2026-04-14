@@ -17,7 +17,8 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/middleware"
 	shared_producer "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/producer"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils/encryption"
+
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils/encryption"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -115,8 +116,8 @@ func Init(ctx context.Context) {
 	redisStorage := InitRedisStorageLayer(redis, logger)
 	logger.Infof("redis initialized")
 
-	encMiddleWare := encryption.NewEncryptionImpl(zapLogger)
-	encryptionMiddleware := middleware.NewTransitMiddlware(sharedRedis, encMiddleWare, zapLogger)
+	// encMiddleWare := encryption.NewEncryptionImpl(zapLogger)
+	encryptionMiddleware := middleware.InitEncMiddleware(sharedRedis, zapLogger)
 
 	redisRepository := redisStorage.GetRedisRepository()
 

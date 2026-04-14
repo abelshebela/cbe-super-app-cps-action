@@ -86,7 +86,7 @@ func (r *Repository) Update(ctx context.Context, id string, bc *imodel.BudgetCat
 }
 
 func (r *Repository) Delete(ctx context.Context, id string) error {
-	q := `DELETE FROM BUDGET_CATEGORIES WHERE ID = HEXTORAW(:1)`
+	q := `UPDATE BUDGET_CATEGORIES SET IS_DELETED = 1 WHERE ID = HEXTORAW(:1)`
 	_, err := r.db.ExecContext(ctx, q, id)
 	if err != nil {
 		r.logger.Errorf("[BudgetCategoryOracle][Delete] failed: %v", err)
@@ -235,7 +235,7 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *ty
 	if len(filters) > 0 {
 		whereClause = strings.Join(filters, " AND ")
 	}
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM BUDGET_CATEGORIES WHERE %s", whereClause)
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM BUDGET_CATEGORIES WHERE IS_DELETED = 0 AND %s", whereClause)
 	var total int64
 	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
 		r.logger.Errorf("[BudgetCategoryOracle][FindAllWithPagination] count failed: %v", err)
@@ -267,7 +267,7 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *ty
 
 	selectQuery := fmt.Sprintf(
 		`SELECT RAWTOHEX(ID) AS id, NAME, COLOR, ICON, "TYPE", NVL(IS_ENABLED, ENABLED) AS eff_enabled, CREATE_AT, UPDATE_AT
-		 FROM BUDGET_CATEGORIES WHERE %s ORDER BY CREATE_AT DESC OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY`,
+		 FROM BUDGET_CATEGORIES WHERE IS_DELETED = 0 AND %s ORDER BY CREATE_AT DESC OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY`,
 		whereClause, idx, idx+1,
 	)
 	args = append(args, offset, limit)

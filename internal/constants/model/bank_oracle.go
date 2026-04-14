@@ -11,6 +11,7 @@ type BankOracle struct {
 	HasAlphaNumeric int    `sqlx:"has_alpha_numeric" json:"has_alpha_numeric"`
 	CreateAt        string `sqlx:"create_at" json:"create_at"`
 	UpdateAt        string `sqlx:"update_at" json:"update_at"`
+	IsDeleted       bool   `sqlx:"is_deleted" json:"-"`
 }
 
 // create table banks(
