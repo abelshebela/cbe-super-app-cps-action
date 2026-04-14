@@ -136,18 +136,18 @@ func (s *cpsActionServiceWithRoles) AuditorMark(ctx context.Context, actionCode 
 func (s *cpsActionServiceWithRoles) GetUserAuthorizerIndex(ctx context.Context, requestAction constants.RequestAction) (imodel.CPSActionApproveIndex, error) {
 	return s.base.GetUserAuthorizerIndex(ctx, requestAction)
 }
-func (s *cpsActionServiceWithRoles) GetUserCheckedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+func (s *cpsActionServiceWithRoles) GetUserCheckedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
 	return s.base.GetUserCheckedActions(ctx, userID, filterParams)
 }
-func (s *cpsActionServiceWithRoles) GetUserCreatedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+func (s *cpsActionServiceWithRoles) GetUserCreatedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
 	return s.base.GetUserCreatedActions(ctx, userID, filterParams)
 }
 
-func (s *cpsActionServiceWithRoles) GetCPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+func (s *cpsActionServiceWithRoles) GetCPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
 	return s.base.GetCPSActionsForApprover(ctx, userID, RAList, filterParams)
 }
 
-func (s *cpsActionServiceWithRoles) GetCPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+func (s *cpsActionServiceWithRoles) GetCPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
 	return s.base.GetCPSActionsForAuditor(ctx, userID, RAList, filterParams)
 }
 
