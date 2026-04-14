@@ -726,48 +726,38 @@ func ValidateTimeRangeOrder(time1, time2 time.Time) (bool, error) {
 	return true, nil
 }
 
-func FormatDateRangeToUTCStrings(fromStr, toStr string) (string, string, error) {
+func FormatDateRangeToUTCStrings(fromStr, toStr string) (time.Time, time.Time, error) {
 	const layout = "2006-01-02" // frontend format
 
-	parseFlexible := func(s string) (time.Time, error) {
-		// Try RFC3339 first (handles timezone offsets like -05:00)
-		t, err := time.Parse(time.RFC3339, s)
-		if err == nil {
-			return t, nil
-		}
-		// Fall back to YYYY-MM-DD
-		return time.Parse(layout, s)
+	from, err := ParseDateInput(fromStr)
+	if err != nil {
+		return time.Time{}, time.Time{}, err
 	}
 
-	from, err := parseFlexible(fromStr)
+	to, err := ParseDateInput(toStr)
 	if err != nil {
-		return "", "", err
-	}
-
-	to, err := parseFlexible(toStr)
-	if err != nil {
-		return "", "", err
+		return time.Time{}, time.Time{}, err
 	}
 
 	// Start of day UTC
-	startOfDay := time.Date(
-		from.Year(),
-		from.Month(),
-		from.Day(),
-		0, 0, 0, 0,
-		time.UTC,
-	)
+	// startOfDay := time.Date(
+	// 	from.Year(),
+	// 	from.Month(),
+	// 	from.Day(),
+	// 	0, 0, 0, 0,
+	// 	time.UTC,
+	// )
 
-	// End of day UTC (recommended production-safe version)
-	endOfDay := time.Date(
-		to.Year(),
-		to.Month(),
-		to.Day(),
-		23, 59, 59, 999999999,
-		time.UTC,
-	)
+	// // End of day UTC (recommended production-safe version)
+	// endOfDay := time.Date(
+	// 	to.Year(),
+	// 	to.Month(),
+	// 	to.Day(),
+	// 	23, 59, 59, 999999999,
+	// 	time.UTC,
+	// )
 
-	return startOfDay.Format(time.RFC3339Nano),
-		endOfDay.Format(time.RFC3339Nano),
+	return from,
+		to,
 		nil
 }
