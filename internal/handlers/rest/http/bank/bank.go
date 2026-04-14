@@ -219,10 +219,6 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	log.Infof("[BankDisable] request sent successfully for id: %s", id)
-	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-	localization.SendSuccessResponse(w, localization.SuccessBankDisableRequestCreated, nil)
-
 	if md.IsMakerOnly {
 		log.Infof("[BankDisable] bank disabled successfully for id: %s", id)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
