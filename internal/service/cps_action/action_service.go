@@ -446,8 +446,11 @@ func (ca *cpsActionService) GetPendingCPSActionByRoleAndRequestActions(ctx conte
 	action, err := ca.repo.SanitizedFindOne(ctx, filter)
 	if err != nil {
 		span.AddEvent("failed to find one", trace.WithAttributes(attribute.String("error", err.Error())))
+		ca.logger.Errorf("[CpsActionSvc][GetPendingByRoleAndRA] find one err: %v", err)
 		return nil, err
 	}
+
+	ca.logger.Infof("[CpsActionSvc][GetPendingByRoleAndRA] found pending action: %s for uniqueId: %s and requestActions: %v", action.ActionCode, uniqueId, requestActions)
 	return action, nil
 }
 
