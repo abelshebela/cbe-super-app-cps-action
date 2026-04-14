@@ -31,6 +31,23 @@ func Contains(list []string, v string) bool {
 	return false
 }
 
+func FormatTime(v any) string {
+	switch t := v.(type) {
+	case time.Time:
+		if t.IsZero() {
+			return ""
+		}
+		return t.Format(time.RFC3339)
+	case *time.Time:
+		if t == nil || t.IsZero() {
+			return ""
+		}
+		return t.Format(time.RFC3339)
+	default:
+		return fmt.Sprintf("%v", v)
+	}
+}
+
 func IsActionInGroup(action constants.RequestAction, group string, RequestActionGroups map[string][]constants.RequestAction) bool {
 	actions, exists := RequestActionGroups[group]
 	if !exists {
