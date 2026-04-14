@@ -842,7 +842,7 @@ func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, filterParam *t
 	searchKeys := bson.M{}
 	//---------------------------------------
 
-	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status", "unique_id", "maker_id"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status", "unique_id", "maker_id", "created_at"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -851,6 +851,7 @@ func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, filterParam *t
 			{"unique_id": searchRegex},
 			{"maker_name": searchRegex},
 			{"action_code": searchRegex},
+			{"created_at": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
 			{"auditor_status": searchRegex},

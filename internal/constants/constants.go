@@ -666,7 +666,6 @@ const (
 	RequestEnableUssdMerchant  string = "ENABLE_USSD_MERCHANT"
 	RequestDisableUssdMerchant string = "DISABLE_USSD_MERCHANT"
 
-
 	// Ecommerce Merchant
 	RequestCreateEcommerceMerchant  RequestAction = "CREATE_ECOMMERCE_MERCHANT"
 	RequestUpdateEcommerceMerchant  RequestAction = "UPDATE_ECOMMERCE_MERCHANT"
@@ -970,6 +969,8 @@ const (
 	RequestCreateAccessListSegmentation        RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION"
 	RequestUpdateAccessListSegmentation        RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION"
 	RequestEnableDisableAccessListSegmentation RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION"
+	RequestEnableAccessListSegmentation        RequestAction = "ENABLE_ACCESS_LIST_SEGMENTATION"
+	RequestDisableAccessListSegmentation       RequestAction = "DISABLE_ACCESS_LIST_SEGMENTATION"
 
 	// CPS Role
 	RequestCreateCpsRole  RequestAction = "CREATE_CPS_ROLE"

@@ -574,6 +574,13 @@ func (ca *cpsActionService) ExportCpsActionData(
 	var filterFields []string
 	var rowCount int
 
+	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(filterMap.Filters["created_at_from"].(string), filterMap.Filters["created_at_to"].(string))
+	if err != nil {
+		return "", err
+	}
+
+	filterMap.Filters["created_at_from"] = startDate
+	filterMap.Filters["created_at_to"] = endDate
 	// 1 Create temp file
 	tmpFile, err := os.CreateTemp("", "cps_actions_*.csv")
 	if err != nil {
@@ -600,28 +607,29 @@ func (ca *cpsActionService) ExportCpsActionData(
 	}
 	//==================================
 
-	actions, err := ca.repo.ActionByDateRange(ctx, filterMap)
+	actions, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterMap, "")
 	if err != nil {
 		return "", err
 	}
 
-	for _, action := range actions {
+	for _, action := range actions.Data {
 		rowCount++
-		if err := ca.processCPSAction(writer, &action); err != nil {
+		if err := ca.processCPSAction(writer, action); err != nil {
 			return "", err
 		}
 	}
 
 	if rowCount == 0 {
-		ca.logger.Infof("[CpsActionSvc][Export] no data found in date range %s - %s", filterMap.Filters["created_at_from"].(time.Time).Format(time.RFC3339), filterMap.Filters["created_at_to"].(time.Time).Format(time.RFC3339))
+		ca.logger.Infof("[CpsActionSvc][Export] no data found in date range %v - %v",
+			filterMap.Filters["created_at_from"], filterMap.Filters["created_at_to"])
 		return "", errors.New(localization.CpsActionDataNotFoundInDateRange.Code)
 	}
 
 	// 4️Upload to MinIO
 	objectName := fmt.Sprintf(
 		"cps_actions_%s_to_%s_%d.csv",
-		filterMap.Filters["created_at_from"],
-		filterMap.Filters["created_at_to"],
+		startDate.Format("20060102"),
+		endDate.Format("20060102"),
 		time.Now().Unix(),
 	)
 
@@ -636,33 +644,25 @@ func (ca *cpsActionService) ExportCpsActionData(
 		return "", errors.New(localization.CpsActionDataExportedError.Code)
 	}
 
-	var fileType string
-	reqType, ok := filterMap.Filters["type"].(string)
-	if ok {
-		fileType = reqType
-	} else {
-		fileType = "text/csv"
+	// exportType comes from the handler (e.g. query file_type=csv); default to csv for this endpoint.
+	ft := strings.TrimSpace(strings.ToLower(exportType))
+	if ft == "" {
+		ft = "csv"
 	}
 
 	var url string
-	// var err error
-	if fileType == "csv" {
-		url, err = lib.UploadPDFToMinio(ctx, ca.minioClient, ca.buckerName, tmpFile, stat.Size(), ca.cfg, objectName, ca.logger)
-		if err != nil {
-			ca.logger.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
-			return "", errors.New(localization.CpsActionDataExportedError.Code)
-		}
-	} else {
-
+	if ft == "csv" {
 		url, err = lib.UploadCSVToMinio(ctx, ca.minioClient, ca.buckerName, tmpFile, stat.Size(), ca.cfg, objectName, ca.logger)
 		if err != nil {
 			ca.logger.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
 			return "", errors.New(localization.CpsActionDataExportedError.Code)
 		}
-	}
-	if err != nil {
-		ca.logger.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
-		return "", errors.New(localization.CpsActionDataExportedError.Code)
+	} else {
+		url, err = lib.UploadPDFToMinio(ctx, ca.minioClient, ca.buckerName, tmpFile, stat.Size(), ca.cfg, objectName, ca.logger)
+		if err != nil {
+			ca.logger.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
+			return "", errors.New(localization.CpsActionDataExportedError.Code)
+		}
 	}
 
 	baseURL := strings.TrimSuffix(ca.minioBaseURL, "/")

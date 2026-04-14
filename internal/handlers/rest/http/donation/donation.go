@@ -617,33 +617,33 @@ func (a *donationAdapter) ExportDonationList(w http.ResponseWriter, r *http.Requ
 
 	// Normalize date strings (accepts YYYY-MM-DD or RFC3339)
 	fmt.Println(">>> [HANDLER] ExportDonationList - normalizing date range")
-	fromNorm, toNorm, err := local_util.FormatDateRangeToUTCStrings(from, to)
+	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(from, to)
 	if err != nil {
 		fmt.Println(">>> [HANDLER] ExportDonationList - date normalization ERROR:", err)
 		log.Warnf("[DonationH][Export] invalid date format: From=%s, To=%s, err=%v", from, to, err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
 		return
 	}
-	fmt.Printf(">>> [HANDLER] ExportDonationList - normalized: from=%s, to=%s\n", fromNorm, toNorm)
+	// fmt.Printf(">>> [HANDLER] ExportDonationList - normalized: from=%s, to=%s\n", fromNorm, toNorm)
 
 	fmt.Println(">>> [HANDLER] ExportDonationList - parsing start date")
-	startDate, err := local_util.ValidateTimeAndParse(fromNorm)
-	if err != nil {
-		fmt.Println(">>> [HANDLER] ExportDonationList - start date parse ERROR:", err)
-		log.Warnf("[DonationH][Export] invalid start date: %s", from)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
-		return
-	}
-	fmt.Println(">>> [HANDLER] ExportDonationList - startDate:", startDate)
+	// startDate, err := local_util.ValidateTimeAndParse(fromNorm)
+	// if err != nil {
+	// 	fmt.Println(">>> [HANDLER] ExportDonationList - start date parse ERROR:", err)
+	// 	log.Warnf("[DonationH][Export] invalid start date: %s", from)
+	// 	localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
+	// 	return
+	// }
+	// fmt.Println(">>> [HANDLER] ExportDonationList - startDate:", startDate)
 
-	fmt.Println(">>> [HANDLER] ExportDonationList - parsing end date")
-	endDate, err := local_util.ValidateTimeAndParse(toNorm)
-	if err != nil {
-		fmt.Println(">>> [HANDLER] ExportDonationList - end date parse ERROR:", err)
-		log.Warnf("[DonationH][Export] invalid end date: %s", to)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
-		return
-	}
+	// fmt.Println(">>> [HANDLER] ExportDonationList - parsing end date")
+	// endDate, err := local_util.ValidateTimeAndParse(toNorm)
+	// if err != nil {
+	// 	fmt.Println(">>> [HANDLER] ExportDonationList - end date parse ERROR:", err)
+	// 	log.Warnf("[DonationH][Export] invalid end date: %s", to)
+	// 	localization.SendBadRequestResponse(w, localization.ErrorInvalidFormat.Message)
+	// 	return
+	// }
 	fmt.Println(">>> [HANDLER] ExportDonationList - endDate:", endDate)
 
 	if endDate.Before(startDate) {

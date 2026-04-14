@@ -266,6 +266,16 @@ func (h *handler) GetAllCPSUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if filterParasm.Filters["search"] != nil {
+
+		search := strings.TrimSpace(search)
+		if phoneNumber, ok := filterParasm.Filters["search"].(string); ok {
+			phoneNumber = local_util.FormatPhoneNumber(phoneNumber)
+			filterParasm.Filters["search"] = phoneNumber
+		}
+		filterParasm.Filters["search"] = search
+	}
+
 	users, err := h.svc.GetAllCPSUsers(ctx, filterParasm)
 	if err != nil {
 		span.RecordError(err)

@@ -55,7 +55,7 @@ func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *h
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
-	req, err := core.ParseRequestFromMultipartForm(r, true)
+	req, err := core.ParseRequestFromMultipartForm(r)
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[BudgetCatH] parse form err: %v", err)

@@ -45,6 +45,24 @@ func IsActionInGroup(action constants.RequestAction, group string, RequestAction
 	return false
 }
 
+func ParseDateInput(s string) (time.Time, error) {
+	formats := []string{
+		time.RFC3339Nano,                // e.g. export handler FormatDateRangeToUTCStrings
+		time.RFC3339,                    // 2026-01-05T07:10:33+00:00
+		"2006-01-02T15:04:05.000Z07:00", // 2026-01-05T07:10:33.695+00:00
+		"2006-01-02T15:04:05.999Z07:00", // milliseconds variant
+		"2006-01-02T15:04:05Z07:00",     // without millis
+		"2006-01-02T15:04:05",           // no timezone
+		"2006-01-02",                    // date only
+	}
+	for _, f := range formats {
+		if t, err := time.Parse(f, s); err == nil {
+			return t, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("unable to parse date: %s", s)
+}
+
 func GetRAListForUpdateAction(action constants.RequestAction, group string, RequestActionGroups map[string][]constants.RequestAction) []string {
 	var RAUpdateList = []string{}
 	actions, exists := RequestActionGroups[group]
@@ -260,6 +278,26 @@ func ExtractFilterParams(r *http.Request) *types.Filter {
 		Search:  query.Get("search"),
 		Filters: filters,
 	}
+}
+
+// StringFromFilterValue returns the first non-empty string from a filter value produced by
+// ExtractFilterParams (plain string, or []interface{} when the same query key is repeated).
+func StringFromFilterValue(v interface{}) (string, bool) {
+	switch t := v.(type) {
+	case string:
+		s := strings.TrimSpace(t)
+		return s, s != ""
+	case []interface{}:
+		for _, x := range t {
+			if s, ok := x.(string); ok {
+				s = strings.TrimSpace(s)
+				if s != "" {
+					return s, true
+				}
+			}
+		}
+	}
+	return "", false
 }
 
 func isReserved(key string) bool {

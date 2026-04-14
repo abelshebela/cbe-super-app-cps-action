@@ -304,8 +304,9 @@ func BuildCPSActionRequestMapAuditor(ctx context.Context, filterParams *types.Fi
 		log.Errorf("[CpsActionH][Approve] failed to fetch checker allocations: empty checker actions")
 		return nil, nil, errors.New(localization.ErrorOperationNotAllowed.Code)
 	}
+	// Deduplicate module/action names for the selected actor (viewer / maker / checker / auditor).
 	var newAllocation []string
-	for _, v := range auditorAllocations {
+	for _, v := range requestAction {
 		if slices.Contains(newAllocation, v) {
 			continue
 		}

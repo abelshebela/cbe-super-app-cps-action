@@ -1700,31 +1700,45 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 	}
 
 	// Normalize date strings (accepts YYYY-MM-DD or RFC3339)
-	fromNorm, toNorm, err := local_util.FormatDateRangeToUTCStrings(from, to)
+	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(from, to)
 	if err != nil {
 		log.Warnf("[CpsActionH][Export] invalid date format: From=%s, To=%s, err=%v", from, to, err)
 		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
 		return
 	}
 
-	startDate, err := local_util.ValidateTimeAndParse(fromNorm)
-	if err != nil {
-		log.Warnf("[CpsActionH][Export] invalid start date: %s", from)
-		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
-		return
-	}
+	// startDate, err := local_util.ValidateTimeAndParse(fromNorm)
+	// if err != nil {
+	// 	log.Warnf("[CpsActionH][Export] invalid start date: %s", from)
+	// 	localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+	// 	return
+	// }
 
-	endDate, err := local_util.ValidateTimeAndParse(toNorm)
-	if err != nil {
-		log.Warnf("[CpsActionH][Export] invalid end date: %s", to)
-		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
-		return
-	}
+	// startDate, err := local_util.ValidateTimeAndParse(toNorm)
+	// if err != nil {
+	// 	log.Warnf("[CpsActionH][Export] invalid end date: %s", to)
+	// 	localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+	// 	return
+	// }
 
 	if endDate.Before(startDate) {
 		log.Warnf("[CpsActionH][Export] invalid date range: start=%v, end=%v", startDate, endDate)
 		localization.SendErrorResponse(w, localization.CpsActionDataExportedError, nil, nil)
 		return
+	}
+
+	// Pin FilterBuilder to validated UTC bounds and coerce repeated query keys to single strings.
+	if filterParams.Filters == nil {
+		filterParams.Filters = map[string]interface{}{}
+	}
+	// filterParams.Filters["created_at_from"] = startDate
+	// filterParams.Filters["created_at_to"] = endDate
+	for _, k := range []string{"action_status", "action_type", "action_code", "unique_id"} {
+		if v, ok := filterParams.Filters[k]; ok {
+			if s, ok := local_util.StringFromFilterValue(v); ok {
+				filterParams.Filters[k] = s
+			}
+		}
 	}
 
 	span.SetAttributes(

@@ -304,6 +304,7 @@ func (r *RoleRepository) FindByFilterKey(ctx context.Context, field string, valu
 func roleWithJobRolePipeline(match bson.M, jobRolesCollName string, skip, limit int64) []bson.M {
 	p := []bson.M{
 		{"$match": match},
+		{"$sort": bson.M{"created_at": -1}},
 		{"$lookup": bson.M{
 			"from":         jobRolesCollName,
 			"localField":   "role",
