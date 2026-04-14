@@ -41,6 +41,110 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+type FileType string
+
+const (
+	FileTypeCSV FileType = "csv"
+	FileTypePDF FileType = "pdf"
+)
+
+// Generic upload function
+type UploadFunc func(ctx context.Context, file *os.File, size int64, objectName string, fileType FileType) (string, error)
+
+// Generic config
+type FileProducerConfig struct {
+	FilePrefix string
+	Header     []string
+	FileType   FileType
+	ObjectName string
+}
+
+// 🔥 Generic producer with data
+func ProduceFileFromData[T any](
+	ctx context.Context,
+	cfg FileProducerConfig,
+	data []T,
+	rowMapper func(T) ([]string, error),
+	upload UploadFunc,
+) (string, error) {
+
+	ft := FileType(strings.ToLower(string(cfg.FileType)))
+	if ft == "" {
+		ft = FileTypeCSV
+	}
+
+	ext := string(ft)
+
+	// 1️⃣ temp file
+	tmpFile, err := os.CreateTemp("", fmt.Sprintf("%s_*.%s", cfg.FilePrefix, ext))
+	if err != nil {
+		return "", fmt.Errorf("create temp file: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+	defer tmpFile.Close()
+
+	writer := csv.NewWriter(tmpFile)
+
+	// 2️⃣ header
+	if ft == FileTypeCSV && len(cfg.Header) > 0 {
+		if err := writer.Write(cfg.Header); err != nil {
+			return "", fmt.Errorf("write header: %w", err)
+		}
+	}
+
+	// 3️⃣ loop داخلي 🔥
+	rowCount := 0
+	for _, item := range data {
+		row, err := rowMapper(item)
+		if err != nil {
+			return "", err
+		}
+
+		if ft == FileTypeCSV {
+			if err := writer.Write(row); err != nil {
+				return "", err
+			}
+		}
+
+		rowCount++
+	}
+
+	writer.Flush()
+
+	if rowCount == 0 {
+		return "", fmt.Errorf("no data found")
+	}
+
+	// 4️⃣ prepare file
+	if _, err := tmpFile.Seek(0, 0); err != nil {
+		return "", fmt.Errorf("seek file: %w", err)
+	}
+
+	stat, err := tmpFile.Stat()
+	if err != nil {
+		return "", fmt.Errorf("stat file: %w", err)
+	}
+
+	// 5️⃣ object name
+	objectName := cfg.ObjectName
+	if objectName == "" {
+		objectName = fmt.Sprintf("%s_%d.%s", cfg.FilePrefix, stat.ModTime().Unix(), ext)
+	}
+
+	if !strings.HasSuffix(objectName, "."+ext) {
+		objectName += "." + ext
+	}
+
+	// 6️⃣ upload
+	url, err := upload(ctx, tmpFile, stat.Size(), objectName, ft)
+	if err != nil {
+		return "", err
+	}
+
+	return url, nil
+}
+
+// ==============================================
 func UploadVideoToMinio(
 	ctx context.Context,
 	s3Client *s3.Client,
@@ -535,8 +639,8 @@ func boolFromInterface(v interface{}) (bool, bool) {
 // or full ISO datetime ("2026-01-05T07:10:33.695+00:00", "2026-01-05T07:10:33").
 func parseDateInput(s string) (time.Time, error) {
 	formats := []string{
-		time.RFC3339Nano, // e.g. export handler FormatDateRangeToUTCStrings
-		time.RFC3339,     // 2026-01-05T07:10:33+00:00
+		time.RFC3339Nano,                // e.g. export handler FormatDateRangeToUTCStrings
+		time.RFC3339,                    // 2026-01-05T07:10:33+00:00
 		"2006-01-02T15:04:05.000Z07:00", // 2026-01-05T07:10:33.695+00:00
 		"2006-01-02T15:04:05.999Z07:00", // milliseconds variant
 		"2006-01-02T15:04:05Z07:00",     // without millis

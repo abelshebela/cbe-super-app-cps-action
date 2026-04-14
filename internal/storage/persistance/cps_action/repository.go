@@ -218,11 +218,10 @@ func (r *CPSActionStorage) Delete(ctx context.Context, id string) error {
 }
 
 func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error) {
-	r.logger.Infof("[CPSAction][SanitizedFindAllWithPagination] finding all CPS actions. Department: %s, Filter: %+v", department, filterParam)
+	r.logger.Infof("[CPSAction][SanitizedFindAllWithPaginationForApprover] finding all CPS actions, Filter: %+v", filterParam)
 	// 1. Base filter (only active records)
 	baseFilter := bson.M{
 		"is_deleted": false,
-		// "department": department,
 	}
 	searchKeys := bson.M{}
 
@@ -231,8 +230,8 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
-			{"maker_name": searchRegex},
 			{"unique_id": searchRegex},
+			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
 			{"action_type": searchRegex},
@@ -247,11 +246,15 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	for k, v := range baseFilter {
 		dynamicFilter[k] = v
 	}
-	// delete(dynamicFilter, "created_at")
+	delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
 
+	var finalMatch bson.M
+
+	finalMatch = filter
+
 	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: filter}},
+		{{Key: "$match", Value: finalMatch}},
 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
@@ -261,19 +264,19 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 
 	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		r.logger.Errorf("[CPSAction][SanitizedFindAllWithPagination] aggregation failed: %v", err)
+		r.logger.Errorf("[CPSAction][SanitizedFindAllWithPaginationForApprover] aggregation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cur.Close(ctx)
 
 	var results []*model.CPSAction
 	if err := cur.All(ctx, &results); err != nil {
-		r.logger.Errorf("[CPSAction][SanitizedFindAllWithPagination] cursor decode failed: %v", err)
+		r.logger.Errorf("[CPSAction][SanitizedFindAllWithPaginationForApprover] cursor decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	total, err := r.dal.TotalCount(ctx, filter)
+	total, err := r.dal.TotalCount(ctx, finalMatch)
 	if err != nil {
-		r.logger.Errorf("[CPSAction][SanitizedFindAllWithPagination] failed to count CPS actions: %v", err)
+		r.logger.Errorf("[CPSAction][SanitizedFindAllWithPaginationForApprover] failed to count CPS actions: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -281,7 +284,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	meta := local_utils.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
 	// 8. Return standard paginated response
-	r.logger.Infof("[CPSAction][SanitizedFindAllWithPagination] successfully fetched paginated CPS actions. Total: %d", total)
+	r.logger.Infof("[CPSAction][SanitizedFindAllWithPaginationForApprover] successfully fetched paginated CPS actions. Total: %d", total)
 	return &types.PaginatedResponse[[]*model.CPSAction]{
 		Data: results,
 		Meta: meta,
