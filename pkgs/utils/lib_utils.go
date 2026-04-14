@@ -262,6 +262,26 @@ func ExtractFilterParams(r *http.Request) *types.Filter {
 	}
 }
 
+// StringFromFilterValue returns the first non-empty string from a filter value produced by
+// ExtractFilterParams (plain string, or []interface{} when the same query key is repeated).
+func StringFromFilterValue(v interface{}) (string, bool) {
+	switch t := v.(type) {
+	case string:
+		s := strings.TrimSpace(t)
+		return s, s != ""
+	case []interface{}:
+		for _, x := range t {
+			if s, ok := x.(string); ok {
+				s = strings.TrimSpace(s)
+				if s != "" {
+					return s, true
+				}
+			}
+		}
+	}
+	return "", false
+}
+
 func isReserved(key string) bool {
 	reserved := map[string]bool{
 		"page": true, "per_page": true, "search": true, "sort": true, "order": true,

@@ -166,7 +166,7 @@ func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterPar
 	// 	return types.PaginatedResponse[[]model.Department]{}, errors.New(localization.ErrorUnexpectedError.Message)
 	// }
 	filter["is_deleted"] = false
-	results, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	results, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		s.logger.Errorf("[DepartmentStorage][FindAllWithPagination] failed to fetch departments: %v", err)
 		return types.PaginatedResponse[[]model.Department]{}, errors.New(localization.ErrorUnexpectedError.Code)

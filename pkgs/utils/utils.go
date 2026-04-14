@@ -238,6 +238,17 @@ func ExtractUserInfo(ctx context.Context, log utils.Logger) (*types.UserInfo, er
 	}, nil
 }
 
+// mongoOperatorMap is true when m should be used as a Mongo operator document (e.g. $in, $nin)
+// rather than recursed through BuildMongoFilterWithKeys with allowedKeys.
+func mongoOperatorMap(m map[string]interface{}) bool {
+	for k := range m {
+		if strings.HasPrefix(k, "$") {
+			return true
+		}
+	}
+	return false
+}
+
 func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string, handler map[string]func(interface{}) interface{}) bson.M {
 	filter := bson.M{}
 
@@ -269,6 +280,12 @@ func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string
 				filter[key] = bson.M{"$in": v}
 			}
 		case map[string]interface{}:
+			// Preserve Mongo operator documents (e.g. request_action: {$in: [...]}) instead of
+			// recursing with allowedKeys, which would drop "$in".
+			if mongoOperatorMap(v) {
+				filter[key] = v
+				continue
+			}
 			nested := BuildMongoFilterWithKeys(v, allowedKeys, handler)
 			for nestedKey, nestedVal := range nested {
 				filter[key+"."+nestedKey] = nestedVal

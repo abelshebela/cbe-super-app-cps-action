@@ -277,17 +277,16 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 		var hasStart, hasEnd bool
 
 		if raw, ok := filterParam.Filters["created_at_from"]; ok {
-			if str, ok := raw.(string); ok && str != "" {
+			if str, ok := local_util.StringFromFilterValue(raw); ok {
 				if t, err := parseDateInput(str); err == nil {
 					startDate = t
 					hasStart = true
 				}
 			}
-			// delete(filterParam.Filters, "created_at_from")
 		}
 
 		if raw, ok := filterParam.Filters["created_at_to"]; ok {
-			if str, ok := raw.(string); ok && str != "" {
+			if str, ok := local_util.StringFromFilterValue(raw); ok {
 				if t, err := parseDateInput(str); err == nil {
 					// include full day if date-only
 					if !strings.Contains(str, "T") {
@@ -297,7 +296,6 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 					hasEnd = true
 				}
 			}
-			// delete(filterParam.Filters, "created_at_to")
 		}
 
 		if hasStart && hasEnd {
@@ -537,7 +535,8 @@ func boolFromInterface(v interface{}) (bool, bool) {
 // or full ISO datetime ("2026-01-05T07:10:33.695+00:00", "2026-01-05T07:10:33").
 func parseDateInput(s string) (time.Time, error) {
 	formats := []string{
-		time.RFC3339,                    // 2026-01-05T07:10:33+00:00
+		time.RFC3339Nano, // e.g. export handler FormatDateRangeToUTCStrings
+		time.RFC3339,     // 2026-01-05T07:10:33+00:00
 		"2006-01-02T15:04:05.000Z07:00", // 2026-01-05T07:10:33.695+00:00
 		"2006-01-02T15:04:05.999Z07:00", // milliseconds variant
 		"2006-01-02T15:04:05Z07:00",     // without millis
@@ -618,13 +617,14 @@ func BuildCPSActionDateRangeFilter(filterMap *types.Filter, startDate, endDate t
 		"$lte": endDate,
 	}
 
-	// Some records use different timestamp fields; include all known variants.
+	// CPS actions may populate different timestamp fields depending on version / pipeline.
+	// Match if any known field falls in range (same idea as cps_action.repository buildCPSActionDateRangeFilter).
 	return bson.M{
 		"$or": []bson.M{
 			{"created_at": rangeFilter},
-			// {"action_created_at": rangeFilter},
-			// {"maker_action_time": rangeFilter},
-			// {"last_modified_at": rangeFilter},
+			{"action_created_at": rangeFilter},
+			{"maker_action_time": rangeFilter},
+			{"last_modified_at": rangeFilter},
 		},
 	}
 }

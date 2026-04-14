@@ -91,6 +91,7 @@ func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction
 
 // CreateAccessListSegmentation implements service.AccessListSegmentationService.
 func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context.Context, req access_list_segmentation_dto.CreateAccessListSegmentationRequest) error {
+	var requestAction string
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		a.logger.Errorf("[AccessListSegSvc][Create] incomplete user")
@@ -117,6 +118,8 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 			a.logger.Errorf("[AccessListSegSvc][Create] check IDs err: %v", err)
 			return err
 		}
+
+		requestAction = string(constants.RequestCreateCustomerSegmentation)
 	} else {
 		// add checks for
 		// 1. if the passed segment code is valid
@@ -131,8 +134,10 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 			a.logger.Errorf("[AccessListSegSvc][Create] seg+key exists: %v", err)
 			return errors.New(localization.ErrorAccessListSegmentationNameAlreadyExists.Code)
 		}
+
+		requestAction = string(constants.RequestCreateAccessListSegmentation)
 	}
-	cpsAction := lib.CpsModelBuilder("", makerData, nil, req, string(constants.RequestCreateAccessListSegmentation), constants.CREATE)
+	cpsAction := lib.CpsModelBuilder("", makerData, nil, req, requestAction, constants.CREATE)
 
 	if err := a.cpsAction.CreateCPSAction(ctx, &cpsAction); err != nil {
 		a.logger.Errorf("[AccessListSegSvc][Create] cps action err: %v", err)
@@ -143,6 +148,7 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 
 // EnableDisableAccessListSegmentation implements service.AccessListSegmentationService.
 func (a *AccessListSegmentationService) EnableDisableAccessListSegmentation(ctx context.Context, id string, enabled bool, keys []string, segmentation_type string) error {
+	var requestAction string
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplete := local_util.IsIncomplete(makerData); incomplete {
 		a.logger.Errorf("[AccessListSegSvc][EnableDisable] incomplete user")
@@ -152,12 +158,24 @@ func (a *AccessListSegmentationService) EnableDisableAccessListSegmentation(ctx 
 	var err error
 	if segmentation_type == "block" {
 		accessListSegmentation, err = a.repo.FindAllByBlockAndKeys(ctx, id, keys)
+
+		if enabled {
+			requestAction = string(constants.RequestEnableAccessListSegmentation)
+		} else {
+			requestAction = string(constants.RequestDisableAccessListSegmentation)
+		}
 	} else if segmentation_type == "account" {
 		accessListSegmentation, err = a.repo.FindAllByAccountAndKeys(ctx, id, keys)
+		if enabled {
+			requestAction = string(constants.RequestEnableCustomerSegmentation)
+		} else {
+			requestAction = string(constants.RequestDisableCustomerSegmentation)
+		}
 	} else {
 		a.logger.Errorf("[AccessListSegSvc][EnableDisable] invalid segmentation type: %s", segmentation_type)
 		return localization.ErrorUnexpectedError
 	}
+
 	if err != nil {
 		a.logger.Errorf("[AccessListSegSvc][EnableDisable] find err: %v", err)
 		return err
@@ -180,7 +198,7 @@ func (a *AccessListSegmentationService) EnableDisableAccessListSegmentation(ctx 
 
 	// }
 
-	cpsAction := lib.CpsModelBuilder(id, makerData, accessListSegmentation, bulkDisable, string(constants.RequestEnableDisableAccessListSegmentation), constants.UPDATE)
+	cpsAction := lib.CpsModelBuilder(id, makerData, accessListSegmentation, bulkDisable, requestAction, constants.UPDATE)
 
 	if err := a.cpsAction.CreateCPSAction(ctx, &cpsAction); err != nil {
 		a.logger.Errorf("[AccessListSegSvc][EnableDisable] cps action err: %v", err)
@@ -226,6 +244,7 @@ func (a *AccessListSegmentationService) GetAllAccessListSegmentation(ctx context
 
 // UpdateAccessListSegmentation implements service.AccessListSegmentationService.
 func (a *AccessListSegmentationService) UpdateAccessListSegmentation(ctx context.Context, req access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error {
+	var requestAction string
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplete := local_util.IsIncomplete(makerData); incomplete {
 		a.logger.Errorf("[AccessListSegSvc][Update] incomplete user")
@@ -287,7 +306,16 @@ func (a *AccessListSegmentationService) UpdateAccessListSegmentation(ctx context
 		return errors.New(localization.ErrorAccessListSegmentationNameAlreadyExists.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(req.ID, makerData, accessListSegmentation, updatedAccessListSegmentation, string(constants.RequestUpdateAccessListSegmentation), constants.UPDATE)
+	if req.Type == "block" {
+		requestAction = string(constants.RequestUpdateAccessListSegmentation)
+	} else if req.Type == "account" {
+		requestAction = string(constants.RequestUpdateCustomerSegmentation)
+	} else {
+		a.logger.Errorf("[AccessListSegSvc][Update] invalid type: %s", req.Type)
+		return errors.New(localization.ErrorInvalidSegmentationType.Code)
+	}
+
+	cpsAction := lib.CpsModelBuilder(req.ID, makerData, accessListSegmentation, updatedAccessListSegmentation, requestAction, constants.UPDATE)
 
 	if err := a.cpsAction.CreateCPSAction(ctx, &cpsAction); err != nil {
 		a.logger.Errorf("[AccessListSegSvc][Update] cps action err: %v", err)
@@ -352,7 +380,7 @@ func (a *AccessListSegmentationService) CheckALLIdsExist(ctx context.Context, t 
 	return nil
 }
 
-func (a *AccessListSegmentationService) GetAllAccessListSegmentationForBlock(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, []model.APPAccessList, error) {
+func (a *AccessListSegmentationService) GetAllAccessListSegmentationForBlock(ctx context.Context, segmentIdentifier string) ([]local_model.APPAccessList, []local_model.APPAccessList, []local_model.APPAccessList, error) {
 	accessListSegmentation, err := a.repo.FindAllForBlock(ctx, segmentIdentifier)
 	if err != nil {
 		a.logger.Errorf("[AccessListSegSvc][GetAllAccessListSegmentationForBlock] err: %v", err)
@@ -379,7 +407,7 @@ func (a *AccessListSegmentationService) GetAllAccessListSegmentationForBlock(ctx
 	return accessList, accessListSegmentation, accessListSegmentationFromParent, nil
 }
 
-func (a *AccessListSegmentationService) GetAllAccessListSegmentationForAccount(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []model.APPAccessList, error) {
+func (a *AccessListSegmentationService) GetAllAccessListSegmentationForAccount(ctx context.Context, segmentIdentifier string) ([]local_model.APPAccessList, []local_model.APPAccessList, error) {
 	accessListSegmentation, err := a.repo.FindAllForAccount(ctx, segmentIdentifier)
 
 	if err != nil {
@@ -387,7 +415,7 @@ func (a *AccessListSegmentationService) GetAllAccessListSegmentationForAccount(c
 		return nil, nil, err
 	}
 
-	accessList := access_list_segmentation_core.FindNoneSegmentedAccessList(ctx, a.accessListServiceRepo, accessListSegmentation, []model.APPAccessList{})
+	accessList := access_list_segmentation_core.FindNoneSegmentedAccessList(ctx, a.accessListServiceRepo, accessListSegmentation, []local_model.APPAccessList{})
 
 	realtions, err := a.repo.FindParentChildRelationship(ctx)
 	if err != nil {

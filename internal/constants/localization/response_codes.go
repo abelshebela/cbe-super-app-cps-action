@@ -6055,6 +6055,12 @@ var (
 		Type:       "error",
 	}
 
+	ErrorInvalidSegmentationType = ResponseCode{
+		Code:       "ERROR_INVALID_SEGMENTATION_TYPE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidSegmentationType,
+		Type:       "error",
+	}
 	ErrorMarchantDataAlready = ResponseCode{
 		Code:       "ERROR_MERCHANT_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,

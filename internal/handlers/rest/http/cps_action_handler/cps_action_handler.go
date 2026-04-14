@@ -1727,6 +1727,20 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	// Pin FilterBuilder to validated UTC bounds and coerce repeated query keys to single strings.
+	if filterParams.Filters == nil {
+		filterParams.Filters = map[string]interface{}{}
+	}
+	filterParams.Filters["created_at_from"] = fromNorm
+	filterParams.Filters["created_at_to"] = toNorm
+	for _, k := range []string{"action_status", "action_type", "action_code", "unique_id"} {
+		if v, ok := filterParams.Filters[k]; ok {
+			if s, ok := local_util.StringFromFilterValue(v); ok {
+				filterParams.Filters[k] = s
+			}
+		}
+	}
+
 	span.SetAttributes(
 		attribute.String("export.file_type", fileType),
 		attribute.String("export.from", from),
