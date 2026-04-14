@@ -323,7 +323,7 @@ func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, cu
 		q.logger.Infof("[AccessListSegmentation][FindAllForAccount] found access list segmentation: key=%s, name=%s, service_key=%s, id=%s, enabled=%v", key, accessListName, accessListServiceKey, accessListID, enabled)
 		result = append(result, local_model.APPAccessList{
 			ID:             accessListID,
-			Key:            key,
+			Key:            accessListServiceKey,
 			AccessListName: accessListName,
 			Enabled:        enabled,
 		})
