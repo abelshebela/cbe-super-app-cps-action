@@ -79,7 +79,7 @@ import (
 	"github.com/go-chi/httprate"
 )
 
-func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware sharedMiddleware.TransitMiddleware, handlerLayer Handler, client cps_auth.CpsAuthServiceClient, redisRepository storage.RedisRepository, logger utils.Logger, cfg *config.VaultConfig) {
+func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware sharedMiddleware.EncMiddleware, handlerLayer Handler, client cps_auth.CpsAuthServiceClient, redisRepository storage.RedisRepository, logger utils.Logger, cfg *config.VaultConfig) {
 
 	r := chi.NewRouter()
 
