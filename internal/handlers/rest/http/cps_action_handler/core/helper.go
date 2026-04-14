@@ -47,23 +47,23 @@ func MapCPSActionToApproval(existingAction *model.CPSAction, userData *types.Use
 
 func DataFormatter(from string, to string, log utils.Logger) (time.Time, time.Time, error) {
 
-	FormatedFrom, formatedTo, err := local_util.FormatDateRangeToUTCStrings(from, to)
+	ValidStartDate, ValidEndDate, err := local_util.FormatDateRangeToUTCStrings(from, to)
 	if err != nil {
 		log.Warnf("Invalid Start date is given ", from)
 		return time.Time{}, time.Time{}, errors.New(localization.ErrorInvalidFormat.Message)
 	}
 
-	ValidStartDate, err := local_util.ValidateTimeAndParse(FormatedFrom)
-	if err != nil {
-		log.Warnf("Invalid Start date is given ", from)
-		return time.Time{}, time.Time{}, errors.New(localization.ErrorInvalidFormat.Message)
-	}
+	// ValidStartDate, err := local_util.ValidateTimeAndParse(FormatedFrom)
+	// if err != nil {
+	// 	log.Warnf("Invalid Start date is given ", from)
+	// 	return time.Time{}, time.Time{}, errors.New(localization.ErrorInvalidFormat.Message)
+	// }
 
-	ValidEndDate, err := local_util.ValidateTimeAndParse(formatedTo)
-	if err != nil {
-		log.Warnf("Invalid End date is given ", from)
-		return time.Time{}, time.Time{}, errors.New(localization.ErrorInvalidFormat.Message)
-	}
+	// ValidEndDate, err := local_util.ValidateTimeAndParse(formatedTo)
+	// if err != nil {
+	// 	log.Warnf("Invalid End date is given ", from)
+	// 	return time.Time{}, time.Time{}, errors.New(localization.ErrorInvalidFormat.Message)
+	// }
 
 	isValidOrder, err := local_util.ValidateTimeRangeOrder(ValidStartDate, ValidEndDate)
 	if err != nil {
