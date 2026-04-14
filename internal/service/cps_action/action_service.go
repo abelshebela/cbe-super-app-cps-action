@@ -607,14 +607,14 @@ func (ca *cpsActionService) ExportCpsActionData(
 	}
 	//==================================
 
-	actions, err := ca.repo.ActionByDateRange(ctx, filterMap)
+	actions, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterMap, "")
 	if err != nil {
 		return "", err
 	}
 
-	for _, action := range actions {
+	for _, action := range actions.Data {
 		rowCount++
-		if err := ca.processCPSAction(writer, &action); err != nil {
+		if err := ca.processCPSAction(writer, action); err != nil {
 			return "", err
 		}
 	}
