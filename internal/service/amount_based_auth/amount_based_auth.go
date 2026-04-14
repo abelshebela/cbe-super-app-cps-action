@@ -64,7 +64,6 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 }
-
 func (s *amountBasedAuthService) authorizeDelete(ctx context.Context, action *model.CPSAction, span trace.Span) (*model.CPSAction, error) {
 	s.logger.Infof("[AmountAuthSvc][authorizeDelete] processing DELETE")
 	currency := action.UniqueId
@@ -73,6 +72,38 @@ func (s *amountBasedAuthService) authorizeDelete(ctx context.Context, action *mo
 		return nil, err
 	}
 	s.logger.Infof("[AmountAuthSvc][authorizeDelete] DELETE done")
+	return action, nil
+}
+
+// authorizeCreate persists new currency tiers when a CREATE action is approved
+func (s *amountBasedAuthService) authorizeCreate(ctx context.Context, action *model.CPSAction, span trace.Span) (*model.CPSAction, error) {
+	s.logger.Infof("[AmountAuthSvc][authorizeCreate] processing CREATE")
+
+	currentAction, err := local_util.JsonUnmarshal[map[string]interface{}](action.CurrentAction)
+	if err != nil {
+		span.RecordError(err)
+		s.logger.Errorf("[AmountAuthSvc][authorizeCreate] unmarshal currentAction err: %v", err)
+		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+	}
+
+	tiersRaw, ok := (*currentAction)["tiers"]
+	if !ok {
+		s.logger.Errorf("[AmountAuthSvc][authorizeCreate] missing tiers in action data")
+		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+	}
+
+	tiers, err := local_util.JsonUnmarshal[[]local_model.AuthTierOracle](tiersRaw)
+	if err != nil {
+		s.logger.Errorf("[AmountAuthSvc][authorizeCreate] unmarshal tiers err: %v", err)
+		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+	}
+
+	if err := s.Repository.CreateMany(ctx, *tiers); err != nil {
+		s.logger.Errorf("[AmountAuthSvc][authorizeCreate] create tiers err: %v", err)
+		return nil, err
+	}
+
+	s.logger.Infof("[AmountAuthSvc][authorizeCreate] CREATE done")
 	return action, nil
 }
 
