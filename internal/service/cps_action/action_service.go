@@ -307,26 +307,83 @@ func (ca *cpsActionService) GetCPSActionsByDepartment(ctx context.Context, depar
 	return result, nil
 }
 
-func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionsForApprover", "CPSAction", "GetCPSActionsForApprover")
 	defer span.End()
 	result, err := ca.repo.SanitizedFindAllWithPaginationForApprover(ctx, userID, *filterParams, RAList)
 	if err != nil {
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
-		return nil, err
+		return nil, "", err
 	}
-	return result, nil
+
+	if filterParams.Filters["action"] == "export" {
+		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, result.Data, CpsActionCSVHeader, ca.logger)
+		if err != nil {
+			span.AddEvent("failed to export CPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
+			ca.logger.Errorf("[CpsActionSvc][Export] export CPS actions err: %v", err)
+			return nil, "", err
+		}
+		return result, url, nil
+	}
+	return result, "", nil
 }
 
-func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+func (ca *cpsActionService) exportCPSActions(ctx context.Context, filterParams *types.Filter, result *types.PaginatedResponse[[]*model.CPSAction]) (string, error) {
+	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(filterParams.Filters["created_at_from"].(string), filterParams.Filters["created_at_to"].(string))
+	if err != nil {
+		ca.logger.Errorf("[CpsActionSvc][Export] format date range to UTC strings err: %v", err)
+		return "", errors.New(localization.ErrorInvalidDateFormat.Code)
+	}
+
+	url, err := lib.ProduceFileFromData(ctx, lib.FileProducerConfig{
+		FilePrefix: "cps_actions",
+		Header:     CpsActionCSVHeader([]string{"Action Code", "Action Name", "Action Status", "Action Type", "Action Date"}),
+		FileType:   lib.FileTypeCSV,
+		ObjectName: fmt.Sprintf("cps_actions_%s_to_%s_%d.csv", startDate.Format("20060102"), endDate.Format("20060102"), time.Now().Unix()),
+	}, result.Data, func(action *model.CPSAction) ([]string, error) {
+		row, err := BuildCPSActionRow(action)
+		if err != nil {
+			return nil, err
+		}
+		return row, nil
+	}, func(ctx context.Context, file *os.File, size int64, objectName string, ft lib.FileType) (string, error) {
+
+		switch ft {
+		case lib.FileTypeCSV:
+			return lib.UploadCSVToMinio(ctx, ca.minioClient, ca.buckerName, file, size, ca.cfg, objectName, ca.logger)
+
+		case lib.FileTypePDF:
+			return lib.UploadPDFToMinio(ctx, ca.minioClient, ca.buckerName, file, size, ca.cfg, objectName, ca.logger)
+
+		default:
+			return "", fmt.Errorf("unsupported file type: %s", ft)
+		}
+	})
+	if err != nil {
+		ca.logger.Errorf("[CpsActionSvc][Export] produce file from data err: %v", err)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return url, nil
+}
+func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionsForAuditor", "CPSAction", "GetCPSActionsForAuditor")
 	defer span.End()
 	result, err := ca.repo.SanitizedFindAllWithPaginationForAuditor(ctx, userID, *filterParams, RAList)
 	if err != nil {
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
-		return nil, err
+		return nil, "", err
 	}
-	return result, nil
+
+	if filterParams.Filters["action"] == "export" {
+		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, result.Data, CpsActionCSVHeader, ca.logger)
+		if err != nil {
+			span.AddEvent("failed to export CPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
+			ca.logger.Errorf("[CpsActionSvc][Export] export CPS actions err: %v", err)
+			return nil, "", err
+		}
+		return result, url, nil
+	}
+	return result, "", nil
 }
 
 func (ca *cpsActionService) GetCPSActions(ctx context.Context, userID, role string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
@@ -528,7 +585,7 @@ func (ca *cpsActionService) GetUserAuthorizerIndex(ctx context.Context, requestA
 	return approverData, nil
 }
 
-func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetUserCreatedActions", "CPSAction", "GetUserCreatedActions")
 	defer span.End()
 	if filterParams == nil {
@@ -542,12 +599,23 @@ func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID st
 	result, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterParams, "")
 	if err != nil {
 		span.AddEvent("failed to find pending cps actions by user", trace.WithAttributes(attribute.String("error", err.Error())))
-		return nil, err
+		return nil, "", err
 	}
-	return result, nil
+
+	if filterParams.Filters["action"] == "export" {
+		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, result.Data, CpsActionCSVHeader, ca.logger)
+		if err != nil {
+			span.AddEvent("failed to export CPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
+			ca.logger.Errorf("[CpsActionSvc][Export] export CPS actions err: %v", err)
+			return nil, "", err
+		}
+		return result, url, nil
+	}
+
+	return result, "", nil
 }
 
-func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetUserCheckedActions", "CPSAction", "GetUserCheckedActions")
 	defer span.End()
 	if filterParams == nil {
@@ -561,9 +629,19 @@ func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 	result, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterParams, "")
 	if err != nil {
 		span.AddEvent("failed to find approver cps actions by user", trace.WithAttributes(attribute.String("error", err.Error())))
-		return nil, err
+		return nil, "", err
 	}
-	return result, nil
+
+	if filterParams.Filters["action"] == "export" {
+		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, result.Data, CpsActionCSVHeader, ca.logger)
+		if err != nil {
+			span.AddEvent("failed to export CPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
+			ca.logger.Errorf("[CpsActionSvc][Export] export CPS actions err: %v", err)
+			return nil, "", err
+		}
+		return result, url, nil
+	}
+	return result, "", nil
 }
 
 func (ca *cpsActionService) ExportCpsActionData(
@@ -574,13 +652,6 @@ func (ca *cpsActionService) ExportCpsActionData(
 	var filterFields []string
 	var rowCount int
 
-	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(filterMap.Filters["created_at_from"].(string), filterMap.Filters["created_at_to"].(string))
-	if err != nil {
-		return "", err
-	}
-
-	filterMap.Filters["created_at_from"] = startDate
-	filterMap.Filters["created_at_to"] = endDate
 	// 1 Create temp file
 	tmpFile, err := os.CreateTemp("", "cps_actions_*.csv")
 	if err != nil {
@@ -591,6 +662,13 @@ func (ca *cpsActionService) ExportCpsActionData(
 
 	writer := csv.NewWriter(tmpFile)
 
+	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(filterMap.Filters["created_at_from"].(string), filterMap.Filters["created_at_to"].(string))
+	if err != nil {
+		ca.logger.Errorf("[CpsActionSvc][Export] format date range to UTC strings err: %v", err)
+		return "", errors.New(localization.ErrorInvalidDateFormat.Code)
+	}
+	filterMap.Filters["created_at_from"] = startDate
+	filterMap.Filters["created_at_to"] = endDate
 	// 2️ Write Header
 	if filterMap.Filters == nil {
 		filterMap.Filters = map[string]interface{}{}
@@ -607,15 +685,17 @@ func (ca *cpsActionService) ExportCpsActionData(
 	}
 	//==================================
 
-	actions, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterMap, "")
+	actions, err := ca.repo.ActionByDateRange(ctx, *filterMap, req)
 	if err != nil {
-		return "", err
+		ca.logger.Errorf("[CpsActionSvc][Export] find all with date range err: %v", err)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	for _, action := range actions.Data {
+	for _, action := range actions {
 		rowCount++
 		if err := ca.processCPSAction(writer, action); err != nil {
-			return "", err
+			ca.logger.Errorf("[CpsActionSvc][Export] process CPS action err: %v", err)
+			return "", errors.New(localization.ErrorUnexpectedError.Code)
 		}
 	}
 
@@ -635,13 +715,13 @@ func (ca *cpsActionService) ExportCpsActionData(
 
 	if _, err := tmpFile.Seek(0, 0); err != nil {
 		ca.logger.Errorf("[CpsActionSvc][Export] seek temp file err: %v", err)
-		return "", errors.New(localization.CpsActionDataExportedError.Code)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	stat, err := tmpFile.Stat()
 	if err != nil {
 		ca.logger.Errorf("[CpsActionSvc][Export] stat temp file err: %v", err)
-		return "", errors.New(localization.CpsActionDataExportedError.Code)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// exportType comes from the handler (e.g. query file_type=csv); default to csv for this endpoint.

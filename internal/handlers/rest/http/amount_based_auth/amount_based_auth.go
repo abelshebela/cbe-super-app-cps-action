@@ -178,15 +178,15 @@ func (a *AmountBasedAuthHandler) DeleteAmountBasedAuth(w http.ResponseWriter, r 
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
-	id, ok := common_util.GetParam(r, "id")
-	if !ok || id == "" {
+	currency, ok := common_util.GetParam(r, "currency")
+	if !ok || currency == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Message)
 		return
 	}
-	span.SetAttributes(attribute.String("amount_based_auth.id", id))
-	if err := a.Service.DeleteAmountBasedAuth(ctx, id); err != nil {
+	span.SetAttributes(attribute.String("amount_based_auth.currency", currency))
+	if err := a.Service.DeleteAmountBasedAuth(ctx, currency); err != nil {
 		span.RecordError(err)
-		log.Errorf("[DeleteAmountBasedAuth] service error: %v", err)
+		log.Errorf("[DeleteAmountBasedAuth] service error for currency: %s", currency)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
