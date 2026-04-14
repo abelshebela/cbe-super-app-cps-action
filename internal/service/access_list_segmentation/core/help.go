@@ -184,6 +184,56 @@ func modelToSubAccessList(al *local_model.APPAccessList) types.SubAccessList {
 	}
 }
 
+// func MapParentChildRelationship(relations []local_model.AccessItemRelation, accessList []local_model.APPAccessList) []local_model.APPAccessList {
+// 	// Kept in sync with service/bulk/core.MapParentChildRelationship
+// 	nodesByKey := make(map[string]local_model.APPAccessList, len(accessList))
+// 	for _, al := range accessList {
+// 		nodesByKey[al.Key] = al
+// 	}
+
+// 	parentChildren := make(map[string]map[string]struct{})
+// 	for _, rel := range relations {
+// 		if parentChildren[rel.ParentKey] == nil {
+// 			parentChildren[rel.ParentKey] = make(map[string]struct{})
+// 		}
+// 		parentChildren[rel.ParentKey][rel.ChildKey] = struct{}{}
+// 	}
+
+// 	accountedFor := make(map[string]bool)
+// 	var result []local_model.APPAccessList
+
+// 	for parentKey, childSet := range parentChildren {
+// 		parent, ok := nodesByKey[parentKey]
+// 		if !ok {
+// 			continue
+// 		}
+// 		childKeys := make([]string, 0, len(childSet))
+// 		for ck := range childSet {
+// 			if ck != parentKey {
+// 				childKeys = append(childKeys, ck)
+// 			}
+// 		}
+// 		sort.Strings(childKeys)
+// 		for _, childKey := range childKeys {
+// 			child, ok := nodesByKey[childKey]
+// 			if !ok {
+// 				continue
+// 			}
+// 			parent.SubAccessList = append(parent.SubAccessList, modelToSubAccessList(&child))
+// 			accountedFor[childKey] = true
+// 		}
+// 		result = append(result, parent)
+// 		accountedFor[parent.Key] = true
+// 	}
+
+//		for _, al := range accessList {
+//			if !accountedFor[al.Key] {
+//				result = append(result, al)
+//			}
+//		}
+//		return result
+//	}
+
 // MapParentChildRelationship builds parent rows with SubAccessList from ACCESS_ITEMS_RELATION edges.
 // Self-edges (PARENT_KEY = CHILD_KEY) define a standalone parent and are not added as children.
 func MapParentChildRelationship(relations []local_model.AccessItemRelation, accessList []model.APPAccessList) []model.APPAccessList {
