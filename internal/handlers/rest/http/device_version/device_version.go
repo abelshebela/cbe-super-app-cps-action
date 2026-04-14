@@ -203,12 +203,6 @@ func (h *deviceVersionAdapter) GetAllDeviceVersions(w http.ResponseWriter, r *ht
 		return
 	}
 
-	if filterParams.Filters["platform"] != nil {
-		platforms := filterParams.Filters["platform"].(string)
-		platforms = strings.ToUpper(platforms)
-		filterParams.Filters["platform"] = platforms
-	}
-
 	res, err := h.svc.GetAllDeviceVersions(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)

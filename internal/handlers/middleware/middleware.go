@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -564,4 +565,18 @@ func (a *authMiddleware) pkcs7Unpad(ctx context.Context, data []byte, blockSize 
 		}
 	}
 	return data[:len(data)-padding], nil
+}
+
+func (a *authMiddleware) AuthenticateServiceAPIKey(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		got := strings.TrimSpace(r.Header.Get("x-api-key"))
+		want := strings.TrimSpace(a.cfg.CPSApiTokenForCBE)
+		if got == "" || want == "" || len(got) != len(want) ||
+			subtle.ConstantTimeCompare([]byte(got), []byte(want)) != 1 {
+			a.logger.Warnf("[AuthMW][ServiceAPIKey] unauthorized or missing x-api-key")
+			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }

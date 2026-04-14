@@ -160,7 +160,7 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 				attribute.String("name", req.Name),
 			))
 			b.logger.Errorf("[BudgetCatSvc][Create] upload icon err: %v", err)
-			// return err
+			return err
 		}
 		iconURL = url
 	}
