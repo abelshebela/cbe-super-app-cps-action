@@ -65,7 +65,7 @@ func (c *customerOracleRepository) FindCustomerByUserCode(ctx context.Context, u
 	  u.full_name,
 	  u.contact_phone,
 	  u.contact_email,
-	  u.platform
+	  ld.platform
 	FROM users u
 	join linked_devices ld on ld.user_code = u.user_code
 	WHERE u.user_code = :1`
@@ -188,7 +188,7 @@ func (c *customerOracleRepository) FindCustomerLinkedAccountByUserID(ctx context
 
 	// 1. Find account_id from linked_accounts where user_id = :1 and is_main = 1
 	var accountID string
-	queryLinked := `SELECT account_id FROM linked_accounts WHERE user_code = :1 AND is_main_account = 1`
+	queryLinked := `SELECT account_id FROM linked_accounts WHERE user_code = :1 AND is_main_account = 1 AND is_deleted = 0`
 	err := c.db.QueryRowContext(ctx, queryLinked, userID).Scan(&accountID)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
@@ -201,7 +201,7 @@ func (c *customerOracleRepository) FindCustomerLinkedAccountByUserID(ctx context
 
 	// 2. Find account_number from accounts where id = account_id
 	var accountNumber string
-	queryAccount := `SELECT account_number FROM accounts WHERE id = :1`
+	queryAccount := `SELECT account_number FROM accounts WHERE id = :1 AND is_deleted = 0`
 	err = c.db.QueryRowContext(ctx, queryAccount, accountID).Scan(&accountNumber)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
