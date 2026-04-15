@@ -25,7 +25,7 @@ func ConvertPaginatedModelToDTO(paginated types.PaginatedResponse[[]local_model.
 
 func MapModelToDTO(model local_model.AccessListSegmentation) access_list_segmentation_dto.AccessListSegmentationResponse {
 	return access_list_segmentation_dto.AccessListSegmentationResponse{
-		ID:             model.ID.Hex(),
+		ID:             model.ID,
 		Type:           model.Type,
 		SegmentType:    model.SegmentationType,
 		SegmentCode:    model.SegmentationCode,
