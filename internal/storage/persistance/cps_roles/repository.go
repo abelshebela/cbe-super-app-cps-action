@@ -384,10 +384,10 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRo
 
 	const q = `
 SELECT
-  RAWTOHEX(SR.ID),
-  SR.NAME,
-  SR.ROLE_CODE,
-  SR.DESCRIPTION,
+  RAWTOHEX(SR.ID) AS ID,
+  NVL(SR.NAME, '') AS NAME,
+  NVL(SR.ROLE_CODE, '') AS ROLE_CODE,
+  NVL(SR.DESCRIPTION, '') AS DESCRIPTION,
   SR.IS_ENABLED,
   SR.IS_DELETED,
   SR.CREATED_AT,
@@ -401,7 +401,7 @@ SELECT
         JSON_OBJECT(
           'key' VALUE RAWTOHEX(AL.ID),
           'access_list_name' VALUE AL.SERVICE_KEY
-        )
+        ) RETURNING CLOB
       )
       FROM ACCESS_LISTS AL
       WHERE AL.IS_ENABLED = 1
@@ -414,7 +414,7 @@ SELECT
             AND ACS.ENABLED = 1
         )
     ),
-    '[]'
+    TO_CLOB('[]')
   ) AS ENABLED_SERVICES,
 
   -- DISABLED SERVICES
@@ -424,7 +424,7 @@ SELECT
         JSON_OBJECT(
           'key' VALUE RAWTOHEX(AL.ID),
           'access_list_name' VALUE AL.SERVICE_KEY
-        )
+        ) RETURNING CLOB
       )
       FROM ACCESS_LISTS AL
       WHERE AL.IS_ENABLED = 1
@@ -437,7 +437,7 @@ SELECT
             AND ACS.ENABLED = 1
         )
     ),
-    '[]'
+    TO_CLOB('[]')
   ) AS DISABLED_SERVICES
 
 FROM SUPERAPP_ROLE SR
