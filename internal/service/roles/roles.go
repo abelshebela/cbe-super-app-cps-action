@@ -176,6 +176,17 @@ func (j *RoleService) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
+	// Check if role has active jobs before allowing deletion
+	hasActive, err := j.approveIndexRepo.HasActiveActionRoles(ctx, existing.Code)
+	if err != nil {
+		j.logger.Errorf("[Role Service][Delete] failed to check active action roles: %v", err)
+		return err
+	}
+	if hasActive {
+		j.logger.Errorf("[Role Service][Delete] role %s has active jobs, cannot delete", existing.Code)
+		return errors.New(localization.ErrorRoleHasActiveJobs.Code)
+	}
+
 	updated := *existing
 	updated.UpdatedAt = time.Now()
 
