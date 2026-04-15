@@ -861,10 +861,11 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 
 	if len(regionIDs) > 0 {
 		// Build query with multiple region IDs
-		placeholders := make([]string, len(regionIDs))
+		// For Oracle, we need to construct IN clause with HEXTORAW calls properly
+		var regionConditions []string
 		for i, id := range regionIDs {
 			paramName := fmt.Sprintf("region_%d", i)
-			placeholders[i] = "HEXTORAW(:" + paramName + ")"
+			regionConditions = append(regionConditions, "region_id = HEXTORAW(:"+paramName+")")
 			args = append(args, sql.Named(paramName, id))
 		}
 
@@ -887,7 +888,7 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		FROM ACCOUNT_BLOCKS
 		WHERE type = :type
 		  AND is_deleted = 0
-		  AND region_id IN (%s)
+		  AND (%s)
 		  AND (:search IS NULL
 		       OR LOWER(name) LIKE '%' || LOWER(:search) || '%'
 		       OR LOWER(code) LIKE '%' || LOWER(:search) || '%'
@@ -895,7 +896,7 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		  AND (:district_id IS NULL OR district_id = HEXTORAW(:district_id))
 		  AND (:is_enabled IS NULL OR is_enabled = :is_enabled)
 		ORDER BY created_at DESC
-		OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, strings.Join(placeholders, ","))
+		OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, strings.Join(regionConditions, " OR "))
 
 		// Add other parameters
 		args = append(args,
