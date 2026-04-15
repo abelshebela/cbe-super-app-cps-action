@@ -22,55 +22,96 @@ import (
 // ─── SQL constants ───────────────────────────────────────────────────────────
 
 const (
-	insertAccountBlock = `INSERT INTO ACCOUNT_BLOCKS (
-		id, name, code, address, parent_id, slug, type,
-		is_enabled, city_id, district_id, region_id,
-		is_deleted, created_at, updated_at
-	) VALUES (
-		:id, :name, :code, :address, :parent_id, :slug, :type,
-		1, :city_id, :district_id, :region_id,
-		0, SYSTIMESTAMP, SYSTIMESTAMP
-	)`
+	insertAccountBlock = `
+		INSERT INTO ACCOUNT_BLOCKS (
+			id, name, code, address, parent_id, slug, type,
+			is_enabled, district_id, region_id,
+			is_deleted, created_at, updated_at
+		) VALUES (
+			:id, :name, :code, :address, :parent_id, :slug, :type,
+			1, :district_id, :region_id,
+			0, SYSTIMESTAMP, SYSTIMESTAMP
+		)`
 
-	softDeleteAccountBlock = `UPDATE ACCOUNT_BLOCKS
-		SET is_deleted = 1, updated_at = SYSTIMESTAMP
-		WHERE id = HEXTORAW(:id) AND is_deleted = 0`
+	softDeleteAccountBlock = `
+		UPDATE ACCOUNT_BLOCKS
+		SET is_deleted = 1,
+		    updated_at = SYSTIMESTAMP
+		WHERE id = HEXTORAW(:id)
+		  AND is_deleted = 0`
 
-	selectAccountBlockByID = `SELECT
-		RAWTOHEX(id), name, code, address, RAWTOHEX(parent_id), slug, type,
-		is_enabled, RAWTOHEX(city_id), RAWTOHEX(district_id), RAWTOHEX(region_id),
-		is_deleted, created_at, updated_at
-	FROM ACCOUNT_BLOCKS
-	WHERE id = HEXTORAW(:id) AND is_deleted = 0`
+	selectAccountBlockByID = `
+		SELECT
+			RAWTOHEX(id) AS id,
+			name,
+			code,
+			address,
+			RAWTOHEX(parent_id) AS parent_id,
+			slug,
+			type,
+			is_enabled,
+			RAWTOHEX(city_id) AS city_id,
+			RAWTOHEX(district_id) AS district_id,
+			RAWTOHEX(region_id) AS region_id,
+			is_deleted,
+			created_at,
+			updated_at
+		FROM ACCOUNT_BLOCKS
+		WHERE id = HEXTORAW(:id)
+		  AND is_deleted = 0`
 
-	selectWithAncestors = `SELECT
-		RAWTOHEX(id), name, code, address, RAWTOHEX(parent_id), slug, type,
-		is_enabled, RAWTOHEX(city_id), RAWTOHEX(district_id), RAWTOHEX(region_id),
-		is_deleted, created_at, updated_at, LEVEL as depth
-	FROM ACCOUNT_BLOCKS
-	WHERE is_deleted = 0
-	START WITH id = HEXTORAW(:id)
-	CONNECT BY PRIOR parent_id = id
-	ORDER BY LEVEL ASC`
+	selectWithAncestors = `
+		SELECT
+			RAWTOHEX(id) AS id,
+			name,
+			code,
+			address,
+			RAWTOHEX(parent_id) AS parent_id,
+			slug,
+			type,
+			is_enabled,
+			RAWTOHEX(city_id) AS city_id,
+			RAWTOHEX(district_id) AS district_id,
+			RAWTOHEX(region_id) AS region_id,
+			is_deleted,
+			created_at,
+			updated_at,
+			LEVEL AS depth
+		FROM ACCOUNT_BLOCKS
+		WHERE is_deleted = 0
+		START WITH id = HEXTORAW(:id)
+		CONNECT BY PRIOR parent_id = id
+		ORDER BY LEVEL ASC`
 
-	listAccountBlocksByType = `SELECT
-		RAWTOHEX(id), name, code, address, RAWTOHEX(parent_id), slug, type,
-		is_enabled, RAWTOHEX(city_id), RAWTOHEX(district_id), RAWTOHEX(region_id),
-		is_deleted, created_at, updated_at,
-		COUNT(*) OVER() AS total_count
-	FROM ACCOUNT_BLOCKS
-	WHERE type = :type
-	  AND is_deleted = 0
-	  AND (:search IS NULL
-	       OR LOWER(name) LIKE '%%' || LOWER(:search) || '%%'
-	       OR LOWER(code) LIKE '%%' || LOWER(:search) || '%%'
-	       OR LOWER(address) LIKE '%%' || LOWER(:search) || '%%')
-	  AND (:region_id IS NULL OR region_id = HEXTORAW(:region_id))
-	  AND (:district_id IS NULL OR district_id = HEXTORAW(:district_id))
-	  AND (:city_id IS NULL OR city_id = HEXTORAW(:city_id))
-	  AND (:is_enabled IS NULL OR is_enabled = :is_enabled)
-	ORDER BY created_at DESC
-	OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`
+	listAccountBlocksByType = `
+		SELECT
+			RAWTOHEX(id) AS id,
+			name,
+			code,
+			address,
+			RAWTOHEX(parent_id) AS parent_id,
+			slug,
+			type,
+			is_enabled,
+			RAWTOHEX(city_id) AS city_id,
+			RAWTOHEX(district_id) AS district_id,
+			RAWTOHEX(region_id) AS region_id,
+			is_deleted,
+			created_at,
+			updated_at,
+			COUNT(*) OVER() AS total_count
+		FROM ACCOUNT_BLOCKS
+		WHERE type = :type
+		  AND is_deleted = 0
+		  AND (:search IS NULL
+		       OR LOWER(name) LIKE '%' || LOWER(:search) || '%'
+		       OR LOWER(code) LIKE '%' || LOWER(:search) || '%'
+		       OR LOWER(address) LIKE '%' || LOWER(:search) || '%')
+		  AND (:region_id IS NULL OR region_id = HEXTORAW(:region_id))
+		  AND (:district_id IS NULL OR district_id = HEXTORAW(:district_id))
+		  AND (:is_enabled IS NULL OR is_enabled = :is_enabled)
+		ORDER BY created_at DESC
+		OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`
 )
 
 // ─── Repository struct ──────────────────────────────────────────────────────
@@ -784,8 +825,10 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		limit = 50
 	}
 
-	var search, regionIDFilter, districtIDFilter, cityIDFilter interface{}
+	var search interface{}
 	var isEnabledFilter interface{}
+	var regionIDs []string
+	var districtIDFilter interface{}
 
 	if filterParam.Search != "" {
 		search = filterParam.Search
@@ -794,13 +837,16 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 	// Extract filters from map
 	if filterParam.Filters != nil {
 		if v, ok := filterParam.Filters["region_id"]; ok {
-			regionIDFilter = nullIfEmptyFilter(v)
+			if regionStr, ok := v.(string); ok && regionStr != "" {
+				// Split comma-separated region IDs
+				regionIDs = strings.Split(regionStr, ",")
+				for i, id := range regionIDs {
+					regionIDs[i] = strings.TrimSpace(id)
+				}
+			}
 		}
 		if v, ok := filterParam.Filters["district_id"]; ok {
 			districtIDFilter = nullIfEmptyFilter(v)
-		}
-		if v, ok := filterParam.Filters["city_id"]; ok {
-			cityIDFilter = nullIfEmptyFilter(v)
 		}
 		if v, ok := filterParam.Filters["is_enabled"]; ok {
 			if enabled, isBool := v.(bool); isBool {
@@ -809,16 +855,72 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		}
 	}
 
-	rows, err := a.db.QueryContext(ctx, listAccountBlocksByType,
-		sql.Named("type", string(entityType)),
-		sql.Named("search", search),
-		sql.Named("region_id", regionIDFilter),
-		sql.Named("district_id", districtIDFilter),
-		sql.Named("city_id", cityIDFilter),
-		sql.Named("is_enabled", isEnabledFilter),
-		sql.Named("offset", offset),
-		sql.Named("limit", limit),
-	)
+	// Build dynamic query based on whether we have multiple region IDs
+	var query string
+	var args []interface{}
+
+	if len(regionIDs) > 0 {
+		// Build query with multiple region IDs
+		placeholders := make([]string, len(regionIDs))
+		for i, id := range regionIDs {
+			paramName := fmt.Sprintf("region_%d", i)
+			placeholders[i] = "HEXTORAW(:" + paramName + ")"
+			args = append(args, sql.Named(paramName, id))
+		}
+
+		query = fmt.Sprintf(`SELECT
+			RAWTOHEX(id) AS id,
+			name,
+			code,
+			address,
+			RAWTOHEX(parent_id) AS parent_id,
+			slug,
+			type,
+			is_enabled,
+			RAWTOHEX(city_id) AS city_id,
+			RAWTOHEX(district_id) AS district_id,
+			RAWTOHEX(region_id) AS region_id,
+			is_deleted,
+			created_at,
+			updated_at,
+			COUNT(*) OVER() AS total_count
+		FROM ACCOUNT_BLOCKS
+		WHERE type = :type
+		  AND is_deleted = 0
+		  AND region_id IN (%s)
+		  AND (:search IS NULL
+		       OR LOWER(name) LIKE '%' || LOWER(:search) || '%'
+		       OR LOWER(code) LIKE '%' || LOWER(:search) || '%'
+		       OR LOWER(address) LIKE '%' || LOWER(:search) || '%')
+		  AND (:district_id IS NULL OR district_id = HEXTORAW(:district_id))
+		  AND (:is_enabled IS NULL OR is_enabled = :is_enabled)
+		ORDER BY created_at DESC
+		OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, strings.Join(placeholders, ","))
+
+		// Add other parameters
+		args = append(args,
+			sql.Named("type", string(entityType)),
+			sql.Named("search", search),
+			sql.Named("district_id", districtIDFilter),
+			sql.Named("is_enabled", isEnabledFilter),
+			sql.Named("offset", offset),
+			sql.Named("limit", limit),
+		)
+	} else {
+		// Use existing query for single region or no region filter
+		query = listAccountBlocksByType
+		args = []interface{}{
+			sql.Named("type", string(entityType)),
+			sql.Named("search", search),
+			sql.Named("region_id", nil),
+			sql.Named("district_id", districtIDFilter),
+			sql.Named("is_enabled", isEnabledFilter),
+			sql.Named("offset", offset),
+			sql.Named("limit", limit),
+		}
+	}
+
+	rows, err := a.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

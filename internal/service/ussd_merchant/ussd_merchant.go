@@ -88,10 +88,14 @@ func (s *ussdMerchantService) CreateUssdMerchant(ctx context.Context, req ussd_m
 		return errors.New(localization.ErrorFileUploadFailed.Code)
 	}
 
+	s.logger.Infof("[UssdMerchSvc][Create] creating cps action****************1")
 	ussdMerchant := core.UssdMerchant(req)
+
+	s.logger.Infof("[UssdMerchSvc][Create] creating cps action****************2")
 
 	ussdMerchant.Logo = URL
 	core.CreateCredentials(&ussdMerchant, s.cfg)
+	s.logger.Infof("[UssdMerchSvc][Create] creating cps action****************3")
 
 	cspActionModel := lib.CpsModelBuilder(constants.Empty, makerData, nil, ussdMerchant, constants.RequestCreateUssdMerchant, constants.CREATE)
 	if err := s.cpsService.CreateCPSAction(ctx, &cspActionModel); err != nil {
@@ -226,8 +230,8 @@ func (s *ussdMerchantService) DisableUssdMerchant(ctx context.Context, id string
 // 		return err
 // 	}
 
-// 	return nil
-// }
+//		return nil
+//	}
 func (s *ussdMerchantService) UpdateUssdMerchant(ctx context.Context, id string, req ussd_merchant_dto.UpdateUssdMerchantRequest) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateUssdMerchantService", "UssdMerchant", "Update")
 	defer span.End()
@@ -377,4 +381,3 @@ func (s *ussdMerchantService) DeleteUssdMerchant(ctx context.Context, id string)
 	s.logger.Infof("[UssdMerchSvc][Delete] done")
 	return nil
 }
-
