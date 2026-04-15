@@ -292,8 +292,26 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 
 	prevData := existingDonation
 	// Prepare existing model for validation
+	companyID, err := bson.ObjectIDFromHex(existingDonation.Company.ID)
+	if err != nil {
+		span.AddEvent("Invalid company ID", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+	categoryID, err := bson.ObjectIDFromHex(existingDonation.Category.ID)
+	if err != nil {
+		span.AddEvent("Invalid category ID", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
 	existingModel := &donation_model.Donation{
 		DonationCode:        existingDonation.DonationCode,
+		CompanyID:           companyID,
+		CategoryID:          categoryID,
 		Title:               existingDonation.Title,
 		DonationDescription: existingDonation.DonationDescription,
 		Target:              existingDonation.Target,
@@ -391,11 +409,8 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 
 	// --- Add New Images ---
 	d.logger.Infof("[DonationSvc][Update] processing %d new images", len(donation.DonationImages))
-	for i, fileHeader := range donation.DonationImages {
+	for _, fileHeader := range donation.DonationImages {
 		var objectkey string
-		if len(existingDonation.DonationImages) > 0 && existingDonation.DonationImages[i].PhotoURL != "" {
-			objectkey = path.Base(existingDonation.DonationImages[i].PhotoURL)
-		}
 
 		url, err := lib.UploadFileToMinio(
 			ctx,
@@ -417,8 +432,9 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		}
 
 		NewdonationImages = append(NewdonationImages, types.DonationImage{
-			ID:       bson.NewObjectID().Hex(),
-			PhotoURL: url,
+			ID:        bson.NewObjectID().Hex(),
+			PhotoURL:  url,
+			CreatedAt: time.Now(),
 		})
 
 		d.logger.Infof("[DonationSvc][Update] uploaded image: %s", url)

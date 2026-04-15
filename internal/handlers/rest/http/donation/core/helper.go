@@ -133,7 +133,7 @@ func ValidateForUpdate(req donation.DonationRequest) error {
 				validation.By(validateDonationAmount)),
 		),
 		validation.Field(&req.DonationImages,
-			validation.When(req.DonationImages != nil, validation.By(validateImages)),
+			validation.When(len(req.DonationImages) > 0, validation.By(validateImages)),
 		),
 		validation.Field(&req.CoverImage,
 			validation.When(req.CoverImage != nil, validation.By(validateImage)),
