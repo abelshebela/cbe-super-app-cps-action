@@ -415,29 +415,30 @@ SET
   last_modified_at = SYSTIMESTAMP
 WHERE id = HEXTORAW(:1)
   AND is_deleted = 0`
-	if _, err := tx.ExecContext(ctx, updateServiceQ, id); err != nil {
+	res, err := tx.ExecContext(ctx, updateServiceQ, id)
+	if err != nil {
 		s.logger.Errorf("[ServicesRepo][Delete] update services failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
-	const q = `
-UPDATE access_lists
-SET
-  is_deleted = 1,
-  deleted_at = SYSTIMESTAMP,
-  last_modified_at = SYSTIMESTAMP
-WHERE id = (
-  SELECT access_list_id
-  FROM services
-  WHERE id = HEXTORAW(:1)
-)
-  AND is_deleted = 0`
+	// 	const q = `
+	// UPDATE access_lists
+	// SET
+	//   is_deleted = 1,
+	//   deleted_at = SYSTIMESTAMP,
+	//   last_modified_at = SYSTIMESTAMP
+	// WHERE id = (
+	//   SELECT access_list_id
+	//   FROM services
+	//   WHERE id = HEXTORAW(:1)
+	// )
+	//   AND is_deleted = 0`
 
-	res, err := tx.ExecContext(ctx, q, id)
-	if err != nil {
-		s.logger.Errorf("[ServicesRepo][Delete] delete service failed: %v", err)
-		return local_util.HandleDBError(err)
-	}
+	// 	res, err := tx.ExecContext(ctx, q, id)
+	// 	if err != nil {
+	// 		s.logger.Errorf("[ServicesRepo][Delete] delete service failed: %v", err)
+	// 		return local_util.HandleDBError(err)
+	// 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
 		return errors.New(localization.ErrorServiceNotFound.Code)
@@ -1102,7 +1103,7 @@ WHERE id = :2`
 	return nil
 }
 
-func (s *ServicesStorage) DeleteServiceList(ctx context.Context, id string) error {
+func (s *ServicesStorage) DeleteServiceKey(ctx context.Context, id string) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][Create] begin tx failed: %v", err)

@@ -433,7 +433,8 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 	for k, v := range baseFilter {
 		dynamicFilter[k] = v
 	}
-	delete(dynamicFilter, "created_at")
+
+	// delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
 
 	if inboxOr == nil {

@@ -335,10 +335,14 @@ func MapDonationUpdate(
 		ID:           id,
 		DonationCode: existing.DonationCode,
 		Company: donation_dto.Company{
-			ID: GetValueOrDefault(update.CompanyID, existing.CompanyID.Hex()),
+			ID:          GetValueOrDefault(update.CompanyID, existing.CompanyID.Hex()),
+			CompanyName: company.CompanyName,
+			CompanyLogo: company.CompanyLogo,
 		},
 		Category: donation_dto.Category{
-			ID: GetValueOrDefault(update.CategoryID, existing.CategoryID.Hex()),
+			ID:           GetValueOrDefault(update.CategoryID, existing.CategoryID.Hex()),
+			CategoryName: category.CategoryName,
+			Icon:         category.Icon,
 		},
 		// CompanyID:           GetValueOrDefault(update.CompanyID, existing.CompanyID.Hex()),
 		// CompanyName:         companyName,

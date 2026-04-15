@@ -630,4 +630,5 @@ func (a *servicesAdapter) DeleteServiceKey(w http.ResponseWriter, r *http.Reques
 
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessServiceKeyDeleteRequestSubmitted, nil)
+
 }
