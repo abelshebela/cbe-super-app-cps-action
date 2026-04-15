@@ -129,12 +129,12 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 	  a.account_number,
 	  a.account_holder_name,
 	  a.account_type,
-	  ab.code AS account_branch_code,
+	  ab.code,
 	  la.is_active,
-	  ab.name AS account_branch_name
+	  ab.name
 	FROM linked_accounts la
 	JOIN accounts a ON a.id = la.account_id
-	LEFT JOIN account_blocks ab ON ab.id = a.bank_id
+	JOIN account_blocks ab ON ab.id = a.bank_id
 	WHERE la.user_code = :1`
 
 	rows, err := c.db.QueryContext(ctx, linkedQuery, id)
@@ -200,9 +200,9 @@ func (c *customerOracleRepository) FindCustomerLinkedAccountByUserID(ctx context
 	}
 
 	// 2. Find account_number from accounts where id = account_id
-	var accountNumber string
-	queryAccount := `SELECT account_number FROM accounts WHERE id = :1 AND is_deleted = 0`
-	err = c.db.QueryRowContext(ctx, queryAccount, accountID).Scan(&accountNumber)
+	var accountNumber, branchCode, branchName string
+	queryAccount := `SELECT account_number, branch_code, branch_name FROM accounts WHERE id = :1 AND is_deleted = 0`
+	err = c.db.QueryRowContext(ctx, queryAccount, accountID).Scan(&accountNumber, &branchCode, &branchName)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			c.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] account not found for account_id: %s", accountID)
@@ -214,6 +214,8 @@ func (c *customerOracleRepository) FindCustomerLinkedAccountByUserID(ctx context
 
 	linkedAccount := &model.LinkedAccount{
 		AccountNumber: accountNumber,
+		BranchCode:    branchCode,
+		BranchName:    branchName,
 	}
 	return linkedAccount, nil
 }
