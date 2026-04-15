@@ -62,11 +62,11 @@ func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction
 			a.logger.Errorf("[AccessListSegSvc][Authorize] unmarshal update err: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
-		if action.ID.Hex() == "" {
+		if action.ID == "" {
 			a.logger.Errorf("[AccessListSegSvc][Authorize] missing ID")
 			return nil, errors.New(localization.ErrorAccessListSegmentationInvalidID.Code)
 		}
-		if err := a.repo.Update(ctx, action.ID.Hex(), *action); err != nil {
+		if err := a.repo.Update(ctx, action.ID, *action); err != nil {
 			a.logger.Errorf("[AccessListSegSvc][Authorize] update err: %v", err)
 			return nil, err
 		}
