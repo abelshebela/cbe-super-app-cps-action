@@ -19,5 +19,6 @@ type JobRole struct {
 	CheckerActions []string      `json:"checker_actions" bson:"-"`
 	AuditorActions []string      `json:"auditor_actions" bson:"-"`
 	UpdatedAt      time.Time     `json:"updated_at" bson:"updated_at"`
+	IsDeleted      bool          `json:"is_deleted" bson:"is_deleted"`
 	CreatedAt      time.Time     `json:"created_at" bson:"created_at"`
 }

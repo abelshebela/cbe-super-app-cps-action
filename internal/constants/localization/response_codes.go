@@ -3997,7 +3997,7 @@ var (
 
 	SuccessServiceKeyDeleted = ResponseCode{
 		Code:       "SUCCESS_SERVICE_KEY_DELETED",
-		StatusCode: StatusNoContent,
+		StatusCode: StatusOK,
 		Message:    "service & key deleted successfully",
 		Type:       "success",
 	}
