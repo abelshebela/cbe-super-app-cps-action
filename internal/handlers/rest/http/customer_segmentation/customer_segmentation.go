@@ -7,7 +7,6 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	seg "cbe-super-app-cps-action/internal/constants/interfaces/customer_segmentation"
@@ -60,7 +59,7 @@ func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.Response
 
 	if err := req.Validate(); err != nil {
 		log.Errorf("[CreateCustomerSegmentation] validation error: %v", err)
-		localization.SendErrorByCodeResponse(w, fmt.Sprintf("validation error: %v", err))
+		localization.SendErrorByCodeResponse(w, localization.MsgInvalidInput)
 		return
 	}
 	req.CapitilizeCustomerSegmentationRequest()
