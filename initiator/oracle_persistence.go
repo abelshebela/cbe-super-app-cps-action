@@ -55,7 +55,7 @@ func InitOraclePersistence(db *sql.DB, cfg *config.VaultConfig, clientOrchestrat
 		BudgetCategoryOracle:  budget_category_oracle.NewBudgetCategoryOracleRepository(db, clientOrchestrationProducer, log),
 		AmountBasedAuthOracle: amount_based_auth_oracle.NewAmountBasedAuthOracleRepository(db, log),
 		AccessListOracle:      access_list_oracle.NewAccessListOracleRepository(db, redisRepository, log),
-		AccessListSegmentaion: access_list_segmentation_oracle.NewAccessListSegmentationOracle(db, *cfg, accessListSegmentationProducer, log),
+		AccessListSegmentaion: access_list_segmentation_oracle.NewAccessListSegmentationOracle(db, *cfg, accessListSegmentationProducer, redisRepository, log),
 		AccountBlock:          account_block_repo.NewAccountBlockRepository(db, redisRepository, log),
 		Customer:              customer_oracle.NewCustomerOracleRepository(db, *cfg, log),
 	}
