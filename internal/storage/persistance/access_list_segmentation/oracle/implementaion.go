@@ -345,7 +345,7 @@ func (q *accessListSegmentationOracle) FindAllByBlockAndKeys(ctx context.Context
 	if len(keys) == 0 {
 		return nil, fmt.Errorf("no keys provided")
 	}
-	query := `SELECT RAWTOHEX(id), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), type, enabled, created_at, updated_at, deleted_at FROM ACCESS_LIST_GEO_SEG WHERE segmented_id = HEXTORAW(:1) AND access_list_key IN (`
+	query := `SELECT RAWTOHEX(id), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), type, enabled FROM ACCESS_LIST_GEO_SEG WHERE segmented_id = HEXTORAW(:1) AND access_list_key IN (`
 	placeholders := make([]string, len(keys))
 	args := make([]interface{}, 0, len(keys)+1)
 	args = append(args, segmentIDorCode)
@@ -363,7 +363,7 @@ func (q *accessListSegmentationOracle) FindAllByBlockAndKeys(ctx context.Context
 	var result []model.AccessListSegmentation
 	for rows.Next() {
 		var seg model.AccessListSegmentation
-		err := rows.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
+		err := rows.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled)
 		if err != nil {
 			if err.Error() == "sql: no rows in result set" {
 				q.logger.Infof("[AccessListSegmentationOracle][FindAllByBlockAndKeys] no access list segmentation found for segmentIDorCode: %s and keys: %v", segmentIDorCode, keys)
@@ -383,7 +383,7 @@ func (q *accessListSegmentationOracle) FindAllByAccountAndKeys(ctx context.Conte
 	if len(keys) == 0 {
 		return nil, fmt.Errorf("no keys provided")
 	}
-	query := `SELECT RAWTOHEX(ID), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), enabled, created_at, updated_at FROM ACCESS_LIST_CUSTOMER_SEG WHERE segmented_id = HEXTORAW(:1) AND access_list_key IN (`
+	query := `SELECT RAWTOHEX(ID), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), enabled FROM ACCESS_LIST_CUSTOMER_SEG WHERE segmented_id = HEXTORAW(:1) AND access_list_key IN (`
 	placeholders := make([]string, len(keys))
 	args := make([]interface{}, 0, len(keys)+1)
 	args = append(args, segmentIDorCode)
@@ -402,7 +402,7 @@ func (q *accessListSegmentationOracle) FindAllByAccountAndKeys(ctx context.Conte
 	for rows.Next() {
 		var segID string
 		var seg model.AccessListSegmentation
-		err := rows.Scan(&segID, &seg.AccessListKey, &seg.SegmentedID, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt)
+		err := rows.Scan(&segID, &seg.AccessListKey, &seg.SegmentedID, &seg.Enabled)
 		if err != nil {
 			if err.Error() == "sql: no rows in result set" {
 				q.logger.Infof("[AccessListSegmentationOracle][FindAllByAccountAndKeys] no access list segmentation found for segmentIDorCode: %s and keys: %v", segmentIDorCode, keys)
