@@ -290,6 +290,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
 
+	prevData := existingDonation
 	// Prepare existing model for validation
 	existingModel := &donation_model.Donation{
 		DonationCode:        existingDonation.DonationCode,
@@ -438,7 +439,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	cpsAction := lib.CpsModelBuilder(
 		id,
 		makerData,
-		existingDonation,
+		prevData,
 		updateData,
 		string(constants.RequestUpdateDonation),
 		constants.UPDATE,
