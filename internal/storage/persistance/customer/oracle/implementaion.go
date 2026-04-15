@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -56,7 +57,39 @@ func (c *customerOracleRepository) FindCustomerByIDs(ctx context.Context, ids []
 
 // FindCustomerByUserCode implements [storage.CustomerRepository].
 func (c *customerOracleRepository) FindCustomerByUserCode(ctx context.Context, usercode string) (*member.User, error) {
-	panic("unimplemented")
+	c.logger.Infof("[CustomerRepository][FindCustomerByUserCode] fetching feedback user fields by user_code: %s", usercode)
+
+	// Only fetch fields needed for feedback
+	userQuery := `
+	SELECT
+	  u.full_name,
+	  u.contact_phone,
+	  u.contact_email
+	  u.platform
+	FROM users u
+	join linked_devices ld on ld.user_code = u.user_code
+	WHERE u.user_code = :1`
+
+	var (
+		platform, fullName, phone, email string
+	)
+	err := c.db.QueryRowContext(ctx, userQuery, usercode).Scan(&fullName, &phone, &email, &platform)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return nil, localization.ErrorResourceNotFound
+		}
+		c.logger.Errorf("[CustomerRepository][FindCustomerByUserCode] user query failed: %v", err)
+		return nil, localization.ErrorUnexpectedError
+	}
+	response := &member.User{
+		UserCode:    usercode,
+		FullName:    fullName,
+		PhoneNumber: phone,
+		Email:       email,
+		Platform:    shared_constants.Platform(platform),
+	}
+	return response, nil
+
 }
 
 // FindCustomerDetailByID implements [storage.CustomerRepository].
