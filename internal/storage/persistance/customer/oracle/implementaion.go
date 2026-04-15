@@ -57,7 +57,7 @@ func (c *customerOracleRepository) FindCustomerByIDs(ctx context.Context, ids []
 
 // FindCustomerByUserCode implements [storage.CustomerRepository].
 func (c *customerOracleRepository) FindCustomerByUserCode(ctx context.Context, usercode string) (*member.User, error) {
-	c.logger.Infof("[CustomerRepository][FindCustomerByUserCode] fetching feedback user fields by user_code: %s", usercode)
+	c.logger.Infof("[CustomerRepository][FindCustomerByUserCode][oracle] fetching feedback user fields by user_code: %s", usercode)
 
 	// Only fetch fields needed for feedback
 	userQuery := `
