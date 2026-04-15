@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -38,6 +39,8 @@ func NewCPSRolesStorage(cfg *config.VaultConfig, db *sql.DB, kafkaProducer kafka
 }
 
 const superAppRoleTable = "SUPERAPP_ROLE"
+const accessListTable = "ACCESS_LISTS"
+const accessListCustomerSegmentationTable = "ACCESS_LIST_CUSTOMER_SEG"
 
 func boolToOracleNumber(v bool) int {
 	if v {
@@ -218,19 +221,39 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	}
 	offset := (page - 1) * limit
 
-	clauses := []string{"IS_DELETED = 0"}
+	// clauses := []string{"IS_DELETED = 0"}
+	// var args []interface{}
+
+	// search := strings.TrimSpace(filterParam.Search)
+	// if search != "" {
+	// 	clauses = append(clauses, "LOWER(NAME) LIKE '%' || LOWER(:search) || '%'")
+	// 	args = append(args, sql.Named("search", search))
+	// }
+
+	// if filterParam.Filters != nil {
+	// 	if v, ok := filterParam.Filters["enabled"]; ok {
+	// 		if b, ok2 := parseBoolFilter(v); ok2 {
+	// 			clauses = append(clauses, "IS_ENABLED = :enabled")
+	// 			args = append(args, sql.Named("enabled", boolToOracleNumber(b)))
+	// 		}
+	// 	}
+	// }
+
+	// where := strings.Join(clauses, " AND ")
+
+	clauses := []string{"SR.IS_DELETED = 0"}
 	var args []interface{}
 
 	search := strings.TrimSpace(filterParam.Search)
 	if search != "" {
-		clauses = append(clauses, "LOWER(NAME) LIKE '%' || LOWER(:search) || '%'")
+		clauses = append(clauses, "LOWER(SR.NAME) LIKE '%' || LOWER(:search) || '%'")
 		args = append(args, sql.Named("search", search))
 	}
 
 	if filterParam.Filters != nil {
 		if v, ok := filterParam.Filters["enabled"]; ok {
 			if b, ok2 := parseBoolFilter(v); ok2 {
-				clauses = append(clauses, "IS_ENABLED = :enabled")
+				clauses = append(clauses, "SR.IS_ENABLED = :enabled")
 				args = append(args, sql.Named("enabled", boolToOracleNumber(b)))
 			}
 		}
@@ -238,31 +261,40 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	where := strings.Join(clauses, " AND ")
 
-	countQ := fmt.Sprintf(`SELECT COUNT(*) FROM %s WHERE %s`, superAppRoleTable, where)
+	countQ := fmt.Sprintf(`
+		SELECT COUNT(1)
+		FROM %s SR
+		WHERE %s
+	`, superAppRoleTable, where)
+
 	var total int64
-	if err := m.db.QueryRowContext(ctx, countQ, args...).Scan(&total); err != nil {
-		m.logger.Errorf("[CPSRolesStorage][FindAllWithPagination] count failed: %v", err)
+
+	err := m.db.QueryRowContext(ctx, countQ, args...).Scan(&total)
+	if err != nil {
+		m.logger.Errorf("[CPSRolesStorage][countCPSRoles] count failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
-	listQ := fmt.Sprintf(`
-SELECT
-  RAWTOHEX(ID),
-  NAME,
-  ROLE_CODE,
-  DESCRIPTION,
-  IS_ENABLED,
-  IS_DELETED,
-  CREATED_AT,
-  LAST_MODIFIED_AT,
-  DELETED_AT
-FROM %s
-WHERE %s
-ORDER BY CREATED_AT DESC
-OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, superAppRoleTable, where)
+	// 	listQ := fmt.Sprintf(`
+	// SELECT
+	//   RAWTOHEX(SR.ID),
+	//   SR.NAME,
+	//   SR.ROLE_CODE,
+	//   SR.DESCRIPTION,
+	//   SR.IS_ENABLED,
+	//   SR.IS_DELETED,
+	//   SR.CREATED_AT,
+	//   SR.LAST_MODIFIED_AT,
+	//   SR.DELETED_AT
+	//   (*AL AS SR.ENABLED_SERVICES),
+	// FROM %s AS SR JOIN %s AS AL ON AL.SUPERAPP_ROLE_ID = SR.ID AND AL.IS_DELETED = 0
+	// WHERE %s
+	// ORDER BY CREATED_AT DESC
+	// OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, superAppRoleTable, accessListTable, where)
 
+	selectQuery := FetchCPSRolesQuery(where)
 	listArgs := append(args, sql.Named("offset", offset), sql.Named("limit", limit))
-	rows, err := m.db.QueryContext(ctx, listQ, listArgs...)
+	rows, err := m.db.QueryContext(ctx, selectQuery, listArgs...)
 	if err != nil {
 		m.logger.Errorf("[CPSRolesStorage][FindAllWithPagination] list query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
@@ -270,19 +302,40 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, superAppRoleTable, where)
 	defer rows.Close()
 
 	var out []imodel.CPSRoles
+
 	for rows.Next() {
 		var (
-			id                         string
-			name, roleCode, desc       sql.NullString
-			enabledN, isDeletedN       int
-			createdAt, updatedAt, delT sql.NullTime
+			id                   string
+			name, roleCode, desc sql.NullString
+			enabledN, isDeletedN int
+			createdAt, updatedAt sql.NullTime
+			delT                 sql.NullTime
+
+			enabledServicesJSON  sql.NullString
+			disabledServicesJSON sql.NullString
 		)
-		if err := rows.Scan(&id, &name, &roleCode, &desc, &enabledN, &isDeletedN, &createdAt, &updatedAt, &delT); err != nil {
+
+		err := rows.Scan(
+			&id,
+			&name,
+			&roleCode,
+			&desc,
+			&enabledN,
+			&isDeletedN,
+			&createdAt,
+			&updatedAt,
+			&delT,
+			&enabledServicesJSON,
+			&disabledServicesJSON,
+		)
+
+		if err != nil {
 			m.logger.Errorf("[CPSRolesStorage][FindAllWithPagination] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 
 		enabled := enabledN == 1
+
 		role := imodel.CPSRoles{
 			ID:          id,
 			Name:        name.String,
@@ -291,6 +344,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, superAppRoleTable, where)
 			Enabled:     &enabled,
 			IsDeleted:   isDeletedN == 1,
 		}
+
 		if createdAt.Valid {
 			role.CreatedAt = createdAt.Time
 		}
@@ -299,6 +353,20 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, superAppRoleTable, where)
 		}
 		if delT.Valid {
 			role.DeletedAt = delT.Time
+		}
+
+		// -----------------------------
+		// Parse ENABLED_SERVICES JSON
+		// -----------------------------
+		if enabledServicesJSON.Valid && enabledServicesJSON.String != "" {
+			_ = json.Unmarshal([]byte(enabledServicesJSON.String), &role.EnabledServices)
+		}
+
+		// -----------------------------
+		// Parse DISABLED_SERVICES JSON
+		// -----------------------------
+		if disabledServicesJSON.Valid && disabledServicesJSON.String != "" {
+			_ = json.Unmarshal([]byte(disabledServicesJSON.String), &role.DisabledServices)
 		}
 
 		out = append(out, role)
@@ -316,36 +384,93 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRo
 
 	const q = `
 SELECT
-  RAWTOHEX(ID),
-  NAME,
-  ROLE_CODE,
-  DESCRIPTION,
-  IS_ENABLED,
-  IS_DELETED,
-  CREATED_AT,
-  LAST_MODIFIED_AT,
-  DELETED_AT
-FROM SUPERAPP_ROLE
-WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
+  RAWTOHEX(SR.ID) AS ID,
+  NVL(SR.NAME, '') AS NAME,
+  NVL(SR.ROLE_CODE, '') AS ROLE_CODE,
+  NVL(SR.DESCRIPTION, '') AS DESCRIPTION,
+  SR.IS_ENABLED,
+  SR.IS_DELETED,
+  SR.CREATED_AT,
+  SR.LAST_MODIFIED_AT,
+  SR.DELETED_AT,
+
+  -- ENABLED SERVICES
+  NVL(
+    (
+      SELECT JSON_ARRAYAGG(
+        JSON_OBJECT(
+          'key' VALUE RAWTOHEX(AL.ID),
+          'access_list_name' VALUE AL.SERVICE_KEY
+        ) RETURNING CLOB
+      )
+      FROM ACCESS_LISTS AL
+      WHERE AL.IS_ENABLED = 1
+        AND AL.IS_DELETED = 0
+        AND NOT EXISTS (
+          SELECT 1
+          FROM ACCESS_LIST_CUSTOMER_SEG ACS
+          WHERE ACS.ACCESS_LIST_KEY = AL.SERVICE_KEY
+            AND ACS.SEGMENTED_ID = SR.ID
+            AND ACS.ENABLED = 1
+        )
+    ),
+    TO_CLOB('[]')
+  ) AS ENABLED_SERVICES,
+
+  -- DISABLED SERVICES
+  NVL(
+    (
+      SELECT JSON_ARRAYAGG(
+        JSON_OBJECT(
+          'key' VALUE RAWTOHEX(AL.ID),
+          'access_list_name' VALUE AL.SERVICE_KEY
+        ) RETURNING CLOB
+      )
+      FROM ACCESS_LISTS AL
+      WHERE AL.IS_ENABLED = 1
+        AND AL.IS_DELETED = 0
+        AND EXISTS (
+          SELECT 1
+          FROM ACCESS_LIST_CUSTOMER_SEG ACS
+          WHERE ACS.ACCESS_LIST_KEY = AL.SERVICE_KEY
+            AND ACS.SEGMENTED_ID = SR.ID
+            AND ACS.ENABLED = 1
+        )
+    ),
+    TO_CLOB('[]')
+  ) AS DISABLED_SERVICES
+
+FROM SUPERAPP_ROLE SR
+WHERE SR.ID = HEXTORAW(:1)
+  AND SR.IS_DELETED = 0
+`
 
 	var (
-		roleID                    string
-		name, roleCode, desc      sql.NullString
-		enabledN, isDeletedN      int
-		createdAt, updatedAt, del sql.NullTime
+		r imodel.CPSRoles
+
+		name, roleCode, desc sql.NullString
+		enabledN, deletedN   int
+
+		createdAt, updatedAt, deletedAt sql.NullTime
+
+		enabledServicesJSON  sql.NullString
+		disabledServicesJSON sql.NullString
 	)
 
 	err := m.db.QueryRowContext(ctx, q, idHex).Scan(
-		&roleID,
+		&r.ID,
 		&name,
 		&roleCode,
 		&desc,
 		&enabledN,
-		&isDeletedN,
+		&deletedN,
 		&createdAt,
 		&updatedAt,
-		&del,
+		&deletedAt,
+		&enabledServicesJSON,
+		&disabledServicesJSON,
 	)
+
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
@@ -354,35 +479,42 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 		return nil, local_util.HandleDBError(err)
 	}
 
-	enabled := enabledN == 1
-	role := &imodel.CPSRoles{
-		ID:          roleID,
-		Name:        name.String,
-		RoleCode:    roleCode.String,
-		Description: desc.String,
-		Enabled:     &enabled,
-		IsDeleted:   isDeletedN == 1,
+	// -------------------
+	// Basic mapping
+	// -------------------
+	r.Name = name.String
+	r.RoleCode = roleCode.String
+	r.Description = desc.String
+	r.Enabled = PtrBool(enabledN == 1)
+	r.IsDeleted = deletedN == 1
+
+	SetTime(&r.CreatedAt, createdAt)
+	SetTime(&r.UpdatedAt, updatedAt)
+	SetTime(&r.DeletedAt, deletedAt)
+
+	// -------------------
+	// Services mapping
+	// -------------------
+	UnmarshalJSON(enabledServicesJSON, &r.EnabledServices)
+	UnmarshalJSON(disabledServicesJSON, &r.DisabledServices)
+
+	// normalize null → empty array
+	if r.EnabledServices == nil {
+		r.EnabledServices = []imodel.ServiceAccessInfo{}
 	}
-	if createdAt.Valid {
-		role.CreatedAt = createdAt.Time
-	}
-	if updatedAt.Valid {
-		role.UpdatedAt = updatedAt.Time
-	}
-	if del.Valid {
-		role.DeletedAt = del.Time
+	if r.DisabledServices == nil {
+		r.DisabledServices = []imodel.ServiceAccessInfo{}
 	}
 
-	// Oracle implementation currently does not populate Maker/Checker/Auditor or service access lists.
-	role.MakerActions = nil
-	role.CheckerActions = nil
-	role.AuditorActions = nil
-	role.EnabledServices = nil
-	role.DisabledServices = nil
+	// -------------------
+	// Not implemented yet
+	// -------------------
+	r.MakerActions = nil
+	r.CheckerActions = nil
+	r.AuditorActions = nil
 
-	return role, nil
+	return &r, nil
 }
-
 func (m *cpsRoleStorage) FindByNameOrRoleCode(ctx context.Context, name, roleCode string) (*imodel.CPSRoles, error) {
 	name = strings.TrimSpace(name)
 	roleCode = strings.TrimSpace(roleCode)

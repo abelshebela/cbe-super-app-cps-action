@@ -14,6 +14,7 @@ import (
 	"context"
 	"errors"
 	"path"
+	"strings"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -151,6 +152,15 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 	donationCompany.CompanyCode = "DON-COMPANY-" + local_util.UniqueIdGenerator()
 	result := core.MapToDonationCompanyResponse(donationCompany, url)
 	result.AccountHolderName = accountDetail.CustomerName
+	if strings.Contains(accountDetail.Restriction, "YES") {
+		// Handle the case where the account is restricted
+		span.AddEvent("Account number is restricted", trace.WithAttributes(
+			attribute.String("account_number", donationCompany.AccountNumber),
+			attribute.String("restriction", accountDetail.Restriction),
+		))
+		d.logger.Warnf("[DonCompSvc][Create] account number is restricted: %s", donationCompany.AccountNumber)
+		return errors.New(localization.ErrorAccountNumberRestricted.Code)
+	}
 	cpsAction := lib.CpsModelBuilder("", makerData, "", result, string(constants.RequestCreateDonationCompany), constants.CREATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
