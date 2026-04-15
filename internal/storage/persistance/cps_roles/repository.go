@@ -325,8 +325,6 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			&createdAt,
 			&updatedAt,
 			&delT,
-			&enabledServicesJSON,
-			&disabledServicesJSON,
 		)
 
 		if err != nil {
