@@ -64,7 +64,8 @@ func (c *customerOracleRepository) FindCustomerByUserCode(ctx context.Context, u
 	SELECT
 	  u.full_name,
 	  u.contact_phone,
-	  u.contact_email
+	  u.contact_email,
+	  ld.platform
 	FROM users u
 	join linked_devices ld on ld.user_code = u.user_code
 	WHERE u.user_code = :1`
