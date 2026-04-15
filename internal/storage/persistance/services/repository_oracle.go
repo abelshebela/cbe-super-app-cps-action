@@ -624,7 +624,7 @@ SELECT
   s.last_modified_at,
   sk.deleted_at
 %s
-WHERE %s
+WHERE %s sk.is_deleted = 0
 ORDER BY s.created_at DESC
 OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, fromClause, where)
 
