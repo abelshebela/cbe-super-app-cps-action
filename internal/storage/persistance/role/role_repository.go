@@ -165,23 +165,40 @@ func (r *RoleRepository) FindByID(ctx context.Context, id string) (*imodel.Role,
 		r.logger.Errorf("[RoleRepository][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
+
+	// Try to find from roles collection first (without job_roles lookup)
+	var role imodel.Role
+	err = r.collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&role)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			r.logger.Errorf("[RoleRepository][FindByID] role not found in roles collection")
+			return nil, local_util.HandleDBError(mongo.ErrNoDocuments)
+		}
+		r.logger.Errorf("[RoleRepository][FindByID] find failed: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	// If we need the job role info (for display purposes), try to get it separately
+	// But for delete operations, we only need the basic role info
 	pipeline := roleWithJobRolePipeline(bson.M{"_id": objID}, r.collection.Name(), 0, 1)
 	cursor, err := r.jobCollection.Aggregate(ctx, pipeline)
 	if err != nil {
-		r.logger.Errorf("[RoleRepository][FindByID] aggregate failed: %v", err)
-		return nil, local_util.HandleDBError(err)
+		r.logger.Warnf("[RoleRepository][FindByID] job_roles lookup failed, returning basic role info: %v", err)
+		return &role, nil
 	}
 	defer cursor.Close(ctx)
-	if !cursor.Next(ctx) {
-		r.logger.Errorf("[RoleRepository][FindByID] role not found")
-		return nil, local_util.HandleDBError(mongo.ErrNoDocuments)
+	if cursor.Next(ctx) {
+		var resultWithJobRole imodel.Role
+		if err := cursor.Decode(&resultWithJobRole); err != nil {
+			r.logger.Warnf("[RoleRepository][FindByID] decode failed, returning basic role info: %v", err)
+			return &role, nil
+		}
+		return &resultWithJobRole, nil
 	}
-	var result imodel.Role
-	if err := cursor.Decode(&result); err != nil {
-		r.logger.Errorf("[RoleRepository][FindByID] decode failed: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	return &result, nil
+
+	// No job role found, but role exists - return basic role info
+	r.logger.Warnf("[RoleRepository][FindByID] no job role found for role %s, returning basic role info", role.Role)
+	return &role, nil
 }
 
 func (r *RoleRepository) FindByName(ctx context.Context, name string) (*imodel.Role, error) {
