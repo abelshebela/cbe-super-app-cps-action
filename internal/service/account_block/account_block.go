@@ -10,6 +10,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -70,7 +71,8 @@ func (s *accountBlockService) GetDistrictById(ctx context.Context, id string) (*
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetDistrictById", "BlockAccount", "GetDistrictById")
 	defer span.End()
 
-	block, err := s.repo.GetDistrictsByIds(ctx, []string{id})
+	ids := strings.Split(id, ",")
+	block, err := s.repo.GetDistrictsByIds(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
