@@ -146,29 +146,29 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 		return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
 	}
 
-	var cityIDs []string
+	var districtIDs []string
 	for _, branch := range branches {
-		if branch.CityID != nil {
-			cityIDs = append(cityIDs, *branch.CityID)
+		if branch.DistrictID != nil {
+			districtIDs = append(districtIDs, *branch.DistrictID)
 		}
 	}
 
-	// Validate cities if enabling
+	// Validate districts if enabling
 	if enabled {
-		cities, err := s.repo.GetCitiesByIds(ctx, cityIDs)
+		districts, err := s.repo.GetDistrictsByIds(ctx, districtIDs)
 		if err != nil {
 			return err
 		}
-		cityMap := make(map[string]bool)
-		for _, city := range cities {
-			cityMap[city.ID] = city.IsEnabled
+		districtMap := make(map[string]bool)
+		for _, district := range districts {
+			districtMap[district.ID] = district.IsEnabled
 		}
 
 		for _, branch := range branches {
-			if branch.CityID == nil {
+			if branch.DistrictID == nil {
 				return errors.New(localization.ErrorCannotEnableBranch.Code)
 			}
-			if isCityEnabled, exists := cityMap[*branch.CityID]; !exists || !isCityEnabled {
+			if isDistrictEnabled, exists := districtMap[*branch.DistrictID]; !exists || !isDistrictEnabled {
 				return errors.New(localization.ErrorCannotEnableBranch.Code)
 			}
 		}
