@@ -657,6 +657,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorPhonenumberAlreadyExist,
 	ErrorCodeAlreadyExist,
 	ErrorLogoIsRequired,
+	ErrorAccountNumberRestricted,
 	ErrorAccountNumberValidationFailed,
 	ErrorAccountNumberNotActive,
 	ErrorAccountNumberNotFound,
@@ -6968,6 +6969,13 @@ var (
 		Code:       "ERROR_LOGO_IS_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgLogoIsRequired,
+		Type:       "error",
+	}
+
+	ErrorAccountNumberRestricted = ResponseCode{
+		Code:       "ERROR_ACCOUNT_NUMBER_RESTRICTED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountNumberRestricted,
 		Type:       "error",
 	}
 

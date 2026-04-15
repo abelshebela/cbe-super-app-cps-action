@@ -727,6 +727,7 @@ const (
 	MsgMiniAppMerchantNotFound           = "MiniApp merchant not found"
 	MsgMiniAppMerchantDisableFailed      = "Failed to disable MiniApp merchant"
 	MsgLogoIsRequired                    = "Company logo is required"
+	MsgAccountNumberRestricted           = "Account number is restricted"
 	MsgAccountNumberValidationFailed     = "Account number validation failed"
 	MsgAccountNotFound                   = "Account number not found"
 	MsgAccountNotValid                   = "Account number not valid"
