@@ -129,7 +129,7 @@ func (a *AccessListSegmentation) CreateAccountSegment(ctx context.Context, acces
 	docs := []local_model.AccessListSegmentation{}
 	for _, idStr := range accessListSegmentation.AccessListKeys {
 		doc := local_model.AccessListSegmentation{
-			ID:               bson.NewObjectID(),
+			ID:               "bson.NewObjectID()",
 			Type:             accessListSegmentation.Type,
 			AccessListKey:    idStr,
 			SegmentationType: accessListSegmentation.SegmentType,
@@ -168,7 +168,7 @@ func (a *AccessListSegmentation) CreateBlockSegment(ctx context.Context, accessL
 	for _, idStr := range accessListSegmentation.AccessListKeys {
 
 		doc := local_model.AccessListSegmentation{
-			ID:               bson.NewObjectID(),
+			ID:               "bson.NewObjectID()",
 			Type:             accessListSegmentation.Type,
 			AccessListKey:    idStr,
 			SegmentationType: accessListSegmentation.SegmentType,
