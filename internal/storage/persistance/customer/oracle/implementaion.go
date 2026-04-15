@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -56,7 +57,38 @@ func (c *customerOracleRepository) FindCustomerByIDs(ctx context.Context, ids []
 
 // FindCustomerByUserCode implements [storage.CustomerRepository].
 func (c *customerOracleRepository) FindCustomerByUserCode(ctx context.Context, usercode string) (*member.User, error) {
-	panic("unimplemented")
+	c.logger.Infof("[CustomerRepository][FindCustomerByUserCode][oracle] fetching feedback user fields by user_code: %s", usercode)
+
+	// Only fetch fields needed for feedback
+	userQuery := `
+	SELECT
+	  u.full_name,
+	  u.contact_phone,
+	  u.contact_email,
+	  u.platform
+	FROM users u
+	join linked_devices ld on ld.user_code = u.user_code
+	WHERE u.user_code = :1`
+
+	var (
+		platform, fullName, phone, email string
+	)
+	err := c.db.QueryRowContext(ctx, userQuery, usercode).Scan(&fullName, &phone, &email, &platform)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return nil, localization.ErrorResourceNotFound
+		}
+		c.logger.Errorf("[CustomerRepository][FindCustomerByUserCode] user query failed: %v", err)
+		return nil, localization.ErrorUnexpectedError
+	}
+	response := &member.User{
+		UserCode:    usercode,
+		FullName:    fullName,
+		PhoneNumber: phone,
+		Email:       email,
+		Platform:    shared_constants.Platform(platform),
+	}
+	return response, nil
 }
 
 // FindCustomerDetailByID implements [storage.CustomerRepository].
@@ -152,7 +184,38 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 
 // FindCustomerLinkedAccountByUserID implements [storage.CustomerRepository].
 func (c *customerOracleRepository) FindCustomerLinkedAccountByUserID(ctx context.Context, userID string) (*model.LinkedAccount, error) {
-	panic("unimplemented")
+	c.logger.Infof("[CustomerRepository][FindCustomerLinkedAccountByUserID] fetching linked account for user ID: %s", userID)
+
+	// 1. Find account_id from linked_accounts where user_id = :1 and is_main = 1
+	var accountID string
+	queryLinked := `SELECT account_id FROM linked_accounts WHERE user_code = :1 AND is_main_account = 1`
+	err := c.db.QueryRowContext(ctx, queryLinked, userID).Scan(&accountID)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			c.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] linked account not found for user ID: %s", userID)
+			return nil, localization.ErrorResourceNotFound
+		}
+		c.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] failed to find linked account: %v", err)
+		return nil, localization.ErrorUnexpectedError
+	}
+
+	// 2. Find account_number from accounts where id = account_id
+	var accountNumber string
+	queryAccount := `SELECT account_number FROM accounts WHERE id = :1`
+	err = c.db.QueryRowContext(ctx, queryAccount, accountID).Scan(&accountNumber)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			c.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] account not found for account_id: %s", accountID)
+			return nil, localization.ErrorResourceNotFound
+		}
+		c.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] failed to find account: %v", err)
+		return nil, localization.ErrorUnexpectedError
+	}
+
+	linkedAccount := &model.LinkedAccount{
+		AccountNumber: accountNumber,
+	}
+	return linkedAccount, nil
 }
 
 // SearchCustomerByCIForAccountNumber implements [storage.CustomerRepository].
