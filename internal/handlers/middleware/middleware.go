@@ -236,7 +236,6 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		fmt.Println("Testing token authentication...*************")
 		// Skip token auth if user is erp
 		if isErp, ok := r.Context().Value(constants.ContextKey("is_erp")).(bool); ok && isErp {
 			a.logger.Infof("[AuthMW][AuthToken] Skipping bearer token validation (isERP=true)")
@@ -248,8 +247,6 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Expose-Headers", "X-Refreshed-Token")
 		authHeader := r.Header.Get("Authorization")
 		bearer := "Bearer "
-
-		fmt.Println("Testing token authentication...************* header")
 
 		if !strings.HasPrefix(authHeader, bearer) {
 			a.logger.Warnf("[AuthMW][AuthToken] bearer missing")
@@ -264,8 +261,6 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
-
-		fmt.Println("Testing token authentication...****22*********")
 
 		data, err := a.validateToken(r.Context(), tokenString)
 		if err != nil {
@@ -282,8 +277,6 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		ctx := a.setUserPayload(r.Context(), userPayload)
 		localization.UpdateWriterContext(w, ctx)
 		now := time.Now().Unix()
-
-		fmt.Println("Testing token authentication...*******////////******")
 
 		remainTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutesRemain)
 		if err != nil || remainTime == 0 {
@@ -333,8 +326,6 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 			return
 		}
-
-		fmt.Println("Testing token authentication...************* last")
 
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
