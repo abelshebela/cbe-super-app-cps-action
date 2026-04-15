@@ -108,6 +108,10 @@ func (s *servicesService) Disable(ctx context.Context, id string) error {
 	return core.HandleCPSAction(ctx, s.cps, prev.ServiceKeyId, constants.RequestDisableService, payload, prev, constants.ActionUpdate)
 }
 
+func (s *servicesService) DeleteServices(ctx context.Context, id string) error {
+	return s.repo.Delete(ctx, id)
+}
+
 func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error) {
 	return s.repo.FindAllWithPagination(ctx, filter)
 }
@@ -166,7 +170,7 @@ func (s *servicesService) EnableOrDisableServiceList(ctx context.Context, id str
 	}
 	// payload := imodel.ServiceKey{IsEnabled: enable}
 	payload := prev
-	payload.IsEnabled=enable
+	payload.IsEnabled = enable
 
 	var requestAction constants.RequestAction
 	if enable {

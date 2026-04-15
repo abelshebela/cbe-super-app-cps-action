@@ -58,6 +58,15 @@ func Init(router chi.Router, handler inbound.ServicesHandler, auth middleware.Au
 			},
 		},
 		{
+			Method:  http.MethodDelete,
+			Path:    "/services/{id}",
+			Handler: handler.ServicesDelete,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+				// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+			},
+		},
+		{
 			Method:  http.MethodGet,
 			Path:    "/services",
 			Handler: handler.GetAll,

@@ -259,6 +259,14 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 		cps_action_core.SanitizePipeline(exclude),
 	}
 
+	action, ok := filterParam.Filters["action"]
+	if ok && action == "export" {
+		pipeline = mongo.Pipeline{
+			{{Key: "$match", Value: filter}},
+			{{Key: "$project", Value: Projection}},
+			cps_action_core.SanitizePipeline(exclude),
+		}
+	}
 	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		r.logger.Errorf("[CPSAction][SanitizedFindAllWithPagination] aggregation failed: %v", err)
@@ -347,6 +355,15 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 		{{Key: "$limit", Value: limit}},
 		{{Key: "$project", Value: Projection}},
 		cps_action_core.SanitizePipeline(exclude),
+	}
+
+	action, ok := filterParam.Filters["action"]
+	if ok && action == "export" {
+		pipeline = mongo.Pipeline{
+			{{Key: "$match", Value: finalMatch}},
+			{{Key: "$project", Value: Projection}},
+			cps_action_core.SanitizePipeline(exclude),
+		}
 	}
 
 	cur, err := r.collection.Aggregate(ctx, pipeline)
@@ -470,6 +487,15 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 		{{Key: "$limit", Value: limit}},
 		{{Key: "$project", Value: Projection}},
 		cps_action_core.SanitizePipeline(exclude),
+	}
+
+	action, ok := filterParam.Filters["action"]
+	if ok && action == "export" {
+		pipeline = mongo.Pipeline{
+			{{Key: "$match", Value: filter}},
+			{{Key: "$project", Value: Projection}},
+			cps_action_core.SanitizePipeline(exclude),
+		}
 	}
 
 	cur, err := r.collection.Aggregate(ctx, pipeline)
