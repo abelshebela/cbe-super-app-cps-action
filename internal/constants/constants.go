@@ -790,6 +790,7 @@ const (
 	RequestUpdateService        RequestAction = "UPDATE_SERVICE"
 	RequestEnableService        RequestAction = "ENABLE_SERVICE"
 	RequestDisableService       RequestAction = "DISABLE_SERVICE"
+	RequestDeleteService        RequestAction = "DELETE_SERVICE"
 	RequestUpdateServiceSingle  RequestAction = "UPDATE_SERVICE_SINGLE_CAP"
 	RequestUpdateServiceTotal   RequestAction = "UPDATE_SERVICE_TOTAL_CAP"
 	RequestUpdateServiceMinCap  RequestAction = "UPDATE_SERVICE_MIN_CAP"

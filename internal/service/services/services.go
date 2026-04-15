@@ -125,7 +125,14 @@ func (s *servicesService) Disable(ctx context.Context, id string) error {
 }
 
 func (s *servicesService) DeleteServices(ctx context.Context, id string) error {
-	return s.repo.Delete(ctx, id)
+	if id == "" {
+		return localization.ErrorInvalidID
+	}
+	prev, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteService, nil, prev, constants.ActionDelete)
 }
 
 func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error) {
@@ -205,7 +212,7 @@ func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error
 		}
 	}
 
-	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestActionRole, nil, prev, constants.ActionDelete)
+	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceKey, nil, prev, constants.ActionDelete)
 
 }
 
@@ -226,6 +233,8 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	case string(constants.RequestDisableService):
 		// err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
 		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, false)
+	case string(constants.RequestDeleteService):
+		err = s.repo.Delete(ctx, action.UniqueId)
 	case string(constants.RequestCreateServiceList):
 		listDoc, err := local_util.JsonUnmarshal[imodel.ServiceKey](action.CurrentAction)
 		if err != nil {
