@@ -687,6 +687,8 @@ const (
 	RequestDisableCpsActionRole RequestAction = "DISABLE_CPS_ACTION_ROLE"
 	RequestDeleteCpsActionRole  RequestAction = "DELETE_CPS_ACTION_ROLE"
 
+	RequestDeleteServiceList RequestAction = "DELETE_SERVICE_LIST"
+	RequestDeleteServiceKey  RequestAction = "DELETE_SERVICE_KEY"
 	// CPS User
 	RequestCpsUserCreate  RequestAction = "CREATE_CPS_USER"
 	RequestCpsUserUpdate  RequestAction = "UPDATE_CPS_USER"

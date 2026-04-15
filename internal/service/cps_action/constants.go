@@ -46,11 +46,12 @@ const (
 	RequestUpdateCustomerKYC constants.RequestAction = "UPDATE_CUSTOMER_KYC"
 	RequestDeleteCustomerKYC constants.RequestAction = "DELETE_CUSTOMER_KYC"
 
-	RequestCreateCpsRole  constants.RequestAction = "CREATE_CPS_ROLE"
-	RequestUpdateCpsRole  constants.RequestAction = "UPDATE_CPS_ROLE"
-	RequestDeleteCpsRole  constants.RequestAction = "DELETE_CPS_ROLE"
-	RequestEnableCpsRole  constants.RequestAction = "ENABLE_CPS_ROLE"
-	RequestDisableCpsRole constants.RequestAction = "DISABLE_CPS_ROLE"
+	RequestCreateCpsRole     constants.RequestAction = "CREATE_CPS_ROLE"
+	RequestUpdateCpsRole     constants.RequestAction = "UPDATE_CPS_ROLE"
+	RequestDeleteCpsRole     constants.RequestAction = "DELETE_CPS_ROLE"
+	RequestEnableCpsRole     constants.RequestAction = "ENABLE_CPS_ROLE"
+	RequestDisableCpsRole    constants.RequestAction = "DISABLE_CPS_ROLE"
+	RequestDeleteServiceList constants.RequestAction = "DELETE_SERVICE_LIST"
 
 	RequestCreateUssdMerchant  constants.RequestAction = "CREATE_USSD_MERCHANT"
 	RequestUpdateUssdMerchant  constants.RequestAction = "UPDATE_USSD_MERCHANT"
@@ -397,6 +398,7 @@ const (
 	RequestEnableDisableAccessListSegmentation constants.RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION"
 	RequestEnableAccessListSegmentation        constants.RequestAction = "ENABLE_ACCESS_LIST_SEGMENTATION"
 	RequestDisableAccessListSegmentation       constants.RequestAction = "DISABLE_ACCESS_LIST_SEGMENTATION"
+	RequestDeleteServiceKey                    constants.RequestAction = "DELETE_SERVICE_KEY"
 )
 
 var validRequestActions = map[constants.RequestAction]struct{}{
@@ -507,6 +509,8 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestUpdateServiceList:  {},
 	RequestEnableServiceList:  {},
 	RequestDisableServiceList: {},
+	RequestDeleteServiceList:  {},
+	RequestDeleteServiceKey:   {},
 
 	RequestUpdatePasswordExpiry:     {},
 	RequestCreateValidation:         {},
@@ -799,6 +803,8 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestUpdateServiceList,
 		RequestEnableServiceList,
 		RequestDisableServiceList,
+		RequestDeleteServiceList,
+		RequestDeleteServiceKey,
 	},
 	"USSDMERCHANT": {
 		RequestCreateUssdMerchant,
