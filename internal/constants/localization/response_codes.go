@@ -4004,8 +4004,8 @@ var (
 
 	SuccessServiceKeyDeleteRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_SERVICE_KEY_DELETE_REQUEST_SUBMITTED",
-		StatusCode: StatusNoContent,
-		Message:    "Service & key delete request submitted successfully",
+		StatusCode: StatusOK,
+		Message:    "Service key delete request submitted successfully",
 		Type:       "success",
 	}
 

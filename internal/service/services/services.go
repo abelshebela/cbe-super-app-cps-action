@@ -198,13 +198,15 @@ func (s *servicesService) EnableOrDisableServiceList(ctx context.Context, id str
 }
 
 func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error {
-	_, err := s.repo.FindServiceListByID(ctx, id)
+	prev, err := s.repo.FindServiceListByID(ctx, id)
 	if err != nil {
 		if err.Error() == localization.ErrorServiceListNotFound.Code {
 			return errors.New(localization.ErrorServiceListNotFound.Code)
 		}
 	}
-	return s.repo.DeleteServiceList(ctx, id)
+
+	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestActionRole, nil, prev, constants.ActionDelete)
+
 }
 
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
@@ -242,6 +244,10 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		}
 
 		err = s.repo.UpdateServiceKey(ctx, action.UniqueId, prevListDoc.ServiceKey, listDoc)
+	case string(constants.RequestDeleteServiceList):
+		err = s.repo.Delete(ctx, action.UniqueId)
+	case string(constants.RequestDeleteServiceKey):
+		err = s.repo.DeleteServiceKey(ctx, action.UniqueId)
 	case string(constants.RequestEnableServiceList):
 		// listDoc, err := local_util.JsonUnmarshal[model.ServiceKey](action.PreviousAction)
 		// if err != nil {

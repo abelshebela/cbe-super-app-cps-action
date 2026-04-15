@@ -99,7 +99,7 @@ type ServicesRepository interface {
 	CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) error
 	UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error
 	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
-	DeleteServiceList(ctx context.Context, id string) error
+	DeleteServiceKey(ctx context.Context, id string) error
 }
 
 type OTPRepository interface {

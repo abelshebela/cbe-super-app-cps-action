@@ -661,39 +661,42 @@ WHERE css.SUPERAPP_ROLE_ID = HEXTORAW(:1)
 	return r.fillAggregateBySuperAppRoleID(ctx, idHex, dh)
 }
 
-func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerSegmentation], error) {
+func (r *customerStorage) FindAllWithPagination(
+	ctx context.Context,
+	filterParam types.Filter,
+) (*types.PaginatedResponse[[]imodel.CustomerSegmentation], error) {
+
+	// ----------------------------
+	// Pagination
+	// ----------------------------
 	limit := int64(50)
 	page := int64(1)
+
 	if filterParam.PerPage > 0 {
 		limit = int64(filterParam.PerPage)
 	}
 	if filterParam.Page > 0 {
 		page = int64(filterParam.Page)
 	}
+
 	offset := (page - 1) * limit
 
-	clauses := []string{
-		"css.IS_DELETED = 0",
-		"css.IS_ENABLED = 1",
-		"cs.IS_DELETED = 0",
-		"cg.IS_DELETED = 0",
-		"cg.IS_ENABLED = 1",
-		"sar.IS_DELETED = 0",
-		"sar.IS_ENABLED = 1",
-	}
+	// ----------------------------
+	// Filters
+	// ----------------------------
+	clauses := []string{"1=1"}
 	var args []interface{}
 
-	search := strings.TrimSpace(filterParam.Search)
-	if search != "" {
-		clauses = append(clauses,
-			`(
+	if search := strings.TrimSpace(filterParam.Search); search != "" {
+		clauses = append(clauses, `
+			(
 				LOWER(cg.NAME) LIKE '%' || LOWER(:search) || '%'
 				OR LOWER(cs.NAME) LIKE '%' || LOWER(:search) || '%'
 				OR LOWER(css.NAME) LIKE '%' || LOWER(:search) || '%'
 				OR LOWER(sar.NAME) LIKE '%' || LOWER(:search) || '%'
 				OR LOWER(sar.ROLE_CODE) LIKE '%' || LOWER(:search) || '%'
-			)`,
-		)
+			)
+		`)
 		args = append(args, sql.Named("search", search))
 	}
 
@@ -707,74 +710,179 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 	}
 
 	where := strings.Join(clauses, " AND ")
+
+	// ----------------------------
+	// JOIN BLOCK
+	// ----------------------------
 	joinFrom := `
 FROM CUSTOMER_SUB_SEGMENTS css
-JOIN CUSTOMER_SEGMENTATIONS cs ON cs.ID = css.CUSTOMER_SEGMENTATION_ID
-JOIN CUSTOMER_GROUPS cg ON cg.ID = cs.CUSTOMER_GROUP_ID
-JOIN SUPERAPP_ROLE sar ON sar.ID = css.SUPERAPP_ROLE_ID`
 
+JOIN CUSTOMER_SEGMENTATIONS cs
+  ON cs.ID = css.CUSTOMER_SEGMENTATION_ID
+ AND cs.IS_DELETED = 0
+
+JOIN CUSTOMER_GROUPS cg
+  ON cg.ID = cs.CUSTOMER_GROUP_ID
+ AND cg.IS_DELETED = 0
+ AND cg.IS_ENABLED = 1
+
+JOIN SUPERAPP_ROLE sar
+  ON sar.ID = css.SUPERAPP_ROLE_ID
+ AND sar.IS_DELETED = 0
+ AND sar.IS_ENABLED = 1
+`
+
+	// ----------------------------
+	// COUNT QUERY
+	// ----------------------------
 	countQ := fmt.Sprintf(`
-SELECT COUNT(*) FROM (
-  SELECT css.SUPERAPP_ROLE_ID
-  %s
-  WHERE %s
-  GROUP BY css.SUPERAPP_ROLE_ID
-) role_buckets`, joinFrom, where)
+SELECT COUNT(DISTINCT css.SUPERAPP_ROLE_ID)
+%s
+WHERE css.IS_DELETED = 0 AND %s
+`, joinFrom, where)
 
 	var total int64
 	if err := r.db.QueryRowContext(ctx, countQ, args...).Scan(&total); err != nil {
-		r.logger.Errorf("[CustomerSegmentation][FindAllWithPagination] count failed: %v", err)
+		r.logger.Errorf("[CustomerSegmentation][FindAll] count failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
+	// ----------------------------
+	// LIST QUERY
+	// ----------------------------
 	listQ := fmt.Sprintf(`
 SELECT
-  RAWTOHEX(css.SUPERAPP_ROLE_ID),
-  RAWTOHEX(MIN(cs.ID)),
-  MAX(cs.CREATED_AT) AS ord_ts
-%s
-WHERE %s
-GROUP BY css.SUPERAPP_ROLE_ID
-ORDER BY ord_ts DESC
-OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, joinFrom, where)
+  RAWTOHEX(css.SUPERAPP_ROLE_ID) AS ROLE_ID,
 
-	listArgs := append(args, sql.Named("offset", offset), sql.Named("limit", limit))
+  sar.NAME AS ROLE_NAME,
+  sar.ROLE_CODE,
+  sar.DESCRIPTION,
+
+  sar.IS_ENABLED,
+  sar.IS_DELETED,
+
+  sar.CREATED_AT,
+  sar.LAST_MODIFIED_AT,
+  sar.DELETED_AT,
+
+  RAWTOHEX(cs.ID) AS SEGMENT_ID,
+  cs.NAME AS SEGMENT_NAME,
+
+  cg.NAME AS GROUP_NAME,
+
+  RAWTOHEX(css.ID) AS SUB_SEGMENT_ID,
+  css.NAME AS SUB_SEGMENT_NAME
+
+%s
+WHERE css.IS_DELETED = 0 AND %s
+ORDER BY sar.CREATED_AT DESC
+OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+`, joinFrom, where)
+
+	listArgs := append(args,
+		sql.Named("offset", offset),
+		sql.Named("limit", limit),
+	)
+
 	rows, err := r.db.QueryContext(ctx, listQ, listArgs...)
 	if err != nil {
-		r.logger.Errorf("[CustomerSegmentation][FindAllWithPagination] list query failed: %v", err)
+		r.logger.Errorf("[CustomerSegmentation][FindAll] list query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
 
-	var list []imodel.CustomerSegmentation
+	// ----------------------------
+	// GROUPING RESULT
+	// ----------------------------
+	roleMap := make(map[string]*imodel.CustomerSegmentation)
+	order := make([]string, 0)
+
 	for rows.Next() {
-		var roleHexStr, docSegHex string
-		var ordTs sql.NullTime
-		if err := rows.Scan(&roleHexStr, &docSegHex, &ordTs); err != nil {
-			r.logger.Errorf("[CustomerSegmentation][FindAllWithPagination] scan failed: %v", err)
+
+		var (
+			roleID string
+
+			roleName, roleCode, roleDesc    string
+			enabledN, deletedN              int
+			createdAt, updatedAt, deletedAt sql.NullTime
+
+			segID, segName string
+			groupName      string
+			subSegID       string
+			subSegName     string
+		)
+
+		if err := rows.Scan(
+			&roleID,
+			&roleName,
+			&roleCode,
+			&roleDesc,
+			&enabledN,
+			&deletedN,
+			&createdAt,
+			&updatedAt,
+			&deletedAt,
+			&segID,
+			&segName,
+			&groupName,
+			&subSegID,
+			&subSegName,
+		); err != nil {
+			r.logger.Errorf("[CustomerSegmentation][FindAll] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
-		rh, ok := normalizeRawHex32(roleHexStr)
-		if !ok {
-			r.logger.Errorf("[CustomerSegmentation][FindAllWithPagination] invalid role hex: %s", roleHexStr)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+
+		role, exists := roleMap[roleID]
+		if !exists {
+
+			role = &imodel.CustomerSegmentation{
+				ID: roleID,
+				CustomerRole: imodel.CustomerRoleInfo{
+					ID:   roleID,
+					Name: roleName,
+				},
+				CustomerSegments: make([]imodel.CustSegment, 0),
+				IsEnabled:        enabledN == 1,
+				IsDeleted:        deletedN == 1,
+			}
+
+			if createdAt.Valid {
+				role.CreatedAt = createdAt.Time
+			}
+			if updatedAt.Valid {
+				role.UpdatedAt = updatedAt.Time
+			}
+
+			roleMap[roleID] = role
+			order = append(order, roleID)
 		}
-		dh, ok := normalizeRawHex32(docSegHex)
-		if !ok {
-			r.logger.Errorf("[CustomerSegmentation][FindAllWithPagination] invalid doc seg hex: %s", docSegHex)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		seg, err := r.fillAggregateBySuperAppRoleID(ctx, rh, dh)
-		if err != nil {
-			return nil, err
-		}
-		list = append(list, *seg)
+
+		// ----------------------------
+		// APPEND MULTIPLE SEGMENTS
+		// ----------------------------
+		role.CustomerSegments = append(role.CustomerSegments, imodel.CustSegment{
+			Id:                 subSegID,
+			CustomerGroup:      groupName,
+			CustomerSegment:    segName,
+			CustomerSubSegment: subSegName,
+		})
+	}
+
+	// ----------------------------
+	// FINAL RESPONSE BUILD
+	// ----------------------------
+	result := make([]imodel.CustomerSegmentation, 0, len(order))
+	for _, id := range order {
+		result = append(result, *roleMap[id])
 	}
 
 	meta := local_util.BuildPaginationMeta(total, int(page), int(limit))
-	return &types.PaginatedResponse[[]imodel.CustomerSegmentation]{Data: list, Meta: meta}, nil
-}
 
+	return &types.PaginatedResponse[[]imodel.CustomerSegmentation]{
+		Data: result,
+		Meta: meta,
+	}, nil
+}
 func (r *customerStorage) FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CustomerSegmentation, error) {
 	customerSegment = strings.TrimSpace(customerSegment)
 	if customerSegment == "" {
