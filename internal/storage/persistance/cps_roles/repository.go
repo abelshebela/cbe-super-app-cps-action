@@ -398,7 +398,8 @@ SELECT
       SELECT JSON_ARRAYAGG(
         JSON_OBJECT(
           'key' VALUE RAWTOHEX(AL.ID),
-          'access_list_name' VALUE AL.SERVICE_KEY
+          'access_list_name' VALUE AL.NAME,
+          'access_list_key' VALUE AL.SERVICE_KEY
         ) RETURNING CLOB
       )
       FROM ACCESS_LISTS AL
@@ -421,7 +422,8 @@ SELECT
       SELECT JSON_ARRAYAGG(
         JSON_OBJECT(
           'key' VALUE RAWTOHEX(AL.ID),
-          'access_list_name' VALUE AL.SERVICE_KEY
+          'access_list_name' VALUE AL.NAME,
+          'access_list_key' VALUE AL.SERVICE_KEY
         ) RETURNING CLOB
       )
       FROM ACCESS_LISTS AL
