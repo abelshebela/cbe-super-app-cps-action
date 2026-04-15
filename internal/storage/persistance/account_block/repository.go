@@ -22,55 +22,93 @@ import (
 // ─── SQL constants ───────────────────────────────────────────────────────────
 
 const (
-	insertAccountBlock = `INSERT INTO ACCOUNT_BLOCKS (
-		id, name, code, address, parent_id, slug, type,
-		is_enabled, city_id, district_id, region_id,
-		is_deleted, created_at, updated_at
-	) VALUES (
-		:id, :name, :code, :address, :parent_id, :slug, :type,
-		1, :city_id, :district_id, :region_id,
-		0, SYSTIMESTAMP, SYSTIMESTAMP
-	)`
+	insertAccountBlock = `
+		INSERT INTO ACCOUNT_BLOCKS (
+			id, name, code, address, parent_id, slug, type,
+			is_enabled, district_id, region_id,
+			is_deleted, created_at, updated_at
+		) VALUES (
+			:id, :name, :code, :address, :parent_id, :slug, :type,
+			1, :district_id, :region_id,
+			0, SYSTIMESTAMP, SYSTIMESTAMP
+		)`
 
-	softDeleteAccountBlock = `UPDATE ACCOUNT_BLOCKS
-		SET is_deleted = 1, updated_at = SYSTIMESTAMP
-		WHERE id = HEXTORAW(:id) AND is_deleted = 0`
+	softDeleteAccountBlock = `
+		UPDATE ACCOUNT_BLOCKS
+		SET is_deleted = 1,
+		    updated_at = SYSTIMESTAMP
+		WHERE id = HEXTORAW(:id)
+		  AND is_deleted = 0`
 
-	selectAccountBlockByID = `SELECT
-		RAWTOHEX(id), name, code, address, RAWTOHEX(parent_id), slug, type,
-		is_enabled, RAWTOHEX(city_id), RAWTOHEX(district_id), RAWTOHEX(region_id),
-		is_deleted, created_at, updated_at
-	FROM ACCOUNT_BLOCKS
-	WHERE id = HEXTORAW(:id) AND is_deleted = 0`
+	selectAccountBlockByID = `
+		SELECT
+			RAWTOHEX(id) AS id,
+			name,
+			code,
+			address,
+			RAWTOHEX(parent_id) AS parent_id,
+			slug,
+			type,
+			is_enabled,
+			RAWTOHEX(district_id) AS district_id,
+			RAWTOHEX(region_id) AS region_id,
+			is_deleted,
+			created_at,
+			updated_at
+		FROM ACCOUNT_BLOCKS
+		WHERE id = HEXTORAW(:id)
+		  AND is_deleted = 0`
 
-	selectWithAncestors = `SELECT
-		RAWTOHEX(id), name, code, address, RAWTOHEX(parent_id), slug, type,
-		is_enabled, RAWTOHEX(city_id), RAWTOHEX(district_id), RAWTOHEX(region_id),
-		is_deleted, created_at, updated_at, LEVEL as depth
-	FROM ACCOUNT_BLOCKS
-	WHERE is_deleted = 0
-	START WITH id = HEXTORAW(:id)
-	CONNECT BY PRIOR parent_id = id
-	ORDER BY LEVEL ASC`
+	selectWithAncestors = `
+		SELECT
+			RAWTOHEX(id) AS id,
+			name,
+			code,
+			address,
+			RAWTOHEX(parent_id) AS parent_id,
+			slug,
+			type,
+			is_enabled,
+			RAWTOHEX(district_id) AS district_id,
+			RAWTOHEX(region_id) AS region_id,
+			is_deleted,
+			created_at,
+			updated_at,
+			LEVEL AS depth
+		FROM ACCOUNT_BLOCKS
+		WHERE is_deleted = 0
+		START WITH id = HEXTORAW(:id)
+		CONNECT BY PRIOR parent_id = id
+		ORDER BY LEVEL ASC`
 
-	listAccountBlocksByType = `SELECT
-		RAWTOHEX(id), name, code, address, RAWTOHEX(parent_id), slug, type,
-		is_enabled, RAWTOHEX(city_id), RAWTOHEX(district_id), RAWTOHEX(region_id),
-		is_deleted, created_at, updated_at,
-		COUNT(*) OVER() AS total_count
-	FROM ACCOUNT_BLOCKS
-	WHERE type = :type
-	  AND is_deleted = 0
-	  AND (:search IS NULL
-	       OR LOWER(name) LIKE '%%' || LOWER(:search) || '%%'
-	       OR LOWER(code) LIKE '%%' || LOWER(:search) || '%%'
-	       OR LOWER(address) LIKE '%%' || LOWER(:search) || '%%')
-	  AND (:region_id IS NULL OR region_id = HEXTORAW(:region_id))
-	  AND (:district_id IS NULL OR district_id = HEXTORAW(:district_id))
-	  AND (:city_id IS NULL OR city_id = HEXTORAW(:city_id))
-	  AND (:is_enabled IS NULL OR is_enabled = :is_enabled)
-	ORDER BY created_at DESC
-	OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`
+	listAccountBlocksByType = `
+		SELECT
+			RAWTOHEX(id) AS id,
+			name,
+			code,
+			address,
+			RAWTOHEX(parent_id) AS parent_id,
+			slug,
+			type,
+			is_enabled,
+			RAWTOHEX(district_id) AS district_id,
+			RAWTOHEX(region_id) AS region_id,
+			is_deleted,
+			created_at,
+			updated_at,
+			COUNT(*) OVER() AS total_count
+		FROM ACCOUNT_BLOCKS
+		WHERE type = :type
+		  AND is_deleted = 0
+		  AND (:search IS NULL
+		       OR LOWER(name) LIKE '%' || LOWER(:search) || '%'
+		       OR LOWER(code) LIKE '%' || LOWER(:search) || '%'
+		       OR LOWER(address) LIKE '%' || LOWER(:search) || '%')
+		  AND (:region_id IS NULL OR region_id = HEXTORAW(:region_id))
+		  AND (:district_id IS NULL OR district_id = HEXTORAW(:district_id))
+		  AND (:is_enabled IS NULL OR is_enabled = :is_enabled)
+		ORDER BY created_at DESC
+		OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`
 )
 
 // ─── Repository struct ──────────────────────────────────────────────────────

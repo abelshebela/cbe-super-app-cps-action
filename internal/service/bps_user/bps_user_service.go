@@ -229,7 +229,6 @@ func (b *bpsUserService) UpdateStatusBpsUser(ctx context.Context, userCode strin
 		requestAction = string(constants.RequestEnableBPSUser)
 	} else {
 		requestAction = string(constants.RequestDisableBPSUser)
-
 	}
 
 	cpsActionData := lib.CpsModelBuilder(user.ID.Hex(), makerData, user, updatedUser, requestAction, constants.UPDATE)
