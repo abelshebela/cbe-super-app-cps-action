@@ -89,7 +89,6 @@ func (c *customerOracleRepository) FindCustomerByUserCode(ctx context.Context, u
 		Platform:    shared_constants.Platform(platform),
 	}
 	return response, nil
-
 }
 
 // FindCustomerDetailByID implements [storage.CustomerRepository].
@@ -185,7 +184,38 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 
 // FindCustomerLinkedAccountByUserID implements [storage.CustomerRepository].
 func (c *customerOracleRepository) FindCustomerLinkedAccountByUserID(ctx context.Context, userID string) (*model.LinkedAccount, error) {
-	panic("unimplemented")
+	c.logger.Infof("[CustomerRepository][FindCustomerLinkedAccountByUserID] fetching linked account for user ID: %s", userID)
+
+	// 1. Find account_id from linked_accounts where user_id = :1 and is_main = 1
+	var accountID string
+	queryLinked := `SELECT account_id FROM linked_accounts WHERE user_code = :1 AND is_main_account = 1`
+	err := c.db.QueryRowContext(ctx, queryLinked, userID).Scan(&accountID)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			c.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] linked account not found for user ID: %s", userID)
+			return nil, localization.ErrorResourceNotFound
+		}
+		c.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] failed to find linked account: %v", err)
+		return nil, localization.ErrorUnexpectedError
+	}
+
+	// 2. Find account_number from accounts where id = account_id
+	var accountNumber string
+	queryAccount := `SELECT account_number FROM accounts WHERE id = :1`
+	err = c.db.QueryRowContext(ctx, queryAccount, accountID).Scan(&accountNumber)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			c.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] account not found for account_id: %s", accountID)
+			return nil, localization.ErrorResourceNotFound
+		}
+		c.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] failed to find account: %v", err)
+		return nil, localization.ErrorUnexpectedError
+	}
+
+	linkedAccount := &model.LinkedAccount{
+		AccountNumber: accountNumber,
+	}
+	return linkedAccount, nil
 }
 
 // SearchCustomerByCIForAccountNumber implements [storage.CustomerRepository].
