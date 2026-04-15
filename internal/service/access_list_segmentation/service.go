@@ -35,7 +35,7 @@ func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction
 	a.logger.Infof("[AccessListSegSvc][Authorize] id: %s", cpsAction.ID.Hex())
 
 	switch cpsAction.RequestAction {
-	case string(constants.RequestCreateAccessListSegmentation):
+	case string(constants.RequestCreateAccessListSegmentation), string(constants.RequestCreateCustomerSegmentation):
 		action, err := local_util.JsonUnmarshal[access_list_segmentation_dto.CreateAccessListSegmentationRequest](cpsAction.CurrentAction)
 		if err != nil {
 			a.logger.Errorf("[AccessListSegSvc][Authorize] unmarshal err: %v", err)
@@ -70,7 +70,7 @@ func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction
 			a.logger.Errorf("[AccessListSegSvc][Authorize] update err: %v", err)
 			return nil, err
 		}
-	case string(constants.RequestEnableDisableAccessListSegmentation):
+	case string(constants.RequestEnableDisableAccessListSegmentation), string(constants.RequestEnableAccessListSegmentation), string(constants.RequestDisableAccessListSegmentation), string(constants.RequestEnableCustomerSegmentation), string(constants.RequestDisableCustomerSegmentation):
 		bulkDisable, err := local_util.JsonUnmarshal[access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest](cpsAction.CurrentAction)
 		if err != nil {
 			a.logger.Errorf("[AccessListSegSvc][Authorize] unmarshal enable/disable err: %v", err)
@@ -118,8 +118,8 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 			a.logger.Errorf("[AccessListSegSvc][Create] check IDs err: %v", err)
 			return err
 		}
+		requestAction = string(constants.RequestCreateAccessListSegmentation)
 
-		requestAction = string(constants.RequestCreateCustomerSegmentation)
 	} else {
 		// add checks for
 		// 1. if the passed segment code is valid
@@ -134,8 +134,8 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 			a.logger.Errorf("[AccessListSegSvc][Create] seg+key exists: %v", err)
 			return errors.New(localization.ErrorAccessListSegmentationNameAlreadyExists.Code)
 		}
+		requestAction = string(constants.RequestCreateCustomerSegmentation)
 
-		requestAction = string(constants.RequestCreateAccessListSegmentation)
 	}
 	cpsAction := lib.CpsModelBuilder("", makerData, nil, req, requestAction, constants.CREATE)
 
