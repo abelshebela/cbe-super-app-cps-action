@@ -556,7 +556,7 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	fromClause := fmt.Sprintf(`FROM %s s JOIN %s sk ON sk.id = s.access_list_id`, servicesTable, accessListTable)
 
-	clauses := []string{"sk.is_deleted = 0"}
+	clauses := []string{"sk.is_deleted = 0", "s.is_deleted = 0"}
 	var args []interface{}
 
 	search := strings.TrimSpace(filterParam.Search)
@@ -727,7 +727,7 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 	}
 	offset := (page - 1) * limit
 
-	clauses := []string{"is_enabled = is_enabled"}
+	clauses := []string{"is_enabled = is_enabled", "is_deleted = 0"}
 	clauses = []string{}
 	args := []interface{}{}
 

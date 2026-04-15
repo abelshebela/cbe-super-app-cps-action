@@ -92,17 +92,16 @@ func (q *accessListSegmentationOracle) CreateAccountSegment(ctx context.Context,
 	}
 
 	valueStrings := make([]string, 0, n)
-	valueArgs := make([]interface{}, 0, n*7)
+	valueArgs := make([]interface{}, 0, n*6)
 
 	docs := make([]local_model.AccessListSegmentation, 0, n)
 
 	paramIdx := 1
 	for _, key := range accessListSegmentation.AccessListKeys {
-		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), HEXTORAW(:%d), :%d, :%d, :%d, :%d, :%d, :%d)", paramIdx, paramIdx+1, paramIdx+2, paramIdx+3, paramIdx+4, paramIdx+5, paramIdx+6))
+		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), HEXTORAW(:%d), :%d, :%d, :%d, :%d, :%d)", paramIdx, paramIdx+1, paramIdx+2, paramIdx+3, paramIdx+4, paramIdx+5))
 		valueArgs = append(valueArgs,
 			key,                                   // access_list_key
 			accessListSegmentation.SegmentationID, // segmented_id
-			accessListSegmentation.Type,           // type
 			1,                                     // enabled
 			time.Now(),                            // created_at
 			time.Now(),                            // updated_at
@@ -113,7 +112,7 @@ func (q *accessListSegmentationOracle) CreateAccountSegment(ctx context.Context,
 			SegmentedID:   accessListSegmentation.SegmentationID,
 			Enabled:       true,
 		})
-		paramIdx += 7
+		paramIdx += 6
 	}
 
 	stmt := `

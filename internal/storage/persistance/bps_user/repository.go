@@ -86,14 +86,72 @@ func (b *BPSUserStorage) FindByOr(ctx context.Context, phone, email, username st
 
 func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*bpsUserDto.BPSUserResposenDTO, error) {
 	b.logger.Infof("[BPSUserStorage][GetByUserCode] fetching BPS user by user code")
-	filter := bson.M{"user_code": userCode, "is_deleted": bson.M{"$ne": true}}
-	result, err := b.dal.FindOne(ctx, filter, bson.M{})
+
+	pipeline := mongo.Pipeline{
+		// Match by user_code and not deleted
+		bson.D{{Key: "$match", Value: bson.M{
+			"user_code":  userCode,
+			"is_deleted": bson.M{"$ne": true},
+		}}},
+
+		// Lookup role from roles collection
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "roles"},
+			{Key: "localField", Value: "job_title"},
+			{Key: "foreignField", Value: "job_title"},
+			{Key: "as", Value: "roles"},
+		}}},
+
+		// Extract role code
+		bson.D{{Key: "$addFields", Value: bson.D{
+			{Key: "role_code", Value: bson.D{
+				{Key: "$arrayElemAt", Value: bson.A{"$roles.role", 0}},
+			}},
+		}}},
+
+		// Lookup job role details
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "job_roles"},
+			{Key: "localField", Value: "role_code"},
+			{Key: "foreignField", Value: "code"},
+			{Key: "as", Value: "job_roles"},
+		}}},
+
+		// Add user_role field
+		bson.D{{Key: "$addFields", Value: bson.D{
+			{Key: "role", Value: bson.D{
+				{Key: "$arrayElemAt", Value: bson.A{"$job_roles.name", 0}},
+			}},
+		}}},
+
+		// Clean up temporary fields
+		bson.D{{Key: "$project", Value: bson.D{
+			{Key: "roles", Value: 0},
+			{Key: "job_roles", Value: 0},
+			{Key: "role_code", Value: 0},
+		}}},
+	}
+
+	cursor, err := b.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		b.logger.Errorf("[BPSUserStorage][GetByUserCode] failed to find BPS user: %v", err)
+		b.logger.Errorf("[BPSUserStorage][GetByUserCode] failed aggregation: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	b.logger.Infof("[BPSUserStorage][GetByUserCode] BPS user retrieved successfully")
-	return BPSUserResponseMapper(*result), nil
+	defer cursor.Close(ctx)
+
+	var results []bpsUserDto.BPSUserResposenDTO
+	if err := cursor.All(ctx, &results); err != nil {
+		b.logger.Errorf("[BPSUserStorage][GetByUserCode] failed to decode user: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	if len(results) == 0 {
+		b.logger.Infof("[BPSUserStorage][GetByUserCode] no BPS user found with user_code: %s", userCode)
+		return nil, errors.New(localization.ErrorUserNotFound.Code)
+	}
+
+	b.logger.Infof("[BPSUserStorage][GetByUserCode] BPS user retrieved successfully with role")
+	return &results[0], nil
 }
 func (b *BPSUserStorage) GetByUserID(ctx context.Context, userID string) (*bps_model.BPSUser, error) {
 	b.logger.Infof("[BPSUserStorage][GetByUserID] fetching BPS user by user ID")

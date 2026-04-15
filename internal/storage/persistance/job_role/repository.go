@@ -108,7 +108,7 @@ func (s *JobRoleStorage) FindByID(ctx context.Context, id string) (*imodel.JobRo
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
-	filter := bson.M{"_id": objID}
+	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	res, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {

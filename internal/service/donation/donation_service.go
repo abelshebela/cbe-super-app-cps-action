@@ -322,7 +322,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	}
 
 	// Validate and check for data duplication
-	if err := core.CheckDataSimilarityAndValidation(ctx, donation, existingModel, d.DonationRepo); err != nil {
+	if err := core.CheckDataSimilarityAndValidation(ctx, donation, &existingModel, d.DonationRepo); err != nil {
 		span.AddEvent("Data similarity validation failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -443,7 +443,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	// --- Map Update Data ---
 	updateData := core.MapDonationUpdate(
 		id,
-		existingModel,
+		&existingModel,
 		donation,
 		coverImageURL,
 		NewdonationImages,
