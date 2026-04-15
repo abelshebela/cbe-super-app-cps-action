@@ -575,7 +575,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 						} else {
 							dateFilter["$eq"] = t
 						}
-						// delete(filterParam.Filters, ak)
+						delete(filterParam.Filters, ak)
 					}
 				}
 			}
@@ -586,7 +586,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 						dateFilter["$gte"] = t
 					}
 				}
-				// delete(filterParam.Filters, fromKey)
+				delete(filterParam.Filters, fromKey)
 			}
 
 			if raw, ok := filterParam.Filters[toKey]; ok {
@@ -598,7 +598,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 						dateFilter["$lte"] = t
 					}
 				}
-				// delete(filterParam.Filters, toKey)
+				delete(filterParam.Filters, toKey)
 			}
 
 			if len(dateFilter) > 0 {

@@ -90,6 +90,41 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessServiceCreateRequestSubmitted, nil)
 }
 
+func (a *servicesAdapter) ServicesDelete(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteService", "handler", "services")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		span.RecordError(errors.New("service ID is required for delete"))
+		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
+		return
+	}
+
+	err := a.app.DeleteServices(ctx, id)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[ServicesH][Delete] failed to delete service with id: %s, err: %v", id, err)
+		localization.SendErrorResponse(w, localization.ErrorServiceNotFound, nil, nil)
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[Delete] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SucccessDeleteUssdMerchant, nil)
+		return
+	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	localization.SendSuccessResponse(w, localization.SuccessServiceDeleted, nil)
+
+}
+
 // Update godoc
 //
 //	@Summary		Update Service
@@ -587,8 +622,7 @@ func (a *servicesAdapter) DeleteServiceKey(w http.ResponseWriter, r *http.Reques
 	}
 
 	if md.IsMakerOnly {
-		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		log.Infof("[DeleteServiceKey] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		log.Infof("[DeleteServiceKey] request sent successfully is_maker_only: %v", md.IsMakerOnly)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessServiceKeyDeleted, nil)
 		return

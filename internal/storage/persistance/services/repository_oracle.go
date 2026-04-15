@@ -1110,6 +1110,17 @@ func (s *ServicesStorage) DeleteServiceList(ctx context.Context, id string) erro
 	}
 	defer func() { _ = tx.Rollback() }()
 
+	// check if services use's this access list
+	const checkQ = `SELECT COUNT(*) FROM services WHERE access_list_id = HEXTORAW(:1) AND is_deleted = 0`
+	var count int64
+	if err := tx.QueryRowContext(ctx, checkQ, id).Scan(&count); err != nil {
+		s.logger.Errorf("[ServicesRepo][DeleteServiceList] check services failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	if count > 0 {
+		return errors.New(localization.ErrorServiceListInUse.Code)
+	}
+
 	// Delete the service list from access_lists and then delete the service which has the access_list_id
 	const q = `
 	UPDATE access_lists 
@@ -1126,24 +1137,6 @@ func (s *ServicesStorage) DeleteServiceList(ctx context.Context, id string) erro
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
 		return errors.New(localization.ErrorServiceListNotFound.Code)
-	}
-
-	const deleteServiceQ = `
-UPDATE services
-SET
-  is_deleted = 1,
-  deleted_at = SYSTIMESTAMP,
-  last_modified_at = SYSTIMESTAMP
-WHERE access_list_id = HEXTORAW(:1)
-  AND is_deleted = 0`
-	if _, err := tx.ExecContext(ctx, deleteServiceQ, id); err != nil {
-		s.logger.Errorf("[ServicesRepo][DeleteServiceList] delete services failed: %v", err)
-		return local_util.HandleDBError(err)
-	}
-
-	rows, _ = res.RowsAffected()
-	if rows == 0 {
-		return errors.New(localization.ErrorServiceNotFound.Code)
 	}
 
 	if err := tx.Commit(); err != nil {

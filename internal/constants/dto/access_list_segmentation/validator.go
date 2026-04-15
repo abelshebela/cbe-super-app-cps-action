@@ -10,7 +10,8 @@ func (c *EnableDisableAccessListSegmentationRequest) Validate() error {
 	if c.AccessListKeys == nil {
 		return errors.New(localization.ErrorAccessListKeysRequired.Code)
 	}
-	if c.SegmentationType == "" || (strings.ToLower(c.SegmentationType) != "account" && strings.ToLower(c.SegmentationType) != "block") {
+	if c.SegmentationType == "" {
+
 		return errors.New(localization.ErrorSegmentationTypeRequired.Code)
 	}
 	return nil

@@ -102,7 +102,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 		}
 		b.logger.Infof("[BankSvc][Authorize] created")
 	case string(constants.RequestDeleteBank):
-		err := b.repo.Delete(ctx, cpsAction.UniqueId)
+		err := b.oracleRepo.Delete(ctx, cpsAction.UniqueId)
 		if err != nil {
 			span.AddEvent("[Authorize] bank delete action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -256,7 +256,7 @@ func (b *BankService) DeleteOneBank(ctx context.Context, id string) error {
 		b.logger.Errorf("[BankSvc][DeleteOneBank] incomplete user")
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
-	bank, err := b.repo.FindByID(ctx, id)
+	bank, err := b.oracleRepo.FindByID(ctx, id)
 
 	if err != nil {
 		span.AddEvent("[DeleteOneBank] failed to find bank", trace.WithAttributes(
@@ -406,7 +406,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	bank, err := b.repo.FindByID(ctx, id)
+	bank, err := b.oracleRepo.FindByID(ctx, id)
 
 	if err != nil {
 		span.AddEvent("[UpdateLogo] failed to find bank", trace.WithAttributes(
