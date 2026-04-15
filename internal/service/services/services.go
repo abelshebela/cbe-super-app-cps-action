@@ -54,28 +54,44 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 }
 
 func (s *servicesService) Update(ctx context.Context, id string, req service_dto.UpdateServiceRequest) error {
+	s.logger.Infof("[servicesService][Update] called with id=%s, req=%+v", id, req)
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
+		s.logger.Errorf("[servicesService][Update] error fetching previous service by id=%s: %v", id, err)
 		return err
 	}
 
+	s.logger.Infof("[servicesService][Update] previous service: %+v", prev)
 	serviceKeyId := service_dto.StringPointer(req.ServiceKeyId, prev.ServiceKeyId)
+	s.logger.Infof("[servicesService][Update] resolved serviceKeyId: %s", serviceKeyId)
 
 	filterParam := types.Filter{
 		Search: serviceKeyId,
 	}
+	s.logger.Infof("[servicesService][Update] filterParam: %+v", filterParam)
 	services, err := s.repo.FindAllWithPagination(ctx, filterParam)
 	if err != nil {
+		s.logger.Errorf("[servicesService][Update] error fetching services with filter: %v", err)
 		return err
 	}
+	s.logger.Infof("[servicesService][Update] found %d services with serviceKeyId=%s", len(services.Data), serviceKeyId)
 
 	for _, svc := range services.Data {
+		s.logger.Infof("[servicesService][Update] checking service: id=%s, serviceKeyId=%s", svc.ID, svc.ServiceKeyId)
 		if svc.ID != id && (strings.EqualFold(svc.ServiceKeyId, serviceKeyId)) {
+			s.logger.Warnf("[servicesService][Update] duplicate serviceKeyId found: id=%s current_id: %s", svc.ID, serviceKeyId)
 			return errors.New(localization.ErrorServiceExists.Code)
 		}
 	}
 	mapped := core.MapToServiceUpdateModel(req, *prev)
-	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestUpdateService, mapped, prev, constants.ActionUpdate)
+	s.logger.Infof("[servicesService][Update] mapped update model: %+v", mapped)
+	err = core.HandleCPSAction(ctx, s.cps, id, constants.RequestUpdateService, mapped, prev, constants.ActionUpdate)
+	if err != nil {
+		s.logger.Errorf("[servicesService][Update] HandleCPSAction failed: %v", err)
+		return err
+	}
+	s.logger.Infof("[servicesService][Update] service update successful for id=%s", id)
+	return nil
 }
 
 func (s *servicesService) Enable(ctx context.Context, id string) error {
