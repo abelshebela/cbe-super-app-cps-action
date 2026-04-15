@@ -531,6 +531,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorServiceListAlreadyExists,
 	ErrorServiceListNotFound,
+	ErrorServiceListInUse,
 
 	// department related error
 	ErrorDepartmentCreateRequest,
@@ -5134,6 +5135,13 @@ var (
 		Type:       "success",
 	}
 
+	SuccessServiceDeleted = ResponseCode{
+		Code:       "SUCCESS_DELETE_SERVICE",
+		StatusCode: StatusOK,
+		Message:    MsgServiceDeletedSuccessfully,
+		Type:       "success",
+	}
+
 	SucccessUssdMerchantDeleteRequest = ResponseCode{
 		Code:       "SUCCESS_MERCHANT_USSD_DELETE_REQUEST",
 		StatusCode: StatusOK,
@@ -7708,6 +7716,12 @@ var (
 		Type:       "error",
 	}
 
+	ErrorServiceListInUse = ResponseCode{
+		Code:       "ERROR_SERVICE_LIST_IN_USE",
+		StatusCode: StatusBadRequest,
+		Message:    "Cannot delete service list that is currently in use by service",
+		Type:       "error",
+	}
 	ErrorCannotDisableOwnRole = ResponseCode{
 		Code:       "ERROR_CANNOT_DISABLE_OWN_ROLE",
 		StatusCode: StatusBadRequest,

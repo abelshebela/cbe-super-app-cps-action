@@ -80,6 +80,7 @@ type ServicesService interface {
 	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.ServiceKey], error)
 	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
 	GetByID(ctx context.Context, id string) (*service_dto.ServiceResponse, error)
+	DeleteServices(ctx context.Context, id string) error
 	DeleteServiceKey(ctx context.Context, id string) error
 }
 type CPSActionService interface {
