@@ -145,14 +145,27 @@ func (j *jobRoleService) Delete(ctx context.Context, id string) error {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	existing, err := j.roleRepository.FindByID(ctx, id)
+	hasActive, err := j.roleRepository.FindByID(ctx, id)
+	if err != nil {
+		j.logger.Errorf("[JobRole Service][Delete] failed to find existing job role: %v", err)
+		if err.Error() != localization.ErrorRegionNotFound.Code {
+			return err
+		}
+	}
+
+	if hasActive != nil {
+		j.logger.Errorf("[JobRole Service][Delete] job role is active")
+		return errors.New(localization.ErrorRoleHasActiveJobs.Code)
+	}
+
+	existing, err := j.jobRoleRepository.FindByID(ctx, id)
 	if err != nil {
 		j.logger.Errorf("[JobRole Service][Delete] failed to find existing job role: %v", err)
 		return err
 	}
 
 	updated := *existing
-	updated.UpdateAt = time.Now()
+	updated.UpdatedAt = time.Now()
 
 	cpsActionData := lib.CpsModelBuilder(id, makerUser, existing, updated, constants.RequestDeleteJobRole, constants.DELETE)
 
