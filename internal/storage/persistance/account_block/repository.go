@@ -859,7 +859,7 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 	var query string
 	var args []interface{}
 
-	if len(regionIDs) > 0 {
+	if len(regionIDs) > 1 {
 		// Build query with multiple region IDs
 		// For Oracle, we need to construct IN clause with HEXTORAW calls properly
 		var regionConditions []string
@@ -910,14 +910,28 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 	} else {
 		// Use existing query for single region or no region filter
 		query = listAccountBlocksByType
-		args = []interface{}{
-			sql.Named("type", string(entityType)),
-			sql.Named("search", search),
-			sql.Named("region_id", nil),
-			sql.Named("district_id", districtIDFilter),
-			sql.Named("is_enabled", isEnabledFilter),
-			sql.Named("offset", offset),
-			sql.Named("limit", limit),
+		if len(regionIDs) == 1 {
+			// Single region ID - use original query pattern
+			args = []interface{}{
+				sql.Named("type", string(entityType)),
+				sql.Named("search", search),
+				sql.Named("region_id", regionIDs[0]),
+				sql.Named("district_id", districtIDFilter),
+				sql.Named("is_enabled", isEnabledFilter),
+				sql.Named("offset", offset),
+				sql.Named("limit", limit),
+			}
+		} else {
+			// No region filter
+			args = []interface{}{
+				sql.Named("type", string(entityType)),
+				sql.Named("search", search),
+				sql.Named("region_id", nil),
+				sql.Named("district_id", districtIDFilter),
+				sql.Named("is_enabled", isEnabledFilter),
+				sql.Named("offset", offset),
+				sql.Named("limit", limit),
+			}
 		}
 	}
 
