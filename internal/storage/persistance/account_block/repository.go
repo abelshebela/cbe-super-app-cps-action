@@ -50,6 +50,7 @@ const (
 			slug,
 			type,
 			is_enabled,
+			RAWTOHEX(city_id) AS city_id,
 			RAWTOHEX(district_id) AS district_id,
 			RAWTOHEX(region_id) AS region_id,
 			is_deleted,
@@ -69,6 +70,7 @@ const (
 			slug,
 			type,
 			is_enabled,
+			RAWTOHEX(city_id) AS city_id,
 			RAWTOHEX(district_id) AS district_id,
 			RAWTOHEX(region_id) AS region_id,
 			is_deleted,
@@ -91,6 +93,7 @@ const (
 			slug,
 			type,
 			is_enabled,
+			RAWTOHEX(city_id) AS city_id,
 			RAWTOHEX(district_id) AS district_id,
 			RAWTOHEX(region_id) AS region_id,
 			is_deleted,
@@ -822,7 +825,7 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		limit = 50
 	}
 
-	var search, regionIDFilter, districtIDFilter, cityIDFilter interface{}
+	var search, regionIDFilter, districtIDFilter interface{}
 	var isEnabledFilter interface{}
 
 	if filterParam.Search != "" {
@@ -837,9 +840,6 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		if v, ok := filterParam.Filters["district_id"]; ok {
 			districtIDFilter = nullIfEmptyFilter(v)
 		}
-		if v, ok := filterParam.Filters["city_id"]; ok {
-			cityIDFilter = nullIfEmptyFilter(v)
-		}
 		if v, ok := filterParam.Filters["is_enabled"]; ok {
 			if enabled, isBool := v.(bool); isBool {
 				isEnabledFilter = isEnabledToInt(enabled)
@@ -852,7 +852,6 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		sql.Named("search", search),
 		sql.Named("region_id", regionIDFilter),
 		sql.Named("district_id", districtIDFilter),
-		sql.Named("city_id", cityIDFilter),
 		sql.Named("is_enabled", isEnabledFilter),
 		sql.Named("offset", offset),
 		sql.Named("limit", limit),
