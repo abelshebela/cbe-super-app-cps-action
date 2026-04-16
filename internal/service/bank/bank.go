@@ -117,12 +117,11 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 		actionData.UpdateAt = time.Now().String()
 		var err error
 		if actionData.IsEnabled == 1 {
-			err = b.oracleRepo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
+			err = b.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
 		} else {
-			err = b.oracleRepo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
+			err = b.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
 
 		}
-
 		if err != nil {
 			span.AddEvent("[Authorize] bank enable/disable action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -318,18 +317,23 @@ func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enable
 	}
 
 	newBankData := *bank
-	if enableDisable {
-		newBankData.IsEnabled = 1
-	} else {
-		newBankData.IsEnabled = 0
-	}
+	// newBankData.Enabled = enableDisable
 
 	var enable string
 	if enableDisable {
+		newBankData.IsEnabled = 1
 		enable = string(constants.RequestEnableBank)
 	} else {
+		newBankData.IsEnabled = 0
 		enable = string(constants.RequestDisableBank)
 	}
+
+	// var enable string
+	// if enableDisable {
+	// 	enable = string(constants.RequestEnableBank)
+	// } else {
+	// 	enable = string(constants.RequestDisableBank)
+	// }
 	action := lib.CpsModelBuilder(id, makerData, bank, newBankData, enable, constants.UPDATE)
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
