@@ -145,6 +145,12 @@ func DonationTitleExists(ctx context.Context, title string, donationRepo storage
 }
 
 func IsDataSimilar(request donation_dto.DonationRequest, existing *donation_model.Donation) bool {
+	if request.CompanyID != "" && request.CompanyID != existing.CompanyID.Hex() {
+		return false
+	}
+	if request.CategoryID != "" && request.CategoryID != existing.CategoryID.Hex() {
+		return false
+	}
 	if request.Title != "" && request.Title != existing.Title {
 		return false
 	}
@@ -170,6 +176,9 @@ func IsDataSimilar(request donation_dto.DonationRequest, existing *donation_mode
 		return false
 	}
 	if len(request.DonationImages) > 0 {
+		return false
+	}
+	if len(request.RemovedImages) > 0 {
 		return false
 	}
 	return true
