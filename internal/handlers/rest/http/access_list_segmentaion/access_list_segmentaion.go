@@ -115,7 +115,7 @@ func (a *accessListSegmentation) DisableAccessListSegmentation(w http.ResponseWr
 	}
 
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationDisabled, nil)
+	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationEnabled, nil)
 }
 
 // EnableAccessListSegmentation implements accesslistsegmentation.AccessListSegmentationHandler.
