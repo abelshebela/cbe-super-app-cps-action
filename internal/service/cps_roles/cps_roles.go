@@ -198,6 +198,12 @@ func (r *cpsRoleService) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
+	err = r.repo.CheckUserExistence(ctx, existing.RoleCode)
+	if err != nil {
+		r.logger.Errorf("[CpsRoleSvc][Delete] check user existence err: %v", err)
+		return err
+	}
+
 	updated := *existing
 	updated.DeletedAt = time.Now()
 
