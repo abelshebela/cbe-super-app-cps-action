@@ -32,7 +32,7 @@ type cpsRoleStorage struct {
 // CheckUserExistence implements [storage.CPSRolesRepository].
 func (m *cpsRoleStorage) CheckUserExistence(ctx context.Context, roleID string) error {
 	m.logger.Infof("[CPSRolesStorage][CheckUserExistence] checking user existence for roleID: %s", roleID)
-	const q = `SELECT COUNT(1) FROM USERS WHERE ROLE_ID = :1 AND IS_DELETED = 0`
+	const q = `SELECT COUNT(*) FROM USERS WHERE CUSTOMER_SEGMENTATION = :1 AND IS_ACTIVE = 0`
 	var count int
 	if err := m.db.QueryRowContext(ctx, q, roleID).Scan(&count); err != nil {
 		m.logger.Errorf("[CPSRolesStorage][CheckUserExistence] query failed: %v", err)

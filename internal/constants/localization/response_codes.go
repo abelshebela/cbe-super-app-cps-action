@@ -30,6 +30,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorConfigurationError,
 	ErrorCustomerBlockedPermanently,
 	ErrorCustomerConvertIDFailed,
+	ErrorBranchDistrictCodeNotFound,
 
 	ErrorExistUserName,
 	ErrorExistUserNameBPS,
@@ -7661,6 +7662,12 @@ var (
 		Code:       "ERROR_CANNOT_ENABLE_BRANCH",
 		StatusCode: StatusBadRequest,
 		Message:    MsgCannotEnableBranch,
+		Type:       "error",
+	}
+	ErrorBranchDistrictCodeNotFound = ResponseCode{
+		Code:       "ERROR_DISTRICT_CODE_NOT_FOUND",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBranchDistrictNotFound,
 		Type:       "error",
 	}
 

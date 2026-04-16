@@ -212,7 +212,7 @@ func (d *DonationStorage) StreamByDateRange(ctx context.Context, startDate, endD
 			"$gte": startDate,
 			"$lte": endDate,
 		},
-		"is_deleted": false,
+		"is_deleted": bson.M{"$ne": true},
 	}
 
 	opts := options.Find().

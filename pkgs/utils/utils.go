@@ -727,8 +727,6 @@ func ValidateTimeRangeOrder(time1, time2 time.Time) (bool, error) {
 }
 
 func FormatDateRangeToUTCStrings(fromStr, toStr string) (time.Time, time.Time, error) {
-	const layout = "2006-01-02" // frontend format
-
 	from, err := ParseDateInput(fromStr)
 	if err != nil {
 		return time.Time{}, time.Time{}, err
@@ -739,25 +737,14 @@ func FormatDateRangeToUTCStrings(fromStr, toStr string) (time.Time, time.Time, e
 		return time.Time{}, time.Time{}, err
 	}
 
-	// Start of day UTC
-	// startOfDay := time.Date(
-	// 	from.Year(),
-	// 	from.Month(),
-	// 	from.Day(),
-	// 	0, 0, 0, 0,
-	// 	time.UTC,
-	// )
+	// Date-only inputs should cover the full UTC day so exports do not
+	// exclude records created later on the `To` date.
+	if len(fromStr) == len("2006-01-02") {
+		from = time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, time.UTC)
+	}
+	if len(toStr) == len("2006-01-02") {
+		to = time.Date(to.Year(), to.Month(), to.Day(), 23, 59, 59, int(time.Second-time.Nanosecond), time.UTC)
+	}
 
-	// // End of day UTC (recommended production-safe version)
-	// endOfDay := time.Date(
-	// 	to.Year(),
-	// 	to.Month(),
-	// 	to.Day(),
-	// 	23, 59, 59, 999999999,
-	// 	time.UTC,
-	// )
-
-	return from,
-		to,
-		nil
+	return from, to, nil
 }
