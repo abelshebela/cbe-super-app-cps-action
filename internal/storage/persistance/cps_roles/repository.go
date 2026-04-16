@@ -29,6 +29,25 @@ type cpsRoleStorage struct {
 	logger        utils.Logger
 }
 
+// CheckUserExistence implements [storage.CPSRolesRepository].
+func (m *cpsRoleStorage) CheckUserExistence(ctx context.Context, roleID string) error {
+	m.logger.Infof("[CPSRolesStorage][CheckUserExistence] checking user existence for roleID: %s", roleID)
+	const q = `SELECT COUNT(1) FROM USERS WHERE ROLE_ID = :1 AND IS_DELETED = 0`
+	var count int
+	if err := m.db.QueryRowContext(ctx, q, roleID).Scan(&count); err != nil {
+		m.logger.Errorf("[CPSRolesStorage][CheckUserExistence] query failed: %v", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+
+		return local_util.HandleDBError(err)
+	}
+	if count > 0 {
+		return fmt.Errorf("there are still %d users under this role", count)
+	}
+	return nil
+}
+
 func NewCPSRolesStorage(cfg *config.VaultConfig, db *sql.DB, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.CPSRolesRepository {
 	return &cpsRoleStorage{
 		cfg:           cfg,
