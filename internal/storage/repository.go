@@ -860,6 +860,7 @@ type CPSRolesRepository interface {
 	Update(ctx context.Context, id string, req imodel.CPSRoles) error
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]imodel.CPSRoles], error)
 	FindById(ctx context.Context, id string) (*imodel.CPSRoles, error)
+	CheckUserExistence(ctx context.Context, roleID string) error
 	FindByNameOrRoleCode(ctx context.Context, name, roleCode string) (*imodel.CPSRoles, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CPSRoles, error)
