@@ -39,6 +39,7 @@ func NewMiniAppCategoryRepository(logger shared_utils.Logger, client *mongo.Clie
 }
 
 func (a *miniAppCategory) Create(ctx context.Context, category *model.MiniAppCategory) error {
+	category.IsEnabled = true
 	_, err := a.miniAppCategoryDal.InsertOne(ctx, *category)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)

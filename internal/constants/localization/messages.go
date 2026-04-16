@@ -1267,6 +1267,7 @@ const (
 	MsgJobTitleExisted        = "Job title already existed"
 	MsgJobTitleNotUpdated     = "Job title not updated"
 	MsgCannotEnableBranch     = "Cannot enable branch, its city is already blocked"
+	MsgBranchDistrictNotFound = "Brance district not found"
 
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"

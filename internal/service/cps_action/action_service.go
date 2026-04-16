@@ -319,6 +319,13 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 	}
 
 	if filterParams.Filters["action"] == "export" { // checked
+		// Validate date filters for export
+		if createdAtFrom == "" || createdAtTo == "" {
+			span.AddEvent("missing date filters for export")
+			ca.logger.Errorf("[CpsActionSvc][Export] missing required date filters: from=%q, to=%q", createdAtFrom, createdAtTo)
+			return nil, "", errors.New(localization.ErrorRequiredFieldMissing.Code)
+		}
+
 		filterParams.Filters["created_at_to"] = createdAtTo
 		filterParams.Filters["created_at_from"] = createdAtFrom
 
@@ -394,6 +401,13 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	}
 
 	if filterParams.Filters["action"] == "export" { // checked
+		// Validate date filters for export
+		if createdAtFrom == "" || createdAtTo == "" {
+			span.AddEvent("missing date filters for export")
+			ca.logger.Errorf("[CpsActionSvc][Export] missing required date filters: from=%q, to=%q", createdAtFrom, createdAtTo)
+			return nil, "", errors.New(localization.ErrorRequiredFieldMissing.Code)
+		}
+
 		filterParams.Filters["created_at_to"] = createdAtTo
 		filterParams.Filters["created_at_from"] = createdAtFrom
 
@@ -641,6 +655,13 @@ func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID st
 	}
 
 	if filterParams.Filters["action"] == "export" {
+		// Validate date filters for export
+		if createdAtFrom == "" || createdAtTo == "" {
+			span.AddEvent("missing date filters for export")
+			ca.logger.Errorf("[CpsActionSvc][Export] missing required date filters: from=%q, to=%q", createdAtFrom, createdAtTo)
+			return nil, "", errors.New(localization.ErrorRequiredFieldMissing.Code)
+		}
+
 		filterParams.Filters["created_at_to"] = createdAtTo
 		filterParams.Filters["created_at_from"] = createdAtFrom
 
@@ -687,6 +708,13 @@ func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 	}
 
 	if filterParams.Filters["action"] == "export" {
+		// Validate date filters for export
+		if createdAtFrom == "" || createdAtTo == "" {
+			span.AddEvent("missing date filters for export")
+			ca.logger.Errorf("[CpsActionSvc][Export] missing required date filters: from=%q, to=%q", createdAtFrom, createdAtTo)
+			return nil, "", errors.New(localization.ErrorRequiredFieldMissing.Code)
+		}
+
 		filterParams.Filters["created_at_to"] = createdAtTo
 		filterParams.Filters["created_at_from"] = createdAtFrom
 
