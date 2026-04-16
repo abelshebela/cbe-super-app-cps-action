@@ -133,6 +133,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 		}
 		if exist != nil && !strings.EqualFold(strings.TrimSpace(exist.ID), strings.TrimSpace(id)) {
 			span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
+			s.logger.Infof("[WalletSvc][Update] wallet name already exists name: %s req.id: %s found.id: %s", req.Name, id, exist.ID)
 			return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
 		}
 	}
@@ -144,6 +145,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 		}
 		if exist != nil && !strings.EqualFold(strings.TrimSpace(exist.ID), strings.TrimSpace(id)) {
 			span.AddEvent("Wallet code already exists", trace.WithAttributes(attribute.String("unique_code", req.UniqueCode)))
+			s.logger.Infof("[WalletSvc][Update] wallet code already exists unique_code: %s req.id: %s found.id: %s", req.UniqueCode, id, exist.ID)
 			return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
 		}
 	}
@@ -156,6 +158,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 		}
 		if exist != nil && !strings.EqualFold(strings.TrimSpace(exist.ID), strings.TrimSpace(id)) {
 			span.AddEvent("Wallet service already exists", trace.WithAttributes(attribute.String("service_id", req.ServiceID)))
+			s.logger.Infof("[WalletSvc][Update] wallet service already exists service_id: %s req.id: %s found.id: %s", req.ServiceID, id, exist.ID)
 			return errors.New(localization.ErrorWalletServiceAlreadyExists.Code)
 		}
 		s.logger.Infof("[WalletSvc][Update] no service_id conflict: %s", req.ServiceID)
