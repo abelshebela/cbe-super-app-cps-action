@@ -321,7 +321,20 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 	if filterParams.Filters["action"] == "export" { // checked
 		filterParams.Filters["created_at_to"] = createdAtTo
 		filterParams.Filters["created_at_from"] = createdAtFrom
-		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, result.Data, CpsActionCSVHeader, ca.logger)
+
+		// For export, get all data without pagination
+		exportFilterParams := *filterParams
+		exportFilterParams.Page = 0
+		exportFilterParams.PerPage = 0 // 0 means no limit for export
+
+		allData, err := ca.repo.SanitizedFindAllWithPaginationForApprover(ctx, userID, exportFilterParams, RAList)
+		if err != nil {
+			span.AddEvent("failed to get all data for export", trace.WithAttributes(attribute.String("error", err.Error())))
+			ca.logger.Errorf("[CpsActionSvc][Export] get all data for export err: %v", err)
+			return nil, "", err
+		}
+
+		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, allData.Data, CpsActionCSVHeader, ca.logger)
 		if err != nil {
 			span.AddEvent("failed to export CPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
 			ca.logger.Errorf("[CpsActionSvc][Export] export CPS actions err: %v", err)
@@ -383,7 +396,20 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	if filterParams.Filters["action"] == "export" { // checked
 		filterParams.Filters["created_at_to"] = createdAtTo
 		filterParams.Filters["created_at_from"] = createdAtFrom
-		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, result.Data, CpsActionCSVHeader, ca.logger)
+
+		// For export, get all data without pagination
+		exportFilterParams := *filterParams
+		exportFilterParams.Page = 0
+		exportFilterParams.PerPage = 0 // 0 means no limit for export
+
+		allData, err := ca.repo.SanitizedFindAllWithPaginationForAuditor(ctx, userID, exportFilterParams, RAList)
+		if err != nil {
+			span.AddEvent("failed to get all data for export", trace.WithAttributes(attribute.String("error", err.Error())))
+			ca.logger.Errorf("[CpsActionSvc][Export] get all data for export err: %v", err)
+			return nil, "", err
+		}
+
+		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, allData.Data, CpsActionCSVHeader, ca.logger)
 		if err != nil {
 			span.AddEvent("failed to export CPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
 			ca.logger.Errorf("[CpsActionSvc][Export] export CPS actions err: %v", err)
@@ -617,7 +643,20 @@ func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID st
 	if filterParams.Filters["action"] == "export" {
 		filterParams.Filters["created_at_to"] = createdAtTo
 		filterParams.Filters["created_at_from"] = createdAtFrom
-		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, result.Data, CpsActionCSVHeader, ca.logger)
+
+		// For export, get all data without pagination
+		exportFilterParams := *filterParams
+		exportFilterParams.Page = 0
+		exportFilterParams.PerPage = 0 // 0 means no limit for export
+
+		allData, err := ca.repo.SanitizedFindAllWithPagination(ctx, exportFilterParams, "")
+		if err != nil {
+			span.AddEvent("failed to get all data for export", trace.WithAttributes(attribute.String("error", err.Error())))
+			ca.logger.Errorf("[CpsActionSvc][Export] get all data for export err: %v", err)
+			return nil, "", err
+		}
+
+		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, allData.Data, CpsActionCSVHeader, ca.logger)
 		if err != nil {
 			span.AddEvent("failed to export CPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
 			ca.logger.Errorf("[CpsActionSvc][Export] export CPS actions err: %v", err)
@@ -650,7 +689,20 @@ func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 	if filterParams.Filters["action"] == "export" {
 		filterParams.Filters["created_at_to"] = createdAtTo
 		filterParams.Filters["created_at_from"] = createdAtFrom
-		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, result.Data, CpsActionCSVHeader, ca.logger)
+
+		// For export, get all data without pagination
+		exportFilterParams := *filterParams
+		exportFilterParams.Page = 0
+		exportFilterParams.PerPage = 0 // 0 means no limit for export
+
+		allData, err := ca.repo.SanitizedFindAllWithPagination(ctx, exportFilterParams, "")
+		if err != nil {
+			span.AddEvent("failed to get all data for export", trace.WithAttributes(attribute.String("error", err.Error())))
+			ca.logger.Errorf("[CpsActionSvc][Export] get all data for export err: %v", err)
+			return nil, "", err
+		}
+
+		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, allData.Data, CpsActionCSVHeader, ca.logger)
 		if err != nil {
 			span.AddEvent("failed to export CPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
 			ca.logger.Errorf("[CpsActionSvc][Export] export CPS actions err: %v", err)
