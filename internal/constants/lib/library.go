@@ -70,7 +70,15 @@ func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minio
 
 	writer := csv.NewWriter(tmpFile)
 
-	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(filterMap.Filters["created_at_from"].(string), filterMap.Filters["created_at_to"].(string))
+	// Safely extract date strings with type checking
+	createdAtFrom, fromOk := filterMap.Filters["created_at_from"].(string)
+	createdAtTo, toOk := filterMap.Filters["created_at_to"].(string)
+
+	if !fromOk || !toOk || createdAtFrom == "" || createdAtTo == "" {
+		return "", errors.New(localization.ErrorRequiredFieldMissing.Code)
+	}
+
+	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(createdAtFrom, createdAtTo)
 	if err != nil {
 		return "", errors.New(localization.ErrorInvalidDateFormat.Code)
 	}

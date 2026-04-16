@@ -167,8 +167,7 @@ func (r *RoleRepository) FindByID(ctx context.Context, id string) (*imodel.Role,
 	}
 
 	// Try to find from roles collection first (without job_roles lookup)
-	var role imodel.Role
-	err = r.collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&role)
+	role, err := r.mongoDal.FindOne(ctx, bson.M{"_id": objID}, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			r.logger.Errorf("[RoleRepository][FindByID] role not found in roles collection")
@@ -184,21 +183,21 @@ func (r *RoleRepository) FindByID(ctx context.Context, id string) (*imodel.Role,
 	cursor, err := r.jobCollection.Aggregate(ctx, pipeline)
 	if err != nil {
 		r.logger.Warnf("[RoleRepository][FindByID] job_roles lookup failed, returning basic role info: %v", err)
-		return &role, nil
+		return role, nil
 	}
 	defer cursor.Close(ctx)
 	if cursor.Next(ctx) {
 		var resultWithJobRole imodel.Role
 		if err := cursor.Decode(&resultWithJobRole); err != nil {
 			r.logger.Warnf("[RoleRepository][FindByID] decode failed, returning basic role info: %v", err)
-			return &role, nil
+			return role, nil
 		}
 		return &resultWithJobRole, nil
 	}
 
 	// No job role found, but role exists - return basic role info
 	r.logger.Warnf("[RoleRepository][FindByID] no job role found for role %s, returning basic role info", role.Role)
-	return &role, nil
+	return role, nil
 }
 
 func (r *RoleRepository) FindByName(ctx context.Context, name string) (*imodel.Role, error) {
