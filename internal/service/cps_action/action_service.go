@@ -341,6 +341,9 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 			return nil, "", err
 		}
 
+		filterParams.Filters["created_at_from"] = createdAtFrom
+		filterParams.Filters["created_at_to"] = createdAtTo
+
 		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, allData.Data, CpsActionCSVHeader, ca.logger)
 		if err != nil {
 			span.AddEvent("failed to export CPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -422,6 +425,9 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 			ca.logger.Errorf("[CpsActionSvc][Export] get all data for export err: %v", err)
 			return nil, "", err
 		}
+
+		filterParams.Filters["created_at_from"] = createdAtFrom
+		filterParams.Filters["created_at_to"] = createdAtTo
 
 		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, allData.Data, CpsActionCSVHeader, ca.logger)
 		if err != nil {
@@ -677,6 +683,9 @@ func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID st
 			return nil, "", err
 		}
 
+		filterParams.Filters["created_at_from"] = createdAtFrom
+		filterParams.Filters["created_at_to"] = createdAtTo
+
 		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, allData.Data, CpsActionCSVHeader, ca.logger)
 		if err != nil {
 			span.AddEvent("failed to export CPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -729,6 +738,9 @@ func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 			ca.logger.Errorf("[CpsActionSvc][Export] get all data for export err: %v", err)
 			return nil, "", err
 		}
+
+		filterParams.Filters["created_at_from"] = createdAtFrom
+		filterParams.Filters["created_at_to"] = createdAtTo
 
 		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, allData.Data, CpsActionCSVHeader, ca.logger)
 		if err != nil {
