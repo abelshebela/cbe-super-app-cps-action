@@ -88,12 +88,13 @@ func (e *LogisticsMerchantHandler) CreateLogisticMerchant(w http.ResponseWriter,
 func (e *LogisticsMerchantHandler) DeleteLogisticMerchant(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := e.service.Delete(r.Context(), id); err != nil {
+	if err := e.service.Delete(ctx, id); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -118,12 +119,13 @@ func (e *LogisticsMerchantHandler) DeleteLogisticMerchant(w http.ResponseWriter,
 func (e *LogisticsMerchantHandler) DisableLogisticMerchant(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := e.service.EnableOrDisable(r.Context(), id, false); err != nil {
+	if err := e.service.EnableOrDisable(ctx, id, false); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -134,12 +136,13 @@ func (e *LogisticsMerchantHandler) DisableLogisticMerchant(w http.ResponseWriter
 func (e *LogisticsMerchantHandler) EnableLogisticMerchant(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := e.service.EnableOrDisable(r.Context(), id, true); err != nil {
+	if err := e.service.EnableOrDisable(ctx, id, true); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -234,7 +237,7 @@ func (e *LogisticsMerchantHandler) UpdateLogisticMerchant(w http.ResponseWriter,
 		return
 	}
 	m := core.UpdateLogisticsMerchantRequestToModel(req)
-	if err := e.service.Update(r.Context(), id, m); err != nil {
+	if err := e.service.Update(ctx, id, m); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

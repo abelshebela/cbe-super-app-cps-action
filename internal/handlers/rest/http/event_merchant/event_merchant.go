@@ -128,6 +128,10 @@ func (e *EventMerchantHandler) CreateEventMerchant(w http.ResponseWriter, r *htt
 func (e *EventMerchantHandler) DeleteEventMerchant(w http.ResponseWriter, r *http.Request) {
 	ctx, _ := local_util.TraceLogger(r.Context(), "handler", "deleteEventMerchant", "handler", "event_merchant")
 
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
