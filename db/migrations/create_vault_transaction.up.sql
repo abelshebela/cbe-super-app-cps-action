@@ -1,0 +1,56 @@
+
+CREATE TABLE VAULT_TRANSACTIONS (
+    -- Primary Key and Identifiers
+    ID                         VARCHAR2(36) NOT NULL,
+    TRANSACTION_ID             VARCHAR2(50) NOT NULL,
+    FT_NUMBER                  VARCHAR2(50),
+    VAULT_ID                   VARCHAR2(36),
+    VAULT_TX_TYPE              VARCHAR2(30),
+    
+    -- Financial Deltas and Balances
+    PRINCIPAL_DELTA            NUMBER(19, 4),
+    INTEREST_DELTA             NUMBER(19, 4),
+    BALANCE_AFTER              NUMBER(19, 4),
+    
+    -- Reference Info
+    REFERENCE_TYPE             VARCHAR2(64),
+    REFERENCE_ID               VARCHAR2(64),
+    DEBIT_USER_ID              VARCHAR2(36),
+    DEBIT_ACCOUNT_NUMBER       VARCHAR2(30),
+    DEBIT_ACCOUNT_HOLDER_NAME  VARCHAR2(150),
+    CREDIT_ACCOUNT_NUMBER      VARCHAR2(30),
+    CREDIT_ACCOUNT_HOLDER_NAME VARCHAR2(150),
+    
+    -- Financial Amounts & Details
+    CURRENCY                   VARCHAR2(3) DEFAULT 'ETB' NOT NULL,
+    SERVICE_FEE                NUMBER(18, 4) DEFAULT 0 NOT NULL,
+    PAID_AMOUNT                NUMBER(18, 4) DEFAULT 0 NOT NULL,
+    VAT                        NUMBER(18, 4) DEFAULT 0 NOT NULL,
+    AMOUNT                     NUMBER(18, 4) DEFAULT 0 NOT NULL,
+    TOTAL_AMOUNT               NUMBER(18, 4) NOT NULL,
+    
+    -- Metadata
+    EXTERNAL_REFERENCE         VARCHAR2(64),
+    TRANSACTION_REASON         VARCHAR2(64),
+    RECEIPT_LINK               VARCHAR2(512),
+    TRANSACTION_TYPE           VARCHAR2(30) DEFAULT 'CBE_TO_CBE' NOT NULL,
+    IS_IFB                     NUMBER(1, 0) DEFAULT 0 NOT NULL,
+    STATUS                     VARCHAR2(20) DEFAULT 'PENDING',
+    CREATED_AT                 TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+    -- Constraints
+    CONSTRAINT PK_VAULT_TRANSACTIONS PRIMARY KEY (ID),
+    CONSTRAINT UK_TX_TRANSACTION_ID UNIQUE (TRANSACTION_ID),
+    CONSTRAINT CHK_TX_TYPE CHECK (TRANSACTION_TYPE IN ('CBE_TO_CBE')),
+    CONSTRAINT CHK_IS_IFB CHECK (IS_IFB IN (0, 1))
+);
+
+---
+--- Indexes for performance as defined in @Index
+---
+
+CREATE INDEX IDX_TX_VLT_USR_TYP_TS 
+    ON VAULT_TRANSACTIONS (VAULT_ID, DEBIT_USER_ID, VAULT_TX_TYPE, CREATED_AT);
+
+CREATE INDEX IDX_TX_VLT_TYP_TS 
+    ON VAULT_TRANSACTIONS (VAULT_ID, VAULT_TX_TYPE, CREATED_AT);

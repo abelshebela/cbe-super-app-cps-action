@@ -53,7 +53,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 
 		cpsAction.CurrentCheckerIndex = 0.0
 
-		if mod, ok := ResolveModuleForRA(RequestAction(cpsAction.RequestAction)); ok && s.roles != nil {
+		if mod, ok := ResolveModuleForRA(constants.RequestAction(cpsAction.RequestAction)); ok && s.roles != nil {
 
 			var role *imodel.CPSActionRole
 			var approverData imodel.CPSActionApproveIndex
@@ -65,11 +65,13 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			if role != nil && !role.Enabled {
 				return localization.ErrorActionAlreadyDisabled
 			}
+
 			if role != nil {
 				ctx = context.WithValue(ctx, constants.ContextKey("is_maker_only"), role.IsMakerOnly)
-				ctx = context.WithValue(ctx, constants.ContextKey("action_code"), cpsAction.ActionCode)
+				ctx = context.WithValue(ctx, constants.ContextKey("cps_action_code"), cpsAction.ActionCode)
 				ctx = context.WithValue(ctx, constants.ContextKey("action_name"), mod)
 				types.SetIsMakerOnly(ctx, role.IsMakerOnly)
+				types.SetCPSActionCode(ctx, cpsAction.ActionCode)
 			}
 			if approver, err := s.roles.FindApproverByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil {
 				approverData = approver
@@ -79,6 +81,8 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 				s.logger.Errorf("[action_service] CreateCPSAction: role or approver not found for action %s", mod)
 				return localization.ErrorOperationNotAllowed
 			}
+
+			s.logger.Infof("[action_service] CreateCPSAction: maker index not found for is erp %s", isErp)
 
 			if !isErp && (approverData.MakerIndex == nil) {
 				s.logger.Errorf("[action_service] CreateCPSAction: maker index not found for action %s", mod)
@@ -98,6 +102,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			if err := s.base.CreateCPSAction(ctx, cpsAction); err != nil {
 				return err
 			}
+			types.SetCPSActionCode(ctx, cpsAction.ActionCode)
 
 			if role != nil {
 				if role.IsMakerOnly || isErp {
@@ -131,18 +136,18 @@ func (s *cpsActionServiceWithRoles) AuditorMark(ctx context.Context, actionCode 
 func (s *cpsActionServiceWithRoles) GetUserAuthorizerIndex(ctx context.Context, requestAction constants.RequestAction) (imodel.CPSActionApproveIndex, error) {
 	return s.base.GetUserAuthorizerIndex(ctx, requestAction)
 }
-func (s *cpsActionServiceWithRoles) GetUserCheckedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+func (s *cpsActionServiceWithRoles) GetUserCheckedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
 	return s.base.GetUserCheckedActions(ctx, userID, filterParams)
 }
-func (s *cpsActionServiceWithRoles) GetUserCreatedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+func (s *cpsActionServiceWithRoles) GetUserCreatedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
 	return s.base.GetUserCreatedActions(ctx, userID, filterParams)
 }
 
-func (s *cpsActionServiceWithRoles) GetCPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+func (s *cpsActionServiceWithRoles) GetCPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
 	return s.base.GetCPSActionsForApprover(ctx, userID, RAList, filterParams)
 }
 
-func (s *cpsActionServiceWithRoles) GetCPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+func (s *cpsActionServiceWithRoles) GetCPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
 	return s.base.GetCPSActionsForAuditor(ctx, userID, RAList, filterParams)
 }
 

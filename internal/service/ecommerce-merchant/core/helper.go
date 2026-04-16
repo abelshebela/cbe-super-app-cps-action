@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"strings"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
@@ -174,7 +175,7 @@ func CheckMerchantExists(
 
 	res, err := merchantRepo.FindOne(ctx, filter)
 	if err != nil {
-		if err.Error() == localization.ErrorMiniAppMerchantNotFound.Code || err.Error() == localization.ErrorResourceNotFound.Code {
+		if err.Error() == localization.ErrorEcommerceMerchantNotFound.Code || err.Error() == localization.ErrorResourceNotFound.Code {
 			return false, nil
 		}
 		return false, err
@@ -184,16 +185,16 @@ func CheckMerchantExists(
 		return false, nil
 	}
 
-	// if res.BankAccountNumber == data.BankAccountNumber {
-	// 	return false, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
-	// }
+	if strings.EqualFold(res.BankAccountNumber, data.BankAccountNumber) {
+		return false, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
+	}
 	// if res.Email == data.Email {
 	// 	return false, errors.New(localization.ErrorEmailAlreadyExist.Code)
 	// }
 	// if res.PhoneNumber == data.PhoneNumber {
 	// 	return false, errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
 	// }
-	if res.Code == data.MerchantCode {
+	if strings.EqualFold(res.Code, data.MerchantCode) {
 		return false, errors.New(localization.ErrorCodeAlreadyExist.Code)
 	}
 
@@ -220,12 +221,19 @@ func convertDtoBranches(dto []merchantDto.BranchInformation) []model.BranchInfor
 	}
 	result := make([]model.BranchInformation, len(dto))
 	for i, b := range dto {
-		var branch string
+		var address, owner string
+		if b.BranchAddress != nil {
+			address = *b.BranchAddress
+		}
+		if b.BranchOwner != nil {
+			owner = *b.BranchOwner
+		}
+
 		result[i] = model.BranchInformation{
 			BranchCode:          b.BranchCode,
 			BranchName:          b.BranchName,
-			BranchAddress:       branch,
-			BranchOwner:         b.BranchOwner,
+			BranchAddress:       address,
+			BranchOwner:         owner,
 			BranchAccountNumber: b.BranchAccountNumber,
 		}
 	}

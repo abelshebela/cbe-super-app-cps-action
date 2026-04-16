@@ -14,6 +14,7 @@ import (
 	"context"
 	"errors"
 	"path"
+	"strings"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -151,6 +152,15 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 	donationCompany.CompanyCode = "DON-COMPANY-" + local_util.UniqueIdGenerator()
 	result := core.MapToDonationCompanyResponse(donationCompany, url)
 	result.AccountHolderName = accountDetail.CustomerName
+	if strings.Contains(accountDetail.Restriction, "YES") {
+		// Handle the case where the account is restricted
+		span.AddEvent("Account number is restricted", trace.WithAttributes(
+			attribute.String("account_number", donationCompany.AccountNumber),
+			attribute.String("restriction", accountDetail.Restriction),
+		))
+		d.logger.Warnf("[DonCompSvc][Create] account number is restricted: %s", donationCompany.AccountNumber)
+		return errors.New(localization.ErrorAccountNumberRestricted.Code)
+	}
 	cpsAction := lib.CpsModelBuilder("", makerData, "", result, string(constants.RequestCreateDonationCompany), constants.CREATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
@@ -327,6 +337,17 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 			return nil, errors.New(localization.ErrorDonationUpdateFailed.Code)
 		}
 
+	case string(constants.RequestDeleteDonationCompany):
+		err := d.DonationCompanyRepo.Delete(ctx, action.UniqueId)
+		if err != nil {
+			d.logger.Errorf("[DonCompSvc][Authorize] delete err: %v", err)
+			span.AddEvent("Failed to delete donation company", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
+			return nil, err
+		}
+
 	default:
 		d.logger.Errorf("[DonCompSvc][Authorize] unsupported action: %s", action.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(
@@ -462,4 +483,72 @@ func (d *DonationCompany) DisableDonationCompany(ctx context.Context, id string)
 
 	return nil
 
+}
+
+func (d *DonationCompany) DeleteDonationCompany(ctx context.Context, id string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteDonationCompany", "DonationCompany", "DeleteDonationCompany")
+	defer span.End()
+
+	makerData := local_util.ExtractUserFromContext(ctx)
+	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", localization.ErrorIncompleteUserInfo.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+	existingDonationCompany, err := d.DonationCompanyRepo.FindByID(ctx, id)
+	if err != nil {
+		span.AddEvent("Failed to find donation company", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+	if existingDonationCompany == nil {
+		span.AddEvent("Donation company not found", trace.WithAttributes(
+			attribute.String("error", localization.ErrorFileNotFound.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorFileNotFound.Code)
+	}
+	if existingDonationCompany.IsDeleted {
+		span.AddEvent("Donation company already deleted", trace.WithAttributes(
+			attribute.String("error", localization.ErrorAlreadyDeleted.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorAlreadyDeleted.Code)
+	}
+
+	// Guard: block the delete if there are still enabled donations using this company.
+	hasActive, err := d.DonationRepo.HasActiveDonationsByCompany(ctx, id)
+	if err != nil {
+		span.AddEvent("Failed to check active donations for company", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+	if hasActive {
+		span.AddEvent("Company has active donations — delete blocked", trace.WithAttributes(
+			attribute.String("error", localization.ErrorActiveDonationExistsInCompany.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorActiveDonationExistsInCompany.Code)
+	}
+
+	currentData := *existingDonationCompany
+	currentData.IsDeleted = true
+	currentData.LastModifiedAt = time.Now().Format(time.RFC3339)
+
+	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCompany, currentData, string(constants.RequestDeleteDonationCompany), constants.DELETE)
+	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+
+	return nil
 }

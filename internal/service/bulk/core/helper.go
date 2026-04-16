@@ -1,35 +1,52 @@
 package core
 
 import (
+	"sort"
+
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_type "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 )
 
+// MapParentChildRelationship builds parent rows with SubAccessList from ACCESS_ITEMS_RELATION edges.
+// Self-edges (PARENT_KEY = CHILD_KEY) define a standalone parent and are not added as children.
 func MapParentChildRelationship(relations []local_model.AccessItemRelation, accessList []model.APPAccessList) []model.APPAccessList {
-	var result []model.APPAccessList
-	// Build parent to children map and a set of all child keys
-	parentToChildren := make(map[string][]string)
-	childSet := make(map[string]model.APPAccessList)
-	for _, rel := range relations {
-		parentToChildren[rel.ParentKey] = append(parentToChildren[rel.ParentKey], rel.ChildKey)
+	nodesByKey := make(map[string]model.APPAccessList, len(accessList))
+	for _, al := range accessList {
+		nodesByKey[al.Key] = al
 	}
 
-	for _, al := range accessList {
-		childSet[al.Key] = al
+	// Deduplicate (PARENT_KEY, CHILD_KEY) pairs
+	parentChildren := make(map[string]map[string]struct{})
+	for _, rel := range relations {
+		if parentChildren[rel.ParentKey] == nil {
+			parentChildren[rel.ParentKey] = make(map[string]struct{})
+		}
+		parentChildren[rel.ParentKey][rel.ChildKey] = struct{}{}
 	}
+
 	accountedFor := make(map[string]bool)
-	for parentKey, childKeys := range parentToChildren {
-		parent, ok := childSet[parentKey]
+	var result []model.APPAccessList
+
+	for parentKey, childSet := range parentChildren {
+		parent, ok := nodesByKey[parentKey]
 		if !ok {
 			continue
 		}
-		for _, childKey := range childKeys {
-			child, ok := childSet[childKey]
-			if ok && child.Key != parentKey {
-				parent.SubAccessList = append(parent.SubAccessList, modelToSubAccessList(&child))
+		childKeys := make([]string, 0, len(childSet))
+		for ck := range childSet {
+			if ck != parentKey {
+				childKeys = append(childKeys, ck)
 			}
+		}
+		sort.Strings(childKeys)
+		for _, childKey := range childKeys {
+			child, ok := nodesByKey[childKey]
+			if !ok {
+				continue
+			}
+			parent.SubAccessList = append(parent.SubAccessList, modelToSubAccessList(&child))
 			accountedFor[childKey] = true
 		}
 		result = append(result, parent)

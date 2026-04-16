@@ -139,6 +139,7 @@ func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam t
 	// Use FilterBuilder to construct filter + pagination
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
+	filter["is_deleted"] = false
 	// Fetch data with final filter
 	data, err := a.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {

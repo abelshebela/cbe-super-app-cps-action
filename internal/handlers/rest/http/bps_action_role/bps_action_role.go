@@ -181,6 +181,7 @@ func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	var req actionrole_dto.CreateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
@@ -214,8 +215,10 @@ func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleCreatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleCreateRequestCreated, nil)
 	}
 }
@@ -242,6 +245,7 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	code := chi.URLParam(r, "code")
 	if code == "" {
@@ -266,8 +270,10 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleUpdatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleUpdateRequestCreated, nil)
 	}
 }
@@ -293,6 +299,7 @@ func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	code := chi.URLParam(r, "code")
 	if code == "" {
@@ -307,8 +314,10 @@ func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleEnabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleEnableRequestCreated, nil)
 	}
 }
@@ -334,6 +343,7 @@ func (h *BPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	code := chi.URLParam(r, "code")
 	if code == "" {
@@ -348,8 +358,51 @@ func (h *BPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleDisabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleDisableRequestCreated, nil)
 	}
+}
+
+// Delete godoc
+//
+//	@Summary	Delete BPS action role
+//	@Description	Delete a BPS action role by action code
+//	@Tags		BPS Action Role
+//	@Accept		json
+//	@Produce	json
+//	@Param		code	path		string									true	"Action Code"
+//	@Success	200		{object}	localization.StandardResponse{data=nil}		"BPS action role delete request submitted successfully"
+//	@Failure	400		{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure	404		{object}	localization.StandardResponse{data=nil}		"Not found"
+//	@Failure	500		{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security	BearerAuth
+//	@Router		/bps-action-roles/{code} [delete]
+func (h *BPSActionRoleHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteBpsActionRole", "handler", "bpsActionRole")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	code := chi.URLParam(r, "code")
+	if code == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+		return
+	}
+
+	span.SetAttributes(attribute.String("bps_action_role.code", code))
+	if err := h.service.Delete(ctx, code); err != nil {
+		span.RecordError(err)
+		log.Errorf("[BpsRoleH][Delete] svc err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	localization.SendSuccessResponse(w, localization.SuccessDeleteRequestCreated, nil)
 }

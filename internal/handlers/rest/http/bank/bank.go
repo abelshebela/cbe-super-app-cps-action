@@ -58,6 +58,7 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var bankRequest bank_dto.CreateBankRequest
 
@@ -70,8 +71,10 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	bankRequest.Name = r.FormValue("name")
-	bankRequest.BICCode = r.FormValue("bic_code")
+	Name := r.FormValue("name")
+	bankRequest.Name = strings.ToUpper(Name)
+	BICCode := r.FormValue("bic_code")
+	bankRequest.BICCode = strings.ToUpper(BICCode)
 
 	if accountLength := r.FormValue("account_length"); accountLength != "" {
 		length, err := strconv.Atoi(accountLength)
@@ -128,10 +131,12 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 
 	if md.IsMakerOnly {
 		log.Infof("[CreateOneBank] bank created successfully for bic_code: %s", bankRequest.BICCode)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBankCreatedSuccessfully, nil)
 		return
 	}
 	log.Infof("[CreateOneBank] request sent successfully for bank bic_code: %s", bankRequest.BICCode)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankCreatedRequestSent, nil)
 }
 
@@ -172,6 +177,7 @@ func (b *bankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Infof("[DeleteOneBank] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessDeleteRequestCreated, nil)
 }
 
@@ -196,6 +202,7 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	span.SetAttributes(attribute.String("bank.id", id))
@@ -212,15 +219,14 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	log.Infof("[BankDisable] request sent successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessBankDisableRequestCreated, nil)
-
 	if md.IsMakerOnly {
 		log.Infof("[BankDisable] bank disabled successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBankDisabledSuccessfully, nil)
 		return
 	}
 	log.Infof("[BankDisable] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankDisableRequestCreated, nil)
 
 }
@@ -246,6 +252,7 @@ func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	span.SetAttributes(attribute.String("bank.id", id))
@@ -264,10 +271,12 @@ func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 		log.Infof("[BankEnable] bank enabled successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBankEnabledSuccessfully, nil)
 		return
 	}
 	log.Infof("[BankEnable] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankEnableRequestCreated, nil)
 }
 
@@ -436,6 +445,7 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	span.SetAttributes(attribute.String("bank.id", id))
@@ -463,8 +473,11 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 		log.Infof("[BankH][Update] no logo, skipping")
 	}
 
-	updateRequest.Name = r.FormValue("name")
+	Name := r.FormValue("name")
+	updateRequest.Name = strings.ToUpper(Name)
 	updateRequest.BICCode = r.FormValue("bic_code")
+	BICCode := r.FormValue("bic_code")
+	updateRequest.BICCode = strings.ToUpper(BICCode)
 
 	if accountLength := r.FormValue("account_length"); accountLength != "" {
 		length, err := strconv.Atoi(accountLength)
@@ -503,10 +516,12 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 		log.Infof("[UpdateOneBank] bank updated successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBankUpdated, nil)
 		return
 	}
 	log.Infof("[UpdateOneBank] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankUpdatedRequestSent, nil)
 
 }

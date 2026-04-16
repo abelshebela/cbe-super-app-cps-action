@@ -492,6 +492,17 @@ const (
 	IFBT MemberType = "IFB"
 )
 
+type SourceApp string
+
+const (
+	APP             SourceApp = "APP"
+	USSD            SourceApp = "USSD"
+	InternetBanking SourceApp = "INTERNET_BANKING"
+	ATM             SourceApp = "ATM"
+	POS             SourceApp = "POS"
+	PaperLess       SourceApp = "PAPERLESS"
+)
+
 // ---------------------------------------------------------------------------
 // OTP For
 // ---------------------------------------------------------------------------
@@ -676,6 +687,8 @@ const (
 	RequestDisableCpsActionRole RequestAction = "DISABLE_CPS_ACTION_ROLE"
 	RequestDeleteCpsActionRole  RequestAction = "DELETE_CPS_ACTION_ROLE"
 
+	RequestDeleteServiceList RequestAction = "DELETE_SERVICE_LIST"
+	RequestDeleteServiceKey  RequestAction = "DELETE_SERVICE_KEY"
 	// CPS User
 	RequestCpsUserCreate  RequestAction = "CREATE_CPS_USER"
 	RequestCpsUserUpdate  RequestAction = "UPDATE_CPS_USER"
@@ -739,13 +752,12 @@ const (
 	RequestDeleteAdvert  RequestAction = "DELETE_ADVERT"
 
 	// Bank
-	RequestCreateBank        RequestAction = "CREATE_BANK"
-	RequestUpdateBank        RequestAction = "UPDATE_BANK"
-	RequestUpdateBankLogo    RequestAction = "UPDATE_BANK_LOGO"
-	RequestDeleteBank        RequestAction = "DELETE_BANK"
-	RequestEnableDisableBank RequestAction = "ENABLE_DISABLE_BANK"
-	RequestEnableBank        RequestAction = "ENABLE_BANK"
-	RequestDisableBank       RequestAction = "DISABLE_BANK"
+	RequestCreateBank     RequestAction = "CREATE_BANK"
+	RequestUpdateBank     RequestAction = "UPDATE_BANK"
+	RequestUpdateBankLogo RequestAction = "UPDATE_BANK_LOGO"
+	RequestDeleteBank     RequestAction = "DELETE_BANK"
+	RequestEnableBank     RequestAction = "ENABLE_BANK"
+	RequestDisableBank    RequestAction = "DISABLE_BANK"
 
 	// Device Version
 	RequestCreateDeviceVersion        RequestAction = "CREATE_DEVICE_VERSION"
@@ -778,6 +790,7 @@ const (
 	RequestUpdateService        RequestAction = "UPDATE_SERVICE"
 	RequestEnableService        RequestAction = "ENABLE_SERVICE"
 	RequestDisableService       RequestAction = "DISABLE_SERVICE"
+	RequestDeleteService        RequestAction = "DELETE_SERVICE"
 	RequestUpdateServiceSingle  RequestAction = "UPDATE_SERVICE_SINGLE_CAP"
 	RequestUpdateServiceTotal   RequestAction = "UPDATE_SERVICE_TOTAL_CAP"
 	RequestUpdateServiceMinCap  RequestAction = "UPDATE_SERVICE_MIN_CAP"
@@ -959,6 +972,8 @@ const (
 	RequestCreateAccessListSegmentation        RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION"
 	RequestUpdateAccessListSegmentation        RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION"
 	RequestEnableDisableAccessListSegmentation RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION"
+	RequestEnableAccessListSegmentation        RequestAction = "ENABLE_ACCESS_LIST_SEGMENTATION"
+	RequestDisableAccessListSegmentation       RequestAction = "DISABLE_ACCESS_LIST_SEGMENTATION"
 
 	// CPS Role
 	RequestCreateCpsRole  RequestAction = "CREATE_CPS_ROLE"
@@ -976,12 +991,14 @@ const (
 	RequestUpdateDonationCategory  RequestAction = "UPDATE_DONATION_CATEGORY"
 	RequestEnableDonationCategory  RequestAction = "ENABLE_DONATION_CATEGORY"
 	RequestDisableDonationCategory RequestAction = "DISABLE_DONATION_CATEGORY"
+	RequestDeleteDonationCategory  RequestAction = "DELETE_DONATION_CATEGORY"
 
 	// Donation Company
 	RequestCreateDonationCompany  RequestAction = "CREATE_DONATION_COMPANY"
 	RequestUpdateDonationCompany  RequestAction = "UPDATE_DONATION_COMPANY"
 	RequestEnableDonationCompany  RequestAction = "ENABLE_DONATION_COMPANY"
 	RequestDisableDonationCompany RequestAction = "DISABLE_DONATION_COMPANY"
+	RequestDeleteDonationCompany  RequestAction = "DELETE_DONATION_COMPANY"
 
 	// Donation
 	RequestCreateDonation      RequestAction = "CREATE_DONATION"
@@ -991,6 +1008,7 @@ const (
 	RequestAddDonationImage    RequestAction = "ADD_DONATION_IMAGE"
 	RequestEnableDonation      RequestAction = "ENABLE_DONATION"
 	RequestDisableDonation     RequestAction = "DISABLE_DONATION"
+	RequestDeleteDonation      RequestAction = "DELETE_DONATION"
 
 	// Article
 	RequestCreateArticle  RequestAction = "CREATE_ARTICLE"
@@ -1193,11 +1211,18 @@ const (
 )
 
 // ---------------------------------------------------------------------------
-// Redis Key Prefixes
+// Redis keys (prefixes and full keys)
 // ---------------------------------------------------------------------------
 
 const (
 	RedisCPSUserDeviceIDPrefix = "cps:auth:device"
+
+	// RedisCacheKeyWallet, RedisCacheKeyAccessList, RedisCacheKeyAccountBlock are
+	// centralized full key names for cache / invalidation until Vault supplies them
+	// (e.g. map to VaultConfig fields later and replace usages).
+	RedisCacheKeyWallet       = "cps:cache:wallet"
+	RedisCacheKeyAccessList   = "cache:access_list"
+	RedisCacheKeyAccountBlock = "cache:account_block"
 )
 
 // ---------------------------------------------------------------------------

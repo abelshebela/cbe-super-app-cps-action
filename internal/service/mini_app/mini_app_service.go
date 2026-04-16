@@ -158,12 +158,12 @@ func (s *miniAppService) ValidMerchant(MerchantID string, ctx context.Context, m
 	}
 	if merchant.IsDeleted {
 		s.logger.Errorf("[MiniAppSvc][ValidMerchant] deleted id: %s", MerchantID)
-		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+		return errors.New("merchant not found")
 	}
 
 	if !merchant.Enabled {
 		s.logger.Errorf("[MiniAppSvc][ValidMerchant] disabled id: %s", MerchantID)
-		return errors.New(localization.ErrorMiniAppMerchantDisableFailed.Code)
+		return errors.New("merchant not enabled")
 	}
 	return nil
 }

@@ -48,6 +48,7 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	req, ok := core.ParseAndValidateNotificationRequest(w, r, true)
 	if !ok {
@@ -75,6 +76,7 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessNotificationCreatedSP, nil)
 	} else {
 		log.Infof("[CreateNotification] request sent successfully by user: %s", maker.UserID)
@@ -104,6 +106,7 @@ func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -131,9 +134,11 @@ func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 		log.Infof("[UpdateNotification] Updated successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessNotificationUpdatedSP, nil)
 	} else {
 		log.Infof("[UpdateNotification] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessNotificationUpdateRequestSubmitted, nil)
 	}
 }
@@ -159,6 +164,7 @@ func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -178,9 +184,11 @@ func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessNotificationDeletedSP, nil)
 	} else {
 		log.Infof("[DeleteNotification] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessNotificationDeleteRequestSubmitted, nil)
 	}
 }
@@ -205,6 +213,7 @@ func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -226,9 +235,11 @@ func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessNotificationEnabledSP, nil)
 	} else {
 		log.Infof("[EnableNotification] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessNotificationEnableRequestSubmitted, nil)
 	}
 
@@ -253,6 +264,7 @@ func (h *handler) DisableNotification(w http.ResponseWriter, r *http.Request) {
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
@@ -275,9 +287,11 @@ func (h *handler) DisableNotification(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessNotificationDisabledSP, nil)
 	} else {
 		log.Infof("[DisableNotification] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessNotificationDisableRequestSubmitted, nil)
 	}
 

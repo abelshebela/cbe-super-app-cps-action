@@ -31,7 +31,7 @@ import (
 )
 
 type walletService struct {
-	repo        storage.WalletRepository
+	repo        storage.WalletOracleRepository
 	cpsService  service.CPSActionService
 	serviceRepo storage.ServicesRepository
 	logger      utils.Logger
@@ -41,7 +41,7 @@ type walletService struct {
 	cfg         *config.VaultConfig
 }
 
-func NewWalletService(repo storage.WalletRepository, cps service.CPSActionService, serviceRepo storage.ServicesRepository, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.WalletService {
+func NewWalletService(repo storage.WalletOracleRepository, cps service.CPSActionService, serviceRepo storage.ServicesRepository, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.WalletService {
 	return &walletService{
 		repo:        repo,
 		cpsService:  cps,
@@ -58,25 +58,42 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 	defer span.End()
 	s.logger.Infof("[WalletSvc][Create] name: %s", req.Name)
 
-	exist, err := s.repo.Find(ctx, req.UniqueCode, req.Name)
-	if err != nil {
-		span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
-		return err
-	}
-
-	if exist != nil {
-		span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-		if strings.EqualFold(strings.TrimSpace(exist.Name), strings.TrimSpace(req.Name)) {
+	// Check name, code, and service_id independently (Find uses OR only when multiple args are set; we run ordered checks for clear errors).
+	if strings.TrimSpace(req.Name) != "" {
+		exist, err := s.repo.Find(ctx, "", req.Name, "")
+		if err != nil {
+			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
+			return err
+		}
+		if exist != nil {
+			span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
 			return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
 		}
-		if strings.EqualFold(strings.TrimSpace(exist.UniqueCode), strings.TrimSpace(req.UniqueCode)) {
+	}
+	if strings.TrimSpace(req.UniqueCode) != "" {
+		exist, err := s.repo.Find(ctx, req.UniqueCode, "", "")
+		if err != nil {
+			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
+			return err
+		}
+		if exist != nil {
+			span.AddEvent("Wallet code already exists", trace.WithAttributes(attribute.String("unique_code", req.UniqueCode)))
 			return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
 		}
-		s.logger.Errorf("[WalletSvc][Create] already exists: %v", exist)
-		return errors.New(localization.ErrorWalletServiceIDAlreadyExists.Code)
+	}
+	if strings.TrimSpace(req.ServiceID) != "" {
+		exist, err := s.repo.Find(ctx, "", "", req.ServiceID)
+		if err != nil {
+			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
+			return err
+		}
+		if exist != nil {
+			span.AddEvent("Wallet service already exists", trace.WithAttributes(attribute.String("service_id", req.ServiceID)))
+			return errors.New(localization.ErrorWalletServiceIDAlreadyExists.Code)
+		}
 	}
 
-	code := strings.ToUpper(req.UniqueCode)
+	code := strings.ToUpper(strings.TrimSpace(req.UniqueCode))
 
 	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, string(constants.WalletFolderName), *s.cfg, "", s.logger)
 	if err != nil {
@@ -109,34 +126,39 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	}
 
 	if req.Name != "" {
-		exist, err := s.repo.Find(ctx, "", req.Name)
+		exist, err := s.repo.Find(ctx, "", req.Name, "")
 		if err != nil {
 			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
-		if exist != nil && local_util.FirstHex24(exist.ID.Hex()) != id {
-			if strings.EqualFold(strings.TrimSpace(exist.Name), strings.TrimSpace(req.Name)) {
-				span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-				return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
-			}
-		} else {
-			s.logger.Infof("[WalletSvc][Update] no name conflict: %s", req.Name)
+		if exist != nil && !strings.EqualFold(strings.TrimSpace(exist.ID), strings.TrimSpace(id)) {
+			span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
+			return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
 		}
 	}
 	if req.UniqueCode != "" {
-		exist, err := s.repo.Find(ctx, req.UniqueCode, "")
+		exist, err := s.repo.Find(ctx, req.UniqueCode, "", "")
 		if err != nil {
 			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
-		if exist != nil && local_util.FirstHex24(exist.ID.Hex()) != id {
-			if strings.EqualFold(strings.TrimSpace(exist.UniqueCode), strings.TrimSpace(req.UniqueCode)) {
-				span.AddEvent("Wallet code already exists", trace.WithAttributes(attribute.String("unique_code", req.UniqueCode)))
-				return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
-			}
-		} else {
-			s.logger.Infof("[WalletSvc][Update] no code conflict: %s", req.UniqueCode)
+		if exist != nil && !strings.EqualFold(strings.TrimSpace(exist.ID), strings.TrimSpace(id)) {
+			span.AddEvent("Wallet code already exists", trace.WithAttributes(attribute.String("unique_code", req.UniqueCode)))
+			return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
 		}
+	}
+
+	if req.ServiceID != "" {
+		exist, err := s.repo.Find(ctx, "", "", req.ServiceID)
+		if err != nil {
+			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
+			return errors.New(localization.ErrorUnhandledServer.Code)
+		}
+		if exist != nil && !strings.EqualFold(strings.TrimSpace(exist.ID), strings.TrimSpace(id)) {
+			span.AddEvent("Wallet service already exists", trace.WithAttributes(attribute.String("service_id", req.ServiceID)))
+			return errors.New(localization.ErrorWalletServiceAlreadyExists.Code)
+		}
+		s.logger.Infof("[WalletSvc][Update] no service_id conflict: %s", req.ServiceID)
 	}
 
 	var avatarURL string
@@ -187,7 +209,7 @@ func (s *walletService) DeleteWallet(ctx context.Context, id string) error {
 	now := time.Now()
 	deletedWallet := *prevWallet
 	deletedWallet.IsDeleted = true
-	deletedWallet.DeletedAt = now
+	deletedWallet.DeletedAt = &now
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestDeleteWallet, deletedWallet, *prevWallet, constants.ActionDelete); err != nil {
 		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("unique_code", deletedWallet.UniqueCode)))
@@ -238,29 +260,44 @@ func (s *walletService) EnableOrDisableWallet(ctx context.Context, id string, en
 	return nil
 }
 
-func (s *walletService) GetWallet(ctx context.Context, id string) (*local_model.Wallet, error) {
-	return s.repo.FindByID(ctx, id)
+func (s *walletService) GetWallet(ctx context.Context, id string) (*local_model.WalletOracle, error) {
+	// Same enrichment as list/gRPC: join services + access_lists for SERVICE_CODE / SERVICE_KEY.
+	w, err := s.repo.FindByIDForGRPC(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if w == nil {
+		return nil, errors.New(localization.ErrorWalletNotFound.Code)
+	}
+	return w, nil
 }
 
-func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error) {
+func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error) {
 	return s.repo.FindAllWithPaginationForGRPC(ctx, filterParams)
 }
 
 // GetAllWalletForGRPC implements service.WalletService.
-func (s *walletService) GetAllWalletForGRPC(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error) {
+func (s *walletService) GetAllWalletForGRPC(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error) {
 	return s.repo.FindAllWithPaginationForGRPC(ctx, filterParams)
 }
 
 // GetWalletForGRPC implements service.WalletService.
-func (s *walletService) GetWalletForGRPC(ctx context.Context, id string) (*local_model.GRPCWallet, error) {
-	return s.repo.FindByIDForGRPC(ctx, id)
+func (s *walletService) GetWalletForGRPC(ctx context.Context, id string) (*local_model.WalletOracle, error) {
+	w, err := s.repo.FindByIDForGRPC(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if w == nil {
+		return nil, errors.New(localization.ErrorWalletNotFound.Code)
+	}
+	return w, nil
 }
 
 func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "walletService", "walletService")
 	defer span.End()
 
-	wallet, err := local_util.JsonUnmarshal[local_model.Wallet](action.CurrentAction)
+	wallet, err := local_util.JsonUnmarshal[local_model.WalletOracle](action.CurrentAction)
 	if err != nil {
 		span.AddEvent("JsonUnmarshal error", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
@@ -269,6 +306,27 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 	switch action.RequestAction {
 	case string(constants.RequestCreateWallet):
 		span.AddEvent("Creating wallet", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
+		if strings.TrimSpace(wallet.Name) != "" {
+			if exist, e := s.repo.Find(ctx, "", wallet.Name, ""); e != nil {
+				return nil, e
+			} else if exist != nil {
+				return nil, errors.New(localization.ErrorWalletNameAlreadyExists.Code)
+			}
+		}
+		if strings.TrimSpace(wallet.UniqueCode) != "" {
+			if exist, e := s.repo.Find(ctx, wallet.UniqueCode, "", ""); e != nil {
+				return nil, e
+			} else if exist != nil {
+				return nil, errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
+			}
+		}
+		if strings.TrimSpace(wallet.ServiceID) != "" {
+			if exist, e := s.repo.Find(ctx, "", "", wallet.ServiceID); e != nil {
+				return nil, e
+			} else if exist != nil {
+				return nil, errors.New(localization.ErrorWalletServiceIDAlreadyExists.Code)
+			}
+		}
 		err = s.repo.Create(ctx, wallet)
 	case string(constants.RequestUpdateWallet):
 		span.AddEvent("Updating wallet", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))

@@ -44,7 +44,8 @@ func (r *CPSActionApproveIndexRepository) ExistsByRoleAndAction(ctx context.Cont
 func (r *CPSActionApproveIndexRepository) HasActiveActionRoles(ctx context.Context, roleCode string) (bool, error) {
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: bson.M{
-			"role_id": roleCode,
+			"role_id":    roleCode,
+			"is_deleted": false,
 		}}},
 		{{Key: "$lookup", Value: bson.M{
 			"from":         "cps_action_roles",

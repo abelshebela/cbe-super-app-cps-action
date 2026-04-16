@@ -1,9 +1,8 @@
 package model
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"time"
-
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type FeeType string
@@ -20,33 +19,34 @@ type Tier struct {
 	Max       string  `bson:"max" json:"max"`
 }
 
-type ServiceLists struct {
-	ServiceName             string `bson:"service_name" json:"service_name"`
-	ServiceKey              string `bson:"service_key" json:"service_key"`
-	OverideCap              Cap    `bson:"overide_cap" json:"overide_cap"`
-	OverideProductGlAccount string `bson:"overide_product_gl_account" json:"overide_product_gl_account"`
-	OverideTiers            []Tier `bson:"overide_tiers" json:"overide_tiers"`
-	IsEnabled               bool   `bson:"is_enabled" json:"is_enabled"`
+type Cap struct {
+	Source             constants.SourceApp `json:"source" bson:"source"`
+	Currency           string              `json:"currency" bson:"currency"`
+	SingleCap          string              `json:"single_cap" bson:"single_cap"`
+	MinimumTransferCap string              `json:"minimum_transfer_cap" bson:"minimum_transfer_cap"`
+	CreatedAt          time.Time           `json:"created_at" bson:"created_at"`
+	LastModifiedAt     time.Time           `json:"last_modified_at" bson:"last_modified_at"`
+}
+
+type ServiceKey struct {
+	ID             string     `json:"id,omitempty" bson:"_id,omitempty"`
+	ServiceName    string     `json:"service_name" bson:"service_name"`
+	ServiceKey     string     `json:"service_key" bson:"service_key"`
+	IsUSSDEnabled  bool       `json:"is_ussd_enabled" bson:"is_ussd_enabled"`
+	IsEnabled      bool       `json:"is_enabled" bson:"is_enabled"`
+	CreatedAt      time.Time  `json:"created_at" bson:"created_at"`
+	LastModifiedAt time.Time  `json:"last_modified_at" bson:"last_modified_at"`
+	DeletedAt      *time.Time `json:"deleted_at,omitempty" bson:"deleted_at,omitempty"`
 }
 
 type Service struct {
-	ID               bson.ObjectID  `bson:"_id,omitempty" json:"id"`
-	ServiceCode      string         `bson:"service_code" json:"service_code"`
-	ServiceKey       string         `bson:"service_key" json:"service_key"`
-	ServiceName      string         `bson:"service_name" json:"service_name"`
-	ServiceList      []ServiceLists `bson:"service_list" json:"service_list"`
-	Cap              Cap            `bson:"cap" json:"cap"`
-	Tiers            []Tier         `bson:"tiers" json:"tiers"`
-	ProductGlAccount string         `bson:"product_gl_account" json:"product_gl_account"`
-	Enabled          bool           `bson:"enabled" json:"enabled"`
-	IsDeleted        bool           `bson:"is_deleted" json:"is_deleted"`
-	CreatedAt        time.Time      `bson:"created_at" json:"created_at"`
-	LastModifiedAt   time.Time      `bson:"last_modified_at" json:"last_modified_at"`
-	DeletedAt        *time.Time     `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
-}
-
-type Cap struct {
-	Currency           string `bson:"currency" json:"currency"`
-	SingleCap          string `bson:"single_cap" json:"single_cap"`
-	MinimumTransferCap string `bson:"minimum_transfer_cap" json:"minimum_transfer_cap"`
+	ID                       string    `json:"id" bson:"_id"`
+	ServiceKeyId             string    `json:"service_key_id" bson:"service_key_id"`
+	ServiceCode              string    `json:"service_code" bson:"service_code"`
+	Cap                      []Cap     `json:"cap" bson:"cap"`
+	MinimumFraudAmount       string    `json:"minimum_fraud_amount" bson:"minimum_fraud_amount"`
+	ProductGlAccount         string    `json:"product_gl_account" bson:"product_gl_account"`
+	ProductGlAccountCurrency string    `json:"product_gl_account_currency" bson:"product_gl_account_currency"`
+	CreatedAt                time.Time `json:"created_at" bson:"created_at"`
+	LastModifiedAt           time.Time `json:"last_modified_at" bson:"last_modified_at"`
 }

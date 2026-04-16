@@ -56,6 +56,7 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var req servicesdto.CreateServiceRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -80,11 +81,48 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessServiceCreated, nil)
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessServiceCreateRequestSubmitted, nil)
+}
+
+func (a *servicesAdapter) ServicesDelete(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteService", "handler", "services")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		span.RecordError(errors.New("service ID is required for delete"))
+		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
+		return
+	}
+
+	err := a.app.DeleteServices(ctx, id)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[ServicesH][Delete] failed to delete service with id: %s, err: %v", id, err)
+		localization.SendErrorResponse(w, localization.ErrorServiceNotFound, nil, nil)
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[Delete] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SucccessDeleteUssdMerchant, nil)
+		return
+	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	localization.SendSuccessResponse(w, localization.SuccessServiceDeleted, nil)
+
 }
 
 // Update godoc
@@ -108,6 +146,7 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("service ID is required"))
@@ -121,10 +160,10 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := local_util.ValidateMongoID(id); err != nil {
-		localization.SendBadRequestResponse(w, "invalid object id")
-		return
-	}
+	// if err := local_util.ValidateMongoID(id); err != nil {
+	// 	localization.SendBadRequestResponse(w, "invalid object id")
+	// 	return
+	// }
 
 	req.Normalize()
 	if err := req.Validate(); err != nil {
@@ -144,10 +183,12 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Update] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessServiceUpdated, nil)
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessServiceUpdateRequestSubmitted, nil)
 }
 
@@ -172,16 +213,17 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("service ID is required for enable"))
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
 		return
 	}
-	if err := local_util.ValidateMongoID(id); err != nil {
-		localization.SendBadRequestResponse(w, "invalid object id")
-		return
-	}
+	// if err := local_util.ValidateMongoID(id); err != nil {
+	// 	localization.SendBadRequestResponse(w, "invalid object id")
+	// 	return
+	// }
 
 	if r.Header.Get("Authorization") == "" {
 		span.RecordError(errors.New("missing Authorization header"))
@@ -199,10 +241,12 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessServiceEnabled, nil)
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessServiceEnableRequestSubmitted, nil)
 }
 
@@ -227,16 +271,17 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("service ID is required for disable"))
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
 		return
 	}
-	if err := local_util.ValidateMongoID(id); err != nil {
-		localization.SendBadRequestResponse(w, "invalid object id")
-		return
-	}
+	// if err := local_util.ValidateMongoID(id); err != nil {
+	// 	localization.SendBadRequestResponse(w, "invalid object id")
+	// 	return
+	// }
 
 	if r.Header.Get("Authorization") == "" {
 		span.RecordError(errors.New("missing Authorization header"))
@@ -254,10 +299,12 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessServiceDisabled, nil)
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessServiceDisableRequestSubmitted, nil)
 }
 
@@ -315,6 +362,7 @@ func (a *servicesAdapter) CreateServiceList(w http.ResponseWriter, r *http.Reque
 	defer span.End()
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var req servicesdto.CreateServiceList
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -338,10 +386,12 @@ func (a *servicesAdapter) CreateServiceList(w http.ResponseWriter, r *http.Reque
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		a.logger.Infof("[CreateServiceList] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessServiceListCreated, nil)
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessServiceListCreateRequestSubmitted, nil)
 }
 
@@ -350,6 +400,7 @@ func (a *servicesAdapter) UpdateServiceList(w http.ResponseWriter, r *http.Reque
 	defer span.End()
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var req servicesdto.UpdateServiceList
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -368,10 +419,10 @@ func (a *servicesAdapter) UpdateServiceList(w http.ResponseWriter, r *http.Reque
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	if err := local_util.ValidateMongoID(id); err != nil {
-		localization.SendBadRequestResponse(w, "invalid object id")
-		return
-	}
+	// if err := local_util.ValidateMongoID(id); err != nil {
+	// 	localization.SendBadRequestResponse(w, "invalid object id")
+	// 	return
+	// }
 
 	if err := a.app.UpdateServiceList(ctx, id, &req); err != nil {
 		span.RecordError(err)
@@ -382,10 +433,12 @@ func (a *servicesAdapter) UpdateServiceList(w http.ResponseWriter, r *http.Reque
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		a.logger.Infof("[UpdateServiceList] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessServiceListUpdated, nil)
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessServiceListUpdateRequestSubmitted, nil)
 }
 
@@ -463,10 +516,10 @@ func (a *servicesAdapter) GetByID(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
 		return
 	}
-	if err := local_util.ValidateMongoID(id); err != nil {
-		localization.SendBadRequestResponse(w, "invalid object id")
-		return
-	}
+	// if err := local_util.ValidateMongoID(id); err != nil {
+	// 	localization.SendBadRequestResponse(w, "invalid object id")
+	// 	return
+	// }
 
 	span.SetAttributes(attribute.String("service.id", id))
 	item, err := a.app.GetByID(ctx, id)
@@ -485,12 +538,13 @@ func (a *servicesAdapter) EnableServiceList(w http.ResponseWriter, r *http.Reque
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
-	if err := local_util.ValidateMongoID(id); err != nil {
-		localization.SendBadRequestResponse(w, "invalid object id")
-		return
-	}
+	// if err := local_util.ValidateMongoID(id); err != nil {
+	// 	localization.SendBadRequestResponse(w, "invalid object id")
+	// 	return
+	// }
 
 	span.SetAttributes(attribute.String("service.id", id))
 	if err := a.app.EnableOrDisableServiceList(ctx, id, true); err != nil {
@@ -502,10 +556,12 @@ func (a *servicesAdapter) EnableServiceList(w http.ResponseWriter, r *http.Reque
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessServiceListEnabled, nil)
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessServiceListEnableRequestSubmitted, nil)
 }
 
@@ -516,12 +572,13 @@ func (a *servicesAdapter) DisableServiceList(w http.ResponseWriter, r *http.Requ
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
-	if err := local_util.ValidateMongoID(id); err != nil {
-		localization.SendBadRequestResponse(w, "invalid object id")
-		return
-	}
+	// if err := local_util.ValidateMongoID(id); err != nil {
+	// 	localization.SendBadRequestResponse(w, "invalid object id")
+	// 	return
+	// }
 
 	span.SetAttributes(attribute.String("service.id", id))
 	if err := a.app.EnableOrDisableServiceList(ctx, id, false); err != nil {
@@ -533,9 +590,45 @@ func (a *servicesAdapter) DisableServiceList(w http.ResponseWriter, r *http.Requ
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessServiceListDisabled, nil)
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessServiceListDisableRequestSubmitted, nil)
+}
+
+func (a *servicesAdapter) DeleteServiceKey(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "DeleteServiceKey", "handler", "DeleteServiceKey")
+	defer span.End()
+
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		span.RecordError(errors.New("service key ID is required for delete"))
+		localization.SendErrorResponse(w, localization.ErrorInvalidID, nil, nil)
+		return
+	}
+
+	if err := a.app.DeleteServiceKey(ctx, id); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		log.Infof("[DeleteServiceKey] request sent successfully is_maker_only: %v", md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessServiceKeyDeleted, nil)
+		return
+	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	localization.SendSuccessResponse(w, localization.SuccessServiceKeyDeleteRequestSubmitted, nil)
+
 }

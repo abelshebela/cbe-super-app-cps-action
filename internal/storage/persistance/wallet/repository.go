@@ -196,12 +196,14 @@ func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 			}
 		}
 	}
+
 	param := dal.FilterParam{
 		Filter: filter,
 		Sort:   sort,
 		Skip:   skip,
 		Limit:  limit,
 	}
+
 	docs, err := e.dal.FindAllWithPaginationD(ctx, param)
 	if err != nil {
 		e.logger.Errorf("[WalletStorage][FindAllWithPagination] failed to fetch wallets: %v", err)
@@ -418,7 +420,7 @@ func (w *WalletStorage) FindByIDForGRPC(ctx context.Context, id string) (*local_
 	// Enrich if found
 	if service != nil {
 		grpcWallet.ServiceCode = service.ServiceCode
-		grpcWallet.ServiceKey = service.ServiceName
+		// grpcWallet.ServiceKey = service.ServiceName
 	}
 
 	return &grpcWallet, nil

@@ -290,8 +290,9 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
 
+	prevData := existingDonation
 	// Prepare existing model for validation
-	existingModel := &donation_model.Donation{
+	existingModel := donation_model.Donation{
 		DonationCode:        existingDonation.DonationCode,
 		Title:               existingDonation.Title,
 		DonationDescription: existingDonation.DonationDescription,
@@ -303,7 +304,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	}
 
 	// Validate and check for data duplication
-	if err := core.CheckDataSimilarityAndValidation(ctx, donation, existingModel, d.DonationRepo); err != nil {
+	if err := core.CheckDataSimilarityAndValidation(ctx, donation, &existingModel, d.DonationRepo); err != nil {
 		span.AddEvent("Data similarity validation failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -371,7 +372,9 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		coverImageURL = url
 	}
 
-	NewdonationImages := existingDonation.DonationImages
+	// Deep copy to avoid mutating existingDonation.DonationImages (used as prevAction in CPS)
+	NewdonationImages := make([]types.DonationImage, len(existingDonation.DonationImages))
+	copy(NewdonationImages, existingDonation.DonationImages)
 	if len(donation.RemovedImages) > 0 {
 		toRemove := make(map[string]struct{}, len(donation.RemovedImages))
 		for _, id := range donation.RemovedImages {
@@ -424,7 +427,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	// --- Map Update Data ---
 	updateData := core.MapDonationUpdate(
 		id,
-		existingModel,
+		&existingModel,
 		donation,
 		coverImageURL,
 		NewdonationImages,
@@ -436,7 +439,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	cpsAction := lib.CpsModelBuilder(
 		id,
 		makerData,
-		existingDonation,
+		prevData,
 		updateData,
 		string(constants.RequestUpdateDonation),
 		constants.UPDATE,
@@ -1226,6 +1229,17 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			return nil, err
 		}
 
+	case string(constants.RequestDeleteDonation):
+		err := d.DonationRepo.Delete(ctx, action.UniqueId)
+		if err != nil {
+			d.logger.Errorf("[DonationSvc][Authorize] delete err: %v", err)
+			span.AddEvent("Failed to delete donation", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
+			return nil, err
+		}
+
 	default:
 		d.logger.Errorf("[DonationSvc][Authorize] unsupported action: %s", action.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(
@@ -1395,4 +1409,56 @@ func buildDonationRow(donation *donation_model.Donation) []string {
 		donation.StartDate.Format(time.RFC3339),
 		donation.EndDate.Format(time.RFC3339),
 	}
+}
+
+func (d *Donation) DeleteDonation(ctx context.Context, id string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteDonation", "Donation", "DeleteDonation")
+	defer span.End()
+
+	makerData := local_util.ExtractUserFromContext(ctx)
+	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", localization.ErrorIncompleteUserInfo.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+
+	existingDonation, err := d.DonationRepo.FindByID(ctx, id)
+	if err != nil {
+		span.AddEvent("Failed to find donation", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+	if existingDonation == nil {
+		span.AddEvent("Donation not found", trace.WithAttributes(
+			attribute.String("error", localization.ErrorFileNotFound.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorFileNotFound.Code)
+	}
+	if existingDonation.IsDeleted {
+		span.AddEvent("Donation already deleted", trace.WithAttributes(
+			attribute.String("error", localization.ErrorAlreadyDeleted.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorAlreadyDeleted.Code)
+	}
+
+	updateData := *existingDonation
+	updateData.IsDeleted = true
+	updateData.LastModifiedAt = time.Now().Format(time.RFC3339)
+
+	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonation, updateData, string(constants.RequestDeleteDonation), constants.DELETE)
+	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+
+	return nil
 }

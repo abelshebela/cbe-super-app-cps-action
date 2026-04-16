@@ -35,7 +35,13 @@ func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel
 		}
 		// On create, both code and name must be unique
 		if resByName != nil {
-			return errors.New(localization.ErrorUsedRoleExisting.Code)
+			if update.Code!= "" && resByName.Code == update.Code{
+				return errors.New(localization.ErrorUsedRoleCodeExisting.Code)
+			}else {
+				
+				return errors.New(localization.ErrorUsedRoleNameExisting.Code)
+
+			}
 		}
 	} else if types == constants.UPDATE {
 		if roleId == "" {

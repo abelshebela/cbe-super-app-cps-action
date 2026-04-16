@@ -44,7 +44,7 @@ func ValidateCheckerAccess(
 
 	// Resolve module name from request_action
 	actionName := ""
-	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(constants.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
 
@@ -249,7 +249,7 @@ func GetApproveRepo() interface {
 // ResolveModuleName resolves the module name from a request action string.
 // Returns ("", false) if no mapping is found.
 func ResolveModuleName(requestAction string) (string, bool) {
-	return cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(requestAction))
+	return cpsactionsvc.ResolveModuleForRA(constants.RequestAction(requestAction))
 }
 
 // FormatCheckerIndex is a helper to avoid repeated nil-check + dereference.
@@ -283,15 +283,14 @@ func BuildCPSActionRequestMapAuditor(ctx context.Context, filterParams *types.Fi
 
 	if allocation == constants.Viewer {
 		requestAction = viewerAllocations
-	}
-	if allocation == constants.Maker {
+	} else if allocation == constants.Maker {
 		requestAction = makerAllocations
-	}
-	if allocation == constants.Checker {
+	} else if allocation == constants.Checker {
 		requestAction = checkerAllocations
-	}
-	if allocation == constants.Auditor {
+	} else if allocation == constants.Auditor {
 		requestAction = auditorAllocations
+	} else {
+		return nil, nil, errors.New(localization.ErrorActionActorRequeired.Code)
 	}
 
 	if requestAction == nil {
@@ -305,8 +304,9 @@ func BuildCPSActionRequestMapAuditor(ctx context.Context, filterParams *types.Fi
 		log.Errorf("[CpsActionH][Approve] failed to fetch checker allocations: empty checker actions")
 		return nil, nil, errors.New(localization.ErrorOperationNotAllowed.Code)
 	}
+	// Deduplicate module/action names for the selected actor (viewer / maker / checker / auditor).
 	var newAllocation []string
-	for _, v := range auditorAllocations {
+	for _, v := range requestAction {
 		if slices.Contains(newAllocation, v) {
 			continue
 		}

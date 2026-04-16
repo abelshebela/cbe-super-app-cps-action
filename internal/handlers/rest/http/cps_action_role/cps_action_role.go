@@ -174,6 +174,7 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var req actionrole_dto.CreateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -211,8 +212,12 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w.Header().Set("x-action-code", md.CPSActionCode)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleCreatedSP, nil)
 	} else {
+		w.Header().Set("x-action-code", md.CPSActionCode)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleCreateRequestCreated, nil)
 	}
 }
@@ -239,6 +244,7 @@ func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	code := chi.URLParam(r, "code")
 	if code == "" {
@@ -268,8 +274,12 @@ func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		// w.Header().Set("x-action-code", md.CPSActionCode)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleCreatedSP, nil)
 	} else {
+		// w.Header().Set("x-action-code", md.CPSActionCode)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleUpdateRequestCreated, nil)
 	}
 }
@@ -295,6 +305,7 @@ func (h *CPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	code := chi.URLParam(r, "code")
 	if code == "" {
@@ -309,8 +320,12 @@ func (h *CPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		// w.Header().Set("x-action-code", md.CPSActionCode)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleEnabledSP, nil)
 	} else {
+		// w.Header().Set("x-action-code", md.CPSActionCode)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleEnableRequestCreated, nil)
 	}
 }
@@ -335,6 +350,7 @@ func (h *CPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	code := chi.URLParam(r, "code")
 	if code == "" {
@@ -350,10 +366,55 @@ func (h *CPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w.Header().Set("x-action-code", md.CPSActionCode)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleDisabledSP, nil)
 	} else {
+		w.Header().Set("x-action-code", md.CPSActionCode)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessActionRoleDisableRequestCreated, nil)
 	}
+}
+
+// Delete godoc
+//
+//	@Summary		Delete CPS action role (maker)
+//	@Description	Delete a CPS action role by action code
+//	@Tags			CPS Action Role
+//	@Accept			json
+//	@Produce		json
+//	@Param			code	path		string									true	"Action Code"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Action role delete request submitted successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404		{object}	localization.StandardResponse{data=nil}	"Action role not found"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/cps-action-roles/{code} [delete]
+func (h *CPSActionRoleHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteCpsActionRole", "handler", "cpsActionRole")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	code := chi.URLParam(r, "code")
+	if code == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+		return
+	}
+
+	span.SetAttributes(attribute.String("cps_action_role.code", code))
+	if err := h.service.Delete(ctx, code); err != nil {
+		span.RecordError(err)
+		log.Errorf("[CpsRoleH][Delete] svc err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	localization.SendSuccessResponse(w, localization.SuccessDeleteRequestCreated, nil)
 }
 
 // GetVersions godoc

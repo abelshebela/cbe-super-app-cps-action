@@ -229,7 +229,7 @@ func (d *DonationCategory) UpdateDonationCategory(ctx context.Context, id string
 	if donationCategory.CategoryName != "" {
 		donationCategoryName = donationCategory.CategoryName
 	}
-	DonationCategory := core.MapToDonationCategory(donationCategoryName, iconURL, existingCategory.Enabled)
+	DonationCategory := core.MapToDonationCategory(donationCategoryName, iconURL, existingCategory.Enabled,existingCategory.IsDeleted)
 
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingCategory, DonationCategory, string(constants.RequestUpdateDonationCategory), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
@@ -313,6 +313,16 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 			))
 			return nil, err
 		}
+	case string(constants.RequestDeleteDonationCategory):
+		err := d.DonationCategoryRepo.Delete(ctx, action.UniqueId)
+		if err != nil {
+			d.logger.Errorf("[DonCatSvc][Authorize] delete err: %v", err)
+			span.AddEvent("Failed to delete donation category", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
+			return nil, err
+		}
 
 	default:
 		d.logger.Errorf("[DonCatSvc][Authorize] unsupported action: %s", action.RequestAction)
@@ -363,7 +373,7 @@ func (d *DonationCategory) EnableDonationCategory(ctx context.Context, id string
 		return errors.New(localization.ErrorAlreadyEnabled.Code)
 	}
 	Enabled := true
-	DonationCategory := core.MapToDonationCategory(existingDonationCategory.CategoryName, existingDonationCategory.Icon, Enabled)
+	DonationCategory := core.MapToDonationCategory(existingDonationCategory.CategoryName, existingDonationCategory.Icon, Enabled,existingDonationCategory.IsDeleted)
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCategory, DonationCategory, string(constants.RequestEnableDonationCategory), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
@@ -430,8 +440,75 @@ func (d *DonationCategory) DisableDonationCategory(ctx context.Context, id strin
 	}
 
 	Enabled := false
-	DonationCategory := core.MapToDonationCategory(existingDonationCategory.CategoryName, existingDonationCategory.Icon, Enabled)
+	DonationCategory := core.MapToDonationCategory(existingDonationCategory.CategoryName, existingDonationCategory.Icon, Enabled,existingDonationCategory.IsDeleted)
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCategory, DonationCategory, string(constants.RequestDisableDonationCategory), constants.UPDATE)
+	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+
+	return nil
+
+}
+
+func (d *DonationCategory) DeleteDonationCategory(ctx context.Context, id string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteDonationCategory", "DonationCategory", "DeleteDonationCategory")
+	defer span.End()
+
+	makerData := local_util.ExtractUserFromContext(ctx)
+	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", localization.ErrorIncompleteUserInfo.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+	existingDonationCategory, err := d.DonationCategoryRepo.FindByID(ctx, id)
+	if err != nil {
+		span.AddEvent("Failed to find donation category", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+	if existingDonationCategory == nil {
+		span.AddEvent("Donation category not found", trace.WithAttributes(
+			attribute.String("error", localization.ErrorFileNotFound.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorFileNotFound.Code)
+	}
+	if existingDonationCategory.IsDeleted {
+		span.AddEvent("Donation category already deleted", trace.WithAttributes(
+			attribute.String("error", localization.ErrorAlreadyDeleted.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorAlreadyDeleted.Code)
+	}
+
+	// Guard: block the deleted if there are still enabled donations using this category.
+	hasActive, err := d.DonationRepo.HasActiveDonationsByCategory(ctx, id)
+	if err != nil {
+		span.AddEvent("Failed to check active donations for category", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+	if hasActive {
+		span.AddEvent("Category has active donations — delete blocked", trace.WithAttributes(
+			attribute.String("error", localization.ErrorActiveDonationExistsInCategory.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorActiveDonationExistsInCategory.Code)
+	}
+
+	IsDeleted := true
+	DonationCategory := core.MapToDonationCategory(existingDonationCategory.CategoryName, existingDonationCategory.Icon, existingDonationCategory.Enabled,IsDeleted)
+	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCategory, DonationCategory, string(constants.RequestDeleteDonationCategory), constants.DELETE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),

@@ -285,7 +285,7 @@ func (e *LogisticsMerchantService) Delete(ctx context.Context, id string) error 
 	deletedMerchant.IsDeleted = true
 	deletedMerchant.DeletedAt = now
 
-	err = core.HandleCPSActionForLogisticsMerchant(ctx, e.cpsService, id, constants.RequestDeleteMiniAppMerchant, deletedMerchant, *prev, constants.ActionDelete)
+	err = core.HandleCPSActionForLogisticsMerchant(ctx, e.cpsService, id, constants.RequestDeleteLogisticsMerchant, deletedMerchant, *prev, constants.ActionDelete)
 	if err != nil {
 		e.logger.Errorf("[LogisMerchSvc][Delete] cps action err id=%s: %v", id, err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
@@ -319,18 +319,18 @@ func (e *LogisticsMerchantService) EnableOrDisable(ctx context.Context, id strin
 	if enable && prevMerchant.Enabled {
 		e.logger.Warnf("[LogisMerchSvc][EnableDisable] already enabled id: %s", id)
 		span.AddEvent("Merchant already enabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorLogisticMerchantEnableFailed.Code),
+			attribute.String("error", localization.ErrorLogisticMerchantAlreadyEnabled.Code),
 			attribute.String("id", id),
 		))
-		return errors.New(localization.ErrorLogisticMerchantEnableFailed.Code)
+		return localization.ErrorLogisticMerchantAlreadyEnabled
 	}
 	if !enable && !prevMerchant.Enabled {
 		e.logger.Warnf("[LogisMerchSvc][EnableDisable] already disabled id: %s", id)
 		span.AddEvent("Merchant already disabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorLogisticMerchantDisableFailed.Code),
+			attribute.String("error", localization.ErrorLogisticMerchantAlreadyDisabled.Code),
 			attribute.String("id", id),
 		))
-		return errors.New(localization.ErrorLogisticMerchantDisableFailed.Code)
+		return localization.ErrorLogisticMerchantAlreadyDisabled
 	}
 
 	updatedMerchant := *prevMerchant

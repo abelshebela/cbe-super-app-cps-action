@@ -3,14 +3,13 @@ package customersegmentation
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
-	seg "cbe-super-app-cps-action/internal/constants/interfaces/customer_segmentation"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
+	seg "cbe-super-app-cps-action/internal/constants/interfaces/customer_segmentation"
 	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -48,6 +47,7 @@ func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.Response
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var req cust_seg.CreateCustomerSegmentationRequest
 
@@ -59,7 +59,7 @@ func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.Response
 
 	if err := req.Validate(); err != nil {
 		log.Errorf("[CreateCustomerSegmentation] validation error: %v", err)
-		localization.SendErrorByCodeResponse(w, fmt.Sprintf("validation error: %v", err))
+		localization.SendErrorByCodeResponse(w, localization.MsgInvalidInput)
 		return
 	}
 	req.CapitilizeCustomerSegmentationRequest()
@@ -74,6 +74,7 @@ func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.Response
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[CreateCustomerSegmentation] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.CustomerSegmentationCreated, nil)
 		return
 	}
@@ -101,6 +102,7 @@ func (c *CustomerSegmentationAdapter) UpdateCustomerSegmentation(w http.Response
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
@@ -132,10 +134,12 @@ func (c *CustomerSegmentationAdapter) UpdateCustomerSegmentation(w http.Response
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[UpdateCustomerSegmentation] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.CustomerSegmentationUpdated, nil)
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationUpdateSubmittedSuccessfully, nil)
 }
 
@@ -230,6 +234,7 @@ func (c *CustomerSegmentationAdapter) DeleteCustomerSegmentation(w http.Response
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
@@ -247,11 +252,13 @@ func (c *CustomerSegmentationAdapter) DeleteCustomerSegmentation(w http.Response
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[DeleteCustomerSegmentation] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.CustomerSegmentationDeleteddSuccessfully, nil)
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.CustomerSegmentationDeleteddSuccessfully, nil)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	localization.SendSuccessResponse(w, localization.CustomerSegmentationDeleteRequestSubmittedSuccessfully, nil)
 }
 
 // Enable Customer Segmentation
@@ -272,6 +279,7 @@ func (c *CustomerSegmentationAdapter) Enable(w http.ResponseWriter, r *http.Requ
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
@@ -289,10 +297,12 @@ func (c *CustomerSegmentationAdapter) Enable(w http.ResponseWriter, r *http.Requ
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
-		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnableSuccessfully, nil)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnabledSuccessfully, nil)
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationEnableSuccessfully, nil)
 }
 
@@ -314,6 +324,7 @@ func (c *CustomerSegmentationAdapter) Disable(w http.ResponseWriter, r *http.Req
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
@@ -331,9 +342,11 @@ func (c *CustomerSegmentationAdapter) Disable(w http.ResponseWriter, r *http.Req
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
-		localization.SendSuccessResponse(w, localization.CustomerSegmentationDisableSuccessfully, nil)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationDisabledSuccessfully, nil)
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationDisableSuccessfully, nil)
 }

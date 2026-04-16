@@ -10,7 +10,10 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
+
+	// "fmt"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	model "cbe-super-app-cps-action/internal/constants/model"
@@ -129,6 +132,16 @@ func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if filterParams.Filters["search"] != nil {
+
+		search := strings.TrimSpace(search)
+		if phoneNumber, ok := filterParams.Filters["search"].(string); ok {
+			phoneNumber = common_utils.FormatPhoneNumber(phoneNumber)
+			filterParams.Filters["search"] = phoneNumber
+		}
+		filterParams.Filters["search"] = search
+	}
+
 	users, err := h.Service.GetAllBPSUsers(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
@@ -162,6 +175,7 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
@@ -180,8 +194,10 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 		log.Infof("[DisableUser] request sent successfully for user_code: %s", userCode)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBpsUserDisableRequestSentSP, map[string]string{})
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBpsUserDisableRequestSent, map[string]string{})
 
 	}
@@ -207,6 +223,7 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
 		localization.SendErrorResponse(w, localization.ErrorUserCodeRequired, nil, nil)
@@ -224,8 +241,10 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 		log.Infof("[EnableUser] request sent successfully for user_code: %s", userCode)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSentSP, map[string]string{})
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSent, map[string]string{})
 	}
 }
@@ -246,6 +265,7 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
 
 	var req bps_user_dto.BPSUserCreateRequest
@@ -264,13 +284,14 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userCodeGenerated := local_utils.RandomGenerator(8)
+	phoneNumber := common_utils.FormatPhoneNumber(req.PhoneNumber)
 
 	NewUser := bps_model.BPSUser{
 		Username:         req.UserID,
 		FullName:         req.FullName,
 		JobTitle:         req.JobTitle,
 		UserCode:         userCodeGenerated,
-		PhoneNumber:      req.PhoneNumber,
+		PhoneNumber:      phoneNumber,
 		BranchCode:       req.BranchCode,
 		Email:            req.Email,
 		FirstPasswordSet: true,
@@ -286,8 +307,10 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBPSUserCreatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBPSUserCreated, nil)
 
 	}
@@ -311,6 +334,7 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
 
 	id := chi.URLParam(r, "id")
@@ -339,7 +363,8 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 		updatedUser.FullName = *req.FullName
 	}
 	if req.PhoneNumber != nil {
-		updatedUser.PhoneNumber = *req.PhoneNumber
+		phoneNumber := common_utils.FormatPhoneNumber(*req.PhoneNumber)
+		updatedUser.PhoneNumber = phoneNumber
 	}
 	if req.JobTitle != nil {
 		updatedUser.JobTitle = *req.JobTitle
@@ -350,20 +375,9 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	if req.Email != nil {
 		updatedUser.Email = *req.Email
 	}
-	// if req.Role != "" {
-	// 	updatedUser.Role = req.Role
-	// }
 	if len(req.BranchCode) > 0 {
 		updatedUser.BranchCode = req.BranchCode
 	}
-	// if req.HomeBranch != "" {
-	// 	updatedUser.HomeBranch = req.HomeBranch
-	// }
-	// if req.Realm != "" {
-	// 	updatedUser.Realm = req.Realm
-	// }
-	// Always update enabled (bool, so default is false if not set)
-	// updatedUser.Enabled = req.Enabled
 
 	err := h.Service.UpdateBPSUser(ctx, id, updatedUser)
 	if err != nil {
@@ -372,8 +386,60 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBPSUserUpdatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessBPSUserUpdated, nil)
+	}
+}
+
+// DeleteBPSUser deletes a BPS user (soft delete via Maker-Checker)
+//
+//	@Summary		Delete BPS user
+//	@Description	Deletes a BPS user account (soft delete)
+//	@Tags			BPS Users
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"BPS User ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"BPS user delete request submitted successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"User not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/bps_users/delete/{id} [delete]
+func (h BPSUserHandler) DeleteBPSUser(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteBpsUser", "handler", "bpsUser")
+	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameter, nil, nil)
+		return
+	}
+
+	span.SetAttributes(attribute.String("bps_user.id", id))
+
+	err := h.Service.DeleteBPSUser(ctx, id)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[DeleteBPSUser] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if md.IsMakerOnly {
+		log.Infof("[DeleteBPSUser] request sent successfully for id: %s", id)
+		// fmt.Println("LOLOLOLO IN HANDLER DELETE---is making only")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+
+		localization.SendSuccessResponse(w, localization.SuccessBpsUserDeletedSP, nil)
+	} else {
+		// fmt.Println("LOLOLOLO IN HANDLER DELETE---is cps action")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessBpsUserDeleteRequestSent, nil)
 	}
 }

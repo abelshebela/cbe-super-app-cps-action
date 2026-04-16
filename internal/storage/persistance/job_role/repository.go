@@ -102,13 +102,13 @@ func (s *JobRoleStorage) SoftDelete(ctx context.Context, id string) error {
 func (s *JobRoleStorage) FindByID(ctx context.Context, id string) (*imodel.JobRole, error) {
 	s.logger.Infof("[JobRole/FindByID] id=%s", id)
 
-	objID, err := local_util.ParseObjectID(id)
+	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		s.logger.Errorf("[JobRole/FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
-	filter := bson.M{"_id": objID}
+	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	res, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -120,7 +120,7 @@ func (s *JobRoleStorage) FindByID(ctx context.Context, id string) (*imodel.JobRo
 
 func (s *JobRoleStorage) FindAll(ctx context.Context) (*[]imodel.JobRole, error) {
 
-	data, err := s.dal.FindAll(ctx, bson.M{}, bson.M{})
+	data, err := s.dal.FindAll(ctx, bson.M{"enabled": true}, bson.M{})
 
 	if err != nil {
 		return nil, local_util.HandleDBError(err)

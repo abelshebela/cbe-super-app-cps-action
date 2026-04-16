@@ -101,6 +101,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	log := common_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	method, ok := common_util.GetParam(r, "method")
 	if !ok {
@@ -122,13 +123,13 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 		return
 	}
 
-	// Validate the method parameter
-	methodEnum := shared_constant.Method(method)
-	if methodEnum == shared_constant.OPEN || methodEnum == shared_constant.PIN || methodEnum == shared_constant.OTPANDPIN {
-	} else {
+	// Map path segment (e.g. OTP_PIN) to stored method (PIN_OTP); validate against catalog.
+	cm := amount_based_auth_dto.CanonicalMethodFromPath(method)
+	if !amount_based_auth_dto.ValidMethods[cm] {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidMethod.Message)
 		return
 	}
+	methodEnum := shared_constant.Method(cm)
 
 	if !request.Validate(methodEnum) {
 		span.SetAttributes(attribute.String("amount_based_auth.method", string(methodEnum)))
@@ -153,6 +154,44 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 		localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthRequestSent, nil)
 		log.Infof("[UpdateAmountBasedAuth] request sent successfully for id: %s, method: %s", id, method)
 	}
+}
+
+// DeleteAmountBasedAuth godoc
+//
+//	@Summary		Delete an amount-based auth tier (maker)
+//	@Description	Submit a CPS delete action; approvers authorize soft-delete in Oracle.
+//	@Tags			Amount-Based-Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string										true	"Tier ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Delete request created"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Tier not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Server error"
+//	@Security		BearerAuth
+//	@Router			/amount_based_auth/{id} [delete]
+func (a *AmountBasedAuthHandler) DeleteAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_util.TraceLogger(r.Context(), "handler", "deleteAmountBasedAuth", "handler", "amountBasedAuth")
+	defer span.End()
+	log := common_util.LoggerFromCtx(ctx, a.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	currency, ok := common_util.GetParam(r, "currency")
+	if !ok || currency == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Message)
+		return
+	}
+	span.SetAttributes(attribute.String("amount_based_auth.currency", currency))
+	if err := a.Service.DeleteAmountBasedAuth(ctx, currency); err != nil {
+		span.RecordError(err)
+		log.Errorf("[DeleteAmountBasedAuth] service error for currency: %s", currency)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	localization.SendSuccessResponse(w, localization.SuccessDeleteRequestCreated, nil)
 }
 
 // RejectAmountBasedAuth godoc
@@ -192,6 +231,7 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 	log.Infof("[RejectAmountBasedAuth] rejection request processed for id: %s", idParam)
 	// For rejection, just return success since the actual rejection
 	// would be handled by the CPS action system
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessUserUpdated, cpsReq)
 }
 
@@ -215,6 +255,7 @@ func (a *AmountBasedAuthHandler) AddCurrency(w http.ResponseWriter, r *http.Requ
 	log := common_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var request amount_based_auth_dto.AddCurrencyRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -267,6 +308,7 @@ func (a *AmountBasedAuthHandler) ResetConfig(w http.ResponseWriter, r *http.Requ
 	log := common_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	currencyParam, ok := common_util.GetParam(r, "currency")
 	if !ok {

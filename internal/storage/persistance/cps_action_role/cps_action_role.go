@@ -124,6 +124,22 @@ func (r *CPSActionRoleRepository) EnableOrDisableByActionCode(ctx context.Contex
 	}
 	return nil
 }
+
+func (r *CPSActionRoleRepository) DeleteByActionCode(ctx context.Context, actionCode, portalCard string) error {
+	err := r.mongoDal.DeleteOne(ctx, bson.M{"action_code": actionCode})
+	if err != nil {
+		r.logger.Errorf("[CPSActionRoleRepository][DeleteByActionCode] failed to delete action code %s: %v", actionCode, err)
+		return local_util.HandleDBError(err)
+	}
+
+	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": actionCode, "portal_card_name": portalCard}); err != nil {
+		r.logger.Errorf("SyncIndices: DeleteMany (same version) failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
+}
+
 func (r *CPSActionRoleRepository) FindByActionCode(
 	ctx context.Context,
 	actionCode string,

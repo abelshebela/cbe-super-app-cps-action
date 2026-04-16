@@ -50,6 +50,7 @@ func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var req cpsuser.CreateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -82,6 +83,7 @@ func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[CreateUserRequest] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCpsUserCreated, nil)
 		return
 	}
@@ -111,6 +113,7 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
@@ -147,11 +150,13 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[UpdateUserRequest] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCpsUserUpdated, nil)
 		return
 	}
 
 	log.Infof("[UpdateUserRequest] request sent successfully for user_code: %s", userCode)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserUpdateRequestSubmitted, nil)
 }
 
@@ -261,6 +266,16 @@ func (h *handler) GetAllCPSUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if filterParasm.Filters["search"] != nil {
+
+		search := strings.TrimSpace(search)
+		if phoneNumber, ok := filterParasm.Filters["search"].(string); ok {
+			phoneNumber = local_util.FormatPhoneNumber(phoneNumber)
+			filterParasm.Filters["search"] = phoneNumber
+		}
+		filterParasm.Filters["search"] = search
+	}
+
 	users, err := h.svc.GetAllCPSUsers(ctx, filterParasm)
 	if err != nil {
 		span.RecordError(err)
@@ -295,6 +310,7 @@ func (h *handler) DeleteUserRequest(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
@@ -314,11 +330,13 @@ func (h *handler) DeleteUserRequest(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[DeleteUserRequest] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSUserDeleted, nil)
 		return
 	}
 
 	log.Infof("[DeleteUserRequest] request sent successfully for user_code: %s", userCode)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserDeleted, nil)
 }
 
@@ -343,6 +361,7 @@ func (h *handler) DisableUser(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
@@ -368,11 +387,13 @@ func (h *handler) DisableUser(w http.ResponseWriter, r *http.Request) {
 
 	if md.IsMakerOnly {
 		log.Infof("[DisableUser] CPS user with user_code: %s is successfully disabled and is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSUserDisable, nil)
 		return
 	}
 
 	log.Infof("[DisableUser] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserDisabled, nil)
 }
 
@@ -397,6 +418,7 @@ func (h *handler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	userData := local_util.ExtractUserFromContext(r.Context())
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
@@ -423,10 +445,12 @@ func (h *handler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[EnableUser] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSUserEnabled, nil)
 		return
 	}
 
 	log.Infof("[EnableUser] request sent successfully for user_code: %s", userCode)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SucessCpsUserEnabled, nil)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -51,9 +52,9 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 	case "staging":
 		allowedOrigins = []string{"0.0.0.0:3000", "https://staging-cbe-super-app-central-portal.vercel.app"}
 	case "qa":
-		allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "0.0.0.0:3000", "https://qa-cbe-super-app-central-portal.vercel.app"}
+		allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "0.0.0.0:3000", "https://qa-cbe-super-app-central-portal.vercel.app", "https://dev-cbe-super-app-central-portal.vercel.app"}
 	case "dev":
-		allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "0.0.0.0:3000", "https://dev-cbe-super-app-central-portal.vercel.app"}
+		allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "0.0.0.0:3000", "https://dev-cbe-super-app-central-portal.vercel.app", "https://dev-cbe-super-app-central-portal.vercel.app/"}
 	default:
 		allowedOrigins = []string{"*"}
 		allowCredentials = false // credentials cannot be used with wildcard origin
@@ -66,7 +67,7 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 		AllowedOrigins: allowedOrigins,
 
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token", "Accept", "Origin", "x-api-applicationid", "x-source-secret", "X-Api-Key", "x-api-key"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token", "Accept", "Origin", "x-api-applicationid", "x-source-secret", "X-Api-Key", "x-api-key", "enable_encryption", "X-Session-ID"},
 		ExposedHeaders:   []string{"X-Refreshed-Token"},
 		AllowCredentials: allowCredentials,
 		MaxAge:           300,
@@ -194,6 +195,7 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 		}
 
 		ctx := a.setUserPayload(r.Context(), userPayload)
+		localization.UpdateWriterContext(w, ctx)
 		// isOTPVerified := ctx.Value("is_otp_verified")
 		// if isOTPVerified != "true" {
 		// 	localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
@@ -273,6 +275,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		}
 
 		ctx := a.setUserPayload(r.Context(), userPayload)
+		localization.UpdateWriterContext(w, ctx)
 		now := time.Now().Unix()
 
 		remainTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutesRemain)
@@ -553,4 +556,18 @@ func (a *authMiddleware) pkcs7Unpad(ctx context.Context, data []byte, blockSize 
 		}
 	}
 	return data[:len(data)-padding], nil
+}
+
+func (a *authMiddleware) AuthenticateServiceAPIKey(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		got := strings.TrimSpace(r.Header.Get("x-api-key"))
+		want := strings.TrimSpace(a.cfg.CPSApiTokenForCBE)
+		if got == "" || want == "" || len(got) != len(want) ||
+			subtle.ConstantTimeCompare([]byte(got), []byte(want)) != 1 {
+			a.logger.Warnf("[AuthMW][ServiceAPIKey] unauthorized or missing x-api-key")
+			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
