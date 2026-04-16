@@ -48,7 +48,7 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 	case "production":
 		allowedOrigins = []string{"https://production-cbe-super-app-central-portal.vercel.app"}
 	case "uat":
-		allowedOrigins = []string{"https://uat-cbe-super-app-central-portal.vercel.app", "https://cpsportal-uat.cbe.com.et"}
+		allowedOrigins = []string{"https://uat-cbe-super-app-central-portal.vercel.app", "https://dev-cbe-super-app-central-portal.vercel.app"}
 	case "staging":
 		allowedOrigins = []string{"0.0.0.0:3000", "https://staging-cbe-super-app-central-portal.vercel.app"}
 	case "qa":
