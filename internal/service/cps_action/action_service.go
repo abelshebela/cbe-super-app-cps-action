@@ -136,7 +136,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	var err error
 	ca.logger.Infof("[CpsActionSvc][Create] action: %s", cpsAction.RequestAction)
 
-	roleCode := ctx.Value(constants.ContextKey("role_code")).(string)
+	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 	actionName, _ := ctx.Value(constants.ContextKey("action_name")).(string)
 
 	if strings.Contains(cpsAction.RequestAction, string(constants.CREATE)) {
