@@ -117,9 +117,9 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 		actionData.UpdateAt = time.Now().String()
 		var err error
 		if actionData.IsEnabled == 1 {
-			err = b.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
+			err = b.oracleRepo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
 		} else {
-			err = b.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
+			err = b.oracleRepo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
 
 		}
 		if err != nil {
