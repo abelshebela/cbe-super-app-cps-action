@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"regexp"
+	"strings"
 	"time"
 
 	// "time"
@@ -177,8 +178,14 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	if enabledVal, ok := filterParam.Filters["enabled"]; ok {
 		match["enabled"] = enabledVal
 	}
+	filterParam.Search = strings.TrimSpace(filterParam.Search)
+	if strings.HasPrefix(filterParam.Search, "09") || strings.HasPrefix(filterParam.Search, "07") {
+	filterParam.Search = filterParam.Search[1:]
+}
+	
 
 	if filterParam.Search != "" {
+		if strings.TrimSpace(filterParam.Search) != "" {}
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		match["$or"] = []bson.M{
 			{"full_name": searchRegex},

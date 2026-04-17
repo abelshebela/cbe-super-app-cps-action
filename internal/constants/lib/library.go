@@ -603,7 +603,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 						if !strings.Contains(str, "T") {
 							t = t.Add(24*time.Hour - time.Millisecond)
 						}
-						dateFilter["$eq"] = t
+						dateFilter["$lte"] = t
 					}
 				}
 				delete(filterParam.Filters, toKey)
@@ -644,11 +644,11 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 		// --- IS_EXPIRED: if is_expired=true, add created_at $lte time.Now() ---
 		if isExpired, ok := filter["is_expired"]; ok {
 			if expired, ok := isExpired.(bool); ok && expired {
-				if existing, ok := filter["created_at"].(bson.M); ok {
-					existing["$lte"] = time.Now()
-				} else {
-					filter["created_at"] = bson.M{"$lte": time.Now()}
-				}
+				// if existing, ok := filter["created_at"].(bson.M); ok {
+				// 	existing["$lt"] = time.Now()
+				// } else {
+				// }
+				filter["created_at"] = bson.M{"$lt": time.Now()}
 			}
 		}
 	}
