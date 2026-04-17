@@ -443,3 +443,25 @@ func (r *CPSUserStorage) UpdateCpsUsersJobTitle(ctx context.Context, oldJobTitle
 
 	return nil
 }
+
+func (r *CPSUserStorage) GetUserByDepartment(ctx context.Context, department string) (*imodel.CPSUser, error) {
+	r.logger.Infof("[CPSUserStorage][GetUserByDepartment] fetching CPS user by department: %s", department)
+	objID, err := bson.ObjectIDFromHex(department)
+	if err != nil {
+		r.logger.Errorf("[CPSUserStorage][GetUserByDepartment] invalid department id: %v", err)
+		return nil, localization.ErrorUnexpectedError
+	}
+
+	filter := bson.M{"department": objID, "is_deleted": false}
+
+	cpsUser, err := r.dal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			r.logger.Infof("[CPSUserStorage][GetUserByDepartment] no CPS users found for department: %s", department)
+			return nil, nil
+		}
+		return nil, err
+	}
+	return cpsUser, nil
+
+}
