@@ -524,6 +524,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCannotDisableOwnRole,
 	ErrorCannotDisableOwnJobTitle,
 	ErrorRoleHasActiveJobs,
+	ErrorRoleHasActiveJobsRoles,
 	ErrorDepartmentHasAssociatedUsers,
 	ErrorInvalidBulkServiceKey,
 	ErrorInvalidRequiredAction,
@@ -7756,6 +7757,12 @@ var (
 		Code:       "ERROR_ROLE_HAS_ACTIVE_JOBS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgRoleHasActiveJobs,
+		Type:       "error",
+	}
+	ErrorRoleHasActiveJobsRoles = ResponseCode{
+		Code:       "ERROR_ROLE_HAS_ACTIVE_JOBS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleHasActiveJobsRoles,
 		Type:       "error",
 	}
 
