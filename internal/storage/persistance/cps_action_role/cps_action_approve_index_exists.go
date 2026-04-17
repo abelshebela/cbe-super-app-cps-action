@@ -42,6 +42,7 @@ func (r *CPSActionApproveIndexRepository) ExistsByRoleAndAction(ctx context.Cont
 // HasActiveActionRoles returns true if the given role has any allocations
 // in cps_action_approver_index where the corresponding cps_action_role is enabled.
 func (r *CPSActionApproveIndexRepository) HasActiveActionRoles(ctx context.Context, roleCode string) (bool, error) {
+	r.logger.Infof("[CPSActionApproveIndexRepository][HasActiveActionRoles] checking active action roles for roleCode: %s", roleCode)
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: bson.M{
 			"role_id":    roleCode,
@@ -63,6 +64,7 @@ func (r *CPSActionApproveIndexRepository) HasActiveActionRoles(ctx context.Conte
 
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
+		r.logger.Errorf("[CPSActionApproveIndexRepository][ExistsByRoleAndAction] failed to aggregate: %v", err)
 		return false, err
 	}
 	defer cursor.Close(ctx)
