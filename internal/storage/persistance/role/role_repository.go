@@ -358,3 +358,20 @@ func roleWithJobRolePipeline(match bson.M, jobRolesCollName string, skip, limit 
 	}
 	return p
 }
+
+// HasActiveJobRole implements [storage.JobRoleRepository].
+func (s *RoleRepository) HasActiveJobRole(ctx context.Context, roleCode string) (bool, error) {
+	s.logger.Infof("[RoleRepository][HasActiveJobRole] checking for active job role with code: %s", roleCode)
+	filter := bson.M{"role": roleCode, "enabled": true}
+	_, err := s.mongoDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			s.logger.Infof("[RoleRepository][HasActiveJobRole] no active job role found with code: %s", roleCode)
+			return false, nil
+		}
+		s.logger.Errorf("[RoleRepository][HasActiveJobRole] failed to check for active job role: %v", err)
+		return false, local_util.HandleDBError(err)
+	}
+	s.logger.Infof("[RoleRepository][HasActiveJobRole] active job role found with code: %s", roleCode)
+	return true, nil
+}
