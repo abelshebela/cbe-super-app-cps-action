@@ -968,6 +968,13 @@ const (
 	RequestDisableCustomerSegmentation RequestAction = "DISABLE_CUSTOMER_SEGMENTATION"
 	RequestDeleteCustomerSegmentation  RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
 
+	// Access List Customer Segmentation
+	RequestAccessListCreateCustomerSegmentation  RequestAction = "CREATE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
+	RequestAccessListUpdateCustomerSegmentation  RequestAction = "UPDATE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
+	RequestAccessListEnableCustomerSegmentation  RequestAction = "ENABLE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
+	RequestAccessListDisableCustomerSegmentation RequestAction = "DISABLE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
+	RequestAccessListDeleteCustomerSegmentation  RequestAction = "DELETE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
+
 	// Access List Segmentation
 	RequestCreateAccessListSegmentation        RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION"
 	RequestUpdateAccessListSegmentation        RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION"
