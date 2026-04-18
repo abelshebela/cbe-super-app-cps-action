@@ -185,7 +185,6 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	
 
 	if filterParam.Search != "" {
-		if strings.TrimSpace(filterParam.Search) != "" {}
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		match["$or"] = []bson.M{
 			{"full_name": searchRegex},

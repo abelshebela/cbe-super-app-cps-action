@@ -164,43 +164,46 @@ func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minio
 }
 
 func BuildCPSActionRow(a *model.CPSAction) ([]string, error) {
-
-	checkerJSON, _ := json.Marshal(a.CheckerUsers)
-	auditorJSON, _ := json.Marshal(a.AuditorUsers)
-	prevJSON, _ := json.Marshal(a.PreviousAction)
-	currJSON, _ := json.Marshal(a.CurrentAction)
+	// Extract auditor names
+	var auditorNames []string
+	for _, auditor := range a.AuditorUsers {
+		auditorNames = append(auditorNames, auditor.AuditorName)
+	}
+	auditorNamesStr := strings.Join(auditorNames, ", ")
 
 	return []string{
 		a.ID.Hex(),
 		a.ActionCode,
-		a.UniqueId,
+		// a.UniqueId,
 		a.MakerID,
 		a.MakerName,
 		a.MakerPhoneNumber,
-		string(checkerJSON),
-		string(auditorJSON),
-		strconv.Itoa(int(a.AuditorCount)),
+		// string(checkerJSON),
+		// string(auditorJSON),
+		auditorNamesStr,
+		// strconv.Itoa(int(a.AuditorCount)),
 		string(a.AuditorStatus),
-		fmt.Sprintf("%f", a.CurrentAuditorIndex),
-		strconv.Itoa(int(a.CheckerCount)),
-		fmt.Sprintf("%f", a.CurrentCheckerIndex),
-		a.RoleCode,
-		a.RejectionReason,
-		a.CanceledReason,
-		string(prevJSON),
-		string(currJSON),
+		// fmt.Sprintf("%f", a.CurrentAuditorIndex),
+		// strconv.Itoa(int(a.CheckerCount)),
+		// fmt.Sprintf("%f", a.CurrentCheckerIndex),
+		// a.RoleCode,
+		// a.RejectionReason,
+		// a.CanceledReason,
+		// string(prevJSON),
+		// string(currJSON),
 		a.ActionStatus,
 		a.ActionType,
-		strconv.FormatBool(a.IsDeleted),
+		// strconv.FormatBool(a.IsDeleted),
 		a.RequestAction,
-		strconv.FormatInt(a.Version, 10),
-		a.ReversedByRoleID,
-		a.ReversedByID,
-		a.ReversedByName,
-		local_util.FormatTime(a.ReversedAt),
+		// strconv.FormatInt(a.Version, 10),
+		// a.ReversedByRoleID,
+		// a.ReversedByID,
+		// a.ReversedByName,
+		// local_util.FormatTime(a.ReversedAt),
 		local_util.FormatTime(a.CreatedAt),
 		local_util.FormatTime(a.LastModifiedAt),
 		local_util.FormatTime(a.MakerActionTime),
+		local_util.FormatTime(a.LastModifiedAt), // Using LastModifiedAt as CheckerActionTime
 	}, nil
 }
 
