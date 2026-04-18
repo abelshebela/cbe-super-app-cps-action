@@ -224,6 +224,25 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 		"is_deleted": false,
 		// "department": department,
 	}
+
+	from, okFrom := filterParam.Filters["created_at_from"].(string)
+	to, okTo := filterParam.Filters["created_at_to"].(string)
+
+	if okFrom && okTo && from != "" && to != "" {
+		fromTime, err1 := time.Parse(time.RFC3339, from)
+		toTime, err2 := time.Parse(time.RFC3339, to)
+
+		if err1 == nil && err2 == nil {
+			baseFilter["created_at"] = bson.M{
+				"$gte": fromTime,
+				"$lte": toTime,
+			}
+		}else{
+			delete(filterParam.Filters,"created_at_from")
+		delete(filterParam.Filters,"created_at_to")
+		}
+	}
+	
 	searchKeys := bson.M{}
 
 	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "unique_id", "created_at"}
@@ -301,6 +320,23 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 	// 1. Base filter (only active records)
 	baseFilter := bson.M{
 		"is_deleted": false,
+	}
+	from, okFrom := filterParam.Filters["created_at_from"].(string)
+	to, okTo := filterParam.Filters["created_at_to"].(string)
+
+	if okFrom && okTo && from != "" && to != "" {
+		fromTime, err1 := time.Parse(time.RFC3339, from)
+		toTime, err2 := time.Parse(time.RFC3339, to)
+
+		if err1 == nil && err2 == nil {
+			baseFilter["created_at"] = bson.M{
+				"$gte": fromTime,
+				"$lte": toTime,
+			}
+		}else{
+			delete(filterParam.Filters,"created_at_from")
+		delete(filterParam.Filters,"created_at_to")
+		}
 	}
 	searchKeys := bson.M{}
 
@@ -408,6 +444,26 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 	baseFilter := bson.M{
 		"is_deleted": false,
 	}
+	
+	from, okFrom := filterParam.Filters["created_at_from"].(string)
+	to, okTo := filterParam.Filters["created_at_to"].(string)
+
+	if okFrom && okTo && from != "" && to != "" {
+		fromTime, err1 := time.Parse(time.RFC3339, from)
+		toTime, err2 := time.Parse(time.RFC3339, to)
+
+		if err1 == nil && err2 == nil {
+			baseFilter["created_at"] = bson.M{
+				"$gte": fromTime,
+				"$lte": toTime,
+			}
+		}else{
+			delete(filterParam.Filters,"created_at_from")
+		delete(filterParam.Filters,"created_at_to")
+		}
+	}
+
+	
 	searchKeys := bson.M{}
 
 	allowedKeys := []string{"action_code", "action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "auditor_status", "auditor_users.auditor_id", "unique_id", "created_at"}
