@@ -609,7 +609,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 				// 	existing["$lt"] = time.Now()
 				// } else {
 				// }
-				filter["created_at"] = bson.M{"$lt": time.Now()}
+				filter["end_date"] = bson.M{"$lt": time.Now()}
 			}
 		}
 	}

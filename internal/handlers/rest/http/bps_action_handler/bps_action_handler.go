@@ -49,17 +49,24 @@ func InitBPSActionAdapter(bpsActionApplication service.BPSActionService, logger 
 func (a *bpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "auditorAction", "handler", "cpsAction")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
 
 	// Load action (to resolve module/request_action)
 	action, err := a.bpsActionApplication.GetBPSActionByActionCode(ctx, actionCode, "")
-	if err != nil || action == nil {
+	if err != nil {
 		span.RecordError(err)
 		if err.Error() == localization.ErrorActionNotFound.Code {
 			localization.SendErrorByCodeResponse(w, localization.ErrorActionDataNotFound.Code)
 			return
 		}
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
+		return
+	}
+	if action == nil {
+		localization.SendErrorByCodeResponse(w, localization.ErrorActionDataNotFound.Code)
 		return
 	}
 
@@ -131,6 +138,9 @@ func (a *bpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 func (a *bpsActionAdapter) ApproveBPSAction(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "approveCpsAction", "handler", "cpsAction")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
 
 	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
@@ -154,6 +164,10 @@ func (a *bpsActionAdapter) ApproveBPSAction(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if action == nil {
+		localization.SendErrorByCodeResponse(w, localization.ErrorActionDataNotFound.Code)
 		return
 	}
 	ctx = context.WithValue(ctx, constants.ContextKey("user_data"), userData)
@@ -184,6 +198,9 @@ func (a *bpsActionAdapter) ApproveBPSAction(w http.ResponseWriter, r *http.Reque
 func (a *bpsActionAdapter) RejectBPSAction(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "rejectCpsAction", "handler", "cpsAction")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
 	var req bpsactionDto.ActionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -208,6 +225,10 @@ func (a *bpsActionAdapter) RejectBPSAction(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if action == nil {
+		localization.SendErrorByCodeResponse(w, localization.ErrorActionDataNotFound.Code)
 		return
 	}
 	ctx = context.WithValue(ctx, constants.ContextKey("user_data"), userData)
@@ -237,6 +258,11 @@ func (a *bpsActionAdapter) RejectBPSAction(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/actions/ [get]
 func (a *bpsActionAdapter) GetBPSActionsByDepartment(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionsByDepartment", "handler", "cpsAction")
+	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -258,9 +284,6 @@ func (a *bpsActionAdapter) GetBPSActionsByDepartment(w http.ResponseWriter, r *h
 		return
 	}
 
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionsByDepartment", "handler", "cpsAction")
-	defer span.End()
-
 	actions, err := a.bpsActionApplication.GetBPSActionsByDepartment(ctx, userData.Department, filterParams)
 	if err != nil {
 		span.RecordError(err)
@@ -273,6 +296,11 @@ func (a *bpsActionAdapter) GetBPSActionsByDepartment(w http.ResponseWriter, r *h
 }
 
 func (a *bpsActionAdapter) GetUserCheckedActions(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApprovedCpsActions", "handler", "cpsAction")
+	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -287,9 +315,6 @@ func (a *bpsActionAdapter) GetUserCheckedActions(w http.ResponseWriter, r *http.
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApprovedCpsActions", "handler", "cpsAction")
-	defer span.End()
 	userData := local_util.ExtractUserContext(r)
 	userID := userData.UserID
 	res, err := a.bpsActionApplication.GetUserCheckedActions(ctx, userID, filterParams)
@@ -318,6 +343,9 @@ func (a *bpsActionAdapter) GetUserCheckedActions(w http.ResponseWriter, r *http.
 func (a *bpsActionAdapter) GetBPSActionByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionById", "handler", "cpsAction")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
 		localization.SendErrorResponse(w, localization.ErrorUserForbidden, nil, nil)
@@ -362,6 +390,9 @@ func (a *bpsActionAdapter) GetBPSActionByID(w http.ResponseWriter, r *http.Reque
 func (a *bpsActionAdapter) GetBPSActionByActionCode(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionByCode", "handler", "cpsAction")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
@@ -389,7 +420,12 @@ func (a *bpsActionAdapter) GetBPSActionByActionCode(w http.ResponseWriter, r *ht
 }
 
 func (a *bpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http.Request) {
-	log := local_util.LoggerFromCtx(r.Context(), a.logger)
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
+	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -406,9 +442,6 @@ func (a *bpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
-	defer span.End()
 
 	// roleCode from context
 	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
@@ -476,6 +509,9 @@ func (a *bpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 func (a *bpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	filterParams := local_util.ExtractFilterParams(r)
 	var allocation []string
@@ -553,6 +589,11 @@ func (a *bpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 }
 
 func (a *bpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverApprovedActions", "handler", "cpsAction")
+	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
@@ -567,9 +608,6 @@ func (a *bpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverApprovedActions", "handler", "cpsAction")
-	defer span.End()
 
 	// roleCode from context
 	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
@@ -629,6 +667,9 @@ func (a *bpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionCounts", "handler", "cpsAction")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	if _, err := local_util.ParseUserContext(r); err != nil {
 		localization.SendErrorResponse(w, localization.ErrorUserForbidden, nil, nil)
 		return
@@ -844,6 +885,9 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 func (a *bpsActionAdapter) GetAuthorizerIndex(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserAuthorizerIndex", "handler", "cpsAction")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	requestAction := chi.URLParam(r, "request_action")
 
@@ -869,6 +913,9 @@ func (a *bpsActionAdapter) GetAuthorizerIndex(w http.ResponseWriter, r *http.Req
 func (a *bpsActionAdapter) ApproverCheckerAllocations(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "approverCheckerAllocations", "handler", "cpsAction")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	roleCode, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 	if strings.TrimSpace(roleCode) == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
@@ -953,6 +1000,9 @@ func (a *bpsActionAdapter) ApproverCheckerAllocations(w http.ResponseWriter, r *
 func (a *bpsActionAdapter) ApproverAuditorAllocations(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "approverAuditorAllocations", "handler", "cpsAction")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	roleCode, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 	if strings.TrimSpace(roleCode) == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
