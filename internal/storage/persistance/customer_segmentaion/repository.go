@@ -85,30 +85,38 @@ func normalizeRawHex32(id string) (string, bool) {
 }
 
 func (r *customerStorage) assertSuperAppRoleExistsTx(ctx context.Context, tx *sql.Tx, roleHex string) error {
+	r.logger.Infof("[CustomerSegmentation][assertSuperAppRoleExistsTx] called with roleHex='%s'", roleHex)
 	const q = `
-SELECT 1
-FROM SUPERAPP_ROLE
-WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND IS_ENABLED = 1`
+	SELECT 1
+	FROM SUPERAPP_ROLE
+	WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND IS_ENABLED = 1`
 	var one int
+	r.logger.Debugf("[CustomerSegmentation][assertSuperAppRoleExistsTx] Executing query for roleHex: '%s'", roleHex)
 	err := tx.QueryRowContext(ctx, q, roleHex).Scan(&one)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			r.logger.Warnf("[CustomerSegmentation][assertSuperAppRoleExistsTx] No SUPERAPP_ROLE found for roleHex: '%s'", roleHex)
 			return errors.New(localization.ErrorResourceNotFound.Code)
 		}
 		r.logger.Errorf("[CustomerSegmentation][assertSuperAppRoleExistsTx] query failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
+	r.logger.Infof("[CustomerSegmentation][assertSuperAppRoleExistsTx] SUPERAPP_ROLE exists for roleHex: '%s'", roleHex)
 	return nil
 }
 
 func (r *customerStorage) findOrCreateCustomerGroupTx(ctx context.Context, tx *sql.Tx, name string, now time.Time, isEnabled bool) (string, error) {
+	r.logger.Infof("[CustomerSegmentation][findOrCreateCustomerGroupTx] called with name='%s', isEnabled=%v, now=%v", name, isEnabled, now)
+
 	const findQ = `
-SELECT RAWTOHEX(ID)
-FROM CUSTOMER_GROUPS
-WHERE UPPER(TRIM(NAME)) = UPPER(TRIM(:1)) AND IS_DELETED = 0`
+	SELECT RAWTOHEX(ID)
+	FROM CUSTOMER_GROUPS
+	WHERE UPPER(TRIM(NAME)) = UPPER(TRIM(:1)) AND IS_DELETED = 0`
 	var existing string
+	r.logger.Debugf("[CustomerSegmentation][findOrCreateCustomerGroupTx] Executing find query for group name: '%s'", name)
 	err := tx.QueryRowContext(ctx, findQ, name).Scan(&existing)
 	if err == nil {
+		r.logger.Infof("[CustomerSegmentation][findOrCreateCustomerGroupTx] Found existing group: %s", existing)
 		return strings.ToLower(existing), nil
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
@@ -116,23 +124,25 @@ WHERE UPPER(TRIM(NAME)) = UPPER(TRIM(:1)) AND IS_DELETED = 0`
 		return "", local_util.HandleDBError(err)
 	}
 
+	r.logger.Infof("[CustomerSegmentation][findOrCreateCustomerGroupTx] No existing group found, creating new group for name: '%s'", name)
 	var newID string
 	const insertQ = `
-INSERT INTO CUSTOMER_GROUPS (
-  NAME,
-  IS_ENABLED,
-  IS_DELETED,
-  CREATED_AT,
-  LAST_MODIFIED_AT
-)
-VALUES (
-  UPPER(TRIM(:1)),
-  :2,
-  0,
-  :3,
-  :4
-)
-RETURNING RAWTOHEX(ID) INTO :5`
+	INSERT INTO CUSTOMER_GROUPS (
+	  NAME,
+	  IS_ENABLED,
+	  IS_DELETED,
+	  CREATED_AT,
+	  LAST_MODIFIED_AT
+	)
+	VALUES (
+	  UPPER(TRIM(:1)),
+	  :2,
+	  0,
+	  :3,
+	  :4
+	)
+	RETURNING RAWTOHEX(ID) INTO :5`
+	r.logger.Debugf("[CustomerSegmentation][findOrCreateCustomerGroupTx] Executing insert query for group name: '%s', isEnabled: %v", name, isEnabled)
 	if _, err := tx.ExecContext(ctx, insertQ,
 		name,
 		boolToOracleNumber(isEnabled),
@@ -143,19 +153,24 @@ RETURNING RAWTOHEX(ID) INTO :5`
 		r.logger.Errorf("[CustomerSegmentation][findOrCreateCustomerGroupTx] insert failed: %v", err)
 		return "", local_util.HandleDBError(err)
 	}
+	r.logger.Infof("[CustomerSegmentation][findOrCreateCustomerGroupTx] Created new group with ID: %s", newID)
 	return strings.ToLower(newID), nil
 }
 
 func (r *customerStorage) findOrCreateSegmentationTx(ctx context.Context, tx *sql.Tx, groupHex, segName string, now time.Time, isEnabled bool) (string, error) {
+	r.logger.Infof("[CustomerSegmentation][findOrCreateSegmentationTx] called with groupHex='%s', segName='%s', isEnabled=%v, now=%v", groupHex, segName, isEnabled, now)
+
 	const findQ = `
-SELECT RAWTOHEX(ID)
-FROM CUSTOMER_SEGMENTATIONS
-WHERE CUSTOMER_GROUP_ID = HEXTORAW(:1)
-  AND UPPER(TRIM(NAME)) = UPPER(TRIM(:2))
-  AND IS_DELETED = 0`
+	SELECT RAWTOHEX(ID)
+	FROM CUSTOMER_SEGMENTATIONS
+	WHERE CUSTOMER_GROUP_ID = HEXTORAW(:1)
+		AND UPPER(TRIM(NAME)) = UPPER(TRIM(:2))
+		AND IS_DELETED = 0`
 	var existing string
+	r.logger.Debugf("[CustomerSegmentation][findOrCreateSegmentationTx] Executing find query for groupHex: '%s', segName: '%s'", groupHex, segName)
 	err := tx.QueryRowContext(ctx, findQ, groupHex, segName).Scan(&existing)
 	if err == nil {
+		r.logger.Infof("[CustomerSegmentation][findOrCreateSegmentationTx] Found existing segmentation: %s", existing)
 		return strings.ToLower(existing), nil
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
@@ -163,25 +178,27 @@ WHERE CUSTOMER_GROUP_ID = HEXTORAW(:1)
 		return "", local_util.HandleDBError(err)
 	}
 
+	r.logger.Infof("[CustomerSegmentation][findOrCreateSegmentationTx] No existing segmentation found, creating new segmentation for groupHex: '%s', segName: '%s'", groupHex, segName)
 	var newID string
 	const insertQ = `
-INSERT INTO CUSTOMER_SEGMENTATIONS (
-  NAME,
-  CUSTOMER_GROUP_ID,
-  IS_ENABLED,
-  IS_DELETED,
-  CREATED_AT,
-  LAST_MODIFIED_AT
-)
-VALUES (
-  UPPER(TRIM(:1)),
-  HEXTORAW(:2),
-  :3,
-  0,
-  :4,
-  :5
-)
-RETURNING RAWTOHEX(ID) INTO :6`
+	INSERT INTO CUSTOMER_SEGMENTATIONS (
+		NAME,
+		CUSTOMER_GROUP_ID,
+		IS_ENABLED,
+		IS_DELETED,
+		CREATED_AT,
+		LAST_MODIFIED_AT
+	)
+	VALUES (
+		UPPER(TRIM(:1)),
+		HEXTORAW(:2),
+		:3,
+		0,
+		:4,
+		:5
+	)
+	RETURNING RAWTOHEX(ID) INTO :6`
+	r.logger.Debugf("[CustomerSegmentation][findOrCreateSegmentationTx] Executing insert query for segName: '%s', groupHex: '%s', isEnabled: %v", segName, groupHex, isEnabled)
 	if _, err := tx.ExecContext(ctx, insertQ,
 		segName,
 		groupHex,
@@ -193,6 +210,7 @@ RETURNING RAWTOHEX(ID) INTO :6`
 		r.logger.Errorf("[CustomerSegmentation][findOrCreateSegmentationTx] insert failed: %v", err)
 		return "", local_util.HandleDBError(err)
 	}
+	r.logger.Infof("[CustomerSegmentation][findOrCreateSegmentationTx] Created new segmentation with ID: %s", newID)
 	return strings.ToLower(newID), nil
 }
 
@@ -221,10 +239,13 @@ FETCH FIRST 1 ROWS ONLY`
 }
 
 func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmentation) error {
+	r.logger.Infof("[CustomerSegmentation][Create] called with segmentation: %+v", seg)
 	if seg == nil {
+		r.logger.Warnf("[CustomerSegmentation][Create] segmentation is nil")
 		return errors.New(localization.ErrorNoDataProvided.Code)
 	}
 	if len(seg.CustomerSegments) == 0 {
+		r.logger.Warnf("[CustomerSegmentation][Create] segmentation has no CustomerSegments")
 		return errors.New(localization.ErrorNoDataProvided.Code)
 	}
 
@@ -237,11 +258,14 @@ func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmen
 	}
 	seg.IsDeleted = false
 
+	r.logger.Debugf("[CustomerSegmentation][Create] Normalizing CustomerRole.ID: %s", seg.CustomerRole.ID)
 	roleIDHex, ok := normalizeRawHex32(seg.CustomerRole.ID)
 	if !ok {
+		r.logger.Warnf("[CustomerSegmentation][Create] Invalid CustomerRole.ID: %s", seg.CustomerRole.ID)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
+	r.logger.Debugf("[CustomerSegmentation][Create] Beginning transaction")
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		r.logger.Errorf("[CustomerSegmentation][Create] begin tx failed: %v", err)
@@ -249,7 +273,9 @@ func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmen
 	}
 	defer func() { _ = tx.Rollback() }()
 
+	r.logger.Debugf("[CustomerSegmentation][Create] Asserting SUPERAPP_ROLE exists for roleIDHex: %s", roleIDHex)
 	if err := r.assertSuperAppRoleExistsTx(ctx, tx, roleIDHex); err != nil {
+		r.logger.Warnf("[CustomerSegmentation][Create] SUPERAPP_ROLE does not exist for roleIDHex: %s", roleIDHex)
 		return err
 	}
 
@@ -273,15 +299,19 @@ VALUES (
   :6
 )`
 
-	for _, sub := range seg.CustomerSegments {
+	for i, sub := range seg.CustomerSegments {
+		r.logger.Debugf("[CustomerSegmentation][Create] Processing CustomerSegment[%d]: %+v", i, sub)
 		groupHex, err := r.findOrCreateCustomerGroupTx(ctx, tx, sub.CustomerGroup, now, seg.IsEnabled)
 		if err != nil {
+			r.logger.Errorf("[CustomerSegmentation][Create] findOrCreateCustomerGroupTx failed for CustomerGroup='%s': %v", sub.CustomerGroup, err)
 			return err
 		}
 		segHex, err := r.findOrCreateSegmentationTx(ctx, tx, groupHex, sub.CustomerSegment, now, seg.IsEnabled)
 		if err != nil {
+			r.logger.Errorf("[CustomerSegmentation][Create] findOrCreateSegmentationTx failed for CustomerSegment='%s': %v", sub.CustomerSegment, err)
 			return err
 		}
+		r.logger.Debugf("[CustomerSegmentation][Create] Inserting sub segment: CustomerSubSegment='%s', segHex='%s', roleIDHex='%s'", sub.CustomerSubSegment, segHex, roleIDHex)
 		if _, err := tx.ExecContext(ctx, insertSubQ,
 			sub.CustomerSubSegment,
 			segHex,
@@ -295,11 +325,13 @@ VALUES (
 		}
 	}
 
+	r.logger.Debugf("[CustomerSegmentation][Create] Committing transaction")
 	if err := tx.Commit(); err != nil {
 		r.logger.Errorf("[CustomerSegmentation][Create] commit failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	r.logger.Infof("[CustomerSegmentation][Create] Successfully created segmentation and committed transaction")
 	_ = r.kafkaProducer.PublishMessage(
 		ctx,
 		seg,

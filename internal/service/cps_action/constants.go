@@ -65,6 +65,12 @@ const (
 	RequestDisableCustomerSegmentation constants.RequestAction = "DISABLE_CUSTOMER_SEGMENTATION"
 	RequestDeleteCustomerSegmentation  constants.RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
 
+	RequestAccessListCreateCustomerSegmentation  constants.RequestAction = "CREATE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
+	RequestAccessListUpdateCustomerSegmentation  constants.RequestAction = "UPDATE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
+	RequestAccessListEnableCustomerSegmentation  constants.RequestAction = "ENABLE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
+	RequestAccessListDisableCustomerSegmentation constants.RequestAction = "DISABLE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
+	RequestAccessListDeleteCustomerSegmentation  constants.RequestAction = "DELETE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
+
 	RequestCreateMiniappProductCode  constants.RequestAction = "CREATE_MINI_APP_PRODUCT_CODE"
 	RequestUpdateMiniappProductCode  constants.RequestAction = "UPDATE_MINI_APP_PRODUCT_CODE"
 	RequestDeleteMiniappProductCode  constants.RequestAction = "DELETE_MINI_APP_PRODUCT_CODE"
@@ -553,6 +559,12 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestEnableCustomerSegmentation:  {},
 	RequestDisableCustomerSegmentation: {},
 	RequestDeleteCustomerSegmentation:  {},
+
+	RequestAccessListCreateCustomerSegmentation:  {},
+	RequestAccessListUpdateCustomerSegmentation:  {},
+	RequestAccessListEnableCustomerSegmentation:  {},
+	RequestAccessListDisableCustomerSegmentation: {},
+	RequestAccessListDeleteCustomerSegmentation:  {},
 
 	// Region
 	RequestEnableRegions:  {},
@@ -1170,6 +1182,14 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestEnableCustomerSegmentation,
 		RequestDisableCustomerSegmentation,
 		RequestDeleteCustomerSegmentation,
+	},
+	"ACCESSLISTCUSTOMERSEGMENT": {
+		// "CUSTOMERSEGMENTATIONS": {
+		RequestAccessListCreateCustomerSegmentation,
+		RequestAccessListUpdateCustomerSegmentation,
+		RequestAccessListEnableCustomerSegmentation,
+		RequestAccessListDisableCustomerSegmentation,
+		RequestAccessListDeleteCustomerSegmentation,
 	},
 	"ECOMMERCEMERCHANT": {
 		RequestCreateEcommerceMerchant,

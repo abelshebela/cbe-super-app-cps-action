@@ -521,49 +521,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 
 	if filterParam.Filters != nil {
 
-		// --- NEW: CPS Action Date Range Filter ---
-		var startDate, endDate time.Time
-		var hasStart, hasEnd bool
-
-		if raw, ok := filterParam.Filters["created_at_from"]; ok {
-			if str, ok := local_util.StringFromFilterValue(raw); ok {
-				if t, err := parseDateInput(str); err == nil {
-					startDate = t
-					hasStart = true
-				}
-			}
-		}
-
-		if raw, ok := filterParam.Filters["created_at_to"]; ok {
-			if str, ok := local_util.StringFromFilterValue(raw); ok {
-				if t, err := parseDateInput(str); err == nil {
-					// include full day if date-only
-					if !strings.Contains(str, "T") {
-						t = t.Add(24*time.Hour - time.Millisecond)
-					}
-					endDate = t
-					hasEnd = true
-				}
-			}
-		}
-
-		if hasStart && hasEnd {
-			dateRangeFilter := BuildCPSActionDateRangeFilter(&filterParam, startDate, endDate)
-
-			// merge with existing filter using $and
-			if len(filter) > 0 {
-				filter = bson.M{
-					"$and": []bson.M{
-						filter,
-						dateRangeFilter,
-					},
-				}
-			} else {
-				filter = dateRangeFilter
-			}
-		}
-
-		// --- EXISTING DATE FILTER LOGIC (per-field) ---
+		// --- DATE FILTER LOGIC (per-field) ---
 		allowedSet := make(map[string]bool, len(allowedKeys))
 		for _, k := range allowedKeys {
 			allowedSet[k] = true
