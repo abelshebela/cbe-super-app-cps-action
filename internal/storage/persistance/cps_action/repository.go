@@ -237,12 +237,12 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 				"$gte": fromTime,
 				"$lte": toTime,
 			}
-		}else{
-			delete(filterParam.Filters,"created_at_from")
-		delete(filterParam.Filters,"created_at_to")
+		} else {
+			delete(filterParam.Filters, "created_at_from")
+			delete(filterParam.Filters, "created_at_to")
 		}
 	}
-	
+
 	searchKeys := bson.M{}
 
 	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "unique_id", "created_at"}
@@ -333,9 +333,9 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 				"$gte": fromTime,
 				"$lte": toTime,
 			}
-		}else{
-			delete(filterParam.Filters,"created_at_from")
-		delete(filterParam.Filters,"created_at_to")
+		} else {
+			delete(filterParam.Filters, "created_at_from")
+			delete(filterParam.Filters, "created_at_to")
 		}
 	}
 	searchKeys := bson.M{}
@@ -444,7 +444,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 	baseFilter := bson.M{
 		"is_deleted": false,
 	}
-	
+
 	from, okFrom := filterParam.Filters["created_at_from"].(string)
 	to, okTo := filterParam.Filters["created_at_to"].(string)
 
@@ -457,13 +457,12 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 				"$gte": fromTime,
 				"$lte": toTime,
 			}
-		}else{
-			delete(filterParam.Filters,"created_at_from")
-		delete(filterParam.Filters,"created_at_to")
+		} else {
+			delete(filterParam.Filters, "created_at_from")
+			delete(filterParam.Filters, "created_at_to")
 		}
 	}
 
-	
 	searchKeys := bson.M{}
 
 	allowedKeys := []string{"action_code", "action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "auditor_status", "auditor_users.auditor_id", "unique_id", "created_at"}
