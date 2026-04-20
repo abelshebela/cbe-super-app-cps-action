@@ -115,7 +115,7 @@ type BPSActionService interface {
 	GetBPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
 	GetBPSActions(ctx context.Context, userID, role string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
 	AuditorClaim(ctx context.Context, actionCode string, activeGroup int) error
-	AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int) error
+	AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int, customerBar bool) error
 	GetUserCreatedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
 	GetUserCheckedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error)
 	GetUserAuthorizerIndex(ctx context.Context, requestAction constants.RequestAction) (imodel.BPSActionApproveIndex, error)
