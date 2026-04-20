@@ -577,6 +577,7 @@ func (a *bpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 		}
 	}
 
+	a.logger.Infof("[BPSAction][GetUserAuditorActions] request actiokn list*******: %v", reqs)
 	// do not force action_status; let API-provided filters decide
 	userID := local_util.ExtractUserContext(r).UserID
 	res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, filterParams)
