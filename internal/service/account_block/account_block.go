@@ -103,7 +103,30 @@ func (s *accountBlockService) GetCityById(ctx context.Context, id string) (*imod
 }
 
 func (s *accountBlockService) GetAllBranches(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.AccountBlock], error) {
-	return s.repo.FindAllBranchesWithPagination(ctx, *filterParams)
+	var isEnabled *bool
+
+	if v, ok := filterParams.Filters["status_check"]; ok {
+		if boolVal, ok := v.(bool); ok {
+			isEnabled = &boolVal
+		}
+	}
+
+	data, err := s.repo.FindAllBranchesWithPagination(ctx, *filterParams)
+	if err != nil {
+		return nil, err
+	}
+
+	if data.Data != nil {
+		if *isEnabled == data.Data[0].IsEnabled && filterParams.Search == data.Data[0].Code {
+			if *isEnabled {
+				return &types.PaginatedResponse[[]*imodel.AccountBlock]{}, errors.New(localization.ErrorBranchAlreadyEnabled.Code)
+			} else {
+				return &types.PaginatedResponse[[]*imodel.AccountBlock]{}, errors.New(localization.ErrorBranchAlreadyDisabled.Code)
+			}
+		}
+	}
+
+	return data, nil
 }
 
 func (s *accountBlockService) GetAllRegions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.AccountBlock], error) {
