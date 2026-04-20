@@ -421,27 +421,33 @@ WHERE id = HEXTORAW(:1)
 		return local_util.HandleDBError(err)
 	}
 
-	// 	const q = `
-	// UPDATE access_lists
-	// SET
-	//   is_deleted = 1,
-	//   deleted_at = SYSTIMESTAMP,
-	//   last_modified_at = SYSTIMESTAMP
-	// WHERE id = (
-	//   SELECT access_list_id
-	//   FROM services
-	//   WHERE id = HEXTORAW(:1)
-	// )
-	//   AND is_deleted = 0`
-
-	// 	res, err := tx.ExecContext(ctx, q, id)
-	// 	if err != nil {
-	// 		s.logger.Errorf("[ServicesRepo][Delete] delete service failed: %v", err)
-	// 		return local_util.HandleDBError(err)
-	// 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
 		return errors.New(localization.ErrorServiceNotFound.Code)
+	}
+
+	const q = `
+	UPDATE access_lists
+	SET
+	  is_deleted = 1,
+	  deleted_at = SYSTIMESTAMP,
+	  last_modified_at = SYSTIMESTAMP
+	WHERE id = (
+	  SELECT access_list_id
+	  FROM services
+	  WHERE id = HEXTORAW(:1)
+	)
+	  AND is_deleted = 0`
+
+	result, err := tx.ExecContext(ctx, q, id)
+	if err != nil {
+		s.logger.Errorf("[ServicesRepo][Delete] delete service failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
+	rows, _ = result.RowsAffected()
+	if rows == 0 {
+		return errors.New(localization.ErrorAccessListNotFound.Code)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -535,6 +541,64 @@ WHERE s.id = HEXTORAW(:1) AND sk.is_deleted = 0`
 	}
 
 	caps, err := s.getServiceCaps(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	svc.Cap = caps
+
+	return &svc, nil
+}
+
+func (s *ServicesStorage) FindServiceByAccessListID(ctx context.Context, accessListID string) (*service_dto.ServiceResponse, error) {
+	const q = `
+SELECT
+  RAWTOHEX(s.id),
+  RAWTOHEX(s.access_list_id),
+  sk.name,
+  sk.service_key,
+  s.service_code,
+  s.minimum_fraud_amount,
+  s.product_gl_account,
+  s.product_gl_account_currency,
+  sk.is_enabled,
+  sk.is_deleted,
+  s.created_at,
+  s.last_modified_at,
+  sk.deleted_at
+FROM services s
+JOIN access_lists sk ON sk.id = s.access_list_id
+WHERE sk.id = HEXTORAW(:1) AND sk.is_deleted = 0`
+
+	var serviceID string
+	var svc service_dto.ServiceResponse
+	var deletedAt sql.NullTime
+
+	err := s.db.QueryRowContext(ctx, q, accessListID).Scan(
+		&serviceID,
+		&svc.ServiceKeyId,
+		&svc.ServiceName,
+		&svc.ServiceKey,
+		&svc.ServiceCode,
+		&svc.MinimumFraudAmount,
+		&svc.ProductGlAccount,
+		&svc.ProductGlAccountCurrency,
+		&svc.Enabled,
+		&svc.IsDeleted,
+		&svc.CreatedAt,
+		&svc.LastModifiedAt,
+		&deletedAt,
+	)
+	if err != nil {
+		s.logger.Errorf("[ServicesRepo][FindByID] query failed: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	svc.ID = serviceID
+	if deletedAt.Valid {
+		svc.DeletedAt = &deletedAt.Time
+	}
+
+	caps, err := s.getServiceCaps(ctx, svc.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -839,7 +903,7 @@ WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New(localization.ErrorServiceListNotFound.Code)
+			return nil, errors.New(localization.ErrorAccessListNotFound.Code)
 		}
 		return nil, local_util.HandleDBError(err)
 	}
@@ -885,7 +949,7 @@ FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New(localization.ErrorServiceListNotFound.Code)
+			return nil, errors.New(localization.ErrorAccessListNotFound.Code)
 		}
 		return nil, local_util.HandleDBError(err)
 	}
@@ -932,7 +996,7 @@ FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New(localization.ErrorServiceListNotFound.Code)
+			return nil, errors.New(localization.ErrorAccessListNotFound.Code)
 		}
 		return nil, local_util.HandleDBError(err)
 	}
@@ -1039,7 +1103,7 @@ WHERE id = :3 AND service_key = :4`
 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
-		return errors.New(localization.ErrorServiceListNotFound.Code)
+		return errors.New(localization.ErrorAccessListNotFound.Code)
 	}
 
 	// 	const accessUpdateQ = `
@@ -1080,7 +1144,7 @@ WHERE id = :2`
 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
-		return errors.New(localization.ErrorServiceListNotFound.Code)
+		return errors.New(localization.ErrorAccessListNotFound.Code)
 	}
 
 	// result, err := s.FindServiceListByID(ctx, id)
@@ -1137,7 +1201,7 @@ func (s *ServicesStorage) DeleteServiceKey(ctx context.Context, id string) error
 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
-		return errors.New(localization.ErrorServiceListNotFound.Code)
+		return errors.New(localization.ErrorAccessListNotFound.Code)
 	}
 
 	if err := tx.Commit(); err != nil {
