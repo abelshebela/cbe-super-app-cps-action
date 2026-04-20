@@ -4001,7 +4001,7 @@ var (
 	SuccessServiceKeyDeletedSp = ResponseCode{
 		Code:       "SUCCESS_SERVICE_KEY_DELETED",
 		StatusCode: StatusOK,
-		Message:    "service & key deleted successfully",
+		Message:    "service key deleted successfully",
 		Type:       "success",
 	}
 

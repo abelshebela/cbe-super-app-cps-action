@@ -97,7 +97,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, nil, logger)
 	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	bulkService := bulk_service.NewBulkService(oracle.AccessListOracle, nil, bulkSegRepo, logger)
-	ussdMerchant := ussd_merchant.NewUssdMerchantService(persistence.UssdMerchantPersistence, persistence.ServicesPersistence, minioClient, nil, cfg.S3BucketName, *cfg, logger)
+	ussdMerchant := ussd_merchant.NewUssdMerchantService(persistence.UssdMerchantPersistence, oracle.ServicesPersistence, minioClient, nil, cfg.S3BucketName, *cfg, logger)
 
 	customerService := customer.NewCustomerService(oracle.Customer, persistence.BpsActionPersistence, nil, nil, nil, accountLookupAdapter, nil, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, oracle.BankOracle, nil, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
@@ -219,7 +219,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	dispatcher := cpsaction.NewDispatcher(serviceContainer)
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSActionRolePersistence, persistence.CPSAction, logger, *dispatcher, minioClient, cfg.S3BucketName, cfg.MinioPublicEndPoint, *cfg)
 	cpsActionService = cpsaction.WithActionRolePolicy(cpsActionService, persistence.CPSActionRolePersistence, logger)
-	ussdMerchant = ussd_merchant.NewUssdMerchantService(persistence.UssdMerchantPersistence, persistence.ServicesPersistence, minioClient, cpsActionService, cfg.S3BucketName, *cfg, logger)
+	ussdMerchant = ussd_merchant.NewUssdMerchantService(persistence.UssdMerchantPersistence, oracle.ServicesPersistence, minioClient, cpsActionService, cfg.S3BucketName, *cfg, logger)
 
 	// eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	// cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
