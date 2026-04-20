@@ -132,7 +132,7 @@ func (s *servicesService) DeleteServices(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteService, nil, prev, constants.ActionDelete)
+	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
 }
 
 func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error) {
