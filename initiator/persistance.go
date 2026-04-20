@@ -141,6 +141,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		LogisticsMerchantPersistence: logistics_merchant_repository.NewLogisticsMerchantRepository(client, cfg, dbName, LogisticsMerchantsCollection, logger),
 		CustomerKYCPersistence:       persistence_kyc.NewCustomerKYCRepository(client, cfg, dbName, FaydaKYCollection, logger),
 		UssdMerchantPersistence:      ussd_merchant_repo.NewUssdMerchant(client, dbName, UssdMerchantCollection, cfg, logger),
+		ServicesPersistence:          nil, // Services repository is commented out - using Oracle instead
 	}
 
 	return data

@@ -533,7 +533,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorFailToUpdateBulkService,
 
 	ErrorServiceListAlreadyExists,
-	ErrorServiceListNotFound,
+	ErrorAccessListNotFound,
 	ErrorServiceListInUse,
 
 	// department related error
@@ -4001,7 +4001,7 @@ var (
 	SuccessServiceKeyDeletedSp = ResponseCode{
 		Code:       "SUCCESS_SERVICE_KEY_DELETED",
 		StatusCode: StatusOK,
-		Message:    "service & key deleted successfully",
+		Message:    "service key deleted successfully",
 		Type:       "success",
 	}
 
@@ -7733,10 +7733,10 @@ var (
 		Message:    "Service list with the same name or key already exists",
 		Type:       "error",
 	}
-	ErrorServiceListNotFound = ResponseCode{
-		Code:       "ERROR_SERVICE_LIST_NOT_FOUND",
+	ErrorAccessListNotFound = ResponseCode{
+		Code:       "ERROR_ACCESS_LIST_NOT_FOUND",
 		StatusCode: StatusNotFound,
-		Message:    "service key not found",
+		Message:    "access list not found",
 		Type:       "error",
 	}
 
