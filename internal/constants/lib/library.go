@@ -164,43 +164,46 @@ func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minio
 }
 
 func BuildCPSActionRow(a *model.CPSAction) ([]string, error) {
-
-	checkerJSON, _ := json.Marshal(a.CheckerUsers)
-	auditorJSON, _ := json.Marshal(a.AuditorUsers)
-	prevJSON, _ := json.Marshal(a.PreviousAction)
-	currJSON, _ := json.Marshal(a.CurrentAction)
+	// Extract auditor names
+	var auditorNames []string
+	for _, auditor := range a.AuditorUsers {
+		auditorNames = append(auditorNames, auditor.AuditorName)
+	}
+	auditorNamesStr := strings.Join(auditorNames, ", ")
 
 	return []string{
 		a.ID.Hex(),
 		a.ActionCode,
-		a.UniqueId,
+		// a.UniqueId,
 		a.MakerID,
 		a.MakerName,
 		a.MakerPhoneNumber,
-		string(checkerJSON),
-		string(auditorJSON),
-		strconv.Itoa(int(a.AuditorCount)),
+		// string(checkerJSON),
+		// string(auditorJSON),
+		auditorNamesStr,
+		// strconv.Itoa(int(a.AuditorCount)),
 		string(a.AuditorStatus),
-		fmt.Sprintf("%f", a.CurrentAuditorIndex),
-		strconv.Itoa(int(a.CheckerCount)),
-		fmt.Sprintf("%f", a.CurrentCheckerIndex),
-		a.RoleCode,
-		a.RejectionReason,
-		a.CanceledReason,
-		string(prevJSON),
-		string(currJSON),
+		// fmt.Sprintf("%f", a.CurrentAuditorIndex),
+		// strconv.Itoa(int(a.CheckerCount)),
+		// fmt.Sprintf("%f", a.CurrentCheckerIndex),
+		// a.RoleCode,
+		// a.RejectionReason,
+		// a.CanceledReason,
+		// string(prevJSON),
+		// string(currJSON),
 		a.ActionStatus,
 		a.ActionType,
-		strconv.FormatBool(a.IsDeleted),
+		// strconv.FormatBool(a.IsDeleted),
 		a.RequestAction,
-		strconv.FormatInt(a.Version, 10),
-		a.ReversedByRoleID,
-		a.ReversedByID,
-		a.ReversedByName,
-		local_util.FormatTime(a.ReversedAt),
+		// strconv.FormatInt(a.Version, 10),
+		// a.ReversedByRoleID,
+		// a.ReversedByID,
+		// a.ReversedByName,
+		// local_util.FormatTime(a.ReversedAt),
 		local_util.FormatTime(a.CreatedAt),
 		local_util.FormatTime(a.LastModifiedAt),
 		local_util.FormatTime(a.MakerActionTime),
+		local_util.FormatTime(a.LastModifiedAt), // Using LastModifiedAt as CheckerActionTime
 	}, nil
 }
 
@@ -521,49 +524,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 
 	if filterParam.Filters != nil {
 
-		// --- NEW: CPS Action Date Range Filter ---
-		var startDate, endDate time.Time
-		var hasStart, hasEnd bool
-
-		if raw, ok := filterParam.Filters["created_at_from"]; ok {
-			if str, ok := local_util.StringFromFilterValue(raw); ok {
-				if t, err := parseDateInput(str); err == nil {
-					startDate = t
-					hasStart = true
-				}
-			}
-		}
-
-		if raw, ok := filterParam.Filters["created_at_to"]; ok {
-			if str, ok := local_util.StringFromFilterValue(raw); ok {
-				if t, err := parseDateInput(str); err == nil {
-					// include full day if date-only
-					if !strings.Contains(str, "T") {
-						t = t.Add(24*time.Hour - time.Millisecond)
-					}
-					endDate = t
-					hasEnd = true
-				}
-			}
-		}
-
-		if hasStart && hasEnd {
-			dateRangeFilter := BuildCPSActionDateRangeFilter(&filterParam, startDate, endDate)
-
-			// merge with existing filter using $and
-			if len(filter) > 0 {
-				filter = bson.M{
-					"$and": []bson.M{
-						filter,
-						dateRangeFilter,
-					},
-				}
-			} else {
-				filter = dateRangeFilter
-			}
-		}
-
-		// --- EXISTING DATE FILTER LOGIC (per-field) ---
+		// --- DATE FILTER LOGIC (per-field) ---
 		allowedSet := make(map[string]bool, len(allowedKeys))
 		for _, k := range allowedKeys {
 			allowedSet[k] = true
@@ -603,7 +564,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 						if !strings.Contains(str, "T") {
 							t = t.Add(24*time.Hour - time.Millisecond)
 						}
-						dateFilter["$eq"] = t
+						dateFilter["$lte"] = t
 					}
 				}
 				delete(filterParam.Filters, toKey)
@@ -644,11 +605,11 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 		// --- IS_EXPIRED: if is_expired=true, add created_at $lte time.Now() ---
 		if isExpired, ok := filter["is_expired"]; ok {
 			if expired, ok := isExpired.(bool); ok && expired {
-				if existing, ok := filter["created_at"].(bson.M); ok {
-					existing["$lte"] = time.Now()
-				} else {
-					filter["created_at"] = bson.M{"$lte": time.Now()}
-				}
+				// if existing, ok := filter["created_at"].(bson.M); ok {
+				// 	existing["$lt"] = time.Now()
+				// } else {
+				// }
+				filter["end_date"] = bson.M{"$lt": time.Now()}
 			}
 		}
 	}

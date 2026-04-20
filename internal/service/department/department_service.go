@@ -28,16 +28,18 @@ type DepartmentService struct {
 	portal_card      storage.PortalCardRepository
 	permission_group storage.PermissionRepository
 	repo             storage.DepartmentRepository
+	cpsUser          storage.CpsUserRepository
 	cpsService       service.CPSActionService
 	logger           utils.Logger
 }
 
-func NewDepartmentService(repo storage.DepartmentRepository, cpsService service.CPSActionService, portal_card storage.PortalCardRepository, permission_group storage.PermissionRepository, logger utils.Logger) service.DepartmentService {
+func NewDepartmentService(repo storage.DepartmentRepository, cpsService service.CPSActionService, portal_card storage.PortalCardRepository, permission_group storage.PermissionRepository, cpsUser storage.CpsUserRepository, logger utils.Logger) service.DepartmentService {
 	return &DepartmentService{
 		repo:             repo,
 		cpsService:       cpsService,
 		portal_card:      portal_card,
 		permission_group: permission_group,
+		cpsUser:          cpsUser,
 		logger:           logger,
 	}
 
@@ -370,6 +372,24 @@ func (d *DepartmentService) DeleteDepartment(ctx context.Context, id string) err
 			attribute.String("id", id),
 		))
 		return err
+	}
+
+	cpsUser, err := d.cpsUser.GetUserByDepartment(ctx, department.ID.Hex())
+	if err != nil {
+		d.logger.Errorf("[DeptSvc][Delete] find cps user err: %v", err)
+		span.AddEvent("Failed to find CPS user", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+
+	if cpsUser != nil {
+		d.logger.Warnf("[DeptSvc][Delete] department has associated users, cannot delete: %s", id)
+		span.AddEvent("Department has associated users, cannot delete", trace.WithAttributes(
+			attribute.String("id", id),
+		))
+		return localization.ErrorDepartmentHasAssociatedUsers
 	}
 
 	new_department := *department

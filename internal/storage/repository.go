@@ -59,6 +59,7 @@ type RoleRepository interface {
 	FindAll(ctx context.Context) (*[]imodel.Role, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Role], error)
 	FindByFilterKey(ctx context.Context, field string, value string) (*imodel.Role, error)
+	HasActiveJobRole(ctx context.Context, roleCode string) (bool, error)
 }
 
 type JobRoleRepository interface {
@@ -402,6 +403,7 @@ type CpsUserRepository interface {
 	FindByEmail(ctx context.Context, email string) (*imodel.CPSUser, error)
 	FindByEmailOrPhoneNumberOrUserName(ctx context.Context, email string, phoneNumber string, username string) (*imodel.CPSUser, error)
 	UpdateCpsUsersJobTitle(ctx context.Context, oldJobTitle, newJobTitle string) error
+	GetUserByDepartment(ctx context.Context, department string) (*imodel.CPSUser, error)
 }
 
 type BankVaultRepository interface {

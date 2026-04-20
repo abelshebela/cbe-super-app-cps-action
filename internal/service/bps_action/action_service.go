@@ -630,7 +630,7 @@ func (ba *bpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 
 	}
 
-	filterParams.Filters["maker_id"] = userID
+	filterParams.Filters["checker_users.checker_id"] = userID
 
 	result, err := ba.repo.SanitizedFindAllWithPagination(ctx, *filterParams, "")
 

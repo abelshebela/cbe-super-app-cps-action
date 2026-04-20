@@ -524,6 +524,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCannotDisableOwnRole,
 	ErrorCannotDisableOwnJobTitle,
 	ErrorRoleHasActiveJobs,
+	ErrorRoleHasActiveJobsRoles,
+	ErrorDepartmentHasAssociatedUsers,
 	ErrorInvalidBulkServiceKey,
 	ErrorInvalidRequiredAction,
 	ErrorFailToUpdateParent,
@@ -7755,6 +7757,19 @@ var (
 		Code:       "ERROR_ROLE_HAS_ACTIVE_JOBS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgRoleHasActiveJobs,
+		Type:       "error",
+	}
+	ErrorRoleHasActiveJobsRoles = ResponseCode{
+		Code:       "ERROR_ROLE_HAS_ACTIVE_JOBS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleHasActiveJobsRoles,
+		Type:       "error",
+	}
+
+	ErrorDepartmentHasAssociatedUsers = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_HAS_ASSOCIATED_USERS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDepartmentHasAssociatedUsers,
 		Type:       "error",
 	}
 
