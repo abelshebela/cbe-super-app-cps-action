@@ -113,7 +113,7 @@ func (a *bpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 		ApprovedAt:         time.Now(),
 	}
 	ctx = context.WithValue(ctx, constants.ContextKey("user_data"), userData)
-	if err := a.bpsActionApplication.AuditorMark(ctx, actionCode, auditor, 0); err != nil {
+	if err := a.bpsActionApplication.AuditorMark(ctx, actionCode, auditor, 0, reqBody.CustomerBar); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
