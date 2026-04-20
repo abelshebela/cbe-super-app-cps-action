@@ -31,8 +31,9 @@ type UpdateActionRoleRequest struct {
 }
 
 type AuditorMarkRequest struct {
-	Mark   string `json:"mark"`
-	Reason string `json:"reason"`
+	Mark        string `json:"mark"`
+	Reason      string `json:"reason"`
+	CustomerBar bool   `json:"customer_bar"`
 }
 type GetActionRoleByActionCodeRes struct {
 	ID                   bson.ObjectID     `json:"_id" bson:"_id"`

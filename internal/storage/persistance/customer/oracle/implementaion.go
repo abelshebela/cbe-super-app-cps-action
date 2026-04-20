@@ -281,6 +281,27 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 	}, nil
 }
 
+// BlockCustomerByUserCode implements [storage.CustomerRepository].
+func (c *customerOracleRepository) BlockCustomerByUserCode(ctx context.Context, userCode string) error {
+	query := `UPDATE users SET is_blocked = 1 WHERE user_code = :1`
+	result, err := c.db.ExecContext(ctx, query, userCode)
+	if err != nil {
+		c.logger.Errorf("[CustomerRepository][BlockCustomerByUserCode] failed to block customer with user_code %s: %v", userCode, err)
+		return localization.ErrorUnexpectedError
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		c.logger.Errorf("[CustomerRepository][BlockCustomerByUserCode] failed to get rows affected: %v", err)
+		return localization.ErrorUnexpectedError
+	}
+	if rowsAffected == 0 {
+		c.logger.Errorf("[CustomerRepository][BlockCustomerByUserCode] no user found with user_code: %s", userCode)
+		return localization.ErrorCustomerNotFound
+	}
+	c.logger.Infof("[CustomerRepository][BlockCustomerByUserCode] successfully blocked customer with user_code: %s", userCode)
+	return nil
+}
+
 // Update implements [storage.CustomerRepository].
 func (c *customerOracleRepository) Update(ctx context.Context, id string, data member.User) error {
 	panic("unimplemented")

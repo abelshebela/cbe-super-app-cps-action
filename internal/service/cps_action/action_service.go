@@ -8,11 +8,9 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"os"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -190,9 +188,9 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 		return strings.Contains(normalize(s), constants.CREATE)
 	}
 
-	isDelete := func(s string) bool {
-		return strings.Contains(normalize(s), constants.DELETE)
-	}
+	// isDelete := func(s string) bool {
+	// 	return strings.Contains(normalize(s), constants.DELETE)
+	// }
 
 	defaultReq := []string{normalize(requestAction)}
 	if actionName == "" {
@@ -205,7 +203,7 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 	}
 
 	wantCreateOnly := isCreate(requestAction)
-	wantDeleteOnly := isDelete(requestAction)
+	// wantDeleteOnly := isDelete(requestAction)
 	seen := map[string]struct{}{}
 	reqs := make([]string, 0, len(lst))
 
@@ -216,14 +214,14 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 		}
 
 		isKeyCreate := isCreate(key)
-		isKeyDelete := isDelete(key)
+		// isKeyDelete := isDelete(key)
 		if wantCreateOnly != isKeyCreate {
 			continue
 		}
 
-		if wantDeleteOnly != isKeyDelete {
-			continue
-		}
+		// if wantDeleteOnly != isKeyDelete {
+		// 	continue
+		// }
 
 		seen[key] = struct{}{}
 		reqs = append(reqs, key)
@@ -353,11 +351,13 @@ func (ca *cpsActionService) exportCPSActions(ctx context.Context, filterParams *
 		FileType:   lib.FileTypeCSV,
 		ObjectName: fmt.Sprintf("cps_actions_%s_to_%s_%d.csv", startDate.Format("20060102"), endDate.Format("20060102"), time.Now().Unix()),
 	}, result.Data, func(action *model.CPSAction) ([]string, error) {
-		row, err := BuildCPSActionRow(action)
-		if err != nil {
-			return nil, err
-		}
-		return row, nil
+		return []string{
+			action.ActionCode,
+			action.MakerName, // Assuming Action Name is Maker Name
+			action.ActionStatus,
+			action.ActionType,
+			formatTime(action.CreatedAt), // Action Date
+		}, nil
 	}, func(ctx context.Context, file *os.File, size int64, objectName string, ft lib.FileType) (string, error) {
 
 		switch ft {
@@ -817,43 +817,46 @@ func (ca *cpsActionService) processCPSAction(
 }
 
 func BuildCPSActionRow(a *model.CPSAction) ([]string, error) {
-
-	checkerJSON, _ := json.Marshal(a.CheckerUsers)
-	auditorJSON, _ := json.Marshal(a.AuditorUsers)
-	prevJSON, _ := json.Marshal(a.PreviousAction)
-	currJSON, _ := json.Marshal(a.CurrentAction)
+	// Extract auditor names
+	var auditorNames []string
+	for _, auditor := range a.AuditorUsers {
+		auditorNames = append(auditorNames, auditor.AuditorName)
+	}
+	auditorNamesStr := strings.Join(auditorNames, ", ")
 
 	return []string{
 		a.ID.Hex(),
 		a.ActionCode,
-		a.UniqueId,
+		// a.UniqueId,
 		a.MakerID,
 		a.MakerName,
 		a.MakerPhoneNumber,
-		string(checkerJSON),
-		string(auditorJSON),
-		strconv.Itoa(int(a.AuditorCount)),
+		// string(checkerJSON),
+		// string(auditorJSON),
+		auditorNamesStr,
+		// strconv.Itoa(int(a.AuditorCount)),
 		string(a.AuditorStatus),
-		fmt.Sprintf("%f", a.CurrentAuditorIndex),
-		strconv.Itoa(int(a.CheckerCount)),
-		fmt.Sprintf("%f", a.CurrentCheckerIndex),
-		a.RoleCode,
-		a.RejectionReason,
-		a.CanceledReason,
-		string(prevJSON),
-		string(currJSON),
+		// fmt.Sprintf("%f", a.CurrentAuditorIndex),
+		// strconv.Itoa(int(a.CheckerCount)),
+		// fmt.Sprintf("%f", a.CurrentCheckerIndex),
+		// a.RoleCode,
+		// a.RejectionReason,
+		// a.CanceledReason,
+		// string(prevJSON),
+		// string(currJSON),
 		a.ActionStatus,
 		a.ActionType,
-		strconv.FormatBool(a.IsDeleted),
+		// strconv.FormatBool(a.IsDeleted),
 		a.RequestAction,
-		strconv.FormatInt(a.Version, 10),
-		a.ReversedByRoleID,
-		a.ReversedByID,
-		a.ReversedByName,
-		formatTime(a.ReversedAt),
+		// strconv.FormatInt(a.Version, 10),
+		// a.ReversedByRoleID,
+		// a.ReversedByID,
+		// a.ReversedByName,
+		// formatTime(a.ReversedAt),
 		formatTime(a.CreatedAt),
 		formatTime(a.LastModifiedAt),
 		formatTime(a.MakerActionTime),
+		formatTime(a.LastModifiedAt), // Using LastModifiedAt as CheckerActionTime
 	}, nil
 }
 
@@ -865,35 +868,19 @@ func CpsActionCSVHeader(fields []string) []string {
 	// default header if no specific fields are requested. The order of fields should match the order in BuildCPSActionRow.
 	var defaultHeader = []string{
 		"ID",
-		"ActionCode",
-		"UniqueId",
-		"MakerID",
-		"MakerName",
-		"MakerPhoneNumber",
-		"CheckerUsers",
-		"AuditorUsers",
-		"AuditorCount",
-		"AuditorStatus",
-		"CurrentAuditorIndex",
-		"CheckerCount",
-		"CurrentCheckerIndex",
-		"RoleCode",
-		"RejectionReason",
-		"CanceledReason",
-		"PreviousAction",
-		"CurrentAction",
-		"ActionStatus",
-		"ActionType",
-		"IsDeleted",
-		"RequestAction",
-		"Version",
-		"ReversedByRoleID",
-		"ReversedByID",
-		"ReversedByName",
-		"ReversedAt",
-		"CreatedAt",
-		"LastModifiedAt",
-		"MakerActionTime",
+		"Action Code",
+		"Maker ID",
+		"Maker Name",
+		"Maker Phone Number",
+		"Auditor Names",
+		"Auditor Status",
+		"Action Status",
+		"Action Type",
+		"Request Action",
+		"Created At",
+		"Last Modified At",
+		"Maker Action Time",
+		"Checker Action Time",
 	}
 
 	return defaultHeader
