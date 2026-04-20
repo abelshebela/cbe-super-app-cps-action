@@ -367,18 +367,20 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 	for k, v := range baseFilter {
 		dynamicFilter[k] = v
 	}
+
 	// delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
-	// if len(RAList) > 0 {
-	// }
+	if len(RAList) > 0 {
+	}
 	filter["request_action"] = bson.M{"$in": RAList}
 
-	if filter["auditor_status"] == "NOTCHECKED" {
+	switch filter["auditor_status"] {
+	case "NOTCHECKED":
 		filter["auditors.auditor"] = false
-	} else if filter["auditor_status"] == "CHECKED" {
+	case "CHECKED":
 		filter["auditors.auditor"] = true
 	}
-	delete(filter, "auditor_status")
+	// delete(filter, "auditor_status")
 
 	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
 
