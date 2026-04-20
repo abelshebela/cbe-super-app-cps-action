@@ -370,8 +370,9 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 
 	// delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
-	if len(RAList) > 0 {
-	}
+	// if len(RAList) > 0 {
+
+	// }
 	filter["request_action"] = bson.M{"$in": RAList}
 
 	switch filter["auditor_status"] {
