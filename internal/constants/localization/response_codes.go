@@ -51,7 +51,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessServiceListEnabled,
 	SuccessServiceListDisableRequestSubmitted,
 	SuccessServiceListDisabled,
-	SuccessServiceKeyDeleted,
+	SuccessServiceKeyDeletedSp,
 	SuccessServiceKeyDeleteRequestSubmitted,
 	SuccessServiceCreated,
 	SuccessServiceUpdateRequestSubmitted,
@@ -3998,7 +3998,7 @@ var (
 		Type:       "success",
 	}
 
-	SuccessServiceKeyDeleted = ResponseCode{
+	SuccessServiceKeyDeletedSp = ResponseCode{
 		Code:       "SUCCESS_SERVICE_KEY_DELETED",
 		StatusCode: StatusOK,
 		Message:    "service & key deleted successfully",
@@ -5136,6 +5136,13 @@ var (
 		Code:       "SUCCESS_DELETE_MERCHANT_USSD",
 		StatusCode: StatusOK,
 		Message:    MsgUssdMerchantDeletedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessServiceDeletedSp = ResponseCode{
+		Code:       "SUCCESS_DELETE_SERVICE_SP",
+		StatusCode: StatusOK,
+		Message:    MsgServiceDeletedSuccessfullySp,
 		Type:       "success",
 	}
 
