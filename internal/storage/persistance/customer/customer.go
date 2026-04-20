@@ -263,6 +263,20 @@ func (b *CustomerRepository) EnableOrDisable(ctx context.Context, id string, ena
 	return nil
 }
 
+// BlockCustomerByUserCode implements storage.CustomerRepository.
+func (b *CustomerRepository) BlockCustomerByUserCode(ctx context.Context, userCode string) error {
+	b.logger.Infof("[CustomerRepository][BlockCustomerByUserCode] updating is_blocked for user_code: %s", userCode)
+	filter := bson.M{"user_code": userCode}
+	update := bson.M{"is_blocked": true}
+	_, err := b.mongoDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		b.logger.Errorf("[CustomerRepository][BlockCustomerByUserCode] failed to block customer: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	b.logger.Infof("[CustomerRepository][BlockCustomerByUserCode] customer blocked successfully")
+	return nil
+}
+
 func (c *CustomerRepository) FetchLinkedAccount(ctx context.Context, id string) ([]model.LinkedAccount, error) {
 	c.logger.Infof("[CustomerRepository][FetchLinkedAccount] fetching linked accounts for customer number")
 

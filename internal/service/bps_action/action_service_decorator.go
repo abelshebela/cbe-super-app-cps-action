@@ -33,8 +33,8 @@ func (s *bpsActionServiceWithRoles) IsMakerOnlyForRequest(ctx context.Context, r
 func (s *bpsActionServiceWithRoles) AuditorClaim(ctx context.Context, actionCode string, activeGroup int) error {
 	return nil
 }
-func (s *bpsActionServiceWithRoles) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int) error {
-	if err := s.base.AuditorMark(ctx, actionCode, auditor, activeGroup); err != nil {
+func (s *bpsActionServiceWithRoles) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int, customerBar bool) error {
+	if err := s.base.AuditorMark(ctx, actionCode, auditor, activeGroup, customerBar); err != nil {
 		return err
 	}
 	return nil

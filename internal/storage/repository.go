@@ -625,6 +625,7 @@ type CustomerRepository interface {
 	FindCustomerByID(ctx context.Context, id string) (*member.User, error)
 	FindCustomerByUserCode(ctx context.Context, usercode string) (*member.User, error)
 	FindCustomerLinkedAccountByUserID(ctx context.Context, userID string) (*model.LinkedAccount, error)
+	BlockCustomerByUserCode(ctx context.Context, userCode string) error
 }
 
 type BulkServiceRepository interface {

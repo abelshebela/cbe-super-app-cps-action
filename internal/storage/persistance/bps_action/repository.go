@@ -255,15 +255,11 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(
 		}, nil
 	}
 
-	filter := bson.M{}
-
-	if len(RAList) > 0 {
-		filter["request_action"] = bson.M{"$in": RAList}
-	}
+	baseFilter := bson.M{}
 
 	if strings.TrimSpace(filterParam.Search) != "" {
 		regex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["$or"] = []bson.M{
+		baseFilter["$or"] = []bson.M{
 			{"maker_name": regex},
 			{"maker_phone_number": regex},
 			{"status": regex},
@@ -286,11 +282,12 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(
 
 	dynamicFilter, skip, limit := lib.FilterBuilder(filterParam, nil, allowedKeys)
 
-	for k, v := range dynamicFilter {
-		if k != "created_at" { // avoid broken range leftovers
-			filter[k] = v
-		}
+	for k, v := range baseFilter {
+		dynamicFilter[k] = v
 	}
+	delete(dynamicFilter, "created_at")
+	filter := dynamicFilter
+	filter["request_action"] = bson.M{"$in": RAList}
 
 	exclude := []string{
 		"password",
