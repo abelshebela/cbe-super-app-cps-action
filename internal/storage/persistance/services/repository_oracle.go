@@ -549,6 +549,64 @@ WHERE s.id = HEXTORAW(:1) AND sk.is_deleted = 0`
 	return &svc, nil
 }
 
+func (s *ServicesStorage) FindServiceByAccessListID(ctx context.Context, accessListID string) (*service_dto.ServiceResponse, error) {
+	const q = `
+SELECT
+  RAWTOHEX(s.id),
+  RAWTOHEX(s.access_list_id),
+  sk.name,
+  sk.service_key,
+  s.service_code,
+  s.minimum_fraud_amount,
+  s.product_gl_account,
+  s.product_gl_account_currency,
+  sk.is_enabled,
+  sk.is_deleted,
+  s.created_at,
+  s.last_modified_at,
+  sk.deleted_at
+FROM services s
+JOIN access_lists sk ON sk.id = s.access_list_id
+WHERE sk.id = HEXTORAW(:1) AND sk.is_deleted = 0`
+
+	var serviceID string
+	var svc service_dto.ServiceResponse
+	var deletedAt sql.NullTime
+
+	err := s.db.QueryRowContext(ctx, q, accessListID).Scan(
+		&serviceID,
+		&svc.ServiceKeyId,
+		&svc.ServiceName,
+		&svc.ServiceKey,
+		&svc.ServiceCode,
+		&svc.MinimumFraudAmount,
+		&svc.ProductGlAccount,
+		&svc.ProductGlAccountCurrency,
+		&svc.Enabled,
+		&svc.IsDeleted,
+		&svc.CreatedAt,
+		&svc.LastModifiedAt,
+		&deletedAt,
+	)
+	if err != nil {
+		s.logger.Errorf("[ServicesRepo][FindByID] query failed: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	svc.ID = serviceID
+	if deletedAt.Valid {
+		svc.DeletedAt = &deletedAt.Time
+	}
+
+	caps, err := s.getServiceCaps(ctx, svc.ID)
+	if err != nil {
+		return nil, err
+	}
+	svc.Cap = caps
+
+	return &svc, nil
+}
+
 func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error) {
 	limit := int64(maxPaginationDefault)
 	page := int64(1)

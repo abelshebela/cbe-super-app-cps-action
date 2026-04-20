@@ -205,8 +205,7 @@ func (s *servicesService) EnableOrDisableServiceList(ctx context.Context, id str
 }
 
 func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error {
-	// prev, err := s.repo.FindServiceListByID(ctx, id)
-	prev, err := s.repo.FindByID(ctx, id)
+	prev, err := s.repo.FindServiceByAccessListID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("[servicesService][DeleteServiceKey] error fetching service by id=%s: %v", id, err)
 		if err.Error() == localization.ErrorServiceNotFound.Code {
@@ -214,9 +213,14 @@ func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error
 		}
 	}
 
+	var accessListID string
+	if prev != nil {
+		accessListID = prev.ServiceKeyId
+	} else {
+		accessListID = id
+	}
 	s.logger.Infof("[servicesService][DeleteServiceKey] Deleting service key with id=%s, found service list: %+v", id, prev)
-	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
-
+	return core.HandleCPSAction(ctx, s.cps, accessListID, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
 }
 
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
