@@ -394,6 +394,7 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 		{{Key: "$project", Value: Projection}},
 		bps_action_core.SanitizePipeline(exclude),
 	}
+	b.logger.Infof("[BPSAction][SanitizedFindAllWithPaginationForAuditor] filter*************: %v", filter)
 
 	cur, err := b.collection.Aggregate(ctx, pipeline)
 	if err != nil {
