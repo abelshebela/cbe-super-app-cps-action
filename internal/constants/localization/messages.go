@@ -1412,8 +1412,9 @@ const (
 	MsgUssdMerchantCreatedSuccessfully               = "Ussd merchant created successfully"
 	MsgUssdMerchantRequestCreatedSuccessfully        = "Ussd merchant request created successfully"
 	MsgUssdMerchantDeletedSuccessfully               = "Ussd merchant deleted successfully"
-	MsgServiceDeletedSuccessfully                    = "Service deleted successfully"
 	MsgUssdMerchantDeleteRequestCreatedSuccessfully  = "Ussd merchant delete request created successfully"
+	MsgServiceDeletedSuccessfullySp                  = "Service deleted successfully"
+	MsgServiceDeletedSuccessfully                    = "Service delete request submited successfully"
 
 	// access list segmentation related messages
 	MsgAccessListSegmentationCreatedSuccessfully    = "Access list segmentation create request sent successfully"
