@@ -116,7 +116,7 @@ func (s *accountBlockService) GetAllBranches(ctx context.Context, filterParams *
 		return nil, err
 	}
 
-	if data.Data != nil {
+	if data.Data != nil && isEnabled != nil {
 		if *isEnabled == data.Data[0].IsEnabled && filterParams.Search == data.Data[0].Code {
 			if *isEnabled {
 				return &types.PaginatedResponse[[]*imodel.AccountBlock]{}, errors.New(localization.ErrorBranchAlreadyEnabled.Code)
