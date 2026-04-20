@@ -51,7 +51,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessServiceListEnabled,
 	SuccessServiceListDisableRequestSubmitted,
 	SuccessServiceListDisabled,
-	SuccessServiceKeyDeleted,
+	SuccessServiceKeyDeletedSp,
 	SuccessServiceKeyDeleteRequestSubmitted,
 	SuccessServiceCreated,
 	SuccessServiceUpdateRequestSubmitted,
@@ -533,7 +533,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorFailToUpdateBulkService,
 
 	ErrorServiceListAlreadyExists,
-	ErrorServiceListNotFound,
+	ErrorAccessListNotFound,
 	ErrorServiceListInUse,
 
 	// department related error
@@ -3998,10 +3998,10 @@ var (
 		Type:       "success",
 	}
 
-	SuccessServiceKeyDeleted = ResponseCode{
+	SuccessServiceKeyDeletedSp = ResponseCode{
 		Code:       "SUCCESS_SERVICE_KEY_DELETED",
 		StatusCode: StatusOK,
-		Message:    "service & key deleted successfully",
+		Message:    "service key deleted successfully",
 		Type:       "success",
 	}
 
@@ -5136,6 +5136,13 @@ var (
 		Code:       "SUCCESS_DELETE_MERCHANT_USSD",
 		StatusCode: StatusOK,
 		Message:    MsgUssdMerchantDeletedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessServiceDeletedSp = ResponseCode{
+		Code:       "SUCCESS_DELETE_SERVICE_SP",
+		StatusCode: StatusOK,
+		Message:    MsgServiceDeletedSuccessfullySp,
 		Type:       "success",
 	}
 
@@ -7726,10 +7733,10 @@ var (
 		Message:    "Service list with the same name or key already exists",
 		Type:       "error",
 	}
-	ErrorServiceListNotFound = ResponseCode{
-		Code:       "ERROR_SERVICE_LIST_NOT_FOUND",
+	ErrorAccessListNotFound = ResponseCode{
+		Code:       "ERROR_ACCESS_LIST_NOT_FOUND",
 		StatusCode: StatusNotFound,
-		Message:    "service key not found",
+		Message:    "access list not found",
 		Type:       "error",
 	}
 

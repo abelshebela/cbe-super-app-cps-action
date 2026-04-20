@@ -116,7 +116,7 @@ func (a *servicesAdapter) ServicesDelete(w http.ResponseWriter, r *http.Request)
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Delete] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.SucccessDeleteUssdMerchant, nil)
+		localization.SendSuccessResponse(w, localization.SuccessServiceDeletedSp, nil)
 		return
 	}
 
@@ -624,7 +624,7 @@ func (a *servicesAdapter) DeleteServiceKey(w http.ResponseWriter, r *http.Reques
 	if md.IsMakerOnly {
 		log.Infof("[DeleteServiceKey] request sent successfully is_maker_only: %v", md.IsMakerOnly)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.SuccessServiceKeyDeleted, nil)
+		localization.SendSuccessResponse(w, localization.SuccessServiceKeyDeletedSp, nil)
 		return
 	}
 
