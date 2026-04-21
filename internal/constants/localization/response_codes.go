@@ -1180,27 +1180,27 @@ var (
 	}
 
 	SuccessRoleCreatedRequestSent = ResponseCode{
-		Code:       "SUCCESS_Role_CREATED_REQUEST_SENT",
+		Code:       "SUCCESS_ROLE_CREATED_REQUEST_SENT",
 		StatusCode: StatusCreated,
 		Message:    MsgRoleCreatedRequestSent,
 		Type:       "success",
 	}
 	SuccessRoleCreatedSP = ResponseCode{
-		Code:       "SUCCESS_Role_CREATED_REQUEST_SENT",
+		Code:       "SUCCESS_ROLE_CREATED_SUCCESSFULLY",
 		StatusCode: StatusCreated,
 		Message:    MsgRoleCreatedSP,
 		Type:       "success",
 	}
 
 	SuccessRoleUpdatedRequestSent = ResponseCode{
-		Code:       "SUCCESS_Role_UPDATED_REQUEST_SENT",
+		Code:       "SUCCESS_ROLE_UPDATED_REQUEST_SENT",
 		StatusCode: StatusCreated,
 		Message:    MsgRoleUpdatedRequestSent,
 		Type:       "success",
 	}
 
 	SuccessRoleUpdatedSP = ResponseCode{
-		Code:       "SUCCESS_Role_UPDATED_REQUEST_SENT",
+		Code:       "SUCCESS_ROLE_UPDATED_SUCCESSFULLY",
 		StatusCode: StatusCreated,
 		Message:    MsgRoleUpdatedSP,
 		Type:       "success",
