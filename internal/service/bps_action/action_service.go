@@ -53,12 +53,14 @@ type bpsActionService struct {
 
 	roles storage.BPSActionRoleRepository
 
+	customerRepo storage.CustomerRepository
+
 	logger utils.Logger
 
 	dispatcher Dispatcher
 }
 
-func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, logger utils.Logger, dispatcher Dispatcher) service.BPSActionService {
+func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, logger utils.Logger, dispatcher Dispatcher) service.BPSActionService {
 
 	return &bpsActionService{
 
@@ -67,6 +69,8 @@ func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPS
 		logger: logger,
 
 		roles: roles,
+
+		customerRepo: customerRepo,
 
 		dispatcher: dispatcher,
 	}
@@ -143,61 +147,70 @@ func (ba *bpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 
 // AuditorMark records an auditor's mark and advances to the next group or finishes.
 
-func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int) error {
+func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int, customerBar bool) error {
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "AuditorMark", "CPSAction", "AuditorMark")
 
 	defer span.End()
 
-	// act, err := ba.repo.SanitizedFindOne(ctx, bson.M{"action_code": actionCode})
+	producer := mid.GetClientOrchestrationProducer()
 
-	// if err != nil || act == nil {
+	if producer == nil {
 
-	// 	ba.logger.Errorf("failed to find action", trace.WithAttributes(attribute.String("error", err.Error())))
+		return errors.New(localization.ErrorUnexpectedError.Code)
 
-	// 	return errors.New(localization.ErrorActionNotFound.Code)
+	}
 
-	// }
+	rawRoleID, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 
-	// // prevent multiple marks within the same group (any-one quorum)
+	if strings.TrimSpace(rawRoleID) == "" {
 
-	// grp := int(activeGroup)
+		return errors.New(localization.ErrorOperationNotAllowed.Code)
 
-	// for _, au := range act.AuditorUsers {
+	}
 
-	// 	if int(au.AuditorIndex) == grp {
+	userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
 
-	// 		return errors.New(localization.ErrorOperationNotAllowed.Code)
+	action, err := ba.GetBPSActionByActionCode(ctx, actionCode, "")
 
-	// 	}
+	if err != nil || action == nil {
 
-	// }
+		ba.logger.Errorf("[BpsActionSvc][AuditorMark] action not found: %s", actionCode)
 
-	// // append this auditor
+		return errors.New(localization.ErrorActionNotFound.Code)
 
-	// nextUsers := append(act.AuditorUsers, auditor)
+	}
 
-	// upd := model.CPSAction{ActionCode: actionCode}
+	payload := bpsActionPublishPayload{Action: action, RoleCode: rawRoleID, UserData: userData, Reason: auditor.AuditorReason}
 
-	// upd.AuditorUsers = nextUsers
+	if err := producer.PublishMessage(ctx, payload, "bps.auditor.mark", constants.BPSAuditorMarkTopic, "BPS_AUDITOR_MARK"); err != nil {
 
-	// // advance group or finish
+		span.AddEvent("failed to publish bps auditor mark", trace.WithAttributes(attribute.String("error", err.Error())))
 
-	// if act.AuditorCount > 0 && int32(activeGroup) >= act.AuditorCount {
+		return errors.New(localization.ErrorUnexpectedError.Code)
 
-	// 	upd.AuditorStatus = model.AuditorStatus(constants.AUDITORCHECKED)
+	}
 
-	// 	upd.CurrentAuditorIndex = float64(activeGroup)
+	ba.logger.Infof("[BpsActionSvc][AuditorMark] auditor mark published for action %s, mark=%s", actionCode, auditor.AuditorMark)
 
-	// } else {
+	if customerBar && auditor.AuditorMark == model.MARKEDASWRONG {
+		userCode := action.EntityIdentifyer
+		if strings.TrimSpace(userCode) == "" {
+			ba.logger.Errorf("[BpsActionSvc][AuditorMark] no user_code (entity_identifier) on action: %s", actionCode)
+			span.AddEvent("missing entity_identifier for customer bar")
+			return errors.New(localization.ErrorInvalidInputParameter.Code)
+		}
 
-	// 	upd.AuditorStatus = model.AuditorStatus(constants.AUDITORINPROGRESS)
-
-	// 	upd.CurrentAuditorIndex = float64(activeGroup + 1)
-
-	// }
-
-	// _, err = ba.repo.UpdateByActionCode(ctx, actionCode, upd)
+		if ba.customerRepo != nil {
+			if err := ba.customerRepo.BlockCustomerByUserCode(ctx, userCode); err != nil {
+				ba.logger.Errorf("[BpsActionSvc][AuditorMark] failed to block customer %s: %v", userCode, err)
+				span.RecordError(err)
+				return err
+			}
+			ba.logger.Infof("[BpsActionSvc][AuditorMark] customer %s blocked successfully for action %s", userCode, actionCode)
+			span.AddEvent("customer blocked", trace.WithAttributes(attribute.String("user_code", userCode)))
+		}
+	}
 
 	return nil
 
@@ -630,7 +643,7 @@ func (ba *bpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 
 	}
 
-	filterParams.Filters["maker_id"] = userID
+	filterParams.Filters["checker_users.checker_id"] = userID
 
 	result, err := ba.repo.SanitizedFindAllWithPagination(ctx, *filterParams, "")
 

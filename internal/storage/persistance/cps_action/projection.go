@@ -64,6 +64,24 @@ func BuildCPSActionFilter(cps model.CPSAction) bson.M {
 	return filter
 }
 
+func BuildCPSActionFilterForCursor(cps model.CPSAction) bson.M {
+	filter := bson.M{}
+
+	// Helper to add string fields
+	addString := func(key, value string) {
+		if value != "" {
+			filter[key] = value
+		}
+	}
+
+	addString("$action_code", cps.ActionCode)
+	// addString("department", cps.Department)
+	addString("$request_action", cps.RequestAction)
+	addString("$action_status", string(constants.Pending))
+
+	return filter
+}
+
 func BuildCPSActionUpdateMap(cps model.CPSAction) bson.M {
 	update := bson.M{}
 

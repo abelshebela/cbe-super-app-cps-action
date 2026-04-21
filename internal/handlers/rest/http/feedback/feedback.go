@@ -50,6 +50,7 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 	log := local_util.LoggerFromCtx(ctx, f.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var req feedback.FeedbackRequest
 
@@ -86,10 +87,12 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessFeedbackCreatedSP, nil)
 
 	} else {
 		log.Infof("[CreateFeedback] feedback created successfully by user: %s", userID)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessFeedbackCreated, nil)
 	}
 }

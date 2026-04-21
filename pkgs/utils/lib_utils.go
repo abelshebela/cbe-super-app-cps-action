@@ -22,6 +22,80 @@ import (
 var counter uint64
 var reHex24 = regexp.MustCompile(`(?i)[0-9a-f]{24}`)
 
+func Contains(list []string, v string) bool {
+	for _, s := range list {
+		if s == v {
+			return true
+		}
+	}
+	return false
+}
+
+func FormatTime(v any) string {
+	switch t := v.(type) {
+	case time.Time:
+		if t.IsZero() {
+			return ""
+		}
+		return t.Format(time.RFC3339)
+	case *time.Time:
+		if t == nil || t.IsZero() {
+			return ""
+		}
+		return t.Format(time.RFC3339)
+	default:
+		return fmt.Sprintf("%v", v)
+	}
+}
+
+func IsActionInGroup(action constants.RequestAction, group string, RequestActionGroups map[string][]constants.RequestAction) bool {
+	actions, exists := RequestActionGroups[group]
+	if !exists {
+		return false
+	}
+
+	for _, a := range actions {
+		if a == action {
+			return true
+		}
+	}
+	return false
+}
+
+func ParseDateInput(s string) (time.Time, error) {
+	formats := []string{
+		time.RFC3339Nano,                // e.g. export handler FormatDateRangeToUTCStrings
+		time.RFC3339,                    // 2026-01-05T07:10:33+00:00
+		"2006-01-02T15:04:05.000Z07:00", // 2026-01-05T07:10:33.695+00:00
+		"2006-01-02T15:04:05.999Z07:00", // milliseconds variant
+		"2006-01-02T15:04:05Z07:00",     // without millis
+		"2006-01-02T15:04:05",           // no timezone
+		"2006-01-02",                    // date only
+	}
+	for _, f := range formats {
+		if t, err := time.Parse(f, s); err == nil {
+			return t, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("unable to parse date: %s", s)
+}
+
+func GetRAListForUpdateAction(action constants.RequestAction, group string, RequestActionGroups map[string][]constants.RequestAction) []string {
+	var RAUpdateList = []string{}
+	actions, exists := RequestActionGroups[group]
+	if !exists {
+		return []string{}
+	}
+
+	for _, a := range actions {
+		if strings.Contains(string(a), "UPDATE") || strings.Contains(string(a), "ENABLE") || strings.Contains(string(a), "DISABLE") {
+			RAUpdateList = append(RAUpdateList, string(a))
+			return RAUpdateList
+		}
+	}
+	return RAUpdateList
+}
+
 func RemoveDuplicates(slice []string) []string {
 	if slice == nil {
 		return nil
@@ -115,7 +189,14 @@ func ExtractUserContext(r *http.Request) types.UserContext {
 		val, _ := r.Context().Value(constants.ContextKey(key)).(string)
 		return val
 	}
+
+	getBool := func(key string) bool {
+		val, _ := r.Context().Value(constants.ContextKey(key)).(bool)
+		return val
+	}
+
 	return types.UserContext{
+		IsErp:        getBool("is_erp"),
 		UserCode:     get("user_code"),
 		UserID:       get("user_id"),
 		FullName:     get("full_name"),
@@ -132,8 +213,13 @@ func ExtractUserFromContext(ctx context.Context) types.UserContext {
 		val, _ := ctx.Value(constants.ContextKey(key)).(string)
 		return val
 	}
+	getBool := func(key string) bool {
+		val, _ := ctx.Value(constants.ContextKey(key)).(bool)
+		return val
+	}
 
 	return types.UserContext{
+		IsErp:       getBool("is_erp"),
 		UserCode:    get("user_code"),
 		UserID:      get("user_id"),
 		FullName:    get("full_name"),
@@ -209,6 +295,26 @@ func ExtractFilterParams(r *http.Request) *types.Filter {
 		Search:  query.Get("search"),
 		Filters: filters,
 	}
+}
+
+// StringFromFilterValue returns the first non-empty string from a filter value produced by
+// ExtractFilterParams (plain string, or []interface{} when the same query key is repeated).
+func StringFromFilterValue(v interface{}) (string, bool) {
+	switch t := v.(type) {
+	case string:
+		s := strings.TrimSpace(t)
+		return s, s != ""
+	case []interface{}:
+		for _, x := range t {
+			if s, ok := x.(string); ok {
+				s = strings.TrimSpace(s)
+				if s != "" {
+					return s, true
+				}
+			}
+		}
+	}
+	return "", false
 }
 
 func isReserved(key string) bool {

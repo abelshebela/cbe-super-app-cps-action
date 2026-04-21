@@ -72,11 +72,13 @@ func (e *EventMerchantHandler) EventMerchantLookup(w http.ResponseWriter, r *htt
 //	@Router			/event_merchants [post]
 func (e *EventMerchantHandler) CreateEventMerchant(w http.ResponseWriter, r *http.Request) {
 	ctx, _ := local_util.TraceLogger(r.Context(), "handler", "createAdvert", "handler", "advert")
+	userContext := local_util.ExtractUserContext(r)
 
 	log := local_util.LoggerFromCtx(ctx, e.logger)
 	var req event_merchant_dto.CreateEventMerchantRequest
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Errorf("[CreateEventMerchant] decode: %v", err)
@@ -95,10 +97,16 @@ func (e *EventMerchantHandler) CreateEventMerchant(w http.ResponseWriter, r *htt
 		return
 	}
 
-	if md.IsMakerOnly {
+	if userContext.IsErp {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreated, md.Id)
+		return
+	} else if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreated, nil)
 	} else {
 		e.logger.Infof("[CreateEventMerchant] request sent successfully for create event merchant")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreateRequestSent, nil)
 	}
 }
@@ -120,6 +128,10 @@ func (e *EventMerchantHandler) CreateEventMerchant(w http.ResponseWriter, r *htt
 func (e *EventMerchantHandler) DeleteEventMerchant(w http.ResponseWriter, r *http.Request) {
 	ctx, _ := local_util.TraceLogger(r.Context(), "handler", "deleteEventMerchant", "handler", "event_merchant")
 
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
@@ -130,6 +142,7 @@ func (e *EventMerchantHandler) DeleteEventMerchant(w http.ResponseWriter, r *htt
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessEventMerchantDeleted, nil)
 }
 
@@ -149,9 +162,12 @@ func (e *EventMerchantHandler) DeleteEventMerchant(w http.ResponseWriter, r *htt
 //	@Router			/event_merchants/disable/{id} [patch]
 func (e *EventMerchantHandler) DisableEventMerchant(w http.ResponseWriter, r *http.Request) {
 	ctx, _ := local_util.TraceLogger(r.Context(), "handler", "disableEventMerchant", "handler", "event_merchant")
+	userContext := local_util.ExtractUserContext(r)
+
 	md := &types.ContextMetadata{}
 	id := chi.URLParam(r, "id")
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
@@ -162,10 +178,12 @@ func (e *EventMerchantHandler) DisableEventMerchant(w http.ResponseWriter, r *ht
 		return
 	}
 
-	if md.IsMakerOnly {
+	if userContext.IsErp || md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantDisabled, nil)
 	} else {
 		e.logger.Infof("[DisableEventMerchant] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantDisableRequestSent, nil)
 	}
 }
@@ -186,8 +204,11 @@ func (e *EventMerchantHandler) DisableEventMerchant(w http.ResponseWriter, r *ht
 //	@Router			/event_merchants/enable/{id} [patch]
 func (e *EventMerchantHandler) EnableEventMerchant(w http.ResponseWriter, r *http.Request) {
 	ctx, _ := local_util.TraceLogger(r.Context(), "handler", "enableEventMerchant", "handler", "event_merchant")
+	userContext := local_util.ExtractUserContext(r)
+
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
@@ -198,10 +219,12 @@ func (e *EventMerchantHandler) EnableEventMerchant(w http.ResponseWriter, r *htt
 		return
 	}
 
-	if md.IsMakerOnly {
+	if userContext.IsErp || md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantEnabled, nil)
 	} else {
 		e.logger.Infof("[EnableEventMerchant] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantEnableRequestSent, nil)
 	}
 }
@@ -290,9 +313,12 @@ func (e *EventMerchantHandler) GetEventMerchants(w http.ResponseWriter, r *http.
 //	@Router			/event_merchants/{id} [patch]
 func (e *EventMerchantHandler) UpdateEventMerchant(w http.ResponseWriter, r *http.Request) {
 	ctx, _ := local_util.TraceLogger(r.Context(), "handler", "updateEventMerchant", "handler", "event_merchant")
+	userContext := local_util.ExtractUserContext(r)
+
 	md := &types.ContextMetadata{}
 	log := local_util.LoggerFromCtx(ctx, e.logger)
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -314,10 +340,12 @@ func (e *EventMerchantHandler) UpdateEventMerchant(w http.ResponseWriter, r *htt
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	if md.IsMakerOnly {
+	if userContext.IsErp || md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantUpdated, nil)
 	} else {
 		log.Infof("[UpdateEventMerchant] request sent successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantUpdateRequestSent, nil)
 	}
 }

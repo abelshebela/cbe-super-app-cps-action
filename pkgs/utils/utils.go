@@ -96,8 +96,7 @@ func IsValidImage(fileHeader *multipart.FileHeader) bool {
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
 	switch ext {
 	case ".jpg", ".jpeg", ".png", ".gif", ".webp":
-		// ok
-		return true
+		// extension ok; continue to name and content checks
 	default:
 		return false
 	}
@@ -121,7 +120,14 @@ func IsValidImage(fileHeader *multipart.FileHeader) bool {
 	}
 
 	contentType := http.DetectContentType(buffer)
-	return allowedMIMETypes[contentType]
+	if allowedMIMETypes[contentType] {
+		return true
+	}
+	// Many clients (mobile, WebView, some browsers) send images as octet-stream; extension already vetted above.
+	if contentType == "application/octet-stream" || contentType == "binary/octet-stream" {
+		return true
+	}
+	return false
 }
 
 func IsValidVideo(fileHeader *multipart.FileHeader) bool {
@@ -232,6 +238,17 @@ func ExtractUserInfo(ctx context.Context, log utils.Logger) (*types.UserInfo, er
 	}, nil
 }
 
+// mongoOperatorMap is true when m should be used as a Mongo operator document (e.g. $in, $nin)
+// rather than recursed through BuildMongoFilterWithKeys with allowedKeys.
+func mongoOperatorMap(m map[string]interface{}) bool {
+	for k := range m {
+		if strings.HasPrefix(k, "$") {
+			return true
+		}
+	}
+	return false
+}
+
 func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string, handler map[string]func(interface{}) interface{}) bson.M {
 	filter := bson.M{}
 
@@ -263,6 +280,12 @@ func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string
 				filter[key] = bson.M{"$in": v}
 			}
 		case map[string]interface{}:
+			// Preserve Mongo operator documents (e.g. request_action: {$in: [...]}) instead of
+			// recursing with allowedKeys, which would drop "$in".
+			if mongoOperatorMap(v) {
+				filter[key] = v
+				continue
+			}
 			nested := BuildMongoFilterWithKeys(v, allowedKeys, handler)
 			for nestedKey, nestedVal := range nested {
 				filter[key+"."+nestedKey] = nestedVal
@@ -482,18 +505,15 @@ func TrimWhiteSpace(value interface{}) error {
 }
 
 func JsonUnmarshal[T any](data any) (*T, error) {
-
-	var jsonData *T
-	byte, err := json.Marshal(data)
+	b, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
-
-	if err = json.Unmarshal(byte, &jsonData); err != nil {
+	var out T
+	if err := json.Unmarshal(b, &out); err != nil {
 		return nil, err
 	}
-
-	return jsonData, nil
+	return &out, nil
 }
 
 func ExtraSpaceRemover(s string) string {
@@ -706,48 +726,25 @@ func ValidateTimeRangeOrder(time1, time2 time.Time) (bool, error) {
 	return true, nil
 }
 
-func FormatDateRangeToUTCStrings(fromStr, toStr string) (string, string, error) {
-	const layout = "2006-01-02" // frontend format
-
-	parseFlexible := func(s string) (time.Time, error) {
-		// Try RFC3339 first (handles timezone offsets like -05:00)
-		t, err := time.Parse(time.RFC3339, s)
-		if err == nil {
-			return t, nil
-		}
-		// Fall back to YYYY-MM-DD
-		return time.Parse(layout, s)
-	}
-
-	from, err := parseFlexible(fromStr)
+func FormatDateRangeToUTCStrings(fromStr, toStr string) (time.Time, time.Time, error) {
+	from, err := ParseDateInput(fromStr)
 	if err != nil {
-		return "", "", err
+		return time.Time{}, time.Time{}, err
 	}
 
-	to, err := parseFlexible(toStr)
+	to, err := ParseDateInput(toStr)
 	if err != nil {
-		return "", "", err
+		return time.Time{}, time.Time{}, err
 	}
 
-	// Start of day UTC
-	startOfDay := time.Date(
-		from.Year(),
-		from.Month(),
-		from.Day(),
-		0, 0, 0, 0,
-		time.UTC,
-	)
+	// Date-only inputs should cover the full UTC day so exports do not
+	// exclude records created later on the `To` date.
+	if len(fromStr) == len("2006-01-02") {
+		from = time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, time.UTC)
+	}
+	if len(toStr) == len("2006-01-02") {
+		to = time.Date(to.Year(), to.Month(), to.Day(), 23, 59, 59, int(time.Second-time.Nanosecond), time.UTC)
+	}
 
-	// End of day UTC (recommended production-safe version)
-	endOfDay := time.Date(
-		to.Year(),
-		to.Month(),
-		to.Day(),
-		23, 59, 59, 999999999,
-		time.UTC,
-	)
-
-	return startOfDay.Format(time.RFC3339Nano),
-		endOfDay.Format(time.RFC3339Nano),
-		nil
+	return from, to, nil
 }

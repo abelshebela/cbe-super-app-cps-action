@@ -145,7 +145,7 @@ func (d *DonationStorage) FindByID(ctx context.Context, id string) (*donation_dt
 func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_dto.DonationListResponse], error) {
 
 	searchKeys := bson.M{}
-	allowedKeys := []string{"search", "title", "is_featured", "enabled", "donation_code", "target", "end_date"}
+	allowedKeys := []string{"search", "title", "is_featured", "enabled", "donation_code", "target", "end_date", "is_expired", "start_date", "created_at"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -161,6 +161,11 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 		}
 	}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	if filter["is_expired"] != nil && filter["is_expired"].(bool) {
+		
+		filter["end_date"] = bson.M{"$lt": time.Now().UTC()}
+	}
+	filter["is_deleted"] = bson.M{"$ne": true}
 	data, err := d.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		d.logger.Errorf("[DonationStorage][FindAllWithPagination] failed to fetch donations: %v", err)
@@ -207,14 +212,15 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 func (d *DonationStorage) StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*donation_model.Donation) error) error {
 	filter := bson.M{
-		"created_at": bson.M{
+		"start_date": bson.M{
 			"$gte": startDate,
 			"$lte": endDate,
 		},
+		"is_deleted": bson.M{"$ne": true},
 	}
 
 	opts := options.Find().
-		SetSort(bson.D{{Key: "created_at", Value: 1}}).
+		SetSort(bson.D{{Key: "start_date", Value: 1}}).
 		SetBatchSize(1000)
 
 	cursor, err := d.collection.Find(ctx, filter, opts)
@@ -258,6 +264,33 @@ func (d *DonationStorage) HasActiveDonationsByCategory(ctx context.Context, cate
 			return false, nil
 		}
 		d.logger.Errorf("[DonationStorage][HasActiveDonationsByCategory] count failed: %v", err)
+		return false, local_util.HandleDBError(err)
+	}
+
+	return count > 0, nil
+}
+
+func (d *DonationStorage) HasActiveDonationsByCompany(ctx context.Context, companyID string) (bool, error) {
+	d.logger.Infof("[DonationStorage][HasActiveDonationsByCompany] checking active donations for company: %s", companyID)
+
+	objID, err := bson.ObjectIDFromHex(companyID)
+	if err != nil {
+		d.logger.Errorf("[DonationStorage][HasActiveDonationsByCompany] invalid company id: %v", err)
+		return false, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	filter := bson.M{
+		"company_id": objID,
+		"enabled":    true,
+		"is_deleted": false,
+	}
+
+	count, err := d.dal.TotalCount(ctx, filter)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		d.logger.Errorf("[DonationStorage][HasActiveDonationsByCompany] count failed: %v", err)
 		return false, local_util.HandleDBError(err)
 	}
 

@@ -26,16 +26,18 @@ type RoleService struct {
 	portalCardRepo   storage.PortalCardRepository
 	roleRepository   storage.JobRoleRepository
 	approveIndexRepo storage.CPSActionApproveIndexRepository
+	jobRepo          storage.RoleRepository
 	cfg              config.VaultConfig
 	logger           utils.Logger
 }
 
-func NewRoleService(roleRepo storage.JobRoleRepository, portalCard storage.PortalCardRepository, approveIndexRepo storage.CPSActionApproveIndexRepository, cpsService service.CPSActionService, cfg config.VaultConfig, logger utils.Logger) service.RoleService {
+func NewRoleService(roleRepo storage.JobRoleRepository, portalCard storage.PortalCardRepository, approveIndexRepo storage.CPSActionApproveIndexRepository, jobRepo storage.RoleRepository, cpsService service.CPSActionService, cfg config.VaultConfig, logger utils.Logger) service.RoleService {
 	return &RoleService{
 		cpsService:       cpsService,
 		portalCardRepo:   portalCard,
 		roleRepository:   roleRepo,
 		approveIndexRepo: approveIndexRepo,
+		jobRepo:          jobRepo,
 		cfg:              cfg,
 		logger:           logger,
 	}
@@ -174,6 +176,27 @@ func (j *RoleService) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		j.logger.Errorf("[Role Service][Delete] failed to find existing role: %v", err)
 		return err
+	}
+
+	// Check if role has active jobs before allowing deletion
+	hasActive, err := j.approveIndexRepo.HasActiveActionRoles(ctx, existing.Code)
+	if err != nil {
+		j.logger.Errorf("[Role Service][Delete] failed to check active action roles: %v", err)
+		return err
+	}
+	if hasActive {
+		j.logger.Errorf("[Role Service][Delete] role %s has active jobs, cannot delete", existing.Code)
+		return errors.New(localization.ErrorRoleHasActiveJobs.Code)
+	}
+
+	hasActiveJobRole, err := j.jobRepo.HasActiveJobRole(ctx, existing.Code)
+	if err != nil {
+		j.logger.Errorf("[Role Service][Delete] failed to check active job roles: %v", err)
+		return err
+	}
+	if hasActiveJobRole {
+		j.logger.Errorf("[Role Service][Delete] role %s has active jobs, cannot delete", existing.Code)
+		return errors.New(localization.ErrorRoleHasActiveJobs.Code)
 	}
 
 	updated := *existing

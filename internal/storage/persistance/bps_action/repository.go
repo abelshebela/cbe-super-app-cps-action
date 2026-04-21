@@ -28,6 +28,7 @@ var Projection = bson.M{
 	"maker_id":              1,
 	"maker_name":            1,
 	"maker_phone_number":    1,
+	"maker_reason":          1,
 	"checker_users":         1,
 	"checker_count":         1,
 	"current_checker_index": 1,
@@ -53,6 +54,34 @@ var Projection = bson.M{
 	"reversed_by_id":        1,
 	"reversed_by_name":      1,
 	"reversed_at":           1,
+	// Additional fields needed for auditor view
+	"user_information":     1,
+	"business":             1,
+	"checkers_needed":      1,
+	"checkers_approved":    1,
+	"checker_id":           1,
+	"maker_user":           1,
+	"checker_name":         1,
+	"checker_phone_number": 1,
+	"action_reason":        1,
+	"maker_mid":            1,
+	"checker_mid":          1,
+	"auditor_mid":          1,
+	"checker_name_list":    1,
+	"auditor_name_list":    1,
+	"auditors":             1,
+	"checker_time":         1,
+	"auditor_time":         1,
+	"value":                1,
+	"home_branch":          1,
+	"account_branch_code":  1,
+	"district_code":        1,
+	"branch_code":          1,
+	"linked_district_code": 1,
+	"account_number":       1,
+	"account_holder_name":  1,
+	"service_name":         1,
+	"is_auditor_approved":  1,
 }
 
 type bpsActionRepository struct {
@@ -74,13 +103,13 @@ func NewBPSActionRepository(client *mongo.Client, dbName string, collection stri
 // GetBPSActionByUserID implements [storage.BPSActionRepository].
 func (b *bpsActionRepository) GetBPSActionByUserID(ctx context.Context, userID string, filterParam types.Filter) (types.PaginatedResponse[[]bps_action.BPSAction], error) {
 	b.logger.Infof("[BPSAction][GetBPSActionByUserID] fetching BPS actions for user ID: %s", userID)
-	objID, err := bson.ObjectIDFromHex(userID)
-	if err != nil {
-		b.logger.Errorf("[BPSAction][GetBPSActionByUserID] invalid user ID: %v", err)
-		return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New(localization.ErrorInvalidID.Code)
-	}
+	// objID, err := bson.ObjectIDFromHex(userID)
+	// if err != nil {
+	// 	b.logger.Errorf("[BPSAction][GetBPSActionByUserID] invalid user ID: %v", err)
+	// 	return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New(localization.ErrorInvalidID.Code)
+	// }
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, nil)
-	filter["user_information.user_id"] = objID
+	filter["user_information.user_code"] = userID
 
 	cus, err := b.actionDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
@@ -88,7 +117,7 @@ func (b *bpsActionRepository) GetBPSActionByUserID(ctx context.Context, userID s
 		return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	filter = bson.M{"user_information.user_id": objID}
+	filter = bson.M{"user_information.user_code": userID}
 	total, err := b.actionDal.TotalCount(ctx, filter)
 	if err != nil {
 		b.logger.Errorf("[BPSAction][GetBPSActionByUserID] failed to fetch total count: %v", err)
@@ -255,15 +284,11 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(
 		}, nil
 	}
 
-	filter := bson.M{}
-
-	if len(RAList) > 0 {
-		filter["request_action"] = bson.M{"$in": RAList}
-	}
+	baseFilter := bson.M{}
 
 	if strings.TrimSpace(filterParam.Search) != "" {
 		regex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["$or"] = []bson.M{
+		baseFilter["$or"] = []bson.M{
 			{"maker_name": regex},
 			{"maker_phone_number": regex},
 			{"status": regex},
@@ -286,11 +311,12 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(
 
 	dynamicFilter, skip, limit := lib.FilterBuilder(filterParam, nil, allowedKeys)
 
-	for k, v := range dynamicFilter {
-		if k != "created_at" { // avoid broken range leftovers
-			filter[k] = v
-		}
+	for k, v := range baseFilter {
+		dynamicFilter[k] = v
 	}
+	delete(dynamicFilter, "created_at")
+	filter := dynamicFilter
+	filter["request_action"] = bson.M{"$in": RAList}
 
 	exclude := []string{
 		"password",
@@ -370,19 +396,25 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 	for k, v := range baseFilter {
 		dynamicFilter[k] = v
 	}
+
 	delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
-	filter["request_action"] = bson.M{"$in": RAList}
+	if len(RAList) > 0 {
+		filter["request_action"] = bson.M{"$in": RAList}
+	}
 
-	if filter["auditor_status"] == "NOTCHECKED" {
-		filter["auditors.auditor"] = false
-	} else if filter["auditor_status"] == "CHECKED" {
-		filter["auditors.auditor"] = true
+	switch filter["auditor_status"] {
+	case "NOTCHECKED":
+		filter["auditors.audited"] = false
+		filter["status"] = "APPROVED" // Only show APPROVED actions for auditors
+	case "CHECKED":
+		filter["auditors.audited"] = true
 	}
 	delete(filter, "auditor_status")
 
 	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
 
+	b.logger.Infof("[BPSAction][SanitizedFindAllWithPaginationForAuditor] filter*************: %v", filter)
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
@@ -391,6 +423,7 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 		{{Key: "$project", Value: Projection}},
 		bps_action_core.SanitizePipeline(exclude),
 	}
+	b.logger.Infof("[BPSAction][SanitizedFindAllWithPaginationForAuditor] filter*************: %v", filter)
 
 	cur, err := b.collection.Aggregate(ctx, pipeline)
 	if err != nil {

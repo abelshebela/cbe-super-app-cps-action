@@ -2,10 +2,13 @@ package logistics_merchant_handler
 
 import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 
+	"cbe-super-app-cps-action/internal/constants"
 	logistics_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/logistics_merchant"
 	logistics_merchant_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/logistics_merchant"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/logistics_merchant/core"
 	"cbe-super-app-cps-action/internal/service"
 	"encoding/json"
@@ -34,7 +37,13 @@ type LogisticsMerchantHandler struct {
 //	@Security		BearerAuth
 //	@Router			/logistics_merchants [post]
 func (e *LogisticsMerchantHandler) CreateLogisticMerchant(w http.ResponseWriter, r *http.Request) {
+
+	userContext := local_util.ExtractUserContext(r)
 	log := local_util.LoggerFromCtx(r.Context(), e.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
 	var req logistics_merchant_dto.CreateLogisticsMerchantRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -48,10 +57,17 @@ func (e *LogisticsMerchantHandler) CreateLogisticMerchant(w http.ResponseWriter,
 	}
 	m := core.CreateLogisticsMerchantRequestToModel(req)
 
-	if err := e.service.Create(r.Context(), m); err != nil {
+	if err := e.service.Create(ctx, m); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	if userContext.IsErp || md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantCreated, md.Id)
+		return
+	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantCreated, nil)
 }
 
@@ -70,15 +86,19 @@ func (e *LogisticsMerchantHandler) CreateLogisticMerchant(w http.ResponseWriter,
 //	@Security		BearerAuth
 //	@Router			/logistics_merchants/{id} [delete]
 func (e *LogisticsMerchantHandler) DeleteLogisticMerchant(w http.ResponseWriter, r *http.Request) {
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := e.service.Delete(r.Context(), id); err != nil {
+	if err := e.service.Delete(ctx, id); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantDeleted, nil)
 }
 
@@ -97,28 +117,36 @@ func (e *LogisticsMerchantHandler) DeleteLogisticMerchant(w http.ResponseWriter,
 //	@Security		BearerAuth
 //	@Router			/logistics_merchants/disable/{id} [patch]
 func (e *LogisticsMerchantHandler) DisableLogisticMerchant(w http.ResponseWriter, r *http.Request) {
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := e.service.EnableOrDisable(r.Context(), id, false); err != nil {
+	if err := e.service.EnableOrDisable(ctx, id, false); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantDisabled, nil)
 }
 
 func (e *LogisticsMerchantHandler) EnableLogisticMerchant(w http.ResponseWriter, r *http.Request) {
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := e.service.EnableOrDisable(r.Context(), id, true); err != nil {
+	if err := e.service.EnableOrDisable(ctx, id, true); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantEnabled, nil)
 }
 
@@ -191,6 +219,8 @@ func (e *LogisticsMerchantHandler) GetLogisticMerchants(w http.ResponseWriter, r
 //	@Router			/logistics_merchants/{id} [patch]
 func (e *LogisticsMerchantHandler) UpdateLogisticMerchant(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), e.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
@@ -207,10 +237,11 @@ func (e *LogisticsMerchantHandler) UpdateLogisticMerchant(w http.ResponseWriter,
 		return
 	}
 	m := core.UpdateLogisticsMerchantRequestToModel(req)
-	if err := e.service.Update(r.Context(), id, m); err != nil {
+	if err := e.service.Update(ctx, id, m); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantUpdated, nil)
 }
 

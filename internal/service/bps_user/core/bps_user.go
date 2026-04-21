@@ -1,7 +1,7 @@
 package bps_user_core
 
 import (
-	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -28,23 +28,24 @@ func ExistingIdentifier(existing *bps_model.BPSUser, req bps_model.BPSUser) erro
 	normalizedUsername := strings.TrimSpace(req.Username)
 
 	if normalizedEmail != "" && strings.EqualFold(strings.TrimSpace(existing.Email), normalizedEmail) {
-		return errors.New(localization.ErrorEmailAlreadyExist.Code)
+		return localization.ErrorEmailAlreadyExist
 	}
 
 	if normalizedPhone != "" {
 		storedPhone := local_util.FormatPhoneNumber(existing.PhoneNumber)
 		if storedPhone == normalizedPhone {
-			return errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
+			return localization.ErrorPhonenumberAlreadyExist
 		}
 	}
 	if strings.EqualFold(strings.TrimSpace(existing.Username), normalizedUsername) {
-		return errors.New(localization.ErrorUsernameAlreadyExist.Code)
+		return localization.ErrorUsernameAlreadyExist
 	}
 	return nil
 }
 
 func ExistingIdentifierForUpdate(existing bps_model.BPSUser, id string, req bps_model.BPSUser) error {
-	if &existing == nil {
+	if existing.ID.IsZero() {
+		fmt.Println("Existing user ID is zero, treating as non-existent user", existing)
 		return nil
 	}
 
@@ -52,22 +53,23 @@ func ExistingIdentifierForUpdate(existing bps_model.BPSUser, id string, req bps_
 	normalizedPhone := local_util.FormatPhoneNumber(req.PhoneNumber)
 	normalizedUsername := strings.TrimSpace(req.Username)
 
-	existingID := local_util.FirstHex24(existing.ID.String())
+	existingID := existing.ID.Hex()
 	if normalizedEmail != "" && strings.EqualFold(existing.Email, normalizedEmail) && existingID != id {
-		return errors.New(localization.ErrorEmailAlreadyExist.Code)
+		return localization.ErrorEmailAlreadyExist
 	}
 
 	if normalizedPhone != "" && existingID != id {
 		storedPhone := local_util.FormatPhoneNumber(existing.PhoneNumber)
 		if storedPhone == normalizedPhone {
-			return errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
+			return localization.ErrorPhonenumberAlreadyExist
 		}
 	}
 
 	if normalizedUsername != "" && strings.EqualFold(strings.TrimSpace(existing.Username), normalizedUsername) && existingID != id {
-		return errors.New(localization.ErrorUsernameAlreadyExist.Code)
+		return localization.ErrorUsernameAlreadyExist
 	}
-	return nil
+	fmt.Printf("No existing identifier conflicts found for user ID %s existing: %v, normalizedEmail: %s, normalizedPhone: %s, normalizedUsername: %s\n", id, existing, normalizedEmail, normalizedPhone, normalizedUsername)
+	return localization.ErrorUserNotFound
 }
 func BPSUser_mapper(action map[string]interface{}) bps_model.BPSUser {
 	var user bps_model.BPSUser
@@ -288,4 +290,27 @@ func MapWithJobTitleToBPSUser(u local_model.BPSUser) model.BPSUser {
 		CreatedAt:         u.CreatedAt,
 		LastModifiedAt:    u.LastModifiedAt,
 	}
+}
+
+func BuildUpdatedBPSUser(existing bps_model.BPSUser, req bps_model.BPSUser) bps_model.BPSUser {
+	if req.FullName == "" {
+		req.FullName = existing.FullName
+	}
+	if req.Username == "" {
+		req.Username = existing.Username
+	}
+	if req.Email == "" {
+		req.Email = existing.Email
+	}
+	if req.PhoneNumber == "" {
+		req.PhoneNumber = existing.PhoneNumber
+	}
+	if len(req.BranchCode) == 0 {
+		req.BranchCode = existing.BranchCode
+		req.BranchName = existing.BranchName
+	}
+	if req.JobTitle == "" {
+		req.JobTitle = existing.JobTitle
+	}
+	return req
 }

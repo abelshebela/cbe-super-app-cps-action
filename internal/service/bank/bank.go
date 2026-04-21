@@ -102,7 +102,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 		}
 		b.logger.Infof("[BankSvc][Authorize] created")
 	case string(constants.RequestDeleteBank):
-		err := b.repo.Delete(ctx, cpsAction.UniqueId)
+		err := b.oracleRepo.Delete(ctx, cpsAction.UniqueId)
 		if err != nil {
 			span.AddEvent("[Authorize] bank delete action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -113,7 +113,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 		}
 		b.logger.Infof("[BankSvc][Authorize] deleted id: %s", cpsAction.UniqueId)
 
-	case string(constants.RequestEnableDisableBank):
+	case string(constants.RequestDisableBank), string(constants.RequestEnableBank):
 		actionData.UpdateAt = time.Now().String()
 		var err error
 		if actionData.IsEnabled == 1 {
@@ -122,7 +122,6 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			err = b.oracleRepo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
 
 		}
-
 		if err != nil {
 			span.AddEvent("[Authorize] bank enable/disable action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -193,10 +192,20 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		IsEnabled:     0,
 		AccountLength: bank_request.AccountLength,
 	}
-	if *bank_request.HasAlphaNumeric {
-		bank.HasAlphaNumeric = 1
-	} else {
-		bank.HasAlphaNumeric = 0
+	if bank_request.HasAlphaNumeric != nil {
+		if *bank_request.HasAlphaNumeric {
+			bank.HasAlphaNumeric = 1
+		} else {
+			bank.HasAlphaNumeric = 0
+		}
+	}
+
+	if bank_request.IsCBE != nil {
+		if *bank_request.IsCBE {
+			bank.IS_CBE = 1
+		} else {
+			bank.IS_CBE = 0
+		}
 	}
 
 	result, err := b.oracleRepo.FindByNameOrBIC(ctx, bank_request.BICCode, bank_request.Name)
@@ -246,7 +255,7 @@ func (b *BankService) DeleteOneBank(ctx context.Context, id string) error {
 		b.logger.Errorf("[BankSvc][DeleteOneBank] incomplete user")
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
-	bank, err := b.repo.FindByID(ctx, id)
+	bank, err := b.oracleRepo.FindByID(ctx, id)
 
 	if err != nil {
 		span.AddEvent("[DeleteOneBank] failed to find bank", trace.WithAttributes(
@@ -308,17 +317,23 @@ func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enable
 	}
 
 	newBankData := *bank
+	// newBankData.Enabled = enableDisable
+
+	var enable string
 	if enableDisable {
 		newBankData.IsEnabled = 1
+		enable = string(constants.RequestEnableBank)
 	} else {
 		newBankData.IsEnabled = 0
+		enable = string(constants.RequestDisableBank)
 	}
 
-	enable := string(constants.RequestEnableDisableBank)
-	// if !enableDisable {
+	// var enable string
+	// if enableDisable {
+	// 	enable = string(constants.RequestEnableBank)
+	// } else {
 	// 	enable = string(constants.RequestDisableBank)
 	// }
-
 	action := lib.CpsModelBuilder(id, makerData, bank, newBankData, enable, constants.UPDATE)
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
@@ -395,7 +410,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	bank, err := b.repo.FindByID(ctx, id)
+	bank, err := b.oracleRepo.FindByID(ctx, id)
 
 	if err != nil {
 		span.AddEvent("[UpdateLogo] failed to find bank", trace.WithAttributes(
@@ -480,6 +495,13 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 			updatedBank.HasAlphaNumeric = 1
 		} else {
 			updatedBank.HasAlphaNumeric = 0
+		}
+	}
+	if bank_request.IsCBE != nil {
+		if *bank_request.IsCBE {
+			updatedBank.IS_CBE = 1
+		} else {
+			updatedBank.IS_CBE = 0
 		}
 	}
 

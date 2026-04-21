@@ -6,75 +6,44 @@ import (
 	"strings"
 )
 
-func (c EnableDisableAccessListSegmentationRequest) Validate() error {
+func (c *EnableDisableAccessListSegmentationRequest) Validate() error {
 	if c.AccessListKeys == nil {
 		return errors.New(localization.ErrorAccessListKeysRequired.Code)
+	}
+	if c.SegmentationType == "" {
+
+		return errors.New(localization.ErrorSegmentationTypeRequired.Code)
 	}
 	return nil
 }
-func (c CreateAccessListSegmentationRequest) Validate() error {
+func (c *CreateAccessListSegmentationRequest) Validate() error {
 	if c.AccessListKeys == nil {
 		return errors.New(localization.ErrorAccessListKeysRequired.Code)
 	}
-	validTypes := map[string]struct{}{"R": {}, "D": {}, "C": {}, "U": {}, "B": {}}
-	t := strings.TrimSpace(c.Type)
-	st := strings.TrimSpace(c.SegmentType)
-	if t == "" {
-		return errors.New("type is required")
-	}
+	st := strings.ToLower(strings.TrimSpace(c.SegmentType))
 
 	if st == "" {
 		return errors.New("segment type is required")
 	}
-	if st != "Block" && st != "Account" {
+	if st != "block" && st != "account" {
 		return errors.New("segment type must be either 'Block' or 'Account'")
 	}
-	if st == "Block" {
-		if _, ok := validTypes[t]; !ok {
-			return errors.New("type must be one of: R, D, C, U, B")
-		}
-		if len(c.SegmentedID) == 0 {
-			return errors.New("segmented_id is required for segment type 'Block'")
-		}
-
+	if strings.TrimSpace(c.SegmentationID) == "" {
+		return errors.New(localization.ErrorAccessListSegmentationIDSRequired.Code)
 	}
-	if st == "Account" {
-		if c.SegmentCode == "" {
-			return errors.New("segment code is required for segment type 'Account'")
-		}
-		if c.Type != "NOOR" && c.Type != "CBE" {
-			return errors.New("type must be either 'NOOR' or 'CBE' for segment type 'Account'")
-		}
-	}
-
+	c.SegmentType = st
 	return nil
 }
 
-func (u UpdateAccessListSegmentationRequest) Validate() error {
+func (u *UpdateAccessListSegmentationRequest) Validate() error {
 	if strings.TrimSpace(u.ID) == "" {
 		return errors.New("id is required")
 	}
-	validTypes := map[string]struct{}{"R": {}, "D": {}, "C": {}, "U": {}, "B": {}}
-	t := strings.TrimSpace(u.Type)
-	st := strings.TrimSpace(u.SegmentType)
+	st := strings.ToLower(strings.TrimSpace(u.SegmentType))
 
-	if st != "" && st != "Block" && st != "Account" {
+	if st != "" && st != "block" && st != "account" {
 		return errors.New("segment type must be either 'Block' or 'Account'")
 	}
-	if st != "" && st == "Block" {
-		if _, ok := validTypes[t]; !ok {
-			return errors.New("type must be one of: R, D, C, U, B")
-		}
-	}
-	if st != "" && st == "Account" {
-		if t != "" {
-			if t != "NOOR" && t != "CBE" {
-				return errors.New("type must be either 'NOOR' or 'CBE' for segment type 'Account'")
-			}
-		}
-		if u.SegmentCode == "" {
-			return errors.New("segment code is required for segment type 'Account'")
-		}
-	}
+	u.SegmentType = st
 	return nil
 }

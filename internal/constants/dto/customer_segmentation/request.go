@@ -12,5 +12,6 @@ type CreateCustomerSegmentationRequest struct {
 }
 
 type UpdateCustomerSegmentationRequest struct {
-	CustomerSubSegments []CustomerSubSegments `json:"t24_customer_sub_segments,omitempty"`
+	CustomerSubSegments       []CustomerSubSegments `json:"t24_customer_sub_segments,omitempty"`
+	RemovedCustomerSegmentIds []string              `json:"removed_customer_segment_ids,omitempty"`
 }

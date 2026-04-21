@@ -36,10 +36,263 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/jung-kurt/gofpdf"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+type FileType string
+
+const (
+	FileTypeCSV FileType = "csv"
+	FileTypePDF FileType = "pdf"
+)
+
+// Generic upload function
+type UploadFunc func(ctx context.Context, file *os.File, size int64, objectName string, fileType FileType) (string, error)
+
+// Generic config
+type FileProducerConfig struct {
+	FilePrefix string
+	Header     []string
+	FileType   FileType
+	ObjectName string
+}
+
+func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minioClient *s3.Client, buckerName string, filterMap *types.Filter, data []*model.CPSAction, CpsActionCSVHeader func(fields []string) []string, logger utils.Logger) (string, error) {
+	// 1 Create temp file
+	tmpFile, err := os.CreateTemp("", "cps_actions_*.csv")
+	if err != nil {
+		return "", fmt.Errorf("create temp file: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+	defer tmpFile.Close()
+
+	writer := csv.NewWriter(tmpFile)
+
+	// Safely extract date strings with type checking
+	createdAtFrom, fromOk := filterMap.Filters["created_at_from"].(string)
+	createdAtTo, toOk := filterMap.Filters["created_at_to"].(string)
+
+	if !fromOk || !toOk || createdAtFrom == "" || createdAtTo == "" {
+		return "", errors.New(localization.ErrorRequiredFieldMissing.Code)
+	}
+
+	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(createdAtFrom, createdAtTo)
+	if err != nil {
+		return "", errors.New(localization.ErrorInvalidDateFormat.Code)
+	}
+	filterMap.Filters["created_at_from"] = startDate
+	filterMap.Filters["created_at_to"] = endDate
+	// 2️ Write Header
+	if filterMap.Filters == nil {
+		filterMap.Filters = map[string]interface{}{}
+	}
+
+	fields, ok := filterMap.Filters["fields"].([]string)
+	if ok {
+		filterMap.Filters["fields"] = fields
+	}
+	// delete(filterMap.Filters, "fields")s
+
+	var header []string
+	fields, _ = filterMap.Filters["fields"].([]string)
+
+	header = CpsActionCSVHeader(fields)
+	if err := writer.Write(header); err != nil {
+		return "", fmt.Errorf("write header: %w", err)
+	}
+
+	rowCount := 0
+	for _, action := range data {
+		rowCount++
+		row, err := BuildCPSActionRow(action)
+		if err != nil {
+			return "", err
+		}
+		if err := writer.Write(row); err != nil {
+			return "", err
+		}
+	}
+
+	if rowCount == 0 {
+		return "", errors.New(localization.CpsActionDataNotFoundInDateRange.Code)
+	}
+
+	// 4️Upload to MinIO
+	objectName := fmt.Sprintf(
+		"cps_actions_%s_to_%s_%d.csv",
+		startDate.Format("20060102"),
+		endDate.Format("20060102"),
+		time.Now().Unix(),
+	)
+
+	if _, err := tmpFile.Seek(0, 0); err != nil {
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	stat, err := tmpFile.Stat()
+	if err != nil {
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	fileType, ok := filterMap.Filters["file_type"].(string)
+	if !ok {
+		fileType = string(FileTypeCSV)
+	}
+	// exportType comes from the handler (e.g. query file_type=csv); default to csv for this endpoint.
+	var url string
+	if fileType == "csv" {
+		url, err = UploadCSVToMinio(ctx, minioClient, buckerName, tmpFile, stat.Size(), cfg, objectName, logger)
+		if err != nil {
+			return "", errors.New(localization.CpsActionDataExportedError.Code)
+		}
+	} else {
+		url, err = UploadPDFToMinio(ctx, minioClient, buckerName, tmpFile, stat.Size(), cfg, objectName, logger)
+		if err != nil {
+			return "", errors.New(localization.CpsActionDataExportedError.Code)
+		}
+	}
+
+	baseURL := strings.TrimSuffix(cfg.MinioPublicEndPoint, "/")
+	if baseURL != "" {
+		url = fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(objectName, "/"))
+	}
+
+	return url, nil
+
+}
+
+func BuildCPSActionRow(a *model.CPSAction) ([]string, error) {
+	// Extract auditor names
+	var auditorNames []string
+	for _, auditor := range a.AuditorUsers {
+		auditorNames = append(auditorNames, auditor.AuditorName)
+	}
+	auditorNamesStr := strings.Join(auditorNames, ", ")
+
+	return []string{
+		a.ID.Hex(),
+		a.ActionCode,
+		// a.UniqueId,
+		a.MakerID,
+		a.MakerName,
+		a.MakerPhoneNumber,
+		// string(checkerJSON),
+		// string(auditorJSON),
+		auditorNamesStr,
+		// strconv.Itoa(int(a.AuditorCount)),
+		string(a.AuditorStatus),
+		// fmt.Sprintf("%f", a.CurrentAuditorIndex),
+		// strconv.Itoa(int(a.CheckerCount)),
+		// fmt.Sprintf("%f", a.CurrentCheckerIndex),
+		// a.RoleCode,
+		// a.RejectionReason,
+		// a.CanceledReason,
+		// string(prevJSON),
+		// string(currJSON),
+		a.ActionStatus,
+		a.ActionType,
+		// strconv.FormatBool(a.IsDeleted),
+		a.RequestAction,
+		// strconv.FormatInt(a.Version, 10),
+		// a.ReversedByRoleID,
+		// a.ReversedByID,
+		// a.ReversedByName,
+		// local_util.FormatTime(a.ReversedAt),
+		local_util.FormatTime(a.CreatedAt),
+		local_util.FormatTime(a.LastModifiedAt),
+		local_util.FormatTime(a.MakerActionTime),
+		local_util.FormatTime(a.LastModifiedAt), // Using LastModifiedAt as CheckerActionTime
+	}, nil
+}
+
+// 🔥 Generic producer with data
+func ProduceFileFromData[T any](
+	ctx context.Context,
+	cfg FileProducerConfig,
+	data []T,
+	rowMapper func(T) ([]string, error),
+	upload UploadFunc,
+) (string, error) {
+
+	ft := FileType(strings.ToLower(string(cfg.FileType)))
+	if ft == "" {
+		ft = FileTypeCSV
+	}
+
+	ext := string(ft)
+
+	// 1️⃣ temp file
+	tmpFile, err := os.CreateTemp("", fmt.Sprintf("%s_*.%s", cfg.FilePrefix, ext))
+	if err != nil {
+		return "", fmt.Errorf("create temp file: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+	defer tmpFile.Close()
+
+	writer := csv.NewWriter(tmpFile)
+
+	// 2️⃣ header
+	if ft == FileTypeCSV && len(cfg.Header) > 0 {
+		if err := writer.Write(cfg.Header); err != nil {
+			return "", fmt.Errorf("write header: %w", err)
+		}
+	}
+
+	// 3️⃣ loop داخلي 🔥
+	rowCount := 0
+	for _, item := range data {
+		row, err := rowMapper(item)
+		if err != nil {
+			return "", err
+		}
+
+		if ft == FileTypeCSV {
+			if err := writer.Write(row); err != nil {
+				return "", err
+			}
+		}
+
+		rowCount++
+	}
+
+	writer.Flush()
+
+	if rowCount == 0 {
+		return "", fmt.Errorf("no data found")
+	}
+
+	// 4️⃣ prepare file
+	if _, err := tmpFile.Seek(0, 0); err != nil {
+		return "", fmt.Errorf("seek file: %w", err)
+	}
+
+	stat, err := tmpFile.Stat()
+	if err != nil {
+		return "", fmt.Errorf("stat file: %w", err)
+	}
+
+	// 5️⃣ object name
+	objectName := cfg.ObjectName
+	if objectName == "" {
+		objectName = fmt.Sprintf("%s_%d.%s", cfg.FilePrefix, stat.ModTime().Unix(), ext)
+	}
+
+	if !strings.HasSuffix(objectName, "."+ext) {
+		objectName += "." + ext
+	}
+
+	// 6️⃣ upload
+	url, err := upload(ctx, tmpFile, stat.Size(), objectName, ft)
+	if err != nil {
+		return "", err
+	}
+
+	return url, nil
+}
+
+// ==============================================
 func UploadVideoToMinio(
 	ctx context.Context,
 	s3Client *s3.Client,
@@ -149,6 +402,118 @@ func GoRoutinBaker(opts types.BakerOptions, tasks ...func()) {
 	wg.Wait()
 }
 
+// func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []string) (bson.M, int64, int64) {
+// 	var skip, limit int64
+// 	filter := bson.M{}
+
+// 	if filterParam.Search != "" {
+// 		maps.Copy(filter, searchKeys)
+// 	}
+
+// 	if filterParam.Filters != nil {
+
+// 		// --- date range filters ---
+// 		// For each allowed key, check if _from / _to variants exist in the filters.
+// 		allowedSet := make(map[string]bool, len(allowedKeys))
+// 		for _, k := range allowedKeys {
+// 			allowedSet[k] = true
+// 		}
+
+// 		for _, ak := range allowedKeys {
+// 			fromKey := ak + "_from"
+// 			toKey := ak + "_to"
+// 			dateFilter := bson.M{}
+
+// 			// exact date match: ?created_at=2026-01-05 → full day range
+// 			if raw, ok := filterParam.Filters[ak]; ok {
+// 				if str, ok := raw.(string); ok && str != "" {
+// 					if t, err := parseDateInput(str); err == nil {
+// 						if !strings.Contains(str, "T") {
+// 							// date-only → match the whole day
+// 							dateFilter["$gte"] = t
+// 							dateFilter["$lte"] = t.Add(24*time.Hour - time.Millisecond)
+// 						} else {
+// 							// exact datetime
+// 							dateFilter["$eq"] = t
+// 						}
+// 						delete(filterParam.Filters, ak)
+// 					}
+// 				}
+// 			}
+
+// 			// range: ?created_at_from=...&created_at_to=...
+// 			if raw, ok := filterParam.Filters[fromKey]; ok {
+// 				if str, ok := raw.(string); ok && str != "" {
+// 					if t, err := parseDateInput(str); err == nil {
+// 						dateFilter["$gte"] = t
+// 					}
+// 				}
+// 				delete(filterParam.Filters, fromKey)
+// 			}
+
+// 			if raw, ok := filterParam.Filters[toKey]; ok {
+// 				if str, ok := raw.(string); ok && str != "" {
+// 					if t, err := parseDateInput(str); err == nil {
+// 						// if date-only (no time component), set to end of day
+// 						if !strings.Contains(str, "T") {
+// 							t = t.Add(24*time.Hour - time.Millisecond)
+// 						}
+// 						dateFilter["$lte"] = t
+// 					}
+// 				}
+// 				delete(filterParam.Filters, toKey)
+// 			}
+
+// 			if len(dateFilter) > 0 {
+// 				filter[ak] = dateFilter
+// 			}
+// 		}
+
+// 		handler := map[string]func(interface{}) interface{}{}
+// 		includedKeys := []string{
+// 			"enabled",
+// 			"enable",
+// 			"is_enabled",
+// 			"is_deleted",
+// 			"is_blocked",
+// 			"ussd_enabled",
+// 			"is_account_active",
+// 			"is_main",
+// 			"last_linked_status",
+// 			"is_verified",
+// 			"is_blocked",
+// 			"active_account",
+// 			"account_frozen",
+// 			"account_dormant",
+// 			"debit_allowed",
+// 			"credit_allowed",
+// 			"has_restriction",
+// 			"advert_for",
+// 		}
+// 		for _, key := range includedKeys {
+// 			for _, allowedKey := range allowedKeys {
+// 				if allowedKey == key {
+// 					handler[key] = func(value interface{}) interface{} {
+// 						if str, ok := value.(string); ok {
+// 							if parsed, err := strconv.ParseBool(str); err == nil {
+// 								return parsed
+// 							}
+// 						}
+// 						return value
+// 					}
+// 				}
+// 			}
+// 		}
+// 		enhancedFilter := local_util.BuildMongoFilterWithKeys(filterParam.Filters, allowedKeys, handler)
+
+// 		maps.Copy(filter, enhancedFilter)
+// 	}
+
+// 	skip = int64((filterParam.Page - 1) * filterParam.PerPage)
+// 	limit = int64(filterParam.PerPage)
+
+//		return filter, skip, limit
+//	}
 func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []string) (bson.M, int64, int64) {
 	var skip, limit int64
 	filter := bson.M{}
@@ -159,8 +524,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 
 	if filterParam.Filters != nil {
 
-		// --- date range filters ---
-		// For each allowed key, check if _from / _to variants exist in the filters.
+		// --- DATE FILTER LOGIC (per-field) ---
 		allowedSet := make(map[string]bool, len(allowedKeys))
 		for _, k := range allowedKeys {
 			allowedSet[k] = true
@@ -171,16 +535,13 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 			toKey := ak + "_to"
 			dateFilter := bson.M{}
 
-			// exact date match: ?created_at=2026-01-05 → full day range
 			if raw, ok := filterParam.Filters[ak]; ok {
 				if str, ok := raw.(string); ok && str != "" {
 					if t, err := parseDateInput(str); err == nil {
 						if !strings.Contains(str, "T") {
-							// date-only → match the whole day
 							dateFilter["$gte"] = t
 							dateFilter["$lte"] = t.Add(24*time.Hour - time.Millisecond)
 						} else {
-							// exact datetime
 							dateFilter["$eq"] = t
 						}
 						delete(filterParam.Filters, ak)
@@ -188,7 +549,6 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 				}
 			}
 
-			// range: ?created_at_from=...&created_at_to=...
 			if raw, ok := filterParam.Filters[fromKey]; ok {
 				if str, ok := raw.(string); ok && str != "" {
 					if t, err := parseDateInput(str); err == nil {
@@ -201,7 +561,6 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 			if raw, ok := filterParam.Filters[toKey]; ok {
 				if str, ok := raw.(string); ok && str != "" {
 					if t, err := parseDateInput(str); err == nil {
-						// if date-only (no time component), set to end of day
 						if !strings.Contains(str, "T") {
 							t = t.Add(24*time.Hour - time.Millisecond)
 						}
@@ -216,27 +575,15 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 			}
 		}
 
+		// --- BOOLEAN HANDLER ---
 		handler := map[string]func(interface{}) interface{}{}
 		includedKeys := []string{
-			"enabled",
-			"enable",
-			"is_enabled",
-			"is_deleted",
-			"is_blocked",
-			"ussd_enabled",
-			"is_account_active",
-			"is_main",
-			"last_linked_status",
-			"is_verified",
-			"is_blocked",
-			"active_account",
-			"account_frozen",
-			"account_dormant",
-			"debit_allowed",
-			"credit_allowed",
-			"has_restriction",
-			"advert_for",
+			"enabled", "enable", "is_enabled", "is_deleted", "is_blocked",
+			"ussd_enabled", "is_account_active", "is_main", "last_linked_status",
+			"is_verified", "active_account", "account_frozen", "account_dormant",
+			"debit_allowed", "credit_allowed", "has_restriction", "advert_for", "is_expired",
 		}
+
 		for _, key := range includedKeys {
 			for _, allowedKey := range allowedKeys {
 				if allowedKey == key {
@@ -251,9 +598,20 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 				}
 			}
 		}
-		enhancedFilter := local_util.BuildMongoFilterWithKeys(filterParam.Filters, allowedKeys, handler)
 
+		enhancedFilter := local_util.BuildMongoFilterWithKeys(filterParam.Filters, allowedKeys, handler)
 		maps.Copy(filter, enhancedFilter)
+
+		// --- IS_EXPIRED: if is_expired=true, add created_at $lte time.Now() ---
+		if isExpired, ok := filter["is_expired"]; ok {
+			if expired, ok := isExpired.(bool); ok && expired {
+				// if existing, ok := filter["created_at"].(bson.M); ok {
+				// 	existing["$lt"] = time.Now()
+				// } else {
+				// }
+				filter["end_date"] = bson.M{"$lt": time.Now()}
+			}
+		}
 	}
 
 	skip = int64((filterParam.Page - 1) * filterParam.PerPage)
@@ -300,12 +658,27 @@ func BuildOracleFilter(
 		boolKeys := map[string]bool{
 			"enabled": true, "enable": true, "is_enabled": true,
 			"is_deleted": true, "is_blocked": true,
-			"is_verified": true, "active_account": true,
+			"is_verified": true, "active_account": true, "is_expired": true,
 		}
 
 		for key, val := range filterParam.Filters {
 			if !allowedSet[key] {
 				continue
+			}
+
+			// --- DERIVED FILTER: is_expired -> created_at ---
+			if key == "is_expired" {
+				expired, ok := boolFromInterface(val)
+				if ok {
+					operator := "<"
+					if !expired {
+						operator = ">="
+					}
+					filters = append(filters, fmt.Sprintf("created_at %s :%d", operator, idx))
+					args = append(args, time.Now())
+					idx++
+					continue
+				}
 			}
 
 			// --- DATE RANGE ---
@@ -340,14 +713,12 @@ func BuildOracleFilter(
 
 			// --- BOOLEAN ---
 			if boolKeys[key] {
-				if str, ok := val.(string); ok {
-					if parsed, err := strconv.ParseBool(str); err == nil {
-						filters = append(filters,
-							fmt.Sprintf("%s = :%d", key, idx))
-						args = append(args, parsed)
-						idx++
-						continue
-					}
+				if parsed, ok := boolFromInterface(val); ok {
+					filters = append(filters,
+						fmt.Sprintf("%s = :%d", key, idx))
+					args = append(args, parsed)
+					idx++
+					continue
 				}
 			}
 
@@ -366,10 +737,26 @@ func BuildOracleFilter(
 	return strings.Join(filters, " AND "), args, offset, limit
 }
 
+func boolFromInterface(v interface{}) (bool, bool) {
+	switch b := v.(type) {
+	case bool:
+		return b, true
+	case string:
+		parsed, err := strconv.ParseBool(b)
+		if err != nil {
+			return false, false
+		}
+		return parsed, true
+	default:
+		return false, false
+	}
+}
+
 // parseDateInput parses a date string that can be either date-only ("2026-01-05")
 // or full ISO datetime ("2026-01-05T07:10:33.695+00:00", "2026-01-05T07:10:33").
 func parseDateInput(s string) (time.Time, error) {
 	formats := []string{
+		time.RFC3339Nano,                // e.g. export handler FormatDateRangeToUTCStrings
 		time.RFC3339,                    // 2026-01-05T07:10:33+00:00
 		"2006-01-02T15:04:05.000Z07:00", // 2026-01-05T07:10:33.695+00:00
 		"2006-01-02T15:04:05.999Z07:00", // milliseconds variant
@@ -445,6 +832,23 @@ func parseDateInput(s string) (time.Time, error) {
 // 	return url, nil
 // }
 
+func BuildCPSActionDateRangeFilter(filterMap *types.Filter, startDate, endDate time.Time) bson.M {
+	rangeFilter := bson.M{
+		"$gte": startDate,
+		"$lte": endDate,
+	}
+
+	// CPS actions may populate different timestamp fields depending on version / pipeline.
+	// Match if any known field falls in range (same idea as cps_action.repository buildCPSActionDateRangeFilter).
+	return bson.M{
+		"$or": []bson.M{
+			{"created_at": rangeFilter},
+			{"action_created_at": rangeFilter},
+			{"maker_action_time": rangeFilter},
+			{"last_modified_at": rangeFilter},
+		},
+	}
+}
 func UploadFileToMinio(
 	ctx context.Context,
 	s3Client *s3.Client,
@@ -535,6 +939,41 @@ func UploadFileToMinio(
 	}
 	// Build public URL
 	url := fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(key, "/"))
+	return url, nil
+}
+
+func UploadPDFToMinio(
+	ctx context.Context,
+	s3Client *s3.Client,
+	bucketName string,
+	body io.Reader,
+	contentLength int64,
+	env config.VaultConfig,
+	objectKey string,
+	logger interface {
+		Errorf(format string, args ...any)
+	},
+) (string, error) {
+
+	// ✅ Correct content type for PDF
+	contentType := "application/pdf"
+
+	putInput := &s3.PutObjectInput{
+		Bucket:        aws.String(bucketName),
+		Key:           aws.String(objectKey),
+		Body:          body,
+		ContentType:   aws.String(contentType),
+		ContentLength: &contentLength,
+	}
+
+	if _, err := s3Client.PutObject(ctx, putInput); err != nil {
+		logger.Errorf("upload PDF failed error: %v", err)
+		return "", err
+	}
+
+	baseURL := strings.TrimSuffix(env.MinioPublicEndPoint, "/")
+	url := fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(objectKey, "/"))
+
 	return url, nil
 }
 
@@ -636,6 +1075,74 @@ func ExportCSVAndUpload(
 	}
 
 	// 6. Upload to MinIO
+	url, err := UploadCSVToMinio(ctx, s3Client, bucketName, tmpFile, stat.Size(), env, objectKey, logger)
+	if err != nil {
+		return "", fmt.Errorf("upload to minio: %w", err)
+	}
+
+	return url, nil
+}
+
+func ExportPDFAndUpload(
+	ctx context.Context,
+	s3Client *s3.Client,
+	bucketName string,
+	env config.VaultConfig,
+	objectKey string,
+	headers []string,
+	writeRows func(pdf *gofpdf.Fpdf) error,
+	logger interface {
+		Errorf(format string, args ...any)
+	},
+) (string, error) {
+
+	// 1. Create temp PDF file
+	tmpFile, err := os.CreateTemp("", "export_*.pdf")
+	if err != nil {
+		logger.Errorf("[ExportPDFAndUpload] create temp file: %v", err)
+		return "", fmt.Errorf("create temp file: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+	defer tmpFile.Close()
+
+	// 2. Initialize PDF
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.AddPage()
+
+	pdf.SetFont("Arial", "B", 12)
+
+	// 3. Header row
+	colWidth := 190.0 / float64(len(headers)) // auto fit
+	for _, h := range headers {
+		pdf.CellFormat(colWidth, 10, h, "1", 0, "C", false, 0, "")
+	}
+	pdf.Ln(-1)
+
+	// 4. Body rows via callback
+	pdf.SetFont("Arial", "", 10)
+
+	if err := writeRows(pdf); err != nil {
+		logger.Errorf("[ExportPDFAndUpload] write rows: %v", err)
+		return "", fmt.Errorf("write rows: %w", err)
+	}
+
+	// 5. Save PDF to temp file
+	if err := pdf.Output(tmpFile); err != nil {
+		logger.Errorf("[ExportPDFAndUpload] output pdf: %v", err)
+		return "", fmt.Errorf("output pdf: %w", err)
+	}
+
+	// 6. Seek & stat
+	if _, err := tmpFile.Seek(0, 0); err != nil {
+		return "", fmt.Errorf("seek temp file: %w", err)
+	}
+
+	stat, err := tmpFile.Stat()
+	if err != nil {
+		return "", fmt.Errorf("stat temp file: %w", err)
+	}
+
+	// 7. Upload to MinIO (reuse your existing function)
 	url, err := UploadCSVToMinio(ctx, s3Client, bucketName, tmpFile, stat.Size(), env, objectKey, logger)
 	if err != nil {
 		return "", fmt.Errorf("upload to minio: %w", err)
@@ -818,3 +1325,31 @@ func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, bo
 	logger.Infof("ERP update successful for merchant %s with response status %d, response body: %s", merchantID, resp.StatusCode, string(bodyBytes))
 	return nil
 }
+
+// func ResolveModuleForRABelongsToUpdate(action constants.RequestAction,RequestActionGroups map[string][]constants.RequestAction) (string, bool) {
+
+// 	var RAUpdateList = []string{}
+// 	// First, check in priority order to mirror dispatcher behavior
+// 	for _, mod := range modulePriority {
+// 		if local_util.IsActionInGroup(action, mod, RequestActionGroups) {
+// 			return mod, true
+// 		}
+// 	}
+
+// 	// Then, scan any remaining groups not explicitly prioritized
+// 	for mod := range RequestActionGroups {
+// 		// skip already-checked modules
+// 		if local_util.Contains(modulePriority, mod) {
+// 			continue
+// 		}
+
+// 		if IsActionInGroup(action, mod) {
+// 			return mod, true
+// 		}
+// 	}
+// 	// Fallback: infer module from request action string patterns
+// 	if mod, ok := lib.FallbackModuleForRA(constants.RequestAction(action)); ok {
+// 		return mod, true
+// 	}
+// 	return "", false
+// }

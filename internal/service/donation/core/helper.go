@@ -145,6 +145,12 @@ func DonationTitleExists(ctx context.Context, title string, donationRepo storage
 }
 
 func IsDataSimilar(request donation_dto.DonationRequest, existing *donation_model.Donation) bool {
+	if request.CompanyID != "" && request.CompanyID != existing.CompanyID.Hex() {
+		return false
+	}
+	if request.CategoryID != "" && request.CategoryID != existing.CategoryID.Hex() {
+		return false
+	}
 	if request.Title != "" && request.Title != existing.Title {
 		return false
 	}
@@ -170,6 +176,9 @@ func IsDataSimilar(request donation_dto.DonationRequest, existing *donation_mode
 		return false
 	}
 	if len(request.DonationImages) > 0 {
+		return false
+	}
+	if len(request.RemovedImages) > 0 {
 		return false
 	}
 	return true
@@ -335,10 +344,14 @@ func MapDonationUpdate(
 		ID:           id,
 		DonationCode: existing.DonationCode,
 		Company: donation_dto.Company{
-			ID: GetValueOrDefault(update.CompanyID, existing.CompanyID.Hex()),
+			ID:          GetValueOrDefault(update.CompanyID, existing.CompanyID.Hex()),
+			CompanyName: company.CompanyName,
+			CompanyLogo: company.CompanyLogo,
 		},
 		Category: donation_dto.Category{
-			ID: GetValueOrDefault(update.CategoryID, existing.CategoryID.Hex()),
+			ID:           GetValueOrDefault(update.CategoryID, existing.CategoryID.Hex()),
+			CategoryName: category.CategoryName,
+			Icon:         category.Icon,
 		},
 		// CompanyID:           GetValueOrDefault(update.CompanyID, existing.CompanyID.Hex()),
 		// CompanyName:         companyName,

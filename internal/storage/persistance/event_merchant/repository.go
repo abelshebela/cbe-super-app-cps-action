@@ -25,8 +25,21 @@ import (
 )
 
 type EventMerchantRepository struct {
-	dal    dal.MongoDal[model.EventMerchant, model.EventMerchant]
-	logger utils.Logger
+	client     *mongo.Client
+	dbName     string
+	collection string
+	dal        dal.MongoDal[model.EventMerchant, model.EventMerchant]
+	logger     utils.Logger
+}
+
+func NewEventMerchantRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.EventMerchantRepository {
+	return &EventMerchantRepository{
+		client:     client,
+		dbName:     dbName,
+		collection: collection,
+		dal:        dal.NewMongoDal[model.EventMerchant, model.EventMerchant](client, cfg, dbName, collection),
+		logger:     logger,
+	}
 }
 
 func (m *EventMerchantRepository) Create(ctx context.Context, merchant model.EventMerchant) error {
@@ -36,11 +49,16 @@ func (m *EventMerchantRepository) Create(ctx context.Context, merchant model.Eve
 	merchant.CreatedAt = time.Now()
 	merchant.UpdatedAt = time.Time{}
 	merchant.DeletedAt = time.Time{}
-	_, err := m.dal.InsertOne(ctx, merchant)
+
+	coll := m.client.Database(m.dbName).Collection(m.collection)
+	res, err := coll.InsertOne(ctx, merchant)
 	if err != nil {
 		m.logger.Errorf("Failed to create event merchant: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	merchant.ID = res.InsertedID.(bson.ObjectID)
+	types.SetId(ctx, merchant.ID.Hex())
+
 	return nil
 }
 
@@ -161,11 +179,4 @@ func (m *EventMerchantRepository) FindOne(ctx context.Context, filter bson.M) (*
 		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
-}
-
-func NewEventMerchantRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.EventMerchantRepository {
-	return &EventMerchantRepository{
-		dal:    dal.NewMongoDal[model.EventMerchant, model.EventMerchant](client, cfg, dbName, collection),
-		logger: logger,
-	}
 }

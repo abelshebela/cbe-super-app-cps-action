@@ -1,16 +1,13 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/budget_category"
-	"cbe-super-app-cps-action/pkgs/utils"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 )
 
-func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (budget_category.CreateBudgetRequest, error) {
+func ParseRequestFromMultipartForm(r *http.Request) (budget_category.CreateBudgetRequest, error) {
 	var req budget_category.CreateBudgetRequest
 
 	if err := r.ParseMultipartForm(315 << 20); err != nil {
@@ -21,14 +18,18 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (budget_categ
 	req.Color = r.FormValue("color")
 	req.Type = r.FormValue("type")
 
-	_, iconHeader, err := utils.ParseMultipartFormFile(r, "icon", int64(constants.MaxMemoryForUpload))
+	// Icon is optional on create (matches Swagger + Validate); validate image when present.
+	_, iconHeader, err := r.FormFile("icon")
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
-			return req, errors.New("icon file is required")
+			req.Icon = nil
+			return req, nil
 		}
 		return req, err
 	}
-	req.Icon = iconHeader
+	if iconHeader != nil {
+		req.Icon = iconHeader
+	}
 
 	return req, nil
 }
@@ -50,13 +51,16 @@ func ParseUpdateRequestFromMultipartForm(r *http.Request) (budget_category.Updat
 		req.Type = typ
 	}
 
-	_, iconHeader, err := utils.ParseMultipartFormFile(r, "icon", int64(constants.MaxMemoryForUpload))
+	// Optional icon: use FormFile directly — do not use ParseMultipartFormFile here, because it
+	// rejects valid uploads (e.g. application/octet-stream) before Validate() runs.
+	_, iconHeader, err := r.FormFile("icon")
 	if err != nil {
-		fmt.Println("///error for icon", err)
-		if !errors.Is(err, http.ErrMissingFile) {
-			return req, err
+		if errors.Is(err, http.ErrMissingFile) {
+			return req, nil
 		}
-	} else {
+		return req, err
+	}
+	if iconHeader != nil {
 		req.Icon = iconHeader
 	}
 

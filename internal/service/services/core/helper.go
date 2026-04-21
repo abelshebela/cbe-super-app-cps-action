@@ -4,15 +4,15 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	"cbe-super-app-cps-action/internal/constants/lib"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"log"
 	"strconv"
 	"time"
-
-	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func formatFloatPointer(f *float64) string {
@@ -24,10 +24,6 @@ func formatFloatPointer(f *float64) string {
 
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	userData := local_util.ExtractUserFromContext(ctx)
-	// if incomplet := local_util.IsIncomplete(userData); incomplet {
-	// 	log.Println("User data incomplete for CPS action", "userCode", userData.UserCode)
-	// 	return errors.New(localization.ErrorIncompleteUserInfo.Code)
-	// }
 
 	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(actionType))
 
@@ -39,18 +35,18 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 	return nil
 }
 
-func MapToServiceModel(req service_dto.CreateServiceRequest) model.Service {
-	mapped := model.Service{
-		ServiceCode:      req.ServiceCode,
-		ServiceKey:       req.ServiceKey,
-		ServiceName:      req.ServiceName,
-		ProductGlAccount: req.ProductGlAccount,
-		Cap: func() []model.Cap {
-			caps := make([]model.Cap, 0, len(req.Cap))
+func MapToServiceModel(req service_dto.CreateServiceRequest) imodel.Service {
+	mapped := imodel.Service{
+		ServiceCode:              req.ServiceCode,
+		ServiceKeyId:             req.ServiceKeyId,
+		ProductGlAccount:         req.ProductGlAccount,
+		ProductGlAccountCurrency: req.ProductGlAccountCurrency,
+		Cap: func() []imodel.Cap {
+			caps := make([]imodel.Cap, 0, len(req.Cap))
 
 			for _, c := range req.Cap {
-				caps = append(caps, model.Cap{
-					Source:             shared_constant.SourceApp(*c.Source),
+				caps = append(caps, imodel.Cap{
+					Source:             constants.SourceApp(*c.Source),
 					Currency:           service_dto.StringPointer(c.Currency, ""),
 					SingleCap:          formatFloatPointer(c.SingleCap),
 					MinimumTransferCap: formatFloatPointer(c.MinimumTransferCap),
@@ -108,27 +104,29 @@ func MapToServiceModel(req service_dto.CreateServiceRequest) model.Service {
 		// 	}
 		// 	return lists
 		// }(),
-		Enabled:   service_dto.BoolPointer(req.Enabled, true),
-		IsDeleted: service_dto.BoolPointer(req.IsDeleted, false),
+		// Enabled:   service_dto.BoolPointer(req.Enabled, true),
+		// IsDeleted: service_dto.BoolPointer(req.IsDeleted, false),
 		CreatedAt: time.Now(),
 	}
 
 	return mapped
 }
 
-func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing model.Service) model.Service {
+func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing service_dto.ServiceResponse) service_dto.ServiceResponse {
 	existing.ServiceCode = service_dto.StringPointer(req.ServiceCode, existing.ServiceCode)
-	existing.ServiceKey = service_dto.StringPointer(req.ServiceKey, existing.ServiceKey)
-	existing.ServiceName = service_dto.StringPointer(req.ServiceName, existing.ServiceName)
+	existing.ServiceKeyId = service_dto.StringPointer(req.ServiceKeyId, existing.ServiceKeyId)
+	existing.ProductGlAccountCurrency = service_dto.StringPointer(req.ProductGlAccountCurrency, existing.ProductGlAccountCurrency)
+	// existing.ServiceKey = service_dto.StringPointer(req.ServiceKey, existing.ServiceKey)
+	// existing.ServiceName = service_dto.StringPointer(req.ServiceName, existing.ServiceName)
 	existing.ProductGlAccount = service_dto.StringPointer(req.ProductGlAccount, existing.ProductGlAccount)
 
 	if req.Cap != nil {
-		existing.Cap = func() []model.Cap {
-			caps := make([]model.Cap, 0, len(req.Cap))
+		existing.Cap = func() []imodel.Cap {
+			caps := make([]imodel.Cap, 0, len(req.Cap))
 
 			for _, c := range req.Cap {
-				caps = append(caps, model.Cap{
-					Source:             shared_constant.SourceApp(*c.Source),
+				caps = append(caps, imodel.Cap{
+					Source:             constants.SourceApp(*c.Source),
 					Currency:           service_dto.StringPointer(c.Currency, ""),
 					SingleCap:          formatFloatPointer(c.SingleCap),
 					MinimumTransferCap: formatFloatPointer(c.MinimumTransferCap),
@@ -200,15 +198,15 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing mode
 	return existing
 }
 
-func MapServiceListDtoToModel(req *service_dto.CreateServiceList) model.ServiceList {
-	return model.ServiceList{
+func MapServiceListDtoToModel(req *service_dto.CreateServiceList) imodel.ServiceKey {
+	return imodel.ServiceKey{
 		ServiceName: req.ServiceName,
 		ServiceKey:  req.ServiceKey,
 	}
 }
 
-func MapServiceListDtoUpdateToModel(req *service_dto.UpdateServiceList) model.ServiceList {
-	return model.ServiceList{
+func MapServiceListDtoUpdateToModel(req *service_dto.UpdateServiceList) imodel.ServiceKey {
+	return imodel.ServiceKey{
 		ServiceName: req.ServiceName,
 		ServiceKey:  req.ServiceKey,
 	}

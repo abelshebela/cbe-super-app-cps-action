@@ -30,8 +30,8 @@ import (
 func MapToCustomerSegUpdate(c *imodel.CustomerSegmentation) bson.M {
 	update := bson.M{}
 
-	if len(c.CustomerSubSegments) > 0 {
-		update["t24_customer_sub_segments"] = c.CustomerSubSegments
+	if len(c.CustomerSegments) > 0 {
+		update["t24_customer_sub_segments"] = c.CustomerSegments
 	}
 
 	update["updated_at"] = time.Now()

@@ -102,15 +102,15 @@ OFFSET NVL(:offset, 0) ROWS
 FETCH NEXT NVL(:limit, 50) ROWS ONLY`
 
 type FindVaultCategoryParams struct {
-	IsActive  sql.NullBool   `json:"is_active"`
-	NameQuery sql.NullString `json:"name"`
-	Page      sql.NullInt64  `json:"page"`
-	Limit     sql.NullInt64  `json:"limit"`
+	IsActive sql.NullBool   `json:"is_active"`
+	Search   sql.NullString `json:"search"`
+	Page     sql.NullInt64  `json:"page"`
+	Limit    sql.NullInt64  `json:"limit"`
 }
 
 func (q *Queries) FindVaultCategories(ctx context.Context, arg FindVaultCategoryParams) ([]VaultCategory, error) {
 
-	namePtr := utils.NullStringToPtrLike(arg.NameQuery)
+	namePtr := utils.NullStringToPtrLike(arg.Search)
 	limitPtr := utils.NullInt64ToPtr(arg.Limit)
 	var offsetPtr *int64
 	if arg.Page.Valid && arg.Limit.Valid {
@@ -349,14 +349,45 @@ SET
     updated_at        = COALESCE(:8, updated_at)
 WHERE id = :9`
 
+// const updateVaultTier = `-- name: UpdateVaultTier :exec
+// UPDATE vault_tiers
+// SET
+//     name          = COALESCE(:name, name),
+//     tier_interest = COALESCE(:tier_interest, tier_interest),
+//     min_amount    = COALESCE(:min_amount, min_amount),
+//     max_amount    = COALESCE(:max_amount, max_amount)
+// WHERE id = :id AND category_id = :category_id`
+
 const updateVaultTier = `-- name: UpdateVaultTier :exec
 UPDATE vault_tiers
 SET
-    name          = COALESCE(:name, name),
-    tier_interest = COALESCE(:tier_interest, tier_interest),
-    min_amount    = COALESCE(:min_amount, min_amount),
-    max_amount    = COALESCE(:max_amount, max_amount)
+    -- overwrite all provided tier fields for the given tier id
+    name          = :name,
+    tier_interest = :tier_interest,
+    min_amount    = :min_amount,
+    max_amount    = :max_amount
 WHERE id = :id AND category_id = :category_id`
+
+const deleteVaultTiersByCategoryID = `-- name: DeleteVaultTiersByCategoryID :exec
+DELETE FROM vault_tiers
+WHERE category_id = :category_id`
+
+const insertVaultTier = `-- name: InsertVaultTier :exec
+INSERT INTO vault_tiers (
+    id,
+    category_id,
+    name,
+    tier_interest,
+    min_amount,
+    max_amount
+) VALUES (
+    :id,
+    :category_id,
+    :name,
+    :tier_interest,
+    :min_amount,
+    :max_amount
+)`
 
 func (q *Queries) UpdateVaultCategory(ctx context.Context, catID string, arg *imodel.VaultCategory) (string, error) {
 	var name *string
@@ -412,34 +443,37 @@ func (q *Queries) UpdateVaultCategory(ctx context.Context, catID string, arg *im
 }
 
 func (q *Queries) UpdateVaultTiers(ctx context.Context, categoryID string, arg *imodel.VaultCategory) error {
+	// Remove all existing tiers for this category and
+	// insert exactly the provided tiers.
+	if _, err := q.db.ExecContext(
+		ctx,
+		deleteVaultTiersByCategoryID,
+		sql.Named("category_id", categoryID),
+	); err != nil {
+		return fmt.Errorf("delete vault tiers failed: %w", err)
+	}
+
+	if arg == nil || len(arg.Tiers) == 0 {
+		return nil
+	}
+
 	for _, tier := range arg.Tiers {
-		fmt.Printf("[DEBUG] UpdateVaultTiers: attempting update - category_id=%s tier_id=%s name=%s tier_interest=%s min=%s max=%s\n", categoryID, tier.ID, tier.Name, tier.TierInterest, tier.MinAmount, tier.MaxAmount)
-		res, err := q.db.ExecContext(
+		tierID := tier.ID
+		if tierID == "" {
+			tierID = generateUUID()
+		}
+
+		if _, err := q.db.ExecContext(
 			ctx,
-			updateVaultTier,
-
-			sql.Named("id", tier.ID),
+			insertVaultTier,
+			sql.Named("id", tierID),
 			sql.Named("category_id", categoryID),
-
 			sql.Named("name", tier.Name),
 			sql.Named("tier_interest", tier.TierInterest),
 			sql.Named("min_amount", tier.MinAmount),
 			sql.Named("max_amount", tier.MaxAmount),
-		)
-
-		if err != nil {
-			return fmt.Errorf("update tier failed: %w", err)
-		}
-
-		rows, rerr := res.RowsAffected()
-		if rerr != nil {
-			return fmt.Errorf("could not determine rows affected when updating tier %s: %w", tier.ID, rerr)
-		}
-
-		fmt.Printf("[DEBUG] UpdateVaultTiers: rows affected=%d for tier_id=%s\n", rows, tier.ID)
-
-		if rows == 0 {
-			return fmt.Errorf("no tier updated for id %s", tier.ID)
+		); err != nil {
+			return fmt.Errorf("insert tier failed: %w", err)
 		}
 	}
 

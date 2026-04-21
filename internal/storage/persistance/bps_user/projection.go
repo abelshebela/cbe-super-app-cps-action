@@ -45,11 +45,13 @@ func BPSUserMapper(data bps_model.BPSUser) bson.M {
 
 	// result["role"] = data.Role
 	result["enabled"] = data.Enabled
+	result["is_deleted"] = data.IsDeleted
 	return result
 }
 
 func BPSUserResponseMapper(data bps_model.BPSUser) *bpsUserDto.BPSUserResposenDTO {
 	return &bpsUserDto.BPSUserResposenDTO{
+		ID:                data.ID,
 		UserCode:          data.UserCode,
 		FullName:          data.FullName,
 		Username:          data.Username,

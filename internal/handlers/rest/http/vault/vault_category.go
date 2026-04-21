@@ -81,6 +81,7 @@ func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var req vault_category_dto.CreateCategoryRequest
 
@@ -165,6 +166,7 @@ func (h *handler) CreateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessVaultCategoryCreatedSuccessfully, nil)
 		return
 	}
@@ -283,6 +285,7 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -390,7 +393,7 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
 		log.Errorf("[UpdateVaultCategory] validation: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -405,11 +408,13 @@ func (h *handler) UpdateVaultCategory(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessVaultCategoryUpdatedSuccessfully, nil)
 		return
 	}
 
 	log.Infof("[VaultCatH][Update] ok id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessVaultCategoryUpdateRequestSubmitted, nil)
 }
 
@@ -453,6 +458,7 @@ func (h *handler) DeleteVaultCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Infof("[VaultCatH][Delete] ok id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessVaultCategoryDeleteRequestSubmitted, nil)
 }
 
@@ -476,6 +482,7 @@ func (h *handler) DisableVaultCategory(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -504,11 +511,13 @@ func (h *handler) DisableVaultCategory(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessVaultCategoryDisabledSuccessfully, nil)
 		return
 	}
 
 	log.Infof("[VaultCatH][Disable] ok id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessVaultCategoryDisableRequestSubmitted, nil)
 }
 
@@ -532,6 +541,7 @@ func (h *handler) EnableVaultCategory(w http.ResponseWriter, r *http.Request) {
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -560,10 +570,12 @@ func (h *handler) EnableVaultCategory(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessVaultCategoryEnabledSuccessfully, nil)
 		return
 	}
 
 	log.Infof("[VaultCatH][Enable] ok id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessVaultCategoryEnableRequestSubmitted, nil)
 }

@@ -17,6 +17,9 @@ func JobRoleMapper(data imodel.JobRole) bson.M {
 	if data.Type != "" {
 		result["type"] = data.Type
 	}
+	if data.Description != "" {
+		result["description"] = data.Description
+	}
 	if data.PortalCards != nil {
 		result["portal_cards"] = data.PortalCards
 	}

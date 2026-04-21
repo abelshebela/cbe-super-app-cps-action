@@ -10,13 +10,13 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -34,7 +34,7 @@ func NewAccountService(repo storage.AccountBlockRepository, cpsService service.C
 	return &accountBlockService{repo: repo, cpsService: cpsService, logger: logger}
 }
 
-func (s *accountBlockService) GetBranchById(ctx context.Context, id string) (*model.AccountBlock, error) {
+func (s *accountBlockService) GetBranchById(ctx context.Context, id string) (*imodel.AccountBlock, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetBranchById", "BlockAccount", "GetBranchById")
 	defer span.End()
 
@@ -44,44 +44,48 @@ func (s *accountBlockService) GetBranchById(ctx context.Context, id string) (*mo
 	}
 
 	if len(block) == 0 {
-		span.AddEvent("Branch not found", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
+		span.AddEvent("Branch not found", trace.WithAttributes(attribute.String("id", id)))
 		return nil, errors.New(localization.ErrorBranchNotFound.Code)
 	}
 
 	return block[0], nil
 }
 
-func (s *accountBlockService) GetRegionById(ctx context.Context, id string) (*model.AccountBlock, error) {
+func (s *accountBlockService) GetRegionById(ctx context.Context, id string) (*imodel.AccountBlock, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetRegionById", "BlockAccount", "GetRegionById")
 	defer span.End()
 
 	block, err := s.repo.GetRegionsByIds(ctx, []string{id})
+	if err != nil {
+		return nil, err
+	}
 	if len(block) == 0 {
-		span.AddEvent("Region not found", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
+		span.AddEvent("Region not found", trace.WithAttributes(attribute.String("id", id)))
 		return nil, errors.New(localization.ErrorRegionNotFound.Code)
 	}
 
 	return block[0], nil
 }
 
-func (s *accountBlockService) GetDistrictById(ctx context.Context, id string) (*model.AccountBlock, error) {
+func (s *accountBlockService) GetDistrictById(ctx context.Context, id string) (*imodel.AccountBlock, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetDistrictById", "BlockAccount", "GetDistrictById")
 	defer span.End()
 
-	block, err := s.repo.GetDistrictsByIds(ctx, []string{id})
+	ids := strings.Split(id, ",")
+	block, err := s.repo.GetDistrictsByIds(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(block) == 0 {
-		span.AddEvent("District not found", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
+		span.AddEvent("District not found", trace.WithAttributes(attribute.String("id", id)))
 		return nil, errors.New(localization.ErrorDistrictNotFound.Code)
 	}
 
 	return block[0], nil
 }
 
-func (s *accountBlockService) GetCityById(ctx context.Context, id string) (*model.AccountBlock, error) {
+func (s *accountBlockService) GetCityById(ctx context.Context, id string) (*imodel.AccountBlock, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCityById", "BlockAccount", "GetCityById")
 	defer span.End()
 
@@ -91,18 +95,41 @@ func (s *accountBlockService) GetCityById(ctx context.Context, id string) (*mode
 	}
 
 	if len(block) == 0 {
-		span.AddEvent("City not found", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
+		span.AddEvent("City not found", trace.WithAttributes(attribute.String("id", id)))
 		return nil, errors.New(localization.ErrorCityNotFound.Code)
 	}
 
 	return block[0], nil
 }
 
-func (s *accountBlockService) GetAllBranches(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
-	return s.repo.FindAllBranchesWithPagination(ctx, *filterParams)
+func (s *accountBlockService) GetAllBranches(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.AccountBlock], error) {
+	var isEnabled *bool
+
+	if v, ok := filterParams.Filters["status_check"]; ok {
+		if boolVal, ok := v.(bool); ok {
+			isEnabled = &boolVal
+		}
+	}
+
+	data, err := s.repo.FindAllBranchesWithPagination(ctx, *filterParams)
+	if err != nil {
+		return nil, err
+	}
+
+	if data.Data != nil && isEnabled != nil {
+		if *isEnabled == data.Data[0].IsEnabled && (filterParams.Search == data.Data[0].Code || strings.EqualFold(filterParams.Search, data.Data[0].Name)) {
+			if *isEnabled {
+				return &types.PaginatedResponse[[]*imodel.AccountBlock]{}, errors.New(localization.ErrorBranchAlreadyEnabled.Code)
+			} else {
+				return &types.PaginatedResponse[[]*imodel.AccountBlock]{}, errors.New(localization.ErrorBranchAlreadyDisabled.Code)
+			}
+		}
+	}
+
+	return data, nil
 }
 
-func (s *accountBlockService) GetAllRegions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
+func (s *accountBlockService) GetAllRegions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.AccountBlock], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllRegions", "BlockAccount", "GetAllRegions")
 	defer span.End()
 
@@ -114,11 +141,11 @@ func (s *accountBlockService) GetAllRegions(ctx context.Context, filterParams *t
 	return regions, nil
 }
 
-func (s *accountBlockService) GetAllDistricts(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
+func (s *accountBlockService) GetAllDistricts(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.AccountBlock], error) {
 	return s.repo.FindAllDistrictsWithPagination(ctx, *filterParams)
 }
 
-func (s *accountBlockService) GetAllCities(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
+func (s *accountBlockService) GetAllCities(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.AccountBlock], error) {
 	return s.repo.FindAllCitiesWithPagination(ctx, *filterParams)
 }
 
@@ -144,24 +171,29 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 		return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
 	}
 
-	var cityIDs []string
+	var districtIDs []string
 	for _, branch := range branches {
-		cityIDs = append(cityIDs, branch.CityID.Hex())
+		if branch.DistrictID != nil {
+			districtIDs = append(districtIDs, *branch.DistrictID)
+		}
 	}
 
-	// Validate cities if enabling
+	// Validate districts if enabling
 	if enabled {
-		cities, err := s.repo.GetCitiesByIds(ctx, cityIDs)
+		districts, err := s.repo.GetDistrictsByIds(ctx, districtIDs)
 		if err != nil {
 			return err
 		}
-		cityMap := make(map[string]bool)
-		for _, city := range cities {
-			cityMap[city.ID.Hex()] = city.IsEnabled
+		districtMap := make(map[string]bool)
+		for _, district := range districts {
+			districtMap[district.ID] = district.IsEnabled
 		}
 
 		for _, branch := range branches {
-			if isCityEnabled, exists := cityMap[branch.CityID.Hex()]; !exists || !isCityEnabled {
+			if branch.DistrictID == nil {
+				return errors.New(localization.ErrorCannotEnableBranch.Code)
+			}
+			if isDistrictEnabled, exists := districtMap[*branch.DistrictID]; !exists || !isDistrictEnabled {
 				return errors.New(localization.ErrorCannotEnableBranch.Code)
 			}
 		}
@@ -180,12 +212,12 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 		}
 
 		previousAction = append(previousAction, types.EnableDisableAction{
-			ID:      branch.ID.Hex(),
+			ID:      branch.ID,
 			Name:    branch.Name,
 			Enabled: branch.IsEnabled,
 		})
 		currentAction = append(currentAction, types.EnableDisableAction{
-			ID:      branch.ID.Hex(),
+			ID:      branch.ID,
 			Name:    branch.Name,
 			Enabled: enabled,
 			Reason: types.Reason{
@@ -197,11 +229,9 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 	}
 
 	if len(alreadyEnabled) > 0 {
-		return fmt.Errorf("some of the branches your requested to enable are already enabled")
-		// return fmt.Errorf("these branches are already enabled: %s", strings.Join(alreadyEnabled, ", "))
+		return errors.New(localization.ErrorBranchAlreadyEnabled.Code)
 	} else if len(alreadyDisabled) > 0 {
-		return fmt.Errorf("some of the branches your requested to disable are already disabled")
-		// return fmt.Errorf("these branches are already disabled: %s", strings.Join(alreadyDisabled, ", "))
+		return errors.New(localization.ErrorBranchAlreadyDisabled.Code)
 	}
 
 	var actionType constants.ActionType
@@ -244,7 +274,7 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 
 	if len(regions) != len(regionIds) {
 		s.logger.Errorf("[AccBlockSvc][EnableDisableRegions] not found")
-		return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code) // Corrected error code usage
+		return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
 	}
 
 	fullname := ctx.Value(constants.ContextKey("full_name")).(string)
@@ -260,12 +290,12 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 		}
 
 		previousAction = append(previousAction, types.EnableDisableAction{
-			ID:      region.ID.Hex(),
+			ID:      region.ID,
 			Name:    region.Name,
 			Enabled: region.IsEnabled,
 		})
 		currentAction = append(currentAction, types.EnableDisableAction{
-			ID:      region.ID.Hex(),
+			ID:      region.ID,
 			Name:    region.Name,
 			Enabled: enabled,
 			Reason: types.Reason{
@@ -277,11 +307,9 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 	}
 
 	if len(alreadyEnabled) > 0 {
-		return fmt.Errorf("some of the regions you requested to enable are already enabled.")
-		// return fmt.Errorf("these regions are already enabled: %s", strings.Join(alreadyEnabled, ", "))
+		return errors.New(localization.ErrorRegionAlreadyEnabled.Code)
 	} else if len(alreadyDisabled) > 0 {
-		return fmt.Errorf("some of the regions you requested to disable are already disabled.")
-		// return fmt.Errorf("these regions are already disabled: %s", strings.Join(alreadyDisabled, ", "))
+		return errors.New(localization.ErrorRegionAlreadyDisabled.Code)
 	}
 
 	var actionType constants.ActionType
@@ -330,7 +358,9 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 
 	var regionIDs []string
 	for _, district := range districts {
-		regionIDs = append(regionIDs, district.RegionID.Hex())
+		if district.RegionID != nil {
+			regionIDs = append(regionIDs, *district.RegionID)
+		}
 	}
 
 	if enabled {
@@ -340,11 +370,14 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 		}
 		regionMap := make(map[string]bool)
 		for _, region := range regions {
-			regionMap[region.ID.Hex()] = region.IsEnabled
+			regionMap[region.ID] = region.IsEnabled
 		}
 
 		for _, district := range districts {
-			if isRegionEnabled, exists := regionMap[district.RegionID.Hex()]; !exists || !isRegionEnabled {
+			if district.RegionID == nil {
+				return errors.New(localization.ErrorCannotEnableDistrict.Code)
+			}
+			if isRegionEnabled, exists := regionMap[*district.RegionID]; !exists || !isRegionEnabled {
 				return errors.New(localization.ErrorCannotEnableDistrict.Code)
 			}
 		}
@@ -363,12 +396,12 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 		}
 
 		previousAction = append(previousAction, types.EnableDisableAction{
-			ID:      district.ID.Hex(),
+			ID:      district.ID,
 			Name:    district.Name,
 			Enabled: district.IsEnabled,
 		})
 		currentAction = append(currentAction, types.EnableDisableAction{
-			ID:      district.ID.Hex(),
+			ID:      district.ID,
 			Name:    district.Name,
 			Enabled: enabled,
 			Reason: types.Reason{
@@ -380,11 +413,9 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 	}
 
 	if len(alreadyEnabled) > 0 {
-		return fmt.Errorf("some of the districts you requested to enable are already enabled.")
-		// return fmt.Errorf("these districts are already enabled: %s", strings.Join(alreadyEnabled, ", "))
+		return errors.New(localization.ErrorDistrictAlreadyEnabled.Code)
 	} else if len(alreadyDisabled) > 0 {
-		return fmt.Errorf("some of the districts you requested to disable are already disabled.")
-		// return fmt.Errorf("these districts are already disabled: %s", strings.Join(alreadyDisabled, ", "))
+		return errors.New(localization.ErrorDistrictAlreadyDisabled.Code)
 	}
 
 	var actionType constants.ActionType
@@ -432,7 +463,9 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 
 	var districtIDs []string
 	for _, city := range cities {
-		districtIDs = append(districtIDs, city.DistrictID.Hex())
+		if city.DistrictID != nil {
+			districtIDs = append(districtIDs, *city.DistrictID)
+		}
 	}
 
 	if enabled {
@@ -442,12 +475,15 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 		}
 		districtMap := make(map[string]bool)
 		for _, district := range districts {
-			districtMap[district.ID.Hex()] = district.IsEnabled
+			districtMap[district.ID] = district.IsEnabled
 		}
 
 		for _, city := range cities {
-			if isDistrictEnabled, exists := districtMap[city.DistrictID.Hex()]; !exists || !isDistrictEnabled {
-				return errors.New(localization.ErrorCannotEnableDistrict.Code)
+			if city.DistrictID == nil {
+				return errors.New(localization.ErrorCannotEnablCity.Code)
+			}
+			if isDistrictEnabled, exists := districtMap[*city.DistrictID]; !exists || !isDistrictEnabled {
+				return errors.New(localization.ErrorCannotEnablCity.Code)
 			}
 		}
 	}
@@ -465,12 +501,12 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 		}
 
 		previousAction = append(previousAction, types.EnableDisableAction{
-			ID:      city.ID.Hex(),
+			ID:      city.ID,
 			Name:    city.Name,
 			Enabled: city.IsEnabled,
 		})
 		currentAction = append(currentAction, types.EnableDisableAction{
-			ID:      city.ID.Hex(),
+			ID:      city.ID,
 			Name:    city.Name,
 			Enabled: enabled,
 			Reason: types.Reason{
@@ -482,9 +518,9 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 	}
 
 	if len(alreadyEnabled) > 0 {
-		return fmt.Errorf("these cities are already enabled: %s", strings.Join(alreadyEnabled, ", "))
+		return errors.New(localization.ErrorCityAlreadyEnabled.Code)
 	} else if len(alreadyDisabled) > 0 {
-		return fmt.Errorf("these cities are already disabled: %s", strings.Join(alreadyDisabled, ", "))
+		return errors.New(localization.ErrorCityAlreadyDisabled.Code)
 	}
 
 	var actionType constants.ActionType

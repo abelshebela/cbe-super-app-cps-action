@@ -22,6 +22,9 @@ import (
 	types "cbe-super-app-cps-action/internal/constants/types"
 )
 
+// JobRoleHandler serves /job_roles routes backed by the roles collection (job_title ↔ role code)
+// via RoleRepository. GET responses are imodel.Role; type, role_code, and role_name are filled
+// from the job_roles collection join in storage (see role_repo.roleWithJobRolePipeline).
 type JobRoleHandler struct {
 	service service.JobRoleService
 	logger  utils.Logger
@@ -34,10 +37,10 @@ func NewJobRoleHandler(service service.JobRoleService, logger utils.Logger) inbo
 	}
 }
 
-// GetAll godoc
+// GetAllWithPagination godoc
 //
-//	@Summary		Get all job roles
-//	@Description	Retrieve all job roles with pagination and optional search
+//	@Summary		List job-title↔role rows (paginated)
+//	@Description	Paginated roles collection rows with optional search. Each doc includes job_roles-derived type, role_code, and role_name (see imodel.Role). Response data.docs + data.meta.
 //	@Tags			Job Title with Role
 //	@Accept			json
 //	@Produce		json
@@ -76,6 +79,17 @@ func (j *JobRoleHandler) GetAllWithPagination(w http.ResponseWriter, r *http.Req
 	localization.SendSuccessResponse(w, localization.SuccessJobRolesFetchedSuccessfully, resp)
 }
 
+// GetAll godoc
+//
+//	@Summary		List all enabled job-title↔role rows
+//	@Description	Same projection as paginated list: roles collection with job_roles join (type, role_code, role_name on each imodel.Role).
+//	@Tags			Job Title with Role
+//	@Accept			json
+//	@Produce		json
+//	@Success		200			{object}	localization.StandardResponse{data=object}	"Job roles retrieved successfully"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/job_roles/all [get]
 func (j *JobRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	log := common_utils.LoggerFromCtx(r.Context(), j.logger)
 	data, err := j.service.FindAll(r.Context())
@@ -91,7 +105,7 @@ func (j *JobRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 // GetByID godoc
 //
 //	@Summary		Get job role by ID
-//	@Description	Retrieve a job role by its ID
+//	@Description	Returns one roles document by _id with job_roles join fields (type, role_code, role_name) when a matching job_roles row exists.
 //	@Tags			Job Title with Role
 //	@Accept			json
 //	@Produce		json
@@ -134,6 +148,7 @@ func (j *JobRoleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	var body roles_dto.RequestRolesCreate
@@ -160,8 +175,10 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleCreatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleCreatedRequestSent, nil)
 	}
 }
@@ -184,6 +201,7 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
@@ -218,8 +236,10 @@ func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleUpdatedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleUpdatedRequestSent, nil)
 	}
 }
@@ -241,6 +261,7 @@ func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (j *JobRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
@@ -256,8 +277,10 @@ func (j *JobRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleEnabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleEnabledRequestSent, nil)
 	}
 }
@@ -279,6 +302,7 @@ func (j *JobRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 func (j *JobRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
@@ -294,8 +318,10 @@ func (j *JobRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleDisabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleDisabledRequestSent, nil)
 	}
 }
@@ -317,6 +343,7 @@ func (j *JobRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 func (j *JobRoleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
 	id := chi.URLParam(r, "id")
@@ -332,8 +359,10 @@ func (j *JobRoleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleDeletedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessJobRoleDeletedRequestSent, nil)
 	}
 }

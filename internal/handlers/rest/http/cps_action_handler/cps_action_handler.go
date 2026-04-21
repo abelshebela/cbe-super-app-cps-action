@@ -9,6 +9,7 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	mid "cbe-super-app-cps-action/internal/handlers/middleware"
+	cpsactioncore "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler/core"
 	"cbe-super-app-cps-action/internal/service"
 	cpsactionsvc "cbe-super-app-cps-action/internal/service/cps_action"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -92,7 +93,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	}
 
 	actionName := ""
-	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(constants.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
 
@@ -303,7 +304,7 @@ func (a *cpsActionAdapter) ReverseCPSAction(w http.ResponseWriter, r *http.Reque
 	}
 
 	actionName := ""
-	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(constants.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
 	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
@@ -391,7 +392,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	// Validate approver role's checker_index via cps_action_approver_index (grouped: 0.* -> 1.*, 1.* -> 2.*)
 	actionName := ""
 	var idxDoc *imodel.CPSActionApproveIndex
-	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(constants.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
 
@@ -528,7 +529,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 	// Validate approver role's checker_index via cps_action_approver_index (grouped: 0.* -> 1.*, 1.* -> 2.*)
 	actionName := ""
 	var idxDoc *imodel.CPSActionApproveIndex
-	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(constants.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
 
@@ -715,10 +716,14 @@ func (a *cpsActionAdapter) GetUserCheckedActions(w http.ResponseWriter, r *http.
 	defer span.End()
 	userData := local_util.ExtractUserContext(r)
 	userID := userData.UserID
-	res, err := a.cpsActionApplication.GetUserCheckedActions(ctx, userID, filterParams)
+	res, url, err := a.cpsActionApplication.GetUserCheckedActions(ctx, userID, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if filterParams.Filters["action"] == "export" && url != "" {
+		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{"url": url})
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
@@ -760,10 +765,14 @@ func (a *cpsActionAdapter) GetUserCreatedActions(w http.ResponseWriter, r *http.
 	defer span.End()
 
 	userID := userData.UserName
-	res, err := a.cpsActionApplication.GetUserCreatedActions(ctx, userID, filterParams)
+	res, url, err := a.cpsActionApplication.GetUserCreatedActions(ctx, userID, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if filterParams.Filters["action"] == "export" && url != "" {
+		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{"url": url})
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
@@ -939,10 +948,21 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
 	}
 
-	res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, userID, reqs, filterParams)
+	// reqs, filterParams, err := cpsactioncore.BuildCPSActionRequestMapAuditor(ctx, filterParams, constants.Checker, log)
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	localization.SendErrorByCodeResponse(w, err.Error())
+	// 	return
+	// }
+
+	res, url, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if filterParams.Filters["action"] == "export" && url != "" {
+		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{"url": url})
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
@@ -966,6 +986,7 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
 	defer span.End()
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 
 	filterParams := local_util.ExtractFilterParams(r)
 	var allocation []string
@@ -973,6 +994,7 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	filter := r.URL.Query().Get("filter")
 
 	if err := local_util.NoSpecialChars(search); err != nil {
+		log.Errorf("[CpsActionH][Auditor] invalid search parameter: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -985,6 +1007,7 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	// roleCode from context
 	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 	if rawRoleID == "" {
+		log.Errorf("[CpsActionH][Auditor] role code missing from context")
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
 	}
@@ -992,6 +1015,7 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	// fetch checker allocations for this role
 	idxRepo := mid.GetCPSActionApproveRepo()
 	if idxRepo == nil {
+		log.Errorf("[CpsActionH][Auditor] failed to get CPS action approve repo")
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
@@ -999,6 +1023,7 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	_, _, _, auditorAllocations, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
+		log.Errorf("[CpsActionH][Auditor] failed to fetch auditor allocations: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -1030,13 +1055,24 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 			}
 		}
 	}
+	// reqs, filterParams, err := cpsactioncore.BuildCPSActionRequestMapAuditor(ctx, filterParams, constants.Auditor, log)
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	log.Errorf("[CpsActionH][Approve] failed to fetch checker allocations: %v", err)
+	// 	localization.SendErrorByCodeResponse(w, err.Error())
+	// 	return
+	// }
 
 	// do not force action_status; let API-provided filters decide
 	userID := local_util.ExtractUserContext(r).UserID
-	res, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, userID, reqs, filterParams)
+	res, url, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if filterParams.Filters["action"] == "export" && url != "" {
+		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{"url": url})
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
@@ -1104,12 +1140,22 @@ func (a *cpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 	if len(reqs) > 0 {
 		filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
 	}
+	// reqs, filterParams, err := cpsactioncore.BuildCPSActionRequestMapAuditor(ctx, filterParams, constants.Checker, local_util.LoggerFromCtx(r.Context(), a.logger))
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	localization.SendErrorByCodeResponse(w, err.Error())
+	// 	return
+	// }
 
 	userID := local_util.ExtractUserContext(r).UserID
-	res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, userID, reqs, filterParams)
+	res, url, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if filterParams.Filters["action"] == "export" && url != "" {
+		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{"url": url})
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
@@ -1577,7 +1623,7 @@ func (a *cpsActionAdapter) GetAuthorizersLevel(w http.ResponseWriter, r *http.Re
 
 	actionName := ""
 	var idxDoc *imodel.CPSActionApproveIndex
-	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(requestAction)); ok {
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(constants.RequestAction(requestAction)); ok {
 		actionName = mod
 	}
 
@@ -1646,10 +1692,26 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "exportCPSaction", "handler", "cpsAction")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, a.logger)
+	filterParams := local_util.ExtractFilterParams(r)
 
 	fileType := r.URL.Query().Get("file_type")
-	from := r.URL.Query().Get("From")
-	to := r.URL.Query().Get("To")
+	from := r.URL.Query().Get("created_at_from")
+	to := r.URL.Query().Get("created_at_to")
+
+	actor := r.URL.Query().Get("actor")
+	if actor != "" {
+		if err := local_util.NoSpecialChars(actor); err != nil {
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		}
+	}
+	reqs, filterParams, err := cpsactioncore.BuildCPSActionRequestMapAuditor(ctx, filterParams, actor, log)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[CpsActionH][Approve] failed to fetch checker allocations: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	if fileType == "" || from == "" || to == "" {
 		log.Warnf("[CpsActionH][Export] missing required params: file_type=%q, From=%q, To=%q", fileType, from, to)
@@ -1658,31 +1720,45 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 	}
 
 	// Normalize date strings (accepts YYYY-MM-DD or RFC3339)
-	fromNorm, toNorm, err := local_util.FormatDateRangeToUTCStrings(from, to)
+	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(from, to)
 	if err != nil {
 		log.Warnf("[CpsActionH][Export] invalid date format: From=%s, To=%s, err=%v", from, to, err)
 		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
 		return
 	}
 
-	startDate, err := local_util.ValidateTimeAndParse(fromNorm)
-	if err != nil {
-		log.Warnf("[CpsActionH][Export] invalid start date: %s", from)
-		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
-		return
-	}
+	// startDate, err := local_util.ValidateTimeAndParse(fromNorm)
+	// if err != nil {
+	// 	log.Warnf("[CpsActionH][Export] invalid start date: %s", from)
+	// 	localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+	// 	return
+	// }
 
-	endDate, err := local_util.ValidateTimeAndParse(toNorm)
-	if err != nil {
-		log.Warnf("[CpsActionH][Export] invalid end date: %s", to)
-		localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
-		return
-	}
+	// startDate, err := local_util.ValidateTimeAndParse(toNorm)
+	// if err != nil {
+	// 	log.Warnf("[CpsActionH][Export] invalid end date: %s", to)
+	// 	localization.SendErrorResponse(w, localization.ErrorInvalidDateFormat, nil, nil)
+	// 	return
+	// }
 
 	if endDate.Before(startDate) {
 		log.Warnf("[CpsActionH][Export] invalid date range: start=%v, end=%v", startDate, endDate)
 		localization.SendErrorResponse(w, localization.CpsActionDataExportedError, nil, nil)
 		return
+	}
+
+	// Pin FilterBuilder to validated UTC bounds and coerce repeated query keys to single strings.
+	if filterParams.Filters == nil {
+		filterParams.Filters = map[string]interface{}{}
+	}
+	// filterParams.Filters["created_at_from"] = startDate
+	// filterParams.Filters["created_at_to"] = endDate
+	for _, k := range []string{"action_status", "action_type", "action_code", "unique_id"} {
+		if v, ok := filterParams.Filters[k]; ok {
+			if s, ok := local_util.StringFromFilterValue(v); ok {
+				filterParams.Filters[k] = s
+			}
+		}
 	}
 
 	span.SetAttributes(
@@ -1691,7 +1767,14 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 		attribute.String("export.to", to),
 	)
 
-	fileLink, err := a.cpsActionApplication.ExportCpsActionData(ctx, startDate, endDate, fileType)
+	if actor != "" {
+		span.SetAttributes(attribute.String("export.actor", actor))
+		if actor == constants.Maker {
+			filterParams.Filters["maker_id"] = local_util.ExtractUserContext(r).UserName
+		}
+	}
+
+	fileLink, err := a.cpsActionApplication.ExportCpsActionData(ctx, reqs, filterParams, fileType)
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[CpsActionH][Export] svc err: %v", err)

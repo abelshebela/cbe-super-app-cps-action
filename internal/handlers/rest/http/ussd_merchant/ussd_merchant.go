@@ -56,6 +56,7 @@ func (u *UssdMerchantHandler) CreateUssdMerchant(w http.ResponseWriter, r *http.
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var CreateDto ussd_merchant_dto.CreateUssdMerchantRequest
 	file, fileHeader, err := core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), u.Logger)
@@ -89,11 +90,13 @@ func (u *UssdMerchantHandler) CreateUssdMerchant(w http.ResponseWriter, r *http.
 
 	if md.IsMakerOnly {
 		log.Infof("[CreateUssdMerchantHandler] request sent successfully: is_maker_only: %v", md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessUssdMerchantCreated, nil)
 		return
 	}
 
 	log.Infof("[CreateUssdMerchantHandler] successfully created ussd merchant")
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantRequestCreated, "Ussd merchant created successfully")
 }
 
@@ -127,6 +130,7 @@ func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.
 	var err error
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -194,11 +198,13 @@ func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.
 
 	if md.IsMakerOnly {
 		log.Infof("[UpdateUssdMerchantHandler] request sent successfully: is_maker_only: %v", md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessUssdMerchantUpdated, nil)
 		return
 	}
 
 	log.Infof("[UpdateUssdMerchantHandler] successfully updated ussd merchant")
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantUpdateRequestCreated, nil)
 }
 func (u *UssdMerchantHandler) EnableUssdMerchant(w http.ResponseWriter, r *http.Request) {
@@ -208,6 +214,7 @@ func (u *UssdMerchantHandler) EnableUssdMerchant(w http.ResponseWriter, r *http.
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -224,11 +231,13 @@ func (u *UssdMerchantHandler) EnableUssdMerchant(w http.ResponseWriter, r *http.
 
 	if md.IsMakerOnly {
 		log.Infof("[EnableUssdMerchantHandler] request sent successfully: is_maker_only: %v", md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessUssdMerchantEnabled, nil)
 		return
 	}
 
 	log.Infof("[EnableUssdMerchantHandler] successfully updated ussd merchant")
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantEnableRequestCreated, nil)
 }
 
@@ -253,6 +262,7 @@ func (u *UssdMerchantHandler) DisableUssdMerchant(w http.ResponseWriter, r *http
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -269,12 +279,62 @@ func (u *UssdMerchantHandler) DisableUssdMerchant(w http.ResponseWriter, r *http
 
 	if md.IsMakerOnly {
 		log.Infof("[DisableUssdMerchantHandler] request sent successfully: is_maker_only: %v", md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessUssdMerchantDisabled, nil)
 		return
 	}
 
 	log.Infof("[DisableUssdMerchantHandler] successfully updated ussd merchant")
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantDisableRequestCreated, nil)
+}
+
+// DeleteUssdMerchant godoc
+//
+//	@Summary		Delete USSD merchant
+//	@Description	Delete a USSD merchant by ID (soft delete)
+//	@Tags			USSD Merchant
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"USSD Merchant ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"USSD merchant deleted successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"USSD merchant not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/ussd_merchant/{id} [delete]
+func (u *UssdMerchantHandler) DeleteUssdMerchant(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "DeleteUssdMerchantHandler", "handler", "ussdMerchant")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, u.Logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		log.Errorf("[DeleteUssdMerchantHandler] missing id parameter in request path")
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
+		return
+	}
+
+	if err := u.UssdMerchantService.DeleteUssdMerchant(ctx, id); err != nil {
+		log.Errorf("[DeleteUssdMerchantHandler] failed to delete ussd merchant: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		log.Infof("[DeleteUssdMerchantHandler] request sent successfully: is_maker_only: %v", md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessUssdMerchantDeleted, nil)
+		return
+	}
+
+	log.Infof("[DeleteUssdMerchantHandler] successfully deleted ussd merchant")
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantDeleteRequestCreated, nil)
 }
 func (u *UssdMerchantHandler) GetUssdMerchant(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "GetUssdMerchantHandler", "handler", "ussdMerchant")
@@ -327,4 +387,35 @@ func (u *UssdMerchantHandler) GetAllUssdMerchant(w http.ResponseWriter, r *http.
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantFetched, result)
+}
+
+func (u *UssdMerchantHandler) DelereUssdMerchant(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "DeleteUssdMerchant", "handler", "ussdMerchant")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, u.Logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		log.Errorf("[GetUssdMerchantHandler] missing id parameter in request path")
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidID.Code)
+		return
+	}
+
+	err := u.UssdMerchantService.DeleteUssdMerchant(ctx, id)
+	if err != nil {
+		log.Errorf("[DeleteUssdMerchant]failed to delete ussd merchant: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SucccessDeleteUssdMerchant, nil)
+
+	} else {
+		span.AddEvent("USSD merchant delete request submitted")
+		log.Infof("[USSD merchant][Delete] request submitted")
+		localization.SendSuccessResponse(w, localization.SucccessUssdMerchantDeleteRequest, nil)
+	}
 }

@@ -51,7 +51,12 @@ func (r *CPSActionStorage) Save(ctx context.Context, cpsAction *model.CPSAction)
 		r.logger.Errorf("[CPSAction][Save] failed to save CPS action: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	r.logger.Infof("[CPSAction][Save] CPS action saved successfully with id: %s", cps.ID.Hex())
+
+	cpsAction.ActionCode = cps.ActionCode
+	if md := types.GetMetadata(ctx); md != nil {
+		md.CPSActionCode = cps.ActionCode
+	}
+	r.logger.Infof("[CPSAction][Save] CPS action saved successfully with code: %s", cps.ActionCode)
 	return nil
 }
 
@@ -124,20 +129,30 @@ func (r *CPSActionStorage) FindOne(ctx context.Context, filter bson.M) (*model.C
 	return data, nil
 }
 
-func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error) {
+func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update model.CPSAction, Group string, RequestActionGroups map[string][]constants.RequestAction) (*model.CPSAction, error) {
 	r.logger.Infof("[CPSAction][Update] updating CPS action for action code: %s", actionCode)
 	filterMap := BuildCPSActionFilter(update)
 	updateMap := BuildCPSActionUpdateMap(update)
 	modelData := []mongo.WriteModel{}
 
 	if strings.Contains(update.RequestAction, constants.DELETE) {
+		RAUpdateList := local_utils.GetRAListForUpdateAction(constants.RequestAction(update.RequestAction), Group, RequestActionGroups)
+
 		modelData = append(modelData, mongo.NewUpdateOneModel().
-			SetFilter(bson.M{"unique_id": update.UniqueId}).
-			SetUpdate(bson.M{"action_status": constants.Canceled, "canceled_reason": constants.CanceledBySystemDueToLinkedRequestAction}),
+			SetFilter(bson.M{"unique_id": update.UniqueId, "is_deleted": false, "request_action": bson.M{"$in": RAUpdateList}}).
+			SetUpdate(bson.M{
+				"$set": bson.M{
+					"action_status":   constants.Canceled,
+					"canceled_reason": constants.CanceledBySystemDueToLinkedRequestAction,
+				},
+			}),
 		)
+
 		modelData = append(modelData, mongo.NewUpdateOneModel().
-			SetFilter(filterMap).
-			SetUpdate(update),
+			SetFilter(bson.M{"action_code": actionCode}).
+			SetUpdate(bson.M{
+				"$set": update, // assuming update is a struct or bson.M
+			}),
 		)
 
 		_, err := r.collection.BulkWrite(ctx, modelData, options.BulkWrite().SetOrdered(false))
@@ -209,14 +224,34 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 		"is_deleted": false,
 		// "department": department,
 	}
+
+	from, okFrom := filterParam.Filters["created_at_from"].(string)
+	to, okTo := filterParam.Filters["created_at_to"].(string)
+
+	if okFrom && okTo && from != "" && to != "" {
+		fromTime, err1 := time.Parse(time.RFC3339, from)
+		toTime, err2 := time.Parse(time.RFC3339, to)
+
+		if err1 == nil && err2 == nil {
+			baseFilter["created_at"] = bson.M{
+				"$gte": fromTime,
+				"$lte": toTime,
+			}
+		} else {
+			delete(filterParam.Filters, "created_at_from")
+			delete(filterParam.Filters, "created_at_to")
+		}
+	}
+
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "unique_id", "created_at"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
 			{"maker_name": searchRegex},
+			{"unique_id": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
 			{"action_type": searchRegex},
@@ -243,6 +278,14 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 		cps_action_core.SanitizePipeline(exclude),
 	}
 
+	action, ok := filterParam.Filters["action"]
+	if ok && action == "export" {
+		pipeline = mongo.Pipeline{
+			{{Key: "$match", Value: filter}},
+			{{Key: "$project", Value: Projection}},
+			cps_action_core.SanitizePipeline(exclude),
+		}
+	}
 	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		r.logger.Errorf("[CPSAction][SanitizedFindAllWithPagination] aggregation failed: %v", err)
@@ -278,13 +321,31 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 	baseFilter := bson.M{
 		"is_deleted": false,
 	}
+	from, okFrom := filterParam.Filters["created_at_from"].(string)
+	to, okTo := filterParam.Filters["created_at_to"].(string)
+
+	if okFrom && okTo && from != "" && to != "" {
+		fromTime, err1 := time.Parse(time.RFC3339, from)
+		toTime, err2 := time.Parse(time.RFC3339, to)
+
+		if err1 == nil && err2 == nil {
+			baseFilter["created_at"] = bson.M{
+				"$gte": fromTime,
+				"$lte": toTime,
+			}
+		} else {
+			delete(filterParam.Filters, "created_at_from")
+			delete(filterParam.Filters, "created_at_to")
+		}
+	}
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "unique_id", "created_at"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
+			{"unique_id": searchRegex},
 			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
@@ -332,6 +393,15 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 		cps_action_core.SanitizePipeline(exclude),
 	}
 
+	action, ok := filterParam.Filters["action"]
+	if ok && action == "export" {
+		pipeline = mongo.Pipeline{
+			{{Key: "$match", Value: finalMatch}},
+			{{Key: "$project", Value: Projection}},
+			cps_action_core.SanitizePipeline(exclude),
+		}
+	}
+
 	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		r.logger.Errorf("[CPSAction][SanitizedFindAllWithPaginationForApprover] aggregation failed: %v", err)
@@ -374,14 +444,34 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 	baseFilter := bson.M{
 		"is_deleted": false,
 	}
+
+	from, okFrom := filterParam.Filters["created_at_from"].(string)
+	to, okTo := filterParam.Filters["created_at_to"].(string)
+
+	if okFrom && okTo && from != "" && to != "" {
+		fromTime, err1 := time.Parse(time.RFC3339, from)
+		toTime, err2 := time.Parse(time.RFC3339, to)
+
+		if err1 == nil && err2 == nil {
+			baseFilter["created_at"] = bson.M{
+				"$gte": fromTime,
+				"$lte": toTime,
+			}
+		} else {
+			delete(filterParam.Filters, "created_at_from")
+			delete(filterParam.Filters, "created_at_to")
+		}
+	}
+
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"action_code", "action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "auditor_status", "auditor_users.auditor_id"}
+	allowedKeys := []string{"action_code", "action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "auditor_status", "auditor_users.auditor_id", "unique_id", "created_at"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
 			{"action_code": searchRegex},
+			{"unique_id": searchRegex},
 			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
@@ -398,7 +488,8 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 	for k, v := range baseFilter {
 		dynamicFilter[k] = v
 	}
-	delete(dynamicFilter, "created_at")
+
+	// delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
 
 	if inboxOr == nil {
@@ -454,6 +545,15 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 		cps_action_core.SanitizePipeline(exclude),
 	}
 
+	action, ok := filterParam.Filters["action"]
+	if ok && action == "export" {
+		pipeline = mongo.Pipeline{
+			{{Key: "$match", Value: filter}},
+			{{Key: "$project", Value: Projection}},
+			cps_action_core.SanitizePipeline(exclude),
+		}
+	}
+
 	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		r.logger.Errorf("[CPSAction][SanitizedFindAllWithPaginationForAuditor] aggregation failed: %v", err)
@@ -501,12 +601,13 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 	searchKeys := bson.M{}
 
 	// Exclude maker_id and checker_id from allowedKeys so request cannot override userFilter
-	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status"}
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status", "unique_id", "created_at"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		baseFilter["$or"] = []bson.M{
 			{"maker_name": searchRegex},
+			{"unique_id": searchRegex},
 			{"action_code": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"action_status": searchRegex},
@@ -685,12 +786,44 @@ func (r *CPSActionStorage) GetCountByDepartment(ctx context.Context, department 
 }
 
 // memory intensice hold all in memory at one good for small  amount of data  memory user O(n)
-func (r *CPSActionStorage) FindByDateRange(ctx context.Context, start_date, end_date time.Time) ([]*model.CPSAction, error) {
-	filter := buildCPSActionDateRangeFilter(start_date, end_date)
+func (r *CPSActionStorage) FindByDateRange(ctx context.Context, filterParam *types.Filter) ([]*model.CPSAction, error) {
+	// filter := buildCPSActionDateRangeFilter(start_date, end_date)
 
-	opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: 1}})
+	baseFilter := bson.M{
+		"is_deleted": false,
+	}
+	searchKeys := bson.M{}
+	//---------------------------------------
 
-	cursor, err := r.collection.Find(ctx, filter, opts)
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status", "unique_id"}
+
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		baseFilter["$or"] = []bson.M{
+			{"maker_name": searchRegex},
+			{"unique_id": searchRegex},
+			{"action_code": searchRegex},
+			{"maker_phone_number": searchRegex},
+			{"action_status": searchRegex},
+			{"auditor_status": searchRegex},
+			{"action_type": searchRegex},
+			{"request_action": searchRegex},
+		}
+	}
+
+	dynamicFilter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
+
+	//---------------------------------------
+	opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: 1}}).
+		SetSkip(skip).
+		SetLimit(limit).
+		SetProjection(Projection)
+
+	for k, v := range baseFilter {
+		dynamicFilter[k] = v
+	}
+
+	cursor, err := r.collection.Find(ctx, dynamicFilter, opts)
 	// actions,err := r.dal.FindAll(ctx,filter,nil)
 	if err != nil {
 		return nil, err
@@ -709,16 +842,55 @@ func (r *CPSActionStorage) FindByDateRange(ctx context.Context, start_date, end_
 // stream process constant memrory useage O(1)
 func (r *CPSActionStorage) StreamByDateRange(
 	ctx context.Context,
-	startDate, endDate time.Time,
+	filterParam *types.Filter,
 	handler func(*model.CPSAction) error,
 ) error {
-	filter := buildCPSActionDateRangeFilter(startDate, endDate)
+	// filter := buildCPSActionDa/teRangeFilter(startDate, endDate)
 
-	opts := options.Find().
-		SetSort(bson.D{{Key: "created_at", Value: 1}}).
-		SetBatchSize(1000) // very important
+	// opts := options.Find().
+	// 	SetSort(bson.D{{Key: "created_at", Value: 1}}).
+	// 	SetBatchSize(1000) // very important
 
-	cursor, err := r.collection.Find(ctx, filter, opts)
+	baseFilter := bson.M{
+		"is_deleted": false,
+	}
+	searchKeys := bson.M{}
+	//---------------------------------------
+
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status", "unique_id"}
+
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		baseFilter["$or"] = []bson.M{
+			{"maker_name": searchRegex},
+			{"unique_id": searchRegex},
+			{"action_code": searchRegex},
+			{"maker_phone_number": searchRegex},
+			{"action_status": searchRegex},
+			{"auditor_status": searchRegex},
+			{"action_type": searchRegex},
+			{"request_action": searchRegex},
+		}
+	}
+
+	fieldProjection := filterParam.Filters["fields"]
+	if fieldProjection == nil {
+		fieldProjection = Projection
+	}
+
+	dynamicFilter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
+
+	//---------------------------------------
+	opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: 1}}).
+		SetSkip(skip).
+		SetLimit(limit).
+		SetProjection(fieldProjection)
+
+	for k, v := range baseFilter {
+		dynamicFilter[k] = v
+	}
+
+	cursor, err := r.collection.Find(ctx, dynamicFilter, opts)
 	if err != nil {
 		return err
 	}
@@ -738,25 +910,84 @@ func (r *CPSActionStorage) StreamByDateRange(
 	return cursor.Err()
 }
 
-func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, startDate, endDate time.Time) ([]model.CPSAction, error) {
-	var action []model.CPSAction
-	filter := buildCPSActionDateRangeFilter(startDate, endDate)
+func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, filterParam types.Filter, RAList []string) ([]*model.CPSAction, error) {
+	r.logger.Infof("[CPSAction][SanitizedFindAllWithPaginationForApprover] finding all CPS actions. RAList: %s, Filter: %+v", RAList, filterParam)
+	userFilter := bson.M{}
+	userData := local_utils.ExtractUserFromContext(ctx)
+	userID := userData.UserID
+	// 1. Base filter (only active records)
+	baseFilter := bson.M{
+		"is_deleted": false,
+	}
+	searchKeys := bson.M{}
 
-	opts := options.Find().
-		SetSort(bson.D{{Key: "created_at", Value: 1}}).
-		SetBatchSize(1000) // very important
+	allowedKeys := []string{"action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "unique_id", "created_at"}
 
-	cursor, err := r.collection.Find(ctx, filter, opts)
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		baseFilter["$or"] = []bson.M{
+			{"unique_id": searchRegex},
+			{"maker_name": searchRegex},
+			{"maker_phone_number": searchRegex},
+			{"action_status": searchRegex},
+			{"action_type": searchRegex},
+			{"action_code": searchRegex},
+			{"request_action": searchRegex},
+		}
+	}
+
+	dynamicFilter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
+
+	for k, v := range baseFilter {
+		dynamicFilter[k] = v
+	}
+	// delete(dynamicFilter, "created_at")
+	filter := dynamicFilter
+	if RAList != nil && len(RAList) > 0 {
+		filter["request_action"] = bson.M{"$in": RAList}
+	}
+
+	if filterParam.Filters["actor"] == constants.Maker {
+		userFilter = bson.M{"maker_id": userID}
+	}
+
+	var finalMatch bson.M
+	if filterParam.Filters["action_status"] == "PENDING" {
+		finalMatch = filter
+	} else {
+		finalMatch = bson.M{
+			"$and": []bson.M{
+				filter,
+				userFilter,
+			},
+		}
+	}
+
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: finalMatch}},
+		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+		{{Key: "$skip", Value: skip}},
+		{{Key: "$limit", Value: limit}},
+		{{Key: "$project", Value: Projection}},
+		cps_action_core.SanitizePipeline(exclude),
+	}
+
+	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, err
+		r.logger.Errorf("[CPSAction][SanitizedFindAllWithPaginationForApprover] aggregation failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	defer cursor.Close(ctx)
+	defer cur.Close(ctx)
 
-	if err := cursor.All(ctx, &action); err != nil {
-		return nil, err
+	var results []*model.CPSAction
+	if err := cur.All(ctx, &results); err != nil {
+		r.logger.Errorf("[CPSAction][SanitizedFindAllWithPaginationForApprover] cursor decode failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	return action, nil
+	// 8. Return standard paginated response
+	return results, nil
 }
 func buildCPSActionDateRangeFilter(startDate, endDate time.Time) bson.M {
 	rangeFilter := bson.M{

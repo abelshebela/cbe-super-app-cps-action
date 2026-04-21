@@ -11,6 +11,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -40,6 +41,7 @@ func (a *accessListSegmentation) CreateAccessListSegmentation(w http.ResponseWri
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	var req access_list_segmentation_dto.CreateAccessListSegmentationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -57,10 +59,14 @@ func (a *accessListSegmentation) CreateAccessListSegmentation(w http.ResponseWri
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationCreatedSP, nil)
 		return
 	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationCreated, nil)
 }
 
@@ -81,6 +87,8 @@ func (a *accessListSegmentation) CreateAccessListSegmentation(w http.ResponseWri
 //	@Router			/access_list_segmentation/disable/{id} [patch]
 func (a *accessListSegmentation) DisableAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[DisableAccessListSegmentation] missing id parameter")
@@ -100,33 +108,69 @@ func (a *accessListSegmentation) DisableAccessListSegmentation(w http.ResponseWr
 		return
 	}
 
-	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, false, req.AccessListKeys); err != nil {
+	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, false, req.AccessListKeys, strings.ToLower(req.SegmentationType)); err != nil {
 		log.Errorf("[DisableAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationDisabled, nil)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationEnabled, nil)
 }
 
 // EnableAccessListSegmentation implements accesslistsegmentation.AccessListSegmentationHandler.
 func (a *accessListSegmentation) EnableAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[EnableAccessListSegmentation] missing id parameter")
 		localization.SendErrorByCodeResponse(w, localization.ErrorAccessListSegmentationInvalidID.Code)
 		return
 	}
-	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, true, nil); err != nil {
+	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, true, nil, ""); err != nil {
 		log.Errorf("[EnableAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationEnabled, nil)
 }
 
-// GetAccessListSegmentationByID godoc
+// GetAccessListSegmentationForAccountByID godoc
+//
+//	@Summary		Get access list segmentation for account by ID
+//	@Description	Retrieve a single access list segmentation for an account by its identifier
+//	@Tags			Access List Segmentation
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string																	true	"Access list segmentation ID"
+//	@Success		200	{object}	localization.StandardResponse{data=access_list_segmentation_dto.AccessListSegmentationResponse}	"Access list segmentation retrieved successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}								"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}								"Access list segmentation not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}								"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/access_list_segmentation/{id} [get]
+func (a *accessListSegmentation) GetAccessListSegmentationForAccountByID(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		log.Errorf("[GetAccessListSegmentationForAccountByID] missing id parameter")
+		localization.SendErrorByCodeResponse(w, localization.ErrorAccessListSegmentationInvalidID.Code)
+		return
+	}
+	accessListSegmentation, err := a.service.GetAccessListSegmentationForAccountByID(r.Context(), id)
+	if err != nil {
+		log.Errorf("[GetAccessListSegmentationForAccountByID] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationRetrieved, accessListSegmentation)
+}
+
+// GetAccessListSegmentationForBlockByID godoc
 //
 //	@Summary		Get access list segmentation by ID
 //	@Description	Retrieve a single access list segmentation by its identifier
@@ -140,17 +184,17 @@ func (a *accessListSegmentation) EnableAccessListSegmentation(w http.ResponseWri
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}								"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/access_list_segmentation/{id} [get]
-func (a *accessListSegmentation) GetAccessListSegmentationByID(w http.ResponseWriter, r *http.Request) {
+func (a *accessListSegmentation) GetAccessListSegmentationForBlockByID(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		log.Errorf("[GetAccessListSegmentationByID] missing id parameter")
+		log.Errorf("[GetAccessListSegmentationForBlockByID] missing id parameter")
 		localization.SendErrorByCodeResponse(w, localization.ErrorAccessListSegmentationInvalidID.Code)
 		return
 	}
-	accessListSegmentation, err := a.service.GetAccessListSegmentationByID(r.Context(), id)
+	accessListSegmentation, err := a.service.GetAccessListSegmentationForBlockByID(r.Context(), id)
 	if err != nil {
-		log.Errorf("[GetAccessListSegmentationByID] service error: %v", err)
+		log.Errorf("[GetAccessListSegmentationForBlockByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -201,6 +245,9 @@ func (a *accessListSegmentation) GetAllAccessListSegmentation(w http.ResponseWri
 // UpdateAccessListSegmentation implements accesslistsegmentation.AccessListSegmentationHandler.
 func (a *accessListSegmentation) UpdateAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[UpdateAccessListSegmentation] missing id parameter")
@@ -224,13 +271,14 @@ func (a *accessListSegmentation) UpdateAccessListSegmentation(w http.ResponseWri
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationUpdated, nil)
 }
 
-// GetAllAccessListSegmentationBySegmentIDorSegmentCode godoc
+// GetAllAccessListSegmentationForGeographical godoc
 //
-//	@Summary		Get all access list segmentations by segment ID or code
-//	@Description	Retrieve all access list segmentations and access lists filtered by segment ID or segment code
+//	@Summary		Get all access list segmentations for geographical area
+//	@Description	Retrieve all access list segmentations and access lists filtered by geographical area
 //	@Tags			Access List Segmentation
 //	@Accept			json
 //	@Produce		json
@@ -241,17 +289,17 @@ func (a *accessListSegmentation) UpdateAccessListSegmentation(w http.ResponseWri
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/access_list_segmentation/all/{id} [get]
-func (a *accessListSegmentation) GetAllAccessListSegmentationBySegmentIDorSegmentCode(w http.ResponseWriter, r *http.Request) {
+func (a *accessListSegmentation) GetAllAccessListSegmentationForAccount(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(r.Context(), a.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		log.Errorf("[GetAllAccessListSegmentationBySegmentIDorSegmentCode] missing id parameter")
+		log.Errorf("[GetAllAccessListSegmentationForAccount] missing id parameter")
 		localization.SendErrorByCodeResponse(w, localization.ErrorAccessListSegmentationInvalidID.Code)
 		return
 	}
-	accesssList, accessListSegmentations, err := a.service.GetAllAccessListSegmentationBySegmentIDorSegmentCode(r.Context(), id)
+	accesssList, accessListSegmentations, err := a.service.GetAllAccessListSegmentationForAccount(r.Context(), id)
 	if err != nil {
-		log.Errorf("[GetAllAccessListSegmentationBySegmentIDorSegmentCode] service error: %v", err)
+		log.Errorf("[GetAllAccessListSegmentationForAccount] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -259,6 +307,42 @@ func (a *accessListSegmentation) GetAllAccessListSegmentationBySegmentIDorSegmen
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationRetrieved, map[string]interface{}{
 		"access_lists":              accesssList,
 		"access_list_segmentations": accessListSegmentations,
+	})
+}
+
+// GetAllAccessListSegmentationForGeographical godoc
+//
+//	@Summary		Get all access list segmentations for geographical area
+//	@Description	Retrieve all access list segmentations and access lists filtered by geographical area
+//	@Tags			Access List Segmentation
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Segment ID or Segment Code"
+//	@Success		200	{object}	localization.StandardResponse{data=object}	"Access list segmentations retrieved successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}		"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}		"Not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}		"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/access_list_segmentation/all/{id} [get]
+func (a *accessListSegmentation) GetAllAccessListSegmentationForBlock(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), a.logger)
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		log.Errorf("[GetAllAccessListSegmentationForBlock] missing id parameter")
+		localization.SendErrorByCodeResponse(w, localization.ErrorAccessListSegmentationInvalidID.Code)
+		return
+	}
+	accesssList, accessListSegmentations, accessListSegmentationFromParent, err := a.service.GetAllAccessListSegmentationForBlock(r.Context(), id)
+	if err != nil {
+		log.Errorf("[GetAllAccessListSegmentationForBlock] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationRetrieved, map[string]interface{}{
+		"access_lists":                          accesssList,
+		"access_list_segmentations":             accessListSegmentations,
+		"access_list_segmentations_from_parent": accessListSegmentationFromParent,
 	})
 }
 

@@ -102,13 +102,13 @@ func (s *JobRoleStorage) SoftDelete(ctx context.Context, id string) error {
 func (s *JobRoleStorage) FindByID(ctx context.Context, id string) (*imodel.JobRole, error) {
 	s.logger.Infof("[JobRole/FindByID] id=%s", id)
 
-	objID, err := local_util.ParseObjectID(id)
+	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		s.logger.Errorf("[JobRole/FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
-	filter := bson.M{"_id": objID}
+	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	res, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -120,7 +120,7 @@ func (s *JobRoleStorage) FindByID(ctx context.Context, id string) (*imodel.JobRo
 
 func (s *JobRoleStorage) FindAll(ctx context.Context) (*[]imodel.JobRole, error) {
 
-	data, err := s.dal.FindAll(ctx, bson.M{}, bson.M{})
+	data, err := s.dal.FindAll(ctx, bson.M{"enabled": true, "is_deleted": false}, bson.M{})
 
 	if err != nil {
 		return nil, local_util.HandleDBError(err)
@@ -133,7 +133,7 @@ func (r *JobRoleStorage) ExistsMany(ctx context.Context, codes []string) (bool, 
 		return true, nil
 	}
 
-	count, err := r.collection.CountDocuments(ctx, bson.M{"code": bson.M{"$in": codes}})
+	count, err := r.collection.CountDocuments(ctx, bson.M{"code": bson.M{"$in": codes}, "is_deleted": false})
 	if err != nil {
 		return false, errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -142,7 +142,8 @@ func (r *JobRoleStorage) ExistsMany(ctx context.Context, codes []string) (bool, 
 
 func (s *JobRoleStorage) FindByCode(ctx context.Context, code string) (*imodel.JobRole, error) {
 	filter := bson.M{
-		"code": code,
+		"code":       code,
+		"is_deleted": false,
 	}
 	res, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -153,6 +154,7 @@ func (s *JobRoleStorage) FindByCode(ctx context.Context, code string) (*imodel.J
 
 func (s *JobRoleStorage) Find(ctx context.Context, filter bson.M) (*imodel.JobRole, error) {
 
+	filter["is_deleted"] = false
 	res, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		s.logger.Errorf("[JobRole/Find] failed to find: %v", err)
@@ -167,6 +169,7 @@ func (s *JobRoleStorage) FindByName(ctx context.Context, name string) (*imodel.J
 			"$regex":   "^" + strings.ToLower(name) + "$",
 			"$options": "i",
 		},
+		"is_deleted": false,
 	}
 	res, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {

@@ -28,7 +28,9 @@ import (
 
 func HandleCPSActionForLogisticsMerchant(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	maker := local_util.ExtractUserFromContext(ctx)
-	if local_util.IsIncomplete(maker) {
+	isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
+
+	if !isErp && local_util.IsIncomplete(maker) {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
@@ -61,7 +63,7 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 func CheckMerchantExists(
 	ctx context.Context,
 	merchantRepo storage.LogisticsMerchantRepository,
-	data *types.CheckMiniAppMerchant,
+	data *types.CheckMerchant,
 	opts *types.MiniAppMerchantExistOptions,
 ) (bool, error) {
 	if data == nil {

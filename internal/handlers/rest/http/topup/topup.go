@@ -65,6 +65,7 @@ func (a *topupAdapter) CreateTopup(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	log.Infof("[TopupH][Create] called")
 
@@ -91,6 +92,7 @@ func (a *topupAdapter) CreateTopup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationCreatedSP, nil)
 	} else {
 
@@ -121,6 +123,7 @@ func (a *topupAdapter) UpdateTopup(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	log.Infof("[TopupH][Update] id: %s", id)
@@ -162,10 +165,12 @@ func (a *topupAdapter) UpdateTopup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessTopupUpdatedSP, nil)
 	} else {
 		span.AddEvent("Topup update request submitted", trace.WithAttributes(attribute.String("id", id)))
 		log.Infof("[TopupH][Update] request submitted id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessTopupUpdateRequestSent, nil)
 
 	}
@@ -191,6 +196,7 @@ func (a *topupAdapter) DeleteTopup(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	log.Infof("[TopupH][Delete] id: %s", id)
@@ -207,10 +213,13 @@ func (a *topupAdapter) DeleteTopup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessTopupDeletedSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessTopupDeletedRequestSent, nil)
 		span.AddEvent("Topup deleted", trace.WithAttributes(attribute.String("id", id)))
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessTopupDeletedRequestSent, nil)
 	}
 }
@@ -235,6 +244,7 @@ func (a *topupAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	log.Infof("[TopupH][Enable] id: %s", id)
@@ -251,9 +261,11 @@ func (a *topupAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessTopupEnabledSP, nil)
 	} else {
 		span.AddEvent("Topup enable request submitted", trace.WithAttributes(attribute.String("id", id)))
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessTopupEnableRequestSubmitted, nil)
 	}
 }
@@ -278,6 +290,7 @@ func (a *topupAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	log.Infof("[TopupH][Disable] id: %s", id)
@@ -294,9 +307,11 @@ func (a *topupAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessTopupDisabledSP, nil)
 	} else {
 		span.AddEvent("Topup disable request submitted", trace.WithAttributes(attribute.String("id", id)))
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessTopupDisableRequestSubmitted, nil)
 	}
 }

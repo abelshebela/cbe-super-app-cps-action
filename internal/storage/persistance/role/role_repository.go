@@ -165,13 +165,39 @@ func (r *RoleRepository) FindByID(ctx context.Context, id string) (*imodel.Role,
 		r.logger.Errorf("[RoleRepository][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
-	filter := bson.M{"_id": objID}
-	result, err := r.mongoDal.FindOne(ctx, filter, nil)
+
+	// Try to find from roles collection first (without job_roles lookup)
+	role, err := r.mongoDal.FindOne(ctx, bson.M{"_id": objID}, nil)
 	if err != nil {
-		r.logger.Errorf("[RoleRepository][FindByID] failed to find role: %v", err)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			r.logger.Errorf("[RoleRepository][FindByID] role not found in roles collection")
+			return nil, local_util.HandleDBError(mongo.ErrNoDocuments)
+		}
+		r.logger.Errorf("[RoleRepository][FindByID] find failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	return result, nil
+
+	// If we need the job role info (for display purposes), try to get it separately
+	// But for delete operations, we only need the basic role info
+	pipeline := roleWithJobRolePipeline(bson.M{"_id": objID}, r.collection.Name(), 0, 1)
+	cursor, err := r.jobCollection.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Warnf("[RoleRepository][FindByID] job_roles lookup failed, returning basic role info: %v", err)
+		return role, nil
+	}
+	defer cursor.Close(ctx)
+	if cursor.Next(ctx) {
+		var resultWithJobRole imodel.Role
+		if err := cursor.Decode(&resultWithJobRole); err != nil {
+			r.logger.Warnf("[RoleRepository][FindByID] decode failed, returning basic role info: %v", err)
+			return role, nil
+		}
+		return &resultWithJobRole, nil
+	}
+
+	// No job role found, but role exists - return basic role info
+	r.logger.Warnf("[RoleRepository][FindByID] no job role found for role %s, returning basic role info", role.Role)
+	return role, nil
 }
 
 func (r *RoleRepository) FindByName(ctx context.Context, name string) (*imodel.Role, error) {
@@ -213,36 +239,13 @@ func (r *RoleRepository) FindByCode(ctx context.Context, code string) (*imodel.R
 // }
 
 func (r *RoleRepository) FindAll(ctx context.Context) (*[]imodel.Role, error) {
-	pipeline := []bson.M{
-		{"$match": bson.M{"enabled": true}},
-		{"$lookup": bson.M{
-			"from":         "job_roles",
-			"localField":   "role",
-			"foreignField": "code",
-			"as":           "role_info",
-			"pipeline": []bson.M{
-				{"$project": bson.M{"type": 1, "role": 1, "_id": 0}},
-			},
-		}},
-		{"$unwind": bson.M{
-			"path":                       "$role_info",
-			"preserveNullAndEmptyArrays": true,
-		}},
-		{"$project": bson.M{
-			"_id":        1,
-			"job_title":  1,
-			"role":       1,
-			"enabled":    1,
-			"updated_at": 1,
-			"created_at": 1,
-			"type":       "$role_info.type",
-		}},
-	}
+	pipeline := roleWithJobRolePipeline(bson.M{"enabled": true, "is_deleted": bson.M{"$ne": true}}, r.collection.Name(), 0, 0)
 	cursor, err := r.jobCollection.Aggregate(ctx, pipeline)
 	if err != nil {
 		r.logger.Errorf("[RoleRepository][FindAll] failed to aggregate job_roles: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
+	defer cursor.Close(ctx)
 	var data []imodel.Role
 	if err := cursor.All(ctx, &data); err != nil {
 		r.logger.Errorf("[RoleRepository][FindAll] failed to decode job_roles: %v", err)
@@ -264,16 +267,24 @@ func (r *RoleRepository) FindAllWithPagination(ctx context.Context, filterParam 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	filter["is_deleted"] = bson.M{"$ne": true}
 
-	data, err := r.mongoDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
-	if err != nil {
-		r.logger.Errorf("[RoleRepository][FindAllWithPagination] failed to fetch roles: %v", err)
-		return nil, local_util.HandleDBError(err)
-	}
-
 	total, err := r.mongoDal.TotalCount(ctx, filter)
 	if err != nil {
 		r.logger.Errorf("[RoleRepository][FindAllWithPagination] failed to count roles: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	pipeline := roleWithJobRolePipeline(filter, r.collection.Name(), skip, limit)
+	cursor, err := r.jobCollection.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Errorf("[RoleRepository][FindAllWithPagination] aggregate failed: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	defer cursor.Close(ctx)
+
+	var data []imodel.Role
+	if err := cursor.All(ctx, &data); err != nil {
+		r.logger.Errorf("[RoleRepository][FindAllWithPagination] decode failed: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -302,4 +313,65 @@ func (r *RoleRepository) FindByFilterKey(ctx context.Context, field string, valu
 		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
+}
+
+// roleWithJobRolePipeline matches roles, joins job_roles on roles.role == job_roles.code, and projects
+// type, role_code, and role_name from job_roles. skip/limit are applied only when > 0 (pagination / single doc).
+func roleWithJobRolePipeline(match bson.M, jobRolesCollName string, skip, limit int64) []bson.M {
+	p := []bson.M{
+		{"$match": match},
+		{"$sort": bson.M{"created_at": -1}},
+		{"$lookup": bson.M{
+			"from":         jobRolesCollName,
+			"localField":   "role",
+			"foreignField": "code",
+			"as":           "role_info",
+			"pipeline": []bson.M{
+				{"$project": bson.M{"code": 1, "name": 1, "type": 1, "_id": 0}},
+			},
+		}},
+		{"$unwind": bson.M{
+			"path":                       "$role_info",
+			"preserveNullAndEmptyArrays": true,
+		}},
+		{"$project": bson.M{
+			"_id":        1,
+			"job_title":  1,
+			"role":       1,
+			"enabled":    1,
+			"updated_at": 1,
+			"created_at": 1,
+			"type":       bson.M{"$ifNull": []interface{}{"$role_info.type", ""}},
+			"role_code":  bson.M{"$ifNull": []interface{}{"$role_info.code", ""}},
+			"role_name":  bson.M{"$ifNull": []interface{}{"$role_info.name", ""}},
+		}},
+	}
+	if skip > 0 {
+		p = append(p, bson.M{"$skip": skip})
+	}
+	if limit > 0 {
+		p = append(p, bson.M{"$limit": limit})
+	}
+
+	if skip > 0 || limit > 0 {
+		p = append(p, bson.M{"$sort": bson.M{"created_at": -1}})
+	}
+	return p
+}
+
+// HasActiveJobRole implements [storage.JobRoleRepository].
+func (s *RoleRepository) HasActiveJobRole(ctx context.Context, roleCode string) (bool, error) {
+	s.logger.Infof("[RoleRepository][HasActiveJobRole] checking for active job role with code: %s", roleCode)
+	filter := bson.M{"role": roleCode, "enabled": true}
+	_, err := s.mongoDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			s.logger.Infof("[RoleRepository][HasActiveJobRole] no active job role found with code: %s", roleCode)
+			return false, nil
+		}
+		s.logger.Errorf("[RoleRepository][HasActiveJobRole] failed to check for active job role: %v", err)
+		return false, local_util.HandleDBError(err)
+	}
+	s.logger.Infof("[RoleRepository][HasActiveJobRole] active job role found with code: %s", roleCode)
+	return true, nil
 }

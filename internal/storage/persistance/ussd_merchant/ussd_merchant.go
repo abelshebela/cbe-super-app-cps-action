@@ -50,17 +50,38 @@ func (u *UssdMerchantRepository) Create(ctx context.Context, data imodel.UssdMer
 	return nil
 }
 func (u *UssdMerchantRepository) Update(ctx context.Context, id string, update bson.M) error {
-
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		u.logger.Errorf("[UssdMerchantRepository][Update] error parsing id: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
-	update["updated_at"] = time.Now()
 
-	_, err = u.dal.UpdateOne(ctx, bson.M{"_id": objID}, update)
+	filter := bson.M{"_id": objID}
+	_, err = u.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		u.logger.Errorf("[UssdMerchantRepository][Update] error updating ussd_merchant: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	return nil
+}
+
+func (u *UssdMerchantRepository) Delete(ctx context.Context, id string) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		u.logger.Errorf("[UssdMerchantRepository][Delete] error parsing id: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"_id": objID}
+	update := bson.M{
+		"is_deleted": true,
+		"deleted_at": time.Now(),
+		"updated_at": time.Now(),
+	}
+
+	_, err = u.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		u.logger.Errorf("[UssdMerchantRepository][Delete] error deleting ussd_merchant: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
@@ -129,7 +150,7 @@ func (u *UssdMerchantRepository) FindByOr(ctx context.Context, phone, email, acc
 }
 
 func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse], error) {
-	filter := bson.M{}
+	filter := bson.M{"is_deleted": bson.M{"$ne": true}}
 	searchKeys := bson.M{}
 
 	allowedKeys := []string{"enabled", "merchant_code", "name", "settlement_method", "phone_number", "service", "account_number"}
@@ -163,6 +184,7 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 			"credential":        1,
 			"account_number":    1,
 			"logo":              1,
+			"is_deleted":        1,
 			"updated_at":        1,
 			"created_at":        1,
 		}}},
@@ -261,3 +283,21 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 	}, nil
 
 }
+
+// func (w *UssdMerchantRepository) Delete(ctx context.Context, id string) error {
+// 	objID, err := bson.ObjectIDFromHex(id)
+// 	if err != nil {
+// 		w.logger.Errorf("[UssdMerchantStorage][Delete] invalid object id: %v", err)
+// 		return errors.New(localization.ErrorInvalidID.Code)
+// 	}
+
+// 	filter := bson.M{"_id": objID, "deleted": false}
+// 	update := bson.M{"deleted": true, "deleted_at": time.Now()}
+
+// 	_, err = w.dal.UpdateOne(ctx, filter, update)
+// 	if err != nil {
+// 		w.logger.Errorf("[UssdMerchantStorage][Delete] failed to delete USSD Merchant: %v", err)
+// 		return local_util.HandleDBError(err)
+// 	}
+// 	return nil
+// }

@@ -10,6 +10,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -130,4 +131,13 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 	b.kafkaProducer.PublishMessage(ctx, publishBody, string(b.cfg.KafkaBulkServiceUpdateTopic), string(b.cfg.KafkaBulkServiceUpdateTopic), "bulk enable/disable access-list parent")
 
 	return nil
+}
+func (b BulkServicePersistence) FindAllByKeys(ctx context.Context, keys []string) ([]model.APPAccessList, error) {
+	panic("unimplemented")
+}
+func (b BulkServicePersistence) FindByKeys(ctx context.Context, keys []string) (map[string]string, error) {
+	panic("unimplemented")
+}
+func (b BulkServicePersistence) FindAllForSegmentation(ctx context.Context) ([]local_model.APPAccessList, error) {
+	panic("unimplemented")
 }

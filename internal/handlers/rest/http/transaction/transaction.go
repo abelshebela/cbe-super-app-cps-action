@@ -15,12 +15,19 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type paginated_transaction_resp types.PaginatedResponse[[]transaction_dto.FullTransaction]
-type transaction_by_id transaction_dto.FullTransaction
+type paginated_transaction_resp types.PaginatedResponse[[]transaction_dto.VaultTransaction]
+type transaction_by_id transaction_dto.VaultTransaction
 
 type TransactionHandler struct {
 	service service.TransactionService
 	logger  utils.Logger
+}
+
+func NewTransactionHandler(service service.TransactionService, logger utils.Logger) transaction.TransactionInterface {
+	return &TransactionHandler{
+		service: service,
+		logger:  logger,
+	}
 }
 
 // FindTransactionByCifOrAccountNumberOrFT godoc
@@ -145,11 +152,4 @@ func (t *TransactionHandler) FetchTransactionByID(w http.ResponseWriter, r *http
 	span.AddEvent("Transaction retrieved", trace.WithAttributes(attribute.String("id", id)))
 	localization.SendSuccessResponse(w, localization.SuccessTransactionRetrieved, transaction)
 
-}
-
-func NewTransactionHandler(service service.TransactionService, logger utils.Logger) transaction.TransactionInterface {
-	return &TransactionHandler{
-		service: service,
-		logger:  logger,
-	}
 }

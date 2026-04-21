@@ -139,6 +139,7 @@ func (d *donationCategoryAdapter) CreateDonationCategory(w http.ResponseWriter, 
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
@@ -164,9 +165,11 @@ func (d *donationCategoryAdapter) CreateDonationCategory(w http.ResponseWriter, 
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryCreatedSP, nil)
 	} else {
 		log.Infof("[DonCatH][Create] request submitted")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryCreateRequestSent, nil)
 	}
 }
@@ -193,6 +196,7 @@ func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, 
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -228,9 +232,11 @@ func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, 
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryUpdatedSP, nil)
 	} else {
 		log.Infof("[DonCatH][Update] request submitted")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryUpdateRequestSend, nil)
 	}
 }
@@ -255,6 +261,7 @@ func (d *donationCategoryAdapter) EnableDonationCategory(w http.ResponseWriter, 
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -271,8 +278,10 @@ func (d *donationCategoryAdapter) EnableDonationCategory(w http.ResponseWriter, 
 		return
 	}
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryEnabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryEnableRequestSent, nil)
 
 	}
@@ -298,6 +307,7 @@ func (d *donationCategoryAdapter) DisableDonationCategory(w http.ResponseWriter,
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("donation category ID is required for disable"))
@@ -314,8 +324,55 @@ func (d *donationCategoryAdapter) DisableDonationCategory(w http.ResponseWriter,
 	}
 
 	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryDisabledSP, nil)
 	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryDisableRequestSent, nil)
+	}
+}
+
+// DisableDonationCategory godoc
+//	@Summary		Delete a donation category
+//	@Description	Delete a donation category by ID
+//	@Tags			Donation Category
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Donation category ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Donation category delete request sent successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Donation category not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/donation_category/delete/{id} [Delete]
+
+func (d *donationCategoryAdapter) DeleteDonationCategory(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteDonationCategory", "handler", "donationCategory")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		span.RecordError(errors.New("donation category ID is required for delete"))
+		log.Errorf("[DonCatH][Delete] id required")
+		localization.SendErrorResponse(w, localization.ErrorDonationCategoryIDRequired, nil, nil)
+		return
+	}
+
+	if err := d.donationCategoryApp.DeleteDonationCategory(ctx, id); err != nil {
+		span.RecordError(err)
+		log.Errorf("[DonCatH][Delete] svc err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryDeleteSP, nil)
+	} else {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryDeleteRequestSent, nil)
 	}
 }

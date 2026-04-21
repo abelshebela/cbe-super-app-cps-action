@@ -1,42 +1,40 @@
 package amount_based_auth
 
 import (
+	"context"
+	"errors"
+	"strings"
+	"time"
+
 	"cbe-super-app-cps-action/internal/constants"
+	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"cbe-super-app-cps-action/internal/service/amount_based_auth/core"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
-	"context"
-	"errors"
-	"time"
-
-	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	core "cbe-super-app-cps-action/internal/service/amount_based_auth/core"
-
-	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
-
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
 
 type amountBasedAuthService struct {
-	Repository storage.AmountBasedAuthRepository
+	Repository storage.AmountBasedAuthOracleRepository
 	cpsService service.CPSActionService
 	logger     utils.Logger
 	cfg        *config.VaultConfig
 }
 
-func NewAmountBasedAuthService(repository storage.AmountBasedAuthRepository, cpsService service.CPSActionService, cfg *config.VaultConfig, logger utils.Logger) service.AmountBasedAuthService {
+func NewAmountBasedAuthService(repository storage.AmountBasedAuthOracleRepository, cpsService service.CPSActionService, cfg *config.VaultConfig, logger utils.Logger) service.AmountBasedAuthService {
 	return &amountBasedAuthService{
 		Repository: repository,
 		cpsService: cpsService,
@@ -59,10 +57,22 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 		return s.authorizeReset(ctx, action, span)
 	case string(constants.RequestUpdateAmountBasedAuth):
 		return s.authorizeUpdate(ctx, action, span)
+	case string(constants.RequestDeleteAmountBasedAuth):
+		return s.authorizeDelete(ctx, action, span)
 	default:
 		s.logger.Errorf("[AmountAuthSvc][Authorize] unsupported request action: %s", action.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
+}
+func (s *amountBasedAuthService) authorizeDelete(ctx context.Context, action *model.CPSAction, span trace.Span) (*model.CPSAction, error) {
+	s.logger.Infof("[AmountAuthSvc][authorizeDelete] processing DELETE")
+	currency := action.UniqueId
+	if err := s.Repository.DeleteByCurrency(ctx, currency); err != nil {
+		s.logger.Errorf("[AmountAuthSvc][authorizeDelete] delete by currency err: %v", err)
+		return nil, err
+	}
+	s.logger.Infof("[AmountAuthSvc][authorizeDelete] DELETE done")
+	return action, nil
 }
 
 // authorizeCreate persists new currency tiers when a CREATE action is approved
@@ -82,7 +92,7 @@ func (s *amountBasedAuthService) authorizeCreate(ctx context.Context, action *mo
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
-	tiers, err := local_util.JsonUnmarshal[[]local_model.AuthTier](tiersRaw)
+	tiers, err := local_util.JsonUnmarshal[[]local_model.AuthTierOracle](tiersRaw)
 	if err != nil {
 		s.logger.Errorf("[AmountAuthSvc][authorizeCreate] unmarshal tiers err: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
@@ -131,7 +141,7 @@ func (s *amountBasedAuthService) authorizeReset(ctx context.Context, action *mod
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
-	tiers, err := local_util.JsonUnmarshal[[]local_model.AuthTier](tiersRaw)
+	tiers, err := local_util.JsonUnmarshal[[]local_model.AuthTierOracle](tiersRaw)
 	if err != nil {
 		s.logger.Errorf("[AmountAuthSvc][authorizeReset] unmarshal tiers err: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
@@ -187,7 +197,7 @@ func (s *amountBasedAuthService) authorizeUpdateOpen(ctx context.Context, action
 	if !ok {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	openTier, err := local_util.JsonUnmarshal[local_model.AuthTier](openTierMap)
+	openTier, err := local_util.JsonUnmarshal[local_model.AuthTierOracle](openTierMap)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -196,7 +206,7 @@ func (s *amountBasedAuthService) authorizeUpdateOpen(ctx context.Context, action
 	if !ok {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	pinTier, err := local_util.JsonUnmarshal[local_model.AuthTier](pinTierMap)
+	pinTier, err := local_util.JsonUnmarshal[local_model.AuthTierOracle](pinTierMap)
 	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
@@ -223,7 +233,7 @@ func (s *amountBasedAuthService) authorizeUpdatePin(ctx context.Context, action 
 	if !ok {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	openTier, err := local_util.JsonUnmarshal[local_model.AuthTier](openTierMap)
+	openTier, err := local_util.JsonUnmarshal[local_model.AuthTierOracle](openTierMap)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -232,7 +242,7 @@ func (s *amountBasedAuthService) authorizeUpdatePin(ctx context.Context, action 
 	if !ok {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	pinTier, err := local_util.JsonUnmarshal[local_model.AuthTier](pinTierMap)
+	pinTier, err := local_util.JsonUnmarshal[local_model.AuthTierOracle](pinTierMap)
 	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
@@ -241,7 +251,7 @@ func (s *amountBasedAuthService) authorizeUpdatePin(ctx context.Context, action 
 	if !ok {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	otpPinTier, err := local_util.JsonUnmarshal[local_model.AuthTier](otpPinTierMap)
+	otpPinTier, err := local_util.JsonUnmarshal[local_model.AuthTierOracle](otpPinTierMap)
 	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
@@ -271,7 +281,7 @@ func (s *amountBasedAuthService) authorizeUpdateOtpPin(ctx context.Context, acti
 	if !ok {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	pinTier, err := local_util.JsonUnmarshal[local_model.AuthTier](pinTierMap)
+	pinTier, err := local_util.JsonUnmarshal[local_model.AuthTierOracle](pinTierMap)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -280,7 +290,7 @@ func (s *amountBasedAuthService) authorizeUpdateOtpPin(ctx context.Context, acti
 	if !ok {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	otpPinTier, err := local_util.JsonUnmarshal[local_model.AuthTier](otpPinTierMap)
+	otpPinTier, err := local_util.JsonUnmarshal[local_model.AuthTierOracle](otpPinTierMap)
 	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
@@ -301,18 +311,8 @@ func (s *amountBasedAuthService) FindAllWithPagination(ctx context.Context, filt
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "Amount Based Auth", "FindAllWithPagination")
 	defer span.End()
 
-	// Build filter with optional search
-	filter := bson.M{"is_deleted": false}
-	if filterParam.Search != "" {
-		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["$or"] = []bson.M{
-			{"method": searchRegex},
-			{"currency": searchRegex},
-		}
-	}
-
 	// Fetch all matching tiers (pagination applied to currency groups, not individual tiers)
-	allTiers, err := s.Repository.FindAll(ctx, filter, bson.M{})
+	allTiers, err := s.Repository.FindAllActiveForSearch(ctx, filterParam.Search)
 	if err != nil {
 		span.AddEvent("[FindAllWithPagination] failed to fetch amount-based auth tiers", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -353,7 +353,7 @@ func (s *amountBasedAuthService) FindAllWithPagination(ctx context.Context, filt
 	}, nil
 }
 
-func groupTiersByCurrency(tiers []local_model.AuthTier) []amountauthdto.CurrencyGroup {
+func groupTiersByCurrency(tiers []local_model.AuthTierOracle) []amountauthdto.CurrencyGroup {
 	orderMap := map[constants.CurrencyType]int{}
 	groupMap := map[constants.CurrencyType]*amountauthdto.CurrencyGroup{}
 
@@ -366,11 +366,11 @@ func groupTiersByCurrency(tiers []local_model.AuthTier) []amountauthdto.Currency
 			}
 		}
 		groupMap[t.Currency].Tiers = append(groupMap[t.Currency].Tiers, amountauthdto.TierResponse{
-			ID:           t.ID.Hex(),
+			ID:           t.ID,
 			Method:       t.Method,
 			MinAmount:    t.MinAmount,
 			MaxAmount:    t.MaxAmount,
-			Enabled:      t.Enabled,
+			Enabled:      t.Enabled == 1,
 			CreatedAt:    t.CreatedAt,
 			LastModified: t.LastModified,
 		})
@@ -381,6 +381,42 @@ func groupTiersByCurrency(tiers []local_model.AuthTier) []amountauthdto.Currency
 		groups[orderMap[currency]] = *group
 	}
 	return groups
+}
+
+// DeleteAmountBasedAuth submits a CPS action to soft-delete a tier by id.
+func (s *amountBasedAuthService) DeleteAmountBasedAuth(ctx context.Context, currency string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteAmountBasedAuth", "Amount Based Auth", "DeleteAmountBasedAuth")
+	defer span.End()
+
+	if strings.TrimSpace(currency) == "" {
+		return errors.New(localization.ErrorInvalidInputParameter.Code)
+	}
+
+	existing, err := s.Repository.FindActiveByCurrency(ctx, currency)
+	if err != nil {
+		span.AddEvent("tier not found", trace.WithAttributes(attribute.String("currency", currency)))
+		return err
+	}
+
+	maker := local_util.ExtractUserFromContext(ctx)
+	if local_util.IsIncomplete(maker) {
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+
+	deleted := existing
+
+	for _, tier := range deleted {
+		tier.IsDeleted = 1
+		tier.LastModified = time.Now()
+	}
+
+	cps := lib.CpsModelBuilder(currency, maker, existing, &deleted, string(constants.RequestDeleteAmountBasedAuth), constants.DELETE)
+	if err := s.cpsService.CreateCPSAction(ctx, &cps); err != nil {
+		s.logger.Errorf("[AmountAuthSvc][Delete] cps action err: %v", err)
+		return err
+	}
+	s.logger.Infof("[AmountAuthSvc][Delete] delete request submitted currency=%s", currency)
+	return nil
 }
 
 // UpdateAmountBasedAuth updates any tier type and applies appropriate cascading logic
@@ -423,10 +459,10 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 	now := time.Now()
 	currency := string(existingTier.Currency)
 
-	switch method {
-	case shared_constant.OPEN:
+	switch constants.Method(method) {
+	case constants.OPEN:
 		existingTier.MaxAmount = request.MaxAmount
-		pinTiers, err := s.Repository.FindAll(ctx, bson.M{"method": constants.PIN, "currency": currency, "is_deleted": false}, bson.M{})
+		pinTiers, err := s.Repository.FindActiveByCurrencyAndMethod(ctx, currency, constants.PIN)
 		if err != nil {
 			return err
 		}
@@ -444,8 +480,8 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 		data := map[string]interface{}{
 			"method": "OPEN",
 			"data": map[string]interface{}{
-				"open_id": existingTier.ID.Hex(),
-				"pin_id":  pinTiers[0].ID.Hex(),
+				"open_id": existingTier.ID,
+				"pin_id":  pinTiers[0].ID,
 				"open":    existingTier,
 				"pin":     &pinTiers[0],
 			},
@@ -460,11 +496,11 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 		s.logger.Infof("[AmountAuthSvc][Update] OPEN tier request done")
 		return nil
 
-	case shared_constant.PIN:
+	case constants.PIN:
 		existingTier.MinAmount = request.MinAmount
 		existingTier.MaxAmount = request.MaxAmount
 
-		openTiers, err := s.Repository.FindAll(ctx, bson.M{"method": constants.OPEN, "currency": currency, "is_deleted": false}, bson.M{})
+		openTiers, err := s.Repository.FindActiveByCurrencyAndMethod(ctx, currency, constants.OPEN)
 		if err != nil {
 			return err
 		}
@@ -472,7 +508,7 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
 
-		otpPinTiers, err := s.Repository.FindAll(ctx, bson.M{"method": constants.OTPANDPIN, "currency": currency, "is_deleted": false}, bson.M{})
+		otpPinTiers, err := s.Repository.FindActiveByCurrencyAndMethod(ctx, currency, constants.OTPANDPIN)
 		if err != nil {
 			return err
 		}
@@ -484,15 +520,16 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 			return err
 		}
 
+		existingTier.LastModified = now
 		openTiers[0].LastModified = now
 		otpPinTiers[0].LastModified = now
 
 		data := map[string]interface{}{
 			"method": "PIN",
 			"data": map[string]interface{}{
-				"open_id":    openTiers[0].ID.Hex(),
-				"pin_id":     existingTier.ID.Hex(),
-				"otp_pin_id": otpPinTiers[0].ID.Hex(),
+				"open_id":    openTiers[0].ID,
+				"pin_id":     existingTier.ID,
+				"otp_pin_id": otpPinTiers[0].ID,
 				"open":       &openTiers[0],
 				"pin":        existingTier,
 				"otp_pin":    &otpPinTiers[0],
@@ -508,10 +545,10 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 		s.logger.Infof("[AmountAuthSvc][Update] PIN tier request done")
 		return nil
 
-	case shared_constant.OTPANDPIN:
+	case constants.OTPANDPIN:
 		existingTier.MinAmount = request.MinAmount
 
-		pinTiers, err := s.Repository.FindAll(ctx, bson.M{"method": constants.PIN, "currency": currency, "is_deleted": false}, bson.M{})
+		pinTiers, err := s.Repository.FindActiveByCurrencyAndMethod(ctx, currency, constants.PIN)
 		if err != nil {
 			return err
 		}
@@ -524,12 +561,13 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 		}
 
 		existingTier.LastModified = now
+		pinTiers[0].LastModified = now
 
 		data := map[string]interface{}{
 			"method": "OTP_PIN",
 			"data": map[string]interface{}{
-				"pin_id":     pinTiers[0].ID.Hex(),
-				"otp_pin_id": existingTier.ID.Hex(),
+				"pin_id":     pinTiers[0].ID,
+				"otp_pin_id": existingTier.ID,
 				"pin":        &pinTiers[0],
 				"otp_pin":    existingTier,
 			},
@@ -621,7 +659,7 @@ func (s *amountBasedAuthService) ResetConfig(ctx context.Context, currency const
 	}
 
 	// Get existing tiers as previous action
-	existingTiers, err := s.Repository.FindByCurrency(ctx, string(currency))
+	existingTiers, err := s.Repository.FindActiveByCurrency(ctx, string(currency))
 	if err != nil {
 		s.logger.Errorf("[AmountAuthSvc][ResetConfig] fetch existing tiers err: %v", err)
 		return err

@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"strings"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
@@ -109,7 +110,8 @@ func MergeMiniAppMerchantData(old, data *model.EcommerceMerchant) *model.Ecommer
 
 func HandleCPSActionForMiniAppMerchant(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	maker := local_util.ExtractUserFromContext(ctx)
-	if local_util.IsIncomplete(maker) {
+
+	if local_util.IsIncomplete(maker) && !maker.IsErp {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
@@ -142,7 +144,7 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 func CheckMerchantExists(
 	ctx context.Context,
 	merchantRepo storage.EcommerceMerchantRepository,
-	data *types.CheckMiniAppMerchant,
+	data *types.CheckMerchant,
 	opts *types.MiniAppMerchantExistOptions,
 ) (bool, error) {
 	if data == nil {
@@ -173,7 +175,7 @@ func CheckMerchantExists(
 
 	res, err := merchantRepo.FindOne(ctx, filter)
 	if err != nil {
-		if err.Error() == localization.ErrorMiniAppMerchantNotFound.Code || err.Error() == localization.ErrorResourceNotFound.Code {
+		if err.Error() == localization.ErrorEcommerceMerchantNotFound.Code || err.Error() == localization.ErrorResourceNotFound.Code {
 			return false, nil
 		}
 		return false, err
@@ -183,24 +185,24 @@ func CheckMerchantExists(
 		return false, nil
 	}
 
-	// if res.BankAccountNumber == data.BankAccountNumber {
-	// 	return false, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
-	// }
+	if strings.EqualFold(res.BankAccountNumber, data.BankAccountNumber) {
+		return false, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
+	}
 	// if res.Email == data.Email {
 	// 	return false, errors.New(localization.ErrorEmailAlreadyExist.Code)
 	// }
 	// if res.PhoneNumber == data.PhoneNumber {
 	// 	return false, errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
 	// }
-	if res.Code == data.MerchantCode {
+	if strings.EqualFold(res.Code, data.MerchantCode) {
 		return false, errors.New(localization.ErrorCodeAlreadyExist.Code)
 	}
 
 	return true, nil
 }
 
-func ToMiniAppMerchantResponseDTO(domain *model.EcommerceMerchant) *merchantDto.MiniAppMerchantResponseDTO {
-	return &merchantDto.MiniAppMerchantResponseDTO{
+func ToMiniAppMerchantResponseDTO(domain *model.EcommerceMerchant) *merchantDto.EcommerceMerchantResponseDTO {
+	return &merchantDto.EcommerceMerchantResponseDTO{
 		ID:            domain.ID.Hex(),
 		Code:          domain.Code,
 		MerchantName:  domain.MerchantName,
@@ -219,12 +221,19 @@ func convertDtoBranches(dto []merchantDto.BranchInformation) []model.BranchInfor
 	}
 	result := make([]model.BranchInformation, len(dto))
 	for i, b := range dto {
-		var branch string
+		var address, owner string
+		if b.BranchAddress != nil {
+			address = *b.BranchAddress
+		}
+		if b.BranchOwner != nil {
+			owner = *b.BranchOwner
+		}
+
 		result[i] = model.BranchInformation{
 			BranchCode:          b.BranchCode,
 			BranchName:          b.BranchName,
-			BranchAddress:       branch,
-			BranchOwner:         b.BranchOwner,
+			BranchAddress:       address,
+			BranchOwner:         owner,
 			BranchAccountNumber: b.BranchAccountNumber,
 		}
 	}

@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/types"
 
 	// "cbe-super-app-cps-action/internal/constants/types"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
@@ -44,38 +43,36 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 
 }
 
-func ToCreateWalletDoc(name, code, URL, serviceID string, self, other, agent *bool) *local_model.Wallet {
-	return &local_model.Wallet{
+func ToCreateWalletDoc(name, code, URL, serviceID string, self, other, agent *bool) *local_model.WalletOracle {
+	return &local_model.WalletOracle{
 		Name:       name,
 		UniqueCode: code,
 		Avatar:     URL,
 		ServiceID:  serviceID,
-		Services: types.Services{
-			Self:  *self,
-			Other: *other,
-			Agent: *agent,
-		},
+		Self:       *self,
+		Other:      *other,
+		Agent:      *agent,
 	}
 }
 
 // note: this comparision might not be needed if the existing data is first in the request form and the user update those values
-func ToUpdateWalletDoc(existing local_model.Wallet, req walletDto.WalletRequest, serviceID string) (*local_model.Wallet, int) {
+func ToUpdateWalletDoc(existing local_model.WalletOracle, req walletDto.WalletRequest, serviceID string) (*local_model.WalletOracle, int) {
 	wallet := existing
 	changeCount := 0
 
-	if req.Self != nil && *req.Self != existing.Services.Self {
+	if req.Self != nil && *req.Self != existing.Self {
 		changeCount++
-		wallet.Services.Self = *req.Self
+		wallet.Self = *req.Self
 	}
 
-	if req.Other != nil && *req.Other != existing.Services.Other {
+	if req.Other != nil && *req.Other != existing.Other {
 		changeCount++
-		wallet.Services.Other = *req.Other
+		wallet.Other = *req.Other
 	}
 
-	if req.Agent != nil && *req.Agent != existing.Services.Agent {
+	if req.Agent != nil && *req.Agent != existing.Agent {
 		changeCount++
-		wallet.Services.Agent = *req.Agent
+		wallet.Agent = *req.Agent
 	}
 
 	if req.Name != "" && req.Name != existing.Name {

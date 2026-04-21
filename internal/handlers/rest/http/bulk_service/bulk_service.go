@@ -123,6 +123,7 @@ func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.R
 	}
 
 	log.Infof("[EnableBulkService] request sent successfully for %d service keys", len(req.Keys))
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.BulkServiceEnableRequestSuccess, nil)
 }
 
@@ -161,5 +162,6 @@ func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.
 		return
 	}
 	log.Infof("[DisableBulkService] request sent successfully for %d service keys", len(req.Keys))
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.BulkServiceDisableRequestSuccess, nil)
 }

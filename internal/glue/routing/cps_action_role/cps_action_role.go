@@ -68,6 +68,14 @@ func Init(router chi.Router, handler actionrole_inbound.CPSActionRoleHandler, au
 			},
 		},
 		{
+			Method:  http.MethodDelete,
+			Path:    "/cps-action-roles/{code}",
+			Handler: handler.Delete,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
 			Method:  http.MethodGet,
 			Path:    "/cps-action-roles/{code}/versions",
 			Handler: handler.GetVersions,

@@ -1,12 +1,15 @@
 package customer
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/customer_kyc"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/customer_kyc/core"
 	"cbe-super-app-cps-action/internal/service"
 	util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -43,6 +46,9 @@ func (c *customerKYCAdapter) CreateCustomerKYC(w http.ResponseWriter, r *http.Re
 	ctx, span := util.TraceLogger(r.Context(), "handler", "CreateCustomerKYC", "handler", "customer_kyc")
 	defer span.End()
 	log := util.LoggerFromCtx(ctx, c.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	req, err := core.ParseRequestFromMultipleFormData(r)
 	if err != nil {
@@ -164,6 +170,9 @@ func (c *customerKYCAdapter) DeleteKYCRequest(w http.ResponseWriter, r *http.Req
 	ctx, span := util.TraceLogger(r.Context(), "handler", "DeleteKYCRequest", "handler", "customer_kyc")
 	defer span.End()
 	log := util.LoggerFromCtx(ctx, c.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -198,6 +207,9 @@ func (c *customerKYCAdapter) UpdateKYCStatus(w http.ResponseWriter, r *http.Requ
 	ctx, span := util.TraceLogger(r.Context(), "handler", "UpdateKYCStatus", "handler", "customer_kyc")
 	defer span.End()
 	log := util.LoggerFromCtx(ctx, c.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 
 	id := chi.URLParam(r, "id")
 	if id == "" {

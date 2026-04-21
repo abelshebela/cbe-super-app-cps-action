@@ -90,7 +90,7 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 		return err
 	}
 
-	if cpsRole != nil && cpsRole.ID.Hex() != id {
+	if cpsRole != nil && cpsRole.ID != id {
 		if strings.EqualFold(cpsRole.Name, name) && existing.Name != name {
 			r.logger.Warnf("[CpsRoleSvc][Update] name exists: %s", req.Name)
 			return errors.New(localization.ErrorCPSRoleNameAlreadyExists.Code)
@@ -135,11 +135,11 @@ func (r *cpsRoleService) EnableOrDisable(ctx context.Context, id string, enable 
 
 	if enable && *existing.Enabled {
 		r.logger.Warnf("[CpsRoleSvc][EnableDisable] already enabled id: %s", id)
-		return err
+		return errors.New(localization.ErrorCPSRoleAlreadyEnabled.Code)
 	}
 	if !enable && !*existing.Enabled {
 		r.logger.Warnf("[CpsRoleSvc][EnableDisable] already disabled id: %s", id)
-		return err
+		return errors.New(localization.ErrorCPSRoleAlreadyDisabled.Code)
 	}
 
 	updated := *existing
@@ -195,6 +195,12 @@ func (r *cpsRoleService) Delete(ctx context.Context, id string) error {
 	existing, err := r.repo.FindById(ctx, id)
 	if err != nil {
 		r.logger.Errorf("[CpsRoleSvc][Delete] find err: %v", err)
+		return err
+	}
+
+	err = r.repo.CheckUserExistence(ctx, existing.RoleCode)
+	if err != nil {
+		r.logger.Errorf("[CpsRoleSvc][Delete] check user existence err: %v", err)
 		return err
 	}
 
