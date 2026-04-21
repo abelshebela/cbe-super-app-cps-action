@@ -117,7 +117,7 @@ func Init(ctx context.Context) {
 	logger.Infof("redis initialized")
 
 	// encMiddleWare := encryption.NewEncryptionImpl(zapLogger)
-	encryptionMiddleware := middleware.InitEncMiddleware(sharedRedis, zapLogger)
+	encryptionMiddleware := middleware.InitEncMiddleware(cfg, sharedRedis, zapLogger)
 
 	redisRepository := redisStorage.GetRedisRepository()
 
