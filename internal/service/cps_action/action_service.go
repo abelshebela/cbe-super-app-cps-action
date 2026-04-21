@@ -461,6 +461,12 @@ func (ca *cpsActionService) GetPendingCPSActionByRoleAndRequestActions(ctx conte
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetPendingCPSActionByRoleAndRequestActions", "CPSAction", "GetPendingCPSActionByRoleAndRequestActions")
 	defer span.End()
 
+	// If requestActions is empty, return not found immediately
+	if len(requestActions) == 0 {
+		ca.logger.Warnf("[CpsActionSvc][GetPendingByRoleAndRA] empty requestActions provided")
+		return nil, errors.New(localization.ErrorActionNotFound.Code)
+	}
+
 	filter := bson.M{
 		"unique_id":      uniqueId,
 		"action_status":  string(constants.Pending),
