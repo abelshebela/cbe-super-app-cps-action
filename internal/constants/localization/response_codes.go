@@ -533,7 +533,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorFailToUpdateBulkService,
 
 	ErrorServiceListAlreadyExists,
-	ErrorServiceListNotFound,
+	ErrorAccessListNotFound,
 	ErrorServiceListInUse,
 
 	// department related error
@@ -1180,27 +1180,27 @@ var (
 	}
 
 	SuccessRoleCreatedRequestSent = ResponseCode{
-		Code:       "SUCCESS_Role_CREATED_REQUEST_SENT",
+		Code:       "SUCCESS_ROLE_CREATED_REQUEST_SENT",
 		StatusCode: StatusCreated,
 		Message:    MsgRoleCreatedRequestSent,
 		Type:       "success",
 	}
 	SuccessRoleCreatedSP = ResponseCode{
-		Code:       "SUCCESS_Role_CREATED_REQUEST_SENT",
+		Code:       "SUCCESS_ROLE_CREATED_SUCCESSFULLY",
 		StatusCode: StatusCreated,
 		Message:    MsgRoleCreatedSP,
 		Type:       "success",
 	}
 
 	SuccessRoleUpdatedRequestSent = ResponseCode{
-		Code:       "SUCCESS_Role_UPDATED_REQUEST_SENT",
+		Code:       "SUCCESS_ROLE_UPDATED_REQUEST_SENT",
 		StatusCode: StatusCreated,
 		Message:    MsgRoleUpdatedRequestSent,
 		Type:       "success",
 	}
 
 	SuccessRoleUpdatedSP = ResponseCode{
-		Code:       "SUCCESS_Role_UPDATED_REQUEST_SENT",
+		Code:       "SUCCESS_ROLE_UPDATED_SUCCESSFULLY",
 		StatusCode: StatusCreated,
 		Message:    MsgRoleUpdatedSP,
 		Type:       "success",
@@ -7733,10 +7733,10 @@ var (
 		Message:    "Service list with the same name or key already exists",
 		Type:       "error",
 	}
-	ErrorServiceListNotFound = ResponseCode{
-		Code:       "ERROR_SERVICE_LIST_NOT_FOUND",
+	ErrorAccessListNotFound = ResponseCode{
+		Code:       "ERROR_ACCESS_LIST_NOT_FOUND",
 		StatusCode: StatusNotFound,
-		Message:    "service key not found",
+		Message:    "access list not found",
 		Type:       "error",
 	}
 

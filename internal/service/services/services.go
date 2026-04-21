@@ -141,7 +141,7 @@ func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*typ
 
 func (s *servicesService) CreateServiceList(ctx context.Context, req *service_dto.CreateServiceList) error {
 	list, err := s.repo.FindServiceListByExactNameOrKey(ctx, req.ServiceName, req.ServiceKey)
-	if err != nil && err.Error() != localization.ErrorServiceListNotFound.Code {
+	if err != nil && err.Error() != localization.ErrorAccessListNotFound.Code {
 		return err
 	}
 	if list != nil {
@@ -155,8 +155,8 @@ func (s *servicesService) CreateServiceList(ctx context.Context, req *service_dt
 func (s *servicesService) UpdateServiceList(ctx context.Context, id string, req *service_dto.UpdateServiceList) error {
 	existing, err := s.repo.FindServiceListByID(ctx, id)
 	if err != nil {
-		if err.Error() == localization.ErrorServiceListNotFound.Code {
-			return localization.ErrorServiceListNotFound
+		if err.Error() == localization.ErrorAccessListNotFound.Code {
+			return localization.ErrorAccessListNotFound
 		}
 		return err
 	}
@@ -205,17 +205,22 @@ func (s *servicesService) EnableOrDisableServiceList(ctx context.Context, id str
 }
 
 func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error {
-	prev, err := s.repo.FindServiceListByID(ctx, id)
+	prev, err := s.repo.FindServiceByAccessListID(ctx, id)
 	if err != nil {
-		s.logger.Errorf("[servicesService][DeleteServiceKey] error fetching service list by id=%s: %v", id, err)
-		if err.Error() == localization.ErrorServiceListNotFound.Code {
-			return errors.New(localization.ErrorServiceListNotFound.Code)
+		s.logger.Errorf("[servicesService][DeleteServiceKey] error fetching service by id=%s: %v", id, err)
+		if err.Error() == localization.ErrorServiceNotFound.Code {
+			return errors.New(localization.ErrorServiceNotFound.Code)
 		}
 	}
 
+	var accessListID string
+	if prev != nil {
+		accessListID = prev.ServiceKeyId
+	} else {
+		accessListID = id
+	}
 	s.logger.Infof("[servicesService][DeleteServiceKey] Deleting service key with id=%s, found service list: %+v", id, prev)
-	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceKey, nil, prev, constants.ActionDelete)
-
+	return core.HandleCPSAction(ctx, s.cps, accessListID, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
 }
 
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
@@ -257,8 +262,8 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		err = s.repo.UpdateServiceKey(ctx, action.UniqueId, prevListDoc.ServiceKey, listDoc)
 	case string(constants.RequestDeleteServiceList):
 		err = s.repo.Delete(ctx, action.UniqueId)
-	case string(constants.RequestDeleteServiceKey):
-		err = s.repo.DeleteServiceKey(ctx, action.UniqueId)
+	// case string(constants.RequestDeleteServiceKey):
+	// 	err = s.repo.DeleteServiceKey(ctx, action.UniqueId)
 	case string(constants.RequestEnableServiceList):
 		// listDoc, err := local_util.JsonUnmarshal[model.ServiceKey](action.PreviousAction)
 		// if err != nil {
