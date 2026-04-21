@@ -14,9 +14,12 @@ import (
 
 	bpsActionDto "cbe-super-app-cps-action/internal/constants/dto/bps_action"
 
+	bps_action "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
-	bps_action "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
+
+	// bps_action "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
