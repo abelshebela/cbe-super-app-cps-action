@@ -188,9 +188,9 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 		return strings.Contains(normalize(s), constants.CREATE)
 	}
 
-	// isDelete := func(s string) bool {
-	// 	return strings.Contains(normalize(s), constants.DELETE)
-	// }
+	isDisable := func(s string) bool {
+		return strings.Contains(normalize(s), constants.DISABLE)
+	}
 
 	defaultReq := []string{normalize(requestAction)}
 	if actionName == "" {
@@ -203,7 +203,7 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 	}
 
 	wantCreateOnly := isCreate(requestAction)
-	// wantDeleteOnly := isDelete(requestAction)
+	wantDisableOnly := isDisable(requestAction)
 	seen := map[string]struct{}{}
 	reqs := make([]string, 0, len(lst))
 
@@ -214,14 +214,14 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 		}
 
 		isKeyCreate := isCreate(key)
-		// isKeyDelete := isDelete(key)
+		isKeyDisable := isDisable(key)
 		if wantCreateOnly != isKeyCreate {
 			continue
 		}
 
-		// if wantDeleteOnly != isKeyDelete {
-		// 	continue
-		// }
+		if wantDisableOnly != isKeyDisable {
+			continue
+		}
 
 		seen[key] = struct{}{}
 		reqs = append(reqs, key)
