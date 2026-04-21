@@ -8,15 +8,21 @@ import (
 	"strings"
 
 	"cbe-super-app-cps-action/internal/constants"
+	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 
-	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/google/uuid"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 // ─── SQL constants ───────────────────────────────────────────────────────────
@@ -117,193 +123,28 @@ const (
 // ─── Repository struct ──────────────────────────────────────────────────────
 
 type AccountBlockStorage struct {
-	db     *sql.DB
-	redis  storage.RedisRepository
-	logger utils.Logger
+	db                 *sql.DB
+	client             *mongo.Client
+	mongoDB            string
+	mongoCpsActionColl string
+	redis              storage.RedisRepository
+	cpsActionRepo      dal.MongoDal[model.CPSAction, model.CPSAction]
+	logger             utils.Logger
 }
 
-func NewAccountBlockRepository(
-
-	db *sql.DB,
-	redis storage.RedisRepository,
-	logger utils.Logger,
-) storage.AccountBlockRepository {
-	// One-time table/constraint creation with existence checks
-	// Helper: check if table exists
-	tableExists := func(name string) bool {
-		var cnt int
-		err := db.QueryRow("SELECT COUNT(*) FROM USER_TABLES WHERE TABLE_NAME = :1", strings.ToUpper(name)).Scan(&cnt)
-		return err == nil && cnt > 0
-	}
-	// Helper: check if constraint exists
-	constraintExists := func(name string) bool {
-		var cnt int
-		err := db.QueryRow("SELECT COUNT(*) FROM USER_CONSTRAINTS WHERE CONSTRAINT_NAME = :1", strings.ToUpper(name)).Scan(&cnt)
-		return err == nil && cnt > 0
-	}
-	// ACCESS_LIST_CUSTOMER_SEG
-	if !tableExists("ACCESS_LIST_CUSTOMER_SEG") {
-		stmt := `CREATE TABLE ACCESS_LIST_CUSTOMER_SEG (
-			   ID RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
-			   ACCESS_LIST_KEY RAW(16),
-			   SEGMENTED_ID RAW(16),
-			   ENABLED NUMBER(1) DEFAULT 1,
-			   CREATED_AT TIMESTAMP,
-			   UPDATED_AT TIMESTAMP,
-			   DELETED_AT TIMESTAMP,
-			   CONSTRAINT FK_AL_CUSTOMER_ACCESS_LIST FOREIGN KEY (ACCESS_LIST_KEY) REFERENCES ACCESS_LIST (id) ON DELETE CASCADE,
-			   CONSTRAINT FK_AL_CUSTOMER_SEGMENT FOREIGN KEY (SEGMENTED_ID) REFERENCES CUSTOMER_SEGMENTATIONS (ID) ON DELETE CASCADE
-		   )`
-		if _, err := db.Exec(stmt); err != nil {
-			logger.Warnf("ACCESS_LIST_CUSTOMER_SEG table creation: %v", err)
-		} else {
-			logger.Infof("ACCESS_LIST_CUSTOMER_SEG table created successfully")
-		}
-	}
-
-	// ACCESS_LIST_GEO_SEG
-	if !tableExists("ACCESS_LIST_GEO_SEG") {
-		stmt := `CREATE TABLE ACCESS_LIST_GEO_SEG (
-			   ID RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
-			   ACCESS_LIST_KEY RAW(16),
-			   SEGMENTED_ID VARCHAR2(32),
-			   TYPE VARCHAR2(1),
-			   ENABLED NUMBER(1) DEFAULT 1,
-			   CREATED_AT TIMESTAMP,
-			   UPDATED_AT TIMESTAMP,
-			   DELETED_AT TIMESTAMP,
-			   CONSTRAINT FK_AL_GEO_ACCESS_LIST FOREIGN KEY (ACCESS_LIST_KEY) REFERENCES ACCESS_LIST (ID) ON DELETE CASCADE,
-			   CONSTRAINT FK_AL_GEO_BLOCK FOREIGN KEY (SEGMENTED_ID) REFERENCES ACCOUNT_BLOCKS (ID) ON DELETE CASCADE
-		   )`
-		if _, err := db.Exec(stmt); err != nil {
-			logger.Warnf("ACCESS_LIST_GEO_SEG table creation: %v", err)
-		} else {
-			logger.Infof("ACCESS_LIST_GEO_SEG table created successfully")
-		}
-	}
-
-	// ACCOUNT_BLOCKS table
-	if !tableExists("ACCOUNT_BLOCKS") {
-		stmt := `CREATE TABLE ACCOUNT_BLOCKS (
-			   ID RAW(24) PRIMARY KEY,
-			   NAME VARCHAR2(255),
-			   CODE VARCHAR2(100) UNIQUE,
-			   ADDRESS VARCHAR2(500),
-			   PARENT_ID RAW(24),
-			   SLUG VARCHAR2(255),
-			   TYPE VARCHAR2(1),
-			   IS_ENABLED NUMBER(1) DEFAULT 1,
-			   CITY_ID RAW(24),
-			   REGION_ID RAW(24),
-			   DISTRICT_ID RAW(24),
-			   IS_DELETED NUMBER(1) DEFAULT 0,
-			   CREATED_AT TIMESTAMP,
-			   UPDATED_AT TIMESTAMP,
-			   CONSTRAINT FK_ACCOUNT_BLOCK_PARENT FOREIGN KEY (CITY_ID) REFERENCES ACCOUNT_BLOCKS (ID) ON DELETE CASCADE,
-			   CONSTRAINT FK_ACCOUNT_BLOCK_PARENT2 FOREIGN KEY (REGION_ID) REFERENCES ACCOUNT_BLOCKS (ID) ON DELETE CASCADE,
-			   CONSTRAINT FK_ACCOUNT_BLOCK_PARENT3 FOREIGN KEY (DISTRICT_ID) REFERENCES ACCOUNT_BLOCKS (ID) ON DELETE CASCADE
-		   )`
-		if _, err := db.Exec(stmt); err != nil {
-			logger.Errorf("ACCOUNT_BLOCKS table creation failed (API will return ORA-00942 until migration or DDL succeeds): %v", err)
-		} else {
-			logger.Infof("ACCOUNT_BLOCKS table created successfully")
-		}
-	}
-	// Add type check constraint if not exists
-	if !constraintExists("CHK_AB_TYPE") {
-		stmt := `ALTER TABLE ACCOUNT_BLOCKS ADD CONSTRAINT CHK_AB_TYPE CHECK (TYPE IN ('R', 'D', 'C', 'B'))`
-		if _, err := db.Exec(stmt); err != nil {
-			logger.Errorf("CHK_AB_TYPE constraint on ACCOUNT_BLOCKS failed: %v", err)
-		} else {
-			logger.Infof("CHK_AB_TYPE constraint added successfully")
-		}
-	}
-
-	// CUSTOMER_GROUPS
-	if !tableExists("CUSTOMER_GROUPS") {
-		stmt := `CREATE TABLE CUSTOMER_GROUPS (
-			   ID RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
-			   NAME VARCHAR2(32) NOT NULL,
-			   IS_ENABLED NUMBER(1) DEFAULT 1,
-			   IS_DELETED NUMBER(1) DEFAULT 0,
-			   CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			   LAST_MODIFIED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			   DELETED_AT TIMESTAMP
-		   )`
-		if _, err := db.Exec(stmt); err != nil {
-			logger.Warnf("CUSTOMER_GROUPS table creation: %v", err)
-		} else {
-			logger.Infof("CUSTOMER_GROUPS table created successfully")
-		}
-	}
-	// SUPERAPP_ROLE
-	if !tableExists("SUPERAPP_ROLE") {
-		stmt := `CREATE TABLE SUPERAPP_ROLE (
-			   ID RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
-			   NAME VARCHAR2(32) NOT NULL,
-			   ROLE_CODE VARCHAR2(32) NOT NULL UNIQUE,
-			   DESCRIPTION VARCHAR2(128),
-			   ENABLED NUMBER(1) DEFAULT 1,
-			   IS_DELETED NUMBER(1) DEFAULT 0,
-			   CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			   LAST_MODIFIED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			   DELETED_AT TIMESTAMP
-		   )`
-		if _, err := db.Exec(stmt); err != nil {
-			logger.Warnf("SUPERAPP_ROLE table creation: %v", err)
-		} else {
-			logger.Infof("SUPERAPP_ROLE table created successfully")
-		}
-	}
-	// CUSTOMER_SEGMENTATIONS
-	if !tableExists("CUSTOMER_SEGMENTATIONS") {
-		stmt := `CREATE TABLE CUSTOMER_SEGMENTATIONS (
-			   ID RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
-			   NAME VARCHAR2(32) NOT NULL,
-			   CUSTOMER_GROUPS_ID RAW(16) NOT NULL,
-			   IS_ENABLED NUMBER(1) DEFAULT 1,
-			   IS_DELETED NUMBER(1) DEFAULT 0,
-			   CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			   LAST_MODIFIED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			   DELETED_AT TIMESTAMP,
-			   CONSTRAINT FK_CUSTOMER_GROUPS FOREIGN KEY (CUSTOMER_GROUPS_ID) REFERENCES CUSTOMER_GROUPS (ID) ON DELETE CASCADE
-		   )`
-		if _, err := db.Exec(stmt); err != nil {
-			logger.Warnf("CUSTOMER_SEGMENTATIONS table creation: %v", err)
-		} else {
-			logger.Infof("CUSTOMER_SEGMENTATIONS table created successfully")
-		}
-	}
-	// CUSTOMER_SUB_SEGMENTS
-	if !tableExists("CUSTOMER_SUB_SEGMENTS") {
-		stmt := `CREATE TABLE CUSTOMER_SUB_SEGMENTS (
-			   ID RAW(16) DEFAULT SYS_GUID() PRIMARY KEY,
-			   NAME VARCHAR2(32) NOT NULL,
-			   CUSTOMER_SEGMENTATIONS_ID RAW(16) NOT NULL,
-			   SUPERAPP_ROLE_ID RAW(16) NOT NULL,
-			   IS_ENABLED NUMBER(1) DEFAULT 1,
-			   IS_DELETED NUMBER(1) DEFAULT 0,
-			   CREATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			   LAST_MODIFIED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			   DELETED_AT TIMESTAMP,
-			   CONSTRAINT FK_CUSTOMER_SEGMENTATIONS FOREIGN KEY (CUSTOMER_SEGMENTATIONS_ID) REFERENCES CUSTOMER_SEGMENTATIONS (ID) ON DELETE CASCADE,
-			   CONSTRAINT FK_SUB_SEG_SUPERAPP_ROLE FOREIGN KEY (SUPERAPP_ROLE_ID) REFERENCES SUPERAPP_ROLE (ID)
-		   )`
-		if _, err := db.Exec(stmt); err != nil {
-			logger.Warnf("CUSTOMER_SUB_SEGMENTS table creation: %v", err)
-		} else {
-			logger.Infof("CUSTOMER_SUB_SEGMENTS table created successfully")
-		}
-	}
+func NewAccountBlockRepository(client *mongo.Client, cfg *config.VaultConfig, cpsCollection string, db *sql.DB, redis storage.RedisRepository, logger utils.Logger) storage.AccountBlockRepository {
 	return &AccountBlockStorage{
-		db:     db,
-		redis:  redis,
-		logger: logger,
+		db:                 db,
+		client:             client,
+		mongoDB:            cfg.MongoDBDatabase,
+		mongoCpsActionColl: cpsCollection,
+		cpsActionRepo:      dal.NewMongoDal[model.CPSAction, model.CPSAction](client, cfg, cfg.MongoDBDatabase, cpsCollection),
+		redis:              redis,
+		logger:             logger,
 	}
 }
 
 // ─── Scan helpers ───────────────────────────────────────────────────────────
-
 func scanAccountBlock(scanner interface{ Scan(dest ...any) error }) (*imodel.AccountBlock, error) {
 	var ab imodel.AccountBlock
 	var parentID, cityID, districtID, regionID sql.NullString
@@ -1138,31 +979,188 @@ func (a *AccountBlockStorage) EnableOrDisableCities(ctx context.Context, ids []s
 // ─── GetAccountBlockDetails ─────────────────────────────────────────────────
 
 func (a *AccountBlockStorage) GetAccountBlockDetails(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error) {
-	a.logger.Infof("[AccountBlockStorage][GetAccountBlockDetails] id=%s", id)
+	a.logger.Infof("[AccountBlockStorage][GetAccountBlockDetails] fetching CPS actions for account block id: %s", id)
 
-	// Fetch the account block by ID
-	row := a.db.QueryRowContext(ctx, selectAccountBlockByID,
-		sql.Named("id", id),
-	)
-	_, err := scanAccountBlockFromRow(row)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("account block not found")
-		}
-		return nil, err
+	cpsCollection := a.client.Database(a.mongoDB).Collection(a.mongoCpsActionColl)
+
+	accountBlockRequestActions := []string{
+		string(constants.RequestEnableBranches),
+		string(constants.RequestDisableBranches),
+		string(constants.RequestEnableCities),
+		string(constants.RequestDisableCities),
+		string(constants.RequestEnableDistricts),
+		string(constants.RequestDisableDistricts),
+		string(constants.RequestEnableRegions),
+		string(constants.RequestDisableRegions),
 	}
 
-	// For now, return empty paginated response as CPS action details
-	// are typically fetched via separate CPS action queries
+	matchFilter := bson.M{
+		"is_deleted":         false,
+		"previous_action.id": id,
+		"request_action":     bson.M{"$in": accountBlockRequestActions},
+	}
+
+	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
+	limit := int64(filterParam.PerPage)
+
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: matchFilter}},
+		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+		{{Key: "$skip", Value: skip}},
+		{{Key: "$limit", Value: limit}},
+	}
+
+	cur, err := cpsCollection.Aggregate(ctx, pipeline)
+	if err != nil {
+		a.logger.Errorf("[AccountBlockStorage][GetAccountBlockDetails] aggregation failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer func() { _ = cur.Close(ctx) }()
+
+	var results []model.CPSAction
+	if err := cur.All(ctx, &results); err != nil {
+		a.logger.Errorf("[AccountBlockStorage][GetAccountBlockDetails] failed to decode CPS actions: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if len(results) == 0 {
+		a.logger.Errorf("[AccountBlockStorage][GetAccountBlockDetails] no CPS actions found for id: %s", id)
+		return nil, errors.New(localization.ErrorActionNotFound.Code)
+	}
+
+	total, err := cpsCollection.CountDocuments(ctx, matchFilter)
+	if err != nil {
+		a.logger.Errorf("[GetAccountBlockDetails] failed to count CPS actions: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	response := make([]account_block_dto.AccountBlockActionResponse, 0, len(results))
+	for _, cpsAction := range results {
+		actionResponse := account_block_dto.AccountBlockActionResponse{
+			ID:                  cpsAction.ID.Hex(),
+			ActionCode:          cpsAction.ActionCode,
+			UniqueId:            cpsAction.UniqueId,
+			MakerID:             cpsAction.MakerID,
+			MakerName:           cpsAction.MakerName,
+			MakerPhoneNumber:    cpsAction.MakerPhoneNumber,
+			CheckerUsers:        convertCheckers(cpsAction.CheckerUsers),
+			AuditorUsers:        convertAuditors(cpsAction.AuditorUsers),
+			AuditorCount:        cpsAction.AuditorCount,
+			AuditorStatus:       account_block_dto.AuditorStatus(cpsAction.AuditorStatus),
+			CurrentAuditorIndex: cpsAction.CurrentAuditorIndex,
+			CheckerCount:        cpsAction.CheckerCount,
+			CurrentCheckerIndex: cpsAction.CurrentCheckerIndex,
+			RoleCode:            cpsAction.RoleCode,
+			RejectionReason:     cpsAction.RejectionReason,
+			CanceledReason:      cpsAction.CanceledReason,
+			ActionStatus:        cpsAction.ActionStatus,
+			ActionType:          cpsAction.ActionType,
+			IsDeleted:           cpsAction.IsDeleted,
+			RequestAction:       cpsAction.RequestAction,
+			Version:             cpsAction.Version,
+			ReversedByRoleID:    cpsAction.ReversedByRoleID,
+			ReversedByID:        cpsAction.ReversedByID,
+			ReversedByName:      cpsAction.ReversedByName,
+			ReversedAt:          cpsAction.ReversedAt,
+			CreatedAt:           cpsAction.CreatedAt,
+			LastModifiedAt:      cpsAction.LastModifiedAt,
+			MakerActionTime:     cpsAction.MakerActionTime,
+		}
+
+		var previousAction interface{}
+		if cpsAction.ActionStatus == string(constants.ActionApproved) {
+			previousAction = getMatchingAction(cpsAction.CurrentAction, id, a.logger)
+		} else if cpsAction.ActionStatus == string(constants.ActionPending) || cpsAction.ActionStatus == string(constants.ActionRejected) {
+			previousAction = getMatchingAction(cpsAction.PreviousAction, id, a.logger)
+		} else {
+			previousAction = getMatchingAction(cpsAction.PreviousAction, id, a.logger)
+		}
+
+		actionResponse.PreviousAction = previousAction
+		response = append(response, actionResponse)
+	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	a.logger.Infof("[AccountBlockStorage][GetAccountBlockDetails] successfully mapped %d CPS actions", len(response))
+
 	return &types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse]{
-		Data: []account_block_dto.AccountBlockActionResponse{},
-		Meta: types.PaginationMeta{
-			TotalDocs:  0,
-			Limit:      filterParam.PerPage,
-			TotalPages: 0,
-			Page:       filterParam.Page,
-		},
+		Data: response,
+		Meta: meta,
 	}, nil
+}
+
+func getMatchingAction(actionData interface{}, accountBlockID string, logger utils.Logger) interface{} {
+	if actionData == nil {
+		return nil
+	}
+
+	// Try to unmarshal as array of EnableDisableAction
+	actions, err := local_util.JsonUnmarshal[[]types.EnableDisableAction](actionData)
+	if err == nil && actions != nil {
+		// Find the action matching the account block id
+		for _, action := range *actions {
+			if action.ID == accountBlockID {
+				return action
+			}
+		}
+		// If no match found, return nil
+		return nil
+	}
+
+	// Try to unmarshal as single EnableDisableAction
+	singleAction, err := local_util.JsonUnmarshal[types.EnableDisableAction](actionData)
+	if err == nil && singleAction != nil {
+		if singleAction.ID == accountBlockID {
+			return *singleAction
+		}
+		return nil
+	}
+
+	// If unmarshaling fails, check if it's already a map/object with id field
+	if actionMap, ok := actionData.(map[string]interface{}); ok {
+		if id, exists := actionMap["id"]; exists {
+			if idStr, ok := id.(string); ok && idStr == accountBlockID {
+				return actionMap
+			}
+		}
+	}
+
+	logger.Warnf("[AccountBlockStorage][getMatchingAction] failed to extract matching action for id: %s", accountBlockID)
+	return nil
+}
+
+// convertCheckers converts model.Checker to account_block_dto.Checker
+func convertCheckers(checkers []model.Checker) []account_block_dto.Checker {
+	result := make([]account_block_dto.Checker, 0, len(checkers))
+	for _, c := range checkers {
+		result = append(result, account_block_dto.Checker{
+			CheckerID:          c.CheckerID,
+			RoleID:             c.RoleID,
+			CheckerIndex:       c.CheckerIndex,
+			CheckerName:        c.CheckerName,
+			CheckerPhoneNumber: c.CheckerPhoneNumber,
+			ApprovedAt:         c.ApprovedAt,
+		})
+	}
+	return result
+}
+
+// // convertAuditors converts model.Auditor to account_block_dto.Auditor
+func convertAuditors(auditors []model.Auditor) []account_block_dto.Auditor {
+	result := make([]account_block_dto.Auditor, 0, len(auditors))
+	for _, a := range auditors {
+		result = append(result, account_block_dto.Auditor{
+			AuditorID:          a.AuditorID,
+			RoleID:             a.RoleID,
+			AuditorIndex:       a.AuditorIndex,
+			AuditorName:        a.AuditorName,
+			AuditorPhoneNumber: a.AuditorPhoneNumber,
+			AuditorReason:      a.AuditorReason,
+			AuditorMark:        account_block_dto.AuditorMark(a.AuditorMark),
+			ApprovedAt:         a.ApprovedAt,
+		})
+	}
+	return result
 }
 
 // ─── GetAllBranches (by parent region/district/city id) ─────────────────────
