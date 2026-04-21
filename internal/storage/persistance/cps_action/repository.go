@@ -135,7 +135,7 @@ func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update
 	updateMap := BuildCPSActionUpdateMap(update)
 	modelData := []mongo.WriteModel{}
 
-	if strings.Contains(update.RequestAction, constants.DELETE) {
+	if strings.Contains(update.RequestAction, constants.DELETE) || strings.Contains(update.RequestAction, constants.DISABLE) {
 		RAUpdateList := local_utils.GetRAListForUpdateAction(constants.RequestAction(update.RequestAction), Group, RequestActionGroups)
 
 		modelData = append(modelData, mongo.NewUpdateOneModel().
@@ -170,6 +170,7 @@ func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update
 		r.logger.Errorf("[CPSAction][Update] failed to update CPS action: %v", err)
 		return nil, local_utils.HandleDBError(err)
 	}
+
 	r.logger.Infof("[CPSAction][Update] CPS action updated successfully")
 	return &data, nil
 }
@@ -178,6 +179,7 @@ func (r *CPSActionStorage) UpdateByActionCode(ctx context.Context, actionCode st
 	r.logger.Infof("[CPSAction][UpdateByActionCode] updating CPS action for action code: %s", actionCode)
 	updateMap := BuildCPSActionUpdateMap(update)
 	filterMap := bson.M{"action_code": actionCode}
+
 	data, err := r.dal.UpdateOne(ctx, filterMap, updateMap)
 	if err != nil {
 		r.logger.Errorf("[CPSAction][UpdateByActionCode] failed to update CPS action: %v", err)
