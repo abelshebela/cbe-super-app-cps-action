@@ -103,8 +103,8 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
-	if strings.TrimSpace(rawRoleID) == "" {
+	rawRoleID, ok := r.Context().Value(constants.ContextKey("role_code")).(string)
+	if !ok || strings.TrimSpace(rawRoleID) == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
 	}
@@ -123,19 +123,19 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if (action.CurrentAuditorIndex + 1) > float64(activeGroup) {
+	if int64(action.CurrentAuditorIndex)+1 > int64(activeGroup) {
 		localization.SendBadRequestResponse(w, localization.ErrorAuditorActionWaitForPreviousAuditor.Message)
 		return
 	}
 
-	currentIndex := action.CurrentAuditorIndex
+	currentIndex := int64(action.CurrentAuditorIndex)
 
 	Current_role_level := *idxDoc.AuditorIndex
 	expected := int32(*idxDoc.AuditorIndex)
 	ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.AuditorIndex)
 	ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
 	r = r.WithContext(ctx)
-	if currentIndex == float64(Current_role_level) {
+	if currentIndex == int64(Current_role_level) {
 		localization.SendBadRequestResponse(w, localization.MsgCPSActionApprovedByThisRole)
 		return
 	}
@@ -308,7 +308,11 @@ func (a *cpsActionAdapter) ReverseCPSAction(w http.ResponseWriter, r *http.Reque
 		actionName = mod
 	}
 	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
-		rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+		rawRoleID, ok := r.Context().Value(constants.ContextKey("role_code")).(string)
+		if !ok {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
 		roleID := local_util.FirstHex24(rawRoleID)
 		if roleID == "" {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)

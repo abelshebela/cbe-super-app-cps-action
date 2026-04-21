@@ -420,9 +420,20 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
+		// Add type conversion stage to handle byte array to string conversion
+		{{Key: "$set", Value: bson.M{
+			"action_reason.action_note": bson.M{
+				"$cond": bson.M{
+					"if":   bson.M{"$isArray": "$action_reason.action_note"},
+					"then": bson.M{"$toString": "$action_reason.action_note"},
+					"else": "$action_reason.action_note",
+				},
+			},
+		}}},
 		{{Key: "$project", Value: Projection}},
 		bps_action_core.SanitizePipeline(exclude),
 	}
+
 	b.logger.Infof("[BPSAction][SanitizedFindAllWithPaginationForAuditor] filter*************: %v", filter)
 
 	cur, err := b.collection.Aggregate(ctx, pipeline)
