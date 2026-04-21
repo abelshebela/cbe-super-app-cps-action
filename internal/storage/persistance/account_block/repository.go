@@ -825,23 +825,38 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		results = append(results, &ab)
 	}
 
+	a.logger.Debugf("[findAllWithPagination] results count: %d", len(results))
+	for i, ab := range results {
+		if ab == nil {
+			a.logger.Warnf("[findAllWithPagination] results[%d] is nil", i)
+		} else {
+			a.logger.Debugf("[findAllWithPagination] results[%d]: id=%v, name=%v, type=%v", i, ab.ID, ab.Name, ab.Type)
+		}
+	}
+
 	if err := a.populateParentsAndReasons(ctx, results); err != nil {
-		a.logger.Errorf("[AccountBlock][findAllWithPagination] error-----: %v", err)
+		a.logger.Errorf("[AccountBlock][findAllWithPagination] error in populateParentsAndReasons: %v", err)
 		return nil, err
 	}
 
+	a.logger.Debugf("[findAllWithPagination] populateParentsAndReasons completed")
+	a.logger.Debugf("[findAllWithPagination] totalCount: %d, perPage: %d", totalCount, filterParam.PerPage)
+
 	totalPages := int((totalCount + int64(filterParam.PerPage) - 1) / int64(filterParam.PerPage))
+	a.logger.Debugf("[findAllWithPagination] totalPages: %d, currentPage: %d", totalPages, filterParam.Page)
 	var prevPage, nextPage *int
 	if filterParam.Page > 1 {
 		p := filterParam.Page - 1
 		prevPage = &p
+		a.logger.Debugf("[findAllWithPagination] prevPage: %d", p)
 	}
 	if filterParam.Page < totalPages {
 		n := filterParam.Page + 1
 		nextPage = &n
+		a.logger.Debugf("[findAllWithPagination] nextPage: %d", n)
 	}
 
-	return &types.PaginatedResponse[[]*imodel.AccountBlock]{
+	resp := &types.PaginatedResponse[[]*imodel.AccountBlock]{
 		Data: results,
 		Meta: types.PaginationMeta{
 			TotalDocs:     totalCount,
@@ -854,7 +869,9 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 			PrevPage:      prevPage,
 			NextPage:      nextPage,
 		},
-	}, nil
+	}
+	a.logger.Debugf("[findAllWithPagination] returning paginated response: %+v", resp.Meta)
+	return resp, nil
 }
 
 func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.AccountBlock], error) {

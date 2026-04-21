@@ -122,6 +122,7 @@ func (b *DepartmentStorage) FindByName(ctx context.Context, name string) (*model
 			"$regex":   "^" + strings.ToLower(name) + "$",
 			"$options": "i",
 		},
+		"is_deleted": false,
 	}
 	result, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
