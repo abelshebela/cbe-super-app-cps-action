@@ -21,6 +21,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type OraclePersistence struct {
@@ -41,7 +42,7 @@ type OraclePersistence struct {
 	Customer              storage.CustomerRepository
 }
 
-func InitOraclePersistence(db *sql.DB, cfg *config.VaultConfig, clientOrchestrationProducer kafka.ClientOrchestrationProducer, accessListSegmentationProducer *kafka.AccessListSegmentationProducer, redisRepository storage.RedisRepository, log utils.Logger) OraclePersistence {
+func InitOraclePersistence(client *mongo.Client, db *sql.DB, cfg *config.VaultConfig, clientOrchestrationProducer kafka.ClientOrchestrationProducer, accessListSegmentationProducer *kafka.AccessListSegmentationProducer, redisRepository storage.RedisRepository, log utils.Logger) OraclePersistence {
 	return OraclePersistence{
 		Db:         db,
 		BankOracle: sqlc.NewBankRepository(db, log),
@@ -56,7 +57,7 @@ func InitOraclePersistence(db *sql.DB, cfg *config.VaultConfig, clientOrchestrat
 		AmountBasedAuthOracle: amount_based_auth_oracle.NewAmountBasedAuthOracleRepository(db, log),
 		AccessListOracle:      access_list_oracle.NewAccessListOracleRepository(db, redisRepository, log),
 		AccessListSegmentaion: access_list_segmentation_oracle.NewAccessListSegmentationOracle(db, *cfg, accessListSegmentationProducer, redisRepository, log),
-		AccountBlock:          account_block_repo.NewAccountBlockRepository(db, redisRepository, log),
+		AccountBlock:          account_block_repo.NewAccountBlockRepository(client, cfg, CPSActionsCollection, db, redisRepository, log),
 		Customer:              customer_oracle.NewCustomerOracleRepository(db, *cfg, log),
 	}
 }
