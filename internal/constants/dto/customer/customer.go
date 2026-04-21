@@ -148,8 +148,8 @@ type CustomerActionLogResponse struct {
 	ActionCode   string `json:"action_code" bson:"action_code"`
 	MakerName    string `json:"maker_name" bson:"maker_name"`
 	ActionReason struct {
-		ActionType string `json:"action_type" bson:"action_type"` //  reject, enable, disable
-		ActionNote string `json:"action_note" bson:"action_note"`
+		ActionType constants.ActionType `json:"action_type" bson:"action_type"` //  reject, enable, disable
+		ActionNote string               `json:"action_note" bson:"action_note"`
 	} `json:"action_reason" bson:"action_reason"`
 
 	RequestAction  string    `json:"request_action" bson:"request_action"` //action type
