@@ -465,3 +465,20 @@ func (r *CPSUserStorage) GetUserByDepartment(ctx context.Context, department str
 	return cpsUser, nil
 
 }
+
+func (r *CPSUserStorage) GetUserByJobTitle(ctx context.Context, jobTitle string) (*imodel.CPSUser, error) {
+	r.logger.Infof("[CPSUserStorage][GetUserByJobTitle] fetching CPS user by job title: %s", jobTitle)
+
+	filter := bson.M{"job_title": jobTitle, "is_deleted": false}
+
+	cpsUser, err := r.dal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			r.logger.Infof("[CPSUserStorage][GetUserByJobTitle] no CPS users found for job title: %s", jobTitle)
+			return nil, nil
+		}
+		return nil, err
+	}
+	return cpsUser, nil
+
+}
