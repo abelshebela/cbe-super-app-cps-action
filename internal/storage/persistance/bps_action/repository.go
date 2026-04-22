@@ -353,6 +353,7 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(
 		bps_action_core.SanitizePipeline(exclude),
 	}
 
+	b.logger.Infof("[BPSAction][SanitizedFindAllWithPaginationForApprover] userID: %s, filter: %v", userID, filter)
 	cur, err := b.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		b.logger.Errorf("[BPSAction][SanitizedFindAllWithPaginationForApprover] aggregation failed: %v", err)
