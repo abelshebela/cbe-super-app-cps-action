@@ -14,9 +14,12 @@ import (
 
 	bpsActionDto "cbe-super-app-cps-action/internal/constants/dto/bps_action"
 
+	bps_action "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
-	bps_action "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
+
+	// bps_action "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -420,9 +423,20 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
+		// Add type conversion stage to handle byte array to string conversion
+		{{Key: "$set", Value: bson.M{
+			"action_reason.action_note": bson.M{
+				"$cond": bson.M{
+					"if":   bson.M{"$isArray": "$action_reason.action_note"},
+					"then": bson.M{"$toString": "$action_reason.action_note"},
+					"else": "$action_reason.action_note",
+				},
+			},
+		}}},
 		{{Key: "$project", Value: Projection}},
 		bps_action_core.SanitizePipeline(exclude),
 	}
+
 	b.logger.Infof("[BPSAction][SanitizedFindAllWithPaginationForAuditor] filter*************: %v", filter)
 
 	cur, err := b.collection.Aggregate(ctx, pipeline)

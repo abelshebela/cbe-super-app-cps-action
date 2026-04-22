@@ -25,7 +25,8 @@ import (
 
 	"errors"
 
-	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
+	// bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
+	bps_model "cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
