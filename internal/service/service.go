@@ -406,12 +406,12 @@ type AccountBlockService interface {
 	GetAllRegions(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
 	GetDistrictById(ctx context.Context, id string) (*local_model.AccountBlock, error)
 	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
-	GetCityById(ctx context.Context, Id string) (*local_model.AccountBlock, error)
-	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
+	// GetCityById(ctx context.Context, Id string) (*local_model.AccountBlock, error)
+	// GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
+	// EnableOrDisableCities(ctx context.Context, ids []string, reason string, enabled bool) error
 	EnableOrDisableBranches(ctx context.Context, branchIds []string, reason string, enabled bool) error
 	EnableOrDisableRegions(ctx context.Context, regionIds []string, reason string, enabled bool) error
 	EnableOrDisableDistricts(ctx context.Context, regionIds []string, reason string, enabled bool) error
-	EnableOrDisableCities(ctx context.Context, ids []string, reason string, enabled bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	GetAccountBlockDetails(ctx context.Context, id string, filter *types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error)
 }

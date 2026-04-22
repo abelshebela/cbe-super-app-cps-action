@@ -64,22 +64,22 @@ func Init(
 					authMiddleware.AuthenticateToken,
 				},
 			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/cities",
-				Handler: handler.GetAllCities,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-				},
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/cities/{city_id}",
-				Handler: handler.GetCityById,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-				},
-			},
+			// {
+			// 	Method:  http.MethodGet,
+			// 	Path:    "/cities",
+			// 	Handler: handler.GetAllCities,
+			// 	Middlewares: []func(http.Handler) http.Handler{
+			// 		authMiddleware.AuthenticateToken,
+			// 	},
+			// },
+			// {
+			// 	Method:  http.MethodGet,
+			// 	Path:    "/cities/{city_id}",
+			// 	Handler: handler.GetCityById,
+			// 	Middlewares: []func(http.Handler) http.Handler{
+			// 		authMiddleware.AuthenticateToken,
+			// 	},
+			// },
 			{
 				Method:  http.MethodPost,
 				Path:    "/branches/enable",
@@ -128,22 +128,22 @@ func Init(
 					authMiddleware.AuthenticateToken,
 				},
 			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/cities/enable",
-				Handler: handler.EnableCities,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-				},
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/cities/disable",
-				Handler: handler.DisableCities,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-				},
-			},
+			// {
+			// 	Method:  http.MethodPost,
+			// 	Path:    "/cities/enable",
+			// 	Handler: handler.EnableCities,
+			// 	Middlewares: []func(http.Handler) http.Handler{
+			// 		authMiddleware.AuthenticateToken,
+			// 	},
+			// },
+			// {
+			// 	Method:  http.MethodPost,
+			// 	Path:    "/cities/disable",
+			// 	Handler: handler.DisableCities,
+			// 	Middlewares: []func(http.Handler) http.Handler{
+			// 		authMiddleware.AuthenticateToken,
+			// 	},
+			// },
 			{
 				Method:  http.MethodGet,
 				Path:    "/details/{id}",

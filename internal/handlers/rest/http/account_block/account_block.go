@@ -328,37 +328,37 @@ func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Req
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}									"internal Server error"
 //	@Security		BearerAuth
 //	@Router			/account_block/cities/{city_code} [get]
-func (a *accountBlockAdapter) GetCityById(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCityById", "handler", "accountBlock")
-	defer span.End()
-	log := local_util.LoggerFromCtx(ctx, a.logger)
+// func (a *accountBlockAdapter) GetCityById(w http.ResponseWriter, r *http.Request) {
+// 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCityById", "handler", "accountBlock")
+// 	defer span.End()
+// 	log := local_util.LoggerFromCtx(ctx, a.logger)
 
-	cityId, ok := local_util.GetParam(r, "city_id")
-	if !ok {
-		log.Errorf("[AccBlockH][GetCityById] missing param")
-		localization.SendErrorByCodeResponse(w, localization.ErrorCityCodeRequired.Code)
-		return
-	}
-	if cityId == "" {
-		log.Errorf("[AccBlockH] invalid id: %s", cityId)
-		localization.SendBadRequestResponse(w, "invalid id")
-		return
-	}
+// 	cityId, ok := local_util.GetParam(r, "city_id")
+// 	if !ok {
+// 		log.Errorf("[AccBlockH][GetCityById] missing param")
+// 		localization.SendErrorByCodeResponse(w, localization.ErrorCityCodeRequired.Code)
+// 		return
+// 	}
+// 	if cityId == "" {
+// 		log.Errorf("[AccBlockH] invalid id: %s", cityId)
+// 		localization.SendBadRequestResponse(w, "invalid id")
+// 		return
+// 	}
 
-	span.SetAttributes(attribute.String("account_block.city_id", cityId))
+// 	span.SetAttributes(attribute.String("account_block.city_id", cityId))
 
-	city, err := a.accountBlockApplication.GetCityById(ctx, cityId)
-	if err != nil {
-		span.RecordError(err)
-		log.Errorf("[AccBlockH][GetCityById] svc err: %v", err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
+// 	city, err := a.accountBlockApplication.GetCityById(ctx, cityId)
+// 	if err != nil {
+// 		span.RecordError(err)
+// 		log.Errorf("[AccBlockH][GetCityById] svc err: %v", err)
+// 		localization.SendErrorByCodeResponse(w, err.Error())
+// 		return
+// 	}
 
-	data := core.ToAccountBlockResponse(city)
-	log.Infof("[AccBlockH][GetCityById] ok: %s", cityId)
-	localization.SendSuccessResponse(w, localization.SuccessCityRetrieved, data)
-}
+// 	data := core.ToAccountBlockResponse(city)
+// 	log.Infof("[AccBlockH][GetCityById] ok: %s", cityId)
+// 	localization.SendSuccessResponse(w, localization.SuccessCityRetrieved, data)
+// }
 
 // GetAllCities godoc
 //
@@ -375,37 +375,37 @@ func (a *accountBlockAdapter) GetCityById(w http.ResponseWriter, r *http.Request
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}								"Server error"
 //	@Security		BearerAuth
 //	@Router			/account_block/cities [get]
-func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCities", "handler", "accountBlock")
-	defer span.End()
-	log := local_util.LoggerFromCtx(ctx, a.logger)
-	filterParams := local_util.ExtractFilterParams(r)
+// func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Request) {
+// 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCities", "handler", "accountBlock")
+// 	defer span.End()
+// 	log := local_util.LoggerFromCtx(ctx, a.logger)
+// 	filterParams := local_util.ExtractFilterParams(r)
 
-	search := r.URL.Query().Get("search")
-	filter := r.URL.Query().Get("filter")
+// 	search := r.URL.Query().Get("search")
+// 	filter := r.URL.Query().Get("filter")
 
-	if err := local_util.NoSpecialChars(search); err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
+// 	if err := local_util.NoSpecialChars(search); err != nil {
+// 		localization.SendErrorByCodeResponse(w, err.Error())
+// 		return
+// 	}
 
-	if err := local_util.NoSpecialChars(filter); err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
+// 	if err := local_util.NoSpecialChars(filter); err != nil {
+// 		localization.SendErrorByCodeResponse(w, err.Error())
+// 		return
+// 	}
 
-	cities, err := a.accountBlockApplication.GetAllCities(ctx, filterParams)
-	if err != nil {
-		span.RecordError(err)
-		log.Errorf("[AccBlockH][GetAllCities] svc err: %v", err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
+// 	cities, err := a.accountBlockApplication.GetAllCities(ctx, filterParams)
+// 	if err != nil {
+// 		span.RecordError(err)
+// 		log.Errorf("[AccBlockH][GetAllCities] svc err: %v", err)
+// 		localization.SendErrorByCodeResponse(w, err.Error())
+// 		return
+// 	}
 
-	span.SetAttributes(attribute.Int("account_block.cities.count", len(cities.Data)))
-	log.Infof("[AccBlockH][GetAllCities] count: %d", len(cities.Data))
-	localization.SendSuccessResponse(w, localization.SuccessCitiesRetrieved, cities)
-}
+// 	span.SetAttributes(attribute.Int("account_block.cities.count", len(cities.Data)))
+// 	log.Infof("[AccBlockH][GetAllCities] count: %d", len(cities.Data))
+// 	localization.SendSuccessResponse(w, localization.SuccessCitiesRetrieved, cities)
+// }
 
 // EnableBranches godoc
 //
@@ -874,12 +874,12 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 		attribute.String("account_block.reason", req.Reason),
 	)
 
-	err := a.accountBlockApplication.EnableOrDisableCities(ctx, req.CityIds, req.Reason, true)
-	if err != nil {
-		span.RecordError(err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
+	// err := a.accountBlockApplication.EnableOrDisableCities(ctx, req.CityIds, req.Reason, true)
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	localization.SendErrorByCodeResponse(w, err.Error())
+	// 	return
+	// }
 
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
@@ -940,12 +940,12 @@ func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Reque
 		attribute.String("account_block.reason", req.Reason),
 	)
 
-	err := a.accountBlockApplication.EnableOrDisableCities(ctx, req.CityIds, req.Reason, false)
-	if err != nil {
-		span.RecordError(err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
+	// err := a.accountBlockApplication.EnableOrDisableCities(ctx, req.CityIds, req.Reason, false)
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	localization.SendErrorByCodeResponse(w, err.Error())
+	// 	return
+	// }
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[AccBlockH][DisableCities] ok user: %s maker_only: %v", userCode, md.IsMakerOnly)

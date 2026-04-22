@@ -314,11 +314,11 @@ type AccountBlockRepository interface {
 	GetBranchesByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
 	FindByFilterKey(ctx context.Context, field, value string) (*local_model.AccountBlock, error)
 
-	CreateCity(ctx context.Context, city *local_model.AccountBlock) error
-	DeleteCity(ctx context.Context, id string) error
-	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
-	EnableOrDisableCities(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
-	GetCitiesByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
+	// CreateCity(ctx context.Context, city *local_model.AccountBlock) error
+	// DeleteCity(ctx context.Context, id string) error
+	// FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
+	// EnableOrDisableCities(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
+	// GetCitiesByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
 
 	CreateRegion(ctx context.Context, region *local_model.AccountBlock) error
 	DeleteRegion(ctx context.Context, id string) error
