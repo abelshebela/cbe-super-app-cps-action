@@ -363,17 +363,17 @@ func (a *AccessListSegmentationService) CheckALLIdsExist(ctx context.Context, t 
 			missingids := access_list_segmentation_core.GetMissingIds(ids, modelMaps)
 			return fmt.Errorf("some District ids do not exist:%v", missingids)
 		}
-	case "C":
-		if r, err := a.accBlock.GetCitiesByIds(ctx, ids); err != nil {
-			return err
-		} else if len(r) != len(ids) {
-			var modelMaps []map[string]interface{}
-			for _, d := range r {
-				modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID})
-			}
-			missingids := access_list_segmentation_core.GetMissingIds(ids, modelMaps)
-			return fmt.Errorf("some City ids do not exist:%v", missingids)
-		}
+	// case "C":
+	// 	if r, err := a.accBlock.GetCitiesByIds(ctx, ids); err != nil {
+	// 		return err
+	// 	} else if len(r) != len(ids) {
+	// 		var modelMaps []map[string]interface{}
+	// 		for _, d := range r {
+	// 			modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID})
+	// 		}
+	// 		missingids := access_list_segmentation_core.GetMissingIds(ids, modelMaps)
+	// 		return fmt.Errorf("some City ids do not exist:%v", missingids)
+	// 	}
 	default:
 		return errors.New("type must be one of: B,R, D, C, U")
 	}

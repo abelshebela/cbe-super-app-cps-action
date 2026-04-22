@@ -181,12 +181,12 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 	}
 
 	budgetCategory := &imodel.BudgetCategoryOracle{
-		Name:      req.Name,
-		Color:     req.Color,
-		Icon:      iconURL,
-		Type:      req.Type,
-		IsEnabled: 1,
-		IsDeleted: 0,
+		Name:        req.Name,
+		AccountType: req.Type,
+		Color:       req.Color,
+		Icon:        iconURL,
+		IsEnabled:   1,
+		IsDeleted:   0,
 	}
 
 	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, budgetCategory, string(constants.RequestCreateBudgetCategory), constants.CREATE)
@@ -224,10 +224,10 @@ func (b *BudgetCategoryService) FetchBudgetCategory(ctx context.Context, filterP
 			Name:      bc.Name,
 			Color:     bc.Color,
 			Icon:      bc.Icon,
-			Type:      bc.Type,
+			Type:      bc.AccountType,
 			Enabled:   bc.IsEnabled == 1,
-			CreatedAt: bc.CreateAt,
-			UpdatedAt: bc.UpdateAt,
+			CreatedAt: bc.CreatedAt,
+			UpdatedAt: bc.LastModifiedAt,
 		})
 	}
 
@@ -258,10 +258,10 @@ func (b *BudgetCategoryService) FetchBudgetCategoryByID(ctx context.Context, id 
 		Name:      budgetCategory.Name,
 		Color:     budgetCategory.Color,
 		Icon:      budgetCategory.Icon,
-		Type:      budgetCategory.Type,
+		Type:      budgetCategory.AccountType,
 		Enabled:   budgetCategory.IsEnabled == 1,
-		CreatedAt: budgetCategory.CreateAt,
-		UpdatedAt: budgetCategory.UpdateAt,
+		CreatedAt: budgetCategory.CreatedAt,
+		UpdatedAt: budgetCategory.LastModifiedAt,
 	}, nil
 }
 
@@ -307,7 +307,7 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 		newBudgetCategory.Color = req.Color
 	}
 	if req.Type != "" {
-		newBudgetCategory.Type = req.Type
+		newBudgetCategory.AccountType = req.Type
 	}
 	if req.Icon != nil {
 		var objectkey string
@@ -340,7 +340,7 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 		return errors.New(localization.ErrorNoChangesToUpdate.Code)
 	}
 
-	newBudgetCategory.UpdateAt = time.Now().UTC().Format(time.RFC3339)
+	newBudgetCategory.LastModifiedAt = time.Now().UTC().Format(time.RFC3339)
 	newBudgetCategory.IsEnabled = existingBudgetCategory.IsEnabled
 	cpsActionData := lib.CpsModelBuilder(
 		id,
@@ -402,7 +402,7 @@ func (b *BudgetCategoryService) DeleteBudgetCategory(ctx context.Context, id str
 
 	deletedCategory := *existingBudgetCategory
 	deletedCategory.IsDeleted = 1
-	deletedCategory.UpdateAt = time.Now().UTC().Format(time.RFC3339)
+	deletedCategory.LastModifiedAt = time.Now().UTC().Format(time.RFC3339)
 
 	cpsActionData := lib.CpsModelBuilder(id, makerUser, existingBudgetCategory, &deletedCategory, string(constants.RequestDeleteBudgetCategory), constants.DELETE)
 
@@ -452,7 +452,7 @@ func (b *BudgetCategoryService) EnableOrDisableBudgetCategory(ctx context.Contex
 	} else {
 		update.IsEnabled = 0
 	}
-	update.UpdateAt = time.Now().UTC().Format(time.RFC3339)
+	update.LastModifiedAt = time.Now().UTC().Format(time.RFC3339)
 
 	var requestType string
 	if enable {

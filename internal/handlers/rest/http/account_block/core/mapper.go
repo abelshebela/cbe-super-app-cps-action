@@ -7,11 +7,6 @@ import (
 )
 
 func ToAccountBlockResponse(ab *imodel.AccountBlock) *ab_dto.AccountBlockResponse {
-	parentID := ""
-	if ab.ParentID != nil {
-		parentID = *ab.ParentID
-	}
-	cityID := ab.CityID
 	regionID := ab.RegionID
 	districtID := ab.DistrictID
 
@@ -32,9 +27,7 @@ func ToAccountBlockResponse(ab *imodel.AccountBlock) *ab_dto.AccountBlockRespons
 		Address:       ab.Address,
 		Slug:          ab.Slug,
 		Type:          string(ab.Type),
-		ParentID:      parentID,
 		Parent:        parent,
-		CityID:        *cityID,
 		RegionID:      *regionID,
 		DistrictID:    *districtID,
 		DisableReason: dr,

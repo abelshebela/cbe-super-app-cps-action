@@ -88,20 +88,20 @@ func (r *customerStorage) assertSuperAppRoleExistsTx(ctx context.Context, tx *sq
 	r.logger.Infof("[CustomerSegmentation][assertSuperAppRoleExistsTx] called with roleHex='%s'", roleHex)
 	const q = `
 	SELECT 1
-	FROM SUPERAPP_ROLE
+	FROM SUPERAPP_ROLES
 	WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND IS_ENABLED = 1`
 	var one int
 	r.logger.Debugf("[CustomerSegmentation][assertSuperAppRoleExistsTx] Executing query for roleHex: '%s'", roleHex)
 	err := tx.QueryRowContext(ctx, q, roleHex).Scan(&one)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			r.logger.Warnf("[CustomerSegmentation][assertSuperAppRoleExistsTx] No SUPERAPP_ROLE found for roleHex: '%s'", roleHex)
+			r.logger.Warnf("[CustomerSegmentation][assertSuperAppRoleExistsTx] No SUPERAPP_ROLES found for roleHex: '%s'", roleHex)
 			return errors.New(localization.ErrorResourceNotFound.Code)
 		}
 		r.logger.Errorf("[CustomerSegmentation][assertSuperAppRoleExistsTx] query failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	r.logger.Infof("[CustomerSegmentation][assertSuperAppRoleExistsTx] SUPERAPP_ROLE exists for roleHex: '%s'", roleHex)
+	r.logger.Infof("[CustomerSegmentation][assertSuperAppRoleExistsTx] SUPERAPP_ROLES exists for roleHex: '%s'", roleHex)
 	return nil
 }
 
@@ -273,9 +273,9 @@ func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmen
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	r.logger.Debugf("[CustomerSegmentation][Create] Asserting SUPERAPP_ROLE exists for roleIDHex: %s", roleIDHex)
+	r.logger.Debugf("[CustomerSegmentation][Create] Asserting SUPERAPP_ROLES exists for roleIDHex: %s", roleIDHex)
 	if err := r.assertSuperAppRoleExistsTx(ctx, tx, roleIDHex); err != nil {
-		r.logger.Warnf("[CustomerSegmentation][Create] SUPERAPP_ROLE does not exist for roleIDHex: %s", roleIDHex)
+		r.logger.Warnf("[CustomerSegmentation][Create] SUPERAPP_ROLES does not exist for roleIDHex: %s", roleIDHex)
 		return err
 	}
 
@@ -365,7 +365,7 @@ func (r *customerStorage) Update(ctx context.Context, id string, seg *imodel.Cus
 	}
 
 	const touchRoleQ = `
-UPDATE SUPERAPP_ROLE
+UPDATE SUPERAPP_ROLES
 SET LAST_MODIFIED_AT = SYSTIMESTAMP
 WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND IS_ENABLED = 1`
 	res, err := tx.ExecContext(ctx, touchRoleQ, roleIDHex)
@@ -541,7 +541,7 @@ SELECT
   MIN(css.CREATED_AT),
   MAX(GREATEST(cs.LAST_MODIFIED_AT, css.LAST_MODIFIED_AT))
 FROM CUSTOMER_SUB_SEGMENTS css
-JOIN SUPERAPP_ROLE sar ON sar.ID = css.SUPERAPP_ROLE_ID AND sar.IS_DELETED = 0 AND sar.IS_ENABLED = 1
+JOIN SUPERAPP_ROLES sar ON sar.ID = css.SUPERAPP_ROLE_ID AND sar.IS_DELETED = 0 AND sar.IS_ENABLED = 1
 JOIN CUSTOMER_SEGMENTATIONS cs ON cs.ID = css.CUSTOMER_SEGMENTATION_ID AND cs.IS_DELETED = 0
 JOIN CUSTOMER_GROUPS cg ON cg.ID = cs.CUSTOMER_GROUP_ID AND cg.IS_DELETED = 0 AND cg.IS_ENABLED = 1
 WHERE css.SUPERAPP_ROLE_ID = HEXTORAW(:1)
@@ -598,7 +598,7 @@ SELECT
 FROM CUSTOMER_SUB_SEGMENTS css
 JOIN CUSTOMER_SEGMENTATIONS cs ON cs.ID = css.CUSTOMER_SEGMENTATION_ID AND cs.IS_DELETED = 0
 JOIN CUSTOMER_GROUPS cg ON cg.ID = cs.CUSTOMER_GROUP_ID AND cg.IS_DELETED = 0 AND cg.IS_ENABLED = 1
-JOIN SUPERAPP_ROLE sar ON sar.ID = css.SUPERAPP_ROLE_ID AND sar.IS_DELETED = 0 AND sar.IS_ENABLED = 1
+JOIN SUPERAPP_ROLES sar ON sar.ID = css.SUPERAPP_ROLE_ID AND sar.IS_DELETED = 0 AND sar.IS_ENABLED = 1
 WHERE css.SUPERAPP_ROLE_ID = HEXTORAW(:1)
   AND css.IS_DELETED = 0
   AND css.IS_ENABLED = 1
@@ -641,7 +641,7 @@ func (r *customerStorage) FindByID(ctx context.Context, id string) (*imodel.Cust
 	const roleFromSegQ = `
 SELECT RAWTOHEX(css.SUPERAPP_ROLE_ID)
 FROM CUSTOMER_SUB_SEGMENTS css
-JOIN SUPERAPP_ROLE sar ON sar.ID = css.SUPERAPP_ROLE_ID AND sar.IS_DELETED = 0 AND sar.IS_ENABLED = 1
+JOIN SUPERAPP_ROLES sar ON sar.ID = css.SUPERAPP_ROLE_ID AND sar.IS_DELETED = 0 AND sar.IS_ENABLED = 1
 WHERE css.CUSTOMER_SEGMENTATION_ID = HEXTORAW(:1)
   AND css.IS_DELETED = 0
   AND css.IS_ENABLED = 1
@@ -663,7 +663,7 @@ FETCH FIRST 1 ROWS ONLY`
 
 	const roleOnlyQ = `
 SELECT 1
-FROM SUPERAPP_ROLE
+FROM SUPERAPP_ROLES
 WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND IS_ENABLED = 1`
 	var one int
 	if err := r.db.QueryRowContext(ctx, roleOnlyQ, idHex).Scan(&one); err != nil {
@@ -758,7 +758,7 @@ JOIN CUSTOMER_GROUPS cg
  AND cg.IS_DELETED = 0
  AND cg.IS_ENABLED = 1
 
-JOIN SUPERAPP_ROLE sar
+JOIN SUPERAPP_ROLES sar
   ON sar.ID = css.SUPERAPP_ROLE_ID
  AND sar.IS_DELETED = 0
  AND sar.IS_ENABLED = 1
@@ -927,7 +927,7 @@ SELECT
   RAWTOHEX(MIN(cs.ID))
 FROM CUSTOMER_SEGMENTATIONS cs
 JOIN CUSTOMER_SUB_SEGMENTS css ON css.CUSTOMER_SEGMENTATION_ID = cs.ID
-JOIN SUPERAPP_ROLE sar ON sar.ID = css.SUPERAPP_ROLE_ID AND sar.IS_DELETED = 0 AND sar.IS_ENABLED = 1
+JOIN SUPERAPP_ROLES sar ON sar.ID = css.SUPERAPP_ROLE_ID AND sar.IS_DELETED = 0 AND sar.IS_ENABLED = 1
 JOIN CUSTOMER_GROUPS cg ON cg.ID = cs.CUSTOMER_GROUP_ID AND cg.IS_DELETED = 0 AND cg.IS_ENABLED = 1
 WHERE cs.IS_DELETED = 0
   AND css.IS_DELETED = 0

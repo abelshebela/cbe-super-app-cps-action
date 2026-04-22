@@ -91,6 +91,7 @@ type ServicesRepository interface {
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*service_dto.ServiceResponse, error)
+	FindByAccessListID(ctx context.Context, accessListID string) (bool, error)
 	FindServiceByAccessListID(ctx context.Context, accessListID string) (*service_dto.ServiceResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error)
 	CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error)
@@ -314,11 +315,11 @@ type AccountBlockRepository interface {
 	GetBranchesByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
 	FindByFilterKey(ctx context.Context, field, value string) (*local_model.AccountBlock, error)
 
-	CreateCity(ctx context.Context, city *local_model.AccountBlock) error
-	DeleteCity(ctx context.Context, id string) error
-	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
-	EnableOrDisableCities(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
-	GetCitiesByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
+	// CreateCity(ctx context.Context, city *local_model.AccountBlock) error
+	// DeleteCity(ctx context.Context, id string) error
+	// FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccountBlock], error)
+	// EnableOrDisableCities(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
+	// GetCitiesByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
 
 	CreateRegion(ctx context.Context, region *local_model.AccountBlock) error
 	DeleteRegion(ctx context.Context, id string) error
@@ -406,6 +407,7 @@ type CpsUserRepository interface {
 	FindByEmailOrPhoneNumberOrUserName(ctx context.Context, email string, phoneNumber string, username string) (*imodel.CPSUser, error)
 	UpdateCpsUsersJobTitle(ctx context.Context, oldJobTitle, newJobTitle string) error
 	GetUserByDepartment(ctx context.Context, department string) (*imodel.CPSUser, error)
+	GetUserByJobTitle(ctx context.Context, jobTitle string) (*imodel.CPSUser, error)
 }
 
 type BankVaultRepository interface {
@@ -753,7 +755,7 @@ type BPSActionApproveIndexRepository interface {
 	FindMakerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.BPSActionApproveIndex, error)
 	FindCheckerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.BPSActionApproveIndex, error)
 	FindAuditorAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.BPSActionApproveIndex, error)
-	PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string, []string, []string, error)
+	PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string,[]string, []string, []string, error)
 	FindByRoleAndAction(ctx context.Context, roleID string, actionName string) (*imodel.BPSActionApproveIndex, error)
 	DeleteMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
 	InsertMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
