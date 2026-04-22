@@ -25,15 +25,17 @@ type jobRoleService struct {
 	cpsService        service.CPSActionService
 	jobRoleRepository storage.JobRoleRepository
 	roleRepository    storage.RoleRepository
+	cpsUserRepo       storage.CpsUserRepository
 	cfg               config.VaultConfig
 	logger            utils.Logger
 }
 
-func NewJobRoleService(jobRole storage.JobRoleRepository, roleRepo storage.RoleRepository, cpsService service.CPSActionService, cfg config.VaultConfig, logger utils.Logger) service.JobRoleService {
+func NewJobRoleService(jobRole storage.JobRoleRepository, roleRepo storage.RoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository, cfg config.VaultConfig, logger utils.Logger) service.JobRoleService {
 	return &jobRoleService{
 		cpsService:        cpsService,
 		jobRoleRepository: jobRole,
 		roleRepository:    roleRepo,
+		cpsUserRepo:       cpsUserRepo,
 		cfg:               cfg,
 		logger:            logger,
 	}
@@ -153,21 +155,23 @@ func (j *jobRoleService) Delete(ctx context.Context, id string) error {
 		}
 	}
 
-	if hasActive != nil {
+	if hasActive == nil {
 		j.logger.Errorf("[JobRole Service][Delete] job role is active")
-		return errors.New(localization.ErrorRoleHasActiveJobs.Code)
+		return localization.ErrorResourceNotFound
 	}
 
-	existing, err := j.jobRoleRepository.FindByID(ctx, id)
+	// lookup cps user by jobtitle
+	cpsUser, err := j.cpsUserRepo.GetUserByJobTitle(ctx, hasActive.JobTitle)
 	if err != nil {
-		j.logger.Errorf("[JobRole Service][Delete] failed to find existing job role: %v", err)
+		j.logger.Errorf("[JobRole Service][Delete] failed to find CPS user by job title: %v", err)
 		return err
 	}
+	if cpsUser != nil {
+		j.logger.Errorf("[JobRole Service][Delete] cannot delete job role with active CPS user")
+		return localization.ErrorJobTitleHasActiveUsers
+	}
 
-	updated := *existing
-	updated.UpdatedAt = time.Now()
-
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, existing, updated, constants.RequestDeleteJobRole, constants.DELETE)
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, hasActive, nil, constants.RequestDeleteJobRole, constants.DELETE)
 
 	if err := j.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		j.logger.Errorf("[JobRole Service][Delete] failed to create CPS action: %v", err)

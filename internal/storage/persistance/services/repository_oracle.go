@@ -17,6 +17,7 @@ import (
 
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 
+	"github.com/godror/godror"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -147,7 +148,7 @@ INSERT INTO services (
   access_list_id,
   service_code,
   minimum_fraud_amount,
-  product_gl_account,
+  product_gl_account_number,
   product_gl_account_currency,
   created_at,
   last_modified_at
@@ -168,6 +169,13 @@ RETURNING RAWTOHEX(id) INTO :8`
 		sql.Out{Dest: &serviceID},
 	); err != nil {
 		s.logger.Errorf("[ServicesRepo][insertService] insert services failed: %v", err)
+
+		if oraErr, ok := godror.AsOraErr(err); ok {
+			if oraErr.Code() == 2291 { // ORA-02291: integrity constraint violated - parent key not found
+				return "", errors.New(localization.ErrorAccountNumberNotFound.Code)
+			}
+		}
+
 		return "", local_util.HandleDBError(err)
 	}
 
@@ -341,7 +349,7 @@ SET
   access_list_id = HEXTORAW(:1),
   service_code = :2,
   minimum_fraud_amount = :3,
-  product_gl_account = :4,
+  product_gl_account_number = :4,
   product_gl_account_currency = :5,
   last_modified_at = SYSTIMESTAMP
 WHERE id = HEXTORAW(:6)`
@@ -500,7 +508,7 @@ SELECT
   sk.service_key,
   s.service_code,
   s.minimum_fraud_amount,
-  s.product_gl_account,
+  s.product_gl_account_number,
   s.product_gl_account_currency,
   sk.is_enabled,
   sk.is_deleted,
@@ -549,6 +557,17 @@ WHERE s.id = HEXTORAW(:1) AND sk.is_deleted = 0`
 	return &svc, nil
 }
 
+func (s *ServicesStorage) FindByAccessListID(ctx context.Context, accessListID string) (bool, error) {
+	q := `SELECT 1 FROM services WHERE access_list_id = HEXTORAW(:1) AND is_deleted = 0 FETCH FIRST 1 ROWS ONLY`
+
+	var exists int
+	err := s.db.QueryRowContext(ctx, q, accessListID).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists == 1, nil
+}
+
 func (s *ServicesStorage) FindServiceByAccessListID(ctx context.Context, accessListID string) (*service_dto.ServiceResponse, error) {
 	const q = `
 SELECT
@@ -558,7 +577,7 @@ SELECT
   sk.service_key,
   s.service_code,
   s.minimum_fraud_amount,
-  s.product_gl_account,
+  s.product_gl_account_number,
   s.product_gl_account_currency,
   sk.is_enabled,
   sk.is_deleted,
@@ -680,7 +699,7 @@ SELECT
   sk.service_key,
   s.service_code,
   s.minimum_fraud_amount,
-  s.product_gl_account,
+  s.product_gl_account_number,
   s.product_gl_account_currency,
   sk.is_enabled,
   sk.is_deleted,
