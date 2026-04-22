@@ -4,25 +4,25 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type BPSAction struct {
-	ID                primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	ActionCode        string             `json:"action_code" bson:"action_code"`
-	IsAuditorApproved bool               `json:"is_auditor_approved" bson:"is_auditor_approved"`
+	ID                bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	ActionCode        string        `json:"action_code" bson:"action_code"`
+	IsAuditorApproved bool          `json:"is_auditor_approved" bson:"is_auditor_approved"`
 	UserInformation   struct {
-		UserID         primitive.ObjectID `json:"user_id" bson:"user_id"`
-		UserCode       string             `json:"user_code" bson:"user_code"`
-		FullName       string             `json:"full_name" bson:"full_name"`
-		AccountNumbers []string           `json:"account_numbers" bson:"account_numbers"`
-		PhoneNumbers   string             `json:"phone_numbers" bson:"phone_numbers"`
-		BranchCode     string             `json:"branch_code" bson:"branch_code"`
+		UserID         bson.ObjectID `json:"user_id" bson:"user_id"`
+		UserCode       string        `json:"user_code" bson:"user_code"`
+		FullName       string        `json:"full_name" bson:"full_name"`
+		AccountNumbers []string      `json:"account_numbers" bson:"account_numbers"`
+		PhoneNumbers   string        `json:"phone_numbers" bson:"phone_numbers"`
+		BranchCode     string        `json:"branch_code" bson:"branch_code"`
 	} `json:"user_information" bson:"user_information"`
 	BusinessInformation struct {
-		BusinessID   primitive.ObjectID `json:"business_id" bson:"business_id"`
-		TILLNumber   string             `json:"till_number" bson:"till_number"`
-		BusinessName string             `json:"business_name" bson:"business_name"`
+		BusinessID   bson.ObjectID `json:"business_id" bson:"business_id"`
+		TILLNumber   string        `json:"till_number" bson:"till_number"`
+		BusinessName string        `json:"business_name" bson:"business_name"`
 	} `json:"business" bson:"business"`
 	CheckersNeeded     int      `json:"checkers_needed" bson:"checkers_needed"`
 	CheckersApproved   int      `json:"checkers_approved" bson:"checkers_approved"`
