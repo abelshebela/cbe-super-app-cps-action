@@ -35,9 +35,7 @@ func (r *BPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx co
 	checkerSet := map[string]struct{}{}
 	auditorSet := map[string]struct{}{}
 
-	cursor, err := r.collection.Find(ctx, bson.M{
-		"role_id": role_id,
-	})
+	cursor, err := r.collection.Find(ctx, bson.M{"role_id": role_id})
 	if err != nil {
 		r.logger.Errorf("PopulateUserApproverAllocations: Find failed: %v", err)
 		return nil, nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
