@@ -406,6 +406,7 @@ type CpsUserRepository interface {
 	FindByEmailOrPhoneNumberOrUserName(ctx context.Context, email string, phoneNumber string, username string) (*imodel.CPSUser, error)
 	UpdateCpsUsersJobTitle(ctx context.Context, oldJobTitle, newJobTitle string) error
 	GetUserByDepartment(ctx context.Context, department string) (*imodel.CPSUser, error)
+	GetUserByJobTitle(ctx context.Context, jobTitle string) (*imodel.CPSUser, error)
 }
 
 type BankVaultRepository interface {

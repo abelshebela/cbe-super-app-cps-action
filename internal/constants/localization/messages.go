@@ -525,6 +525,7 @@ const (
 	MsgCannotDisableOwnRole         = "You cannot disable your own role"
 	MsgCannotDisableOwnJobTitle     = "You cannot disable your own job title"
 	MsgRoleHasActiveJobs            = "There are active jobs for this role, you can't disable it"
+	MsgJobTitleHasActiveUsers       = "There are active users for this job title, you can't disable it"
 	MsgRoleHasActiveJobsRoles       = "There are active jobs for this role, you can't delete it"
 	MsgDepartmentHasAssociatedUsers = "There are users associated with this department"
 	MsgCpsRoleServiceEnabled        = "Service access enabled for Customer role successfully"
