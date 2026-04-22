@@ -319,7 +319,14 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(
 	}
 	delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
-	filter["request_action"] = bson.M{"$in": RAList}
+	if len(RAList) > 0 {
+		filter["request_action"] = bson.M{"$in": RAList}
+	} else {
+		return &types.PaginatedResponse[[]*bps_action.BPSAction]{
+			Data: []*bps_action.BPSAction{},
+			Meta: local_util.BuildPaginationMeta(0, filterParam.Page, filterParam.PerPage),
+		}, nil
+	}
 
 	exclude := []string{
 		"password",
@@ -404,6 +411,8 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 	filter := dynamicFilter
 	if len(RAList) > 0 {
 		filter["request_action"] = bson.M{"$in": RAList}
+	} else {
+		return &types.PaginatedResponse[[]*bps_action.BPSAction]{}, nil
 	}
 
 	switch filter["auditor_status"] {
