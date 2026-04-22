@@ -2,8 +2,12 @@ package customer
 
 import (
 	"cbe-super-app-cps-action/internal/constants/dto/customer"
+	bps "cbe-super-app-cps-action/internal/constants/model"
 
-	bps "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
+	// "strings"
+
+	// bps "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
+	sharedconstants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 )
 
@@ -57,10 +61,10 @@ func MapBpsActionToCustomerLog(action []bps.BPSAction) []customer.CustomerAction
 			ActionCode: action.ActionCode,
 			MakerName:  action.MakerName,
 			ActionReason: struct {
-				ActionType string "json:\"action_type\" bson:\"action_type\""
-				ActionNote string "json:\"action_note\" bson:\"action_note\""
+				ActionType sharedconstants.ActionType `json:"action_type" bson:"action_type"`
+				ActionNote string                     `json:"action_note" bson:"action_note"`
 			}{
-				ActionType: action.ActionReason.ActionType,
+				ActionType: sharedconstants.ActionType(action.ActionReason.ActionType),
 				ActionNote: action.ActionReason.ActionNote,
 			},
 			RequestAction:  string(action.RequestAction),
