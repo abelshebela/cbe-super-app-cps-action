@@ -85,22 +85,22 @@ func (s *accountBlockService) GetDistrictById(ctx context.Context, id string) (*
 	return block[0], nil
 }
 
-func (s *accountBlockService) GetCityById(ctx context.Context, id string) (*imodel.AccountBlock, error) {
-	ctx, span := local_util.TraceLogger(ctx, "service", "GetCityById", "BlockAccount", "GetCityById")
-	defer span.End()
+// func (s *accountBlockService) GetCityById(ctx context.Context, id string) (*imodel.AccountBlock, error) {
+// 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCityById", "BlockAccount", "GetCityById")
+// 	defer span.End()
 
-	block, err := s.repo.GetCitiesByIds(ctx, []string{id})
-	if err != nil {
-		return nil, err
-	}
+// 	block, err := s.repo.GetCitiesByIds(ctx, []string{id})
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	if len(block) == 0 {
-		span.AddEvent("City not found", trace.WithAttributes(attribute.String("id", id)))
-		return nil, errors.New(localization.ErrorCityNotFound.Code)
-	}
+// 	if len(block) == 0 {
+// 		span.AddEvent("City not found", trace.WithAttributes(attribute.String("id", id)))
+// 		return nil, errors.New(localization.ErrorCityNotFound.Code)
+// 	}
 
-	return block[0], nil
-}
+// 	return block[0], nil
+// }
 
 func (s *accountBlockService) GetAllBranches(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.AccountBlock], error) {
 	var isEnabled *bool
@@ -145,9 +145,9 @@ func (s *accountBlockService) GetAllDistricts(ctx context.Context, filterParams 
 	return s.repo.FindAllDistrictsWithPagination(ctx, *filterParams)
 }
 
-func (s *accountBlockService) GetAllCities(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.AccountBlock], error) {
-	return s.repo.FindAllCitiesWithPagination(ctx, *filterParams)
-}
+// func (s *accountBlockService) GetAllCities(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*imodel.AccountBlock], error) {
+// 	return s.repo.FindAllCitiesWithPagination(ctx, *filterParams)
+// }
 
 func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branchIds []string, reason string, enabled bool) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableBranches", "BlockAccount", "EnableOrDisableBranches")
@@ -439,110 +439,110 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 	return nil
 }
 
-func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []string, reason string, enabled bool) error {
-	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableCities", "BlockAccount", "EnableOrDisableCities")
-	defer span.End()
+// func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []string, reason string, enabled bool) error {
+// 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableCities", "BlockAccount", "EnableOrDisableCities")
+// 	defer span.End()
 
-	s.logger.Infof("[AccBlockSvc][EnableDisableCities] count: %d enabled: %v", len(ids), enabled)
+// 	s.logger.Infof("[AccBlockSvc][EnableDisableCities] count: %d enabled: %v", len(ids), enabled)
 
-	var alreadyEnabled []string
-	var alreadyDisabled []string
-	var previousAction []types.EnableDisableAction
-	var currentAction []types.EnableDisableAction
-	cities, err := s.repo.GetCitiesByIds(ctx, ids)
-	if err != nil {
-		span.AddEvent("Failed to get cities", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[AccBlockSvc][EnableDisableCities] get err: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
+// 	var alreadyEnabled []string
+// 	var alreadyDisabled []string
+// 	var previousAction []types.EnableDisableAction
+// 	var currentAction []types.EnableDisableAction
+// 	cities, err := s.repo.GetCitiesByIds(ctx, ids)
+// 	if err != nil {
+// 		span.AddEvent("Failed to get cities", trace.WithAttributes(attribute.String("error", err.Error())))
+// 		s.logger.Errorf("[AccBlockSvc][EnableDisableCities] get err: %v", err)
+// 		return errors.New(localization.ErrorUnexpectedError.Code)
+// 	}
 
-	if len(cities) != len(ids) {
-		s.logger.Errorf("[AccBlockSvc][EnableDisableCities] not found")
-		return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
-	}
+// 	if len(cities) != len(ids) {
+// 		s.logger.Errorf("[AccBlockSvc][EnableDisableCities] not found")
+// 		return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
+// 	}
 
-	var districtIDs []string
-	for _, city := range cities {
-		if city.DistrictID != nil {
-			districtIDs = append(districtIDs, *city.DistrictID)
-		}
-	}
+// 	var districtIDs []string
+// 	for _, city := range cities {
+// 		if city.DistrictID != nil {
+// 			districtIDs = append(districtIDs, *city.DistrictID)
+// 		}
+// 	}
 
-	if enabled {
-		districts, err := s.repo.GetDistrictsByIds(ctx, districtIDs)
-		if err != nil {
-			return err
-		}
-		districtMap := make(map[string]bool)
-		for _, district := range districts {
-			districtMap[district.ID] = district.IsEnabled
-		}
+// 	if enabled {
+// 		districts, err := s.repo.GetDistrictsByIds(ctx, districtIDs)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		districtMap := make(map[string]bool)
+// 		for _, district := range districts {
+// 			districtMap[district.ID] = district.IsEnabled
+// 		}
 
-		for _, city := range cities {
-			if city.DistrictID == nil {
-				return errors.New(localization.ErrorCannotEnablCity.Code)
-			}
-			if isDistrictEnabled, exists := districtMap[*city.DistrictID]; !exists || !isDistrictEnabled {
-				return errors.New(localization.ErrorCannotEnablCity.Code)
-			}
-		}
-	}
+// 		for _, city := range cities {
+// 			if city.DistrictID == nil {
+// 				return errors.New(localization.ErrorCannotEnablCity.Code)
+// 			}
+// 			if isDistrictEnabled, exists := districtMap[*city.DistrictID]; !exists || !isDistrictEnabled {
+// 				return errors.New(localization.ErrorCannotEnablCity.Code)
+// 			}
+// 		}
+// 	}
 
-	fullname := ctx.Value(constants.ContextKey("full_name")).(string)
-	for _, city := range cities {
-		if enabled {
-			if city.IsEnabled {
-				alreadyEnabled = append(alreadyEnabled, city.Name)
-			}
-		} else {
-			if !city.IsEnabled {
-				alreadyDisabled = append(alreadyDisabled, city.Name)
-			}
-		}
+// 	fullname := ctx.Value(constants.ContextKey("full_name")).(string)
+// 	for _, city := range cities {
+// 		if enabled {
+// 			if city.IsEnabled {
+// 				alreadyEnabled = append(alreadyEnabled, city.Name)
+// 			}
+// 		} else {
+// 			if !city.IsEnabled {
+// 				alreadyDisabled = append(alreadyDisabled, city.Name)
+// 			}
+// 		}
 
-		previousAction = append(previousAction, types.EnableDisableAction{
-			ID:      city.ID,
-			Name:    city.Name,
-			Enabled: city.IsEnabled,
-		})
-		currentAction = append(currentAction, types.EnableDisableAction{
-			ID:      city.ID,
-			Name:    city.Name,
-			Enabled: enabled,
-			Reason: types.Reason{
-				Reason:    reason,
-				CreatedAt: time.Now(),
-				CreatedBy: fullname,
-			},
-		})
-	}
+// 		previousAction = append(previousAction, types.EnableDisableAction{
+// 			ID:      city.ID,
+// 			Name:    city.Name,
+// 			Enabled: city.IsEnabled,
+// 		})
+// 		currentAction = append(currentAction, types.EnableDisableAction{
+// 			ID:      city.ID,
+// 			Name:    city.Name,
+// 			Enabled: enabled,
+// 			Reason: types.Reason{
+// 				Reason:    reason,
+// 				CreatedAt: time.Now(),
+// 				CreatedBy: fullname,
+// 			},
+// 		})
+// 	}
 
-	if len(alreadyEnabled) > 0 {
-		return errors.New(localization.ErrorCityAlreadyEnabled.Code)
-	} else if len(alreadyDisabled) > 0 {
-		return errors.New(localization.ErrorCityAlreadyDisabled.Code)
-	}
+// 	if len(alreadyEnabled) > 0 {
+// 		return errors.New(localization.ErrorCityAlreadyEnabled.Code)
+// 	} else if len(alreadyDisabled) > 0 {
+// 		return errors.New(localization.ErrorCityAlreadyDisabled.Code)
+// 	}
 
-	var actionType constants.ActionType
-	var requestActionType constants.RequestAction
-	if enabled {
-		actionType = constants.ActionType(cps_constants.ActionEnable)
-		requestActionType = constants.RequestEnableCities
-	} else {
-		actionType = constants.ActionType(cps_constants.ActionDisable)
-		requestActionType = constants.RequestDisableCities
-	}
+// 	var actionType constants.ActionType
+// 	var requestActionType constants.RequestAction
+// 	if enabled {
+// 		actionType = constants.ActionType(cps_constants.ActionEnable)
+// 		requestActionType = constants.RequestEnableCities
+// 	} else {
+// 		actionType = constants.ActionType(cps_constants.ActionDisable)
+// 		requestActionType = constants.RequestDisableCities
+// 	}
 
-	cpsAction := core.GenerateCPSAction(ctx, "CITY", enabled, previousAction, currentAction, reason, actionType, requestActionType)
+// 	cpsAction := core.GenerateCPSAction(ctx, "CITY", enabled, previousAction, currentAction, reason, actionType, requestActionType)
 
-	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-		span.AddEvent("Failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[AccBlockSvc][EnableDisableCities] cps action err: %v", err)
-		return err
-	}
-	s.logger.Infof("[AccBlockSvc][EnableDisableCities] done count: %d", len(ids))
-	return nil
-}
+// 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+// 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
+// 		s.logger.Errorf("[AccBlockSvc][EnableDisableCities] cps action err: %v", err)
+// 		return err
+// 	}
+// 	s.logger.Infof("[AccBlockSvc][EnableDisableCities] done count: %d", len(ids))
+// 	return nil
+// }
 
 func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	s.logger.Infof("[AccBlockSvc][Authorize] action: %s", action.RequestAction)
@@ -576,27 +576,27 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 		s.logger.Infof("[AccBlockSvc][Authorize] disabled %d branches", len(*actions))
 
-	case constants.RequestEnableCities:
-		var ids []string
-		for _, act := range *actions {
-			ids = append(ids, act.ID)
-		}
-		if err := s.repo.EnableOrDisableCities(ctx, ids, &(*actions)[0].Reason, true); err != nil {
-			s.logger.Errorf("[AccBlockSvc][Authorize] enable cities err: %v", err)
-			return nil, err
-		}
-		s.logger.Infof("[AccBlockSvc][Authorize] enabled %d cities", len(*actions))
+	// case constants.RequestEnableCities:
+	// 	var ids []string
+	// 	for _, act := range *actions {
+	// 		ids = append(ids, act.ID)
+	// 	}
+	// 	if err := s.repo.EnableOrDisableCities(ctx, ids, &(*actions)[0].Reason, true); err != nil {
+	// 		s.logger.Errorf("[AccBlockSvc][Authorize] enable cities err: %v", err)
+	// 		return nil, err
+	// 	}
+	// 	s.logger.Infof("[AccBlockSvc][Authorize] enabled %d cities", len(*actions))
 
-	case constants.RequestDisableCities:
-		var ids []string
-		for _, act := range *actions {
-			ids = append(ids, act.ID)
-		}
-		if err := s.repo.EnableOrDisableCities(ctx, ids, &(*actions)[0].Reason, false); err != nil {
-			s.logger.Errorf("[AccBlockSvc][Authorize] disable cities err: %v", err)
-			return nil, err
-		}
-		s.logger.Infof("[AccBlockSvc][Authorize] disabled %d cities", len(*actions))
+	// case constants.RequestDisableCities:
+	// 	var ids []string
+	// 	for _, act := range *actions {
+	// 		ids = append(ids, act.ID)
+	// 	}
+	// 	if err := s.repo.EnableOrDisableCities(ctx, ids, &(*actions)[0].Reason, false); err != nil {
+	// 		s.logger.Errorf("[AccBlockSvc][Authorize] disable cities err: %v", err)
+	// 		return nil, err
+	// 	}
+	// 	s.logger.Infof("[AccBlockSvc][Authorize] disabled %d cities", len(*actions))
 
 	case constants.RequestEnableDistricts:
 		var ids []string

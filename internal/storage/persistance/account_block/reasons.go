@@ -9,8 +9,6 @@ import (
 
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
-
-	"github.com/google/uuid"
 )
 
 func isOracleTableMissingErr(err error) bool {
@@ -43,7 +41,7 @@ func (a *AccountBlockStorage) deleteReasonsForBlockIDs(ctx context.Context, bloc
 		ph[i] = ":" + n
 		args = append(args, sql.Named(n, id))
 	}
-	q := fmt.Sprintf(`DELETE FROM account_block_disable_reasons WHERE account_block_id IN (%s)`, strings.Join(ph, ","))
+	q := fmt.Sprintf(`DELETE FROM account_blocks_disabled_reasons WHERE account_block_id IN (%s)`, strings.Join(ph, ","))
 	_, err := a.db.ExecContext(ctx, q, args...)
 	return err
 }
@@ -61,11 +59,9 @@ func (a *AccountBlockStorage) insertDisableReasonForBlocks(ctx context.Context, 
 		}
 	}
 	for _, bid := range blockIDs {
-		rid := uuid.New().String()
 		_, err := a.db.ExecContext(ctx, `
-			INSERT INTO account_block_disable_reasons (id, account_block_id, reason_text, created_by, created_at)
-			VALUES (:id, :account_block_id, :reason_text, :created_by, :created_at)`,
-			sql.Named("id", rid),
+			INSERT INTO account_blocks_disabled_reasons (account_block_id, reason_text, created_by, created_at)
+			VALUES (:account_block_id, :reason_text, :created_by, :created_at)`,
 			sql.Named("account_block_id", bid),
 			sql.Named("reason_text", rText),
 			sql.Named("created_by", rBy),
@@ -92,7 +88,7 @@ func (a *AccountBlockStorage) fetchReasonsMap(ctx context.Context, blockIDs []st
 	}
 	q := fmt.Sprintf(`
 		SELECT id, account_block_id, reason_text, created_by, created_at
-		FROM account_block_disable_reasons
+		FROM account_blocks_disabled_reasons
 		WHERE account_block_id IN (%s)
 		ORDER BY created_at ASC`, strings.Join(ph, ","))
 	rows, err := a.db.QueryContext(ctx, q, args...)

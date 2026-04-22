@@ -30,11 +30,11 @@ import (
 const (
 	insertAccountBlock = `
 		INSERT INTO ACCOUNT_BLOCKS (
-			id, name, code, address, parent_id, slug, type,
+			id, name, code, address, slug, type,
 			is_enabled, district_id, region_id,
 			is_deleted, created_at, updated_at
 		) VALUES (
-			:id, :name, :code, :address, :parent_id, :slug, :type,
+			:id, :name, :code, :address, :slug, :type,
 			1, :district_id, :region_id,
 			0, SYSTIMESTAMP, SYSTIMESTAMP
 		)`
@@ -52,11 +52,9 @@ const (
 			name,
 			code,
 			address,
-			RAWTOHEX(parent_id) AS parent_id,
 			slug,
 			type,
 			is_enabled,
-			RAWTOHEX(city_id) AS city_id,
 			RAWTOHEX(district_id) AS district_id,
 			RAWTOHEX(region_id) AS region_id,
 			is_deleted,
@@ -72,11 +70,9 @@ const (
 			name,
 			code,
 			address,
-			RAWTOHEX(parent_id) AS parent_id,
 			slug,
 			type,
 			is_enabled,
-			RAWTOHEX(city_id) AS city_id,
 			RAWTOHEX(district_id) AS district_id,
 			RAWTOHEX(region_id) AS region_id,
 			is_deleted,
@@ -86,7 +82,6 @@ const (
 		FROM ACCOUNT_BLOCKS
 		WHERE is_deleted = 0
 		START WITH id = HEXTORAW(:id)
-		CONNECT BY PRIOR parent_id = id
 		ORDER BY LEVEL ASC`
 
 	listAccountBlocksByType = `
@@ -95,11 +90,9 @@ const (
 			name,
 			code,
 			address,
-			RAWTOHEX(parent_id) AS parent_id,
 			slug,
 			type,
 			is_enabled,
-			RAWTOHEX(city_id) AS city_id,
 			RAWTOHEX(district_id) AS district_id,
 			RAWTOHEX(region_id) AS region_id,
 			is_deleted,
@@ -147,14 +140,14 @@ func NewAccountBlockRepository(client *mongo.Client, cfg *config.VaultConfig, cp
 // ─── Scan helpers ───────────────────────────────────────────────────────────
 func scanAccountBlock(scanner interface{ Scan(dest ...any) error }) (*imodel.AccountBlock, error) {
 	var ab imodel.AccountBlock
-	var parentID, cityID, districtID, regionID sql.NullString
+	var districtID, regionID sql.NullString
 	var isEnabledInt, isDeletedInt int
 	var createdAt, updatedAt sql.NullTime
 
 	err := scanner.Scan(
 		&ab.ID, &ab.Name, &ab.Code, &ab.Address,
-		&parentID, &ab.Slug, &ab.Type,
-		&isEnabledInt, &cityID, &districtID, &regionID,
+		&ab.Slug, &ab.Type,
+		&isEnabledInt, &districtID, &regionID,
 		&isDeletedInt, &createdAt, &updatedAt,
 	)
 	if err != nil {
@@ -169,12 +162,6 @@ func scanAccountBlock(scanner interface{ Scan(dest ...any) error }) (*imodel.Acc
 	}
 	if updatedAt.Valid {
 		ab.UpdatedAt = updatedAt.Time
-	}
-	if parentID.Valid {
-		ab.ParentID = &parentID.String
-	}
-	if cityID.Valid {
-		ab.CityID = &cityID.String
 	}
 	if districtID.Valid {
 		ab.DistrictID = &districtID.String
@@ -213,7 +200,6 @@ func nullIfEmptyFilter(v interface{}) interface{} {
 
 const maxParentDepth = 64
 
-// fetchBlockByID loads one row by primary key (any type), for parent_id resolution.
 func (a *AccountBlockStorage) fetchBlockByID(ctx context.Context, id string) (*imodel.AccountBlock, error) {
 	row := a.db.QueryRowContext(ctx, selectAccountBlockByID, sql.Named("id", id))
 	return scanAccountBlockFromRow(row)
@@ -237,20 +223,20 @@ func directParentIDByType(b *imodel.AccountBlock) string {
 		return ""
 	case imodel.TypeDistrict:
 		return trimmed(b.RegionID)
-	case imodel.TypeCity:
-		// City usually belongs to a district; fallback to region if needed.
-		if id := trimmed(b.DistrictID); id != "" {
-			return id
-		}
-		return trimmed(b.RegionID)
+	// case imodel.TypeCity:
+	// 	// City usually belongs to a district; fallback to region if needed.
+	// 	if id := trimmed(b.DistrictID); id != "" {
+	// 		return id
+	// 	}
+	// 	return trimmed(b.RegionID)
 	case imodel.TypeBranch:
 		// Branch should resolve to district first, then city, then region.
 		if id := trimmed(b.DistrictID); id != "" {
 			return id
 		}
-		if id := trimmed(b.CityID); id != "" {
-			return id
-		}
+		// if id := trimmed(b.CityID); id != "" {
+		// 	return id
+		// }
 		return trimmed(b.RegionID)
 	default:
 		return ""
@@ -330,10 +316,8 @@ func (a *AccountBlockStorage) createBlock(ctx context.Context, block *imodel.Acc
 		sql.Named("name", block.Name),
 		sql.Named("code", block.Code),
 		sql.Named("address", block.Address),
-		sql.Named("parent_id", nullStr(block.ParentID)),
 		sql.Named("slug", block.Slug),
 		sql.Named("type", string(block.Type)),
-		sql.Named("city_id", nullStr(block.CityID)),
 		sql.Named("district_id", nullStr(block.DistrictID)),
 		sql.Named("region_id", nullStr(block.RegionID)),
 	)
@@ -377,16 +361,16 @@ func (a *AccountBlockStorage) CreateDistrict(ctx context.Context, district *imod
 	return nil
 }
 
-func (a *AccountBlockStorage) CreateCity(ctx context.Context, city *imodel.AccountBlock) error {
-	a.logger.Infof("[AccountBlockStorage][CreateCity] creating city: %s", city.Name)
-	city.Type = imodel.TypeCity
-	if err := a.createBlock(ctx, city); err != nil {
-		a.logger.Errorf("[AccountBlockStorage][CreateCity] failed: %v", err)
-		return fmt.Errorf("failed to create city")
-	}
-	a.logger.Infof("[AccountBlockStorage][CreateCity] city created: %s", city.ID)
-	return nil
-}
+// func (a *AccountBlockStorage) CreateCity(ctx context.Context, city *imodel.AccountBlock) error {
+// 	a.logger.Infof("[AccountBlockStorage][CreateCity] creating city: %s", city.Name)
+// 	city.Type = imodel.TypeCity
+// 	if err := a.createBlock(ctx, city); err != nil {
+// 		a.logger.Errorf("[AccountBlockStorage][CreateCity] failed: %v", err)
+// 		return fmt.Errorf("failed to create city")
+// 	}
+// 	a.logger.Infof("[AccountBlockStorage][CreateCity] city created: %s", city.ID)
+// 	return nil
+// }
 
 // ─── Delete methods ─────────────────────────────────────────────────────────
 
@@ -420,9 +404,9 @@ func (a *AccountBlockStorage) DeleteDistrict(ctx context.Context, id string) err
 	return a.deleteBlock(ctx, id, "District")
 }
 
-func (a *AccountBlockStorage) DeleteCity(ctx context.Context, id string) error {
-	return a.deleteBlock(ctx, id, "City")
-}
+// func (a *AccountBlockStorage) DeleteCity(ctx context.Context, id string) error {
+// 	return a.deleteBlock(ctx, id, "City")
+// }
 
 // ─── Find by ID (with parent hierarchy) ─────────────────────────────────────
 
@@ -438,14 +422,14 @@ func (a *AccountBlockStorage) findByIDWithParents(ctx context.Context, id string
 	var blocks []*imodel.AccountBlock
 	for rows.Next() {
 		var ab imodel.AccountBlock
-		var parentID, cityID, districtID, regionID sql.NullString
+		var districtID, regionID sql.NullString
 		var isEnabledInt, isDeletedInt, depth int
 		var createdAt, updatedAt sql.NullTime
 
 		err := rows.Scan(
 			&ab.ID, &ab.Name, &ab.Code, &ab.Address,
-			&parentID, &ab.Slug, &ab.Type,
-			&isEnabledInt, &cityID, &districtID, &regionID,
+			&ab.Slug, &ab.Type,
+			&isEnabledInt, &districtID, &regionID,
 			&isDeletedInt, &createdAt, &updatedAt,
 			&depth,
 		)
@@ -460,12 +444,6 @@ func (a *AccountBlockStorage) findByIDWithParents(ctx context.Context, id string
 		}
 		if updatedAt.Valid {
 			ab.UpdatedAt = updatedAt.Time
-		}
-		if parentID.Valid {
-			ab.ParentID = &parentID.String
-		}
-		if cityID.Valid {
-			ab.CityID = &cityID.String
 		}
 		if districtID.Valid {
 			ab.DistrictID = &districtID.String
@@ -524,22 +502,22 @@ func (a *AccountBlockStorage) FindByFilterKey(ctx context.Context, field, value 
 }
 
 const selectByFilterKey = `SELECT
-	RAWTOHEX(id), name, code, address, RAWTOHEX(parent_id), slug, type,
-	is_enabled, RAWTOHEX(city_id), RAWTOHEX(district_id), RAWTOHEX(region_id),
+	RAWTOHEX(id), name, code, address, slug, type,
+	is_enabled, RAWTOHEX(district_id), RAWTOHEX(region_id),
 	is_deleted, created_at, updated_at
 FROM ACCOUNT_BLOCKS
 WHERE %s = :val AND is_deleted = 0`
 
 func scanAccountBlockFromRow(row *sql.Row) (*imodel.AccountBlock, error) {
 	var ab imodel.AccountBlock
-	var parentID, cityID, districtID, regionID sql.NullString
+	var districtID, regionID sql.NullString
 	var isEnabledInt, isDeletedInt int
 	var createdAt, updatedAt sql.NullTime
 
 	err := row.Scan(
 		&ab.ID, &ab.Name, &ab.Code, &ab.Address,
-		&parentID, &ab.Slug, &ab.Type,
-		&isEnabledInt, &cityID, &districtID, &regionID,
+		&ab.Slug, &ab.Type,
+		&isEnabledInt, &districtID, &regionID,
 		&isDeletedInt, &createdAt, &updatedAt,
 	)
 	if err != nil {
@@ -553,12 +531,6 @@ func scanAccountBlockFromRow(row *sql.Row) (*imodel.AccountBlock, error) {
 	}
 	if updatedAt.Valid {
 		ab.UpdatedAt = updatedAt.Time
-	}
-	if parentID.Valid {
-		ab.ParentID = &parentID.String
-	}
-	if cityID.Valid {
-		ab.CityID = &cityID.String
 	}
 	if districtID.Valid {
 		ab.DistrictID = &districtID.String
@@ -589,8 +561,8 @@ func (a *AccountBlockStorage) getByIds(ctx context.Context, ids []string, entity
 	args = append(args, sql.Named("type", string(entityType)))
 
 	query := fmt.Sprintf(`SELECT
-			RAWTOHEX(id), name, code, address, RAWTOHEX(parent_id), slug, type,
-			is_enabled, RAWTOHEX(city_id), RAWTOHEX(district_id), RAWTOHEX(region_id),
+			RAWTOHEX(id), name, code, address, slug, type,
+			is_enabled, RAWTOHEX(district_id), RAWTOHEX(region_id),
 			is_deleted, created_at, updated_at
 		FROM ACCOUNT_BLOCKS
 		WHERE id IN (%s) AND type = :type AND is_deleted = 0`, strings.Join(placeholders, ","))
@@ -649,10 +621,10 @@ func (a *AccountBlockStorage) GetDistrictsByIds(ctx context.Context, ids []strin
 	return a.getByIds(ctx, ids, imodel.TypeDistrict)
 }
 
-func (a *AccountBlockStorage) GetCitiesByIds(ctx context.Context, ids []string) ([]*imodel.AccountBlock, error) {
-	a.logger.Infof("[AccountBlockStorage][GetCitiesByIds] fetching %d cities", len(ids))
-	return a.getByIds(ctx, ids, imodel.TypeCity)
-}
+// func (a *AccountBlockStorage) GetCitiesByIds(ctx context.Context, ids []string) ([]*imodel.AccountBlock, error) {
+// 	a.logger.Infof("[AccountBlockStorage][GetCitiesByIds] fetching %d cities", len(ids))
+// 	return a.getByIds(ctx, ids, imodel.TypeCity)
+// }
 
 // ─── Paginated list ─────────────────────────────────────────────────────────
 
@@ -715,11 +687,9 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 			name,
 			code,
 			address,
-			RAWTOHEX(parent_id) AS parent_id,
 			slug,
 			type,
 			is_enabled,
-			RAWTOHEX(city_id) AS city_id,
 			RAWTOHEX(district_id) AS district_id,
 			RAWTOHEX(region_id) AS region_id,
 			is_deleted,
@@ -787,14 +757,14 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 
 	for rows.Next() {
 		var ab imodel.AccountBlock
-		var parentID, cityID, districtID, regionID sql.NullString
+		var districtID, regionID sql.NullString
 		var isEnabledInt, isDeletedInt int
 		var createdAt, updatedAt sql.NullTime
 
 		err := rows.Scan(
 			&ab.ID, &ab.Name, &ab.Code, &ab.Address,
-			&parentID, &ab.Slug, &ab.Type,
-			&isEnabledInt, &cityID, &districtID, &regionID,
+			&ab.Slug, &ab.Type,
+			&isEnabledInt, &districtID, &regionID,
 			&isDeletedInt, &createdAt, &updatedAt,
 			&totalCount,
 		)
@@ -809,12 +779,6 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		}
 		if updatedAt.Valid {
 			ab.UpdatedAt = updatedAt.Time
-		}
-		if parentID.Valid {
-			ab.ParentID = &parentID.String
-		}
-		if cityID.Valid {
-			ab.CityID = &cityID.String
 		}
 		if districtID.Valid {
 			ab.DistrictID = &districtID.String
@@ -889,10 +853,10 @@ func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context
 	return a.findAllWithPagination(ctx, filterParam, imodel.TypeDistrict)
 }
 
-func (a *AccountBlockStorage) FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.AccountBlock], error) {
-	a.logger.Infof("[AccountBlockStorage][FindAllCitiesWithPagination] fetching cities")
-	return a.findAllWithPagination(ctx, filterParam, imodel.TypeCity)
-}
+// func (a *AccountBlockStorage) FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.AccountBlock], error) {
+// 	a.logger.Infof("[AccountBlockStorage][FindAllCitiesWithPagination] fetching cities")
+// 	return a.findAllWithPagination(ctx, filterParam, imodel.TypeCity)
+// }
 
 // ─── Enable / Disable ───────────────────────────────────────────────────────
 
@@ -967,14 +931,14 @@ func (a *AccountBlockStorage) EnableOrDisableDistricts(ctx context.Context, ids 
 	return err
 }
 
-func (a *AccountBlockStorage) EnableOrDisableCities(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error {
-	a.logger.Infof("[AccountBlockStorage][EnableOrDisableCities] ids=%v enabled=%v", ids, enabled)
-	err := a.enableOrDisable(ctx, ids, reason, enabled, imodel.TypeCity)
-	if err != nil {
-		a.logger.Errorf("[AccountBlockStorage][EnableOrDisableCities] failed: %v", err)
-	}
-	return err
-}
+// func (a *AccountBlockStorage) EnableOrDisableCities(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error {
+// 	a.logger.Infof("[AccountBlockStorage][EnableOrDisableCities] ids=%v enabled=%v", ids, enabled)
+// 	err := a.enableOrDisable(ctx, ids, reason, enabled, imodel.TypeCity)
+// 	if err != nil {
+// 		a.logger.Errorf("[AccountBlockStorage][EnableOrDisableCities] failed: %v", err)
+// 	}
+// 	return err
+// }
 
 // ─── GetAccountBlockDetails ─────────────────────────────────────────────────
 
@@ -1166,15 +1130,14 @@ func convertAuditors(auditors []model.Auditor) []account_block_dto.Auditor {
 // ─── GetAllBranches (by parent region/district/city id) ─────────────────────
 
 func (a *AccountBlockStorage) GetAllBranches(ctx context.Context, id string) ([]imodel.AccountBlock, error) {
-	a.logger.Infof("[AccountBlockStorage][GetAllBranches] parent_id=%s", id)
 
 	query := `SELECT
-		RAWTOHEX(id), name, code, address, RAWTOHEX(parent_id), slug, type,
-		is_enabled, RAWTOHEX(city_id), RAWTOHEX(district_id), RAWTOHEX(region_id),
+		RAWTOHEX(id), name, code, address, slug, type,
+		is_enabled, RAWTOHEX(district_id), RAWTOHEX(region_id),
 		is_deleted, created_at, updated_at
 	FROM ACCOUNT_BLOCKS
 	WHERE type = 'B' AND is_deleted = 0 AND (
-		city_id = HEXTORAW(:id) OR district_id = HEXTORAW(:id) OR region_id = HEXTORAW(:id)
+		district_id = HEXTORAW(:id) OR region_id = HEXTORAW(:id)
 	)`
 
 	rows, err := a.db.QueryContext(ctx, query, sql.Named("id", id))
