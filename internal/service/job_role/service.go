@@ -155,8 +155,8 @@ func (j *jobRoleService) Delete(ctx context.Context, id string) error {
 		}
 	}
 
-	if hasActive == nil {
-		j.logger.Errorf("[JobRole Service][Delete] job role is active")
+	if hasActive != nil {
+		j.logger.Errorf("[JobRole Service][Delete] job role is active", hasActive)
 		return localization.ErrorResourceNotFound
 	}
 

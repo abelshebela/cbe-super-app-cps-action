@@ -189,14 +189,14 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 			districtMap[district.ID] = district.IsEnabled
 		}
 
-		for _, branch := range branches {
-			if branch.DistrictID == nil {
-				return errors.New(localization.ErrorCannotEnableBranch.Code)
-			}
-			if isDistrictEnabled, exists := districtMap[*branch.DistrictID]; !exists || !isDistrictEnabled {
-				return errors.New(localization.ErrorCannotEnableBranch.Code)
-			}
-		}
+		// for _, branch := range branches {
+		// 	if branch.DistrictID == nil {
+		// 		return errors.New(localization.ErrorCannotEnableBranch.Code)
+		// 	}
+		// 	if isDistrictEnabled, exists := districtMap[*branch.DistrictID]; !exists || !isDistrictEnabled {
+		// 		return errors.New(localization.ErrorCannotEnableBranch.Code)
+		// 	}
+		// }
 	}
 
 	fullname := ctx.Value(constants.ContextKey("full_name")).(string)
