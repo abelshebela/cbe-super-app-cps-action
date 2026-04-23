@@ -104,7 +104,7 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 	  u.contact_phone,
 	  u.contact_email,
 	  u.customer_number,
-	  u.is_active,
+	  u.is_superapp_active,
 	  u.birth_of_date
 	FROM users u
 	WHERE u.user_code = :1`
