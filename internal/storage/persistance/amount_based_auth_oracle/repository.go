@@ -43,7 +43,7 @@ func (r *Repository) Create(ctx context.Context, tier *local_model.AuthTierOracl
 	}
 
 	q := `INSERT INTO AMOUNT_BASED_AUTH_TIERS
-		(id, currency, min_amount, max_amount, method, enabled, is_deleted, created_at, last_modified_at)
+		(id, currency, min_amount, max_amount, method, is_enabled, is_deleted, created_at, last_modified_at)
 		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, :6, SYSTIMESTAMP, SYSTIMESTAMP)`
 
 	_, err := r.db.ExecContext(ctx, q,
@@ -151,7 +151,7 @@ func (r *Repository) CurrencyExists(ctx context.Context, currency string) (bool,
 func (r *Repository) FindByID(ctx context.Context, id string) (*local_model.AuthTierOracle, error) {
 	q := `SELECT RAWTOHEX(id) AS id,
 			currency, min_amount, max_amount, method,
-			enabled, is_deleted, created_at, last_modified_at
+			is_enabled, is_deleted, created_at, last_modified_at
 		FROM AMOUNT_BASED_AUTH_TIERS
 		WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 
@@ -184,7 +184,7 @@ func (r *Repository) FindByID(ctx context.Context, id string) (*local_model.Auth
 func (r *Repository) FindActiveByCurrencyAndMethod(ctx context.Context, currency string, method constants.Method) ([]local_model.AuthTierOracle, error) {
 	q := `SELECT RAWTOHEX(id) AS id,
 			currency, min_amount, max_amount, method,
-			enabled, is_deleted, created_at, last_modified_at
+			is_enabled, is_deleted, created_at, last_modified_at
 		FROM AMOUNT_BASED_AUTH_TIERS
 		WHERE currency = :1 AND method = :2 AND is_deleted = 0
 		ORDER BY last_modified_at DESC`
@@ -225,7 +225,7 @@ func (r *Repository) FindActiveByCurrencyAndMethod(ctx context.Context, currency
 func (r *Repository) FindActiveByCurrency(ctx context.Context, currency string) ([]local_model.AuthTierOracle, error) {
 	q := `SELECT RAWTOHEX(id) AS id,
 			currency, min_amount, max_amount, method,
-			enabled, is_deleted, created_at, last_modified_at
+			is_enabled, is_deleted, created_at, last_modified_at
 		FROM AMOUNT_BASED_AUTH_TIERS
 		WHERE currency = :1 AND is_deleted = 0
 		ORDER BY last_modified_at DESC`
@@ -270,7 +270,7 @@ func (r *Repository) FindAllActiveForSearch(ctx context.Context, search string) 
 
 	q = `SELECT RAWTOHEX(id) AS id,
 			currency, min_amount, max_amount, method,
-			enabled, is_deleted, created_at, last_modified_at
+			is_enabled, is_deleted, created_at, last_modified_at
 		FROM AMOUNT_BASED_AUTH_TIERS
 		WHERE is_deleted = 0`
 
