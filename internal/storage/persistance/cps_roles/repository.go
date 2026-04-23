@@ -59,7 +59,7 @@ func NewCPSRolesStorage(cfg *config.VaultConfig, db *sql.DB, kafkaProducer kafka
 
 const superAppRoleTable = "SUPERAPP_ROLES"
 const accessListTable = "ACCESS_LISTS"
-const accessListCustomerSegmentationTable = "ACCESS_LIST_CUSTOMER_SEG"
+const accessListCustomerSegmentationTable = "ACCESS_LIST_BY_SUPERAPP_ROLE"
 
 func boolToOracleNumber(v bool) int {
 	if v {
@@ -435,7 +435,7 @@ SELECT
         AND AL.IS_DELETED = 0
         AND NOT EXISTS (
           SELECT 1
-          FROM ACCESS_LIST_CUSTOMER_SEG ACS
+          FROM ACCESS_LIST_BY_SUPERAPP_ROLE ACS
           WHERE ACS.ACCESS_LIST_KEY = AL.SERVICE_KEY
             AND ACS.SEGMENTED_ID = SR.ID
             AND ACS.ENABLED = 1
@@ -459,7 +459,7 @@ SELECT
         AND AL.IS_DELETED = 0
         AND EXISTS (
           SELECT 1
-          FROM ACCESS_LIST_CUSTOMER_SEG ACS
+          FROM ACCESS_LIST_BY_SUPERAPP_ROLE ACS
           WHERE ACS.ACCESS_LIST_KEY = AL.SERVICE_KEY
             AND ACS.SEGMENTED_ID = SR.ID
             AND ACS.ENABLED = 1
