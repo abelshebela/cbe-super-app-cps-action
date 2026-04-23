@@ -407,6 +407,7 @@ type CpsUserRepository interface {
 	FindByEmailOrPhoneNumberOrUserName(ctx context.Context, email string, phoneNumber string, username string) (*imodel.CPSUser, error)
 	UpdateCpsUsersJobTitle(ctx context.Context, oldJobTitle, newJobTitle string) error
 	GetUserByDepartment(ctx context.Context, department string) (*imodel.CPSUser, error)
+	GetUserByJobTitle(ctx context.Context, jobTitle string) (*imodel.CPSUser, error)
 }
 
 type BankVaultRepository interface {
@@ -754,7 +755,7 @@ type BPSActionApproveIndexRepository interface {
 	FindMakerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.BPSActionApproveIndex, error)
 	FindCheckerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.BPSActionApproveIndex, error)
 	FindAuditorAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.BPSActionApproveIndex, error)
-	PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string, []string, []string, error)
+	PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string,[]string, []string, []string, error)
 	FindByRoleAndAction(ctx context.Context, roleID string, actionName string) (*imodel.BPSActionApproveIndex, error)
 	DeleteMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
 	InsertMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error

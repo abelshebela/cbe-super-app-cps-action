@@ -89,7 +89,7 @@ func (n *NotificationStorage) Update(ctx context.Context, id string, notificatio
 	}
 
 	// err = n.kafkaProducer.PublishMessage(ctx, inAppMessage)
-	err = n.kafkaProducer.PublishMessage(ctx, inAppMessage, "in_app_broadcast", n.cfg.KafkaInAppBordcastTopic, "notification updated")
+	err = n.kafkaProducer.PublishMessage(ctx, inAppMessage, "in_app_broadcast", n.cfg.KafkaInAppTopic, "notification updated")
 	if err != nil {
 		n.logger.Errorf("[NotificationStorage][Update] failed to update notification %v", err)
 	}
@@ -231,7 +231,7 @@ func (n *NotificationStorage) EnableDisableNotification(ctx context.Context, id 
 		Data:    NotificationMapper(updatedNotification),
 	}
 
-	err = n.kafkaProducer.PublishMessage(ctx, inAppMessage, "in_app_broadcast", n.cfg.KafkaInAppBordcastTopic, "notification enabled/disabled")
+	err = n.kafkaProducer.PublishMessage(ctx, inAppMessage, "in_app_broadcast", n.cfg.KafkaInAppTopic, "notification enabled/disabled")
 	if err != nil {
 		n.logger.Errorf("[NotificationStorage][EnableDisableNotification] failed to %s notification %v", status, err)
 	}

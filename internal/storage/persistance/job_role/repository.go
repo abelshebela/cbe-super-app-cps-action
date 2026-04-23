@@ -120,7 +120,10 @@ func (s *JobRoleStorage) FindByID(ctx context.Context, id string) (*imodel.JobRo
 
 func (s *JobRoleStorage) FindAll(ctx context.Context) (*[]imodel.JobRole, error) {
 
-	data, err := s.dal.FindAll(ctx, bson.M{"enabled": true, "is_deleted": false}, bson.M{})
+	filter := dal.FilterOp{
+		Filter: bson.M{"enabled": true, "is_deleted": false},
+	}
+	data, err := s.dal.FindAllWithCursorBasedPagination(ctx, filter)
 
 	if err != nil {
 		return nil, local_util.HandleDBError(err)
