@@ -292,9 +292,13 @@ const (
 
 	// Department related success messages
 	MsgDepartmentCreateRequestedSuccessfully  = "Department create requested successfully"
+	MsgDepartmentCreatedSuccessfully          = "Department created successfully"
 	MsgDepartmentUpdateRequestedSuccessfully  = "Department update requested successfully"
+	MsgDepartmentUpdatedSuccessfully          = "Department updated successfully"
 	MsgDepartmentEnableRequestedSuccessfully  = "Department enable requested successfully"
+	MsgDepartmentEnabledSuccessfully          = "Department enabled successfully"
 	MsgDepartmentDisableRequestedSuccessfully = "Department disable requested successfully"
+	MsgDepartmentDisabled                    = "Department disabled successfully"
 
 	// Bank Vault related success messages
 	MsgBankVaultCreationRequestSubmitted     = "Bank vault creation request submitted successfully"
