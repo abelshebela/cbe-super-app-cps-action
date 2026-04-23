@@ -31,23 +31,20 @@ func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionSe
 }
 
 func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServiceRequest) error {
-	filterParam := types.Filter{
-		Search: req.ServiceCode,
-		Filters: map[string]interface{}{
-			"access_list_key": req.ServiceKeyId,
-		},
+
+	_, err := s.repo.FindServiceListByID(ctx, req.ServiceKeyId)
+	if err != nil && err.Error() == localization.ErrorAccessListNotFound.Code {
+		return errors.New(localization.ErrorAccessListNotFound.Code)
 	}
 
-	services, err := s.repo.FindAllWithPagination(ctx, filterParam)
+	service, err := s.repo.FindByAccessListID(ctx, req.ServiceKeyId)
 	if err != nil {
 		return err
 	}
-
-	for _, svc := range services.Data {
-		if strings.EqualFold(svc.ServiceKeyId, req.ServiceKeyId) {
-			return errors.New(localization.ErrorServiceExists.Code)
-		}
+	if service {
+		return errors.New(localization.ErrorServiceExists.Code)
 	}
+
 	mapped := core.MapToServiceModel(req)
 
 	return core.HandleCPSAction(ctx, s.cps, "", constants.RequestCreateService, mapped, nil, constants.ActionCreate)

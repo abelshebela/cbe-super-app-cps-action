@@ -50,6 +50,7 @@ func (r *cpsRoleService) Create(ctx context.Context, req cps_role_dto.CreateCPSR
 	role := imodel.CPSRoles{
 		Name:        req.Name,
 		RoleCode:    req.RoleCode,
+		Lable:       req.Lable,
 		Description: req.Description,
 		Enabled:     &enabled,
 		CreatedAt:   time.Now(),
@@ -76,12 +77,15 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 		return err
 	}
 
-	var name, roleCode string
+	var name, roleCode, label string
 	if req.Name != nil {
 		name = *req.Name
 	}
 	if req.RoleCode != nil {
 		roleCode = *req.RoleCode
+	}
+	if req.Lable != nil {
+		label = *req.Lable
 	}
 
 	cpsRole, err := r.repo.FindByNameOrRoleCode(ctx, name, roleCode)
@@ -99,6 +103,10 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 			r.logger.Warnf("[CpsRoleSvc][Update] code exists: %s", req.RoleCode)
 			return errors.New(localization.ErrorCPSRoleCodeAlreadyExists.Code)
 		}
+		if cpsRole.Lable == label && existing.Lable != label {
+			r.logger.Warnf("[CpsRoleSvc][Update] label exists: %s", req.Lable)
+			return errors.New(localization.ErrorCPSRoleLabelAlreadyExists.Code)
+		}
 	}
 
 	updated := *existing
@@ -110,6 +118,9 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 	}
 	if req.Description != nil {
 		updated.Description = *req.Description
+	}
+	if req.Lable != nil {
+		updated.Lable = *req.Lable
 	}
 	updated.UpdatedAt = time.Now()
 

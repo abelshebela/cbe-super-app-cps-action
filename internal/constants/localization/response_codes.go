@@ -524,6 +524,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCannotDisableOwnRole,
 	ErrorCannotDisableOwnJobTitle,
 	ErrorRoleHasActiveJobs,
+	ErrorJobTitleHasActiveUsers,
 	ErrorRoleHasActiveJobsRoles,
 	ErrorDepartmentHasAssociatedUsers,
 	ErrorInvalidBulkServiceKey,
@@ -698,6 +699,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCPSRoleAlreadyEnabled,
 	ErrorCPSRoleAlreadyDisabled,
 	ErrorCPSRoleCodeAlreadyExists,
+	ErrorCPSRoleLabelAlreadyExists,
 	ErrorCPSRoleNameAlreadyExists,
 
 	// OTP related error codes
@@ -6595,6 +6597,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorCPSRoleLabelAlreadyExists = ResponseCode{
+		Code:       "ERROR_CPS_ROLE_LABEL_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgCpsRoleLabelAlreadyExists,
+		Type:       "error",
+	}
+
 	ErrorCPSRoleNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_CPS_ROLE_NAME_ALREADY_EXISTS",
 		StatusCode: StatusConflict,
@@ -7764,6 +7773,12 @@ var (
 		Code:       "ERROR_ROLE_HAS_ACTIVE_JOBS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgRoleHasActiveJobs,
+		Type:       "error",
+	}
+	ErrorJobTitleHasActiveUsers = ResponseCode{
+		Code:       "ERROR_JOB_TITLE_HAS_ACTIVE_USERS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobTitleHasActiveUsers,
 		Type:       "error",
 	}
 	ErrorRoleHasActiveJobsRoles = ResponseCode{
