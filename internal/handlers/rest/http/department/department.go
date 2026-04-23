@@ -129,7 +129,15 @@ func (d *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	log.Infof("[CreateDepartment] request sent successfully for department: %s", departmentRequest.Department)
+
+	if md.IsMakerOnly {
+		log.Infof("[CreateDepartment] department created successfully: %s", departmentRequest.Department)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessDepartmentCreatedSuccessfully, nil)
+		return
+	}
+
+	log.Infof("[CreateDepartment]  request sent successfully for department: %s", departmentRequest.Department)
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessDepartmentCreateRequestCreated, nil)
 }
@@ -187,7 +195,14 @@ func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	log.Infof("[UpdateDepartmentRequest] request sent successfully for id: %s", id)
+
+	if md.IsMakerOnly{
+		log.Infof("[UpdateDepartmentRequest] updated successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessDepartmentUpdatedSuccessfully, nil)
+		return
+	}
+	log.Infof("[UpdateDepartmentRequest] request updated successfully for id: %s", id)
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessDepartmentUpdateRequestCreated, nil)
 }
@@ -267,6 +282,12 @@ func (d *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Requ
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	if md.IsMakerOnly{
+		log.Infof("[EnableDepartment] Enabled successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessDepartmentEnabled, nil)
+		return
+	}
 	log.Infof("[EnableDepartment] request sent successfully for id: %s", id)
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessDepartmentEnableRequestCreated, nil)
@@ -308,6 +329,11 @@ func (d *DepartmentHandler) DisableDepartment(w http.ResponseWriter, r *http.Req
 		log.Errorf("[DisableDepartment] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
+	}
+	if md.IsMakerOnly{
+		log.Infof("[DisableDepartment] disabled successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessDepartmentDisabled, nil)
 	}
 	log.Infof("[DisableDepartment] request sent successfully for id: %s", id)
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
