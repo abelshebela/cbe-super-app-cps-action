@@ -24,7 +24,7 @@ func NewRepository(db *sql.DB, logger utils.Logger) *Repository {
 
 // FindParentChildRelationship implements the same contract as Mongo aggregation on access_items_relation.
 func (r *Repository) FindParentChildRelationship(ctx context.Context) ([]local_model.AccessItemRelation, error) {
-	q := `SELECT PARENT_KEY, CHILD_KEY FROM ACCESS_LIST_RELATIONS ORDER BY PARENT_KEY, CHILD_KEY`
+	q := `SELECT PARENT_ID, CHILD_ID FROM ACCESS_LIST_RELATIONS ORDER BY PARENT_ID, CHILD_ID`
 	rows, err := r.db.QueryContext(ctx, q)
 	if err != nil {
 		r.logger.Errorf("[AccessItemsRelationOracle][FindParentChildRelationship] query failed: %v", err)
