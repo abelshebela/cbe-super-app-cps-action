@@ -457,7 +457,7 @@ func (a *bpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		return
 	}
 
-	_, checkerActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	_,_, checkerActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -542,7 +542,7 @@ func (a *bpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 		return
 	}
 
-	_, _, auditorAllocations, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	_,_, _, auditorAllocations, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -622,7 +622,7 @@ func (a *bpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
-	_, checkerActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	_,_, checkerActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -697,7 +697,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	makerActions, checkerActions, auditorActions, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	_,makerActions, checkerActions, auditorActions, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -928,7 +928,7 @@ func (a *bpsActionAdapter) ApproverCheckerAllocations(w http.ResponseWriter, r *
 		return
 	}
 	// maker, checker, auditor, portalCards
-	_, checkerMods, _, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
+	_,_, checkerMods, _, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -1015,7 +1015,7 @@ func (a *bpsActionAdapter) ApproverAuditorAllocations(w http.ResponseWriter, r *
 		return
 	}
 	// maker, checker, auditor, portalCards
-	_, _, auditorMods, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
+	_,_, _, auditorMods, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())

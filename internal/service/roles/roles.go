@@ -13,6 +13,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -27,17 +28,19 @@ type RoleService struct {
 	roleRepository   storage.JobRoleRepository
 	approveIndexRepo storage.CPSActionApproveIndexRepository
 	jobRepo          storage.RoleRepository
+	bpsApproverIndexRepo storage.BPSActionApproveIndexRepository
 	cfg              config.VaultConfig
 	logger           utils.Logger
 }
 
-func NewRoleService(roleRepo storage.JobRoleRepository, portalCard storage.PortalCardRepository, approveIndexRepo storage.CPSActionApproveIndexRepository, jobRepo storage.RoleRepository, cpsService service.CPSActionService, cfg config.VaultConfig, logger utils.Logger) service.RoleService {
+func NewRoleService(roleRepo storage.JobRoleRepository, portalCard storage.PortalCardRepository, approveIndexRepo storage.CPSActionApproveIndexRepository, jobRepo storage.RoleRepository,bpsAprroverIndexRepo storage.BPSActionApproveIndexRepository, cpsService service.CPSActionService, cfg config.VaultConfig, logger utils.Logger) service.RoleService {
 	return &RoleService{
 		cpsService:       cpsService,
 		portalCardRepo:   portalCard,
 		roleRepository:   roleRepo,
 		approveIndexRepo: approveIndexRepo,
 		jobRepo:          jobRepo,
+		bpsApproverIndexRepo:bpsAprroverIndexRepo, 
 		cfg:              cfg,
 		logger:           logger,
 	}
@@ -217,11 +220,19 @@ func (j *RoleService) FindById(ctx context.Context, id string) (*imodel.JobRole,
 	if err != nil {
 		return nil, err
 	}
-
-	viewerActions, makerActions, checkerActions, auditorActions, _, err := j.approveIndexRepo.PopulateUserApproverAllocations(ctx, role.Code)
+	var viewerActions, makerActions, checkerActions, auditorActions []string
+	if strings.TrimSpace(role.Type) == "CPS"{
+	viewerActions, makerActions, checkerActions, auditorActions, _, err = j.approveIndexRepo.PopulateUserApproverAllocations(ctx, role.Code)
 	if err != nil {
-		j.logger.Errorf("[Role Service][FindById] failed to populate approver allocations: %v", err)
+		j.logger.Errorf("[Role Service][FindById] failed to populate CPS approver allocations: %v", err)
 		return role, nil
+	}
+	} else if strings.TrimSpace(role.Type) =="BPS" {
+		viewerActions, makerActions, checkerActions, auditorActions, err = j.bpsApproverIndexRepo.PopulateUserApproverAllocations(ctx, role.Code)
+	if err != nil {
+		j.logger.Errorf("[Role Service][FindById] failed to populate BPS approver allocations: %v", err)
+		return role, nil
+	}
 	}
 
 	role.ViewerActions = viewerActions

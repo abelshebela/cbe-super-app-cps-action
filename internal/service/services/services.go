@@ -31,23 +31,23 @@ func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionSe
 }
 
 func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServiceRequest) error {
-	filterParam := types.Filter{
-		Search: req.ServiceCode,
-		Filters: map[string]interface{}{
-			"access_list_key": req.ServiceKeyId,
-		},
+	s.logger.Infof("Service creating...")
+
+	_, err := s.repo.FindServiceListByID(ctx, req.ServiceKeyId)
+	if err != nil && err.Error() == localization.ErrorAccessListNotFound.Code {
+		s.logger.Warnf("[servicesService][Create] Access list not found for serviceKeyId=%s: %v", req.ServiceKeyId, err)
+		return errors.New(localization.ErrorAccessListNotFound.Code)
 	}
 
-	services, err := s.repo.FindAllWithPagination(ctx, filterParam)
+	service, err := s.repo.FindByAccessListID(ctx, req.ServiceKeyId)
 	if err != nil {
+		s.logger.Errorf("[servicesService][Create] error checking existing service for serviceKeyId=%s: %v", req.ServiceKeyId, err)
 		return err
 	}
-
-	for _, svc := range services.Data {
-		if strings.EqualFold(svc.ServiceKeyId, req.ServiceKeyId) {
-			return errors.New(localization.ErrorServiceExists.Code)
-		}
+	if service {
+		return errors.New(localization.ErrorServiceExists.Code)
 	}
+
 	mapped := core.MapToServiceModel(req)
 
 	return core.HandleCPSAction(ctx, s.cps, "", constants.RequestCreateService, mapped, nil, constants.ActionCreate)
@@ -282,6 +282,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		return nil, localization.ErrorInvalidRequest
 	}
 	if err != nil {
+		s.logger.Errorf("[servicesService][Authorize] error occurred: %v", err)
 		return nil, err
 	}
 	action.CurrentAction = serviceDoc

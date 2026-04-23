@@ -57,9 +57,9 @@ func NewCPSRolesStorage(cfg *config.VaultConfig, db *sql.DB, kafkaProducer kafka
 	}
 }
 
-const superAppRoleTable = "SUPERAPP_ROLE"
+const superAppRoleTable = "SUPERAPP_ROLES"
 const accessListTable = "ACCESS_LISTS"
-const accessListCustomerSegmentationTable = "ACCESS_LIST_CUSTOMER_SEG"
+const accessListCustomerSegmentationTable = "ACCESS_LIST_BY_SUPERAPP_ROLE"
 
 func boolToOracleNumber(v bool) int {
 	if v {
@@ -127,22 +127,24 @@ func (m *cpsRoleStorage) Create(ctx context.Context, req imodel.CPSRoles) error 
 
 	var id string
 	const q = `
-INSERT INTO SUPERAPP_ROLE (
-  NAME,
-  ROLE_CODE,
-  DESCRIPTION,
-  IS_ENABLED,
-  IS_DELETED,
-  CREATED_AT,
-  LAST_MODIFIED_AT
-)
-VALUES (
-  UPPER(:1),:2,:3,:4,0,:5,:6
-)
-RETURNING RAWTOHEX(ID) INTO :7`
+	INSERT INTO SUPERAPP_ROLES (
+	NAME,
+	LABEL,
+	ROLE_CODE,
+	DESCRIPTION,
+	IS_ENABLED,
+	IS_DELETED,
+	CREATED_AT,
+	LAST_MODIFIED_AT
+	)
+	VALUES (
+	UPPER(:1), :2, :3, :4, :5, 0, :6, :7
+	)
+	RETURNING RAWTOHEX(ID) INTO :8`
 
 	if _, err := m.db.ExecContext(ctx, q,
 		req.Name,
+		req.Lable,
 		req.RoleCode,
 		req.Description,
 		boolToOracleNumber(enabled),
@@ -181,6 +183,10 @@ func (m *cpsRoleStorage) Update(ctx context.Context, id string, req imodel.CPSRo
 	if strings.TrimSpace(req.Name) != "" {
 		sets = append(sets, "NAME = :name")
 		args = append(args, sql.Named("name", strings.ToUpper(strings.TrimSpace(req.Name))))
+	}
+	if strings.TrimSpace(req.Lable) != "" {
+		sets = append(sets, "LABEL = :label")
+		args = append(args, sql.Named("label", strings.TrimSpace(req.Lable)))
 	}
 	if strings.TrimSpace(req.RoleCode) != "" {
 		sets = append(sets, "ROLE_CODE = :role_code")
@@ -324,11 +330,11 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	for rows.Next() {
 		var (
-			id                   string
-			name, roleCode, desc sql.NullString
-			enabledN, isDeletedN int
-			createdAt, updatedAt sql.NullTime
-			delT                 sql.NullTime
+			id                          string
+			name, roleCode, label, desc sql.NullString
+			enabledN, isDeletedN        int
+			createdAt, updatedAt        sql.NullTime
+			delT                        sql.NullTime
 
 			enabledServicesJSON  sql.NullString
 			disabledServicesJSON sql.NullString
@@ -337,6 +343,7 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		err := rows.Scan(
 			&id,
 			&name,
+			&label,
 			&roleCode,
 			&desc,
 			&enabledN,
@@ -357,6 +364,7 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			ID:          id,
 			Name:        name.String,
 			RoleCode:    roleCode.String,
+			Lable:       label.String,
 			Description: desc.String,
 			Enabled:     &enabled,
 			IsDeleted:   isDeletedN == 1,
@@ -403,6 +411,7 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRo
 SELECT
   RAWTOHEX(SR.ID) AS ID,
   NVL(SR.NAME, '') AS NAME,
+  NVL(SR.LABEL, '') AS LABEL,
   NVL(SR.ROLE_CODE, '') AS ROLE_CODE,
   NVL(SR.DESCRIPTION, '') AS DESCRIPTION,
   SR.IS_ENABLED,
@@ -418,7 +427,7 @@ SELECT
         JSON_OBJECT(
           'key' VALUE RAWTOHEX(AL.ID),
           'access_list_name' VALUE AL.NAME,
-          'access_list_key' VALUE AL.SERVICE_KEY
+          'access_list_id' VALUE AL.SERVICE_KEY
         ) RETURNING CLOB
       )
       FROM ACCESS_LISTS AL
@@ -426,10 +435,10 @@ SELECT
         AND AL.IS_DELETED = 0
         AND NOT EXISTS (
           SELECT 1
-          FROM ACCESS_LIST_CUSTOMER_SEG ACS
-          WHERE ACS.ACCESS_LIST_KEY = AL.SERVICE_KEY
-            AND ACS.SEGMENTED_ID = SR.ID
-            AND ACS.ENABLED = 1
+          FROM ACCESS_LIST_BY_SUPERAPP_ROLE ACS
+          WHERE ACS.ACCESS_LIST_ID = AL.SERVICE_KEY
+            AND ACS.SUPERAPP_ROLE_ID = SR.ID
+            AND ACS.IS_ENABLED = 1
         )
     ),
     TO_CLOB('[]')
@@ -442,7 +451,7 @@ SELECT
         JSON_OBJECT(
           'key' VALUE RAWTOHEX(AL.ID),
           'access_list_name' VALUE AL.NAME,
-          'access_list_key' VALUE AL.SERVICE_KEY
+          'access_list_id' VALUE AL.SERVICE_KEY
         ) RETURNING CLOB
       )
       FROM ACCESS_LISTS AL
@@ -450,16 +459,16 @@ SELECT
         AND AL.IS_DELETED = 0
         AND EXISTS (
           SELECT 1
-          FROM ACCESS_LIST_CUSTOMER_SEG ACS
-          WHERE ACS.ACCESS_LIST_KEY = AL.SERVICE_KEY
-            AND ACS.SEGMENTED_ID = SR.ID
-            AND ACS.ENABLED = 1
+          FROM ACCESS_LIST_BY_SUPERAPP_ROLE ACS
+          WHERE ACS.ACCESS_LIST_ID = AL.SERVICE_KEY
+            AND ACS.SUPERAPP_ROLE_ID = SR.ID
+            AND ACS.IS_ENABLED = 1
         )
     ),
     TO_CLOB('[]')
   ) AS DISABLED_SERVICES
 
-FROM SUPERAPP_ROLE SR
+FROM SUPERAPP_ROLES SR
 WHERE SR.ID = HEXTORAW(:1)
   AND SR.IS_DELETED = 0
 `
@@ -467,8 +476,8 @@ WHERE SR.ID = HEXTORAW(:1)
 	var (
 		r imodel.CPSRoles
 
-		name, roleCode, desc sql.NullString
-		enabledN, deletedN   int
+		name, roleCode, label, desc sql.NullString
+		enabledN, deletedN          int
 
 		createdAt, updatedAt, deletedAt sql.NullTime
 
@@ -479,6 +488,7 @@ WHERE SR.ID = HEXTORAW(:1)
 	err := m.db.QueryRowContext(ctx, q, idHex).Scan(
 		&r.ID,
 		&name,
+		&label,
 		&roleCode,
 		&desc,
 		&enabledN,
@@ -502,6 +512,7 @@ WHERE SR.ID = HEXTORAW(:1)
 	// Basic mapping
 	// -------------------
 	r.Name = name.String
+	r.Lable = label.String
 	r.RoleCode = roleCode.String
 	r.Description = desc.String
 	r.Enabled = PtrBool(enabledN == 1)
@@ -557,6 +568,7 @@ func (m *cpsRoleStorage) FindByNameOrRoleCode(ctx context.Context, name, roleCod
 SELECT
   RAWTOHEX(ID),
   NAME,
+  LABEL,
   ROLE_CODE,
   DESCRIPTION,
   IS_ENABLED,
@@ -569,15 +581,16 @@ WHERE IS_DELETED = 0 AND (%s)
 FETCH FIRST 1 ROWS ONLY`, superAppRoleTable, cond)
 
 	var (
-		id                         string
-		dbName, dbRole, dbDesc     sql.NullString
-		enabledN, isDeletedN       int
-		createdAt, updatedAt, delT sql.NullTime
+		id                            string
+		dbName, dbRole, label, dbDesc sql.NullString
+		enabledN, isDeletedN          int
+		createdAt, updatedAt, delT    sql.NullTime
 	)
 
 	err := m.db.QueryRowContext(ctx, q, args...).Scan(
 		&id,
 		&dbName,
+		&label,
 		&dbRole,
 		&dbDesc,
 		&enabledN,
@@ -598,6 +611,7 @@ FETCH FIRST 1 ROWS ONLY`, superAppRoleTable, cond)
 	out := &imodel.CPSRoles{
 		ID:          id,
 		Name:        dbName.String,
+		Lable:       label.String,
 		RoleCode:    dbRole.String,
 		Description: dbDesc.String,
 		Enabled:     &enabled,
@@ -622,7 +636,7 @@ func (m *cpsRoleStorage) EnableOrDisable(ctx context.Context, id string, enable 
 	}
 
 	const q = `
-UPDATE SUPERAPP_ROLE
+UPDATE SUPERAPP_ROLES
 SET
   IS_ENABLED    = :1,
   LAST_MODIFIED_AT = SYSTIMESTAMP
@@ -651,6 +665,7 @@ func (m *cpsRoleStorage) FindByCustomerSegmentation(ctx context.Context, custome
 SELECT
   RAWTOHEX(cr.ID),
   cr.NAME,
+  cr.LABEL,
   cr.ROLE_CODE,
   cr.DESCRIPTION,
   cr.IS_ENABLED,
@@ -661,7 +676,7 @@ SELECT
 FROM CUSTOMER_SEGMENTATIONS cs
 JOIN CUSTOMER_SUB_SEGMENTS css
   ON css.CUSTOMER_SEGMENTATION_ID = cs.ID AND css.IS_DELETED = 0 AND css.IS_ENABLED = 1
-JOIN SUPERAPP_ROLE cr
+JOIN SUPERAPP_ROLES cr
   ON cr.ID = css.SUPERAPP_ROLE_ID AND cr.IS_DELETED = 0 AND cr.IS_ENABLED = 1
 WHERE cs.IS_DELETED = 0
   AND cs.IS_ENABLED = 1
@@ -669,15 +684,16 @@ WHERE cs.IS_DELETED = 0
 FETCH FIRST 1 ROWS ONLY`
 
 	var (
-		id                         string
-		name, roleCode, desc       sql.NullString
-		enabledN, isDeletedN       int
-		createdAt, updatedAt, delT sql.NullTime
+		id                          string
+		name, roleCode, label, desc sql.NullString
+		enabledN, isDeletedN        int
+		createdAt, updatedAt, delT  sql.NullTime
 	)
 
 	err := m.db.QueryRowContext(ctx, q, customerSegment).Scan(
 		&id,
 		&name,
+		&label,
 		&roleCode,
 		&desc,
 		&enabledN,
@@ -698,6 +714,7 @@ FETCH FIRST 1 ROWS ONLY`
 	out := &imodel.CPSRoles{
 		ID:          id,
 		Name:        name.String,
+		Lable:       label.String,
 		RoleCode:    roleCode.String,
 		Description: desc.String,
 		Enabled:     &enabled,
@@ -726,14 +743,14 @@ SELECT
   RAWTOHEX(ID),
   NAME,
   IS_ENABLED
-FROM SUPERAPP_ROLE 
+FROM SUPERAPP_ROLES 
 WHERE  ID = HEXTORAW(:1)`
 
 	var (
-		id                         string
-		name, roleCode, desc       sql.NullString
-		enabledN, isDeletedN       int
-		createdAt, updatedAt, delT sql.NullTime
+		id                          string
+		name, roleCode, label, desc sql.NullString
+		enabledN, isDeletedN        int
+		createdAt, updatedAt, delT  sql.NullTime
 	)
 
 	err := m.db.QueryRowContext(ctx, q, customerSegment).Scan(
@@ -753,6 +770,7 @@ WHERE  ID = HEXTORAW(:1)`
 	out := &imodel.CPSRoles{
 		ID:          id,
 		Name:        name.String,
+		Lable:       label.String,
 		RoleCode:    roleCode.String,
 		Description: desc.String,
 		Enabled:     &enabled,
@@ -789,7 +807,7 @@ func (m *cpsRoleStorage) Delete(ctx context.Context, id string) error {
 	}
 
 	const q = `
-UPDATE SUPERAPP_ROLE
+UPDATE SUPERAPP_ROLES
 SET
   IS_DELETED = 1,
   LAST_MODIFIED_AT = SYSTIMESTAMP,
