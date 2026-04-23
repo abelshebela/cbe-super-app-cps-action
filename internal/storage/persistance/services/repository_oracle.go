@@ -268,6 +268,7 @@ func (s *ServicesStorage) Create(ctx context.Context, service *imodel.Service) e
 
 	serviceID, err := s.insertService(ctx, tx, service)
 	if err != nil {
+		s.logger.Errorf("[ServicesRepo][Create] insert failed: %v", err)
 		return err
 	}
 	service.ID = serviceID
