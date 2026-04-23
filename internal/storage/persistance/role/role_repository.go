@@ -200,6 +200,26 @@ func (r *RoleRepository) FindByID(ctx context.Context, id string) (*imodel.Role,
 	return role, nil
 }
 
+func (r *RoleRepository) CheckIfExists(ctx context.Context, id string) (*imodel.Role, error) {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		r.logger.Errorf("[RoleRepository][CheckIfExists] invalid object id: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	// Try to find from roles collection first (without job_roles lookup)
+	role, err := r.mongoDal.FindOne(ctx, bson.M{"_id": objID}, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			r.logger.Errorf("[RoleRepository][CheckIfExists] role not found in roles collection")
+			return nil, local_util.HandleDBError(mongo.ErrNoDocuments)
+		}
+		r.logger.Errorf("[RoleRepository][CheckIfExists] find failed: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	return role, nil
+}
+
 func (r *RoleRepository) FindByName(ctx context.Context, name string) (*imodel.Role, error) {
 	filter := bson.M{"job_title": bson.M{"$regex": "^" + name + "$", "$options": "i"}}
 	result, err := r.mongoDal.FindOne(ctx, filter, nil)
