@@ -170,7 +170,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 
 	// Auditors
 	var auditors [][]string
-	if !req.IsMakerOnly && !req.IsViewOnly {
+	if !req.IsViewOnly {
 		auditors = make([][]string, 0, len(req.AssignedAuditorRoles))
 		for _, group := range req.AssignedAuditorRoles {
 			g := make([]string, 0, len(group))
