@@ -116,7 +116,7 @@ func (q *accessListSegmentationOracle) CreateAccountSegment(ctx context.Context,
 	}
 
 	stmt := `
-	       INSERT INTO ACCESS_LIST_CUSTOMER_SEG (
+	       INSERT INTO 0ACCESS_LIST_BY_SUPERAPP_ROLE (
 		   id, access_list_key, segmented_id, enabled, created_at, updated_at, deleted_at
 	       ) VALUES ` + strings.Join(valueStrings, ",")
 
@@ -304,7 +304,7 @@ func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, cu
 	q.logger.Infof("[AccessListSegmentationOracle][FindAllForAccount] called with customer_seg_id: %s", customer_seg_id)
 
 	query := `SELECT RAWTOHEX(g.access_list_key), a.name,a.service_key, RAWTOHEX(a.id), g.enabled
-		FROM ACCESS_LIST_CUSTOMER_SEG g
+		FROM 0ACCESS_LIST_BY_SUPERAPP_ROLE g
 		JOIN ACCESS_LISTS a ON g.access_list_key = a.id
 		WHERE g.segmented_id = HEXTORAW(:1)`
 	rows, err := q.db.QueryContext(ctx, query, customer_seg_id)
@@ -382,7 +382,7 @@ func (q *accessListSegmentationOracle) FindAllByAccountAndKeys(ctx context.Conte
 	if len(keys) == 0 {
 		return nil, fmt.Errorf("no keys provided")
 	}
-	query := `SELECT RAWTOHEX(ID), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), enabled FROM ACCESS_LIST_CUSTOMER_SEG WHERE segmented_id = HEXTORAW(:1) AND access_list_key IN (`
+	query := `SELECT RAWTOHEX(ID), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), enabled FROM 0ACCESS_LIST_BY_SUPERAPP_ROLE WHERE segmented_id = HEXTORAW(:1) AND access_list_key IN (`
 	placeholders := make([]string, len(keys))
 	args := make([]interface{}, 0, len(keys)+1)
 	args = append(args, segmentIDorCode)
@@ -521,7 +521,7 @@ func (q *accessListSegmentationOracle) FindBlockSegmentByID(ctx context.Context,
 // FindAccountSegmentByID implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindAccountSegmentByID(ctx context.Context, id string) (*model.AccessListSegmentation, error) {
 	q.logger.Infof("[AccessListSegmentationOracle][FindAccountSegmentByID] called with id: %s", id)
-	query := `SELECT RAWTOHEX(id), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), type, enabled, created_at, updated_at, deleted_at FROM ACCESS_LIST_CUSTOMER_SEG WHERE id = HEXTORAW(:1)`
+	query := `SELECT RAWTOHEX(id), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), type, enabled, created_at, updated_at, deleted_at FROM 0ACCESS_LIST_BY_SUPERAPP_ROLE WHERE id = HEXTORAW(:1)`
 	row := q.db.QueryRowContext(ctx, query, id)
 	var seg model.AccessListSegmentation
 	err := row.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
@@ -638,7 +638,7 @@ func (q *accessListSegmentationOracle) FindByAccountSegmentationAndAccessListKey
 	for _, k := range segmentKeys {
 		args = append(args, k)
 	}
-	query := fmt.Sprintf(`SELECT RAWTOHEX(id), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), enabled, created_at, updated_at, deleted_at FROM ACCESS_LIST_CUSTOMER_SEG WHERE SEGMENTED_ID = HEXTORAW(:1) AND access_list_key IN (%s)`, strings.Join(placeholders, ","))
+	query := fmt.Sprintf(`SELECT RAWTOHEX(id), RAWTOHEX(access_list_key), RAWTOHEX(segmented_id), enabled, created_at, updated_at, deleted_at FROM 0ACCESS_LIST_BY_SUPERAPP_ROLE WHERE SEGMENTED_ID = HEXTORAW(:1) AND access_list_key IN (%s)`, strings.Join(placeholders, ","))
 	row := q.db.QueryRowContext(ctx, query, args...)
 	var seg model.AccessListSegmentation
 	err := row.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
