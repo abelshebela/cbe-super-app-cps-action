@@ -1270,8 +1270,8 @@ const (
 	MsgCannotEnableCity       = "Cannot enable city, its district is blocked"
 	MsgJobTitleExisted        = "Job title already existed"
 	MsgJobTitleNotUpdated     = "Job title not updated"
-	MsgCannotEnableBranch     = "Cannot enable branch, its city is already blocked"
-	MsgBranchDistrictNotFound = "Brance district not found"
+	MsgCannotEnableBranch     = "Cannot enable branch, its district is already blocked"
+	MsgBranchDistrictNotFound = "Branch district not found"
 
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"

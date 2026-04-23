@@ -427,7 +427,7 @@ SELECT
         JSON_OBJECT(
           'key' VALUE RAWTOHEX(AL.ID),
           'access_list_name' VALUE AL.NAME,
-          'access_list_key' VALUE AL.SERVICE_KEY
+          'access_list_id' VALUE AL.SERVICE_KEY
         ) RETURNING CLOB
       )
       FROM ACCESS_LISTS AL
@@ -436,9 +436,9 @@ SELECT
         AND NOT EXISTS (
           SELECT 1
           FROM ACCESS_LIST_BY_SUPERAPP_ROLE ACS
-          WHERE ACS.ACCESS_LIST_KEY = AL.SERVICE_KEY
-            AND ACS.SEGMENTED_ID = SR.ID
-            AND ACS.ENABLED = 1
+          WHERE ACS.ACCESS_LIST_ID = AL.SERVICE_KEY
+            AND ACS.SUPERAPP_ROLE_ID = SR.ID
+            AND ACS.IS_ENABLED = 1
         )
     ),
     TO_CLOB('[]')
@@ -451,7 +451,7 @@ SELECT
         JSON_OBJECT(
           'key' VALUE RAWTOHEX(AL.ID),
           'access_list_name' VALUE AL.NAME,
-          'access_list_key' VALUE AL.SERVICE_KEY
+          'access_list_id' VALUE AL.SERVICE_KEY
         ) RETURNING CLOB
       )
       FROM ACCESS_LISTS AL
@@ -460,9 +460,9 @@ SELECT
         AND EXISTS (
           SELECT 1
           FROM ACCESS_LIST_BY_SUPERAPP_ROLE ACS
-          WHERE ACS.ACCESS_LIST_KEY = AL.SERVICE_KEY
-            AND ACS.SEGMENTED_ID = SR.ID
-            AND ACS.ENABLED = 1
+          WHERE ACS.ACCESS_LIST_ID = AL.SERVICE_KEY
+            AND ACS.SUPERAPP_ROLE_ID = SR.ID
+            AND ACS.IS_ENABLED = 1
         )
     ),
     TO_CLOB('[]')
