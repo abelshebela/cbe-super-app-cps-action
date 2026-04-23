@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"strings"
 
@@ -40,7 +41,7 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 	}
 
 	service, err := s.repo.FindByAccessListID(ctx, req.ServiceKeyId)
-	if err != nil {
+	if err != nil && err.Error() != sql.ErrNoRows.Error() {
 		s.logger.Errorf("[servicesService][Create] error checking existing service for serviceKeyId=%s: %v", req.ServiceKeyId, err)
 		return err
 	}
