@@ -276,7 +276,7 @@ func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		// w.Header().Set("x-action-code", md.CPSActionCode)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.SuccessActionRoleCreatedSP, nil)
+		localization.SendSuccessResponse(w, localization.SuccessActionRoleUpdatedSP, nil)
 	} else {
 		// w.Header().Set("x-action-code", md.CPSActionCode)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)

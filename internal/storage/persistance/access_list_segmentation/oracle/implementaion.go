@@ -62,7 +62,7 @@ func (q *accessListSegmentationOracle) BulkDisable(ctx context.Context, req acce
 		filter = fmt.Sprintf("SUPERAPP_ROLE_ID = HEXTORAW(:1) AND ACCESS_LIST_ID IN (%s)", strings.Join(inClause, ","))
 		stmt = "DELETE FROM ACCESS_LIST_BY_SUPERAPP_ROLE WHERE " + filter
 	case "block":
-		filter = fmt.Sprintf("SUPERAPP_ROLE_ID = :1 AND ACCESS_LIST_ID IN (%s)", strings.Join(inClause, ","))
+		filter = fmt.Sprintf("LOCATION_ID = :1 AND ACCESS_LIST_ID IN (%s)", strings.Join(inClause, ","))
 		stmt = "DELETE FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS WHERE " + filter
 	default:
 		return localization.ErrorUnexpectedError
@@ -174,7 +174,7 @@ func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, a
 
 	stmt := `
 		   INSERT INTO ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS (
-		   id, ACCESS_LIST_ID, SUPERAPP_ROLE_ID, ACCOUNT_TYPE, is_enabled, created_at, LAST_MODIFIED_AT, deleted_at
+		   id, ACCESS_LIST_ID, LOCATION_ID, ACCOUNT_TYPE, is_enabled, created_at, LAST_MODIFIED_AT, deleted_at
 		   ) VALUES ` + strings.Join(valueStrings, ",")
 
 	_, err := q.db.ExecContext(ctx, stmt, valueArgs...)
@@ -198,7 +198,7 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 	query := `SELECT RAWTOHEX(g.ACCESS_LIST_ID), a.name,a.service_key, RAWTOHEX(a.id), g.is_enabled
 		FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS g
 		JOIN ACCESS_LISTS a ON g.ACCESS_LIST_ID = a.id
-		WHERE g.SUPERAPP_ROLE_ID = :1`
+		WHERE g.LOCATION_ID = :1`
 	rows, err := q.db.QueryContext(ctx, query, geographicalID)
 	if err != nil {
 		q.logger.Errorf("[AccessListSegmentation][FindAllForBlock] query failed: %v", err)
@@ -266,7 +266,7 @@ func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Contex
     SELECT RAWTOHEX(g.ACCESS_LIST_ID), a.name, a.service_key, RAWTOHEX(a.id), g.is_enabled
     FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS g
     JOIN ACCESS_LISTS a ON g.ACCESS_LIST_ID = a.id
-    WHERE g.SUPERAPP_ROLE_ID IN (%s)
+    WHERE g.LOCATION_ID IN (%s)
 `, strings.Join(placeholders, ","))
 
 	rows, err := q.db.QueryContext(ctx, query, args...)
@@ -344,7 +344,7 @@ func (q *accessListSegmentationOracle) FindAllByBlockAndKeys(ctx context.Context
 	if len(keys) == 0 {
 		return nil, fmt.Errorf("no keys provided")
 	}
-	query := `SELECT RAWTOHEX(id), RAWTOHEX(ACCESS_LIST_ID), RAWTOHEX(SUPERAPP_ROLE_ID), ACCOUNT_TYPE, is_enabled FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS WHERE SUPERAPP_ROLE_ID = HEXTORAW(:1) AND ACCESS_LIST_ID IN (`
+	query := `SELECT RAWTOHEX(id), RAWTOHEX(ACCESS_LIST_ID), RAWTOHEX(LOCATION_ID), ACCOUNT_TYPE, is_enabled FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS WHERE LOCATION_ID = HEXTORAW(:1) AND ACCESS_LIST_ID IN (`
 	placeholders := make([]string, len(keys))
 	args := make([]interface{}, 0, len(keys)+1)
 	args = append(args, segmentIDorCode)
@@ -425,7 +425,7 @@ func (q *accessListSegmentationOracle) FindAllWithPagination(ctx context.Context
 	}
 
 	// Validate filter keys
-	allowedKeys := map[string]struct{}{"type": {}, "SUPERAPP_ROLE_ID": {}, "created_at": {}, "LAST_MODIFIED_AT": {}, "is_enabled": {}}
+	allowedKeys := map[string]struct{}{"type": {}, "SUPERAPP_ROLE_ID": {}, "LOCATION_ID": {}, "created_at": {}, "LAST_MODIFIED_AT": {}, "is_enabled": {}}
 	for key := range filterParam.Filters {
 		if _, ok := allowedKeys[key]; !ok {
 			return nil, fmt.Errorf("invalid filter key: %s", key)
@@ -472,7 +472,7 @@ func (q *accessListSegmentationOracle) FindAllWithPagination(ctx context.Context
 	}
 
 	// Main query
-	query := fmt.Sprintf(`SELECT RAWTOHEX(id), RAWTOHEX(ACCESS_LIST_ID), RAWTOHEX(SUPERAPP_ROLE_ID), ACCOUNT_TYPE, is_enabled, created_at, LAST_MODIFIED_AT, deleted_at FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS %s ORDER BY created_at DESC OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, whereSQL)
+	query := fmt.Sprintf(`SELECT RAWTOHEX(id), RAWTOHEX(ACCESS_LIST_ID), RAWTOHEX(LOCATION_ID), ACCOUNT_TYPE, is_enabled, created_at, LAST_MODIFIED_AT, deleted_at FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS %s ORDER BY created_at DESC OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, whereSQL)
 	argsWithPag := append(args, offset, perPage)
 	rows, err := q.db.QueryContext(ctx, query, argsWithPag...)
 	if err != nil {
@@ -503,7 +503,7 @@ func (q *accessListSegmentationOracle) FindAllWithPagination(ctx context.Context
 // FindBlockSegmentByID implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindBlockSegmentByID(ctx context.Context, id string) (*model.AccessListSegmentation, error) {
 	q.logger.Infof("[AccessListSegmentationOracle][FindBlockSegmentByID] called with id: %s", id)
-	query := `SELECT RAWTOHEX(id), RAWTOHEX(ACCESS_LIST_ID), RAWTOHEX(SUPERAPP_ROLE_ID), ACCOUNT_TYPE, is_enabled, created_at, LAST_MODIFIED_AT, deleted_at FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS WHERE id = HEXTORAW(:1)`
+	query := `SELECT RAWTOHEX(id), RAWTOHEX(ACCESS_LIST_ID), RAWTOHEX(LOCATION_ID), ACCOUNT_TYPE, is_enabled, created_at, LAST_MODIFIED_AT, deleted_at FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS WHERE id = HEXTORAW(:1)`
 	row := q.db.QueryRowContext(ctx, query, id)
 	var seg model.AccessListSegmentation
 	err := row.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
@@ -539,7 +539,7 @@ func (q *accessListSegmentationOracle) FindAccountSegmentByID(ctx context.Contex
 // FindByIDAndType implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindByIDAndType(ctx context.Context, ids string, t string) (*model.AccessListSegmentation, error) {
 	q.logger.Infof("[AccessListSegmentationOracle][FindByIDAndType] called with ids: %s, type: %s", ids, t)
-	query := `SELECT RAWTOHEX(id), RAWTOHEX(ACCESS_LIST_ID), RAWTOHEX(SUPERAPP_ROLE_ID), ACCOUNT_TYPE, is_enabled, created_at, LAST_MODIFIED_AT, deleted_at FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS WHERE id = HEXTORAW(:1) AND type = :2`
+	query := `SELECT RAWTOHEX(id), RAWTOHEX(ACCESS_LIST_ID), RAWTOHEX(LOCATION_ID), ACCOUNT_TYPE, is_enabled, created_at, LAST_MODIFIED_AT, deleted_at FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS WHERE id = HEXTORAW(:1) AND type = :2`
 	row := q.db.QueryRowContext(ctx, query, ids, t)
 	var seg model.AccessListSegmentation
 	err := row.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
@@ -606,7 +606,7 @@ func (q *accessListSegmentationOracle) FindBySegmentIDAndAccessListKeys(ctx cont
 
 	// Combine all args: first seg ids, then keys
 	args := append(segArgs, keyArgs...)
-	query := fmt.Sprintf(`SELECT RAWTOHEX(id), RAWTOHEX(ACCESS_LIST_ID), RAWTOHEX(SUPERAPP_ROLE_ID), is_enabled, created_at, LAST_MODIFIED_AT, deleted_at FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS WHERE SUPERAPP_ROLE_ID IN (%s) AND ACCESS_LIST_ID IN (%s)`, strings.Join(segPlaceholders, ","), strings.Join(keyPlaceholders, ","))
+	query := fmt.Sprintf(`SELECT RAWTOHEX(id), RAWTOHEX(ACCESS_LIST_ID), RAWTOHEX(LOCATION_ID), is_enabled, created_at, LAST_MODIFIED_AT, deleted_at FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS WHERE LOCATION_ID IN (%s) AND ACCESS_LIST_ID IN (%s)`, strings.Join(segPlaceholders, ","), strings.Join(keyPlaceholders, ","))
 	row := q.db.QueryRowContext(ctx, query, args...)
 	var seg model.AccessListSegmentation
 	err = row.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
