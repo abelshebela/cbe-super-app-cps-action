@@ -283,6 +283,7 @@ func (r *Repository) FindAllActiveForSearch(ctx context.Context, search string) 
 
 	rows, err := r.db.QueryContext(ctx, q, args...)
 	if err != nil {
+		r.logger.Errorf("[GetAllAmountBasedAuth] persistance query context error: %v",err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -302,6 +303,7 @@ func (r *Repository) FindAllActiveForSearch(ctx context.Context, search string) 
 			&createdAt,
 			&lastModified,
 		); err != nil {
+		r.logger.Errorf("[GetAllAmountBasedAuth] scan  error:%v",err)
 			return nil, err
 		}
 		tier.CreatedAt = formatNullTime(createdAt)
@@ -309,6 +311,8 @@ func (r *Repository) FindAllActiveForSearch(ctx context.Context, search string) 
 		result = append(result, tier)
 	}
 	if err := rows.Err(); err != nil {
+		r.logger.Errorf("[GetAllAmountBasedAuth] row error : %v",err)
+
 		return nil, err
 	}
 	return result, nil
