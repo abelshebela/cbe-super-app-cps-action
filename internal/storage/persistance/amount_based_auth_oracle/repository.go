@@ -43,7 +43,7 @@ func (r *Repository) Create(ctx context.Context, tier *local_model.AuthTierOracl
 	}
 
 	q := `INSERT INTO AMOUNT_BASED_AUTH_TIERS
-		(id, currency, min_amount, max_amount, method, enabled, is_deleted, created_at, last_modified)
+		(id, currency, min_amount, max_amount, method, enabled, is_deleted, created_at, last_modified_at)
 		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, :6, SYSTIMESTAMP, SYSTIMESTAMP)`
 
 	_, err := r.db.ExecContext(ctx, q,
@@ -83,7 +83,7 @@ func (r *Repository) Update(ctx context.Context, id string, update *local_model.
 			method = :4,
 			enabled = :5,
 			is_deleted = :6,
-			last_modified = SYSTIMESTAMP
+			last_modified_at = SYSTIMESTAMP
 		WHERE id = HEXTORAW(:7) AND is_deleted = 0`
 
 	_, err := r.db.ExecContext(ctx, q,
@@ -105,7 +105,7 @@ func (r *Repository) Update(ctx context.Context, id string, update *local_model.
 func (r *Repository) DeleteByCurrency(ctx context.Context, currency string) error {
 	q := `UPDATE AMOUNT_BASED_AUTH_TIERS
 		SET is_deleted = 1,
-			last_modified = CURRENT_TIMESTAMP
+			last_modified_at = CURRENT_TIMESTAMP
 		WHERE currency = :1 AND is_deleted = 0`
 
 	_, err := r.db.ExecContext(ctx, q, currency)
@@ -119,7 +119,7 @@ func (r *Repository) DeleteByCurrency(ctx context.Context, currency string) erro
 func (r *Repository) DeleteByID(ctx context.Context, id string) error {
 	q := `UPDATE AMOUNT_BASED_AUTH_TIERS
 		SET is_deleted = 1,
-			last_modified = SYSTIMESTAMP
+			last_modified_at = SYSTIMESTAMP
 		WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 
 	res, err := r.db.ExecContext(ctx, q, id)
@@ -151,7 +151,7 @@ func (r *Repository) CurrencyExists(ctx context.Context, currency string) (bool,
 func (r *Repository) FindByID(ctx context.Context, id string) (*local_model.AuthTierOracle, error) {
 	q := `SELECT RAWTOHEX(id) AS id,
 			currency, min_amount, max_amount, method,
-			enabled, is_deleted, created_at, last_modified
+			enabled, is_deleted, created_at, last_modified_at
 		FROM AMOUNT_BASED_AUTH_TIERS
 		WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 
@@ -184,10 +184,10 @@ func (r *Repository) FindByID(ctx context.Context, id string) (*local_model.Auth
 func (r *Repository) FindActiveByCurrencyAndMethod(ctx context.Context, currency string, method constants.Method) ([]local_model.AuthTierOracle, error) {
 	q := `SELECT RAWTOHEX(id) AS id,
 			currency, min_amount, max_amount, method,
-			enabled, is_deleted, created_at, last_modified
+			enabled, is_deleted, created_at, last_modified_at
 		FROM AMOUNT_BASED_AUTH_TIERS
 		WHERE currency = :1 AND method = :2 AND is_deleted = 0
-		ORDER BY last_modified DESC`
+		ORDER BY last_modified_at DESC`
 
 	rows, err := r.db.QueryContext(ctx, q, currency, string(method))
 	if err != nil {
@@ -225,10 +225,10 @@ func (r *Repository) FindActiveByCurrencyAndMethod(ctx context.Context, currency
 func (r *Repository) FindActiveByCurrency(ctx context.Context, currency string) ([]local_model.AuthTierOracle, error) {
 	q := `SELECT RAWTOHEX(id) AS id,
 			currency, min_amount, max_amount, method,
-			enabled, is_deleted, created_at, last_modified
+			enabled, is_deleted, created_at, last_modified_at
 		FROM AMOUNT_BASED_AUTH_TIERS
 		WHERE currency = :1 AND is_deleted = 0
-		ORDER BY last_modified DESC`
+		ORDER BY last_modified_at DESC`
 
 	rows, err := r.db.QueryContext(ctx, q, currency)
 	if err != nil {
@@ -270,7 +270,7 @@ func (r *Repository) FindAllActiveForSearch(ctx context.Context, search string) 
 
 	q = `SELECT RAWTOHEX(id) AS id,
 			currency, min_amount, max_amount, method,
-			enabled, is_deleted, created_at, last_modified
+			enabled, is_deleted, created_at, last_modified_at
 		FROM AMOUNT_BASED_AUTH_TIERS
 		WHERE is_deleted = 0`
 
@@ -283,7 +283,7 @@ func (r *Repository) FindAllActiveForSearch(ctx context.Context, search string) 
 
 	rows, err := r.db.QueryContext(ctx, q, args...)
 	if err != nil {
-		r.logger.Errorf("[GetAllAmountBasedAuth] persistance query context error: %v",err)
+		r.logger.Errorf("[GetAllAmountBasedAuth] persistance query context error: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -303,7 +303,7 @@ func (r *Repository) FindAllActiveForSearch(ctx context.Context, search string) 
 			&createdAt,
 			&lastModified,
 		); err != nil {
-		r.logger.Errorf("[GetAllAmountBasedAuth] scan  error:%v",err)
+			r.logger.Errorf("[GetAllAmountBasedAuth] scan  error:%v", err)
 			return nil, err
 		}
 		tier.CreatedAt = formatNullTime(createdAt)
@@ -311,7 +311,7 @@ func (r *Repository) FindAllActiveForSearch(ctx context.Context, search string) 
 		result = append(result, tier)
 	}
 	if err := rows.Err(); err != nil {
-		r.logger.Errorf("[GetAllAmountBasedAuth] row error : %v",err)
+		r.logger.Errorf("[GetAllAmountBasedAuth] row error : %v", err)
 
 		return nil, err
 	}
