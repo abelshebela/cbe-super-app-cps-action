@@ -155,11 +155,6 @@ func (j *jobRoleService) Delete(ctx context.Context, id string) error {
 		}
 	}
 
-	if hasActive == nil {
-		j.logger.Errorf("[JobRole Service][Delete] job role is not found")
-		return localization.ErrorResourceNotFound
-	}
-
 	// lookup cps user by jobtitle
 	cpsUser, err := j.cpsUserRepo.GetUserByJobTitle(ctx, hasActive.JobTitle)
 	if err != nil {

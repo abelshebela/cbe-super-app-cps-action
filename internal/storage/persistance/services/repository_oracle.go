@@ -649,6 +649,8 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 			`(
 				LOWER(RAWTOHEX(s.access_list_id)) LIKE '%' || LOWER(:search) || '%'
 				OR LOWER(s.service_code) LIKE '%' || LOWER(:search) || '%'
+				OR LOWER(sk.name) LIKE '%' || LOWER(:search) || '%'
+				OR LOWER(sk.service_key) LIKE '%' || LOWER(:search) || '%'
 			)`,
 		)
 		args = append(args, sql.Named("search", search))
@@ -683,8 +685,6 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 	}
 
 	where := strings.Join(clauses, " AND ")
-
-	// Do not append bare "is_deleted = 0" — both s and sk may have that column (ORA-00918). Clauses already include sk.is_deleted.
 	countQ := fmt.Sprintf(`SELECT COUNT(*) %s WHERE %s`, fromClause, where)
 	var total int64
 	if err := s.db.QueryRowContext(ctx, countQ, args...).Scan(&total); err != nil {

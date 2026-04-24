@@ -487,7 +487,7 @@ func (a *AccountBlockStorage) FindByFilterKey(ctx context.Context, field, value 
 	ab, err := scanAccountBlockFromRow(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
 		a.logger.Errorf("[AccountBlockStorage][FindByFilterKey] failed: %v", err)
 		return nil, err

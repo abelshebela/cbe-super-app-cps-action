@@ -1250,6 +1250,7 @@ const (
 	MsgInvalidRegion                     = "Invalid region"
 	MsgInvalidDistrictOrRegionCodeLength = "Region and District id must be at least 3 characters long"
 	MsgBranchCodeRequired                = "Branch id is required"
+	MsgBranchNotFoundByCode              = "Brance not found by given code"
 	MsgBranchAlreadyEnabled              = "Branch already enabled"
 	MsgBranchAlreadyDisabled             = "Branch already disabled"
 	MsgDistrictCodeRequired              = "District id is required"
