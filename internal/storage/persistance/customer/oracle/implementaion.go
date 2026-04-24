@@ -104,7 +104,7 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 	  u.contact_phone,
 	  u.contact_email,
 	  u.customer_number,
-	  u.is_active,
+	  u.is_superapp_active,
 	  u.birth_of_date
 	FROM users u
 	WHERE u.user_code = :1`
@@ -246,7 +246,7 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 				 OR u.user_code = :1
 				 OR ac.account_number = :1
 			 )
-			 AND u.is_active = 1
+			 AND u.is_superapp_active = 1
 			 AND (la.is_active = 1 OR la.is_active IS NULL)
 			 FETCH FIRST 1 ROWS ONLY`
 
