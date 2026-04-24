@@ -944,6 +944,11 @@ var ResponseCodesList = []ResponseCode{
 	SucccessDeleteUssdMerchant,
 	SucccessUssdMerchantDeleteRequest,
 	ErrorUssdMerchantNotFound,
+
+	SuccessDepartmentCreatedSuccessfully,
+	SuccessDepartmentUpdatedSuccessfully,
+	SuccessDepartmentEnabled,
+	SuccessDepartmentDisabled,
 }
 
 // Success Response Codes
@@ -3410,10 +3415,22 @@ var (
 		Message:    MsgDepartmentCreateRequestedSuccessfully,
 		Type:       "success",
 	}
+	SuccessDepartmentCreatedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_CREATE",
+		StatusCode: StatusCreated,
+		Message:    MsgDepartmentCreatedSuccessfully,
+		Type:       "success",
+	}
 	SuccessDepartmentUpdateRequestCreated = ResponseCode{
 		Code:       "SUCCESS_DEPARTMENT_UPDATE_REQUEST_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgDepartmentUpdateRequestedSuccessfully,
+		Type:       "success",
+	}
+	SuccessDepartmentUpdatedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_UPDATED_SUCCESS",
+		StatusCode: StatusCreated,
+		Message:    MsgDepartmentUpdatedSuccessfully,
 		Type:       "success",
 	}
 	SuccessDepartmentEnableRequestCreated = ResponseCode{
@@ -3422,10 +3439,22 @@ var (
 		Message:    MsgDepartmentEnableRequestedSuccessfully,
 		Type:       "success",
 	}
+	SuccessDepartmentEnabled = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_ENABLED",
+		StatusCode: StatusCreated,
+		Message:    MsgDepartmentEnabledSuccessfully,
+		Type:       "success",
+	}
 	SuccessDepartmentDisableRequestCreated = ResponseCode{
 		Code:       "SUCCESS_DEPARTMENT_UPDATE_REQUEST_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgDepartmentDisableRequestedSuccessfully,
+		Type:       "success",
+	}
+	SuccessDepartmentDisabled = ResponseCode{
+		Code:       "SUCCESS_DEPARTMENT_DISABLED",
+		StatusCode: StatusCreated,
+		Message:    MsgDepartmentDisabled,
 		Type:       "success",
 	}
 

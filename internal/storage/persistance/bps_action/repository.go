@@ -114,6 +114,7 @@ func (b *bpsActionRepository) GetBPSActionByUserID(ctx context.Context, userID s
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, nil)
 	filter["user_information.user_code"] = userID
 
+	b.logger.Infof("[BPSAction][GetBPSActionByUserID] constructed filter: %v", filter)
 	cus, err := b.actionDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		b.logger.Errorf("[BPSAction][GetBPSActionByUserID] failed to fetch BPS actions: %v", err)

@@ -657,7 +657,7 @@ func (q *accessListSegmentationOracle) FindBySegmentationAndServiceID(ctx contex
 // FindParentChildRelationship implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindParentChildRelationship(ctx context.Context) ([]model.AccessItemRelation, error) {
 
-	query := `SELECT PARENT_ID, CHILD_ID FROM ACCESS_LIST_RELATIONS`
+	query := `SELECT RAWTOHEX(PARENT_ID), RAWTOHEX(CHILD_ID) FROM ACCESS_LIST_RELATIONS`
 	rows, err := q.db.QueryContext(ctx, query)
 	if err != nil {
 		q.logger.Errorf("[AccessListSegmentation][FindParentChildRelationship] query failed: %v", err)

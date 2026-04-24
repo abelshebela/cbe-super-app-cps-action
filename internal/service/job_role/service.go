@@ -147,7 +147,7 @@ func (j *jobRoleService) Delete(ctx context.Context, id string) error {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	hasActive, err := j.roleRepository.FindByID(ctx, id)
+	hasActive, err := j.roleRepository.CheckIfExists(ctx, id)
 	if err != nil {
 		j.logger.Errorf("[JobRole Service][Delete] failed to find existing job role: %v", err)
 		if err.Error() != localization.ErrorResourceNotFound.Code {

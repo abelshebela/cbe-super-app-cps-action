@@ -292,9 +292,13 @@ const (
 
 	// Department related success messages
 	MsgDepartmentCreateRequestedSuccessfully  = "Department create requested successfully"
+	MsgDepartmentCreatedSuccessfully          = "Department created successfully"
 	MsgDepartmentUpdateRequestedSuccessfully  = "Department update requested successfully"
+	MsgDepartmentUpdatedSuccessfully          = "Department updated successfully"
 	MsgDepartmentEnableRequestedSuccessfully  = "Department enable requested successfully"
+	MsgDepartmentEnabledSuccessfully          = "Department enabled successfully"
 	MsgDepartmentDisableRequestedSuccessfully = "Department disable requested successfully"
+	MsgDepartmentDisabled                    = "Department disabled successfully"
 
 	// Bank Vault related success messages
 	MsgBankVaultCreationRequestSubmitted     = "Bank vault creation request submitted successfully"
@@ -1270,8 +1274,8 @@ const (
 	MsgCannotEnableCity       = "Cannot enable city, its district is blocked"
 	MsgJobTitleExisted        = "Job title already existed"
 	MsgJobTitleNotUpdated     = "Job title not updated"
-	MsgCannotEnableBranch     = "Cannot enable branch, its city is already blocked"
-	MsgBranchDistrictNotFound = "Brance district not found"
+	MsgCannotEnableBranch     = "Cannot enable branch, its district is already blocked"
+	MsgBranchDistrictNotFound = "Branch district not found"
 
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
