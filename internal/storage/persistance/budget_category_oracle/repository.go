@@ -151,7 +151,7 @@ func (r *Repository) FindByID(ctx context.Context, id string) (*imodel.BudgetCat
 func (r *Repository) FindByName(ctx context.Context, name string) (*imodel.BudgetCategoryOracle, error) {
 	r.logger.Debugf("[FindByName] Querying for budget category with name: %s", name)
 	q := `SELECT RAWTOHEX(ID) AS id, NAME, ACCOUNT_TYPE, COLOR, ICON, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT
-		FROM BUDGET_CATEGORIES WHERE UPPER(NAME) = UPPER(:1)`
+		FROM BUDGET_CATEGORIES WHERE UPPER(NAME) = UPPER(:1) AND IS_DELETED = 0`
 	row := r.db.QueryRowContext(ctx, q, name)
 	var bc imodel.BudgetCategoryOracle
 	var createdAt, lastModifiedAt, deletedAt sql.NullTime
