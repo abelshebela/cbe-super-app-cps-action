@@ -33,3 +33,7 @@ type UpdateLogisticsMerchantRequest struct {
 	MerchantName      string `json:"merchant_name" bson:"merchant_name"`
 	BankAccountNumber string `json:"bank_account_number" bson:"bank_account_number"`
 }
+
+type EnableOrDisableLogisticsMerchantsRequest struct {
+	MerchantIDs []string `json:"merchant_ids"`
+}
