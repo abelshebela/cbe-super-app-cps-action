@@ -150,14 +150,9 @@ func (j *jobRoleService) Delete(ctx context.Context, id string) error {
 	hasActive, err := j.roleRepository.FindByID(ctx, id)
 	if err != nil {
 		j.logger.Errorf("[JobRole Service][Delete] failed to find existing job role: %v", err)
-		if err.Error() != localization.ErrorRegionNotFound.Code {
+		if err.Error() != localization.ErrorResourceNotFound.Code {
 			return err
 		}
-	}
-
-	if hasActive == nil {
-		j.logger.Errorf("[JobRole Service][Delete] job role is active")
-		return localization.ErrorResourceNotFound
 	}
 
 	// lookup cps user by jobtitle
