@@ -3951,52 +3951,52 @@ var (
 	}
 
 	SuccessServiceListCreated = ResponseCode{
-		Code:       "SUCCESS_SERVICE_LIST_CREATED",
+		Code:       "SUCCESS_SERVICE_KEY_CREATED",
 		StatusCode: StatusOK,
-		Message:    "Service list created successfully",
+		Message:    "Service key created successfully",
 		Type:       "success",
 	}
 	SuccessServiceListUpdated = ResponseCode{
-		Code:       "SUCCESS_SERVICE_LIST_UPDATED",
+		Code:       "SUCCESS_SERVICE_KEY_UPDATED",
 		StatusCode: StatusOK,
-		Message:    "Service list updated successfully",
+		Message:    "Service key updated successfully",
 		Type:       "success",
 	}
 
 	SuccessServiceListCreateRequestSubmitted = ResponseCode{
-		Code:       "SUCCESS_SERVICE_LIST_CREATE_REQUEST_SUBMITTED",
+		Code:       "SUCCESS_SERVICE_KEY_CREATE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    "Service list create request submitted successfully",
+		Message:    "Service key create request submitted successfully",
 		Type:       "success",
 	}
 	SuccessServiceListUpdateRequestSubmitted = ResponseCode{
-		Code:       "SUCCESS_SERVICE_LIST_UPDATE_REQUEST_SUBMITTED",
+		Code:       "SUCCESS_SERVICE_KEY_UPDATE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    "Service list update request submitted successfully",
+		Message:    "Service key update request submitted successfully",
 		Type:       "success",
 	}
 	SuccessServiceListEnableRequestSubmitted = ResponseCode{
-		Code:       "SUCCESS_SERVICE_LIST_ENABLE_REQUEST_SUBMITTED",
+		Code:       "SUCCESS_SERVICE_KEY_ENABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    "Service list enable request submitted successfully",
+		Message:    "Service key enable request submitted successfully",
 		Type:       "success",
 	}
 	SuccessServiceListEnabled = ResponseCode{
-		Code:       "SUCCESS_SERVICE_LIST_ENABLED_SUCCESSFULLY",
+		Code:       "SUCCESS_SERVICE_KEY_ENABLED_SUCCESSFULLY",
 		StatusCode: StatusOK,
-		Message:    "Service list enabled successfully",
+		Message:    "Service key enabled successfully",
 		Type:       "success",
 	}
 	SuccessServiceListDisableRequestSubmitted = ResponseCode{
-		Code:       "SUCCESS_SERVICE_LIST_DISABLE_REQUEST_SUBMITTED",
+		Code:       "SUCCESS_SERVICE_KEY_DISABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    "Service list disable request submitted successfully",
+		Message:    "Service key disable request submitted successfully",
 		Type:       "success",
 	}
 	SuccessServiceListDisabled = ResponseCode{
-		Code:       "SUCCESS_SERVICE_LIST_DISABLED_SUCCESSFULLY",
+		Code:       "SUCCESS_SERVICE_KEY_DISABLED_SUCCESSFULLY",
 		StatusCode: StatusOK,
-		Message:    "Service list disabled successfully",
+		Message:    "Service key disabled successfully",
 		Type:       "success",
 	}
 
