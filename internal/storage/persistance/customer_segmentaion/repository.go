@@ -238,6 +238,64 @@ FETCH FIRST 1 ROWS ONLY`
 	return idHex, nil
 }
 
+func (r *customerStorage) resolveSegmentationIDs(ctx context.Context, id string) (roleHex, segmentationHex string, err error) {
+	idHex, ok := normalizeRawHex32(id)
+	if !ok {
+		return "", "", errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	const roleFromSegQ = `
+SELECT RAWTOHEX(css.SUPERAPP_ROLE_ID)
+FROM CUSTOMER_SUB_SEGMENTS css
+WHERE css.CUSTOMER_SEGMENTATION_ID = HEXTORAW(:1)
+  AND css.IS_DELETED = 0
+  AND css.IS_ENABLED = 1
+FETCH FIRST 1 ROWS ONLY`
+	var roleID string
+	err = r.db.QueryRowContext(ctx, roleFromSegQ, idHex).Scan(&roleID)
+	if err == nil {
+		return strings.ToLower(roleID), idHex, nil
+	}
+	if !errors.Is(err, sql.ErrNoRows) {
+		r.logger.Errorf("[CustomerSegmentation][resolveSegmentationIDs] role-from-seg query failed: %v", err)
+		return "", "", local_util.HandleDBError(err)
+	}
+
+	const roleOnlyQ = `
+SELECT 1
+FROM SUPERAPP_ROLES
+WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND IS_ENABLED = 1`
+	var one int
+	if err := r.db.QueryRowContext(ctx, roleOnlyQ, idHex).Scan(&one); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", "", errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		r.logger.Errorf("[CustomerSegmentation][resolveSegmentationIDs] role lookup failed: %v", err)
+		return "", "", local_util.HandleDBError(err)
+	}
+
+	const docIDQ = `
+SELECT RAWTOHEX(MIN(cs.ID))
+FROM CUSTOMER_SUB_SEGMENTS css
+JOIN CUSTOMER_SEGMENTATIONS cs ON cs.ID = css.CUSTOMER_SEGMENTATION_ID AND cs.IS_DELETED = 0
+WHERE css.SUPERAPP_ROLE_ID = HEXTORAW(:1)
+  AND css.IS_DELETED = 0
+  AND css.IS_ENABLED = 1`
+	var segID string
+	if err := r.db.QueryRowContext(ctx, docIDQ, idHex).Scan(&segID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", "", errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		r.logger.Errorf("[CustomerSegmentation][resolveSegmentationIDs] doc id query failed: %v", err)
+		return "", "", local_util.HandleDBError(err)
+	}
+	if segID == "" {
+		return "", "", errors.New(localization.ErrorResourceNotFound.Code)
+	}
+
+	return idHex, strings.ToLower(segID), nil
+}
+
 func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmentation) error {
 	r.logger.Infof("[CustomerSegmentation][Create] called with segmentation: %+v", seg)
 	if seg == nil {
@@ -459,9 +517,9 @@ VALUES (
 }
 
 func (r *customerStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	idHex, ok := normalizeRawHex32(id)
-	if !ok {
-		return errors.New(localization.ErrorInvalidID.Code)
+	_, segHex, err := r.resolveSegmentationIDs(ctx, id)
+	if err != nil {
+		return err
 	}
 
 	const q = `
@@ -471,7 +529,7 @@ SET
   LAST_MODIFIED_AT  = SYSTIMESTAMP
 WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
 
-	res, err := r.db.ExecContext(ctx, q, boolToOracleNumber(enable), idHex)
+	res, err := r.db.ExecContext(ctx, q, boolToOracleNumber(enable), segHex)
 	if err != nil {
 		r.logger.Errorf("[CustomerSegmentation][EnableOrDisable] update failed: %v", err)
 		return local_util.HandleDBError(err)
@@ -484,9 +542,9 @@ WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
 }
 
 func (r *customerStorage) Delete(ctx context.Context, id string) error {
-	idHex, ok := normalizeRawHex32(id)
-	if !ok {
-		return errors.New(localization.ErrorInvalidID.Code)
+	_, segHex, err := r.resolveSegmentationIDs(ctx, id)
+	if err != nil {
+		return err
 	}
 
 	tx, err := r.db.BeginTx(ctx, nil)
@@ -500,7 +558,7 @@ func (r *customerStorage) Delete(ctx context.Context, id string) error {
 UPDATE CUSTOMER_SUB_SEGMENTS
 SET IS_DELETED = 1, LAST_MODIFIED_AT = SYSTIMESTAMP
 WHERE CUSTOMER_SEGMENTATION_ID = HEXTORAW(:1) AND IS_DELETED = 0`
-	if _, err := tx.ExecContext(ctx, softSubQ, idHex); err != nil {
+	if _, err := tx.ExecContext(ctx, softSubQ, segHex); err != nil {
 		r.logger.Errorf("[CustomerSegmentation][Delete] soft-delete sub segments failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
@@ -512,7 +570,7 @@ SET
   LAST_MODIFIED_AT = SYSTIMESTAMP
 WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
-	res, err := tx.ExecContext(ctx, q, idHex)
+	res, err := tx.ExecContext(ctx, q, segHex)
 	if err != nil {
 		r.logger.Errorf("[CustomerSegmentation][Delete] delete failed: %v", err)
 		return local_util.HandleDBError(err)
@@ -633,10 +691,10 @@ ORDER BY css.CREATED_AT, css.ID`
 }
 
 func (r *customerStorage) FindByID(ctx context.Context, id string) (*imodel.CustomerSegmentation, error) {
-	idHex, ok := normalizeRawHex32(id)
-	if !ok {
-		return nil, errors.New(localization.ErrorInvalidID.Code)
-	}
+	// idHex, ok := normalizeRawHex32(id)
+	// if !ok {
+	// 	return nil, errors.New(localization.ErrorInvalidID.Code)
+	// }
 
 	const roleFromSegQ = `
 SELECT RAWTOHEX(css.SUPERAPP_ROLE_ID)
@@ -648,13 +706,13 @@ WHERE css.CUSTOMER_SEGMENTATION_ID = HEXTORAW(:1)
 FETCH FIRST 1 ROWS ONLY`
 
 	var roleHex string
-	err := r.db.QueryRowContext(ctx, roleFromSegQ, idHex).Scan(&roleHex)
+	err := r.db.QueryRowContext(ctx, roleFromSegQ, id).Scan(&roleHex)
 	if err == nil {
 		rh, ok := normalizeRawHex32(roleHex)
 		if !ok {
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
-		return r.fillAggregateBySuperAppRoleID(ctx, rh, idHex)
+		return r.fillAggregateBySuperAppRoleID(ctx, rh, id)
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
 		r.logger.Errorf("[CustomerSegmentation][FindByID] role-from-seg query failed: %v", err)
@@ -666,7 +724,7 @@ SELECT 1
 FROM SUPERAPP_ROLES
 WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND IS_ENABLED = 1`
 	var one int
-	if err := r.db.QueryRowContext(ctx, roleOnlyQ, idHex).Scan(&one); err != nil {
+	if err := r.db.QueryRowContext(ctx, roleOnlyQ, id).Scan(&one); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
@@ -682,7 +740,7 @@ WHERE css.SUPERAPP_ROLE_ID = HEXTORAW(:1)
   AND css.IS_DELETED = 0
   AND css.IS_ENABLED = 1`
 	var docID string
-	if err := r.db.QueryRowContext(ctx, docIDQ, idHex).Scan(&docID); err != nil {
+	if err := r.db.QueryRowContext(ctx, docIDQ, id).Scan(&docID); err != nil {
 		r.logger.Errorf("[CustomerSegmentation][FindByID] doc id query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
@@ -690,7 +748,7 @@ WHERE css.SUPERAPP_ROLE_ID = HEXTORAW(:1)
 	if !ok {
 		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
-	return r.fillAggregateBySuperAppRoleID(ctx, idHex, dh)
+	return r.fillAggregateBySuperAppRoleID(ctx, id, dh)
 }
 
 func (r *customerStorage) FindAllWithPagination(
