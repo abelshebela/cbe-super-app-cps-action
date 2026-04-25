@@ -149,8 +149,9 @@ func (r *Repository) FindByID(ctx context.Context, id string) (*imodel.BudgetCat
 }
 
 func (r *Repository) FindByName(ctx context.Context, name string) (*imodel.BudgetCategoryOracle, error) {
+	r.logger.Debugf("[FindByName] Querying for budget category with name: %s", name)
 	q := `SELECT RAWTOHEX(ID) AS id, NAME, ACCOUNT_TYPE, COLOR, ICON, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT
-		FROM BUDGET_CATEGORIES WHERE UPPER(NAME) = UPPER(:1)`
+		FROM BUDGET_CATEGORIES WHERE UPPER(NAME) = UPPER(:1) AND IS_DELETED = 0`
 	row := r.db.QueryRowContext(ctx, q, name)
 	var bc imodel.BudgetCategoryOracle
 	var createdAt, lastModifiedAt, deletedAt sql.NullTime
@@ -167,14 +168,18 @@ func (r *Repository) FindByName(ctx context.Context, name string) (*imodel.Budge
 		&deletedAt,
 	)
 	if err == sql.ErrNoRows {
+		r.logger.Infof("[FindByName] No budget category found for name: %s", name)
 		return nil, nil
 	}
 	if err != nil {
+		r.logger.Errorf("[FindByName] QueryRowContext/Scan error for name %s: %v", name, err)
 		return nil, err
 	}
+	r.logger.Debugf("[FindByName] Found budget category: ID=%s, Name=%s", bc.ID, bc.Name)
 	bc.CreatedAt = formatNullTime(createdAt)
 	bc.LastModifiedAt = formatNullTime(lastModifiedAt)
 	bc.DeletedAt = formatNullTime(deletedAt)
+	r.logger.Debugf("[FindByName] Returning budget category: %+v", bc)
 	return &bc, nil
 }
 

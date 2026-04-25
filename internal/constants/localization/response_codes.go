@@ -846,6 +846,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCustomerSegmentationCodeNotFound,
 	ErrorAccessListKeysRequired,
 	ErrorSegmentationTypeRequired,
+	ErrorBranchNotFoundRequired,
 
 	// Access List Segmentaion Success Code
 	SuccessAccessListSegmentationRetrieved,
@@ -7580,7 +7581,15 @@ var (
 		StatusCode: StatusBadRequest,
 		Message:    MsgBranchCodeRequired,
 		Type:       "error",
+	} 
+	ErrorBranchNotFoundRequired = ResponseCode{
+		Code:       "ERROR_BRANCH_CODE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBranchNotFoundByCode,
+		Type:       "error",
 	}
+
+	
 
 	ErrorBranchAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_BRANCH_ALREADY_ENABLED",
