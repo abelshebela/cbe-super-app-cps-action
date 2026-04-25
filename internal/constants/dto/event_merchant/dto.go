@@ -39,3 +39,7 @@ type UpdateEventMerchantRequest struct {
 	// Email             string `json:"email" bson:"email"`
 	// PhoneNumber       string `json:"phone_number" bson:"phone_number"`
 }
+
+type EnableOrDisableEventMerchantsRequest struct {
+	MerchantIDs []string `json:"merchant_ids"`
+}

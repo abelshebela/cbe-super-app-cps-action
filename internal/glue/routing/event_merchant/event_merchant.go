@@ -32,7 +32,7 @@ func Init(router chi.Router, handler event_merchant_port.EventMerchantInboundAda
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/event_merchants/enable/{id}",
+			Path:    "/event_merchants/enable",
 			Handler: handler.EnableEventMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
@@ -41,7 +41,7 @@ func Init(router chi.Router, handler event_merchant_port.EventMerchantInboundAda
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/event_merchants/disable/{id}",
+			Path:    "/event_merchants/disable",
 			Handler: handler.DisableEventMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,

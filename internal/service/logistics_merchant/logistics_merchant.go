@@ -144,7 +144,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			}
 		}
 	case string(constants.RequestEnableLogisticsMerchant):
-		err = e.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
+		err = e.repo.EnableOrDisable(ctx, []string{cpsAction.UniqueId}, true)
 		if err != nil {
 			span.AddEvent("Failed to enable logistics merchant", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -170,7 +170,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			}
 		}
 	case string(constants.RequestDisableLogisticsMerchant):
-		err = e.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
+		err = e.repo.EnableOrDisable(ctx, []string{cpsAction.UniqueId}, false)
 		if err != nil {
 			span.AddEvent("Failed to disable logistics merchant", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -300,42 +300,9 @@ func (e *LogisticsMerchantService) Delete(ctx context.Context, id string) error 
 }
 
 // EnableOrDisable implements service.LogisticsMerchantService.
-func (e *LogisticsMerchantService) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+func (e *LogisticsMerchantService) EnableOrDisable(ctx context.Context, ids []string, enable bool) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisable", "LogisticsMerchant", "EnableOrDisable")
 	defer span.End()
-
-	e.logger.Infof("[LogisMerchSvc][EnableDisable] id: %s enable: %v", id, enable)
-
-	prevMerchant, err := e.repo.FindByID(ctx, id)
-	if err != nil {
-		e.logger.Errorf("[LogisMerchSvc][EnableDisable] find err id=%s: %v", id, err)
-		span.AddEvent("Merchant not found", trace.WithAttributes(
-			attribute.String("error", localization.ErrorLogisticMerchantNotFound.Code),
-			attribute.String("id", id),
-		))
-		return errors.New(localization.ErrorLogisticMerchantNotFound.Code)
-	}
-
-	if enable && prevMerchant.Enabled {
-		e.logger.Warnf("[LogisMerchSvc][EnableDisable] already enabled id: %s", id)
-		span.AddEvent("Merchant already enabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorLogisticMerchantAlreadyEnabled.Code),
-			attribute.String("id", id),
-		))
-		return localization.ErrorLogisticMerchantAlreadyEnabled
-	}
-	if !enable && !prevMerchant.Enabled {
-		e.logger.Warnf("[LogisMerchSvc][EnableDisable] already disabled id: %s", id)
-		span.AddEvent("Merchant already disabled", trace.WithAttributes(
-			attribute.String("error", localization.ErrorLogisticMerchantAlreadyDisabled.Code),
-			attribute.String("id", id),
-		))
-		return localization.ErrorLogisticMerchantAlreadyDisabled
-	}
-
-	updatedMerchant := *prevMerchant
-	updatedMerchant.Enabled = enable
-	updatedMerchant.UpdatedAt = time.Now()
 
 	var action constants.RequestAction
 	if enable {
@@ -344,17 +311,52 @@ func (e *LogisticsMerchantService) EnableOrDisable(ctx context.Context, id strin
 		action = constants.RequestDisableLogisticsMerchant
 	}
 
-	err = core.HandleCPSActionForLogisticsMerchant(ctx, e.cpsService, id, action, updatedMerchant, *prevMerchant, constants.ActionUpdate)
-	if err != nil {
-		e.logger.Errorf("[LogisMerchSvc][EnableDisable] cps action err id=%s: %v", id, err)
-		span.AddEvent("CPS action failed", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
-		return err
+	for _, id := range ids {
+		e.logger.Infof("[LogisMerchSvc][EnableDisable] id: %s enable: %v", id, enable)
+
+		prevMerchant, err := e.repo.FindByID(ctx, id)
+		if err != nil {
+			e.logger.Errorf("[LogisMerchSvc][EnableDisable] find err id=%s: %v", id, err)
+			span.AddEvent("Merchant not found", trace.WithAttributes(
+				attribute.String("error", localization.ErrorLogisticMerchantNotFound.Code),
+				attribute.String("id", id),
+			))
+			return errors.New(localization.ErrorLogisticMerchantNotFound.Code)
+		}
+
+		if enable && prevMerchant.Enabled {
+			e.logger.Warnf("[LogisMerchSvc][EnableDisable] already enabled id: %s", id)
+			span.AddEvent("Merchant already enabled", trace.WithAttributes(
+				attribute.String("error", localization.ErrorLogisticMerchantAlreadyEnabled.Code),
+				attribute.String("id", id),
+			))
+			return localization.ErrorLogisticMerchantAlreadyEnabled
+		}
+		if !enable && !prevMerchant.Enabled {
+			e.logger.Warnf("[LogisMerchSvc][EnableDisable] already disabled id: %s", id)
+			span.AddEvent("Merchant already disabled", trace.WithAttributes(
+				attribute.String("error", localization.ErrorLogisticMerchantAlreadyDisabled.Code),
+				attribute.String("id", id),
+			))
+			return localization.ErrorLogisticMerchantAlreadyDisabled
+		}
+
+		updatedMerchant := *prevMerchant
+		updatedMerchant.Enabled = enable
+		updatedMerchant.UpdatedAt = time.Now()
+
+		err = core.HandleCPSActionForLogisticsMerchant(ctx, e.cpsService, id, action, updatedMerchant, *prevMerchant, constants.ActionUpdate)
+		if err != nil {
+			e.logger.Errorf("[LogisMerchSvc][EnableDisable] cps action err id=%s: %v", id, err)
+			span.AddEvent("CPS action failed", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("id", id),
+			))
+			return err
+		}
 	}
 
-	e.logger.Infof("[LogisMerchSvc][EnableDisable] done id: %s enabled: %v", id, enable)
+	e.logger.Infof("[LogisMerchSvc][EnableDisable] done ids: %v enabled: %v", ids, enable)
 	return nil
 }
 

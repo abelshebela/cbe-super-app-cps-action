@@ -794,7 +794,7 @@ type EventMerchantRepository interface {
 	Create(ctx context.Context, eventMerchant model.EventMerchant) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error)
 }
 type LogisticsMerchantRepository interface {
@@ -803,7 +803,7 @@ type LogisticsMerchantRepository interface {
 	Create(ctx context.Context, logisticsMerchant local_model.LogisticsMerchant) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*local_model.LogisticsMerchant, error)
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchant], error)
 }
 
