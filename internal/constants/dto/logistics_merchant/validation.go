@@ -59,6 +59,15 @@ func Validation(v any) error {
 		// if req.IsLogisticsMerchant == nil || *req.IsLogisticsMerchant == false {
 		// 	return errors.New(localization.ErrorLogisticMerchantInvalidIsLogisticsMerchant.Message)
 		// }
+	case EnableOrDisableLogisticsMerchantsRequest:
+		if len(req.MerchantIDs) == 0 {
+			return errors.New(localization.ErrorInvalidInputParameters.Code)
+		}
+		for _, id := range req.MerchantIDs {
+			if strings.TrimSpace(id) == "" {
+				return errors.New(localization.ErrorInvalidInputParameters.Code)
+			}
+		}
 	default:
 		return errors.New("invalid request type for validation")
 	}

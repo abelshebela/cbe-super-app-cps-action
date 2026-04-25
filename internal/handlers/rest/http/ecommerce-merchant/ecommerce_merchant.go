@@ -238,11 +238,12 @@ func (h *ecommerceMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request
 //	@Description	Enables a mini app merchant by ID
 //	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
+//	@Accept			json
 //	@Produce		json
-//	@Param			id				path		string	true	"Merchant ID"
+//	@Param			request			body		ecomerceDto.EnableOrDisableMerchantsRequest	true	"Merchant IDs"
 //	@Success		200				{object}	localization.StandardResponse
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/ecommerce-merchant/enable/{id} [patch]
+//	@Router			/ecommerce-merchant/enable [patch]
 func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "enableMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
@@ -252,10 +253,16 @@ func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
-	id := chi.URLParam(r, "id")
-	if id == "" {
-		span.RecordError(errors.New("missing or invalid parameter 'id'"))
-		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
+	var reqDTO ecomerceDto.EnableOrDisableMerchantsRequest
+	if err := json.NewDecoder(r.Body).Decode(&reqDTO); err != nil {
+		span.RecordError(err)
+		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantMarshalFailed, nil, nil)
+		return
+	}
+
+	if err := reqDTO.Validate(); err != nil {
+		span.RecordError(err)
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
@@ -265,8 +272,7 @@ func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
 	}
-	span.SetAttributes(attribute.String("ecommerce_merchant_dto.id", id))
-	if err := h.srv.EnableOrDisable(ctx, id, true); err != nil {
+	if err := h.srv.EnableOrDisable(ctx, reqDTO.MerchantIDs, true); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -289,11 +295,12 @@ func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request
 //	@Description	Disables a mini app merchant by ID
 //	@Tags			ecommerce-merchant
 //	@Security		BearerAuth
+//	@Accept			json
 //	@Produce		json
-//	@Param			id				path		string	true	"Merchant ID"
+//	@Param			request			body		ecomerceDto.EnableOrDisableMerchantsRequest	true	"Merchant IDs"
 //	@Success		200				{object}	localization.StandardResponse
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/ecommerce-merchant/disable/{id} [patch]
+//	@Router			/ecommerce-merchant/disable [patch]
 func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "disableMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
@@ -303,10 +310,16 @@ func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Reques
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
-	id := chi.URLParam(r, "id")
-	if id == "" {
-		span.RecordError(errors.New("missing or invalid parameter 'id'"))
-		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
+	var reqDTO ecomerceDto.EnableOrDisableMerchantsRequest
+	if err := json.NewDecoder(r.Body).Decode(&reqDTO); err != nil {
+		span.RecordError(err)
+		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantMarshalFailed, nil, nil)
+		return
+	}
+
+	if err := reqDTO.Validate(); err != nil {
+		span.RecordError(err)
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
@@ -317,8 +330,7 @@ func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	span.SetAttributes(attribute.String("ecommerce_merchant_dto.id", id))
-	if err := h.srv.EnableOrDisable(ctx, id, false); err != nil {
+	if err := h.srv.EnableOrDisable(ctx, reqDTO.MerchantIDs, false); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
