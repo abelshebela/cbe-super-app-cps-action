@@ -168,6 +168,12 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 		}
 		delete(filter, "is_expired")
 	}
+	if filter["enabled"] != nil {
+		if enabled, ok := filter["enabled"].(bool); ok && enabled {
+			now := time.Now()
+			filter["end_date"] = bson.M{"$gt": now}
+		}
+	}
 	filter["is_deleted"] = bson.M{"$ne": true}
 	data, err := d.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
