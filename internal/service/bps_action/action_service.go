@@ -40,8 +40,9 @@ import (
 )
 
 type bpsActionPublishPayload struct {
-	ActionCode   string `json:"action_code"`
-	ActionStatus string `json:"action_status"`
+	ActionCode    string `json:"action_code"`
+	ActionStatus  string `json:"action_status"`
+	AuditorStatus string `json:"auditor_status"`
 
 	RoleCode string `json:"role_code"`
 
@@ -177,7 +178,7 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 
 	}
 
-	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, RoleCode: rawRoleID, UserData: userData, Reason: auditor.AuditorReason}
+	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, AuditorStatus: string(auditor.AuditorMark), RoleCode: rawRoleID, UserData: userData, Reason: auditor.AuditorReason}
 
 	if err := producer.PublishMessage(ctx, payload, "bps.auditor.mark", constants.BPSAuditorMarkTopic, "BPS_AUDITOR_MARK"); err != nil {
 
