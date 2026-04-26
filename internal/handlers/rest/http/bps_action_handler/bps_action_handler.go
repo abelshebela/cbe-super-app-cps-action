@@ -457,7 +457,7 @@ func (a *bpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		return
 	}
 
-	_,_, checkerActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	_, _, checkerActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -542,7 +542,7 @@ func (a *bpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 		return
 	}
 
-	_,_, _, auditorAllocations, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	_, _, _, auditorAllocations, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -622,7 +622,7 @@ func (a *bpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
-	_,_, checkerActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	_, _, checkerActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -697,7 +697,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	_,makerActions, checkerActions, auditorActions, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	_, makerActions, checkerActions, auditorActions, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -928,7 +928,7 @@ func (a *bpsActionAdapter) ApproverCheckerAllocations(w http.ResponseWriter, r *
 		return
 	}
 	// maker, checker, auditor, portalCards
-	_,_, checkerMods, _, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
+	_, _, checkerMods, _, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -955,6 +955,7 @@ func (a *bpsActionAdapter) ApproverCheckerAllocations(w http.ResponseWriter, r *
 				seen["DISABLE"] = struct{}{}
 			}
 		}
+
 		out := make([]string, 0, len(seen))
 		for k := range seen {
 			out = append(out, k)
@@ -1001,6 +1002,7 @@ func (a *bpsActionAdapter) ApproverCheckerAllocations(w http.ResponseWriter, r *
 func (a *bpsActionAdapter) ApproverAuditorAllocations(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "approverAuditorAllocations", "handler", "cpsAction")
 	defer span.End()
+
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
@@ -1015,7 +1017,7 @@ func (a *bpsActionAdapter) ApproverAuditorAllocations(w http.ResponseWriter, r *
 		return
 	}
 	// maker, checker, auditor, portalCards
-	_,_, _, auditorMods, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
+	_, _, _, auditorMods, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())

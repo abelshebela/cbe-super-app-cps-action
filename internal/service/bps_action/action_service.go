@@ -40,7 +40,8 @@ import (
 )
 
 type bpsActionPublishPayload struct {
-	Action *bps_model.BPSAction `json:"action"`
+	ActionCode   string `json:"action_code"`
+	ActionStatus string `json:"action_status"`
 
 	RoleCode string `json:"role_code"`
 
@@ -87,9 +88,7 @@ func (ba *bpsActionService) IsMakerOnlyForRequest(ctx context.Context, requestAc
 		role, err := ba.roles.FindByActionName(ctx, mod)
 
 		if err != nil || role == nil {
-
 			return false, errors.New(localization.ErrorOperationNotAllowed.Code)
-
 		}
 
 		return role.IsMakerOnly, nil
@@ -129,17 +128,13 @@ func (ba *bpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 	action, err := ba.GetBPSActionByActionCode(ctx, actionCode, "")
 
 	if err != nil || action == nil {
-
 		return errors.New(localization.ErrorActionNotFound.Code)
-
 	}
 
-	payload := bpsActionPublishPayload{Action: action, RoleCode: rawRoleID, UserData: userData}
+	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, RoleCode: rawRoleID, UserData: userData}
 
 	if err := producer.PublishMessage(ctx, payload, "bps.auditor.claim", constants.BPSAuditorClaimTopic, "BPS_AUDITOR_CLAIM"); err != nil {
-
 		return errors.New(localization.ErrorUnexpectedError.Code)
-
 	}
 
 	return nil
@@ -182,7 +177,7 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 
 	}
 
-	payload := bpsActionPublishPayload{Action: action, RoleCode: rawRoleID, UserData: userData, Reason: auditor.AuditorReason}
+	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, RoleCode: rawRoleID, UserData: userData, Reason: auditor.AuditorReason}
 
 	if err := producer.PublishMessage(ctx, payload, "bps.auditor.mark", constants.BPSAuditorMarkTopic, "BPS_AUDITOR_MARK"); err != nil {
 
@@ -241,7 +236,7 @@ func (ba *bpsActionService) ApproveBPSAction(ctx context.Context, action *bps_mo
 
 	userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
 
-	payload := bpsActionPublishPayload{Action: action, RoleCode: rawRoleID, UserData: userData}
+	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, RoleCode: rawRoleID, UserData: userData}
 
 	if err := producer.PublishMessage(ctx, payload, "bps.approve", constants.BPSApproveTopic, "BPS_APPROVE"); err != nil {
 
@@ -283,7 +278,7 @@ func (ba *bpsActionService) RejectBPSAction(ctx context.Context, action_code str
 
 	_ = action_code
 
-	payload := bpsActionPublishPayload{Action: action, RoleCode: rawRoleID, UserData: userData, Reason: reason}
+	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, RoleCode: rawRoleID, UserData: userData, Reason: reason}
 
 	if err := producer.PublishMessage(ctx, payload, "bps.reject", constants.BPSRejectTopic, "BPS_REJECT"); err != nil {
 
