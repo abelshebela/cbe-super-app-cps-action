@@ -78,7 +78,7 @@ func (e *LogisticsMerchantHandler) CreateLogisticMerchant(w http.ResponseWriter,
 //	@Tags			Logistics Merchant
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		string									true	"Logistics Merchant ID"
+//	@Param			body	body		logistics_merchant_dto.EnableOrDisableLogisticsMerchantsRequest	true	"Merchant IDs"
 //	@Success		200	{object}	localization.StandardResponse{data=nil}	"Logistics merchant deleted successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Logistics merchant not found"
@@ -115,17 +115,22 @@ func (e *LogisticsMerchantHandler) DeleteLogisticMerchant(w http.ResponseWriter,
 //	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Logistics merchant not found"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/logistics_merchants/disable/{id} [patch]
+//	@Router			/logistics_merchants/disable [patch]
 func (e *LogisticsMerchantHandler) DisableLogisticMerchant(w http.ResponseWriter, r *http.Request) {
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
-	id := chi.URLParam(r, "id")
-	if id == "" {
+
+	var req logistics_merchant_dto.EnableOrDisableLogisticsMerchantsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := e.service.EnableOrDisable(ctx, id, false); err != nil {
+	if err := logistics_merchant_dto.Validation(req); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if err := e.service.EnableOrDisable(ctx, req.MerchantIDs, false); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -137,12 +142,17 @@ func (e *LogisticsMerchantHandler) EnableLogisticMerchant(w http.ResponseWriter,
 	md := &types.ContextMetadata{}
 	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
-	id := chi.URLParam(r, "id")
-	if id == "" {
+
+	var req logistics_merchant_dto.EnableOrDisableLogisticsMerchantsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := e.service.EnableOrDisable(ctx, id, true); err != nil {
+	if err := logistics_merchant_dto.Validation(req); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if err := e.service.EnableOrDisable(ctx, req.MerchantIDs, true); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

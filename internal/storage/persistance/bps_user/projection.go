@@ -42,6 +42,9 @@ func BPSUserMapper(data bps_model.BPSUser) bson.M {
 	if data.JobTitle != "" {
 		result["job_title"] = data.JobTitle
 	}
+	if data.BranchName != ""{
+		result["branch_name"]=data.BranchName
+	}
 
 	// result["role"] = data.Role
 	result["enabled"] = data.Enabled

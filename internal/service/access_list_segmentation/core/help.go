@@ -238,13 +238,13 @@ func modelToSubAccessList(al *local_model.APPAccessList) types.SubAccessList {
 // Self-edges (PARENT_KEY = CHILD_KEY) define a standalone parent and are not added as children.
 func MapParentChildRelationship(relations []local_model.AccessItemRelation, accessList []model.APPAccessList) []model.APPAccessList {
 	log.Printf("[DEBUG] MapParentChildRelationship called: %d relations, %d accessList", len(relations), len(accessList))
-	nodesByKey := make(map[string]model.APPAccessList, len(accessList))
+	nodesByID := make(map[string]model.APPAccessList, len(accessList))
 	for _, al := range accessList {
-		log.Printf("[DEBUG] Adding accessList node: key=%s", al.Key)
-		nodesByKey[al.Key] = al
+		log.Printf("[DEBUG] Adding accessList node: id=%s", al.ID)
+		nodesByID[al.ID] = al
 	}
 
-	// Deduplicate (PARENT_KEY, CHILD_KEY) pairs
+	// Deduplicate (PARENT_ID, CHILD_ID) pairs
 	parentChildren := make(map[string]map[string]struct{})
 	for _, rel := range relations {
 		log.Printf("[DEBUG] Relation: parent=%s child=%s", rel.ParentKey, rel.ChildKey)
@@ -257,41 +257,103 @@ func MapParentChildRelationship(relations []local_model.AccessItemRelation, acce
 	accountedFor := make(map[string]bool)
 	var result []model.APPAccessList
 
-	for parentKey, childSet := range parentChildren {
-		log.Printf("[DEBUG] Processing parentKey=%s with %d children", parentKey, len(childSet))
-		parent, ok := nodesByKey[parentKey]
+	for parentID, childSet := range parentChildren {
+		log.Printf("[DEBUG] Processing parentID=%s with %d children", parentID, len(childSet))
+		parent, ok := nodesByID[parentID]
 		if !ok {
-			log.Printf("[WARN] Parent key not found in nodesByKey: %s", parentKey)
+			log.Printf("[WARN] Parent id not found in nodesByID: %s", parentID)
 			continue
 		}
-		childKeys := make([]string, 0, len(childSet))
-		for ck := range childSet {
-			if ck != parentKey {
-				childKeys = append(childKeys, ck)
+		childIDs := make([]string, 0, len(childSet))
+		for cid := range childSet {
+			if cid != parentID {
+				childIDs = append(childIDs, cid)
 			}
 		}
-		sort.Strings(childKeys)
-		for _, childKey := range childKeys {
-			log.Printf("[DEBUG] Processing childKey=%s for parentKey=%s", childKey, parentKey)
-			child, ok := nodesByKey[childKey]
+		sort.Strings(childIDs)
+		for _, childID := range childIDs {
+			log.Printf("[DEBUG] Processing childID=%s for parentID=%s", childID, parentID)
+			child, ok := nodesByID[childID]
 			if !ok {
-				log.Printf("[WARN] Child key not found in nodesByKey: %s", childKey)
+				log.Printf("[WARN] Child id not found in nodesByID: %s", childID)
 				continue
 			}
 			parent.SubAccessList = append(parent.SubAccessList, modelToSubAccessList(&child))
-			accountedFor[childKey] = true
+			accountedFor[childID] = true
 		}
-		log.Printf("[DEBUG] Appending parent to result: key=%s, subAccessListCount=%d", parent.Key, len(parent.SubAccessList))
+		log.Printf("[DEBUG] Appending parent to result: id=%s, subAccessListCount=%d", parent.ID, len(parent.SubAccessList))
 		result = append(result, parent)
-		accountedFor[parent.Key] = true
+		accountedFor[parent.ID] = true
 	}
 
 	for _, al := range accessList {
-		if !accountedFor[al.Key] {
-			log.Printf("[DEBUG] Appending unaccounted accessList: key=%s", al.Key)
+		if !accountedFor[al.ID] {
+			log.Printf("[DEBUG] Appending unaccounted accessList: id=%s", al.ID)
 			result = append(result, al)
 		}
 	}
 	log.Printf("[DEBUG] MapParentChildRelationship returning %d results", len(result))
 	return result
 }
+
+// // MapParentChildRelationship builds parent rows with SubAccessList from ACCESS_ITEMS_RELATION edges.
+// // Self-edges (PARENT_KEY = CHILD_KEY) define a standalone parent and are not added as children.
+// func MapParentChildRelationship(relations []local_model.AccessItemRelation, accessList []model.APPAccessList) []model.APPAccessList {
+// 	log.Printf("[DEBUG] MapParentChildRelationship called: %d relations, %d accessList", len(relations), len(accessList))
+// 	nodesByKey := make(map[string]model.APPAccessList, len(accessList))
+// 	for _, al := range accessList {
+// 		log.Printf("[DEBUG] Adding accessList node: key=%s", al.Key)
+// 		nodesByKey[al.Key] = al
+// 	}
+
+// 	// Deduplicate (PARENT_KEY, CHILD_KEY) pairs
+// 	parentChildren := make(map[string]map[string]struct{})
+// 	for _, rel := range relations {
+// 		log.Printf("[DEBUG] Relation: parent=%s child=%s", rel.ParentKey, rel.ChildKey)
+// 		if parentChildren[rel.ParentKey] == nil {
+// 			parentChildren[rel.ParentKey] = make(map[string]struct{})
+// 		}
+// 		parentChildren[rel.ParentKey][rel.ChildKey] = struct{}{}
+// 	}
+
+// 	accountedFor := make(map[string]bool)
+// 	var result []model.APPAccessList
+
+// 	for parentKey, childSet := range parentChildren {
+// 		log.Printf("[DEBUG] Processing parentKey=%s with %d children", parentKey, len(childSet))
+// 		parent, ok := nodesByKey[parentKey]
+// 		if !ok {
+// 			log.Printf("[WARN] Parent key not found in nodesByKey: %s", parentKey)
+// 			continue
+// 		}
+// 		childKeys := make([]string, 0, len(childSet))
+// 		for ck := range childSet {
+// 			if ck != parentKey {
+// 				childKeys = append(childKeys, ck)
+// 			}
+// 		}
+// 		sort.Strings(childKeys)
+// 		for _, childKey := range childKeys {
+// 			log.Printf("[DEBUG] Processing childKey=%s for parentKey=%s", childKey, parentKey)
+// 			child, ok := nodesByKey[childKey]
+// 			if !ok {
+// 				log.Printf("[WARN] Child key not found in nodesByKey: %s", childKey)
+// 				continue
+// 			}
+// 			parent.SubAccessList = append(parent.SubAccessList, modelToSubAccessList(&child))
+// 			accountedFor[childKey] = true
+// 		}
+// 		log.Printf("[DEBUG] Appending parent to result: key=%s, subAccessListCount=%d", parent.Key, len(parent.SubAccessList))
+// 		result = append(result, parent)
+// 		accountedFor[parent.Key] = true
+// 	}
+
+// 	for _, al := range accessList {
+// 		if !accountedFor[al.Key] {
+// 			log.Printf("[DEBUG] Appending unaccounted accessList: key=%s", al.Key)
+// 			result = append(result, al)
+// 		}
+// 	}
+// 	log.Printf("[DEBUG] MapParentChildRelationship returning %d results", len(result))
+// 	return result
+// }

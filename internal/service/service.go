@@ -307,7 +307,7 @@ type EcommerceMerchantService interface {
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error)
 	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
 	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
 	MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error)
 }
 
@@ -493,7 +493,7 @@ type EventMerchantService interface {
 	Update(ctx context.Context, id string, eventMerchant model.EventMerchant) error
 	Create(ctx context.Context, eventMerchant model.EventMerchant) error
 	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error)
 	EventMerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error)
@@ -504,7 +504,7 @@ type LogisticsMerchantService interface {
 	Update(ctx context.Context, id string, logisticsMerchant local_model.LogisticsMerchant) error
 	Create(ctx context.Context, logisticsMerchant local_model.LogisticsMerchant) error
 	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
 	FindByID(ctx context.Context, id string) (*local_model.LogisticsMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchant], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
