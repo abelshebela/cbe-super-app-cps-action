@@ -298,7 +298,7 @@ const (
 	MsgDepartmentEnableRequestedSuccessfully  = "Department enable requested successfully"
 	MsgDepartmentEnabledSuccessfully          = "Department enabled successfully"
 	MsgDepartmentDisableRequestedSuccessfully = "Department disable requested successfully"
-	MsgDepartmentDisabled                    = "Department disabled successfully"
+	MsgDepartmentDisabled                     = "Department disabled successfully"
 
 	// Bank Vault related success messages
 	MsgBankVaultCreationRequestSubmitted     = "Bank vault creation request submitted successfully"
@@ -510,17 +510,18 @@ const (
 	MsgBpsUserDeleteSuccessfullySP = "BPS user deleted successfully"
 
 	// Customer Roles
-	MsgCpsRoleCreated            = "Customer role create request submitted successfully"
-	MsgCpsRoleUpdated            = "Customer role update request submitted successfully"
-	MsgCpsRolesFetched           = "Customer roles fetched successfully"
-	MsgCpsRoleFetched            = "Customer role fetched successfully"
-	MsgCpsRoleEnabled            = "Customer role enable request submitted successfully"
-	MsgCpsRoleDisabled           = "Customer role disable request submitted successfully"
-	MsgCpsRoleAlreadyEnabled     = "Customer role already enabled"
-	MsgCpsRoleAlreadyDisabled    = "Customer role already disabled"
-	MsgCpsRoleNameAlreadyExists  = "Customer role name already exists"
-	MsgCpsRoleLabelAlreadyExists = "Customer role label already exists"
-	MsgCpsRoleCodeAlreadyExists  = "Customer role code already exists"
+	MsgCpsRoleCreated                  = "Customer role create request submitted successfully"
+	MsgCpsRoleUpdated                  = "Customer role update request submitted successfully"
+	MsgCpsRolesFetched                 = "Customer roles fetched successfully"
+	MsgCpsRoleFetched                  = "Customer role fetched successfully"
+	MsgCpsRoleEnabled                  = "Customer role enable request submitted successfully"
+	MsgCpsRoleDisabled                 = "Customer role disable request submitted successfully"
+	MsgCpsRoleAlreadyEnabled           = "Customer role already enabled"
+	MsgCpsRoleAlreadyDisabled          = "Customer role already disabled"
+	MsgCpsRoleNameAlreadyExists        = "Customer role name already exists"
+	MsgCpsRoleLabelAlreadyExists       = "Customer role label already exists"
+	MsgCpsRoleAccountTypeAlreadyExists = "Customer role account type already exists"
+	MsgCpsRoleCodeAlreadyExists        = "Customer role code already exists"
 
 	MsgCpsRoleCreatedSP  = "Customer role created successfully"
 	MsgCpsRoleUpdatedSP  = "Customer role updated successfully"
