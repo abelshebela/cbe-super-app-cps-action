@@ -12,12 +12,12 @@ type BPSAction struct {
 	ActionCode        string        `json:"action_code" bson:"action_code"`
 	IsAuditorApproved bool          `json:"is_auditor_approved" bson:"is_auditor_approved"`
 	UserInformation   struct {
-		UserID         string   `json:"user_id,omitempty" bson:"user_id,omitempty"`
-		UserCode       string   `json:"user_code" bson:"user_code"`
-		FullName       string   `json:"full_name" bson:"full_name"`
-		AccountNumbers []string `json:"account_numbers" bson:"account_numbers"`
-		PhoneNumbers   string   `json:"phone_numbers" bson:"phone_numbers"`
-		BranchCode     string   `json:"branch_code" bson:"branch_code"`
+		UserID         bson.ObjectID `json:"user_id,omitempty" bson:"user_id,omitempty"`
+		UserCode       string        `json:"user_code" bson:"user_code"`
+		FullName       string        `json:"full_name" bson:"full_name"`
+		AccountNumbers []string      `json:"account_numbers" bson:"account_numbers"`
+		PhoneNumbers   string        `json:"phone_numbers" bson:"phone_numbers"`
+		BranchCode     string        `json:"branch_code" bson:"branch_code"`
 	} `json:"user_information" bson:"user_information"`
 	BusinessInformation struct {
 		BusinessID   bson.ObjectID `json:"business_id" bson:"business_id"`
