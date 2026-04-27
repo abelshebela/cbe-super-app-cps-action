@@ -15,6 +15,7 @@ type CPSRoles struct {
 	RoleCode         string              `json:"role_code,omitempty" bson:"role_code,omitempty"`
 	Lable            string              `json:"label" bson:"label"`
 	Description      string              `json:"description,omitempty" bson:"description,omitempty"`
+	AccountType      string              `json:"account_type,omitempty" bson:"account_type,omitempty"`
 	Enabled          *bool               `json:"enabled" bson:"enabled"`
 	MakerActions     []string            `json:"maker" bson:"-"`
 	CheckerActions   []string            `json:"checker" bson:"-"`
