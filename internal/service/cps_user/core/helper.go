@@ -86,7 +86,7 @@ func ConvertToDTO(portalCard []string, user *cpsuser.CpsUserResponse, makerAlloc
 
 }
 
-func ConvertToResponseDTO(portalCard []string, user *cpsuser.CpsUserPopulatedResponse, makerAlloc, checkerAlloc, auditorAlloc []string) *cpsuser.CpsUserPopulatedResponse {
+func ConvertToResponseDTO(portalCard []string, user *cpsuser.CpsUserPopulatedResponse, makerAlloc, checkerAlloc, auditorAlloc, bpsCheckerAlloc, bpsAuditorAlloc []string) *cpsuser.CpsUserPopulatedResponse {
 	return &cpsuser.CpsUserPopulatedResponse{
 		ID:       user.ID,
 		UserCode: user.UserCode,
@@ -95,24 +95,26 @@ func ConvertToResponseDTO(portalCard []string, user *cpsuser.CpsUserPopulatedRes
 			Code: user.Role.Code,
 			Name: user.Role.Name,
 		},
-		Department:         user.Department,
-		RoleCode:           user.RoleCode,
-		Gender:             user.Gender,
-		PhoneNumber:        user.PhoneNumber,
-		Email:              user.Email,
-		UserName:           user.UserName,
-		Realm:              user.Realm,
-		JobTitle:           user.JobTitle,
-		MakerAllocations:   makerAlloc,
-		CheckerAllocations: checkerAlloc,
-		AuditorAllocations: auditorAlloc,
-		PortalCards:        portalCard,
-		Enabled:            user.Enabled,
-		DateJoined:         user.DateJoined,
-		LastModified:       user.LastModified,
-		LastLogin:          user.LastLogin,
-		Country:            user.Country,
-		Region:             user.Region,
+		Department:            user.Department,
+		RoleCode:              user.RoleCode,
+		Gender:                user.Gender,
+		PhoneNumber:           user.PhoneNumber,
+		Email:                 user.Email,
+		UserName:              user.UserName,
+		Realm:                 user.Realm,
+		JobTitle:              user.JobTitle,
+		MakerAllocations:      makerAlloc,
+		CheckerAllocations:    checkerAlloc,
+		AuditorAllocations:    auditorAlloc,
+		BpsCheckerAllocations: bpsCheckerAlloc,
+		BpsAuditorAllocations: bpsAuditorAlloc,
+		PortalCards:           portalCard,
+		Enabled:               user.Enabled,
+		DateJoined:            user.DateJoined,
+		LastModified:          user.LastModified,
+		LastLogin:             user.LastLogin,
+		Country:               user.Country,
+		Region:                user.Region,
 	}
 }
 
