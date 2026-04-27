@@ -27,6 +27,7 @@ type cpsUserService struct {
 	repo              storage.CpsUserRepository
 	roleRepo          storage.RoleRepository
 	approverRepo      storage.CPSActionApproveIndexRepository
+	bpsApproverRepo   storage.BPSActionApproveIndexRepository
 	permissionService service.PermissionService
 	departmentRepo    storage.DepartmentRepository
 	logger            shared_utils.Logger
@@ -34,12 +35,13 @@ type cpsUserService struct {
 	bpsRepo           storage.BPSUserRepository
 }
 
-func NewCPSUserService(repo storage.CpsUserRepository, roleRepo storage.RoleRepository, approverRepo storage.CPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, bps storage.BPSUserRepository, logger shared_utils.Logger) service.CPSUserService {
+func NewCPSUserService(repo storage.CpsUserRepository, roleRepo storage.RoleRepository, approverRepo storage.CPSActionApproveIndexRepository, bpsApproverRepo storage.BPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, bps storage.BPSUserRepository, logger shared_utils.Logger) service.CPSUserService {
 	return &cpsUserService{
 		repo:              repo,
 		bpsRepo:           bps,
 		roleRepo:          roleRepo,
 		approverRepo:      approverRepo,
+		bpsApproverRepo:   bpsApproverRepo,
 		permissionService: permission,
 		cpsService:        cps,
 		logger:            logger,
@@ -436,7 +438,7 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 		return nil, err
 	}
 
-	var makerAlloc, checkerAlloc, auditorAlloc, portalCard []string
+	var makerAlloc, checkerAlloc, auditorAlloc, portalCard, bpsCheckerAlloc, bpsAuditorAlloc []string
 	if roles.Enabled {
 		_, makerAlloc, checkerAlloc, auditorAlloc, portalCard, err = s.approverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
 		if err != nil {
@@ -445,11 +447,17 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 		}
 	}
 
+	_, _, bpsCheckerAlloc, bpsAuditorAlloc, err = s.bpsApproverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
+	if err != nil {
+		span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+
 	userData, err := local_util.JsonUnmarshal[cpsuser.CpsUserResponse](user)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return core.ConvertToDTO(portalCard, userData, makerAlloc, checkerAlloc, auditorAlloc), nil
+	return core.ConvertToDTO(portalCard, userData, makerAlloc, checkerAlloc, auditorAlloc, bpsCheckerAlloc, bpsAuditorAlloc), nil
 }
 
 func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
@@ -489,7 +497,7 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		return nil, err
 	}
 
-	var makerAlloc, checkerAlloc, auditorAlloc, portalCard []string
+	var makerAlloc, checkerAlloc, auditorAlloc, portalCard, bpsCheckerAlloc, bpsAuditorAlloc []string
 	var roles *imodel.Role
 	if populated.JobTitle != "" {
 		roles, err = s.roleRepo.FindByName(ctx, populated.JobTitle)
@@ -505,9 +513,15 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 			span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
+
+		_, _, bpsCheckerAlloc, bpsAuditorAlloc, err = s.bpsApproverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
+		if err != nil {
+			span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
 	}
 
-	return core.ConvertToResponseDTO(portalCard, populated, makerAlloc, checkerAlloc, auditorAlloc), nil
+	return core.ConvertToResponseDTO(portalCard, populated, makerAlloc, checkerAlloc, auditorAlloc, bpsCheckerAlloc, bpsAuditorAlloc), nil
 }
 
 func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error) {
