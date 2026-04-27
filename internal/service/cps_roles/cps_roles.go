@@ -52,6 +52,7 @@ func (r *cpsRoleService) Create(ctx context.Context, req cps_role_dto.CreateCPSR
 		RoleCode:    req.RoleCode,
 		Lable:       req.Lable,
 		Description: req.Description,
+		AccountType: req.AccountType,
 		Enabled:     &enabled,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
@@ -77,7 +78,7 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 		return err
 	}
 
-	var name, roleCode, label string
+	var name, roleCode, label, accountType string
 	if req.Name != nil {
 		name = *req.Name
 	}
@@ -86,6 +87,9 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 	}
 	if req.Lable != nil {
 		label = *req.Lable
+	}
+	if req.AccountType != nil {
+		accountType = *req.AccountType
 	}
 
 	cpsRole, err := r.repo.FindByNameOrRoleCode(ctx, name, roleCode)
@@ -107,6 +111,10 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 			r.logger.Warnf("[CpsRoleSvc][Update] label exists: %s", req.Lable)
 			return errors.New(localization.ErrorCPSRoleLabelAlreadyExists.Code)
 		}
+		if cpsRole.AccountType == accountType && existing.AccountType != accountType {
+			r.logger.Warnf("[CpsRoleSvc][Update] account type exists: %s", req.AccountType)
+			return errors.New(localization.ErrorCPSRoleAccountTypeAlreadyExists.Code)
+		}
 	}
 
 	updated := *existing
@@ -121,6 +129,9 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 	}
 	if req.Lable != nil {
 		updated.Lable = *req.Lable
+	}
+	if req.AccountType != nil {
+		updated.AccountType = *req.AccountType
 	}
 	updated.UpdatedAt = time.Now()
 
