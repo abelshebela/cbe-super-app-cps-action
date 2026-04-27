@@ -23,9 +23,9 @@ func (r *UpdateCPSRoleRequest) Normalize() {
 	if r.Description != nil {
 		*r.Description = strings.TrimSpace(*r.Description)
 	}
-	if r.AccountType != nil {
-		*r.AccountType = strings.TrimSpace(*r.AccountType)
-	}
+	// if r.AccountType != nil {
+	// 	*r.AccountType = strings.TrimSpace(*r.AccountType)
+	// }
 }
 
 func (r CreateCPSRoleRequest) Validate() error {
@@ -58,9 +58,9 @@ func (r UpdateCPSRoleRequest) Validate() error {
 		validation.Field(&r.Description,
 			validation.By(utils.NoSpecialChars),
 		),
-		validation.Field(&r.AccountType,
-			validation.By(utils.NoSpecialChars),
-		),
+		// validation.Field(&r.AccountType,
+		// 	validation.By(utils.NoSpecialChars),
+		// ),
 	)
 }
 

@@ -135,13 +135,12 @@ func (m *cpsRoleStorage) Create(ctx context.Context, req imodel.CPSRoles) error 
 	IS_ENABLED,
 	IS_DELETED,
 	CREATED_AT,
-	LAST_MODIFIED_AT,
-	ACCOUNT_TYPE
+	LAST_MODIFIED_AT
 	)
 	VALUES (
-	UPPER(:1), :2, :3, :4, :5, 0, :6, :7, :8
+	UPPER(:1), :2, :3, :4, :5, 0, :6, :7
 	)
-	RETURNING RAWTOHEX(ID) INTO :9`
+	RETURNING RAWTOHEX(ID) INTO :8`
 
 	if _, err := m.db.ExecContext(ctx, q,
 		req.Name,
@@ -151,7 +150,7 @@ func (m *cpsRoleStorage) Create(ctx context.Context, req imodel.CPSRoles) error 
 		boolToOracleNumber(enabled),
 		req.CreatedAt,
 		req.UpdatedAt,
-		req.AccountType,
+		// req.AccountType,
 		sql.Out{Dest: &id},
 	); err != nil {
 		m.logger.Errorf("[CPSRolesStorage][Create] insert failed: %v", err)
@@ -198,10 +197,10 @@ func (m *cpsRoleStorage) Update(ctx context.Context, id string, req imodel.CPSRo
 		sets = append(sets, "DESCRIPTION = :description")
 		args = append(args, sql.Named("description", strings.TrimSpace(req.Description)))
 	}
-	if strings.TrimSpace(req.AccountType) != "" {
-		sets = append(sets, "ACCOUNT_TYPE = :account_type")
-		args = append(args, sql.Named("account_type", strings.TrimSpace(req.AccountType)))
-	}
+	// if strings.TrimSpace(req.AccountType) != "" {
+	// 	sets = append(sets, "ACCOUNT_TYPE = :account_type")
+	// 	args = append(args, sql.Named("account_type", strings.TrimSpace(req.AccountType)))
+	// }
 
 	if len(sets) == 1 {
 		return errors.New(localization.ErrorNoDataProvided.Code)
@@ -373,9 +372,9 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			RoleCode:    roleCode.String,
 			Lable:       label.String,
 			Description: desc.String,
-			AccountType: accountType.String,
-			Enabled:     &enabled,
-			IsDeleted:   isDeletedN == 1,
+			// AccountType: accountType.String,
+			Enabled:   &enabled,
+			IsDeleted: isDeletedN == 1,
 		}
 
 		if createdAt.Valid {
@@ -422,7 +421,6 @@ SELECT
   NVL(SR.LABEL, '') AS LABEL,
   NVL(SR.ROLE_CODE, '') AS ROLE_CODE,
   NVL(SR.DESCRIPTION, '') AS DESCRIPTION,
-  NVL(SR.ACCOUNT_TYPE, '') AS ACCOUNT_TYPE,
   SR.IS_ENABLED,
   SR.IS_DELETED,
   SR.CREATED_AT,
@@ -527,7 +525,7 @@ WHERE SR.ID = HEXTORAW(:1)
 	r.Description = desc.String
 	r.Enabled = PtrBool(enabledN == 1)
 	r.IsDeleted = deletedN == 1
-	r.AccountType = accountType.String
+	// r.AccountType = accountType.String
 
 	SetTime(&r.CreatedAt, createdAt)
 	SetTime(&r.UpdatedAt, updatedAt)
@@ -582,7 +580,6 @@ SELECT
   LABEL,
   ROLE_CODE,
   DESCRIPTION,
-  ACCOUNT_TYPE,
   IS_ENABLED,
   IS_DELETED,
   CREATED_AT,
@@ -627,9 +624,9 @@ FETCH FIRST 1 ROWS ONLY`, superAppRoleTable, cond)
 		Lable:       label.String,
 		RoleCode:    dbRole.String,
 		Description: dbDesc.String,
-		AccountType: accountType.String,
-		Enabled:     &enabled,
-		IsDeleted:   isDeletedN == 1,
+		// AccountType: accountType.String,
+		Enabled:   &enabled,
+		IsDeleted: isDeletedN == 1,
 	}
 	if createdAt.Valid {
 		out.CreatedAt = createdAt.Time
@@ -682,7 +679,6 @@ SELECT
   cr.LABEL,
   cr.ROLE_CODE,
   cr.DESCRIPTION,
-  cr.ACCOUNT_TYPE,
   cr.IS_ENABLED,
   cr.IS_DELETED,
   cr.CREATED_AT,
@@ -733,9 +729,9 @@ FETCH FIRST 1 ROWS ONLY`
 		Lable:       label.String,
 		RoleCode:    roleCode.String,
 		Description: desc.String,
-		AccountType: accountType.String,
-		Enabled:     &enabled,
-		IsDeleted:   isDeletedN == 1,
+		// AccountType: accountType.String,
+		Enabled:   &enabled,
+		IsDeleted: isDeletedN == 1,
 	}
 	if createdAt.Valid {
 		out.CreatedAt = createdAt.Time

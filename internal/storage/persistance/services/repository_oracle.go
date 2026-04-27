@@ -1039,15 +1039,17 @@ func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *imo
 INSERT INTO access_lists (
   name,
   service_key,
+  account_type,
   is_enabled
 )
 VALUES (
-  :1,:2,:3
+  :1,:2,:3,:4
 )`
 
 	if _, err := tx.ExecContext(ctx, q,
 		serviceList.ServiceName,
 		serviceList.ServiceKey,
+		serviceList.AccountType,
 		boolToOracleNumber(serviceList.IsEnabled),
 	); err != nil {
 		s.logger.Errorf("[ServicesRepo][CreateServiceKey] insert failed: %v", err)
@@ -1108,12 +1110,14 @@ UPDATE access_lists
 SET
   name = :1,
   service_key = :2,
+  account_type = :3,
   last_modified_at = SYSTIMESTAMP
-WHERE id = :3 AND service_key = :4`
+WHERE id = :4 AND service_key = :5`
 
 	res, err := tx.ExecContext(ctx, q,
 		serviceList.ServiceName,
 		serviceList.ServiceKey,
+		serviceList.AccountType,
 		id,
 		serviceKey,
 	)
