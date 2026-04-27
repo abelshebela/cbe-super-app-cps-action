@@ -202,6 +202,7 @@ func MapServiceListDtoToModel(req *service_dto.CreateServiceList) imodel.Service
 	return imodel.ServiceKey{
 		ServiceName: req.ServiceName,
 		ServiceKey:  req.ServiceKey,
+		AccountType: req.AccountType,
 	}
 }
 
@@ -209,5 +210,6 @@ func MapServiceListDtoUpdateToModel(req *service_dto.UpdateServiceList) imodel.S
 	return imodel.ServiceKey{
 		ServiceName: req.ServiceName,
 		ServiceKey:  req.ServiceKey,
+		AccountType: req.AccountType,
 	}
 }

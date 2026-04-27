@@ -32,6 +32,7 @@ type ServiceKey struct {
 	ID             string     `json:"id,omitempty" bson:"_id,omitempty"`
 	ServiceName    string     `json:"service_name" bson:"service_name"`
 	ServiceKey     string     `json:"service_key" bson:"service_key"`
+	AccountType    string     `json:"account_type" bson:"account_type"`
 	IsUSSDEnabled  bool       `json:"is_ussd_enabled" bson:"is_ussd_enabled"`
 	IsEnabled      bool       `json:"is_enabled" bson:"is_enabled"`
 	CreatedAt      time.Time  `json:"created_at" bson:"created_at"`
