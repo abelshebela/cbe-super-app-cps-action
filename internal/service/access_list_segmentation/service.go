@@ -119,7 +119,7 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 			a.logger.Errorf("[AccessListSegSvc][Create] check IDs err: %v", err)
 			return err
 		}
-		requestAction = string(constants.RequestAccessListDisableCustomerSegmentation)
+		requestAction = string(constants.RequestDisableAccessListSegmentation)
 
 		a.logger.Infof("*************************inside block")
 	} else {
@@ -138,7 +138,7 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 			a.logger.Errorf("[AccessListSegSvc][Create] seg+key exists: %v", err)
 			return errors.New(localization.ErrorAccessListSegmentationNameAlreadyExists.Code)
 		}
-		requestAction = string(constants.RequestDisableAccessListSegmentation)
+		requestAction = string(constants.RequestDisableCustomerSegmentation)
 
 	}
 	cpsAction := lib.CpsModelBuilder("", makerData, nil, req, requestAction, constants.CREATE)
@@ -163,18 +163,13 @@ func (a *AccessListSegmentationService) EnableDisableAccessListSegmentation(ctx 
 	if segmentation_type == "block" {
 		accessListSegmentation, err = a.repo.FindAllByBlockAndKeys(ctx, id, keys)
 
-		if enabled {
-			requestAction = string(constants.RequestAccessListEnableCustomerSegmentation)
-		} else {
-			requestAction = string(constants.RequestAccessListDisableCustomerSegmentation)
-		}
+		requestAction = string(constants.RequestEnableCustomerSegmentation)
+
 	} else if segmentation_type == "account" {
 		accessListSegmentation, err = a.repo.FindAllByAccountAndKeys(ctx, id, keys)
-		if enabled {
-			requestAction = string(constants.RequestEnableCustomerSegmentation)
-		} else {
-			requestAction = string(constants.RequestDisableCustomerSegmentation)
-		}
+
+		requestAction = string(constants.RequestEnableCustomerSegmentation)
+
 	} else {
 		a.logger.Errorf("[AccessListSegSvc][EnableDisable] invalid segmentation type: %s", segmentation_type)
 		return localization.ErrorUnexpectedError
