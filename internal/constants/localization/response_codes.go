@@ -700,6 +700,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCPSRoleAlreadyDisabled,
 	ErrorCPSRoleCodeAlreadyExists,
 	ErrorCPSRoleLabelAlreadyExists,
+	ErrorCPSRoleAccountTypeAlreadyExists,
 	ErrorCPSRoleNameAlreadyExists,
 
 	// OTP related error codes
@@ -6635,6 +6636,11 @@ var (
 		Message:    MsgCpsRoleLabelAlreadyExists,
 		Type:       "error",
 	}
+	ErrorCPSRoleAccountTypeAlreadyExists = ResponseCode{
+		Code:       "ERROR_CPS_ROLE_ACCOUNT_TYPE_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgCpsRoleAccountTypeAlreadyExists,
+		Type:       "error"}
 
 	ErrorCPSRoleNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_CPS_ROLE_NAME_ALREADY_EXISTS",
