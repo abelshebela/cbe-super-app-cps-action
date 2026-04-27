@@ -91,6 +91,7 @@ func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction
 
 // CreateAccessListSegmentation implements service.AccessListSegmentationService.
 func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context.Context, req access_list_segmentation_dto.CreateAccessListSegmentationRequest) error {
+	a.logger.Infof("[AccessListSegSvc][Create] segment id: %s, type: %s", req.SegmentationID, req.Type)
 	var requestAction string
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
@@ -120,7 +121,10 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 		}
 		requestAction = string(constants.RequestAccessListDisableCustomerSegmentation)
 
+		a.logger.Infof("*************************inside block")
 	} else {
+		a.logger.Infof("*************************inside account")
+
 		// add checks for
 		// 1. if the passed segment code is valid
 		// 2. if service id and segment code combination already exists
