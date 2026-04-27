@@ -751,10 +751,7 @@ WHERE css.SUPERAPP_ROLE_ID = HEXTORAW(:1)
 	return r.fillAggregateBySuperAppRoleID(ctx, id, dh)
 }
 
-func (r *customerStorage) FindAllWithPagination(
-	ctx context.Context,
-	filterParam types.Filter,
-) (*types.PaginatedResponse[[]imodel.CustomerSegmentation], error) {
+func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerSegmentation], error) {
 
 	// ----------------------------
 	// Pagination
@@ -848,7 +845,7 @@ SELECT
   sar.ROLE_CODE,
   sar.DESCRIPTION,
 
-  sar.IS_ENABLED,
+  cs.IS_ENABLED,
   sar.IS_DELETED,
 
   sar.CREATED_AT,
