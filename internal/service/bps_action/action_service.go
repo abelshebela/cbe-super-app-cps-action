@@ -215,7 +215,7 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 
 func (ba *bpsActionService) ApproveBPSAction(ctx context.Context, action *bps_model.BPSAction) error {
 
-	ctx, span := lobal_util.TraceLogger(ctx, "service", "ApproveCPSAction", "CPSAction", "ApproveCPSAction")
+	ctx, span := lobal_util.TraceLogger(ctx, "service", "ApproveBPSAction", "BPSAction", "ApproveBPSAction")
 
 	defer span.End()
 

@@ -35,7 +35,7 @@ func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction
 	a.logger.Infof("[AccessListSegSvc][Authorize] id: %s", cpsAction.ID.Hex())
 
 	switch cpsAction.RequestAction {
-	case string(constants.RequestEnableAccessListSegmentation), string(constants.RequestAccessListEnableCustomerSegmentation):
+	case string(constants.RequestDisableAccessListSegmentation), string(constants.RequestAccessListDisableCustomerSegmentation):
 		action, err := local_util.JsonUnmarshal[access_list_segmentation_dto.CreateAccessListSegmentationRequest](cpsAction.CurrentAction)
 		if err != nil {
 			a.logger.Errorf("[AccessListSegSvc][Authorize] unmarshal err: %v", err)
@@ -70,7 +70,7 @@ func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction
 			a.logger.Errorf("[AccessListSegSvc][Authorize] update err: %v", err)
 			return nil, err
 		}
-	case string(constants.RequestEnableDisableAccessListSegmentation), string(constants.RequestDisableAccessListSegmentation), string(constants.RequestAccessListDisableCustomerSegmentation):
+	case string(constants.RequestEnableDisableAccessListSegmentation), string(constants.RequestEnableAccessListSegmentation), string(constants.RequestAccessListEnableCustomerSegmentation):
 		bulkDisable, err := local_util.JsonUnmarshal[access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest](cpsAction.CurrentAction)
 		if err != nil {
 			a.logger.Errorf("[AccessListSegSvc][Authorize] unmarshal enable/disable err: %v", err)
@@ -118,7 +118,7 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 			a.logger.Errorf("[AccessListSegSvc][Create] check IDs err: %v", err)
 			return err
 		}
-		requestAction = string(constants.RequestEnableAccessListSegmentation)
+		requestAction = string(constants.RequestDisableAccessListSegmentation)
 
 	} else {
 		// add checks for
@@ -134,7 +134,7 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 			a.logger.Errorf("[AccessListSegSvc][Create] seg+key exists: %v", err)
 			return errors.New(localization.ErrorAccessListSegmentationNameAlreadyExists.Code)
 		}
-		requestAction = string(constants.RequestAccessListEnableCustomerSegmentation)
+		requestAction = string(constants.RequestAccessListDisableCustomerSegmentation)
 
 	}
 	cpsAction := lib.CpsModelBuilder("", makerData, nil, req, requestAction, constants.CREATE)
@@ -160,16 +160,16 @@ func (a *AccessListSegmentationService) EnableDisableAccessListSegmentation(ctx 
 		accessListSegmentation, err = a.repo.FindAllByBlockAndKeys(ctx, id, keys)
 
 		if enabled {
-			requestAction = string(constants.RequestEnableAccessListSegmentation)
+			requestAction = string(constants.RequestAccessListEnableCustomerSegmentation)
 		} else {
-			requestAction = string(constants.RequestDisableAccessListSegmentation)
+			requestAction = string(constants.RequestAccessListDisableCustomerSegmentation)
 		}
 	} else if segmentation_type == "account" {
 		accessListSegmentation, err = a.repo.FindAllByAccountAndKeys(ctx, id, keys)
 		if enabled {
-			requestAction = string(constants.RequestAccessListEnableCustomerSegmentation)
+			requestAction = string(constants.RequestEnableCustomerSegmentation)
 		} else {
-			requestAction = string(constants.RequestAccessListDisableCustomerSegmentation)
+			requestAction = string(constants.RequestDisableCustomerSegmentation)
 		}
 	} else {
 		a.logger.Errorf("[AccessListSegSvc][EnableDisable] invalid segmentation type: %s", segmentation_type)
