@@ -118,7 +118,7 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 			a.logger.Errorf("[AccessListSegSvc][Create] check IDs err: %v", err)
 			return err
 		}
-		requestAction = string(constants.RequestDisableAccessListSegmentation)
+		requestAction = string(constants.RequestAccessListDisableCustomerSegmentation)
 
 	} else {
 		// add checks for
@@ -134,7 +134,7 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 			a.logger.Errorf("[AccessListSegSvc][Create] seg+key exists: %v", err)
 			return errors.New(localization.ErrorAccessListSegmentationNameAlreadyExists.Code)
 		}
-		requestAction = string(constants.RequestAccessListDisableCustomerSegmentation)
+		requestAction = string(constants.RequestDisableAccessListSegmentation)
 
 	}
 	cpsAction := lib.CpsModelBuilder("", makerData, nil, req, requestAction, constants.CREATE)

@@ -554,11 +554,12 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestEnableBranches:  {},
 	RequestDisableBranches: {},
 
-	RequestCreateCustomerSegmentation:  {},
-	RequestUpdateCustomerSegmentation:  {},
-	RequestEnableCustomerSegmentation:  {},
-	RequestDisableCustomerSegmentation: {},
-	RequestDeleteCustomerSegmentation:  {},
+	RequestCreateCustomerSegmentation:    {},
+	RequestUpdateCustomerSegmentation:    {},
+	RequestDisableAccessListSegmentation: {},
+	RequestEnableCustomerSegmentation:    {},
+	RequestDisableCustomerSegmentation:   {},
+	RequestDeleteCustomerSegmentation:    {},
 
 	RequestAccessListCreateCustomerSegmentation:  {},
 	RequestAccessListUpdateCustomerSegmentation:  {},
