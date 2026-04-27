@@ -1184,7 +1184,7 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestDeleteCustomerSegmentation,
 	},
 	"ACCESSLISTCUSTOMERSEGMENT": {
-		// "CUSTOMERSEGMENTATIONS": {
+		// "CUSTOMERSEGMENTATIONS": {RequestEnableAccessListSegmentation
 		// RequestAccessListCreateCustomerSegmentation,
 		RequestAccessListUpdateCustomerSegmentation,
 		RequestAccessListEnableCustomerSegmentation,
