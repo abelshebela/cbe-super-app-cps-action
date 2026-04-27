@@ -889,6 +889,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 			&listID,
 			&item.ServiceName,
 			&item.ServiceKey,
+			&item.AccountType,
 			&item.IsEnabled,
 			&item.CreatedAt,
 			&item.LastModifiedAt,
@@ -908,7 +909,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 
 func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*imodel.ServiceKey, error) {
 	const q = `
-SELECT RAWTOHEX(id), name, service_key, is_enabled, created_at, last_modified_at
+SELECT RAWTOHEX(id), name, service_key, account_type, is_enabled, created_at, last_modified_at
 FROM access_lists
 WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 
@@ -918,6 +919,7 @@ WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 		&listID,
 		&item.ServiceName,
 		&item.ServiceKey,
+		&item.AccountType,
 		&item.IsEnabled,
 		&item.CreatedAt,
 		&item.LastModifiedAt,
