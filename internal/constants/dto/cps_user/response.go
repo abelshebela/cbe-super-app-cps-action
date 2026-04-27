@@ -114,33 +114,35 @@ type RoleResponse struct {
 }
 
 type CpsUserPopulatedResponse struct {
-	ID                 bson.ObjectID             `json:"id" bson:"_id"` // use primitive.ObjectID instead of bson.ObjectID
-	UserCode           string                    `json:"user_code" bson:"user_code"`
-	FullName           string                    `json:"full_name" bson:"full_name"`
-	Role               RoleResponse              `json:"role,omitempty" bson:"role"` // optional, can keep empty
-	RoleCode           string                    `json:"role_code" bson:"role_code"`
-	Department         *DepartmentResponse       `json:"department" bson:"department"` // populated via $lookup
-	JobTitle           string                    `json:"job_title" bson:"job_title"`
-	Gender             string                    `json:"gender" bson:"gender"`
-	PhoneNumber        string                    `json:"phone_number" bson:"phone_number"`
-	Email              string                    `json:"email" bson:"email"`
-	UserName           string                    `json:"username,omitempty" bson:"username"` // optional
-	Realm              string                    `json:"realm" bson:"realm"`
-	Enabled            bool                      `json:"enabled" bson:"enabled"`
-	DateJoined         time.Time                 `json:"date_joined" bson:"date_joined"`
-	LastModified       time.Time                 `json:"last_modified" bson:"last_modified"`
-	Country            string                    `json:"country,omitempty" bson:"country"`                     // optional
-	Region             string                    `json:"region,omitempty" bson:"region"`                       // optional
-	PortalCards        []string                  `json:"portal_cards" bson:"portal_cards"`                     // top-level from job_roles
-	PermissionGroups   []PermissionGroupResponse `json:"permission_groups,omitempty" bson:"permission_groups"` // optional
-	PermissionCategory any                       `json:"permission_category,omitempty" bson:"permission_category"`
-	MakerAllocations   []string                  `json:"maker_allocations" example:"[\"Action1\", \"Action2\"]"`
-	CheckerAllocations []string                  `json:"checker_allocations" example:"[[\"Action1_Checker1\", \"Action1_Checker2\"], [\"Action2_Checker1\"]]"`
-	AuditorAllocations []string                  `json:"auditor_allocations" example:"[\"Action1\", \"Action2\"]"`
-	LastLogin          time.Time                 `json:"last_login" bson:"last_login"` // optional
-	PasswordDisable    bool                      `json:"password_disable" bson:"password_disable"`
-	IsFirstTimeLogin   bool                      `json:"is_first_time_login" bson:"is_first_time_login"`
-	CreatedAt          time.Time                 `json:"created_at" bson:"created_at"`
+	ID                    bson.ObjectID             `json:"id" bson:"_id"` // use primitive.ObjectID instead of bson.ObjectID
+	UserCode              string                    `json:"user_code" bson:"user_code"`
+	FullName              string                    `json:"full_name" bson:"full_name"`
+	Role                  RoleResponse              `json:"role,omitempty" bson:"role"` // optional, can keep empty
+	RoleCode              string                    `json:"role_code" bson:"role_code"`
+	Department            *DepartmentResponse       `json:"department" bson:"department"` // populated via $lookup
+	JobTitle              string                    `json:"job_title" bson:"job_title"`
+	Gender                string                    `json:"gender" bson:"gender"`
+	PhoneNumber           string                    `json:"phone_number" bson:"phone_number"`
+	Email                 string                    `json:"email" bson:"email"`
+	UserName              string                    `json:"username,omitempty" bson:"username"` // optional
+	Realm                 string                    `json:"realm" bson:"realm"`
+	Enabled               bool                      `json:"enabled" bson:"enabled"`
+	DateJoined            time.Time                 `json:"date_joined" bson:"date_joined"`
+	LastModified          time.Time                 `json:"last_modified" bson:"last_modified"`
+	Country               string                    `json:"country,omitempty" bson:"country"`                     // optional
+	Region                string                    `json:"region,omitempty" bson:"region"`                       // optional
+	PortalCards           []string                  `json:"portal_cards" bson:"portal_cards"`                     // top-level from job_roles
+	PermissionGroups      []PermissionGroupResponse `json:"permission_groups,omitempty" bson:"permission_groups"` // optional
+	PermissionCategory    any                       `json:"permission_category,omitempty" bson:"permission_category"`
+	MakerAllocations      []string                  `json:"maker_allocations" example:"[\"Action1\", \"Action2\"]"`
+	CheckerAllocations    []string                  `json:"checker_allocations" example:"[[\"Action1_Checker1\", \"Action1_Checker2\"], [\"Action2_Checker1\"]]"`
+	AuditorAllocations    []string                  `json:"auditor_allocations" example:"[\"Action1\", \"Action2\"]"`
+	BpsCheckerAllocations []string                  `json:"bps_checker_allocations" example:"[\"Action1\", \"Action2\"]"`
+	BpsAuditorAllocations []string                  `json:"bps_auditor_allocations" example:"[\"Action1\", \"Action2\"]"`
+	LastLogin             time.Time                 `json:"last_login" bson:"last_login"` // optional
+	PasswordDisable       bool                      `json:"password_disable" bson:"password_disable"`
+	IsFirstTimeLogin      bool                      `json:"is_first_time_login" bson:"is_first_time_login"`
+	CreatedAt             time.Time                 `json:"created_at" bson:"created_at"`
 }
 
 type Department struct {
