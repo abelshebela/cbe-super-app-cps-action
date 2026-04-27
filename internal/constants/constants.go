@@ -976,11 +976,11 @@ const (
 	RequestAccessListDeleteCustomerSegmentation  RequestAction = "DELETE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
 
 	// Access List Segmentation
-	RequestCreateAccessListSegmentation        RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC"
-	RequestUpdateAccessListSegmentation        RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC"
-	RequestEnableDisableAccessListSegmentation RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC"
-	RequestEnableAccessListSegmentation        RequestAction = "ENABLE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC"
-	RequestDisableAccessListSegmentation       RequestAction = "DISABLE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC"
+	RequestCreateAccessListSegmentation        RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
+	RequestUpdateAccessListSegmentation        RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
+	RequestEnableDisableAccessListSegmentation RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
+	RequestEnableAccessListSegmentation        RequestAction = "ENABLE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
+	RequestDisableAccessListSegmentation       RequestAction = "DISABLE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
 
 	// CPS Role
 	RequestCreateCpsRole  RequestAction = "CREATE_CPS_ROLE"
