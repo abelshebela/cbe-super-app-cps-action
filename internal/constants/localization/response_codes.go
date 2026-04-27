@@ -779,6 +779,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCpsActionRoleNotFound,
 	ErrorRoleNotFound,
 	ErrorUsedRoleExisting,
+	ErrorUsedRoleCodeExisting,
+	ErrorUsedRoleNameExisting,
 	ErrorRoleIDMissing,
 
 	// transaction related responses
@@ -7581,15 +7583,13 @@ var (
 		StatusCode: StatusBadRequest,
 		Message:    MsgBranchCodeRequired,
 		Type:       "error",
-	} 
+	}
 	ErrorBranchNotFoundRequired = ResponseCode{
 		Code:       "ERROR_BRANCH_CODE_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgBranchNotFoundByCode,
 		Type:       "error",
 	}
-
-	
 
 	ErrorBranchAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_BRANCH_ALREADY_ENABLED",
