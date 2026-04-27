@@ -864,6 +864,7 @@ SELECT
   RAWTOHEX(id),
   name,
   service_key,
+  account_type,
   is_enabled,
   created_at,
   last_modified_at
