@@ -100,19 +100,21 @@ func (m *LogisticsMerchantRepository) Delete(ctx context.Context, id string) err
 	return nil
 }
 
-func (m *LogisticsMerchantRepository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
-		return errors.New(localization.ErrorInvalidID.Code)
-	}
+func (m *LogisticsMerchantRepository) EnableOrDisable(ctx context.Context, ids []string, enable bool) error {
+	for _, id := range ids {
+		objID, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+			return errors.New(localization.ErrorInvalidID.Code)
+		}
 
-	filter := bson.M{"_id": objID, "is_deleted": false}
-	update := bson.M{"enabled": enable, "updated_at": time.Now()}
+		filter := bson.M{"_id": objID, "is_deleted": false}
+		update := bson.M{"enabled": enable, "updated_at": time.Now()}
 
-	_, err = m.dal.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return local_util.HandleDBError(err)
+		_, err = m.dal.UpdateOne(ctx, filter, update)
+		if err != nil {
+			return local_util.HandleDBError(err)
+		}
 	}
 	return nil
 }

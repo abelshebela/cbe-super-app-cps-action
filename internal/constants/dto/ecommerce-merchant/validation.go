@@ -217,3 +217,16 @@ func (r UpdateEcommerceMerchant) ValidateUpdate() error {
 		),
 	)
 }
+
+func (r EnableOrDisableMerchantsRequest) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.MerchantIDs,
+			validation.Required,
+			validation.Length(1, 0),
+			validation.Each(
+				validation.Required,
+				validation.By(utils.TrimWhiteSpace),
+			),
+		),
+	)
+}

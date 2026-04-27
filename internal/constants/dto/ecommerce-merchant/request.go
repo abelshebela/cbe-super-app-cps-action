@@ -26,6 +26,10 @@ type UpdateEcommerceMerchant struct {
 	// IsEcommerceMerchant *bool               `json:"is_ecommerce_merchant"`
 }
 
+type EnableOrDisableMerchantsRequest struct {
+	MerchantIDs []string `json:"merchant_ids"`
+}
+
 type KYCDTO struct {
 	Status         string            `json:"status"`
 	Representative RepresentativeDTO `json:"representative"`
