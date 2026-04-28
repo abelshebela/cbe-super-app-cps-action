@@ -69,9 +69,11 @@ type UpdateServiceRequest struct {
 type CreateServiceList struct {
 	ServiceName string `json:"service_name" example:"Transfer To Other bank"`
 	ServiceKey  string `json:"service_key" example:"CBE"`
+	AccountType string `json:"account_type" example:"BOTH"`
 }
 
 type UpdateServiceList struct {
 	ServiceName string `json:"service_name" example:"Transfer To Other bank"`
 	ServiceKey  string `json:"service_key" example:"CBE"`
+	AccountType string `json:"account_type" example:"CBE"`
 }
