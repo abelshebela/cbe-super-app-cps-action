@@ -28,6 +28,7 @@ import (
 	// bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	bps_model "cbe-super-app-cps-action/internal/constants/model"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -61,9 +62,10 @@ type bpsActionService struct {
 	logger utils.Logger
 
 	dispatcher Dispatcher
+	cfg        config.VaultConfig
 }
 
-func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, logger utils.Logger, dispatcher Dispatcher) service.BPSActionService {
+func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, logger utils.Logger, dispatcher Dispatcher, cfg config.VaultConfig) service.BPSActionService {
 
 	return &bpsActionService{
 
@@ -76,6 +78,7 @@ func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPS
 		customerRepo: customerRepo,
 
 		dispatcher: dispatcher,
+		cfg:        cfg,
 	}
 
 }
@@ -134,7 +137,7 @@ func (ba *bpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 
 	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, RoleCode: rawRoleID, UserData: userData}
 
-	if err := producer.PublishMessage(ctx, payload, "bps.auditor.claim", constants.BPSAuditorClaimTopic, "BPS_AUDITOR_CLAIM"); err != nil {
+	if err := producer.PublishMessage(ctx, payload, "bps.auditor.claim", constants.BPSApproveTopic, "BPS_AUDITOR_CLAIM"); err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -181,7 +184,7 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, AuditorStatus: string(auditor.AuditorMark), RoleCode: rawRoleID, UserData: userData, Reason: auditor.AuditorReason}
 
 	ba.logger.Infof("[BpsActionSvc][AuditorMark] payload: %+v", payload)
-	if err := producer.PublishMessage(ctx, payload, "bps.auditor.mark", constants.BPSAuditorMarkTopic, "BPS_AUDITOR_MARK"); err != nil {
+	if err := producer.PublishMessage(ctx, payload, constants.BPSApproveTopic, ba.cfg.ACIAATMBlockUnBlockUpdateCode1, "BPS_AUDITOR_MARK"); err != nil {
 
 		span.AddEvent("failed to publish bps auditor mark", trace.WithAttributes(attribute.String("error", err.Error())))
 		ba.logger.Errorf("[BpsActionSvc][AuditorMark] failed to publish bps auditor mark: %v", err)
@@ -285,7 +288,7 @@ func (ba *bpsActionService) RejectBPSAction(ctx context.Context, action_code str
 
 	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, RoleCode: rawRoleID, UserData: userData, Reason: reason}
 	ba.logger.Infof("[BPSAction][RejectBPSAction] payload: %+v", payload)
-	if err := producer.PublishMessage(ctx, payload, "bps.reject", constants.BPSRejectTopic, "BPS_REJECT"); err != nil {
+	if err := producer.PublishMessage(ctx, payload, "bps.reject", constants.BPSApproveTopic, "BPS_REJECT"); err != nil {
 
 		span.AddEvent("failed to publish bps reject", trace.WithAttributes(attribute.String("error", err.Error())))
 
