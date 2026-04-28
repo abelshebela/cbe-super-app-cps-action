@@ -210,7 +210,6 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	secured.Group(func(r chi.Router) {
 		// Auth first
 		r.Use(authMiddleware.AuthenticateToken)
-
 		// Global role validation - only allow viewer, maker, checker, auditor roles
 		// r.Use(authMiddleware.ValidateRequiredRoles)
 
