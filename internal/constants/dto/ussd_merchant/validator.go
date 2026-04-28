@@ -2,6 +2,7 @@ package ussd_merchant_dto
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"cbe-super-app-cps-action/internal/constants"
@@ -81,7 +82,6 @@ func (r CreateUssdMerchantRequest) Validate() error {
 func (r UpdateUssdMerchantRequest) Validate() error {
 	errs := validation.Errors{}
 
-	// When settlement method or account number is provided, enforce the conditional
 	if r.SettlementMethod != "" || r.AccountNumber != "" {
 
 		if err := validation.Validate(
@@ -100,7 +100,27 @@ func (r UpdateUssdMerchantRequest) Validate() error {
 
 	}
 
-	// Optional email validation when provided
+	if r.Name != "" {
+		if err := validation.Validate(r.Name, validation.By(utils.NoSpecialChars), validation.Length(1, 50)); err != nil {
+			return fmt.Errorf("invalid name: %v", err)
+		}
+	}
+	if r.PhoneNumber != "" {
+		if err := validation.Validate(r.PhoneNumber, validation.By(utils.NoSpecialChars)); err != nil {
+			return err
+		}
+	}
+	if r.Service != "" {
+		if err := validation.Validate(r.Service, validation.By(utils.NoSpecialChars)); err != nil {
+			return fmt.Errorf("invalid service: %v", err)
+		}
+	}
+	if r.AccountNumber != "" {
+		if err := validation.Validate(r.AccountNumber, validation.By(utils.NoSpecialChars)); err != nil {
+			return fmt.Errorf("invalid account number: %v", err)
+		}
+	}
+
 	if r.Email != "" {
 		if err := validation.Validate(r.Email, validation.By(func(value interface{}) error {
 			s, _ := value.(string)
@@ -109,7 +129,7 @@ func (r UpdateUssdMerchantRequest) Validate() error {
 			}
 			return nil
 		})); err != nil {
-			errs["email"] = err
+			errs["email"] = fmt.Errorf("invalid email: %v", err)
 		}
 	}
 
