@@ -25,6 +25,7 @@ import (
 	cps_auth "cbe-super-app-cps-action/grpc/auth/proto"
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 )
 
@@ -116,13 +117,19 @@ type UserPayload struct {
 }
 
 type authMiddleware struct {
-	client          cps_auth.CpsAuthServiceClient
-	logger          utils.Logger
-	JWTSecretKey    string
-	Key             string
-	IV              string
-	cfg             config.VaultConfig
-	redisRepository storage.RedisRepository
+	client           cps_auth.CpsAuthServiceClient
+	logger           utils.Logger
+	JWTSecretKey     string
+	Key              string
+	IV               string
+	cfg              config.VaultConfig
+	redisRepository  storage.RedisRepository
+	approveIndexRepo CPSActionApproveIndexRepository
+}
+
+// CPSActionApproveIndexRepository interface for role validation
+type CPSActionApproveIndexRepository interface {
+	FindByRoleAndAction(ctx context.Context, roleID string, actionName string, version int64) (*model.CPSActionApproveIndex, error)
 }
 
 type AuthMiddleware interface {
@@ -131,17 +138,19 @@ type AuthMiddleware interface {
 	AuthenticateTokenOrMerchantIntegrationAPIKey(next http.Handler) http.Handler
 	AuthenticateTempToken(next http.Handler) http.Handler
 	RequireFormContentType() func(http.Handler) http.Handler
+	ValidateRequiredRoles(next http.Handler) http.Handler
 }
 
-func InitAuthMiddleware(client cps_auth.CpsAuthServiceClient, redisRepository storage.RedisRepository, secretKey, key, iv string, cfg config.VaultConfig, logger utils.Logger) AuthMiddleware {
+func InitAuthMiddleware(client cps_auth.CpsAuthServiceClient, redisRepository storage.RedisRepository, approveIndexRepo CPSActionApproveIndexRepository, secretKey, key, iv string, cfg config.VaultConfig, logger utils.Logger) AuthMiddleware {
 	return &authMiddleware{
-		client:          client,
-		redisRepository: redisRepository,
-		JWTSecretKey:    secretKey,
-		Key:             key,
-		IV:              iv,
-		cfg:             cfg,
-		logger:          logger,
+		client:           client,
+		redisRepository:  redisRepository,
+		approveIndexRepo: approveIndexRepo,
+		JWTSecretKey:     secretKey,
+		Key:              key,
+		IV:               iv,
+		cfg:              cfg,
+		logger:           logger,
 	}
 }
 
@@ -332,98 +341,6 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 	})
 }
 
-// func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		w.Header().Set("Access-Control-Expose-Headers", "X-Refreshed-Token")
-// 		authHeader := r.Header.Get("Authorization")
-// 		bearer := "Bearer "
-// 		if !strings.HasPrefix(authHeader, bearer) {
-// 			a.logger.Warnf("bearer token is not present")
-// 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
-// 			return
-// 		}
-// 		tokenString := authHeader[len(bearer):]
-// 		if tokenString == "" {
-// 			a.logger.Warnf("empty token string provided")
-// 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
-// 			return
-// 		}
-// 		data, err := a.validateToken(r.Context(), tokenString)
-// 		if err != nil {
-// 			localization.SendErrorResponse(w, localization.ErrorInvalidToken, nil, nil)
-// 			return
-// 		}
-// 		userPayload, err := a.extractUserPayload(r.Context(), data)
-// 		if err != nil {
-// 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
-// 			return
-// 		}
-// 		ctx := a.setUserPayload(r.Context(), userPayload)
-// 		now := time.Now().Unix()
-// 		remainTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutesRemain)
-// 		if err != nil || remainTime == 0 {
-// 			remainTime = 120
-// 		} else {
-// 			remainTime *= 60
-// 		}
-// 		AccessTokenExpireTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutes)
-// 		if err != nil || AccessTokenExpireTime == 0 {
-// 			AccessTokenExpireTime = 15 * 60
-// 		} else {
-// 			AccessTokenExpireTime *= 60
-// 		}
-// 		deviceID, err := a.redisRepository.Get(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID))
-// 		if err != nil {
-// 			if errors.Is(err, redis.Nil) {
-// 				a.logger.Warnf("device id not found in redis: %v", err)
-// 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
-// 				return
-// 			}
-// 			// If redis is down or cannot be read, log and continue
-// 			a.logger.Warnf("redis error (continuing): %v", err)
-// 		}
-// 		deviceID = strings.Trim(deviceID, "\"")
-// 		if deviceID != "" && deviceID != userPayload.DeviceID {
-// 			if err := a.redisRepository.Set(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID), uuid.New().String(), time.Duration(AccessTokenExpireTime)); err != nil {
-// 				a.logger.Warnf("failed to set device id in redis for user %s: %v", userPayload.UserID, err)
-// 			} else {
-// 				a.logger.Infof("device id updated in redis for user %s", userPayload.UserID)
-// 			}
-// 		} else if userPayload.SessionExp != 0 {
-// 			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now, userPayload.SessionExp-now)
-// 			if userPayload.SessionExp <= now {
-// 				a.logger.Warnf("session has expired")
-// 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
-// 				return
-// 			} else if userPayload.SessionExp-now < int64(remainTime) {
-// 				// Less than 1 minute left, refresh token
-// 				a.logger.Infof("session expiring soon, refreshing token, remaining_time_from_env in %d remaining time from subtraction from user expiration time %d", remainTime, userPayload.SessionExp-now)
-// 				// Inject Bearer token and user_id from context into gRPC metadata
-// 				md := metadata.New(map[string]string{
-// 					"authorization": "Bearer " + tokenString,
-// 				})
-// 				ctxWithAuth := metadata.NewOutgoingContext(ctx, md)
-// 				refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
-// 				if err != nil {
-// 					a.logger.Errorf("failed to refresh token: %v", err)
-// 				}
-// 				if refresh_response != nil {
-// 					a.logger.Infof("token refreshed successfully, setting X-Refreshed-Token header")
-// 					w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
-// 				} else {
-// 					a.logger.Errorf("refresh token response from grpc is nil")
-// 				}
-// 			}
-// 		} else {
-// 			a.logger.Errorf("unauthorized access device_id_from_redis%s device_id_from_payload:%s user_expiration_session:%s remaining_time_from_env:%d", deviceID, userPayload.DeviceID, userPayload.SessionExp, remainTime)
-// 			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
-// 			return
-// 		}
-// 		r = r.WithContext(ctx)
-// 		next.ServeHTTP(w, r)
-// 	})
-// }
-
 func (a *authMiddleware) validateToken(ctx context.Context, tokenString string) (string, error) {
 	jwtSecret := []byte(a.JWTSecretKey)
 
@@ -570,4 +487,166 @@ func (a *authMiddleware) AuthenticateServiceAPIKey(next http.Handler) http.Handl
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+// ValidateRequiredRoles validates that the user has at least one of the required roles (viewer, maker, checker, auditor)
+// by checking if the role_code exists in cps_action_approver_index with any approval index
+func (a *authMiddleware) ValidateRequiredRoles(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Get role_code from context (this is the actual role ID from the token)
+		roleCode, ok := r.Context().Value(constants.ContextKey("role_code")).(string)
+		if !ok || strings.TrimSpace(roleCode) == "" {
+			a.logger.Warnf("[AuthMW][ValidateRequiredRoles] role_code not found in context")
+			WriteJSONResponse(w, http.StatusForbidden, "Unauthorized access: User role not found", nil)
+			return
+		}
+
+		// Check if role exists in cps_action_approver_index with any approval index based on the request path
+		ctx := r.Context()
+		hasValidRole, err := a.validateRoleInApproverIndexWithRequest(ctx, roleCode, r)
+		if err != nil {
+			a.logger.Errorf("[AuthMW][ValidateRequiredRoles] error validating role in approver index: %v", err)
+			WriteJSONResponse(w, http.StatusInternalServerError, "Error validating user permissions", nil)
+			return
+		}
+
+		if !hasValidRole {
+			a.logger.Warnf("[AuthMW][ValidateRequiredRoles] unauthorized access attempt for role_code: %s on %s %s", roleCode, r.Method, r.URL.Path)
+			WriteJSONResponse(w, http.StatusForbidden, "Unauthorized access: Insufficient permissions", nil)
+			return
+		}
+
+		a.logger.Infof("[AuthMW][ValidateRequiredRoles] access granted for role_code: %s on %s %s", roleCode, r.Method, r.URL.Path)
+		next.ServeHTTP(w, r)
+	})
+}
+
+// validateRoleInApproverIndexWithRequest checks if the role_code exists in cps_action_approver_index
+// with any of the required indices (viewer_index, maker_index, checker_index, auditor_index)
+// based on the actual request path and method
+func (a *authMiddleware) validateRoleInApproverIndexWithRequest(ctx context.Context, roleCode string, r *http.Request) (bool, error) {
+	// Get the repository using the same approach as cps_action_handler
+	repo := GetCPSActionApproveRepo()
+	if repo == nil {
+		a.logger.Warnf("[AuthMW][ValidateRequiredRoles] CPSActionApproveRepo is nil, using fallback validation")
+		return a.fallbackRoleValidation(roleCode), nil
+	}
+
+	// Get action name from the request path using the action registry
+	actionName := GetActionNameFromPath(r.Method, r.URL.Path)
+	if actionName == "" {
+		a.logger.Warnf("[AuthMW][ValidateRequiredRoles] no action name found for path %s %s, trying common actions", r.Method, r.URL.Path)
+
+		// Fallback to checking common action names
+		commonActions := []string{"CPS_ACTION", "BPS_ACTION", "ACCOUNT_BLOCK", "USER_MANAGEMENT", "CUSTOMER_MANAGEMENT"}
+
+		for _, actionName := range commonActions {
+			// Use version 1 as a default (most systems use version 1)
+			result, err := repo.FindByRoleAndAction(ctx, roleCode, actionName, 1)
+			if err != nil {
+				a.logger.Warnf("[AuthMW][ValidateRequiredRoles] error checking role %s for action %s: %v", roleCode, actionName, err)
+				continue
+			}
+
+			if result != nil {
+				// Check if the role has any of the required indices (viewer, maker, checker, auditor)
+				if result.ViewerIndex != nil || result.MakerIndex != nil ||
+					result.CheckerIndex != nil || result.AuditorIndex != nil {
+					a.logger.Infof("[AuthMW][ValidateRequiredRoles] role %s found with approval index for action %s", roleCode, actionName)
+					return true, nil
+				}
+			}
+		}
+
+		// If no indices found for common actions, try fallback validation
+		a.logger.Warnf("[AuthMW][ValidateRequiredRoles] no approval indices found for role %s, trying fallback validation", roleCode)
+		return a.fallbackRoleValidation(roleCode), nil
+	}
+
+	// Use version 1 as a default (most systems use version 1)
+	result, err := repo.FindByRoleAndAction(ctx, roleCode, actionName, 1)
+	if err != nil {
+		a.logger.Warnf("[AuthMW][ValidateRequiredRoles] error checking role %s for action %s: %v", roleCode, actionName, err)
+		return a.fallbackRoleValidation(roleCode), nil
+	}
+
+	if result != nil {
+		// Check if the role has any of the required indices (viewer, maker, checker, auditor)
+		if result.ViewerIndex != nil || result.MakerIndex != nil ||
+			result.CheckerIndex != nil || result.AuditorIndex != nil {
+			a.logger.Infof("[AuthMW][ValidateRequiredRoles] role %s found with approval index for action %s", roleCode, actionName)
+			return true, nil
+		}
+	}
+
+	// If no indices found for this specific action, try fallback validation
+	a.logger.Warnf("[AuthMW][ValidateRequiredRoles] no approval indices found for role %s for action %s, trying fallback validation", roleCode, actionName)
+	return a.fallbackRoleValidation(roleCode), nil
+}
+
+// validateRoleInApproverIndex checks if the role_code exists in cps_action_approver_index
+// with any of the required indices (viewer_index, maker_index, checker_index, auditor_index)
+func (a *authMiddleware) validateRoleInApproverIndex(ctx context.Context, roleCode string) (bool, error) {
+	// Get the repository using the same approach as cps_action_handler
+	repo := GetCPSActionApproveRepo()
+	if repo == nil {
+		a.logger.Warnf("[AuthMW][ValidateRequiredRoles] CPSActionApproveRepo is nil, using fallback validation")
+		return a.fallbackRoleValidation(roleCode), nil
+	}
+
+	// Check a few common action names to see if the role has any approval indices
+	// These are typical action modules that would have viewer, maker, checker, auditor roles
+	commonActions := []string{"CPS_ACTION", "BPS_ACTION", "ACCOUNT_BLOCK", "USER_MANAGEMENT", "CUSTOMER_MANAGEMENT"}
+
+	for _, actionName := range commonActions {
+		// Use version 1 as a default (most systems use version 1)
+		result, err := repo.FindByRoleAndAction(ctx, roleCode, actionName, 1)
+		if err != nil {
+			a.logger.Warnf("[AuthMW][ValidateRequiredRoles] error checking role %s for action %s: %v", roleCode, actionName, err)
+			continue
+		}
+
+		if result != nil {
+			// Check if the role has any of the required indices (viewer, maker, checker, auditor)
+			if result.ViewerIndex != nil || result.MakerIndex != nil ||
+				result.CheckerIndex != nil || result.AuditorIndex != nil {
+				a.logger.Infof("[AuthMW][ValidateRequiredRoles] role %s found with approval index for action %s", roleCode, actionName)
+				return true, nil
+			}
+		}
+	}
+
+	// If no indices found for common actions, try fallback validation
+	a.logger.Warnf("[AuthMW][ValidateRequiredRoles] no approval indices found for role %s, trying fallback validation", roleCode)
+	return a.fallbackRoleValidation(roleCode), nil
+}
+
+// fallbackRoleValidation provides basic role pattern validation as a fallback
+func (a *authMiddleware) fallbackRoleValidation(roleCode string) bool {
+	// Check for role patterns that indicate viewer, maker, checker, or auditor roles
+	validRolePatterns := []string{
+		"MAKER_", "CHECKER_", "AUDITOR_", "VIEWER_",
+		"IFB_MAKER_", "IFB_CHECKER_",
+	}
+
+	roleUpper := strings.ToUpper(roleCode)
+	for _, pattern := range validRolePatterns {
+		if strings.Contains(roleUpper, pattern) {
+			return true
+		}
+	}
+
+	// Also check for exact role matches
+	exactRoles := []string{
+		constants.Maker, constants.Checker, constants.Auditor, constants.Viewer,
+		constants.IFBMaker, constants.IFBChecker,
+	}
+
+	for _, role := range exactRoles {
+		if strings.EqualFold(roleCode, role) {
+			return true
+		}
+	}
+
+	return false
 }

@@ -180,10 +180,11 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 
 	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, AuditorStatus: string(auditor.AuditorMark), RoleCode: rawRoleID, UserData: userData, Reason: auditor.AuditorReason}
 
+	ba.logger.Infof("[BpsActionSvc][AuditorMark] payload: %+v", payload)
 	if err := producer.PublishMessage(ctx, payload, "bps.auditor.mark", constants.BPSAuditorMarkTopic, "BPS_AUDITOR_MARK"); err != nil {
 
 		span.AddEvent("failed to publish bps auditor mark", trace.WithAttributes(attribute.String("error", err.Error())))
-
+		ba.logger.Errorf("[BpsActionSvc][AuditorMark] failed to publish bps auditor mark: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 
 	}
@@ -239,10 +240,12 @@ func (ba *bpsActionService) ApproveBPSAction(ctx context.Context, action *bps_mo
 
 	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, RoleCode: rawRoleID, UserData: userData}
 
+	ba.logger.Infof("[BPSAction][ApproveBPSAction] payload: %+v", payload)
 	if err := producer.PublishMessage(ctx, payload, "bps.approve", constants.BPSApproveTopic, "BPS_APPROVE"); err != nil {
 
 		span.AddEvent("failed to publish bps approve", trace.WithAttributes(attribute.String("error", err.Error())))
 
+		ba.logger.Errorf("[BPSAction][ApproveBPSAction] failed to publish bps approve: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 
 	}
@@ -261,6 +264,7 @@ func (ba *bpsActionService) RejectBPSAction(ctx context.Context, action_code str
 
 	if producer == nil {
 
+		ba.logger.Errorf("[BPSAction][RejectBPSAction] client orchestration producer is nil")
 		return errors.New(localization.ErrorUnexpectedError.Code)
 
 	}
@@ -280,11 +284,12 @@ func (ba *bpsActionService) RejectBPSAction(ctx context.Context, action_code str
 	_ = action_code
 
 	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, RoleCode: rawRoleID, UserData: userData, Reason: reason}
-
+	ba.logger.Infof("[BPSAction][RejectBPSAction] payload: %+v", payload)
 	if err := producer.PublishMessage(ctx, payload, "bps.reject", constants.BPSRejectTopic, "BPS_REJECT"); err != nil {
 
 		span.AddEvent("failed to publish bps reject", trace.WithAttributes(attribute.String("error", err.Error())))
 
+		ba.logger.Errorf("[BPSAction][RejectBPSAction] failed to publish bps reject: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 
 	}
