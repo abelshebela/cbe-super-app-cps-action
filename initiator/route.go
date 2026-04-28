@@ -27,6 +27,8 @@ import (
 	logistic_merchant_router "cbe-super-app-cps-action/internal/glue/routing/logistic_merchant"
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
 	newstag_routing "cbe-super-app-cps-action/internal/glue/routing/news_tag"
+
+	"cbe-super-app-cps-action/internal/glue/routing/services"
 	"cbe-super-app-cps-action/internal/glue/routing/transaction"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/platform/telemetry"
@@ -59,7 +61,8 @@ import (
 	// permission_details "cbe-super-app-cps-action/internal/glue/routing/permission"
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
 	roles "cbe-super-app-cps-action/internal/glue/routing/roles"
-	service "cbe-super-app-cps-action/internal/glue/routing/services"
+
+	// servicesMiddleware "cbe-super-app-cps-action/internal/glue/routing/services"
 	sitota "cbe-super-app-cps-action/internal/glue/routing/sitota"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
@@ -73,6 +76,8 @@ import (
 	sharedMiddleware "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/middleware"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.uber.org/zap"
+
+	// "google.golang.org/grpc/profiling/service"
 
 	"cbe-super-app-cps-action/docs"
 
@@ -127,7 +132,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 			logger.Errorf("Failed to write health check response", zap.Error(err))
 		}
 	})
-	authMiddleware := customeMiddleware.InitAuthMiddleware(client, redisRepository, cfg.JwtSecretKey, cfg.Key, cfg.IV, *cfg, logger)
+	authMiddleware := customeMiddleware.InitAuthMiddleware(client, redisRepository, nil, cfg.JwtSecretKey, cfg.Key, cfg.IV, *cfg, logger)
 
 	cpsaction.Init(r, handlerLayer.CpsActionHandler, authMiddleware)
 	bps_action.Init(r, handlerLayer.BpsActionHandler, authMiddleware)
@@ -153,7 +158,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	department.Init(r, &handlerLayer.DepartmentHandler, authMiddleware)
 	hqRoute.Init(r, handlerLayer.HqHandler, authMiddleware)
 	fayda.Init(r, handlerLayer.FaydaHandler, authMiddleware)
-	service.Init(r, handlerLayer.ServicesHandler, authMiddleware)
+	services.Init(r, handlerLayer.ServicesHandler, authMiddleware)
 	// permission_details.Init(r, handlerLayer.Permission, authMiddleware)
 	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
 	device_version.Init(r, handlerLayer.DeviceVersionHandler, authMiddleware)
@@ -199,6 +204,9 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	secured.Group(func(r chi.Router) {
 		// Auth first
 		r.Use(authMiddleware.AuthenticateToken)
+
+		// Global role validation - only allow viewer, maker, checker, auditor roles
+		r.Use(authMiddleware.ValidateRequiredRoles)
 
 		// CPS Action Guard
 		// // r.Use(customeMiddleware.CPSActionRouteGuard([]string{

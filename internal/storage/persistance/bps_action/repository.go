@@ -89,7 +89,7 @@ var Projection = bson.M{
 
 type bpsActionRepository struct {
 	client     *mongo.Client
-	actionDal  dal.MongoDal[bps_action.BPSAction, bps_action.BPSAction]
+	actionDal  dal.MongoDal[types.BPSActionDocument, types.BPSActionDocument]
 	collection *mongo.Collection
 	logger     utils.Logger
 }
@@ -97,7 +97,7 @@ type bpsActionRepository struct {
 func NewBPSActionRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger, cfg *config.VaultConfig) storage.BPSActionRepository {
 	return &bpsActionRepository{
 		client:     client,
-		actionDal:  dal.NewMongoDal[bps_action.BPSAction, bps_action.BPSAction](client, cfg, dbName, collection),
+		actionDal:  dal.NewMongoDal[types.BPSActionDocument, types.BPSActionDocument](client, cfg, dbName, collection),
 		collection: client.Database(dbName).Collection(collection),
 		logger:     logger,
 	}
@@ -106,19 +106,21 @@ func NewBPSActionRepository(client *mongo.Client, dbName string, collection stri
 // GetBPSActionByUserID implements [storage.BPSActionRepository].
 func (b *bpsActionRepository) GetBPSActionByUserID(ctx context.Context, userID string, filterParam types.Filter) (types.PaginatedResponse[[]bps_action.BPSAction], error) {
 	b.logger.Infof("[BPSAction][GetBPSActionByUserID] fetching BPS actions for user ID: %s", userID)
-	// objID, err := bson.ObjectIDFromHex(userID)
-	// if err != nil {
-	// 	b.logger.Errorf("[BPSAction][GetBPSActionByUserID] invalid user ID: %v", err)
-	// 	return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New(localization.ErrorInvalidID.Code)
-	// }
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, nil)
 	filter["user_information.user_code"] = userID
 
 	b.logger.Infof("[BPSAction][GetBPSActionByUserID] constructed filter: %v", filter)
-	cus, err := b.actionDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	dbActions, err := b.actionDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		b.logger.Errorf("[BPSAction][GetBPSActionByUserID] failed to fetch BPS actions: %v", err)
 		return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// Map BPSActionDocument to BPSAction entities
+	var actions []bps_action.BPSAction
+	for _, dbAction := range dbActions {
+		action := mapBpsActionToEntity(dbAction)
+		actions = append(actions, action)
 	}
 
 	filter = bson.M{"user_information.user_code": userID}
@@ -130,7 +132,7 @@ func (b *bpsActionRepository) GetBPSActionByUserID(ctx context.Context, userID s
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
 	return types.PaginatedResponse[[]bps_action.BPSAction]{
-		Data: cus,
+		Data: actions,
 		Meta: meta,
 	}, nil
 }
@@ -138,7 +140,96 @@ func (b *bpsActionRepository) GetBPSActionByUserID(ctx context.Context, userID s
 func (b *bpsActionRepository) Save(ctx context.Context, action *bps_action.BPSAction) error {
 	b.logger.Infof("[BPSAction][Save] saving BPS action")
 
-	_, err := b.actionDal.InsertOne(ctx, *action)
+	// Convert BPSAction to BPSActionDocument for storage
+	dbAction := types.BPSActionDocument{
+		ID:                bson.NewObjectID(),
+		ActionCode:        action.ActionCode,
+		IsAuditorApproved: action.IsAuditorApproved,
+		UserInformation: struct {
+			UserID         interface{} `json:"user_id" bson:"user_id"`
+			UserCode       string      `json:"user_code" bson:"user_code"`
+			FullName       string      `json:"full_name" bson:"full_name"`
+			AccountNumbers []string    `json:"account_numbers" bson:"account_numbers"`
+			PhoneNumbers   string      `json:"phone_numbers" bson:"phone_numbers"`
+			BranchCode     string      `json:"branch_code" bson:"branch_code"`
+		}{
+			UserID:         action.UserInformation.UserID,
+			UserCode:       action.UserInformation.UserCode,
+			FullName:       action.UserInformation.FullName,
+			AccountNumbers: action.UserInformation.AccountNumbers,
+			PhoneNumbers:   action.UserInformation.PhoneNumbers,
+			BranchCode:     action.UserInformation.BranchCode,
+		},
+		BusinessInformation: struct {
+			BusinessID   interface{} `json:"business_id" bson:"business_id"`
+			TILLNumber   string      `json:"till_number" bson:"till_number"`
+			BusinessName string      `json:"business_name" bson:"business_name"`
+		}{
+			BusinessID:   action.BusinessInformation.BusinessID,
+			TILLNumber:   action.BusinessInformation.TILLNumber,
+			BusinessName: action.BusinessInformation.BusinessName,
+		},
+		CheckersNeeded:     action.CheckersNeeded,
+		CheckersApproved:   action.CheckersApproved,
+		CheckerID:          action.CheckerID,
+		MakerID:            action.MakerID,
+		MakerName:          action.MakerName,
+		MakerReason:        action.MakerReason,
+		MakerPhoneNumber:   action.MakerPhoneNumber,
+		CheckerName:        action.CheckerName,
+		CheckerPhoneNumber: action.CheckerPhoneNumber,
+		ActionReason: struct {
+			ActionType string `json:"action_type" bson:"action_type"`
+			ActionNote string `json:"action_note" bson:"action_note"`
+			Identifier string `json:"identifier" bson:"identifier"`
+		}{
+			ActionType: string(action.ActionReason.ActionType),
+			ActionNote: action.ActionReason.ActionNote,
+			Identifier: action.ActionReason.Identifier,
+		},
+		MakerMID:        action.MakerMID,
+		CheckerMID:      action.CheckerMID,
+		AuditorMID:      action.AuditorMID,
+		CheckerNameList: action.CheckerNameList,
+		AuditorNameList: action.AuditorNameList,
+		Auditors: struct {
+			AuditorName        string   `json:"auditor_name" bson:"auditor_name"`
+			AuditorPhoneNumber string   `json:"auditor_phone_number" bson:"auditor_phone_number"`
+			AuditorsRequired   int      `json:"auditors_required" bson:"auditors_required"`
+			AuditorID          []string `json:"auditor_id" bson:"auditor_id"`
+			Audited            bool     `json:"audited" bson:"audited"`
+			AuditorApproval    bool     `json:"auditor_approval" bson:"auditor_approval"`
+			Reason             string   `json:"reason" bson:"reason"`
+		}{
+			AuditorName:        action.Auditors.AuditorName,
+			AuditorPhoneNumber: action.Auditors.AuditorPhoneNumber,
+			AuditorsRequired:   action.Auditors.AuditorsRequired,
+			AuditorID:          action.Auditors.AuditorID,
+			Audited:            action.Auditors.Audited,
+			AuditorApproval:    action.Auditors.AuditorApproval,
+			Reason:             action.Auditors.Reason,
+		},
+		CheckerTime:        action.CheckerTime,
+		AuditorTime:        action.AuditorTime,
+		RequestAction:      string(action.RequestAction),
+		EntityIdentifyer:   action.EntityIdentifyer,
+		HomeBranch:         action.HomeBranch,
+		AccountBranchCode:  action.AccountBranchCode,
+		DistrictCode:       action.DistrictCode,
+		BranchCode:         action.BranchCode,
+		LinkedDistrictCode: action.LinkedDistrictCode,
+		AccountNumber:      action.AccountNumber,
+		AccountHolderName:  action.AccountHolderName,
+		ServiceName:        action.ServiceName,
+		CurrentAction:      action.CurrentAction,
+		PreviousAction:     action.PreviousAction,
+		VerifiedAt:         action.VerifiedAt,
+		Status:             action.Status,
+		CreatedAt:          action.CreatedAt,
+		LastModifiedAt:     action.LastModifiedAt,
+	}
+
+	_, err := b.actionDal.InsertOne(ctx, dbAction)
 	if err != nil {
 		b.logger.Errorf("[BPSAction][Save] failed to save BPS action: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -175,10 +266,17 @@ func (b *bpsActionRepository) FindAllWithPagination(ctx context.Context, filterP
 		filter[k] = v
 	}
 
-	data, err := b.actionDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	dbActions, err := b.actionDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		b.logger.Errorf("[BPSAction][FindAllWithPagination] failed to fetch BPS actions: %v", err)
 		return types.PaginatedResponse[[]bps_action.BPSAction]{}, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// Map BPSActionDocument to BPSAction entities
+	var actions []bps_action.BPSAction
+	for _, dbAction := range dbActions {
+		action := mapBpsActionToEntity(dbAction)
+		actions = append(actions, action)
 	}
 
 	total, err := b.actionDal.TotalCount(ctx, filter)
@@ -189,7 +287,7 @@ func (b *bpsActionRepository) FindAllWithPagination(ctx context.Context, filterP
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	return types.PaginatedResponse[[]bps_action.BPSAction]{
-		Data: data,
+		Data: actions,
 		Meta: meta,
 	}, nil
 }
@@ -197,13 +295,15 @@ func (b *bpsActionRepository) FindAllWithPagination(ctx context.Context, filterP
 func (b *bpsActionRepository) FindOne(ctx context.Context, filter bson.M) (*bps_action.BPSAction, error) {
 	b.logger.Infof("[BPSAction][FindOne] fetching BPS action")
 
-	data, err := b.actionDal.FindOne(ctx, filter, Projection)
+	dbAction, err := b.actionDal.FindOne(ctx, filter, Projection)
 	if err != nil {
 		b.logger.Errorf("[BPSAction][FindOne] failed to find BPS action: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
-	return data, nil
+	// Map BPSActionDocument to BPSAction entity
+	action := mapBpsActionToEntity(*dbAction)
+	return &action, nil
 }
 
 func (b *bpsActionRepository) SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*bps_action.BPSAction], error) {
@@ -254,10 +354,17 @@ func (b *bpsActionRepository) SanitizedFindAllWithPagination(ctx context.Context
 	}
 	defer func() { _ = cur.Close(ctx) }()
 
-	var results []*bps_action.BPSAction
-	if err := cur.All(ctx, &results); err != nil {
+	var dbResults []types.BPSActionDocument
+	if err := cur.All(ctx, &dbResults); err != nil {
 		b.logger.Errorf("[BPSAction][SanitizedFindAllWithPagination] cursor decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// Map BPSActionDocument to BPSAction entities
+	var results []*bps_action.BPSAction
+	for _, dbAction := range dbResults {
+		action := mapBpsActionToEntity(dbAction)
+		results = append(results, &action)
 	}
 
 	total, err := b.actionDal.TotalCount(ctx, filter)
@@ -362,10 +469,17 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(
 	}
 	defer cur.Close(ctx)
 
-	var results []*bps_action.BPSAction
-	if err := cur.All(ctx, &results); err != nil {
+	var dbResults []types.BPSActionDocument
+	if err := cur.All(ctx, &dbResults); err != nil {
 		b.logger.Errorf("[BPSAction][SanitizedFindAllWithPaginationForApprover] cursor decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// Map BPSActionDocument to BPSAction entities
+	var results []*bps_action.BPSAction
+	for _, dbAction := range dbResults {
+		action := mapBpsActionToEntity(dbAction)
+		results = append(results, &action)
 	}
 
 	total, err := b.actionDal.TotalCount(ctx, filter)
@@ -457,10 +571,17 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 	}
 	defer func() { _ = cur.Close(ctx) }()
 
-	var results []*bps_action.BPSAction
-	if err := cur.All(ctx, &results); err != nil {
+	var dbResults []types.BPSActionDocument
+	if err := cur.All(ctx, &dbResults); err != nil {
 		b.logger.Errorf("[BPSAction][SanitizedFindAllWithPaginationForAuditor] cursor decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// Map BPSActionDocument to BPSAction entities
+	var results []*bps_action.BPSAction
+	for _, dbAction := range dbResults {
+		action := mapBpsActionToEntity(dbAction)
+		results = append(results, &action)
 	}
 
 	total, err := b.actionDal.TotalCount(ctx, filter)
@@ -540,10 +661,17 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationBPSActions(ctx conte
 	}
 	defer func() { _ = cur.Close(ctx) }()
 
-	var results []*bps_action.BPSAction
-	if err := cur.All(ctx, &results); err != nil {
+	var dbResults []types.BPSActionDocument
+	if err := cur.All(ctx, &dbResults); err != nil {
 		b.logger.Errorf("[BPSAction][SanitizedFindAllWithPaginationBPSActions] cursor decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// Map BPSActionDocument to BPSAction entities
+	var results []*bps_action.BPSAction
+	for _, dbAction := range dbResults {
+		action := mapBpsActionToEntity(dbAction)
+		results = append(results, &action)
 	}
 
 	total, err := b.actionDal.TotalCount(ctx, finalMatch)
@@ -576,35 +704,221 @@ func (b *bpsActionRepository) SanitizedFindOne(ctx context.Context, filter bson.
 		return nil, errors.New(localization.ErrorActionNotFound.Code)
 	}
 
-	var result bps_action.BPSAction
-	if err := cur.Decode(&result); err != nil {
+	var dbResult types.BPSActionDocument
+	if err := cur.Decode(&dbResult); err != nil {
 		b.logger.Errorf("[BPSAction][SanitizedFindOne] failed to decode document: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	// Map BPSActionDocument to BPSAction entity
+	result := mapBpsActionToEntity(dbResult)
 	return &result, nil
 }
 
 func (b *bpsActionRepository) Update(ctx context.Context, actionCode string, update bps_action.BPSAction) (*bps_action.BPSAction, error) {
 	filter := bson.M{"action_code": actionCode}
-	updateMap := bson.M{"$set": update}
+
+	// Convert BPSAction to BPSActionDocument for update
+	dbUpdate := types.BPSActionDocument{
+		ActionCode:        update.ActionCode,
+		IsAuditorApproved: update.IsAuditorApproved,
+		UserInformation: struct {
+			UserID         interface{} `json:"user_id" bson:"user_id"`
+			UserCode       string      `json:"user_code" bson:"user_code"`
+			FullName       string      `json:"full_name" bson:"full_name"`
+			AccountNumbers []string    `json:"account_numbers" bson:"account_numbers"`
+			PhoneNumbers   string      `json:"phone_numbers" bson:"phone_numbers"`
+			BranchCode     string      `json:"branch_code" bson:"branch_code"`
+		}{
+			UserID:         update.UserInformation.UserID,
+			UserCode:       update.UserInformation.UserCode,
+			FullName:       update.UserInformation.FullName,
+			AccountNumbers: update.UserInformation.AccountNumbers,
+			PhoneNumbers:   update.UserInformation.PhoneNumbers,
+			BranchCode:     update.UserInformation.BranchCode,
+		},
+		BusinessInformation: struct {
+			BusinessID   interface{} `json:"business_id" bson:"business_id"`
+			TILLNumber   string      `json:"till_number" bson:"till_number"`
+			BusinessName string      `json:"business_name" bson:"business_name"`
+		}{
+			BusinessID:   update.BusinessInformation.BusinessID,
+			TILLNumber:   update.BusinessInformation.TILLNumber,
+			BusinessName: update.BusinessInformation.BusinessName,
+		},
+		CheckersNeeded:     update.CheckersNeeded,
+		CheckersApproved:   update.CheckersApproved,
+		CheckerID:          update.CheckerID,
+		MakerID:            update.MakerID,
+		MakerName:          update.MakerName,
+		MakerReason:        update.MakerReason,
+		MakerPhoneNumber:   update.MakerPhoneNumber,
+		CheckerName:        update.CheckerName,
+		CheckerPhoneNumber: update.CheckerPhoneNumber,
+		ActionReason: struct {
+			ActionType string `json:"action_type" bson:"action_type"`
+			ActionNote string `json:"action_note" bson:"action_note"`
+			Identifier string `json:"identifier" bson:"identifier"`
+		}{
+			ActionType: string(update.ActionReason.ActionType),
+			ActionNote: update.ActionReason.ActionNote,
+			Identifier: update.ActionReason.Identifier,
+		},
+		MakerMID:        update.MakerMID,
+		CheckerMID:      update.CheckerMID,
+		AuditorMID:      update.AuditorMID,
+		CheckerNameList: update.CheckerNameList,
+		AuditorNameList: update.AuditorNameList,
+		Auditors: struct {
+			AuditorName        string   `json:"auditor_name" bson:"auditor_name"`
+			AuditorPhoneNumber string   `json:"auditor_phone_number" bson:"auditor_phone_number"`
+			AuditorsRequired   int      `json:"auditors_required" bson:"auditors_required"`
+			AuditorID          []string `json:"auditor_id" bson:"auditor_id"`
+			Audited            bool     `json:"audited" bson:"audited"`
+			AuditorApproval    bool     `json:"auditor_approval" bson:"auditor_approval"`
+			Reason             string   `json:"reason" bson:"reason"`
+		}{
+			AuditorName:        update.Auditors.AuditorName,
+			AuditorPhoneNumber: update.Auditors.AuditorPhoneNumber,
+			AuditorsRequired:   update.Auditors.AuditorsRequired,
+			AuditorID:          update.Auditors.AuditorID,
+			Audited:            update.Auditors.Audited,
+			AuditorApproval:    update.Auditors.AuditorApproval,
+			Reason:             update.Auditors.Reason,
+		},
+		CheckerTime:        update.CheckerTime,
+		AuditorTime:        update.AuditorTime,
+		RequestAction:      string(update.RequestAction),
+		EntityIdentifyer:   update.EntityIdentifyer,
+		HomeBranch:         update.HomeBranch,
+		AccountBranchCode:  update.AccountBranchCode,
+		DistrictCode:       update.DistrictCode,
+		BranchCode:         update.BranchCode,
+		LinkedDistrictCode: update.LinkedDistrictCode,
+		AccountNumber:      update.AccountNumber,
+		AccountHolderName:  update.AccountHolderName,
+		ServiceName:        update.ServiceName,
+		CurrentAction:      update.CurrentAction,
+		PreviousAction:     update.PreviousAction,
+		VerifiedAt:         update.VerifiedAt,
+		Status:             update.Status,
+		CreatedAt:          update.CreatedAt,
+		LastModifiedAt:     update.LastModifiedAt,
+	}
+
+	updateMap := bson.M{"$set": dbUpdate}
 	data, err := b.actionDal.UpdateOne(ctx, filter, updateMap)
 	if err != nil {
 		b.logger.Errorf("[BPSAction][Update] failed to update BPS action: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	return &data, nil
+
+	// Map result back to BPSAction
+	result := mapBpsActionToEntity(data)
+	return &result, nil
 }
 
 func (b *bpsActionRepository) UpdateByActionCode(ctx context.Context, actionCode string, update bps_action.BPSAction) (*bps_action.BPSAction, error) {
 	filter := bson.M{"action_code": actionCode}
-	updateMap := bson.M{"$set": update}
+
+	// Convert BPSAction to BPSActionDocument for update
+	dbUpdate := types.BPSActionDocument{
+		ActionCode:        update.ActionCode,
+		IsAuditorApproved: update.IsAuditorApproved,
+		UserInformation: struct {
+			UserID         interface{} `json:"user_id" bson:"user_id"`
+			UserCode       string      `json:"user_code" bson:"user_code"`
+			FullName       string      `json:"full_name" bson:"full_name"`
+			AccountNumbers []string    `json:"account_numbers" bson:"account_numbers"`
+			PhoneNumbers   string      `json:"phone_numbers" bson:"phone_numbers"`
+			BranchCode     string      `json:"branch_code" bson:"branch_code"`
+		}{
+			UserID:         update.UserInformation.UserID,
+			UserCode:       update.UserInformation.UserCode,
+			FullName:       update.UserInformation.FullName,
+			AccountNumbers: update.UserInformation.AccountNumbers,
+			PhoneNumbers:   update.UserInformation.PhoneNumbers,
+			BranchCode:     update.UserInformation.BranchCode,
+		},
+		BusinessInformation: struct {
+			BusinessID   interface{} `json:"business_id" bson:"business_id"`
+			TILLNumber   string      `json:"till_number" bson:"till_number"`
+			BusinessName string      `json:"business_name" bson:"business_name"`
+		}{
+			BusinessID:   update.BusinessInformation.BusinessID,
+			TILLNumber:   update.BusinessInformation.TILLNumber,
+			BusinessName: update.BusinessInformation.BusinessName,
+		},
+		CheckersNeeded:     update.CheckersNeeded,
+		CheckersApproved:   update.CheckersApproved,
+		CheckerID:          update.CheckerID,
+		MakerID:            update.MakerID,
+		MakerName:          update.MakerName,
+		MakerReason:        update.MakerReason,
+		MakerPhoneNumber:   update.MakerPhoneNumber,
+		CheckerName:        update.CheckerName,
+		CheckerPhoneNumber: update.CheckerPhoneNumber,
+		ActionReason: struct {
+			ActionType string `json:"action_type" bson:"action_type"`
+			ActionNote string `json:"action_note" bson:"action_note"`
+			Identifier string `json:"identifier" bson:"identifier"`
+		}{
+			ActionType: string(update.ActionReason.ActionType),
+			ActionNote: update.ActionReason.ActionNote,
+			Identifier: update.ActionReason.Identifier,
+		},
+		MakerMID:        update.MakerMID,
+		CheckerMID:      update.CheckerMID,
+		AuditorMID:      update.AuditorMID,
+		CheckerNameList: update.CheckerNameList,
+		AuditorNameList: update.AuditorNameList,
+		Auditors: struct {
+			AuditorName        string   `json:"auditor_name" bson:"auditor_name"`
+			AuditorPhoneNumber string   `json:"auditor_phone_number" bson:"auditor_phone_number"`
+			AuditorsRequired   int      `json:"auditors_required" bson:"auditors_required"`
+			AuditorID          []string `json:"auditor_id" bson:"auditor_id"`
+			Audited            bool     `json:"audited" bson:"audited"`
+			AuditorApproval    bool     `json:"auditor_approval" bson:"auditor_approval"`
+			Reason             string   `json:"reason" bson:"reason"`
+		}{
+			AuditorName:        update.Auditors.AuditorName,
+			AuditorPhoneNumber: update.Auditors.AuditorPhoneNumber,
+			AuditorsRequired:   update.Auditors.AuditorsRequired,
+			AuditorID:          update.Auditors.AuditorID,
+			Audited:            update.Auditors.Audited,
+			AuditorApproval:    update.Auditors.AuditorApproval,
+			Reason:             update.Auditors.Reason,
+		},
+		CheckerTime:        update.CheckerTime,
+		AuditorTime:        update.AuditorTime,
+		RequestAction:      string(update.RequestAction),
+		EntityIdentifyer:   update.EntityIdentifyer,
+		HomeBranch:         update.HomeBranch,
+		AccountBranchCode:  update.AccountBranchCode,
+		DistrictCode:       update.DistrictCode,
+		BranchCode:         update.BranchCode,
+		LinkedDistrictCode: update.LinkedDistrictCode,
+		AccountNumber:      update.AccountNumber,
+		AccountHolderName:  update.AccountHolderName,
+		ServiceName:        update.ServiceName,
+		CurrentAction:      update.CurrentAction,
+		PreviousAction:     update.PreviousAction,
+		VerifiedAt:         update.VerifiedAt,
+		Status:             update.Status,
+		CreatedAt:          update.CreatedAt,
+		LastModifiedAt:     update.LastModifiedAt,
+	}
+
+	updateMap := bson.M{"$set": dbUpdate}
 	data, err := b.actionDal.UpdateOne(ctx, filter, updateMap)
 	if err != nil {
 		b.logger.Errorf("[BPSAction][UpdateByActionCode] failed to update BPS action: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	return &data, nil
+
+	// Map result back to BPSAction
+	result := mapBpsActionToEntity(data)
+	return &result, nil
 }
 
 func (b *bpsActionRepository) UpdateCustome(ctx context.Context, filter, update bson.M) error {
