@@ -59,7 +59,7 @@ func (r UpdateDeviceVersionRequest) Validate() error {
 			validation.By(utils.NoSpecialChars),
 		),
 		validation.Field(&r.Platform,
-			validation.In("ANDROID", "IOS", "android", "ios"),
+			validation.In("ANDROID", "IOS", "android", "ios").Error("platform must be either of ANDROID or IOS"),
 		),
 		validation.Field(&r.ReleaseNotes,
 			validation.Length(0, 500),
