@@ -478,6 +478,7 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	updateRequest.BICCode = r.FormValue("bic_code")
 	BICCode := r.FormValue("bic_code")
 	updateRequest.BICCode = strings.ToUpper(BICCode)
+
 	isCBE := r.FormValue("is_cbe")
 	trueVal := true
 	if strings.ToLower(isCBE) == "true" {
