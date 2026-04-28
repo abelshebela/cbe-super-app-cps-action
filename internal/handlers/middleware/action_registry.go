@@ -490,6 +490,57 @@ func deriveModuleFromPattern(pattern string) string {
 	return res
 }
 
+// GetActionNameFromPath returns the action name from the registry based on HTTP method and path
+func GetActionNameFromPath(method, path string) string {
+	// Normalize the path - remove base API prefix
+	relPath := strings.TrimPrefix(path, "/api/v1/cbesuperapp/cps_action")
+	if relPath == "" {
+		relPath = "/"
+	}
+
+	// Handle special cases for news endpoints
+	if strings.Contains(relPath, "news/category") {
+		return "NEWSCATEGORY"
+	}
+	if strings.Contains(relPath, "news/tag") {
+		return "NEWSTAG"
+	}
+
+	// Handle special cases for fayda endpoints
+	if strings.Contains(relPath, "fayda_account") {
+		return "FAYDA"
+	}
+
+	// Try exact match first
+	keyPattern := strings.ToUpper(method) + " " + relPath
+	if actionName, ok := cpsActionRegistry[keyPattern]; ok {
+		return actionName
+	}
+
+	// Try pattern matching (handle dynamic segments like {id})
+	for key, actionName := range cpsActionRegistry {
+		if strictAvatarMatch(keyPattern, key) {
+			return actionName
+		}
+	}
+
+	// Try resource-based matching as fallback
+	resource := extractResource(relPath)
+	normalizedResource := normalize(resource)
+
+	for key, actionName := range cpsActionRegistry {
+		keyParts := strings.SplitN(key, " ", 2)
+		if len(keyParts) == 2 && strings.ToUpper(keyParts[0]) == strings.ToUpper(method) {
+			keyResource := extractResource(keyParts[1])
+			if normalize(keyResource) == normalizedResource {
+				return actionName
+			}
+		}
+	}
+
+	return ""
+}
+
 func actionKey(method, path string) string {
 	path = strings.Trim(path, "/")
 

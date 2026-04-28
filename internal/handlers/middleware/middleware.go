@@ -593,9 +593,9 @@ func (a *authMiddleware) ValidateRequiredRoles(next http.Handler) http.Handler {
 			return
 		}
 
-		// Check if role exists in cps_action_approver_index with any approval index
+		// Check if role exists in cps_action_approver_index with any approval index based on the request path
 		ctx := r.Context()
-		hasValidRole, err := a.validateRoleInApproverIndex(ctx, roleCode)
+		hasValidRole, err := a.validateRoleInApproverIndexWithRequest(ctx, roleCode, r)
 		if err != nil {
 			a.logger.Errorf("[AuthMW][ValidateRequiredRoles] error validating role in approver index: %v", err)
 			WriteJSONResponse(w, http.StatusInternalServerError, "Error validating user permissions", nil)
@@ -603,14 +603,77 @@ func (a *authMiddleware) ValidateRequiredRoles(next http.Handler) http.Handler {
 		}
 
 		if !hasValidRole {
-			a.logger.Warnf("[AuthMW][ValidateRequiredRoles] unauthorized access attempt for role_code: %s", roleCode)
+			a.logger.Warnf("[AuthMW][ValidateRequiredRoles] unauthorized access attempt for role_code: %s on %s %s", roleCode, r.Method, r.URL.Path)
 			WriteJSONResponse(w, http.StatusForbidden, "Unauthorized access: Insufficient permissions", nil)
 			return
 		}
 
-		a.logger.Infof("[AuthMW][ValidateRequiredRoles] access granted for role_code: %s", roleCode)
+		a.logger.Infof("[AuthMW][ValidateRequiredRoles] access granted for role_code: %s on %s %s", roleCode, r.Method, r.URL.Path)
 		next.ServeHTTP(w, r)
 	})
+}
+
+// validateRoleInApproverIndexWithRequest checks if the role_code exists in cps_action_approver_index
+// with any of the required indices (viewer_index, maker_index, checker_index, auditor_index)
+// based on the actual request path and method
+func (a *authMiddleware) validateRoleInApproverIndexWithRequest(ctx context.Context, roleCode string, r *http.Request) (bool, error) {
+	// Get the repository using the same approach as cps_action_handler
+	repo := GetCPSActionApproveRepo()
+	if repo == nil {
+		a.logger.Warnf("[AuthMW][ValidateRequiredRoles] CPSActionApproveRepo is nil, using fallback validation")
+		return a.fallbackRoleValidation(roleCode), nil
+	}
+
+	// Get action name from the request path using the action registry
+	actionName := GetActionNameFromPath(r.Method, r.URL.Path)
+	if actionName == "" {
+		a.logger.Warnf("[AuthMW][ValidateRequiredRoles] no action name found for path %s %s, trying common actions", r.Method, r.URL.Path)
+
+		// Fallback to checking common action names
+		commonActions := []string{"CPS_ACTION", "BPS_ACTION", "ACCOUNT_BLOCK", "USER_MANAGEMENT", "CUSTOMER_MANAGEMENT"}
+
+		for _, actionName := range commonActions {
+			// Use version 1 as a default (most systems use version 1)
+			result, err := repo.FindByRoleAndAction(ctx, roleCode, actionName, 1)
+			if err != nil {
+				a.logger.Warnf("[AuthMW][ValidateRequiredRoles] error checking role %s for action %s: %v", roleCode, actionName, err)
+				continue
+			}
+
+			if result != nil {
+				// Check if the role has any of the required indices (viewer, maker, checker, auditor)
+				if result.ViewerIndex != nil || result.MakerIndex != nil ||
+					result.CheckerIndex != nil || result.AuditorIndex != nil {
+					a.logger.Infof("[AuthMW][ValidateRequiredRoles] role %s found with approval index for action %s", roleCode, actionName)
+					return true, nil
+				}
+			}
+		}
+
+		// If no indices found for common actions, try fallback validation
+		a.logger.Warnf("[AuthMW][ValidateRequiredRoles] no approval indices found for role %s, trying fallback validation", roleCode)
+		return a.fallbackRoleValidation(roleCode), nil
+	}
+
+	// Use version 1 as a default (most systems use version 1)
+	result, err := repo.FindByRoleAndAction(ctx, roleCode, actionName, 1)
+	if err != nil {
+		a.logger.Warnf("[AuthMW][ValidateRequiredRoles] error checking role %s for action %s: %v", roleCode, actionName, err)
+		return a.fallbackRoleValidation(roleCode), nil
+	}
+
+	if result != nil {
+		// Check if the role has any of the required indices (viewer, maker, checker, auditor)
+		if result.ViewerIndex != nil || result.MakerIndex != nil ||
+			result.CheckerIndex != nil || result.AuditorIndex != nil {
+			a.logger.Infof("[AuthMW][ValidateRequiredRoles] role %s found with approval index for action %s", roleCode, actionName)
+			return true, nil
+		}
+	}
+
+	// If no indices found for this specific action, try fallback validation
+	a.logger.Warnf("[AuthMW][ValidateRequiredRoles] no approval indices found for role %s for action %s, trying fallback validation", roleCode, actionName)
+	return a.fallbackRoleValidation(roleCode), nil
 }
 
 // validateRoleInApproverIndex checks if the role_code exists in cps_action_approver_index
