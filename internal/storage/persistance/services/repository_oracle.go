@@ -864,6 +864,7 @@ SELECT
   RAWTOHEX(id),
   name,
   service_key,
+  account_type,
   is_enabled,
   created_at,
   last_modified_at
@@ -888,6 +889,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 			&listID,
 			&item.ServiceName,
 			&item.ServiceKey,
+			&item.AccountType,
 			&item.IsEnabled,
 			&item.CreatedAt,
 			&item.LastModifiedAt,
@@ -907,7 +909,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 
 func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*imodel.ServiceKey, error) {
 	const q = `
-SELECT RAWTOHEX(id), name, service_key, is_enabled, created_at, last_modified_at
+SELECT RAWTOHEX(id), name, service_key, account_type, is_enabled, created_at, last_modified_at
 FROM access_lists
 WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 
@@ -917,6 +919,7 @@ WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 		&listID,
 		&item.ServiceName,
 		&item.ServiceKey,
+		&item.AccountType,
 		&item.IsEnabled,
 		&item.CreatedAt,
 		&item.LastModifiedAt,
@@ -1039,15 +1042,17 @@ func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *imo
 INSERT INTO access_lists (
   name,
   service_key,
+  account_type,
   is_enabled
 )
 VALUES (
-  :1,:2,:3
+  :1,:2,:3,:4
 )`
 
 	if _, err := tx.ExecContext(ctx, q,
 		serviceList.ServiceName,
 		serviceList.ServiceKey,
+		serviceList.AccountType,
 		boolToOracleNumber(serviceList.IsEnabled),
 	); err != nil {
 		s.logger.Errorf("[ServicesRepo][CreateServiceKey] insert failed: %v", err)
@@ -1108,12 +1113,14 @@ UPDATE access_lists
 SET
   name = :1,
   service_key = :2,
+  account_type = :3,
   last_modified_at = SYSTIMESTAMP
-WHERE id = :3 AND service_key = :4`
+WHERE id = :4 AND service_key = :5`
 
 	res, err := tx.ExecContext(ctx, q,
 		serviceList.ServiceName,
 		serviceList.ServiceKey,
+		serviceList.AccountType,
 		id,
 		serviceKey,
 	)

@@ -32,7 +32,7 @@ func Init(router chi.Router, handler logistics_merchant_adaptor.LogisticMerchant
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/logistics_merchants/enable/{id}",
+			Path:    "/logistics_merchants/enable",
 			Handler: handler.EnableLogisticMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
@@ -41,7 +41,7 @@ func Init(router chi.Router, handler logistics_merchant_adaptor.LogisticMerchant
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/logistics_merchants/disable/{id}",
+			Path:    "/logistics_merchants/disable",
 			Handler: handler.DisableLogisticMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,

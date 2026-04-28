@@ -399,11 +399,11 @@ const (
 	RequestEnableLogisticsMerchant  constants.RequestAction = "ENABLE_LOGISTICS_MERCHANT"
 	RequestDisableLogisticsMerchant constants.RequestAction = "DISABLE_LOGISTICS_MERCHANT"
 
-	RequestCreateAccessListSegmentation        constants.RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION"
-	RequestUpdateAccessListSegmentation        constants.RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION"
-	RequestEnableDisableAccessListSegmentation constants.RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION"
-	RequestEnableAccessListSegmentation        constants.RequestAction = "ENABLE_ACCESS_LIST_SEGMENTATION"
-	RequestDisableAccessListSegmentation       constants.RequestAction = "DISABLE_ACCESS_LIST_SEGMENTATION"
+	RequestCreateAccessListSegmentation        constants.RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
+	RequestUpdateAccessListSegmentation        constants.RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
+	RequestEnableDisableAccessListSegmentation constants.RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
+	RequestEnableAccessListSegmentation        constants.RequestAction = "ENABLE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
+	RequestDisableAccessListSegmentation       constants.RequestAction = "DISABLE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
 	RequestDeleteServiceKey                    constants.RequestAction = "DELETE_SERVICE_KEY"
 )
 
@@ -554,11 +554,12 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestEnableBranches:  {},
 	RequestDisableBranches: {},
 
-	RequestCreateCustomerSegmentation:  {},
-	RequestUpdateCustomerSegmentation:  {},
-	RequestEnableCustomerSegmentation:  {},
-	RequestDisableCustomerSegmentation: {},
-	RequestDeleteCustomerSegmentation:  {},
+	RequestCreateCustomerSegmentation:    {},
+	RequestUpdateCustomerSegmentation:    {},
+	RequestDisableAccessListSegmentation: {},
+	RequestEnableCustomerSegmentation:    {},
+	RequestDisableCustomerSegmentation:   {},
+	RequestDeleteCustomerSegmentation:    {},
 
 	RequestAccessListCreateCustomerSegmentation:  {},
 	RequestAccessListUpdateCustomerSegmentation:  {},
@@ -1184,7 +1185,7 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestDeleteCustomerSegmentation,
 	},
 	"ACCESSLISTCUSTOMERSEGMENT": {
-		// "CUSTOMERSEGMENTATIONS": {
+		// "CUSTOMERSEGMENTATIONS": {RequestEnableAccessListSegmentation
 		// RequestAccessListCreateCustomerSegmentation,
 		RequestAccessListUpdateCustomerSegmentation,
 		RequestAccessListEnableCustomerSegmentation,

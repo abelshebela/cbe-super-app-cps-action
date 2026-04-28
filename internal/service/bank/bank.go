@@ -208,8 +208,7 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		}
 	}
 
-	result, err := b.oracleRepo.FindByNameOrBIC(ctx, bank_request.BICCode, bank_request.Name)
-
+	result, err := b.oracleRepo.FindByNameOrBIC(ctx, bank_request.BICCode, "")
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
 		if code != localization.ErrorResourceNotFound.Code {
@@ -217,13 +216,26 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 			return err
 		}
 	}
-
-	if result != nil {
-		if bank_request.BICCode != "" && result.BICCode != "" && result.BICCode == bank_request.BICCode {
+	if result != nil && result.ID != "" {
+		b.logger.Infof("[BankSvc][CreateOneBank] found existing bank name: %s, bic: %s, id: %s", result.BankName, result.BICCode, result.ID)
+		if bank_request.BICCode != "" && result.BICCode != "" && strings.EqualFold(result.BICCode, bank_request.BICCode) {
 			b.logger.Errorf("[BankSvc][CreateOneBank] BIC exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
 		}
-		if bank_request.Name != "" && result.BankName != "" && strings.ToLower(result.BankName) == strings.ToLower(bank_request.Name) {
+	}
+
+	result, err = b.oracleRepo.FindByNameOrBIC(ctx, "", bank_request.Name)
+	if err != nil {
+		code, _ := local_util.HandleMongoError(err)
+		if code != localization.ErrorResourceNotFound.Code {
+			b.logger.Errorf("[BankSvc][CreateOneBank] dup check err: %v", err)
+			return err
+		}
+	}
+	if result != nil && result.ID != "" {
+		b.logger.Infof("[BankSvc][CreateOneBank] found existing bank name: %s, bic: %s, id: %s", result.BankName, result.BICCode, result.ID)
+
+		if bank_request.Name != "" && result.BankName != "" && strings.EqualFold(result.BankName, bank_request.Name) {
 			b.logger.Errorf("[BankSvc][CreateOneBank] name exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
 		}
@@ -547,11 +559,6 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 			b.logger.Errorf("[BankSvc][UpdateOneBank] BIC exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
 		}
-
-		if bank_request.Name != "" && result.BankName != "" && strings.EqualFold(result.BankName, bank_request.Name) && result.ID != id {
-			b.logger.Errorf("[BankSvc][UpdateOneBank] name exists")
-			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
-		}
 	}
 	result, err = b.oracleRepo.FindByNameOrBIC(ctx, "", bank_request.Name)
 	if err != nil {
@@ -563,10 +570,6 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	}
 	if result != nil && result.ID != "" {
 		b.logger.Infof("[BankSvc][UpdateOneBank] found existing bank name: %s, bic: %s, id: %s", result.BankName, result.BICCode, result.ID)
-		if bank_request.BICCode != "" && result.BICCode != "" && strings.EqualFold(result.BICCode, bank_request.BICCode) && result.ID != id {
-			b.logger.Errorf("[BankSvc][UpdateOneBank] BIC exists")
-			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
-		}
 
 		if bank_request.Name != "" && result.BankName != "" && strings.EqualFold(result.BankName, bank_request.Name) && result.ID != id {
 			b.logger.Errorf("[BankSvc][UpdateOneBank] name exists")

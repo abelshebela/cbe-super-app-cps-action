@@ -52,9 +52,10 @@ func (r *cpsRoleService) Create(ctx context.Context, req cps_role_dto.CreateCPSR
 		RoleCode:    req.RoleCode,
 		Lable:       req.Lable,
 		Description: req.Description,
-		Enabled:     &enabled,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		// AccountType: req.AccountType,
+		Enabled:   &enabled,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, role, string(constants.RequestCreateCpsRole), constants.CREATE)
@@ -87,6 +88,9 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 	if req.Lable != nil {
 		label = *req.Lable
 	}
+	// if req.AccountType != nil {
+	// 	accountType = *req.AccountType
+	// }
 
 	cpsRole, err := r.repo.FindByNameOrRoleCode(ctx, name, roleCode)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
@@ -107,6 +111,10 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 			r.logger.Warnf("[CpsRoleSvc][Update] label exists: %s", req.Lable)
 			return errors.New(localization.ErrorCPSRoleLabelAlreadyExists.Code)
 		}
+		// if cpsRole.AccountType == accountType && existing.AccountType != accountType {
+		// 	r.logger.Warnf("[CpsRoleSvc][Update] account type exists: %s", req.AccountType)
+		// 	return errors.New(localization.ErrorCPSRoleAccountTypeAlreadyExists.Code)
+		// }
 	}
 
 	updated := *existing
@@ -122,6 +130,9 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 	if req.Lable != nil {
 		updated.Lable = *req.Lable
 	}
+	// if req.AccountType != nil {
+	// 	updated.AccountType = *req.AccountType
+	// }
 	updated.UpdatedAt = time.Now()
 
 	cpsActionData := lib.CpsModelBuilder(id, makerUser, existing, updated, string(constants.RequestUpdateCpsRole), constants.UPDATE)

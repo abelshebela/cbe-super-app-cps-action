@@ -118,7 +118,7 @@ func (e *EventMerchantHandler) CreateEventMerchant(w http.ResponseWriter, r *htt
 //	@Tags			Event Merchant
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		string									true	"Event merchant ID"
+//	@Param			body	body		event_merchant_dto.EnableOrDisableEventMerchantsRequest	true	"Merchant IDs"
 //	@Success		200	{object}	localization.StandardResponse{data=nil}	"Event merchant deleted successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Event merchant not found"
@@ -159,21 +159,25 @@ func (e *EventMerchantHandler) DeleteEventMerchant(w http.ResponseWriter, r *htt
 //	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Event merchant not found"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/event_merchants/disable/{id} [patch]
+//	@Router			/event_merchants/disable [patch]
 func (e *EventMerchantHandler) DisableEventMerchant(w http.ResponseWriter, r *http.Request) {
 	ctx, _ := local_util.TraceLogger(r.Context(), "handler", "disableEventMerchant", "handler", "event_merchant")
 	userContext := local_util.ExtractUserContext(r)
 
 	md := &types.ContextMetadata{}
-	id := chi.URLParam(r, "id")
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
-	if id == "" {
+	var req event_merchant_dto.EnableOrDisableEventMerchantsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := e.service.EnableOrDisable(ctx, id, false); err != nil {
+	if err := req.Validate(); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if err := e.service.EnableOrDisable(ctx, req.MerchantIDs, false); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -182,7 +186,7 @@ func (e *EventMerchantHandler) DisableEventMerchant(w http.ResponseWriter, r *ht
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantDisabled, nil)
 	} else {
-		e.logger.Infof("[DisableEventMerchant] request sent successfully for id: %s", id)
+		e.logger.Infof("[DisableEventMerchant] request sent successfully for ids: %v", req.MerchantIDs)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantDisableRequestSent, nil)
 	}
@@ -195,13 +199,13 @@ func (e *EventMerchantHandler) DisableEventMerchant(w http.ResponseWriter, r *ht
 //	@Tags			Event Merchant
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		string									true	"Event merchant ID"
+//	@Param			body	body		event_merchant_dto.EnableOrDisableEventMerchantsRequest	true	"Merchant IDs"
 //	@Success		200	{object}	localization.StandardResponse{data=nil}	"Event merchant enabled successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Event merchant not found"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/event_merchants/enable/{id} [patch]
+//	@Router			/event_merchants/enable [patch]
 func (e *EventMerchantHandler) EnableEventMerchant(w http.ResponseWriter, r *http.Request) {
 	ctx, _ := local_util.TraceLogger(r.Context(), "handler", "enableEventMerchant", "handler", "event_merchant")
 	userContext := local_util.ExtractUserContext(r)
@@ -209,12 +213,17 @@ func (e *EventMerchantHandler) EnableEventMerchant(w http.ResponseWriter, r *htt
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
-	id := chi.URLParam(r, "id")
-	if id == "" {
+
+	var req event_merchant_dto.EnableOrDisableEventMerchantsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if err := e.service.EnableOrDisable(ctx, id, true); err != nil {
+	if err := req.Validate(); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if err := e.service.EnableOrDisable(ctx, req.MerchantIDs, true); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -223,7 +232,7 @@ func (e *EventMerchantHandler) EnableEventMerchant(w http.ResponseWriter, r *htt
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantEnabled, nil)
 	} else {
-		e.logger.Infof("[EnableEventMerchant] request sent successfully for id: %s", id)
+		e.logger.Infof("[EnableEventMerchant] request sent successfully for ids: %v", req.MerchantIDs)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessEventMerchantEnableRequestSent, nil)
 	}

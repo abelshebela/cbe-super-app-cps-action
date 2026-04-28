@@ -700,6 +700,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCPSRoleAlreadyDisabled,
 	ErrorCPSRoleCodeAlreadyExists,
 	ErrorCPSRoleLabelAlreadyExists,
+	ErrorCPSRoleAccountTypeAlreadyExists,
 	ErrorCPSRoleNameAlreadyExists,
 
 	// OTP related error codes
@@ -779,6 +780,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCpsActionRoleNotFound,
 	ErrorRoleNotFound,
 	ErrorUsedRoleExisting,
+	ErrorUsedRoleCodeExisting,
+	ErrorUsedRoleNameExisting,
 	ErrorRoleIDMissing,
 
 	// transaction related responses
@@ -6633,6 +6636,11 @@ var (
 		Message:    MsgCpsRoleLabelAlreadyExists,
 		Type:       "error",
 	}
+	ErrorCPSRoleAccountTypeAlreadyExists = ResponseCode{
+		Code:       "ERROR_CPS_ROLE_ACCOUNT_TYPE_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgCpsRoleAccountTypeAlreadyExists,
+		Type:       "error"}
 
 	ErrorCPSRoleNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_CPS_ROLE_NAME_ALREADY_EXISTS",
@@ -7581,15 +7589,13 @@ var (
 		StatusCode: StatusBadRequest,
 		Message:    MsgBranchCodeRequired,
 		Type:       "error",
-	} 
+	}
 	ErrorBranchNotFoundRequired = ResponseCode{
 		Code:       "ERROR_BRANCH_CODE_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgBranchNotFoundByCode,
 		Type:       "error",
 	}
-
-	
 
 	ErrorBranchAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_BRANCH_ALREADY_ENABLED",

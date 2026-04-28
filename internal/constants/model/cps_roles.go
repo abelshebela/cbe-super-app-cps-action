@@ -10,11 +10,12 @@ type ServiceAccessInfo struct {
 }
 
 type CPSRoles struct {
-	ID               string              `json:"id" bson:"_id,omitempty"`
-	Name             string              `json:"name,omitempty" bson:"name,omitempty"`
-	RoleCode         string              `json:"role_code,omitempty" bson:"role_code,omitempty"`
-	Lable            string              `json:"label" bson:"label"`
-	Description      string              `json:"description,omitempty" bson:"description,omitempty"`
+	ID          string `json:"id" bson:"_id,omitempty"`
+	Name        string `json:"name,omitempty" bson:"name,omitempty"`
+	RoleCode    string `json:"role_code,omitempty" bson:"role_code,omitempty"`
+	Lable       string `json:"label" bson:"label"`
+	Description string `json:"description,omitempty" bson:"description,omitempty"`
+	// AccountType      string              `json:"account_type,omitempty" bson:"account_type,omitempty"`
 	Enabled          *bool               `json:"enabled" bson:"enabled"`
 	MakerActions     []string            `json:"maker" bson:"-"`
 	CheckerActions   []string            `json:"checker" bson:"-"`

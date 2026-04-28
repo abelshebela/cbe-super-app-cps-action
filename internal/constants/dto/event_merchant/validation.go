@@ -56,3 +56,15 @@ func (req UpdateEventMerchantRequest) Validate() error {
 	// }
 	return nil
 }
+
+func (req EnableOrDisableEventMerchantsRequest) Validate() error {
+	if len(req.MerchantIDs) == 0 {
+		return errors.New(localization.ErrorInvalidInputParameters.Code)
+	}
+	for _, id := range req.MerchantIDs {
+		if strings.TrimSpace(id) == "" {
+			return errors.New(localization.ErrorInvalidInputParameters.Code)
+		}
+	}
+	return nil
+}
