@@ -129,9 +129,9 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 
 	// Apply CPS Action Route Guard for comprehensive path protection
 	// Whitelist CPS Action endpoints that don't need action-based validation
-	whitelist := []string{"cps_action", "cps_actions"}
-	actionRouteGuard := customeMiddleware.CPSActionRouteGuard(whitelist)
-	r.Use(actionRouteGuard)
+	//whitelist := []string{"cps_action", "cps_actions"}
+	//actionRouteGuard := customeMiddleware.CPSActionRouteGuard(whitelist)
+	//r.Use(actionRouteGuard)
 
 	r.Get("/healthcheck", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
