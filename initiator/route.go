@@ -125,13 +125,6 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	router.Use(chiMiddleware.Compress(5, "application/json"))
 	// router.Use(sharedMiddleware.SecureTunnelMiddleware)
 
-	r.Get("/healthcheck", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(map[string]string{"status": "CPS ACTION IS ACTIVE"}); err != nil {
-			logger.Errorf("Failed to write health check response", zap.Error(err))
-		}
-	})
 	authMiddleware := customeMiddleware.InitAuthMiddleware(client, redisRepository, nil, cfg.JwtSecretKey, cfg.Key, cfg.IV, *cfg, logger)
 
 	// Apply CPS Action Route Guard for comprehensive path protection
@@ -139,6 +132,14 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	whitelist := []string{"cps_action", "cps_actions"}
 	actionRouteGuard := customeMiddleware.CPSActionRouteGuard(whitelist)
 	r.Use(actionRouteGuard)
+
+	r.Get("/healthcheck", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(map[string]string{"status": "CPS ACTION IS ACTIVE"}); err != nil {
+			logger.Errorf("Failed to write health check response", zap.Error(err))
+		}
+	})
 
 	cpsaction.Init(r, handlerLayer.CpsActionHandler, authMiddleware)
 	bps_action.Init(r, handlerLayer.BpsActionHandler, authMiddleware)
