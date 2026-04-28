@@ -2,6 +2,7 @@ package bank_core
 
 import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
+	"fmt"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
@@ -45,6 +46,7 @@ func Bank_mapper(action map[string]interface{}) model.Bank {
 	return bank
 }
 func Bank_oracle_mapper(action map[string]interface{}) imodel.BankOracle {
+	fmt.Printf("[Bank_oracle_mapper] Mapping action to BankOracle: %v\n", action)
 	bank := imodel.BankOracle{}
 
 	if v, ok := action["bankname"]; ok {
@@ -81,8 +83,10 @@ func Bank_oracle_mapper(action map[string]interface{}) imodel.BankOracle {
 		if is_cbe, ok := v.(bool); ok {
 			if is_cbe {
 				bank.IS_CBE = 1
+				fmt.Printf("[Bank_oracle_mapper] Set IS_CBE to 1 from action map\n")
 			} else {
 				bank.IS_CBE = 0
+				fmt.Printf("[Bank_oracle_mapper] Set IS_CBE to 0 from action map\n")
 			}
 		}
 	}
