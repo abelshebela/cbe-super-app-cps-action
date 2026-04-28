@@ -70,7 +70,7 @@ import (
 	ussd_merchant_rout "cbe-super-app-cps-action/internal/glue/routing/ussd_merchant"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	sharedMiddleware "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/middleware"
@@ -102,8 +102,8 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 		})
 	})
 
-	router.Use(middleware.RequestID)
-	router.Use(middleware.RealIP)
+	router.Use(chiMiddleware.RequestID)
+	router.Use(chiMiddleware.RealIP)
 	// CORS must run early so preflight OPTIONS requests are handled before auth/logging
 	// Security http rate limitter
 	router.Use(httprate.LimitByIP(100, 1*time.Minute))
@@ -121,9 +121,17 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	router.Use(customeMiddleware.BindRequestContext)
 
 	router.Use(customeMiddleware.HandlePanic(logger))
-	router.Use(middleware.Timeout(30 * time.Second))
-	router.Use(middleware.Compress(5, "application/json"))
+	router.Use(chiMiddleware.Timeout(30 * time.Second))
+	router.Use(chiMiddleware.Compress(5, "application/json"))
 	// router.Use(sharedMiddleware.SecureTunnelMiddleware)
+
+	authMiddleware := customeMiddleware.InitAuthMiddleware(client, redisRepository, nil, cfg.JwtSecretKey, cfg.Key, cfg.IV, *cfg, logger)
+
+	// Apply CPS Action Route Guard for comprehensive path protection
+	// Whitelist CPS Action endpoints that don't need action-based validation
+	//whitelist := []string{"cps_action", "cps_actions"}
+	//actionRouteGuard := customeMiddleware.CPSActionRouteGuard(whitelist)
+	//r.Use(actionRouteGuard)
 
 	r.Get("/healthcheck", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -132,7 +140,6 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 			logger.Errorf("Failed to write health check response", zap.Error(err))
 		}
 	})
-	authMiddleware := customeMiddleware.InitAuthMiddleware(client, redisRepository, nil, cfg.JwtSecretKey, cfg.Key, cfg.IV, *cfg, logger)
 
 	cpsaction.Init(r, handlerLayer.CpsActionHandler, authMiddleware)
 	bps_action.Init(r, handlerLayer.BpsActionHandler, authMiddleware)
@@ -204,9 +211,8 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	secured.Group(func(r chi.Router) {
 		// Auth first
 		r.Use(authMiddleware.AuthenticateToken)
-
 		// Global role validation - only allow viewer, maker, checker, auditor roles
-		r.Use(authMiddleware.ValidateRequiredRoles)
+		// r.Use(authMiddleware.ValidateRequiredRoles)
 
 		// CPS Action Guard
 		// // r.Use(customeMiddleware.CPSActionRouteGuard([]string{
