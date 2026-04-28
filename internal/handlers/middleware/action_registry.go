@@ -13,9 +13,13 @@ import (
 
 var cpsActionRegistry = map[string]string{
 	// Notification
-	"POST notifications":   "NOTIFICATIONS",
-	"PATCH notifications":  "NOTIFICATIONS",
-	"DELETE notifications": "NOTIFICATIONS",
+	"POST notifications":               "NOTIFICATIONS",
+	"PATCH notifications":              "NOTIFICATIONS",
+	"DELETE notifications":             "NOTIFICATIONS",
+	"GET notifications":                "NOTIFICATIONS",
+	"GET notifications/{id}":           "NOTIFICATIONS",
+	"PATCH notifications/enable/{id}":  "NOTIFICATIONS",
+	"PATCH notifications/disable/{id}": "NOTIFICATIONS",
 
 	// MiniAppMerchant
 	"POST mini-app-merchants":   "MINIAPPMERCHANT",
@@ -27,8 +31,26 @@ var cpsActionRegistry = map[string]string{
 	"PATCH adverts": "ADVERT",
 	"DELETE advert": "ADVERT",
 
-	// AccountBlock
-	"POST account_block": "ACCOUNTBLOCK",
+	// AccountBlock - Branch Operations
+	"GET account_block/branches":             "ACCOUNTBLOCK",
+	"GET account_block/branches/{branch_id}": "ACCOUNTBLOCK",
+	"POST account_block/branches/enable":     "SINGLEBRANCHENABLEACCOUNTBLOCK",
+	"POST account_block/branches/disable":    "SINGLEBRANCHDISABLEACCOUNTBLOCK",
+
+	// AccountBlock - Region Operations
+	"GET account_block/regions":             "ACCOUNTBLOCK",
+	"GET account_block/regions/{region_id}": "ACCOUNTBLOCK",
+	"POST account_block/regions/enable":     "MULTIBRANCHENABLEACCOUNTBLOCK",
+	"POST account_block/regions/disable":    "MULTIBRANCHDISABLEACCOUNTBLOCK",
+
+	// AccountBlock - District Operations
+	"GET account_block/districts":               "ACCOUNTBLOCK",
+	"GET account_block/districts/{district_id}": "ACCOUNTBLOCK",
+	"POST account_block/districts/enable":       "MULTIBRANCHENABLEACCOUNTBLOCK",
+	"POST account_block/districts/disable":      "MULTIBRANCHDISABLEACCOUNTBLOCK",
+
+	// AccountBlock - Details
+	"GET account_block/details/{id}": "ACCOUNTBLOCK",
 
 	// AccountValidation
 	"GET account_validation":   "ACCOUNTVALIDATION",
@@ -38,14 +60,72 @@ var cpsActionRegistry = map[string]string{
 	"PATCH amount_based_auth": "AMOUNTBASEDAUTH",
 	"GET amount_based_auth":   "AMOUNTBASEDAUTH",
 
+	// Banks
+	"GET banks":                "BANK",
+	"GET banks/{id}":           "BANK",
+	"POST banks":               "BANK",
+	"PATCH banks":              "BANK",
+	"DELETE banks":             "BANK",
+	"PATCH banks/{id}/enable":  "BANK",
+	"PATCH banks/{id}/disable": "BANK",
+	"PATCH banks/{id}/logo":    "BANK",
+
+	// Wallet
+	"GET wallets":                "WALLET",
+	"GET wallets/{id}":           "WALLET",
+	"POST wallets":               "WALLET",
+	"PATCH wallets":              "WALLET",
+	"DELETE wallets":             "WALLET",
+	"PATCH wallets/{id}/enable":  "WALLET",
+	"PATCH wallets/{id}/disable": "WALLET",
+
+	// Roles (GET operations)
+	"GET roles":     "ROLE",
+	"GET job_roles": "JOBROLE",
+
+	// Services (GET operations)
+	"GET services": "SERVICE",
+
+	// Topup (GET operations)
+	"GET topups":      "TOPUP",
+	"GET topups/{id}": "TOPUP",
+
+	// Customers
+	"GET customers":      "CUSTOMER",
+	"GET customers/{id}": "CUSTOMER",
+	"PATCH customers":    "CUSTOMER",
+
+	// Departments
+	"GET departments":      "DEPARTMENT",
+	"GET departments/{id}": "DEPARTMENT",
+	"POST departments":     "DEPARTMENT",
+	"PATCH departments":    "DEPARTMENT",
+
+	// Events
+	"GET events":      "EVENT",
+	"GET events/{id}": "EVENT",
+	"POST events":     "EVENT",
+	"PATCH events":    "EVENT",
+	"DELETE events":   "EVENT",
+
+	// CPS Users
+	"GET cps_users":                       "CPSUSER",
+	"GET cps_users/{user_code}":           "CPSUSER",
+	"GET cps_users/code/{code}":           "CPSUSER",
+	"POST cps_users/create":               "CPSUSER",
+	"PATCH cps_users/update/{user_code}":  "CPSUSER",
+	"DELETE cps_users/delete/{user_code}": "CPSUSER",
+	"POST cps_users/disable/{user_code}":  "CPSUSER",
+	"POST cps_users/enable/{user_code}":   "CPSUSER",
+
+	// BPS Users (GET operations)
+	"GET bps_users":      "BPSUSER",
+	"GET bps_users/{id}": "BPSUSER",
+
 	// Avatar
 	"POST avatar":   "AVATAR",
 	"DELETE avatar": "AVATAR",
 	"PATCH avatar":  "AVATAR",
-	// Bank
-	"POST banks":   "BANK",
-	"PATCH banks":  "BANK",
-	"DELETE banks": "BANK",
 
 	// BankVault
 	"POST vault":   "BANKVAULT",
@@ -77,13 +157,6 @@ var cpsActionRegistry = map[string]string{
 	"POST cps_users":   "CPSUSER",
 	"PATCH cps_users":  "CPSUSER",
 	"DELETE cps_users": "CPSUSER",
-
-	// Customer
-	"PATCH customers": "CUSTOMER",
-
-	// Department
-	"POST departments":  "DEPARTMENT",
-	"PATCH departments": "DEPARTMENT",
 
 	// DeviceVersion
 	"POST device_versions":  "DEVICEVERSION",
@@ -119,11 +192,6 @@ var cpsActionRegistry = map[string]string{
 	"POST logistics_merchants":  "LOGISTICSMERCHANT",
 	"PATCH logistics_merchants": "LOGISTICSMERCHANT",
 	"DELETE logistics_merchant": "LOGISTICSMERCHANT",
-
-	// Event
-	"POST events":   "Event",
-	"PATCH events":  "Event",
-	"DELETE events": "Event",
 
 	// HQ
 	"POST hq": "HQ",
@@ -192,11 +260,6 @@ var cpsActionRegistry = map[string]string{
 	"PATCH vault-amount-tier":  "VAULTAMOUNTTIER",
 	"DELETE vault-amount-tier": "VAULTAMOUNTTIER",
 
-	// Wallet
-	"POST wallets":   "WALLET",
-	"PATCH wallets":  "WALLET",
-	"DELETE wallets": "WALLET",
-
 	// 	ROLE
 	"POST roles":      "ROLE",
 	"PATCH roles":     "JOBROLE",
@@ -247,21 +310,30 @@ func resolveActionName(relPath string, registry map[string]string) string {
 func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Ensure repo is initialized
+			// Security: Fail-closed - deny access if repo is not initialized
 			if cpsApproveRepo == nil {
-				next.ServeHTTP(w, r) // fail-open if not configured
+				if guardLogger != nil {
+					guardLogger.Errorf("[ActionRegistry][RouteGuard] security: CPSActionApproveRepo is not initialized - denying access")
+				}
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
 
 			rc := chi.RouteContext(r.Context())
 			if rc == nil {
-				next.ServeHTTP(w, r)
+				if guardLogger != nil {
+					guardLogger.Errorf("[ActionRegistry][RouteGuard] security: route context is nil - denying access")
+				}
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
 
 			pattern := routeFullPattern(rc)
 			if pattern == "" {
-				next.ServeHTTP(w, r)
+				if guardLogger != nil {
+					guardLogger.Errorf("[ActionRegistry][RouteGuard] security: route pattern is empty - denying access")
+				}
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
 
@@ -287,36 +359,14 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 
 			method := strings.ToUpper(r.Method)
 
-			if method == "GET" {
-				next.ServeHTTP(w, r)
+			// Use the GetActionNameFromPath function to resolve action name from registry
+			actionName := GetActionNameFromPath(method, r.URL.Path)
+			if actionName == "" {
+				if guardLogger != nil {
+					guardLogger.Errorf("[ActionRegistry][RouteGuard] no action name found for %s %s - denying access", method, r.URL.Path)
+				}
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
-			}
-
-			//actionName := resolveActionName(relPath, cpsActionRegistry)
-			// keyPattern := method + " " + relPattern
-			// actionName, ok := cpsActionRegistry[keyPattern]
-
-			actionName := ""
-			found := false
-			if strings.Contains(relPath, "news/category") {
-				actionName = "NEWSCATEGORY"
-				found = true
-			} else if strings.Contains(relPath, "news/tag") {
-				actionName = "NEWSTAG"
-				found = true
-			}
-
-			if !found {
-				if rparts := strings.Split(relPattern, "/"); len(rparts) > 0 {
-					relPattern = rparts[0]
-				}
-				path := method + " " + relPath
-				for k, v := range cpsActionRegistry {
-					if strings.EqualFold(path, k) {
-						actionName = v
-						break
-					}
-				}
 			}
 
 			roleCode, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
@@ -511,10 +561,12 @@ func GetActionNameFromPath(method, path string) string {
 		return "FAYDA"
 	}
 
-	// Try exact match first
+	// Try exact match first (case-insensitive)
 	keyPattern := strings.ToUpper(method) + " " + relPath
-	if actionName, ok := cpsActionRegistry[keyPattern]; ok {
-		return actionName
+	for key, actionName := range cpsActionRegistry {
+		if strings.EqualFold(keyPattern, key) {
+			return actionName
+		}
 	}
 
 	// Try pattern matching (handle dynamic segments like {id})
@@ -530,7 +582,7 @@ func GetActionNameFromPath(method, path string) string {
 
 	for key, actionName := range cpsActionRegistry {
 		keyParts := strings.SplitN(key, " ", 2)
-		if len(keyParts) == 2 && strings.ToUpper(keyParts[0]) == strings.ToUpper(method) {
+		if len(keyParts) == 2 && strings.EqualFold(keyParts[0], method) {
 			keyResource := extractResource(keyParts[1])
 			if normalize(keyResource) == normalizedResource {
 				return actionName
