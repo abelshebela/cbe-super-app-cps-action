@@ -43,20 +43,22 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 
 }
 
-func ToCreateWalletDoc(name, code, URL, serviceID string, self, other, agent *bool) *local_model.WalletOracle {
+func ToCreateWalletDoc(name, code, URL string, self, other, agent *bool, selfServiceID, otherServiceID, agentServiceID string) *local_model.WalletOracle {
 	return &local_model.WalletOracle{
-		Name:       name,
-		UniqueCode: code,
-		Avatar:     URL,
-		ServiceID:  serviceID,
-		Self:       *self,
-		Other:      *other,
-		Agent:      *agent,
+		Name:           name,
+		UniqueCode:     code,
+		Avatar:         URL,
+		Self:           *self,
+		Other:          *other,
+		Agent:          *agent,
+		SelfServiceID:  selfServiceID,
+		OtherServiceID: otherServiceID,
+		AgentServiceID: agentServiceID,
 	}
 }
 
 // note: this comparision might not be needed if the existing data is first in the request form and the user update those values
-func ToUpdateWalletDoc(existing local_model.WalletOracle, req walletDto.WalletRequest, serviceID string) (*local_model.WalletOracle, int) {
+func ToUpdateWalletDoc(existing local_model.WalletOracle, req walletDto.WalletRequest) (*local_model.WalletOracle, int) {
 	wallet := existing
 	changeCount := 0
 
@@ -83,10 +85,6 @@ func ToUpdateWalletDoc(existing local_model.WalletOracle, req walletDto.WalletRe
 	if req.UniqueCode != "" && req.UniqueCode != existing.UniqueCode {
 		changeCount++
 		wallet.UniqueCode = req.UniqueCode
-	}
-	if serviceID != "" && serviceID != existing.ServiceID {
-		changeCount++
-		wallet.ServiceID = serviceID
 	}
 
 	return &wallet, changeCount

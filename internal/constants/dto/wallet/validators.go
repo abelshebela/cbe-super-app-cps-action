@@ -30,11 +30,6 @@ func (w WalletRequest) Validate(isCreate bool) error {
 			errs["name"] = localization.ErrorWalletNameRequired
 		}
 	}
-	if isCreate || w.ServiceID != "" {
-		if strings.TrimSpace(w.ServiceID) == "" && isCreate {
-			errs["service_id"] = localization.ErrorWalletServiceIDRequired
-		}
-	}
 	// --- Code ---
 	if isCreate || w.UniqueCode != "" {
 		trimmed := strings.TrimSpace(w.UniqueCode)
@@ -45,14 +40,6 @@ func (w WalletRequest) Validate(isCreate bool) error {
 		}
 		w.UniqueCode = strings.ToUpper(trimmed)
 	}
-	if isCreate || w.ServiceID != "" {
-		trimmed := strings.TrimSpace(w.ServiceID)
-		if trimmed == "" && isCreate {
-			errs["service_id"] = localization.ErrorWalletServiceIDRequired
-		}
-		w.ServiceID = strings.ToUpper(trimmed)
-	}
-
 	if isCreate {
 		if w.Avatar == nil {
 			errs["avatar"] = localization.ErrorWalletAvatarRequired
@@ -65,10 +52,21 @@ func (w WalletRequest) Validate(isCreate bool) error {
 		}
 	}
 
-	// --- Services check (cannot be set) ---
-	// if w.Self != nil || w.Other != nil || w.Agent != nil {
-	// 	errs["recharge_option"] = localization.ErrorWalletRechangeOption
-	// }
+	if w.Self != nil {
+		if w.SelfServiceID == "" {
+			errs["self_service_id"] = localization.ErrorWalletSelfServiceIDRequired
+		}
+	}
+	if w.Other != nil {
+		if w.OtherServiceID == "" {
+			errs["other_service_id"] = localization.ErrorWalletOtherServiceIDRequired
+		}
+	}
+	if w.Agent != nil {
+		if w.AgentServiceID == "" {
+			errs["agent_service_id"] = localization.ErrorWalletAgentServiceIDRequired
+		}
+	}
 
 	if len(errs) > 0 {
 		return errs

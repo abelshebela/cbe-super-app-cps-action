@@ -49,7 +49,6 @@ func scanWalletOracleCore(
 		&wallet.ID,
 		&wallet.Name,
 		&wallet.UniqueCode,
-		&wallet.ServiceID,
 		&en,
 		&wallet.Avatar,
 		&sself,
@@ -85,50 +84,67 @@ func scanWalletOracleCore(
 func (q *WalletStorage) Create(ctx context.Context, wallet *model.WalletOracle) error {
 	q.logger.Infof("[WalletStorage][Create] Creating wallet with unique_code: %s", wallet.UniqueCode)
 
-	enabled, deleted := 0, 0
+	enabled := 0
 	if wallet.Enabled {
 		enabled = 1
 	}
+	deleted := 0
 	if wallet.IsDeleted {
 		deleted = 1
 	}
-	self, other, agent := 0, 0, 0
-	if wallet.Self {
-		self = 1
-	}
-	if wallet.Other {
-		other = 1
-	}
-	if wallet.Agent {
-		agent = 1
-	}
 
-	query := `
-			INSERT INTO wallets (
-				id, name, unique_code, service_id, enabled, avatar,
-				services_self, services_other, services_agent, is_deleted,
-				created_at, last_modified_at, deleted_at
-			) VALUES (
-				SYS_GUID(), :1, :2, HEXTORAW(:3), :4, :5, :6, :7, :8, :9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL
-			)`
+	// Insert wallet
+	walletInsert := `
+		INSERT INTO wallets (
+			id, wallet_name, unique_code, logo, is_enabled, is_deleted, created_at, last_modified_at, deleted_at
+		) VALUES (
+			SYS_GUID(), :1, :2, :3, :4, :5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL
+		) RETURNING RAWTOHEX(id) INTO :6`
 
-	_, err := q.db.ExecContext(ctx, query,
+	var walletID string
+	err := q.db.QueryRowContext(ctx, walletInsert,
 		wallet.Name,
 		wallet.UniqueCode,
-		wallet.ServiceID,
+		wallet.Avatar, // logo
 		enabled,
-		wallet.Avatar,
-		self,
-		other,
-		agent,
 		deleted,
-	)
+		&walletID,
+	).Scan(&walletID)
 	if err != nil {
 		q.logger.Errorf("[WalletStorage][Create] failed to insert wallet: %v", err)
 		return err
 	}
+
+	// Insert wallet_services for each type if enabled and service id exists
+	serviceTypes := []struct {
+		flag      bool
+		stype     string
+		serviceID string
+	}{
+		{wallet.Self, "SELF", wallet.SelfServiceID},
+		{wallet.Other, "OTHER", wallet.OtherServiceID},
+		{wallet.Agent, "AGENT", wallet.AgentServiceID},
+	}
+
+	wsInsert := `INSERT INTO wallet_services (
+		id, service_id, wallet_id, service_type, is_enabled, is_deleted, created_at, last_modified_at, deleted_at
+	) VALUES (
+		SYS_GUID(), HEXTORAW(:1), HEXTORAW(:2), :3, 1, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL
+	)`
+
+	for _, st := range serviceTypes {
+		if st.flag && st.serviceID != "" {
+			_, err := q.db.ExecContext(ctx, wsInsert, st.serviceID, walletID, st.stype)
+			if err != nil {
+				q.logger.Errorf("[WalletStorage][Create] failed to insert wallet_service type %s: %v", st.stype, err)
+				return err
+			}
+			q.logger.Infof("[WalletStorage][Create] Inserted wallet_service type %s for wallet_id: %s", st.stype, walletID)
+		}
+	}
+
 	storage.BumpRedisCacheKey(ctx, q.redis, constants.RedisCacheKeyWallet)
-	q.logger.Infof("[WalletStorage][Create] Successfully created wallet with unique_code: %s", wallet.UniqueCode)
+	q.logger.Infof("[WalletStorage][Create] Successfully created wallet and wallet_services with unique_code: %s", wallet.UniqueCode)
 	return nil
 }
 

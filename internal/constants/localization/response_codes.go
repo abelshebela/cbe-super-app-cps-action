@@ -453,6 +453,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletCodeRequired,
 	ErrorWalletTypeRequired,
 	ErrorWalletAvatarRequired,
+	ErrorWalletSelfServiceIDRequired,
+	ErrorWalletOtherServiceIDRequired,
+	ErrorWalletAgentServiceIDRequired,
 	ErrorWalletAvatarInvalid,
 	ErrorWalletAvatarTooLarge,
 	ErrorWalletAvatarInvalidType,
@@ -3038,6 +3041,24 @@ var (
 		Code:       "ERROR_WALLET_AVATAR_REQUIRED",
 		StatusCode: 400,
 		Message:    "Wallet avatar is required",
+		Type:       "error",
+	}
+	ErrorWalletAgentServiceIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_AGENT_SERVICE_ID_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet agent service id is required",
+		Type:       "error",
+	}
+	ErrorWalletOtherServiceIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_OTHER_SERVICE_ID_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet other service id is required",
+		Type:       "error",
+	}
+	ErrorWalletSelfServiceIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_SELF_SERVICE_ID_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet self service id is required",
 		Type:       "error",
 	}
 	ErrorWalletAvatarInvalid = ResponseCode{

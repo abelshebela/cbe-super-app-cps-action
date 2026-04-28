@@ -81,17 +81,6 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 			return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
 		}
 	}
-	if strings.TrimSpace(req.ServiceID) != "" {
-		exist, err := s.repo.Find(ctx, "", "", req.ServiceID)
-		if err != nil {
-			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
-			return err
-		}
-		if exist != nil {
-			span.AddEvent("Wallet service already exists", trace.WithAttributes(attribute.String("service_id", req.ServiceID)))
-			return errors.New(localization.ErrorWalletServiceIDAlreadyExists.Code)
-		}
-	}
 
 	code := strings.ToUpper(strings.TrimSpace(req.UniqueCode))
 
@@ -101,7 +90,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	wallet := core.ToCreateWalletDoc(req.Name, code, URL, req.ServiceID, req.Self, req.Other, req.Agent)
+	wallet := core.ToCreateWalletDoc(req.Name, code, URL, req.Self, req.Other, req.Agent, req.SelfServiceID, req.OtherServiceID, req.AgentServiceID)
 	wallet.Enabled = false
 	//here since the unique id is nil 000.. use other unique id like the code
 	// if err := core.HandleCPSAction(ctx, s.cpsService, wallet.ID.Hex(), constants.RequestCreateWallet, wallet, nil, constants.ActionCreate); err != nil {
@@ -150,20 +139,6 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 		}
 	}
 
-	if req.ServiceID != "" {
-		exist, err := s.repo.Find(ctx, "", "", req.ServiceID)
-		if err != nil {
-			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
-			return errors.New(localization.ErrorUnhandledServer.Code)
-		}
-		if exist != nil && !strings.EqualFold(strings.TrimSpace(exist.ID), strings.TrimSpace(id)) {
-			span.AddEvent("Wallet service already exists", trace.WithAttributes(attribute.String("service_id", req.ServiceID)))
-			s.logger.Infof("[WalletSvc][Update] wallet service already exists service_id: %s req.id: %s found.id: %s", req.ServiceID, id, exist.ID)
-			return errors.New(localization.ErrorWalletServiceAlreadyExists.Code)
-		}
-		s.logger.Infof("[WalletSvc][Update] no service_id conflict: %s", req.ServiceID)
-	}
-
 	var avatarURL string
 	if req.Avatar != nil {
 		var objectkey string
@@ -179,7 +154,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	} else {
 		avatarURL = prevWallet.Avatar
 	}
-	UpdateWallet, change_count := core.ToUpdateWalletDoc(*prevWallet, req, req.ServiceID)
+	UpdateWallet, change_count := core.ToUpdateWalletDoc(*prevWallet, req)
 	if avatarURL != prevWallet.Avatar {
 		change_count++
 	}
@@ -321,13 +296,6 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 				return nil, e
 			} else if exist != nil {
 				return nil, errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
-			}
-		}
-		if strings.TrimSpace(wallet.ServiceID) != "" {
-			if exist, e := s.repo.Find(ctx, "", "", wallet.ServiceID); e != nil {
-				return nil, e
-			} else if exist != nil {
-				return nil, errors.New(localization.ErrorWalletServiceIDAlreadyExists.Code)
 			}
 		}
 		err = s.repo.Create(ctx, wallet)
