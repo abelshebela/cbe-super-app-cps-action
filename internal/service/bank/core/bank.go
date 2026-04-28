@@ -80,14 +80,8 @@ func Bank_oracle_mapper(action map[string]interface{}) imodel.BankOracle {
 		}
 	}
 	if v, ok := action["is_cbe"]; ok {
-		if is_cbe, ok := v.(bool); ok {
-			if is_cbe {
-				bank.IS_CBE = 1
-				fmt.Printf("[Bank_oracle_mapper] Set IS_CBE to 1 from action map\n")
-			} else {
-				bank.IS_CBE = 0
-				fmt.Printf("[Bank_oracle_mapper] Set IS_CBE to 0 from action map\n")
-			}
+		if is_cbe, ok := v.(float64); ok {
+			bank.IS_CBE = int(is_cbe)
 		}
 	}
 

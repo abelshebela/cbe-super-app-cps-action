@@ -1349,7 +1349,7 @@ var (
 	SuccessBankUpdated = ResponseCode{
 		Code:       "SUCCESS_BANK_UPDATED",
 		StatusCode: StatusOK,
-		Message:    MsgBankUpdatedRequestSent,
+		Message:    MsgBankUpdatedSuccessfully,
 		Type:       "success",
 	}
 
