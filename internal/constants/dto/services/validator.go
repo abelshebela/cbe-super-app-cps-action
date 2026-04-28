@@ -63,30 +63,39 @@ func (r *UpdateServiceRequest) Normalize() {
 
 func (c CapRequest) Validate() error {
 	return validation.ValidateStruct(&c,
-		validation.Field(&c.Source, validation.NotNil,
-			// validation.In("APP", "USSD", "INTERNET_BANKING", "ATM", "POS", "PAPERLESS").Error("source must be one of (APP, USSD, INTERNET_BANKING, ATM, POS, PAPERLESS)"),
-			validation.In("APP", "USSD", "INTERNET_BANKING").Error("source must be one of (APP, USSD, INTERNET_BANKING)"),
+		validation.Field(&c.Source,
+			validation.When(c.Source != nil,
+				validation.NotNil,
+				validation.In("APP", "USSD", "INTERNET_BANKING").Error("source must be one of (APP, USSD, INTERNET_BANKING)"),
+			),
 		),
-		validation.Field(&c.Currency, validation.NotNil, is.CurrencyCode,
-			validation.In("ETB", "USD", "EUR", "GBP").Error("currency must be one of (ETB, USD, EUR, GBP)"),
+		validation.Field(&c.Currency,
+			validation.When(c.Currency != nil,
+				validation.NotNil,
+				is.CurrencyCode,
+				validation.In("ETB", "USD", "EUR", "GBP").Error("currency must be one of (ETB, USD, EUR, GBP)"),
+			),
 		),
 		validation.Field(&c.SingleCap,
-			validation.NotNil,
-			validation.Min(0.0),
-			validation.Max(maximunTransferCapLimit).Error("must be no greater than 1,000,000,000"),
+			validation.When(c.SingleCap != nil,
+				validation.NotNil,
+				validation.Min(0.0),
+				validation.Max(maximunTransferCapLimit).Error("must be no greater than 1,000,000,000"),
+			),
 		),
 		validation.Field(&c.MinimumTransferCap,
-			validation.NotNil,
-			validation.Min(0.0),
-			validation.By(func(value interface{}) error {
-				if c.SingleCap == nil || c.MinimumTransferCap == nil {
+			validation.When(c.MinimumTransferCap != nil,
+				validation.NotNil,
+				validation.Min(0.0),
+				validation.By(func(value interface{}) error {
+					if c.SingleCap == nil || c.MinimumTransferCap == nil {
+						return nil
+					}
+					if *c.MinimumTransferCap > *c.SingleCap {
+						return fmt.Errorf("minimum transfer cap must not be greater than the single maximum transfer cap")
+					}
 					return nil
-				}
-				if *c.MinimumTransferCap > *c.SingleCap {
-					return fmt.Errorf("minimum transfer cap must not be greater than the single maximum transfer cap")
-				}
-				return nil
-			})),
+				}))),
 	)
 }
 
@@ -256,11 +265,16 @@ func (r CreateServiceRequest) Validate() error {
 }
 
 func (r UpdateServiceRequest) Validate() error {
+
 	err := validation.ValidateStruct(&r,
+		validation.Field(&r.ServiceKeyId, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.ServiceKey, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.MinimumFraudAmount, validation.Min(0.0).Error("Minimum fraud amount must be greater or equal to zero")),
 		validation.Field(&r.ProductGlAccount,
+			validation.By(utils.NoSpecialChars),
 			validation.Match(regexp.MustCompile(`^[a-zA-Z0-9]+$`)).Error("cbe_gl_product_account should be number or alphanumeric")),
+		validation.Field(&r.ProductGlAccountCurrency, validation.By(utils.NoSpecialChars)),
 	)
 	if err != nil {
 		return err

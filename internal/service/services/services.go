@@ -2,9 +2,7 @@ package services
 
 import (
 	"context"
-	"database/sql"
 	"errors"
-	"strings"
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -40,14 +38,14 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 		return errors.New(localization.ErrorAccessListNotFound.Code)
 	}
 
-	service, err := s.repo.FindByAccessListID(ctx, req.ServiceKeyId)
-	if err != nil && err.Error() != sql.ErrNoRows.Error() {
-		s.logger.Errorf("[servicesService][Create] error checking existing service for serviceKeyId=%s: %v", req.ServiceKeyId, err)
-		return err
-	}
-	if service {
-		return errors.New(localization.ErrorServiceExists.Code)
-	}
+	// service, err := s.repo.FindByAccessListID(ctx, req.ServiceKeyId)
+	// if err != nil && err.Error() != sql.ErrNoRows.Error() {
+	// 	s.logger.Errorf("[servicesService][Create] error checking existing service for serviceKeyId=%s: %v", req.ServiceKeyId, err)
+	// 	return err
+	// }
+	// if service {
+	// 	return errors.New(localization.ErrorServiceExists.Code)
+	// }
 
 	mapped := core.MapToServiceModel(req)
 
@@ -66,24 +64,25 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 	serviceKeyId := service_dto.StringPointer(req.ServiceKeyId, prev.ServiceKeyId)
 	s.logger.Infof("[servicesService][Update] resolved serviceKeyId: %s", serviceKeyId)
 
-	filterParam := types.Filter{
-		Search: serviceKeyId,
-	}
-	s.logger.Infof("[servicesService][Update] filterParam: %+v", filterParam)
-	services, err := s.repo.FindAllWithPagination(ctx, filterParam)
-	if err != nil {
-		s.logger.Errorf("[servicesService][Update] error fetching services with filter: %v", err)
-		return err
-	}
-	s.logger.Infof("[servicesService][Update] found %d services with serviceKeyId=%s", len(services.Data), serviceKeyId)
+	// filterParam := types.Filter{
+	// 	Search: serviceKeyId,
+	// }
+	// s.logger.Infof("[servicesService][Update] filterParam: %+v", filterParam)
+	// services, err := s.repo.FindAllWithPagination(ctx, filterParam)
+	// if err != nil {
+	// 	s.logger.Errorf("[servicesService][Update] error fetching services with filter: %v", err)
+	// 	return err
+	// }
+	// s.logger.Infof("[servicesService][Update] found %d services with serviceKeyId=%s", len(services.Data), serviceKeyId)
 
-	for _, svc := range services.Data {
-		s.logger.Infof("[servicesService][Update] checking service: id=%s, serviceKeyId=%s", svc.ID, svc.ServiceKeyId)
-		if svc.ID != id && (strings.EqualFold(svc.ServiceKeyId, serviceKeyId)) {
-			s.logger.Warnf("[servicesService][Update] duplicate serviceKeyId found: id=%s current_id: %s", svc.ID, serviceKeyId)
-			return errors.New(localization.ErrorServiceExists.Code)
-		}
-	}
+	// for _, svc := range services.Data {
+	// 	s.logger.Infof("[servicesService][Update] checking service: id=%s, serviceKeyId=%s", svc.ID, svc.ServiceKeyId)
+	// 	if svc.ID != id && (strings.EqualFold(svc.ServiceKeyId, serviceKeyId)) {
+	// 		s.logger.Warnf("[servicesService][Update] duplicate serviceKeyId found: id=%s current_id: %s", svc.ID, serviceKeyId)
+	// 		return errors.New(localization.ErrorServiceExists.Code)
+	// 	}
+	// }
+
 	mapped := core.MapToServiceUpdateModel(req, *prev)
 	s.logger.Infof("[servicesService][Update] mapped update model: %+v", mapped)
 	err = core.HandleCPSAction(ctx, s.cps, id, constants.RequestUpdateService, mapped, prev, constants.ActionUpdate)
