@@ -510,11 +510,16 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		}
 	}
 	if bank_request.IsCBE != nil {
+		b.logger.Infof("[BankSvc][UpdateOneBank] IsCBE: %v", *bank_request.IsCBE)
 		if *bank_request.IsCBE {
 			updatedBank.IS_CBE = 1
+			b.logger.Infof("[BankSvc][UpdateOneBank] Set IS_CBE to 1 for id: %s", id)
 		} else {
 			updatedBank.IS_CBE = 0
+			b.logger.Infof("[BankSvc][UpdateOneBank] Set IS_CBE to 0 for id: %s", id)
 		}
+	} else {
+		b.logger.Infof("[BankSvc][UpdateOneBank] IsCBE is nil, skipping update for id: %s", id)
 	}
 
 	if bank_request.Logo != nil {
