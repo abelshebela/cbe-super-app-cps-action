@@ -60,16 +60,6 @@ type FileProducerConfig struct {
 }
 
 func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minioClient *s3.Client, buckerName string, filterMap *types.Filter, data []*model.CPSAction, CpsActionCSVHeader func(fields []string) []string, logger utils.Logger) (string, error) {
-	// 1 Create temp file
-	tmpFile, err := os.CreateTemp("", "cps_actions_*.csv")
-	if err != nil {
-		return "", fmt.Errorf("create temp file: %w", err)
-	}
-	defer os.Remove(tmpFile.Name())
-	defer tmpFile.Close()
-
-	writer := csv.NewWriter(tmpFile)
-
 	// Safely extract date strings with type checking
 	createdAtFrom, fromOk := filterMap.Filters["created_at_from"].(string)
 	createdAtTo, toOk := filterMap.Filters["created_at_to"].(string)
@@ -84,71 +74,120 @@ func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minio
 	}
 	filterMap.Filters["created_at_from"] = startDate
 	filterMap.Filters["created_at_to"] = endDate
-	// 2️ Write Header
-	if filterMap.Filters == nil {
-		filterMap.Filters = map[string]interface{}{}
-	}
 
-	fields, ok := filterMap.Filters["fields"].([]string)
-	if ok {
-		filterMap.Filters["fields"] = fields
-	}
-	// delete(filterMap.Filters, "fields")s
-
-	var header []string
-	fields, _ = filterMap.Filters["fields"].([]string)
-
-	header = CpsActionCSVHeader(fields)
-	if err := writer.Write(header); err != nil {
-		return "", fmt.Errorf("write header: %w", err)
-	}
-
-	rowCount := 0
-	for _, action := range data {
-		rowCount++
-		row, err := BuildCPSActionRow(action)
-		if err != nil {
-			return "", err
-		}
-		if err := writer.Write(row); err != nil {
-			return "", err
-		}
-	}
-
-	if rowCount == 0 {
+	// Check if no data found
+	if len(data) == 0 {
 		return "", errors.New(localization.CpsActionDataNotFoundInDateRange.Code)
 	}
 
-	// 4️Upload to MinIO
-	objectName := fmt.Sprintf(
-		"cps_actions_%s_to_%s_%d.csv",
-		startDate.Format("20060102"),
-		endDate.Format("20060102"),
-		time.Now().Unix(),
-	)
-
-	if _, err := tmpFile.Seek(0, 0); err != nil {
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	stat, err := tmpFile.Stat()
-	if err != nil {
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
+	// Get file type from filter, default to CSV
 	fileType, ok := filterMap.Filters["file_type"].(string)
 	if !ok {
 		fileType = string(FileTypeCSV)
 	}
-	// exportType comes from the handler (e.g. query file_type=csv); default to csv for this endpoint.
+
+	// Prepare headers
+	if filterMap.Filters == nil {
+		filterMap.Filters = map[string]interface{}{}
+	}
+
+	fields, _ := filterMap.Filters["fields"].([]string)
+	header := CpsActionCSVHeader(fields)
+
+	// Generate object name based on file type
+	var objectName string
+	if fileType == "pdf" {
+		objectName = fmt.Sprintf(
+			"cps_actions_%s_to_%s_%d.pdf",
+			startDate.Format("20060102"),
+			endDate.Format("20060102"),
+			time.Now().Unix(),
+		)
+	} else {
+		objectName = fmt.Sprintf(
+			"cps_actions_%s_to_%s_%d.csv",
+			startDate.Format("20060102"),
+			endDate.Format("20060102"),
+			time.Now().Unix(),
+		)
+	}
+
 	var url string
-	if fileType == "csv" {
-		url, err = UploadCSVToMinio(ctx, minioClient, buckerName, tmpFile, stat.Size(), cfg, objectName, logger)
+	if fileType == "pdf" {
+		// Generate proper PDF using ExportPDFAndUpload function
+		url, err = ExportPDFAndUpload(ctx, minioClient, buckerName, cfg, objectName, header, func(pdf *gofpdf.Fpdf) error {
+			// Set font for body
+			pdf.SetFont("Arial", "", 10)
+			colWidth := 190.0 / float64(len(header)) // auto fit columns
+
+			// Write data rows
+			for _, action := range data {
+				row, err := BuildCPSActionRow(action)
+				if err != nil {
+					return err
+				}
+
+				// Write each cell in the row
+				for _, cell := range row {
+					pdf.CellFormat(colWidth, 10, cell, "1", 0, "L", false, 0, "")
+				}
+				pdf.Ln(-1) // New line after each row
+			}
+			return nil
+		}, logger)
+
 		if err != nil {
+			logger.Errorf("PDF export failed: %v", err)
 			return "", errors.New(localization.CpsActionDataExportedError.Code)
 		}
 	} else {
-		url, err = UploadPDFToMinio(ctx, minioClient, buckerName, tmpFile, stat.Size(), cfg, objectName, logger)
+		// Generate CSV (original logic)
+		tmpFile, err := os.CreateTemp("", "cps_actions_*.csv")
+		if err != nil {
+			return "", fmt.Errorf("create temp file: %w", err)
+		}
+		defer os.Remove(tmpFile.Name())
+		defer tmpFile.Close()
+
+		writer := csv.NewWriter(tmpFile)
+
+		// Write UTF-8 BOM for Excel compatibility
+		if _, err := tmpFile.Write([]byte{0xEF, 0xBB, 0xBF}); err != nil {
+			return "", fmt.Errorf("write BOM: %w", err)
+		}
+
+		// Write header
+		if err := writer.Write(header); err != nil {
+			return "", fmt.Errorf("write header: %w", err)
+		}
+
+		// Write data rows
+		for _, action := range data {
+			row, err := BuildCPSActionRow(action)
+			if err != nil {
+				return "", err
+			}
+			if err := writer.Write(row); err != nil {
+				return "", err
+			}
+		}
+
+		writer.Flush()
+		if err := writer.Error(); err != nil {
+			return "", fmt.Errorf("flush writer: %w", err)
+		}
+
+		// Upload CSV to MinIO
+		if _, err := tmpFile.Seek(0, 0); err != nil {
+			return "", errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		stat, err := tmpFile.Stat()
+		if err != nil {
+			return "", errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		url, err = UploadCSVToMinio(ctx, minioClient, buckerName, tmpFile, stat.Size(), cfg, objectName, logger)
 		if err != nil {
 			return "", errors.New(localization.CpsActionDataExportedError.Code)
 		}
