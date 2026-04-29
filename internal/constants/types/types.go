@@ -20,7 +20,39 @@ type BPSActionDocument struct {
 		AccountNumbers []string    `json:"account_numbers" bson:"account_numbers"`
 		PhoneNumbers   string      `json:"phone_numbers" bson:"phone_numbers"`
 		BranchCode     string      `json:"branch_code" bson:"branch_code"`
+		// Enhanced customer information from members collection
+		Email          string `json:"email,omitempty" bson:"email,omitempty"`
+		CustomerNumber string `json:"customer_number,omitempty" bson:"customer_number,omitempty"`
+		Gender         string `json:"gender,omitempty" bson:"gender,omitempty"`
+		IsActivated    bool   `json:"is_activated,omitempty" bson:"is_activated,omitempty"`
+		Enabled        bool   `json:"enabled,omitempty" bson:"enabled,omitempty"`
+		IsBlocked      bool   `json:"is_blocked,omitempty" bson:"is_blocked,omitempty"`
+		KYCLevel       uint8  `json:"kyc_level,omitempty" bson:"kyc_level,omitempty"`
+		CreatedAt      string `json:"customer_created_at,omitempty" bson:"customer_created_at,omitempty"`
 	} `json:"user_information" bson:"user_information"`
+	// Customer information from members collection lookup
+	CustomerInfo []struct {
+		ID             bson.ObjectID `json:"_id" bson:"_id"`
+		FullName       string        `json:"full_name" bson:"full_name"`
+		PhoneNumber    string        `json:"phone_number" bson:"phone_number"`
+		Email          string        `json:"email" bson:"email"`
+		CustomerNumber string        `json:"customer_number" bson:"customer_number"`
+		Gender         string        `json:"gender" bson:"gender"`
+		BranchCode     string        `json:"branch_code" bson:"branch_code"`
+		IsActivated    bool          `json:"is_activated" bson:"is_activated"`
+		Enabled        bool          `json:"enabled" bson:"enabled"`
+		IsBlocked      bool          `json:"is_blocked" bson:"is_blocked"`
+		KYCLevel       uint8         `json:"kyc_level" bson:"kyc_level"`
+		CreatedAt      time.Time     `json:"created_at" bson:"created_at"`
+	} `json:"customer_info,omitempty" bson:"customer_info,omitempty"`
+	// Linked accounts information
+	LinkedAccounts []struct {
+		AccountNumber     string `json:"account_number" bson:"account_number"`
+		AccountHolderName string `json:"account_holder_name" bson:"account_holder_name"`
+		AccountType       string `json:"account_type" bson:"account_type"`
+		AccountBranchCode string `json:"account_branch_code" bson:"account_branch_code"`
+		IsActive          bool   `json:"is_active" bson:"is_active"`
+	} `json:"linked_accounts,omitempty" bson:"linked_accounts,omitempty"`
 	BusinessInformation struct {
 		// BusinessID may be stored as bson.ObjectID (legacy) or string (Oracle RAW(16) hex).
 		BusinessID   interface{} `json:"business_id" bson:"business_id"`

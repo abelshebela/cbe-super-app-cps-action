@@ -689,6 +689,45 @@ func (b *bpsActionRepository) SanitizedFindOne(ctx context.Context, filter bson.
 	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
+		// Lookup customer information from members collection using user_id
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "members"},
+			{Key: "let", Value: bson.D{{Key: "user_id", Value: "$user_information.user_id"}}},
+			{Key: "pipeline", Value: bson.A{
+				bson.D{{Key: "$match", Value: bson.D{{Key: "$expr", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", "$$user_id"}}}}}}}},
+				bson.D{{Key: "$project", Value: bson.D{
+					{Key: "_id", Value: 1},
+					{Key: "full_name", Value: 1},
+					{Key: "phone_number", Value: 1},
+					{Key: "email", Value: 1},
+					{Key: "customer_number", Value: 1},
+					{Key: "gender", Value: 1},
+					{Key: "branch_code", Value: 1},
+					{Key: "is_activated", Value: 1},
+					{Key: "enabled", Value: 1},
+					{Key: "is_blocked", Value: 1},
+					{Key: "kyc_level", Value: 1},
+					{Key: "created_at", Value: 1},
+				}}},
+			}},
+			{Key: "as", Value: "customer_info"},
+		}},
+		// Lookup linked accounts for the customer
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "linked_account"},
+			{Key: "let", Value: bson.D{{Key: "user_id", Value: "$user_information.user_id"}}},
+			{Key: "pipeline", Value: bson.A{
+				bson.D{{Key: "$match", Value: bson.D{{Key: "$expr", Value: bson.D{{Key: "$eq", Value: bson.A{"$user_id", "$$user_id"}}}}}}}},
+				bson.D{{Key: "$project", Value: bson.D{
+					{Key: "account_number", Value: 1},
+					{Key: "account_holder_name", Value: 1},
+					{Key: "account_type", Value: 1},
+					{Key: "account_branch_code", Value: 1},
+					{Key: "is_active", Value: 1},
+				}}},
+			}},
+			{Key: "as", Value: "linked_accounts"},
+		}},
 		bps_action_core.SanitizePipeline(exclude),
 		{{Key: "$limit", Value: 1}},
 		{{Key: "$project", Value: Projection}},
