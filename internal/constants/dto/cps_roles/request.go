@@ -5,7 +5,6 @@ type CreateCPSRoleRequest struct {
 	RoleCode    string `json:"role_code,omitempty"`
 	Lable       string `json:"label" bson:"lable"`
 	Description string `json:"description,omitempty"`
-	AccountType string `json:"account_type,omitempty"`
 }
 
 type UpdateCPSRoleRequest struct {
@@ -13,7 +12,6 @@ type UpdateCPSRoleRequest struct {
 	RoleCode    *string `json:"role_code,omitempty"`
 	Lable       *string `json:"label" bson:"lable"`
 	Description *string `json:"description,omitempty"`
-	// AccountType *string `json:"account_type,omitempty"`
 }
 
 type ToggleServiceAccessRequest struct {
