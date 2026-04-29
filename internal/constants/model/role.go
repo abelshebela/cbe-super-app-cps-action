@@ -14,7 +14,9 @@ type Role struct {
 	UpdateAt  time.Time     `json:"updated_at" bson:"updated_at"`
 	CreatedAt time.Time     `json:"created_at" bson:"created_at"`
 	// Type, RoleCode, RoleName are populated on read when using RoleRepository aggregation (GET /job_roles*), not stored on the roles document.
-	Type     string `json:"type" bson:"type"`
-	RoleCode string `json:"role_code,omitempty" bson:"role_code,omitempty"`
-	RoleName string `json:"role_name,omitempty" bson:"role_name,omitempty"`
+	Type      string    `json:"type" bson:"type"`
+	RoleCode  string    `json:"role_code,omitempty" bson:"role_code,omitempty"`
+	RoleName  string    `json:"role_name,omitempty" bson:"role_name,omitempty"`
+	IsDeleted bool      `json:"is_deleted" bson:"is_deleted"`
+	DeletedAt time.Time `json:"deleted_at,omitempty" bson:"deleted_at,omitempty"`
 }
