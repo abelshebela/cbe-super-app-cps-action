@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"cbe-super-app-cps-action/internal/constants"
+	bps_action "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
-	bps_action "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -142,15 +142,6 @@ func mapBpsActionToEntity(dbAction types.BPSActionDocument) bps_action.BPSAction
 			AccountNumbers []string `json:"account_numbers" bson:"account_numbers"`
 			PhoneNumbers   string   `json:"phone_numbers" bson:"phone_numbers"`
 			BranchCode     string   `json:"branch_code" bson:"branch_code"`
-			// Enhanced customer information from members collection
-			Email          string `json:"email,omitempty" bson:"email,omitempty"`
-			CustomerNumber string `json:"customer_number,omitempty" bson:"customer_number,omitempty"`
-			Gender         string `json:"gender,omitempty" bson:"gender,omitempty"`
-			IsActivated    bool   `json:"is_activated,omitempty" bson:"is_activated,omitempty"`
-			Enabled        bool   `json:"enabled,omitempty" bson:"enabled,omitempty"`
-			IsBlocked      bool   `json:"is_blocked,omitempty" bson:"is_blocked,omitempty"`
-			KYCLevel       uint8  `json:"kyc_level,omitempty" bson:"kyc_level,omitempty"`
-			CreatedAt      string `json:"customer_created_at,omitempty" bson:"customer_created_at,omitempty"`
 		}{
 			UserID:         userID,
 			UserCode:       dbAction.UserInformation.UserCode,
@@ -158,18 +149,7 @@ func mapBpsActionToEntity(dbAction types.BPSActionDocument) bps_action.BPSAction
 			AccountNumbers: dbAction.UserInformation.AccountNumbers,
 			PhoneNumbers:   dbAction.UserInformation.PhoneNumbers,
 			BranchCode:     dbAction.UserInformation.BranchCode,
-			// Enhanced customer information - populated from lookup
-			Email:          getCustomerInfoField(dbAction.CustomerInfo, "email"),
-			CustomerNumber: getCustomerInfoField(dbAction.CustomerInfo, "customer_number"),
-			Gender:         getCustomerInfoField(dbAction.CustomerInfo, "gender"),
-			IsActivated:    getCustomerInfoBoolField(dbAction.CustomerInfo, "is_activated", false),
-			Enabled:        getCustomerInfoBoolField(dbAction.CustomerInfo, "enabled", false),
-			IsBlocked:      getCustomerInfoBoolField(dbAction.CustomerInfo, "is_blocked", false),
-			KYCLevel:       getCustomerInfoUint8Field(dbAction.CustomerInfo, "kyc_level", 0),
-			CreatedAt:      getCustomerInfoTimeField(dbAction.CustomerInfo, "created_at"),
 		},
-		// Linked accounts information
-		LinkedAccounts: mapLinkedAccounts(dbAction.LinkedAccounts),
 		BusinessInformation: struct {
 			BusinessID   bson.ObjectID `json:"business_id" bson:"business_id"`
 			TILLNumber   string        `json:"till_number" bson:"till_number"`
