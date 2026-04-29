@@ -89,7 +89,7 @@ type UnlinkAccount interface {
 type ServicesRepository interface {
 	Create(ctx context.Context, service *imodel.Service) error
 	Update(ctx context.Context, id string, service *imodel.Service) error
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, serviceID, accessListID string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*service_dto.ServiceResponse, error)
 	FindByAccessListID(ctx context.Context, accessListID string) (bool, error)
