@@ -23,7 +23,7 @@ require (
 	github.com/redis/go-redis/v9 v9.17.2
 	github.com/shopspring/decimal v1.4.0
 	github.com/swaggo/http-swagger v1.3.4
-	github.com/swaggo/swag v1.16.6
+	github.com/swaggo/swag v1.16.6 // indirect
 	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.3.38
 	go.mongodb.org/mongo-driver v1.17.6
 	go.mongodb.org/mongo-driver/v2 v2.4.1
