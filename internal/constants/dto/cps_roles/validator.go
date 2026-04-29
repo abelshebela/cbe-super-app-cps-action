@@ -11,7 +11,6 @@ func (r *CreateCPSRoleRequest) Normalize() {
 	r.Name = strings.TrimSpace(r.Name)
 	r.RoleCode = strings.TrimSpace(r.RoleCode)
 	r.Description = strings.TrimSpace(r.Description)
-	r.AccountType = strings.TrimSpace(r.AccountType)
 }
 func (r *UpdateCPSRoleRequest) Normalize() {
 	if r.Name != nil {
@@ -39,9 +38,6 @@ func (r CreateCPSRoleRequest) Validate() error {
 			validation.By(utils.NoSpecialChars),
 		),
 		validation.Field(&r.Description,
-			validation.By(utils.NoSpecialChars),
-		),
-		validation.Field(&r.AccountType,
 			validation.By(utils.NoSpecialChars),
 		),
 	)

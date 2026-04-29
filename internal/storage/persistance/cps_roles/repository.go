@@ -150,7 +150,6 @@ func (m *cpsRoleStorage) Create(ctx context.Context, req imodel.CPSRoles) error 
 		boolToOracleNumber(enabled),
 		req.CreatedAt,
 		req.UpdatedAt,
-		// req.AccountType,
 		sql.Out{Dest: &id},
 	); err != nil {
 		m.logger.Errorf("[CPSRolesStorage][Create] insert failed: %v", err)
@@ -197,10 +196,6 @@ func (m *cpsRoleStorage) Update(ctx context.Context, id string, req imodel.CPSRo
 		sets = append(sets, "DESCRIPTION = :description")
 		args = append(args, sql.Named("description", strings.TrimSpace(req.Description)))
 	}
-	// if strings.TrimSpace(req.AccountType) != "" {
-	// 	sets = append(sets, "ACCOUNT_TYPE = :account_type")
-	// 	args = append(args, sql.Named("account_type", strings.TrimSpace(req.AccountType)))
-	// }
 
 	if len(sets) == 1 {
 		return errors.New(localization.ErrorNoDataProvided.Code)
@@ -335,11 +330,11 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	for rows.Next() {
 		var (
-			id                                       string
-			name, roleCode, label, desc, accountType sql.NullString
-			enabledN, isDeletedN                     int
-			createdAt, updatedAt                     sql.NullTime
-			delT                                     sql.NullTime
+			id                          string
+			name, roleCode, label, desc sql.NullString
+			enabledN, isDeletedN        int
+			createdAt, updatedAt        sql.NullTime
+			delT                        sql.NullTime
 
 			enabledServicesJSON  sql.NullString
 			disabledServicesJSON sql.NullString
@@ -351,7 +346,6 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			&label,
 			&roleCode,
 			&desc,
-			&accountType,
 			&enabledN,
 			&isDeletedN,
 			&createdAt,
@@ -372,9 +366,8 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			RoleCode:    roleCode.String,
 			Lable:       label.String,
 			Description: desc.String,
-			// AccountType: accountType.String,
-			Enabled:   &enabled,
-			IsDeleted: isDeletedN == 1,
+			Enabled:     &enabled,
+			IsDeleted:   isDeletedN == 1,
 		}
 
 		if createdAt.Valid {
@@ -483,8 +476,8 @@ WHERE SR.ID = HEXTORAW(:1)
 	var (
 		r imodel.CPSRoles
 
-		name, roleCode, label, desc, accountType sql.NullString
-		enabledN, deletedN                       int
+		name, roleCode, label, desc sql.NullString
+		enabledN, deletedN          int
 
 		createdAt, updatedAt, deletedAt sql.NullTime
 
@@ -498,7 +491,6 @@ WHERE SR.ID = HEXTORAW(:1)
 		&label,
 		&roleCode,
 		&desc,
-		&accountType,
 		&enabledN,
 		&deletedN,
 		&createdAt,
@@ -525,7 +517,6 @@ WHERE SR.ID = HEXTORAW(:1)
 	r.Description = desc.String
 	r.Enabled = PtrBool(enabledN == 1)
 	r.IsDeleted = deletedN == 1
-	// r.AccountType = accountType.String
 
 	SetTime(&r.CreatedAt, createdAt)
 	SetTime(&r.UpdatedAt, updatedAt)
@@ -590,10 +581,10 @@ WHERE IS_DELETED = 0 AND (%s)
 FETCH FIRST 1 ROWS ONLY`, superAppRoleTable, cond)
 
 	var (
-		id                                         string
-		dbName, dbRole, label, dbDesc, accountType sql.NullString
-		enabledN, isDeletedN                       int
-		createdAt, updatedAt, delT                 sql.NullTime
+		id                            string
+		dbName, dbRole, label, dbDesc sql.NullString
+		enabledN, isDeletedN          int
+		createdAt, updatedAt, delT    sql.NullTime
 	)
 
 	err := m.db.QueryRowContext(ctx, q, args...).Scan(
@@ -602,7 +593,6 @@ FETCH FIRST 1 ROWS ONLY`, superAppRoleTable, cond)
 		&label,
 		&dbRole,
 		&dbDesc,
-		&accountType,
 		&enabledN,
 		&isDeletedN,
 		&createdAt,
@@ -624,9 +614,8 @@ FETCH FIRST 1 ROWS ONLY`, superAppRoleTable, cond)
 		Lable:       label.String,
 		RoleCode:    dbRole.String,
 		Description: dbDesc.String,
-		// AccountType: accountType.String,
-		Enabled:   &enabled,
-		IsDeleted: isDeletedN == 1,
+		Enabled:     &enabled,
+		IsDeleted:   isDeletedN == 1,
 	}
 	if createdAt.Valid {
 		out.CreatedAt = createdAt.Time
@@ -695,10 +684,10 @@ WHERE cs.IS_DELETED = 0
 FETCH FIRST 1 ROWS ONLY`
 
 	var (
-		id                                       string
-		name, roleCode, label, desc, accountType sql.NullString
-		enabledN, isDeletedN                     int
-		createdAt, updatedAt, delT               sql.NullTime
+		id                          string
+		name, roleCode, label, desc sql.NullString
+		enabledN, isDeletedN        int
+		createdAt, updatedAt, delT  sql.NullTime
 	)
 
 	err := m.db.QueryRowContext(ctx, q, customerSegment).Scan(
@@ -707,7 +696,6 @@ FETCH FIRST 1 ROWS ONLY`
 		&label,
 		&roleCode,
 		&desc,
-		&accountType,
 		&enabledN,
 		&isDeletedN,
 		&createdAt,
@@ -729,9 +717,8 @@ FETCH FIRST 1 ROWS ONLY`
 		Lable:       label.String,
 		RoleCode:    roleCode.String,
 		Description: desc.String,
-		// AccountType: accountType.String,
-		Enabled:   &enabled,
-		IsDeleted: isDeletedN == 1,
+		Enabled:     &enabled,
+		IsDeleted:   isDeletedN == 1,
 	}
 	if createdAt.Valid {
 		out.CreatedAt = createdAt.Time
