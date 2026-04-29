@@ -126,7 +126,6 @@ func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, u.Logger)
 	var fileHeader *multipart.FileHeader
-	var file multipart.File
 	var err error
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -141,24 +140,17 @@ func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.
 
 	var req ussd_merchant_dto.UpdateUssdMerchantRequest
 
-	// logo is optional on update; only parse/validate when the multipart file is provided
 	_, _, formFileErr := r.FormFile("logo")
 	if formFileErr == nil {
-		file, fileHeader, err = core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), u.Logger)
+		_, fileHeader, err = core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), u.Logger)
 		if err != nil {
 			span.RecordError(err)
 			log.Errorf("[UpdateUssdMerchantHandler] error parsing file: %v", err)
 			localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
 			return
 		}
-		defer file.Close()
-		req.Logo = fileHeader
-	} else if formFileErr != http.ErrMissingFile {
-		span.RecordError(formFileErr)
-		log.Errorf("[UpdateUssdMerchantHandler] error reading form file: %v", formFileErr)
-		localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
-		return
 	}
+	req.Logo = fileHeader
 	// file, fileHeader, err = core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), u.Logger)
 	// if err != nil {
 	// 	span.RecordError(err)
@@ -170,7 +162,7 @@ func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.
 
 	req.SettlementMethod = r.FormValue("settlement_method")
 	req.Name = r.FormValue("name")
-	req.PhoneNumber = local_util.FormatPhoneNumber(r.FormValue("phone_number"))
+	req.PhoneNumber = r.FormValue("phone_number")
 	req.Service = r.FormValue("service")
 	req.Email = r.FormValue("email")
 	req.AccountNumber = r.FormValue("account_number")
@@ -387,35 +379,4 @@ func (u *UssdMerchantHandler) GetAllUssdMerchant(w http.ResponseWriter, r *http.
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantFetched, result)
-}
-
-func (u *UssdMerchantHandler) DelereUssdMerchant(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "DeleteUssdMerchant", "handler", "ussdMerchant")
-	defer span.End()
-	log := local_util.LoggerFromCtx(ctx, u.Logger)
-	md := &types.ContextMetadata{}
-	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
-	localization.UpdateWriterContext(w, ctx)
-	id := chi.URLParam(r, "id")
-	if id == "" {
-		log.Errorf("[GetUssdMerchantHandler] missing id parameter in request path")
-		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidID.Code)
-		return
-	}
-
-	err := u.UssdMerchantService.DeleteUssdMerchant(ctx, id)
-	if err != nil {
-		log.Errorf("[DeleteUssdMerchant]failed to delete ussd merchant: %v", err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
-	if md.IsMakerOnly {
-		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.SucccessDeleteUssdMerchant, nil)
-
-	} else {
-		span.AddEvent("USSD merchant delete request submitted")
-		log.Infof("[USSD merchant][Delete] request submitted")
-		localization.SendSuccessResponse(w, localization.SucccessUssdMerchantDeleteRequest, nil)
-	}
 }

@@ -56,7 +56,7 @@ func (u *UssdMerchantRepository) Update(ctx context.Context, id string, update b
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
-	filter := bson.M{"_id": objID}
+	filter := bson.M{"_id": objID, "is_deleted": false}
 	_, err = u.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		u.logger.Errorf("[UssdMerchantRepository][Update] error updating ussd_merchant: %v", err)
@@ -93,7 +93,7 @@ func (u *UssdMerchantRepository) FindById(ctx context.Context, id string) (ussd_
 		return ussd_merchant_dto.UssdMerchantResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	data, err := u.dal.FindOne(ctx, bson.M{"_id": objID}, nil)
+	data, err := u.dal.FindOne(ctx, bson.M{"_id": objID, "is_deleted": false}, nil)
 	if err != nil {
 		u.logger.Errorf("[UssdMerchantRepository][FindById] error fetching ussd_merchant: %v", err)
 		return ussd_merchant_dto.UssdMerchantResponse{}, local_util.HandleDBError(err)
@@ -141,6 +141,7 @@ func (u *UssdMerchantRepository) FindByOr(ctx context.Context, phone, email, acc
 	}
 
 	filter := bson.M{"$or": conditions}
+	filter["is_deleted"] = false
 	data, err := u.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		u.logger.Errorf("[UssdMerchantRepository][FindByOr] failed to find merchant: %v", err)
@@ -168,6 +169,7 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 	}
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	filter["is_deleted"] = false
 
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},

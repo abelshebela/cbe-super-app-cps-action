@@ -43,25 +43,34 @@ func (r CreateDeviceVersionRequest) Validate() error {
 func (r *UpdateDeviceVersionRequest) Clean() {
 	r.Platform = strings.TrimSpace(strings.ToLower(r.Platform))
 	r.LatestVersion = strings.TrimSpace(r.LatestVersion)
+	r.ReleaseNotes = strings.TrimSpace(r.ReleaseNotes)
 }
 
 func (r UpdateDeviceVersionRequest) Validate() error {
-	return validation.ValidateStruct(&r,
+	err := validation.ValidateStruct(&r,
 		validation.Field(&r.ID,
 			validation.Required,
 			is.Hexadecimal,
+			validation.By(utils.NoSpecialChars),
 			validation.Length(24, 24),
 		),
 		validation.Field(&r.LatestVersion,
 			validation.Length(1, 50),
+			validation.By(utils.NoSpecialChars),
 		),
 		validation.Field(&r.Platform,
-			validation.In("ANDROID", "IOS", "android", "ios"),
+			validation.In("ANDROID", "IOS", "android", "ios").Error("platform must be either of ANDROID or IOS"),
 		),
 		validation.Field(&r.ReleaseNotes,
 			validation.Length(0, 500),
+			validation.By(utils.NoSpecialChars),
 		),
 	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *EnableOrDisableDeviceVersion) Clean() {

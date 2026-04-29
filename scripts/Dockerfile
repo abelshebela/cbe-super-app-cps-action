@@ -61,7 +61,6 @@ ENV OCI_INC_DIR=/opt/oracle/instantclient/sdk/include
 
 # Copy compiled Go binary and env/configs
 COPY --from=builder /app/supperapp-cps-action .
-COPY docs .
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Set runtime env for Oracle

@@ -479,6 +479,15 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	BICCode := r.FormValue("bic_code")
 	updateRequest.BICCode = strings.ToUpper(BICCode)
 
+	isCBE := r.FormValue("is_cbe")
+	trueVal := true
+	if strings.ToLower(isCBE) == "true" {
+		updateRequest.IsCBE = &trueVal
+	} else if strings.ToLower(isCBE) == "false" {
+		falseVal := false
+		updateRequest.IsCBE = &falseVal
+	}
+
 	if accountLength := r.FormValue("account_length"); accountLength != "" {
 		length, err := strconv.Atoi(accountLength)
 		if err == nil {
