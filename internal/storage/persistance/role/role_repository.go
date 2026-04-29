@@ -142,6 +142,7 @@ func (r *RoleRepository) EnableOrDisable(ctx context.Context, id string, enable 
 }
 
 func (r *RoleRepository) SoftDelete(ctx context.Context, id string) error {
+	r.logger.Infof("[RoleRepository][SoftDelete] soft deleting role with id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		r.logger.Errorf("[RoleRepository][SoftDelete] invalid object id: %v", err)

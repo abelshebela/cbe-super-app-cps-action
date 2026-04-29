@@ -1,6 +1,7 @@
 package bps_action
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -534,7 +535,7 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 	switch filter["auditor_status"] {
 	case "NOTCHECKED":
 		filter["auditors.audited"] = false
-		filter["status"] = "APPROVED" // Only show APPROVED actions for auditors
+		filter["status"] = constants.Approved // Only show APPROVED actions for auditors
 	case "CHECKED":
 		filter["auditors.audited"] = true
 	}
@@ -635,7 +636,7 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationBPSActions(ctx conte
 	}
 
 	var finalMatch bson.M
-	if role == "checker" && filterParam.Filters != nil && filterParam.Filters["status"] == "PENDING" {
+	if role == "checker" && filterParam.Filters != nil && filterParam.Filters["status"] == constants.Pending {
 		finalMatch = filter
 	} else if userFilter != nil {
 		finalMatch = bson.M{"$and": []bson.M{filter, userFilter}}
@@ -949,10 +950,10 @@ func (b *bpsActionRepository) GetCountByDepartment(ctx context.Context, departme
 		{{Key: "$match", Value: bson.M{"is_deleted": false, "department": department}}},
 		{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: nil},
-			{Key: "approved", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", "APPROVED"}}}, 1, 0}}}}}},
-			{Key: "rejected", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", "REJECTED"}}}, 1, 0}}}}}},
-			{Key: "inprogress", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", "INPROGRESS"}}}, 1, 0}}}}}},
-			{Key: "completed", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", "AUDITORNOTCHECKED"}}}, 1, 0}}}}}},
+			{Key: "approved", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", constants.Approved}}}, 1, 0}}}}}},
+			{Key: "rejected", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", constants.Rejected}}}, 1, 0}}}}}},
+			{Key: "inprogress", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", string(constants.AUDITORINPROGRESS)}}}, 1, 0}}}}}},
+			{Key: "completed", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", string(constants.AUDITORNOTCHECKED)}}}, 1, 0}}}}}},
 		}}},
 	}
 
