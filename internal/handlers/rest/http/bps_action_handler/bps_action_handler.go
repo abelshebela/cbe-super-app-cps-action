@@ -861,9 +861,9 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	// Audior's Completed Count
+	// Auditor's Completed Count
 	if auditorActions != nil && requestedRole == "auditor" {
-		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(model.AUDITORNOTCHECKED), "")); err != nil {
+		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(constants.Approved), string(model.AUDITORCHECKED))); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return

@@ -129,9 +129,8 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 
 	// Apply CPS Action Route Guard for comprehensive path protection
 	// Whitelist CPS Action endpoints that don't need action-based validation
-	//whitelist := []string{"cps_action", "cps_actions"}
-	//actionRouteGuard := customeMiddleware.CPSActionRouteGuard(whitelist)
-	//r.Use(actionRouteGuard)
+	whitelist := []string{"cps_action", "cps_actions"}
+	actionRouteGuard := customeMiddleware.CPSActionRouteGuard(whitelist)
 
 	r.Get("/healthcheck", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -213,6 +212,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 		r.Use(authMiddleware.AuthenticateToken)
 		// Global role validation - only allow viewer, maker, checker, auditor roles
 		// r.Use(authMiddleware.ValidateRequiredRoles)
+		r.Use(actionRouteGuard)
 
 		// CPS Action Guard
 		// // r.Use(customeMiddleware.CPSActionRouteGuard([]string{
@@ -220,7 +220,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 		// // 	"/actions/{action_code}/approve",
 		// // 	"/actions/{action_code}/reject",
 		// // }))
-		// r.Mount("/", r)
+		// Routes will be mounted below
 
 	})
 
@@ -242,7 +242,6 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 		})
 	}
 
-	secured.Mount("/", r)
 	// Mount
 	router.Mount("/api/v1/cbesuperapp/cps_action", secured)
 }

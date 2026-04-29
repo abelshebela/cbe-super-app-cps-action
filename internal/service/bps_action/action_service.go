@@ -423,7 +423,7 @@ func (ba *bpsActionService) GetBPSActionByUniqueID(ctx context.Context, requestA
 
 		"role_code": role_code,
 
-		"action_status": string(constants.Pending),
+		"status": string(constants.Pending),
 
 		"request_action": requestAction,
 	}
@@ -482,7 +482,7 @@ func (ba *bpsActionService) GetBPSActionByForUpdate(ctx context.Context) (*bps_m
 
 	filter := bson.M{
 
-		"action_status": string(constants.Pending),
+		"status": string(constants.Pending),
 
 		"request_action": bson.M{"$in": reqs},
 	}
