@@ -184,7 +184,7 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, AuditorStatus: string(auditor.AuditorMark), RoleCode: rawRoleID, UserData: userData, Reason: auditor.AuditorReason}
 
 	ba.logger.Infof("[BpsActionSvc][AuditorMark] payload: %+v", payload)
-	if err := producer.PublishMessage(ctx, payload, constants.BPSApproveTopic, ba.cfg.ACIAATMBlockUnBlockUpdateCode1, "BPS_AUDITOR_MARK"); err != nil {
+	if err := producer.PublishMessage(ctx, payload, constants.BPSAuditorMarkTopic, ba.cfg.ACIAATMBlockUnBlockUpdateCode1, "BPS_AUDITOR_MARK"); err != nil {
 
 		span.AddEvent("failed to publish bps auditor mark", trace.WithAttributes(attribute.String("error", err.Error())))
 		ba.logger.Errorf("[BpsActionSvc][AuditorMark] failed to publish bps auditor mark: %v", err)
