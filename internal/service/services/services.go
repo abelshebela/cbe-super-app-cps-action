@@ -205,22 +205,17 @@ func (s *servicesService) EnableOrDisableServiceList(ctx context.Context, id str
 }
 
 func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error {
-	prev, err := s.repo.FindServiceByAccessListID(ctx, id)
+	prev, err := s.repo.FindServiceListByID(ctx, id)
 	if err != nil {
-		s.logger.Errorf("[servicesService][DeleteServiceKey] error fetching service by id=%s: %v", id, err)
-		if err.Error() == localization.ErrorServiceNotFound.Code {
-			return errors.New(localization.ErrorServiceNotFound.Code)
+		if err.Error() == localization.ErrorAccessListNotFound.Code {
+			return localization.ErrorAccessListNotFound
 		}
+		s.logger.Errorf("[servicesService][DeleteServiceKey] error fetching access list by id=%s: %v", id, err)
+		return err
 	}
 
-	var accessListID string
-	if prev != nil {
-		accessListID = prev.ServiceKeyId
-	} else {
-		accessListID = id
-	}
 	s.logger.Infof("[servicesService][DeleteServiceKey] Deleting service key with id=%s, found service list: %+v", id, prev)
-	return core.HandleCPSAction(ctx, s.cps, accessListID, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
+	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
 }
 
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
@@ -241,7 +236,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		// err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
 		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, false)
 	case string(constants.RequestDeleteService):
-		err = s.repo.Delete(ctx, action.UniqueId)
+		err = s.repo.Delete(ctx, action.UniqueId, "")
 	case string(constants.RequestCreateServiceList):
 		listDoc, err := local_util.JsonUnmarshal[imodel.ServiceKey](action.CurrentAction)
 		if err != nil {
@@ -261,7 +256,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 
 		err = s.repo.UpdateServiceKey(ctx, action.UniqueId, prevListDoc.ServiceKey, listDoc)
 	case string(constants.RequestDeleteServiceList):
-		err = s.repo.Delete(ctx, action.UniqueId)
+		err = s.repo.Delete(ctx, "", action.UniqueId)
 	// case string(constants.RequestDeleteServiceKey):
 	// 	err = s.repo.DeleteServiceKey(ctx, action.UniqueId)
 	case string(constants.RequestEnableServiceList):
