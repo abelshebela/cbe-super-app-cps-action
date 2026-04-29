@@ -1,13 +1,14 @@
 package bps_action
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
-	bps_action "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
 	"encoding/json"
 	"fmt"
 	"time"
 
+	"cbe-super-app-cps-action/internal/constants/types"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	bps_action "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -141,6 +142,15 @@ func mapBpsActionToEntity(dbAction types.BPSActionDocument) bps_action.BPSAction
 			AccountNumbers []string `json:"account_numbers" bson:"account_numbers"`
 			PhoneNumbers   string   `json:"phone_numbers" bson:"phone_numbers"`
 			BranchCode     string   `json:"branch_code" bson:"branch_code"`
+			// Enhanced customer information from members collection
+			Email          string `json:"email,omitempty" bson:"email,omitempty"`
+			CustomerNumber string `json:"customer_number,omitempty" bson:"customer_number,omitempty"`
+			Gender         string `json:"gender,omitempty" bson:"gender,omitempty"`
+			IsActivated    bool   `json:"is_activated,omitempty" bson:"is_activated,omitempty"`
+			Enabled        bool   `json:"enabled,omitempty" bson:"enabled,omitempty"`
+			IsBlocked      bool   `json:"is_blocked,omitempty" bson:"is_blocked,omitempty"`
+			KYCLevel       uint8  `json:"kyc_level,omitempty" bson:"kyc_level,omitempty"`
+			CreatedAt      string `json:"customer_created_at,omitempty" bson:"customer_created_at,omitempty"`
 		}{
 			UserID:         userID,
 			UserCode:       dbAction.UserInformation.UserCode,
@@ -148,7 +158,18 @@ func mapBpsActionToEntity(dbAction types.BPSActionDocument) bps_action.BPSAction
 			AccountNumbers: dbAction.UserInformation.AccountNumbers,
 			PhoneNumbers:   dbAction.UserInformation.PhoneNumbers,
 			BranchCode:     dbAction.UserInformation.BranchCode,
+			// Enhanced customer information - populated from lookup
+			Email:          getCustomerInfoField(dbAction.CustomerInfo, "email"),
+			CustomerNumber: getCustomerInfoField(dbAction.CustomerInfo, "customer_number"),
+			Gender:         getCustomerInfoField(dbAction.CustomerInfo, "gender"),
+			IsActivated:    getCustomerInfoBoolField(dbAction.CustomerInfo, "is_activated", false),
+			Enabled:        getCustomerInfoBoolField(dbAction.CustomerInfo, "enabled", false),
+			IsBlocked:      getCustomerInfoBoolField(dbAction.CustomerInfo, "is_blocked", false),
+			KYCLevel:       getCustomerInfoUint8Field(dbAction.CustomerInfo, "kyc_level", 0),
+			CreatedAt:      getCustomerInfoTimeField(dbAction.CustomerInfo, "created_at"),
 		},
+		// Linked accounts information
+		LinkedAccounts: mapLinkedAccounts(dbAction.LinkedAccounts),
 		BusinessInformation: struct {
 			BusinessID   bson.ObjectID `json:"business_id" bson:"business_id"`
 			TILLNumber   string        `json:"till_number" bson:"till_number"`
@@ -217,4 +238,167 @@ func mapBpsActionToEntity(dbAction types.BPSActionDocument) bps_action.BPSAction
 		CreatedAt:          createdAt,
 		LastModifiedAt:     lastModifiedAt,
 	}
+}
+
+// Helper functions for customer data mapping
+func getCustomerInfoField(customerInfo []struct {
+	ID             bson.ObjectID `json:"_id" bson:"_id"`
+	FullName       string        `json:"full_name" bson:"full_name"`
+	PhoneNumber    string        `json:"phone_number" bson:"phone_number"`
+	Email          string        `json:"email" bson:"email"`
+	CustomerNumber string        `json:"customer_number" bson:"customer_number"`
+	Gender         string        `json:"gender" bson:"gender"`
+	BranchCode     string        `json:"branch_code" bson:"branch_code"`
+	IsActivated    bool          `json:"is_activated" bson:"is_activated"`
+	Enabled        bool          `json:"enabled" bson:"enabled"`
+	IsBlocked      bool          `json:"is_blocked" bson:"is_blocked"`
+	KYCLevel       uint8         `json:"kyc_level" bson:"kyc_level"`
+	CreatedAt      time.Time     `json:"created_at" bson:"created_at"`
+}, field string) string {
+	if len(customerInfo) == 0 {
+		return ""
+	}
+
+	switch field {
+	case "email":
+		return customerInfo[0].Email
+	case "customer_number":
+		return customerInfo[0].CustomerNumber
+	case "gender":
+		return customerInfo[0].Gender
+	default:
+		return ""
+	}
+}
+
+func getCustomerInfoBoolField(customerInfo []struct {
+	ID             bson.ObjectID `json:"_id" bson:"_id"`
+	FullName       string        `json:"full_name" bson:"full_name"`
+	PhoneNumber    string        `json:"phone_number" bson:"phone_number"`
+	Email          string        `json:"email" bson:"email"`
+	CustomerNumber string        `json:"customer_number" bson:"customer_number"`
+	Gender         string        `json:"gender" bson:"gender"`
+	BranchCode     string        `json:"branch_code" bson:"branch_code"`
+	IsActivated    bool          `json:"is_activated" bson:"is_activated"`
+	Enabled        bool          `json:"enabled" bson:"enabled"`
+	IsBlocked      bool          `json:"is_blocked" bson:"is_blocked"`
+	KYCLevel       uint8         `json:"kyc_level" bson:"kyc_level"`
+	CreatedAt      time.Time     `json:"created_at" bson:"created_at"`
+}, field string, defaultValue bool) bool {
+	if len(customerInfo) == 0 {
+		return defaultValue
+	}
+
+	switch field {
+	case "is_activated":
+		return customerInfo[0].IsActivated
+	case "enabled":
+		return customerInfo[0].Enabled
+	case "is_blocked":
+		return customerInfo[0].IsBlocked
+	default:
+		return defaultValue
+	}
+}
+
+func getCustomerInfoUint8Field(customerInfo []struct {
+	ID             bson.ObjectID `json:"_id" bson:"_id"`
+	FullName       string        `json:"full_name" bson:"full_name"`
+	PhoneNumber    string        `json:"phone_number" bson:"phone_number"`
+	Email          string        `json:"email" bson:"email"`
+	CustomerNumber string        `json:"customer_number" bson:"customer_number"`
+	Gender         string        `json:"gender" bson:"gender"`
+	BranchCode     string        `json:"branch_code" bson:"branch_code"`
+	IsActivated    bool          `json:"is_activated" bson:"is_activated"`
+	Enabled        bool          `json:"enabled" bson:"enabled"`
+	IsBlocked      bool          `json:"is_blocked" bson:"is_blocked"`
+	KYCLevel       uint8         `json:"kyc_level" bson:"kyc_level"`
+	CreatedAt      time.Time     `json:"created_at" bson:"created_at"`
+}, field string, defaultValue uint8) uint8 {
+	if len(customerInfo) == 0 {
+		return defaultValue
+	}
+
+	switch field {
+	case "kyc_level":
+		return customerInfo[0].KYCLevel
+	default:
+		return defaultValue
+	}
+}
+
+func getCustomerInfoTimeField(customerInfo []struct {
+	ID             bson.ObjectID `json:"_id" bson:"_id"`
+	FullName       string        `json:"full_name" bson:"full_name"`
+	PhoneNumber    string        `json:"phone_number" bson:"phone_number"`
+	Email          string        `json:"email" bson:"email"`
+	CustomerNumber string        `json:"customer_number" bson:"customer_number"`
+	Gender         string        `json:"gender" bson:"gender"`
+	BranchCode     string        `json:"branch_code" bson:"branch_code"`
+	IsActivated    bool          `json:"is_activated" bson:"is_activated"`
+	Enabled        bool          `json:"enabled" bson:"enabled"`
+	IsBlocked      bool          `json:"is_blocked" bson:"is_blocked"`
+	KYCLevel       uint8         `json:"kyc_level" bson:"kyc_level"`
+	CreatedAt      time.Time     `json:"created_at" bson:"created_at"`
+}, field string) string {
+	if len(customerInfo) == 0 {
+		return ""
+	}
+
+	switch field {
+	case "created_at":
+		return customerInfo[0].CreatedAt.Format(time.RFC3339)
+	default:
+		return ""
+	}
+}
+
+func mapLinkedAccounts(linkedAccounts []struct {
+	AccountNumber     string `json:"account_number" bson:"account_number"`
+	AccountHolderName string `json:"account_holder_name" bson:"account_holder_name"`
+	AccountType       string `json:"account_type" bson:"account_type"`
+	AccountBranchCode string `json:"account_branch_code" bson:"account_branch_code"`
+	IsActive          bool   `json:"is_active" bson:"is_active"`
+}) []struct {
+	AccountNumber     string `json:"account_number,omitempty" bson:"account_number,omitempty"`
+	AccountHolderName string `json:"account_holder_name,omitempty" bson:"account_holder_name,omitempty"`
+	AccountType       string `json:"account_type,omitempty" bson:"account_type,omitempty"`
+	AccountBranchCode string `json:"account_branch_code,omitempty" bson:"account_branch_code,omitempty"`
+	IsActive          bool   `json:"is_active,omitempty" bson:"is_active,omitempty"`
+} {
+	if len(linkedAccounts) == 0 {
+		return []struct {
+			AccountNumber     string `json:"account_number,omitempty" bson:"account_number,omitempty"`
+			AccountHolderName string `json:"account_holder_name,omitempty" bson:"account_holder_name,omitempty"`
+			AccountType       string `json:"account_type,omitempty" bson:"account_type,omitempty"`
+			AccountBranchCode string `json:"account_branch_code,omitempty" bson:"account_branch_code,omitempty"`
+			IsActive          bool   `json:"is_active,omitempty" bson:"is_active,omitempty"`
+		}{}
+	}
+
+	result := make([]struct {
+		AccountNumber     string `json:"account_number,omitempty" bson:"account_number,omitempty"`
+		AccountHolderName string `json:"account_holder_name,omitempty" bson:"account_holder_name,omitempty"`
+		AccountType       string `json:"account_type,omitempty" bson:"account_type,omitempty"`
+		AccountBranchCode string `json:"account_branch_code,omitempty" bson:"account_branch_code,omitempty"`
+		IsActive          bool   `json:"is_active,omitempty" bson:"is_active,omitempty"`
+	}, len(linkedAccounts))
+
+	for i, account := range linkedAccounts {
+		result[i] = struct {
+			AccountNumber     string `json:"account_number,omitempty" bson:"account_number,omitempty"`
+			AccountHolderName string `json:"account_holder_name,omitempty" bson:"account_holder_name,omitempty"`
+			AccountType       string `json:"account_type,omitempty" bson:"account_type,omitempty"`
+			AccountBranchCode string `json:"account_branch_code,omitempty" bson:"account_branch_code,omitempty"`
+			IsActive          bool   `json:"is_active,omitempty" bson:"is_active,omitempty"`
+		}{
+			AccountNumber:     account.AccountNumber,
+			AccountHolderName: account.AccountHolderName,
+			AccountType:       account.AccountType,
+			AccountBranchCode: account.AccountBranchCode,
+			IsActive:          account.IsActive,
+		}
+	}
+
+	return result
 }

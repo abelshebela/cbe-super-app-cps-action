@@ -237,13 +237,13 @@ func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Conte
 			message += msg
 		}
 
-		s.logger.Warnf("(core) failed to get customer-level limit", message)
+		s.logger.Warnf("(core) failed to get account details: %s", message)
 
 		return nil, err
 	}
 
 	if response.Detail == nil {
-		s.logger.Errorf("service-level limit successfully fetched")
+		s.logger.Errorf("account lookup successful but no account details found for account number %s", accountNumber)
 		return nil, err
 	}
 
@@ -260,7 +260,8 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	case string(constants.RequestCreateService):
 		accountDetil, err := s.ValidateAccountNumberWithExternalAPI(ctx, serviceDoc.ProductGlAccount)
 		if err != nil {
-			return nil, err
+			s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", serviceDoc.ProductGlAccount, err)
+			return nil, errors.New(localization.ErrorAccountNumberValidationFailed.Code)
 		}
 
 		err = s.repo.Create(ctx, *accountDetil, serviceDoc)
