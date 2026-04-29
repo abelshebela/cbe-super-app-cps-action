@@ -220,7 +220,6 @@ func mapBpsActionToEntity(dbAction types.BPSActionDocument) bps_action.BPSAction
 	}
 }
 
-// Helper functions for customer data mapping
 func getCustomerInfoField(customerInfo []struct {
 	ID             bson.ObjectID `json:"_id" bson:"_id"`
 	FullName       string        `json:"full_name" bson:"full_name"`
@@ -239,13 +238,20 @@ func getCustomerInfoField(customerInfo []struct {
 		return ""
 	}
 
+	customer := customerInfo[0]
 	switch field {
 	case "email":
-		return customerInfo[0].Email
+		return customer.Email
 	case "customer_number":
-		return customerInfo[0].CustomerNumber
+		return customer.CustomerNumber
 	case "gender":
-		return customerInfo[0].Gender
+		return customer.Gender
+	case "full_name":
+		return customer.FullName
+	case "phone_number":
+		return customer.PhoneNumber
+	case "branch_code":
+		return customer.BranchCode
 	default:
 		return ""
 	}
@@ -269,13 +275,14 @@ func getCustomerInfoBoolField(customerInfo []struct {
 		return defaultValue
 	}
 
+	customer := customerInfo[0]
 	switch field {
 	case "is_activated":
-		return customerInfo[0].IsActivated
+		return customer.IsActivated
 	case "enabled":
-		return customerInfo[0].Enabled
+		return customer.Enabled
 	case "is_blocked":
-		return customerInfo[0].IsBlocked
+		return customer.IsBlocked
 	default:
 		return defaultValue
 	}
@@ -299,9 +306,10 @@ func getCustomerInfoUint8Field(customerInfo []struct {
 		return defaultValue
 	}
 
+	customer := customerInfo[0]
 	switch field {
 	case "kyc_level":
-		return customerInfo[0].KYCLevel
+		return customer.KYCLevel
 	default:
 		return defaultValue
 	}
@@ -325,9 +333,10 @@ func getCustomerInfoTimeField(customerInfo []struct {
 		return ""
 	}
 
+	customer := customerInfo[0]
 	switch field {
 	case "created_at":
-		return customerInfo[0].CreatedAt.Format(time.RFC3339)
+		return customer.CreatedAt.Format("2006-01-02T15:04:05Z")
 	default:
 		return ""
 	}
