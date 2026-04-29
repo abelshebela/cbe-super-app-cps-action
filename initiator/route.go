@@ -77,10 +77,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.uber.org/zap"
 
-	// "google.golang.org/grpc/profiling/service"
-
-	"cbe-super-app-cps-action/docs"
-
 	"github.com/go-chi/httprate"
 )
 
@@ -255,16 +251,16 @@ func isSwaggerEnabled(goEnv string) bool {
 
 // serveSwaggerDocEmbedded serves the embedded docs.SwaggerJSONBytes (run merge script before build to include examples).
 func serveSwaggerDocEmbedded() http.HandlerFunc {
-	data := docs.SwaggerJSONBytes
+	// data := docs.SwaggerJSONBytes
 	return func(w http.ResponseWriter, r *http.Request) {
-		if len(data) == 0 {
-			http.Error(w, "Swagger spec not found", http.StatusNotFound)
-			return
-		}
+		// if len(data) == 0 {
+		http.Error(w, "Swagger spec not found", http.StatusNotFound)
+		return
+		// }
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 		w.Header().Set("Pragma", "no-cache")
 		w.Header().Set("Expires", "0")
-		_, _ = w.Write(data)
+		// _, _ = w.Write(data)
 	}
 }
