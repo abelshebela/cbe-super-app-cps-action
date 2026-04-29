@@ -10,7 +10,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
-	"slices"
 	"strings"
 	"time"
 
@@ -137,6 +136,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 	actionName, _ := ctx.Value(constants.ContextKey("action_name")).(string)
 
+	// CREATE actions: No blockers - allow direct creation
 	if strings.Contains(cpsAction.RequestAction, string(constants.CREATE)) {
 		cpsAction.RoleCode = roleCode
 		err = ca.repo.Save(ctx, cpsAction)
@@ -147,28 +147,44 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		return nil
 	}
 
-	RAList := local_util.GetRAListForUpdateAction(constants.RequestAction(cpsAction.RequestAction), actionName, RequestActionGroups)
-
-	reqs := ca.pendingLockRequestActions(actionName, cpsAction.RequestAction)
-	if len(reqs) > 0 {
-		for _, r := range RAList {
-			if slices.Contains(reqs, string(r)) {
-				continue
+	// UPDATE actions: Block by other UPDATE actions in pending state
+	if strings.Contains(cpsAction.RequestAction, string(constants.UPDATE)) {
+		// Get only UPDATE actions for blocking
+		reqs := ca.pendingUpdateLockRequestActions(actionName, cpsAction.RequestAction)
+		if len(reqs) > 0 {
+			existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
+			if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
+				span.AddEvent("failed to get cps action by role and request actions", trace.WithAttributes(attribute.String("error", err.Error())))
+				return err
 			}
-			reqs = append(reqs, r)
 		}
-		existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
-		if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
-			span.AddEvent("failed to get cps action by role and request actions", trace.WithAttributes(attribute.String("error", err.Error())))
-			return err
+
+		if existing != nil {
+			span.AddEvent("pending update cps action exists", trace.WithAttributes(attribute.String("error", "pending update cps action exists")))
+			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), existing.ActionCode)
+			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), existing.ActionStatus)
+			return errors.New(localization.ErrorPendingCpsActionExists.Code)
 		}
 	}
 
-	if existing != nil {
-		span.AddEvent("pending cps action exists", trace.WithAttributes(attribute.String("error", "pending cps action exists")))
-		ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), existing.ActionCode)
-		ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), existing.ActionStatus)
-		return errors.New(localization.ErrorPendingCpsActionExists.Code)
+	// DELETE actions: Only block other DELETE actions with same unique_id, don't block UPDATE actions
+	if strings.Contains(cpsAction.RequestAction, string(constants.DELETE)) {
+		// Get only DELETE actions for blocking
+		reqs := ca.pendingDeleteLockRequestActions(actionName, cpsAction.RequestAction)
+		if len(reqs) > 0 {
+			existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
+			if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
+				span.AddEvent("failed to get cps action by role and request actions", trace.WithAttributes(attribute.String("error", err.Error())))
+				return err
+			}
+		}
+
+		if existing != nil {
+			span.AddEvent("pending delete cps action exists", trace.WithAttributes(attribute.String("error", "pending delete cps action exists")))
+			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), existing.ActionCode)
+			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), existing.ActionStatus)
+			return errors.New(localization.ErrorPendingCpsActionExists.Code)
+		}
 	}
 
 	cpsAction.RoleCode = roleCode
@@ -221,6 +237,94 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 
 		if wantDisableOnly != isKeyDisable {
 			continue
+		}
+
+		seen[key] = struct{}{}
+		reqs = append(reqs, key)
+	}
+
+	if len(reqs) == 0 {
+		return defaultReq
+	}
+	return reqs
+}
+
+// pendingUpdateLockRequestActions returns only UPDATE actions for blocking UPDATE requests
+func (ca *cpsActionService) pendingUpdateLockRequestActions(actionName string, requestAction string) []string {
+	normalize := func(s string) string {
+		return strings.ToUpper(strings.TrimSpace(s))
+	}
+	isUpdate := func(s string) bool {
+		return strings.Contains(normalize(s), constants.UPDATE)
+	}
+
+	defaultReq := []string{normalize(requestAction)}
+	if actionName == "" {
+		return defaultReq
+	}
+
+	lst, ok := RequestActionGroups[actionName]
+	if !ok {
+		return defaultReq
+	}
+
+	wantUpdateOnly := isUpdate(requestAction)
+	seen := map[string]struct{}{}
+	reqs := make([]string, 0, len(lst))
+
+	for _, ra := range lst {
+		key := string(ra)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+
+		isKeyUpdate := isUpdate(key)
+		if !wantUpdateOnly || !isKeyUpdate {
+			continue // Only include UPDATE actions
+		}
+
+		seen[key] = struct{}{}
+		reqs = append(reqs, key)
+	}
+
+	if len(reqs) == 0 {
+		return defaultReq
+	}
+	return reqs
+}
+
+// pendingDeleteLockRequestActions returns only DELETE actions for blocking DELETE requests
+func (ca *cpsActionService) pendingDeleteLockRequestActions(actionName string, requestAction string) []string {
+	normalize := func(s string) string {
+		return strings.ToUpper(strings.TrimSpace(s))
+	}
+	isDelete := func(s string) bool {
+		return strings.Contains(normalize(s), constants.DELETE)
+	}
+
+	defaultReq := []string{normalize(requestAction)}
+	if actionName == "" {
+		return defaultReq
+	}
+
+	lst, ok := RequestActionGroups[actionName]
+	if !ok {
+		return defaultReq
+	}
+
+	wantDeleteOnly := isDelete(requestAction)
+	seen := map[string]struct{}{}
+	reqs := make([]string, 0, len(lst))
+
+	for _, ra := range lst {
+		key := string(ra)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+
+		isKeyDelete := isDelete(key)
+		if !wantDeleteOnly || !isKeyDelete {
+			continue // Only include DELETE actions
 		}
 
 		seen[key] = struct{}{}
