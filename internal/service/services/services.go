@@ -15,6 +15,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	coreio "github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -22,11 +23,17 @@ import (
 type servicesService struct {
 	repo   storage.ServicesRepository
 	cps    service.CPSActionService
+	core   coreio.CBECoreAPIInterface
 	logger utils.Logger
 }
 
-func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionService, logger utils.Logger) *servicesService {
-	return &servicesService{repo: repo, cps: cps, logger: logger}
+func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionService, core coreio.CBECoreAPIInterface, logger utils.Logger) *servicesService {
+	return &servicesService{
+		repo:   repo,
+		cps:    cps,
+		core:   core,
+		logger: logger,
+	}
 }
 
 func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServiceRequest) error {
@@ -218,6 +225,31 @@ func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
 }
 
+func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string) (*coreio.AccountLookupResult, error) {
+	response, err := s.core.AccountLookup(coreio.AccountLookupParam{AccountNumber: accountNumber})
+	if err != nil {
+		return nil, err
+	}
+
+	if !response.Success {
+		var message string
+		for _, msg := range response.Messages {
+			message += msg
+		}
+
+		s.logger.Warnf("(core) failed to get customer-level limit", message)
+
+		return nil, err
+	}
+
+	if response.Detail == nil {
+		s.logger.Errorf("service-level limit successfully fetched")
+		return nil, err
+	}
+
+	return response, nil
+}
+
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	serviceDoc, err := local_util.JsonUnmarshal[imodel.Service](action.CurrentAction)
 	if err != nil {
@@ -226,7 +258,12 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 
 	switch action.RequestAction {
 	case string(constants.RequestCreateService):
-		err = s.repo.Create(ctx, serviceDoc)
+		accountDetil, err := s.ValidateAccountNumberWithExternalAPI(ctx, serviceDoc.ProductGlAccount)
+		if err != nil {
+			return nil, err
+		}
+
+		err = s.repo.Create(ctx, *accountDetil, serviceDoc)
 	case string(constants.RequestUpdateService):
 		err = s.repo.Update(ctx, action.UniqueId, serviceDoc)
 	case string(constants.RequestEnableService):

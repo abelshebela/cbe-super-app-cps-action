@@ -18,6 +18,7 @@ import (
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 
 	"github.com/godror/godror"
+	"github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -111,10 +112,86 @@ WHERE service_id = HEXTORAW(:1)`
 	return caps, nil
 }
 
-func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, service *imodel.Service) (string, error) {
+func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, accountDetail core.AccountLookupResult, service *imodel.Service) (string, error) {
 	var serviceID string
 	if strings.TrimSpace(service.ServiceKeyId) == "" {
 		return "", errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	const accountQ = `
+MERGE INTO accounts a
+USING (
+    SELECT id AS bank_id
+    FROM banks
+    WHERE is_cbe = 1
+      AND is_enabled = 1
+      AND is_deleted = 0
+      AND ROWNUM = 1
+) b
+ON (a.account_number = :1)
+
+WHEN NOT MATCHED THEN
+INSERT (
+    bank_id,
+    account_holder_name,
+    account_number,
+    account_currency,
+    account_type,
+    account_branch,
+    customer_number,
+    created_at,
+    last_modified_at
+)
+VALUES (
+    b.bank_id,
+    :1,
+    :2,
+    :3,
+    :4,
+    :5,
+    :6,
+    :7,
+    :8
+)
+RETURNING RAWTOHEX(a.id) INTO :9
+`
+
+	var accountID string
+
+	if _, err := tx.ExecContext(
+		ctx,
+		accountQ,
+		accountDetail.Detail.CustomerName,
+		service.ProductGlAccount,
+		service.ProductGlAccountCurrency,
+		accountDetail.Detail.AccountType,
+		accountDetail.Detail.BranchCode,
+		accountDetail.Detail.CustomerID,
+		service.CreatedAt,
+		service.LastModifiedAt,
+		sql.Out{Dest: &accountID},
+	); err != nil {
+		s.logger.Errorf("[AccountsRepo][UpsertProductGL] failed: %v", err)
+
+		if oraErr, ok := godror.AsOraErr(err); ok {
+			switch oraErr.Code() {
+
+			case 1:
+				// already exists -> ignore
+
+			case 1403:
+				return "", errors.New("cbe bank not found")
+
+			case 2291:
+				return "", errors.New("bank id not found")
+
+			default:
+				return "", local_util.HandleDBError(err)
+			}
+
+		} else {
+			return "", local_util.HandleDBError(err)
+		}
 	}
 
 	// 1) Update service_keys enabled/disabled state by ID.
@@ -251,7 +328,7 @@ VALUES (
 	return nil
 }
 
-func (s *ServicesStorage) Create(ctx context.Context, service *imodel.Service) error {
+func (s *ServicesStorage) Create(ctx context.Context, accountDetail core.AccountLookupResult, service *imodel.Service) error {
 	if service.CreatedAt.IsZero() {
 		service.CreatedAt = time.Now()
 	}
@@ -266,7 +343,7 @@ func (s *ServicesStorage) Create(ctx context.Context, service *imodel.Service) e
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	serviceID, err := s.insertService(ctx, tx, service)
+	serviceID, err := s.insertService(ctx, tx, accountDetail, service)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][Create] insert failed: %v", err)
 		return err
