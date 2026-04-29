@@ -118,6 +118,7 @@ func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, account
 		return "", errors.New(localization.ErrorInvalidID.Code)
 	}
 
+	s.logger.Debugf("Checking and inserting account for account number %s if not exists", accountDetail.Detail.AccountNumber)
 	const accountQ = `
 MERGE INTO accounts a
 USING (
@@ -220,6 +221,8 @@ RETURNING RAWTOHEX(a.id) INTO :9
 	// 	}
 
 	// 2) Insert into services (service enabled/disabled state comes from service_keys).
+
+	s.logger.Debugf("Inserting service with ServiceKeyId %s and ProductGlAccount %s", service.ServiceKeyId, service.ProductGlAccount)
 	const q = `
 INSERT INTO services (
   access_list_id,
@@ -343,6 +346,7 @@ func (s *ServicesStorage) Create(ctx context.Context, accountDetail core.Account
 	}
 	defer func() { _ = tx.Rollback() }()
 
+	s.logger.Debugf("Creating service with ServiceKeyId %s and ProductGlAccount %s", service.ServiceKeyId, service.ProductGlAccount)
 	serviceID, err := s.insertService(ctx, tx, accountDetail, service)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][Create] insert failed: %v", err)
