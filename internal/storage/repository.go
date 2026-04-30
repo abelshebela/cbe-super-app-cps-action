@@ -89,7 +89,7 @@ type UnlinkAccount interface {
 // ServicesRepository manages CRUD for Services catalog
 type ServicesRepository interface {
 	Create(ctx context.Context, accountDetail core.AccountLookupResult, service *imodel.Service) error
-	Update(ctx context.Context, id string, service *imodel.Service) error
+	Update(ctx context.Context, id string, service *imodel.Service, accountDetail core.AccountLookupResult) error
 	Delete(ctx context.Context, serviceID, accessListID string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*service_dto.ServiceResponse, error)
