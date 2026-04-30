@@ -263,7 +263,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 			return nil, errors.New(localization.ErrorAccountNumberValidationFailed.Code)
 		}
 
-		err = s.repo.Create(ctx, *accountDetil, serviceDoc)
+		return nil, s.repo.Create(ctx, *accountDetil, serviceDoc)
 	case string(constants.RequestUpdateService):
 		s.logger.Infof("[servicesService][Authorize] Authorizing update service with data: %+v", serviceDoc)
 
@@ -276,7 +276,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 			}
 		}
 
-		err = s.repo.Update(ctx, action.UniqueId, serviceDoc, *accountDetil)
+		return nil, s.repo.Update(ctx, action.UniqueId, serviceDoc, *accountDetil)
 	case string(constants.RequestEnableService):
 		// err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
 		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, true)
