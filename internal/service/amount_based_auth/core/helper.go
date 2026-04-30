@@ -35,7 +35,7 @@ func ValidateTierCascade(tiers []amountauthdto.TierInput) error {
 		// tierN.max != previous tier min and max
 		if i > 0 {
 			prev := tiers[i-1]
-			if curr.MaxAmount == prev.MinAmount || curr.MaxAmount == prev.MaxAmount {
+			if curr.MaxAmount <= prev.MinAmount || curr.MaxAmount <= prev.MaxAmount {
 				return errors.New(localization.ErrorInvalidAmounts.Code)
 			}
 		}
