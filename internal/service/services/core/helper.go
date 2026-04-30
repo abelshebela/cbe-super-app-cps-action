@@ -35,8 +35,10 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 	return nil
 }
 
-func MapToServiceModel(req service_dto.CreateServiceRequest) imodel.Service {
+func MapToServiceModel(req service_dto.CreateServiceRequest, accessList imodel.ServiceKey) imodel.Service {
 	mapped := imodel.Service{
+		ServiceName:              accessList.ServiceName,
+		ServiceKey:               accessList.ServiceKey,
 		ServiceCode:              req.ServiceCode,
 		ServiceKeyId:             req.ServiceKeyId,
 		ProductGlAccount:         req.ProductGlAccount,

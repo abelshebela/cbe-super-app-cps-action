@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	"cbe-super-app-cps-action/internal/constants"
@@ -45,16 +46,12 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 		return errors.New(localization.ErrorAccessListNotFound.Code)
 	}
 
-	// service, err := s.repo.FindByAccessListID(ctx, req.ServiceKeyId)
-	// if err != nil && err.Error() != sql.ErrNoRows.Error() {
-	// 	s.logger.Errorf("[servicesService][Create] error checking existing service for serviceKeyId=%s: %v", req.ServiceKeyId, err)
-	// 	return err
-	// }
-	// if service {
-	// 	return errors.New(localization.ErrorServiceExists.Code)
-	// }
-
-	mapped := core.MapToServiceModel(req)
+	accessList, err := s.repo.FindServiceListByID(ctx, req.ServiceKeyId)
+	if err != nil && err.Error() != sql.ErrNoRows.Error() {
+		s.logger.Errorf("[servicesService][Create] error checking existing service for serviceKeyId=%s: %v", req.ServiceKeyId, err)
+		return err
+	}
+	mapped := core.MapToServiceModel(req, *accessList)
 
 	return core.HandleCPSAction(ctx, s.cps, "", constants.RequestCreateService, mapped, nil, constants.ActionCreate)
 }
@@ -268,7 +265,18 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 
 		err = s.repo.Create(ctx, *accountDetil, serviceDoc)
 	case string(constants.RequestUpdateService):
-		err = s.repo.Update(ctx, action.UniqueId, serviceDoc)
+		s.logger.Infof("[servicesService][Authorize] Authorizing update service with data: %+v", serviceDoc)
+
+		var accountDetil *coreio.AccountLookupResult
+		if serviceDoc.ProductGlAccount != "" {
+			accountDetil, err = s.ValidateAccountNumberWithExternalAPI(ctx, serviceDoc.ProductGlAccount)
+			if err != nil {
+				s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", serviceDoc.ProductGlAccount, err)
+				return nil, errors.New(localization.ErrorAccountNumberValidationFailed.Code)
+			}
+		}
+
+		err = s.repo.Update(ctx, action.UniqueId, serviceDoc, *accountDetil)
 	case string(constants.RequestEnableService):
 		// err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
 		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, true)

@@ -112,11 +112,7 @@ WHERE service_id = HEXTORAW(:1)`
 	return caps, nil
 }
 
-func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, accountDetail core.AccountLookupResult, service *imodel.Service) (string, error) {
-	var serviceID string
-	if strings.TrimSpace(service.ServiceKeyId) == "" {
-		return "", errors.New(localization.ErrorInvalidID.Code)
-	}
+func (s *ServicesStorage) checkAccountNumberExistence(ctx context.Context, tx *sql.Tx, accountDetail core.AccountLookupResult, accountNumber, accountCurrency string) (bool, error) {
 
 	const checkQ = `
 		SELECT RAWTOHEX(id)
@@ -142,8 +138,6 @@ func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, account
 			account_type,
 			account_branch,
 			customer_number,
-			created_at,
-			last_modified_at
 		) VALUES (
 			HEXTORAW(:bank_id),
 			:customer_name,
@@ -152,8 +146,6 @@ func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, account
 			:account_type,
 			:branch,
 			:customer_number,
-			:created_at,
-			:modified_at
 		)
 		RETURNING RAWTOHEX(id) INTO :id
 	`
@@ -161,15 +153,15 @@ func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, account
 	var accountID string
 
 	// ── Step 1: check if the GL account already exists ──────────────────────
-	s.logger.Debugf("[insertService] checking if GL account %s exists", service.ProductGlAccount)
+	s.logger.Debugf("[insertService] checking if GL account %s exists", accountNumber)
 
-	err := tx.QueryRowContext(ctx, checkQ, service.ProductGlAccount).Scan(&accountID)
+	err := tx.QueryRowContext(ctx, checkQ, accountNumber).Scan(&accountID)
 	switch {
 	case err == nil:
 		// Row found — skip insert, fall through to service insertion.
 		s.logger.Infof(
 			"[insertService] GL account %s already exists (id=%s), skipping account insert",
-			service.ProductGlAccount, accountID,
+			accountNumber, accountID,
 		)
 
 	case errors.Is(err, sql.ErrNoRows):
@@ -181,26 +173,24 @@ func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, account
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			s.logger.Errorf("[insertService] no active CBE bank found")
-			return "", errors.New("cbe bank not found")
+			return false, errors.New("cbe bank not found")
 
 		case err != nil:
 			s.logger.Errorf("[insertService] failed to fetch CBE bank: %v", err)
-			return "", local_util.HandleDBError(err)
+			return false, local_util.HandleDBError(err)
 		}
 
 		// ── Step 3: insert the new GL account ───────────────────────────────
-		s.logger.Debugf("[insertService] inserting GL account %s with bank_id %s", service.ProductGlAccount, bankID)
+		s.logger.Debugf("[insertService] inserting GL account %s with bank_id %s", accountNumber, bankID)
 
 		_, err = tx.ExecContext(ctx, insertAccountQ,
 			sql.Named("bank_id", bankID),
-			sql.Named("account_number", service.ProductGlAccount),
+			sql.Named("account_number", accountNumber),
 			sql.Named("customer_name", accountDetail.Detail.CustomerName),
-			sql.Named("currency", service.ProductGlAccountCurrency),
+			sql.Named("currency", accountCurrency),
 			sql.Named("account_type", accountDetail.Detail.AccountType),
 			sql.Named("branch", accountDetail.Detail.BranchCode),
 			sql.Named("customer_number", accountDetail.Detail.CustomerID),
-			sql.Named("created_at", service.CreatedAt),
-			sql.Named("modified_at", service.LastModifiedAt),
 			sql.Named("id", sql.Out{Dest: &accountID}),
 		)
 		if err != nil {
@@ -209,37 +199,51 @@ func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, account
 				case 1: // ORA-00001: unique constraint — race condition between SELECT and INSERT
 					s.logger.Warnf(
 						"[insertService] concurrent insert detected for GL account %s, fetching existing id",
-						service.ProductGlAccount,
+						accountNumber,
 					)
-					fetchErr := tx.QueryRowContext(ctx, checkQ, service.ProductGlAccount).Scan(&accountID)
+					fetchErr := tx.QueryRowContext(ctx, checkQ, accountNumber).Scan(&accountID)
 					if fetchErr != nil {
 						s.logger.Errorf("[insertService] fallback fetch after race failed: %v", fetchErr)
-						return "", local_util.HandleDBError(fetchErr)
+						return false, local_util.HandleDBError(fetchErr)
 					}
 					// accountID is now populated — fall through to service insertion
 
 				case 2291: // ORA-02291: FK violation — bank_id not in banks
 					s.logger.Errorf("[insertService] bank_id %s not found in banks table", bankID)
-					return "", errors.New("bank id not found")
+					return false, errors.New("bank id not found")
 
 				default:
 					s.logger.Errorf("[insertService] account insert failed (ORA-%05d): %v", oraErr.Code(), err)
-					return "", local_util.HandleDBError(err)
+					return false, local_util.HandleDBError(err)
 				}
 			} else {
 				s.logger.Errorf("[insertService] account insert failed: %v", err)
-				return "", local_util.HandleDBError(err)
+				return false, local_util.HandleDBError(err)
 			}
 		}
 
 		s.logger.Infof(
 			"[insertService] GL account %s created (id=%s)",
-			service.ProductGlAccount, accountID,
+			accountNumber, accountID,
 		)
 
 	default:
 		s.logger.Errorf("[insertService] failed to check existing GL account: %v", err)
-		return "", local_util.HandleDBError(err)
+		return false, local_util.HandleDBError(err)
+	}
+
+	return true, nil
+}
+
+func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, accountDetail core.AccountLookupResult, service *imodel.Service) (string, error) {
+	var serviceID string
+	if strings.TrimSpace(service.ServiceKeyId) == "" {
+		return "", errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	_, err := s.checkAccountNumberExistence(ctx, tx, accountDetail, service.ProductGlAccount, service.ProductGlAccountCurrency)
+	if err != nil {
+		return "", fmt.Errorf("account number existence check failed: %w", err)
 	}
 
 	// ── Step 4: insert into services ────────────────────────────────────────
@@ -395,7 +399,7 @@ func (s *ServicesStorage) Create(ctx context.Context, accountDetail core.Account
 	return nil
 }
 
-func (s *ServicesStorage) Update(ctx context.Context, id string, service *imodel.Service) error {
+func (s *ServicesStorage) Update(ctx context.Context, id string, service *imodel.Service, accountDetail core.AccountLookupResult) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][Update] begin tx failed: %v", err)
@@ -404,50 +408,13 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *imodel
 	defer func() { _ = tx.Rollback() }()
 	serviceKeyID := strings.TrimSpace(service.ServiceKeyId)
 
-	// 	// Ensure service exists before inserting/updating service_keys.
-	// 	const svcExistsQ = `
-	// SELECT 1
-	// FROM services
-	// WHERE id = HEXTORAW(:1)
-	// FETCH FIRST 1 ROWS ONLY`
-	// 	var exists int
-	// 	if err := tx.QueryRowContext(ctx, svcExistsQ, id).Scan(&exists); err != nil {
-	// 		if errors.Is(err, sql.ErrNoRows) {
-	// 			return errors.New(localization.ErrorServiceNotFound.Code)
-	// 		}
-	// 		s.logger.Errorf("[ServicesRepo][Update] service exists check failed: %v", err)
-	// 		return local_util.HandleDBError(err)
-	// 	}
+	if service.ProductGlAccount != "" && accountDetail.Detail != nil {
+		_, err := s.checkAccountNumberExistence(ctx, tx, accountDetail, service.ProductGlAccount, service.ProductGlAccountCurrency)
+		if err != nil {
+			return err
+		}
+	}
 
-	// 	if serviceKeyID == "" {
-	// 		return errors.New(localization.ErrorInvalidID.Code)
-	// 	}
-
-	// 	// Sync enabled/disabled state on the related service_keys row.
-	// 	const qKey = `
-	// UPDATE service_keys
-	// SET
-	//   is_enabled = :1,
-	//   is_deleted = :2,
-	//   last_modified_at = SYSTIMESTAMP,
-	//   deleted_at = CASE WHEN :2 = 1 THEN SYSTIMESTAMP ELSE NULL END
-	// WHERE id = HEXTORAW(:3)`
-
-	// 	resKey, err := tx.ExecContext(ctx, qKey,
-	// 		boolToOracleNumber(service.Enabled),
-	// 		boolToOracleNumber(service.IsDeleted),
-	// 		serviceKeyID,
-	// 	)
-	// 	if err != nil {
-	// 		s.logger.Errorf("[ServicesRepo][Update] update service_keys failed: %v", err)
-	// 		return local_util.HandleDBError(err)
-	// 	}
-	// 	rowsKey, _ := resKey.RowsAffected()
-	// 	if rowsKey == 0 {
-	// 		return errors.New(localization.ErrorServiceNotFound.Code)
-	// 	}
-
-	// 1) Update services row fields.
 	s.logger.Debugf("Updating service with ID %s and ServiceKeyId %s", id, serviceKeyID)
 	const q = `
 UPDATE services
