@@ -279,7 +279,7 @@ func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, account
 			}
 		}
 
-		return "", local_util.HandleDBError(err)
+		return "", err
 	}
 
 	// ── Step 5: insert cap rows ──────────────────────────────────────────────

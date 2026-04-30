@@ -316,10 +316,12 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	default:
 		return nil, localization.ErrorInvalidRequest
 	}
+
 	if err != nil {
 		s.logger.Errorf("[servicesService][Authorize] error occurred: %v", err)
 		return nil, err
 	}
+
 	action.CurrentAction = serviceDoc
 	return action, nil
 }
