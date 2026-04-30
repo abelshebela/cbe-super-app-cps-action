@@ -250,6 +250,8 @@ func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Conte
 }
 
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	s.logger.Infof("[servicesService][Authorize] Authorize called for action: %+v", action)
+
 	serviceDoc, err := local_util.JsonUnmarshal[imodel.Service](action.CurrentAction)
 	if err != nil {
 		return nil, localization.ErrorInvalidActionData
@@ -257,6 +259,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 
 	switch action.RequestAction {
 	case string(constants.RequestCreateService):
+		s.logger.Infof("[servicesService][Authorize] Authorizing create service with data: %+v", serviceDoc)
 		accountDetil, err := s.ValidateAccountNumberWithExternalAPI(ctx, serviceDoc.ProductGlAccount)
 		if err != nil {
 			s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", serviceDoc.ProductGlAccount, err)
@@ -313,10 +316,12 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	default:
 		return nil, localization.ErrorInvalidRequest
 	}
+
 	if err != nil {
 		s.logger.Errorf("[servicesService][Authorize] error occurred: %v", err)
 		return nil, err
 	}
+
 	action.CurrentAction = serviceDoc
 	return action, nil
 }
