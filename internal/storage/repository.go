@@ -26,6 +26,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage/external_call"
 
+	"github.com/hugokessem/coreio/core"
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 
 	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
@@ -87,8 +88,8 @@ type UnlinkAccount interface {
 
 // ServicesRepository manages CRUD for Services catalog
 type ServicesRepository interface {
-	Create(ctx context.Context, service *imodel.Service) error
-	Update(ctx context.Context, id string, service *imodel.Service) error
+	Create(ctx context.Context, accountDetail core.AccountLookupResult, service *imodel.Service) error
+	Update(ctx context.Context, id string, service *imodel.Service, accountDetail core.AccountLookupResult) error
 	Delete(ctx context.Context, serviceID, accessListID string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*service_dto.ServiceResponse, error)

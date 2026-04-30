@@ -289,6 +289,22 @@ func ExtractFilterParams(r *http.Request) *types.Filter {
 		}
 	}
 
+	// `fields` is a projection hint for exporters (e.g. &fields=a,b,c or repeated &fields=a&fields=b).
+	// Always expose it as []string under filters["fields"] when provided so downstream code can rely on the type.
+	if rawFields, ok := query["fields"]; ok && len(rawFields) > 0 {
+		var out []string
+		for _, raw := range rawFields {
+			for _, part := range strings.Split(raw, ",") {
+				if s := strings.TrimSpace(part); s != "" {
+					out = append(out, s)
+				}
+			}
+		}
+		if len(out) > 0 {
+			filters["fields"] = out
+		}
+	}
+
 	return &types.Filter{
 		Page:    page,
 		PerPage: perPage,

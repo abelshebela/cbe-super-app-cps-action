@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	"cbe-super-app-cps-action/internal/constants"
@@ -15,6 +16,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	coreio "github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -22,11 +24,17 @@ import (
 type servicesService struct {
 	repo   storage.ServicesRepository
 	cps    service.CPSActionService
+	core   coreio.CBECoreAPIInterface
 	logger utils.Logger
 }
 
-func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionService, logger utils.Logger) *servicesService {
-	return &servicesService{repo: repo, cps: cps, logger: logger}
+func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionService, core coreio.CBECoreAPIInterface, logger utils.Logger) *servicesService {
+	return &servicesService{
+		repo:   repo,
+		cps:    cps,
+		core:   core,
+		logger: logger,
+	}
 }
 
 func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServiceRequest) error {
@@ -38,16 +46,12 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 		return errors.New(localization.ErrorAccessListNotFound.Code)
 	}
 
-	// service, err := s.repo.FindByAccessListID(ctx, req.ServiceKeyId)
-	// if err != nil && err.Error() != sql.ErrNoRows.Error() {
-	// 	s.logger.Errorf("[servicesService][Create] error checking existing service for serviceKeyId=%s: %v", req.ServiceKeyId, err)
-	// 	return err
-	// }
-	// if service {
-	// 	return errors.New(localization.ErrorServiceExists.Code)
-	// }
-
-	mapped := core.MapToServiceModel(req)
+	accessList, err := s.repo.FindServiceListByID(ctx, req.ServiceKeyId)
+	if err != nil && err.Error() != sql.ErrNoRows.Error() {
+		s.logger.Errorf("[servicesService][Create] error checking existing service for serviceKeyId=%s: %v", req.ServiceKeyId, err)
+		return err
+	}
+	mapped := core.MapToServiceModel(req, *accessList)
 
 	return core.HandleCPSAction(ctx, s.cps, "", constants.RequestCreateService, mapped, nil, constants.ActionCreate)
 }
@@ -191,8 +195,7 @@ func (s *servicesService) EnableOrDisableServiceList(ctx context.Context, id str
 		}
 		return localization.ErrorAlreadyDisabled
 	}
-	// payload := imodel.ServiceKey{IsEnabled: enable}
-	payload := prev
+	payload := *prev
 	payload.IsEnabled = enable
 
 	var requestAction constants.RequestAction
@@ -218,7 +221,34 @@ func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
 }
 
+func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string) (*coreio.AccountLookupResult, error) {
+	response, err := s.core.AccountLookup(coreio.AccountLookupParam{AccountNumber: accountNumber})
+	if err != nil {
+		return nil, err
+	}
+
+	if !response.Success {
+		var message string
+		for _, msg := range response.Messages {
+			message += msg
+		}
+
+		s.logger.Warnf("(core) failed to get account details: %s", message)
+
+		return nil, err
+	}
+
+	if response.Detail == nil {
+		s.logger.Errorf("account lookup successful but no account details found for account number %s", accountNumber)
+		return nil, err
+	}
+
+	return response, nil
+}
+
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	s.logger.Infof("[servicesService][Authorize] Authorize called for action: %+v", action)
+
 	serviceDoc, err := local_util.JsonUnmarshal[imodel.Service](action.CurrentAction)
 	if err != nil {
 		return nil, localization.ErrorInvalidActionData
@@ -226,9 +256,27 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 
 	switch action.RequestAction {
 	case string(constants.RequestCreateService):
-		err = s.repo.Create(ctx, serviceDoc)
+		s.logger.Infof("[servicesService][Authorize] Authorizing create service with data: %+v", serviceDoc)
+		accountDetil, err := s.ValidateAccountNumberWithExternalAPI(ctx, serviceDoc.ProductGlAccount)
+		if err != nil {
+			s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", serviceDoc.ProductGlAccount, err)
+			return nil, errors.New(localization.ErrorAccountNumberValidationFailed.Code)
+		}
+
+		err = s.repo.Create(ctx, *accountDetil, serviceDoc)
 	case string(constants.RequestUpdateService):
-		err = s.repo.Update(ctx, action.UniqueId, serviceDoc)
+		s.logger.Infof("[servicesService][Authorize] Authorizing update service with data: %+v", serviceDoc)
+
+		var accountDetil *coreio.AccountLookupResult
+		if serviceDoc.ProductGlAccount != "" {
+			accountDetil, err = s.ValidateAccountNumberWithExternalAPI(ctx, serviceDoc.ProductGlAccount)
+			if err != nil {
+				s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", serviceDoc.ProductGlAccount, err)
+				return nil, errors.New(localization.ErrorAccountNumberValidationFailed.Code)
+			}
+		}
+
+		err = s.repo.Update(ctx, action.UniqueId, serviceDoc, *accountDetil)
 	case string(constants.RequestEnableService):
 		// err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
 		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, true)
@@ -276,10 +324,12 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	default:
 		return nil, localization.ErrorInvalidRequest
 	}
+
 	if err != nil {
 		s.logger.Errorf("[servicesService][Authorize] error occurred: %v", err)
 		return nil, err
 	}
+
 	action.CurrentAction = serviceDoc
 	return action, nil
 }
