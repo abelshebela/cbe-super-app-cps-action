@@ -91,3 +91,7 @@ func (s *bpsActionServiceWithRoles) GetBPSActionByUniqueID(ctx context.Context, 
 func (s *bpsActionServiceWithRoles) GetBPSActionByActionCode(ctx context.Context, uniqueID, department string) (*bps_model.BPSAction, error) {
 	return s.base.GetBPSActionByActionCode(ctx, uniqueID, department)
 }
+
+func (s *bpsActionServiceWithRoles) GetBPSActionDetailByActionCode(ctx context.Context, uniqueID, department string) (*bpsActionDto.BPSActionDetailResponse, error) {
+	return s.base.GetBPSActionDetailByActionCode(ctx, uniqueID, department)
+}

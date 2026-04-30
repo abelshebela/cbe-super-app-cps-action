@@ -409,14 +409,14 @@ func (a *bpsActionAdapter) GetBPSActionByActionCode(w http.ResponseWriter, r *ht
 		attribute.String("cps_action.department", userData.Department),
 	)
 
-	action, err := a.bpsActionApplication.GetBPSActionByActionCode(ctx, actionCode, userData.Department)
+	detail, err := a.bpsActionApplication.GetBPSActionDetailByActionCode(ctx, actionCode, userData.Department)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessBPSActionFetched, action)
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionFetched, detail)
 }
 
 func (a *bpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http.Request) {
