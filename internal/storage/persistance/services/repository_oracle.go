@@ -145,33 +145,32 @@ INSERT (
 )
 VALUES (
     b.bank_id,
-    :1,
-    :2,
-    :3,
-    :4,
-    :5,
-    :6,
-    :7,
-    :8
+    :customer_name,
+    :account_number,
+    :currency,
+    :account_type,
+    :branch,
+    :customer_number,
+    :created_at,
+    :modified_at
 )
-RETURNING RAWTOHEX(a.id) INTO :9
+RETURNING RAWTOHEX(a.id) INTO :id
 `
 
 	var accountID string
 
-	if _, err := tx.ExecContext(
-		ctx,
-		accountQ,
-		accountDetail.Detail.CustomerName,
-		service.ProductGlAccount,
-		service.ProductGlAccountCurrency,
-		accountDetail.Detail.AccountType,
-		accountDetail.Detail.BranchCode,
-		accountDetail.Detail.CustomerID,
-		service.CreatedAt,
-		service.LastModifiedAt,
-		sql.Out{Dest: &accountID},
-	); err != nil {
+	_, err := tx.ExecContext(ctx, accountQ,
+		sql.Named("account_number", service.ProductGlAccount),
+		sql.Named("customer_name", accountDetail.Detail.CustomerName),
+		sql.Named("currency", service.ProductGlAccountCurrency),
+		sql.Named("account_type", accountDetail.Detail.AccountType),
+		sql.Named("branch", accountDetail.Detail.BranchCode),
+		sql.Named("customer_number", accountDetail.Detail.CustomerID),
+		sql.Named("created_at", service.CreatedAt),
+		sql.Named("modified_at", service.LastModifiedAt),
+		sql.Named("id", sql.Out{Dest: &accountID}),
+	)
+	if err != nil {
 		s.logger.Errorf("[AccountsRepo][UpsertProductGL] failed: %v", err)
 
 		if oraErr, ok := godror.AsOraErr(err); ok {
