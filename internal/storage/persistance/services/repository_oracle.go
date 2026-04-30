@@ -137,7 +137,7 @@ func (s *ServicesStorage) checkAccountNumberExistence(ctx context.Context, tx *s
 			account_currency,
 			account_type,
 			account_branch,
-			customer_number,
+			customer_number
 		) VALUES (
 			HEXTORAW(:bank_id),
 			:customer_name,
@@ -145,7 +145,7 @@ func (s *ServicesStorage) checkAccountNumberExistence(ctx context.Context, tx *s
 			:currency,
 			:account_type,
 			:branch,
-			:customer_number,
+			:customer_number
 		)
 		RETURNING RAWTOHEX(id) INTO :id
 	`
