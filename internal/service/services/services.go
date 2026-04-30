@@ -257,10 +257,14 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	switch action.RequestAction {
 	case string(constants.RequestCreateService):
 		s.logger.Infof("[servicesService][Authorize] Authorizing create service with data: %+v", serviceDoc)
-		accountDetil, err := s.ValidateAccountNumberWithExternalAPI(ctx, serviceDoc.ProductGlAccount)
-		if err != nil {
-			s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", serviceDoc.ProductGlAccount, err)
-			return nil, errors.New(localization.ErrorAccountNumberValidationFailed.Code)
+
+		var accountDetil *coreio.AccountLookupResult
+		if serviceDoc.ProductGlAccount != "" {
+			accountDetil, err = s.ValidateAccountNumberWithExternalAPI(ctx, serviceDoc.ProductGlAccount)
+			if err != nil {
+				s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", serviceDoc.ProductGlAccount, err)
+				return nil, errors.New(localization.ErrorAccountNumberValidationFailed.Code)
+			}
 		}
 
 		return nil, s.repo.Create(ctx, *accountDetil, serviceDoc)

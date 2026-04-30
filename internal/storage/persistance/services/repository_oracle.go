@@ -241,9 +241,11 @@ func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, account
 		return "", errors.New(localization.ErrorInvalidID.Code)
 	}
 
-	_, err := s.checkAccountNumberExistence(ctx, tx, accountDetail, service.ProductGlAccount, service.ProductGlAccountCurrency)
-	if err != nil {
-		return "", fmt.Errorf("account number existence check failed: %w", err)
+	if service.ProductGlAccount != "" && accountDetail.Detail != nil {
+		_, err := s.checkAccountNumberExistence(ctx, tx, accountDetail, service.ProductGlAccount, service.ProductGlAccountCurrency)
+		if err != nil {
+			return "", fmt.Errorf("account number existence check failed: %w", err)
+		}
 	}
 
 	// ── Step 4: insert into services ────────────────────────────────────────
