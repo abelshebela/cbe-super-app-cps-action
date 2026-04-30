@@ -376,7 +376,7 @@ func (s *ServicesStorage) Create(ctx context.Context, accountDetail core.Account
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	s.logger.Debugf("Creating service with ServiceKeyId %s and ProductGlAccount %s", service.ServiceKeyId, service.ProductGlAccount)
+	s.logger.Debugf("Creating service with ServiceKeyId %s", service.ServiceKeyId)
 	serviceID, err := s.insertService(ctx, tx, accountDetail, service)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][Create] insert failed: %v", err)
