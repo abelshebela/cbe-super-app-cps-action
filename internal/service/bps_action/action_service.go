@@ -547,38 +547,91 @@ func (ba *bpsActionService) GetBPSActionDetailByActionCode(ctx context.Context, 
 		UnlinkedAccounts: []model.ArchivedLinkedAccount{},
 	}
 
-	userID := strings.TrimSpace(action.UserInformation.UserID)
-	if userID == "" {
-		span.AddEvent("no user id on action; skipping customer enrichment")
+	// Resolve the Mongo customer document _id (hex) for downstream lookups.
+	// The action stores UserInformation.UserID, but on legacy data this can be an
+	// Oracle 32-char CUSTOMER_ID rather than a Mongo ObjectID. So:
+	//   1. If UserID is a valid 24-char Mongo ObjectID, use it directly.
+	//   2. Otherwise look the user up by user_code (UserInformation.UserCode or
+	//      action.EntityIdentifyer) and use the resolved Mongo _id hex.
+	mongoUserID := resolveMongoUserID(ctx, ba, action)
+	if mongoUserID == "" {
+		span.AddEvent("could not resolve mongo user id from action; skipping customer enrichment")
 		return resp, nil
 	}
 
 	if ba.customerRepo != nil {
-		if detail, derr := ba.customerRepo.FindCustomerDetailByID(ctx, userID); derr != nil {
-			ba.logger.Errorf("[BpsActionSvc][Detail] member detail lookup failed for user %s: %v", userID, derr)
-			span.AddEvent("member detail lookup failed", trace.WithAttributes(attribute.String("error", derr.Error())))
+		if detail, derr := ba.customerRepo.FindCustomerDetailByID(ctx, mongoUserID); derr != nil {
+			if derr.Error() == localization.ErrorResourceNotFound.Code {
+				ba.logger.Infof("[BpsActionSvc][Detail] no member detail for user %s", mongoUserID)
+			} else {
+				ba.logger.Errorf("[BpsActionSvc][Detail] member detail lookup failed for user %s: %v", mongoUserID, derr)
+				span.AddEvent("member detail lookup failed", trace.WithAttributes(attribute.String("error", derr.Error())))
+			}
 		} else {
 			resp.MemberDetail = detail
 		}
 
-		if linked, lerr := ba.customerRepo.FetchLinkedAccount(ctx, userID); lerr != nil {
-			ba.logger.Errorf("[BpsActionSvc][Detail] linked accounts lookup failed for user %s: %v", userID, lerr)
-			span.AddEvent("linked accounts lookup failed", trace.WithAttributes(attribute.String("error", lerr.Error())))
+		if linked, lerr := ba.customerRepo.FetchLinkedAccount(ctx, mongoUserID); lerr != nil {
+			if lerr.Error() == localization.ErrorResourceNotFound.Code {
+				ba.logger.Infof("[BpsActionSvc][Detail] no linked accounts for user %s", mongoUserID)
+			} else {
+				ba.logger.Errorf("[BpsActionSvc][Detail] linked accounts lookup failed for user %s: %v", mongoUserID, lerr)
+				span.AddEvent("linked accounts lookup failed", trace.WithAttributes(attribute.String("error", lerr.Error())))
+			}
 		} else if linked != nil {
 			resp.LinkedAccounts = linked
 		}
 	}
 
 	if ba.archivedLinkedAccountRepo != nil {
-		if unlinked, uerr := ba.archivedLinkedAccountRepo.FindAllByUserID(ctx, userID); uerr != nil {
-			ba.logger.Errorf("[BpsActionSvc][Detail] unlinked accounts lookup failed for user %s: %v", userID, uerr)
-			span.AddEvent("unlinked accounts lookup failed", trace.WithAttributes(attribute.String("error", uerr.Error())))
+		if unlinked, uerr := ba.archivedLinkedAccountRepo.FindAllByUserID(ctx, mongoUserID); uerr != nil {
+			if uerr.Error() == localization.ErrorResourceNotFound.Code {
+				ba.logger.Infof("[BpsActionSvc][Detail] no unlinked accounts for user %s", mongoUserID)
+			} else {
+				ba.logger.Errorf("[BpsActionSvc][Detail] unlinked accounts lookup failed for user %s: %v", mongoUserID, uerr)
+				span.AddEvent("unlinked accounts lookup failed", trace.WithAttributes(attribute.String("error", uerr.Error())))
+			}
 		} else if unlinked != nil {
 			resp.UnlinkedAccounts = unlinked
 		}
 	}
 
 	return resp, nil
+}
+
+// resolveMongoUserID returns a Mongo ObjectID hex usable with the customer Mongo repo.
+// It first tries the action's UserInformation.UserID directly (some actions already store
+// the Mongo _id hex). If that isn't a valid ObjectID, it falls back to looking the user
+// up by user_code (UserInformation.UserCode, then EntityIdentifyer) and uses the resolved
+// document's _id. Returns "" when no usable identifier is available.
+func resolveMongoUserID(ctx context.Context, ba *bpsActionService, action *bps_model.BPSAction) string {
+	candidate := strings.TrimSpace(action.UserInformation.UserID)
+	if _, err := bson.ObjectIDFromHex(candidate); err == nil && candidate != "" {
+		return candidate
+	}
+
+	if ba.customerRepo == nil {
+		return ""
+	}
+
+	for _, code := range []string{
+		strings.TrimSpace(action.UserInformation.UserCode),
+		strings.TrimSpace(action.EntityIdentifyer),
+	} {
+		if code == "" {
+			continue
+		}
+		user, err := ba.customerRepo.FindCustomerByUserCode(ctx, code)
+		if err != nil {
+			ba.logger.Infof("[BpsActionSvc][Detail] FindCustomerByUserCode(%s) failed: %v", code, err)
+			continue
+		}
+		if user == nil {
+			continue
+		}
+		return user.ID.Hex()
+	}
+	return ""
 }
 
 func (ba *bpsActionService) RollBack(ctx context.Context, action *bps_model.BPSAction) error {
