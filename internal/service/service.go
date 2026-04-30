@@ -125,6 +125,7 @@ type BPSActionService interface {
 	GetBPSActionByID(ctx context.Context, id, department string) (*bps_action.BPSAction, error)
 	GetBPSActionByUniqueID(ctx context.Context, id, department string) (*bps_action.BPSAction, error)
 	GetBPSActionByActionCode(ctx context.Context, uniqueID, department string) (*bps_action.BPSAction, error)
+	GetBPSActionDetailByActionCode(ctx context.Context, uniqueID, department string) (*bpsActionDto.BPSActionDetailResponse, error)
 }
 
 type BranchService interface {
