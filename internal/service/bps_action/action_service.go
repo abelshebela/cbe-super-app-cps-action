@@ -59,13 +59,15 @@ type bpsActionService struct {
 
 	customerRepo storage.CustomerRepository
 
+	archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository
+
 	logger utils.Logger
 
 	dispatcher Dispatcher
 	cfg        config.VaultConfig
 }
 
-func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, logger utils.Logger, dispatcher Dispatcher, cfg config.VaultConfig) service.BPSActionService {
+func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, logger utils.Logger, dispatcher Dispatcher, cfg config.VaultConfig) service.BPSActionService {
 
 	return &bpsActionService{
 
@@ -76,6 +78,8 @@ func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPS
 		roles: roles,
 
 		customerRepo: customerRepo,
+
+		archivedLinkedAccountRepo: archivedLinkedAccountRepo,
 
 		dispatcher: dispatcher,
 		cfg:        cfg,
@@ -150,8 +154,8 @@ func (ba *bpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int, customerBar bool) error {
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "AuditorMark", "CPSAction", "AuditorMark")
-
 	defer span.End()
+	auditorData := lobal_util.ExtractUserFromContext(ctx)
 
 	producer := mid.GetClientOrchestrationProducer()
 
@@ -169,7 +173,7 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 
 	}
 
-	userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
+	// userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
 
 	action, err := ba.GetBPSActionByActionCode(ctx, actionCode, "")
 
@@ -181,7 +185,7 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 
 	}
 
-	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, AuditorStatus: string(auditor.AuditorMark), RoleCode: rawRoleID, UserData: userData, Reason: auditor.AuditorReason}
+	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, AuditorStatus: string(auditor.AuditorMark), RoleCode: rawRoleID, UserData: auditorData, Reason: auditor.AuditorReason}
 
 	ba.logger.Infof("[BpsActionSvc][AuditorMark] payload: %+v", payload)
 	if err := producer.PublishMessage(ctx, payload, constants.BPSAuditorMarkTopic, ba.cfg.ACIAATMBlockUnBlockUpdateCode1, "BPS_AUDITOR_MARK"); err != nil {
@@ -519,6 +523,62 @@ func (ba *bpsActionService) GetBPSActionByActionCode(ctx context.Context, unique
 
 	return action, nil
 
+}
+
+// GetBPSActionDetailByActionCode returns the BPS action together with the related
+// customer's member detail, currently linked accounts, and unlinked (archived) accounts.
+//
+// Enrichment is best-effort: any failure on the customer side is logged but does NOT
+// fail the whole call so that the action document is still returned to the caller.
+// When the action does not target a customer (no UserInformation.UserID) the enrichment
+// fields are returned as nil / empty slices.
+func (ba *bpsActionService) GetBPSActionDetailByActionCode(ctx context.Context, uniqueID, department string) (*bpsActionDto.BPSActionDetailResponse, error) {
+	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetBPSActionDetailByActionCode", "BPSAction", "GetBPSActionDetailByActionCode")
+	defer span.End()
+
+	action, err := ba.GetBPSActionByActionCode(ctx, uniqueID, department)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &bpsActionDto.BPSActionDetailResponse{
+		Action:           action,
+		LinkedAccounts:   []model.LinkedAccount{},
+		UnlinkedAccounts: []model.ArchivedLinkedAccount{},
+	}
+
+	userID := strings.TrimSpace(action.UserInformation.UserID)
+	if userID == "" {
+		span.AddEvent("no user id on action; skipping customer enrichment")
+		return resp, nil
+	}
+
+	if ba.customerRepo != nil {
+		if detail, derr := ba.customerRepo.FindCustomerDetailByID(ctx, userID); derr != nil {
+			ba.logger.Errorf("[BpsActionSvc][Detail] member detail lookup failed for user %s: %v", userID, derr)
+			span.AddEvent("member detail lookup failed", trace.WithAttributes(attribute.String("error", derr.Error())))
+		} else {
+			resp.MemberDetail = detail
+		}
+
+		if linked, lerr := ba.customerRepo.FetchLinkedAccount(ctx, userID); lerr != nil {
+			ba.logger.Errorf("[BpsActionSvc][Detail] linked accounts lookup failed for user %s: %v", userID, lerr)
+			span.AddEvent("linked accounts lookup failed", trace.WithAttributes(attribute.String("error", lerr.Error())))
+		} else if linked != nil {
+			resp.LinkedAccounts = linked
+		}
+	}
+
+	if ba.archivedLinkedAccountRepo != nil {
+		if unlinked, uerr := ba.archivedLinkedAccountRepo.FindAllByUserID(ctx, userID); uerr != nil {
+			ba.logger.Errorf("[BpsActionSvc][Detail] unlinked accounts lookup failed for user %s: %v", userID, uerr)
+			span.AddEvent("unlinked accounts lookup failed", trace.WithAttributes(attribute.String("error", uerr.Error())))
+		} else if unlinked != nil {
+			resp.UnlinkedAccounts = unlinked
+		}
+	}
+
+	return resp, nil
 }
 
 func (ba *bpsActionService) RollBack(ctx context.Context, action *bps_model.BPSAction) error {

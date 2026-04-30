@@ -109,6 +109,32 @@ func (l *ArchivedLinkedAccountStorage) FindByAccountNumber(ctx context.Context, 
 	return result, nil
 }
 
+// FindAllByUserID returns every archived (i.e. previously linked, now unlinked) account
+// belonging to the given user. The id is the Mongo ObjectID hex of the user document.
+// Returns an empty slice (not an error) when nothing is found.
+func (l *ArchivedLinkedAccountStorage) FindAllByUserID(ctx context.Context, userID string) ([]model.ArchivedLinkedAccount, error) {
+	objID, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][FindAllByUserID] invalid user id: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	filter := bson.M{
+		"user_id":    objID,
+		"is_deleted": false,
+	}
+
+	results, err := l.dal.FindAll(ctx, filter, bson.M{})
+	if err != nil {
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][FindAllByUserID] failed to fetch archived linked accounts: %v", err)
+		return []model.ArchivedLinkedAccount{}, local_util.HandleDBError(err)
+	}
+	if results == nil {
+		return []model.ArchivedLinkedAccount{}, nil
+	}
+	return results, nil
+}
+
 func (l *ArchivedLinkedAccountStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ArchivedLinkedAccount], error) {
 	filter := bson.M{
 		"is_deleted": false,

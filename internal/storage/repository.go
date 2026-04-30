@@ -358,6 +358,7 @@ type ArchivedUserRepository interface {
 type ArchivedLinkedAccountRepository interface {
 	Create(ctx context.Context, user *model.LinkedAccount) error
 	FindByID(ctx context.Context, id string, isUserId bool) (*model.ArchivedLinkedAccount, error)
+	FindAllByUserID(ctx context.Context, userID string) ([]model.ArchivedLinkedAccount, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ArchivedLinkedAccount], error)
 }
 
