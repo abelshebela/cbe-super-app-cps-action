@@ -222,8 +222,22 @@ func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minio
 				if rerr != nil {
 					return rerr
 				}
-				for _, cell := range row {
-					pdf.CellFormat(colWidth, layout.BodyRowMM, truncatePDFCell(cell, colWidth, layout.BodyFontPt), "1", 0, "L", false, 0, "")
+				for i, cell := range row {
+					// Per-column font override (e.g. action_code uses a smaller font so
+					// long fixed-format identifiers don't get truncated to "...").
+					fontPt := layout.BodyFontPt
+					if i < len(resolvedFields) {
+						if override, ok := CPSActionFieldFontOverride[resolvedFields[i]]; ok && override > 0 && override < fontPt {
+							fontPt = override
+						}
+					}
+					if fontPt != layout.BodyFontPt {
+						pdf.SetFont("Arial", "", fontPt)
+					}
+					pdf.CellFormat(colWidth, layout.BodyRowMM, truncatePDFCell(cell, colWidth, fontPt), "1", 0, "L", false, 0, "")
+					if fontPt != layout.BodyFontPt {
+						pdf.SetFont("Arial", "", layout.BodyFontPt)
+					}
 				}
 				pdf.Ln(-1)
 			}
@@ -309,6 +323,14 @@ var CPSActionFieldRegistry = map[string]CPSActionFieldSpec{
 	"last_modified_at":    {"Last Modified At", func(a *model.CPSAction) string { return local_util.FormatTime(a.LastModifiedAt) }},
 	"maker_action_time":   {"Maker Action Time", func(a *model.CPSAction) string { return local_util.FormatTime(a.MakerActionTime) }},
 	"checker_action_time": {"Checker Action Time", func(a *model.CPSAction) string { return local_util.FormatTime(a.LastModifiedAt) }},
+}
+
+// CPSActionFieldFontOverride lets specific columns render in a smaller font than the
+// table's responsive default. Useful for columns whose values are long fixed-format
+// identifiers (e.g. "SRM26105_145513.440861" for action_code, 22 chars) that we don't
+// want to truncate. Keys are CPSActionFieldRegistry keys; values are font points.
+var CPSActionFieldFontOverride = map[string]float64{
+	"action_code": 5,
 }
 
 // CPSActionDefaultFieldOrder is the field order used when no ?fields= is provided.
@@ -1270,7 +1292,29 @@ func ExportCSVAndUpload(
 	return url, nil
 }
 
-// ExportPDFAndUpload builds a tabular PDF (landscape A4) from a header + row-writer callback
+// drawCBEBanner paints the Commercial Bank of Ethiopia branded header band across the
+// top of the current PDF page: solid purple background with the bank name in white bold.
+//
+// pageWidthMM is the full page width (e.g. 210 for portrait A4); heightMM is the banner
+// height. Text/fill colors are reset to defaults before this returns so subsequent
+// content renders normally.
+func drawCBEBanner(pdf *gofpdf.Fpdf, pageWidthMM, heightMM float64) {
+	// Purple background band.
+	pdf.SetFillColor(123, 45, 142) // #7B2D8E
+	pdf.Rect(0, 0, pageWidthMM, heightMM, "F")
+
+	// Bank name centered vertically, slightly inset from the left edge.
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetFont("Arial", "B", 14)
+	pdf.SetXY(12, heightMM/2-4)
+	pdf.CellFormat(pageWidthMM-24, 8, "Commercial Bank of Ethiopia", "", 0, "L", false, 0, "")
+
+	// Reset so subsequent content uses default black/white.
+	pdf.SetTextColor(0, 0, 0)
+	pdf.SetFillColor(255, 255, 255)
+}
+
+// ExportPDFAndUpload builds a tabular PDF (portrait A4) from a header + row-writer callback
 // and uploads it to MinIO with the correct application/pdf content type. The header row
 // automatically repeats on every page; a "Page N/M" footer is added.
 func ExportPDFAndUpload(
@@ -1295,27 +1339,36 @@ func ExportPDFAndUpload(
 	defer os.Remove(tmpFile.Name())
 	defer tmpFile.Close()
 
-	// 2. Landscape A4 with auto page break so long datasets paginate cleanly.
-	pdf := gofpdf.New("L", "mm", "A4", "")
-	pdf.SetMargins(10, 12, 10)
+	// 2. Portrait A4 (210x297mm) with auto page break so long datasets paginate cleanly.
+	// Top margin reserved for the Commercial Bank of Ethiopia branded banner.
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	const (
+		bannerHeightMM = 22.0 // height of the purple CBE banner
+		sideMarginMM   = 10.0
+	)
+	pdf.SetMargins(sideMarginMM, bannerHeightMM+4, sideMarginMM)
 	pdf.SetAutoPageBreak(true, 15)
 	pdf.AliasNbPages("")
 
-	// Landscape A4 usable width ~277mm.
-	usable := 277.0
+	// Portrait A4 usable width = 210 - 2*sideMarginMM = 190mm.
+	usable := 210.0 - 2*sideMarginMM
 	colWidth := usable
 	if len(headers) > 0 {
 		colWidth = usable / float64(len(headers))
 	}
 
 	// Responsive layout: header/body font + row height scale with column count so
-	// wide tables (e.g. 14 columns) don't truncate content into "..." on every cell.
+	// narrow portrait pages don't truncate content into "..." on every cell.
 	layout := CalcPDFLayout(len(headers))
 
-	// 3. Header repeats on every page, with responsive font size and truncation so
-	// long header labels don't overflow the column either.
+	// 3. Header runs on every page: CBE brand banner + table column header row.
 	pdf.SetHeaderFunc(func() {
+		drawCBEBanner(pdf, 210.0, bannerHeightMM)
+		// Column header row positioned right below the banner.
+		pdf.SetY(bannerHeightMM + 2)
+		pdf.SetX(sideMarginMM)
 		pdf.SetFont("Arial", "B", layout.HeaderFontPt)
+		pdf.SetTextColor(0, 0, 0)
 		pdf.SetFillColor(220, 220, 220)
 		for _, h := range headers {
 			pdf.CellFormat(colWidth, layout.HeaderRowMM, truncatePDFCell(h, colWidth, layout.HeaderFontPt), "1", 0, "C", true, 0, "")
