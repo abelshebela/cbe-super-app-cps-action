@@ -62,13 +62,17 @@ type bpsActionService struct {
 
 	archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository
 
+	bpsUserRepo storage.BPSUserRepository
+
+	cpsUserRepo storage.CpsUserRepository
+
 	logger utils.Logger
 
 	dispatcher Dispatcher
 	cfg        config.VaultConfig
 }
 
-func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, logger utils.Logger, dispatcher Dispatcher, cfg config.VaultConfig) service.BPSActionService {
+func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, bpsUserRepo storage.BPSUserRepository, cpsUserRepo storage.CpsUserRepository, logger utils.Logger, dispatcher Dispatcher, cfg config.VaultConfig) service.BPSActionService {
 
 	return &bpsActionService{
 
@@ -81,6 +85,10 @@ func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPS
 		customerRepo: customerRepo,
 
 		archivedLinkedAccountRepo: archivedLinkedAccountRepo,
+
+		bpsUserRepo: bpsUserRepo,
+
+		cpsUserRepo: cpsUserRepo,
 
 		dispatcher: dispatcher,
 		cfg:        cfg,
@@ -546,6 +554,8 @@ func (ba *bpsActionService) GetBPSActionDetailByActionCode(ctx context.Context, 
 		Action:           action,
 		LinkedAccounts:   []customer_dto.LinkedAccount{},
 		UnlinkedAccounts: []model.ArchivedLinkedAccount{},
+		Checkers:         ba.resolveActionUsers(ctx, action.CheckerID),
+		Auditors:         ba.resolveActionUsers(ctx, action.Auditors.AuditorID),
 	}
 
 	// The customer module looks customers up by user_code via the Oracle repo
@@ -596,6 +606,64 @@ func (ba *bpsActionService) GetBPSActionDetailByActionCode(ctx context.Context, 
 	}
 
 	return resp, nil
+}
+
+// resolveActionUsers resolves a slice of user IDs (Mongo ObjectID hex strings) into
+// BPSActionUserInfo records. Each ID is looked up in bps_user first; if not found
+// there it falls back to cps_user. IDs that resolve nowhere are returned with just
+// the ID populated and Source="" so the FE can still render a placeholder row.
+//
+// Returns an empty slice (not nil) so the JSON payload always has a list.
+func (ba *bpsActionService) resolveActionUsers(ctx context.Context, ids []string) []bpsActionDto.BPSActionUserInfo {
+	out := make([]bpsActionDto.BPSActionUserInfo, 0, len(ids))
+	for _, id := range ids {
+		id = strings.TrimSpace(id)
+		if id == "" {
+			continue
+		}
+		out = append(out, ba.resolveOneActionUser(ctx, id))
+	}
+	return out
+}
+
+// resolveOneActionUser tries bps_user.GetByUserID, then cps_user.FindByID.
+// Always returns a populated BPSActionUserInfo with at least the ID.
+func (ba *bpsActionService) resolveOneActionUser(ctx context.Context, id string) bpsActionDto.BPSActionUserInfo {
+	info := bpsActionDto.BPSActionUserInfo{ID: id}
+
+	if ba.bpsUserRepo != nil {
+		if u, err := ba.bpsUserRepo.GetByUserID(ctx, id); err == nil && u != nil {
+			info.UserCode = u.UserCode
+			info.FullName = u.FullName
+			info.UserName = u.Username
+			info.PhoneNumber = u.PhoneNumber
+			info.JobTitle = u.JobTitle
+			info.Role = u.Role
+			info.BranchCode = u.BranchCode
+			info.BranchName = u.BranchName
+			info.Source = "bps_user"
+			return info
+		} else if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+			ba.logger.Infof("[BpsActionSvc][Detail] bps_user lookup for %s failed: %v", id, err)
+		}
+	}
+
+	if ba.cpsUserRepo != nil {
+		if u, err := ba.cpsUserRepo.FindByID(ctx, id); err == nil && u != nil {
+			info.UserCode = u.UserCode
+			info.FullName = u.FullName
+			info.UserName = u.UserName
+			info.PhoneNumber = u.PhoneNumber
+			info.JobTitle = u.JobTitle
+			info.Role = u.Role
+			info.Source = "cps_user"
+			return info
+		} else if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+			ba.logger.Infof("[BpsActionSvc][Detail] cps_user lookup for %s failed: %v", id, err)
+		}
+	}
+
+	return info
 }
 
 func (ba *bpsActionService) RollBack(ctx context.Context, action *bps_model.BPSAction) error {
