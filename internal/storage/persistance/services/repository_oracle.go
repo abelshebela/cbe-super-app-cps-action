@@ -145,7 +145,7 @@ func (s *ServicesStorage) checkAccountNumberExistence(ctx context.Context, tx *s
 			:currency,
 			:account_type,
 			:branch,
-			:customer_number,
+			:customer_number
 		)
 		RETURNING RAWTOHEX(id) INTO :id
 	`
