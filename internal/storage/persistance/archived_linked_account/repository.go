@@ -135,6 +135,28 @@ func (l *ArchivedLinkedAccountStorage) FindAllByUserID(ctx context.Context, user
 	return results, nil
 }
 
+// FindAllByCustomerNumber returns every archived (i.e. previously linked, now unlinked)
+// account whose customer_number (CIF) matches. Returns an empty slice (not an error)
+// when nothing is found.
+func (l *ArchivedLinkedAccountStorage) FindAllByCustomerNumber(ctx context.Context, customerNumber string) ([]model.ArchivedLinkedAccount, error) {
+	if customerNumber == "" {
+		return []model.ArchivedLinkedAccount{}, nil
+	}
+	filter := bson.M{
+		"customer_number": customerNumber,
+		"is_deleted":      false,
+	}
+	results, err := l.dal.FindAll(ctx, filter, bson.M{})
+	if err != nil {
+		l.logger.Errorf("[ArchivedLinkedAccountStorage][FindAllByCustomerNumber] failed: %v", err)
+		return []model.ArchivedLinkedAccount{}, local_util.HandleDBError(err)
+	}
+	if results == nil {
+		return []model.ArchivedLinkedAccount{}, nil
+	}
+	return results, nil
+}
+
 func (l *ArchivedLinkedAccountStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ArchivedLinkedAccount], error) {
 	filter := bson.M{
 		"is_deleted": false,

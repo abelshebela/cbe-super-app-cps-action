@@ -22,9 +22,12 @@ type BPSActionCountResponse struct {
 //
 // MemberDetail / LinkedAccounts / UnlinkedAccounts are nil-or-empty when the
 // underlying user is not resolvable (e.g. the action does not target a customer).
+//
+// LinkedAccounts mirrors the shape returned by the customer module's Oracle
+// detail flow (customer_dto.LinkedAccount) so the FE can reuse the same renderer.
 type BPSActionDetailResponse struct {
 	Action           *bps_model.BPSAction                 `json:"action"`
 	MemberDetail     *customer_dto.CustomerDetailResponse `json:"member_detail,omitempty"`
-	LinkedAccounts   []model.LinkedAccount                `json:"linked_accounts"`
+	LinkedAccounts   []customer_dto.LinkedAccount         `json:"linked_accounts"`
 	UnlinkedAccounts []model.ArchivedLinkedAccount        `json:"unlinked_accounts"`
 }
