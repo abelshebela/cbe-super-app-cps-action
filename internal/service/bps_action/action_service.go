@@ -154,8 +154,8 @@ func (ba *bpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int, customerBar bool) error {
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "AuditorMark", "CPSAction", "AuditorMark")
+	checkData := lobal_util.ExtractUserFromContext(ctx)
 	defer span.End()
-	auditorData := lobal_util.ExtractUserFromContext(ctx)
 
 	producer := mid.GetClientOrchestrationProducer()
 
@@ -185,7 +185,7 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 
 	}
 
-	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, AuditorStatus: string(auditor.AuditorMark), RoleCode: rawRoleID, UserData: auditorData, Reason: auditor.AuditorReason}
+	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, AuditorStatus: string(auditor.AuditorMark), RoleCode: rawRoleID, UserData: checkData, Reason: auditor.AuditorReason}
 
 	ba.logger.Infof("[BpsActionSvc][AuditorMark] payload: %+v", payload)
 	if err := producer.PublishMessage(ctx, payload, constants.BPSAuditorMarkTopic, ba.cfg.ACIAATMBlockUnBlockUpdateCode1, "BPS_AUDITOR_MARK"); err != nil {
