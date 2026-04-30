@@ -94,21 +94,63 @@ func extractFieldsFilter(filters map[string]interface{}) []string {
 	return nil
 }
 
-// truncatePDFCell keeps cell text from overflowing a fixed-width column. Uses a rough char
-// budget derived from the column width; good enough for tabular exports with Arial 9pt.
-func truncatePDFCell(s string, colWidthMM float64) string {
-	if s == "" {
-		return s
+// PDFLayout bundles font + row sizing for a tabular PDF export. It is derived from the
+// column count so wider tables automatically get a smaller body font + row height.
+type PDFLayout struct {
+	HeaderFontPt float64
+	BodyFontPt   float64
+	HeaderRowMM  float64
+	BodyRowMM    float64
+}
+
+// CalcPDFLayout picks responsive font + row sizing based on the number of columns.
+// Rationale: at 9pt Arial a character is ~2mm wide; with 14 columns in 277mm landscape
+// each column is only ~19mm, so 8-character budget wasn't enough. Scale font instead.
+func CalcPDFLayout(cols int) PDFLayout {
+	switch {
+	case cols <= 4:
+		return PDFLayout{HeaderFontPt: 11, BodyFontPt: 10, HeaderRowMM: 9, BodyRowMM: 8}
+	case cols <= 7:
+		return PDFLayout{HeaderFontPt: 10, BodyFontPt: 9, HeaderRowMM: 8, BodyRowMM: 7}
+	case cols <= 10:
+		return PDFLayout{HeaderFontPt: 9, BodyFontPt: 8, HeaderRowMM: 7, BodyRowMM: 6}
+	case cols <= 13:
+		return PDFLayout{HeaderFontPt: 8, BodyFontPt: 7, HeaderRowMM: 6.5, BodyRowMM: 5.5}
+	default:
+		return PDFLayout{HeaderFontPt: 7, BodyFontPt: 6, HeaderRowMM: 6, BodyRowMM: 5}
 	}
-	// ~2.2mm per char for Arial 9pt; reserve 2mm of padding.
-	budget := int((colWidthMM - 2.0) / 2.2)
+}
+
+// pdfCharBudget estimates how many characters of `fontPt` Arial fit into colWidthMM
+// after reserving 2mm of horizontal padding inside the cell.
+func pdfCharBudget(colWidthMM, fontPt float64) int {
+	// Arial regular at 9pt ≈ 2mm per char; width scales linearly with font size.
+	charMM := fontPt * (2.0 / 9.0)
+	if charMM <= 0 {
+		return 4
+	}
+	budget := int((colWidthMM - 2.0) / charMM)
 	if budget < 4 {
 		budget = 4
 	}
+	return budget
+}
+
+// truncatePDFCell keeps cell text from overflowing a fixed-width column. ASCII ellipsis
+// ("...") is used instead of the Unicode "…" because gofpdf's core Arial font uses
+// CP-1252 and renders U+2026 as the garbled "â€¦" sequence.
+func truncatePDFCell(s string, colWidthMM, fontPt float64) string {
+	if s == "" {
+		return s
+	}
+	budget := pdfCharBudget(colWidthMM, fontPt)
 	if len(s) <= budget {
 		return s
 	}
-	return s[:budget-1] + "…"
+	if budget <= 3 {
+		return s[:budget]
+	}
+	return s[:budget-3] + "..."
 }
 
 // FileExporterForCPSAction streams CPS actions into CSV or PDF, honoring ?fields=... projection.
@@ -171,15 +213,17 @@ func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minio
 		// Landscape A4 usable width ~277mm.
 		const usableWidthMM = 277.0
 		colWidth := usableWidthMM / float64(len(header))
+		layout := CalcPDFLayout(len(header))
 
 		url, err = ExportPDFAndUpload(ctx, minioClient, buckerName, cfg, objectName, header, func(pdf *gofpdf.Fpdf) error {
+			pdf.SetFont("Arial", "", layout.BodyFontPt)
 			for _, action := range data {
 				row, rerr := BuildCPSActionRowFromFields(action, resolvedFields)
 				if rerr != nil {
 					return rerr
 				}
 				for _, cell := range row {
-					pdf.CellFormat(colWidth, 7, truncatePDFCell(cell, colWidth), "1", 0, "L", false, 0, "")
+					pdf.CellFormat(colWidth, layout.BodyRowMM, truncatePDFCell(cell, colWidth, layout.BodyFontPt), "1", 0, "L", false, 0, "")
 				}
 				pdf.Ln(-1)
 			}
@@ -1264,15 +1308,20 @@ func ExportPDFAndUpload(
 		colWidth = usable / float64(len(headers))
 	}
 
-	// 3. Header repeats on every page.
+	// Responsive layout: header/body font + row height scale with column count so
+	// wide tables (e.g. 14 columns) don't truncate content into "..." on every cell.
+	layout := CalcPDFLayout(len(headers))
+
+	// 3. Header repeats on every page, with responsive font size and truncation so
+	// long header labels don't overflow the column either.
 	pdf.SetHeaderFunc(func() {
-		pdf.SetFont("Arial", "B", 10)
+		pdf.SetFont("Arial", "B", layout.HeaderFontPt)
 		pdf.SetFillColor(220, 220, 220)
 		for _, h := range headers {
-			pdf.CellFormat(colWidth, 8, h, "1", 0, "C", true, 0, "")
+			pdf.CellFormat(colWidth, layout.HeaderRowMM, truncatePDFCell(h, colWidth, layout.HeaderFontPt), "1", 0, "C", true, 0, "")
 		}
 		pdf.Ln(-1)
-		pdf.SetFont("Arial", "", 9)
+		pdf.SetFont("Arial", "", layout.BodyFontPt)
 	})
 
 	// 4. Footer with page numbers.
@@ -1283,7 +1332,7 @@ func ExportPDFAndUpload(
 	})
 
 	pdf.AddPage()
-	pdf.SetFont("Arial", "", 9)
+	pdf.SetFont("Arial", "", layout.BodyFontPt)
 
 	// 5. Body rows via caller callback.
 	if err := writeRows(pdf); err != nil {
