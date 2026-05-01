@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -974,4 +975,75 @@ func (b *bpsActionRepository) GetCountByDepartment(ctx context.Context, departme
 	}
 
 	return &bpsActionDto.BPSActionCountResponse{Approved: 0, Rejected: 0, Inprogress: 0, Completed: 0}, nil
+}
+
+func (r *bpsActionRepository) MarkActionAsAudited(ctx context.Context, actionCode string, auditorID string, auditorName string, auditorMID string, auditorApproval bool, reason string) error {
+
+	filter := bson.M{"action_code": actionCode}
+
+	// First, fetch the existing action
+	start := time.Now()
+	existing, err := r.actionDal.FindOne(ctx, filter, bson.M{})
+	duration := time.Since(start)
+	r.logger.Infof("[BPSActionStorage][MarkActionAsAudited]bps_actions", duration)
+
+	if err != nil {
+		r.logger.Errorf("[BPSAction][MarkActionAsAudited] failed to find bps")
+		return local_util.HandleDBError(err)
+	}
+
+	// SECURITY FIX: Only allow auditing of APPROVED or REJECTED actions
+	currentStatus := string(existing.Status)
+	if currentStatus != "APPROVED" && currentStatus != "REJECTED" {
+		r.logger.Errorf("[BPSActionStorage][MarkActionAsAudited] didn't fullfill the action status crateria it's status is %v", currentStatus)
+		return errors.New(localization.ErrorCodeBpsActionAlreadAudited.Code)
+	}
+
+	// Append auditor ID to the auditor list if not already present
+	auditorIDs := existing.Auditors.AuditorID
+	auditorMIDs := existing.AuditorMID
+	auditorNameList := existing.AuditorNameList
+	auditorAlreadyExists := false
+	for _, id := range auditorIDs {
+		if id == auditorID {
+			auditorAlreadyExists = true
+			break
+		}
+	}
+
+	if !auditorAlreadyExists {
+		auditorIDs = append(auditorIDs, auditorID)
+		auditorMIDs = append(auditorMIDs, auditorMID)
+		auditorNameList = append(auditorNameList, auditorName)
+	}
+
+	// Update the auditors field
+	now := time.Now()
+
+	// Append current time to auditor_time array
+	updatedAuditorTime := append(existing.AuditorTime, now)
+
+	update := bson.M{
+		"auditors.audited":          true,
+		"auditors.auditor_id":       auditorIDs,
+		"auditors.auditor_name":     auditorName,
+		"auditors.auditor_approval": auditorApproval,
+		"auditors.reason":           reason,
+		"auditor_mid":               auditorMIDs,
+		"auditor_name_list":         auditorNameList,
+		"auditor_time":              updatedAuditorTime,
+		"last_modified_at":          now,
+	}
+
+	// Set verified_at (stored as "time" in DB) when auditor approves the action
+	if auditorApproval {
+		update["time"] = now
+	}
+	_, err = r.actionDal.UpdateOneN(ctx, filter, update)
+	if err != nil {
+		r.logger.Errorf("[BPSAction][MarkActionAsAudited] fialed to update bpsaction error: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
+	return nil
 }
