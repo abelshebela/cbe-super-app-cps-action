@@ -163,7 +163,7 @@ func (ba *bpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int, customerBar bool) error {
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "AuditorMark", "CPSAction", "AuditorMark")
-	checkData := lobal_util.ExtractUserFromContext(ctx)
+	// checkData := lobal_util.ExtractUserFromContext(ctx)
 	defer span.End()
 
 	producer := mid.GetClientOrchestrationProducer()
@@ -194,37 +194,47 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 
 	}
 
-	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, AuditorStatus: string(auditor.AuditorMark), RoleCode: rawRoleID, UserData: checkData, Reason: auditor.AuditorReason}
-
-	ba.logger.Infof("[BpsActionSvc][AuditorMark] payload: %+v", payload)
-	if err := producer.PublishMessage(ctx, payload, constants.BPSAuditorMarkTopic, ba.cfg.ACIAATMBlockUnBlockUpdateCode1, "BPS_AUDITOR_MARK"); err != nil {
-
-		span.AddEvent("failed to publish bps auditor mark", trace.WithAttributes(attribute.String("error", err.Error())))
-		ba.logger.Errorf("[BpsActionSvc][AuditorMark] failed to publish bps auditor mark: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-
+	auditorApproval := false
+	if auditor.AuditorMark == "MARKEDASRIGHT" {
+		auditorApproval = true
+	}
+	err = MarkActionAsAudited(ctx, ba.repo, actionCode, auditorApproval, auditor.AuditorReason, ba.logger)
+	if err != nil {
+		ba.logger.Errorf("[BPSAction][AuditorMark] failed to updat eh mark")
+		return err
 	}
 
-	ba.logger.Infof("[BpsActionSvc][AuditorMark] auditor mark published for action %s, mark=%s", actionCode, auditor.AuditorMark)
+	// payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, AuditorStatus: string(auditor.AuditorMark), RoleCode: rawRoleID, UserData: checkData, Reason: auditor.AuditorReason}
 
-	if customerBar && auditor.AuditorMark == model.MARKEDASWRONG {
-		userCode := action.EntityIdentifyer
-		if strings.TrimSpace(userCode) == "" {
-			ba.logger.Errorf("[BpsActionSvc][AuditorMark] no user_code (entity_identifier) on action: %s", actionCode)
-			span.AddEvent("missing entity_identifier for customer bar")
-			return errors.New(localization.ErrorInvalidInputParameter.Code)
-		}
+	// ba.logger.Infof("[BpsActionSvc][AuditorMark] payload: %+v", payload)
+	// if err := producer.PublishMessage(ctx, payload, constants.BPSAuditorMarkTopic, ba.cfg.ACIAATMBlockUnBlockUpdateCode1, "BPS_AUDITOR_MARK"); err != nil {
 
-		if ba.customerRepo != nil {
-			if err := ba.customerRepo.BlockCustomerByUserCode(ctx, userCode); err != nil {
-				ba.logger.Errorf("[BpsActionSvc][AuditorMark] failed to block customer %s: %v", userCode, err)
-				span.RecordError(err)
-				return err
-			}
-			ba.logger.Infof("[BpsActionSvc][AuditorMark] customer %s blocked successfully for action %s", userCode, actionCode)
-			span.AddEvent("customer blocked", trace.WithAttributes(attribute.String("user_code", userCode)))
-		}
-	}
+	// 	span.AddEvent("failed to publish bps auditor mark", trace.WithAttributes(attribute.String("error", err.Error())))
+	// 	ba.logger.Errorf("[BpsActionSvc][AuditorMark] failed to publish bps auditor mark: %v", err)
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+
+	// }
+
+	// ba.logger.Infof("[BpsActionSvc][AuditorMark] auditor mark published for action %s, mark=%s", actionCode, auditor.AuditorMark)
+
+	// if customerBar && auditor.AuditorMark == model.MARKEDASWRONG {
+	// 	userCode := action.EntityIdentifyer
+	// 	if strings.TrimSpace(userCode) == "" {
+	// 		ba.logger.Errorf("[BpsActionSvc][AuditorMark] no user_code (entity_identifier) on action: %s", actionCode)
+	// 		span.AddEvent("missing entity_identifier for customer bar")
+	// 		return errors.New(localization.ErrorInvalidInputParameter.Code)
+	// 	}
+
+	// 	if ba.customerRepo != nil {
+	// 		if err := ba.customerRepo.BlockCustomerByUserCode(ctx, userCode); err != nil {
+	// 			ba.logger.Errorf("[BpsActionSvc][AuditorMark] failed to block customer %s: %v", userCode, err)
+	// 			span.RecordError(err)
+	// 			return err
+	// 		}
+	// 		ba.logger.Infof("[BpsActionSvc][AuditorMark] customer %s blocked successfully for action %s", userCode, actionCode)
+	// 		span.AddEvent("customer blocked", trace.WithAttributes(attribute.String("user_code", userCode)))
+	// 	}
+	// }
 
 	return nil
 
