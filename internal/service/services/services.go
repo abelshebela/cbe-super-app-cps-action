@@ -257,26 +257,32 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	switch action.RequestAction {
 	case string(constants.RequestCreateService):
 		s.logger.Infof("[servicesService][Authorize] Authorizing create service with data: %+v", serviceDoc)
-		accountDetil, err := s.ValidateAccountNumberWithExternalAPI(ctx, serviceDoc.ProductGlAccount)
-		if err != nil {
-			s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", serviceDoc.ProductGlAccount, err)
-			return nil, errors.New(localization.ErrorAccountNumberValidationFailed.Code)
-		}
 
-		return nil, s.repo.Create(ctx, *accountDetil, serviceDoc)
-	case string(constants.RequestUpdateService):
-		s.logger.Infof("[servicesService][Authorize] Authorizing update service with data: %+v", serviceDoc)
-
-		var accountDetil *coreio.AccountLookupResult
+		var accountDetail coreio.AccountLookupResult
 		if serviceDoc.ProductGlAccount != "" {
-			accountDetil, err = s.ValidateAccountNumberWithExternalAPI(ctx, serviceDoc.ProductGlAccount)
+			result, err := s.ValidateAccountNumberWithExternalAPI(ctx, serviceDoc.ProductGlAccount)
 			if err != nil {
 				s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", serviceDoc.ProductGlAccount, err)
 				return nil, errors.New(localization.ErrorAccountNumberValidationFailed.Code)
 			}
+			accountDetail = *result
 		}
 
-		return nil, s.repo.Update(ctx, action.UniqueId, serviceDoc, *accountDetil)
+		return nil, s.repo.Create(ctx, accountDetail, serviceDoc)
+	case string(constants.RequestUpdateService):
+		s.logger.Infof("[servicesService][Authorize] Authorizing update service with data: %+v", serviceDoc)
+
+		var accountDetail coreio.AccountLookupResult
+		if serviceDoc.ProductGlAccount != "" {
+			result, err := s.ValidateAccountNumberWithExternalAPI(ctx, serviceDoc.ProductGlAccount)
+			if err != nil {
+				s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", serviceDoc.ProductGlAccount, err)
+				return nil, errors.New(localization.ErrorAccountNumberValidationFailed.Code)
+			}
+			accountDetail = *result
+		}
+
+		return nil, s.repo.Update(ctx, action.UniqueId, serviceDoc, accountDetail)
 	case string(constants.RequestEnableService):
 		// err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
 		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, true)
