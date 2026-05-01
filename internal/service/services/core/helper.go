@@ -22,6 +22,10 @@ func formatFloatPointer(f *float64) string {
 	return strconv.FormatFloat(*f, 'f', -1, 64)
 }
 
+func sourceAppFromPtr(source *string) constants.SourceApp {
+	return constants.SourceApp(service_dto.StringPointer(source, ""))
+}
+
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	userData := local_util.ExtractUserFromContext(ctx)
 
@@ -36,19 +40,28 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 }
 
 func MapToServiceModel(req service_dto.CreateServiceRequest, accessList imodel.ServiceKey) imodel.Service {
+	var glAccount string
+	var glCurrency string
+	if req.ProductGlAccount != "" {
+		glAccount = req.ProductGlAccount
+	}
+	if req.ProductGlAccountCurrency != "" {
+		glCurrency = req.ProductGlAccountCurrency
+	}
+
 	mapped := imodel.Service{
 		ServiceName:              accessList.ServiceName,
 		ServiceKey:               accessList.ServiceKey,
 		ServiceCode:              req.ServiceCode,
 		ServiceKeyId:             req.ServiceKeyId,
-		ProductGlAccount:         req.ProductGlAccount,
-		ProductGlAccountCurrency: req.ProductGlAccountCurrency,
+		ProductGlAccount:         glAccount,
+		ProductGlAccountCurrency: glCurrency,
 		Cap: func() []imodel.Cap {
 			caps := make([]imodel.Cap, 0, len(req.Cap))
 
 			for _, c := range req.Cap {
 				caps = append(caps, imodel.Cap{
-					Source:             constants.SourceApp(*c.Source),
+					Source:             sourceAppFromPtr(c.Source),
 					Currency:           service_dto.StringPointer(c.Currency, ""),
 					SingleCap:          formatFloatPointer(c.SingleCap),
 					MinimumTransferCap: formatFloatPointer(c.MinimumTransferCap),
