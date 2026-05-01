@@ -254,6 +254,7 @@ type BPSActionRepository interface {
 	SanitizedFindOne(ctx context.Context, filter bson.M) (*bps_action.BPSAction, error)
 	Update(ctx context.Context, actionCode string, update bps_action.BPSAction) (*bps_action.BPSAction, error)
 	UpdateByActionCode(ctx context.Context, actionCode string, update bps_action.BPSAction) (*bps_action.BPSAction, error)
+	MarkActionAsAudited(ctx context.Context, actionCode string, auditorID string, auditorName string, auditorMID string, auditorApproval bool, reason string) error
 	UpdateCustome(ctx context.Context, filter, update bson.M) error
 	Delete(ctx context.Context, id string) error
 	GetCountByDepartment(ctx context.Context, department string) (*bpsActionDto.BPSActionCountResponse, error)
