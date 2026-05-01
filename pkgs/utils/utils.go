@@ -45,19 +45,19 @@ import (
 
 const alphanumberic string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
+var cbeAccountRegex = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+
 func IsValidCBEAccountNumber(acc string) bool {
 	if acc == "" {
 		return false
 	}
 
-	for _, r := range acc {
-		if r < '0' || r > '9' {
-			return false
-		}
+	if !cbeAccountRegex.MatchString(acc) {
+		return false
 	}
 
 	l := len(acc)
-	return (l >= 8 && l <= 10) || (l >= 13 && l <= 16)
+	return l >= 8 && l <= 20
 }
 
 func ParseObjectID(id interface{}) (bson.ObjectID, error) {
