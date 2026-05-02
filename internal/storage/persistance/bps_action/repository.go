@@ -1023,7 +1023,7 @@ func (r *bpsActionRepository) MarkActionAsAudited(ctx context.Context, actionCod
 	// Append current time to auditor_time array
 	updatedAuditorTime := append(existing.AuditorTime, now)
 
-	update := bson.M{
+	update := bson.M{"$set": bson.M{
 		"auditors.audited":          true,
 		"auditors.auditor_id":       auditorIDs,
 		"auditors.auditor_name":     auditorName,
@@ -1033,7 +1033,7 @@ func (r *bpsActionRepository) MarkActionAsAudited(ctx context.Context, actionCod
 		"auditor_name_list":         auditorNameList,
 		"auditor_time":              updatedAuditorTime,
 		"last_modified_at":          now,
-	}
+	}}
 
 	// Set verified_at (stored as "time" in DB) when auditor approves the action
 	if auditorApproval {
