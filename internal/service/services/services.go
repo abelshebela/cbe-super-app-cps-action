@@ -138,8 +138,10 @@ func (s *servicesService) DeleteServices(ctx context.Context, id string) error {
 	}
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
+		s.logger.Errorf("[ServiceSVC][DeleteService] failed to delete error: %v", err)
 		return err
 	}
+
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
 }
 
