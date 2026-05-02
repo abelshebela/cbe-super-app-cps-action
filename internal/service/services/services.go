@@ -40,17 +40,26 @@ func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionSe
 func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServiceRequest) error {
 	s.logger.Infof("Service creating...")
 
-	_, err := s.repo.FindServiceListByID(ctx, req.ServiceKeyId)
-	if err != nil && err.Error() == localization.ErrorAccessListNotFound.Code {
-		s.logger.Warnf("[servicesService][Create] Access list not found for serviceKeyId=%s: %v", req.ServiceKeyId, err)
-		return errors.New(localization.ErrorAccessListNotFound.Code)
-	}
-
 	accessList, err := s.repo.FindServiceListByID(ctx, req.ServiceKeyId)
 	if err != nil && err.Error() != sql.ErrNoRows.Error() {
 		s.logger.Errorf("[servicesService][Create] error checking existing service for serviceKeyId=%s: %v", req.ServiceKeyId, err)
 		return err
 	}
+
+	if req.ProductGlAccount != "" {
+		accountDetail, err := s.ValidateAccountNumberWithExternalAPI(ctx, req.ProductGlAccount)
+		if err != nil {
+			s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", req.ProductGlAccount, err)
+			return errors.New(localization.ErrorAccountNumberValidationFailed.Code)
+		}
+
+		err = s.repo.CheckAccountNumberExistence(ctx, *accountDetail, req.ProductGlAccount, req.ProductGlAccountCurrency)
+		if err != nil {
+			s.logger.Errorf("[servicesService][Authorize] failed to check account number error: %v", err)
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+	}
+
 	mapped := core.MapToServiceModel(req, *accessList)
 
 	return core.HandleCPSAction(ctx, s.cps, "", constants.RequestCreateService, mapped, nil, constants.ActionCreate)
@@ -68,24 +77,19 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 	serviceKeyId := service_dto.StringPointer(req.ServiceKeyId, prev.ServiceKeyId)
 	s.logger.Infof("[servicesService][Update] resolved serviceKeyId: %s", serviceKeyId)
 
-	// filterParam := types.Filter{
-	// 	Search: serviceKeyId,
-	// }
-	// s.logger.Infof("[servicesService][Update] filterParam: %+v", filterParam)
-	// services, err := s.repo.FindAllWithPagination(ctx, filterParam)
-	// if err != nil {
-	// 	s.logger.Errorf("[servicesService][Update] error fetching services with filter: %v", err)
-	// 	return err
-	// }
-	// s.logger.Infof("[servicesService][Update] found %d services with serviceKeyId=%s", len(services.Data), serviceKeyId)
+	if *req.ProductGlAccount != "" {
+		accountDetail, err := s.ValidateAccountNumberWithExternalAPI(ctx, *req.ProductGlAccount)
+		if err != nil {
+			s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", *req.ProductGlAccount, err)
+			return errors.New(localization.ErrorAccountNumberValidationFailed.Code)
+		}
 
-	// for _, svc := range services.Data {
-	// 	s.logger.Infof("[servicesService][Update] checking service: id=%s, serviceKeyId=%s", svc.ID, svc.ServiceKeyId)
-	// 	if svc.ID != id && (strings.EqualFold(svc.ServiceKeyId, serviceKeyId)) {
-	// 		s.logger.Warnf("[servicesService][Update] duplicate serviceKeyId found: id=%s current_id: %s", svc.ID, serviceKeyId)
-	// 		return errors.New(localization.ErrorServiceExists.Code)
-	// 	}
-	// }
+		err = s.repo.CheckAccountNumberExistence(ctx, *accountDetail, *req.ProductGlAccount, *req.ProductGlAccountCurrency)
+		if err != nil {
+			s.logger.Errorf("[servicesService][Authorize] failed to check account number error: %v", err)
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+	}
 
 	mapped := core.MapToServiceUpdateModel(req, *prev)
 	s.logger.Infof("[servicesService][Update] mapped update model: %+v", mapped)
@@ -258,31 +262,10 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	case string(constants.RequestCreateService):
 		s.logger.Infof("[servicesService][Authorize] Authorizing create service with data: %+v", serviceDoc)
 
-		var accountDetail coreio.AccountLookupResult
-		if serviceDoc.ProductGlAccount != "" {
-			result, err := s.ValidateAccountNumberWithExternalAPI(ctx, serviceDoc.ProductGlAccount)
-			if err != nil {
-				s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", serviceDoc.ProductGlAccount, err)
-				return nil, errors.New(localization.ErrorAccountNumberValidationFailed.Code)
-			}
-			accountDetail = *result
-		}
-
-		return nil, s.repo.Create(ctx, accountDetail, serviceDoc)
+		return nil, s.repo.Create(ctx, serviceDoc.ProductGlAccount, serviceDoc)
 	case string(constants.RequestUpdateService):
 		s.logger.Infof("[servicesService][Authorize] Authorizing update service with data: %+v", serviceDoc)
-
-		var accountDetail coreio.AccountLookupResult
-		if serviceDoc.ProductGlAccount != "" {
-			result, err := s.ValidateAccountNumberWithExternalAPI(ctx, serviceDoc.ProductGlAccount)
-			if err != nil {
-				s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", serviceDoc.ProductGlAccount, err)
-				return nil, errors.New(localization.ErrorAccountNumberValidationFailed.Code)
-			}
-			accountDetail = *result
-		}
-
-		return nil, s.repo.Update(ctx, action.UniqueId, serviceDoc, accountDetail)
+		return nil, s.repo.Update(ctx, action.UniqueId, serviceDoc, serviceDoc.ProductGlAccount)
 	case string(constants.RequestEnableService):
 		// err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
 		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, true)

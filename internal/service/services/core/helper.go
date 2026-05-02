@@ -72,55 +72,6 @@ func MapToServiceModel(req service_dto.CreateServiceRequest, accessList imodel.S
 		}(),
 		MinimumFraudAmount: strconv.FormatFloat(req.MinimumFraudAmount, 'f', -1, 64),
 
-		// Tiers: func() []model.Tier {
-		// 	tiers := make([]model.Tier, 0, len(req.Tiers))
-		// 	for _, t := range req.Tiers {
-		// 		tiers = append(tiers, model.Tier{
-		// 			// FeeType:   model.FeeType(service_dto.StringPointer(t.FeeType, "")),
-		// 			FeeType:   shared_constants.FeeType(service_dto.StringPointer(t.FeeType, string(*t.FeeType))),
-		// 			FeeAmount: formatFloatPointer(t.FeeAmount),
-		// 			Min:       formatFloatPointer(t.Min),
-		// 			Max:       formatFloatPointer(t.Max),
-		// 		})
-		// 	}
-		// 	return tiers
-		// }(),
-		// ServiceList: func() []model.ServiceList {
-		// 	lists := make([]model.ServiceList, 0, len(req.ServiceList))
-		// 	for _, sl := range req.ServiceList {
-		// 		lists = append(lists, model.ServiceList{
-		// 			ServiceName:             service_dto.StringPointer(sl.ServiceName, ""),
-		// 			ServiceKey:              service_dto.StringPointer(sl.ServiceKey, ""),
-		// 			OverideProductGlAccount: service_dto.StringPointer(sl.OverideProductGlAccount, ""),
-		// 			IsEnabled:               service_dto.BoolPointer(sl.IsEnabled, true),
-		// 			OverideCap: func() model.Cap {
-		// 				if sl.OverideCap == nil {
-		// 					return model.Cap{}
-		// 				}
-		// 				return model.Cap{
-		// 					SingleCap:          formatFloatPointer(sl.OverideCap.SingleCap),
-		// 					MinimumTransferCap: formatFloatPointer(sl.OverideCap.MinimumTransferCap),
-		// 				}
-		// 			}(),
-		// 			// OverideTiers: func() []model.Tier {
-		// 			// 	tiers := make([]model.Tier, 0, len(sl.OverideTiers))
-		// 			// 	for _, t := range sl.OverideTiers {
-		// 			// 		tiers = append(tiers, model.Tier{
-		// 			// 			// FeeType:   model.FeeType(service_dto.StringPointer(t.FeeType, "")),
-		// 			// 			FeeType:   shared_constants.FeeType(service_dto.StringPointer(t.FeeType, string(*t.FeeType))),
-		// 			// 			FeeAmount: formatFloatPointer(t.FeeAmount),
-		// 			// 			Min:       formatFloatPointer(t.Min),
-		// 			// 			Max:       formatFloatPointer(t.Max),
-		// 			// 		})
-		// 			// 	}
-		// 			// 	return tiers
-		// 			// }(),
-		// 		})
-		// 	}
-		// 	return lists
-		// }(),
-		// Enabled:   service_dto.BoolPointer(req.Enabled, true),
-		// IsDeleted: service_dto.BoolPointer(req.IsDeleted, false),
 		CreatedAt: time.Now(),
 	}
 
