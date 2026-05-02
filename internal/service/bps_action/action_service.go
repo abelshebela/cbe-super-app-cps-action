@@ -195,9 +195,9 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	}
 
 	auditorApproval := false
-	if auditor.AuditorMark == "MARKEDASRIGHT" {
-		auditorApproval = true
-	}
+	// if auditor.AuditorMark == "MARKEDASRIGHT" {
+	auditorApproval = true
+	// }
 	err = MarkActionAsAudited(ctx, ba.repo, actionCode, auditorApproval, auditor.AuditorReason, ba.logger)
 	if err != nil {
 		ba.logger.Errorf("[BPSAction][AuditorMark] failed to updat eh mark")

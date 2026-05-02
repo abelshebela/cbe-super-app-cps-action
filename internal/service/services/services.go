@@ -40,12 +40,6 @@ func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionSe
 func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServiceRequest) error {
 	s.logger.Infof("Service creating...")
 
-	_, err := s.repo.FindServiceListByID(ctx, req.ServiceKeyId)
-	if err != nil && err.Error() == localization.ErrorAccessListNotFound.Code {
-		s.logger.Warnf("[servicesService][Create] Access list not found for serviceKeyId=%s: %v", req.ServiceKeyId, err)
-		return errors.New(localization.ErrorAccessListNotFound.Code)
-	}
-
 	accessList, err := s.repo.FindServiceListByID(ctx, req.ServiceKeyId)
 	if err != nil && err.Error() != sql.ErrNoRows.Error() {
 		s.logger.Errorf("[servicesService][Create] error checking existing service for serviceKeyId=%s: %v", req.ServiceKeyId, err)
