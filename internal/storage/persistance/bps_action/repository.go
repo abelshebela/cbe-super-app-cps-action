@@ -996,7 +996,7 @@ func (r *bpsActionRepository) MarkActionAsAudited(ctx context.Context, actionCod
 	currentStatus := string(existing.Status)
 	if currentStatus != "APPROVED" && currentStatus != "REJECTED" {
 		r.logger.Errorf("[BPSActionStorage][MarkActionAsAudited] didn't fullfill the action status crateria it's status is %v", currentStatus)
-		return errors.New(localization.ErrorCodeBpsActionAlreadAudited.Code)
+		return errors.New(localization.ErrorCodeBpsActionInvalidStatus.Code)
 	}
 
 	// Append auditor ID to the auditor list if not already present
