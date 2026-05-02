@@ -43,7 +43,7 @@ func Init(ctx context.Context) {
 		Password: cfg.CbeCorePassword,
 		Url:      cfg.CbeCoreUrl,
 	}
-	coreInterface := core.NewCBECoreAPI(coreConfig)
+	coreInterface := core.NewCBECoreAPI(&coreConfig)
 
 	// Initialize OpenTelemetry Tracing using platform/telemetry package
 	logger.Infof("Initializing OpenTelemetry Tracing...")
