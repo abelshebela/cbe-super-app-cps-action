@@ -1036,9 +1036,9 @@ func (r *bpsActionRepository) MarkActionAsAudited(ctx context.Context, actionCod
 	}}
 
 	// Set verified_at (stored as "time" in DB) when auditor approves the action
-	if auditorApproval {
-		update["time"] = now
-	}
+	// if auditorApproval {
+	// 	update["time"] = now
+	// }
 	_, err = r.actionDal.UpdateOneN(ctx, filter, update)
 	if err != nil {
 		r.logger.Errorf("[BPSAction][MarkActionAsAudited] fialed to update bpsaction error: %v", err)

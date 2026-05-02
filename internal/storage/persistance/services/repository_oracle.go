@@ -160,10 +160,10 @@ func (s *ServicesStorage) CheckAccountNumberExistence(ctx context.Context, accou
 	var accountID string
 
 	// ── Step 1: check if the GL account already exists ──────────────────────
-	s.logger.Debugf("[insertService] checking if GL account %s exists", accountNumber)
+	s.logger.Debugf("[insertService] checking if GL account %s exists", accountDetail)
 
 	err = tx.QueryRowContext(ctx, checkQ, accountNumber).Scan(&accountID)
-
+	customerNumber := "0"
 	switch {
 	case err == nil:
 		// Row found — skip insert, fall through to service insertion.
@@ -188,6 +188,10 @@ func (s *ServicesStorage) CheckAccountNumberExistence(ctx context.Context, accou
 			return local_util.HandleDBError(err)
 		}
 
+		if accountDetail.Detail.CustomerID != "" {
+			customerNumber = accountDetail.Detail.CustomerID
+		}
+
 		// ── Step 3: insert the new GL account ───────────────────────────────
 		s.logger.Debugf("[insertService] inserting GL account %s with bank_id %s", accountNumber, bankID)
 
@@ -198,7 +202,7 @@ func (s *ServicesStorage) CheckAccountNumberExistence(ctx context.Context, accou
 			sql.Named("currency", accountCurrency),
 			sql.Named("account_type", accountDetail.Detail.AccountType),
 			sql.Named("branch", accountDetail.Detail.BranchCode),
-			sql.Named("customer_number", accountDetail.Detail.CustomerID),
+			sql.Named("customer_number", customerNumber),
 			sql.Named("id", sql.Out{Dest: &accountID}),
 		)
 		if err != nil {
