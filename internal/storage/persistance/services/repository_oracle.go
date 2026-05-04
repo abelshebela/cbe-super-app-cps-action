@@ -474,17 +474,6 @@ WHERE id = HEXTORAW(:6)`
 
 func (s *ServicesStorage) Delete(ctx context.Context, serviceID, accessListID string) error {
 	var id string
-	// if serviceID != "" {
-	// 	id = serviceID
-	// } else {
-	// 	srv, err := s.FindServiceByAccessListID(ctx, accessListID)
-	// 	if err != nil && err.Error() != localization.ErrorServiceNotFound.Code && err.Error() != localization.ErrorResourceNotFound.Code {
-	// 		return err
-	// 	}
-	// 	if srv != nil && srv.ID != "" {
-	// 		id = srv.ID
-	// 	}
-	// }
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -550,27 +539,6 @@ WHERE id = HEXTORAW(:1)
 			return errors.New(localization.ErrorAccessListNotFound.Code)
 		}
 	}
-	//  else if accessListID != "" {
-	// 	const q = `
-	// UPDATE access_lists
-	// SET
-	//   is_deleted = 1,
-	//   deleted_at = SYSTIMESTAMP,
-	//   last_modified_at = SYSTIMESTAMP
-	// WHERE id = HEXTORAW(:1)
-	//   AND is_deleted = 0`
-
-	// 	result, err := tx.ExecContext(ctx, q, accessListID)
-	// 	if err != nil {
-	// 		s.logger.Errorf("[ServicesRepo][Delete] delete service failed: %v", err)
-	// 		return local_util.HandleDBError(err)
-	// 	}
-
-	// 	rows, _ := result.RowsAffected()
-	// 	if rows == 0 {
-	// 		return errors.New(localization.ErrorAccessListNotFound.Code)
-	// 	}
-	// }
 
 	if err := tx.Commit(); err != nil {
 		s.logger.Errorf("[ServicesRepo][Delete] commit failed: %v", err)
