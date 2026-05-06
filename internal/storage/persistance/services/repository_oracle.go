@@ -473,7 +473,6 @@ WHERE id = HEXTORAW(:6)`
 }
 
 func (s *ServicesStorage) Delete(ctx context.Context, serviceID, accessListID string) error {
-	var id string
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -482,7 +481,7 @@ func (s *ServicesStorage) Delete(ctx context.Context, serviceID, accessListID st
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	if id != "" {
+	if serviceID != "" {
 		const updateCapsQ = `
 UPDATE service_cap
 SET
@@ -491,7 +490,7 @@ SET
   last_modified_at = SYSTIMESTAMP
 WHERE service_id = HEXTORAW(:1)
   AND is_deleted = 0`
-		if _, err := tx.ExecContext(ctx, updateCapsQ, id); err != nil {
+		if _, err := tx.ExecContext(ctx, updateCapsQ, serviceID); err != nil {
 			s.logger.Errorf("[ServicesRepo][Delete] update service_cap failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
@@ -504,7 +503,7 @@ SET
   last_modified_at = SYSTIMESTAMP
 WHERE id = HEXTORAW(:1)
   AND is_deleted = 0`
-		res, err := tx.ExecContext(ctx, updateServiceQ, id)
+		res, err := tx.ExecContext(ctx, updateServiceQ, serviceID)
 		if err != nil {
 			s.logger.Errorf("[ServicesRepo][Delete] update services failed: %v", err)
 			return local_util.HandleDBError(err)
@@ -514,7 +513,9 @@ WHERE id = HEXTORAW(:1)
 		if rows == 0 {
 			return errors.New(localization.ErrorServiceNotFound.Code)
 		}
+	}
 
+	if accessListID != "" {
 		const q = `
 	UPDATE access_lists
 	SET
@@ -528,13 +529,13 @@ WHERE id = HEXTORAW(:1)
 	)
 	  AND is_deleted = 0`
 
-		result, err := tx.ExecContext(ctx, q, id)
+		result, err := tx.ExecContext(ctx, q, accessListID)
 		if err != nil {
 			s.logger.Errorf("[ServicesRepo][Delete] delete service failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 
-		rows, _ = result.RowsAffected()
+		rows, _ := result.RowsAffected()
 		if rows == 0 {
 			return errors.New(localization.ErrorAccessListNotFound.Code)
 		}
