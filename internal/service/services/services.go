@@ -53,10 +53,17 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 			return errors.New(localization.ErrorAccountNumberValidationFailed.Code)
 		}
 
-		err = s.repo.CheckAccountNumberExistence(ctx, *accountDetail, req.ProductGlAccount, req.ProductGlAccountCurrency)
+		accountID, err := s.repo.CheckAccountNumberExistence(ctx, req.ProductGlAccount)
 		if err != nil {
-			s.logger.Errorf("[servicesService][Authorize] failed to check account number error: %v", err)
-			return errors.New(localization.ErrorUnexpectedError.Code)
+			s.logger.Errorf("failed while checking account number existence: %v", err)
+			return err
+		}
+		if accountID == "" {
+			s.logger.Errorf("failed while inserting account number to ACCOUNTS: %v", err)
+			accountID, err = s.repo.InsertAccountNumberToAccounts(ctx, *accountDetail, req.ProductGlAccountCurrency)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -84,11 +91,19 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 			return errors.New(localization.ErrorAccountNumberValidationFailed.Code)
 		}
 
-		err = s.repo.CheckAccountNumberExistence(ctx, *accountDetail, *req.ProductGlAccount, *req.ProductGlAccountCurrency)
+		accountID, err := s.repo.CheckAccountNumberExistence(ctx, *req.ProductGlAccount)
 		if err != nil {
-			s.logger.Errorf("[servicesService][Authorize] failed to check account number error: %v", err)
+			s.logger.Errorf("failed while checking account number existence: %v", err)
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
+		if accountID == "" {
+			s.logger.Errorf("failed while inserting account number to ACCOUNTS: %v", err)
+			accountID, err = s.repo.InsertAccountNumberToAccounts(ctx, *accountDetail, *req.ProductGlAccountCurrency)
+			if err != nil {
+				return errors.New(localization.ErrorUnexpectedError.Code)
+			}
+		}
+
 	}
 
 	mapped := core.MapToServiceUpdateModel(req, *prev)

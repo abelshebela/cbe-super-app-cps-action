@@ -112,14 +112,22 @@ WHERE service_id = HEXTORAW(:1)`
 	return caps, nil
 }
 
-func (s *ServicesStorage) CheckAccountNumberExistence(ctx context.Context, accountDetail core.AccountLookupResult, accountNumber, accountCurrency string) error {
-
+func (s *ServicesStorage) CheckAccountNumberExistence(ctx context.Context, accountNumber string) (string, error) {
 	const checkQ = `
 		SELECT RAWTOHEX(id)
 		FROM accounts
 		WHERE account_number = :1
 	`
 
+	var accountID string
+	err := s.db.QueryRowContext(ctx, checkQ, accountNumber).Scan(&accountID)
+	if err != nil {
+		return "", local_util.HandleDBError(err)
+	}
+	return "", nil
+}
+
+func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, accountDetail core.AccountLookupResult, accountCurrency string) (string, error) {
 	const bankQ = `
 		SELECT RAWTOHEX(id)
 		FROM banks
@@ -150,106 +158,96 @@ func (s *ServicesStorage) CheckAccountNumberExistence(ctx context.Context, accou
 		RETURNING RAWTOHEX(id) INTO :id
 	`
 
+	const checkQ = `
+		SELECT RAWTOHEX(id)
+		FROM accounts
+		WHERE account_number = :1
+	`
+
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][Create] begin tx failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		s.logger.Errorf("[InsertAccountNumberToAccounts] begin tx failed: %v", err)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	var accountID string
+	// ── Step 1: resolve the CBE bank ID ─────────────────────────────────────
+	s.logger.Debugf("[InsertAccountNumberToAccounts] resolving CBE bank ID")
 
-	// ── Step 1: check if the GL account already exists ──────────────────────
-	s.logger.Debugf("[insertService] checking if GL account %s exists", accountDetail)
-
-	err = tx.QueryRowContext(ctx, checkQ, accountNumber).Scan(&accountID)
-	customerNumber := "0"
+	var bankID string
+	err = tx.QueryRowContext(ctx, bankQ).Scan(&bankID)
 	switch {
-	case err == nil:
-		// Row found — skip insert, fall through to service insertion.
-		s.logger.Infof(
-			"[insertService] GL account %s already exists (id=%s), skipping account insert",
-			accountNumber, accountID,
-		)
-
 	case errors.Is(err, sql.ErrNoRows):
-		// ── Step 2: resolve the CBE bank ID ─────────────────────────────────
-		s.logger.Debugf("[insertService] GL account not found, resolving CBE bank ID")
+		s.logger.Errorf("[InsertAccountNumberToAccounts] no active CBE bank found")
+		return "", errors.New("cbe bank not found")
 
-		var bankID string
-		err = tx.QueryRowContext(ctx, bankQ).Scan(&bankID)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			s.logger.Errorf("[insertService] no active CBE bank found")
-			return errors.New("cbe bank not found")
+	case err != nil:
+		s.logger.Errorf("[InsertAccountNumberToAccounts] failed to fetch CBE bank: %v", err)
+		return "", local_util.HandleDBError(err)
+	}
 
-		case err != nil:
-			s.logger.Errorf("[insertService] failed to fetch CBE bank: %v", err)
-			return local_util.HandleDBError(err)
-		}
+	// ── Step 2: insert the new account ──────────────────────────────────────
+	customerNumber := "0"
+	if accountDetail.Detail.CustomerID != "" {
+		customerNumber = accountDetail.Detail.CustomerID
+	}
 
-		if accountDetail.Detail.CustomerID != "" {
-			customerNumber = accountDetail.Detail.CustomerID
-		}
+	s.logger.Debugf(
+		"[InsertAccountNumberToAccounts] inserting account %s with bank_id %s",
+		accountDetail.Detail.AccountNumber, bankID,
+	)
 
-		// ── Step 3: insert the new GL account ───────────────────────────────
-		s.logger.Debugf("[insertService] inserting GL account %s with bank_id %s", accountNumber, bankID)
-
-		_, err = tx.ExecContext(ctx, insertAccountQ,
-			sql.Named("bank_id", bankID),
-			sql.Named("account_number", accountNumber),
-			sql.Named("customer_name", accountDetail.Detail.CustomerName),
-			sql.Named("currency", accountCurrency),
-			sql.Named("account_type", accountDetail.Detail.AccountType),
-			sql.Named("branch", accountDetail.Detail.BranchCode),
-			sql.Named("customer_number", customerNumber),
-			sql.Named("id", sql.Out{Dest: &accountID}),
-		)
-		if err != nil {
-			if oraErr, ok := godror.AsOraErr(err); ok {
-				switch oraErr.Code() {
-				case 1: // ORA-00001: unique constraint — race condition between SELECT and INSERT
-					s.logger.Warnf(
-						"[insertService] concurrent insert detected for GL account %s, fetching existing id",
-						accountNumber,
-					)
-					fetchErr := tx.QueryRowContext(ctx, checkQ, accountNumber).Scan(&accountID)
-					if fetchErr != nil {
-						s.logger.Errorf("[insertService] fallback fetch after race failed: %v", fetchErr)
-						return local_util.HandleDBError(fetchErr)
-					}
-					// accountID is now populated — fall through to service insertion
-
-				case 2291: // ORA-02291: FK violation — bank_id not in banks
-					s.logger.Errorf("[insertService] bank_id %s not found in banks table", bankID)
-					return errors.New("bank id not found")
-
-				default:
-					s.logger.Errorf("[insertService] account insert failed (ORA-%05d): %v", oraErr.Code(), err)
-					return local_util.HandleDBError(err)
+	var accountID string
+	_, err = tx.ExecContext(ctx, insertAccountQ,
+		sql.Named("bank_id", bankID),
+		sql.Named("account_number", accountDetail.Detail.AccountNumber),
+		sql.Named("customer_name", accountDetail.Detail.CustomerName),
+		sql.Named("currency", accountCurrency),
+		sql.Named("account_type", accountDetail.Detail.AccountType),
+		sql.Named("branch", accountDetail.Detail.BranchCode),
+		sql.Named("customer_number", customerNumber),
+		sql.Named("id", sql.Out{Dest: &accountID}),
+	)
+	if err != nil {
+		if oraErr, ok := godror.AsOraErr(err); ok {
+			switch oraErr.Code() {
+			case 1: // ORA-00001: race condition between check and insert
+				s.logger.Warnf(
+					"[InsertAccountNumberToAccounts] concurrent insert detected for account %s, fetching existing id",
+					accountDetail.Detail.AccountNumber,
+				)
+				fetchErr := tx.QueryRowContext(ctx, checkQ, accountDetail.Detail.AccountNumber).Scan(&accountID)
+				if fetchErr != nil {
+					s.logger.Errorf("[InsertAccountNumberToAccounts] fallback fetch after race failed: %v", fetchErr)
+					return "", local_util.HandleDBError(fetchErr)
 				}
-			} else {
-				s.logger.Errorf("[insertService] account insert failed: %v", err)
-				return local_util.HandleDBError(err)
+				// accountID is now populated — fall through to commit
+
+			case 2291: // ORA-02291: FK violation — bank_id not in banks
+				s.logger.Errorf("[InsertAccountNumberToAccounts] bank_id %s not found in banks table", bankID)
+				return "", errors.New("bank id not found")
+
+			default:
+				s.logger.Errorf("[InsertAccountNumberToAccounts] insert failed (ORA-%05d): %v", oraErr.Code(), err)
+				return "", local_util.HandleDBError(err)
 			}
+		} else {
+			s.logger.Errorf("[InsertAccountNumberToAccounts] insert failed: %v", err)
+			return "", local_util.HandleDBError(err)
 		}
-
-		s.logger.Infof(
-			"[insertService] GL account %s created (id=%s)",
-			accountNumber, accountID,
-		)
-
-	default:
-		s.logger.Errorf("[insertService] failed to check existing GL account: %v", err)
-		return local_util.HandleDBError(err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		s.logger.Errorf("[ServicesRepo][Create] commit failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		s.logger.Errorf("[InsertAccountNumberToAccounts] commit failed: %v", err)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	return nil
+	s.logger.Infof(
+		"[InsertAccountNumberToAccounts] account %s created (id=%s)",
+		accountDetail.Detail.AccountNumber, accountID,
+	)
+
+	return accountID, nil
 }
 
 func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, accountNumber string, service *imodel.Service) (string, error) {
