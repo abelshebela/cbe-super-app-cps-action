@@ -535,7 +535,7 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 
 	switch filter["auditor_status"] {
 	case "NOTCHECKED":
-		filter["auditors.audited"] = false
+		filter["auditors.audited"] = bson.M{"$ne": true}
 		filter["status"] = constants.Approved // Only show APPROVED actions for auditors
 	case "CHECKED":
 		filter["auditors.audited"] = true
@@ -625,7 +625,9 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationBPSActions(ctx conte
 	delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
 	if role != "maker" {
-		filter["request_action"] = bson.M{"$in": RAList}
+		if len(RAList) > 0 {
+			filter["request_action"] = bson.M{"$in": RAList}
+		}
 	}
 
 	var userFilter bson.M
