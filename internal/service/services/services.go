@@ -46,19 +46,19 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 		return err
 	}
 
-	if req.ProductGlAccount != "" {
-		accountDetail, err := s.ValidateAccountNumberWithExternalAPI(ctx, req.ProductGlAccount)
-		if err != nil {
-			s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", req.ProductGlAccount, err)
-			return errors.New(localization.ErrorAccountNumberValidationFailed.Code)
-		}
+	// if req.ProductGlAccount != "" {
+	// 	accountDetail, err := s.ValidateAccountNumberWithExternalAPI(ctx, req.ProductGlAccount)
+	// 	if err != nil {
+	// 		s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", req.ProductGlAccount, err)
+	// 		return errors.New(localization.ErrorAccountNumberValidationFailed.Code)
+	// 	}
 
-		err = s.repo.CheckAccountNumberExistence(ctx, *accountDetail, req.ProductGlAccount, req.ProductGlAccountCurrency)
-		if err != nil {
-			s.logger.Errorf("[servicesService][Authorize] failed to check account number error: %v", err)
-			return errors.New(localization.ErrorUnexpectedError.Code)
-		}
-	}
+	// 	err = s.repo.CheckAccountNumberExistence(ctx, *accountDetail, req.ProductGlAccount, req.ProductGlAccountCurrency)
+	// 	if err != nil {
+	// 		s.logger.Errorf("[servicesService][Authorize] failed to check account number error: %v", err)
+	// 		return errors.New(localization.ErrorUnexpectedError.Code)
+	// 	}
+	// }
 
 	mapped := core.MapToServiceModel(req, *accessList)
 
@@ -77,7 +77,7 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 	serviceKeyId := service_dto.StringPointer(req.ServiceKeyId, prev.ServiceKeyId)
 	s.logger.Infof("[servicesService][Update] resolved serviceKeyId: %s", serviceKeyId)
 
-	if *req.ProductGlAccount != "" {
+	if req.ProductGlAccount != nil {
 		accountDetail, err := s.ValidateAccountNumberWithExternalAPI(ctx, *req.ProductGlAccount)
 		if err != nil {
 			s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", *req.ProductGlAccount, err)
