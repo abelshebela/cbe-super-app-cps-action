@@ -51,6 +51,9 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "ADVERT"):
 		return d.app.AdContainer.Authorize(ctx, cpsAction)
 
+	case IsActionInGroup(RequestAction(action), "TERMINATION"):
+		return d.app.AdContainer.Authorize(ctx, cpsAction)
+
 	case IsActionInGroup(RequestAction(action), "SERVICE"):
 		return d.app.ServiceContainer.Authorize(ctx, cpsAction)
 
