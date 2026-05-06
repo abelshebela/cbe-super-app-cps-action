@@ -85,7 +85,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			s.logger.Infof("[action_service] CreateCPSAction: maker index not found for is erp %s", isErp)
 
 			if !isErp && (approverData.MakerIndex == nil) {
-				s.logger.Errorf("[action_service] CreateCPSAction: maker index not found for action %s", mod)
+				s.logger.Errorf("[action_service] CreateCPSAction: maker index not found for action %s,  req approver: %v ", mod)
 				return localization.ErrorOperationNotAllowed
 			}
 
