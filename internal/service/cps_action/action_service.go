@@ -970,30 +970,11 @@ func BuildCPSActionRow(a *model.CPSAction) ([]string, error) {
 	}, nil
 }
 
+// CpsActionCSVHeader resolves the user-visible column labels for the given ?fields= keys.
+// Unknown/missing keys fall back to the registry default. Delegates to lib so headers and
+// row extractors stay in sync.
 func CpsActionCSVHeader(fields []string) []string {
-	if fields != nil {
-		return fields
-	}
-
-	// default header if no specific fields are requested. The order of fields should match the order in BuildCPSActionRow.
-	var defaultHeader = []string{
-		"ID",
-		"Action Code",
-		"Maker ID",
-		"Maker Name",
-		"Maker Phone Number",
-		"Auditor Names",
-		"Auditor Status",
-		"Action Status",
-		"Action Type",
-		"Request Action",
-		"Created At",
-		"Last Modified At",
-		"Maker Action Time",
-		"Checker Action Time",
-	}
-
-	return defaultHeader
+	return lib.CPSActionHeadersFromFields(fields)
 }
 
 func formatTime(v any) string {

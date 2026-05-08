@@ -42,6 +42,8 @@ type ServiceKey struct {
 
 type Service struct {
 	ID                       string    `json:"id" bson:"_id"`
+	ServiceName              string    `json:"service_name" bson:"service_name"`
+	ServiceKey               string    `json:"service_key" bson:"service_key"`
 	ServiceKeyId             string    `json:"service_key_id" bson:"service_key_id"`
 	ServiceCode              string    `json:"service_code" bson:"service_code"`
 	Cap                      []Cap     `json:"cap" bson:"cap"`

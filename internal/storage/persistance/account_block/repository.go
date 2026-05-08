@@ -641,7 +641,7 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 	var search interface{}
 	var isEnabledFilter interface{}
 	var regionIDs []string
-	var districtIDFilter interface{}
+	var districtIDs []string
 
 	if filterParam.Search != "" {
 		search = filterParam.Search
@@ -659,7 +659,13 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 			}
 		}
 		if v, ok := filterParam.Filters["district_id"]; ok {
-			districtIDFilter = nullIfEmptyFilter(v)
+			if districtStr, ok := v.(string); ok && districtStr != "" {
+				// Split comma-separated district IDs
+				districtIDs = strings.Split(districtStr, ",")
+				for i, id := range districtIDs {
+					districtIDs[i] = strings.TrimSpace(id)
+				}
+			}
 		}
 		if v, ok := filterParam.Filters["is_enabled"]; ok {
 			if enabled, isBool := v.(bool); isBool {
@@ -668,13 +674,12 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		}
 	}
 
-	// Build dynamic query based on whether we have multiple region IDs
+	// Build dynamic query based on whether we have multiple region IDs or district IDs
 	var query string
 	var args []interface{}
 
 	if len(regionIDs) > 1 {
-		// Build query with multiple region IDs
-		// For Oracle, we need to construct IN clause with HEXTORAW calls properly
+		// Build query with multiple region IDs (existing logic)
 		var regionConditions []string
 		for i, id := range regionIDs {
 			paramName := fmt.Sprintf("region_%d", i)
@@ -710,39 +715,88 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, strings.Join(regionConditions, " OR "))
 
 		// Add other parameters
+		var districtID interface{}
+		if len(districtIDs) > 0 {
+			districtID = districtIDs[0]
+		}
 		args = append(args,
 			sql.Named("type", string(entityType)),
 			sql.Named("search", search),
-			sql.Named("district_id", districtIDFilter),
+			sql.Named("district_id", districtID),
+			sql.Named("is_enabled", isEnabledFilter),
+			sql.Named("offset", offset),
+			sql.Named("limit", limit),
+		)
+	} else if len(districtIDs) > 1 {
+		// Build query with multiple district IDs (new logic)
+		var districtConditions []string
+		for i, id := range districtIDs {
+			paramName := fmt.Sprintf("district_%d", i)
+			districtConditions = append(districtConditions, "district_id = HEXTORAW(:"+paramName+")")
+			args = append(args, sql.Named(paramName, id))
+		}
+
+		query = fmt.Sprintf(`SELECT
+			RAWTOHEX(id) AS id,
+			name,
+			code,
+			address,
+			slug,
+			type,
+			is_enabled,
+			RAWTOHEX(district_id) AS district_id,
+			RAWTOHEX(region_id) AS region_id,
+			is_deleted,
+			created_at,
+			updated_at,
+			COUNT(*) OVER() AS total_count
+		FROM ACCOUNT_BLOCKS
+		WHERE type = :type
+		  AND is_deleted = 0
+		  AND (%s)
+		  AND (:search IS NULL
+		       OR LOWER(name) LIKE '%' || LOWER(:search) || '%'
+		       OR LOWER(code) LIKE '%' || LOWER(:search) || '%'
+		       OR LOWER(address) LIKE '%' || LOWER(:search) || '%')
+		  AND (:region_id IS NULL OR region_id = HEXTORAW(:region_id))
+		  AND (:is_enabled IS NULL OR is_enabled = :is_enabled)
+		ORDER BY created_at DESC
+		OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, strings.Join(districtConditions, " OR "))
+
+		// Add other parameters
+		var regionID interface{}
+		if len(regionIDs) > 0 {
+			regionID = regionIDs[0]
+		}
+		args = append(args,
+			sql.Named("type", string(entityType)),
+			sql.Named("search", search),
+			sql.Named("region_id", regionID),
 			sql.Named("is_enabled", isEnabledFilter),
 			sql.Named("offset", offset),
 			sql.Named("limit", limit),
 		)
 	} else {
-		// Use existing query for single region or no region filter
+		// Use existing query for single region/district or no filter
 		query = listAccountBlocksByType
+		var regionID interface{}
+		var districtID interface{}
+
 		if len(regionIDs) == 1 {
-			// Single region ID - use original query pattern
-			args = []interface{}{
-				sql.Named("type", string(entityType)),
-				sql.Named("search", search),
-				sql.Named("region_id", regionIDs[0]),
-				sql.Named("district_id", districtIDFilter),
-				sql.Named("is_enabled", isEnabledFilter),
-				sql.Named("offset", offset),
-				sql.Named("limit", limit),
-			}
-		} else {
-			// No region filter
-			args = []interface{}{
-				sql.Named("type", string(entityType)),
-				sql.Named("search", search),
-				sql.Named("region_id", nil),
-				sql.Named("district_id", districtIDFilter),
-				sql.Named("is_enabled", isEnabledFilter),
-				sql.Named("offset", offset),
-				sql.Named("limit", limit),
-			}
+			regionID = regionIDs[0]
+		}
+		if len(districtIDs) == 1 {
+			districtID = districtIDs[0]
+		}
+
+		args = []interface{}{
+			sql.Named("type", string(entityType)),
+			sql.Named("search", search),
+			sql.Named("region_id", regionID),
+			sql.Named("district_id", districtID),
+			sql.Named("is_enabled", isEnabledFilter),
+			sql.Named("offset", offset),
+			sql.Named("limit", limit),
 		}
 	}
 

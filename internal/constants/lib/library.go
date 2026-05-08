@@ -59,21 +59,116 @@ type FileProducerConfig struct {
 	ObjectName string
 }
 
-func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minioClient *s3.Client, buckerName string, filterMap *types.Filter, data []*model.CPSAction, CpsActionCSVHeader func(fields []string) []string, logger utils.Logger) (string, error) {
-	// 1 Create temp file
-	tmpFile, err := os.CreateTemp("", "cps_actions_*.csv")
-	if err != nil {
-		return "", fmt.Errorf("create temp file: %w", err)
+// extractFieldsFilter normalizes filterMap.Filters["fields"] into []string. Accepts:
+//   - []string (canonical, set by ExtractFilterParams)
+//   - []interface{} (repeated query keys)
+//   - string ("a,b,c")
+func extractFieldsFilter(filters map[string]interface{}) []string {
+	raw, ok := filters["fields"]
+	if !ok || raw == nil {
+		return nil
 	}
-	defer os.Remove(tmpFile.Name())
-	defer tmpFile.Close()
+	switch v := raw.(type) {
+	case []string:
+		return v
+	case []interface{}:
+		out := make([]string, 0, len(v))
+		for _, x := range v {
+			if s, ok := x.(string); ok {
+				s = strings.TrimSpace(s)
+				if s != "" {
+					out = append(out, s)
+				}
+			}
+		}
+		return out
+	case string:
+		out := make([]string, 0)
+		for _, p := range strings.Split(v, ",") {
+			if s := strings.TrimSpace(p); s != "" {
+				out = append(out, s)
+			}
+		}
+		return out
+	}
+	return nil
+}
 
-	writer := csv.NewWriter(tmpFile)
+// PDFLayout bundles font + row sizing for a tabular PDF export. It is derived from the
+// column count so wider tables automatically get a smaller body font + row height.
+type PDFLayout struct {
+	HeaderFontPt float64
+	BodyFontPt   float64
+	HeaderRowMM  float64
+	BodyRowMM    float64
+}
 
-	// Safely extract date strings with type checking
+// CalcPDFLayout picks responsive font + row sizing based on the number of columns.
+// Rationale: at 9pt Arial a character is ~2mm wide; with 14 columns in 277mm landscape
+// each column is only ~19mm, so 8-character budget wasn't enough. Scale font instead.
+func CalcPDFLayout(cols int) PDFLayout {
+	switch {
+	case cols <= 4:
+		return PDFLayout{HeaderFontPt: 11, BodyFontPt: 10, HeaderRowMM: 9, BodyRowMM: 8}
+	case cols <= 7:
+		return PDFLayout{HeaderFontPt: 10, BodyFontPt: 9, HeaderRowMM: 8, BodyRowMM: 7}
+	case cols <= 10:
+		return PDFLayout{HeaderFontPt: 9, BodyFontPt: 8, HeaderRowMM: 7, BodyRowMM: 6}
+	case cols <= 13:
+		return PDFLayout{HeaderFontPt: 8, BodyFontPt: 7, HeaderRowMM: 6.5, BodyRowMM: 5.5}
+	default:
+		return PDFLayout{HeaderFontPt: 7, BodyFontPt: 6, HeaderRowMM: 6, BodyRowMM: 5}
+	}
+}
+
+// pdfCharBudget estimates how many characters of `fontPt` Arial fit into colWidthMM
+// after reserving 2mm of horizontal padding inside the cell.
+func pdfCharBudget(colWidthMM, fontPt float64) int {
+	// Arial regular at 9pt ≈ 2mm per char; width scales linearly with font size.
+	charMM := fontPt * (2.0 / 9.0)
+	if charMM <= 0 {
+		return 4
+	}
+	budget := int((colWidthMM - 2.0) / charMM)
+	if budget < 4 {
+		budget = 4
+	}
+	return budget
+}
+
+// truncatePDFCell keeps cell text from overflowing a fixed-width column. ASCII ellipsis
+// ("...") is used instead of the Unicode "…" because gofpdf's core Arial font uses
+// CP-1252 and renders U+2026 as the garbled "â€¦" sequence.
+func truncatePDFCell(s string, colWidthMM, fontPt float64) string {
+	if s == "" {
+		return s
+	}
+	budget := pdfCharBudget(colWidthMM, fontPt)
+	if len(s) <= budget {
+		return s
+	}
+	if budget <= 3 {
+		return s[:budget]
+	}
+	return s[:budget-3] + "..."
+}
+
+// FileExporterForCPSAction streams CPS actions into CSV or PDF, honoring ?fields=... projection.
+//
+// The CpsActionCSVHeader callback is kept only for backwards compatibility and is NOT used
+// when a field is registered in CPSActionFieldRegistry — in that case headers + rows are
+// resolved from the registry so column counts always match.
+func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minioClient *s3.Client, buckerName string, filterMap *types.Filter, data []*model.CPSAction, _ func(fields []string) []string, logger utils.Logger) (string, error) {
+	if filterMap == nil {
+		return "", errors.New(localization.ErrorRequiredFieldMissing.Code)
+	}
+	if filterMap.Filters == nil {
+		filterMap.Filters = map[string]interface{}{}
+	}
+
+	// 1. Date range validation.
 	createdAtFrom, fromOk := filterMap.Filters["created_at_from"].(string)
 	createdAtTo, toOk := filterMap.Filters["created_at_to"].(string)
-
 	if !fromOk || !toOk || createdAtFrom == "" || createdAtTo == "" {
 		return "", errors.New(localization.ErrorRequiredFieldMissing.Code)
 	}
@@ -84,71 +179,113 @@ func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minio
 	}
 	filterMap.Filters["created_at_from"] = startDate
 	filterMap.Filters["created_at_to"] = endDate
-	// 2️ Write Header
-	if filterMap.Filters == nil {
-		filterMap.Filters = map[string]interface{}{}
-	}
 
-	fields, ok := filterMap.Filters["fields"].([]string)
-	if ok {
-		filterMap.Filters["fields"] = fields
-	}
-	// delete(filterMap.Filters, "fields")s
-
-	var header []string
-	fields, _ = filterMap.Filters["fields"].([]string)
-
-	header = CpsActionCSVHeader(fields)
-	if err := writer.Write(header); err != nil {
-		return "", fmt.Errorf("write header: %w", err)
-	}
-
-	rowCount := 0
-	for _, action := range data {
-		rowCount++
-		row, err := BuildCPSActionRow(action)
-		if err != nil {
-			return "", err
-		}
-		if err := writer.Write(row); err != nil {
-			return "", err
-		}
-	}
-
-	if rowCount == 0 {
+	if len(data) == 0 {
 		return "", errors.New(localization.CpsActionDataNotFoundInDateRange.Code)
 	}
 
-	// 4️Upload to MinIO
+	// 2. Resolve output format + field projection.
+	fileType, _ := filterMap.Filters["file_type"].(string)
+	fileType = strings.ToLower(strings.TrimSpace(fileType))
+	if fileType == "" {
+		fileType = string(FileTypeCSV)
+	}
+
+	requestedFields := extractFieldsFilter(filterMap.Filters)
+	resolvedFields := ResolveCPSActionFields(requestedFields)
+	header := CPSActionHeadersFromFields(resolvedFields)
+
+	// 3. Build object key.
+	ext := "csv"
+	if fileType == "pdf" {
+		ext = "pdf"
+	}
 	objectName := fmt.Sprintf(
-		"cps_actions_%s_to_%s_%d.csv",
+		"cps_actions_%s_to_%s_%d.%s",
 		startDate.Format("20060102"),
 		endDate.Format("20060102"),
 		time.Now().Unix(),
+		ext,
 	)
 
-	if _, err := tmpFile.Seek(0, 0); err != nil {
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	stat, err := tmpFile.Stat()
-	if err != nil {
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	fileType, ok := filterMap.Filters["file_type"].(string)
-	if !ok {
-		fileType = string(FileTypeCSV)
-	}
-	// exportType comes from the handler (e.g. query file_type=csv); default to csv for this endpoint.
 	var url string
-	if fileType == "csv" {
-		url, err = UploadCSVToMinio(ctx, minioClient, buckerName, tmpFile, stat.Size(), cfg, objectName, logger)
+	if fileType == "pdf" {
+		// Landscape A4 usable width ~277mm.
+		const usableWidthMM = 277.0
+		colWidth := usableWidthMM / float64(len(header))
+		layout := CalcPDFLayout(len(header))
+
+		url, err = ExportPDFAndUpload(ctx, minioClient, buckerName, cfg, objectName, header, func(pdf *gofpdf.Fpdf) error {
+			pdf.SetFont("Arial", "", layout.BodyFontPt)
+			for _, action := range data {
+				row, rerr := BuildCPSActionRowFromFields(action, resolvedFields)
+				if rerr != nil {
+					return rerr
+				}
+				for i, cell := range row {
+					// Per-column font override (e.g. action_code uses a smaller font so
+					// long fixed-format identifiers don't get truncated to "...").
+					fontPt := layout.BodyFontPt
+					if i < len(resolvedFields) {
+						if override, ok := CPSActionFieldFontOverride[resolvedFields[i]]; ok && override > 0 && override < fontPt {
+							fontPt = override
+						}
+					}
+					if fontPt != layout.BodyFontPt {
+						pdf.SetFont("Arial", "", fontPt)
+					}
+					pdf.CellFormat(colWidth, layout.BodyRowMM, truncatePDFCell(cell, colWidth, fontPt), "1", 0, "L", false, 0, "")
+					if fontPt != layout.BodyFontPt {
+						pdf.SetFont("Arial", "", layout.BodyFontPt)
+					}
+				}
+				pdf.Ln(-1)
+			}
+			return nil
+		}, logger)
 		if err != nil {
+			logger.Errorf("[CPSExport] PDF export failed: %v", err)
 			return "", errors.New(localization.CpsActionDataExportedError.Code)
 		}
 	} else {
-		url, err = UploadPDFToMinio(ctx, minioClient, buckerName, tmpFile, stat.Size(), cfg, objectName, logger)
+		tmpFile, terr := os.CreateTemp("", "cps_actions_*.csv")
+		if terr != nil {
+			return "", fmt.Errorf("create temp file: %w", terr)
+		}
+		defer os.Remove(tmpFile.Name())
+		defer tmpFile.Close()
+
+		// UTF-8 BOM for Excel compatibility.
+		if _, werr := tmpFile.Write([]byte{0xEF, 0xBB, 0xBF}); werr != nil {
+			return "", fmt.Errorf("write BOM: %w", werr)
+		}
+
+		writer := csv.NewWriter(tmpFile)
+		if werr := writer.Write(header); werr != nil {
+			return "", fmt.Errorf("write header: %w", werr)
+		}
+		for _, action := range data {
+			row, rerr := BuildCPSActionRowFromFields(action, resolvedFields)
+			if rerr != nil {
+				return "", rerr
+			}
+			if werr := writer.Write(row); werr != nil {
+				return "", werr
+			}
+		}
+		writer.Flush()
+		if werr := writer.Error(); werr != nil {
+			return "", fmt.Errorf("flush writer: %w", werr)
+		}
+
+		if _, serr := tmpFile.Seek(0, 0); serr != nil {
+			return "", errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		stat, serr := tmpFile.Stat()
+		if serr != nil {
+			return "", errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		url, err = UploadCSVToMinio(ctx, minioClient, buckerName, tmpFile, stat.Size(), cfg, objectName, logger)
 		if err != nil {
 			return "", errors.New(localization.CpsActionDataExportedError.Code)
 		}
@@ -158,53 +295,125 @@ func FileExporterForCPSAction(ctx context.Context, cfg config.VaultConfig, minio
 	if baseURL != "" {
 		url = fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(objectName, "/"))
 	}
-
 	return url, nil
-
 }
 
-func BuildCPSActionRow(a *model.CPSAction) ([]string, error) {
-	// Extract auditor names
-	var auditorNames []string
-	for _, auditor := range a.AuditorUsers {
-		auditorNames = append(auditorNames, auditor.AuditorName)
-	}
-	auditorNamesStr := strings.Join(auditorNames, ", ")
+// CPSActionFieldSpec describes a single exportable column: the user-facing header label
+// and the extractor that turns a CPSAction into the string value for that column.
+type CPSActionFieldSpec struct {
+	Header  string
+	Extract func(a *model.CPSAction) string
+}
 
-	return []string{
-		a.ID.Hex(),
-		a.ActionCode,
-		// a.UniqueId,
-		a.MakerID,
-		a.MakerName,
-		a.MakerPhoneNumber,
-		// string(checkerJSON),
-		// string(auditorJSON),
-		auditorNamesStr,
-		// strconv.Itoa(int(a.AuditorCount)),
-		string(a.AuditorStatus),
-		// fmt.Sprintf("%f", a.CurrentAuditorIndex),
-		// strconv.Itoa(int(a.CheckerCount)),
-		// fmt.Sprintf("%f", a.CurrentCheckerIndex),
-		// a.RoleCode,
-		// a.RejectionReason,
-		// a.CanceledReason,
-		// string(prevJSON),
-		// string(currJSON),
-		a.ActionStatus,
-		a.ActionType,
-		// strconv.FormatBool(a.IsDeleted),
-		a.RequestAction,
-		// strconv.FormatInt(a.Version, 10),
-		// a.ReversedByRoleID,
-		// a.ReversedByID,
-		// a.ReversedByName,
-		// local_util.FormatTime(a.ReversedAt),
-		local_util.FormatTime(a.CreatedAt),
-		local_util.FormatTime(a.LastModifiedAt),
-		local_util.FormatTime(a.MakerActionTime),
-		local_util.FormatTime(a.LastModifiedAt), // Using LastModifiedAt as CheckerActionTime
-	}, nil
+// CPSActionFieldRegistry maps field keys (as used in the ?fields=a,b,c query param) to
+// their header label and row extractor. Add new exportable fields here.
+var CPSActionFieldRegistry = map[string]CPSActionFieldSpec{
+	"id":                  {"ID", func(a *model.CPSAction) string { return a.ID.Hex() }},
+	"action_code":         {"Action Code", func(a *model.CPSAction) string { return a.ActionCode }},
+	"maker_id":            {"Maker ID", func(a *model.CPSAction) string { return a.MakerID }},
+	"maker_name":          {"Maker Name", func(a *model.CPSAction) string { return a.MakerName }},
+	"maker_phone_number":  {"Maker Phone Number", func(a *model.CPSAction) string { return a.MakerPhoneNumber }},
+	"auditor_names":       {"Auditor Names", cpsAuditorNames},
+	"auditor_status":      {"Auditor Status", func(a *model.CPSAction) string { return string(a.AuditorStatus) }},
+	"checker_name":        {"Checker Name", cpsCheckerNames},
+	"action_status":       {"Action Status", func(a *model.CPSAction) string { return a.ActionStatus }},
+	"action_type":         {"Action Type", func(a *model.CPSAction) string { return a.ActionType }},
+	"request_action":      {"Request Action", func(a *model.CPSAction) string { return a.RequestAction }},
+	"created_at":          {"Created At", func(a *model.CPSAction) string { return local_util.FormatTime(a.CreatedAt) }},
+	"last_modified_at":    {"Last Modified At", func(a *model.CPSAction) string { return local_util.FormatTime(a.LastModifiedAt) }},
+	"maker_action_time":   {"Maker Action Time", func(a *model.CPSAction) string { return local_util.FormatTime(a.MakerActionTime) }},
+	"checker_action_time": {"Checker Action Time", func(a *model.CPSAction) string { return local_util.FormatTime(a.LastModifiedAt) }},
+}
+
+// CPSActionFieldFontOverride lets specific columns render in a smaller font than the
+// table's responsive default. Useful for columns whose values are long fixed-format
+// identifiers (e.g. "SRM26105_145513.440861" for action_code, 22 chars) that we don't
+// want to truncate. Keys are CPSActionFieldRegistry keys; values are font points.
+var CPSActionFieldFontOverride = map[string]float64{
+	"action_code": 5,
+}
+
+// CPSActionDefaultFieldOrder is the field order used when no ?fields= is provided.
+var CPSActionDefaultFieldOrder = []string{
+	"id",
+	"action_code",
+	"maker_id",
+	"maker_name",
+	"maker_phone_number",
+	"auditor_names",
+	"auditor_status",
+	"action_status",
+	"action_type",
+	"request_action",
+	"created_at",
+	"last_modified_at",
+	"maker_action_time",
+	"checker_action_time",
+}
+
+func cpsAuditorNames(a *model.CPSAction) string {
+	names := make([]string, 0, len(a.AuditorUsers))
+	for _, au := range a.AuditorUsers {
+		if au.AuditorName != "" {
+			names = append(names, au.AuditorName)
+		}
+	}
+	return strings.Join(names, ", ")
+}
+
+func cpsCheckerNames(a *model.CPSAction) string {
+	names := make([]string, 0, len(a.CheckerUsers))
+	for _, c := range a.CheckerUsers {
+		if c.CheckerName != "" {
+			names = append(names, c.CheckerName)
+		}
+	}
+	return strings.Join(names, ", ")
+}
+
+// ResolveCPSActionFields returns the effective field-key list (default when input is empty)
+// and drops any keys that are not registered.
+func ResolveCPSActionFields(fields []string) []string {
+	if len(fields) == 0 {
+		return append([]string(nil), CPSActionDefaultFieldOrder...)
+	}
+	out := make([]string, 0, len(fields))
+	for _, f := range fields {
+		key := strings.TrimSpace(strings.ToLower(f))
+		if _, ok := CPSActionFieldRegistry[key]; ok {
+			out = append(out, key)
+		}
+	}
+	if len(out) == 0 {
+		return append([]string(nil), CPSActionDefaultFieldOrder...)
+	}
+	return out
+}
+
+// CPSActionHeadersFromFields maps the resolved field keys to their display labels.
+func CPSActionHeadersFromFields(fields []string) []string {
+	resolved := ResolveCPSActionFields(fields)
+	out := make([]string, len(resolved))
+	for i, key := range resolved {
+		out[i] = CPSActionFieldRegistry[key].Header
+	}
+	return out
+}
+
+// BuildCPSActionRowFromFields builds a row containing only the requested fields (in order).
+func BuildCPSActionRowFromFields(a *model.CPSAction, fields []string) ([]string, error) {
+	resolved := ResolveCPSActionFields(fields)
+	row := make([]string, len(resolved))
+	for i, key := range resolved {
+		row[i] = CPSActionFieldRegistry[key].Extract(a)
+	}
+	return row, nil
+}
+
+// BuildCPSActionRow keeps the legacy signature (full default row). New callers should use
+// BuildCPSActionRowFromFields so that per-field projections work correctly.
+func BuildCPSActionRow(a *model.CPSAction) ([]string, error) {
+	return BuildCPSActionRowFromFields(a, nil)
 }
 
 // 🔥 Generic producer with data
@@ -1083,6 +1292,31 @@ func ExportCSVAndUpload(
 	return url, nil
 }
 
+// drawCBEBanner paints the Commercial Bank of Ethiopia branded header band across the
+// top of the current PDF page: solid purple background with the bank name in white bold.
+//
+// pageWidthMM is the full page width (e.g. 210 for portrait A4); heightMM is the banner
+// height. Text/fill colors are reset to defaults before this returns so subsequent
+// content renders normally.
+func drawCBEBanner(pdf *gofpdf.Fpdf, pageWidthMM, heightMM float64) {
+	// Purple background band.
+	pdf.SetFillColor(123, 45, 142) // #7B2D8E
+	pdf.Rect(0, 0, pageWidthMM, heightMM, "F")
+
+	// Bank name centered vertically, slightly inset from the left edge.
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetFont("Arial", "B", 14)
+	pdf.SetXY(12, heightMM/2-4)
+	pdf.CellFormat(pageWidthMM-24, 8, "Commercial Bank of Ethiopia", "", 0, "L", false, 0, "")
+
+	// Reset so subsequent content uses default black/white.
+	pdf.SetTextColor(0, 0, 0)
+	pdf.SetFillColor(255, 255, 255)
+}
+
+// ExportPDFAndUpload builds a tabular PDF (portrait A4) from a header + row-writer callback
+// and uploads it to MinIO with the correct application/pdf content type. The header row
+// automatically repeats on every page; a "Page N/M" footer is added.
 func ExportPDFAndUpload(
 	ctx context.Context,
 	s3Client *s3.Client,
@@ -1096,7 +1330,7 @@ func ExportPDFAndUpload(
 	},
 ) (string, error) {
 
-	// 1. Create temp PDF file
+	// 1. Create temp PDF file.
 	tmpFile, err := os.CreateTemp("", "export_*.pdf")
 	if err != nil {
 		logger.Errorf("[ExportPDFAndUpload] create temp file: %v", err)
@@ -1105,49 +1339,86 @@ func ExportPDFAndUpload(
 	defer os.Remove(tmpFile.Name())
 	defer tmpFile.Close()
 
-	// 2. Initialize PDF
+	// 2. Portrait A4 (210x297mm) with auto page break so long datasets paginate cleanly.
+	// Top margin reserved for the Commercial Bank of Ethiopia branded banner.
 	pdf := gofpdf.New("P", "mm", "A4", "")
-	pdf.AddPage()
+	const (
+		bannerHeightMM = 22.0 // height of the purple CBE banner
+		sideMarginMM   = 10.0
+	)
+	pdf.SetMargins(sideMarginMM, bannerHeightMM+4, sideMarginMM)
+	pdf.SetAutoPageBreak(true, 15)
+	pdf.AliasNbPages("")
 
-	pdf.SetFont("Arial", "B", 12)
-
-	// 3. Header row
-	colWidth := 190.0 / float64(len(headers)) // auto fit
-	for _, h := range headers {
-		pdf.CellFormat(colWidth, 10, h, "1", 0, "C", false, 0, "")
+	// Portrait A4 usable width = 210 - 2*sideMarginMM = 190mm.
+	usable := 210.0 - 2*sideMarginMM
+	colWidth := usable
+	if len(headers) > 0 {
+		colWidth = usable / float64(len(headers))
 	}
-	pdf.Ln(-1)
 
-	// 4. Body rows via callback
-	pdf.SetFont("Arial", "", 10)
+	// Responsive layout: header/body font + row height scale with column count so
+	// narrow portrait pages don't truncate content into "..." on every cell.
+	layout := CalcPDFLayout(len(headers))
 
+	// 3. Header runs on every page: CBE brand banner + table column header row.
+	pdf.SetHeaderFunc(func() {
+		drawCBEBanner(pdf, 210.0, bannerHeightMM)
+		// Column header row positioned right below the banner.
+		pdf.SetY(bannerHeightMM + 2)
+		pdf.SetX(sideMarginMM)
+		pdf.SetFont("Arial", "B", layout.HeaderFontPt)
+		pdf.SetTextColor(0, 0, 0)
+		pdf.SetFillColor(220, 220, 220)
+		for _, h := range headers {
+			pdf.CellFormat(colWidth, layout.HeaderRowMM, truncatePDFCell(h, colWidth, layout.HeaderFontPt), "1", 0, "C", true, 0, "")
+		}
+		pdf.Ln(-1)
+		pdf.SetFont("Arial", "", layout.BodyFontPt)
+	})
+
+	// 4. Footer with page numbers.
+	pdf.SetFooterFunc(func() {
+		pdf.SetY(-12)
+		pdf.SetFont("Arial", "I", 8)
+		pdf.CellFormat(0, 8, fmt.Sprintf("Page %d/{nb}", pdf.PageNo()), "", 0, "C", false, 0, "")
+	})
+
+	pdf.AddPage()
+	pdf.SetFont("Arial", "", layout.BodyFontPt)
+
+	// 5. Body rows via caller callback.
 	if err := writeRows(pdf); err != nil {
 		logger.Errorf("[ExportPDFAndUpload] write rows: %v", err)
 		return "", fmt.Errorf("write rows: %w", err)
 	}
+	if err := pdf.Error(); err != nil {
+		logger.Errorf("[ExportPDFAndUpload] pdf error: %v", err)
+		return "", fmt.Errorf("pdf error: %w", err)
+	}
 
-	// 5. Save PDF to temp file
+	// 6. Save PDF to temp file and flush OS buffers before re-reading.
 	if err := pdf.Output(tmpFile); err != nil {
 		logger.Errorf("[ExportPDFAndUpload] output pdf: %v", err)
 		return "", fmt.Errorf("output pdf: %w", err)
 	}
-
-	// 6. Seek & stat
+	if err := tmpFile.Sync(); err != nil {
+		return "", fmt.Errorf("sync temp file: %w", err)
+	}
 	if _, err := tmpFile.Seek(0, 0); err != nil {
 		return "", fmt.Errorf("seek temp file: %w", err)
 	}
-
 	stat, err := tmpFile.Stat()
 	if err != nil {
 		return "", fmt.Errorf("stat temp file: %w", err)
 	}
 
-	// 7. Upload to MinIO (reuse your existing function)
-	url, err := UploadCSVToMinio(ctx, s3Client, bucketName, tmpFile, stat.Size(), env, objectKey, logger)
+	// 7. Upload as application/pdf (previously called UploadCSVToMinio which caused
+	// downloads to be served as text/csv even though the bytes were valid PDF).
+	url, err := UploadPDFToMinio(ctx, s3Client, bucketName, tmpFile, stat.Size(), env, objectKey, logger)
 	if err != nil {
 		return "", fmt.Errorf("upload to minio: %w", err)
 	}
-
 	return url, nil
 }
 

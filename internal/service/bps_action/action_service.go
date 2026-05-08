@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	bpsActionDto "cbe-super-app-cps-action/internal/constants/dto/bps_action"
+	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 
 	"cbe-super-app-cps-action/internal/storage"
 
@@ -59,13 +60,19 @@ type bpsActionService struct {
 
 	customerRepo storage.CustomerRepository
 
+	archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository
+
+	bpsUserRepo storage.BPSUserRepository
+
+	cpsUserRepo storage.CpsUserRepository
+
 	logger utils.Logger
 
 	dispatcher Dispatcher
 	cfg        config.VaultConfig
 }
 
-func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, logger utils.Logger, dispatcher Dispatcher, cfg config.VaultConfig) service.BPSActionService {
+func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, bpsUserRepo storage.BPSUserRepository, cpsUserRepo storage.CpsUserRepository, logger utils.Logger, dispatcher Dispatcher, cfg config.VaultConfig) service.BPSActionService {
 
 	return &bpsActionService{
 
@@ -76,6 +83,12 @@ func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPS
 		roles: roles,
 
 		customerRepo: customerRepo,
+
+		archivedLinkedAccountRepo: archivedLinkedAccountRepo,
+
+		bpsUserRepo: bpsUserRepo,
+
+		cpsUserRepo: cpsUserRepo,
 
 		dispatcher: dispatcher,
 		cfg:        cfg,
@@ -150,7 +163,7 @@ func (ba *bpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int, customerBar bool) error {
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "AuditorMark", "CPSAction", "AuditorMark")
-
+	// checkData := lobal_util.ExtractUserFromContext(ctx)
 	defer span.End()
 
 	producer := mid.GetClientOrchestrationProducer()
@@ -169,7 +182,7 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 
 	}
 
-	userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
+	// userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
 
 	action, err := ba.GetBPSActionByActionCode(ctx, actionCode, "")
 
@@ -181,36 +194,14 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 
 	}
 
-	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, AuditorStatus: string(auditor.AuditorMark), RoleCode: rawRoleID, UserData: userData, Reason: auditor.AuditorReason}
-
-	ba.logger.Infof("[BpsActionSvc][AuditorMark] payload: %+v", payload)
-	if err := producer.PublishMessage(ctx, payload, constants.BPSApproveTopic, ba.cfg.ACIAATMBlockUnBlockUpdateCode1, "BPS_AUDITOR_MARK"); err != nil {
-
-		span.AddEvent("failed to publish bps auditor mark", trace.WithAttributes(attribute.String("error", err.Error())))
-		ba.logger.Errorf("[BpsActionSvc][AuditorMark] failed to publish bps auditor mark: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-
-	}
-
-	ba.logger.Infof("[BpsActionSvc][AuditorMark] auditor mark published for action %s, mark=%s", actionCode, auditor.AuditorMark)
-
-	if customerBar && auditor.AuditorMark == model.MARKEDASWRONG {
-		userCode := action.EntityIdentifyer
-		if strings.TrimSpace(userCode) == "" {
-			ba.logger.Errorf("[BpsActionSvc][AuditorMark] no user_code (entity_identifier) on action: %s", actionCode)
-			span.AddEvent("missing entity_identifier for customer bar")
-			return errors.New(localization.ErrorInvalidInputParameter.Code)
-		}
-
-		if ba.customerRepo != nil {
-			if err := ba.customerRepo.BlockCustomerByUserCode(ctx, userCode); err != nil {
-				ba.logger.Errorf("[BpsActionSvc][AuditorMark] failed to block customer %s: %v", userCode, err)
-				span.RecordError(err)
-				return err
-			}
-			ba.logger.Infof("[BpsActionSvc][AuditorMark] customer %s blocked successfully for action %s", userCode, actionCode)
-			span.AddEvent("customer blocked", trace.WithAttributes(attribute.String("user_code", userCode)))
-		}
+	auditorApproval := false
+	// if auditor.AuditorMark == "MARKEDASRIGHT" {
+	auditorApproval = true
+	// }
+	err = MarkActionAsAudited(ctx, ba.repo, actionCode, auditorApproval, auditor.AuditorReason, ba.logger)
+	if err != nil {
+		ba.logger.Errorf("[BPSAction][AuditorMark] failed to updat eh mark")
+		return err
 	}
 
 	return nil
@@ -519,6 +510,138 @@ func (ba *bpsActionService) GetBPSActionByActionCode(ctx context.Context, unique
 
 	return action, nil
 
+}
+
+// GetBPSActionDetailByActionCode returns the BPS action together with the related
+// customer's member detail, currently linked accounts, and unlinked (archived) accounts.
+//
+// Enrichment is best-effort: any failure on the customer side is logged but does NOT
+// fail the whole call so that the action document is still returned to the caller.
+// When the action does not target a customer (no UserInformation.UserID) the enrichment
+// fields are returned as nil / empty slices.
+func (ba *bpsActionService) GetBPSActionDetailByActionCode(ctx context.Context, uniqueID, department string) (*bpsActionDto.BPSActionDetailResponse, error) {
+	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetBPSActionDetailByActionCode", "BPSAction", "GetBPSActionDetailByActionCode")
+	defer span.End()
+
+	action, err := ba.GetBPSActionByActionCode(ctx, uniqueID, department)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &bpsActionDto.BPSActionDetailResponse{
+		Action:           action,
+		LinkedAccounts:   []customer_dto.LinkedAccount{},
+		UnlinkedAccounts: []model.ArchivedLinkedAccount{},
+		Checkers:         ba.resolveActionUsers(ctx, action.CheckerID),
+		Auditors:         ba.resolveActionUsers(ctx, action.Auditors.AuditorID),
+	}
+
+	// The customer module looks customers up by user_code via the Oracle repo
+	// (see customer_oracle.FindCustomerDetailByID). Mirror that here: try
+	// UserInformation.UserCode first, then fall back to EntityIdentifyer.
+	userCode := strings.TrimSpace(action.UserInformation.UserCode)
+	if userCode == "" {
+		userCode = strings.TrimSpace(action.EntityIdentifyer)
+	}
+	if userCode == "" {
+		span.AddEvent("no user_code on action; skipping customer enrichment")
+		return resp, nil
+	}
+
+	if ba.customerRepo != nil {
+		if detail, derr := ba.customerRepo.FindCustomerDetailByID(ctx, userCode); derr != nil {
+			if derr.Error() == localization.ErrorResourceNotFound.Code {
+				ba.logger.Infof("[BpsActionSvc][Detail] no member detail for user_code %s", userCode)
+			} else {
+				ba.logger.Errorf("[BpsActionSvc][Detail] member detail lookup failed for user_code %s: %v", userCode, derr)
+				span.AddEvent("member detail lookup failed", trace.WithAttributes(attribute.String("error", derr.Error())))
+			}
+		} else if detail != nil {
+			resp.MemberDetail = detail
+			// Oracle returns currently-linked accounts inline on the detail response.
+			if detail.LinkedAccount != nil {
+				resp.LinkedAccounts = detail.LinkedAccount
+			}
+		}
+	}
+
+	// Unlinked (archived) accounts live in Mongo and are keyed by customer_number (CIF).
+	// Use the CIF returned by the Oracle detail; if we don't have it, skip silently.
+	if ba.archivedLinkedAccountRepo != nil && resp.MemberDetail != nil {
+		cif := strings.TrimSpace(resp.MemberDetail.PersonalInfo.CustomerNumber)
+		if cif != "" {
+			if unlinked, uerr := ba.archivedLinkedAccountRepo.FindAllByCustomerNumber(ctx, cif); uerr != nil {
+				if uerr.Error() == localization.ErrorResourceNotFound.Code {
+					ba.logger.Infof("[BpsActionSvc][Detail] no unlinked accounts for cif %s", cif)
+				} else {
+					ba.logger.Errorf("[BpsActionSvc][Detail] unlinked accounts lookup failed for cif %s: %v", cif, uerr)
+					span.AddEvent("unlinked accounts lookup failed", trace.WithAttributes(attribute.String("error", uerr.Error())))
+				}
+			} else if unlinked != nil {
+				resp.UnlinkedAccounts = unlinked
+			}
+		}
+	}
+
+	return resp, nil
+}
+
+// resolveActionUsers resolves a slice of user IDs (Mongo ObjectID hex strings) into
+// BPSActionUserInfo records. Each ID is looked up in bps_user first; if not found
+// there it falls back to cps_user. IDs that resolve nowhere are returned with just
+// the ID populated and Source="" so the FE can still render a placeholder row.
+//
+// Returns an empty slice (not nil) so the JSON payload always has a list.
+func (ba *bpsActionService) resolveActionUsers(ctx context.Context, ids []string) []bpsActionDto.BPSActionUserInfo {
+	out := make([]bpsActionDto.BPSActionUserInfo, 0, len(ids))
+	for _, id := range ids {
+		id = strings.TrimSpace(id)
+		if id == "" {
+			continue
+		}
+		out = append(out, ba.resolveOneActionUser(ctx, id))
+	}
+	return out
+}
+
+// resolveOneActionUser tries bps_user.GetByUserID, then cps_user.FindByID.
+// Always returns a populated BPSActionUserInfo with at least the ID.
+func (ba *bpsActionService) resolveOneActionUser(ctx context.Context, id string) bpsActionDto.BPSActionUserInfo {
+	info := bpsActionDto.BPSActionUserInfo{ID: id}
+
+	if ba.bpsUserRepo != nil {
+		if u, err := ba.bpsUserRepo.GetByUserID(ctx, id); err == nil && u != nil {
+			info.UserCode = u.UserCode
+			info.FullName = u.FullName
+			info.UserName = u.Username
+			info.PhoneNumber = u.PhoneNumber
+			info.JobTitle = u.JobTitle
+			info.Role = u.Role
+			info.BranchCode = u.BranchCode
+			info.BranchName = u.BranchName
+			info.Source = "bps_user"
+			return info
+		} else if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+			ba.logger.Infof("[BpsActionSvc][Detail] bps_user lookup for %s failed: %v", id, err)
+		}
+	}
+
+	if ba.cpsUserRepo != nil {
+		if u, err := ba.cpsUserRepo.FindByID(ctx, id); err == nil && u != nil {
+			info.UserCode = u.UserCode
+			info.FullName = u.FullName
+			info.UserName = u.UserName
+			info.PhoneNumber = u.PhoneNumber
+			info.JobTitle = u.JobTitle
+			info.Role = u.Role
+			info.Source = "cps_user"
+			return info
+		} else if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+			ba.logger.Infof("[BpsActionSvc][Detail] cps_user lookup for %s failed: %v", id, err)
+		}
+	}
+
+	return info
 }
 
 func (ba *bpsActionService) RollBack(ctx context.Context, action *bps_model.BPSAction) error {

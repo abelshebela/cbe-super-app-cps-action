@@ -22,6 +22,10 @@ func formatFloatPointer(f *float64) string {
 	return strconv.FormatFloat(*f, 'f', -1, 64)
 }
 
+func sourceAppFromPtr(source *string) constants.SourceApp {
+	return constants.SourceApp(service_dto.StringPointer(source, ""))
+}
+
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	userData := local_util.ExtractUserFromContext(ctx)
 
@@ -35,18 +39,29 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 	return nil
 }
 
-func MapToServiceModel(req service_dto.CreateServiceRequest) imodel.Service {
+func MapToServiceModel(req service_dto.CreateServiceRequest, accessList imodel.ServiceKey) imodel.Service {
+	var glAccount string
+	var glCurrency string
+	if req.ProductGlAccount != "" {
+		glAccount = req.ProductGlAccount
+	}
+	if req.ProductGlAccountCurrency != "" {
+		glCurrency = req.ProductGlAccountCurrency
+	}
+
 	mapped := imodel.Service{
+		ServiceName:              accessList.ServiceName,
+		ServiceKey:               accessList.ServiceKey,
 		ServiceCode:              req.ServiceCode,
 		ServiceKeyId:             req.ServiceKeyId,
-		ProductGlAccount:         req.ProductGlAccount,
-		ProductGlAccountCurrency: req.ProductGlAccountCurrency,
+		ProductGlAccount:         glAccount,
+		ProductGlAccountCurrency: glCurrency,
 		Cap: func() []imodel.Cap {
 			caps := make([]imodel.Cap, 0, len(req.Cap))
 
 			for _, c := range req.Cap {
 				caps = append(caps, imodel.Cap{
-					Source:             constants.SourceApp(*c.Source),
+					Source:             sourceAppFromPtr(c.Source),
 					Currency:           service_dto.StringPointer(c.Currency, ""),
 					SingleCap:          formatFloatPointer(c.SingleCap),
 					MinimumTransferCap: formatFloatPointer(c.MinimumTransferCap),
@@ -57,55 +72,6 @@ func MapToServiceModel(req service_dto.CreateServiceRequest) imodel.Service {
 		}(),
 		MinimumFraudAmount: strconv.FormatFloat(req.MinimumFraudAmount, 'f', -1, 64),
 
-		// Tiers: func() []model.Tier {
-		// 	tiers := make([]model.Tier, 0, len(req.Tiers))
-		// 	for _, t := range req.Tiers {
-		// 		tiers = append(tiers, model.Tier{
-		// 			// FeeType:   model.FeeType(service_dto.StringPointer(t.FeeType, "")),
-		// 			FeeType:   shared_constants.FeeType(service_dto.StringPointer(t.FeeType, string(*t.FeeType))),
-		// 			FeeAmount: formatFloatPointer(t.FeeAmount),
-		// 			Min:       formatFloatPointer(t.Min),
-		// 			Max:       formatFloatPointer(t.Max),
-		// 		})
-		// 	}
-		// 	return tiers
-		// }(),
-		// ServiceList: func() []model.ServiceList {
-		// 	lists := make([]model.ServiceList, 0, len(req.ServiceList))
-		// 	for _, sl := range req.ServiceList {
-		// 		lists = append(lists, model.ServiceList{
-		// 			ServiceName:             service_dto.StringPointer(sl.ServiceName, ""),
-		// 			ServiceKey:              service_dto.StringPointer(sl.ServiceKey, ""),
-		// 			OverideProductGlAccount: service_dto.StringPointer(sl.OverideProductGlAccount, ""),
-		// 			IsEnabled:               service_dto.BoolPointer(sl.IsEnabled, true),
-		// 			OverideCap: func() model.Cap {
-		// 				if sl.OverideCap == nil {
-		// 					return model.Cap{}
-		// 				}
-		// 				return model.Cap{
-		// 					SingleCap:          formatFloatPointer(sl.OverideCap.SingleCap),
-		// 					MinimumTransferCap: formatFloatPointer(sl.OverideCap.MinimumTransferCap),
-		// 				}
-		// 			}(),
-		// 			// OverideTiers: func() []model.Tier {
-		// 			// 	tiers := make([]model.Tier, 0, len(sl.OverideTiers))
-		// 			// 	for _, t := range sl.OverideTiers {
-		// 			// 		tiers = append(tiers, model.Tier{
-		// 			// 			// FeeType:   model.FeeType(service_dto.StringPointer(t.FeeType, "")),
-		// 			// 			FeeType:   shared_constants.FeeType(service_dto.StringPointer(t.FeeType, string(*t.FeeType))),
-		// 			// 			FeeAmount: formatFloatPointer(t.FeeAmount),
-		// 			// 			Min:       formatFloatPointer(t.Min),
-		// 			// 			Max:       formatFloatPointer(t.Max),
-		// 			// 		})
-		// 			// 	}
-		// 			// 	return tiers
-		// 			// }(),
-		// 		})
-		// 	}
-		// 	return lists
-		// }(),
-		// Enabled:   service_dto.BoolPointer(req.Enabled, true),
-		// IsDeleted: service_dto.BoolPointer(req.IsDeleted, false),
 		CreatedAt: time.Now(),
 	}
 

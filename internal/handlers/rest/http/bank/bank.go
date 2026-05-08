@@ -75,6 +75,7 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	bankRequest.Name = strings.ToUpper(Name)
 	BICCode := r.FormValue("bic_code")
 	bankRequest.BICCode = strings.ToUpper(BICCode)
+	isCBE := r.FormValue("is_cbe")
 
 	if accountLength := r.FormValue("account_length"); accountLength != "" {
 		length, err := strconv.Atoi(accountLength)
@@ -105,6 +106,12 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	} else {
 		localization.SendErrorResponse(w, localization.ErrorBankHasAlphaNumericInvalid, nil, nil)
 		return
+	}
+
+	temp := false
+	if strings.ToLower(isCBE) == "true" {
+		temp = true
+		bankRequest.IsCBE = &temp
 	}
 
 	bankRequest.Logo = fileHeader

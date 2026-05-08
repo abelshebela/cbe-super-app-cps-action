@@ -43,7 +43,7 @@ func Init(ctx context.Context) {
 		Password: cfg.CbeCorePassword,
 		Url:      cfg.CbeCoreUrl,
 	}
-	coreInterface := core.NewCBECoreAPI(coreConfig)
+	coreInterface := core.NewCBECoreAPI(&coreConfig)
 
 	// Initialize OpenTelemetry Tracing using platform/telemetry package
 	logger.Infof("Initializing OpenTelemetry Tracing...")
@@ -111,7 +111,10 @@ func Init(ctx context.Context) {
 	logger.Infof("Initializing persistence...")
 	notificationApi := cfg.SMSBaseURL
 
-	redis, sharedRedis := InitRedis(cfg, logger)
+	sharedRedis, redis, err := InitRedis(ctx, cfg, logger)
+	if err != nil {
+		logger.Fatalf("Failed to initialize Redis: %v", err)
+	}
 	logger.Infof("Initializing redis...")
 	redisStorage := InitRedisStorageLayer(redis, logger)
 	logger.Infof("redis initialized")

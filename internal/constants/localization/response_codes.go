@@ -17,6 +17,8 @@ func (r ResponseCode) Error() string {
 	return r.Message
 }
 
+// BPS Action Specific Error Codes
+
 var ResponseCodesList = []ResponseCode{
 	// Success codes
 
@@ -755,6 +757,18 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAuditorActionOnThisActionCompleted,
 	ErrorAuditorActionWaitForPreviousAuditor,
 	ErrorDuplicateBankProduct,
+
+	ErrorCodeBpsActionNotFound,
+	ErrorCodeBpsActionAlreadyExists,
+	ErrorCodeBpsActionAlreadAudited,
+	ErrorCodeBpsActionAlreadyEnabled,
+	ErrorCodeBpsActionInvalidStatus,
+	ErrorCodeBpsActionExpired,
+	ErrorCodeBpsActionNotAuthorized,
+	ErrorCodeBpsActionInvalidChecker,
+	ErrorCodeBpsActionApprovalFailed,
+	ErrorCodeBpsActionRejectionFailed,
+
 	ErrorVaultCategoryNotFound,
 	ErrorVaultTransactionNotFound,
 	ErrorGroupVaultNotFound,
@@ -5287,6 +5301,83 @@ var (
 		Message:    MsgDuplicateColorExists,
 		Type:       "error",
 	}
+
+	/*
+		ErrorCodeBpsActionNotFound        ErrorCode = "BPS_ACTION_NOT_FOUND"
+		ErrorCodeBpsActionAlreadyExists   ErrorCode = "BPS_ACTION_ALREADY_EXISTS"
+		ErrorCodeBpsActionInvalidStatus   ErrorCode = "BPS_ACTION_INVALID_STATUS"
+		ErrorCodeBpsActionExpired         ErrorCode = "BPS_ACTION_EXPIRED"
+		ErrorCodeBpsActionNotAuthorized   ErrorCode = "BPS_ACTION_NOT_AUTHORIZED"
+		ErrorCodeBpsActionInvalidMaker    ErrorCode = "BPS_ACTION_INVALID_MAKER"
+		ErrorCodeBpsActionInvalidChecker  ErrorCode = "BPS_ACTION_INVALID_CHECKER"
+		ErrorCodeBpsActionApprovalFailed  ErrorCode = "BPS_ACTION_APPROVAL_FAILED"
+		ErrorCodeBpsActionRejectionFailed ErrorCode = "BPS_ACTION_REJECTION_FAILED"
+	*/
+
+	ErrorCodeBpsActionNotFound = ResponseCode{
+		Code:       "BPS_ACTION_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "BPS action not found",
+		Type:       "error",
+	}
+
+	ErrorCodeBpsActionAlreadyExists = ResponseCode{
+		Code:       "BPS_ACTION_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "BPS action already exists",
+		Type:       "error",
+	}
+
+	ErrorCodeBpsActionAlreadAudited = ResponseCode{
+		Code:       "BPS_ACTION_ALREADY_AUDITED",
+		StatusCode: StatusBadRequest,
+		Message:    "BPS Action already audited",
+		Type:       "error",
+	}
+
+	ErrorCodeBpsActionAlreadyEnabled = ResponseCode{
+		Code:       "BPS_ACTION_ALREADY_AUDITED",
+		StatusCode: StatusBadRequest,
+		Message:    "BPS action already Enabled",
+		Type:       "error",
+	}
+
+	ErrorCodeBpsActionInvalidStatus = ResponseCode{
+		Code:       "BPS_ACTION_INVALID_STATUS",
+		StatusCode: StatusBadRequest,
+		Message:    "BPS action invalid status",
+		Type:       "error",
+	}
+
+	ErrorCodeBpsActionExpired = ResponseCode{
+		Code:       "BPS_ACTION_EXPIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "BPS action expired",
+		Type:       "error",
+	}
+
+	ErrorCodeBpsActionNotAuthorized = ResponseCode{
+		Code:       "BPS_ACTION_NOT_AUTHORIZED",
+		StatusCode: StatusBadRequest,
+		Message:    "BPS action not authorized",
+		Type:       "error",
+	}
+
+	ErrorCodeBpsActionInvalidChecker = ResponseCode{
+		Code:       "BPS_ACTION_INVALID_CHECKER",
+		StatusCode: StatusBadRequest,
+		Message:    "BPS action invalid checker",
+		Type:       "error",
+	}
+
+	ErrorCodeBpsActionApprovalFailed = ResponseCode{
+		Code:       "BPS_ACTION_APPROVAL_FAILED",
+		StatusCode: StatusBadRequest,
+		Message:    "BPS action invalid checker",
+		Type:       "error",
+	}
+
+	ErrorCodeBpsActionRejectionFailed = ResponseCode{}
 
 	ErrorFeedbackIDRequired = ResponseCode{
 		Code:       "ERROR_FEEDBACK_ID_REQUIRED",

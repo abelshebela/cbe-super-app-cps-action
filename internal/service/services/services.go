@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	"cbe-super-app-cps-action/internal/constants"
@@ -15,6 +16,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	coreio "github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -22,32 +24,43 @@ import (
 type servicesService struct {
 	repo   storage.ServicesRepository
 	cps    service.CPSActionService
+	core   coreio.CBECoreAPIInterface
 	logger utils.Logger
 }
 
-func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionService, logger utils.Logger) *servicesService {
-	return &servicesService{repo: repo, cps: cps, logger: logger}
+func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionService, core coreio.CBECoreAPIInterface, logger utils.Logger) *servicesService {
+	return &servicesService{
+		repo:   repo,
+		cps:    cps,
+		core:   core,
+		logger: logger,
+	}
 }
 
 func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServiceRequest) error {
 	s.logger.Infof("Service creating...")
 
-	_, err := s.repo.FindServiceListByID(ctx, req.ServiceKeyId)
-	if err != nil && err.Error() == localization.ErrorAccessListNotFound.Code {
-		s.logger.Warnf("[servicesService][Create] Access list not found for serviceKeyId=%s: %v", req.ServiceKeyId, err)
-		return errors.New(localization.ErrorAccessListNotFound.Code)
+	accessList, err := s.repo.FindServiceListByID(ctx, req.ServiceKeyId)
+	if err != nil && err.Error() != sql.ErrNoRows.Error() {
+		s.logger.Errorf("[servicesService][Create] error checking existing service for serviceKeyId=%s: %v", req.ServiceKeyId, err)
+		return err
 	}
 
-	// service, err := s.repo.FindByAccessListID(ctx, req.ServiceKeyId)
-	// if err != nil && err.Error() != sql.ErrNoRows.Error() {
-	// 	s.logger.Errorf("[servicesService][Create] error checking existing service for serviceKeyId=%s: %v", req.ServiceKeyId, err)
-	// 	return err
-	// }
-	// if service {
-	// 	return errors.New(localization.ErrorServiceExists.Code)
-	// }
+	if req.ProductGlAccount != "" {
+		accountDetail, err := s.ValidateAccountNumberWithExternalAPI(ctx, req.ProductGlAccount)
+		if err != nil {
+			s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", req.ProductGlAccount, err)
+			return errors.New(localization.ErrorAccountNumberValidationFailed.Code)
+		}
 
-	mapped := core.MapToServiceModel(req)
+		err = s.repo.CheckAccountNumberExistence(ctx, *accountDetail, req.ProductGlAccount, req.ProductGlAccountCurrency)
+		if err != nil {
+			s.logger.Errorf("[servicesService][Authorize] failed to check account number error: %v", err)
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+	}
+
+	mapped := core.MapToServiceModel(req, *accessList)
 
 	return core.HandleCPSAction(ctx, s.cps, "", constants.RequestCreateService, mapped, nil, constants.ActionCreate)
 }
@@ -64,24 +77,19 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 	serviceKeyId := service_dto.StringPointer(req.ServiceKeyId, prev.ServiceKeyId)
 	s.logger.Infof("[servicesService][Update] resolved serviceKeyId: %s", serviceKeyId)
 
-	// filterParam := types.Filter{
-	// 	Search: serviceKeyId,
-	// }
-	// s.logger.Infof("[servicesService][Update] filterParam: %+v", filterParam)
-	// services, err := s.repo.FindAllWithPagination(ctx, filterParam)
-	// if err != nil {
-	// 	s.logger.Errorf("[servicesService][Update] error fetching services with filter: %v", err)
-	// 	return err
-	// }
-	// s.logger.Infof("[servicesService][Update] found %d services with serviceKeyId=%s", len(services.Data), serviceKeyId)
+	if req.ProductGlAccount != nil {
+		accountDetail, err := s.ValidateAccountNumberWithExternalAPI(ctx, *req.ProductGlAccount)
+		if err != nil {
+			s.logger.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", *req.ProductGlAccount, err)
+			return errors.New(localization.ErrorAccountNumberValidationFailed.Code)
+		}
 
-	// for _, svc := range services.Data {
-	// 	s.logger.Infof("[servicesService][Update] checking service: id=%s, serviceKeyId=%s", svc.ID, svc.ServiceKeyId)
-	// 	if svc.ID != id && (strings.EqualFold(svc.ServiceKeyId, serviceKeyId)) {
-	// 		s.logger.Warnf("[servicesService][Update] duplicate serviceKeyId found: id=%s current_id: %s", svc.ID, serviceKeyId)
-	// 		return errors.New(localization.ErrorServiceExists.Code)
-	// 	}
-	// }
+		err = s.repo.CheckAccountNumberExistence(ctx, *accountDetail, *req.ProductGlAccount, *req.ProductGlAccountCurrency)
+		if err != nil {
+			s.logger.Errorf("[servicesService][Authorize] failed to check account number error: %v", err)
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+	}
 
 	mapped := core.MapToServiceUpdateModel(req, *prev)
 	s.logger.Infof("[servicesService][Update] mapped update model: %+v", mapped)
@@ -130,8 +138,10 @@ func (s *servicesService) DeleteServices(ctx context.Context, id string) error {
 	}
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
+		s.logger.Errorf("[ServiceSVC][DeleteService] failed to delete error: %v", err)
 		return err
 	}
+
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
 }
 
@@ -191,8 +201,7 @@ func (s *servicesService) EnableOrDisableServiceList(ctx context.Context, id str
 		}
 		return localization.ErrorAlreadyDisabled
 	}
-	// payload := imodel.ServiceKey{IsEnabled: enable}
-	payload := prev
+	payload := *prev
 	payload.IsEnabled = enable
 
 	var requestAction constants.RequestAction
@@ -205,25 +214,47 @@ func (s *servicesService) EnableOrDisableServiceList(ctx context.Context, id str
 }
 
 func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error {
-	prev, err := s.repo.FindServiceByAccessListID(ctx, id)
+	prev, err := s.repo.FindServiceListByID(ctx, id)
 	if err != nil {
-		s.logger.Errorf("[servicesService][DeleteServiceKey] error fetching service by id=%s: %v", id, err)
-		if err.Error() == localization.ErrorServiceNotFound.Code {
-			return errors.New(localization.ErrorServiceNotFound.Code)
+		if err.Error() == localization.ErrorAccessListNotFound.Code {
+			return localization.ErrorAccessListNotFound
 		}
+		s.logger.Errorf("[servicesService][DeleteServiceKey] error fetching access list by id=%s: %v", id, err)
+		return err
 	}
 
-	var accessListID string
-	if prev != nil {
-		accessListID = prev.ServiceKeyId
-	} else {
-		accessListID = id
-	}
 	s.logger.Infof("[servicesService][DeleteServiceKey] Deleting service key with id=%s, found service list: %+v", id, prev)
-	return core.HandleCPSAction(ctx, s.cps, accessListID, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
+	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
+}
+
+func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string) (*coreio.AccountLookupResult, error) {
+	response, err := s.core.AccountLookup(coreio.AccountLookupParam{AccountNumber: accountNumber})
+	if err != nil {
+		return nil, err
+	}
+
+	if !response.Success {
+		var message string
+		for _, msg := range response.Messages {
+			message += msg
+		}
+
+		s.logger.Warnf("(core) failed to get account details: %s", message)
+
+		return nil, err
+	}
+
+	if response.Detail == nil {
+		s.logger.Errorf("account lookup successful but no account details found for account number %s", accountNumber)
+		return nil, err
+	}
+
+	return response, nil
 }
 
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	s.logger.Infof("[servicesService][Authorize] Authorize called for action: %+v", action)
+
 	serviceDoc, err := local_util.JsonUnmarshal[imodel.Service](action.CurrentAction)
 	if err != nil {
 		return nil, localization.ErrorInvalidActionData
@@ -231,9 +262,12 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 
 	switch action.RequestAction {
 	case string(constants.RequestCreateService):
-		err = s.repo.Create(ctx, serviceDoc)
+		s.logger.Infof("[servicesService][Authorize] Authorizing create service with data: %+v", serviceDoc)
+
+		return nil, s.repo.Create(ctx, serviceDoc.ProductGlAccount, serviceDoc)
 	case string(constants.RequestUpdateService):
-		err = s.repo.Update(ctx, action.UniqueId, serviceDoc)
+		s.logger.Infof("[servicesService][Authorize] Authorizing update service with data: %+v", serviceDoc)
+		return nil, s.repo.Update(ctx, action.UniqueId, serviceDoc, serviceDoc.ProductGlAccount)
 	case string(constants.RequestEnableService):
 		// err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
 		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, true)
@@ -241,7 +275,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		// err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
 		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, false)
 	case string(constants.RequestDeleteService):
-		err = s.repo.Delete(ctx, action.UniqueId)
+		err = s.repo.Delete(ctx, action.UniqueId, "")
 	case string(constants.RequestCreateServiceList):
 		listDoc, err := local_util.JsonUnmarshal[imodel.ServiceKey](action.CurrentAction)
 		if err != nil {
@@ -261,7 +295,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 
 		err = s.repo.UpdateServiceKey(ctx, action.UniqueId, prevListDoc.ServiceKey, listDoc)
 	case string(constants.RequestDeleteServiceList):
-		err = s.repo.Delete(ctx, action.UniqueId)
+		err = s.repo.Delete(ctx, "", action.UniqueId)
 	// case string(constants.RequestDeleteServiceKey):
 	// 	err = s.repo.DeleteServiceKey(ctx, action.UniqueId)
 	case string(constants.RequestEnableServiceList):
@@ -281,10 +315,12 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	default:
 		return nil, localization.ErrorInvalidRequest
 	}
+
 	if err != nil {
 		s.logger.Errorf("[servicesService][Authorize] error occurred: %v", err)
 		return nil, err
 	}
+
 	action.CurrentAction = serviceDoc
 	return action, nil
 }
