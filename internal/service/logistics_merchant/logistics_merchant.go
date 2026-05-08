@@ -26,14 +26,14 @@ import (
 )
 
 type LogisticsMerchantService struct {
-	repo                 storage.LogisticsMerchantRepository
+	repo                 storage.LogisticsMerchantOracleRepository
 	cpsService           service.CPSActionService
 	accountLookupService account_lookup.Account
 	cfg                  *config.VaultConfig
 	logger               utils.Logger
 }
 
-func NewLogisticsMerchantService(repo storage.LogisticsMerchantRepository, cpsService service.CPSActionService, accountLookupService account_lookup.Account, cfg *config.VaultConfig, logger utils.Logger) service.LogisticsMerchantService {
+func NewLogisticsMerchantService(repo storage.LogisticsMerchantOracleRepository, cpsService service.CPSActionService, accountLookupService account_lookup.Account, cfg *config.VaultConfig, logger utils.Logger) service.LogisticsMerchantService {
 	return &LogisticsMerchantService{
 		repo:                 repo,
 		cpsService:           cpsService,
@@ -48,7 +48,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "LogisticsMerchant", "Authorize")
 	defer span.End()
 
-	merchant, err := local_util.JsonUnmarshal[local_model.LogisticsMerchant](cpsAction.CurrentAction)
+	merchant, err := local_util.JsonUnmarshal[local_model.LogisticsMerchantOracle](cpsAction.CurrentAction)
 	if err != nil {
 		e.logger.Errorf("[LogisMerchSvc][Authorize] unmarshal err: %v", err)
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
@@ -71,7 +71,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
 		if !isErp {
-			if err := core.UpdateERP(ctx, e.cfg, merchant.BankAccountNumber, merchant.MerchantID, e.logger); err != nil {
+			if err := core.UpdateERP(ctx, e.cfg, merchant.MerchantAccountNumber, merchant.MerchantCode, e.logger); err != nil {
 				e.logger.Errorf("[LogisMerchSvc][Authorize] ERP create err: %v", err)
 				span.AddEvent("Failed to update ERP", trace.WithAttributes(
 					attribute.String("error", err.Error()),
@@ -93,7 +93,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
 		if !isErp {
-			prevMerchant, err := local_util.JsonUnmarshal[local_model.LogisticsMerchant](cpsAction.PreviousAction)
+			prevMerchant, err := local_util.JsonUnmarshal[local_model.LogisticsMerchantOracle](cpsAction.PreviousAction)
 			if err != nil {
 				e.logger.Errorf("[LogisMerchSvc][Authorize] unmarshal prev err: %v", err)
 				span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
@@ -102,11 +102,11 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 				))
 				return nil, errors.New(localization.ErrorServiceUnhandledServerError.Code)
 			}
-			if prevMerchant.BankAccountNumber != merchant.BankAccountNumber {
+			if prevMerchant.MerchantAccountNumber != merchant.MerchantAccountNumber {
 				dto := erp_merchant_update_dto.ERPUpdateRequest{
-					MainAccountNumber: merchant.BankAccountNumber,
+					MainAccountNumber: merchant.MerchantAccountNumber,
 				}
-				if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, false, e.logger); err != nil {
+				if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantCode, false, e.logger); err != nil {
 					e.logger.Errorf("[LogisMerchSvc][Authorize] ERP update err: %v", err)
 					span.AddEvent("Failed to update ERP", trace.WithAttributes(
 						attribute.String("error", err.Error()),
@@ -133,7 +133,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			dto := erp_merchant_update_dto.ERPUpdateRequest{
 				CpsEnabled: &enabled,
 			}
-			if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, false, e.logger); err != nil {
+			if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantCode, false, e.logger); err != nil {
 				e.logger.Errorf("[LogisMerchSvc][Authorize] ERP delete err: %v", err)
 				span.AddEvent("Failed to update ERP", trace.WithAttributes(
 					attribute.String("error", err.Error()),
@@ -159,7 +159,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			dto := erp_merchant_update_dto.ERPUpdateRequest{
 				CpsEnabled: &enabled,
 			}
-			if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, false, e.logger); err != nil {
+			if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantCode, false, e.logger); err != nil {
 				e.logger.Errorf("[LogisMerchSvc][Authorize] ERP enable err: %v", err)
 				span.AddEvent("Failed to update ERP", trace.WithAttributes(
 					attribute.String("error", err.Error()),
@@ -185,7 +185,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			dto := erp_merchant_update_dto.ERPUpdateRequest{
 				CpsEnabled: &enabled,
 			}
-			if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, false, e.logger); err != nil {
+			if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantCode, false, e.logger); err != nil {
 				e.logger.Errorf("[LogisMerchSvc][Authorize] ERP disable err: %v", err)
 				span.AddEvent("Failed to update ERP", trace.WithAttributes(
 					attribute.String("error", err.Error()),
@@ -211,15 +211,15 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 }
 
 // Create implements service.LogisticsMerchantService.
-func (e *LogisticsMerchantService) Create(ctx context.Context, LogisticsMerchant local_model.LogisticsMerchant) error {
+func (e *LogisticsMerchantService) Create(ctx context.Context, LogisticsMerchant local_model.LogisticsMerchantOracle) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "LogisticsMerchant", "Create")
 	defer span.End()
 
 	e.logger.Infof("[LogisMerchSvc][Create] name: %s", LogisticsMerchant.MerchantName)
 
 	exist, err := core.CheckMerchantExists(ctx, e.repo, &types.CheckMerchant{
-		BankAccountNumber: LogisticsMerchant.BankAccountNumber,
-		MerchantCode:      LogisticsMerchant.MerchantID,
+		BankAccountNumber: LogisticsMerchant.MerchantAccountNumber,
+		MerchantCode:      LogisticsMerchant.MerchantCode,
 	}, nil)
 	if err != nil && err.Error() != localization.ErrorLogisticMerchantNotFound.Code {
 		e.logger.Errorf("[LogisMerchSvc][Create] exist check err: %v", err)
@@ -230,24 +230,30 @@ func (e *LogisticsMerchantService) Create(ctx context.Context, LogisticsMerchant
 	}
 
 	if exist {
-		e.logger.Warnf("[LogisMerchSvc][Create] already exists acct: %s", LogisticsMerchant.BankAccountNumber)
+		e.logger.Warnf("[LogisMerchSvc][Create] already exists acct: %s", LogisticsMerchant.MerchantAccountNumber)
 		span.AddEvent("Merchant already exists", trace.WithAttributes(
 			attribute.String("error", localization.ErrorAccountNumberAlreadyExists.Code),
-			attribute.String("bank_account_number", LogisticsMerchant.BankAccountNumber),
+			attribute.String("bank_account_number", LogisticsMerchant.MerchantAccountNumber),
 		))
 		return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
 
-	if LogisticsMerchant.MerchantType == "merchant" {
-		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, LogisticsMerchant.BankAccountNumber, e.accountLookupService)
-		if err != nil {
-			e.logger.Errorf("[LogisMerchSvc][Create] acct validation err: %v", err)
-			span.AddEvent("Account number validation failed", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("bank_account_number", LogisticsMerchant.BankAccountNumber),
-			))
-			return err
-		}
+	account_detail, err := core.ValidateAccountNumberWithExternalAPI(ctx, LogisticsMerchant.MerchantAccountNumber, e.accountLookupService)
+	if err != nil {
+		e.logger.Errorf("[LogisMerchSvc][Create] acct validation err: %v", err)
+		span.AddEvent("Account number validation failed", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("bank_account_number", LogisticsMerchant.MerchantAccountNumber),
+		))
+		return err
+	}
+	if err := e.repo.CheckAccountOrCreate(ctx, account_detail); err != nil {
+		e.logger.Errorf("[LogisMerchSvc][Create] acct creation err: %v", err)
+		span.AddEvent("Failed to create account", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("bank_account_number", LogisticsMerchant.MerchantAccountNumber),
+		))
+		return err
 	}
 
 	err = core.HandleCPSActionForLogisticsMerchant(ctx, e.cpsService, "", constants.RequestCreateLogisticsMerchant, LogisticsMerchant, nil, constants.ActionCreate)
@@ -324,7 +330,7 @@ func (e *LogisticsMerchantService) EnableOrDisable(ctx context.Context, ids []st
 			return errors.New(localization.ErrorLogisticMerchantNotFound.Code)
 		}
 
-		if enable && prevMerchant.Enabled {
+		if enable && prevMerchant.IsEnabled {
 			e.logger.Warnf("[LogisMerchSvc][EnableDisable] already enabled id: %s", id)
 			span.AddEvent("Merchant already enabled", trace.WithAttributes(
 				attribute.String("error", localization.ErrorLogisticMerchantAlreadyEnabled.Code),
@@ -332,7 +338,7 @@ func (e *LogisticsMerchantService) EnableOrDisable(ctx context.Context, ids []st
 			))
 			return localization.ErrorLogisticMerchantAlreadyEnabled
 		}
-		if !enable && !prevMerchant.Enabled {
+		if !enable && !prevMerchant.IsEnabled {
 			e.logger.Warnf("[LogisMerchSvc][EnableDisable] already disabled id: %s", id)
 			span.AddEvent("Merchant already disabled", trace.WithAttributes(
 				attribute.String("error", localization.ErrorLogisticMerchantAlreadyDisabled.Code),
@@ -342,8 +348,8 @@ func (e *LogisticsMerchantService) EnableOrDisable(ctx context.Context, ids []st
 		}
 
 		updatedMerchant := *prevMerchant
-		updatedMerchant.Enabled = enable
-		updatedMerchant.UpdatedAt = time.Now()
+		updatedMerchant.IsEnabled = enable
+		updatedMerchant.LastModifiedAt = time.Now()
 
 		err = core.HandleCPSActionForLogisticsMerchant(ctx, e.cpsService, id, action, updatedMerchant, *prevMerchant, constants.ActionUpdate)
 		if err != nil {
@@ -361,7 +367,7 @@ func (e *LogisticsMerchantService) EnableOrDisable(ctx context.Context, ids []st
 }
 
 // FindAllWithPagination implements service.LogisticsMerchantService.
-func (e *LogisticsMerchantService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchant], error) {
+func (e *LogisticsMerchantService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchantOracle], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "LogisticsMerchant", "FindAllWithPagination")
 	defer span.End()
 
@@ -377,7 +383,7 @@ func (e *LogisticsMerchantService) FindAllWithPagination(ctx context.Context, fi
 }
 
 // FindByID implements service.LogisticsMerchantService.
-func (e *LogisticsMerchantService) FindByID(ctx context.Context, id string) (*local_model.LogisticsMerchant, error) {
+func (e *LogisticsMerchantService) FindByID(ctx context.Context, id string) (*local_model.LogisticsMerchantOracle, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindByID", "LogisticsMerchant", "FindByID")
 	defer span.End()
 
@@ -394,7 +400,7 @@ func (e *LogisticsMerchantService) FindByID(ctx context.Context, id string) (*lo
 }
 
 // Update implements service.LogisticsMerchantService.
-func (e *LogisticsMerchantService) Update(ctx context.Context, id string, LogisticsMerchant local_model.LogisticsMerchant) error {
+func (e *LogisticsMerchantService) Update(ctx context.Context, id string, LogisticsMerchant local_model.LogisticsMerchantOracle) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "LogisticsMerchant", "Update")
 	defer span.End()
 
@@ -414,8 +420,8 @@ func (e *LogisticsMerchantService) Update(ctx context.Context, id string, Logist
 
 	var check types.CheckMerchant
 
-	if updated.BankAccountNumber != old.BankAccountNumber {
-		check.BankAccountNumber = updated.BankAccountNumber
+	if updated.MerchantAccountNumber != old.MerchantAccountNumber {
+		check.BankAccountNumber = updated.MerchantAccountNumber
 	}
 
 	if check.BankAccountNumber != "" {
@@ -438,12 +444,20 @@ func (e *LogisticsMerchantService) Update(ctx context.Context, id string, Logist
 		}
 	}
 	if check.BankAccountNumber != "" {
-		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, LogisticsMerchant.BankAccountNumber, e.accountLookupService)
+		account_detail, err := core.ValidateAccountNumberWithExternalAPI(ctx, LogisticsMerchant.MerchantAccountNumber, e.accountLookupService)
 		if err != nil {
 			e.logger.Errorf("[LogisMerchSvc][Update] acct validation err: %v", err)
 			span.AddEvent("Account number validation failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("id", id),
+			))
+			return err
+		}
+		if err := e.repo.CheckAccountOrCreate(ctx, account_detail); err != nil {
+			e.logger.Errorf("[LogisMerchSvc][Update] acct creation err: %v", err)
+			span.AddEvent("Failed to create account", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("bank_account_number", LogisticsMerchant.MerchantAccountNumber),
 			))
 			return err
 		}

@@ -17,8 +17,8 @@ func Validation(v any) error {
 		if strings.TrimSpace(req.SettlementMethod) == "" {
 			return errors.New(localization.ErrorLogisticMerchantInvalidSettlementMethod.Message)
 		}
-		if !allowedCharsRegex.MatchString(req.SettlementMethod) {
-			return errors.New("Settlement method must not contain special characters")
+		if strings.ToUpper(req.SettlementMethod) != "GL" && strings.ToUpper(req.SettlementMethod) != "DIRECT" {
+			return errors.New("Only GL or DIRECT settlement methods are allowed")
 		}
 		if strings.TrimSpace(req.MerchantName) == "" {
 			return errors.New(localization.ErrorLogisticMerchantInvalidMerchantName.Message)

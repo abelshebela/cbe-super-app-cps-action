@@ -67,17 +67,21 @@ type LinkedAccount struct {
 }
 
 type PersonalInfo struct {
-	FullName       string `json:"full_name" bson:"full_name"`             // customer_kyc.kyc_data
-	Gender         string `json:"gender" bson:"gender"`                   //customer_kyc.kyc_data
-	PhoneNumber    string `json:"phone_number" bson:"phone_number"`       //customer_kyc.kyc_data
-	Email          string `json:"email " bson:"email"`                    // members
-	CustomerNumber string `json:"customer_number" bson:"customer_number"` // members
-	IsActivated    bool   `json:"is_activated" bson:"is_activated"`       // customer_kyc.is_activated
-	DateOfBirth    string `json:"date_of_birth" bson:"date_of_birth"`     // customer_kyc.kyc_data
-	MaritalStatus  string `json:"marital_status" bson:"marital_status"`   // customer_kyc.kyc_data
-	Nationality    string `json:"nationality" bson:"nationality"`         // customer_kyc.kyc_data
-	Branch         string `json:"branch_code" bson:"branch_code"`         // members
-	BranchName     string `json:"branch_name" bson:"branch_name"`
+	FullName            string `json:"full_name" bson:"full_name"`                         // customer_kyc.kyc_data
+	Gender              string `json:"gender" bson:"gender"`                               //customer_kyc.kyc_data
+	PhoneNumber         string `json:"phone_number" bson:"phone_number"`                   //customer_kyc.kyc_data
+	Email               string `json:"email " bson:"email"`                                // members
+	CustomerNumber      string `json:"customer_number" bson:"customer_number"`             // members
+	IsActivated         bool   `json:"is_activated" bson:"is_activated"`                   // customer_kyc.is_activated
+	IsSupperAppActivate bool   `json:"is_super_app_activate" bson:"is_super_app_activate"` // customer_kyc.is_activated
+	IsUSSDActivate      bool   `json:"is_ussd_activate" bson:"is_ussd_activate"`           // customer_kyc.is_activated
+	IsSupperAppEnabled  bool   `json:"is_super_app_enabled" bson:"is_super_app_enabled"`   // customer_kyc.is_activated
+	IsUSSDEnabled       bool   `json:"is_ussd_enabled" bson:"is_ussd_enabled"`             // customer_kyc.is_activated
+	DateOfBirth         string `json:"date_of_birth" bson:"date_of_birth"`                 // customer_kyc.kyc_data
+	MaritalStatus       string `json:"marital_status" bson:"marital_status"`               // customer_kyc.kyc_data
+	Nationality         string `json:"nationality" bson:"nationality"`                     // customer_kyc.kyc_data
+	Branch              string `json:"branch_code" bson:"branch_code"`                     // members
+	BranchName          string `json:"branch_name" bson:"branch_name"`
 }
 
 type CustomerDetailResponse struct {

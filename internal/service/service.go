@@ -502,12 +502,12 @@ type EventMerchantService interface {
 }
 
 type LogisticsMerchantService interface {
-	Update(ctx context.Context, id string, logisticsMerchant local_model.LogisticsMerchant) error
-	Create(ctx context.Context, logisticsMerchant local_model.LogisticsMerchant) error
+	Update(ctx context.Context, id string, logisticsMerchant local_model.LogisticsMerchantOracle) error
+	Create(ctx context.Context, logisticsMerchant local_model.LogisticsMerchantOracle) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
-	FindByID(ctx context.Context, id string) (*local_model.LogisticsMerchant, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchant], error)
+	FindByID(ctx context.Context, id string) (*local_model.LogisticsMerchantOracle, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchantOracle], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

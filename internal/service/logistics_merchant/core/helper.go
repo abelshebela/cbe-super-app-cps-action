@@ -62,6 +62,66 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 
 func CheckMerchantExists(
 	ctx context.Context,
+	merchantRepo storage.LogisticsMerchantOracleRepository,
+	data *types.CheckMerchant,
+	opts *types.MiniAppMerchantExistOptions,
+) (bool, error) {
+	if data == nil {
+		return false, nil
+	}
+
+	var conditions []bson.M
+
+	if data.BankAccountNumber != "" {
+		conditions = append(conditions, bson.M{"bank_account_number": data.BankAccountNumber, "merchant_id": data.MerchantCode})
+	}
+
+	if data.MerchantCode != "" {
+		conditions = append(conditions, bson.M{"merchant_id": data.MerchantCode})
+	}
+
+	if len(conditions) == 0 {
+		return false, nil
+	}
+
+	filter := bson.M{
+		"is_deleted": false,
+		"$or":        conditions,
+	}
+
+	if opts != nil && opts.ExcludeID != "" {
+		objID, err := bson.ObjectIDFromHex(opts.ExcludeID)
+		if err != nil {
+			return false, err
+		}
+		filter["_id"] = bson.M{"$ne": objID}
+	}
+
+	res, err := merchantRepo.FindOne(ctx, filter)
+	if err != nil {
+		if err.Error() == localization.ErrorResourceNotFound.Code {
+			return false, nil
+		}
+		return false, err
+	}
+
+	if res == nil {
+		return false, nil
+	}
+
+	if res.MerchantAccountNumber == data.BankAccountNumber {
+		return false, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
+	}
+
+	if res.MerchantCode == data.MerchantCode {
+		return false, errors.New(localization.ErrorMerchantCodeAlreadyExists.Code)
+	}
+
+	return true, nil
+}
+
+func CheckMerchantExistsOracle(
+	ctx context.Context,
 	merchantRepo storage.LogisticsMerchantRepository,
 	data *types.CheckMerchant,
 	opts *types.MiniAppMerchantExistOptions,
@@ -119,20 +179,21 @@ func CheckMerchantExists(
 
 	return true, nil
 }
-func MergeLogisticsMerchantData(old, data *local_model.LogisticsMerchant) *local_model.LogisticsMerchant {
+
+func MergeLogisticsMerchantData(old, data *local_model.LogisticsMerchantOracle) *local_model.LogisticsMerchantOracle {
 	now := time.Now()
 
-	return &local_model.LogisticsMerchant{
-		ID:                old.ID,
-		MerchantID:        local_util.NonEmptyString(data.MerchantID, old.MerchantID),
-		SettlementMethod:  local_util.NonEmptyString(data.SettlementMethod, old.SettlementMethod),
-		MerchantName:      local_util.NonEmptyString(data.MerchantName, old.MerchantName),
-		MerchantType:      local_util.NonEmptyString(data.MerchantType, old.MerchantType),
-		BankAccountNumber: local_util.NonEmptyString(data.BankAccountNumber, old.BankAccountNumber),
-		Enabled:           old.Enabled,
-		IsDeleted:         old.IsDeleted,
-		CreatedAt:         old.CreatedAt,
-		UpdatedAt:         now,
+	return &local_model.LogisticsMerchantOracle{
+		ID:                    old.ID,
+		MerchantCode:          local_util.NonEmptyString(data.MerchantCode, old.MerchantCode),
+		SettlementMethod:      local_util.NonEmptyString(data.SettlementMethod, old.SettlementMethod),
+		MerchantName:          local_util.NonEmptyString(data.MerchantName, old.MerchantName),
+		MerchantType:          local_util.NonEmptyString(data.MerchantType, old.MerchantType),
+		MerchantAccountNumber: local_util.NonEmptyString(data.MerchantAccountNumber, old.MerchantAccountNumber),
+		IsEnabled:             old.IsEnabled,
+		IsDeleted:             old.IsDeleted,
+		CreatedAt:             old.CreatedAt,
+		LastModifiedAt:        now,
 	}
 }
 

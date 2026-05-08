@@ -14,6 +14,7 @@ import (
 	cpsroles "cbe-super-app-cps-action/internal/storage/persistance/cps_roles"
 	customer_oracle "cbe-super-app-cps-action/internal/storage/persistance/customer/oracle"
 	customersegmentaion "cbe-super-app-cps-action/internal/storage/persistance/customer_segmentaion"
+	logistics_merchant_oracle "cbe-super-app-cps-action/internal/storage/persistance/logistics_merchant/oracle"
 	services_repo "cbe-super-app-cps-action/internal/storage/persistance/services"
 	"cbe-super-app-cps-action/internal/storage/persistance/sitota"
 	vaultCategory "cbe-super-app-cps-action/internal/storage/persistance/vault"
@@ -40,6 +41,7 @@ type OraclePersistence struct {
 	AccessListSegmentaion storage.AccessListSegmentationRepositoryOracle
 	AccountBlock          storage.AccountBlockRepository
 	Customer              storage.CustomerRepository
+	LogisticsMerchant     storage.LogisticsMerchantOracleRepository
 }
 
 func InitOraclePersistence(client *mongo.Client, db *sql.DB, cfg *config.VaultConfig, clientOrchestrationProducer kafka.ClientOrchestrationProducer, accessListSegmentationProducer *kafka.AccessListSegmentationProducer, redisRepository storage.RedisRepository, log utils.Logger) OraclePersistence {
@@ -59,5 +61,6 @@ func InitOraclePersistence(client *mongo.Client, db *sql.DB, cfg *config.VaultCo
 		AccessListSegmentaion: access_list_segmentation_oracle.NewAccessListSegmentationOracle(db, *cfg, accessListSegmentationProducer, redisRepository, log),
 		AccountBlock:          account_block_repo.NewAccountBlockRepository(client, cfg, CPSActionsCollection, db, redisRepository, log),
 		Customer:              customer_oracle.NewCustomerOracleRepository(db, *cfg, log),
+		LogisticsMerchant:     logistics_merchant_oracle.NewLogisticsMerchantOracleRepository(db, log),
 	}
 }
