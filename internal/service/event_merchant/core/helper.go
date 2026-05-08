@@ -64,11 +64,11 @@ func CheckEventMercahntExist(ctx context.Context,EventMerchantRepo storage.Event
 	}
 	exist,err := EventMerchantRepo.FindOneO(ctx,data)
 	if err != nil {
-		if err != nil {
+		// if err != nil {
 			if err.Error() == localization.ErrorResourceNotFound.Code{
 				return false,nil
 			}
-		}
+		// }
 		return false,err
 	}
 	

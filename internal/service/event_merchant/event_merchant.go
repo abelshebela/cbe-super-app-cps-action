@@ -248,7 +248,8 @@ func (e *EventMerchantService) Create(ctx context.Context, eventMerchant model.E
 		))
 		return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
-
+	eventMerchant.CreatedAt =time.Now()
+	eventMerchant.UpdatedAt  = time.Now()
 	if eventMerchant.MerchantType == "merchant" {
 		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, eventMerchant.BankAccountNumber, e.accountLookupService)
 		if err != nil {

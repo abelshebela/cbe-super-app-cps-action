@@ -13,7 +13,9 @@ func CreateEventMerchantRequestToModel(req event_merchant_dto.CreateEventMerchan
 		SettlementMethod:  req.SettlementMethod,
 		MerchantName:      req.MerchantName,
 		BankAccountNumber: req.BankAccountNumber,
-		Enabled:           false,
+		Enabled:           true,
+		Email: req.Email,
+		PhoneNumber: req.PhoneNumber,
 	}
 }
 
