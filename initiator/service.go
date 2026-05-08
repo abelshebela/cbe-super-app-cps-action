@@ -110,7 +110,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	hqService := hq.NewHQService(persistence.HQPersistence, nil, logger)
 	miniMerchant := miniapp.NewMiniAppMerchantService(persistence.MiniAppMerchant, persistence.MiniAppPersistence, persistence.MerchantLookup, logger)
 	miniAppService := miniapp.NewMiniAppService(persistence.MiniAppPersistence, miniMerchant, logger)
-	ecommerceMerchantService := ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, oracle.ServicesPersistence, nil, persistence.MerchantLookup, coreInterface, logger, persistence.Account_lookup_external, *cfg)
+	ecommerceMerchantService := ecommerce_merchant.NewEcommerceMerchantService(oracle.EcommerceMerchant, oracle.ServicesPersistence, nil, persistence.MerchantLookup, coreInterface, logger, persistence.Account_lookup_external, *cfg)
 	faydaService := fayda.NewFaydaService(persistence.FaydaPersistence, nil, logger)
 
 	adService := advert.NewAdvertService(persistence.AdvertRepositoryPersistence, nil, minioClient, cfg.S3BucketName, cfg, logger)
@@ -273,7 +273,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	servicesService = services_svc.NewServicesService(oracle.ServicesPersistence, cpsActionService, coreInterface, logger)
 	// serviceContainer.ServicesContainer = servicesService
 	serviceContainer.MiniAppMerchantContainer = miniMerchant
-	ecommerceMerchantService = ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, oracle.ServicesPersistence, cpsActionService, persistence.MerchantLookup, coreInterface, logger, accountLookupAdapter, *cfg)
+	ecommerceMerchantService = ecommerce_merchant.NewEcommerceMerchantService(oracle.EcommerceMerchant, oracle.ServicesPersistence, cpsActionService, persistence.MerchantLookup, coreInterface, logger, accountLookupAdapter, *cfg)
 	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, oracle.AccountBlock, cpsActionService, logger)
 	serviceContainer.Unlink = unlinkService
 	articleService = media.NewMediaService(persistence.ArticlePersistence, redis, logger)
