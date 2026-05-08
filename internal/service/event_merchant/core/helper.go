@@ -18,6 +18,8 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+		event_merchant_model "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"errors"
@@ -141,10 +143,10 @@ func CheckMerchantExists(
 	return true, nil
 }
 
-func MergeEventMerchantData(old, data *model.EventMerchant) *model.EventMerchant {
+func MergeEventMerchantData(old, data *event_merchant_model.EventMerchant) *event_merchant_model.EventMerchant {
 	now := time.Now()
 
-	return &model.EventMerchant{
+	return &event_merchant_model.EventMerchant{
 		ID:                old.ID,
 		MerchantID:        local_util.NonEmptyString(data.MerchantID, old.MerchantID),
 		SettlementMethod:  local_util.NonEmptyString(data.SettlementMethod, old.SettlementMethod),

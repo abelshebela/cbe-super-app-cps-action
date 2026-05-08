@@ -3,7 +3,7 @@ package core
 import (
 	event_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/event_merchant"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"cbe-super-app-cps-action/internal/constants/model"
 )
 
 func CreateEventMerchantRequestToModel(req event_merchant_dto.CreateEventMerchantRequest) model.EventMerchant {

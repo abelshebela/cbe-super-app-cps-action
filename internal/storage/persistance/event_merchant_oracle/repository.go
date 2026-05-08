@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -12,7 +13,8 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -34,6 +36,7 @@ func boolToInt(b bool) int {
 	}
 	return 0
 }
+
 func (m *EventMerchantOracleRepository) Create(ctx context.Context, merchant model.EventMerchant) error {
 	// query := `INSERT INTO MERCHANTS (ID,MERCHANT_ID,MERCHANT_TYPE,SETTLEMENT_METHOD,METCHANT_NAME,BANK_ACCOUNT_NUMBER,EMAIL,PHONE_NUMBER,ENABLED,IS_DELETED,CREATED_AT,UPDATED_AT) VALUES (SYST_GEN(),:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12)`
 
@@ -234,11 +237,10 @@ func (m *EventMerchantOracleRepository) FindByID(ctx context.Context, id string)
 	row := m.OracleCliant.QueryRowContext(ctx, query, id)
 
 	MerchantData := model.EventMerchant{}
-	var (isEnabled, isDeleted int
-		byteData  []byte
+	var (
+		isEnabled, isDeleted            int
+		byteData                        []byte
 		createdAt, updatedAt, deletedAt sql.NullTime
-
-
 	)
 
 	err := row.Scan(
@@ -259,15 +261,16 @@ func (m *EventMerchantOracleRepository) FindByID(ctx context.Context, id string)
 
 	MerchantData.Enabled = isEnabled == 1
 	MerchantData.IsDeleted = isDeleted == 1
-		if createdAt.Valid {
-			MerchantData.CreatedAt = createdAt.Time
-		}
-		if updatedAt.Valid {
-			MerchantData.UpdatedAt = updatedAt.Time
-		}
-		if deletedAt.Valid {
-			MerchantData.DeletedAt = deletedAt.Time
-		}
+	if createdAt.Valid {
+		MerchantData.CreatedAt = createdAt.Time
+	}
+	if updatedAt.Valid {
+		MerchantData.UpdatedAt = updatedAt.Time
+	}
+	if deletedAt.Valid {
+		MerchantData.DeletedAt = deletedAt.Time
+	}
+	MerchantData.ID = hex.EncodeToString(byteData)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			m.logger.Warnf("[event merchant persistance findbyID] No row find with given ID")
@@ -339,11 +342,11 @@ func (m *EventMerchantOracleRepository) FindAllWithPagination(ctx context.Contex
 		if deletedAt.Valid {
 			merchant.DeletedAt = deletedAt.Time
 		}
+		merchant.ID = hex.EncodeToString(idBytes)
 
 		if err != nil {
 			return nil, err
 		}
-		// merchant.ID = string(idBytes)
 		merchants = append(merchants, merchant)
 	}
 
@@ -387,12 +390,22 @@ WHERE 1=1 AND MERCHANT_TYPE = 'EVENT' AND IS_DELETED = 0`
 	argPos := 1
 
 	allowedKeys := []string{
-		"merchant_id",
-		"merchant_name",
-		"email",
-		"phone_number",
-		"enabled",
-		"bank_account_number",
+		"MERCHANT_CODE",
+		"MERCHANT_NAME",
+		"CONTACT_EMAIL",
+		"CONTACT_PHONE",
+		"IS_ENABLED",
+		"MERCHANT_ACCOUNT_NUMBER",
+	}
+
+	goStructToOracleFileds := map[string]string{
+		"merchant_id":"MERCHANT_CODE",
+		"merchant_name":"MERCHANT_NAME",
+		"email":"CONTACT_EMAIL",
+		"phone_number":"CONTACT_PHONE",
+		"enabled":"IS_ENABLED",
+		"bank_account_number":"MERCHANT_ACCOUNT_NUMBER",
+
 	}
 
 	// -------------------------
@@ -401,11 +414,11 @@ WHERE 1=1 AND MERCHANT_TYPE = 'EVENT' AND IS_DELETED = 0`
 	if filter.Search != "" {
 
 		searchFields := []string{
-			"MERCHANT_ID",
+			"MERCHANT_CODE",
 			"MERCHANT_NAME",
-			"EMAIL",
-			"PHONE_NUMBER",
-			"BANK_ACCOUNT_NUMBER",
+			"CONTACT_EMAIL",
+			"CONTACT_PHONE",
+			"MERCHANT_ACCOUNT_NUMBER",
 		}
 
 		searchParts := []string{}
@@ -432,13 +445,13 @@ WHERE 1=1 AND MERCHANT_TYPE = 'EVENT' AND IS_DELETED = 0`
 	// -------------------------
 	for key, value := range filter.Filters {
 
-		if !contains(allowedKeys, key) {
+		if !contains(allowedKeys, strings.ToUpper(goStructToOracleFileds[key])) {
 			continue
 		}
 
 		query += fmt.Sprintf(`
 			AND %s = :%d
-		`, strings.ToUpper(key), argPos)
+		`, strings.ToUpper(goStructToOracleFileds[key]), argPos)
 
 		args = append(args, value)
 		argPos++
@@ -594,14 +607,14 @@ func buildUpdateQuery(id string, merchant model.EventMerchant) (string, []interf
 		args = append(args, merchant.PhoneNumber)
 		index++
 	}
-	// Always update IS_ENABLED and IS_DELETED
-	setParts = append(setParts, fmt.Sprintf("IS_ENABLED = :%d", index))
-	args = append(args, merchant.Enabled)
-	index++
+	// // Always update IS_ENABLED and IS_DELETED
+	// setParts = append(setParts, fmt.Sprintf("IS_ENABLED = :%d", index))
+	// args = append(args, merchant.Enabled)
+	// index++
 
-	setParts = append(setParts, fmt.Sprintf("IS_DELETED = :%d", index))
-	args = append(args, merchant.IsDeleted)
-	index++
+	// setParts = append(setParts, fmt.Sprintf("IS_DELETED = :%d", index))
+	// args = append(args, merchant.IsDeleted)
+	// index++
 
 	// Always update LAST_MODIFIED_AT
 	setParts = append(setParts, fmt.Sprintf("LAST_MODIFIED_AT = :%d", index))
@@ -609,11 +622,11 @@ func buildUpdateQuery(id string, merchant model.EventMerchant) (string, []interf
 	index++
 
 	// Optionally handle DELETED_AT if needed
-	if !merchant.DeletedAt.IsZero() {
-		setParts = append(setParts, fmt.Sprintf("DELETED_AT = :%d", index))
-		args = append(args, merchant.DeletedAt)
-		index++
-	}
+	// if !merchant.DeletedAt.IsZero() {
+	// 	setParts = append(setParts, fmt.Sprintf("DELETED_AT = :%d", index))
+	// 	args = append(args, merchant.DeletedAt)
+	// 	index++
+	// }
 
 	query += strings.Join(setParts, ", ")
 	query += fmt.Sprintf(" WHERE MERCHANT_TYPE = 'EVENT' AND ID = :%d", index)
