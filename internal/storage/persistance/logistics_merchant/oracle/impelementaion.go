@@ -8,6 +8,8 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 
 	shared_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -270,7 +272,71 @@ func (q *LogisticsMerchantOracle) FindByID(ctx context.Context, id string) (*mod
 
 // FindOne implements [storage.LogisticsMerchantRepository].
 func (q *LogisticsMerchantOracle) FindOne(ctx context.Context, filter bson.M) (*model.LogisticsMerchantOracle, error) {
-	panic("unimplemented")
+	var conditions []string
+	var args []interface{}
+	paramIdx := 1
+
+	// BankAccountNumber + MerchantCode
+	if bankAcc, ok := filter["bank_account_number"].(string); ok && bankAcc != "" {
+		if merchantCode, ok := filter["merchant_id"].(string); ok && merchantCode != "" {
+			cond := fmt.Sprintf("(merchant_account_number = :%d AND merchant_code = :%d)", paramIdx, paramIdx+1)
+			conditions = append(conditions, cond)
+			args = append(args, bankAcc, merchantCode)
+			paramIdx += 2
+		}
+	}
+
+	// MerchantCode only (if not already used above)
+	if merchantCode, ok := filter["merchant_id"].(string); ok && merchantCode != "" {
+		// Only add merchant_code only condition if bank_account_number was not present
+		if _, ok := filter["bank_account_number"].(string); !ok || filter["bank_account_number"].(string) == "" {
+			cond := fmt.Sprintf("merchant_code = :%d", paramIdx)
+			conditions = append(conditions, cond)
+			args = append(args, merchantCode)
+			paramIdx++
+		}
+	}
+
+	if len(conditions) == 0 {
+		return nil, nil
+	}
+
+	whereClause := "is_deleted = 0 AND (" + strings.Join(conditions, " OR ") + ")"
+
+	// ExcludeID (optional)
+	if excludeID, ok := filter["_id"].(string); ok && excludeID != "" {
+		whereClause += fmt.Sprintf(" AND id != HEXTORAW(:%d)", paramIdx)
+		args = append(args, excludeID)
+		paramIdx++
+	}
+
+	query := `SELECT id, merchant_account_number, merchant_code, merchant_name, settlement_method, merchant_type, contact_email, contact_phone, is_enabled, is_deleted, created_at, last_modified_at, deleted_at FROM merchants WHERE ` + whereClause + ` FETCH NEXT 1 ROWS ONLY`
+
+	row := q.db.QueryRowContext(ctx, query, args...)
+	var m model.LogisticsMerchantOracle
+	err := row.Scan(
+		&m.ID,
+		&m.MerchantAccountNumber,
+		&m.MerchantCode,
+		&m.MerchantName,
+		&m.SettlementMethod,
+		&m.MerchantType,
+		&m.ContactEmail,
+		&m.ContactPhone,
+		&m.IsEnabled,
+		&m.IsDeleted,
+		&m.CreatedAt,
+		&m.LastModifiedAt,
+		&m.DeletedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		q.logger.Errorf("[LogisticsMerchantOracle][FindOne] Query error: %v", err)
+		return nil, err
+	}
+	return &m, nil
 }
 
 // Update implements [storage.LogisticsMerchantRepository].
