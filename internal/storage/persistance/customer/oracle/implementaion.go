@@ -196,6 +196,10 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 			       u.contact_email,
 			       u.customer_number,
 			       u.is_superapp_active,
+				   u.is_ussd_active,
+				   u.is_super_app_enabled,
+				   u.is_ussd_enabled,
+				   u.is_blocked,
 			       u.birth_of_date,
 			       a.account_holder_name,
 			       a.account_type,
@@ -203,7 +207,6 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 			       ab.name,
 			       ab.code,
 			       la.is_active,
-			       u.is_ussd_active
 		       FROM users u
 		       JOIN account_blocks ab ON ab.code = u.branch_code
 		       JOIN linked_accounts la ON la.user_code = u.user_code
@@ -218,25 +221,25 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 	defer rows.Close()
 
 	var (
-		userID, fullName, gender, phone, email, customerNumber string
-		isSuperAppActive, isUSSDActive                         int
-		birthOfDate                                            sql.NullTime
-		linkedAccounts                                         []customer.LinkedAccount
-		fetchedFirstRow                                        bool
+		userID, fullName, gender, phone, email, customerNumber                      string
+		isSuperAppActive, isUSSDActive, isBlocked, isSuperAppEnabled, isUSSDEnalbed int
+		birthOfDate                                                                 sql.NullTime
+		linkedAccounts                                                              []customer.LinkedAccount
+		fetchedFirstRow                                                             bool
 	)
 
 	for rows.Next() {
 		var (
-			accHolder, accType, accNum, branchName, branchCode                       sql.NullString
-			isActiveAcc                                                              int
-			rowUserID, rowFullName, rowGender, rowPhone, rowEmail, rowCustomerNumber string
-			rowIsSuperAppActive, rowIsUSSDActive                                     int
-			rowBirthOfDate                                                           sql.NullTime
+			accHolder, accType, accNum, branchName, branchCode                                          sql.NullString
+			isActiveAcc                                                                                 int
+			rowUserID, rowFullName, rowGender, rowPhone, rowEmail, rowCustomerNumber                    string
+			rowIsSuperAppActive, rowIsUSSDActive, rowIsUSSDEnabled, rowIsSupperAppEnabled, rowIsBlocked int
+			rowBirthOfDate                                                                              sql.NullTime
 		)
 		if err := rows.Scan(
 			&rowUserID, &rowFullName, &rowGender, &rowPhone, &rowEmail, &rowCustomerNumber,
-			&rowIsSuperAppActive, &rowBirthOfDate,
-			&accHolder, &accType, &accNum, &branchName, &branchCode, &isActiveAcc, &rowIsUSSDActive,
+			&rowIsSuperAppActive, &rowIsUSSDActive, &rowIsSupperAppEnabled, &rowIsUSSDEnabled, &rowIsBlocked, &rowBirthOfDate,
+			&accHolder, &accType, &accNum, &branchName, &branchCode, &isActiveAcc,
 		); err != nil {
 			c.logger.Errorf("[CustomerRepository][FindCustomerDetailByID] scan failed: %v", err)
 			return nil, localization.ErrorUnexpectedError
@@ -249,7 +252,11 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 			phone = rowPhone
 			email = rowEmail
 			customerNumber = rowCustomerNumber
+			isBlocked = rowIsBlocked
 			isSuperAppActive = rowIsSuperAppActive
+			isSuperAppEnabled = rowIsSupperAppEnabled
+			isUSSDActive = rowIsUSSDActive
+			isUSSDEnalbed = rowIsUSSDEnabled
 			isUSSDActive = rowIsUSSDActive
 			birthOfDate = rowBirthOfDate
 			fetchedFirstRow = true
@@ -273,13 +280,17 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 		ID:            userID,
 		LinkedAccount: linkedAccounts,
 		PersonalInfo: customer.PersonalInfo{
-			FullName:       fullName,
-			Gender:         gender,
-			PhoneNumber:    phone,
-			Email:          email,
-			CustomerNumber: customerNumber,
-			IsActivated:    isSuperAppActive == 1,
-			DateOfBirth:    birthOfDate.Time.Format("2006-01-02"),
+			FullName:            fullName,
+			Gender:              gender,
+			PhoneNumber:         phone,
+			Email:               email,
+			CustomerNumber:      customerNumber,
+			IsActivated:         isBlocked == 1,
+			IsSupperAppActivate: isSuperAppActive == 1,
+			IsUSSDActivate:      isUSSDActive == 1,
+			IsSupperAppEnabled:  isSuperAppEnabled == 1,
+			IsUSSDEnabled:       isUSSDEnalbed == 1,
+			DateOfBirth:         birthOfDate.Time.Format("2006-01-02"),
 		},
 	}
 	if birthOfDate.Valid {
