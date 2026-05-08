@@ -520,12 +520,9 @@ WHERE id = HEXTORAW(:1)
 	  is_deleted = 1,
 	  deleted_at = SYSTIMESTAMP,
 	  last_modified_at = SYSTIMESTAMP
-	WHERE id = (
-	  SELECT access_list_id
-	  FROM services
-	  WHERE id = HEXTORAW(:1)
-	)
-	  AND is_deleted = 0`
+	WHERE
+	  id = HEXTORAW(:1)
+	AND is_deleted = 0`
 
 		result, err := tx.ExecContext(ctx, q, accessListID)
 		if err != nil {
