@@ -796,6 +796,8 @@ type EventMerchantRepository interface {
 	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
 	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error)
+	FindOneO(ctx context.Context, 	data *types.CheckMerchant) (*model.EventMerchant, error)
+
 }
 type LogisticsMerchantRepository interface {
 	FindOne(ctx context.Context, filter bson.M) (*local_model.LogisticsMerchant, error)

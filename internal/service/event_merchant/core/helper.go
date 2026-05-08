@@ -58,7 +58,25 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 
 	return accountDetail, nil
 }
-
+func CheckEventMercahntExist(ctx context.Context,EventMerchantRepo storage.EventMerchantRepository,data *types.CheckMerchant)(bool,error) {
+	if data ==nil {
+		return false ,nil
+	}
+	exist,err := EventMerchantRepo.FindOneO(ctx,data)
+	if err != nil {
+		if err != nil {
+			if err.Error() == localization.ErrorResourceNotFound.Code{
+				return false,nil
+			}
+		}
+		return false,err
+	}
+	
+	if exist == nil {
+		return false ,nil
+	}
+	return true,nil
+}
 func CheckMerchantExists(
 	ctx context.Context,
 	merchantRepo storage.EventMerchantRepository,
@@ -122,6 +140,7 @@ func CheckMerchantExists(
 
 	return true, nil
 }
+
 func MergeEventMerchantData(old, data *model.EventMerchant) *model.EventMerchant {
 	now := time.Now()
 

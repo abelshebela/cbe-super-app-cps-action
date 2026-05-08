@@ -216,12 +216,19 @@ func (e *EventMerchantService) Create(ctx context.Context, eventMerchant model.E
 
 	e.logger.Infof("[EventMerchSvc][Create] name: %s", eventMerchant.MerchantName)
 
-	exist, err := core.CheckMerchantExists(ctx, e.repo, &types.CheckMerchant{
+	// exist, err := core.CheckMerchantExists(ctx, e.repo, &types.CheckMerchant{
+	// 	BankAccountNumber: eventMerchant.BankAccountNumber,
+	// 	MerchantCode:      eventMerchant.MerchantID,
+	// 	Email:             eventMerchant.Email,
+	// 	PhoneNumber:       eventMerchant.PhoneNumber,
+	// }, nil)
+
+	exist, err := core.CheckEventMercahntExist(ctx, e.repo, &types.CheckMerchant{
 		BankAccountNumber: eventMerchant.BankAccountNumber,
 		MerchantCode:      eventMerchant.MerchantID,
 		Email:             eventMerchant.Email,
 		PhoneNumber:       eventMerchant.PhoneNumber,
-	}, nil)
+	})
 	if err != nil {
 		e.logger.Errorf("[EventMerchSvc][Create] exist check err: %v", err)
 		if err.Error() != localization.ErrorResourceNotFound.Code {

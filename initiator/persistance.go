@@ -27,7 +27,7 @@ import (
 	deviceversioncontrol "cbe-super-app-cps-action/internal/storage/persistance/device_version_control"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation_category"
-	"cbe-super-app-cps-action/internal/storage/persistance/event"
+	// "cbe-super-app-cps-action/internal/storage/persistance/event"
 	event_merchant_repository "cbe-super-app-cps-action/internal/storage/persistance/event_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/icon"
 	"cbe-super-app-cps-action/internal/storage/persistance/linked_account"
@@ -104,7 +104,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		DonationCategoryPersistence:       donation_category.NewDonationCategoryRepository(client, cfg, dbName, DonationCategoriesCollection, clientOrchestrationProducer, logger),
 		ArchivedUserPersistence:           archived_user.NewArchivedUserRepository(client, cfg, dbName, ArchievedUsersCollection, logger),
 		DonationCompanyPersistence:        donation_company.NewDonationCompanyRepository(client, cfg, dbName, DonationCompaniesCollection, clientOrchestrationProducer, logger),
-		EventPersistence:                  event.NewEventRepository(client, cfg, dbName, EventsCollection, logger),
+		// EventPersistence:                  event.NewEventRepository(client, cfg, dbName, EventsCollection, logger),
 		PasswordRulePersistent:            password.NewPasswordRuleRepository(client, cfg, dbName, PasswordRulesCollection, logger),
 		FeedbackPersistence:               feedback.NewFeedbackRepository(client, cfg, dbName, FeedbackCollection, CustomerFeedbackCollection, SurveyFeedbackCollection, logger),
 		IconPersistence:                   icon.NewIconRepository(client, cfg, dbName, IconsCollection, logger),

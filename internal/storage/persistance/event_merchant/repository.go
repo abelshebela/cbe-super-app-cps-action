@@ -182,3 +182,8 @@ func (m *EventMerchantRepository) FindOne(ctx context.Context, filter bson.M) (*
 	}
 	return result, nil
 }
+
+func(m *EventMerchantRepository) FindOneO(ctx context.Context, 	data *types.CheckMerchant) (*model.EventMerchant, error){
+		// not impli
+		return nil,nil
+	}
