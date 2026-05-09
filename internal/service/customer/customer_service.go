@@ -503,5 +503,18 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 		res.PersonalInfo.Gender = coreRes[0].Gender
 		res.PersonalInfo.Email = coreRes[0].Email
 	}
+	// for i, linkedAccount := range res.LinkedAccount {
+	// 	coreResBranch, err := d.core.LookupAccountByAccountNumberFromBps(ctx, linkedAccount.AccountNumber)
+	// 	if err != nil {
+	// 		d.logger.Errorf("[CustomerSvc][GetCustomerDetailByID] LookupAccountByAccountNumberFromBps error: %v", err)
+	// 		span.AddEvent("Failed to lookup account by account number from BPS", trace.WithAttributes(
+	// 			attribute.String("error", err.Error()),
+	// 			attribute.String("account_number", linkedAccount.AccountNumber),
+	// 		))
+	// 		continue
+	// 	}
+	// 	res.LinkedAccount[i].AccountBranchCode = coreResBranch.Data.AccountBranchCode
+	// 	res.LinkedAccount[i].AccountBranchName = coreResBranch.Data.na
+	// }
 	return res, nil
 }
