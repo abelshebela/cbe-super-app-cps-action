@@ -10,6 +10,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	shared_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -30,7 +31,7 @@ func NewLogisticsMerchantOracleRepository(db *sql.DB, log utils.Logger) storage.
 
 // CheckAccountOrCreate implements [storage.LogisticsMerchantOracleRepository].
 func (q *LogisticsMerchantOracle) CheckAccountOrCreate(ctx context.Context, account_detail *shared_model.AccountDetail) error {
-	checkAccountExistsQuery := `SELECT id FROM accounts where account_number = :1`
+	checkAccountExistsQuery := `SELECT RAWTOHEX(id) FROM accounts where account_number = :1`
 	var id string
 	err := q.db.QueryRowContext(ctx, checkAccountExistsQuery, account_detail.AccountNumber).Scan(&id)
 	if err != nil {
@@ -43,7 +44,7 @@ func (q *LogisticsMerchantOracle) CheckAccountOrCreate(ctx context.Context, acco
 		return nil // Account already exists, no error
 	}
 
-	findBankIDForISCBEQuery := `SELECT id FROM banks where is_cbe=1 AND is_enabled=1 AND is_deleted=0`
+	findBankIDForISCBEQuery := `SELECT RAWTOHEX(id) FROM banks where is_cbe=1 AND is_enabled=1 AND is_deleted=0`
 
 	var bankID string
 	err = q.db.QueryRowContext(ctx, findBankIDForISCBEQuery).Scan(&bankID)
@@ -157,7 +158,7 @@ func (q *LogisticsMerchantOracle) FindAllWithPagination(ctx context.Context, fil
 	args := []interface{}{}
 	argIdx := 1
 	if filterParam.Search != "" {
-		where += " AND (LOWER(merchant_code) LIKE :" + string(rune(argIdx)) + " OR LOWER(merchant_name) LIKE :" + string(rune(argIdx)) + " OR LOWER(contact_email) LIKE :" + string(rune(argIdx)) + " OR LOWER(contact_phone) LIKE :" + string(rune(argIdx)) + ")"
+		where += fmt.Sprintf(" AND (LOWER(merchant_code) LIKE :%d OR LOWER(merchant_name) LIKE :%d OR LOWER(contact_email) LIKE :%d OR LOWER(contact_phone) LIKE :%d)", argIdx, argIdx+1, argIdx+2, argIdx+3)
 		search := "%" + filterParam.Search + "%"
 		args = append(args, search, search, search, search)
 		argIdx += 4
@@ -165,12 +166,12 @@ func (q *LogisticsMerchantOracle) FindAllWithPagination(ctx context.Context, fil
 	// Add more filters as needed (merchant_type, is_enabled, etc.)
 	if filterParam.Filters != nil {
 		if v, ok := filterParam.Filters["merchant_type"].(string); ok && v != "" {
-			where += " AND merchant_type = :" + string(rune(argIdx))
+			where += fmt.Sprintf(" AND merchant_type = :%d", argIdx)
 			args = append(args, v)
 			argIdx++
 		}
 		if v, ok := filterParam.Filters["is_enabled"].(bool); ok {
-			where += " AND is_enabled = :" + string(rune(argIdx))
+			where += fmt.Sprintf(" AND is_enabled = :%d", argIdx)
 			if v {
 				args = append(args, 1)
 			} else {
@@ -198,7 +199,7 @@ func (q *LogisticsMerchantOracle) FindAllWithPagination(ctx context.Context, fil
 		return nil, localization.ErrorUnexpectedError
 	}
 	// Data query
-	dataQuery := `SELECT id, merchant_account_number, merchant_code, merchant_name, settlement_method, merchant_type, contact_email, contact_phone, is_enabled, is_deleted, created_at, last_modified_at, deleted_at FROM merchants ` + where + ` ORDER BY created_at DESC OFFSET :` + string(rune(argIdx)) + ` ROWS FETCH NEXT :` + string(rune(argIdx+1)) + ` ROWS ONLY`
+	dataQuery := fmt.Sprintf(`SELECT RAWTOHEX(id), merchant_account_number, merchant_code, merchant_name, settlement_method, merchant_type, contact_email, contact_phone, is_enabled, is_deleted, created_at, last_modified_at, deleted_at FROM merchants %s ORDER BY created_at DESC OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY`, where, argIdx, argIdx+1)
 	args = append(args, offset, perPage)
 	rows, err := q.db.QueryContext(ctx, dataQuery, args...)
 	if err != nil {
@@ -209,6 +210,7 @@ func (q *LogisticsMerchantOracle) FindAllWithPagination(ctx context.Context, fil
 	var merchants []model.LogisticsMerchantOracle
 	for rows.Next() {
 		var m model.LogisticsMerchantOracle
+		var createdAt, lastModifiedAt, deletedAt sql.NullTime
 		err := rows.Scan(
 			&m.ID,
 			&m.MerchantAccountNumber,
@@ -220,13 +222,28 @@ func (q *LogisticsMerchantOracle) FindAllWithPagination(ctx context.Context, fil
 			&m.ContactPhone,
 			&m.IsEnabled,
 			&m.IsDeleted,
-			&m.CreatedAt,
-			&m.LastModifiedAt,
-			&m.DeletedAt,
+			&createdAt,
+			&lastModifiedAt,
+			&deletedAt,
 		)
 		if err != nil {
 			q.logger.Errorf("[LogisticsMerchantOracle][FindAllWithPagination] Row scan error: %v", err)
 			continue
+		}
+		if createdAt.Valid {
+			m.CreatedAt = createdAt.Time
+		} else {
+			m.CreatedAt = time.Time{}
+		}
+		if lastModifiedAt.Valid {
+			m.LastModifiedAt = lastModifiedAt.Time
+		} else {
+			m.LastModifiedAt = time.Time{}
+		}
+		if deletedAt.Valid {
+			m.DeletedAt = deletedAt.Time
+		} else {
+			m.DeletedAt = time.Time{}
 		}
 		merchants = append(merchants, m)
 	}
@@ -241,9 +258,10 @@ func (q *LogisticsMerchantOracle) FindAllWithPagination(ctx context.Context, fil
 // FindByID implements [storage.LogisticsMerchantRepository].
 func (q *LogisticsMerchantOracle) FindByID(ctx context.Context, id string) (*model.LogisticsMerchantOracle, error) {
 	q.logger.Debugf("[LogisticsMerchantOracle][FindByID] Fetching logistics merchant with id=%s", id)
-	query := `SELECT id, merchant_account_number, merchant_code, merchant_name, settlement_method, merchant_type, contact_email, contact_phone, is_enabled, is_deleted, created_at, last_modified_at, deleted_at FROM merchants WHERE id = HEXTORAW(:1) AND is_deleted = 0`
+	query := `SELECT RAWTOHEX(id), merchant_account_number, merchant_code, merchant_name, settlement_method, merchant_type, contact_email, contact_phone, is_enabled, is_deleted, created_at, last_modified_at, deleted_at FROM merchants WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 	row := q.db.QueryRowContext(ctx, query, id)
 	var m model.LogisticsMerchantOracle
+	var createdAt, lastModifiedAt, deletedAt sql.NullTime
 	err := row.Scan(
 		&m.ID,
 		&m.MerchantAccountNumber,
@@ -255,9 +273,9 @@ func (q *LogisticsMerchantOracle) FindByID(ctx context.Context, id string) (*mod
 		&m.ContactPhone,
 		&m.IsEnabled,
 		&m.IsDeleted,
-		&m.CreatedAt,
-		&m.LastModifiedAt,
-		&m.DeletedAt,
+		&createdAt,
+		&lastModifiedAt,
+		&deletedAt,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -266,6 +284,21 @@ func (q *LogisticsMerchantOracle) FindByID(ctx context.Context, id string) (*mod
 		}
 		q.logger.Errorf("[LogisticsMerchantOracle][FindByID] Query error: %v", err)
 		return nil, localization.ErrorUnexpectedError
+	}
+	if createdAt.Valid {
+		m.CreatedAt = createdAt.Time
+	} else {
+		m.CreatedAt = time.Time{}
+	}
+	if lastModifiedAt.Valid {
+		m.LastModifiedAt = lastModifiedAt.Time
+	} else {
+		m.LastModifiedAt = time.Time{}
+	}
+	if deletedAt.Valid {
+		m.DeletedAt = deletedAt.Time
+	} else {
+		m.DeletedAt = time.Time{}
 	}
 	return &m, nil
 }
@@ -310,10 +343,11 @@ func (q *LogisticsMerchantOracle) FindOne(ctx context.Context, filter bson.M) (*
 		paramIdx++
 	}
 
-	query := `SELECT id, merchant_account_number, merchant_code, merchant_name, settlement_method, merchant_type, contact_email, contact_phone, is_enabled, is_deleted, created_at, last_modified_at, deleted_at FROM merchants WHERE ` + whereClause + ` FETCH NEXT 1 ROWS ONLY`
+	query := `SELECT RAWTOHEX(id), merchant_account_number, merchant_code, merchant_name, settlement_method, merchant_type, contact_email, contact_phone, is_enabled, is_deleted, created_at, last_modified_at, deleted_at FROM merchants WHERE ` + whereClause + ` FETCH NEXT 1 ROWS ONLY`
 
 	row := q.db.QueryRowContext(ctx, query, args...)
 	var m model.LogisticsMerchantOracle
+	var createdAt, lastModifiedAt, deletedAt sql.NullTime
 	err := row.Scan(
 		&m.ID,
 		&m.MerchantAccountNumber,
@@ -325,9 +359,9 @@ func (q *LogisticsMerchantOracle) FindOne(ctx context.Context, filter bson.M) (*
 		&m.ContactPhone,
 		&m.IsEnabled,
 		&m.IsDeleted,
-		&m.CreatedAt,
-		&m.LastModifiedAt,
-		&m.DeletedAt,
+		&createdAt,
+		&lastModifiedAt,
+		&deletedAt,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -335,6 +369,21 @@ func (q *LogisticsMerchantOracle) FindOne(ctx context.Context, filter bson.M) (*
 		}
 		q.logger.Errorf("[LogisticsMerchantOracle][FindOne] Query error: %v", err)
 		return nil, err
+	}
+	if createdAt.Valid {
+		m.CreatedAt = createdAt.Time
+	} else {
+		m.CreatedAt = time.Time{}
+	}
+	if lastModifiedAt.Valid {
+		m.LastModifiedAt = lastModifiedAt.Time
+	} else {
+		m.LastModifiedAt = time.Time{}
+	}
+	if deletedAt.Valid {
+		m.DeletedAt = deletedAt.Time
+	} else {
+		m.DeletedAt = time.Time{}
 	}
 	return &m, nil
 }

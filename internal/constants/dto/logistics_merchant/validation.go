@@ -37,11 +37,15 @@ func Validation(v any) error {
 		}
 
 	case UpdateLogisticsMerchantRequest:
-		if !allowedCharsRegex.MatchString(req.MerchantName) {
-			return errors.New("Merchant name must not contain special characters")
+		if strings.TrimSpace(req.MerchantName) != "" {
+			if !allowedCharsRegex.MatchString(req.MerchantName) {
+				return errors.New("Merchant name must not contain special characters")
+			}
 		}
-		if !allowedCharsRegex.MatchString(req.BankAccountNumber) {
-			return errors.New("Bank account number must not contain special characters")
+		if strings.TrimSpace(req.BankAccountNumber) != "" {
+			if !allowedCharsRegex.MatchString(req.BankAccountNumber) {
+				return errors.New("Bank account number must not contain special characters")
+			}
 		}
 		// if strings.TrimSpace(req.Email) != "" {
 		// 	return errors.New(localization.ErrorLogisticMerchantInvalidEmail.Message)

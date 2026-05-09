@@ -5,6 +5,7 @@ import (
 	erp_merchant_update_dto "cbe-super-app-cps-action/internal/constants/dto/erp_merchant_update"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"encoding/json"
 
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
@@ -48,8 +49,17 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "LogisticsMerchant", "Authorize")
 	defer span.End()
 
-	merchant, err := local_util.JsonUnmarshal[local_model.LogisticsMerchantOracle](cpsAction.CurrentAction)
+	var merchant local_model.LogisticsMerchantOracle
+	raw, err := json.Marshal(cpsAction.CurrentAction)
 	if err != nil {
+		e.logger.Errorf("[LogisMerchSvc][Authorize] marshal err: %v", err)
+		span.AddEvent("Failed to marshal CurrentAction", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", cpsAction.UniqueId),
+		))
+		return nil, errors.New(localization.ErrorServiceUnhandledServerError.Code)
+	}
+	if err := json.Unmarshal(raw, &merchant); err != nil {
 		e.logger.Errorf("[LogisMerchSvc][Authorize] unmarshal err: %v", err)
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -60,7 +70,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateLogisticsMerchant):
-		err = e.repo.Create(ctx, *merchant)
+		err = e.repo.Create(ctx, merchant)
 		if err != nil {
 			span.AddEvent("Failed to create Logistics merchant", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -82,7 +92,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 		}
 
 	case string(constants.RequestUpdateLogisticsMerchant):
-		err = e.repo.Update(ctx, cpsAction.UniqueId, *merchant)
+		err = e.repo.Update(ctx, cpsAction.UniqueId, merchant)
 		if err != nil {
 			span.AddEvent("Failed to update Logistics merchant", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -238,23 +248,23 @@ func (e *LogisticsMerchantService) Create(ctx context.Context, LogisticsMerchant
 		return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
 
-	account_detail, err := core.ValidateAccountNumberWithExternalAPI(ctx, LogisticsMerchant.MerchantAccountNumber, e.accountLookupService)
-	if err != nil {
-		e.logger.Errorf("[LogisMerchSvc][Create] acct validation err: %v", err)
-		span.AddEvent("Account number validation failed", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("bank_account_number", LogisticsMerchant.MerchantAccountNumber),
-		))
-		return err
-	}
-	if err := e.repo.CheckAccountOrCreate(ctx, account_detail); err != nil {
-		e.logger.Errorf("[LogisMerchSvc][Create] acct creation err: %v", err)
-		span.AddEvent("Failed to create account", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("bank_account_number", LogisticsMerchant.MerchantAccountNumber),
-		))
-		return err
-	}
+	// account_detail, err := core.ValidateAccountNumberWithExternalAPI(ctx, LogisticsMerchant.MerchantAccountNumber, e.accountLookupService)
+	// if err != nil {
+	// 	e.logger.Errorf("[LogisMerchSvc][Create] acct validation err: %v", err)
+	// 	span.AddEvent("Account number validation failed", trace.WithAttributes(
+	// 		attribute.String("error", err.Error()),
+	// 		attribute.String("bank_account_number", LogisticsMerchant.MerchantAccountNumber),
+	// 	))
+	// 	return err
+	// }
+	// if err := e.repo.CheckAccountOrCreate(ctx, account_detail); err != nil {
+	// 	e.logger.Errorf("[LogisMerchSvc][Create] acct creation err: %v", err)
+	// 	span.AddEvent("Failed to create account", trace.WithAttributes(
+	// 		attribute.String("error", err.Error()),
+	// 		attribute.String("bank_account_number", LogisticsMerchant.MerchantAccountNumber),
+	// 	))
+	// 	return err
+	// }
 
 	err = core.HandleCPSActionForLogisticsMerchant(ctx, e.cpsService, "", constants.RequestCreateLogisticsMerchant, LogisticsMerchant, nil, constants.ActionCreate)
 	if err != nil {
