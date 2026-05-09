@@ -13,4 +13,7 @@ type EcommerceMerchant interface {
 	Update(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
 	MerchantLookup(w http.ResponseWriter, r *http.Request)
+	DeleteBranch(w http.ResponseWriter, r *http.Request)
+	EnableBranch(w http.ResponseWriter, r *http.Request)
+	DisableBranch(w http.ResponseWriter, r *http.Request)
 }

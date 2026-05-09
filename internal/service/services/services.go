@@ -238,6 +238,14 @@ func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error
 		return err
 	}
 
+	service, err := s.repo.FindServiceByAccessListID(ctx, id)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		return err
+	}
+	if service != nil {
+		return errors.New("There is an active service with this access list")
+	}
+
 	s.logger.Infof("[servicesService][DeleteServiceKey] Deleting service key with id=%s, found service list: %+v", id, prev)
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
 }

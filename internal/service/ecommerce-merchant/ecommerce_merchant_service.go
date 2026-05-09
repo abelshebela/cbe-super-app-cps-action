@@ -306,6 +306,28 @@ func (m *ecommerceMerchantService) Delete(ctx context.Context, id string) error 
 	return nil
 }
 
+func (m *ecommerceMerchantService) DeleteBranch(ctx context.Context, id string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteBranch", "EcommerceMerchant", "DeleteBranch")
+	defer span.End()
+
+	branch, err := m.repo.FindBranchByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	err = core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestDeleteEcommerceMerchantBranch, nil, *branch, constants.ActionDelete)
+	if err != nil {
+		m.logger.Errorf("[EcomMerchSvc][Delete] cps action err id=%s: %v", id, err)
+		span.AddEvent("CPS action failed", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+
+	return nil
+}
+
 func (m *ecommerceMerchantService) EnableOrDisable(ctx context.Context, ids []string, enable bool) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisable", "MiniAppMerchant", "EnableOrDisable")
 	defer span.End()
@@ -363,6 +385,55 @@ func (m *ecommerceMerchantService) EnableOrDisable(ctx context.Context, ids []st
 	}
 
 	m.logger.Infof("[EcomMerchSvc][EnableDisable] done ids: %v enabled: %v", ids, enable)
+	return nil
+}
+
+func (m *ecommerceMerchantService) EnableOrDisableBranch(ctx context.Context, id string, enable bool) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableBranch", "EcommerceMerchant", "EnableOrDisableBranch")
+	defer span.End()
+
+	branch, err := m.repo.FindBranchByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if enable && branch.IsEnabled {
+		m.logger.Warnf("[EcomMerchSvc][EnableOrDisableBranch] already enabled id: %s", id)
+		span.AddEvent("Merchant already enabled", trace.WithAttributes(
+			attribute.String("error", localization.ErrorEcommerceMerchantEnableFailed.Code),
+			attribute.String("id", id),
+		))
+		return errors.New("Ecommerce merchant branch is already enabled")
+	}
+	if !enable && !branch.IsEnabled {
+		m.logger.Warnf("[EcomMerchSvc][EnableOrDisableBranch] already disabled id: %s", id)
+		span.AddEvent("Merchant already disabled", trace.WithAttributes(
+			attribute.String("error", localization.ErrorEcommerceMerchantDisableFailed.Code),
+			attribute.String("id", id),
+		))
+		return errors.New("Ecommerce merchant branch is already disabled")
+	}
+
+	var RAction constants.RequestAction
+	if enable {
+		RAction = constants.RequestEnableEcommerceMerchantBranch
+	} else {
+		RAction = constants.RequestDisableEcommerceMerchantBranch
+	}
+
+	updatedBranch := *branch
+	updatedBranch.IsEnabled = enable
+
+	err = core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, RAction, updatedBranch, *branch, constants.ActionUpdate)
+	if err != nil {
+		m.logger.Errorf("[EcomMerchSvc][EnableDisable] cps action err id=%s: %v", id, err)
+		span.AddEvent("CPS action failed", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+
 	return nil
 }
 
@@ -488,6 +559,34 @@ func (m *ecommerceMerchantService) Authorize(ctx context.Context, cpsAction *mod
 				))
 			}
 		}
+	case string(constants.RequestDeleteEcommerceMerchantBranch):
+		if err := m.repo.DeleteBranch(ctx, cpsAction.UniqueId); err != nil {
+			m.logger.Errorf("[EcomMerchSvc][DeleteBranch] err id=%s: %v", cpsAction.UniqueId, err)
+			span.AddEvent("Failed to delete branch", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
+	case string(constants.RequestEnableEcommerceMerchantBranch):
+		if err := m.repo.EnableOrDisableBranch(ctx, cpsAction.UniqueId, true); err != nil {
+			m.logger.Errorf("[EcomMerchSvc][EnableDisableBranch] err id=%s: %v", cpsAction.UniqueId, err)
+			span.AddEvent("Failed to update branch status", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
+	case string(constants.RequestDisableEcommerceMerchantBranch):
+		if err := m.repo.EnableOrDisableBranch(ctx, cpsAction.UniqueId, false); err != nil {
+			m.logger.Errorf("[EcomMerchSvc][EnableDisableBranch] err id=%s: %v", cpsAction.UniqueId, err)
+			span.AddEvent("Failed to update branch status", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
+
 	default:
 		m.logger.Errorf("[EcomMerchSvc][Authorize] unsupported: %s", cpsAction.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(

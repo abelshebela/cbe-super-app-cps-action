@@ -480,6 +480,29 @@ WHERE MERCHANT_ID = HEXTORAW(:1) AND IS_DELETED = 0`
 	return nil
 }
 
+func (m *EcommerceMerchantStorage) DeleteBranch(ctx context.Context, id string) error {
+	const q = `
+UPDATE MERCHANT_BRANCHES
+SET
+	IS_DELETED = 1,
+	DELETED_AT = SYSTIMESTAMP,
+	LAST_MODIFIED_AT = SYSTIMESTAMP
+WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
+
+	res, err := m.db.ExecContext(ctx, q, id)
+	if err != nil {
+		m.logger.Errorf("[EcommerceMerchantRepo][DeleteBranch] failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return errors.New(localization.ErrorEcommerceMerchantNotFound.Code)
+	}
+
+	return nil
+}
+
 func (m *EcommerceMerchantStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	tx, err := m.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -524,6 +547,28 @@ WHERE MERCHANT_ID = HEXTORAW(:2) AND IS_DELETED = 0`
 	return nil
 }
 
+func (m *EcommerceMerchantStorage) EnableOrDisableBranch(ctx context.Context, id string, enable bool) error {
+	const q = `
+UPDATE MERCHANT_BRANCHES
+SET
+	IS_ENABLED = :1,
+	LAST_MODIFIED_AT = SYSTIMESTAMP
+WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
+
+	res, err := m.db.ExecContext(ctx, q, boolToOracleNumber(enable), id)
+	if err != nil {
+		m.logger.Errorf("[EcommerceMerchantRepo][EnableOrDisableBranch] failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return errors.New(localization.ErrorEcommerceMerchantNotFound.Code)
+	}
+
+	return nil
+}
+
 func (m *EcommerceMerchantStorage) FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error) {
 	const q = `
 SELECT
@@ -558,6 +603,40 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 	merchant.Branches = branches
 
 	return merchant, nil
+}
+
+func (m *EcommerceMerchantStorage) FindBranchByID(ctx context.Context, id string) (*model.BranchInformation, error) {
+	const q = `
+SELECT RAWTOHEX(ID), BRANCH_CODE, BRANCH_NAME, BRANCH_ADDRESS, BRANCH_OWNER, BRANCH_ACCOUNT_NUMBER, IS_ENABLED
+FROM MERCHANT_BRANCHES
+WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
+
+	var branch model.BranchInformation
+	var address, owner sql.NullString
+	if err := m.db.QueryRowContext(ctx, q, id).Scan(
+		&branch.ID,
+		&branch.BranchCode,
+		&branch.BranchName,
+		&address,
+		&owner,
+		&branch.BranchAccountNumber,
+		&branch.IsEnabled,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New(localization.ErrorEcommerceMerchantBranchNotFound.Code)
+		}
+		m.logger.Errorf("[EcommerceMerchantRepo][FindBranchByID] query failed: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	if address.Valid {
+		branch.BranchAddress = address.String
+	}
+	if owner.Valid {
+		branch.BranchOwner = owner.String
+	}
+
+	return &branch, nil
 }
 
 func (m *EcommerceMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error) {

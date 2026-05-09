@@ -537,7 +537,10 @@ type EcommerceMerchantRepository interface {
 	Update(ctx context.Context, id string, merchant *model.EcommerceMerchant) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	DeleteBranch(ctx context.Context, id string) error
+	EnableOrDisableBranch(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
+	FindBranchByID(ctx context.Context, id string) (*model.BranchInformation, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error)
 	FindOne(ctx context.Context, filter bson.M) (*model.EcommerceMerchant, error)
 }

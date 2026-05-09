@@ -148,11 +148,14 @@ const (
 	RequestEnableWallet               constants.RequestAction = "ENABLE_WALLET"
 	RequestDisableWallet              constants.RequestAction = "DISABLE_WALLET"
 
-	RequestCreateEcommerceMerchant  constants.RequestAction = "CREATE_ECOMMERCE_MERCHANT"
-	RequestUpdateEcommerceMerchant  constants.RequestAction = "UPDATE_ECOMMERCE_MERCHANT"
-	RequestEnableEcommerceMerchant  constants.RequestAction = "ENABLE_ECOMMERCE_MERCHANT"
-	RequestDisableEcommerceMerchant constants.RequestAction = "DISABLE_ECOMMERCE_MERCHANT"
-	RequestDeleteEcommerceMerchant  constants.RequestAction = "DELETE_ECOMMERCE_MERCHANT"
+	RequestCreateEcommerceMerchant        constants.RequestAction = "CREATE_ECOMMERCE_MERCHANT"
+	RequestUpdateEcommerceMerchant        constants.RequestAction = "UPDATE_ECOMMERCE_MERCHANT"
+	RequestEnableEcommerceMerchant        constants.RequestAction = "ENABLE_ECOMMERCE_MERCHANT"
+	RequestDisableEcommerceMerchant       constants.RequestAction = "DISABLE_ECOMMERCE_MERCHANT"
+	RequestDeleteEcommerceMerchant        constants.RequestAction = "DELETE_ECOMMERCE_MERCHANT"
+	RequestDeleteEcommerceMerchantBranch  constants.RequestAction = "DELETE_ECOMMERCE_MERCHANT_BRANCH"
+	RequestEnableEcommerceMerchantBranch  constants.RequestAction = "ENABLE_ECOMMERCE_MERCHANT_BRANCH"
+	RequestDisableEcommerceMerchantBranch constants.RequestAction = "DISABLE_ECOMMERCE_MERCHANT_BRANCH"
 
 	// Services catalog (model.Services)
 	RequestCreateService      constants.RequestAction = "CREATE_SERVICE"
@@ -439,11 +442,14 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestBpsUserEnable:  {},
 	RequestBpsUserDisable: {},
 
-	RequestCreateEcommerceMerchant:  {},
-	RequestUpdateEcommerceMerchant:  {},
-	RequestEnableEcommerceMerchant:  {},
-	RequestDisableEcommerceMerchant: {},
-	RequestDeleteEcommerceMerchant:  {},
+	RequestCreateEcommerceMerchant:        {},
+	RequestUpdateEcommerceMerchant:        {},
+	RequestEnableEcommerceMerchant:        {},
+	RequestDisableEcommerceMerchant:       {},
+	RequestDeleteEcommerceMerchant:        {},
+	RequestDeleteEcommerceMerchantBranch:  {},
+	RequestEnableEcommerceMerchantBranch:  {},
+	RequestDisableEcommerceMerchantBranch: {},
 
 	RequestCreateDonationCategory: {},
 	RequestUpdateDonationCategory: {},
@@ -1198,6 +1204,9 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestEnableEcommerceMerchant,
 		RequestDisableEcommerceMerchant,
 		RequestDeleteEcommerceMerchant,
+		RequestDeleteEcommerceMerchantBranch,
+		RequestEnableEcommerceMerchantBranch,
+		RequestDisableEcommerceMerchantBranch,
 	},
 	"CPSROLE": {
 		RequestCreateCpsRole,

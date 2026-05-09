@@ -407,6 +407,11 @@ func NoSpecialChars(value any) error {
 	return nil
 }
 
+func IsOracleHexID(s string) bool {
+	re := regexp.MustCompile(`^[A-Fa-f0-9]{32}$`)
+	return re.MatchString(s)
+}
+
 func NormalizePhoneNumberOrReturnInput(input string) string {
 	phone := strings.TrimSpace(input)
 
