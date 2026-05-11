@@ -62,6 +62,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/bulk_service"
 	"cbe-super-app-cps-action/internal/storage/persistance/customer"
 	persistence_kyc "cbe-super-app-cps-action/internal/storage/persistance/customer_kyc"
+	user_action_log_repo "cbe-super-app-cps-action/internal/storage/persistance/user_action_log"
 	ussd_merchant_repo "cbe-super-app-cps-action/internal/storage/persistance/ussd_merchant"
 
 	"github.com/hugokessem/coreio/core"
@@ -141,6 +142,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		LogisticsMerchantPersistence: logistics_merchant_repository.NewLogisticsMerchantRepository(client, cfg, dbName, LogisticsMerchantsCollection, logger),
 		CustomerKYCPersistence:       persistence_kyc.NewCustomerKYCRepository(client, cfg, dbName, FaydaKYCollection, logger),
 		UssdMerchantPersistence:      ussd_merchant_repo.NewUssdMerchant(client, dbName, UssdMerchantCollection, cfg, logger),
+		UserActionLogPersistence:     user_action_log_repo.NewUserActionLogRepository(client, cfg, dbName, UserActionLogsCollection, logger),
 		ServicesPersistence:          nil, // Services repository is commented out - using Oracle instead
 	}
 

@@ -936,3 +936,10 @@ type WalletOracleRepository interface {
 	FindByIDForGRPC(ctx context.Context, id string) (*local_model.WalletOracle, error)
 	FindAllWithPaginationForGRPC(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
 }
+
+type UserActionLogRepository interface {
+	Save(ctx context.Context, log *imodel.UserActionLog) error
+	GetActionCodesByUser(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error)
+	GetActionCodesByUserAndAuditorStatus(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility, status string) ([]string, error)
+	GetLogsByActionCode(ctx context.Context, actionCode string) ([]imodel.UserActionLog, error)
+}
