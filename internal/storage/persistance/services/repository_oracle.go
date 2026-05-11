@@ -704,6 +704,68 @@ WHERE sk.id = HEXTORAW(:1) AND sk.is_deleted = 0`
 	return &svc, nil
 }
 
+func (s *ServicesStorage) FindSupperAppRoleByAccessList(ctx context.Context, accessListID string) (bool, error) {
+
+	const q = `SELECT ID FROM ACCESS_LIST_BY_SUPERAPP_ROLE WHERE ACCESS_LIST_ID = :1 AND IS_DELETED = 0`
+
+	var id string
+	err := s.db.QueryRowContext(ctx, q, accessListID).Scan(&id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		s.logger.Errorf("[ServiceRepo][FindSupperAppRoleByAccessList] query failed: %v", err)
+		return false, err
+	}
+	return true, nil
+}
+
+func (s *ServicesStorage) FindGeographicalLocationByAccessList(ctx context.Context, accessListID string) (bool, error) {
+	const q = `SELECT ID FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS WHERE ACCESS_LIST_ID = :1 AND IS_DELETED = 0`
+
+	var id string
+	err := s.db.QueryRowContext(ctx, q, accessListID).Scan(&id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		s.logger.Errorf("[ServiceRepo][FindGeographicalLocationByAccessList] query failed: %v", err)
+		return false, err
+	}
+	return true, nil
+
+}
+
+func (s *ServicesStorage) FindWalletByAccessList(ctx context.Context, accessListID string) (bool, error) {
+	const q = `SELECT ID FROM WALLETS WHERE SERVICE_ID = :1 AND IS_DELETED = 0`
+
+	var id string
+	err := s.db.QueryRowContext(ctx, q, accessListID).Scan(&id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		s.logger.Errorf("[ServiceRepo][FindWalletByAccessList] query failed: %v", err)
+		return false, err
+	}
+	return true, nil
+}
+
+func (s *ServicesStorage) FindDonationByAccessList(ctx context.Context, accessListID string) (bool, error) {
+	const q = `SELECT ID FROM DONATIONS WHERE SERVICE_ID = :1 AND IS_DELETED = 0`
+
+	var id string
+	err := s.db.QueryRowContext(ctx, q, accessListID).Scan(&id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		s.logger.Errorf("[ServiceRepo][FindDonationByAccessList] query failed: %v", err)
+		return false, err
+	}
+	return true, nil
+}
+
 func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error) {
 	limit := int64(maxPaginationDefault)
 	page := int64(1)

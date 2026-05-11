@@ -19,21 +19,24 @@ import (
 	coreio "github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type servicesService struct {
-	repo   storage.ServicesRepository
-	cps    service.CPSActionService
-	core   coreio.CBECoreAPIInterface
-	logger utils.Logger
+	repo         storage.ServicesRepository
+	ussdMerchant storage.UssdMerchantRepository
+	cps          service.CPSActionService
+	core         coreio.CBECoreAPIInterface
+	logger       utils.Logger
 }
 
-func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionService, core coreio.CBECoreAPIInterface, logger utils.Logger) *servicesService {
+func NewServicesService(repo storage.ServicesRepository, ussdMerchant storage.UssdMerchantRepository, cps service.CPSActionService, core coreio.CBECoreAPIInterface, logger utils.Logger) *servicesService {
 	return &servicesService{
-		repo:   repo,
-		cps:    cps,
-		core:   core,
-		logger: logger,
+		repo:         repo,
+		ussdMerchant: ussdMerchant,
+		cps:          cps,
+		core:         core,
+		logger:       logger,
 	}
 }
 
@@ -157,6 +160,37 @@ func (s *servicesService) DeleteServices(ctx context.Context, id string) error {
 		return err
 	}
 
+	// Check service
+	wal, err := s.repo.FindWalletByAccessList(ctx, id)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		return err
+	}
+	if wal {
+		return errors.New("There is an active wallet connected with this service")
+	}
+
+	// Check Donation
+	don, err := s.repo.FindDonationByAccessList(ctx, id)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		return err
+	}
+	if don {
+		return errors.New("There is an active donation connected with this service")
+	}
+
+	// Check ussd_merchants
+	if s.ussdMerchant != nil {
+		ussdMerchant, err := s.ussdMerchant.Find(ctx, bson.M{
+			"service": id,
+		})
+		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+			return err
+		}
+		if ussdMerchant.ID.Hex() != "" {
+			return errors.New("There is an active ussd merchant connected with this service")
+		}
+	}
+
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
 }
 
@@ -238,12 +272,31 @@ func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error
 		return err
 	}
 
+	// Check service
 	service, err := s.repo.FindServiceByAccessListID(ctx, id)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		return err
 	}
 	if service != nil {
 		return errors.New("There is an active service with this access list")
+	}
+
+	// Check Access list by superapp role
+	sar, err := s.repo.FindSupperAppRoleByAccessList(ctx, id)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		return err
+	}
+	if sar {
+		return errors.New("There is an active customer segmentation with this access list")
+	}
+
+	// Check Geographical Area
+	geo, err := s.repo.FindGeographicalLocationByAccessList(ctx, id)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		return err
+	}
+	if geo {
+		return errors.New("There is an active geographical_location with this access list")
 	}
 
 	s.logger.Infof("[servicesService][DeleteServiceKey] Deleting service key with id=%s, found service list: %+v", id, prev)

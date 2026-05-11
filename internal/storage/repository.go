@@ -108,6 +108,12 @@ type ServicesRepository interface {
 	UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error
 	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
 	DeleteServiceKey(ctx context.Context, id string) error
+
+	FindSupperAppRoleByAccessList(ctx context.Context, accessListID string) (bool, error)
+	FindGeographicalLocationByAccessList(ctx context.Context, accessListID string) (bool, error)
+
+	FindWalletByAccessList(ctx context.Context, accessListID string) (bool, error)
+	FindDonationByAccessList(ctx context.Context, accessListID string) (bool, error)
 }
 
 type OTPRepository interface {
@@ -885,6 +891,8 @@ type CPSRolesRepository interface {
 	DisableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error
 	Delete(ctx context.Context, id string) error
 	FindByCustomerSegmentationByID(ctx context.Context, customerSegment string) (*imodel.CPSRoles, error)
+
+	FindSupperAppRoleByAccessList(ctx context.Context, accessListID string) (bool, error)
 }
 
 type CustomerKYCRepository interface {
