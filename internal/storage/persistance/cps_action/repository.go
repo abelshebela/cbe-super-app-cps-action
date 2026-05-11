@@ -224,7 +224,6 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	// 1. Base filter (only active records)
 	baseFilter := bson.M{
 		"is_deleted": false,
-		// "department": department,
 	}
 
 	from, okFrom := filterParam.Filters["created_at_from"].(string)
@@ -270,6 +269,12 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	}
 	delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
+
+	// Handle action_code_in from user_action_logs index
+	if codes, ok := filterParam.Filters["action_code_in"].([]string); ok && len(codes) > 0 {
+		filter["action_code"] = bson.M{"$in": codes}
+	}
+	delete(filter, "action_code_in")
 
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
