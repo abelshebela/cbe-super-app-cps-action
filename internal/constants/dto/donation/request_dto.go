@@ -10,8 +10,10 @@ import (
 type DonationCPSRequest struct {
 	ID                  string                `json:"id" bson:"id"`
 	DonationCode        string                `json:"donation_code,omitempty" bson:"donation_code,omitempty"`
+	Service             Service               `json:"service,omitempty" bson:"service,omitempty"`
 	Company             Company               `json:"company,omitempty" bson:"company,omitempty"`
 	Category            Category              `json:"category,omitempty" bson:"category,omitempty"`
+	ServiceID           string                `json:"service_id,omitempty" bson:"service_id,omitempty"`
 	CompanyID           string                `json:"company_id,omitempty" bson:"company_id,omitempty"`
 	CompanyName         string                `json:"company_name,omitempty" bson:"company_name,omitempty"`
 	CategoryID          string                `json:"category_id,omitempty" bson:"category_id,omitempty"`
@@ -36,6 +38,7 @@ type DonationImageUpdateCPSRequest struct {
 
 type DonationRequest struct {
 	DonationCode        string                  `json:"donation_code,omitempty" bson:"donation_code,omitempty"`
+	ServiceID           string                  `json:"service_id" bson:"service_id"`
 	CompanyID           string                  `json:"company_id" bson:"company_id"`
 	CategoryID          string                  `json:"category_id" bson:"category_id"`
 	Title               string                  `json:"title" bson:"title"`

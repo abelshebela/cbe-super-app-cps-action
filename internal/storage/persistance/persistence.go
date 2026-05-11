@@ -46,9 +46,6 @@ type Persistence struct {
 	BankPersistence                   storage.BankRepository
 	BankOraclePersistence             storage.BankOracleRepository
 	CpsUserPersistence                storage.CpsUserRepository
-	DonationPersistence               storage.DonationRepository
-	DonationCategoryPersistence       storage.DonationCategoryRepository
-	DonationCompanyPersistence        storage.DonationCompanyRepository
 	FeedbackPersistence               storage.FeedbackRepository
 	LinkedAccountPersistence          storage.LinkedAccountRepository
 	EcommerceMerchantPersistence      storage.EcommerceMerchantRepository
