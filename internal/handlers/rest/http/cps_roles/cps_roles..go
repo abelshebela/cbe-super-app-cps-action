@@ -196,10 +196,9 @@ func (c *cpsRolesHandler) DisableCPSRole(w http.ResponseWriter, r *http.Request)
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		localization.SendSuccessResponse(w, localization.SuccessCPSRoleDisabledSP, nil)
 		return
-	} else {
-		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.SuccessCPSRoleDisabled, nil)
 	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessCPSRoleDisabled, nil)
 }
 
