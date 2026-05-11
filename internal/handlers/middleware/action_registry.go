@@ -479,7 +479,6 @@ func CPSActionRouteGuard(r *http.Request, whitelist []string) error {
 	// Allowlist (e.g., CPSAction endpoints)
 	for _, p := range whitelist {
 		if strings.HasPrefix(relPath, p) {
-
 			return nil
 		}
 	}
