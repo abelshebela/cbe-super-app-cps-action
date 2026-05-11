@@ -64,7 +64,7 @@ func (a *CoreAccountLookupAdapter) LookupAccountByPhone(ctx context.Context, pho
 }
 
 func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*model.AccountDetail, error) {
-	response, err := a.coreAPI.AccountLookup(core.AccountLookupParam{
+	response, err := a.coreAPI.NameLookup(core.NameLookupParam{
 		AccountNumber: account.AccountNumber,
 	})
 
@@ -78,12 +78,12 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Cont
 	detail := response.Detail
 	return &model.AccountDetail{
 		AccountNumber:  detail.AccountNumber,
-		CustomerName:   detail.CustomerName,
-		Restriction:    detail.Restriction,
+		CustomerName:   detail.AccountName,
+		Restriction:    detail.RestrictionType,
 		Currency:       detail.Currency,
-		WorkingBalance: detail.WorkingBalance,
-		CustomerID:     detail.CustomerID,
-		AccountType:    detail.AccountType,
+		WorkingBalance: "",
+		CustomerID:     detail.CustomerNumber,
+		AccountType:    detail.RestrictionType,
 	}, nil
 }
 
