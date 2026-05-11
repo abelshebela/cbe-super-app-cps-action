@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -316,126 +317,253 @@ func resolveActionName(relPath string, registry map[string]string) string {
 	return ""
 }
 
-func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Security: Fail-closed - deny access if repo is not initialized
-			if cpsApproveRepo == nil {
+// func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
+// 	return func(next http.Handler) http.Handler {
+// 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 			// Security: Fail-closed - deny access if repo is not initialized
+// 			if cpsApproveRepo == nil {
+// 				if guardLogger != nil {
+// 					guardLogger.Errorf("[ActionRegistry][RouteGuard] security: CPSActionApproveRepo is not initialized - denying access")
+// 				}
+// 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+// 				return
+// 			}
+
+// 			rc := chi.RouteContext(r.Context())
+// 			if rc == nil {
+// 				if guardLogger != nil {
+// 					guardLogger.Errorf("[ActionRegistry][RouteGuard] security: route context is nil - denying access")
+// 				}
+// 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+// 				return
+// 			}
+
+// 			pattern := routeFullPattern(rc)
+// 			if pattern == "" {
+// 				if guardLogger != nil {
+// 					guardLogger.Errorf("[ActionRegistry][RouteGuard] security: route pattern is empty - denying access")
+// 				}
+// 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+// 				return
+// 			}
+
+// 			// Normalize pattern-relative route (keeps placeholders like {id})
+// 			relPattern := pattern
+// 			if strings.HasPrefix(relPattern, "/api/v1/cbesuperapp/cps_action") {
+// 				relPattern = strings.TrimPrefix(relPattern, "/api/v1/cbesuperapp/cps_action")
+// 				if relPattern == "" {
+// 					relPattern = "/"
+// 				}
+// 			}
+
+// 			// Normalize actual path route (concrete values like /banks/567...)
+// 			relPath := strings.TrimPrefix(r.URL.Path, "/api/v1/cbesuperapp/cps_action/")
+
+// 			// Allowlist (e.g., CPSAction endpoints)
+// 			for _, p := range whitelist {
+// 				if strings.HasPrefix(relPath, p) {
+// 					next.ServeHTTP(w, r)
+// 					return
+// 				}
+// 			}
+
+// 			method := strings.ToUpper(r.Method)
+
+// 			// Use the GetActionNameFromPath function to resolve action name from registry
+// 			actionName := GetActionNameFromPath(method, r.URL.Path)
+// 			if actionName == "" {
+// 				if guardLogger != nil {
+// 					guardLogger.Errorf("[ActionRegistry][RouteGuard] no action name found for %s %s - denying access", method, r.URL.Path)
+// 				}
+// 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+// 				return
+// 			}
+
+// 			roleCode, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+// 			// roleID := utils.FirstHex24(rawRoleID)
+// 			if roleCode == "" {
+// 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+// 				return
+// 			}
+
+// 			// Check if the user's job_title role is enabled
+// 			if roleRepo != nil {
+// 				roleCacheKey := "role_enabled:" + roleCode
+// 				if ent, ok := roleEnabledCache.get(roleCacheKey); ok {
+// 					if !ent.allow {
+// 						localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+// 						return
+// 					}
+// 				} else {
+// 					role, err := roleRepo.FindByRole(r.Context(), roleCode)
+// 					if err != nil || role == nil {
+// 						if guardLogger != nil {
+// 							guardLogger.Errorf("[ActionRegistry][RouteGuard] role lookup err code: %s: %v", roleCode, err)
+// 						}
+// 						localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+// 						return
+// 					}
+// 					roleEnabledCache.set(roleCacheKey, allowEntry{allow: role.Enabled, exp: nowPlus(roleEnabledCache.ttl)})
+// 					if !role.Enabled {
+// 						localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+// 						return
+// 					}
+// 				}
+// 			}
+
+// 			action := strings.ToUpper(strings.TrimSpace(actionName))
+// 			cacheKey := roleCode + ":" + action
+// 			if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
+// 				next.ServeHTTP(w, r)
+// 				return
+// 			}
+
+// 			allowed, err := cpsApproveRepo.ExistsByRoleAndAction(r.Context(), roleCode, action)
+// 			if err != nil {
+// 				if guardLogger != nil {
+// 					guardLogger.Errorf("[ActionRegistry][RouteGuard] guard lookup err: %v", err)
+// 				}
+// 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+// 				return
+// 			}
+
+// 			if allowed {
+// 				cpsGuardCache.set(cacheKey, allowEntry{allow: true, exp: nowPlus(cpsGuardCache.ttl)})
+// 			}
+// 			if !allowed {
+// 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+// 				return
+// 			}
+// 			next.ServeHTTP(w, r)
+// 		})
+// 	}
+// }
+
+func CPSActionRouteGuard(r *http.Request, whitelist []string) error {
+	// Security: Fail-closed - deny access if repo is not initialized
+	if cpsApproveRepo == nil {
+		if guardLogger != nil {
+			guardLogger.Errorf("[ActionRegistry][RouteGuard] security: CPSActionApproveRepo is not initialized - denying access")
+		}
+		return errors.New("CPSActionApproveRepo is not initialized")
+	}
+
+	rc := chi.RouteContext(r.Context())
+	if rc == nil {
+		if guardLogger != nil {
+			guardLogger.Errorf("[ActionRegistry][RouteGuard] security: route context is nil - denying access")
+		}
+		return errors.New(localization.ErrorOperationNotAllowed.Message)
+	}
+
+	pattern := routeFullPattern(rc)
+	if pattern == "" {
+		if guardLogger != nil {
+			guardLogger.Errorf("[ActionRegistry][RouteGuard] security: route pattern is empty - denying access")
+		}
+		return errors.New(localization.ErrorOperationNotAllowed.Message)
+	}
+
+	// Normalize pattern-relative route (keeps placeholders like {id})
+	relPattern := pattern
+	if strings.HasPrefix(relPattern, "/api/v1/cbesuperapp/cps_action") {
+		relPattern = strings.TrimPrefix(relPattern, "/api/v1/cbesuperapp/cps_action")
+		if relPattern == "" {
+			relPattern = "/"
+		}
+	}
+
+	// Normalize actual path route (concrete values like /banks/567...)
+	relPath := strings.TrimPrefix(r.URL.Path, "/api/v1/cbesuperapp/cps_action/")
+
+	// Allowlist (e.g., CPSAction endpoints)
+	for _, p := range whitelist {
+		if strings.HasPrefix(relPath, p) {
+
+			return nil
+		}
+	}
+
+	method := strings.ToUpper(r.Method)
+
+	// Use the GetActionNameFromPath function to resolve action name from registry
+	actionName := GetActionNameFromPath(method, r.URL.Path)
+	if actionName == "" {
+		if guardLogger != nil {
+			guardLogger.Errorf("[ActionRegistry][RouteGuard] no action name found for %s %s - denying access", method, r.URL.Path)
+		}
+		return errors.New(localization.ErrorOperationNotAllowed.Message)
+	}
+
+	roleCode, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+	if roleCode == "" {
+		return errors.New(localization.ErrorOperationNotAllowed.Message)
+	}
+
+	// Check if the user's job_title role is enabled
+	if roleRepo != nil {
+		roleCacheKey := "role_enabled:" + roleCode
+
+		if ent, ok := roleEnabledCache.get(roleCacheKey); ok {
+			if !ent.allow {
+				return errors.New(localization.ErrorOperationNotAllowed.Message)
+			}
+		} else {
+			role, err := cpsApproveRepo.FindByRoleAndAction(r.Context(), roleCode, actionName, 0)
+			if err != nil || role == nil {
 				if guardLogger != nil {
-					guardLogger.Errorf("[ActionRegistry][RouteGuard] security: CPSActionApproveRepo is not initialized - denying access")
+					guardLogger.Errorf("[ActionRegistry][RouteGuard] role lookup err code: %s: %v", roleCode, err)
 				}
-				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-				return
+				return errors.New(localization.ErrorOperationNotAllowed.Message)
 			}
 
-			rc := chi.RouteContext(r.Context())
-			if rc == nil {
-				if guardLogger != nil {
-					guardLogger.Errorf("[ActionRegistry][RouteGuard] security: route context is nil - denying access")
-				}
-				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-				return
-			}
-
-			pattern := routeFullPattern(rc)
-			if pattern == "" {
-				if guardLogger != nil {
-					guardLogger.Errorf("[ActionRegistry][RouteGuard] security: route pattern is empty - denying access")
-				}
-				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-				return
-			}
-
-			// Normalize pattern-relative route (keeps placeholders like {id})
-			relPattern := pattern
-			if strings.HasPrefix(relPattern, "/api/v1/cbesuperapp/cps_action") {
-				relPattern = strings.TrimPrefix(relPattern, "/api/v1/cbesuperapp/cps_action")
-				if relPattern == "" {
-					relPattern = "/"
-				}
-			}
-
-			// Normalize actual path route (concrete values like /banks/567...)
-			relPath := strings.TrimPrefix(r.URL.Path, "/api/v1/cbesuperapp/cps_action/")
-
-			// Allowlist (e.g., CPSAction endpoints)
-			for _, p := range whitelist {
-				if strings.HasPrefix(relPath, p) {
-					next.ServeHTTP(w, r)
-					return
-				}
-			}
-
-			method := strings.ToUpper(r.Method)
-
-			// Use the GetActionNameFromPath function to resolve action name from registry
-			actionName := GetActionNameFromPath(method, r.URL.Path)
-			if actionName == "" {
-				if guardLogger != nil {
-					guardLogger.Errorf("[ActionRegistry][RouteGuard] no action name found for %s %s - denying access", method, r.URL.Path)
-				}
-				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-				return
-			}
-
-			roleCode, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
-			// roleID := utils.FirstHex24(rawRoleID)
-			if roleCode == "" {
-				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-				return
-			}
-
-			// Check if the user's job_title role is enabled
-			if roleRepo != nil {
-				roleCacheKey := "role_enabled:" + roleCode
-				if ent, ok := roleEnabledCache.get(roleCacheKey); ok {
-					if !ent.allow {
-						localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-						return
+			if role != nil {
+				actionRole, actionErr := actionRoleRepo.FindByActionName(r.Context(), actionName)
+				if actionErr != nil || actionRole == nil {
+					if guardLogger != nil {
+						guardLogger.Errorf("[ActionRegistry][RouteGuard] action role lookup err for action: %s: %v", actionName, actionErr)
 					}
-				} else {
-					role, err := roleRepo.FindByRole(r.Context(), roleCode)
-					if err != nil || role == nil {
-						if guardLogger != nil {
-							guardLogger.Errorf("[ActionRegistry][RouteGuard] role lookup err code: %s: %v", roleCode, err)
-						}
-						localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-						return
-					}
-					roleEnabledCache.set(roleCacheKey, allowEntry{allow: role.Enabled, exp: nowPlus(roleEnabledCache.ttl)})
-					if !role.Enabled {
-						localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-						return
-					}
+				}
+
+				roleEnabledCache.set(roleCacheKey, allowEntry{
+					allow: actionRole.Enabled,
+					exp:   nowPlus(roleEnabledCache.ttl),
+				})
+
+				if !actionRole.Enabled {
+					return errors.New(localization.ErrorOperationNotAllowed.Message)
 				}
 			}
+		}
+	}
 
-			action := strings.ToUpper(strings.TrimSpace(actionName))
-			cacheKey := roleCode + ":" + action
-			if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
-				next.ServeHTTP(w, r)
-				return
-			}
+	action := strings.ToUpper(strings.TrimSpace(actionName))
+	cacheKey := roleCode + ":" + action
 
-			allowed, err := cpsApproveRepo.ExistsByRoleAndAction(r.Context(), roleCode, action)
-			if err != nil {
-				if guardLogger != nil {
-					guardLogger.Errorf("[ActionRegistry][RouteGuard] guard lookup err: %v", err)
-				}
-				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-				return
-			}
+	if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
+		return nil
+	}
 
-			if allowed {
-				cpsGuardCache.set(cacheKey, allowEntry{allow: true, exp: nowPlus(cpsGuardCache.ttl)})
-			}
-			if !allowed {
-				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-				return
-			}
-			next.ServeHTTP(w, r)
+	allowed, err := cpsApproveRepo.ExistsByRoleAndAction(r.Context(), roleCode, action)
+	if err != nil {
+		if guardLogger != nil {
+			guardLogger.Errorf("[ActionRegistry][RouteGuard] guard lookup err: %v", err)
+		}
+		return errors.New(localization.ErrorOperationNotAllowed.Message)
+	}
+
+	if allowed {
+		cpsGuardCache.set(cacheKey, allowEntry{
+			allow: true,
+			exp:   nowPlus(cpsGuardCache.ttl),
 		})
 	}
+
+	if !allowed {
+		return errors.New(localization.ErrorOperationNotAllowed.Message)
+	}
+
+	return nil
 }
 
 func ResolveActionKey(request string) string {
