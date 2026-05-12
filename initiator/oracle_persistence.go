@@ -17,6 +17,7 @@ import (
 	donation_oracle "cbe-super-app-cps-action/internal/storage/persistance/donation/oracle"
 	donation_category_oracle "cbe-super-app-cps-action/internal/storage/persistance/donation_category/oracle"
 	donation_company_oracle "cbe-super-app-cps-action/internal/storage/persistance/donation_company/oracle"
+	ecommerce_merchant "cbe-super-app-cps-action/internal/storage/persistance/ecommerce_merchant"
 	services_repo "cbe-super-app-cps-action/internal/storage/persistance/services"
 	"cbe-super-app-cps-action/internal/storage/persistance/sitota"
 	vaultCategory "cbe-super-app-cps-action/internal/storage/persistance/vault"
@@ -43,6 +44,7 @@ type OraclePersistence struct {
 	AccessListSegmentaion storage.AccessListSegmentationRepositoryOracle
 	AccountBlock          storage.AccountBlockRepository
 	Customer              storage.CustomerRepository
+	EcommerceMerchant     storage.EcommerceMerchantRepository
 	DonationCategory      storage.DonationCategoryRepository
 	DonationCompany       storage.DonationCompanyRepository
 	Donation              storage.DonationRepository
@@ -65,6 +67,7 @@ func InitOraclePersistence(client *mongo.Client, db *sql.DB, cfg *config.VaultCo
 		AccessListSegmentaion: access_list_segmentation_oracle.NewAccessListSegmentationOracle(db, *cfg, accessListSegmentationProducer, redisRepository, log),
 		AccountBlock:          account_block_repo.NewAccountBlockRepository(client, cfg, CPSActionsCollection, db, redisRepository, log),
 		Customer:              customer_oracle.NewCustomerOracleRepository(db, *cfg, log),
+		EcommerceMerchant:     ecommerce_merchant.NewEcommerceMerchantRepository(db, log),
 		DonationCategory: donation_category_oracle.NewPublishingRepository(
 			donation_category_oracle.NewRepository(db, log),
 			clientOrchestrationProducer,

@@ -108,7 +108,7 @@ func (a *servicesAdapter) ServicesDelete(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[ServicesH][Delete] failed to delete service with id: %s, err: %v", id, err)
-		localization.SendErrorResponse(w, localization.ErrorServiceNotFound, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 

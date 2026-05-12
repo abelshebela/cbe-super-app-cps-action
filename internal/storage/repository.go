@@ -96,7 +96,8 @@ type ServicesRepository interface {
 	FindServiceByAccessListID(ctx context.Context, accessListID string) (*service_dto.ServiceResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error)
 	CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error)
-	CheckAccountNumberExistence(ctx context.Context, accountDetail core.AccountLookupResult, accountNumber, accountCurrency string) error
+	CheckAccountNumberExistence(ctx context.Context, accountNumber string) (string, error)
+	InsertAccountNumberToAccounts(ctx context.Context, accountDetail core.AccountLookupResult, accountCurrency string) (string, error)
 	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceKey], error)
 	FindServiceListByID(ctx context.Context, id string) (*imodel.ServiceKey, error)
 	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error)
@@ -106,6 +107,12 @@ type ServicesRepository interface {
 	UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error
 	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
 	DeleteServiceKey(ctx context.Context, id string) error
+
+	FindSupperAppRoleByAccessList(ctx context.Context, accessListID string) (bool, error)
+	FindGeographicalLocationByAccessList(ctx context.Context, accessListID string) (bool, error)
+
+	FindWalletByAccessList(ctx context.Context, accessListID string) (bool, error)
+	FindDonationByAccessList(ctx context.Context, accessListID string) (bool, error)
 }
 
 type OTPRepository interface {
@@ -535,7 +542,10 @@ type EcommerceMerchantRepository interface {
 	Update(ctx context.Context, id string, merchant *model.EcommerceMerchant) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	DeleteBranch(ctx context.Context, id string) error
+	EnableOrDisableBranch(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
+	FindBranchByID(ctx context.Context, id string) (*model.BranchInformation, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error)
 	FindOne(ctx context.Context, filter bson.M) (*model.EcommerceMerchant, error)
 }
@@ -880,6 +890,8 @@ type CPSRolesRepository interface {
 	DisableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error
 	Delete(ctx context.Context, id string) error
 	FindByCustomerSegmentationByID(ctx context.Context, customerSegment string) (*imodel.CPSRoles, error)
+
+	FindSupperAppRoleByAccessList(ctx context.Context, accessListID string) (bool, error)
 }
 
 type CustomerKYCRepository interface {

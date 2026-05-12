@@ -307,6 +307,8 @@ type EcommerceMerchantService interface {
 	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
+	DeleteBranch(ctx context.Context, id string) error
+	EnableOrDisableBranch(ctx context.Context, id string, enable bool) error
 	MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error)
 }
 

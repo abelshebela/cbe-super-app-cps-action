@@ -118,6 +118,12 @@ var ResponseCodesList = []ResponseCode{
 	SuccessEcommerceMerchantUpdated,
 	SuccessEcommerceMerchantDeleted,
 	SuccessEcommerceMerchantEnable,
+	SuccessEcommerceMerchantBranchDeleted,
+	SuccessEcommerceMerchantBranchDeletedSuccessfully,
+	SuccessEcommerceMerchantBranchEnabled,
+	SuccessEcommerceMerchantBranchEnabledSuccessfully,
+	SuccessEcommerceMerchantBranchDisabled,
+	SuccessEcommerceMerchantBranchDisabledSuccessfully,
 	SuccessEcommerceMerchantDisable,
 	SuccessEcommerceMerchantUpdatedSuccessfully,
 	SuccessEcommerceMerchantDeletedSuccessfully,
@@ -254,6 +260,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessMiniAppFetchedByID,
 	SuccessMiniAppActionCompleted,
 	ErrorEcommerceMerchantNotFound,
+	ErrorEcommerceMerchantBranchNotFound,
 	ErrorEcommerceMerchantDisabled,
 
 	// Sitota Related success
@@ -3319,6 +3326,44 @@ var (
 		Code:       "ECOMMERCE_MERCHANT_ENABLED",
 		StatusCode: StatusOK,
 		Message:    MsgEcommerceMerchantEnabledSuccessfylly,
+		Type:       "success",
+	}
+
+	SuccessEcommerceMerchantBranchDeleted = ResponseCode{
+		Code:       "ECOMMERCE_MERCHANT_BRANCH_DELETED",
+		StatusCode: StatusNoContent,
+		Message:    "Ecommerce merchant branch deleted successfully",
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantBranchDeletedSuccessfully = ResponseCode{
+		Code:       "ECOMMERCE_MERCHANT_BRANCH_DELETE_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Ecommerce merchant branch deleted request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessEcommerceMerchantBranchEnabled = ResponseCode{
+		Code:       "ECOMMERCE_MERCHNT_BRANCH_ENABLED",
+		StatusCode: StatusOK,
+		Message:    "Ecommerce merchant branch enabled successfully",
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantBranchEnabledSuccessfully = ResponseCode{
+		Code:       "ECOMMERCE_MERCHNT_BRANCH_ENABLED_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Ecommerce merchant branch enable request submitted successfully",
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantBranchDisabled = ResponseCode{
+		Code:       "ECOMMERCE_MERCHNT_BRANCH_DISABLED",
+		StatusCode: StatusOK,
+		Message:    "Ecommerce merchant branch disabled successfully",
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantBranchDisabledSuccessfully = ResponseCode{
+		Code:       "ECOMMERCE_MERCHNT_BRANCH_DISABLED_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Ecommerce merchant branch disable request submitted successfully",
 		Type:       "success",
 	}
 
@@ -6597,6 +6642,12 @@ var (
 		Code:       "ERROR_ECOMMERCE_MERCHANT_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    "Ecommerce merchant not found",
+		Type:       "error",
+	}
+	ErrorEcommerceMerchantBranchNotFound = ResponseCode{
+		Code:       "ERROR_ECOMMERCE_MERCHANT_BRANCH_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Ecommerce merchant branch not found",
 		Type:       "error",
 	}
 	ErrorEcommerceMerchantDisabled = ResponseCode{

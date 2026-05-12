@@ -88,24 +88,49 @@ func MergeBranches(oldBranches, newBranches []model.BranchInformation) []model.B
 	return merged
 }
 
-func MergeMiniAppMerchantData(old, data *model.EcommerceMerchant) *model.EcommerceMerchant {
-	now := time.Now()
+func MapToEcommerceUpdate(old, data *model.EcommerceMerchant) *model.EcommerceMerchant {
+	_ = old
+	update := &model.EcommerceMerchant{}
 
-	updatedBranches := MergeBranches(old.Branches, data.Branches)
+	// updatedBranches := MergeBranches(old.Branches, data.Branches)
 
-	return &model.EcommerceMerchant{
-		ID:                old.ID,
-		Code:              old.Code,
-		MerchantName:      local_util.NonEmptyString(data.MerchantName, old.MerchantName),
-		PhoneNumber:       local_util.NonEmptyString(data.PhoneNumber, old.PhoneNumber),
-		Email:             local_util.NonEmptyString(data.Email, old.Email),
-		BankAccountNumber: local_util.NonEmptyString(data.BankAccountNumber, old.BankAccountNumber),
-		Enabled:           old.Enabled,
-		IsDeleted:         old.IsDeleted,
-		CreatedAt:         old.CreatedAt,
-		UpdatedAt:         now,
-		Branches:          updatedBranches,
+	// return &model.EcommerceMerchant{
+	// 	ID:                old.ID,
+	// 	Code:              old.Code,
+	// 	MerchantName:      local_util.NonEmptyString(data.MerchantName, old.MerchantName),
+	// 	PhoneNumber:       local_util.NonEmptyString(data.PhoneNumber, old.PhoneNumber),
+	// 	Email:             local_util.NonEmptyString(data.Email, old.Email),
+	// 	BankAccountNumber: local_util.NonEmptyString(data.BankAccountNumber, old.BankAccountNumber),
+	// 	Enabled:           old.Enabled,
+	// 	IsDeleted:         old.IsDeleted,
+	// 	CreatedAt:         old.CreatedAt,
+	// 	UpdatedAt:         now,
+	// 	Branches:          updatedBranches,
+	// }
+
+	if data.Code != "" {
+		update.Code = data.Code
 	}
+	if data.MerchantName != "" {
+		update.MerchantName = data.MerchantName
+	}
+	if data.SettlementMethod != "" {
+		update.SettlementMethod = data.SettlementMethod
+	}
+	if data.Email != "" {
+		update.Email = data.Email
+	}
+	if data.PhoneNumber != "" {
+		update.PhoneNumber = data.PhoneNumber
+	}
+	if data.BankAccountNumber != "" {
+		update.BankAccountNumber = data.BankAccountNumber
+	}
+	if len(data.Branches) > 0 {
+		update.Branches = data.Branches
+	}
+
+	return update
 }
 
 func HandleCPSActionForMiniAppMerchant(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
@@ -203,7 +228,7 @@ func CheckMerchantExists(
 
 func ToMiniAppMerchantResponseDTO(domain *model.EcommerceMerchant) *merchantDto.EcommerceMerchantResponseDTO {
 	return &merchantDto.EcommerceMerchantResponseDTO{
-		ID:            domain.ID.Hex(),
+		ID:            domain.ID,
 		Code:          domain.Code,
 		MerchantName:  domain.MerchantName,
 		AccountNumber: domain.BankAccountNumber,
@@ -230,6 +255,7 @@ func convertDtoBranches(dto []merchantDto.BranchInformation) []model.BranchInfor
 		}
 
 		result[i] = model.BranchInformation{
+			ID:                  b.ID,
 			BranchCode:          b.BranchCode,
 			BranchName:          b.BranchName,
 			BranchAddress:       address,
@@ -242,7 +268,6 @@ func convertDtoBranches(dto []merchantDto.BranchInformation) []model.BranchInfor
 
 func ToEcommerceMerchantCreateModel(d *merchantDto.EcommerceMerchant) *model.EcommerceMerchant {
 	return &model.EcommerceMerchant{
-		ID:                bson.NewObjectID(),
 		Code:              d.MerchantCode,
 		MerchantName:      d.MerchantName,
 		BankAccountNumber: d.AccountNumber,
