@@ -877,7 +877,7 @@ func BuildOracleFilter(
 
 			// --- DERIVED FILTER: is_expired -> created_at ---
 			if key == "is_expired" {
-				expired, ok := boolFromInterface(val)
+				expired, ok := BoolFromInterface(val)
 				if ok {
 					operator := "<"
 					if !expired {
@@ -922,7 +922,7 @@ func BuildOracleFilter(
 
 			// --- BOOLEAN ---
 			if boolKeys[key] {
-				if parsed, ok := boolFromInterface(val); ok {
+				if parsed, ok := BoolFromInterface(val); ok {
 					filters = append(filters,
 						fmt.Sprintf("%s = :%d", key, idx))
 					args = append(args, parsed)
@@ -946,16 +946,18 @@ func BuildOracleFilter(
 	return strings.Join(filters, " AND "), args, offset, limit
 }
 
-func boolFromInterface(v interface{}) (bool, bool) {
+func BoolFromInterface(v interface{}) (bool, bool) {
 	switch b := v.(type) {
 	case bool:
 		return b, true
 	case string:
-		parsed, err := strconv.ParseBool(b)
+		parsed, err := strconv.ParseBool(strings.TrimSpace(b))
 		if err != nil {
 			return false, false
 		}
 		return parsed, true
+	case float64:
+		return b != 0, true
 	default:
 		return false, false
 	}
