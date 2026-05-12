@@ -43,7 +43,7 @@ func Init(ctx context.Context) {
 		Password: cfg.CbeCorePassword,
 		Url:      cfg.CbeCoreUrl,
 	}
-	coreInterface := core.NewCBECoreAPI(coreConfig)
+	coreInterface := core.NewCBECoreAPI(&coreConfig)
 
 	// Initialize OpenTelemetry Tracing using platform/telemetry package
 	logger.Infof("Initializing OpenTelemetry Tracing...")
@@ -111,7 +111,10 @@ func Init(ctx context.Context) {
 	logger.Infof("Initializing persistence...")
 	notificationApi := cfg.SMSBaseURL
 
-	redis, sharedRedis := InitRedis(cfg, logger)
+	sharedRedis, redis, err := InitRedis(ctx, cfg, logger)
+	if err != nil {
+		logger.Fatalf("Failed to initialize Redis: %v", err)
+	}
 	logger.Infof("Initializing redis...")
 	redisStorage := InitRedisStorageLayer(redis, logger)
 	logger.Infof("redis initialized")
@@ -132,7 +135,7 @@ func Init(ctx context.Context) {
 	logger.Infof("Persistence initialized")
 
 	// Initialize CPS Action Guard (role_id + action_name authorization with TTL cache)
-	mid.InitCPSActionGuard(persistence.CPSActionApproveIndexPersistence, persistence.BPSActionApproveIndexPersistence, persistence.RolePersistence, 5*time.Minute, logger)
+	mid.InitCPSActionGuard(persistence.CPSActionApproveIndexPersistence, persistence.BPSActionApproveIndexPersistence, persistence.RolePersistence, persistence.CPSActionRolePersistence, 5*time.Minute, logger)
 	oracleDB := InitOracle(cfg.OracleConnectionString, logger)
 	logger.Infof("Oracle database initialized")
 

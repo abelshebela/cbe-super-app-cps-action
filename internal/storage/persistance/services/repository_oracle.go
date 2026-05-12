@@ -18,6 +18,7 @@ import (
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 
 	"github.com/godror/godror"
+	"github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -111,54 +112,172 @@ WHERE service_id = HEXTORAW(:1)`
 	return caps, nil
 }
 
-func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, service *imodel.Service) (string, error) {
+func (s *ServicesStorage) CheckAccountNumberExistence(ctx context.Context, accountDetail core.AccountLookupResult, accountNumber, accountCurrency string) error {
+
+	const checkQ = `
+		SELECT RAWTOHEX(id)
+		FROM accounts
+		WHERE account_number = :1
+	`
+
+	const bankQ = `
+		SELECT RAWTOHEX(id)
+		FROM banks
+		WHERE is_cbe    = 1
+		  AND is_enabled = 1
+		  AND is_deleted = 0
+		  AND ROWNUM     = 1
+	`
+
+	const insertAccountQ = `
+		INSERT INTO accounts (
+			bank_id,
+			account_holder_name,
+			account_number,
+			account_currency,
+			account_type,
+			account_branch,
+			customer_number
+		) VALUES (
+			HEXTORAW(:bank_id),
+			:customer_name,
+			:account_number,
+			:currency,
+			:account_type,
+			:branch,
+			:customer_number
+		)
+		RETURNING RAWTOHEX(id) INTO :id
+	`
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		s.logger.Errorf("[ServicesRepo][Create] begin tx failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	var accountID string
+
+	// ── Step 1: check if the GL account already exists ──────────────────────
+	s.logger.Debugf("[insertService] checking if GL account %s exists", accountDetail)
+
+	err = tx.QueryRowContext(ctx, checkQ, accountNumber).Scan(&accountID)
+	customerNumber := "0"
+	switch {
+	case err == nil:
+		// Row found — skip insert, fall through to service insertion.
+		s.logger.Infof(
+			"[insertService] GL account %s already exists (id=%s), skipping account insert",
+			accountNumber, accountID,
+		)
+
+	case errors.Is(err, sql.ErrNoRows):
+		// ── Step 2: resolve the CBE bank ID ─────────────────────────────────
+		s.logger.Debugf("[insertService] GL account not found, resolving CBE bank ID")
+
+		var bankID string
+		err = tx.QueryRowContext(ctx, bankQ).Scan(&bankID)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			s.logger.Errorf("[insertService] no active CBE bank found")
+			return errors.New("cbe bank not found")
+
+		case err != nil:
+			s.logger.Errorf("[insertService] failed to fetch CBE bank: %v", err)
+			return local_util.HandleDBError(err)
+		}
+
+		if accountDetail.Detail.CustomerID != "" {
+			customerNumber = accountDetail.Detail.CustomerID
+		}
+
+		// ── Step 3: insert the new GL account ───────────────────────────────
+		s.logger.Debugf("[insertService] inserting GL account %s with bank_id %s", accountNumber, bankID)
+
+		_, err = tx.ExecContext(ctx, insertAccountQ,
+			sql.Named("bank_id", bankID),
+			sql.Named("account_number", accountNumber),
+			sql.Named("customer_name", accountDetail.Detail.CustomerName),
+			sql.Named("currency", accountCurrency),
+			sql.Named("account_type", accountDetail.Detail.AccountType),
+			sql.Named("branch", accountDetail.Detail.BranchCode),
+			sql.Named("customer_number", customerNumber),
+			sql.Named("id", sql.Out{Dest: &accountID}),
+		)
+		if err != nil {
+			if oraErr, ok := godror.AsOraErr(err); ok {
+				switch oraErr.Code() {
+				case 1: // ORA-00001: unique constraint — race condition between SELECT and INSERT
+					s.logger.Warnf(
+						"[insertService] concurrent insert detected for GL account %s, fetching existing id",
+						accountNumber,
+					)
+					fetchErr := tx.QueryRowContext(ctx, checkQ, accountNumber).Scan(&accountID)
+					if fetchErr != nil {
+						s.logger.Errorf("[insertService] fallback fetch after race failed: %v", fetchErr)
+						return local_util.HandleDBError(fetchErr)
+					}
+					// accountID is now populated — fall through to service insertion
+
+				case 2291: // ORA-02291: FK violation — bank_id not in banks
+					s.logger.Errorf("[insertService] bank_id %s not found in banks table", bankID)
+					return errors.New("bank id not found")
+
+				default:
+					s.logger.Errorf("[insertService] account insert failed (ORA-%05d): %v", oraErr.Code(), err)
+					return local_util.HandleDBError(err)
+				}
+			} else {
+				s.logger.Errorf("[insertService] account insert failed: %v", err)
+				return local_util.HandleDBError(err)
+			}
+		}
+
+		s.logger.Infof(
+			"[insertService] GL account %s created (id=%s)",
+			accountNumber, accountID,
+		)
+
+	default:
+		s.logger.Errorf("[insertService] failed to check existing GL account: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		s.logger.Errorf("[ServicesRepo][Create] commit failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
+}
+
+func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, accountNumber string, service *imodel.Service) (string, error) {
 	var serviceID string
 	if strings.TrimSpace(service.ServiceKeyId) == "" {
 		return "", errors.New(localization.ErrorInvalidID.Code)
 	}
 
-	// 1) Update service_keys enabled/disabled state by ID.
-	// 	const qKey = `
-	// UPDATE service_keys
-	// SET
-	//   is_enabled = :1,
-	//   is_deleted = :2,
-	//   last_modified_at = SYSTIMESTAMP,
-	//   deleted_at = CASE WHEN :2 = 1 THEN SYSTIMESTAMP ELSE NULL END
-	// WHERE id = HEXTORAW(:3)`
+	// ── Step 4: insert into services ────────────────────────────────────────
+	s.logger.Debugf("[insertService] inserting service with ServiceKeyId %s and GL account %s", service.ServiceKeyId, accountNumber)
 
-	// 	res, err := tx.ExecContext(ctx, qKey,
-	// 		boolToOracleNumber(service.Enabled),
-	// 		boolToOracleNumber(service.IsDeleted),
-	// 		service.ServiceKeyId,
-	// 	)
-	// 	if err != nil {
-	// 		s.logger.Errorf("[ServicesRepo][insertService] update service_keys failed: %v", err)
-	// 		return "", local_util.HandleDBError(err)
-	// 	}
+	const insertServiceQ = `
+		INSERT INTO services (
+			access_list_id,
+			service_code,
+			minimum_fraud_amount,
+			product_gl_account_number,
+			product_gl_account_currency,
+			created_at,
+			last_modified_at
+		)
+		VALUES (
+			HEXTORAW(:1),:2,:3,:4,:5,:6,:7
+		)
+		RETURNING RAWTOHEX(id) INTO :8
+	`
 
-	// 	rows, _ := res.RowsAffected()
-	// 	if rows == 0 {
-	// 		return "", errors.New(localization.ErrorServiceNotFound.Code)
-	// 	}
-
-	// 2) Insert into services (service enabled/disabled state comes from service_keys).
-	const q = `
-INSERT INTO services (
-  access_list_id,
-  service_code,
-  minimum_fraud_amount,
-  product_gl_account_number,
-  product_gl_account_currency,
-  created_at,
-  last_modified_at
-)
-VALUES (
-  HEXTORAW(:1),:2,:3,:4,:5,:6,:7
-)
-RETURNING RAWTOHEX(id) INTO :8`
-
-	if _, err := tx.ExecContext(ctx, q,
+	if _, err := tx.ExecContext(ctx, insertServiceQ,
 		service.ServiceKeyId,
 		service.ServiceCode,
 		service.MinimumFraudAmount,
@@ -168,43 +287,44 @@ RETURNING RAWTOHEX(id) INTO :8`
 		service.LastModifiedAt,
 		sql.Out{Dest: &serviceID},
 	); err != nil {
-		s.logger.Errorf("[ServicesRepo][insertService] insert services failed: %v", err)
+		s.logger.Errorf("[insertService] insert service failed: %v", err)
 
 		if oraErr, ok := godror.AsOraErr(err); ok {
-			if oraErr.Code() == 2291 { // ORA-02291: integrity constraint violated - parent key not found
+			if oraErr.Code() == 2291 {
 				return "", errors.New(localization.ErrorAccountNumberNotFound.Code)
 			}
 		}
 
-		return "", local_util.HandleDBError(err)
+		return "", err
 	}
 
-	// 3) Insert cap rows (one row per cap entry).
+	// ── Step 5: insert cap rows ──────────────────────────────────────────────
 	if len(service.Cap) == 0 {
 		return serviceID, nil
 	}
 
-	const capQ = `
-INSERT INTO service_cap (
-  service_id,
-  source,
-  currency,
-  single_cap,
-  minimum_transfer_cap
-)
-VALUES (
-  HEXTORAW(:1),:2,:3,:4,:5
-)`
+	const insertCapQ = `
+		INSERT INTO service_cap (
+			service_id,
+			source,
+			currency,
+			single_cap,
+			minimum_transfer_cap
+		)
+		VALUES (
+			HEXTORAW(:1),:2,:3,:4,:5
+		)
+	`
 
 	for _, cap := range service.Cap {
-		if _, err := tx.ExecContext(ctx, capQ,
+		if _, err := tx.ExecContext(ctx, insertCapQ,
 			serviceID,
 			string(cap.Source),
 			cap.Currency,
 			cap.SingleCap,
 			cap.MinimumTransferCap,
 		); err != nil {
-			s.logger.Errorf("[ServicesRepo][insertService] insert cap failed: %v", err)
+			s.logger.Errorf("[insertService] insert cap failed for service %s: %v", serviceID, err)
 			return "", local_util.HandleDBError(err)
 		}
 	}
@@ -251,7 +371,7 @@ VALUES (
 	return nil
 }
 
-func (s *ServicesStorage) Create(ctx context.Context, service *imodel.Service) error {
+func (s *ServicesStorage) Create(ctx context.Context, accountNumber string, service *imodel.Service) error {
 	if service.CreatedAt.IsZero() {
 		service.CreatedAt = time.Now()
 	}
@@ -266,7 +386,8 @@ func (s *ServicesStorage) Create(ctx context.Context, service *imodel.Service) e
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	serviceID, err := s.insertService(ctx, tx, service)
+	s.logger.Debugf("Creating service with ServiceKeyId %s", service.ServiceKeyId)
+	serviceID, err := s.insertService(ctx, tx, accountNumber, service)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][Create] insert failed: %v", err)
 		return err
@@ -290,7 +411,7 @@ func (s *ServicesStorage) Create(ctx context.Context, service *imodel.Service) e
 	return nil
 }
 
-func (s *ServicesStorage) Update(ctx context.Context, id string, service *imodel.Service) error {
+func (s *ServicesStorage) Update(ctx context.Context, id string, service *imodel.Service, accountDetail string) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][Update] begin tx failed: %v", err)
@@ -299,50 +420,6 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *imodel
 	defer func() { _ = tx.Rollback() }()
 	serviceKeyID := strings.TrimSpace(service.ServiceKeyId)
 
-	// 	// Ensure service exists before inserting/updating service_keys.
-	// 	const svcExistsQ = `
-	// SELECT 1
-	// FROM services
-	// WHERE id = HEXTORAW(:1)
-	// FETCH FIRST 1 ROWS ONLY`
-	// 	var exists int
-	// 	if err := tx.QueryRowContext(ctx, svcExistsQ, id).Scan(&exists); err != nil {
-	// 		if errors.Is(err, sql.ErrNoRows) {
-	// 			return errors.New(localization.ErrorServiceNotFound.Code)
-	// 		}
-	// 		s.logger.Errorf("[ServicesRepo][Update] service exists check failed: %v", err)
-	// 		return local_util.HandleDBError(err)
-	// 	}
-
-	// 	if serviceKeyID == "" {
-	// 		return errors.New(localization.ErrorInvalidID.Code)
-	// 	}
-
-	// 	// Sync enabled/disabled state on the related service_keys row.
-	// 	const qKey = `
-	// UPDATE service_keys
-	// SET
-	//   is_enabled = :1,
-	//   is_deleted = :2,
-	//   last_modified_at = SYSTIMESTAMP,
-	//   deleted_at = CASE WHEN :2 = 1 THEN SYSTIMESTAMP ELSE NULL END
-	// WHERE id = HEXTORAW(:3)`
-
-	// 	resKey, err := tx.ExecContext(ctx, qKey,
-	// 		boolToOracleNumber(service.Enabled),
-	// 		boolToOracleNumber(service.IsDeleted),
-	// 		serviceKeyID,
-	// 	)
-	// 	if err != nil {
-	// 		s.logger.Errorf("[ServicesRepo][Update] update service_keys failed: %v", err)
-	// 		return local_util.HandleDBError(err)
-	// 	}
-	// 	rowsKey, _ := resKey.RowsAffected()
-	// 	if rowsKey == 0 {
-	// 		return errors.New(localization.ErrorServiceNotFound.Code)
-	// 	}
-
-	// 1) Update services row fields.
 	s.logger.Debugf("Updating service with ID %s and ServiceKeyId %s", id, serviceKeyID)
 	const q = `
 UPDATE services
@@ -395,7 +472,8 @@ WHERE id = HEXTORAW(:6)`
 	return nil
 }
 
-func (s *ServicesStorage) Delete(ctx context.Context, id string) error {
+func (s *ServicesStorage) Delete(ctx context.Context, serviceID, accessListID string) error {
+
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][Delete] begin tx failed: %v", err)
@@ -403,7 +481,8 @@ func (s *ServicesStorage) Delete(ctx context.Context, id string) error {
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	const updateCapsQ = `
+	if serviceID != "" {
+		const updateCapsQ = `
 UPDATE service_cap
 SET
   is_deleted = 1,
@@ -411,12 +490,12 @@ SET
   last_modified_at = SYSTIMESTAMP
 WHERE service_id = HEXTORAW(:1)
   AND is_deleted = 0`
-	if _, err := tx.ExecContext(ctx, updateCapsQ, id); err != nil {
-		s.logger.Errorf("[ServicesRepo][Delete] update service_cap failed: %v", err)
-		return local_util.HandleDBError(err)
-	}
+		if _, err := tx.ExecContext(ctx, updateCapsQ, serviceID); err != nil {
+			s.logger.Errorf("[ServicesRepo][Delete] update service_cap failed: %v", err)
+			return local_util.HandleDBError(err)
+		}
 
-	const updateServiceQ = `
+		const updateServiceQ = `
 UPDATE services
 SET
   is_deleted = 1,
@@ -424,18 +503,20 @@ SET
   last_modified_at = SYSTIMESTAMP
 WHERE id = HEXTORAW(:1)
   AND is_deleted = 0`
-	res, err := tx.ExecContext(ctx, updateServiceQ, id)
-	if err != nil {
-		s.logger.Errorf("[ServicesRepo][Delete] update services failed: %v", err)
-		return local_util.HandleDBError(err)
+		res, err := tx.ExecContext(ctx, updateServiceQ, serviceID)
+		if err != nil {
+			s.logger.Errorf("[ServicesRepo][Delete] update services failed: %v", err)
+			return local_util.HandleDBError(err)
+		}
+
+		rows, _ := res.RowsAffected()
+		if rows == 0 {
+			return errors.New(localization.ErrorServiceNotFound.Code)
+		}
 	}
 
-	rows, _ := res.RowsAffected()
-	if rows == 0 {
-		return errors.New(localization.ErrorServiceNotFound.Code)
-	}
-
-	const q = `
+	if accessListID != "" {
+		const q = `
 	UPDATE access_lists
 	SET
 	  is_deleted = 1,
@@ -448,15 +529,16 @@ WHERE id = HEXTORAW(:1)
 	)
 	  AND is_deleted = 0`
 
-	result, err := tx.ExecContext(ctx, q, id)
-	if err != nil {
-		s.logger.Errorf("[ServicesRepo][Delete] delete service failed: %v", err)
-		return local_util.HandleDBError(err)
-	}
+		result, err := tx.ExecContext(ctx, q, accessListID)
+		if err != nil {
+			s.logger.Errorf("[ServicesRepo][Delete] delete service failed: %v", err)
+			return local_util.HandleDBError(err)
+		}
 
-	rows, _ = result.RowsAffected()
-	if rows == 0 {
-		return errors.New(localization.ErrorAccessListNotFound.Code)
+		rows, _ := result.RowsAffected()
+		if rows == 0 {
+			return errors.New(localization.ErrorAccessListNotFound.Code)
+		}
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -864,8 +946,8 @@ SELECT
   RAWTOHEX(id),
   name,
   service_key,
+  account_type,
   is_enabled,
-  is_ussd_enabled,
   created_at,
   last_modified_at
 FROM %s
@@ -889,8 +971,8 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 			&listID,
 			&item.ServiceName,
 			&item.ServiceKey,
+			&item.AccountType,
 			&item.IsEnabled,
-			&item.IsUSSDEnabled,
 			&item.CreatedAt,
 			&item.LastModifiedAt,
 		); err != nil {
@@ -909,7 +991,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 
 func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*imodel.ServiceKey, error) {
 	const q = `
-SELECT RAWTOHEX(id), name, service_key, is_enabled, is_ussd_enabled, created_at, last_modified_at
+SELECT RAWTOHEX(id), name, service_key, account_type, is_enabled, created_at, last_modified_at
 FROM access_lists
 WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 
@@ -919,8 +1001,8 @@ WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 		&listID,
 		&item.ServiceName,
 		&item.ServiceKey,
+		&item.AccountType,
 		&item.IsEnabled,
-		&item.IsUSSDEnabled,
 		&item.CreatedAt,
 		&item.LastModifiedAt,
 	)

@@ -57,6 +57,7 @@ const (
 	RejectAccpimt                   RequestAction = "REJECT_ACCOUNT"
 	DetachPhoneNumber               RequestAction = "DETACH_PHONE_NUMBER"
 	Reactivate                      RequestAction = "REACTIVATE"
+	Terminate                       RequestAction = "TERMINATION"
 	ChangePhoneNumber               RequestAction = "CHANGE_PHONE_NUMBER"
 	AddAccount                      RequestAction = "ADD_ACCOUNT"
 	AttachPhoneNumber               RequestAction = "ATTACH_PHONE_NUMBER"
@@ -95,6 +96,7 @@ var validRequestActions = map[RequestAction]struct{}{
 	UnlinkAccount:                   {},
 	ResetPin:                        {},
 	ActivateAccount:                 {},
+	Terminate:                       {},
 	ActivateSuperApp:                {},
 	UnlinkDevice:                    {},
 	ChangeName:                      {},
@@ -141,6 +143,7 @@ func IsValidRequestAction(requestAction string) bool {
 
 var RequestActionGroups = map[string][]RequestAction{
 	"LINK_ACCOUNT":                       {LinkAccount},
+	"TERMINATION":                        {Terminate},
 	"LINK_OTHER_ACCOUNT":                 {LinkOtherAccount},
 	"UNLINK_ACCOUNT":                     {UnlinkAccount},
 	"RESET_PIN":                          {ResetPin},

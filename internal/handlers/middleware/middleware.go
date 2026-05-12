@@ -51,7 +51,7 @@ func CORS(cfg *config.VaultConfig) func(http.Handler) http.Handler {
 	case "uat":
 		allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "https://uat-cbe-super-app-central-portal.vercel.app", "https://dev-cbe-super-app-central-portal.vercel.app", "https://cpsportal-uat.cbe.com.et"}
 	case "staging":
-		allowedOrigins = []string{"0.0.0.0:3000", "https://staging-cbe-super-app-central-portal.vercel.app"}
+		allowedOrigins = []string{"0.0.0.0:3000", "https://staging-cbe-super-app-central-portal.vercel.app", "https://cpsportal-stg.cbe.com.et"}
 	case "qa":
 		allowedOrigins = []string{"localhost:3000", "http://localhost:3000", "0.0.0.0:3000", "https://qa-cbe-super-app-central-portal.vercel.app", "https://dev-cbe-super-app-central-portal.vercel.app"}
 	case "dev":
@@ -225,17 +225,6 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// role, ok := r.Context().Value(constants.ContextKey("user_role")).(string)
-			// if !ok || role == "" {
-			// 	localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-
-			// 	return
-			// }
-
-			// if _, allowed := roleSet[strings.ToUpper(role)]; !allowed {
-			// 	localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-			// 	return
-			// }
 
 			next.ServeHTTP(w, r)
 		})
@@ -337,6 +326,14 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		}
 
 		r = r.WithContext(ctx)
+		// Whitelist CPS Action endpoints that don't need action-based validation
+		// whitelist := []string{"cps_action", "cps_actions"}
+		// if err := CPSActionRouteGuard(r, whitelist); err != nil {
+		// 	a.logger.Warnf("[AuthMW][AuthToken] route guard blocked access to path: %s error: %v", r.URL.Path, err)
+		// 	localization.SendUnauthorizedResponse(w, localization.ErrorOperationNotAllowed.Message)
+		// 	return
+		// }
+
 		next.ServeHTTP(w, r)
 	})
 }

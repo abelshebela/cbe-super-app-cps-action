@@ -25,10 +25,7 @@ var (
 	BudgetCategoryCollection         = "budget_category"
 	LinkedAccountsCollection         = "linked_account"
 	CPSUsersCollection               = "cps_users"
-	DonationsCollection              = "donations"
-	DonationCategoriesCollection     = "donation_categories"
 	ArchievedUsersCollection         = "archived_users"
-	DonationCompaniesCollection      = "donation_companies"
 	EventsCollection                 = "events"
 	PasswordRulesCollection          = "password_rules"
 	FeedbackCollection               = "feedback"
@@ -68,6 +65,7 @@ var (
 	UssdMerchantCollection           = "ussd_merchants"
 	BPSActionsCollection             = "bps_actions"
 	SurveyFeedbackCollection         = "survey_feedbacks"
+	UserActionLogsCollection         = "user_action_logs"
 )
 
 // Minio Bucket Names

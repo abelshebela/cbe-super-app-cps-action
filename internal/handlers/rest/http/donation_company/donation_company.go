@@ -156,7 +156,6 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 	req.PhoneNumber = formattedPhone
 	span.SetAttributes(
 		attribute.String("donation_company.name", req.CompanyName),
-		attribute.String("donation_company.account_number", req.AccountNumber),
 	)
 	if err := d.donationCompanyApp.CreateDonationCompany(ctx, req); err != nil {
 		span.RecordError(err)

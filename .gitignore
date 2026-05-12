@@ -31,8 +31,8 @@ go.work.sum
 env.sh
 reserve
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/
 swagger_main.go
 # docs/
 # !docs/swagger/
@@ -64,3 +64,4 @@ postman/FULL CPS  New.txt
 postman/automation  FULL CPS ACTION.postman_collection
 db/migrations/create_account_blocks.sql
 db/migrations/accounts_block_migration.sql
+.vscode

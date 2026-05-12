@@ -148,7 +148,7 @@ func (a *AccessListStorage) FindAllWithPagination(ctx context.Context, departmen
 	total, err := a.dal.TotalCount(ctx, filter)
 	if err != nil {
 		a.logger.Errorf("[AccessListStorage][FindAllWithPagination] failed to count access lists: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)

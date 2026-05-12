@@ -392,6 +392,12 @@ func (b *BudgetCategoryService) DeleteBudgetCategory(ctx context.Context, id str
 		))
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
+	//check if the catagory not in use before delete
+	in_user,err := b.budgetCategoryRepo.CheckBudgetCatagoryINUse(ctx,id)
+	if in_user {
+		b.logger.Infof("Budget catagory in user")
+		return errors.New(localization.ErrorBudgetCAtagoryINuser.Code)
+	}
 	if existingBudgetCategory.IsDeleted == 1 {
 		span.AddEvent("Budget category already deleted", trace.WithAttributes(
 			attribute.String("error", localization.ErrorAlreadyDeleted.Code),

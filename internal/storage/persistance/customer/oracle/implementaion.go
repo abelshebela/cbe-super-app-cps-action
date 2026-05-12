@@ -91,88 +91,206 @@ func (c *customerOracleRepository) FindCustomerByUserCode(ctx context.Context, u
 	return response, nil
 }
 
+// // FindCustomerDetailByID implements [storage.CustomerRepository].
+// func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, id string) (*customer.CustomerDetailResponse, error) {
+// 	c.logger.Infof("[CustomerRepository][FindCustomerDetailByID] fetching customer detail by user_code: %s", id)
+
+// 	// 1. Fetch user info by user_code
+// 	userQuery := `
+// 	SELECT
+// 	  RAWTOHEX(u.id),
+// 	  u.full_name,
+// 	  u.gender,
+// 	  u.contact_phone,
+// 	  u.contact_email,
+// 	  u.customer_number,
+// 	  u.is_superapp_active,
+// 	  u.birth_of_date
+// 	FROM users u
+// 	WHERE u.user_code = :1`
+
+// 	var (
+// 		userID, fullName, gender, phone, email, customerNumber string
+// 		isActive                                               int
+// 		birthOfDate                                            sql.NullTime
+// 	)
+// 	err := c.db.QueryRowContext(ctx, userQuery, id).Scan(&userID, &fullName, &gender, &phone, &email, &customerNumber, &isActive, &birthOfDate)
+// 	if err != nil {
+// 		if err.Error() == "sql: no rows in result set" {
+// 			return nil, localization.ErrorResourceNotFound
+// 		}
+// 		c.logger.Errorf("[CustomerRepository][FindCustomerDetailByID] user query failed: %v", err)
+// 		return nil, localization.ErrorUnexpectedError
+// 	}
+
+// 	// 2. Fetch linked accounts with account and branch info
+// 	linkedQuery := `
+// 	SELECT
+// 	  a.account_number,
+// 	  a.account_holder_name,
+// 	  a.account_type,
+// 	  ab.code,
+// 	  la.is_active,
+// 	  ab.name
+// 	FROM linked_accounts la
+// 	JOIN accounts a ON a.id = la.account_id
+// 	JOIN account_blocks ab ON ab.id = a.bank_id
+// 	WHERE la.user_code = :1`
+
+// 	rows, err := c.db.QueryContext(ctx, linkedQuery, id)
+// 	if err != nil {
+// 		c.logger.Errorf("[CustomerRepository][FindCustomerDetailByID] linked accounts query failed: %v", err)
+// 		return nil, localization.ErrorUnexpectedError
+// 	}
+// 	defer rows.Close()
+
+// 	var linkedAccounts []customer.LinkedAccount
+// 	for rows.Next() {
+// 		var accNum, accHolder, accType, branchCode, branchName sql.NullString
+// 		var isActiveAcc int
+// 		if err := rows.Scan(&accNum, &accHolder, &accType, &branchCode, &isActiveAcc, &branchName); err != nil {
+// 			c.logger.Errorf("[CustomerRepository][FindCustomerDetailByID] scan failed: %v", err)
+// 			return nil, localization.ErrorUnexpectedError
+// 		}
+// 		linkedAccounts = append(linkedAccounts, customer.LinkedAccount{
+// 			AccountNumber:     accNum.String,
+// 			AccountHolderName: accHolder.String,
+// 			AccountType:       accType.String,
+// 			AccountBranchCode: branchCode.String,
+// 			IsActive:          isActiveAcc == 1,
+// 			AccountBranchName: branchName.String,
+// 		})
+// 	}
+
+// 	response := &customer.CustomerDetailResponse{
+// 		ID:            userID,
+// 		LinkedAccount: linkedAccounts,
+// 		PersonalInfo: customer.PersonalInfo{
+// 			FullName:       fullName,
+// 			Gender:         gender,
+// 			PhoneNumber:    phone,
+// 			Email:          email,
+// 			CustomerNumber: customerNumber,
+// 			IsActivated:    isActive == 1,
+// 			DateOfBirth:    "",
+// 		},
+// 	}
+// 	if birthOfDate.Valid {
+// 		response.PersonalInfo.DateOfBirth = birthOfDate.Time.Format("2006-01-02")
+// 	}
+
+// 	return response, nil
+// }
+
 // FindCustomerDetailByID implements [storage.CustomerRepository].
 func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, id string) (*customer.CustomerDetailResponse, error) {
 	c.logger.Infof("[CustomerRepository][FindCustomerDetailByID] fetching customer detail by user_code: %s", id)
 
-	// 1. Fetch user info by user_code
-	userQuery := `
-	SELECT
-	  RAWTOHEX(u.id),
-	  u.full_name,
-	  u.gender,
-	  u.contact_phone,
-	  u.contact_email,
-	  u.customer_number,
-	  u.is_superapp_active,
-	  u.birth_of_date
-	FROM users u
-	WHERE u.user_code = :1`
+	// New query: join users, account_blocks, linked_accounts, accounts, fetch all required fields
+	query := `
+		       SELECT
+			       RAWTOHEX(u.id),
+			       u.full_name,
+			       u.gender,
+			       u.contact_phone,
+			       u.contact_email,
+			       u.customer_number,
+			       u.is_superapp_active,
+				   u.is_ussd_active,
+				   u.is_superapp_enabled,
+				   u.is_ussd_enabled,
+				   u.is_blocked,
+			       u.birth_of_date,
+			       a.account_holder_name,
+			       a.account_type,
+			       a.account_number,
+			       ab.name,
+			       ab.code,
+			       la.is_active
+		       FROM linked_accounts la
+		       LEFT JOIN accounts a ON a.id = la.account_id
+		       LEFT JOIN users u ON la.user_code = u.user_code
+		       LEFT JOIN account_blocks ab ON ab.code = u.branch_code
+		       WHERE la.user_code = :1`
 
-	var (
-		userID, fullName, gender, phone, email, customerNumber string
-		isActive                                               int
-		birthOfDate                                            sql.NullTime
-	)
-	err := c.db.QueryRowContext(ctx, userQuery, id).Scan(&userID, &fullName, &gender, &phone, &email, &customerNumber, &isActive, &birthOfDate)
+	rows, err := c.db.QueryContext(ctx, query, id)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
-			return nil, localization.ErrorResourceNotFound
-		}
-		c.logger.Errorf("[CustomerRepository][FindCustomerDetailByID] user query failed: %v", err)
-		return nil, localization.ErrorUnexpectedError
-	}
-
-	// 2. Fetch linked accounts with account and branch info
-	linkedQuery := `
-	SELECT
-	  a.account_number,
-	  a.account_holder_name,
-	  a.account_type,
-	  ab.code,
-	  la.is_active,
-	  ab.name
-	FROM linked_accounts la
-	JOIN accounts a ON a.id = la.account_id
-	JOIN account_blocks ab ON ab.id = a.bank_id
-	WHERE la.user_code = :1`
-
-	rows, err := c.db.QueryContext(ctx, linkedQuery, id)
-	if err != nil {
-		c.logger.Errorf("[CustomerRepository][FindCustomerDetailByID] linked accounts query failed: %v", err)
+		c.logger.Errorf("[CustomerRepository][FindCustomerDetailByID] query failed: %v", err)
 		return nil, localization.ErrorUnexpectedError
 	}
 	defer rows.Close()
 
-	var linkedAccounts []customer.LinkedAccount
+	var (
+		userID, fullName, gender, phone, email, customerNumber                      string
+		isSuperAppActive, isUSSDActive, isBlocked, isSuperAppEnabled, isUSSDEnalbed int
+		birthOfDate                                                                 sql.NullTime
+		linkedAccounts                                                              []customer.LinkedAccount
+		fetchedFirstRow                                                             bool
+	)
+
 	for rows.Next() {
-		var accNum, accHolder, accType, branchCode, branchName sql.NullString
-		var isActiveAcc int
-		if err := rows.Scan(&accNum, &accHolder, &accType, &branchCode, &isActiveAcc, &branchName); err != nil {
+		var (
+			accHolder, accType, accNum, branchName, branchCode                                          sql.NullString
+			isActiveAcc                                                                                 int
+			rowUserID, rowFullName, rowGender, rowPhone, rowEmail, rowCustomerNumber                    string
+			rowIsSuperAppActive, rowIsUSSDActive, rowIsUSSDEnabled, rowIsSupperAppEnabled, rowIsBlocked int
+			rowBirthOfDate                                                                              sql.NullTime
+		)
+		if err := rows.Scan(
+			&rowUserID, &rowFullName, &rowGender, &rowPhone, &rowEmail, &rowCustomerNumber,
+			&rowIsSuperAppActive, &rowIsUSSDActive, &rowIsSupperAppEnabled, &rowIsUSSDEnabled, &rowIsBlocked, &rowBirthOfDate,
+			&accHolder, &accType, &accNum, &branchName, &branchCode, &isActiveAcc,
+		); err != nil {
 			c.logger.Errorf("[CustomerRepository][FindCustomerDetailByID] scan failed: %v", err)
 			return nil, localization.ErrorUnexpectedError
+		}
+		// Set user info from first row
+		if !fetchedFirstRow {
+			userID = rowUserID
+			fullName = rowFullName
+			gender = rowGender
+			phone = rowPhone
+			email = rowEmail
+			customerNumber = rowCustomerNumber
+			isBlocked = rowIsBlocked
+			isSuperAppActive = rowIsSuperAppActive
+			isSuperAppEnabled = rowIsSupperAppEnabled
+			isUSSDActive = rowIsUSSDActive
+			isUSSDEnalbed = rowIsUSSDEnabled
+			isUSSDActive = rowIsUSSDActive
+			birthOfDate = rowBirthOfDate
+			fetchedFirstRow = true
 		}
 		linkedAccounts = append(linkedAccounts, customer.LinkedAccount{
 			AccountNumber:     accNum.String,
 			AccountHolderName: accHolder.String,
 			AccountType:       accType.String,
 			AccountBranchCode: branchCode.String,
-			IsActive:          isActiveAcc == 1,
+			IsActive:          isActiveAcc == 1 || isUSSDActive == 1,
 			AccountBranchName: branchName.String,
 		})
+	}
+
+	if !fetchedFirstRow {
+		// No rows found
+		return nil, localization.ErrorResourceNotFound
 	}
 
 	response := &customer.CustomerDetailResponse{
 		ID:            userID,
 		LinkedAccount: linkedAccounts,
 		PersonalInfo: customer.PersonalInfo{
-			FullName:       fullName,
-			Gender:         gender,
-			PhoneNumber:    phone,
-			Email:          email,
-			CustomerNumber: customerNumber,
-			IsActivated:    isActive == 1,
-			DateOfBirth:    "",
+			FullName:            fullName,
+			Gender:              gender,
+			PhoneNumber:         phone,
+			Email:               email,
+			CustomerNumber:      customerNumber,
+			IsActivated:         isBlocked == 1,
+			IsSupperAppActivate: isSuperAppActive == 1,
+			IsUSSDActivate:      isUSSDActive == 1,
+			IsSupperAppEnabled:  isSuperAppEnabled == 1,
+			IsUSSDEnabled:       isUSSDEnalbed == 1,
+			DateOfBirth:         birthOfDate.Time.Format("2006-01-02"),
 		},
 	}
 	if birthOfDate.Valid {

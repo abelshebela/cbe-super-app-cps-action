@@ -142,6 +142,7 @@ func (r *RoleRepository) EnableOrDisable(ctx context.Context, id string, enable 
 }
 
 func (r *RoleRepository) SoftDelete(ctx context.Context, id string) error {
+	r.logger.Infof("[RoleRepository][SoftDelete] soft deleting role with id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		r.logger.Errorf("[RoleRepository][SoftDelete] invalid object id: %v", err)
@@ -221,7 +222,7 @@ func (r *RoleRepository) CheckIfExists(ctx context.Context, id string) (*imodel.
 }
 
 func (r *RoleRepository) FindByName(ctx context.Context, name string) (*imodel.Role, error) {
-	filter := bson.M{"job_title": bson.M{"$regex": "^" + name + "$", "$options": "i"}}
+	filter := bson.M{"job_title": bson.M{"$regex": "^" + name + "$", "$options": "i"}, "is_deleted": false}
 	result, err := r.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		r.logger.Errorf("[RoleRepository][FindByName] failed to find role: %v", err)
@@ -230,7 +231,7 @@ func (r *RoleRepository) FindByName(ctx context.Context, name string) (*imodel.R
 	return result, nil
 }
 func (r *RoleRepository) FindByRole(ctx context.Context, name string) (*imodel.Role, error) {
-	filter := bson.M{"role": bson.M{"$regex": "^" + name + "$", "$options": "i"}}
+	filter := bson.M{"role": bson.M{"$regex": "^" + name + "$", "$options": "i"}, "is_deleted": false}
 	result, err := r.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		r.logger.Errorf("[RoleRepository][FindByRole] failed to find role: %v", err)
@@ -240,7 +241,7 @@ func (r *RoleRepository) FindByRole(ctx context.Context, name string) (*imodel.R
 }
 
 func (r *RoleRepository) FindByCode(ctx context.Context, code string) (*imodel.Role, error) {
-	filter := bson.M{"code": code}
+	filter := bson.M{"code": code, "is_deleted": false}
 	result, err := r.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		r.logger.Errorf("[RoleRepository][FindByCode] failed to find role: %v", err)
@@ -259,7 +260,7 @@ func (r *RoleRepository) FindByCode(ctx context.Context, code string) (*imodel.R
 // }
 
 func (r *RoleRepository) FindAll(ctx context.Context) (*[]imodel.Role, error) {
-	pipeline := roleWithJobRolePipeline(bson.M{"enabled": true, "is_deleted": bson.M{"$ne": true}}, r.collection.Name(), 0, 0)
+	pipeline := roleWithJobRolePipeline(bson.M{"enabled": true, "is_deleted": false}, r.collection.Name(), 0, 0)
 	cursor, err := r.jobCollection.Aggregate(ctx, pipeline)
 	if err != nil {
 		r.logger.Errorf("[RoleRepository][FindAll] failed to aggregate job_roles: %v", err)
@@ -285,7 +286,7 @@ func (r *RoleRepository) FindAllWithPagination(ctx context.Context, filterParam 
 
 	allowedKeys := []string{"enabled", "job_title", "role"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-	filter["is_deleted"] = bson.M{"$ne": true}
+	filter["is_deleted"] = false
 
 	total, err := r.mongoDal.TotalCount(ctx, filter)
 	if err != nil {

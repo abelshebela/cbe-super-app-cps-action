@@ -1,6 +1,7 @@
 package bps_action
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -9,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -533,8 +535,8 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForAuditor(ctx conte
 
 	switch filter["auditor_status"] {
 	case "NOTCHECKED":
-		filter["auditors.audited"] = false
-		filter["status"] = "APPROVED" // Only show APPROVED actions for auditors
+		filter["auditors.audited"] = bson.M{"$ne": true}
+		filter["status"] = constants.Approved // Only show APPROVED actions for auditors
 	case "CHECKED":
 		filter["auditors.audited"] = true
 	}
@@ -623,7 +625,9 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationBPSActions(ctx conte
 	delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
 	if role != "maker" {
-		filter["request_action"] = bson.M{"$in": RAList}
+		if len(RAList) > 0 {
+			filter["request_action"] = bson.M{"$in": RAList}
+		}
 	}
 
 	var userFilter bson.M
@@ -635,7 +639,7 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationBPSActions(ctx conte
 	}
 
 	var finalMatch bson.M
-	if role == "checker" && filterParam.Filters != nil && filterParam.Filters["status"] == "PENDING" {
+	if role == "checker" && filterParam.Filters != nil && filterParam.Filters["status"] == constants.Pending {
 		finalMatch = filter
 	} else if userFilter != nil {
 		finalMatch = bson.M{"$and": []bson.M{filter, userFilter}}
@@ -949,10 +953,10 @@ func (b *bpsActionRepository) GetCountByDepartment(ctx context.Context, departme
 		{{Key: "$match", Value: bson.M{"is_deleted": false, "department": department}}},
 		{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: nil},
-			{Key: "approved", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", "APPROVED"}}}, 1, 0}}}}}},
-			{Key: "rejected", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", "REJECTED"}}}, 1, 0}}}}}},
-			{Key: "inprogress", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", "INPROGRESS"}}}, 1, 0}}}}}},
-			{Key: "completed", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", "AUDITORNOTCHECKED"}}}, 1, 0}}}}}},
+			{Key: "approved", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", constants.Approved}}}, 1, 0}}}}}},
+			{Key: "rejected", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$status", constants.Rejected}}}, 1, 0}}}}}},
+			{Key: "inprogress", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", string(constants.AUDITORINPROGRESS)}}}, 1, 0}}}}}},
+			{Key: "completed", Value: bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$auditor_status", string(constants.AUDITORNOTCHECKED)}}}, 1, 0}}}}}},
 		}}},
 	}
 
@@ -973,4 +977,75 @@ func (b *bpsActionRepository) GetCountByDepartment(ctx context.Context, departme
 	}
 
 	return &bpsActionDto.BPSActionCountResponse{Approved: 0, Rejected: 0, Inprogress: 0, Completed: 0}, nil
+}
+
+func (r *bpsActionRepository) MarkActionAsAudited(ctx context.Context, actionCode string, auditorID string, auditorName string, auditorMID string, auditorApproval bool, reason string) error {
+
+	filter := bson.M{"action_code": actionCode}
+
+	// First, fetch the existing action
+	start := time.Now()
+	existing, err := r.actionDal.FindOne(ctx, filter, bson.M{})
+	duration := time.Since(start)
+	r.logger.Infof("[BPSActionStorage][MarkActionAsAudited]bps_actions", duration)
+
+	if err != nil {
+		r.logger.Errorf("[BPSAction][MarkActionAsAudited] failed to find bps")
+		return local_util.HandleDBError(err)
+	}
+
+	// SECURITY FIX: Only allow auditing of APPROVED or REJECTED actions
+	currentStatus := string(existing.Status)
+	if currentStatus != "APPROVED" && currentStatus != "REJECTED" {
+		r.logger.Errorf("[BPSActionStorage][MarkActionAsAudited] didn't fullfill the action status crateria it's status is %v", currentStatus)
+		return errors.New(localization.ErrorCodeBpsActionInvalidStatus.Code)
+	}
+
+	// Append auditor ID to the auditor list if not already present
+	auditorIDs := existing.Auditors.AuditorID
+	auditorMIDs := existing.AuditorMID
+	auditorNameList := existing.AuditorNameList
+	auditorAlreadyExists := false
+	for _, id := range auditorIDs {
+		if id == auditorID {
+			auditorAlreadyExists = true
+			break
+		}
+	}
+
+	if !auditorAlreadyExists {
+		auditorIDs = append(auditorIDs, auditorID)
+		auditorMIDs = append(auditorMIDs, auditorMID)
+		auditorNameList = append(auditorNameList, auditorName)
+	}
+
+	// Update the auditors field
+	now := time.Now()
+
+	// Append current time to auditor_time array
+	updatedAuditorTime := append(existing.AuditorTime, now)
+
+	update := bson.M{"$set": bson.M{
+		"auditors.audited":          true,
+		"auditors.auditor_id":       auditorIDs,
+		"auditors.auditor_name":     auditorName,
+		"auditors.auditor_approval": auditorApproval,
+		"auditors.reason":           reason,
+		"auditor_mid":               auditorMIDs,
+		"auditor_name_list":         auditorNameList,
+		"auditor_time":              updatedAuditorTime,
+		"last_modified_at":          now,
+	}}
+
+	// Set verified_at (stored as "time" in DB) when auditor approves the action
+	// if auditorApproval {
+	// 	update["time"] = now
+	// }
+	_, err = r.actionDal.UpdateOneN(ctx, filter, update)
+	if err != nil {
+		r.logger.Errorf("[BPSAction][MarkActionAsAudited] fialed to update bpsaction error: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
+	return nil
 }

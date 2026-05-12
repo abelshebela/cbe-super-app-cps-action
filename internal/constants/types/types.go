@@ -214,16 +214,16 @@ type LoginPIN struct {
 }
 
 type UserContext struct {
-	IsErp        bool
-	UserCode     string
-	UserID       string
-	FullName     string
-	PhoneNumber  string
-	UserName     string
-	Department   string
-	BranchCode   []string
-	UserRole     string
-	CheckerIndex string
+	IsErp        bool     `json:"is_erp"`
+	UserCode     string   `json:"user_code"`
+	UserID       string   `json:"user_id"`
+	FullName     string   `json:"full_name"`
+	PhoneNumber  string   `json:"phone_number"`
+	UserName     string   `json:"username"`
+	Department   string   `json:"department"`
+	BranchCode   []string `json:"branch_code"`
+	UserRole     string   `json:"user_role"`
+	CheckerIndex string   `json:"checker_index"`
 }
 
 type RegistrationRecord struct {

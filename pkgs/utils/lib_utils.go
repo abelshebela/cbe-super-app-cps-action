@@ -123,6 +123,7 @@ func isHex(s string) bool {
 	}
 	return true
 }
+
 func FirstHex24(s string) string {
 	if s == "" {
 		return ""

@@ -25,8 +25,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/department"
 	"cbe-super-app-cps-action/internal/storage/persistance/device_history"
 	deviceversioncontrol "cbe-super-app-cps-action/internal/storage/persistance/device_version_control"
-	"cbe-super-app-cps-action/internal/storage/persistance/donation"
-	"cbe-super-app-cps-action/internal/storage/persistance/donation_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
 	event_merchant_repository "cbe-super-app-cps-action/internal/storage/persistance/event_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/icon"
@@ -39,7 +37,6 @@ import (
 
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_user"
-	"cbe-super-app-cps-action/internal/storage/persistance/donation_company"
 	ecommerce_merchant "cbe-super-app-cps-action/internal/storage/persistance/ecommerce_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/fayda"
 	"cbe-super-app-cps-action/internal/storage/persistance/feedback"
@@ -62,6 +59,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/bulk_service"
 	"cbe-super-app-cps-action/internal/storage/persistance/customer"
 	persistence_kyc "cbe-super-app-cps-action/internal/storage/persistance/customer_kyc"
+	user_action_log_repo "cbe-super-app-cps-action/internal/storage/persistance/user_action_log"
 	ussd_merchant_repo "cbe-super-app-cps-action/internal/storage/persistance/ussd_merchant"
 
 	"github.com/hugokessem/coreio/core"
@@ -100,10 +98,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		BulkService:                       bulk_service.InitBulkServicePersistence(client, cfg, dbName, []string{CPSActionsCollection, AccessListCollection}, clientOrchestrationProducer, notificationProducer, logger),
 		CustomerService:                   customer.InitCustomerDetail(client, cfg, dbName, []string{MembersCollection, LinkedAccountsCollection}, clientOrchestrationProducer, logger),
 		CpsUserPersistence:                cps_user.NewCPSUserRepository(client, redisRepository, cfg, dbName, CPSUsersCollection, []string{DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection, RolesCollection, JobRolesCollection}, logger),
-		DonationPersistence:               donation.NewDonationRepository(client, cfg, dbName, DonationsCollection, clientOrchestrationProducer, logger),
-		DonationCategoryPersistence:       donation_category.NewDonationCategoryRepository(client, cfg, dbName, DonationCategoriesCollection, clientOrchestrationProducer, logger),
 		ArchivedUserPersistence:           archived_user.NewArchivedUserRepository(client, cfg, dbName, ArchievedUsersCollection, logger),
-		DonationCompanyPersistence:        donation_company.NewDonationCompanyRepository(client, cfg, dbName, DonationCompaniesCollection, clientOrchestrationProducer, logger),
 		EventPersistence:                  event.NewEventRepository(client, cfg, dbName, EventsCollection, logger),
 		PasswordRulePersistent:            password.NewPasswordRuleRepository(client, cfg, dbName, PasswordRulesCollection, logger),
 		FeedbackPersistence:               feedback.NewFeedbackRepository(client, cfg, dbName, FeedbackCollection, CustomerFeedbackCollection, SurveyFeedbackCollection, logger),
@@ -141,6 +136,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		LogisticsMerchantPersistence: logistics_merchant_repository.NewLogisticsMerchantRepository(client, cfg, dbName, LogisticsMerchantsCollection, logger),
 		CustomerKYCPersistence:       persistence_kyc.NewCustomerKYCRepository(client, cfg, dbName, FaydaKYCollection, logger),
 		UssdMerchantPersistence:      ussd_merchant_repo.NewUssdMerchant(client, dbName, UssdMerchantCollection, cfg, logger),
+		UserActionLogPersistence:     user_action_log_repo.NewUserActionLogRepository(client, cfg, dbName, UserActionLogsCollection, logger),
 		ServicesPersistence:          nil, // Services repository is commented out - using Oracle instead
 	}
 
