@@ -288,6 +288,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		} else {
 			redisDeviceIDExpireTime *= 60
 		}
+
 		deviceID, err := a.redisRepository.Get(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID))
 		if err != nil {
 			if errors.Is(err, redis.Nil) {
@@ -327,12 +328,12 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 
 		r = r.WithContext(ctx)
 		// Whitelist CPS Action endpoints that don't need action-based validation
-		// whitelist := []string{"cps_action", "cps_actions"}
-		// if err := CPSActionRouteGuard(r, whitelist); err != nil {
-		// 	a.logger.Warnf("[AuthMW][AuthToken] route guard blocked access to path: %s error: %v", r.URL.Path, err)
-		// 	localization.SendUnauthorizedResponse(w, localization.ErrorOperationNotAllowed.Message)
-		// 	return
-		// }
+		whitelist := []string{"cps_action", "cps_actions", "account_lookup"}
+		if err := CPSActionRouteGuard(r, whitelist); err != nil {
+			a.logger.Warnf("[AuthMW][AuthToken] route guard blocked access to path: %s error: %v", r.URL.Path, err)
+			localization.SendUnauthorizedResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
 
 		next.ServeHTTP(w, r)
 	})
