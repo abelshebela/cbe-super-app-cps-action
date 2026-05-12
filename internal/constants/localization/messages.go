@@ -1439,6 +1439,7 @@ const (
 	MsgAccessListSegmentationAlreadyDisabled       = "Access list segmentation is already disabled"
 	MsgAccessListSegmentationInvalidID             = "Invalid access list segmentation ID"
 	MsgAccessListSegmentationIDsRequired           = "Access list segmentation IDs are required"
+	MsgAccessListSegmentationReasonsRequired       = "Reason is required"
 	MsgAccessListSegmentationNameAlreadyExists     = "Access list segmentation name already exists"
 	MsgCustomerSegmentationCodeNotFound            = "Customer segmentation code not found"
 	MsgCustomerSegmentationEnableSuccessfully      = "Customer segmentation enable request submitted successfully"
