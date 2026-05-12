@@ -667,11 +667,14 @@ const (
 	RequestDisableUssdMerchant string = "DISABLE_USSD_MERCHANT"
 
 	// Ecommerce Merchant
-	RequestCreateEcommerceMerchant  RequestAction = "CREATE_ECOMMERCE_MERCHANT"
-	RequestUpdateEcommerceMerchant  RequestAction = "UPDATE_ECOMMERCE_MERCHANT"
-	RequestEnableEcommerceMerchant  RequestAction = "ENABLE_ECOMMERCE_MERCHANT"
-	RequestDisableEcommerceMerchant RequestAction = "DISABLE_ECOMMERCE_MERCHANT"
-	RequestDeleteEcommerceMerchant  RequestAction = "DELETE_ECOMMERCE_MERCHANT"
+	RequestCreateEcommerceMerchant        RequestAction = "CREATE_ECOMMERCE_MERCHANT"
+	RequestUpdateEcommerceMerchant        RequestAction = "UPDATE_ECOMMERCE_MERCHANT"
+	RequestEnableEcommerceMerchant        RequestAction = "ENABLE_ECOMMERCE_MERCHANT"
+	RequestDisableEcommerceMerchant       RequestAction = "DISABLE_ECOMMERCE_MERCHANT"
+	RequestDeleteEcommerceMerchant        RequestAction = "DELETE_ECOMMERCE_MERCHANT"
+	RequestDeleteEcommerceMerchantBranch  RequestAction = "DELETE_ECOMMERCE_MERCHANT_BRANCH"
+	RequestEnableEcommerceMerchantBranch  RequestAction = "ENABLE_ECOMMERCE_MERCHANT_BRANCH"
+	RequestDisableEcommerceMerchantBranch RequestAction = "DISABLE_ECOMMERCE_MERCHANT_BRANCH"
 
 	// Action Role
 	RequestUser                 RequestAction = "USER"

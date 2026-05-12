@@ -39,7 +39,6 @@ import (
 	bps_action "cbe-super-app-cps-action/internal/constants/model"
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
-	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 		event_model "cbe-super-app-cps-action/internal/constants/model"
@@ -99,7 +98,8 @@ type ServicesRepository interface {
 	FindServiceByAccessListID(ctx context.Context, accessListID string) (*service_dto.ServiceResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error)
 	CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error)
-	CheckAccountNumberExistence(ctx context.Context, accountDetail core.AccountLookupResult, accountNumber, accountCurrency string) error
+	CheckAccountNumberExistence(ctx context.Context, accountNumber string) (string, error)
+	InsertAccountNumberToAccounts(ctx context.Context, accountDetail core.AccountLookupResult, accountCurrency string) (string, error)
 	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceKey], error)
 	FindServiceListByID(ctx context.Context, id string) (*imodel.ServiceKey, error)
 	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error)
@@ -109,6 +109,12 @@ type ServicesRepository interface {
 	UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error
 	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
 	DeleteServiceKey(ctx context.Context, id string) error
+
+	FindSupperAppRoleByAccessList(ctx context.Context, accessListID string) (bool, error)
+	FindGeographicalLocationByAccessList(ctx context.Context, accessListID string) (bool, error)
+
+	FindWalletByAccessList(ctx context.Context, accessListID string) (bool, error)
+	FindDonationByAccessList(ctx context.Context, accessListID string) (bool, error)
 }
 
 type OTPRepository interface {
@@ -273,6 +279,7 @@ type BudgetCategoryOracleRepository interface {
 	FindByID(ctx context.Context, id string) (*imodel.BudgetCategoryOracle, error)
 	FindAllWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BudgetCategoryOracle], error)
 	FindByName(ctx context.Context, name string) (*imodel.BudgetCategoryOracle, error)
+	CheckBudgetCatagoryINUse(ctx context.Context,catagory_id string)(bool,error)
 }
 
 // AmountBasedAuth persistence
@@ -460,20 +467,20 @@ type VaultAmountTierRepository interface {
 }
 
 type DonationRepository interface {
-	Create(ctx context.Context, donation *donation_model.Donation) error
-	Update(ctx context.Context, id string, donation *donation_model.Donation) error
+	Create(ctx context.Context, donation *imodel.DonationOracle) error
+	Update(ctx context.Context, id string, donation *imodel.DonationOracle) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation.DonationListResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation.DonationListResponse], error)
-	StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*donation_model.Donation) error) error
+	StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*imodel.DonationOracle) error) error
 	HasActiveDonationsByCategory(ctx context.Context, categoryID string) (bool, error)
 	HasActiveDonationsByCompany(ctx context.Context, companyID string) (bool, error)
 	DisableAllByCompany(ctx context.Context, companyID string) error
 }
 
 type DonationCategoryRepository interface {
-	Create(ctx context.Context, donationCategory *donation_model.DonationCategory) error
-	Update(ctx context.Context, id string, donationCategory *donation_model.DonationCategory) error
+	Create(ctx context.Context, donationCategory *imodel.DonationCategoryOracle) error
+	Update(ctx context.Context, id string, donationCategory *imodel.DonationCategoryOracle) error
 	EnableDisable(ctx context.Context, id string, enable bool) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation_category.DonationCategoryListResponse, error)
@@ -482,12 +489,11 @@ type DonationCategoryRepository interface {
 }
 
 type DonationCompanyRepository interface {
-	Create(ctx context.Context, donationCompany *donation_model.DonationCompany) error
-	Update(ctx context.Context, id string, donationCompany *donation_model.DonationCompany) error
+	Create(ctx context.Context, donationCompany *imodel.DonationCompanyOracle) error
+	Update(ctx context.Context, id string, donationCompany *imodel.DonationCompanyOracle) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation_company.DonationCompanyListResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_company.DonationCompanyListResponse], error)
-	FindByAccountNumber(ctx context.Context, accountNumber string) (*donation_model.DonationCompany, error)
 }
 
 type MiniAppRepository interface {
@@ -538,7 +544,10 @@ type EcommerceMerchantRepository interface {
 	Update(ctx context.Context, id string, merchant *model.EcommerceMerchant) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	DeleteBranch(ctx context.Context, id string) error
+	EnableOrDisableBranch(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
+	FindBranchByID(ctx context.Context, id string) (*model.BranchInformation, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error)
 	FindOne(ctx context.Context, filter bson.M) (*model.EcommerceMerchant, error)
 }
@@ -885,6 +894,8 @@ type CPSRolesRepository interface {
 	DisableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error
 	Delete(ctx context.Context, id string) error
 	FindByCustomerSegmentationByID(ctx context.Context, customerSegment string) (*imodel.CPSRoles, error)
+
+	FindSupperAppRoleByAccessList(ctx context.Context, accessListID string) (bool, error)
 }
 
 type CustomerKYCRepository interface {
@@ -939,4 +950,11 @@ type WalletOracleRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
 	FindByIDForGRPC(ctx context.Context, id string) (*local_model.WalletOracle, error)
 	FindAllWithPaginationForGRPC(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
+}
+
+type UserActionLogRepository interface {
+	Save(ctx context.Context, log *imodel.UserActionLog) error
+	GetActionCodesByUser(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error)
+	GetActionCodesByUserAndAuditorStatus(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility, status string) ([]string, error)
+	GetLogsByActionCode(ctx context.Context, actionCode string) ([]imodel.UserActionLog, error)
 }
