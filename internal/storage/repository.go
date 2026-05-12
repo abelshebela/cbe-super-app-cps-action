@@ -38,11 +38,11 @@ import (
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	bps_action "cbe-super-app-cps-action/internal/constants/model"
 
+	event_model "cbe-super-app-cps-action/internal/constants/model"
+
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-		event_model "cbe-super-app-cps-action/internal/constants/model"
-
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
@@ -279,7 +279,7 @@ type BudgetCategoryOracleRepository interface {
 	FindByID(ctx context.Context, id string) (*imodel.BudgetCategoryOracle, error)
 	FindAllWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BudgetCategoryOracle], error)
 	FindByName(ctx context.Context, name string) (*imodel.BudgetCategoryOracle, error)
-	CheckBudgetCatagoryINUse(ctx context.Context,catagory_id string)(bool,error)
+	CheckBudgetCatagoryINUse(ctx context.Context, catagory_id string) (bool, error)
 }
 
 // AmountBasedAuth persistence
@@ -812,8 +812,7 @@ type EventMerchantRepository interface {
 	FindByID(ctx context.Context, id string) (*event_model.EventMerchant, error)
 	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]event_model.EventMerchant], error)
-	FindOneO(ctx context.Context, 	data *types.CheckMerchant) (*event_model.EventMerchant, error)
-
+	FindOneO(ctx context.Context, data *types.CheckMerchant) (*event_model.EventMerchant, error)
 }
 type LogisticsMerchantRepository interface {
 	FindOne(ctx context.Context, filter bson.M) (*local_model.LogisticsMerchant, error)
