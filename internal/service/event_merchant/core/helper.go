@@ -18,6 +18,8 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+		event_merchant_model "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"errors"
@@ -58,7 +60,25 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 
 	return accountDetail, nil
 }
-
+func CheckEventMercahntExist(ctx context.Context,EventMerchantRepo storage.EventMerchantRepository,data *types.CheckMerchant)(bool,error) {
+	if data ==nil {
+		return false ,nil
+	}
+	exist,err := EventMerchantRepo.FindOneO(ctx,data)
+	if err != nil {
+		// if err != nil {
+			if err.Error() == localization.ErrorResourceNotFound.Code{
+				return false,nil
+			}
+		// }
+		return false,err
+	}
+	
+	if exist == nil {
+		return false ,nil
+	}
+	return true,nil
+}
 func CheckMerchantExists(
 	ctx context.Context,
 	merchantRepo storage.EventMerchantRepository,
@@ -122,10 +142,11 @@ func CheckMerchantExists(
 
 	return true, nil
 }
-func MergeEventMerchantData(old, data *model.EventMerchant) *model.EventMerchant {
+
+func MergeEventMerchantData(old, data *event_merchant_model.EventMerchant) *event_merchant_model.EventMerchant {
 	now := time.Now()
 
-	return &model.EventMerchant{
+	return &event_merchant_model.EventMerchant{
 		ID:                old.ID,
 		MerchantID:        local_util.NonEmptyString(data.MerchantID, old.MerchantID),
 		SettlementMethod:  local_util.NonEmptyString(data.SettlementMethod, old.SettlementMethod),

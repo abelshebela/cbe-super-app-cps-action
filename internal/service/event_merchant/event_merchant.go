@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	event_merchant_model "cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -41,7 +42,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "EventMerchant", "Authorize")
 	defer span.End()
 
-	merchant, err := local_util.JsonUnmarshal[model.EventMerchant](cpsAction.CurrentAction)
+	merchant, err := local_util.JsonUnmarshal[event_merchant_model.EventMerchant](cpsAction.CurrentAction)
 	if err != nil {
 		e.logger.Errorf("[EventMerchSvc][Authorize] unmarshal err: %v", err)
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
@@ -210,18 +211,25 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 }
 
 // Create implements service.EventMerchantService.
-func (e *EventMerchantService) Create(ctx context.Context, eventMerchant model.EventMerchant) error {
+func (e *EventMerchantService) Create(ctx context.Context, eventMerchant event_merchant_model.EventMerchant) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "EventMerchant", "Create")
 	defer span.End()
 
 	e.logger.Infof("[EventMerchSvc][Create] name: %s", eventMerchant.MerchantName)
 
-	exist, err := core.CheckMerchantExists(ctx, e.repo, &types.CheckMerchant{
+	// exist, err := core.CheckMerchantExists(ctx, e.repo, &types.CheckMerchant{
+	// 	BankAccountNumber: eventMerchant.BankAccountNumber,
+	// 	MerchantCode:      eventMerchant.MerchantID,
+	// 	Email:             eventMerchant.Email,
+	// 	PhoneNumber:       eventMerchant.PhoneNumber,
+	// }, nil)
+
+	exist, err := core.CheckEventMercahntExist(ctx, e.repo, &types.CheckMerchant{
 		BankAccountNumber: eventMerchant.BankAccountNumber,
 		MerchantCode:      eventMerchant.MerchantID,
 		Email:             eventMerchant.Email,
 		PhoneNumber:       eventMerchant.PhoneNumber,
-	}, nil)
+	})
 	if err != nil {
 		e.logger.Errorf("[EventMerchSvc][Create] exist check err: %v", err)
 		if err.Error() != localization.ErrorResourceNotFound.Code {
@@ -241,7 +249,8 @@ func (e *EventMerchantService) Create(ctx context.Context, eventMerchant model.E
 		))
 		return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
-
+	eventMerchant.CreatedAt =time.Now()
+	eventMerchant.UpdatedAt  = time.Now()
 	if eventMerchant.MerchantType == "merchant" {
 		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, eventMerchant.BankAccountNumber, e.accountLookupService)
 		if err != nil {
@@ -365,7 +374,7 @@ func (e *EventMerchantService) EnableOrDisable(ctx context.Context, ids []string
 }
 
 // FindAllWithPagination implements service.EventMerchantService.
-func (e *EventMerchantService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error) {
+func (e *EventMerchantService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]event_merchant_model.EventMerchant], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "EventMerchant", "FindAllWithPagination")
 	defer span.End()
 
@@ -381,7 +390,7 @@ func (e *EventMerchantService) FindAllWithPagination(ctx context.Context, filter
 }
 
 // FindByID implements service.EventMerchantService.
-func (e *EventMerchantService) FindByID(ctx context.Context, id string) (*model.EventMerchant, error) {
+func (e *EventMerchantService) FindByID(ctx context.Context, id string) (*event_merchant_model.EventMerchant, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindByID", "EventMerchant", "FindByID")
 	defer span.End()
 
@@ -398,7 +407,7 @@ func (e *EventMerchantService) FindByID(ctx context.Context, id string) (*model.
 }
 
 // Update implements service.EventMerchantService.
-func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerchant model.EventMerchant) error {
+func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerchant event_merchant_model.EventMerchant) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "EventMerchant", "Update")
 	defer span.End()
 
@@ -434,7 +443,7 @@ func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerch
 	}
 
 	if check.BankAccountNumber != "" || check.Email != "" || check.PhoneNumber != "" {
-		exist, err := core.CheckMerchantExists(ctx, e.repo, &check, &types.MiniAppMerchantExistOptions{ExcludeID: id})
+		exist, err := core.CheckEventMercahntExist(ctx, e.repo, &check)
 		if err != nil {
 			e.logger.Errorf("[EventMerchSvc][Update] exist check err: %v", err)
 			span.AddEvent("Failed to check merchant existence", trace.WithAttributes(

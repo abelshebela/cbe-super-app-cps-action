@@ -56,6 +56,8 @@ import (
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	event_model "cbe-super-app-cps-action/internal/constants/model"
+
 
 	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 
@@ -491,12 +493,12 @@ type KeyGeneratorService interface {
 }
 
 type EventMerchantService interface {
-	Update(ctx context.Context, id string, eventMerchant model.EventMerchant) error
-	Create(ctx context.Context, eventMerchant model.EventMerchant) error
+	Update(ctx context.Context, id string, eventMerchant event_model.EventMerchant) error
+	Create(ctx context.Context, eventMerchant event_model.EventMerchant) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error)
+	FindByID(ctx context.Context, id string) (*event_model.EventMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]event_model.EventMerchant], error)
 	EventMerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

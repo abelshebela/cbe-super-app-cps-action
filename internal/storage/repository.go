@@ -41,6 +41,8 @@ import (
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+		event_model "cbe-super-app-cps-action/internal/constants/model"
+
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
@@ -803,13 +805,15 @@ type TransactionRepository interface {
 }
 
 type EventMerchantRepository interface {
-	FindOne(ctx context.Context, filter bson.M) (*model.EventMerchant, error)
-	Update(ctx context.Context, id string, eventMerchant model.EventMerchant) error
-	Create(ctx context.Context, eventMerchant model.EventMerchant) error
+	FindOne(ctx context.Context, filter bson.M) (*event_model.EventMerchant, error)
+	Update(ctx context.Context, id string, eventMerchant event_model.EventMerchant) error
+	Create(ctx context.Context, eventMerchant event_model.EventMerchant) error
 	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
+	FindByID(ctx context.Context, id string) (*event_model.EventMerchant, error)
 	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]event_model.EventMerchant], error)
+	FindOneO(ctx context.Context, 	data *types.CheckMerchant) (*event_model.EventMerchant, error)
+
 }
 type LogisticsMerchantRepository interface {
 	FindOne(ctx context.Context, filter bson.M) (*local_model.LogisticsMerchant, error)

@@ -974,6 +974,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDepartmentUpdatedSuccessfully,
 	SuccessDepartmentEnabled,
 	SuccessDepartmentDisabled,
+	SuccessDeleteCreated,
 	ErrorBudgetCAtagoryINuser,
 }
 
@@ -3235,9 +3236,16 @@ var (
 	}
 
 	SuccessDeleteRequestCreated = ResponseCode{
-		Code:       "SUCCESS_DELETE_REQUEST_CREATED",
+		Code:       "SUCCESS_DELETE_AMOUNT_BASED",
 		StatusCode: StatusCreated,
 		Message:    MsgDeleteRequestSuccessfullyCreated,
+		Type:       "success",
+	}
+
+	SuccessDeleteCreated = ResponseCode{
+		Code:       "SUCCESS_DELETE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgDeleteSuccessfullyCreated,
 		Type:       "success",
 	}
 
