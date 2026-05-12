@@ -318,7 +318,7 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *ty
 }
 
 func (r *Repository) CheckBudgetCatagoryINUse(ctx context.Context, catagory_id string) (bool, error) {
-	query := `SELECT COUNT(*) FROM BUDGET_CATAGORY_ALLOCATION WHERE BUDGET_ID = HEXTORAW(:1)`
+	query := `SELECT COUNT(*) FROM BUDGET_CATAGORY_ALLOCATIONS WHERE BUDGET_ID = HEXTORAW(:1)`
 
 	row := r.db.QueryRowContext(ctx, query, catagory_id)
 
