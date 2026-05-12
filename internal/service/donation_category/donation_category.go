@@ -5,6 +5,7 @@ import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	core "cbe-super-app-cps-action/internal/service/donation_category/core"
@@ -15,7 +16,6 @@ import (
 	"path"
 	"time"
 
-	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -124,7 +124,7 @@ func (d *DonationCategory) CreateDonationCategory(ctx context.Context, donationC
 		))
 		return err
 	}
-	result := donation_model.DonationCategory{
+	result := imodel.DonationCategoryOracle{
 		CategoryName:   donationCategory.CategoryName,
 		Icon:           url,
 		Enabled:        true,
@@ -173,8 +173,8 @@ func (d *DonationCategory) UpdateDonationCategory(ctx context.Context, id string
 		return donationCategory, errors.New(localization.ErrorFileNotFound.Code)
 	}
 
-	// Convert DTO to model for similarity check
-	existingModel := &donation_model.DonationCategory{
+	existingModel := &imodel.DonationCategoryOracle{
+		ID:           existingCategory.ID,
 		CategoryName: existingCategory.CategoryName,
 		Icon:         existingCategory.Icon,
 		IsDeleted:    existingCategory.IsDeleted,
@@ -258,7 +258,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 		))
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
-	var donationCPS *donation_model.DonationCategory
+	var donationCPS *imodel.DonationCategoryOracle
 	bindErr := core.BindAction(action.CurrentAction, &donationCPS)
 	if bindErr != nil {
 		d.logger.Errorf("[DonCatSvc][Authorize] bind err: %v", bindErr)
