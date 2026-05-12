@@ -26,7 +26,9 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/device_history"
 	deviceversioncontrol "cbe-super-app-cps-action/internal/storage/persistance/device_version_control"
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
-	event_merchant_repository "cbe-super-app-cps-action/internal/storage/persistance/event_merchant"
+	// event_merchant_repository "cbe-super-app-cps-action/internal/storage/persistance/event_merchant"
+		// event_merchant_repository_oracle "cbe-super-app-cps-action/internal/storage/persistance/event_merchant_oracle"
+
 	"cbe-super-app-cps-action/internal/storage/persistance/icon"
 	"cbe-super-app-cps-action/internal/storage/persistance/linked_account"
 	logistics_merchant_repository "cbe-super-app-cps-action/internal/storage/persistance/logistics_merchant"
@@ -37,7 +39,9 @@ import (
 
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_user"
-	ecommerce_merchant "cbe-super-app-cps-action/internal/storage/persistance/ecommerce_merchant"
+
+	// ecommerce_merchant "cbe-super-app-cps-action/internal/storage/persistance/ecommerce_merchant"
+
 	"cbe-super-app-cps-action/internal/storage/persistance/fayda"
 	"cbe-super-app-cps-action/internal/storage/persistance/feedback"
 	"cbe-super-app-cps-action/internal/storage/persistance/hq"
@@ -95,16 +99,16 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		AuthTierPersistence:              auth_tier.NewAuthTierRepository(client, cfg, dbName, AuthTierCollection, logger),
 		BankPersistence:                  bank.NewBankRepository(client, cfg, dbName, BanksCollection, logger),
 		// BudgetCategoryPersistence:         budget_category.NewBudgetCategoryRepository(client, cfg, dbName, BudgetCategoryCollection, clientOrchestrationProducer, logger),
-		BulkService:                       bulk_service.InitBulkServicePersistence(client, cfg, dbName, []string{CPSActionsCollection, AccessListCollection}, clientOrchestrationProducer, notificationProducer, logger),
-		CustomerService:                   customer.InitCustomerDetail(client, cfg, dbName, []string{MembersCollection, LinkedAccountsCollection}, clientOrchestrationProducer, logger),
-		CpsUserPersistence:                cps_user.NewCPSUserRepository(client, redisRepository, cfg, dbName, CPSUsersCollection, []string{DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection, RolesCollection, JobRolesCollection}, logger),
-		ArchivedUserPersistence:           archived_user.NewArchivedUserRepository(client, cfg, dbName, ArchievedUsersCollection, logger),
-		EventPersistence:                  event.NewEventRepository(client, cfg, dbName, EventsCollection, logger),
-		PasswordRulePersistent:            password.NewPasswordRuleRepository(client, cfg, dbName, PasswordRulesCollection, logger),
-		FeedbackPersistence:               feedback.NewFeedbackRepository(client, cfg, dbName, FeedbackCollection, CustomerFeedbackCollection, SurveyFeedbackCollection, logger),
-		IconPersistence:                   icon.NewIconRepository(client, cfg, dbName, IconsCollection, logger),
-		LinkedAccountPersistence:          linked_account.NewLinkedAccountRepository(client, cfg, dbName, LinkedAccountsCollection, clientOrchestrationProducer, logger),
-		EcommerceMerchantPersistence:      ecommerce_merchant.NewEcommerceMerchantRepository(client, cfg, dbName, EcommerceMerchantCollection, logger),
+		BulkService:              bulk_service.InitBulkServicePersistence(client, cfg, dbName, []string{CPSActionsCollection, AccessListCollection}, clientOrchestrationProducer, notificationProducer, logger),
+		CustomerService:          customer.InitCustomerDetail(client, cfg, dbName, []string{MembersCollection, LinkedAccountsCollection}, clientOrchestrationProducer, logger),
+		CpsUserPersistence:       cps_user.NewCPSUserRepository(client, redisRepository, cfg, dbName, CPSUsersCollection, []string{DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection, RolesCollection, JobRolesCollection}, logger),
+		ArchivedUserPersistence:  archived_user.NewArchivedUserRepository(client, cfg, dbName, ArchievedUsersCollection, logger),
+		EventPersistence:         event.NewEventRepository(client, cfg, dbName, EventsCollection, logger),
+		PasswordRulePersistent:   password.NewPasswordRuleRepository(client, cfg, dbName, PasswordRulesCollection, logger),
+		FeedbackPersistence:      feedback.NewFeedbackRepository(client, cfg, dbName, FeedbackCollection, CustomerFeedbackCollection, SurveyFeedbackCollection, logger),
+		IconPersistence:          icon.NewIconRepository(client, cfg, dbName, IconsCollection, logger),
+		LinkedAccountPersistence: linked_account.NewLinkedAccountRepository(client, cfg, dbName, LinkedAccountsCollection, clientOrchestrationProducer, logger),
+		// EcommerceMerchantPersistence:      ecommerce_merchant.NewEcommerceMerchantRepository(client, cfg, dbName, EcommerceMerchantCollection, logger),
 		NotificationPersistence:           notification.NewNotificationRepository(client, cfg, dbName, NotificationsCollection, notificationProducer, logger),
 		PasswordRulePersistence:           password.NewPasswordRuleRepository(client, cfg, dbName, PasswordRulesCollection, logger),
 		ValidationRulePersistence:         accountvalidation.NewAccountValidationStore(client, cfg, dbName, ValidationRulesCollection, clientOrchestrationProducer, logger),
@@ -127,7 +131,8 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		MiniAppCategoryPersistence:        mini_app.NewMiniAppCategoryRepository(logger, client, cfg, dbName, MiniAppCategoryCollection),
 		CPSActionRolePersistence:          cps_actionrole_repo.NewCPSActionRoleRepository(client, cfg, dbName, []string{CPSActionRolesCollection, CPSActionListCollection, CPSActionApproveIndexCollection}, logger),
 		CPSActionApproveIndexPersistence:  cps_actionrole_repo.NewCPSActionApproveIndexRepository(client, dbName, CPSActionApproveIndexCollection, logger),
-		EventMerchantPersistence:          event_merchant_repository.NewEventMerchantRepository(client, cfg, dbName, EventMerchantsCollection, logger),
+		// EventMerchantPersistence:          event_merchant_repository.NewEventMerchantRepository(client, cfg, dbName, EventMerchantsCollection, logger),
+
 		MiniAppProductCodePersistence:     mini_app.NewMiniAppProdutCodeRepository(logger, client, cfg, dbName, MiniAppProductCodes),
 		AccessListSegmentationPersistence: access_list_segmentation_repository.NewAccessListSegmentationRepository(client, cfg, dbName, AccessListSegmentationCollection, accessListSegmentationProducer, nil, logger), // AccountBlock injected in service.go
 		MiniAppMerchant:                   mini_app.NewMiniAppMerchantRepository(client, cfg, dbName, MiniAppMerchantCollection, logger),

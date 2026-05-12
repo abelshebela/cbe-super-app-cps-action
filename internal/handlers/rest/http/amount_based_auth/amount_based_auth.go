@@ -190,6 +190,13 @@ func (a *AmountBasedAuthHandler) DeleteAmountBasedAuth(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	if md.IsMakerOnly{
+		log.Infof("amount based deleted successfully")
+			w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessDeleteCreated, nil)
+		return
+	}
+	log.Infof("amount based delete request created successful")
 	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessDeleteRequestCreated, nil)
 }

@@ -311,7 +311,7 @@ func NonEmptyString(s, fallback string) string {
 	if s != "" {
 		return s
 	}
-	return fallback
+	return ""
 }
 
 func ExtractID(w http.ResponseWriter, r *http.Request) (string, error) {
@@ -405,6 +405,11 @@ func NoSpecialChars(value any) error {
 		return validation.NewError("validation", "contains invalid characters")
 	}
 	return nil
+}
+
+func IsOracleHexID(s string) bool {
+	re := regexp.MustCompile(`^[A-Fa-f0-9]{32}$`)
+	return re.MatchString(s)
 }
 
 func NormalizePhoneNumberOrReturnInput(input string) string {
