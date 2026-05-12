@@ -30,14 +30,30 @@ import (
 )
 
 type cpsActionService struct {
-	repo         storage.CPSActionRepository
-	roles        storage.CPSActionRoleRepository
-	logger       utils.Logger
-	dispatcher   Dispatcher
-	minioClient  *s3.Client
-	buckerName   string
-	minioBaseURL string
-	cfg          config.VaultConfig
+	repo          storage.CPSActionRepository
+	roles         storage.CPSActionRoleRepository
+	actionLogRepo storage.UserActionLogRepository
+	logger        utils.Logger
+	dispatcher    Dispatcher
+	minioClient   *s3.Client
+	buckerName    string
+	minioBaseURL  string
+	cfg           config.VaultConfig
+}
+
+func NewCPSActionService(roles storage.CPSActionRoleRepository, repo storage.CPSActionRepository, actionLogRepo storage.UserActionLogRepository, logger utils.Logger, dispatcher Dispatcher, minioClient *s3.Client, bucketName string, minioBaseURL string, cfg config.VaultConfig,
+) service.CPSActionService {
+	return &cpsActionService{
+		repo:          repo,
+		logger:        logger,
+		roles:         roles,
+		actionLogRepo: actionLogRepo,
+		dispatcher:    dispatcher,
+		minioClient:   minioClient,
+		buckerName:    bucketName,
+		minioBaseURL:  minioBaseURL,
+		cfg:           cfg,
+	}
 }
 
 // IsMakerOnlyForRequest returns true if the module mapped from requestAction is configured as maker-only in CPSActionRole.
@@ -108,20 +124,48 @@ func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 		upd.CurrentAuditorIndex = float64(activeGroup + 1)
 	}
 	_, err = ca.repo.UpdateByActionCode(ctx, actionCode, upd)
-	return err
+	if err != nil {
+		return err
+	}
+
+	ca.logUserAction(ctx, act, imodel.AUDITOR, "", imodel.AuditorMark(auditor.AuditorMark), "", fmt.Sprintf("%d", activeGroup))
+	return nil
 }
 
-func NewCPSActionService(roles storage.CPSActionRoleRepository, repo storage.CPSActionRepository, logger utils.Logger, dispatcher Dispatcher, minioClient *s3.Client, bucketName string, minioBaseURL string, cfg config.VaultConfig,
-) service.CPSActionService {
-	return &cpsActionService{
-		repo:         repo,
-		logger:       logger,
-		roles:        roles,
-		dispatcher:   dispatcher,
-		minioClient:  minioClient,
-		buckerName:   bucketName,
-		minioBaseURL: minioBaseURL,
-		cfg:          cfg,
+func (ca *cpsActionService) logUserAction(ctx context.Context, action *model.CPSAction, responsibility imodel.UserActionResponsibility, givenStatus string, auditorMark imodel.AuditorMark, checkerLevel, auditorLevel string) {
+	if ca.actionLogRepo == nil {
+		return
+	}
+
+	userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
+
+	userOID, _ := bson.ObjectIDFromHex(userData.UserID)
+	actionOID := action.ID
+
+	serviceName := ""
+	if mod, ok := ResolveModuleForRA(constants.RequestAction(action.RequestAction)); ok {
+		serviceName = mod
+	}
+
+	log := &imodel.UserActionLog{
+		ID:                         bson.NewObjectID(),
+		ActionID:                   actionOID,
+		ActionCode:                 action.ActionCode,
+		GivenActionStatus:          givenStatus,
+		GivenAuditorStatus:         auditorMark,
+		RequestAction:              constants.RequestAction(action.RequestAction),
+		ActionTakenServiceName:     serviceName,
+		CheckerLevel:               checkerLevel,
+		AuditorLevel:               auditorLevel,
+		UserID:                     userOID,
+		Username:                   userData.FullName,
+		UserPhone:                  userData.PhoneNumber,
+		UserActionResponsibilities: responsibility,
+		CreatedAt:                  time.Now(),
+	}
+
+	if err := ca.actionLogRepo.Save(ctx, log); err != nil {
+		ca.logger.Errorf("[CpsActionSvc][logUserAction] failed to log action: %v", err)
 	}
 }
 
@@ -144,6 +188,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 			span.AddEvent("failed to save cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
 		}
+		ca.logUserAction(ctx, cpsAction, imodel.MAKER, "PENDING", "", "", "")
 		return nil
 	}
 
@@ -193,6 +238,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		span.AddEvent("failed to save cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
+	ca.logUserAction(ctx, cpsAction, imodel.MAKER, "PENDING", "", "", "")
 	return nil
 }
 
@@ -356,6 +402,12 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 		return err
 	}
 
+	checkerLevel := ""
+	if idx, ok := ctx.Value(constants.ContextKey("role_checker_index")).(int); ok {
+		checkerLevel = fmt.Sprintf("%d", idx)
+	}
+	ca.logUserAction(ctx, action, imodel.CHECKER, action.ActionStatus, "", checkerLevel, "")
+
 	if action.ActionStatus != string(constants.Approved) {
 		return nil
 	}
@@ -386,6 +438,11 @@ func (ca *cpsActionService) RejectCPSAction(ctx context.Context, action_code str
 		span.AddEvent("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
+	checkerLevel := ""
+	if idx, ok := ctx.Value(constants.ContextKey("role_checker_index")).(int); ok {
+		checkerLevel = fmt.Sprintf("%d", idx)
+	}
+	ca.logUserAction(ctx, action, imodel.CHECKER, constants.Rejected, "", checkerLevel, "")
 	return nil
 }
 func (ca *cpsActionService) CancelCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error {
@@ -412,8 +469,31 @@ func (ca *cpsActionService) GetCPSActionsByDepartment(ctx context.Context, depar
 func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionsForApprover", "CPSAction", "GetCPSActionsForApprover")
 	defer span.End()
+	// var actionCodes []string
+	var err error
+
 	createdAtFrom, _ := filterParams.Filters["created_at_from"].(string)
 	createdAtTo, _ := filterParams.Filters["created_at_to"].(string)
+	// userData := local_util.ExtractUserFromContext(ctx)
+	// if filterParams.Search != "" || len(filterParams.Filters) > 0 {
+
+	// 	if filterParams.Filters["action_status"] == constants.Approved || filterParams.Filters["action_status"] == constants.Rejected {
+	// 		actionCodes, err = ca.actionLogRepo.GetActionCodesByUser(ctx, userData.UserID, constants.Checker)
+	// 		if err != nil {
+	// 			span.AddEvent("failed to get action codes by user", trace.WithAttributes(attribute.String("error", err.Error())))
+	// 			return nil, "", err
+	// 		}
+	// 	} else if filterParams.Search != "" {
+	// 		actionCodes, err = ca.actionLogRepo.GetActionCodesBySearch(ctx, filterParams.Search)
+	// 		if err != nil {
+	// 			span.AddEvent("failed to get action codes by search", trace.WithAttributes(attribute.String("error", err.Error())))
+	// 			return nil, "", err
+	// 		}
+	// 	}
+
+	// 	filterParams.Filters["action_code"] = bson.M{"$in": actionCodes}
+	// 	// TODO: Use the action codes to filter the results
+	// }
 	result, err := ca.repo.SanitizedFindAllWithPaginationForApprover(ctx, userID, *filterParams, RAList)
 	if err != nil {
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -731,7 +811,23 @@ func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID st
 	if filterParams.Filters == nil {
 		filterParams.Filters = map[string]interface{}{}
 	}
-	filterParams.Filters["maker_id"] = userID
+
+	// Use user_action_logs as index to scope by MAKER role
+	if ca.actionLogRepo != nil {
+		codes, err := ca.actionLogRepo.GetActionCodesByUser(ctx, userID, imodel.MAKER)
+		if err != nil {
+			ca.logger.Errorf("[CpsActionSvc][GetUserCreatedActions] failed to get action codes from log: %v", err)
+		}
+		if len(codes) > 0 {
+			filterParams.Filters["action_code_in"] = codes
+		} else {
+			// No logs found — fall back to maker_id filter
+			filterParams.Filters["maker_id"] = userID
+		}
+	} else {
+		filterParams.Filters["maker_id"] = userID
+	}
+
 	createdAtFrom, _ := filterParams.Filters["created_at_from"].(string)
 	createdAtTo, _ := filterParams.Filters["created_at_to"].(string)
 	result, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterParams, "")
@@ -773,9 +869,26 @@ func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 	if filterParams.Filters == nil {
 		filterParams.Filters = map[string]interface{}{}
 	}
-	filterParams.Filters["maker_id"] = userID
+
+	// Use user_action_logs as index to scope by CHECKER role
+	if ca.actionLogRepo != nil {
+		codes, err := ca.actionLogRepo.GetActionCodesByUser(ctx, userID, imodel.CHECKER)
+		if err != nil {
+			ca.logger.Errorf("[CpsActionSvc][GetUserCheckedActions] failed to get action codes from log: %v", err)
+		}
+		if len(codes) > 0 {
+			filterParams.Filters["action_code_in"] = codes
+		} else {
+			// No logs found — fall back to checker_users.checker_id filter
+			filterParams.Filters["checker_users.checker_id"] = userID
+		}
+	} else {
+		filterParams.Filters["checker_users.checker_id"] = userID
+	}
+
 	createdAtFrom, _ := filterParams.Filters["created_at_from"].(string)
 	createdAtTo, _ := filterParams.Filters["created_at_to"].(string)
+
 	result, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterParams, "")
 	if err != nil {
 		span.AddEvent("failed to find approver cps actions by user", trace.WithAttributes(attribute.String("error", err.Error())))

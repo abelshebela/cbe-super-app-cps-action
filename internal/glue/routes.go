@@ -14,7 +14,11 @@ type Route struct {
 }
 
 func RegisterRoutes(router chi.Router, routes []Route) {
+	// whitelist := []string{"cps_action", "cps_actions"}
+	// actionRouteGuard := middleware.CPSActionRouteGuard(whitelist)
+
 	for _, route := range routes {
+		// route.Middlewares = append(route.Middlewares, actionRouteGuard)
 		router.With(route.Middlewares...).Method(route.Method, route.Path, http.HandlerFunc(route.Handler))
 	}
 }
