@@ -967,6 +967,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDepartmentUpdatedSuccessfully,
 	SuccessDepartmentEnabled,
 	SuccessDepartmentDisabled,
+	ErrorBudgetCAtagoryINuser,
 }
 
 // Success Response Codes
@@ -5886,6 +5887,14 @@ var (
 		Code:       "ERROR_FILE_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgFileNotFound,
+		Type:       "error",
+	}
+
+	
+	ErrorBudgetCAtagoryINuser = ResponseCode{
+		Code:       "ERROR_BUDGET_CATAGORY_IN_USER",
+		StatusCode: StatusNotFound,
+		Message:    "budget catagory is in use",
 		Type:       "error",
 	}
 

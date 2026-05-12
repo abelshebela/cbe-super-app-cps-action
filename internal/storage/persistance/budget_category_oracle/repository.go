@@ -316,3 +316,17 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *ty
 	meta := local_util.BuildPaginationMeta(total, page, perPage)
 	return &types.PaginatedResponse[[]imodel.BudgetCategoryOracle]{Data: list, Meta: meta}, nil
 }
+
+func (r *Repository) CheckBudgetCatagoryINUse(ctx context.Context, catagory_id string) (bool, error) {
+	query := `SELECT COUNT(*) FROM BUDGET_CATAGORY_ALLOCATION WHERE BUDGET_ID = HEXTORAW(:1)`
+
+	row := r.db.QueryRowContext(ctx, query, catagory_id)
+
+	var count int
+	if err := row.Scan(&count); err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+
+}

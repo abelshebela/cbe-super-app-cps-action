@@ -271,6 +271,7 @@ type BudgetCategoryOracleRepository interface {
 	FindByID(ctx context.Context, id string) (*imodel.BudgetCategoryOracle, error)
 	FindAllWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BudgetCategoryOracle], error)
 	FindByName(ctx context.Context, name string) (*imodel.BudgetCategoryOracle, error)
+	CheckBudgetCatagoryINUse(ctx context.Context,catagory_id string)(bool,error)
 }
 
 // AmountBasedAuth persistence
