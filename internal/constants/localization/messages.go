@@ -272,6 +272,7 @@ const (
 	MsgMiniAppMerchantUpdateRequestSuccessfully = "Update request submitted for approval"
 	MsgUpdateRequestSuccessfullyCreated         = "Update request successfully created"
 	MsgDeleteRequestSuccessfullyCreated         = "Delete request successfully created"
+	MsgDeleteSuccessfullyCreated                = "Amount based successfully deleted"
 	MsgEnableRequestSuccessfullyCreated         = "enable request successfully created"
 	MsgDisableRequestSuccessfullyCreated        = "Disable request successfully created"
 	MsgMiniAppMerchantDisable                   = "Create MiniAppMerchant request successfully created"

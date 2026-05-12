@@ -371,8 +371,9 @@ func (h *ecommerceMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Reque
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 	_ = log
 	id := chi.URLParam(r, "id")
-	if id == "" {
-		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
+	ok := local_util.IsOracleHexID(id)
+	if id == "" || !ok {
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidID.Code)
 		return
 	}
 
@@ -470,4 +471,105 @@ func (h *ecommerceMerchantAdapter) MerchantLookup(w http.ResponseWriter, r *http
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantLookup, result)
+}
+
+func (h *ecommerceMerchantAdapter) DeleteBranch(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteEcommerceMerchantBranch", "handler", "ecommerceMerchant")
+	defer span.End()
+
+	md := &types.ContextMetadata{}
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		span.RecordError(errors.New("missing or invalid parameter 'id'"))
+		log.Errorf("[EcomMerchH][DeleteBranch] missing id param")
+		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameters, nil, nil)
+		return
+	}
+
+	if err := h.srv.DeleteBranch(ctx, id); err != nil {
+		span.RecordError(err)
+		log.Errorf("[EcomMerchH][DeleteBranch] svc err id: %s: %v", id, err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	userContext := local_util.ExtractUserContext(r)
+	if userContext.IsErp || md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[DeleteBranch] request sent successfully for user_code: %s is_maker_only: %v", userCode, userContext.IsErp || md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantBranchDeleted, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantBranchDeletedSuccessfully, nil)
+}
+
+func (h *ecommerceMerchantAdapter) EnableBranch(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "enableEcommerceMerchantBranch", "handler", "ecommerceMerchant")
+	defer span.End()
+
+	md := &types.ContextMetadata{}
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		span.RecordError(errors.New("missing or invalid parameter 'id'"))
+		log.Errorf("[EcomMerchH][EnableBranch] missing id param")
+		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameters, nil, nil)
+		return
+	}
+
+	if err := h.srv.EnableOrDisableBranch(ctx, id, true); err != nil {
+		span.RecordError(err)
+		log.Errorf("[EcomMerchH][EnableBranch] svc err id: %s: %v", id, err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	userContext := local_util.ExtractUserContext(r)
+	if userContext.IsErp || md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[EnableBranch] request sent successfully for user_code: %s is_maker_only: %v", userCode, userContext.IsErp || md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantBranchEnabled, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantBranchEnabledSuccessfully, nil)
+}
+
+func (h *ecommerceMerchantAdapter) DisableBranch(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "disableEcommerceMerchantBranch", "handler", "ecommerceMerchant")
+	defer span.End()
+
+	md := &types.ContextMetadata{}
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		span.RecordError(errors.New("missing or invalid parameter 'id'"))
+		log.Errorf("[EcomMerchH][DisableBranch] missing id param")
+		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameters, nil, nil)
+		return
+	}
+
+	if err := h.srv.EnableOrDisableBranch(ctx, id, false); err != nil {
+		span.RecordError(err)
+		log.Errorf("[EcomMerchH][DisableBranch] svc err id: %s: %v", id, err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	userContext := local_util.ExtractUserContext(r)
+	if userContext.IsErp || md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[DisableBranch] request sent successfully for user_code: %s is_maker_only: %v", userCode, userContext.IsErp || md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantBranchDisabled, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantBranchDisabledSuccessfully, nil)
 }

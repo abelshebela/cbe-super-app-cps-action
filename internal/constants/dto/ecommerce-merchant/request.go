@@ -1,6 +1,7 @@
 package ecommercemerchant
 
 type BranchInformation struct {
+	ID                  string  `json:"id"`
 	BranchCode          string  `json:"branch_code" bson:"branch_code"`
 	BranchName          string  `json:"branch_name" bson:"branch_name"`
 	BranchAddress       *string `json:"branch_address" bson:"branch_address"`
@@ -15,6 +16,7 @@ type EcommerceMerchant struct {
 	SettlementMethod    string              `json:"settlement_method" bson:"settlement_method"`
 	Branches            []BranchInformation `json:"branches"`
 	IsEcommerceMerchant *bool               `json:"is_ecommerce_merchant"`
+	IsEnabled           bool                `json:"is_enabled,omitempty"`
 }
 
 type UpdateEcommerceMerchant struct {

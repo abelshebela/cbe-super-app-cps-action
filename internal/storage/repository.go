@@ -41,6 +41,8 @@ import (
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+		event_model "cbe-super-app-cps-action/internal/constants/model"
+
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
@@ -96,7 +98,8 @@ type ServicesRepository interface {
 	FindServiceByAccessListID(ctx context.Context, accessListID string) (*service_dto.ServiceResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error)
 	CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error)
-	CheckAccountNumberExistence(ctx context.Context, accountDetail core.AccountLookupResult, accountNumber, accountCurrency string) error
+	CheckAccountNumberExistence(ctx context.Context, accountNumber string) (string, error)
+	InsertAccountNumberToAccounts(ctx context.Context, accountDetail core.AccountLookupResult, accountCurrency string) (string, error)
 	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceKey], error)
 	FindServiceListByID(ctx context.Context, id string) (*imodel.ServiceKey, error)
 	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error)
@@ -106,6 +109,12 @@ type ServicesRepository interface {
 	UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error
 	EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error
 	DeleteServiceKey(ctx context.Context, id string) error
+
+	FindSupperAppRoleByAccessList(ctx context.Context, accessListID string) (bool, error)
+	FindGeographicalLocationByAccessList(ctx context.Context, accessListID string) (bool, error)
+
+	FindWalletByAccessList(ctx context.Context, accessListID string) (bool, error)
+	FindDonationByAccessList(ctx context.Context, accessListID string) (bool, error)
 }
 
 type OTPRepository interface {
@@ -535,7 +544,10 @@ type EcommerceMerchantRepository interface {
 	Update(ctx context.Context, id string, merchant *model.EcommerceMerchant) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	DeleteBranch(ctx context.Context, id string) error
+	EnableOrDisableBranch(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
+	FindBranchByID(ctx context.Context, id string) (*model.BranchInformation, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error)
 	FindOne(ctx context.Context, filter bson.M) (*model.EcommerceMerchant, error)
 }
@@ -793,13 +805,15 @@ type TransactionRepository interface {
 }
 
 type EventMerchantRepository interface {
-	FindOne(ctx context.Context, filter bson.M) (*model.EventMerchant, error)
-	Update(ctx context.Context, id string, eventMerchant model.EventMerchant) error
-	Create(ctx context.Context, eventMerchant model.EventMerchant) error
+	FindOne(ctx context.Context, filter bson.M) (*event_model.EventMerchant, error)
+	Update(ctx context.Context, id string, eventMerchant event_model.EventMerchant) error
+	Create(ctx context.Context, eventMerchant event_model.EventMerchant) error
 	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
+	FindByID(ctx context.Context, id string) (*event_model.EventMerchant, error)
 	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]event_model.EventMerchant], error)
+	FindOneO(ctx context.Context, 	data *types.CheckMerchant) (*event_model.EventMerchant, error)
+
 }
 type LogisticsMerchantRepository interface {
 	FindOne(ctx context.Context, filter bson.M) (*local_model.LogisticsMerchant, error)
@@ -880,6 +894,8 @@ type CPSRolesRepository interface {
 	DisableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error
 	Delete(ctx context.Context, id string) error
 	FindByCustomerSegmentationByID(ctx context.Context, customerSegment string) (*imodel.CPSRoles, error)
+
+	FindSupperAppRoleByAccessList(ctx context.Context, accessListID string) (bool, error)
 }
 
 type CustomerKYCRepository interface {
