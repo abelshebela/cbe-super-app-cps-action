@@ -14,6 +14,9 @@ import (
 	cpsroles "cbe-super-app-cps-action/internal/storage/persistance/cps_roles"
 	customer_oracle "cbe-super-app-cps-action/internal/storage/persistance/customer/oracle"
 	customersegmentaion "cbe-super-app-cps-action/internal/storage/persistance/customer_segmentaion"
+	donation_oracle "cbe-super-app-cps-action/internal/storage/persistance/donation/oracle"
+	donation_category_oracle "cbe-super-app-cps-action/internal/storage/persistance/donation_category/oracle"
+	donation_company_oracle "cbe-super-app-cps-action/internal/storage/persistance/donation_company/oracle"
 	ecommerce_merchant "cbe-super-app-cps-action/internal/storage/persistance/ecommerce_merchant"
 	services_repo "cbe-super-app-cps-action/internal/storage/persistance/services"
 	"cbe-super-app-cps-action/internal/storage/persistance/sitota"
@@ -42,6 +45,9 @@ type OraclePersistence struct {
 	AccountBlock          storage.AccountBlockRepository
 	Customer              storage.CustomerRepository
 	EcommerceMerchant     storage.EcommerceMerchantRepository
+	DonationCategory      storage.DonationCategoryRepository
+	DonationCompany       storage.DonationCompanyRepository
+	Donation              storage.DonationRepository
 }
 
 func InitOraclePersistence(client *mongo.Client, db *sql.DB, cfg *config.VaultConfig, clientOrchestrationProducer kafka.ClientOrchestrationProducer, accessListSegmentationProducer *kafka.AccessListSegmentationProducer, redisRepository storage.RedisRepository, log utils.Logger) OraclePersistence {
@@ -62,5 +68,17 @@ func InitOraclePersistence(client *mongo.Client, db *sql.DB, cfg *config.VaultCo
 		AccountBlock:          account_block_repo.NewAccountBlockRepository(client, cfg, CPSActionsCollection, db, redisRepository, log),
 		Customer:              customer_oracle.NewCustomerOracleRepository(db, *cfg, log),
 		EcommerceMerchant:     ecommerce_merchant.NewEcommerceMerchantRepository(db, log),
+		DonationCategory: donation_category_oracle.NewPublishingRepository(
+			donation_category_oracle.NewRepository(db, log),
+			clientOrchestrationProducer,
+		),
+		DonationCompany: donation_company_oracle.NewPublishingRepository(
+			donation_company_oracle.NewRepository(db, log),
+			clientOrchestrationProducer,
+		),
+		Donation: donation_oracle.NewPublishingRepository(
+			donation_oracle.NewRepository(db, log),
+			clientOrchestrationProducer,
+		),
 	}
 }

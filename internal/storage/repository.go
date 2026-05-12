@@ -39,7 +39,6 @@ import (
 	bps_action "cbe-super-app-cps-action/internal/constants/model"
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
-	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -278,6 +277,7 @@ type BudgetCategoryOracleRepository interface {
 	FindByID(ctx context.Context, id string) (*imodel.BudgetCategoryOracle, error)
 	FindAllWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BudgetCategoryOracle], error)
 	FindByName(ctx context.Context, name string) (*imodel.BudgetCategoryOracle, error)
+	CheckBudgetCatagoryINUse(ctx context.Context,catagory_id string)(bool,error)
 }
 
 // AmountBasedAuth persistence
@@ -465,20 +465,20 @@ type VaultAmountTierRepository interface {
 }
 
 type DonationRepository interface {
-	Create(ctx context.Context, donation *donation_model.Donation) error
-	Update(ctx context.Context, id string, donation *donation_model.Donation) error
+	Create(ctx context.Context, donation *imodel.DonationOracle) error
+	Update(ctx context.Context, id string, donation *imodel.DonationOracle) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation.DonationListResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation.DonationListResponse], error)
-	StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*donation_model.Donation) error) error
+	StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*imodel.DonationOracle) error) error
 	HasActiveDonationsByCategory(ctx context.Context, categoryID string) (bool, error)
 	HasActiveDonationsByCompany(ctx context.Context, companyID string) (bool, error)
 	DisableAllByCompany(ctx context.Context, companyID string) error
 }
 
 type DonationCategoryRepository interface {
-	Create(ctx context.Context, donationCategory *donation_model.DonationCategory) error
-	Update(ctx context.Context, id string, donationCategory *donation_model.DonationCategory) error
+	Create(ctx context.Context, donationCategory *imodel.DonationCategoryOracle) error
+	Update(ctx context.Context, id string, donationCategory *imodel.DonationCategoryOracle) error
 	EnableDisable(ctx context.Context, id string, enable bool) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation_category.DonationCategoryListResponse, error)
@@ -487,12 +487,11 @@ type DonationCategoryRepository interface {
 }
 
 type DonationCompanyRepository interface {
-	Create(ctx context.Context, donationCompany *donation_model.DonationCompany) error
-	Update(ctx context.Context, id string, donationCompany *donation_model.DonationCompany) error
+	Create(ctx context.Context, donationCompany *imodel.DonationCompanyOracle) error
+	Update(ctx context.Context, id string, donationCompany *imodel.DonationCompanyOracle) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation_company.DonationCompanyListResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_company.DonationCompanyListResponse], error)
-	FindByAccountNumber(ctx context.Context, accountNumber string) (*donation_model.DonationCompany, error)
 }
 
 type MiniAppRepository interface {
