@@ -641,8 +641,9 @@ func CPSActionRouteGuard(r *http.Request, whitelist []string) error {
 				return errors.New(localization.ErrorOperationNotAllowed.Message)
 			}
 		} else {
+			guardLogger.Infof("[ActionRegistry][RouteGuard] role enabled cache miss for role code: %s actionName: %s", roleCode, actionName)
 			role, err := cpsApproveRepo.FindByRoleAndAction(r.Context(), roleCode, actionName, 0)
-			if err != nil || role == nil {
+			if err != nil {
 				if guardLogger != nil {
 					guardLogger.Errorf("[ActionRegistry][RouteGuard] role lookup err code: %s: %v", roleCode, err)
 				}
