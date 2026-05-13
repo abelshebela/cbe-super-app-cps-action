@@ -47,6 +47,7 @@ func scanDonationListRow(s rowScanner) (*donation_dto.DonationListResponse, erro
 		companyID, companyName sql.NullString
 		companyLogo            sql.NullString
 		companyEnabled         sql.NullInt64
+		accountNumber          sql.NullString
 
 		categoryID, categoryName sql.NullString
 		categoryIcon             sql.NullString
@@ -59,6 +60,7 @@ func scanDonationListRow(s rowScanner) (*donation_dto.DonationListResponse, erro
 		&createdAt, &lastModifiedAt,
 		&serviceID, &serviceName, &serviceKey,
 		&companyID, &companyName, &companyLogo, &companyEnabled,
+		&accountNumber,
 		&categoryID, &categoryName, &categoryIcon,
 	); err != nil {
 		return nil, err
