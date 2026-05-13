@@ -328,7 +328,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 
 		r = r.WithContext(ctx)
 		// Whitelist CPS Action endpoints that don't need action-based validation
-		whitelist := []string{"cps_action", "cps_actions", "account_lookup"}
+		whitelist := []string{"cps_action", "cps_actions", "actions", "bps_actions", "account_lookup"}
 		if err := CPSActionRouteGuard(r, whitelist); err != nil {
 			a.logger.Warnf("[AuthMW][AuthToken] route guard blocked access to path: %s error: %v", r.URL.Path, err)
 			localization.SendUnauthorizedResponse(w, localization.ErrorOperationNotAllowed.Message)
