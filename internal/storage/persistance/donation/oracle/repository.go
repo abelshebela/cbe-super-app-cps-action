@@ -202,6 +202,7 @@ func (r *repository) FindByID(ctx context.Context, id string) (*donation_dto.Don
 	if err != nil {
 		return nil, err
 	}
+
 	if imgs, ok := images[id]; ok {
 		out.DonationImages = imgs
 	}
@@ -396,7 +397,6 @@ func (r *repository) FindAllWithPagination(
 	}, nil
 }
 
-
 func (r *repository) StreamByDateRange(
 	ctx context.Context,
 	startDate, endDate time.Time,
@@ -507,4 +507,3 @@ func (r *repository) DisableAllByCompany(ctx context.Context, companyID string) 
 	}
 	return nil
 }
-
