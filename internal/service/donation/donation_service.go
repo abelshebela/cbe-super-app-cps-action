@@ -132,7 +132,8 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		))
 		return errors.New(localization.ErrorServiceNotFound.Code)
 	}
-	if _, err := d.ServicesRepo.FindByID(ctx, donation.ServiceID); err != nil {
+	service, err := d.ServicesRepo.FindByID(ctx, donation.ServiceID)
+	if err != nil {
 		span.AddEvent("Service id not found", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("service_id", donation.ServiceID),
@@ -211,6 +212,10 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	result := dto.DonationCPSRequest{
 		DonationCode: donationCode,
 		ServiceID:    donation.ServiceID,
+		Service: dto.Service{
+			ServiceName: service.ServiceName,
+			ServiceKey:  service.ServiceKey,
+		},
 		Company: dto.Company{
 			ID:          donation.CompanyID,
 			CompanyName: company.CompanyName,
