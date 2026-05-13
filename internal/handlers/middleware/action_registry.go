@@ -630,49 +630,49 @@ func CPSActionRouteGuard(r *http.Request, whitelist []string) error {
 	}
 
 	// Check if the user's job_title role is enabled
-	if roleRepo != nil {
-		roleCacheKey := "role_enabled:" + roleCode
+	// if roleRepo != nil {
+	// 	roleCacheKey := "role_enabled:" + roleCode
 
-		if ent, ok := roleEnabledCache.get(roleCacheKey); ok {
-			if !ent.allow {
-				return errors.New(localization.ErrorOperationNotAllowed.Message)
-			}
-		} else {
-			guardLogger.Infof("[ActionRegistry][RouteGuard] role enabled cache miss for role code: %s actionName: %s", roleCode, actionName)
-			role, err := cpsApproveRepo.FindByRoleAndAction(r.Context(), roleCode, actionName, 0)
-			if err != nil {
-				if guardLogger != nil {
-					guardLogger.Errorf("[ActionRegistry][RouteGuard] role lookup err code: %s: %v", roleCode, err)
-				}
-				return errors.New(localization.ErrorOperationNotAllowed.Message)
-			}
+	// 	if ent, ok := roleEnabledCache.get(roleCacheKey); ok {
+	// 		if !ent.allow {
+	// 			return errors.New(localization.ErrorOperationNotAllowed.Message)
+	// 		}
+	// 	} else {
+	// 		guardLogger.Infof("[ActionRegistry][RouteGuard] role enabled cache miss for role code: %s actionName: %s", roleCode, actionName)
+	// 		role, err := cpsApproveRepo.FindByRoleAndAction(r.Context(), roleCode, actionName, 0)
+	// 		if err != nil {
+	// 			if guardLogger != nil {
+	// 				guardLogger.Errorf("[ActionRegistry][RouteGuard] role lookup err code: %s: %v", roleCode, err)
+	// 			}
+	// 			return errors.New(localization.ErrorOperationNotAllowed.Message)
+	// 		}
 
-			if role != nil {
-				actionRole, actionErr := actionRoleRepo.FindByActionName(r.Context(), actionName)
-				if actionErr != nil || actionRole == nil {
-					if guardLogger != nil {
-						guardLogger.Errorf("[ActionRegistry][RouteGuard] action role lookup err for action: %s: %v", actionName, actionErr)
-					}
-				}
+	// 		if role != nil {
+	// 			actionRole, actionErr := actionRoleRepo.FindByActionName(r.Context(), actionName)
+	// 			if actionErr != nil || actionRole == nil {
+	// 				if guardLogger != nil {
+	// 					guardLogger.Errorf("[ActionRegistry][RouteGuard] action role lookup err for action: %s: %v", actionName, actionErr)
+	// 				}
+	// 			}
 
-				roleEnabledCache.set(roleCacheKey, allowEntry{
-					allow: actionRole.Enabled,
-					exp:   nowPlus(roleEnabledCache.ttl),
-				})
+	// 			roleEnabledCache.set(roleCacheKey, allowEntry{
+	// 				allow: actionRole.Enabled,
+	// 				exp:   nowPlus(roleEnabledCache.ttl),
+	// 			})
 
-				if !actionRole.Enabled {
-					return errors.New(localization.ErrorOperationNotAllowed.Message)
-				}
-			}
-		}
-	}
+	// 			if !actionRole.Enabled {
+	// 				return errors.New(localization.ErrorOperationNotAllowed.Message)
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	action := strings.ToUpper(strings.TrimSpace(actionName))
-	cacheKey := roleCode + ":" + action
+	// cacheKey := roleCode + ":" + action
 
-	if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
-		return nil
-	}
+	// if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
+	// 	return nil
+	// }
 
 	allowed, err := cpsApproveRepo.ExistsByRoleAndAction(r.Context(), roleCode, action)
 	if err != nil {
@@ -682,12 +682,12 @@ func CPSActionRouteGuard(r *http.Request, whitelist []string) error {
 		return errors.New(localization.ErrorOperationNotAllowed.Message)
 	}
 
-	if allowed {
-		cpsGuardCache.set(cacheKey, allowEntry{
-			allow: true,
-			exp:   nowPlus(cpsGuardCache.ttl),
-		})
-	}
+	// if allowed {
+	// cpsGuardCache.set(cacheKey, allowEntry{
+	// 	allow: true,
+	// 	exp:   nowPlus(cpsGuardCache.ttl),
+	// })
+	// }
 
 	if !allowed {
 		return errors.New(localization.ErrorOperationNotAllowed.Message)
