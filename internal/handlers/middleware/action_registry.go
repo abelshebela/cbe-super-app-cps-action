@@ -77,13 +77,10 @@ var cpsActionRegistry = map[string]string{
 	"DELETE banks": "BANK",
 
 	// Wallet
-	"GET wallets":                "WALLET",
-	"GET wallets/{id}":           "WALLET",
-	"POST wallets":               "WALLET",
-	"PATCH wallets":              "WALLET",
-	"DELETE wallets":             "WALLET",
-	"PATCH wallets/{id}/enable":  "WALLET",
-	"PATCH wallets/{id}/disable": "WALLET",
+	"GET wallets":    "WALLET",
+	"POST wallets":   "WALLET",
+	"PATCH wallets":  "WALLET",
+	"DELETE wallets": "WALLET",
 
 	// Roles (GET operations)
 	"GET roles":     "ROLE",
@@ -820,6 +817,10 @@ func GetActionNameFromPath(method, path string) string {
 
 	// Handle special cases for news endpoints
 	if strings.Contains(relPath, "news/category") {
+		return "NEWSCATEGORY"
+	}
+
+	if strings.Contains(relPath, "news/categories") {
 		return "NEWSCATEGORY"
 	}
 	if strings.Contains(relPath, "news/tag") {
