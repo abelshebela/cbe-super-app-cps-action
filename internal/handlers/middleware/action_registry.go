@@ -285,6 +285,143 @@ var cpsActionRegistry = map[string]string{
 	// CPS Roles
 	"POST cps-roles":  "CPSROLES",
 	"PATCH cps-roles": "CPSROLES",
+
+	// CPS Action
+	"PATCH actions": "CPSACTION",
+	"GET actions":   "CPSACTION",
+
+	// BPS Action
+	"PATCH bps_actions": "BPSACTION",
+	"GET bps_actions":   "BPSACTION",
+	"POST bps_actions":  "BPSACTION",
+
+	// Feedback
+	"POST feedback-surveys":  "FEEDBACK",
+	"GET feedback":           "FEEDBACK",
+	"GET customer-feedbacks": "FEEDBACK",
+	"GET survey-feedbacks":   "FEEDBACK",
+
+	// Sitota
+	"GET sitotas": "SITOTA",
+
+	// Transaction
+	"GET transactions": "TRANSACTION",
+
+	// Portal Card
+	"GET portal_cards": "PORTALCARD",
+
+	//========= the missing ones (to be categorized properly) =========
+	// Access List Segmentation
+	"GET access_list_segmentation": "ACCESSLISTSEGMENTATION",
+
+	// Advert
+	"GET adverts": "ADVERT",
+
+	// Amount Based Auth
+	"DELETE amount_based_auth": "AMOUNTBASEDAUTH",
+	"POST amount_based_auth":   "AMOUNTBASEDAUTH",
+
+	// Avatar
+	"GET avatar": "AVATAR",
+
+	// BankVault
+	// "GET vault":     "BANKVAULT",
+
+	// Vault Categories
+	"GET vault": "VAULTCATEGORIES",
+
+	// Vault Deadlocks
+	"GET vault/deadlocks": "VAULTEMERGENCYDEADLOCKREQUEST",
+
+	// BPS Action Role
+	"GET bps-action-roles":    "BPSACTIONROLE",
+	"GET bps-action-list":     "BPSACTIONROLE",
+	"DELETE bps-action-roles": "BPSACTIONROLE",
+
+	// BPS User
+	"DELETE bps_users": "BPSUSER",
+
+	// Budget Category
+	"GET budget-category": "BUDGETCATEGORY",
+
+	// Bulk Service
+	"GET bulk_services": "BULKSERVICEALLUSER",
+
+	// CPS Action Role
+	"GET cps-action-roles":    "CPSACTIONROLE",
+	"GET cps-action-list":     "CPSACTIONROLE",
+	"DELETE cps-action-roles": "CPSACTIONROLE",
+
+	// CPS Roles
+	"GET cps-roles":    "CPSROLE",
+	"DELETE cps-roles": "CPSROLE",
+
+	// Customer KYC
+	"POST customers/kyc":   "CUSTOMERKYC",
+	"DELETE customers/kyc": "CUSTOMERKYC",
+
+	// Customer Segmentation
+	"GET customer-segmentations": "BULKSERVICECUSTOMERSEGMENT",
+
+	// Department
+	"DELETE departments": "DEPARTMENT",
+
+	// Device Version
+	"GET device_versions": "DEVICEVERSION",
+
+	// Donation
+	"GET donation": "DONATION",
+
+	// Donation Category
+	"GET donation_category":    "DONATIONCATEGORY",
+	"DELETE donation_category": "DONATIONCATEGORY",
+
+	// Donation Company
+	"GET donation_company":    "DONATIONCOMPANY",
+	"DELETE donation_company": "DONATIONCOMPANY",
+	"GET account_lookup":      "DONATIONCOMPANY",
+
+	// Ecommerce Merchant
+	"GET ecommerce-merchant": "ECOMMERCEMERCHANT",
+
+	// Event Merchant
+	"GET event_merchants": "EVENTMERCHANT",
+	"GET event-merchant":  "EVENTMERCHANT",
+
+	// HQ
+	"GET hq": "HQ",
+
+	// Job Roles
+	"DELETE job_roles": "JOBROLE",
+
+	// KYC Verifier
+	"GET kyc_verifier": "KYCVERIFIER",
+
+	// Logistics Merchant
+	"GET logistics_merchants":    "LOGISTICSMERCHANT",
+	"DELETE logistics_merchants": "LOGISTICSMERCHANT",
+
+	// News Category
+	"GET news/category": "NEWSCATEGORY",
+
+	// News Tag
+	"GET news/tags": "NEWSTAG",
+
+	// Password Rule
+	"GET password_rule": "PASSWORDRULE",
+
+	// Roles
+	"DELETE roles": "ROLE",
+
+	// Services
+	"DELETE services":      "SERVICE",
+	"GET services_list":    "SERVICE",
+	"POST services_list":   "SERVICE",
+	"PATCH services_list":  "SERVICE",
+	"DELETE services_list": "SERVICE",
+
+	// Unlink
+	"GET unlink": "UNLINKDEVICE",
 }
 
 func extractResource(path string) string {
