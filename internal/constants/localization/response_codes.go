@@ -469,6 +469,12 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletServiceIDAlreadyExists,
 	ErrorWalletWithNameOrCodeAlreadyExists,
 	ErrorWalletAlreadyDisabled,
+	ErrorAgentServiceNotFound,
+	ErrorOtherServiceNotFound,
+	ErrorSelfServiceNotFound,
+	ErrorInvalidAgentServiceID,
+	ErrorInvalidOtherServiceID,
+	ErrorInvalidSelfServiceID,
 	ErrorWalletAlreadyEnabled,
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
@@ -2989,6 +2995,61 @@ var (
 		Code:       "ERROR_WALLET_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet is already disabled",
+		Type:       "error",
+	}
+	ErrorAgentServiceAlreadyExists = ResponseCode{
+		Code:       "ERROR_AGENT_SERVICE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Agent service already exists",
+		Type:       "error",
+	}
+	ErrorOtherServiceAlreadyExists = ResponseCode{
+		Code:       "ERROR_OTHER_SERVICE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Other service already exists",
+		Type:       "error",
+	}
+	ErrorSelfServiceAlreadyExist = ResponseCode{
+		Code:       "ERROR_SELF_SERVICE_ALREADT_EXISTS",
+		StatusCode: StatusNotFound,
+		Message:    "Self service already exists",
+		Type:       "error",
+	}
+	ErrorAgentServiceNotFound = ResponseCode{
+		Code:       "ERROR_AGENT_SERVICE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Agent service not found",
+		Type:       "error",
+	}
+	ErrorOtherServiceNotFound = ResponseCode{
+		Code:       "ERROR_OTHER_SERVICE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Other service not found",
+		Type:       "error",
+	}
+	ErrorSelfServiceNotFound = ResponseCode{
+		Code:       "ERROR_SELF_SERVICE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Self service not found",
+		Type:       "error",
+	}
+
+	ErrorInvalidAgentServiceID = ResponseCode{
+		Code:       "ERROR_INVALID_AGENT_SERVICE_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid agent service ID",
+		Type:       "error",
+	}
+	ErrorInvalidOtherServiceID = ResponseCode{
+		Code:       "ERROR_INVALID_OTHER_SERVICE_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid other service ID",
+		Type:       "error",
+	}
+	ErrorInvalidSelfServiceID = ResponseCode{
+		Code:       "ERROR_INVALID_SELF_SERVICE_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid self service ID",
 		Type:       "error",
 	}
 
@@ -5911,7 +5972,6 @@ var (
 		Type:       "error",
 	}
 
-	
 	ErrorBudgetCAtagoryINuser = ResponseCode{
 		Code:       "ERROR_BUDGET_CATAGORY_IN_USER",
 		StatusCode: StatusNotFound,

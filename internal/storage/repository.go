@@ -92,6 +92,7 @@ type ServicesRepository interface {
 	Delete(ctx context.Context, serviceID, accessListID string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*service_dto.ServiceResponse, error)
+	CheckIfIDsExist(ctx context.Context, selfServiceID, otherServiceID, agentServiceID string) ([]string, error)
 	FindByAccessListID(ctx context.Context, accessListID string) (bool, error)
 	FindServiceByAccessListID(ctx context.Context, accessListID string) (*service_dto.ServiceResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error)
@@ -270,7 +271,7 @@ type BudgetCategoryOracleRepository interface {
 	FindByID(ctx context.Context, id string) (*imodel.BudgetCategoryOracle, error)
 	FindAllWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BudgetCategoryOracle], error)
 	FindByName(ctx context.Context, name string) (*imodel.BudgetCategoryOracle, error)
-	CheckBudgetCatagoryINUse(ctx context.Context,catagory_id string)(bool,error)
+	CheckBudgetCatagoryINUse(ctx context.Context, catagory_id string) (bool, error)
 }
 
 // AmountBasedAuth persistence
@@ -934,6 +935,7 @@ type WalletOracleRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
 	FindByIDForGRPC(ctx context.Context, id string) (*local_model.WalletOracle, error)
 	FindAllWithPaginationForGRPC(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
+	CheckServiceIDInWalletService(ctx context.Context, selfServiceID, otherServiceID, agentServiceID string) ([]string, error)
 }
 
 type UserActionLogRepository interface {

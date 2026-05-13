@@ -52,19 +52,19 @@ func (w WalletRequest) Validate(isCreate bool) error {
 		}
 	}
 
-	if w.Self != nil {
+	if w.Self != nil && *w.Self {
 		if w.SelfServiceID == "" {
-			errs["self_service_id"] = localization.ErrorWalletSelfServiceIDRequired
+			return localization.ErrorWalletSelfServiceIDRequired
 		}
 	}
-	if w.Other != nil {
+	if w.Other != nil && *w.Other {
 		if w.OtherServiceID == "" {
-			errs["other_service_id"] = localization.ErrorWalletOtherServiceIDRequired
+			return localization.ErrorWalletOtherServiceIDRequired
 		}
 	}
-	if w.Agent != nil {
+	if w.Agent != nil && *w.Agent {
 		if w.AgentServiceID == "" {
-			errs["agent_service_id"] = localization.ErrorWalletAgentServiceIDRequired
+			return localization.ErrorWalletAgentServiceIDRequired
 		}
 	}
 
