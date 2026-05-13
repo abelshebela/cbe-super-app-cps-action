@@ -311,7 +311,7 @@ func NonEmptyString(s, fallback string) string {
 	if s != "" {
 		return s
 	}
-	return ""
+	return fallback
 }
 
 func ExtractID(w http.ResponseWriter, r *http.Request) (string, error) {
