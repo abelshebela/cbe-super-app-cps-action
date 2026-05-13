@@ -71,14 +71,10 @@ var cpsActionRegistry = map[string]string{
 	"GET amount_based_auth":   "AMOUNTBASEDAUTH",
 
 	// Banks
-	"GET banks":                "BANK",
-	"GET banks/{id}":           "BANK",
-	"POST banks":               "BANK",
-	"PATCH banks":              "BANK",
-	"DELETE banks":             "BANK",
-	"PATCH banks/{id}/enable":  "BANK",
-	"PATCH banks/{id}/disable": "BANK",
-	"PATCH banks/{id}/logo":    "BANK",
+	"GET banks":    "BANK",
+	"POST banks":   "BANK",
+	"PATCH banks":  "BANK",
+	"DELETE banks": "BANK",
 
 	// Wallet
 	"GET wallets":                "WALLET",
