@@ -63,7 +63,7 @@ func ToCreateWalletDoc(name, code, URL string, self, other, agent *bool, selfSer
 
 // note: this comparision might not be needed if the existing data is first in the request form and the user update those values
 func ToUpdateWalletDoc(existing local_model.WalletOracle, req walletDto.WalletRequest) (local_model.WalletOracle, int) {
-	wallet := local_model.WalletOracle{}
+	wallet := existing
 	changeCount := 0
 
 	if req.Self != nil && *req.Self != existing.Self {
@@ -81,17 +81,17 @@ func ToUpdateWalletDoc(existing local_model.WalletOracle, req walletDto.WalletRe
 		wallet.Agent = *req.Agent
 	}
 
-	if req.SelfServiceID != existing.SelfServiceID {
+	if req.SelfServiceID != "" && req.SelfServiceID != existing.SelfServiceID {
 		changeCount++
 		wallet.SelfServiceID = req.SelfServiceID
 	}
 
-	if req.OtherServiceID != existing.OtherServiceID {
+	if req.OtherServiceID != "" && req.OtherServiceID != existing.OtherServiceID {
 		changeCount++
 		wallet.OtherServiceID = req.OtherServiceID
 	}
 
-	if req.AgentServiceID != existing.AgentServiceID {
+	if req.AgentServiceID != "" && req.AgentServiceID != existing.AgentServiceID {
 		changeCount++
 		wallet.AgentServiceID = req.AgentServiceID
 	}

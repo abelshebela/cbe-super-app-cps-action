@@ -394,10 +394,12 @@ SELECT
   MAX(CASE WHEN ws.service_type = 'SELF' THEN RAWTOHEX(ws.service_id) END) AS self_service_id,
   MAX(CASE WHEN ws.service_type = 'OTHER' THEN RAWTOHEX(ws.service_id) END) AS other_service_id,
   MAX(CASE WHEN ws.service_type = 'AGENT' THEN RAWTOHEX(ws.service_id) END) AS agent_service_id,
+
   MAX(CASE WHEN ws.service_type = 'SELF' THEN s.service_code END) AS self_service_code,
   MAX(CASE WHEN ws.service_type = 'OTHER' THEN s.service_code END) AS other_service_code,
   MAX(CASE WHEN ws.service_type = 'AGENT' THEN s.service_code END) AS agent_service_code
 FROM wallets w
+
 LEFT JOIN wallet_services ws ON w.id = ws.wallet_id AND ws.is_deleted = 0 AND ws.is_enabled = 1
 LEFT JOIN services s ON ws.service_id = s.id
 WHERE w.id = HEXTORAW(:1)
@@ -437,14 +439,23 @@ GROUP BY w.id, w.wallet_name, w.unique_code, w.is_enabled, w.logo, w.is_deleted,
 	wallet.SelfServiceID = ""
 	if selfServiceID.Valid {
 		wallet.SelfServiceID = selfServiceID.String
+		if wallet.SelfServiceID != "" {
+			wallet.Self = true
+		}
 	}
 	wallet.OtherServiceID = ""
 	if otherServiceID.Valid {
 		wallet.OtherServiceID = otherServiceID.String
+		if wallet.OtherServiceID != "" {
+			wallet.Other = true
+		}
 	}
 	wallet.AgentServiceID = ""
 	if agentServiceID.Valid {
 		wallet.AgentServiceID = agentServiceID.String
+		if wallet.AgentServiceID != "" {
+			wallet.Agent = true
+		}
 	}
 	wallet.SelfServiceCode = ""
 	if selfServiceCode.Valid {
@@ -585,35 +596,17 @@ func (q *WalletStorage) Update(ctx context.Context, id string, wallet *model.Wal
 		}
 	}()
 
-	// Update wallets table
-	self, other, agent := 0, 0, 0
-	if wallet.Self {
-		self = 1
-	}
-	if wallet.Other {
-		other = 1
-	}
-	if wallet.Agent {
-		agent = 1
-	}
-
 	query := `
 		UPDATE wallets SET
-			name = :1,
+			wallet_name = :1,
 			unique_code = :2,
-			avatar = :3,
-			services_self = :4,
-			services_other = :5,
-			services_agent = :6,
+			logo = :3,
 			last_modified_at = CURRENT_TIMESTAMP
 		WHERE id = HEXTORAW(:7)`
 	_, err = tx.ExecContext(ctx, query,
 		wallet.Name,
 		wallet.UniqueCode,
 		wallet.Avatar,
-		self,
-		other,
-		agent,
 		id,
 	)
 	if err != nil {
