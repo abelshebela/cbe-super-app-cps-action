@@ -3,6 +3,7 @@ package access_list_segmentation_dto
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"errors"
+	"regexp"
 	"strings"
 )
 
@@ -30,6 +31,14 @@ func (c *CreateAccessListSegmentationRequest) Validate() error {
 	}
 	if strings.TrimSpace(c.SegmentationID) == "" {
 		return errors.New(localization.ErrorAccessListSegmentationIDSRequired.Code)
+	}
+	if strings.TrimSpace(c.Reason) == "" {
+		return errors.New(localization.ErrorReasonRequired.Code)
+	}
+
+	// Only allow letters, underscores, fullstop (period), and spaces
+	if !regexp.MustCompile(`^[a-zA-Z_\. ]{1,255}$`).MatchString(c.Reason) {
+		return errors.New("only letters, underscores, fullstop (period), and spaces are allowed")
 	}
 	c.SegmentType = st
 	return nil

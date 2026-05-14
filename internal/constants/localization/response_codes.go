@@ -875,6 +875,7 @@ var ResponseCodesList = []ResponseCode{
 	UnableToCreateAccessListSegmentation,
 	ErrorAccessListSegmentationInvalidID,
 	ErrorAccessListSegmentationIDSRequired,
+	ErrorReasonRequired,
 	ErrorAccessListSegmentationNameAlreadyExists,
 	ErrorCustomerSegmentationCodeNotFound,
 	ErrorAccessListKeysRequired,
@@ -8995,6 +8996,12 @@ var (
 		Code:       "ACCESS_LIST_SEGMENTATION_IDS_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccessListSegmentationIDsRequired,
+		Type:       "error",
+	}
+	ErrorReasonRequired = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_REASONS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccessListSegmentationReasonsRequired,
 		Type:       "error",
 	}
 	ErrorAccessListKeysRequired = ResponseCode{
