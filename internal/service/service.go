@@ -44,7 +44,6 @@ import (
 
 	cps_role_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
-	customer_kyc_dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
 
 	"context"
@@ -61,6 +60,7 @@ import (
 
 	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
 	cps_roles_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
+	cust_kyc_dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	queue "cbe-super-app-cps-action/internal/storage/queue_system"
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
@@ -834,10 +834,11 @@ type UssdMerchantService interface {
 }
 
 type CustomerKYCService interface {
-	Create(ctx context.Context, req customer_kyc_dto.CreateCustomerKYCRequest) error
-	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error)
-	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
-	UpdateKYCStatus(ctx context.Context, id, status string) error
-	Delete(ctx context.Context, id string) error
+	// Create(ctx context.Context, req customer_kyc_dto.CreateCustomerKYCRequest) error
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]cust_kyc_dto.CustomerKYCResponse], error)
+	FindByID(ctx context.Context, id string) (*cust_kyc_dto.CustomerKYCResponse, error)
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	// UpdateKYCStatus(ctx context.Context, id, status string) error
+	// Delete(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

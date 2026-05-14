@@ -42,9 +42,11 @@ func IsValidActionType(actionType string) bool {
 
 const (
 	// Customer KYC
-	RequestCreateCustomerKYC constants.RequestAction = "CREATE_CUSTOMER_KYC"
-	RequestUpdateCustomerKYC constants.RequestAction = "UPDATE_CUSTOMER_KYC"
-	RequestDeleteCustomerKYC constants.RequestAction = "DELETE_CUSTOMER_KYC"
+	// RequestCreateCustomerKYC  constants.RequestAction = "CREATE_CUSTOMER_KYC"
+	RequestApproveCustomerKYC constants.RequestAction = "APPROVE_CUSTOMER_KYC"
+	RequestRejectCustomerKYC  constants.RequestAction = "REJECT_CUSTOMER_KYC"
+	// RequestUpdateCustomerKYC  constants.RequestAction = "UPDATE_CUSTOMER_KYC"
+	// RequestDeleteCustomerKYC  constants.RequestAction = "DELETE_CUSTOMER_KYC"
 
 	RequestCreateCpsRole     constants.RequestAction = "CREATE_CPS_ROLE"
 	RequestUpdateCpsRole     constants.RequestAction = "UPDATE_CPS_ROLE"
@@ -720,9 +722,11 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestUpdateAccessListSegmentation:        {},
 	RequestEnableDisableAccessListSegmentation: {},
 
-	RequestCreateCustomerKYC: {},
-	RequestUpdateCustomerKYC: {},
-	RequestDeleteCustomerKYC: {},
+	RequestApproveCustomerKYC: {},
+	RequestRejectCustomerKYC:  {},
+	// RequestCreateCustomerKYC: {},
+	// RequestUpdateCustomerKYC: {},
+	// RequestDeleteCustomerKYC: {},
 
 	RequestEnableDisableBank: {},
 }
@@ -1216,9 +1220,11 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestDisableCpsRole,
 	},
 	"CUSTOMERKYC": {
-		RequestCreateCustomerKYC,
-		RequestUpdateCustomerKYC,
-		RequestDeleteCustomerKYC,
+		RequestApproveCustomerKYC,
+		RequestRejectCustomerKYC,
+		// RequestCreateCustomerKYC,
+		// RequestUpdateCustomerKYC,
+		// RequestDeleteCustomerKYC,
 	},
 }
 

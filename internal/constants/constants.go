@@ -1061,9 +1061,11 @@ const (
 	RequestDeleteShortVideo  string = "DELETE_SHORT_VIDEO"
 
 	// Customer KYC
-	RequestCreateCustomerKYC RequestAction = "CREATE_CUSTOMER_KYC"
-	RequestUpdateCustomerKYC RequestAction = "UPDATE_CUSTOMER_KYC"
-	RequestDeleteCustomerKYC RequestAction = "DELETE_CUSTOMER_KYC"
+	// RequestCreateCustomerKYC  RequestAction = "CREATE_CUSTOMER_KYC"
+	RequestApproveCustomerKYC RequestAction = "APPROVE_CUSTOMER_KYC"
+	RequestRejectCustomerKYC  RequestAction = "REJECT_CUSTOMER_KYC"
+	// RequestUpdateCustomerKYC RequestAction = "UPDATE_CUSTOMER_KYC"
+	// RequestDeleteCustomerKYC RequestAction = "DELETE_CUSTOMER_KYC"
 )
 
 const (
