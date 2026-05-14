@@ -683,6 +683,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCodeAlreadyExist,
 	ErrorLogoIsRequired,
 	ErrorAccountNumberRestricted,
+	ErrorAccountNumberNotFound,
 	ErrorAccountNumberValidationFailed,
 	ErrorAccountNumberNotActive,
 	ErrorAccountNumberNotFound,

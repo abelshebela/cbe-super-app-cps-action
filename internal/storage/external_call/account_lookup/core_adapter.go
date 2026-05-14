@@ -74,14 +74,14 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Cont
 		return nil, err
 	}
 	if !response.Success || response.Detail == nil {
-		a.Logger.Errorf("Account not found for number: %s", account.AccountNumber)
+		a.Logger.Errorf("Account not found for number: %s response : %v", account.AccountNumber, err)
 		return nil, errors.New(localization.ErrorAccountNumberNotFound.Code)
 	}
 
-	if response.Detail == nil {
-		a.Logger.Errorf("Account not found for number: %s", account.AccountNumber)
-		return nil, errors.New(localization.ErrorAccountNotFound.Code)
-	}
+	// if response.Detail == nil {
+	// 	a.Logger.Errorf("Account not found for number: %s", account.AccountNumber)
+	// 	return nil, errors.New(localization.ErrorAccountNotFound.Code)
+	// }
 
 	detail := response.Detail
 	return &model.AccountDetail{
