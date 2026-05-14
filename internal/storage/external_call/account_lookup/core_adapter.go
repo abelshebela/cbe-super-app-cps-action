@@ -69,10 +69,17 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Cont
 	})
 
 	if err != nil {
+		a.Logger.Errorf("Error occurred while validating account number: %v", err)
 		return nil, err
 	}
 	if !response.Success || response.Detail == nil {
+		a.Logger.Errorf("Account not found for number: %s", account.AccountNumber)
 		return nil, errors.New(localization.ErrorAccountNumberNotFound.Code)
+	}
+
+	if response.Detail == nil {
+		a.Logger.Errorf("Account not found for number: %s", account.AccountNumber)
+		return nil, errors.New(localization.ErrorAccountNotFound.Code)
 	}
 
 	detail := response.Detail
@@ -95,6 +102,7 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumberFromBps(ctx conte
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
+		a.Logger.Errorf("Failed to lookup account by number: %s", accountNumber)
 		return accountLookup.AccountResponse{}, nil
 	}
 
@@ -104,11 +112,13 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumberFromBps(ctx conte
 func (a *CoreAccountLookupAdapter) CreateAccountWithFayda(ctx context.Context, account accountLookup.CreateAccountRequest) (types.Account, error) {
 	res, _, err := BPSBankingClient(ctx, a.Client, constants.WithFayda, account, a.BaseUrl+a.FaydaUrlPath)
 	if err != nil {
+		a.Logger.Errorf("Failed to create account with Fayda: %v", err)
 		return types.Account{}, err
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
+		a.Logger.Errorf("Failed to create account with Fayda, status code: %d", res.StatusCode)
 		return types.Account{}, nil
 	}
 
