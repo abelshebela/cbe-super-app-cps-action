@@ -132,6 +132,23 @@ func (q *WalletStorage) EnableOrDisable(ctx context.Context, id string, enable b
 	storage.BumpRedisCacheKey(ctx, q.redis, constants.RedisCacheKeyWallet)
 	return nil
 }
+func (q *WalletStorage) EnableOrDisableService(ctx context.Context, id string, enable bool) error {
+	q.logger.Infof("[WalletStorage][EnableOrDisableService] Setting enabled=%v for wallet service ID: %s", enable, id)
+	var enabled int
+	if enable {
+		enabled = 1
+	} else {
+		enabled = 0
+	}
+
+	_, err := q.db.ExecContext(ctx, "UPDATE wallet_services SET is_enabled=:1, last_modified_at=CURRENT_TIMESTAMP WHERE id=HEXTORAW(:2)", enabled, id)
+	if err != nil {
+		q.logger.Errorf("[WalletStorage][EnableOrDisableService] failed: %v", err)
+		return err
+	}
+	storage.BumpRedisCacheKey(ctx, q.redis, constants.RedisCacheKeyWallet)
+	return nil
+}
 
 // Find returns a non-deleted wallet matching any provided criterion (OR).
 // Pass only the fields you want to check: e.g. ("", name, "") for name uniqueness, or (code, "", "") for code.

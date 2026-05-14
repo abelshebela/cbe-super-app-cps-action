@@ -944,6 +944,7 @@ type WalletOracleRepository interface {
 	Update(ctx context.Context, id string, wallet *local_model.WalletOracle) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	EnableOrDisableService(ctx context.Context, id string, enable bool) error
 
 	FindByID(ctx context.Context, id string) (*local_model.WalletOracle, error)
 	FindWalletServiceByID(ctx context.Context, id string) (*local_model.WalletService, error)

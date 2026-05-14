@@ -77,10 +77,11 @@ var cpsActionRegistry = map[string]string{
 	"DELETE banks": "BANK",
 
 	// Wallet
-	"GET wallets":    "WALLET",
-	"POST wallets":   "WALLET",
-	"PATCH wallets":  "WALLET",
-	"DELETE wallets": "WALLET",
+	"GET wallets":           "WALLET",
+	"POST wallets":          "WALLET",
+	"PATCH wallets":         "WALLET",
+	"DELETE wallets":        "WALLET",
+	"PATCH wallets_service": "WALLET",
 
 	// Roles (GET operations)
 	"GET roles":     "ROLE",
