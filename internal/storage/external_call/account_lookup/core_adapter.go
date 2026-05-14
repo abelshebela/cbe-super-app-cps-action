@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -63,8 +64,18 @@ func (a *CoreAccountLookupAdapter) LookupAccountByPhone(ctx context.Context, pho
 	return true, nil
 }
 
-func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*model.AccountDetail, error) {
+func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (accountDetail *model.AccountDetail, err error) {
 	a.Logger.Infof("Looking up account by number: %s", account.AccountNumber)
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			a.Logger.Errorf("Panic occurred while validating account number %s: %v", account.AccountNumber, recovered)
+			accountDetail = nil
+			err = fmt.Errorf("core name lookup panic: %v", recovered)
+			err = fmt.Errorf("Unable to lookup account number %s at the moment, please update the number", account.AccountNumber)
+		}
+
+	}()
+
 	response, err := a.coreAPI.NameLookup(core.NameLookupParam{
 		AccountNumber: account.AccountNumber,
 	})
