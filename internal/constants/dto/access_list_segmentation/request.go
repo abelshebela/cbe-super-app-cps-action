@@ -7,11 +7,13 @@ type CreateAccessListSegmentationRequest struct {
 	SegmentationID string   `json:"segmentation_id" bson:"segmentation_id" validate:"required"`   //id of the region, district, country,branch
 	SegmentType    string   `json:"segment_type" bson:"segment_type" validate:"required,oneof=Account Block"`
 	Type           string   `json:"type" bson:"type" validate:"required,oneof=R D C B"`
+	Reason         string   `json:"reason" bson:"reason" validate:"required"`
 }
 
 type EnableDisableAccessListSegmentationRequest struct {
 	AccessListKeys   []string `json:"access_list_keys" bson:"access_list_keys" validate:"required"`
 	SegmentationType string   `json:"segmentation_type" bson:"segmentation_type" validate:"required,oneof=Account Block"`
+	Reason           string   `json:"reason" bson:"reason" validate:"required"`
 }
 
 type BulkDisableAccessListSegmentationRequest struct {
@@ -28,12 +30,14 @@ type UpdateAccessListSegmentationRequest struct {
 	NewSegmentationID string `json:"new_segmentation_id" bson:"new_segmentation_id"`
 	Type              string `json:"type" bson:"type" validate:"oneof=R D C U B"`
 	SegmentType       string `json:"segment_type" bson:"segment_type"`
+	Reason            string `json:"reason" bson:"reason" validate:"required"`
 }
 
 type AccessListSegmentationResponse struct {
 	ID             string    `json:"id" bson:"id"`
 	AccessListKey  string    `json:"access_list_key" bson:"access_list_key"`
 	AccessListName string    `json:"access_list_name" bson:"access_list_name"`
+	Reason         string    `json:"reason" bson:"reason"`
 	Type           string    `json:"type" bson:"type"`
 	SegmentType    string    `json:"segment_type" bson:"segment_type"`
 	SegmentCode    string    `json:"segment_code" bson:"segment_code"`
