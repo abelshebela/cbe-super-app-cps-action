@@ -53,11 +53,11 @@ import (
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 
+	event_model "cbe-super-app-cps-action/internal/constants/model"
+
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	event_model "cbe-super-app-cps-action/internal/constants/model"
-
 
 	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 
@@ -385,6 +385,7 @@ type WalletService interface {
 	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest) error
 	DeleteWallet(ctx context.Context, id string) error
 	EnableOrDisableWallet(ctx context.Context, id string, enable bool) error
+	EnableOrDisableWalletService(ctx context.Context, id string, enable bool) error
 	GetWallet(ctx context.Context, id string) (*local_model.WalletOracle, error)
 	GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)

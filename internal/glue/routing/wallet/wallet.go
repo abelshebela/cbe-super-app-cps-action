@@ -69,6 +69,22 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/wallets_service/{id}/enable",
+			Handler: wallet.EnableWalletService,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/wallets_service/{id}/disable",
+			Handler: wallet.DisableWalletService,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 	glue.RegisterRoutes(router, routes)
 }

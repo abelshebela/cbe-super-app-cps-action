@@ -777,11 +777,13 @@ const (
 	RequestEnableFaydaAccount    RequestAction = "ENABLE_FAYDA_ACCOUNT"
 
 	// Wallet
-	RequestCreateWallet  RequestAction = "CREATE_WALLET"
-	RequestUpdateWallet  RequestAction = "UPDATE_WALLET"
-	RequestDeleteWallet  RequestAction = "DELETE_WALLET"
-	RequestEnableWallet  RequestAction = "ENABLE_WALLET"
-	RequestDisableWallet RequestAction = "DISABLE_WALLET"
+	RequestCreateWallet         RequestAction = "CREATE_WALLET"
+	RequestUpdateWallet         RequestAction = "UPDATE_WALLET"
+	RequestDeleteWallet         RequestAction = "DELETE_WALLET"
+	RequestEnableWallet         RequestAction = "ENABLE_WALLET"
+	RequestDisableWallet        RequestAction = "DISABLE_WALLET"
+	RequestEnableWalletService  RequestAction = "ENABLE_WALLET_SERVICE"
+	RequestDisableWalletService RequestAction = "DISABLE_WALLET_SERVICE"
 
 	// Services catalog (model.Services)
 	RequestCreateServiceList  RequestAction = "CREATE_SERVICE_LIST"
