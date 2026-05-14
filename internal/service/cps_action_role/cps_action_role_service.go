@@ -209,6 +209,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 
 	err = s.cpsService.CreateCPSAction(ctx, &cpsAction)
 	if err != nil {
+		s.logger.Errorf("[CpsActRoleSvc][Update] failed to create cps action for action code: %s, err: %v", cpsAction.ActionCode, err)
 		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
@@ -220,12 +221,14 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "CPSActionRole", "Update")
 	defer span.End()
 	if actionCode == "" {
+		s.logger.Errorf("[CpsActRoleSvc][Update] action code is empty")
 		span.AddEvent("action code is empty", trace.WithAttributes(attribute.String("error", "action code is empty")))
 		return errors.New(localization.ErrorActionNameIsRequired.Code)
 	}
 
 	old, err := s.repo.FindByActionName(ctx, actionCode)
 	if err != nil {
+		s.logger.Errorf("[CpsActRoleSvc][Update] failed to find by action code: %s, err: %v", actionCode, err)
 		span.AddEvent("failed to find by action code", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
@@ -258,6 +261,7 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		}
 	}
 	if req.AssignedAuditorRoles != nil {
+		s.logger.Infof("[CpsActRoleSvc][Update] validating auditor IDs for action: %s, count: %d", actionCode, len(req.AssignedAuditorRoles))
 		if err := s.validateUniqueIDsInGroups(req.AssignedAuditorRoles); err != nil {
 			span.AddEvent("failed to validate unique auditor IDs", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
@@ -299,8 +303,10 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 	}
 
 	if req.IsMakerOnly {
+		s.logger.Infof("[CpsActRoleSvc][Update] action is maker only, clearing checker roles for action: %s", actionCode)
 		payload.AssignedCheckerRoles = [][]string{}
 	} else if req.IsViewOnly {
+		s.logger.Infof("[CpsActRoleSvc][Update] action is view only, clearing maker, checker and auditor roles for action: %s", actionCode)
 		payload.AssignedMakersRoles = []string{}
 		payload.AssignedAuditorRoles = [][]string{}
 		payload.AssignedCheckerRoles = [][]string{}
@@ -342,6 +348,7 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 
 	err = s.cpsService.CreateCPSAction(ctx, &cpsAction)
 	if err != nil {
+		s.logger.Errorf("[CpsActRoleSvc][Update] failed to create cps action for action code: %s, err: %v", actionCode, err)
 		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
