@@ -252,6 +252,50 @@ func (s *walletService) EnableOrDisableWallet(ctx context.Context, id string, en
 	return nil
 }
 
+func (s *walletService) EnableOrDisableWalletService(ctx context.Context, id string, enable bool) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableWalletService", "walletService", "walletService")
+	defer span.End()
+	prevWalletService, err := s.repo.FindWalletServiceByID(ctx, id)
+	if err != nil {
+		span.AddEvent("FindByID error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
+		return errors.New(localization.ErrorWalletServiceNotFound.Code)
+	}
+
+	if enable && prevWalletService.IsEnabled == 1 {
+		span.AddEvent("Wallet service already enabled", trace.WithAttributes(attribute.String("id", id)))
+		return errors.New(localization.ErrorWalletServiceAlreadyEnabled.Code)
+	}
+	if !enable && prevWalletService.IsEnabled == 0 {
+		span.AddEvent("Wallet service already disabled", trace.WithAttributes(attribute.String("id", id)))
+		return errors.New(localization.ErrorWalletServiceAlreadyDisabled.Code)
+	}
+
+	updatedWalletService := *prevWalletService
+	if enable {
+		updatedWalletService.IsEnabled = 1
+	} else {
+		updatedWalletService.IsEnabled = 0
+
+	}
+	updatedWalletService.LastModifiedAt = time.Now()
+
+	var action constants.RequestAction
+	if enable {
+		action = constants.RequestEnableWalletService
+	} else {
+		action = constants.RequestDisableWalletService
+	}
+
+	if err := core.HandleCPSAction(ctx, s.cpsService, id, action, updatedWalletService, *prevWalletService, constants.ActionUpdate); err != nil {
+		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("service_id", updatedWalletService.ID)))
+		s.logger.Errorf("[WalletSvc][EnableDisable] cps action err: %v", err)
+		return err
+	}
+
+	span.AddEvent("Wallet service enable/disable updated", trace.WithAttributes(attribute.String("id", id), attribute.Bool("enabled", enable)))
+	return nil
+}
+
 func (s *walletService) GetWallet(ctx context.Context, id string) (*local_model.WalletOracle, error) {
 	// Same enrichment as list/gRPC: join services + access_lists for SERVICE_CODE / SERVICE_KEY.
 	w, err := s.repo.FindByIDForGRPC(ctx, id)

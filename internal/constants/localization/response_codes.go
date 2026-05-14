@@ -476,6 +476,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletServiceIDAlreadyExists,
 	ErrorWalletWithNameOrCodeAlreadyExists,
 	ErrorWalletAlreadyDisabled,
+	ErrorWalletServiceAlreadyDisabled,
 	ErrorAgentServiceNotFound,
 	ErrorOtherServiceNotFound,
 	ErrorSelfServiceNotFound,
@@ -483,8 +484,10 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidOtherServiceID,
 	ErrorInvalidSelfServiceID,
 	ErrorWalletAlreadyEnabled,
+	ErrorWalletServiceAlreadyEnabled,
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
+	ErrorWalletServiceNotFound,
 	ErrorWalletUpdateEmptyPayload,
 	ErrorInvalidWalletCode,
 	ErrorInvalidWalletType,
@@ -2195,10 +2198,23 @@ var (
 		Type:       "error",
 	}
 
+	ErrorWalletServiceIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_SERVICE_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet service ID is required",
+		Type:       "error",
+	}
+
 	SuccessWalletEnableRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_WALLET_ENABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
 		Message:    "Wallet enable request sent successfully",
+		Type:       "success",
+	}
+	SuccessWalletServiceEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_WALLET_SERVICE_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Wallet service enable request sent successfully",
 		Type:       "success",
 	}
 
@@ -2208,10 +2224,22 @@ var (
 		Message:    "Wallet disable request sent successfully",
 		Type:       "success",
 	}
+	SuccessWalletServiceDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_WALLET_SERVICE_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Wallet service disable request sent successfully",
+		Type:       "success",
+	}
 	SuccessWalletEnabled = ResponseCode{
 		Code:       "SUCCESS_WALLET_ENABLED",
 		StatusCode: StatusOK,
 		Message:    "Wallet enabled successfully",
+		Type:       "success",
+	}
+	SuccessWalletServiceEnabled = ResponseCode{
+		Code:       "SUCCESS_WALLET_SERVICE_ENABLED",
+		StatusCode: StatusOK,
+		Message:    "Wallet service enabled successfully",
 		Type:       "success",
 	}
 
@@ -2219,6 +2247,12 @@ var (
 		Code:       "SUCCESS_WALLET_DISABLED",
 		StatusCode: StatusOK,
 		Message:    "Wallet disabled successfully",
+		Type:       "success",
+	}
+	SuccessWalletServiceDisabled = ResponseCode{
+		Code:       "SUCCESS_WALLET_SERVICE_DISABLED",
+		StatusCode: StatusOK,
+		Message:    "Wallet service disabled successfully",
 		Type:       "success",
 	}
 
@@ -2986,11 +3020,23 @@ var (
 		Message:    "Wallet not found",
 		Type:       "error",
 	}
+	ErrorWalletServiceNotFound = ResponseCode{
+		Code:       "ERROR_WALLET_SERVICE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Wallet service not found",
+		Type:       "error",
+	}
 
 	ErrorWalletAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_WALLET_ALREADY_ENABLED",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet is already enabled",
+		Type:       "error",
+	}
+	ErrorWalletServiceAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_WALLET_SERVICE_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet service is already enabled",
 		Type:       "error",
 	}
 	ErrorWalletUpdateEmptyPayload = ResponseCode{
@@ -3004,6 +3050,12 @@ var (
 		Code:       "ERROR_WALLET_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet is already disabled",
+		Type:       "error",
+	}
+	ErrorWalletServiceAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_WALLET_SERVICE_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet service is already disabled",
 		Type:       "error",
 	}
 	ErrorAgentServiceAlreadyExists = ResponseCode{
@@ -3100,12 +3152,6 @@ var (
 		Code:       "ERROR_INVALID_WALLET_TYPE",
 		StatusCode: 400,
 		Message:    "Invalid wallet type, special characters are not allowed",
-		Type:       "error",
-	}
-	ErrorWalletServiceIDRequired = ResponseCode{
-		Code:       "ERROR_WALLET_SERVICE_ID_REQUIRED",
-		StatusCode: 400,
-		Message:    "Wallet service ID is required",
 		Type:       "error",
 	}
 

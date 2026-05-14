@@ -306,6 +306,97 @@ func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// EnableWallet godoc
+//
+//	@Summary		Enable a wallet
+//	@Description	Enable a wallet by ID
+//	@Tags			Wallet
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Wallet ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Wallet enable request submitted"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Wallet not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/wallets/{id}/enable [patch]
+func (a *walletAdapter) EnableWalletService(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableWalletService", "handler", "wallet")
+	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		span.RecordError(errors.New("wallet service ID is required for enable"))
+		localization.SendErrorResponse(w, localization.ErrorWalletServiceIDRequired, nil, nil)
+		return
+	}
+
+	span.SetAttributes(attribute.String("wallet.id", id))
+	if err := a.walletApp.EnableOrDisableWalletService(ctx, id, true); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if md.IsMakerOnly {
+		a.logger.Infof("[WalletH][Enable]  enable wallet service successfully")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessWalletServiceEnabled, nil)
+	} else {
+		a.logger.Infof("[WalletH][Enable] request sent successfully for enable wallet service")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessWalletServiceEnableRequestSubmitted, nil)
+	}
+}
+
+// DisableWalletService godoc
+//
+//	@Summary		Disable a wallet
+//	@Description	Disable a wallet by ID
+//	@Tags			Wallet
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Wallet ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Wallet disable request submitted"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Wallet not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/wallets/{id}/disable [patch]
+func (a *walletAdapter) DisableWalletService(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableWallet", "handler", "wallet")
+	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		span.RecordError(errors.New("wallet service ID is required for disable"))
+		localization.SendErrorResponse(w, localization.ErrorWalletServiceIDRequired, nil, nil)
+		return
+	}
+
+	span.SetAttributes(attribute.String("wallet.service.id", id))
+	if err := a.walletApp.EnableOrDisableWalletService(ctx, id, false); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if md.IsMakerOnly {
+		a.logger.Infof("[WalletH][Disable]  disable wallet service successfully")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessWalletServiceDisabled, nil)
+	} else {
+		a.logger.Infof("[WalletH][Disable] request sent successfully for disable wallet service")
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessWalletServiceDisableRequestSubmitted, nil)
+	}
+}
+
 // GetWallet godoc
 //
 //	@Summary		Get wallet by ID

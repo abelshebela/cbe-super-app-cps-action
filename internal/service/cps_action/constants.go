@@ -147,6 +147,8 @@ const (
 	RequestDeleteWallet               constants.RequestAction = "DELETE_WALLET"
 	RequestEnableWallet               constants.RequestAction = "ENABLE_WALLET"
 	RequestDisableWallet              constants.RequestAction = "DISABLE_WALLET"
+	RequestEnableWalletService        constants.RequestAction = "ENABLE_WALLET_SERVICE"
+	RequestDisableWalletService       constants.RequestAction = "DISABLE_WALLET_SERVICE"
 
 	RequestCreateEcommerceMerchant        constants.RequestAction = "CREATE_ECOMMERCE_MERCHANT"
 	RequestUpdateEcommerceMerchant        constants.RequestAction = "UPDATE_ECOMMERCE_MERCHANT"
@@ -497,20 +499,22 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestBPSUser:          {},
 	// RequestDisableBPSUser:   {},
 	// RequestEnableBPSUser:    {},
-	RequestUpdateUser:      {},
-	RequestTotalDailyLimit: {},
-	RequestUpdateVAT:       {},
-	RequestAuthTier:        {},
-	RequestCreateAdvert:    {},
-	RequestUpdateAdvert:    {},
-	RequestEnableAdvert:    {},
-	RequestDisableAdvert:   {},
-	RequestDeleteAdvert:    {},
-	RequestCreateBank:      {},
-	RequestUpdateBank:      {},
-	RequestUpdateBankLogo:  {},
-	RequestEnableWallet:    {},
-	RequestDisableWallet:   {},
+	RequestUpdateUser:           {},
+	RequestTotalDailyLimit:      {},
+	RequestUpdateVAT:            {},
+	RequestAuthTier:             {},
+	RequestCreateAdvert:         {},
+	RequestUpdateAdvert:         {},
+	RequestEnableAdvert:         {},
+	RequestDisableAdvert:        {},
+	RequestDeleteAdvert:         {},
+	RequestCreateBank:           {},
+	RequestUpdateBank:           {},
+	RequestUpdateBankLogo:       {},
+	RequestEnableWallet:         {},
+	RequestDisableWallet:        {},
+	RequestEnableWalletService:  {},
+	RequestDisableWalletService: {},
 
 	// Services catalog
 	RequestCreateService:      {},
@@ -956,6 +960,8 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestDeleteWallet,
 		RequestEnableWallet,
 		RequestDisableWallet,
+		RequestEnableWalletService,
+		RequestDisableWalletService,
 	},
 	"TOPUP": {
 		RequestCreateTopup,
