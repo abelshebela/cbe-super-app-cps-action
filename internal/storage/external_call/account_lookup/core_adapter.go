@@ -64,6 +64,7 @@ func (a *CoreAccountLookupAdapter) LookupAccountByPhone(ctx context.Context, pho
 }
 
 func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*model.AccountDetail, error) {
+	a.Logger.Infof("Looking up account by number: %s", account.AccountNumber)
 	response, err := a.coreAPI.NameLookup(core.NameLookupParam{
 		AccountNumber: account.AccountNumber,
 	})
