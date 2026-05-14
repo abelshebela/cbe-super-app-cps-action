@@ -7242,6 +7242,14 @@ var (
 		Message:    MsgAccountCurrencyNotSupported,
 		Type:       "error",
 	}
+
+	ErrorAccountNotFound = ResponseCode{
+		Code:       "ERROR_ACCOUNT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgAccountNotFound,
+		Type:       "error",
+	}
+
 	ErrorAccountRestricted = ResponseCode{
 		Code:       "ERROR_ACCOUNT_RESTRICTED",
 		StatusCode: StatusBadRequest,
