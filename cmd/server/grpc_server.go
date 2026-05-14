@@ -71,9 +71,9 @@ func (s *server) walletMapper(data *local_model.WalletOracle) *walletpb.Wallet {
 		Name:        data.Name,
 		Avatar:      data.Avatar,
 		UniqueCode:  data.UniqueCode,
-		ServiceCode: data.ServiceCode,
-		ServiceKey:  data.ServiceKey,
-		ServiceId:   data.ServiceID,
+		ServiceCode: data.SelfServiceCode,
+		ServiceKey:  data.SelfServiceCode,
+		ServiceId:   data.SelfServiceCode,
 
 		IsDeleted: data.IsDeleted,
 		Enabled:   data.Enabled,
