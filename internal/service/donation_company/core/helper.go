@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 func CompanyNameExists(ctx context.Context, companyName string, donationCompanyRepo storage.DonationCompanyRepository) (bool, error) {
@@ -31,18 +32,21 @@ func CompanyNameExists(ctx context.Context, companyName string, donationCompanyR
 	return len(companies.Data) > 0, nil
 }
 
-func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*model.AccountDetail, error) {
+func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account, logger utils.Logger) (*model.AccountDetail, error) {
 	accountRequest := model.AccountLookUpRequest{
 		AccountNumber: accountNumber,
 	}
 	accountDetail, err := accountLookupService.LookupAccountByAccountNumber(ctx, accountRequest)
 	if err != nil {
+		logger.Errorf("Error occurred while validating account number: %v", err)
 		return nil, err
 	}
 	if accountDetail == nil {
+		logger.Errorf("Account not found for number: %s", accountNumber)
 		return nil, errors.New(localization.ErrorAccountNotFound.Code)
 	}
 	if accountDetail.Currency != "ETB" {
+		logger.Errorf("Account currency not supported for number: %s", accountNumber)
 		return nil, errors.New(localization.ErrorAccountCurrencyNotSupported.Code)
 	}
 
