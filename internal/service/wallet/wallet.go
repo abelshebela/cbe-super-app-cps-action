@@ -376,6 +376,12 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 	case string(constants.RequestDisableWallet):
 		span.AddEvent("Disabling wallet", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
 		err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
+	case string(constants.RequestEnableWalletService):
+		span.AddEvent("Enabling wallet service", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
+		err = s.repo.EnableOrDisableService(ctx, action.UniqueId, true)
+	case string(constants.RequestDisableWalletService):
+		span.AddEvent("Disabling wallet service", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
+		err = s.repo.EnableOrDisableService(ctx, action.UniqueId, false)
 	default:
 		span.AddEvent("Unsupported action", trace.WithAttributes(attribute.String("action", action.RequestAction)))
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
