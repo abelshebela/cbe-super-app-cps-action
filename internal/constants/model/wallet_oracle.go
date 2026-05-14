@@ -27,3 +27,15 @@ type WalletOracle struct {
 	LastModifiedAt      time.Time  `bson:"last_modified_at" json:"last_modified_at"`
 	DeletedAt           *time.Time `bson:"deleted_at" json:"deleted_at"`
 }
+
+type WalletService struct {
+	ID             string     `bson:"id" json:"id"`
+	ServiceID      string     `bson:"service_id" json:"service_id"`
+	WalletID       string     `bson:"wallet_id" json:"wallet_id"`
+	ServiceType    string     `bson:"service_type" json:"service_type"`
+	IsEnabled      int        `bson:"is_enabled" json:"is_enabled"`
+	IsDeleted      int        `bson:"is_deleted" json:"is_deleted"`
+	CreatedAt      time.Time  `bson:"created_at" json:"created_at"`
+	LastModifiedAt time.Time  `bson:"last_modified_at" json:"last_modified_at"`
+	DeletedAt      *time.Time `bson:"deleted_at" json:"deleted_at"`
+}

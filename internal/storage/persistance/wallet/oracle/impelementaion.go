@@ -472,6 +472,39 @@ GROUP BY w.id, w.wallet_name, w.unique_code, w.is_enabled, w.logo, w.is_deleted,
 
 	return &wallet, nil
 }
+func (q *WalletStorage) FindWalletServiceByID(ctx context.Context, id string) (*model.WalletService, error) {
+	q.logger.Infof("[WalletStorage][FindWalletServiceByID] Finding wallet service with ID: %s", id)
+	query := `
+SELECT 
+  RAWTOHEX(ws.id),ws.service_id, RAWTOHEX(ws.wallet_id), ws.service_type, ws.is_enabled, ws.is_deleted, ws.created_at, ws.last_modified_at, ws.deleted_at
+FROM WALLET_SERVICES ws
+WHERE ws.id = HEXTORAW(:1)`
+
+	row := q.db.QueryRowContext(ctx, query, id)
+	var (
+		wallet model.WalletService
+	)
+	err := row.Scan(
+		&wallet.ID,
+		&wallet.ServiceID,
+		&wallet.WalletID,
+		&wallet.ServiceType,
+		&wallet.IsEnabled,
+		&wallet.IsDeleted,
+		&wallet.CreatedAt,
+		&wallet.LastModifiedAt,
+		&wallet.DeletedAt,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		q.logger.Errorf("[WalletStorage][FindByID] failed: %v", err)
+		return nil, err
+	}
+
+	return &wallet, nil
+}
 
 func (q *WalletStorage) FindByIDForGRPC(ctx context.Context, id string) (*model.WalletOracle, error) {
 	q.logger.Infof("[WalletStorage][FindByIDForGRPC] Finding wallet with ID: %s", id)
