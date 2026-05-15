@@ -82,9 +82,9 @@ func (r AddressRequest) Validate() error {
 	)
 }
 
-func (r UpdateKYCStatusRequest) Validate() error {
+func (r ReasonRequest) Validate() error {
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.KYCStatus, validation.Required, validation.In("APPROVED", "REJECTED").Error("must be either of 'APPROVED' or 'REJECTED'")),
+		validation.Field(&r.Reason, validation.Required),
 	)
 }
 
