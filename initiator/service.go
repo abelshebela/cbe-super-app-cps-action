@@ -150,7 +150,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	jobRoleService := job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, nil, persistence.CpsUserPersistence, *cfg, logger)
 	RoleService := roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, persistence.RolePersistence, persistence.BPSActionApproveIndexPersistence, nil, *cfg, logger)
 	CPSRolesService := cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, nil, coreInterface, logger)
-	customerKYCService := kyc_service.NewCustomerKYCService(persistence.CustomerKYCPersistence, nil, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
+	customerKYCService := kyc_service.NewCustomerKYCService(oracle.CustomerKYC, nil, accountLookupAdapter, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -309,7 +309,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	jobRoleService = job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, cpsActionService, persistence.CpsUserPersistence, *cfg, logger)
 	RoleService = roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, persistence.RolePersistence, persistence.BPSActionApproveIndexPersistence, cpsActionService, *cfg, logger)
 	CPSRolesService = cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, cpsActionService, coreInterface, logger)
-	customerKYCService = kyc_service.NewCustomerKYCService(persistence.CustomerKYCPersistence, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
+	customerKYCService = kyc_service.NewCustomerKYCService(oracle.CustomerKYC, cpsActionService, accountLookupAdapter, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 
 	return service.ServiceLayer{
 		RoleService:       RoleService,

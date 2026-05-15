@@ -1651,6 +1651,35 @@ var (
 		Type:       "success",
 	}
 
+	// Customer KYC Request
+	CustomerKycRequestApprovedSuccessfully = ResponseCode{
+		Code:       "SUCCCESS_KYC_REQUEST_APPROVED",
+		StatusCode: StatusOK,
+		Message:    "KYC request approved successfully",
+		Type:       "success",
+	}
+
+	CustomerKycApprovalRequestSubmittedSuccessfully = ResponseCode{
+		Code:       "SUCCCESS_KYC_APPROVAL_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "KYC approval request submitted successfully",
+		Type:       "success",
+	}
+
+	CustomerKycRequestRejectedSuccessfully = ResponseCode{
+		Code:       "SUCCCESS_KYC_REQUEST_REJECTED",
+		StatusCode: StatusOK,
+		Message:    "KYC request rejected successfully",
+		Type:       "success",
+	}
+
+	CustomerKycRejectRequestSubmittedSuccessfully = ResponseCode{
+		Code:       "SUCCCESS_KYC_REJECT_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "KYC reject request submmited successfully",
+		Type:       "success",
+	}
+
 	SuccessDonationCreateRequestSent = ResponseCode{
 		Code:       "SUCCESS_DONATION_CREATE_REQUEST_SENT",
 		StatusCode: StatusCreated,
