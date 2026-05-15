@@ -2,15 +2,12 @@ package customer
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
-	dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/customer_kyc"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
-	"cbe-super-app-cps-action/internal/handlers/rest/http/customer_kyc/core"
 	"cbe-super-app-cps-action/internal/service"
 	util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -42,36 +39,36 @@ func NewCustomerKYCAdapter(kycService service.CustomerKYCService, logger utils.L
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/customers/kyc [post]
-func (c *customerKYCAdapter) CreateCustomerKYC(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "handler", "CreateCustomerKYC", "handler", "customer_kyc")
-	defer span.End()
-	log := util.LoggerFromCtx(ctx, c.logger)
-	md := &types.ContextMetadata{}
-	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
-	localization.UpdateWriterContext(w, ctx)
+// func (c *customerKYCAdapter) CreateCustomerKYC(w http.ResponseWriter, r *http.Request) {
+// 	ctx, span := util.TraceLogger(r.Context(), "handler", "CreateCustomerKYC", "handler", "customer_kyc")
+// 	defer span.End()
+// 	log := util.LoggerFromCtx(ctx, c.logger)
+// 	md := &types.ContextMetadata{}
+// 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+// 	localization.UpdateWriterContext(w, ctx)
 
-	req, err := core.ParseRequestFromMultipleFormData(r)
-	if err != nil {
-		span.RecordError(err)
-		log.Errorf("[KycH][Create] parse form err: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
-		return
-	}
+// 	req, err := core.ParseRequestFromMultipleFormData(r)
+// 	if err != nil {
+// 		span.RecordError(err)
+// 		log.Errorf("[KycH][Create] parse form err: %v", err)
+// 		localization.SendBadRequestResponse(w, err.Error())
+// 		return
+// 	}
 
-	if err := req.Validate(); err != nil {
-		log.Errorf("[CreateCustomerKYC Validation) validation failed: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
-		return
-	}
+// 	if err := req.Validate(); err != nil {
+// 		log.Errorf("[CreateCustomerKYC Validation) validation failed: %v", err)
+// 		localization.SendBadRequestResponse(w, err.Error())
+// 		return
+// 	}
 
-	if err := c.svc.Create(ctx, req); err != nil {
-		log.Errorf("[CreateCustomerKYC] service call failed: %v", err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
+// 	if err := c.svc.Create(ctx, req); err != nil {
+// 		log.Errorf("[CreateCustomerKYC] service call failed: %v", err)
+// 		localization.SendErrorByCodeResponse(w, err.Error())
+// 		return
+// 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, nil)
-}
+// 	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, nil)
+// }
 
 // GetAllKYCRequests returns all KYC requests with pagination
 //
@@ -153,6 +150,74 @@ func (c *customerKYCAdapter) GetKYCRequest(w http.ResponseWriter, r *http.Reques
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, res)
 }
 
+func (c *customerKYCAdapter) ApproveKycRequest(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "handler", "ApproveKycRequest", "handler", "customer_kyc")
+	defer span.End()
+	log := util.LoggerFromCtx(ctx, c.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	id, err := util.ExtractID(w, r)
+	if err != nil {
+		log.Errorf("[ApproveKycRequest] extractID: %v", err)
+		return
+	}
+
+	if err := c.svc.EnableOrDisable(ctx, id, true); err != nil {
+		span.RecordError(err)
+		log.Errorf("[ApproveKycRequest] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[ApproveKycRequest] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.CustomerKycRequestApprovedSuccessfully, nil)
+		return
+	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	localization.SendSuccessResponse(w, localization.CustomerKycApprovalRequestSubmittedSuccessfully, nil)
+}
+
+func (c *customerKYCAdapter) RejectKycRequest(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "handler", "RejectKycRequest", "handler", "customer_kyc")
+	defer span.End()
+	log := util.LoggerFromCtx(ctx, c.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	id, err := util.ExtractID(w, r)
+	if err != nil {
+		log.Errorf("[RejectKycRequest] extractID: %v", err)
+		return
+	}
+
+	if err := c.svc.EnableOrDisable(ctx, id, false); err != nil {
+		span.RecordError(err)
+		log.Errorf("[RejectKycRequest] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[RejectKycRequest] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.CustomerKycRequestRejectedSuccessfully, nil)
+		return
+	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	localization.SendSuccessResponse(w, localization.CustomerKycRejectRequestSubmittedSuccessfully, nil)
+}
+
 // DeleteKYCRequest deletes a specific KYC request by ID
 //
 //	@Summary		Delete KYC Request
@@ -166,28 +231,28 @@ func (c *customerKYCAdapter) GetKYCRequest(w http.ResponseWriter, r *http.Reques
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/customers/kyc/{id} [delete]
-func (c *customerKYCAdapter) DeleteKYCRequest(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "handler", "DeleteKYCRequest", "handler", "customer_kyc")
-	defer span.End()
-	log := util.LoggerFromCtx(ctx, c.logger)
-	md := &types.ContextMetadata{}
-	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
-	localization.UpdateWriterContext(w, ctx)
+// func (c *customerKYCAdapter) DeleteKYCRequest(w http.ResponseWriter, r *http.Request) {
+// 	ctx, span := util.TraceLogger(r.Context(), "handler", "DeleteKYCRequest", "handler", "customer_kyc")
+// 	defer span.End()
+// 	log := util.LoggerFromCtx(ctx, c.logger)
+// 	md := &types.ContextMetadata{}
+// 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+// 	localization.UpdateWriterContext(w, ctx)
 
-	id := chi.URLParam(r, "id")
-	if id == "" {
-		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
-		return
-	}
+// 	id := chi.URLParam(r, "id")
+// 	if id == "" {
+// 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+// 		return
+// 	}
 
-	if err := c.svc.Delete(ctx, id); err != nil {
-		log.Errorf("[DeleteKYCRequest] failed to delete KYC request: %v", err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
+// 	if err := c.svc.Delete(ctx, id); err != nil {
+// 		log.Errorf("[DeleteKYCRequest] failed to delete KYC request: %v", err)
+// 		localization.SendErrorByCodeResponse(w, err.Error())
+// 		return
+// 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, nil)
-}
+// 	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, nil)
+// }
 
 // UpdateKYCStatus updates the KYC status for a specific request ID
 //
@@ -203,39 +268,39 @@ func (c *customerKYCAdapter) DeleteKYCRequest(w http.ResponseWriter, r *http.Req
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/customers/kyc/{id} [patch]
-func (c *customerKYCAdapter) UpdateKYCStatus(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "handler", "UpdateKYCStatus", "handler", "customer_kyc")
-	defer span.End()
-	log := util.LoggerFromCtx(ctx, c.logger)
-	md := &types.ContextMetadata{}
-	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
-	localization.UpdateWriterContext(w, ctx)
+// func (c *customerKYCAdapter) UpdateKYCStatus(w http.ResponseWriter, r *http.Request) {
+// 	ctx, span := util.TraceLogger(r.Context(), "handler", "UpdateKYCStatus", "handler", "customer_kyc")
+// 	defer span.End()
+// 	log := util.LoggerFromCtx(ctx, c.logger)
+// 	md := &types.ContextMetadata{}
+// 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+// 	localization.UpdateWriterContext(w, ctx)
 
-	id := chi.URLParam(r, "id")
-	if id == "" {
-		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
-		return
-	}
+// 	id := chi.URLParam(r, "id")
+// 	if id == "" {
+// 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+// 		return
+// 	}
 
-	var req dto.UpdateKYCStatusRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		span.RecordError(err)
-		log.Errorf("[UpdateKYCStatus] failed to unmarshal request: %v", err)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidJSONPayload.Code)
-		return
-	}
+// 	var req dto.UpdateKYCStatusRequest
+// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+// 		span.RecordError(err)
+// 		log.Errorf("[UpdateKYCStatus] failed to unmarshal request: %v", err)
+// 		localization.SendBadRequestResponse(w, localization.ErrorInvalidJSONPayload.Code)
+// 		return
+// 	}
 
-	if err := req.Validate(); err != nil {
-		log.Errorf("[UpdateKYCStatus Validation] validation failed: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
-		return
-	}
+// 	if err := req.Validate(); err != nil {
+// 		log.Errorf("[UpdateKYCStatus Validation] validation failed: %v", err)
+// 		localization.SendBadRequestResponse(w, err.Error())
+// 		return
+// 	}
 
-	if err := c.svc.UpdateKYCStatus(ctx, id, req.KYCStatus); err != nil {
-		log.Errorf("[UpdateKYCStatus] service call failed: %v", err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
+// 	if err := c.svc.UpdateKYCStatus(ctx, id, req.KYCStatus); err != nil {
+// 		log.Errorf("[UpdateKYCStatus] service call failed: %v", err)
+// 		localization.SendErrorByCodeResponse(w, err.Error())
+// 		return
+// 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, nil)
-}
+// 	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, nil)
+// }
