@@ -831,30 +831,50 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 		return nil, local_util.HandleDBError(err)
 	}
 
-	listQ := fmt.Sprintf(`
-	SELECT
-	RAWTOHEX(s.id),
-	RAWTOHEX(s.access_list_id),
-	sk.name,
-	sk.service_key,
-	s.service_code,
-	s.minimum_fraud_amount,
-	s.product_gl_account_number,
-	s.product_gl_account_currency,
-	sk.is_enabled,
-	sk.is_deleted,
-	s.created_at,
-	s.last_modified_at,
-	sk.deleted_at
-	%s
-	WHERE %s
-	ORDER BY s.created_at DESC
-	OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, fromClause, where)
+	var listQ string
 
 	var listArgs []interface{}
 	if filterParam.Filters["list"] == "all" {
+		listQ = fmt.Sprintf(`
+		SELECT
+		RAWTOHEX(s.id),
+		RAWTOHEX(s.access_list_id),
+		sk.name,
+		sk.service_key,
+		s.service_code,
+		s.minimum_fraud_amount,
+		s.product_gl_account_number,
+		s.product_gl_account_currency,
+		sk.is_enabled,
+		sk.is_deleted,
+		s.created_at,
+		s.last_modified_at,
+		sk.deleted_at
+		%s
+		WHERE %s
+		ORDER BY s.created_at DESC ROWS ONLY`, fromClause, where)
 		listArgs = args
 	} else {
+		listQ = fmt.Sprintf(`
+		SELECT
+		RAWTOHEX(s.id),
+		RAWTOHEX(s.access_list_id),
+		sk.name,
+		sk.service_key,
+		s.service_code,
+		s.minimum_fraud_amount,
+		s.product_gl_account_number,
+		s.product_gl_account_currency,
+		sk.is_enabled,
+		sk.is_deleted,
+		s.created_at,
+		s.last_modified_at,
+		sk.deleted_at
+		%s
+		WHERE %s
+		ORDER BY s.created_at DESC
+		OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, fromClause, where)
+
 		listArgs = append(args, sql.Named("offset", offset), sql.Named("limit", limit))
 	}
 
