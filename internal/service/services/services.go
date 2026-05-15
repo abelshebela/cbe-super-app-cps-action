@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -161,7 +162,7 @@ func (s *servicesService) DeleteServices(ctx context.Context, id string) error {
 	}
 
 	// Check service
-	wal, err := s.repo.FindWalletByAccessList(ctx, id)
+	wal, err := s.repo.FindWalletByServiceId(ctx, id)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		return err
 	}
@@ -170,7 +171,7 @@ func (s *servicesService) DeleteServices(ctx context.Context, id string) error {
 	}
 
 	// Check Donation
-	don, err := s.repo.FindDonationByAccessList(ctx, id)
+	don, err := s.repo.FindDonationByServiceId(ctx, id)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		return err
 	}
@@ -186,12 +187,12 @@ func (s *servicesService) DeleteServices(ctx context.Context, id string) error {
 		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 			return err
 		}
-		if ussdMerchant.ID.Hex() != "" {
+		if strings.EqualFold(ussdMerchant.Service, id) {
 			return errors.New("There is an active ussd merchant connected with this service")
 		}
 	}
 
-	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
+	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteService, nil, prev, constants.ActionDelete)
 }
 
 func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error) {

@@ -186,23 +186,23 @@ func (s *customerKYCService) FindByID(ctx context.Context, id string) (*dto.Cust
 	return mappedResponse, nil
 }
 
-func (s *customerKYCService) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason string, enable bool) error {
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
-	existing, err := s.repo.FindByID(ctx, id)
+	userReq, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("[CustKycSvc][EnableDisable] find err: %v", err)
 		return err
 	}
 
-	if existing.Enabled && enable {
+	if userReq.Enabled && enable && userReq.KYCStatus == imodel.KYCStatusApproved {
 		s.logger.Warnf("[CustKycSvc][EnableDisable] already in state id: %s, enabled: %v", id, enable)
-		return errors.New("Already enabled customer kyc")
+		return errors.New("Customer KYC is already approved")
 	}
 
-	if !existing.Enabled && enable {
+	if !userReq.Enabled && !enable && userReq.KYCStatus == imodel.KYCStatusRejected {
 		s.logger.Warnf("[CustKycSvc][EnableDisable] already in state id: %s, disabled: %v", id, enable)
-		return errors.New("Already disabled customer kyc")
+		return errors.New("Customer KYC is already rejected")
 	}
 
 	var action constants.RequestAction
@@ -212,9 +212,13 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id string, ena
 		action = constants.RequestRejectCustomerKYC
 	}
 
-	payload := map[string]any{"id": id, "approved": enable}
+	newReq := *userReq
+	newReq.Enabled = enable
+	if !enable {
+		newReq.KYCRejectReason = reason
+	}
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, nil, payload, string(action), constants.UPDATE)
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, userReq, newReq, string(action), constants.UPDATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		s.logger.Errorf("[CustKycSvc][EnableDisable] cps action err: %v", err)
@@ -301,6 +305,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 		}
 		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.logger)
 		if err != nil {
+			s.logger.Errorf("Core account creation failed: %v", err)
 			return nil, err
 		}
 

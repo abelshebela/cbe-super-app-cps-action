@@ -124,7 +124,7 @@ func (s *ServicesStorage) CheckAccountNumberExistence(ctx context.Context, accou
 	if err != nil {
 		return "", local_util.HandleDBError(err)
 	}
-	return "", nil
+	return accountID, nil
 }
 
 func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, accountDetail core.AccountLookupResult, accountCurrency string) (string, error) {
@@ -388,7 +388,7 @@ func (s *ServicesStorage) Create(ctx context.Context, accountNumber string, serv
 	serviceID, err := s.insertService(ctx, tx, accountNumber, service)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][Create] insert failed: %v", err)
-		return err
+		return local_util.HandleDBError(err)
 	}
 	service.ID = serviceID
 
@@ -450,7 +450,7 @@ WHERE id = HEXTORAW(:6)`
 
 	// 2) Replace caps.
 	if err := s.updateServiceCaps(ctx, tx, id, service.Cap); err != nil {
-		return err
+		return local_util.HandleDBError(err)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -628,7 +628,7 @@ WHERE s.id = HEXTORAW(:1) AND sk.is_deleted = 0`
 
 	caps, err := s.getServiceCaps(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	svc.Cap = caps
 
@@ -697,7 +697,7 @@ WHERE sk.id = HEXTORAW(:1) AND sk.is_deleted = 0`
 
 	caps, err := s.getServiceCaps(ctx, svc.ID)
 	if err != nil {
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	svc.Cap = caps
 
@@ -715,7 +715,7 @@ func (s *ServicesStorage) FindSupperAppRoleByAccessList(ctx context.Context, acc
 			return false, nil
 		}
 		s.logger.Errorf("[ServiceRepo][FindSupperAppRoleByAccessList] query failed: %v", err)
-		return false, err
+		return false, local_util.HandleDBError(err)
 	}
 	return true, nil
 }
@@ -730,32 +730,32 @@ func (s *ServicesStorage) FindGeographicalLocationByAccessList(ctx context.Conte
 			return false, nil
 		}
 		s.logger.Errorf("[ServiceRepo][FindGeographicalLocationByAccessList] query failed: %v", err)
-		return false, err
+		return false, local_util.HandleDBError(err)
 	}
 	return true, nil
 
 }
 
-func (s *ServicesStorage) FindWalletByAccessList(ctx context.Context, accessListID string) (bool, error) {
-	const q = `SELECT ID FROM WALLETS WHERE SERVICE_ID = :1 AND IS_DELETED = 0`
+func (s *ServicesStorage) FindWalletByServiceId(ctx context.Context, serviceID string) (bool, error) {
+	const q = `SELECT ID FROM WALLETS WHERE SERVICE_ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
 	var id string
-	err := s.db.QueryRowContext(ctx, q, accessListID).Scan(&id)
+	err := s.db.QueryRowContext(ctx, q, serviceID).Scan(&id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil
 		}
 		s.logger.Errorf("[ServiceRepo][FindWalletByAccessList] query failed: %v", err)
-		return false, err
+		return false, local_util.HandleDBError(err)
 	}
 	return true, nil
 }
 
-func (s *ServicesStorage) FindDonationByAccessList(ctx context.Context, accessListID string) (bool, error) {
-	const q = `SELECT ID FROM DONATIONS WHERE SERVICE_ID = :1 AND IS_DELETED = 0`
+func (s *ServicesStorage) FindDonationByServiceId(ctx context.Context, serviceID string) (bool, error) {
+	const q = `SELECT ID FROM DONATIONS WHERE SERVICE_ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
 	var id string
-	err := s.db.QueryRowContext(ctx, q, accessListID).Scan(&id)
+	err := s.db.QueryRowContext(ctx, q, serviceID).Scan(&id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil

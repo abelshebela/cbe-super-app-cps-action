@@ -111,8 +111,8 @@ type ServicesRepository interface {
 	FindSupperAppRoleByAccessList(ctx context.Context, accessListID string) (bool, error)
 	FindGeographicalLocationByAccessList(ctx context.Context, accessListID string) (bool, error)
 
-	FindWalletByAccessList(ctx context.Context, accessListID string) (bool, error)
-	FindDonationByAccessList(ctx context.Context, accessListID string) (bool, error)
+	FindWalletByServiceId(ctx context.Context, serviceID string) (bool, error)
+	FindDonationByServiceId(ctx context.Context, serviceID string) (bool, error)
 }
 
 type OTPRepository interface {

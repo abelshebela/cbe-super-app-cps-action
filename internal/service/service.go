@@ -837,7 +837,7 @@ type CustomerKYCService interface {
 	// Create(ctx context.Context, req customer_kyc_dto.CreateCustomerKYCRequest) error
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]cust_kyc_dto.CustomerKYCResponse], error)
 	FindByID(ctx context.Context, id string) (*cust_kyc_dto.CustomerKYCResponse, error)
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	EnableOrDisable(ctx context.Context, id, reason string, enable bool) error
 	// UpdateKYCStatus(ctx context.Context, id, status string) error
 	// Delete(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
