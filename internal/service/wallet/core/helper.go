@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	"slices"
 	"time"
@@ -47,53 +48,76 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 
 }
 
-func ToCreateWalletDoc(name, code, URL string, self, other, agent *bool, selfServiceID, otherServiceID, agentServiceID string) *local_model.WalletOracle {
+func ToCreateWalletDoc(req walletDto.WalletRequest, logo string, services []local_model.Service) *local_model.WalletOracle {
+	// Extract service IDs from the services slice
+	var selfServiceID, otherServiceID, agentServiceID string
+	var selfServiceName, otherServiceName, agentServiceName string
+	for _, service := range services {
+		switch service.ID {
+		case req.SelfServiceID:
+			selfServiceID = service.ID
+			selfServiceName = service.ServiceName
+		case req.OtherServiceID:
+			otherServiceID = service.ID
+			otherServiceName = service.ServiceName
+		case req.AgentServiceID:
+			agentServiceID = service.ID
+			agentServiceName = service.ServiceName
+		}
+	}
+
 	return &local_model.WalletOracle{
-		Name:           name,
-		UniqueCode:     code,
-		Avatar:         URL,
-		Self:           *self,
-		Other:          *other,
-		Agent:          *agent,
-		SelfServiceID:  selfServiceID,
-		OtherServiceID: otherServiceID,
-		AgentServiceID: agentServiceID,
+		Name:             req.Name,
+		UniqueCode:       strings.ToUpper(strings.TrimSpace(req.UniqueCode)),
+		Avatar:           logo,
+		Self:             *req.Self,
+		Other:            *req.Other,
+		Agent:            *req.Agent,
+		SelfServiceID:    selfServiceID,
+		OtherServiceID:   otherServiceID,
+		AgentServiceID:   agentServiceID,
+		SelfServiceName:  selfServiceName,
+		OtherServiceName: otherServiceName,
+		AgentServiceName: agentServiceName,
 	}
 }
 
 // note: this comparision might not be needed if the existing data is first in the request form and the user update those values
-func ToUpdateWalletDoc(existing local_model.WalletOracle, req walletDto.WalletRequest) (local_model.WalletOracle, int) {
+func ToUpdateWalletDoc(existing local_model.WalletOracle, req local_model.WalletOracle) (local_model.WalletOracle, int) {
 	wallet := existing
 	changeCount := 0
 
-	if req.Self != nil && *req.Self != existing.Self {
+	if req.Self != existing.Self {
 		changeCount++
-		wallet.Self = *req.Self
+		wallet.Self = req.Self
 	}
 
-	if req.Other != nil && *req.Other != existing.Other {
+	if req.Other != existing.Other {
 		changeCount++
-		wallet.Other = *req.Other
+		wallet.Other = req.Other
 	}
 
-	if req.Agent != nil && *req.Agent != existing.Agent {
+	if req.Agent != existing.Agent {
 		changeCount++
-		wallet.Agent = *req.Agent
+		wallet.Agent = req.Agent
 	}
 
 	if req.SelfServiceID != "" && req.SelfServiceID != existing.SelfServiceID {
 		changeCount++
 		wallet.SelfServiceID = req.SelfServiceID
+		wallet.SelfServiceName = req.SelfServiceName
 	}
 
 	if req.OtherServiceID != "" && req.OtherServiceID != existing.OtherServiceID {
 		changeCount++
 		wallet.OtherServiceID = req.OtherServiceID
+		wallet.OtherServiceName = req.OtherServiceName
 	}
 
 	if req.AgentServiceID != "" && req.AgentServiceID != existing.AgentServiceID {
 		changeCount++
 		wallet.AgentServiceID = req.AgentServiceID
+		wallet.AgentServiceName = req.AgentServiceName
 	}
 
 	if req.Name != "" && req.Name != existing.Name {
@@ -126,27 +150,38 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 	return nil
 }
 
-func CheckServices(self, other, agent *bool, selfServiceID, otherServiceID, agentServiceID string, serviceRepo storage.ServicesRepository, ctx context.Context, logger utils.Logger) error {
-	ids, err := serviceRepo.CheckIfIDsExist(ctx, selfServiceID, otherServiceID, agentServiceID)
+func CheckServices(self, other, agent *bool, selfServiceID, otherServiceID, agentServiceID string, serviceRepo storage.ServicesRepository, ctx context.Context, logger utils.Logger) ([]model.Service, error) {
+	services, err := serviceRepo.CheckIfIDsExist(ctx, selfServiceID, otherServiceID, agentServiceID)
 	if err != nil {
 		logger.Errorf("[WalletCore][CheckServices] Error checking service IDs: %v", err)
-		return err
+		return nil, err
 	}
-	if selfServiceID != "" && !slices.Contains(ids, selfServiceID) {
-		logger.Errorf("[WalletCore][CheckServices] Self service ID does not exist: %s", selfServiceID)
-		return errors.New(localization.ErrorSelfServiceNotFound.Code)
-	}
-	if otherServiceID != "" && !slices.Contains(ids, otherServiceID) {
-		logger.Errorf("[WalletCore][CheckServices] Other service ID does not exist: %s", otherServiceID)
-		return errors.New(localization.ErrorOtherServiceNotFound.Code)
-
-	}
-	if agentServiceID != "" && !slices.Contains(ids, agentServiceID) {
-		logger.Errorf("[WalletCore][CheckServices] Agent service ID does not exist: %s", agentServiceID)
-		return errors.New(localization.ErrorAgentServiceNotFound.Code)
+	// Build a set of valid service IDs for quick lookup
+	serviceIDSet := make(map[string]struct{}, len(services))
+	for _, service := range services {
+		serviceIDSet[service.ID] = struct{}{}
 	}
 
-	return nil
+	if selfServiceID != "" {
+		if _, ok := serviceIDSet[selfServiceID]; !ok {
+			logger.Errorf("[WalletCore][CheckServices] Self service ID does not exist: %s", selfServiceID)
+			return nil, errors.New(localization.ErrorSelfServiceNotFound.Code)
+		}
+	}
+	if otherServiceID != "" {
+		if _, ok := serviceIDSet[otherServiceID]; !ok {
+			logger.Errorf("[WalletCore][CheckServices] Other service ID does not exist: %s", otherServiceID)
+			return nil, errors.New(localization.ErrorOtherServiceNotFound.Code)
+		}
+	}
+	if agentServiceID != "" {
+		if _, ok := serviceIDSet[agentServiceID]; !ok {
+			logger.Errorf("[WalletCore][CheckServices] Agent service ID does not exist: %s", agentServiceID)
+			return nil, errors.New(localization.ErrorAgentServiceNotFound.Code)
+		}
+	}
+
+	return services, nil
 }
 func CheckServiceIDInWalletService(ctx context.Context, selfServiceID, otherServiceID, agentServiceID string, repo storage.WalletOracleRepository, logger utils.Logger) error {
 	ids, err := repo.CheckServiceIDInWalletService(ctx, selfServiceID, otherServiceID, agentServiceID)
