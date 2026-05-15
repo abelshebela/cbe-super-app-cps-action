@@ -82,7 +82,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 			return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
 		}
 	}
-	err := core.CheckServices(req.Self, req.Other, req.Agent, req.SelfServiceID, req.OtherServiceID, req.AgentServiceID, s.serviceRepo, ctx, s.logger)
+	services, err := core.CheckServices(req.Self, req.Other, req.Agent, req.SelfServiceID, req.OtherServiceID, req.AgentServiceID, s.serviceRepo, ctx, s.logger)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return err
 	}
 
-	code := strings.ToUpper(strings.TrimSpace(req.UniqueCode))
+	// code := strings.ToUpper(strings.TrimSpace(req.UniqueCode))
 
 	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, string(constants.WalletFolderName), *s.cfg, "", s.logger)
 	if err != nil {
@@ -99,7 +99,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	wallet := core.ToCreateWalletDoc(req.Name, code, URL, req.Self, req.Other, req.Agent, req.SelfServiceID, req.OtherServiceID, req.AgentServiceID)
+	wallet := core.ToCreateWalletDoc(req, URL, services)
 	wallet.Enabled = false
 
 	//here since the unique id is nil 000.. use other unique id like the code
@@ -164,7 +164,18 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	} else {
 		avatarURL = prevWallet.Avatar
 	}
-	UpdateWallet, change_count := core.ToUpdateWalletDoc(*prevWallet, req)
+	services, err := core.CheckServices(req.Self, req.Other, req.Agent, req.SelfServiceID, req.OtherServiceID, req.AgentServiceID, s.serviceRepo, ctx, s.logger)
+	if err != nil {
+		return err
+	}
+
+	if err := core.CheckServiceIDInWalletService(ctx, req.SelfServiceID, req.OtherServiceID, req.AgentServiceID, s.repo, s.logger); err != nil {
+		return err
+	}
+
+	wallet := core.ToCreateWalletDoc(req, avatarURL, services)
+
+	UpdateWallet, change_count := core.ToUpdateWalletDoc(*prevWallet, *wallet)
 	if avatarURL != prevWallet.Avatar {
 		change_count++
 	}

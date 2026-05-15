@@ -6158,6 +6158,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorServiceAccountNumberNotProperlyConfigured = ResponseCode{
+		Code:       "ERROR_SERVICE_ACCOUNT_NUMBER_NOT_PROPERLY_CONFIGURED",
+		StatusCode: StatusConflict,
+		Message:    MsgServiceAccountNumberNotProperlyConfigured,
+		Type:       "error",
+	}
+
 	ErrorChildServiceExists = ResponseCode{
 		Code:       "ERROR_CHILD_SERVICE_EXISTS",
 		StatusCode: StatusConflict,
