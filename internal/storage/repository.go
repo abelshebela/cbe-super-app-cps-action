@@ -899,11 +899,12 @@ type CPSRolesRepository interface {
 }
 
 type CustomerKYCRepository interface {
-	Create(ctx context.Context, req *imodel.CustomerKYC) error
+	// Create(ctx context.Context, req *imodel.CustomerKYC) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error)
 	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
-	UpdateKYCStatus(ctx context.Context, id string, status string) error
-	Delete(ctx context.Context, id string) error
+	CreateUser(ctx context.Context, userAccount types.Account, userData imodel.CustomerKYC) error
+	UpdateKYCStatus(ctx context.Context, id, status, rejectionReason string, approved bool) error
+	// Delete(ctx context.Context, id string) error
 }
 
 type BankOracleRepository interface {
