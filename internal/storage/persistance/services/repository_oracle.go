@@ -10,7 +10,6 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
@@ -1380,7 +1379,7 @@ func (s *ServicesStorage) DeleteServiceKey(ctx context.Context, id string) error
 }
 
 // CheckIfIDsExist implements [storage.ServicesRepository].
-func (s *ServicesStorage) CheckIfIDsExist(ctx context.Context, selfServiceID, otherServiceID, agentServiceID string) ([]model.Service, error) {
+func (s *ServicesStorage) CheckIfIDsExist(ctx context.Context, selfServiceID, otherServiceID, agentServiceID string) ([]imodel.Service, error) {
 	// Collect non-empty IDs
 	ids := make([]string, 0, 3)
 	if selfServiceID != "" {
@@ -1393,7 +1392,7 @@ func (s *ServicesStorage) CheckIfIDsExist(ctx context.Context, selfServiceID, ot
 		ids = append(ids, agentServiceID)
 	}
 	if len(ids) == 0 {
-		return []model.Service{}, nil
+		return []imodel.Service{}, nil
 	}
 
 	// Build placeholders for query
@@ -1410,9 +1409,9 @@ func (s *ServicesStorage) CheckIfIDsExist(ctx context.Context, selfServiceID, ot
 	}
 	defer rows.Close()
 
-	existingIDs := make([]model.Service, 0, len(ids))
+	existingIDs := make([]imodel.Service, 0, len(ids))
 	for rows.Next() {
-		var service model.Service
+		var service imodel.Service
 		if err := rows.Scan(&service.ID, &service.ServiceName); err != nil {
 			s.logger.Errorf("[ServicesRepo][CheckIfIDsExist] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
