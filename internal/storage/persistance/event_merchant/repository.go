@@ -7,19 +7,19 @@ import (
 	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/storage/persistance/event_merchant/core"
+	// "cbe-super-app-cps-action/internal/storage/persistance/event_merchant/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 
 	"errors"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	// "go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -43,39 +43,39 @@ func NewEventMerchantRepository(client *mongo.Client, cfg *config.VaultConfig, d
 }
 
 func (m *EventMerchantRepository) Create(ctx context.Context, merchant model.EventMerchant) error {
-	if merchant.ID.IsZero() {
-		merchant.ID = bson.ObjectID(primitive.NewObjectID())
-	}
-	merchant.CreatedAt = time.Now()
-	merchant.UpdatedAt = time.Time{}
-	merchant.DeletedAt = time.Time{}
+	// if merchant.ID.IsZero() {
+	// 	merchant.ID = bson.ObjectID(primitive.NewObjectID())
+	// }
+	// merchant.CreatedAt = time.Now()
+	// merchant.UpdatedAt = time.Time{}
+	// merchant.DeletedAt = time.Time{}
 
-	coll := m.client.Database(m.dbName).Collection(m.collection)
-	res, err := coll.InsertOne(ctx, merchant)
-	if err != nil {
-		m.logger.Errorf("Failed to create event merchant: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	merchant.ID = res.InsertedID.(bson.ObjectID)
-	types.SetId(ctx, merchant.ID.Hex())
+	// coll := m.client.Database(m.dbName).Collection(m.collection)
+	// res, err := coll.InsertOne(ctx, merchant)
+	// if err != nil {
+	// 	m.logger.Errorf("Failed to create event merchant: %v", err)
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
+	// merchant.ID = res.InsertedID.(bson.ObjectID)
+	// types.SetId(ctx, merchant.ID.Hex())
 
 	return nil
 }
 
 func (m *EventMerchantRepository) Update(ctx context.Context, id string, merchant model.EventMerchant) error {
-	objID, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
-		return errors.New(localization.ErrorInvalidID.Code)
-	}
+	// objID, err := bson.ObjectIDFromHex(id)
+	// if err != nil {
+	// 	m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+	// 	return errors.New(localization.ErrorInvalidID.Code)
+	// }
 
-	filter := bson.M{"_id": objID}
-	updateData := core.EventMerchantMapper(merchant)
+	// filter := bson.M{"_id": objID}
+	// updateData := core.EventMerchantMapper(merchant)
 
-	_, err = m.dal.UpdateOne(ctx, filter, updateData)
-	if err != nil {
-		return local_util.HandleDBError(err)
-	}
+	// _, err = m.dal.UpdateOne(ctx, filter, updateData)
+	// if err != nil {
+	// 	return local_util.HandleDBError(err)
+	// }
 
 	return nil
 }
@@ -182,3 +182,8 @@ func (m *EventMerchantRepository) FindOne(ctx context.Context, filter bson.M) (*
 	}
 	return result, nil
 }
+
+func(m *EventMerchantRepository) FindOneO(ctx context.Context, 	data *types.CheckMerchant) (*model.EventMerchant, error){
+		// not impli
+		return nil,nil
+	}

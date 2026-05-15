@@ -37,6 +37,8 @@ import (
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	bps_action "cbe-super-app-cps-action/internal/constants/model"
 
+	event_model "cbe-super-app-cps-action/internal/constants/model"
+
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -91,6 +93,7 @@ type ServicesRepository interface {
 	Delete(ctx context.Context, serviceID, accessListID string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*service_dto.ServiceResponse, error)
+	CheckIfIDsExist(ctx context.Context, selfServiceID, otherServiceID, agentServiceID string) ([]string, error)
 	FindByAccessListID(ctx context.Context, accessListID string) (bool, error)
 	FindServiceByAccessListID(ctx context.Context, accessListID string) (*service_dto.ServiceResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error)
@@ -802,13 +805,14 @@ type TransactionRepository interface {
 }
 
 type EventMerchantRepository interface {
-	FindOne(ctx context.Context, filter bson.M) (*model.EventMerchant, error)
-	Update(ctx context.Context, id string, eventMerchant model.EventMerchant) error
-	Create(ctx context.Context, eventMerchant model.EventMerchant) error
+	FindOne(ctx context.Context, filter bson.M) (*event_model.EventMerchant, error)
+	Update(ctx context.Context, id string, eventMerchant event_model.EventMerchant) error
+	Create(ctx context.Context, eventMerchant event_model.EventMerchant) error
 	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
+	FindByID(ctx context.Context, id string) (*event_model.EventMerchant, error)
 	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]event_model.EventMerchant], error)
+	FindOneO(ctx context.Context, data *types.CheckMerchant) (*event_model.EventMerchant, error)
 }
 type LogisticsMerchantRepository interface {
 	FindOne(ctx context.Context, filter bson.M) (*local_model.LogisticsMerchant, error)
@@ -940,12 +944,15 @@ type WalletOracleRepository interface {
 	Update(ctx context.Context, id string, wallet *local_model.WalletOracle) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	EnableOrDisableService(ctx context.Context, id string, enable bool) error
 
 	FindByID(ctx context.Context, id string) (*local_model.WalletOracle, error)
+	FindWalletServiceByID(ctx context.Context, id string) (*local_model.WalletService, error)
 	Find(ctx context.Context, key, value, service_id string) (*local_model.WalletOracle, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
 	FindByIDForGRPC(ctx context.Context, id string) (*local_model.WalletOracle, error)
 	FindAllWithPaginationForGRPC(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
+	CheckServiceIDInWalletService(ctx context.Context, selfServiceID, otherServiceID, agentServiceID string) ([]string, error)
 }
 
 type UserActionLogRepository interface {

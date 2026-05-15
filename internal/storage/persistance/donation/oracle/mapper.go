@@ -13,8 +13,9 @@ const donationListSelectCols = `
 	d.TARGET, d.CURRENT_AMOUNT, d.DONATION_DESCRIPTION, d.COVER_IMAGE,
 	d.START_DATE, d.END_DATE, d.IS_DELETED, d.ENABLED,
 	d.CREATED_AT, d.LAST_MODIFIED_AT,
-	RAWTOHEX(d.SERVICE_ID), s.SERVICE_NAME, s.SERVICE_KEY,
+	RAWTOHEX(d.SERVICE_ID), al.NAME as SERVICE_NAME, al.SERVICE_KEY as SERVICE_KEY,
 	RAWTOHEX(d.COMPANY_ID), c.COMPANY_NAME, c.COMPANY_LOGO, c.ENABLED,
+	s.PRODUCT_GL_ACCOUNT_NUMBER as ACCOUNT_NUMBER,
 	RAWTOHEX(d.CATEGORY_ID), cat.CATEGORY_NAME, cat.ICON
 `
 
@@ -22,6 +23,7 @@ const donationListSelectCols = `
 const donationListFromJoin = `
 	FROM DONATIONS d
 	INNER JOIN SERVICES s            ON s.ID   = d.SERVICE_ID
+	INNER JOIN ACCESS_LISTS al            ON   al.ID = s.ACCESS_LIST_ID 
 	INNER JOIN DONATION_COMPANIES c  ON c.ID   = d.COMPANY_ID
 	INNER JOIN DONATION_CATEGORIES cat ON cat.ID = d.CATEGORY_ID
 `
@@ -45,6 +47,7 @@ func scanDonationListRow(s rowScanner) (*donation_dto.DonationListResponse, erro
 		companyID, companyName sql.NullString
 		companyLogo            sql.NullString
 		companyEnabled         sql.NullInt64
+		accountNumber          sql.NullString
 
 		categoryID, categoryName sql.NullString
 		categoryIcon             sql.NullString
@@ -57,6 +60,7 @@ func scanDonationListRow(s rowScanner) (*donation_dto.DonationListResponse, erro
 		&createdAt, &lastModifiedAt,
 		&serviceID, &serviceName, &serviceKey,
 		&companyID, &companyName, &companyLogo, &companyEnabled,
+		&accountNumber,
 		&categoryID, &categoryName, &categoryIcon,
 	); err != nil {
 		return nil, err

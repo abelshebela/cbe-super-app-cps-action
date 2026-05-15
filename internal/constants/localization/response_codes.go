@@ -462,6 +462,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletCodeRequired,
 	ErrorWalletTypeRequired,
 	ErrorWalletAvatarRequired,
+	ErrorWalletSelfServiceIDRequired,
+	ErrorWalletOtherServiceIDRequired,
+	ErrorWalletAgentServiceIDRequired,
 	ErrorWalletAvatarInvalid,
 	ErrorWalletAvatarTooLarge,
 	ErrorWalletAvatarInvalidType,
@@ -473,9 +476,18 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletServiceIDAlreadyExists,
 	ErrorWalletWithNameOrCodeAlreadyExists,
 	ErrorWalletAlreadyDisabled,
+	ErrorWalletServiceAlreadyDisabled,
+	ErrorAgentServiceNotFound,
+	ErrorOtherServiceNotFound,
+	ErrorSelfServiceNotFound,
+	ErrorInvalidAgentServiceID,
+	ErrorInvalidOtherServiceID,
+	ErrorInvalidSelfServiceID,
 	ErrorWalletAlreadyEnabled,
+	ErrorWalletServiceAlreadyEnabled,
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
+	ErrorWalletServiceNotFound,
 	ErrorWalletUpdateEmptyPayload,
 	ErrorInvalidWalletCode,
 	ErrorInvalidWalletType,
@@ -671,6 +683,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCodeAlreadyExist,
 	ErrorLogoIsRequired,
 	ErrorAccountNumberRestricted,
+	ErrorAccountNumberNotFound,
 	ErrorAccountNumberValidationFailed,
 	ErrorAccountNumberNotActive,
 	ErrorAccountNumberNotFound,
@@ -866,6 +879,7 @@ var ResponseCodesList = []ResponseCode{
 	UnableToCreateAccessListSegmentation,
 	ErrorAccessListSegmentationInvalidID,
 	ErrorAccessListSegmentationIDSRequired,
+	ErrorReasonRequired,
 	ErrorAccessListSegmentationNameAlreadyExists,
 	ErrorCustomerSegmentationCodeNotFound,
 	ErrorAccessListKeysRequired,
@@ -974,6 +988,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDepartmentUpdatedSuccessfully,
 	SuccessDepartmentEnabled,
 	SuccessDepartmentDisabled,
+	SuccessDeleteCreated,
 	ErrorBudgetCAtagoryINuser,
 }
 
@@ -2213,10 +2228,23 @@ var (
 		Type:       "error",
 	}
 
+	ErrorWalletServiceIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_SERVICE_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet service ID is required",
+		Type:       "error",
+	}
+
 	SuccessWalletEnableRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_WALLET_ENABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
 		Message:    "Wallet enable request sent successfully",
+		Type:       "success",
+	}
+	SuccessWalletServiceEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_WALLET_SERVICE_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Wallet service enable request sent successfully",
 		Type:       "success",
 	}
 
@@ -2226,10 +2254,22 @@ var (
 		Message:    "Wallet disable request sent successfully",
 		Type:       "success",
 	}
+	SuccessWalletServiceDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_WALLET_SERVICE_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Wallet service disable request sent successfully",
+		Type:       "success",
+	}
 	SuccessWalletEnabled = ResponseCode{
 		Code:       "SUCCESS_WALLET_ENABLED",
 		StatusCode: StatusOK,
 		Message:    "Wallet enabled successfully",
+		Type:       "success",
+	}
+	SuccessWalletServiceEnabled = ResponseCode{
+		Code:       "SUCCESS_WALLET_SERVICE_ENABLED",
+		StatusCode: StatusOK,
+		Message:    "Wallet service enabled successfully",
 		Type:       "success",
 	}
 
@@ -2237,6 +2277,12 @@ var (
 		Code:       "SUCCESS_WALLET_DISABLED",
 		StatusCode: StatusOK,
 		Message:    "Wallet disabled successfully",
+		Type:       "success",
+	}
+	SuccessWalletServiceDisabled = ResponseCode{
+		Code:       "SUCCESS_WALLET_SERVICE_DISABLED",
+		StatusCode: StatusOK,
+		Message:    "Wallet service disabled successfully",
 		Type:       "success",
 	}
 
@@ -3004,11 +3050,23 @@ var (
 		Message:    "Wallet not found",
 		Type:       "error",
 	}
+	ErrorWalletServiceNotFound = ResponseCode{
+		Code:       "ERROR_WALLET_SERVICE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Wallet service not found",
+		Type:       "error",
+	}
 
 	ErrorWalletAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_WALLET_ALREADY_ENABLED",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet is already enabled",
+		Type:       "error",
+	}
+	ErrorWalletServiceAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_WALLET_SERVICE_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet service is already enabled",
 		Type:       "error",
 	}
 	ErrorWalletUpdateEmptyPayload = ResponseCode{
@@ -3022,6 +3080,67 @@ var (
 		Code:       "ERROR_WALLET_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet is already disabled",
+		Type:       "error",
+	}
+	ErrorWalletServiceAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_WALLET_SERVICE_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet service is already disabled",
+		Type:       "error",
+	}
+	ErrorAgentServiceAlreadyExists = ResponseCode{
+		Code:       "ERROR_AGENT_SERVICE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Agent service already exists",
+		Type:       "error",
+	}
+	ErrorOtherServiceAlreadyExists = ResponseCode{
+		Code:       "ERROR_OTHER_SERVICE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Other service already exists",
+		Type:       "error",
+	}
+	ErrorSelfServiceAlreadyExist = ResponseCode{
+		Code:       "ERROR_SELF_SERVICE_ALREADT_EXISTS",
+		StatusCode: StatusNotFound,
+		Message:    "Self service already exists",
+		Type:       "error",
+	}
+	ErrorAgentServiceNotFound = ResponseCode{
+		Code:       "ERROR_AGENT_SERVICE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Agent service not found",
+		Type:       "error",
+	}
+	ErrorOtherServiceNotFound = ResponseCode{
+		Code:       "ERROR_OTHER_SERVICE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Other service not found",
+		Type:       "error",
+	}
+	ErrorSelfServiceNotFound = ResponseCode{
+		Code:       "ERROR_SELF_SERVICE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Self service not found",
+		Type:       "error",
+	}
+
+	ErrorInvalidAgentServiceID = ResponseCode{
+		Code:       "ERROR_INVALID_AGENT_SERVICE_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid agent service ID",
+		Type:       "error",
+	}
+	ErrorInvalidOtherServiceID = ResponseCode{
+		Code:       "ERROR_INVALID_OTHER_SERVICE_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid other service ID",
+		Type:       "error",
+	}
+	ErrorInvalidSelfServiceID = ResponseCode{
+		Code:       "ERROR_INVALID_SELF_SERVICE_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid self service ID",
 		Type:       "error",
 	}
 
@@ -3065,12 +3184,6 @@ var (
 		Message:    "Invalid wallet type, special characters are not allowed",
 		Type:       "error",
 	}
-	ErrorWalletServiceIDRequired = ResponseCode{
-		Code:       "ERROR_WALLET_SERVICE_ID_REQUIRED",
-		StatusCode: 400,
-		Message:    "Wallet service ID is required",
-		Type:       "error",
-	}
 
 	ErrorWalletCodeRequired = ResponseCode{
 		Code:       "ERROR_WALLET_CODE_REQUIRED",
@@ -3089,6 +3202,24 @@ var (
 		Code:       "ERROR_WALLET_AVATAR_REQUIRED",
 		StatusCode: 400,
 		Message:    "Wallet avatar is required",
+		Type:       "error",
+	}
+	ErrorWalletAgentServiceIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_AGENT_SERVICE_ID_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet agent service id is required",
+		Type:       "error",
+	}
+	ErrorWalletOtherServiceIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_OTHER_SERVICE_ID_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet other service id is required",
+		Type:       "error",
+	}
+	ErrorWalletSelfServiceIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_SELF_SERVICE_ID_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet self service id is required",
 		Type:       "error",
 	}
 	ErrorWalletAvatarInvalid = ResponseCode{
@@ -3264,9 +3395,16 @@ var (
 	}
 
 	SuccessDeleteRequestCreated = ResponseCode{
-		Code:       "SUCCESS_DELETE_REQUEST_CREATED",
+		Code:       "SUCCESS_DELETE_AMOUNT_BASED",
 		StatusCode: StatusCreated,
 		Message:    MsgDeleteRequestSuccessfullyCreated,
+		Type:       "success",
+	}
+
+	SuccessDeleteCreated = ResponseCode{
+		Code:       "SUCCESS_DELETE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgDeleteSuccessfullyCreated,
 		Type:       "success",
 	}
 
@@ -7134,6 +7272,14 @@ var (
 		Message:    MsgAccountCurrencyNotSupported,
 		Type:       "error",
 	}
+
+	ErrorAccountNotFound = ResponseCode{
+		Code:       "ERROR_ACCOUNT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgAccountNotFound,
+		Type:       "error",
+	}
+
 	ErrorAccountRestricted = ResponseCode{
 		Code:       "ERROR_ACCOUNT_RESTRICTED",
 		StatusCode: StatusBadRequest,
@@ -8934,6 +9080,12 @@ var (
 		Code:       "ACCESS_LIST_SEGMENTATION_IDS_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccessListSegmentationIDsRequired,
+		Type:       "error",
+	}
+	ErrorReasonRequired = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_REASONS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccessListSegmentationReasonsRequired,
 		Type:       "error",
 	}
 	ErrorAccessListKeysRequired = ResponseCode{

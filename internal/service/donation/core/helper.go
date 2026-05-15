@@ -43,7 +43,7 @@ func DonationTitleExists(ctx context.Context, title string, donationRepo storage
 		return false, err
 	}
 
-	if donations.Data != nil {
+	if len(donations.Data) != 0 {
 		return true, nil
 	}
 

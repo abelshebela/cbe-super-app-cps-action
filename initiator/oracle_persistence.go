@@ -23,6 +23,8 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/sitota"
 	vaultCategory "cbe-super-app-cps-action/internal/storage/persistance/vault"
 	wallet_oracle "cbe-super-app-cps-action/internal/storage/persistance/wallet/oracle"
+	event_oracle "cbe-super-app-cps-action/internal/storage/persistance/event_merchant_oracle"
+
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -45,6 +47,7 @@ type OraclePersistence struct {
 	AccessListSegmentaion storage.AccessListSegmentationRepositoryOracle
 	AccountBlock          storage.AccountBlockRepository
 	Customer              storage.CustomerRepository
+	EventMerchant            storage.EventMerchantRepository
 	EcommerceMerchant     storage.EcommerceMerchantRepository
 	DonationCategory      storage.DonationCategoryRepository
 	DonationCompany       storage.DonationCompanyRepository
@@ -69,6 +72,7 @@ func InitOraclePersistence(client *mongo.Client, db *sql.DB, cfg *config.VaultCo
 		AccessListSegmentaion: access_list_segmentation_oracle.NewAccessListSegmentationOracle(db, *cfg, accessListSegmentationProducer, redisRepository, log),
 		AccountBlock:          account_block_repo.NewAccountBlockRepository(client, cfg, CPSActionsCollection, db, redisRepository, log),
 		Customer:              customer_oracle.NewCustomerOracleRepository(db, *cfg, log),
+		EventMerchant:  event_oracle.NewEventMerchantOracleRepository(db,log),
 		EcommerceMerchant:     ecommerce_merchant.NewEcommerceMerchantRepository(db, log),
 		DonationCategory: donation_category_oracle.NewPublishingRepository(
 			donation_category_oracle.NewRepository(db, log),
