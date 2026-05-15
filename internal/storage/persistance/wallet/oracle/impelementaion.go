@@ -419,7 +419,7 @@ FROM wallets w
 
 LEFT JOIN wallet_services ws ON w.id = ws.wallet_id AND ws.is_deleted = 0 AND ws.is_enabled = 1
 LEFT JOIN services s ON ws.service_id = s.id
-LEFT JOIN access_list al ON s.access_list_id = al.id
+LEFT JOIN access_lists al ON s.access_list_id = al.id
 WHERE w.id = HEXTORAW(:1)
 GROUP BY w.id, w.wallet_name, w.unique_code, w.is_enabled, w.logo, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at`
 
@@ -533,9 +533,9 @@ SELECT
   MAX(CASE WHEN ws.service_type = 'OTHER' THEN RAWTOHEX(ws.service_id) END) AS other_service_id,
   MAX(CASE WHEN ws.service_type = 'AGENT' THEN RAWTOHEX(ws.service_id) END) AS agent_service_id,
 
-  MAX(CASE WHEN ws.service_type = 'SELF' THEN s.name END) AS self_service_name,
-  MAX(CASE WHEN ws.service_type = 'OTHER' THEN s.name END) AS other_service_name,
-  MAX(CASE WHEN ws.service_type = 'AGENT' THEN s.name END) AS agent_service_name,
+  MAX(CASE WHEN ws.service_type = 'SELF' THEN al.name END) AS self_service_name,
+  MAX(CASE WHEN ws.service_type = 'OTHER' THEN al.name END) AS other_service_name,
+  MAX(CASE WHEN ws.service_type = 'AGENT' THEN al.name END) AS agent_service_name,
 
   MAX(CASE WHEN ws.service_type = 'SELF' THEN ws.is_enabled END) AS self_service_enabled,
   MAX(CASE WHEN ws.service_type = 'OTHER' THEN ws.is_enabled END) AS other_service_enabled,
@@ -543,6 +543,7 @@ SELECT
 FROM wallets w
 LEFT JOIN wallet_services ws ON w.id = ws.wallet_id AND ws.is_deleted = 0 AND ws.is_enabled = 1
 LEFT JOIN services s ON ws.service_id = s.id
+LEFT JOIN access_lists al ON s.access_list_id = al.id
 WHERE w.id = HEXTORAW(:1) AND w.is_deleted = 0
 GROUP BY w.id, w.wallet_name, w.unique_code, w.is_enabled, w.logo, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at`
 
