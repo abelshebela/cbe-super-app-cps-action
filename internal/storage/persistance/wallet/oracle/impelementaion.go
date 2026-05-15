@@ -412,13 +412,14 @@ SELECT
   MAX(CASE WHEN ws.service_type = 'OTHER' THEN RAWTOHEX(ws.service_id) END) AS other_service_id,
   MAX(CASE WHEN ws.service_type = 'AGENT' THEN RAWTOHEX(ws.service_id) END) AS agent_service_id,
 
-  MAX(CASE WHEN ws.service_type = 'SELF' THEN s.service_code END) AS self_service_code,
-  MAX(CASE WHEN ws.service_type = 'OTHER' THEN s.service_code END) AS other_service_code,
-  MAX(CASE WHEN ws.service_type = 'AGENT' THEN s.service_code END) AS agent_service_code
+  MAX(CASE WHEN ws.service_type = 'SELF' THEN al.service_name END) AS self_service_name,
+  MAX(CASE WHEN ws.service_type = 'OTHER' THEN al.service_name END) AS other_service_name,
+  MAX(CASE WHEN ws.service_type = 'AGENT' THEN al.service_name END) AS agent_service_name
 FROM wallets w
 
 LEFT JOIN wallet_services ws ON w.id = ws.wallet_id AND ws.is_deleted = 0 AND ws.is_enabled = 1
 LEFT JOIN services s ON ws.service_id = s.id
+LEFT JOIN access_list al ON s.access_list_id = al.id
 WHERE w.id = HEXTORAW(:1)
 GROUP BY w.id, w.wallet_name, w.unique_code, w.is_enabled, w.logo, w.is_deleted, w.created_at, w.last_modified_at, w.deleted_at`
 
@@ -426,7 +427,7 @@ GROUP BY w.id, w.wallet_name, w.unique_code, w.is_enabled, w.logo, w.is_deleted,
 	var (
 		wallet                                              model.WalletOracle
 		selfServiceID, otherServiceID, agentServiceID       sql.NullString
-		selfServiceCode, otherServiceCode, agentServiceCode sql.NullString
+		selfServiceName, otherServiceName, agentServiceName sql.NullString
 	)
 	err := row.Scan(
 		&wallet.ID,
@@ -441,9 +442,9 @@ GROUP BY w.id, w.wallet_name, w.unique_code, w.is_enabled, w.logo, w.is_deleted,
 		&selfServiceID,
 		&otherServiceID,
 		&agentServiceID,
-		&selfServiceCode,
-		&otherServiceCode,
-		&agentServiceCode,
+		&selfServiceName,
+		&otherServiceName,
+		&agentServiceName,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -474,17 +475,17 @@ GROUP BY w.id, w.wallet_name, w.unique_code, w.is_enabled, w.logo, w.is_deleted,
 			wallet.Agent = true
 		}
 	}
-	wallet.SelfServiceCode = ""
-	if selfServiceCode.Valid {
-		wallet.SelfServiceCode = selfServiceCode.String
+	wallet.SelfServiceName = ""
+	if selfServiceName.Valid {
+		wallet.SelfServiceName = selfServiceName.String
 	}
-	wallet.OtherServiceCode = ""
-	if otherServiceCode.Valid {
-		wallet.OtherServiceCode = otherServiceCode.String
+	wallet.OtherServiceName = ""
+	if otherServiceName.Valid {
+		wallet.OtherServiceName = otherServiceName.String
 	}
-	wallet.AgentServiceCode = ""
-	if agentServiceCode.Valid {
-		wallet.AgentServiceCode = agentServiceCode.String
+	wallet.AgentServiceName = ""
+	if agentServiceName.Valid {
+		wallet.AgentServiceName = agentServiceName.String
 	}
 
 	return &wallet, nil
@@ -532,9 +533,9 @@ SELECT
   MAX(CASE WHEN ws.service_type = 'OTHER' THEN RAWTOHEX(ws.service_id) END) AS other_service_id,
   MAX(CASE WHEN ws.service_type = 'AGENT' THEN RAWTOHEX(ws.service_id) END) AS agent_service_id,
 
-  MAX(CASE WHEN ws.service_type = 'SELF' THEN s.service_code END) AS self_service_code,
-  MAX(CASE WHEN ws.service_type = 'OTHER' THEN s.service_code END) AS other_service_code,
-  MAX(CASE WHEN ws.service_type = 'AGENT' THEN s.service_code END) AS agent_service_code,
+  MAX(CASE WHEN ws.service_type = 'SELF' THEN s.service_name END) AS self_service_name,
+  MAX(CASE WHEN ws.service_type = 'OTHER' THEN s.service_name END) AS other_service_name,
+  MAX(CASE WHEN ws.service_type = 'AGENT' THEN s.service_name END) AS agent_service_name,
 
   MAX(CASE WHEN ws.service_type = 'SELF' THEN ws.is_enabled END) AS self_service_enabled,
   MAX(CASE WHEN ws.service_type = 'OTHER' THEN ws.is_enabled END) AS other_service_enabled,
@@ -549,7 +550,7 @@ GROUP BY w.id, w.wallet_name, w.unique_code, w.is_enabled, w.logo, w.is_deleted,
 	var (
 		wallet                                                       model.WalletOracle
 		selfServiceID, otherServiceID, agentServiceID                sql.NullString
-		selfServiceCode, otherServiceCode, agentServiceCode          sql.NullString
+		selfServiceName, otherServiceName, agentServiceName          sql.NullString
 		selfServiceEnabled, otherServiceEnabled, agentServiceEnabled sql.NullInt16
 	)
 	err := row.Scan(
@@ -565,9 +566,9 @@ GROUP BY w.id, w.wallet_name, w.unique_code, w.is_enabled, w.logo, w.is_deleted,
 		&selfServiceID,
 		&otherServiceID,
 		&agentServiceID,
-		&selfServiceCode,
-		&otherServiceCode,
-		&agentServiceCode,
+		&selfServiceName,
+		&otherServiceName,
+		&agentServiceName,
 		&selfServiceEnabled,
 		&otherServiceEnabled,
 		&agentServiceEnabled,
@@ -601,17 +602,17 @@ GROUP BY w.id, w.wallet_name, w.unique_code, w.is_enabled, w.logo, w.is_deleted,
 			wallet.Agent = true
 		}
 	}
-	wallet.SelfServiceCode = ""
-	if selfServiceCode.Valid {
-		wallet.SelfServiceCode = selfServiceCode.String
+	wallet.SelfServiceName = ""
+	if selfServiceName.Valid {
+		wallet.SelfServiceName = selfServiceName.String
 	}
-	wallet.OtherServiceCode = ""
-	if otherServiceCode.Valid {
-		wallet.OtherServiceCode = otherServiceCode.String
+	wallet.OtherServiceName = ""
+	if otherServiceName.Valid {
+		wallet.OtherServiceName = otherServiceName.String
 	}
-	wallet.AgentServiceCode = ""
-	if agentServiceCode.Valid {
-		wallet.AgentServiceCode = agentServiceCode.String
+	wallet.AgentServiceName = ""
+	if agentServiceName.Valid {
+		wallet.AgentServiceName = agentServiceName.String
 	}
 	wallet.SelfServiceEnabled = 0
 	if selfServiceEnabled.Valid {
