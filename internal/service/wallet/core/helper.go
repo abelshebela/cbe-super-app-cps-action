@@ -252,9 +252,9 @@ func MapToModel(wallet map[string]interface{}, logger utils.Logger) *local_model
 		IsDeleted:           getBool("is_deleted"),
 		CreatedAt:           getTime("created_at"),
 		Enabled:             getBool("enabled"),
-		SelfServiceCode:     getString("self_service_code"),
-		OtherServiceCode:    getString("other_service_code"),
-		AgentServiceCode:    getString("agent_service_code"),
+		SelfServiceName:     getString("self_service_name"),
+		OtherServiceName:    getString("other_service_name"),
+		AgentServiceName:    getString("agent_service_name"),
 		LastModifiedAt:      getTime("last_modified_at"),
 		DeletedAt:           getTimePtr("deleted_at"),
 	}

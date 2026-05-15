@@ -19,9 +19,9 @@ type WalletOracle struct {
 	SelfServiceEnabled  int        `bson:"self_service_enabled" json:"self_service_enabled"`
 	OtherServiceEnabled int        `bson:"other_service_enabled" json:"other_service_enabled"`
 	AgentServiceEnabled int        `bson:"agent_service_enabled" json:"agent_service_enabled"`
-	SelfServiceCode     string     `bson:"self_service_code" json:"self_service_code"`
-	OtherServiceCode    string     `bson:"other_service_code" json:"other_service_code"`
-	AgentServiceCode    string     `bson:"agent_service_code" json:"agent_service_code"`
+	SelfServiceName     string     `bson:"self_service_name" json:"self_service_name"`
+	OtherServiceName    string     `bson:"other_service_name" json:"other_service_name"`
+	AgentServiceName    string     `bson:"agent_service_name" json:"agent_service_name"`
 	IsDeleted           bool       `bson:"is_deleted" json:"is_deleted"`
 	CreatedAt           time.Time  `bson:"created_at" json:"created_at"`
 	LastModifiedAt      time.Time  `bson:"last_modified_at" json:"last_modified_at"`
