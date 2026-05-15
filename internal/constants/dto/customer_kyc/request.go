@@ -50,8 +50,8 @@ type VerificationResult struct {
 
 // ********************************************************************************************************************** //
 
-type UpdateKYCStatusRequest struct {
-	KYCStatus string `json:"kyc_status"`
+type ReasonRequest struct {
+	Reason string `json:"reason"`
 }
 
 type CustomerInfoUpdateRequest struct {

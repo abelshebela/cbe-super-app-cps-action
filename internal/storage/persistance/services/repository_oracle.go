@@ -18,8 +18,8 @@ import (
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 
 	"github.com/godror/godror"
-	"github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -124,10 +124,10 @@ func (s *ServicesStorage) CheckAccountNumberExistence(ctx context.Context, accou
 	if err != nil {
 		return "", local_util.HandleDBError(err)
 	}
-	return "", nil
+	return accountID, nil
 }
 
-func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, accountDetail core.AccountLookupResult, accountCurrency string) (string, error) {
+func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, accountDetail model.AccountDetail, accountCurrency string) (string, error) {
 	const bankQ = `
 		SELECT RAWTOHEX(id)
 		FROM banks
@@ -188,23 +188,23 @@ func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, acc
 
 	// ── Step 2: insert the new account ──────────────────────────────────────
 	customerNumber := "0"
-	if accountDetail.Detail.CustomerID != "" {
-		customerNumber = accountDetail.Detail.CustomerID
+	if accountDetail.CustomerID != "" {
+		customerNumber = accountDetail.CustomerID
 	}
 
 	s.logger.Debugf(
 		"[InsertAccountNumberToAccounts] inserting account %s with bank_id %s",
-		accountDetail.Detail.AccountNumber, bankID,
+		accountDetail.AccountNumber, bankID,
 	)
 
 	var accountID string
 	_, err = tx.ExecContext(ctx, insertAccountQ,
 		sql.Named("bank_id", bankID),
-		sql.Named("account_number", accountDetail.Detail.AccountNumber),
-		sql.Named("customer_name", accountDetail.Detail.CustomerName),
+		sql.Named("account_number", accountDetail.AccountNumber),
+		sql.Named("customer_name", accountDetail.CustomerName),
 		sql.Named("currency", accountCurrency),
-		sql.Named("account_type", accountDetail.Detail.AccountType),
-		sql.Named("branch", accountDetail.Detail.BranchCode),
+		sql.Named("account_type", accountDetail.AccountType),
+		sql.Named("branch", ""),
 		sql.Named("customer_number", customerNumber),
 		sql.Named("id", sql.Out{Dest: &accountID}),
 	)
@@ -214,9 +214,9 @@ func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, acc
 			case 1: // ORA-00001: race condition between check and insert
 				s.logger.Warnf(
 					"[InsertAccountNumberToAccounts] concurrent insert detected for account %s, fetching existing id",
-					accountDetail.Detail.AccountNumber,
+					accountDetail.AccountNumber,
 				)
-				fetchErr := tx.QueryRowContext(ctx, checkQ, accountDetail.Detail.AccountNumber).Scan(&accountID)
+				fetchErr := tx.QueryRowContext(ctx, checkQ, accountDetail.AccountNumber).Scan(&accountID)
 				if fetchErr != nil {
 					s.logger.Errorf("[InsertAccountNumberToAccounts] fallback fetch after race failed: %v", fetchErr)
 					return "", local_util.HandleDBError(fetchErr)
@@ -244,7 +244,7 @@ func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, acc
 
 	s.logger.Infof(
 		"[InsertAccountNumberToAccounts] account %s created (id=%s)",
-		accountDetail.Detail.AccountNumber, accountID,
+		accountDetail.AccountNumber, accountID,
 	)
 
 	return accountID, nil
@@ -388,7 +388,7 @@ func (s *ServicesStorage) Create(ctx context.Context, accountNumber string, serv
 	serviceID, err := s.insertService(ctx, tx, accountNumber, service)
 	if err != nil {
 		s.logger.Errorf("[ServicesRepo][Create] insert failed: %v", err)
-		return err
+		return local_util.HandleDBError(err)
 	}
 	service.ID = serviceID
 
@@ -450,7 +450,7 @@ WHERE id = HEXTORAW(:6)`
 
 	// 2) Replace caps.
 	if err := s.updateServiceCaps(ctx, tx, id, service.Cap); err != nil {
-		return err
+		return local_util.HandleDBError(err)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -628,7 +628,7 @@ WHERE s.id = HEXTORAW(:1) AND sk.is_deleted = 0`
 
 	caps, err := s.getServiceCaps(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	svc.Cap = caps
 
@@ -697,7 +697,7 @@ WHERE sk.id = HEXTORAW(:1) AND sk.is_deleted = 0`
 
 	caps, err := s.getServiceCaps(ctx, svc.ID)
 	if err != nil {
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	svc.Cap = caps
 
@@ -715,7 +715,7 @@ func (s *ServicesStorage) FindSupperAppRoleByAccessList(ctx context.Context, acc
 			return false, nil
 		}
 		s.logger.Errorf("[ServiceRepo][FindSupperAppRoleByAccessList] query failed: %v", err)
-		return false, err
+		return false, local_util.HandleDBError(err)
 	}
 	return true, nil
 }
@@ -730,32 +730,32 @@ func (s *ServicesStorage) FindGeographicalLocationByAccessList(ctx context.Conte
 			return false, nil
 		}
 		s.logger.Errorf("[ServiceRepo][FindGeographicalLocationByAccessList] query failed: %v", err)
-		return false, err
+		return false, local_util.HandleDBError(err)
 	}
 	return true, nil
 
 }
 
-func (s *ServicesStorage) FindWalletByAccessList(ctx context.Context, accessListID string) (bool, error) {
-	const q = `SELECT ID FROM WALLETS WHERE SERVICE_ID = :1 AND IS_DELETED = 0`
+func (s *ServicesStorage) FindWalletByServiceId(ctx context.Context, serviceID string) (bool, error) {
+	const q = `SELECT ID FROM WALLET_SERVICES WHERE SERVICE_ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
 	var id string
-	err := s.db.QueryRowContext(ctx, q, accessListID).Scan(&id)
+	err := s.db.QueryRowContext(ctx, q, serviceID).Scan(&id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil
 		}
 		s.logger.Errorf("[ServiceRepo][FindWalletByAccessList] query failed: %v", err)
-		return false, err
+		return false, local_util.HandleDBError(err)
 	}
 	return true, nil
 }
 
-func (s *ServicesStorage) FindDonationByAccessList(ctx context.Context, accessListID string) (bool, error) {
-	const q = `SELECT ID FROM DONATIONS WHERE SERVICE_ID = :1 AND IS_DELETED = 0`
+func (s *ServicesStorage) FindDonationByServiceId(ctx context.Context, serviceID string) (bool, error) {
+	const q = `SELECT ID FROM DONATIONS WHERE SERVICE_ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
 	var id string
-	err := s.db.QueryRowContext(ctx, q, accessListID).Scan(&id)
+	err := s.db.QueryRowContext(ctx, q, serviceID).Scan(&id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil
