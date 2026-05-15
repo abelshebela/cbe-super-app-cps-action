@@ -1385,7 +1385,7 @@ func (s *ServicesStorage) DeleteServiceKey(ctx context.Context, id string) error
 }
 
 // CheckIfIDsExist implements [storage.ServicesRepository].
-func (s *ServicesStorage) CheckIfIDsExist(ctx context.Context, selfServiceID, otherServiceID, agentServiceID string) ([]string, error) {
+func (s *ServicesStorage) CheckIfIDsExist(ctx context.Context, selfServiceID, otherServiceID, agentServiceID string) ([]imodel.Service, error) {
 	// Collect non-empty IDs
 	ids := make([]string, 0, 3)
 	if selfServiceID != "" {
@@ -1398,7 +1398,7 @@ func (s *ServicesStorage) CheckIfIDsExist(ctx context.Context, selfServiceID, ot
 		ids = append(ids, agentServiceID)
 	}
 	if len(ids) == 0 {
-		return []string{}, nil
+		return []imodel.Service{}, nil
 	}
 
 	// Build placeholders for query
@@ -1406,7 +1406,7 @@ func (s *ServicesStorage) CheckIfIDsExist(ctx context.Context, selfServiceID, ot
 	for i := range ids {
 		placeholders[i] = fmt.Sprintf("HEXTORAW(:%d)", i+1)
 	}
-	query := fmt.Sprintf("SELECT RAWTOHEX(id) FROM services WHERE id IN (%s) AND is_deleted = 0", strings.Join(placeholders, ", "))
+	query := fmt.Sprintf("SELECT RAWTOHEX(id),al.name as service_name FROM services join access_lists al ON services.access_list_id = al.id WHERE id IN (%s) AND is_deleted = 0", strings.Join(placeholders, ", "))
 
 	rows, err := s.db.QueryContext(ctx, query, toInterfaceSlice(ids)...)
 	if err != nil {
@@ -1415,14 +1415,14 @@ func (s *ServicesStorage) CheckIfIDsExist(ctx context.Context, selfServiceID, ot
 	}
 	defer rows.Close()
 
-	existingIDs := make([]string, 0, len(ids))
+	existingIDs := make([]imodel.Service, 0, len(ids))
 	for rows.Next() {
-		var id string
-		if err := rows.Scan(&id); err != nil {
+		var service imodel.Service
+		if err := rows.Scan(&service.ID, &service.ServiceName); err != nil {
 			s.logger.Errorf("[ServicesRepo][CheckIfIDsExist] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
-		existingIDs = append(existingIDs, id)
+		existingIDs = append(existingIDs, service)
 	}
 	return existingIDs, nil
 }
