@@ -737,7 +737,7 @@ func (s *ServicesStorage) FindGeographicalLocationByAccessList(ctx context.Conte
 }
 
 func (s *ServicesStorage) FindWalletByServiceId(ctx context.Context, serviceID string) (bool, error) {
-	const q = `SELECT ID FROM WALLETS WHERE SERVICE_ID = HEXTORAW(:1) AND IS_DELETED = 0`
+	const q = `SELECT ID FROM WALLET_SERVICES WHERE SERVICE_ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
 	var id string
 	err := s.db.QueryRowContext(ctx, q, serviceID).Scan(&id)
