@@ -166,6 +166,7 @@ const (
 	RequestUpdateService      constants.RequestAction = "UPDATE_SERVICE"
 	RequestEnableService      constants.RequestAction = "ENABLE_SERVICE"
 	RequestDisableService     constants.RequestAction = "DISABLE_SERVICE"
+	RequestDeleteService      constants.RequestAction = "DELETE_SERVICE"
 	RequestCreateServiceList  constants.RequestAction = "CREATE_SERVICE_LIST"
 	RequestUpdateServiceList  constants.RequestAction = "UPDATE_SERVICE_LIST"
 	RequestEnableServiceList  constants.RequestAction = "ENABLE_SERVICE_LIST"
@@ -523,6 +524,7 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestUpdateService:      {},
 	RequestEnableService:      {},
 	RequestDisableService:     {},
+	RequestDeleteService:      {},
 	RequestCreateServiceList:  {},
 	RequestUpdateServiceList:  {},
 	RequestEnableServiceList:  {},
@@ -826,6 +828,7 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestUpdateService,
 		RequestEnableService,
 		RequestDisableService,
+		RequestDeleteService,
 		RequestCreateServiceList,
 		RequestUpdateServiceList,
 		RequestEnableServiceList,
