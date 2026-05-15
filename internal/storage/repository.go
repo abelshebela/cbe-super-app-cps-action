@@ -26,7 +26,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage/external_call"
 
-	"github.com/hugokessem/coreio/core"
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 
 	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
@@ -97,7 +96,7 @@ type ServicesRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error)
 	CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error)
 	CheckAccountNumberExistence(ctx context.Context, accountNumber string) (string, error)
-	InsertAccountNumberToAccounts(ctx context.Context, accountDetail core.AccountLookupResult, accountCurrency string) (string, error)
+	InsertAccountNumberToAccounts(ctx context.Context, accountDetail model.AccountDetail, accountCurrency string) (string, error)
 	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceKey], error)
 	FindServiceListByID(ctx context.Context, id string) (*imodel.ServiceKey, error)
 	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error)

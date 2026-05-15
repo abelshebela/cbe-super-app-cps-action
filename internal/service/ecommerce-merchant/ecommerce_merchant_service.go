@@ -62,8 +62,8 @@ func NewEcommerceMerchantService(
 	}
 }
 
-func (m *ecommerceMerchantService) ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string) (*coreio.AccountLookupResult, error) {
-	response, err := m.core.AccountLookup(coreio.AccountLookupParam{AccountNumber: accountNumber})
+func (m *ecommerceMerchantService) ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string) (*model.AccountDetail, error) {
+	response, err := m.core.NameLookup(coreio.NameLookupParam{AccountNumber: accountNumber})
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,16 @@ func (m *ecommerceMerchantService) ValidateAccountNumberWithExternalAPI(ctx cont
 		return nil, err
 	}
 
-	return response, nil
+	detail := response.Detail
+	return &model.AccountDetail{
+		AccountNumber:  detail.AccountNumber,
+		CustomerName:   detail.AccountName,
+		Restriction:    detail.RestrictionType,
+		Currency:       detail.Currency,
+		WorkingBalance: "",
+		CustomerID:     detail.CustomerNumber,
+		AccountType:    detail.RestrictionType,
+	}, nil
 }
 
 func (m *ecommerceMerchantService) Create(ctx context.Context, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, error) {

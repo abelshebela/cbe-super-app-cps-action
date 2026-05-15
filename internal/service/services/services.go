@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 
 	"cbe-super-app-cps-action/internal/constants"
@@ -304,8 +305,8 @@ func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
 }
 
-func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string) (*coreio.AccountLookupResult, error) {
-	response, err := s.core.AccountLookup(coreio.AccountLookupParam{AccountNumber: accountNumber})
+func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string) (*model.AccountDetail, error) {
+	response, err := s.core.NameLookup(coreio.NameLookupParam{AccountNumber: accountNumber})
 	if err != nil {
 		return nil, err
 	}
@@ -317,16 +318,24 @@ func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Conte
 		}
 
 		s.logger.Warnf("(core) failed to get account details: %s", message)
-
-		return nil, err
+		return nil, fmt.Errorf("account lookup failed: %s", message)
 	}
 
 	if response.Detail == nil {
 		s.logger.Errorf("account lookup successful but no account details found for account number %s", accountNumber)
-		return nil, err
+		return nil, fmt.Errorf("no account details found for account number %s", accountNumber)
 	}
 
-	return response, nil
+	detail := response.Detail
+	return &model.AccountDetail{
+		AccountNumber:  detail.AccountNumber,
+		CustomerName:   detail.AccountName,
+		Restriction:    detail.RestrictionType,
+		Currency:       detail.Currency,
+		WorkingBalance: "",
+		CustomerID:     detail.CustomerNumber,
+		AccountType:    detail.RestrictionType,
+	}, nil
 }
 
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
