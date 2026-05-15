@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"strings"
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -161,7 +163,7 @@ func (s *servicesService) DeleteServices(ctx context.Context, id string) error {
 	}
 
 	// Check service
-	wal, err := s.repo.FindWalletByAccessList(ctx, id)
+	wal, err := s.repo.FindWalletByServiceId(ctx, id)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		return err
 	}
@@ -170,7 +172,7 @@ func (s *servicesService) DeleteServices(ctx context.Context, id string) error {
 	}
 
 	// Check Donation
-	don, err := s.repo.FindDonationByAccessList(ctx, id)
+	don, err := s.repo.FindDonationByServiceId(ctx, id)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		return err
 	}
@@ -186,12 +188,12 @@ func (s *servicesService) DeleteServices(ctx context.Context, id string) error {
 		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 			return err
 		}
-		if ussdMerchant.ID.Hex() != "" {
+		if strings.EqualFold(ussdMerchant.Service, id) {
 			return errors.New("There is an active ussd merchant connected with this service")
 		}
 	}
 
-	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
+	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteService, nil, prev, constants.ActionDelete)
 }
 
 func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error) {
@@ -303,8 +305,8 @@ func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
 }
 
-func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string) (*coreio.AccountLookupResult, error) {
-	response, err := s.core.AccountLookup(coreio.AccountLookupParam{AccountNumber: accountNumber})
+func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string) (*model.AccountDetail, error) {
+	response, err := s.core.NameLookup(coreio.NameLookupParam{AccountNumber: accountNumber})
 	if err != nil {
 		return nil, err
 	}
@@ -316,16 +318,24 @@ func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Conte
 		}
 
 		s.logger.Warnf("(core) failed to get account details: %s", message)
-
-		return nil, err
+		return nil, fmt.Errorf("account lookup failed: %s", message)
 	}
 
 	if response.Detail == nil {
 		s.logger.Errorf("account lookup successful but no account details found for account number %s", accountNumber)
-		return nil, err
+		return nil, fmt.Errorf("no account details found for account number %s", accountNumber)
 	}
 
-	return response, nil
+	detail := response.Detail
+	return &model.AccountDetail{
+		AccountNumber:  detail.AccountNumber,
+		CustomerName:   detail.AccountName,
+		Restriction:    detail.RestrictionType,
+		Currency:       detail.Currency,
+		WorkingBalance: "",
+		CustomerID:     detail.CustomerNumber,
+		AccountType:    detail.RestrictionType,
+	}, nil
 }
 
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {

@@ -2,12 +2,14 @@ package customer
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/customer_kyc"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -165,7 +167,7 @@ func (c *customerKYCAdapter) ApproveKycRequest(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if err := c.svc.EnableOrDisable(ctx, id, true); err != nil {
+	if err := c.svc.EnableOrDisable(ctx, id, "", true); err != nil {
 		span.RecordError(err)
 		log.Errorf("[ApproveKycRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -193,13 +195,20 @@ func (c *customerKYCAdapter) RejectKycRequest(w http.ResponseWriter, r *http.Req
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
+	var req kyc_dto.ReasonRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Errorf("[RejectKycRequest] failed to decode request body: %v", err)
+		localization.SendErrorByCodeResponse(w, "invalid request format")
+		return
+	}
+
 	id, err := util.ExtractID(w, r)
 	if err != nil {
 		log.Errorf("[RejectKycRequest] extractID: %v", err)
 		return
 	}
 
-	if err := c.svc.EnableOrDisable(ctx, id, false); err != nil {
+	if err := c.svc.EnableOrDisable(ctx, id, req.Reason, false); err != nil {
 		span.RecordError(err)
 		log.Errorf("[RejectKycRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
