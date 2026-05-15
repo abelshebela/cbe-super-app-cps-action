@@ -13,9 +13,10 @@ const (
 	MsgAvatarEnabledSuccessfully   = "Avatar enable request sent successfully"
 	MsgAvatarEnabledSuccessfullySP = "Avatar enabled successfully"
 
-	MsgServiceNotFound              = "Service not found"
-	MsgAvatarDisabledSuccessfully   = "Avatar diabled request sent successfully"
-	MsgAvatarDisabledSuccessfullySP = "Avatar disabled successfully"
+	MsgServiceNotFound                           = "Service not found"
+	MsgServiceAccountNumberNotProperlyConfigured = "Service account number is not properly configured"
+	MsgAvatarDisabledSuccessfully                = "Avatar diabled request sent successfully"
+	MsgAvatarDisabledSuccessfullySP              = "Avatar disabled successfully"
 
 	MsgAvatarDeletedSuccessfully   = "Avatar delete request sent successfully"
 	MsgAvatarDeletedSuccessfullySP = "Avatar deleted successfully"

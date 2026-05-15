@@ -141,6 +141,14 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		return errors.New(localization.ErrorServiceNotFound.Code)
 	}
 
+	if service.ProductGlAccount == "" {
+		span.AddEvent("Service is not properly configured with ProductGlAccount", trace.WithAttributes(
+			attribute.String("error", localization.ErrorServiceAccountNumberNotProperlyConfigured.Code),
+			attribute.String("service_id", donation.ServiceID),
+		))
+		return errors.New(localization.ErrorServiceAccountNumberNotProperlyConfigured.Code)
+	}
+
 	category, err := d.DonationCategoryRepo.FindByID(ctx, donation.CategoryID)
 	if err != nil {
 		span.AddEvent("Donation category not found", trace.WithAttributes(
@@ -314,6 +322,16 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 			))
 			return errors.New(localization.ErrorServiceNotFound.Code)
 		}
+
+		if svc.ProductGlAccount == "" {
+			span.AddEvent("Service is not properly configured with ProductGlAccount", trace.WithAttributes(
+				attribute.String("error", localization.ErrorServiceAccountNumberNotProperlyConfigured.Code),
+				attribute.String("id", id),
+				attribute.String("service_id", donation.ServiceID),
+			))
+			return errors.New(localization.ErrorServiceAccountNumberNotProperlyConfigured.Code)
+		}
+
 		serviceForCPS = dto.Service{
 			ID:          svc.ID,
 			ServiceName: svc.ServiceName,

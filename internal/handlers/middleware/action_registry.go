@@ -88,7 +88,9 @@ var cpsActionRegistry = map[string]string{
 	"GET job_roles": "JOBROLE",
 
 	// Services (GET operations)
-	"GET services": "SERVICE",
+	"GET services":    "SERVICE",
+	"DELETE services": "SERVICE",
+	"PATCH services":  "SERVICE",
 
 	// Topup (GET operations)
 	"GET topups":      "TOPUP",
@@ -241,8 +243,7 @@ var cpsActionRegistry = map[string]string{
 	"DELETE service": "Service",
 
 	// Services module
-	"POST services":  "SERVICE",
-	"PATCH services": "SERVICE",
+	"POST services": "SERVICE",
 
 	// Topup
 	"POST topups":                     "TOPUP",
@@ -408,7 +409,6 @@ var cpsActionRegistry = map[string]string{
 	"DELETE roles": "ROLE",
 
 	// Services
-	"DELETE services":      "SERVICE",
 	"GET services_list":    "SERVICE",
 	"POST services_list":   "SERVICE",
 	"PATCH services_list":  "SERVICE",
