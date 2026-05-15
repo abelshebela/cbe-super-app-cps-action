@@ -1377,3 +1377,55 @@ func (s *ServicesStorage) DeleteServiceKey(ctx context.Context, id string) error
 
 	return nil
 }
+
+// CheckIfIDsExist implements [storage.ServicesRepository].
+func (s *ServicesStorage) CheckIfIDsExist(ctx context.Context, selfServiceID, otherServiceID, agentServiceID string) ([]string, error) {
+	// Collect non-empty IDs
+	ids := make([]string, 0, 3)
+	if selfServiceID != "" {
+		ids = append(ids, selfServiceID)
+	}
+	if otherServiceID != "" {
+		ids = append(ids, otherServiceID)
+	}
+	if agentServiceID != "" {
+		ids = append(ids, agentServiceID)
+	}
+	if len(ids) == 0 {
+		return []string{}, nil
+	}
+
+	// Build placeholders for query
+	placeholders := make([]string, len(ids))
+	for i := range ids {
+		placeholders[i] = fmt.Sprintf("HEXTORAW(:%d)", i+1)
+	}
+	query := fmt.Sprintf("SELECT RAWTOHEX(id) FROM services WHERE id IN (%s) AND is_deleted = 0", strings.Join(placeholders, ", "))
+
+	rows, err := s.db.QueryContext(ctx, query, toInterfaceSlice(ids)...)
+	if err != nil {
+		s.logger.Errorf("[ServicesRepo][CheckIfIDsExist] query failed: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	defer rows.Close()
+
+	existingIDs := make([]string, 0, len(ids))
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			s.logger.Errorf("[ServicesRepo][CheckIfIDsExist] scan failed: %v", err)
+			return nil, local_util.HandleDBError(err)
+		}
+		existingIDs = append(existingIDs, id)
+	}
+	return existingIDs, nil
+}
+
+// toInterfaceSlice converts a string slice to an interface{} slice for variadic SQL args
+func toInterfaceSlice(strs []string) []interface{} {
+	res := make([]interface{}, len(strs))
+	for i, v := range strs {
+		res[i] = v
+	}
+	return res
+}

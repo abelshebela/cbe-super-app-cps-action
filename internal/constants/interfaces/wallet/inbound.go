@@ -10,4 +10,6 @@ type WalletAdapter interface {
 	DeleteWallet(w http.ResponseWriter, r *http.Request)
 	Enable(w http.ResponseWriter, r *http.Request)
 	Disable(w http.ResponseWriter, r *http.Request)
+	EnableWalletService(w http.ResponseWriter, r *http.Request)
+	DisableWalletService(w http.ResponseWriter, r *http.Request)
 }

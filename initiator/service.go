@@ -101,7 +101,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	customerService := customer.NewCustomerService(oracle.Customer, persistence.BpsActionPersistence, nil, nil, nil, accountLookupAdapter, nil, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, oracle.BankOracle, nil, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
-	walletService := wallet.NewWalletService(oracle.WalletOracle, nil, persistence.ServicesPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
+	walletService := wallet.NewWalletService(oracle.WalletOracle, nil, oracle.ServicesPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	bpsActionService := bps_action_service.NewBPSActionService(persistence.BPSActionRolePersistence, persistence.BpsActionPersistence, oracle.Customer, persistence.ArchivedLinkedAccountPersistence, persistence.BPSUserPersistence, persistence.CpsUserPersistence, logger, bps_action_service.Dispatcher{}, *cfg)
 	topupService := topup.NewTopupService(persistence.TopupPersistence, nil, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	accountBlockService := accountblock.NewAccountService(oracle.AccountBlock, nil, logger)
@@ -141,7 +141,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bpsActionRoleService := bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.JobRolePersistence, nil, logger)
 	miniAppCategory := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
 	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, nil, logger)
-	eventMerchantService := event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, nil, accountLookupAdapter, persistence.MerchantLookup, cfg, logger)
+	eventMerchantService := event_merchant_service.NewEventMerchantService(oracle.EventMerchant, nil, accountLookupAdapter, persistence.MerchantLookup, cfg, logger)
 	logisticsMerchantService := logistics_merchant_service.NewLogisticsMerchantService(persistence.LogisticsMerchantPersistence, nil, accountLookupAdapter, cfg, logger)
 	servicesService := services_svc.NewServicesService(oracle.ServicesPersistence, persistence.UssdMerchantPersistence, nil, coreInterface, logger)
 	miniAppProductCodeContainer := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
@@ -226,7 +226,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bulkService = bulk_service.NewBulkService(oracle.AccessListOracle, cpsActionService, bulkSegRepo, logger)
 	// customerService = customer.NewCustomerService(persistence.CustomerService, persistence.BpsActionPersistence, cpsActionService, redis, smsService, cfg, logger)
 	bank_service = bankService.NewBankService(logger, persistence.BankPersistence, oracle.BankOracle, cpsActionService, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
-	walletService = wallet.NewWalletService(oracle.WalletOracle, cpsActionService, persistence.ServicesPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
+	walletService = wallet.NewWalletService(oracle.WalletOracle, cpsActionService, oracle.ServicesPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	topupService = topup.NewTopupService(persistence.TopupPersistence, cpsActionService, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	accountBlockService = accountblock.NewAccountService(oracle.AccountBlock, cpsActionService, logger)
 	departmentService = department.NewDepartmentService(persistence.DepartmentPersistence, cpsActionService, persistence.PortalCardPersistence, persistence.PermissionPersistence, persistence.CpsUserPersistence, logger)
@@ -294,7 +294,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, oracle.AccountBlock, cpsActionService, logger)
 	// bankVaultProductService = bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
 	vault = vault_category.NewVaultCategoryService(oracle.Vault, cpsActionService, logger, minioClient, minioPubUrl, cfg.S3BucketName, cfg)
-	eventMerchantService = event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, cpsActionService, accountLookupAdapter, persistence.MerchantLookup, cfg, logger)
+	eventMerchantService = event_merchant_service.NewEventMerchantService(oracle.EventMerchant, cpsActionService, accountLookupAdapter, persistence.MerchantLookup, cfg, logger)
 
 	logisticsMerchantService = logistics_merchant_service.NewLogisticsMerchantService(persistence.LogisticsMerchantPersistence, cpsActionService, accountLookupAdapter, cfg, logger)
 

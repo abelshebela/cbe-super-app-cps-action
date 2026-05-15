@@ -114,6 +114,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 			attribute.String("error", err.Error()),
 			attribute.String("title", donation.Title),
 		))
+		d.logger.Errorf("[Donation][Create] Failed to check donation title existence: %v", err)
 		return err
 	}
 	if ok {
@@ -121,9 +122,9 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 			attribute.String("error", localization.ErrorDonationTitleDuplicated.Code),
 			attribute.String("title", donation.Title),
 		))
+		d.logger.Warnf("[Donation][Create] Donation title duplicated: %s", donation.Title)
 		return errors.New(localization.ErrorDonationTitleDuplicated.Code)
 	}
-
 
 	if donation.ServiceID == "" {
 		span.AddEvent("Service id missing", trace.WithAttributes(
@@ -131,7 +132,8 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		))
 		return errors.New(localization.ErrorServiceNotFound.Code)
 	}
-	if _, err := d.ServicesRepo.FindServiceListByID(ctx, donation.ServiceID); err != nil {
+	service, err := d.ServicesRepo.FindByID(ctx, donation.ServiceID)
+	if err != nil {
 		span.AddEvent("Service id not found", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("service_id", donation.ServiceID),
@@ -210,6 +212,10 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	result := dto.DonationCPSRequest{
 		DonationCode: donationCode,
 		ServiceID:    donation.ServiceID,
+		Service: dto.Service{
+			ServiceName: service.ServiceName,
+			ServiceKey:  service.ServiceKey,
+		},
 		Company: dto.Company{
 			ID:          donation.CompanyID,
 			CompanyName: company.CompanyName,
@@ -299,7 +305,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	// --- Service Validation ---
 	serviceForCPS := existingDonation.Service
 	if donation.ServiceID != "" {
-		svc, err := d.ServicesRepo.FindServiceListByID(ctx, donation.ServiceID)
+		svc, err := d.ServicesRepo.FindByID(ctx, donation.ServiceID)
 		if err != nil {
 			span.AddEvent("Service id not found", trace.WithAttributes(
 				attribute.String("error", err.Error()),

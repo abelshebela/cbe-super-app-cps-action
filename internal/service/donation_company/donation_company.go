@@ -323,7 +323,7 @@ func (d *DonationCompany) AccountLookup(ctx context.Context, accountNumber strin
 	ctx, span := local_util.TraceLogger(ctx, "service", "AccountLookup", "DonationCompany", "AccountLookup")
 	defer span.End()
 
-	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, accountNumber, d.accountLookupService)
+	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, accountNumber, d.accountLookupService, d.logger)
 	if err != nil {
 		d.logger.Errorf("[DonCompSvc][AccountLookup] validation err: %v", err)
 		span.AddEvent("Account number validation failed", trace.WithAttributes(

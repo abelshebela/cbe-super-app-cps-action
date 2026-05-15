@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -23,6 +24,8 @@ type repository struct {
 	db     DBTX
 	logger utils.Logger
 }
+
+var oracleHexIDRegex = regexp.MustCompile(`^[a-fA-F0-9]{32}$`)
 
 var _ storage.DonationCategoryRepository = (*repository)(nil)
 
@@ -112,6 +115,11 @@ func (r *repository) Delete(ctx context.Context, id string) error {
 
 func (r *repository) FindByID(ctx context.Context, id string) (*donation_category.DonationCategoryListResponse, error) {
 	r.logger.Infof("[DonationCategoryOracle][FindByID] id=%s", id)
+
+	if !oracleHexIDRegex.MatchString(strings.TrimSpace(id)) {
+		r.logger.Errorf("[DonationCategoryOracle][FindByID] invalid id format: %s", id)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
 
 	q := `SELECT ` + donationCategorySelectCols + `
 	      FROM DONATION_CATEGORIES
@@ -248,4 +256,3 @@ func (r *repository) FindAllWithPagination(
 		Meta: meta,
 	}, nil
 }
-
