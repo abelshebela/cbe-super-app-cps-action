@@ -821,6 +821,11 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 				args = append(args, sql.Named("service_key", sKey))
 			}
 		}
+		if v, ok := filterParam.Filters["from"]; ok {
+			if from, ok2 := v.(string); ok2 && from == "donation" {
+				clauses = append(clauses, "s.product_gl_account_number IS NOT NULL")
+			}
+		}
 	}
 
 	where := strings.Join(clauses, " AND ")
@@ -852,8 +857,9 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 		sk.deleted_at
 		%s
 		WHERE %s
-		ORDER BY s.created_at DESC ROWS ONLY`, fromClause, where)
+		ORDER BY s.created_at DESC`, fromClause, where)
 		listArgs = args
+
 	} else {
 		listQ = fmt.Sprintf(`
 		SELECT
