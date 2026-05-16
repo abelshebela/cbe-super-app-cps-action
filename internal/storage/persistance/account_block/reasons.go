@@ -30,6 +30,10 @@ func bindOracleTime(t time.Time) time.Time {
 	return u
 }
 
+func normalizeHexID(id string) string {
+	return strings.ToUpper(strings.TrimSpace(id))
+}
+
 func (a *AccountBlockStorage) deleteReasonsForBlockIDs(ctx context.Context, blockIDs []string) error {
 	if len(blockIDs) == 0 {
 		return nil
@@ -38,10 +42,10 @@ func (a *AccountBlockStorage) deleteReasonsForBlockIDs(ctx context.Context, bloc
 	args := make([]interface{}, 0, len(blockIDs))
 	for i, id := range blockIDs {
 		n := fmt.Sprintf("bid_%d", i)
-		ph[i] = ":" + n
+		ph[i] = "HEXTORAW(:" + n + ")"
 		args = append(args, sql.Named(n, id))
 	}
-	q := fmt.Sprintf(`DELETE FROM account_blocks_disabled_reasons WHERE account_block_id IN (%s)`, strings.Join(ph, ","))
+	q := fmt.Sprintf(`DELETE FROM ACCOUNT_BLOCKS_DISABLED_REASONS WHERE ACCOUNT_BLOCK_ID IN (%s)`, strings.Join(ph, ","))
 	_, err := a.db.ExecContext(ctx, q, args...)
 	return err
 }
@@ -60,8 +64,8 @@ func (a *AccountBlockStorage) insertDisableReasonForBlocks(ctx context.Context, 
 	}
 	for _, bid := range blockIDs {
 		_, err := a.db.ExecContext(ctx, `
-			INSERT INTO account_blocks_disabled_reasons (account_block_id, reason_text, created_by, created_at)
-			VALUES (:account_block_id, :reason_text, :created_by, :created_at)`,
+			INSERT INTO ACCOUNT_BLOCKS_DISABLED_REASONS (account_block_id, reason_text, created_by, created_at)
+			VALUES (HEXTORAW(:account_block_id), :reason_text, :created_by, :created_at)`,
 			sql.Named("account_block_id", bid),
 			sql.Named("reason_text", rText),
 			sql.Named("created_by", rBy),
@@ -83,12 +87,12 @@ func (a *AccountBlockStorage) fetchReasonsMap(ctx context.Context, blockIDs []st
 	args := make([]interface{}, 0, len(blockIDs))
 	for i, id := range blockIDs {
 		n := fmt.Sprintf("rid_%d", i)
-		ph[i] = ":" + n
+		ph[i] = "HEXTORAW(:" + n + ")"
 		args = append(args, sql.Named(n, id))
 	}
 	q := fmt.Sprintf(`
-		SELECT id, account_block_id, reason_text, created_by, created_at
-		FROM account_blocks_disabled_reasons
+		SELECT RAWTOHEX(id), RAWTOHEX(account_block_id), reason_text, created_by, created_at
+		FROM ACCOUNT_BLOCKS_DISABLED_REASONS
 		WHERE account_block_id IN (%s)
 		ORDER BY created_at ASC`, strings.Join(ph, ","))
 	rows, err := a.db.QueryContext(ctx, q, args...)
@@ -115,10 +119,10 @@ func (a *AccountBlockStorage) fetchReasonsMap(ctx context.Context, blockIDs []st
 		if rAt.Valid {
 			at = rAt.Time
 		}
-		bidKey := strings.TrimSpace(blockID.String)
+		bidKey := normalizeHexID(blockID.String)
 		rid := ""
 		if id.Valid {
-			rid = strings.TrimSpace(id.String)
+			rid = normalizeHexID(id.String)
 		}
 		out[bidKey] = append(out[bidKey], imodel.AccountBlockReason{
 			ID:        rid,
@@ -161,7 +165,7 @@ func (a *AccountBlockStorage) attachReasons(ctx context.Context, roots []*imodel
 		if b == nil {
 			return
 		}
-		rr := m[b.ID]
+		rr := m[normalizeHexID(b.ID)]
 		if rr == nil {
 			rr = []imodel.AccountBlockReason{}
 		}
