@@ -346,6 +346,7 @@ type AccountBlockRepository interface {
 	EnableOrDisableDistricts(ctx context.Context, ids []string, reason *types.Reason, enabled bool) error
 	GetDistrictsByIds(ctx context.Context, ids []string) ([]*local_model.AccountBlock, error)
 	GetAccountBlockDetails(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error)
+	GetPreviousReasons(ctx context.Context, accountBlockID string) ([]local_model.AccountBlockReason, error)
 	GetAllBranches(ctx context.Context, id string) ([]local_model.AccountBlock, error)
 }
 

@@ -3,10 +3,12 @@ package account_block
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 )
@@ -94,7 +96,7 @@ func (a *AccountBlockStorage) fetchReasonsMap(ctx context.Context, blockIDs []st
 		SELECT RAWTOHEX(id), RAWTOHEX(account_block_id), reason_text, created_by, created_at
 		FROM ACCOUNT_BLOCKS_DISABLED_REASONS
 		WHERE account_block_id IN (%s)
-		ORDER BY created_at ASC`, strings.Join(ph, ","))
+		ORDER BY created_at DESC`, strings.Join(ph, ","))
 	rows, err := a.db.QueryContext(ctx, q, args...)
 	if err != nil {
 		// Keep account-block APIs available even if disable-reason table
@@ -134,46 +136,22 @@ func (a *AccountBlockStorage) fetchReasonsMap(ctx context.Context, blockIDs []st
 	return out, rows.Err()
 }
 
-// attachReasons loads disable history for each block and its parent chain (same block ids as keys).
-func (a *AccountBlockStorage) attachReasons(ctx context.Context, roots []*imodel.AccountBlock) error {
-	if len(roots) == 0 {
-		return nil
-	}
-	ids := make([]string, 0)
-	seen := make(map[string]struct{})
-	var collect func(*imodel.AccountBlock)
-	collect = func(b *imodel.AccountBlock) {
-		if b == nil {
-			return
+func (a *AccountBlockStorage) GetPreviousReasons(ctx context.Context, accountBlockID string) ([]imodel.AccountBlockReason, error) {
+	a.logger.Infof("[AccountBlockStorage][GetPreviousReasons] account_block_id=%s", accountBlockID)
+	if _, err := a.fetchBlockByID(ctx, accountBlockID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
-		if _, ok := seen[b.ID]; ok {
-			return
-		}
-		seen[b.ID] = struct{}{}
-		ids = append(ids, b.ID)
-		collect(b.Parent)
+		return nil, err
 	}
-	for _, b := range roots {
-		collect(b)
-	}
-	m, err := a.fetchReasonsMap(ctx, ids)
+	m, err := a.fetchReasonsMap(ctx, []string{accountBlockID})
 	if err != nil {
-		return err
+		a.logger.Errorf("[AccountBlockStorage][GetPreviousReasons] fetch failed: %v", err)
+		return nil, err
 	}
-	var apply func(*imodel.AccountBlock)
-	apply = func(b *imodel.AccountBlock) {
-		if b == nil {
-			return
-		}
-		rr := m[normalizeHexID(b.ID)]
-		if rr == nil {
-			rr = []imodel.AccountBlockReason{}
-		}
-		b.DisableReason = rr
-		apply(b.Parent)
+	reasons := m[normalizeHexID(accountBlockID)]
+	if reasons == nil {
+		reasons = []imodel.AccountBlockReason{}
 	}
-	for _, b := range roots {
-		apply(b)
-	}
-	return nil
+	return reasons, nil
 }

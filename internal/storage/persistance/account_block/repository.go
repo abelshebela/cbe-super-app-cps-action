@@ -297,12 +297,6 @@ func (a *AccountBlockStorage) populateParentsAndReasons(ctx context.Context, blo
 			return err
 		}
 	}
-	a.logger.Debugf("[populateParentsAndReasons] finished parent chains, attaching reasons...")
-	err := a.attachReasons(ctx, blocks)
-	if err != nil {
-		a.logger.Errorf("[populateParentsAndReasons] error attaching reasons: %v", err)
-		return err
-	}
 	a.logger.Debugf("[populateParentsAndReasons] completed successfully")
 	return nil
 }
@@ -464,10 +458,6 @@ func (a *AccountBlockStorage) findByIDWithParents(ctx context.Context, id string
 		blocks[i-1].Parent = blocks[i]
 	}
 
-	if err := a.attachReasons(ctx, []*imodel.AccountBlock{blocks[0]}); err != nil {
-		return nil, err
-	}
-
 	return blocks[0], nil
 }
 
@@ -493,9 +483,6 @@ func (a *AccountBlockStorage) FindByFilterKey(ctx context.Context, field, value 
 		return nil, err
 	}
 	if err := a.populateParentChain(ctx, ab, 0); err != nil {
-		return nil, err
-	}
-	if err := a.attachReasons(ctx, []*imodel.AccountBlock{ab}); err != nil {
 		return nil, err
 	}
 	return ab, nil
