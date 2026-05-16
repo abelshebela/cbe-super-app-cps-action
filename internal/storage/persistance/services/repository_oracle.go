@@ -1432,7 +1432,8 @@ func (s *ServicesStorage) CheckIfIDsExist(ctx context.Context, selfServiceID, ot
 	for i := range ids {
 		placeholders[i] = fmt.Sprintf("HEXTORAW(:%d)", i+1)
 	}
-	query := fmt.Sprintf("SELECT RAWTOHEX(id),al.name as service_name FROM services join access_lists al ON services.access_list_id = al.id WHERE id IN (%s) AND is_deleted = 0", strings.Join(placeholders, ", "))
+	// Qualify 'id' column to avoid ambiguity (use services.id)
+	query := fmt.Sprintf("SELECT RAWTOHEX(services.id), al.name as service_name FROM services join access_lists al ON services.access_list_id = al.id WHERE services.id IN (%s) AND services.is_deleted = 0", strings.Join(placeholders, ", "))
 
 	rows, err := s.db.QueryContext(ctx, query, toInterfaceSlice(ids)...)
 	if err != nil {
