@@ -6,14 +6,14 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
-func (r *RequestRolesCreate) Validate() error {
+func (r *RequestJobRolesCreate) Validate() error {
 	return validation.ValidateStruct(r,
 		validation.Field(&r.JobTitle, validation.Required.Error("Job title is required")),
 		validation.Field(&r.Role, validation.Required.Error("Role is required")),
 	)
 }
 
-func (r *RequestRolesUpdate) Validate() error {
+func (r *RequestJobRolesUpdate) Validate() error {
 	return validation.ValidateStruct(r,
 		validation.Field(&r.JobTitle,
 			validation.When(r.JobTitle != "", validation.By(utils.NoSpecialChars)),

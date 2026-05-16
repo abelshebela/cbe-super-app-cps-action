@@ -9,7 +9,7 @@ import (
 	"errors"
 )
 
-func CheckRoleExistent(ctx context.Context, role string, roleRepo storage.JobRoleRepository) error {
+func CheckRoleExistent(ctx context.Context, role string, roleRepo storage.RoleRepository) error {
 
 	_, err := roleRepo.FindByCode(ctx, role)
 	if err != nil {
@@ -17,9 +17,9 @@ func CheckRoleExistent(ctx context.Context, role string, roleRepo storage.JobRol
 	}
 	return nil
 }
-func CheckJobTitleExistent(ctx context.Context, prev imodel.Role, jobTitle string, roleRepo storage.RoleRepository) error {
+func CheckJobTitleExistent(ctx context.Context, prev imodel.JobRole, jobTitle string, jobRoleRepo storage.JobRoleRepository) error {
 
-	data, err := roleRepo.FindByName(ctx, jobTitle)
+	data, err := jobRoleRepo.FindByName(ctx, jobTitle)
 	if err != nil {
 		if err.Error() == localization.ErrorResourceNotFound.Code {
 			return nil
@@ -35,7 +35,7 @@ func CheckJobTitleExistent(ctx context.Context, prev imodel.Role, jobTitle strin
 	return nil
 }
 
-func JobTitleExistentChecker(ctx context.Context, types, id, jobTitle string, jobRoleRepo storage.RoleRepository) error {
+func JobTitleExistentChecker(ctx context.Context, types, id, jobTitle string, jobRoleRepo storage.JobRoleRepository) error {
 
 	res, err := jobRoleRepo.FindByName(ctx, jobTitle)
 	if err != nil {

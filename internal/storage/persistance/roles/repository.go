@@ -21,23 +21,23 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-type JobRoleStorage struct {
+type RoleStorage struct {
 	client     *mongo.Client
 	collection *mongo.Collection
 	logger     utils.Logger
-	dal        dal.MongoDal[imodel.JobRole, imodel.JobRole]
+	dal        dal.MongoDal[imodel.Role, imodel.Role]
 }
 
-func NewJobRoleRepository(client *mongo.Client, cfg *config.VaultConfig, database, collection string, logger utils.Logger) storage.JobRoleRepository {
-	return &JobRoleStorage{
+func NewRoleRepository(client *mongo.Client, cfg *config.VaultConfig, database, collection string, logger utils.Logger) storage.RoleRepository {
+	return &RoleStorage{
 		client:     client,
 		collection: client.Database(database).Collection(collection),
 		logger:     logger,
-		dal:        dal.NewMongoDal[imodel.JobRole, imodel.JobRole](client, cfg, database, collection),
+		dal:        dal.NewMongoDal[imodel.Role, imodel.Role](client, cfg, database, collection),
 	}
 }
 
-func (s *JobRoleStorage) Create(ctx context.Context, role *imodel.JobRole) error {
+func (s *RoleStorage) Create(ctx context.Context, role *imodel.Role) error {
 	s.logger.Infof("[JobRole/Create] creating job role: code=%s name=%s", role.Code, role.Name)
 	role.ID = bson.NewObjectID()
 	_, err := s.dal.InsertOne(ctx, *role)
@@ -48,7 +48,7 @@ func (s *JobRoleStorage) Create(ctx context.Context, role *imodel.JobRole) error
 	return nil
 }
 
-func (s *JobRoleStorage) Update(ctx context.Context, id string, role *imodel.JobRole) error {
+func (s *RoleStorage) Update(ctx context.Context, id string, role *imodel.Role) error {
 	s.logger.Infof("[JobRole/Update] id=%s", id)
 	objID, err := local_util.ParseObjectID(id)
 	if err != nil {
@@ -57,7 +57,7 @@ func (s *JobRoleStorage) Update(ctx context.Context, id string, role *imodel.Job
 	}
 
 	filter := bson.M{"_id": objID}
-	update := JobRoleMapper(*role)
+	update := RoleMapper(*role)
 	_, err = s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return local_util.HandleDBError(err)
@@ -65,7 +65,7 @@ func (s *JobRoleStorage) Update(ctx context.Context, id string, role *imodel.Job
 	return nil
 }
 
-func (s *JobRoleStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+func (s *RoleStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objID, err := local_util.ParseObjectID(id)
 	if err != nil {
 		s.logger.Errorf("[JobRole/EnableOrDisable] invalid object id: %v", err)
@@ -82,7 +82,7 @@ func (s *JobRoleStorage) EnableOrDisable(ctx context.Context, id string, enable 
 	return nil
 }
 
-func (s *JobRoleStorage) SoftDelete(ctx context.Context, id string) error {
+func (s *RoleStorage) SoftDelete(ctx context.Context, id string) error {
 	objID, err := local_util.ParseObjectID(id)
 	if err != nil {
 		s.logger.Errorf("[JobRole/SoftDelete] invalid object id: %v", err)
@@ -99,7 +99,7 @@ func (s *JobRoleStorage) SoftDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *JobRoleStorage) FindByID(ctx context.Context, id string) (*imodel.JobRole, error) {
+func (s *RoleStorage) FindByID(ctx context.Context, id string) (*imodel.Role, error) {
 	s.logger.Infof("[JobRole/FindByID] id=%s", id)
 
 	objID, err := bson.ObjectIDFromHex(id)
@@ -118,7 +118,7 @@ func (s *JobRoleStorage) FindByID(ctx context.Context, id string) (*imodel.JobRo
 	return res, nil
 }
 
-func (s *JobRoleStorage) FindAll(ctx context.Context) (*[]imodel.JobRole, error) {
+func (s *RoleStorage) FindAll(ctx context.Context) (*[]imodel.Role, error) {
 
 	filter := dal.FilterOp{
 		Filter: bson.M{"enabled": true, "is_deleted": false},
@@ -131,7 +131,7 @@ func (s *JobRoleStorage) FindAll(ctx context.Context) (*[]imodel.JobRole, error)
 	return &data, nil
 }
 
-func (r *JobRoleStorage) ExistsMany(ctx context.Context, codes []string) (bool, error) {
+func (r *RoleStorage) ExistsMany(ctx context.Context, codes []string) (bool, error) {
 	if len(codes) == 0 {
 		return true, nil
 	}
@@ -143,7 +143,7 @@ func (r *JobRoleStorage) ExistsMany(ctx context.Context, codes []string) (bool, 
 	return count == int64(len(codes)), nil
 }
 
-func (s *JobRoleStorage) FindByCode(ctx context.Context, code string) (*imodel.JobRole, error) {
+func (s *RoleStorage) FindByCode(ctx context.Context, code string) (*imodel.Role, error) {
 	filter := bson.M{
 		"code":       code,
 		"is_deleted": false,
@@ -155,7 +155,7 @@ func (s *JobRoleStorage) FindByCode(ctx context.Context, code string) (*imodel.J
 	return res, nil
 }
 
-func (s *JobRoleStorage) Find(ctx context.Context, filter bson.M) (*imodel.JobRole, error) {
+func (s *RoleStorage) Find(ctx context.Context, filter bson.M) (*imodel.Role, error) {
 
 	filter["is_deleted"] = false
 	res, err := s.dal.FindOne(ctx, filter, nil)
@@ -166,7 +166,7 @@ func (s *JobRoleStorage) Find(ctx context.Context, filter bson.M) (*imodel.JobRo
 	return res, nil
 }
 
-func (s *JobRoleStorage) FindByName(ctx context.Context, name string) (*imodel.JobRole, error) {
+func (s *RoleStorage) FindByName(ctx context.Context, name string) (*imodel.Role, error) {
 	filter := bson.M{
 		"name": bson.M{
 			"$regex":   "^" + strings.ToLower(name) + "$",
@@ -181,7 +181,7 @@ func (s *JobRoleStorage) FindByName(ctx context.Context, name string) (*imodel.J
 	return res, nil
 }
 
-func (r *JobRoleStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error) {
+func (r *RoleStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Role], error) {
 	searchKeys := bson.M{}
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -207,7 +207,7 @@ func (r *JobRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	return &types.PaginatedResponse[[]model.JobRole]{
+	return &types.PaginatedResponse[[]model.Role]{
 		Data: data,
 		Meta: meta,
 	}, nil

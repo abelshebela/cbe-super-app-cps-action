@@ -33,17 +33,17 @@ type bpsUserService struct {
 	cpsService    service.CPSActionService
 	repo          storage.BPSUserRepository
 	CPSUserRepo   storage.CpsUserRepository
-	roles_repo    storage.RoleRepository
+	Job_roles_repo    storage.JobRoleRepository
 	Branch_blocks storage.AccountBlockRepository
 	logger        utils.Logger
 }
 
-func NewBPSUserService(repo storage.BPSUserRepository, rolesRepo storage.RoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository, branch_blocks storage.AccountBlockRepository, logger utils.Logger) service.BPSUserService {
+func NewBPSUserService(repo storage.BPSUserRepository, JobRolesRepo storage.JobRoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository, branch_blocks storage.AccountBlockRepository, logger utils.Logger) service.BPSUserService {
 	return &bpsUserService{
 		cpsService:    cpsService,
 		repo:          repo,
 		CPSUserRepo:   cpsUserRepo,
-		roles_repo:    rolesRepo,
+		Job_roles_repo:    JobRolesRepo,
 		Branch_blocks: branch_blocks,
 		logger:        logger,
 	}
@@ -262,7 +262,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		return err
 	}
 
-	roles, err := b.roles_repo.FindByFilterKey(ctx, "job_title", req.JobTitle)
+	roles, err := b.Job_roles_repo.FindByFilterKey(ctx, "job_title", req.JobTitle)
 	if err != nil {
 		b.logger.Errorf("[BpsUserSvc][Create] role lookup err for job_title: %s, err: %v", req.JobTitle, err)
 		return errors.New(localization.ErrorRoleNotFound.Code)
