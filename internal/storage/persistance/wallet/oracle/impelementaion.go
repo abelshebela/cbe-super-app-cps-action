@@ -106,7 +106,7 @@ func (q *WalletStorage) Create(ctx context.Context, wallet *model.WalletOracle) 
 
 func (q *WalletStorage) Delete(ctx context.Context, id string) error {
 	q.logger.Infof("[WalletStorage][Delete] Deleting wallet with ID: %s", id)
-	_, err := q.db.ExecContext(ctx, "UPDATE WALLETS SET is_deleted=1, deleted_at=SYSTIMESTAMP, last_modified_at=SYSTIMESTAMP WHERE id=HEXTORAW(:1) AND is_deleted=0", id)
+	_, err := q.db.ExecContext(ctx, "DELETE FROM WALLETS WHERE id=HEXTORAW(:1)", id)
 	if err != nil {
 		q.logger.Errorf("[WalletStorage][Delete] failed to delete wallet: %v", err)
 		return err
