@@ -297,12 +297,6 @@ func (a *AccountBlockStorage) populateParentsAndReasons(ctx context.Context, blo
 			return err
 		}
 	}
-	a.logger.Debugf("[populateParentsAndReasons] finished parent chains, attaching reasons...")
-	err := a.attachReasons(ctx, blocks)
-	if err != nil {
-		a.logger.Errorf("[populateParentsAndReasons] error attaching reasons: %v", err)
-		return err
-	}
 	a.logger.Debugf("[populateParentsAndReasons] completed successfully")
 	return nil
 }
@@ -464,10 +458,6 @@ func (a *AccountBlockStorage) findByIDWithParents(ctx context.Context, id string
 		blocks[i-1].Parent = blocks[i]
 	}
 
-	if err := a.attachReasons(ctx, []*imodel.AccountBlock{blocks[0]}); err != nil {
-		return nil, err
-	}
-
 	return blocks[0], nil
 }
 
@@ -493,9 +483,6 @@ func (a *AccountBlockStorage) FindByFilterKey(ctx context.Context, field, value 
 		return nil, err
 	}
 	if err := a.populateParentChain(ctx, ab, 0); err != nil {
-		return nil, err
-	}
-	if err := a.attachReasons(ctx, []*imodel.AccountBlock{ab}); err != nil {
 		return nil, err
 	}
 	return ab, nil
@@ -815,20 +802,16 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 	}
 
 	a.logger.Debugf("[findAllWithPagination] populateParentsAndReasons completed")
-	a.logger.Debugf("[findAllWithPagination] totalCount: %d, perPage: %d", totalCount, filterParam.PerPage)
 
 	totalPages := int((totalCount + int64(filterParam.PerPage) - 1) / int64(filterParam.PerPage))
-	a.logger.Debugf("[findAllWithPagination] totalPages: %d, currentPage: %d", totalPages, filterParam.Page)
 	var prevPage, nextPage *int
 	if filterParam.Page > 1 {
 		p := filterParam.Page - 1
 		prevPage = &p
-		a.logger.Debugf("[findAllWithPagination] prevPage: %d", p)
 	}
 	if filterParam.Page < totalPages {
 		n := filterParam.Page + 1
 		nextPage = &n
-		a.logger.Debugf("[findAllWithPagination] nextPage: %d", n)
 	}
 
 	resp := &types.PaginatedResponse[[]*imodel.AccountBlock]{
@@ -884,14 +867,7 @@ func (a *AccountBlockStorage) enableOrDisable(ctx context.Context, ids []string,
 		sql.Named("type", string(entityType)),
 	)
 
-	if enabled {
-		if err := a.deleteReasonsForBlockIDs(ctx, ids); err != nil {
-			return err
-		}
-	} else {
-		if err := a.deleteReasonsForBlockIDs(ctx, ids); err != nil {
-			return err
-		}
+	if !enabled {
 		if err := a.insertDisableReasonForBlocks(ctx, ids, reason); err != nil {
 			return err
 		}
