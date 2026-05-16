@@ -20,4 +20,5 @@ type AccountBlockAdapter interface {
 	// EnableCities(w http.ResponseWriter, r *http.Request)
 	// DisableCities(w http.ResponseWriter, r *http.Request)
 	GetAccountBlockDetails(w http.ResponseWriter, r *http.Request)
+	GetPreviousReasons(w http.ResponseWriter, r *http.Request)
 }
