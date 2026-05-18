@@ -13,16 +13,16 @@ func MapCustomerSegmentationToMap(seg imodel.CustomerSegmentation, removedSegmen
 	for _, entry := range seg.Customer {
 		customer = append(customer, map[string]interface{}{
 			"group": map[string]interface{}{
-				"cust_group":       entry.Group.CustGroup,
-				"cust_group_label": entry.Group.CustGroupLabel,
+				"name":  entry.Group.CustGroup,
+				"label": entry.Group.CustGroupLabel,
 			},
 			"segment": map[string]interface{}{
-				"cust_segment_name":  entry.Segment.CustSegmentName,
-				"cust_segment_label": entry.Segment.CustSegmentLabel,
+				"name":  entry.Segment.CustSegmentName,
+				"label": entry.Segment.CustSegmentLabel,
 			},
 			"sub_segment": map[string]interface{}{
-				"cust_sub_segment_name":  entry.SubSegment.CustSubSegmentName,
-				"cust_sub_segment_label": entry.SubSegment.CustSubSegmentLabel,
+				"name":  entry.SubSegment.CustSubSegmentName,
+				"label": entry.SubSegment.CustSubSegmentLabel,
 			},
 		})
 	}
@@ -34,10 +34,10 @@ func MapCustomerSegmentationToMap(seg imodel.CustomerSegmentation, removedSegmen
 			"name":  seg.CustomerRole.Name,
 			"label": seg.CustomerRole.Label,
 		},
-		"customer":     customer,
-		"created_at":   seg.CreatedAt,
-		"is_enabled":   seg.IsEnabled,
-		"updated_at":   seg.UpdatedAt,
-		"is_deleted":   seg.IsDeleted,
+		"customer":   customer,
+		"created_at": seg.CreatedAt,
+		"is_enabled": seg.IsEnabled,
+		"updated_at": seg.UpdatedAt,
+		"is_deleted": seg.IsDeleted,
 	}
 }

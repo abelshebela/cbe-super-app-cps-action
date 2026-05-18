@@ -12,18 +12,18 @@ type CustomerRoleInfo struct {
 }
 
 type CustGroupBlock struct {
-	CustGroup      string `json:"cust_group"`
-	CustGroupLabel string `json:"cust_group_label,omitempty"`
+	CustGroup      string `json:"name"`
+	CustGroupLabel string `json:"label,omitempty"`
 }
 
 type CustSegmentBlock struct {
-	CustSegmentName  string `json:"cust_segment_name"`
-	CustSegmentLabel string `json:"cust_segment_label,omitempty"`
+	CustSegmentName  string `json:"name"`
+	CustSegmentLabel string `json:"label,omitempty"`
 }
 
 type CustSubSegmentBlock struct {
-	CustSubSegmentName  string `json:"cust_sub_segment_name"`
-	CustSubSegmentLabel string `json:"cust_sub_segment_label,omitempty"`
+	CustSubSegmentName  string `json:"name"`
+	CustSubSegmentLabel string `json:"label,omitempty"`
 }
 
 type CustomerEntry struct {
