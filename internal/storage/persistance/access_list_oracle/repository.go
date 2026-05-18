@@ -61,12 +61,12 @@ func normalizePagination(filterParams types.Filter) (int, int) {
 }
 
 // accessListSelectCols matches ACCESS_LISTS (Oracle): NAME, SERVICE_KEY, flags, timestamps.
-const accessListSelectCols = `ID, NAME, SERVICE_KEY, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT`
+const accessListSelectCols = `RAWTOHEX(ID), NAME, SERVICE_KEY, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT`
 
 func scanRowToAPPAccessList(scanner interface {
 	Scan(dest ...any) error
 }) (model.APPAccessList, error) {
-	var idRaw []byte
+	var idRaw string
 	var name, serviceKey string
 	var isEn, isDel int
 	var createdAt, lastMod, deletedAt sql.NullTime
@@ -82,6 +82,7 @@ func scanRowToAPPAccessList(scanner interface {
 	_ = isDel
 
 	return model.APPAccessList{
+		ID:             string(idRaw),
 		Key:            serviceKey,
 		AccessListName: name,
 		Enabled:        isEn == 1,
