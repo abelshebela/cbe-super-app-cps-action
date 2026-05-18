@@ -190,16 +190,16 @@ func CheckServiceIDInWalletService(ctx context.Context, selfServiceID, otherServ
 		return err
 	}
 	if selfServiceID != "" && slices.Contains(ids, selfServiceID) {
-		logger.Errorf("[WalletCore][CheckServiceIDInWalletService] Self service ID does not exist: %s", selfServiceID)
-		return errors.New(localization.ErrorSelfServiceNotFound.Code)
+		logger.Errorf("[WalletCore][CheckServiceIDInWalletService] Self service ID already exists: %s", selfServiceID)
+		return errors.New(localization.ErrorSelfServiceAlreadyExist.Code)
 	}
 	if otherServiceID != "" && slices.Contains(ids, otherServiceID) {
-		logger.Errorf("[WalletCore][CheckServiceIDInWalletService] Other service ID does not exist: %s", otherServiceID)
-		return errors.New(localization.ErrorOtherServiceNotFound.Code)
+		logger.Errorf("[WalletCore][CheckServiceIDInWalletService] Other service ID already exists: %s", otherServiceID)
+		return errors.New(localization.ErrorOtherServiceAlreadyExists.Code)
 	}
 	if agentServiceID != "" && slices.Contains(ids, agentServiceID) {
-		logger.Errorf("[WalletCore][CheckServiceIDInWalletService] Agent service ID does not exist: %s", agentServiceID)
-		return errors.New(localization.ErrorAgentServiceNotFound.Code)
+		logger.Errorf("[WalletCore][CheckServiceIDInWalletService] Agent service ID already exists: %s", agentServiceID)
+		return errors.New(localization.ErrorAgentServiceAlreadyExists.Code)
 	}
 	return nil
 }
