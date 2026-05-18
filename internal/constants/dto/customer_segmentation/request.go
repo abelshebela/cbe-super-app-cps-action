@@ -1,17 +1,13 @@
 package customersegmentation
 
-type CustomerSubSegments struct {
-	Name            string `json:"name"`
-	CustomerSegment string `json:"cust_segment"`
-	CustomerGroup   string `json:"cust_group"`
-}
+import imodel "cbe-super-app-cps-action/internal/constants/model"
 
 type CreateCustomerSegmentationRequest struct {
-	CustomerRole        string                `json:"customer_role"`
-	CustomerSubSegments []CustomerSubSegments `json:"t24_customer_sub_segments"`
+	CustomerRole string                `json:"customer_role"`
+	Customer     []imodel.CustomerEntry `json:"customer"`
 }
 
 type UpdateCustomerSegmentationRequest struct {
-	CustomerSubSegments       []CustomerSubSegments `json:"t24_customer_sub_segments,omitempty"`
-	RemovedCustomerSegmentIds []string              `json:"removed_customer_segment_ids,omitempty"`
+	Customer                  []imodel.CustomerEntry `json:"customer,omitempty"`
+	RemovedCustomerSegmentIds []string               `json:"removed_customer_segment_ids,omitempty"`
 }
