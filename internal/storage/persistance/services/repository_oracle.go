@@ -116,7 +116,7 @@ func (s *ServicesStorage) CheckAccountNumberExistence(ctx context.Context, accou
 	const checkQ = `
 		SELECT RAWTOHEX(id)
 		FROM accounts
-		WHERE account_number = :1
+		WHERE account_number = RAWTOHEX(:1)
 	`
 
 	var accountID string
