@@ -66,19 +66,13 @@ func (s *customerSegmentationService) Create(ctx context.Context, req cust_seg.C
 	}
 
 	if role != nil {
-		newData.CustomerRole = imodel.CustomerRoleInfo{ID: role.ID, Name: role.Name}
+		newData.CustomerRole = imodel.CustomerRoleInfo{ID: role.ID, Name: role.Name, Label: role.Lable}
 		newData.CreatedAt = time.Now()
 		newData.UpdatedAt = time.Now()
 		newData.IsEnabled = true
 		newData.IsDeleted = false
-		for _, info := range req.CustomerSubSegments {
-			seg := imodel.CustSegment{
-				CustomerSubSegment: info.Name,
-				CustomerGroup:      info.CustomerGroup,
-				CustomerSegment:    info.CustomerSegment,
-			}
-			newData.CustomerSegments = append(newData.CustomerSegments, seg)
-		}
+		newData.Customer = req.Customer
+		newData.SyncSegmentsFromCustomer()
 	}
 
 	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, core.MapCustomerSegmentationToMap(newData, nil), string(constants.RequestCreateCustomerSegmentation), constants.CREATE)
@@ -102,34 +96,10 @@ func (s *customerSegmentationService) Update(ctx context.Context, id string, req
 	}
 
 	updated := *existing
-	if req.CustomerSubSegments != nil {
-		updated.CustomerSegments = make([]imodel.CustSegment, len(req.CustomerSubSegments))
-		for i, sub := range req.CustomerSubSegments {
-			updated.CustomerSegments[i] = imodel.CustSegment{
-				CustomerSubSegment: sub.Name,
-				CustomerGroup:      sub.CustomerGroup,
-				CustomerSegment:    sub.CustomerSegment,
-			}
-		}
+	if req.Customer != nil {
+		updated.Customer = req.Customer
+		updated.SyncSegmentsFromCustomer()
 	}
-
-	// if len(req.CustomerSubSegments) > 0 && len(req.OldName) > 0 {
-	// 	updates := make(map[string]imodel.CustomerSubSegments)
-
-	// 	for i, sub := range req.CustomerSubSegments {
-	// 		updates[req.OldName[i]] = imodel.CustomerSubSegments{
-	// 			Name:            sub.Name,
-	// 			CustomerGroup:   sub.CustomerGroup,
-	// 			CustomerSegment: sub.CustomerSegment,
-	// 		}
-	// 	}
-
-	// 	for i, existingSub := range updated.CustomerSubSegments {
-	// 		if newSub, ok := updates[existingSub.Name]; ok {
-	// 			updated.CustomerSubSegments[i] = newSub
-	// 		}
-	// 	}
-	// }
 
 	updated.UpdatedAt = time.Now()
 
@@ -150,8 +120,8 @@ func (s *customerSegmentationService) isSubSegmentsEqual(existing, incoming []im
 	}
 
 	for i := range existing {
-		if existing[i].CustomerGroup != incoming[i].CustomerGroup ||
-			existing[i].CustomerSegment != incoming[i].CustomerSegment {
+		if existing[i].CustGroupName != incoming[i].CustGroupName ||
+			existing[i].CustSegName != incoming[i].CustSegName {
 			return false
 		}
 	}
@@ -216,16 +186,6 @@ func (s *customerSegmentationService) Delete(ctx context.Context, id string) err
 		return err
 	}
 
-	// exist, err := s.segmentationRepo.FindBySegmentationAndServiceID(ctx, existing.CustomerRole.Name, constants.CustomerSegmentationServiceID)
-	// if err != nil {
-	// 	s.logger.Errorf("[CustSegSvc][Delete] customer segmentation check err: %s, %v", existing.CustomerRole.Name, err)
-	// 	return err
-	// }
-	// if exist != nil {
-	// 	s.logger.Errorf("[CustSegSvc][Delete] sub-segment already exists: %s", existing.CustomerRole.ID)
-	// 	return fmt.Errorf("Customer segmentation already exists for this customer role you can't delete it")
-	// }
-
 	updated := *existing
 	updated.IsDeleted = true
 	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing, nil), core.MapCustomerSegmentationToMap(updated, nil), string(constants.RequestDeleteCustomerSegmentation), constants.DELETE)
@@ -251,6 +211,7 @@ func (s *customerSegmentationService) Authorize(ctx context.Context, action *mod
 		s.logger.Errorf("[CustSegSvc][Authorize] unmarshal err: %v", marshal_err)
 		return nil, marshal_err
 	}
+	seg.SyncSegmentsFromCustomer()
 
 	switch action.RequestAction {
 	case string(constants.RequestCreateCustomerSegmentation):

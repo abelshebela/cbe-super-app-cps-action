@@ -6,21 +6,26 @@ import (
 	"fmt"
 	"strings"
 
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+
 	validation "github.com/go-ozzo/ozzo-validation"
 )
 
 func (c *CreateCustomerSegmentationRequest) CapitilizeCustomerSegmentationRequest() {
-	for i := range c.CustomerSubSegments {
-		c.CustomerSubSegments[i].Name = strings.TrimSpace(strings.ToUpper(c.CustomerSubSegments[i].Name))
-		c.CustomerSubSegments[i].CustomerSegment = strings.TrimSpace(strings.ToUpper(c.CustomerSubSegments[i].CustomerSegment))
-		c.CustomerSubSegments[i].CustomerGroup = strings.TrimSpace(strings.ToUpper(c.CustomerSubSegments[i].CustomerGroup))
+	for i := range c.Customer {
+		c.Customer[i].Group.CustGroup = strings.TrimSpace(strings.ToUpper(c.Customer[i].Group.CustGroup))
+		c.Customer[i].Group.CustGroupLabel = strings.TrimSpace(c.Customer[i].Group.CustGroupLabel)
+		c.Customer[i].Segment.CustSegmentName = strings.TrimSpace(strings.ToUpper(c.Customer[i].Segment.CustSegmentName))
+		c.Customer[i].Segment.CustSegmentLabel = strings.TrimSpace(c.Customer[i].Segment.CustSegmentLabel)
+		c.Customer[i].SubSegment.CustSubSegmentName = strings.TrimSpace(strings.ToUpper(c.Customer[i].SubSegment.CustSubSegmentName))
+		c.Customer[i].SubSegment.CustSubSegmentLabel = strings.TrimSpace(c.Customer[i].SubSegment.CustSubSegmentLabel)
 	}
 }
 
-func validateUniqueSubSegments(value interface{}) error {
-	subSegments, ok := value.([]CustomerSubSegments)
+func validateUniqueCustomerEntries(value interface{}) error {
+	entries, ok := value.([]imodel.CustomerEntry)
 	if !ok {
-		return errors.New("invalid customer sub segments")
+		return errors.New("invalid customer entries")
 	}
 
 	nameMap := make(map[string]int)
@@ -29,9 +34,9 @@ func validateUniqueSubSegments(value interface{}) error {
 	var duplicateNames []string
 	var duplicateSegments []string
 
-	for _, s := range subSegments {
-		nameMap[strings.TrimSpace(strings.ToUpper(s.Name))]++
-		segmentMap[strings.TrimSpace(strings.ToUpper(s.CustomerSegment))]++
+	for _, e := range entries {
+		nameMap[strings.TrimSpace(strings.ToUpper(e.SubSegment.CustSubSegmentName))]++
+		segmentMap[strings.TrimSpace(strings.ToUpper(e.Segment.CustSegmentName))]++
 	}
 
 	for k, v := range nameMap {
@@ -65,6 +70,62 @@ func validateUniqueSubSegments(value interface{}) error {
 	return nil
 }
 
+func validateCustomerEntry(c imodel.CustomerEntry) error {
+	return validation.ValidateStruct(&c,
+		validation.Field(&c.Group, validation.Required, validation.By(func(value interface{}) error {
+			g, ok := value.(imodel.CustGroupBlock)
+			if !ok {
+				return errors.New("invalid customer group")
+			}
+			return validation.ValidateStruct(&g,
+				validation.Field(&g.CustGroup,
+					validation.Required,
+					validation.By(utils.TrimWhiteSpace),
+					validation.By(utils.NoSpecialChars),
+				),
+				validation.Field(&g.CustGroupLabel,
+					validation.By(utils.TrimWhiteSpace),
+					validation.By(utils.NoSpecialChars),
+				),
+			)
+		})),
+		validation.Field(&c.Segment, validation.Required, validation.By(func(value interface{}) error {
+			s, ok := value.(imodel.CustSegmentBlock)
+			if !ok {
+				return errors.New("invalid customer segment")
+			}
+			return validation.ValidateStruct(&s,
+				validation.Field(&s.CustSegmentName,
+					validation.Required,
+					validation.By(utils.TrimWhiteSpace),
+					validation.By(utils.NoSpecialChars),
+				),
+				validation.Field(&s.CustSegmentLabel,
+					validation.By(utils.TrimWhiteSpace),
+					validation.By(utils.NoSpecialChars),
+				),
+			)
+		})),
+		validation.Field(&c.SubSegment, validation.Required, validation.By(func(value interface{}) error {
+			sub, ok := value.(imodel.CustSubSegmentBlock)
+			if !ok {
+				return errors.New("invalid customer sub segment")
+			}
+			return validation.ValidateStruct(&sub,
+				validation.Field(&sub.CustSubSegmentName,
+					validation.Required,
+					validation.By(utils.TrimWhiteSpace),
+					validation.By(utils.NoSpecialChars),
+				),
+				validation.Field(&sub.CustSubSegmentLabel,
+					validation.By(utils.TrimWhiteSpace),
+					validation.By(utils.NoSpecialChars),
+				),
+			)
+		})),
+	)
+}
+
 func (r CreateCustomerSegmentationRequest) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.CustomerRole,
@@ -72,32 +133,15 @@ func (r CreateCustomerSegmentationRequest) Validate() error {
 			validation.By(utils.TrimWhiteSpace),
 			validation.By(utils.NoSpecialChars),
 		),
-		validation.Field(&r.CustomerSubSegments,
+		validation.Field(&r.Customer,
 			validation.Required,
-			validation.By(validateUniqueSubSegments),
+			validation.By(validateUniqueCustomerEntries),
 			validation.Each(validation.By(func(value interface{}) error {
-				c, ok := value.(CustomerSubSegments)
+				c, ok := value.(imodel.CustomerEntry)
 				if !ok {
 					return errors.New("invalid customer classification")
 				}
-
-				return validation.ValidateStruct(&c,
-					validation.Field(&c.Name,
-						validation.Required,
-						validation.By(utils.TrimWhiteSpace),
-						validation.By(utils.NoSpecialChars),
-					),
-					validation.Field(&c.CustomerSegment,
-						validation.Required,
-						validation.By(utils.TrimWhiteSpace),
-						validation.By(utils.NoSpecialChars),
-					),
-					validation.Field(&c.CustomerGroup,
-						validation.Required,
-						validation.By(utils.TrimWhiteSpace),
-						validation.By(utils.NoSpecialChars),
-					),
-				)
+				return validateCustomerEntry(c)
 			})),
 		),
 	)
@@ -105,35 +149,16 @@ func (r CreateCustomerSegmentationRequest) Validate() error {
 
 func (r UpdateCustomerSegmentationRequest) Validate() error {
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.CustomerSubSegments,
+		validation.Field(&r.Customer,
 			validation.Required,
-			validation.By(validateUniqueSubSegments),
-			validation.Each(
-				validation.By(func(value interface{}) error {
-					c, ok := value.(CustomerSubSegments)
-					if !ok {
-						return errors.New("invalid customer sub segment")
-					}
-
-					return validation.ValidateStruct(&c,
-						validation.Field(&c.Name,
-							validation.Required,
-							validation.By(utils.TrimWhiteSpace),
-							validation.By(utils.NoSpecialChars),
-						),
-						validation.Field(&c.CustomerSegment,
-							validation.Required,
-							validation.By(utils.TrimWhiteSpace),
-							validation.By(utils.NoSpecialChars),
-						),
-						validation.Field(&c.CustomerGroup,
-							validation.Required,
-							validation.By(utils.TrimWhiteSpace),
-							validation.By(utils.NoSpecialChars),
-						),
-					)
-				}),
-			),
+			validation.By(validateUniqueCustomerEntries),
+			validation.Each(validation.By(func(value interface{}) error {
+				c, ok := value.(imodel.CustomerEntry)
+				if !ok {
+					return errors.New("invalid customer sub segment")
+				}
+				return validateCustomerEntry(c)
+			})),
 		),
 	)
 }
