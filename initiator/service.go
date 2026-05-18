@@ -65,7 +65,6 @@ import (
 	ussd_merchant "cbe-super-app-cps-action/internal/service/ussd_merchant"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
-	access_list_segmentation_oracle "cbe-super-app-cps-action/internal/storage/persistance/access_list_segmentation_oracle"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/hugokessem/coreio/core"
@@ -87,7 +86,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// Assign variable for minio public url
 	minioPubUrl := cfg.MinioPublicEndPoint
 
-	bulkSegRepo := access_list_segmentation_oracle.NewAccessListSegmentationProxy(persistence.AccessListSegmentationPersistence, oracle.Db, logger)
+	// bulkSegRepo := access_list_segmentation_oracle.NewAccessListSegmentationProxy(persistence.AccessListSegmentationPersistence, oracle.Db, logger)
 
 	mediaProducer := media.CreateKafkaProducer(logger, cfg)
 	accountLookupAdapter := account_lookup.NewCoreAccountLookupAdapter(persistence.AccountLookup, cfg.CbeCoreUrl, time.Duration(cfg.ServerTimeout), logger)
@@ -96,7 +95,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	avatarService := avatar.NewAvatarService(persistence.AvatarPersistence, nil, logger, minioClient, cfg.S3BucketName, minioPubUrl, *cfg)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, nil, logger)
 	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
-	bulkService := bulk_service.NewBulkService(oracle.AccessListOracle, nil, bulkSegRepo, logger)
+	bulkService := bulk_service.NewBulkService(oracle.AccessListOracle, nil, oracle.AccessListSegmentaion, logger)
 	ussdMerchant := ussd_merchant.NewUssdMerchantService(persistence.UssdMerchantPersistence, oracle.ServicesPersistence, minioClient, nil, cfg.S3BucketName, *cfg, logger)
 
 	customerService := customer.NewCustomerService(oracle.Customer, persistence.BpsActionPersistence, nil, nil, nil, accountLookupAdapter, nil, logger)
@@ -223,7 +222,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	// cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
 	eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, ecommerceMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
-	bulkService = bulk_service.NewBulkService(oracle.AccessListOracle, cpsActionService, bulkSegRepo, logger)
+	bulkService = bulk_service.NewBulkService(oracle.AccessListOracle, cpsActionService, oracle.AccessListSegmentaion, logger)
 	// customerService = customer.NewCustomerService(persistence.CustomerService, persistence.BpsActionPersistence, cpsActionService, redis, smsService, cfg, logger)
 	bank_service = bankService.NewBankService(logger, persistence.BankPersistence, oracle.BankOracle, cpsActionService, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
 	walletService = wallet.NewWalletService(oracle.WalletOracle, cpsActionService, oracle.ServicesPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
