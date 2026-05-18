@@ -29,11 +29,11 @@ import (
 type bulkService struct {
 	cpsActionRepo              service.CPSActionService
 	repo                       storage.BulkServiceRepository
-	accessListSegmentationRepo storage.AccessListSegmentationRepository
+	accessListSegmentationRepo storage.AccessListSegmentationRepositoryOracle
 	logger                     utils.Logger
 }
 
-func NewBulkService(repo storage.BulkServiceRepository, CpsActionRepo service.CPSActionService, accessListSegmentationRepo storage.AccessListSegmentationRepository, logger utils.Logger) service.BulkService {
+func NewBulkService(repo storage.BulkServiceRepository, CpsActionRepo service.CPSActionService, accessListSegmentationRepo storage.AccessListSegmentationRepositoryOracle, logger utils.Logger) service.BulkService {
 	return &bulkService{
 		cpsActionRepo:              CpsActionRepo,
 		repo:                       repo,
