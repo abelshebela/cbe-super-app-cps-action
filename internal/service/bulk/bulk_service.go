@@ -159,16 +159,12 @@ func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *type
 		return nil, nil, err
 	}
 
-	// s.logger.Infof("[GetAllBulkServices] successfully fetched %d bulk services and %d parent-child relationships", len(result.Data), len(relation))
-
 	enabled, disabled := core.SplitEnabledDisabledTree(result)
-	// s.logger.Infof("[GetAllBulkServices] split bulk services into %d enabled and %d disabled", len(enabled), len(disabled))
 
 	enabled = core.MapParentChildRelationship(relation, enabled)
-	// s.logger.Infof("[GetAllBulkServices] successfully mapped parent-child relationships for %d enabled bulk services", len(enabled))
 
 	disabled = core.MapParentChildRelationship(relation, disabled)
-	// s.logger.Infof("[GetAllBulkServices] successfully mapped parent-child relationships for %d disabled bulk services", len(disabled))
+
 	return enabled, disabled, nil
 }
 
