@@ -316,6 +316,7 @@ func (m *EventMerchantOracleRepository) FindAllWithPagination(ctx context.Contex
 
 		var (
 			idBytes                         []byte
+			isEnabled, isDeleted            int
 			createdAt, updatedAt, deletedAt sql.NullTime
 		)
 		err := rows.Scan(
@@ -327,12 +328,17 @@ func (m *EventMerchantOracleRepository) FindAllWithPagination(ctx context.Contex
 			&merchant.MerchantType,      // MERCHANT_TYPE
 			&merchant.Email,             // CONTACT_EMAIL
 			&merchant.PhoneNumber,       // CONTACT_PHONE
-			&merchant.Enabled,           // IS_ENABLED
-			&merchant.IsDeleted,         // IS_DELETED
+			&isEnabled,                  // IS_ENABLED
+			&isDeleted,                  // IS_DELETED
 			&createdAt,                  // CREATED_AT
 			&updatedAt,                  // LAST_MODIFIED_AT
 			&deletedAt,                  // DELETED_AT
 		)
+		if err != nil {
+			return nil, err
+		}
+		merchant.Enabled = isEnabled == 1
+		merchant.IsDeleted = isDeleted == 1
 		if createdAt.Valid {
 			merchant.CreatedAt = createdAt.Time
 		}
@@ -343,15 +349,11 @@ func (m *EventMerchantOracleRepository) FindAllWithPagination(ctx context.Contex
 			merchant.DeletedAt = deletedAt.Time
 		}
 		merchant.ID = hex.EncodeToString(idBytes)
-
-		if err != nil {
-			return nil, err
-		}
 		merchants = append(merchants, merchant)
 	}
 
 	// Build count query
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM (%s)", baseQuery)
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM (%s) t", baseQuery)
 	var total int
 	err = m.OracleCliant.QueryRowContext(ctx, countQuery, args[:len(args)-2]...).Scan(&total)
 	if err != nil {
