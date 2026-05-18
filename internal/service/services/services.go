@@ -65,7 +65,7 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 		}
 		if accountID == "" {
 			s.logger.Errorf("failed while inserting account number to ACCOUNTS: %v", err)
-			accountID, err = s.repo.InsertAccountNumberToAccounts(ctx, *accountDetail, req.ProductGlAccountCurrency)
+			accountID, err = s.repo.InsertAccountNumberToAccounts(ctx, *accountDetail)
 			if err != nil {
 				return err
 			}
@@ -103,7 +103,7 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 		}
 		if accountID == "" {
 			s.logger.Errorf("failed while inserting account number to ACCOUNTS: %v", err)
-			accountID, err = s.repo.InsertAccountNumberToAccounts(ctx, *accountDetail, *req.ProductGlAccountCurrency)
+			accountID, err = s.repo.InsertAccountNumberToAccounts(ctx, *accountDetail)
 			if err != nil {
 				return errors.New(localization.ErrorUnexpectedError.Code)
 			}

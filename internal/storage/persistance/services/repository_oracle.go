@@ -128,7 +128,7 @@ func (s *ServicesStorage) CheckAccountNumberExistence(ctx context.Context, accou
 	return accountID, nil
 }
 
-func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, accountDetail model.AccountDetail, accountCurrency string) (string, error) {
+func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, accountDetail model.AccountDetail) (string, error) {
 	const bankQ = `
 		SELECT RAWTOHEX(id)
 		FROM banks
@@ -201,7 +201,7 @@ func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, acc
 		sql.Named("bank_id", bankID),
 		sql.Named("account_number", accountDetail.AccountNumber),
 		sql.Named("customer_name", accountDetail.CustomerName),
-		sql.Named("currency", accountCurrency),
+		sql.Named("currency", accountDetail.Currency),
 		sql.Named("account_type", accountDetail.AccountType),
 		sql.Named("customer_number", customerNumber),
 		sql.Named("id", sql.Out{Dest: &accountID}),
