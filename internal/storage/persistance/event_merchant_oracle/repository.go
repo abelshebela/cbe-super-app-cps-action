@@ -455,6 +455,9 @@ WHERE 1=1 AND MERCHANT_TYPE = 'EVENT' AND IS_DELETED = 0`
 			AND %s = :%d
 		`, strings.ToUpper(goStructToOracleFileds[key]), argPos)
 
+		if b, ok := value.(bool); ok {
+			value = boolToInt(b)
+		}
 		args = append(args, value)
 		argPos++
 	}
