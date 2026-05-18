@@ -14,7 +14,7 @@ import (
 func MapParentChildRelationship(relations []local_model.AccessItemRelation, accessList []model.APPAccessList) []model.APPAccessList {
 	nodesByKey := make(map[string]model.APPAccessList, len(accessList))
 	for _, al := range accessList {
-		nodesByKey[al.Key] = al
+		nodesByKey[al.ID] = al
 	}
 
 	// Deduplicate (PARENT_KEY, CHILD_KEY) pairs
@@ -60,6 +60,66 @@ func MapParentChildRelationship(relations []local_model.AccessItemRelation, acce
 	}
 	return result
 }
+
+// func MapParentChildRelationship(relations []local_model.AccessItemRelation, accessList []model.APPAccessList) []model.APPAccessList {
+// 	log.Printf("[DEBUG] MapParentChildRelationship called: %d relations, %d accessList", len(relations), len(accessList))
+// 	nodesByID := make(map[string]model.APPAccessList, len(accessList))
+// 	for _, al := range accessList {
+// 		log.Printf("[DEBUG] Adding accessList node: id=%s", al.Key)
+// 		nodesByID[al.Key] = al
+// 	}
+
+// 	// Deduplicate (PARENT_ID, CHILD_ID) pairs
+// 	parentChildren := make(map[string]map[string]struct{})
+// 	for _, rel := range relations {
+// 		log.Printf("[DEBUG] Relation: parent=%s child=%s", rel.ParentKey, rel.ChildKey)
+// 		if parentChildren[rel.ParentKey] == nil {
+// 			parentChildren[rel.ParentKey] = make(map[string]struct{})
+// 		}
+// 		parentChildren[rel.ParentKey][rel.ChildKey] = struct{}{}
+// 	}
+
+// 	accountedFor := make(map[string]bool)
+// 	var result []model.APPAccessList
+
+// 	for parentID, childSet := range parentChildren {
+// 		log.Printf("[DEBUG] Processing parentID=%s with %d children", parentID, len(childSet))
+// 		parent, ok := nodesByID[parentID]
+// 		if !ok {
+// 			log.Printf("[WARN] Parent id not found in nodesByID: %s", parentID)
+// 			continue
+// 		}
+// 		childIDs := make([]string, 0, len(childSet))
+// 		for cid := range childSet {
+// 			if cid != parentID {
+// 				childIDs = append(childIDs, cid)
+// 			}
+// 		}
+// 		sort.Strings(childIDs)
+// 		for _, childID := range childIDs {
+// 			log.Printf("[DEBUG] Processing childID=%s for parentID=%s", childID, parentID)
+// 			child, ok := nodesByID[childID]
+// 			if !ok {
+// 				log.Printf("[WARN] Child id not found in nodesByID: %s", childID)
+// 				continue
+// 			}
+// 			parent.SubAccessList = append(parent.SubAccessList, modelToSubAccessList(&child))
+// 			accountedFor[childID] = true
+// 		}
+// 		log.Printf("[DEBUG] Appending parent to result: id=%s, subAccessListCount=%d", parent.Key, len(parent.SubAccessList))
+// 		result = append(result, parent)
+// 		accountedFor[parent.Key] = true
+// 	}
+
+// 	for _, al := range accessList {
+// 		if !accountedFor[al.Key] {
+// 			log.Printf("[DEBUG] Appending unaccounted accessList: id=%s", al.Key)
+// 			result = append(result, al)
+// 		}
+// 	}
+// 	log.Printf("[DEBUG] MapParentChildRelationship returning %d results", len(result))
+// 	return result
+// }
 
 // Helper to convert APPAccessList to SubAccessList
 func modelToSubAccessList(al *model.APPAccessList) shared_type.SubAccessList {

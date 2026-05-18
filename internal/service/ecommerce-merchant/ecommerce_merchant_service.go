@@ -137,7 +137,7 @@ func (m *ecommerceMerchantService) Create(ctx context.Context, req *merchantDto.
 		}
 		if accountID == "" {
 			m.logger.Errorf("failed while inserting account number to ACCOUNTS: %v", err)
-			accountID, err = m.serviceRepo.InsertAccountNumberToAccounts(ctx, *accountDetail, data.BankAccountNumber)
+			accountID, err = m.serviceRepo.InsertAccountNumberToAccounts(ctx, *accountDetail)
 			if err != nil {
 				return nil, errors.New(localization.ErrorUnexpectedError.Code)
 			}
@@ -227,7 +227,7 @@ func (m *ecommerceMerchantService) Update(ctx context.Context, id string, req *m
 		}
 		if accountID == "" {
 			m.logger.Errorf("failed while inserting account number to ACCOUNTS: %v", err)
-			accountID, err = m.serviceRepo.InsertAccountNumberToAccounts(ctx, *accountDetail, merchantReq.BankAccountNumber)
+			accountID, err = m.serviceRepo.InsertAccountNumberToAccounts(ctx, *accountDetail)
 			if err != nil {
 				return nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
 			}

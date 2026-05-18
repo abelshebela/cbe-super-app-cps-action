@@ -29,11 +29,11 @@ import (
 type bulkService struct {
 	cpsActionRepo              service.CPSActionService
 	repo                       storage.BulkServiceRepository
-	accessListSegmentationRepo storage.AccessListSegmentationRepository
+	accessListSegmentationRepo storage.AccessListSegmentationRepositoryOracle
 	logger                     utils.Logger
 }
 
-func NewBulkService(repo storage.BulkServiceRepository, CpsActionRepo service.CPSActionService, accessListSegmentationRepo storage.AccessListSegmentationRepository, logger utils.Logger) service.BulkService {
+func NewBulkService(repo storage.BulkServiceRepository, CpsActionRepo service.CPSActionService, accessListSegmentationRepo storage.AccessListSegmentationRepositoryOracle, logger utils.Logger) service.BulkService {
 	return &bulkService{
 		cpsActionRepo:              CpsActionRepo,
 		repo:                       repo,
@@ -159,16 +159,12 @@ func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *type
 		return nil, nil, err
 	}
 
-	// s.logger.Infof("[GetAllBulkServices] successfully fetched %d bulk services and %d parent-child relationships", len(result.Data), len(relation))
-
 	enabled, disabled := core.SplitEnabledDisabledTree(result)
-	// s.logger.Infof("[GetAllBulkServices] split bulk services into %d enabled and %d disabled", len(enabled), len(disabled))
 
 	enabled = core.MapParentChildRelationship(relation, enabled)
-	// s.logger.Infof("[GetAllBulkServices] successfully mapped parent-child relationships for %d enabled bulk services", len(enabled))
 
 	disabled = core.MapParentChildRelationship(relation, disabled)
-	// s.logger.Infof("[GetAllBulkServices] successfully mapped parent-child relationships for %d disabled bulk services", len(disabled))
+
 	return enabled, disabled, nil
 }
 
