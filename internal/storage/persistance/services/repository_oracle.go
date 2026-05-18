@@ -116,12 +116,13 @@ func (s *ServicesStorage) CheckAccountNumberExistence(ctx context.Context, accou
 	const checkQ = `
 		SELECT RAWTOHEX(id)
 		FROM accounts
-		WHERE account_number = HEXTORAW(:1)
+		WHERE account_number = :1
 	`
 
 	var accountID string
 	err := s.db.QueryRowContext(ctx, checkQ, accountNumber).Scan(&accountID)
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
+		s.logger.Errorf("[ServicesRepo][CheckAccountNumberExistence] query failed: %v", err)
 		return "", local_util.HandleDBError(err)
 	}
 	return accountID, nil
@@ -144,7 +145,6 @@ func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, acc
 			account_number,
 			account_currency,
 			account_type,
-			account_branch,
 			customer_number
 		) VALUES (
 			HEXTORAW(:bank_id),
@@ -152,7 +152,6 @@ func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, acc
 			:account_number,
 			:currency,
 			:account_type,
-			:branch,
 			:customer_number
 		)
 		RETURNING RAWTOHEX(id) INTO :id
@@ -204,7 +203,6 @@ func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, acc
 		sql.Named("customer_name", accountDetail.CustomerName),
 		sql.Named("currency", accountCurrency),
 		sql.Named("account_type", accountDetail.AccountType),
-		sql.Named("branch", ""),
 		sql.Named("customer_number", customerNumber),
 		sql.Named("id", sql.Out{Dest: &accountID}),
 	)
@@ -664,7 +662,7 @@ SELECT
   sk.deleted_at
 FROM services s
 JOIN access_lists sk ON sk.id = s.access_list_id
-WHERE sk.id = HEXTORAW(:1) AND sk.is_deleted = 0`
+WHERE sk.id = HEXTORAW(:1) AND s.is_deleted = 0`
 
 	var serviceID string
 	var svc service_dto.ServiceResponse
