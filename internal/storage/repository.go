@@ -99,7 +99,7 @@ type ServicesRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error)
 	CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error)
 	CheckAccountNumberExistence(ctx context.Context, accountNumber string) (string, error)
-	InsertAccountNumberToAccounts(ctx context.Context, accountDetail model.AccountDetail, accountCurrency string) (string, error)
+	InsertAccountNumberToAccounts(ctx context.Context, accountDetail model.AccountDetail) (string, error)
 	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceKey], error)
 	FindServiceListByID(ctx context.Context, id string) (*imodel.ServiceKey, error)
 	FindServiceListByNameOrKey(ctx context.Context, name, key string) (*imodel.ServiceKey, error)
