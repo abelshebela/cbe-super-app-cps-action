@@ -19,8 +19,9 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	event_merchant_model "cbe-super-app-cps-action/internal/constants/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -249,8 +250,8 @@ func (e *EventMerchantService) Create(ctx context.Context, eventMerchant event_m
 		))
 		return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
-	eventMerchant.CreatedAt =time.Now()
-	eventMerchant.UpdatedAt  = time.Now()
+	eventMerchant.CreatedAt = time.Now()
+	eventMerchant.UpdatedAt = time.Now()
 	if eventMerchant.MerchantType == "merchant" {
 		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, eventMerchant.BankAccountNumber, e.accountLookupService)
 		if err != nil {
