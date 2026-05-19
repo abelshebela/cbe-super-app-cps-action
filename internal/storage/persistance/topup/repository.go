@@ -163,6 +163,7 @@ func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topu
 		filter["$or"] = orFilters
 	}
 
+	filter["is_deleted"] = false
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -177,6 +178,7 @@ func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topu
 }
 func (b *TopupStorage) FindByOr(ctx context.Context, filter bson.M) (model.Topup, error) {
 	log := local_util.LoggerFromCtx(ctx, b.logger)
+	filter["is_deleted"] = false
 
 	data, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -199,6 +201,7 @@ func (e *TopupStorage) FindAllWithPagination(ctx context.Context, filterParam ty
 			{"code": searchRegex},
 		}
 	}
+	filter["is_deleted"] = false
 	docs, err := e.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		log.Errorf("[TopupStorage][FindAllWithPagination] failed to fetch topups: %v", err)
