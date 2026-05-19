@@ -441,6 +441,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMissingOrInvalidImage,
 	ErrorPendingCpsActionExists,
 	ErrorUnexpectedError,
+	ErrorDonationForServiceAlreadyExists,
 	ErrorMarchantDataAlready,
 	ErrorExternalServiceError,
 	ErrorFileNotFound,
@@ -6427,6 +6428,13 @@ var (
 		Code:       "ERROR_UNEXPECTED_ERROR",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgUnexpectedError,
+		Type:       "error",
+	}
+
+	ErrorDonationForServiceAlreadyExists = ResponseCode{
+		Code:       "ERROR_DONATION_FOR_SERVICE_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgDonationForServiceAlreadyExists,
 		Type:       "error",
 	}
 

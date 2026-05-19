@@ -141,6 +141,23 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		return errors.New(localization.ErrorServiceNotFound.Code)
 	}
 
+	checkExistentDonationForService, err := d.DonationRepo.FindByServiceID(ctx, donation.ServiceID)
+	if err != nil {
+		span.AddEvent("Failed to check existing donation for service", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("service_id", donation.ServiceID),
+		))
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if checkExistentDonationForService != nil {
+		span.AddEvent("Donation for this service already exists", trace.WithAttributes(
+			attribute.String("error", localization.ErrorDonationForServiceAlreadyExists.Code),
+			attribute.String("service_id", donation.ServiceID),
+		))
+		return errors.New(localization.ErrorDonationForServiceAlreadyExists.Code)
+	}
+
 	if service.ProductGlAccount == "" {
 		span.AddEvent("Service is not properly configured with ProductGlAccount", trace.WithAttributes(
 			attribute.String("error", localization.ErrorServiceAccountNumberNotProperlyConfigured.Code),
@@ -285,6 +302,23 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 			attribute.String("id", id),
 		))
 		return errors.New(localization.ErrorFileNotFound.Code)
+	}
+
+	checkExistentDonationForService, err := d.DonationRepo.FindByServiceID(ctx, donation.ServiceID)
+	if err != nil {
+		span.AddEvent("Failed to check existing donation for service", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("service_id", donation.ServiceID),
+		))
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if checkExistentDonationForService != nil && checkExistentDonationForService.ID != id {
+		span.AddEvent("Donation for this service already exists", trace.WithAttributes(
+			attribute.String("error", localization.ErrorDonationForServiceAlreadyExists.Code),
+			attribute.String("service_id", donation.ServiceID),
+		))
+		return errors.New(localization.ErrorDonationForServiceAlreadyExists.Code)
 	}
 
 	prevData := *existingDonation

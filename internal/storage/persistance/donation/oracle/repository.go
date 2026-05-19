@@ -182,6 +182,23 @@ func (r *repository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
+func (r *repository) FindByServiceID(ctx context.Context, serviceID string) (*donation_dto.DonationListResponse, error) {
+	r.logger.Infof("[DonationOracle][FindByServiceID] serviceID=%s", serviceID)
+	q := `SELECT ` + donationListSelectCols + donationListFromJoin + `
+	      WHERE d.SERVICE_ID = HEXTORAW(:1) AND d.IS_DELETED = 0`
+	row := r.db.QueryRowContext(ctx, q, serviceID)
+	out, err := scanDonationListRow(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		r.logger.Errorf("[DonationOracle][FindByServiceID] scan failed: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return out, nil
+}
+
 func (r *repository) FindByID(ctx context.Context, id string) (*donation_dto.DonationListResponse, error) {
 	r.logger.Infof("[DonationOracle][FindByID] id=%s", id)
 

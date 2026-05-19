@@ -472,6 +472,7 @@ type DonationRepository interface {
 	Update(ctx context.Context, id string, donation *imodel.DonationOracle) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation.DonationListResponse, error)
+	FindByServiceID(ctx context.Context, serviceID string) (*donation.DonationListResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation.DonationListResponse], error)
 	StreamByDateRange(ctx context.Context, startDate, endDate time.Time, handler func(*imodel.DonationOracle) error) error
 	HasActiveDonationsByCategory(ctx context.Context, categoryID string) (bool, error)
