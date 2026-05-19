@@ -38,27 +38,27 @@ func boolToInt(b bool) int {
 }
 
 func (m *EventMerchantOracleRepository) Create(ctx context.Context, merchant model.EventMerchant) error {
-	// query := `INSERT INTO MERCHANTS (ID,MERCHANT_ID,MERCHANT_TYPE,SETTLEMENT_METHOD,METCHANT_NAME,BANK_ACCOUNT_NUMBER,EMAIL,PHONE_NUMBER,ENABLED,IS_DELETED,CREATED_AT,UPDATED_AT) VALUES (SYST_GEN(),:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12)`
-
+	// Use RETURNING to get the inserted ID
 	query := `INSERT INTO MERCHANTS (
-    ID,
-    MERCHANT_ACCOUNT_NUMBER,
-    MERCHANT_CODE,
-    MERCHANT_NAME,
-    SETTLEMENT_METHOD,
-    MERCHANT_TYPE,
-    CONTACT_EMAIL,
-    CONTACT_PHONE,
-    IS_ENABLED,
-    IS_DELETED,
-    CREATED_AT,
-    LAST_MODIFIED_AT,
-    DELETED_AT
-) VALUES (
-    SYS_GUID(), :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12
-)`
+		ID,
+		MERCHANT_ACCOUNT_NUMBER,
+		MERCHANT_CODE,
+		MERCHANT_NAME,
+		SETTLEMENT_METHOD,
+		MERCHANT_TYPE,
+		CONTACT_EMAIL,
+		CONTACT_PHONE,
+		IS_ENABLED,
+		IS_DELETED,
+		CREATED_AT,
+		LAST_MODIFIED_AT,
+		DELETED_AT
+	) VALUES (
+		SYS_GUID(), :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12
+	) RETURNING RAWTOHEX(ID)`
 
-	row, err := m.OracleCliant.ExecContext(
+	var insertedID string
+	err := m.OracleCliant.QueryRowContext(
 		ctx, query,
 		merchant.BankAccountNumber,    // :1
 		merchant.MerchantID,           // :2
@@ -72,18 +72,12 @@ func (m *EventMerchantOracleRepository) Create(ctx context.Context, merchant mod
 		merchant.CreatedAt,            // :10
 		merchant.UpdatedAt,            // :11
 		merchant.DeletedAt,            // :12
-	)
+	).Scan(&insertedID)
 	if err != nil {
-		m.logger.Errorf("[persistance oracle create ] got error while crearing event merchant error:", err)
+		m.logger.Errorf("[persistance oracle create] got error while creating event merchant: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
-	affected_row, err := row.RowsAffected()
-
-	if affected_row != 1 {
-		return errors.New(localization.ErrorUnexpectedError.Code)
-
-	}
+	types.SetId(ctx, insertedID)
 	return nil
 
 }
@@ -93,7 +87,7 @@ func (m *EventMerchantOracleRepository) Update(ctx context.Context, id string, m
 
 	rows, err := m.OracleCliant.ExecContext(ctx, query, args...)
 	if err != nil {
-		m.logger.Errorf("[EVENT MERCHANT persistance UPDATE] got error while updated event merchant error : ", err)
+		m.logger.Errorf("[EVENT MERCHANT persistance UPDATE] got error while updated event merchant error : %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -109,12 +103,12 @@ func (m *EventMerchantOracleRepository) Delete(ctx context.Context, id string) e
 
 	rows, err := m.OracleCliant.ExecContext(ctx, query, id)
 	if err != nil {
-		m.logger.Errorf("[EVENT MERCHANT persistance Delet] got error while delete event merchant error : ", err)
+		m.logger.Errorf("[EVENT MERCHANT persistance Delete] got error while deleting event merchant error : %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	row_affected, _ := rows.RowsAffected()
 	if row_affected != 1 {
-		m.logger.Errorf("[event_merchant persistance delete]no affected row found on update")
+		m.logger.Errorf("[event_merchant persistance delete]no affected row found on delete")
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -401,13 +395,12 @@ WHERE 1=1 AND MERCHANT_TYPE = 'EVENT' AND IS_DELETED = 0`
 	}
 
 	goStructToOracleFileds := map[string]string{
-		"merchant_id":"MERCHANT_CODE",
-		"merchant_name":"MERCHANT_NAME",
-		"email":"CONTACT_EMAIL",
-		"phone_number":"CONTACT_PHONE",
-		"enabled":"IS_ENABLED",
-		"bank_account_number":"MERCHANT_ACCOUNT_NUMBER",
-
+		"merchant_id":         "MERCHANT_CODE",
+		"merchant_name":       "MERCHANT_NAME",
+		"email":               "CONTACT_EMAIL",
+		"phone_number":        "CONTACT_PHONE",
+		"enabled":             "IS_ENABLED",
+		"bank_account_number": "MERCHANT_ACCOUNT_NUMBER",
 	}
 
 	// -------------------------
