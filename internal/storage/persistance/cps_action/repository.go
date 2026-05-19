@@ -18,6 +18,7 @@ import (
 	local_utils "cbe-super-app-cps-action/pkgs/utils"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -44,7 +45,7 @@ func NewCPSActionRepository(client *mongo.Client, cfg *config.VaultConfig, dbNam
 
 // Ensure CPSActionRepository implements the storage.CPSActionRepository interface
 
-func (r *CPSActionStorage) Save(ctx context.Context, cpsAction *model.CPSAction) error {
+func (r *CPSActionStorage) Save(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	log.Infof("[CPSAction][Save] saving CPS action")
@@ -52,7 +53,7 @@ func (r *CPSActionStorage) Save(ctx context.Context, cpsAction *model.CPSAction)
 	cps, err := r.dal.InsertOne(ctx, *cpsAction)
 	if err != nil {
 		log.Errorf("[CPSAction][Save] failed to save CPS action: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	cpsAction.ActionCode = cps.ActionCode
@@ -60,7 +61,7 @@ func (r *CPSActionStorage) Save(ctx context.Context, cpsAction *model.CPSAction)
 		md.CPSActionCode = cps.ActionCode
 	}
 	log.Infof("[CPSAction][Save] CPS action saved successfully with code: %s", cps.ActionCode)
-	return nil
+	return cps, nil
 }
 
 func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (types.PaginatedResponse[[]model.CPSAction], error) {
