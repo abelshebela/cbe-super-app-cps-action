@@ -26,7 +26,9 @@ func NewMiniAppProductCodeService(repo storage.MiniAppProductCodeRepository, log
 }
 
 func (m *miniappProductCodeService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	m.logger.Infof("[MiniProdCodeSvc][Authorize] action: %s", cpsAction.ActionCode)
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
+	log.Infof("[MiniProdCodeSvc][Authorize] action: %s", cpsAction.ActionCode)
 
 	miniappProductCode, err := local_util.JsonUnmarshal[model.MiniAppProductCode](cpsAction.CurrentAction)
 	if err != nil {
@@ -42,17 +44,17 @@ func (m *miniappProductCodeService) Authorize(ctx context.Context, cpsAction *mo
 	case string(constants.RequestDisableMiniappProductCode):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
 	default:
-		m.logger.Errorf("[MiniProdCodeSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
+		log.Errorf("[MiniProdCodeSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	if err != nil {
-		m.logger.Errorf("[MiniProdCodeSvc][Authorize] process err: %v", err)
+		log.Errorf("[MiniProdCodeSvc][Authorize] process err: %v", err)
 		return nil, err
 	}
 
 	cpsAction.CurrentAction = miniappProductCode
-	m.logger.Infof("[MiniProdCodeSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, miniappProductCode.ID)
+	log.Infof("[MiniProdCodeSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, miniappProductCode.ID)
 	return cpsAction, nil
 
 }

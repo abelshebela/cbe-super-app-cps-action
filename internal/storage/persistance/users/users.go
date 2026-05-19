@@ -38,20 +38,23 @@ func NewUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName str
 }
 
 func (r *userRepository) Save(ctx context.Context, user *member.User) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	if _, err := r.userDal.InsertOne(ctx, *user); err != nil {
-		r.logger.Errorf("failed to insert user ")
+		log.Errorf("failed to insert user ")
 		return errors.New(localization.ErrorInternalServerError.Code)
 	}
-	r.logger.Infof("user saved successfully")
+	log.Infof("user saved successfully")
 	return nil
 }
 
 func (r *userRepository) FindById(ctx context.Context, id string) (*member.User, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	// projection := UserProjection()
 	filter, err := UserIdFilterAttachMent(id)
 	if err != nil {
-		r.logger.Errorf("invalid user id for FindById")
+		log.Errorf("invalid user id for FindById")
 		return nil, err
 	}
 
@@ -60,11 +63,12 @@ func (r *userRepository) FindById(ctx context.Context, id string) (*member.User,
 		return nil, local_util.HandleDBError(err)
 	}
 
-	r.logger.Infof("user found by id")
+	log.Infof("user found by id")
 	return user, nil
 }
 
 func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber string) (*member.User, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	projection := UserProjection()
 	filter := UserPhoneFilterAttachment(phoneNumber)
@@ -74,11 +78,12 @@ func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber stri
 		return nil, local_util.HandleDBError(err)
 	}
 
-	r.logger.Infof("user found by phone number")
+	log.Infof("user found by phone number")
 	return user, nil
 }
 
 func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string) (*member.User, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	projection := UserProjection()
 
@@ -89,21 +94,22 @@ func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string
 		return nil, local_util.HandleDBError(err)
 	}
 
-	r.logger.Infof("user found by deviceUUID")
+	log.Infof("user found by deviceUUID")
 	return user, nil
 }
 
 func (r *userRepository) Update(ctx context.Context, id string, update *member.User) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	filter, _ := UserIdFilterAttachMent(id)
 	req := UserBuilder(*update)
 	_, err := r.userDal.UpdateOne(ctx, filter, req)
 	if err != nil {
-		r.logger.Errorf("failed to update user")
+		log.Errorf("failed to update user")
 		return errors.New(localization.ErrorInternalServerError.Code)
 	}
 
-	r.logger.Infof("user updated successfully")
+	log.Infof("user updated successfully")
 	return nil
 }
 
@@ -133,6 +139,8 @@ func (r *userRepository) FindByCustomerNumber(ctx context.Context, customerNumbe
 }
 
 func (r *userRepository) GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	linkedAccountCollection := r.client.Database(r.dbName).Collection("linked_accounts")
 	linkedAccountFilter := bson.M{"account_number": accNumber}
 	var linkedAccount struct {
@@ -152,7 +160,7 @@ func (r *userRepository) GetUserByAccount(ctx context.Context, accNumber string)
 		return nil, local_util.HandleDBError(err)
 	}
 
-	r.logger.Infof("user found by account number via linked account")
+	log.Infof("user found by account number via linked account")
 	return user, nil
 }
 
@@ -167,6 +175,8 @@ func (r *userRepository) DeleteHard(ctx context.Context, id string) error {
 	return r.userDal.DeleteOneH(ctx, filter)
 }
 func (r *userRepository) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	objId, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return localization.ErrorUnexpectedError
@@ -177,11 +187,11 @@ func (r *userRepository) Delete(ctx context.Context, id string) error {
 
 	_, err = collection.DeleteOne(ctx, filter)
 	if err != nil {
-		r.logger.Errorf("failed to hard delete document from %s: %v", r.collection, err)
+		log.Errorf("failed to hard delete document from %s: %v", r.collection, err)
 		return errors.New(localization.ErrorInternalServerError.Code)
 	}
 
-	r.logger.Infof("Successfully hard deleted document from %s with id: %v", r.collection, id)
+	log.Infof("Successfully hard deleted document from %s with id: %v", r.collection, id)
 	return nil
 
 }

@@ -53,7 +53,7 @@ func (m *EventMerchantRepository) Create(ctx context.Context, merchant model.Eve
 	// coll := m.client.Database(m.dbName).Collection(m.collection)
 	// res, err := coll.InsertOne(ctx, merchant)
 	// if err != nil {
-	// 	m.logger.Errorf("Failed to create event merchant: %v", err)
+	// 	log.Errorf("Failed to create event merchant: %v", err)
 	// 	return errors.New(localization.ErrorUnexpectedError.Code)
 	// }
 	// merchant.ID = res.InsertedID.(bson.ObjectID)
@@ -65,7 +65,7 @@ func (m *EventMerchantRepository) Create(ctx context.Context, merchant model.Eve
 func (m *EventMerchantRepository) Update(ctx context.Context, id string, merchant model.EventMerchant) error {
 	// objID, err := bson.ObjectIDFromHex(id)
 	// if err != nil {
-	// 	m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+	// 	log.Errorf("Invalid ID format: %s, error: %v", id, err)
 	// 	return errors.New(localization.ErrorInvalidID.Code)
 	// }
 
@@ -81,9 +81,11 @@ func (m *EventMerchantRepository) Update(ctx context.Context, id string, merchan
 }
 
 func (m *EventMerchantRepository) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+		log.Errorf("Invalid ID format: %s, error: %v", id, err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -103,10 +105,12 @@ func (m *EventMerchantRepository) Delete(ctx context.Context, id string) error {
 }
 
 func (m *EventMerchantRepository) EnableOrDisable(ctx context.Context, ids []string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	for _, id := range ids {
 		objID, err := bson.ObjectIDFromHex(id)
 		if err != nil {
-			m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+			log.Errorf("Invalid ID format: %s, error: %v", id, err)
 			return errors.New(localization.ErrorInvalidID.Code)
 		}
 
@@ -122,9 +126,11 @@ func (m *EventMerchantRepository) EnableOrDisable(ctx context.Context, ids []str
 }
 
 func (m *EventMerchantRepository) FindByID(ctx context.Context, id string) (*model.EventMerchant, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+		log.Errorf("Invalid ID format: %s, error: %v", id, err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -137,6 +143,8 @@ func (m *EventMerchantRepository) FindByID(ctx context.Context, id string) (*mod
 }
 
 func (s *EventMerchantRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "merchant_type", "merchant_id", "merchant_name", "email", "phone_number", "enabled", "bank_account_number"}
 
@@ -157,13 +165,13 @@ func (s *EventMerchantRepository) FindAllWithPagination(ctx context.Context, fil
 
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		s.logger.Errorf("Failed to fetch paginated event merchants: %v", err)
+		log.Errorf("Failed to fetch paginated event merchants: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		s.logger.Errorf("Failed to count total event merchants: %v", err)
+		log.Errorf("Failed to count total event merchants: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -183,7 +191,7 @@ func (m *EventMerchantRepository) FindOne(ctx context.Context, filter bson.M) (*
 	return result, nil
 }
 
-func(m *EventMerchantRepository) FindOneO(ctx context.Context, 	data *types.CheckMerchant) (*model.EventMerchant, error){
-		// not impli
-		return nil,nil
-	}
+func (m *EventMerchantRepository) FindOneO(ctx context.Context, data *types.CheckMerchant) (*model.EventMerchant, error) {
+	// not impli
+	return nil, nil
+}

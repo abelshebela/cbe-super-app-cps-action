@@ -41,26 +41,30 @@ func NewWalletRepository(client *mongo.Client, cfg *config.VaultConfig, dbName s
 }
 
 func (w *WalletStorage) Create(ctx context.Context, wallet *local_model.Wallet) error {
+	log := local_util.LoggerFromCtx(ctx, w.logger)
+
 	walletDoc, err := ToWalletDocument(*wallet)
 	if err != nil {
-		w.logger.Errorf("[WalletStorage][Create] failed to convert wallet to document: %v", err)
+		log.Errorf("[WalletStorage][Create] failed to convert wallet to document: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	_, err = w.dal.InsertOne(ctx, *walletDoc)
 	if err != nil {
-		w.logger.Errorf("[WalletStorage][Create] failed to insert wallet: %v", err)
+		log.Errorf("[WalletStorage][Create] failed to insert wallet: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 
 func (w *WalletStorage) Update(ctx context.Context, id string, wallet *local_model.Wallet) error {
+	log := local_util.LoggerFromCtx(ctx, w.logger)
+
 	var update bson.M
 	objID, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
-		w.logger.Errorf("[WalletStorage][Update] invalid object id: %v", err)
+		log.Errorf("[WalletStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -73,16 +77,18 @@ func (w *WalletStorage) Update(ctx context.Context, id string, wallet *local_mod
 
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		w.logger.Errorf("[WalletStorage][Update] failed to update wallet: %v", err)
+		log.Errorf("[WalletStorage][Update] failed to update wallet: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 
 func (w *WalletStorage) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, w.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		w.logger.Errorf("[WalletStorage][Delete] invalid object id: %v", err)
+		log.Errorf("[WalletStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -91,16 +97,18 @@ func (w *WalletStorage) Delete(ctx context.Context, id string) error {
 
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		w.logger.Errorf("[WalletStorage][Delete] failed to delete wallet: %v", err)
+		log.Errorf("[WalletStorage][Delete] failed to delete wallet: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 
 func (w *WalletStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, w.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		w.logger.Errorf("[WalletStorage][EnableOrDisable] invalid object id: %v", err)
+		log.Errorf("[WalletStorage][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -109,23 +117,25 @@ func (w *WalletStorage) EnableOrDisable(ctx context.Context, id string, enable b
 
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		w.logger.Errorf("[WalletStorage][EnableOrDisable] failed to enable/disable wallet: %v", err)
+		log.Errorf("[WalletStorage][EnableOrDisable] failed to enable/disable wallet: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 
 func (w *WalletStorage) FindByID(ctx context.Context, id string) (*local_model.Wallet, error) {
+	log := local_util.LoggerFromCtx(ctx, w.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		w.logger.Errorf("[WalletStorage][FindByID] invalid object id: %v", err)
+		log.Errorf("[WalletStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		w.logger.Errorf("[WalletStorage][FindByID] failed to find wallet: %v", err)
+		log.Errorf("[WalletStorage][FindByID] failed to find wallet: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -133,6 +143,8 @@ func (w *WalletStorage) FindByID(ctx context.Context, id string) (*local_model.W
 }
 
 func (w *WalletStorage) Find(ctx context.Context, code, name string) (*local_model.Wallet, error) {
+	log := local_util.LoggerFromCtx(ctx, w.logger)
+
 	filter := bson.M{
 		"is_deleted": false,
 	}
@@ -164,10 +176,10 @@ func (w *WalletStorage) Find(ctx context.Context, code, name string) (*local_mod
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			w.logger.Warnf("[WalletStorage][Find] no wallet found with code=%s name=%s", code, name)
+			log.Warnf("[WalletStorage][Find] no wallet found with code=%s name=%s", code, name)
 			return nil, nil
 		}
-		w.logger.Errorf("[WalletStorage][Find] failed to find wallet code=%s name=%s: %v", code, name, err)
+		log.Errorf("[WalletStorage][Find] failed to find wallet code=%s name=%s: %v", code, name, err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -175,6 +187,8 @@ func (w *WalletStorage) Find(ctx context.Context, code, name string) (*local_mod
 }
 
 func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error) {
+	log := local_util.LoggerFromCtx(ctx, e.logger)
+
 	allowedKeys := []string{"name", "code", "enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
 	if filterParam.Search != "" && filterParam.Search != "enabled" {
@@ -206,19 +220,19 @@ func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 
 	docs, err := e.dal.FindAllWithPaginationD(ctx, param)
 	if err != nil {
-		e.logger.Errorf("[WalletStorage][FindAllWithPagination] failed to fetch wallets: %v", err)
+		log.Errorf("[WalletStorage][FindAllWithPagination] failed to fetch wallets: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := e.dal.TotalCount(ctx, filter)
 	if err != nil {
-		e.logger.Errorf("[WalletStorage][FindAllWithPagination] failed to count wallets: %v", err)
+		log.Errorf("[WalletStorage][FindAllWithPagination] failed to count wallets: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	e.logger.Infof("[WalletStorage][FindAllWithPagination] returning %d wallets, total: %d", len(docs), total)
+	log.Infof("[WalletStorage][FindAllWithPagination] returning %d wallets, total: %d", len(docs), total)
 
 	return &types.PaginatedResponse[[]local_model.Wallet]{
 		Data: docs,
@@ -230,6 +244,7 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 	ctx context.Context,
 	filterParam types.Filter,
 ) (*types.PaginatedResponse[[]local_model.Wallet], error) {
+	log := local_util.LoggerFromCtx(ctx, w.logger)
 
 	allowedKeys := []string{"name", "code", "enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
@@ -369,20 +384,20 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 
 	cursor, err := w.collection.Aggregate(ctx, pipeline, opts)
 	if err != nil {
-		w.logger.Errorf("[WalletStorage][FindAllWithPaginationForGRPC] aggregation failed: %v", err)
+		log.Errorf("[WalletStorage][FindAllWithPaginationForGRPC] aggregation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var wallets []local_model.Wallet
 	if err := cursor.All(ctx, &wallets); err != nil {
-		w.logger.Errorf("[WalletStorage][FindAllWithPaginationForGRPC] decode failed: %v", err)
+		log.Errorf("[WalletStorage][FindAllWithPaginationForGRPC] decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := w.dal.TotalCount(ctx, filter)
 	if err != nil {
-		w.logger.Errorf("[WalletStorage][FindAllWithPaginationForGRPC] failed to count wallets: %v", err)
+		log.Errorf("[WalletStorage][FindAllWithPaginationForGRPC] failed to count wallets: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -395,6 +410,8 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 }
 
 func (w *WalletStorage) FindByIDForGRPC(ctx context.Context, id string) (*local_model.GRPCWallet, error) {
+	log := local_util.LoggerFromCtx(ctx, w.logger)
+
 	doc, err := w.FindByID(ctx, id)
 	if err != nil {
 		return nil, err // Wallet itself not found, this should still error
@@ -406,14 +423,14 @@ func (w *WalletStorage) FindByIDForGRPC(ctx context.Context, id string) (*local_
 	objID, err := bson.ObjectIDFromHex(grpcWallet.ServiceID)
 	if err != nil {
 		// Log it, but don't fail the request. Return the wallet as is.
-		w.logger.Debugf("[WalletStorage][FindByIDForGRPC] wallet %s has invalid ServiceID: %v", id, grpcWallet.ServiceID)
+		log.Debugf("[WalletStorage][FindByIDForGRPC] wallet %s has invalid ServiceID: %v", id, grpcWallet.ServiceID)
 		return &grpcWallet, nil
 	}
 
 	// Attempt to fetch Service
 	service, err := w.serviceDal.FindOne(ctx, bson.M{"_id": objID}, nil)
 	if err != nil {
-		w.logger.Warnf("[WalletStorage][FindByIDForGRPC] service not found for wallet %s: %v", id, err)
+		log.Warnf("[WalletStorage][FindByIDForGRPC] service not found for wallet %s: %v", id, err)
 		return &grpcWallet, nil // Return wallet even if service lookup fails
 	}
 

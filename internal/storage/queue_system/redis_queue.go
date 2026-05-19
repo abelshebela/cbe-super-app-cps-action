@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"github.com/redis/go-redis/v9"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -91,10 +92,12 @@ func NewRedisQueue(client *redis.Client, logger utils.Logger, opts ...RedisQueue
 }
 
 func (rq *RedisQueue) Start(ctx context.Context, workers int) {
+	log := local_util.LoggerFromCtx(ctx, rq.logger)
+
 	rq.mu.Lock()
 	if rq.cancel != nil {
 		rq.mu.Unlock()
-		rq.logger.Warnf("[redis_queue] Start: already running, ignoring duplicate start")
+		log.Warnf("[redis_queue] Start: already running, ignoring duplicate start")
 		return
 	}
 	ctx, cancel := context.WithCancel(ctx)
@@ -112,7 +115,7 @@ func (rq *RedisQueue) Start(ctx context.Context, workers int) {
 	rq.wg.Add(1)
 	go rq.processingReaper(ctx)
 
-	rq.logger.Infof("[redis_queue] started with %d workers", workers)
+	log.Infof("[redis_queue] started with %d workers", workers)
 }
 
 func (rq *RedisQueue) Stop() {
@@ -132,30 +135,34 @@ func (rq *RedisQueue) Stop() {
 }
 
 func (rq *RedisQueue) Enqueue(ctx context.Context, job Job) error {
+	log := local_util.LoggerFromCtx(ctx, rq.logger)
+
 	data, err := json.Marshal(job)
 	if err != nil {
-		rq.logger.Errorf("[redis_queue] Enqueue: failed to marshal job %s: %v", job.LogPrefix(), err)
+		log.Errorf("[redis_queue] Enqueue: failed to marshal job %s: %v", job.LogPrefix(), err)
 		return fmt.Errorf("marshal job: %w", err)
 	}
 	if err := rq.client.LPush(ctx, rq.mainKey, data).Err(); err != nil {
-		rq.logger.Errorf("[redis_queue] Enqueue: failed to push job %s: %v", job.LogPrefix(), err)
+		log.Errorf("[redis_queue] Enqueue: failed to push job %s: %v", job.LogPrefix(), err)
 		return err
 	}
 	rq.metrics.IncEnqueued("redis", job.Type)
-	rq.logger.Debugf("[redis_queue] Enqueue: job enqueued %s", job.LogPrefix())
+	log.Debugf("[redis_queue] Enqueue: job enqueued %s", job.LogPrefix())
 	return nil
 }
 
 func (rq *RedisQueue) worker(ctx context.Context, id int) {
+	log := local_util.LoggerFromCtx(ctx, rq.logger)
+
 	defer rq.wg.Done()
-	rq.logger.Infof("[redis_queue] worker %d started", id)
+	log.Infof("[redis_queue] worker %d started", id)
 
 	errBackoff := redisErrorBackoffBase
 
 	for {
 		select {
 		case <-ctx.Done():
-			rq.logger.Infof("[redis_queue] worker %d stopped", id)
+			log.Infof("[redis_queue] worker %d stopped", id)
 			return
 		default:
 		}
@@ -172,11 +179,13 @@ func (rq *RedisQueue) worker(ctx context.Context, id int) {
 }
 
 func (rq *RedisQueue) handlePopError(ctx context.Context, workerID int, err error, backoff time.Duration) time.Duration {
+	log := local_util.LoggerFromCtx(ctx, rq.logger)
+
 	if err == redis.Nil || ctx.Err() != nil {
 		return redisErrorBackoffBase
 	}
 
-	rq.logger.Warnf("[redis_queue] worker %d: failed to pop job, backing off %s: %v", workerID, backoff, err)
+	log.Warnf("[redis_queue] worker %d: failed to pop job, backing off %s: %v", workerID, backoff, err)
 	timer := time.NewTimer(backoff)
 	select {
 	case <-timer.C:
@@ -194,9 +203,11 @@ func (rq *RedisQueue) handlePopError(ctx context.Context, workerID int, err erro
 }
 
 func (rq *RedisQueue) processJob(ctx context.Context, workerID int, res string) {
+	log := local_util.LoggerFromCtx(ctx, rq.logger)
+
 	var job Job
 	if err := json.Unmarshal([]byte(res), &job); err != nil {
-		rq.logger.Errorf("[redis_queue] worker %d: failed to unmarshal job, discarding: %v", workerID, err)
+		log.Errorf("[redis_queue] worker %d: failed to unmarshal job, discarding: %v", workerID, err)
 		rq.client.LRem(ctx, rq.processingKey, 1, res)
 		return
 	}
@@ -206,37 +217,39 @@ func (rq *RedisQueue) processJob(ctx context.Context, workerID int, res string) 
 	if err == nil {
 		updatedStr := string(updated)
 		if pErr := updateProcessingScript.Run(ctx, rq.client, rq.processingKeys, res, updatedStr).Err(); pErr != nil {
-			rq.logger.Warnf("[redis_queue] worker(%d): failed to update processing entry %s: %v", workerID, job.LogPrefix(), pErr)
+			log.Warnf("[redis_queue] worker(%d): failed to update processing entry %s: %v", workerID, job.LogPrefix(), pErr)
 		}
 		res = updatedStr
 	}
 
 	if err := rq.handler(ctx, job); err != nil {
 		rq.metrics.IncFailed("redis", job.Type)
-		rq.logger.Warnf("[redis_queue] worker(%d): job execution failed %s retry=%d: %v", workerID, job.LogPrefix(), job.Retry, err)
+		log.Warnf("[redis_queue] worker(%d): job execution failed %s retry=%d: %v", workerID, job.LogPrefix(), job.Retry, err)
 		rq.handleFailure(ctx, job, res)
 		return
 	}
 
 	rq.metrics.IncProcessed("redis", job.Type)
-	rq.logger.Debugf("[redis_queue] worker(%d): job completed %s", workerID, job.LogPrefix())
+	log.Debugf("[redis_queue] worker(%d): job completed %s", workerID, job.LogPrefix())
 	rq.client.LRem(ctx, rq.processingKey, 1, res)
 }
 
 func (rq *RedisQueue) handleFailure(ctx context.Context, job Job, raw string) {
+	log := local_util.LoggerFromCtx(ctx, rq.logger)
+
 	job.Retry++
 
 	if job.MaxRetry > 0 && job.Retry > job.MaxRetry {
 		rq.metrics.IncDeadLettered("redis", job.Type)
-		rq.logger.Errorf("[redis_queue] handleFailure: job exceeded max retries, moving to dead letter queue %s max_retry=%d", job.LogPrefix(), job.MaxRetry)
+		log.Errorf("[redis_queue] handleFailure: job exceeded max retries, moving to dead letter queue %s max_retry=%d", job.LogPrefix(), job.MaxRetry)
 		dlData, mErr := json.Marshal(job)
 		if mErr != nil {
-			rq.logger.Errorf("[redis_queue] handleFailure: failed to marshal job for dead letter %s: %v", job.LogPrefix(), mErr)
+			log.Errorf("[redis_queue] handleFailure: failed to marshal job for dead letter %s: %v", job.LogPrefix(), mErr)
 			rq.client.LRem(ctx, rq.processingKey, 1, raw)
 			return
 		}
 		if err := moveToDeadLetterScript.Run(ctx, rq.client, rq.processingDeadLetterKeys, raw, string(dlData)).Err(); err != nil {
-			rq.logger.Errorf("[redis_queue] handleFailure: failed to move job to dead letter %s: %v", job.LogPrefix(), err)
+			log.Errorf("[redis_queue] handleFailure: failed to move job to dead letter %s: %v", job.LogPrefix(), err)
 		}
 		return
 	}
@@ -248,7 +261,7 @@ func (rq *RedisQueue) handleFailure(ctx context.Context, job Job, raw string) {
 
 	data, err := json.Marshal(job)
 	if err != nil {
-		rq.logger.Errorf("[redis_queue] handleFailure: failed to marshal job for retry %s: %v", job.LogPrefix(), err)
+		log.Errorf("[redis_queue] handleFailure: failed to marshal job for retry %s: %v", job.LogPrefix(), err)
 		rq.client.LRem(ctx, rq.processingKey, 1, raw)
 		return
 	}
@@ -256,9 +269,9 @@ func (rq *RedisQueue) handleFailure(ctx context.Context, job Job, raw string) {
 	// Cap retry set size to prevent unbounded growth
 	if count, cErr := rq.client.ZCard(ctx, rq.retryKey).Result(); cErr == nil && count >= redisMaxRetrySetSize {
 		rq.metrics.IncDeadLettered("redis", job.Type)
-		rq.logger.Errorf("[redis_queue] handleFailure: retry set full (%d), moving to dead letter %s", count, job.LogPrefix())
+		log.Errorf("[redis_queue] handleFailure: retry set full (%d), moving to dead letter %s", count, job.LogPrefix())
 		if pErr := moveToDeadLetterScript.Run(ctx, rq.client, rq.processingDeadLetterKeys, raw, string(data)).Err(); pErr != nil {
-			rq.logger.Errorf("[redis_queue] handleFailure: failed to move job to dead letter (overflow) %s: %v", job.LogPrefix(), pErr)
+			log.Errorf("[redis_queue] handleFailure: failed to move job to dead letter (overflow) %s: %v", job.LogPrefix(), pErr)
 		}
 		return
 	}
@@ -266,10 +279,10 @@ func (rq *RedisQueue) handleFailure(ctx context.Context, job Job, raw string) {
 	rq.metrics.IncRetried("redis", job.Type)
 	score := float64(time.Now().Add(delay).Unix())
 	if err := moveToRetryScript.Run(ctx, rq.client, rq.processingRetryKeys, raw, string(data), score).Err(); err != nil {
-		rq.logger.Errorf("[redis_queue] handleFailure: failed to move job to retry set %s: %v", job.LogPrefix(), err)
+		log.Errorf("[redis_queue] handleFailure: failed to move job to retry set %s: %v", job.LogPrefix(), err)
 	}
 
-	rq.logger.Debugf("[redis_queue] handleFailure: job scheduled for retry %s retry=%d delay=%s", job.LogPrefix(), job.Retry, delay)
+	log.Debugf("[redis_queue] handleFailure: job scheduled for retry %s retry=%d delay=%s", job.LogPrefix(), job.Retry, delay)
 }
 
 var updateProcessingScript = redis.NewScript(`
@@ -327,6 +340,8 @@ return count
 `)
 
 func (rq *RedisQueue) retryScheduler(ctx context.Context) {
+	log := local_util.LoggerFromCtx(ctx, rq.logger)
+
 	defer rq.wg.Done()
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
@@ -345,13 +360,13 @@ func (rq *RedisQueue) retryScheduler(ctx context.Context) {
 			count, err := retryLuaScript.Run(ctx, rq.client, rq.retryMainKeys, now).Int()
 			if err != nil {
 				if ctx.Err() == nil {
-					rq.logger.Warnf("[redis_queue] retry scheduler: lua script failed: %v", err)
+					log.Warnf("[redis_queue] retry scheduler: lua script failed: %v", err)
 				}
 				continue
 			}
 
 			if count > 0 {
-				rq.logger.Debugf("[redis_queue] retry scheduler: re-enqueued %d jobs", count)
+				log.Debugf("[redis_queue] retry scheduler: re-enqueued %d jobs", count)
 			}
 		}
 	}
@@ -373,6 +388,8 @@ func (rq *RedisQueue) processingReaper(ctx context.Context) {
 }
 
 func (rq *RedisQueue) reapStaleJobs(ctx context.Context) {
+	log := local_util.LoggerFromCtx(ctx, rq.logger)
+
 	const batchSize int64 = 100
 	var offset int64
 	now := time.Now()
@@ -387,20 +404,22 @@ func (rq *RedisQueue) reapStaleJobs(ctx context.Context) {
 	}
 
 	if reaped >= redisReaperMaxPerCycle {
-		rq.logger.Warnf("[redis_queue] reaper: hit per-cycle cap (%d), deferring remaining to next cycle", redisReaperMaxPerCycle)
+		log.Warnf("[redis_queue] reaper: hit per-cycle cap (%d), deferring remaining to next cycle", redisReaperMaxPerCycle)
 	}
 	if reaped > 0 {
-		rq.logger.Infof("[redis_queue] reaper: recovered %d stale jobs from processing list", reaped)
+		log.Infof("[redis_queue] reaper: recovered %d stale jobs from processing list", reaped)
 	}
 }
 
 // reapBatch processes one batch of items from the processing list.
 // It returns the number of items reaped and whether iteration should stop.
 func (rq *RedisQueue) reapBatch(ctx context.Context, now time.Time, batchSize int64, offset *int64) (reaped int, done bool) {
+	log := local_util.LoggerFromCtx(ctx, rq.logger)
+
 	items, err := rq.client.LRange(ctx, rq.processingKey, *offset, *offset+batchSize-1).Result()
 	if err != nil {
 		if ctx.Err() == nil {
-			rq.logger.Warnf("[redis_queue] reaper: failed to read processing list: %v", err)
+			log.Warnf("[redis_queue] reaper: failed to read processing list: %v", err)
 		}
 		return 0, true
 	}
@@ -422,9 +441,11 @@ func (rq *RedisQueue) reapBatch(ctx context.Context, now time.Time, batchSize in
 // Stale jobs have their retry count incremented to prevent infinite reap loops.
 // Jobs exceeding MaxRetry are moved to the dead letter queue.
 func (rq *RedisQueue) reapItem(ctx context.Context, raw string, now time.Time) bool {
+	log := local_util.LoggerFromCtx(ctx, rq.logger)
+
 	var job Job
 	if err := json.Unmarshal([]byte(raw), &job); err != nil {
-		rq.logger.Warnf("[redis_queue] reaper: unmarshal failed, removing stale entry")
+		log.Warnf("[redis_queue] reaper: unmarshal failed, removing stale entry")
 		rq.client.LRem(ctx, rq.processingKey, 1, raw)
 		return true
 	}
@@ -441,32 +462,32 @@ func (rq *RedisQueue) reapItem(ctx context.Context, raw string, now time.Time) b
 	job.Retry++
 	job.ProcessingStartedAt = 0
 
-	rq.logger.Warnf("[redis_queue] reaper: stale job found (age=%s), re-queuing %s retry=%d", jobAge, job.LogPrefix(), job.Retry)
+	log.Warnf("[redis_queue] reaper: stale job found (age=%s), re-queuing %s retry=%d", jobAge, job.LogPrefix(), job.Retry)
 
 	if job.MaxRetry > 0 && job.Retry > job.MaxRetry {
 		rq.metrics.IncDeadLettered("redis", job.Type)
-		rq.logger.Errorf("[redis_queue] reaper: stale job exceeded max retries, moving to dead letter %s max_retry=%d", job.LogPrefix(), job.MaxRetry)
+		log.Errorf("[redis_queue] reaper: stale job exceeded max retries, moving to dead letter %s max_retry=%d", job.LogPrefix(), job.MaxRetry)
 		dlData, mErr := json.Marshal(job)
 		if mErr != nil {
-			rq.logger.Errorf("[redis_queue] reaper: failed to marshal dead letter job %s: %v", job.LogPrefix(), mErr)
+			log.Errorf("[redis_queue] reaper: failed to marshal dead letter job %s: %v", job.LogPrefix(), mErr)
 			rq.client.LRem(ctx, rq.processingKey, 1, raw)
 			return true
 		}
 		if err := moveToDeadLetterScript.Run(ctx, rq.client, rq.processingDeadLetterKeys, raw, string(dlData)).Err(); err != nil {
-			rq.logger.Errorf("[redis_queue] reaper: failed to move stale job to dead letter %s: %v", job.LogPrefix(), err)
+			log.Errorf("[redis_queue] reaper: failed to move stale job to dead letter %s: %v", job.LogPrefix(), err)
 		}
 		return true
 	}
 
 	updated, err := json.Marshal(job)
 	if err != nil {
-		rq.logger.Errorf("[redis_queue] reaper: failed to marshal job for re-queue %s: %v", job.LogPrefix(), err)
+		log.Errorf("[redis_queue] reaper: failed to marshal job for re-queue %s: %v", job.LogPrefix(), err)
 		rq.client.LRem(ctx, rq.processingKey, 1, raw)
 		return true
 	}
 
 	if err := requeueFromProcessingScript.Run(ctx, rq.client, rq.processingMainKeys, raw, string(updated)).Err(); err != nil {
-		rq.logger.Errorf("[redis_queue] reaper: failed to requeue stale job %s: %v", job.LogPrefix(), err)
+		log.Errorf("[redis_queue] reaper: failed to requeue stale job %s: %v", job.LogPrefix(), err)
 	}
 	return true
 }

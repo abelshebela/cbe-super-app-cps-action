@@ -41,14 +41,18 @@ func NewCPSActionRoleRepository(client *mongo.Client, cfg *config.VaultConfig, d
 }
 
 func (a *CPSActionRoleRepository) UpdateActionList(ctx context.Context, actionCode, portalCard string, status bool) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	_, err := a.actionListDal.UpdateOne(ctx, bson.M{"action_code": actionCode, "portal_card_name": portalCard}, bson.M{"is_configured": status})
 	if err != nil {
-		a.logger.Errorf("[CPSActionRoleRepository][UpdateActionList] failed to update action list: %v", err)
+		log.Errorf("[CPSActionRoleRepository][UpdateActionList] failed to update action list: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 func (a *CPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CPSActionList], error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	searchKeys := bson.M{}
 	allowedKeys := []string{"action_name", "action_code"}
 	if filterParam.Search != "" {
@@ -65,18 +69,18 @@ func (a *CPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Co
 
 	data, err := a.actionListDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		a.logger.Errorf("[CPSActionRoleRepository][FindAllAccessListWithPagination] failed to fetch access lists: %v", err)
+		log.Errorf("[CPSActionRoleRepository][FindAllAccessListWithPagination] failed to fetch access lists: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
 	total, err := a.actionListDal.TotalCount(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("[CPSActionRoleRepository][FindAllAccessListWithPagination] failed to count access lists: %v", err)
+		log.Errorf("[CPSActionRoleRepository][FindAllAccessListWithPagination] failed to count access lists: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	a.logger.Infof("[CPSActionRoleRepository][FindAllAccessListWithPagination] retrieved %d access lists", len(data))
+	log.Infof("[CPSActionRoleRepository][FindAllAccessListWithPagination] retrieved %d access lists", len(data))
 
 	return &types.PaginatedResponse[[]imodel.CPSActionList]{
 		Data: data,
@@ -85,15 +89,19 @@ func (a *CPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Co
 }
 
 func (r *CPSActionRoleRepository) Create(ctx context.Context, actionRole *imodel.CPSActionRole) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	_, err := r.mongoDal.InsertOne(ctx, *actionRole)
 	if err != nil {
-		r.logger.Errorf("[CPSActionRoleRepository][Create] failed to create action role: %v", err)
+		log.Errorf("[CPSActionRoleRepository][Create] failed to create action role: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 
 func (r *CPSActionRoleRepository) UpdateByActionCode(ctx context.Context, actionCode string, actionRole *imodel.CPSActionRole) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	update := bson.M{
 		"action_name":             actionRole.ActionName,
 		"assigned_makers_roles":   actionRole.AssignedMakersRoles,
@@ -110,30 +118,34 @@ func (r *CPSActionRoleRepository) UpdateByActionCode(ctx context.Context, action
 	}
 	_, err := r.mongoDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, update)
 	if err != nil {
-		r.logger.Errorf("[CPSActionRoleRepository][UpdateByActionCode] failed to update action role: %v", err)
+		log.Errorf("[CPSActionRoleRepository][UpdateByActionCode] failed to update action role: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 
 func (r *CPSActionRoleRepository) EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	_, err := r.mongoDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, bson.M{"enabled": enable})
 	if err != nil {
-		r.logger.Errorf("[CPSActionRoleRepository][EnableOrDisableByActionCode] failed to enable or disable action code %s: %v", actionCode, err)
+		log.Errorf("[CPSActionRoleRepository][EnableOrDisableByActionCode] failed to enable or disable action code %s: %v", actionCode, err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 
 func (r *CPSActionRoleRepository) DeleteByActionCode(ctx context.Context, actionCode, portalCard string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	err := r.mongoDal.DeleteOne(ctx, bson.M{"action_code": actionCode})
 	if err != nil {
-		r.logger.Errorf("[CPSActionRoleRepository][DeleteByActionCode] failed to delete action code %s: %v", actionCode, err)
+		log.Errorf("[CPSActionRoleRepository][DeleteByActionCode] failed to delete action code %s: %v", actionCode, err)
 		return local_util.HandleDBError(err)
 	}
 
 	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": actionCode, "portal_card_name": portalCard}); err != nil {
-		r.logger.Errorf("SyncIndices: DeleteMany (same version) failed: %v", err)
+		log.Errorf("SyncIndices: DeleteMany (same version) failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -144,6 +156,7 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 	ctx context.Context,
 	actionCode string,
 ) (*actionrole_dto.GetActionRoleByActionCodeRes, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	const rolesCollection = "job_roles"
 
@@ -436,13 +449,13 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		r.logger.Errorf("[CPSActionRoleRepository][FindByActionCode] failed to aggregate: %v", err)
+		log.Errorf("[CPSActionRoleRepository][FindByActionCode] failed to aggregate: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	var results []*actionrole_dto.GetActionRoleByActionCodeRes
 	if err := cursor.All(ctx, &results); err != nil {
-		r.logger.Errorf("[CPSActionRoleRepository][FindByActionCode] failed to decode results: %v", err)
+		log.Errorf("[CPSActionRoleRepository][FindByActionCode] failed to decode results: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 

@@ -34,10 +34,11 @@ func NewAvatarRepository(client *mongo.Client, cfg *config.VaultConfig, dbName s
 }
 
 func (a *AvatarStorage) Create(ctx context.Context, avatar *model.Avatar) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	avatar.ID = bson.NewObjectID()
 	_, err := a.dal.InsertOne(ctx, *avatar)
 	if err != nil {
-		a.logger.Errorf("[AvatarStorage][Create] failed to create avatar: %v", err)
+		log.Errorf("[AvatarStorage][Create] failed to create avatar: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -45,10 +46,11 @@ func (a *AvatarStorage) Create(ctx context.Context, avatar *model.Avatar) error 
 }
 
 func (a *AvatarStorage) Update(ctx context.Context, id string, avatar *model.Avatar) error {
-	a.logger.Infof("[AvatarStorage][Update] updating avatar for id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AvatarStorage][Update] updating avatar for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[AvatarStorage][Update] invalid object id: %v", err)
+		log.Errorf("[AvatarStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -56,89 +58,95 @@ func (a *AvatarStorage) Update(ctx context.Context, id string, avatar *model.Ava
 
 	_, err = a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		a.logger.Errorf("[AvatarStorage][Update] failed to update avatar: %v", err)
+		log.Errorf("[AvatarStorage][Update] failed to update avatar: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	a.logger.Infof("[AvatarStorage][Update] avatar updated successfully")
+	log.Infof("[AvatarStorage][Update] avatar updated successfully")
 	return nil
 }
 
 func (a *AvatarStorage) Delete(ctx context.Context, id string) error {
-	a.logger.Infof("[AvatarStorage][Delete] deleting avatar for id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AvatarStorage][Delete] deleting avatar for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[AvatarStorage][Delete] invalid object id: %v", err)
+		log.Errorf("[AvatarStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	err = a.dal.DeleteOne(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("[AvatarStorage][Delete] failed to delete avatar: %v", err)
+		log.Errorf("[AvatarStorage][Delete] failed to delete avatar: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	a.logger.Infof("[AvatarStorage][Delete] avatar deleted successfully")
+	log.Infof("[AvatarStorage][Delete] avatar deleted successfully")
 	return nil
 }
 
 func (a *AvatarStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	a.logger.Infof("[AvatarStorage][EnableOrDisable] processing avatar enable/disable for id: %s, enabled: %v", id, enable)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AvatarStorage][EnableOrDisable] processing avatar enable/disable for id: %s, enabled: %v", id, enable)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[AvatarStorage][EnableOrDisable] invalid object id: %v", err)
+		log.Errorf("[AvatarStorage][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	update := bson.M{"enable": enable}
 	_, err = a.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("[AvatarStorage][EnableOrDisable] failed to enable/disable avatar: %v", err)
+		log.Errorf("[AvatarStorage][EnableOrDisable] failed to enable/disable avatar: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	a.logger.Infof("[AvatarStorage][EnableOrDisable] avatar enable/disable completed successfully")
+	log.Infof("[AvatarStorage][EnableOrDisable] avatar enable/disable completed successfully")
 	return nil
 }
 
 func (a *AvatarStorage) FindByID(ctx context.Context, id string) (*model.Avatar, error) {
-	a.logger.Infof("[AvatarStorage][FindByID] fetching avatar by id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AvatarStorage][FindByID] fetching avatar by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[AvatarStorage][FindByID] invalid object id: %v", err)
+		log.Errorf("[AvatarStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		a.logger.Errorf("[AvatarStorage][FindByID] failed to find avatar: %v", err)
+		log.Errorf("[AvatarStorage][FindByID] failed to find avatar: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	a.logger.Infof("[AvatarStorage][FindByID] avatar retrieved successfully")
+	log.Infof("[AvatarStorage][FindByID] avatar retrieved successfully")
 	return result, nil
 }
 
 func (a *AvatarStorage) FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]model.Avatar, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	result, err := a.dal.FindAll(ctx, filter, nil)
 	if err != nil {
-		a.logger.Errorf("[AvatarStorage][FindAll] failed to fetch avatars: %v", err)
+		log.Errorf("[AvatarStorage][FindAll] failed to fetch avatars: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	a.logger.Infof("[AvatarStorage][FindAll] retrieved %d avatars", len(result))
+	log.Infof("[AvatarStorage][FindAll] retrieved %d avatars", len(result))
 	return result, nil
 }
 
 func (a *AvatarStorage) Find(ctx context.Context, filter bson.M, projection bson.M) (*model.Avatar, error) {
-	a.logger.Infof("[AvatarStorage][Find] searching for avatar")
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AvatarStorage][Find] searching for avatar")
 	filter["is_deleted"] = false
 	avatar, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		a.logger.Errorf("[AvatarStorage][Find] failed to find avatar: %v", err)
+		log.Errorf("[AvatarStorage][Find] failed to find avatar: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	a.logger.Infof("[AvatarStorage][Find] avatar retrieved successfully")
+	log.Infof("[AvatarStorage][Find] avatar retrieved successfully")
 	return avatar, nil
 }
 
 func (s *AvatarStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Avatar], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
@@ -158,20 +166,20 @@ func (s *AvatarStorage) FindAllWithPagination(ctx context.Context, filterParam t
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		s.logger.Errorf("[AvatarStorage][FindAllWithPagination] failed to fetch avatars: %v", err)
+		log.Errorf("[AvatarStorage][FindAllWithPagination] failed to fetch avatars: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		s.logger.Errorf("[AvatarStorage][FindAllWithPagination] failed to count avatars: %v", err)
+		log.Errorf("[AvatarStorage][FindAllWithPagination] failed to count avatars: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	s.logger.Infof("[AvatarStorage][FindAllWithPagination] retrieved %d avatars", len(data))
+	log.Infof("[AvatarStorage][FindAllWithPagination] retrieved %d avatars", len(data))
 
 	// 8. Return standard paginated response
 	return &types.PaginatedResponse[[]model.Avatar]{

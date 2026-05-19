@@ -13,6 +13,7 @@ import (
 
 	cfg "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"github.com/IBM/sarama"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -73,7 +74,9 @@ func NewFeedbackConsumer(kafkaConfig config.KafkaConfig, vaultConfig *cfg.VaultC
 
 // Start starts consuming messages from Kafka
 func (fc *FeedbackConsumer) Start(ctx context.Context) error {
-	fc.logger.Infof("Starting Kafka consumer for topic: %s", fc.config.FeedbackTopic)
+	log := local_util.LoggerFromCtx(ctx, fc.logger)
+
+	log.Infof("Starting Kafka consumer for topic: %s", fc.config.FeedbackTopic)
 
 	topics := []string{fc.config.FeedbackTopic, fc.config.SurveyFeedbackTopic}
 	handler := &ConsumerGroupHandler{
@@ -83,7 +86,7 @@ func (fc *FeedbackConsumer) Start(ctx context.Context) error {
 	for {
 		err := fc.consumerGroup.Consume(ctx, topics, handler)
 		if err != nil {
-			fc.logger.Errorf("Error from consumer: %v", err)
+			log.Errorf("Error from consumer: %v", err)
 			return err
 		}
 
@@ -102,36 +105,38 @@ func (fc *FeedbackConsumer) Stop() error {
 
 // handleFeedbackMessage processes a feedback message from Kafka with retry logic
 func (fc *FeedbackConsumer) handleFeedbackMessage(ctx context.Context, message *sarama.ConsumerMessage) error {
-	fc.logger.Infof("Received message from topic %s, partition %d, offset %d",
+	log := local_util.LoggerFromCtx(ctx, fc.logger)
+
+	log.Infof("Received message from topic %s, partition %d, offset %d",
 		message.Topic, message.Partition, message.Offset)
 
 	// Parse the Kafka message wrapper first
 	var kafkaMsg model.KafkaMessage
 	if err := json.Unmarshal(message.Value, &kafkaMsg); err != nil {
-		fc.logger.Errorf("Failed to unmarshal Kafka message wrapper: %v", err)
+		log.Errorf("Failed to unmarshal Kafka message wrapper: %v", err)
 		return fmt.Errorf("invalid message wrapper format: %w", err)
 	}
 
 	// Validate the message type
 	if kafkaMsg.Type != "feedback" {
-		fc.logger.Errorf("Unexpected message type: %s, expected: feedback", kafkaMsg.Type)
+		log.Errorf("Unexpected message type: %s, expected: feedback", kafkaMsg.Type)
 		return fmt.Errorf("unexpected message type: %s", kafkaMsg.Type)
 	}
 
 	// Parse the payload into FeedbackKafkaMessage
 	var feedbackMsg imodel.FeedbackKafkaMessage
 	if err := json.Unmarshal(kafkaMsg.Payload, &feedbackMsg); err != nil {
-		fc.logger.Errorf("Failed to unmarshal feedback payload: %v", err)
+		log.Errorf("Failed to unmarshal feedback payload: %v", err)
 		return fmt.Errorf("invalid feedback payload format: %w", err)
 	}
-	fc.logger.Infof("Feedback message parsed: %+v", feedbackMsg)
+	log.Infof("Feedback message parsed: %+v", feedbackMsg)
 	// Validate the message
 	if err := fc.validateFeedbackMessage(&feedbackMsg); err != nil {
-		fc.logger.Errorf("Message validation failed: %v", err)
+		log.Errorf("Message validation failed: %v", err)
 		return fmt.Errorf("message validation failed: %w", err)
 	}
 
-	fc.logger.Infof("Processing feedback message - UserID: %s, FeedbackID: %s",
+	log.Infof("Processing feedback message - UserID: %s, FeedbackID: %s",
 		feedbackMsg.UserID, feedbackMsg.FeedbackID)
 
 	// Create feedback request from Kafka message
@@ -152,7 +157,7 @@ func (fc *FeedbackConsumer) handleFeedbackMessage(ctx context.Context, message *
 		feedback, err := fc.feedbackRepo.CreateFeedback(ctx, feedbackRequest, feedbackMsg.UserID)
 		if err != nil {
 			lastErr = err
-			fc.logger.Errorf("Failed to save feedback to database (attempt %d/%d): %v", retry+1, fc.maxRetries, err)
+			log.Errorf("Failed to save feedback to database (attempt %d/%d): %v", retry+1, fc.maxRetries, err)
 
 			// If this is the last retry, break and handle as permanent failure
 			if retry == fc.maxRetries-1 {
@@ -165,50 +170,52 @@ func (fc *FeedbackConsumer) handleFeedbackMessage(ctx context.Context, message *
 			continue
 		}
 
-		fc.logger.Infof("Successfully saved feedback to database - ID: %s", feedback.ID.Hex())
+		log.Infof("Successfully saved feedback to database - ID: %s", feedback.ID.Hex())
 		return nil
 	}
 
 	// If all retries failed, send to dead letter queue
 	if fc.deadLetterQ != nil {
 		if err := fc.deadLetterQ.SendToDeadLetterQueue(message.Topic, message, lastErr); err != nil {
-			fc.logger.Errorf("Failed to send message to dead letter queue: %v", err)
+			log.Errorf("Failed to send message to dead letter queue: %v", err)
 		}
 	}
 
 	return fmt.Errorf("failed to process message after %d retries: %w", fc.maxRetries, lastErr)
 }
 func (fc *FeedbackConsumer) handleSurveyFeedbackMessage(ctx context.Context, message *sarama.ConsumerMessage) error {
-	fc.logger.Infof("Received message from topic %s, partition %d, offset %d",
+	log := local_util.LoggerFromCtx(ctx, fc.logger)
+
+	log.Infof("Received message from topic %s, partition %d, offset %d",
 		message.Topic, message.Partition, message.Offset)
 
 	// Parse the Kafka message wrapper first
 	var kafkaMsg model.KafkaMessage
 	if err := json.Unmarshal(message.Value, &kafkaMsg); err != nil {
-		fc.logger.Errorf("Failed to unmarshal Kafka message wrapper: %v", err)
+		log.Errorf("Failed to unmarshal Kafka message wrapper: %v", err)
 		return fmt.Errorf("invalid message wrapper format: %w", err)
 	}
 
 	// Validate the message type
 	if kafkaMsg.Type != "survey-feedback" {
-		fc.logger.Errorf("Unexpected message type: %s, expected: survey-feedback", kafkaMsg.Type)
+		log.Errorf("Unexpected message type: %s, expected: survey-feedback", kafkaMsg.Type)
 		return fmt.Errorf("unexpected message type: %s", kafkaMsg.Type)
 	}
 
 	// Parse the payload into FeedbackKafkaMessage
 	var feedbackMsg feedback.SurveyFeedbackReq
 	if err := json.Unmarshal(kafkaMsg.Payload, &feedbackMsg); err != nil {
-		fc.logger.Errorf("Failed to unmarshal feedback payload: %v", err)
+		log.Errorf("Failed to unmarshal feedback payload: %v", err)
 		return fmt.Errorf("invalid survey feedback payload format: %w", err)
 	}
-	fc.logger.Infof("Survey feedback message parsed: %+v", feedbackMsg)
+	log.Infof("Survey feedback message parsed: %+v", feedbackMsg)
 	// Validate the message
 	if err := fc.validateSurveyFeedbackMessage(&feedbackMsg); err != nil {
-		fc.logger.Errorf("Message validation failed: %v", err)
+		log.Errorf("Message validation failed: %v", err)
 		return fmt.Errorf("message validation failed: %w", err)
 	}
 
-	fc.logger.Infof("Processing survey feedback message - UserID: %s, FeedbackID: %s",
+	log.Infof("Processing survey feedback message - UserID: %s, FeedbackID: %s",
 		feedbackMsg.UserID, feedbackMsg.FeedbackID)
 
 	// Save to database using the feedback repository with retry logic
@@ -217,7 +224,7 @@ func (fc *FeedbackConsumer) handleSurveyFeedbackMessage(ctx context.Context, mes
 		feedback, err := fc.feedbackRepo.CreateSurveyFeedback(ctx, feedbackMsg)
 		if err != nil {
 			lastErr = err
-			fc.logger.Errorf("Failed to save feedback to database (attempt %d/%d): %v", retry+1, fc.maxRetries, err)
+			log.Errorf("Failed to save feedback to database (attempt %d/%d): %v", retry+1, fc.maxRetries, err)
 
 			// If this is the last retry, break and handle as permanent failure
 			if retry == fc.maxRetries-1 {
@@ -230,14 +237,14 @@ func (fc *FeedbackConsumer) handleSurveyFeedbackMessage(ctx context.Context, mes
 			continue
 		}
 
-		fc.logger.Infof("Successfully saved feedback to database - ID: %s", feedback.ID.Hex())
+		log.Infof("Successfully saved feedback to database - ID: %s", feedback.ID.Hex())
 		return nil
 	}
 
 	// If all retries failed, send to dead letter queue
 	if fc.deadLetterQ != nil {
 		if err := fc.deadLetterQ.SendToDeadLetterQueue(message.Topic, message, lastErr); err != nil {
-			fc.logger.Errorf("Failed to send message to dead letter queue: %v", err)
+			log.Errorf("Failed to send message to dead letter queue: %v", err)
 		}
 	}
 

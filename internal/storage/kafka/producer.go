@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"github.com/IBM/sarama"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/notification/dto"
@@ -32,10 +33,12 @@ func NewNotificationProducer(cfg *config.VaultConfig, producer sarama.SyncProduc
 
 // Close closes the Kafka producer
 func (np *NotificationProducer) Close(ctx context.Context) {
+	log := local_util.LoggerFromCtx(ctx, np.logger)
+
 	if err := np.producer.Close(); err != nil {
-		np.logger.Errorf("Failed to close Kafka producer", zap.Error(err))
+		log.Errorf("Failed to close Kafka producer", zap.Error(err))
 	} else {
-		np.logger.Infof("Kafka producer closed successfully")
+		log.Infof("Kafka producer closed successfully")
 	}
 }
 
@@ -75,6 +78,8 @@ func (np *NotificationProducer) PublishMessage(ctx context.Context, msg interfac
 func (np *NotificationProducer) produceAndWait(ctx context.Context,
 	kafkaMsg *sarama.ProducerMessage,
 	messageID, topic, logType string) error {
+	log := local_util.LoggerFromCtx(ctx, np.logger)
+
 	// Create a channel for handling the send with timeout
 	done := make(chan error, 1)
 
@@ -86,7 +91,7 @@ func (np *NotificationProducer) produceAndWait(ctx context.Context,
 			return
 		}
 
-		np.logger.Infof(
+		log.Infof(
 			fmt.Sprintf("%s message published successfully", logType),
 			zap.String("message_id", messageID),
 			zap.String("topic", topic),

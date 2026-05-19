@@ -47,14 +47,16 @@ func NewDepartmentService(repo storage.DepartmentRepository, cpsService service.
 
 // Authorize implements service.DepartmentService.
 func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Department", "Authorize")
 	defer span.End()
 
-	d.logger.Infof("[DeptSvc][Authorize] action: %s", cpsAction.RequestAction)
+	log.Infof("[DeptSvc][Authorize] action: %s", cpsAction.RequestAction)
 	var actionMap interface{}
 	b, err := json.Marshal(cpsAction.CurrentAction)
 	if err != nil {
-		d.logger.Errorf("[DeptSvc][Authorize] marshal err: %v", err)
+		log.Errorf("[DeptSvc][Authorize] marshal err: %v", err)
 		span.AddEvent("Failed to marshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
@@ -63,7 +65,7 @@ func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSA
 	}
 	err = json.Unmarshal(b, &actionMap)
 	if err != nil {
-		d.logger.Errorf("[DeptSvc][Authorize] unmarshal err: %v", err)
+		log.Errorf("[DeptSvc][Authorize] unmarshal err: %v", err)
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
@@ -89,67 +91,69 @@ func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSA
 		actionData.CreatedAt = time.Now()
 		err := d.repo.Create(ctx, &actionData)
 		if err != nil {
-			d.logger.Errorf("[DeptSvc][Authorize] create err: %v", err)
+			log.Errorf("[DeptSvc][Authorize] create err: %v", err)
 			span.AddEvent("Department create action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("id", actionData.ID.Hex()),
 			))
 			return nil, err
 		}
-		d.logger.Infof("[DeptSvc][Authorize] created id: %s", actionData.ID.Hex())
+		log.Infof("[DeptSvc][Authorize] created id: %s", actionData.ID.Hex())
 	case string(constants.RequestDeleteDepartment):
 		err := d.repo.Delete(ctx, actionData.ID.Hex())
 		if err != nil {
-			d.logger.Errorf("[DeptSvc][Authorize] delete err: %v", err)
+			log.Errorf("[DeptSvc][Authorize] delete err: %v", err)
 			span.AddEvent("Department delete action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("id", actionData.ID.Hex()),
 			))
 			return nil, err
 		}
-		d.logger.Infof("[DeptSvc][Authorize] deleted id: %s", actionData.ID.Hex())
+		log.Infof("[DeptSvc][Authorize] deleted id: %s", actionData.ID.Hex())
 	case string(constants.RequestEnableDisableDepartment):
 		err := d.repo.EnableOrDisable(ctx, actionData.ID.Hex(), actionData.Enabled)
 		if err != nil {
-			d.logger.Errorf("[DeptSvc][Authorize] enable/disable err: %v", err)
+			log.Errorf("[DeptSvc][Authorize] enable/disable err: %v", err)
 			span.AddEvent("Department enable/disable action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("id", actionData.ID.Hex()),
 			))
 			return nil, err
 		}
-		d.logger.Infof("[DeptSvc][Authorize] toggled id: %s, enabled: %v", actionData.ID.Hex(), actionData.Enabled)
+		log.Infof("[DeptSvc][Authorize] toggled id: %s, enabled: %v", actionData.ID.Hex(), actionData.Enabled)
 	case string(constants.RequestUpdateDepartment):
 		err := d.repo.Update(ctx, actionData.ID.Hex(), &actionData)
 		if err != nil {
-			d.logger.Errorf("[DeptSvc][Authorize] update err: %v", err)
+			log.Errorf("[DeptSvc][Authorize] update err: %v", err)
 			span.AddEvent("Department update action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("id", actionData.ID.Hex()),
 			))
 			return nil, err
 		}
-		d.logger.Infof("[DeptSvc][Authorize] updated id: %s", actionData.ID.Hex())
+		log.Infof("[DeptSvc][Authorize] updated id: %s", actionData.ID.Hex())
 	default:
-		d.logger.Errorf("[DeptSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
+		log.Errorf("[DeptSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(
 			attribute.String("error", localization.MsgDepartmentInvalidRequestAction),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
 		return nil, fmt.Errorf("%s", localization.MsgDepartmentInvalidRequestAction)
 	}
-	d.logger.Infof("[DeptSvc][Authorize] authorized: %s", cpsAction.RequestAction)
+	log.Infof("[DeptSvc][Authorize] authorized: %s", cpsAction.RequestAction)
 	return cpsAction, nil
 }
 
 // CreateDepartment implements service.DepartmentService.
 func (d *DepartmentService) CreateDepartment(ctx context.Context, department department_dto.CreateDepartmentRequest) error {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateDepartment", "Department", "CreateDepartment")
 	defer span.End()
 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		d.logger.Errorf("[DeptSvc][Create] incomplete user")
+		log.Errorf("[DeptSvc][Create] incomplete user")
 		span.AddEvent("Incomplete user data", trace.WithAttributes(
 			attribute.String("error", constants.IncompleteUserInfo),
 		))
@@ -186,6 +190,8 @@ func (d *DepartmentService) CreateDepartment(ctx context.Context, department dep
 
 // EnableDisableDepartment implements service.DepartmentService.
 func (d *DepartmentService) EnableDisableDepartment(ctx context.Context, id string, enableDisable bool) error {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableDisableDepartment", "Department", "EnableDisableDepartment")
 	defer span.End()
 
@@ -200,14 +206,14 @@ func (d *DepartmentService) EnableDisableDepartment(ctx context.Context, id stri
 	department, err := d.repo.FindByID(ctx, id)
 	code, _ := local_util.HandleMongoError(err)
 	if code == localization.ErrorResourceNotFound.Code {
-		d.logger.Errorf("[DeptSvc][EnableDisable] not found: %s", id)
+		log.Errorf("[DeptSvc][EnableDisable] not found: %s", id)
 		span.AddEvent("Department not found", trace.WithAttributes(
 			attribute.String("error", code),
 			attribute.String("id", id),
 		))
 		return fmt.Errorf("%s", code)
 	} else if err != nil {
-		d.logger.Errorf("[DeptSvc][EnableDisable] find err: %v", err)
+		log.Errorf("[DeptSvc][EnableDisable] find err: %v", err)
 		span.AddEvent("Failed to find department", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -237,43 +243,47 @@ func (d *DepartmentService) EnableDisableDepartment(ctx context.Context, id stri
 
 	err = d.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
-		d.logger.Errorf("[DeptSvc][EnableDisable] cps action err: %v", err)
+		log.Errorf("[DeptSvc][EnableDisable] cps action err: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return err
 	}
-	d.logger.Infof("[DeptSvc][EnableDisable] request created id: %s, enabled: %v", id, enableDisable)
+	log.Infof("[DeptSvc][EnableDisable] request created id: %s, enabled: %v", id, enableDisable)
 	return nil
 }
 
 // GetAllDepartments implements service.DepartmentService.
 func (d *DepartmentService) GetAllDepartments(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]model.Department], error) {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllDepartments", "Department", "GetAllDepartments")
 	defer span.End()
 
 	result, err := d.repo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
-		d.logger.Errorf("[DeptSvc][GetAll] fetch err: %v", err)
+		log.Errorf("[DeptSvc][GetAll] fetch err: %v", err)
 		span.AddEvent("Failed to fetch departments", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
 		return result, err
 	}
-	d.logger.Infof("[DeptSvc][GetAll] retrieved %d", len(result.Data))
+	log.Infof("[DeptSvc][GetAll] retrieved %d", len(result.Data))
 	return result, nil
 }
 
 // GetDepartmentByID implements service.DepartmentService.
 func (d *DepartmentService) GetDepartmentByID(ctx context.Context, id string) (*model.Department, error) {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetDepartmentByID", "Department", "GetDepartmentByID")
 	defer span.End()
 
 	department, err := d.repo.FindByID(ctx, id)
 	code, _ := local_util.HandleMongoError(err)
 	if code == localization.ErrorResourceNotFound.Code {
-		d.logger.Errorf("[DeptSvc][GetByID] not found: %s", id)
+		log.Errorf("[DeptSvc][GetByID] not found: %s", id)
 		span.AddEvent("Department not found", trace.WithAttributes(
 			attribute.String("error", code),
 			attribute.String("id", id),
@@ -281,20 +291,22 @@ func (d *DepartmentService) GetDepartmentByID(ctx context.Context, id string) (*
 		return nil, fmt.Errorf("%s", code)
 	}
 	if err != nil {
-		d.logger.Errorf("[DeptSvc][GetByID] fetch err: %v", err)
+		log.Errorf("[DeptSvc][GetByID] fetch err: %v", err)
 		span.AddEvent("Failed to fetch department", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return nil, err
 	}
-	d.logger.Infof("[DeptSvc][GetByID] retrieved id: %s", id)
+	log.Infof("[DeptSvc][GetByID] retrieved id: %s", id)
 	return department, nil
 
 }
 
 // UpdateDepartment implements service.DepartmentService.
 func (d *DepartmentService) UpdateDepartment(ctx context.Context, id string, department_request department_dto.UpdateDepartmentRequest) error {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateDepartment", "Department", "UpdateDepartment")
 	defer span.End()
 
@@ -309,7 +321,7 @@ func (d *DepartmentService) UpdateDepartment(ctx context.Context, id string, dep
 
 	department, err := d.repo.FindByID(ctx, id)
 	if err != nil {
-		d.logger.Errorf("[DeptSvc][Update] find err: %v", err)
+		log.Errorf("[DeptSvc][Update] find err: %v", err)
 		span.AddEvent("Failed to find department", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -340,18 +352,20 @@ func (d *DepartmentService) UpdateDepartment(ctx context.Context, id string, dep
 
 	err = d.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
-		d.logger.Errorf("[DeptSvc][Update] cps action err: %v", err)
+		log.Errorf("[DeptSvc][Update] cps action err: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return err
 	}
-	d.logger.Infof("[DeptSvc][Update] request created id: %s", id)
+	log.Infof("[DeptSvc][Update] request created id: %s", id)
 	return nil
 }
 
 func (d *DepartmentService) DeleteDepartment(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteDepartment", "Department", "DeleteDepartment")
 	defer span.End()
 
@@ -366,7 +380,7 @@ func (d *DepartmentService) DeleteDepartment(ctx context.Context, id string) err
 
 	department, err := d.repo.FindByID(ctx, id)
 	if err != nil {
-		d.logger.Errorf("[DeptSvc][Delete] find err: %v", err)
+		log.Errorf("[DeptSvc][Delete] find err: %v", err)
 		span.AddEvent("Failed to find department", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -376,7 +390,7 @@ func (d *DepartmentService) DeleteDepartment(ctx context.Context, id string) err
 
 	cpsUser, err := d.cpsUser.GetUserByDepartment(ctx, department.ID.Hex())
 	if err != nil {
-		d.logger.Errorf("[DeptSvc][Delete] find cps user err: %v", err)
+		log.Errorf("[DeptSvc][Delete] find cps user err: %v", err)
 		span.AddEvent("Failed to find CPS user", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -385,7 +399,7 @@ func (d *DepartmentService) DeleteDepartment(ctx context.Context, id string) err
 	}
 
 	if cpsUser != nil {
-		d.logger.Warnf("[DeptSvc][Delete] department has associated users, cannot delete: %s", id)
+		log.Warnf("[DeptSvc][Delete] department has associated users, cannot delete: %s", id)
 		span.AddEvent("Department has associated users, cannot delete", trace.WithAttributes(
 			attribute.String("id", id),
 		))
@@ -399,13 +413,13 @@ func (d *DepartmentService) DeleteDepartment(ctx context.Context, id string) err
 
 	err = d.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
-		d.logger.Errorf("[DeptSvc][Delete] cps action err: %v", err)
+		log.Errorf("[DeptSvc][Delete] cps action err: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return err
 	}
-	d.logger.Infof("[DeptSvc][Delete] request created id: %s", id)
+	log.Infof("[DeptSvc][Delete] request created id: %s", id)
 	return nil
 }

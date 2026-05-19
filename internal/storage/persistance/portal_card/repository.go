@@ -36,6 +36,8 @@ func NewPortalCardRepository(client *mongo.Client, cfg *config.VaultConfig, dbNa
 }
 
 func (s *PortalCardStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Card], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
@@ -66,20 +68,20 @@ func (s *PortalCardStorage) FindAllWithPagination(ctx context.Context, filterPar
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		s.logger.Errorf("[PortalCardStorage][FindAllWithPagination] failed to fetch portal cards: %v", err)
+		log.Errorf("[PortalCardStorage][FindAllWithPagination] failed to fetch portal cards: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		s.logger.Errorf("[PortalCardStorage][FindAllWithPagination] failed to count portal cards: %v", err)
+		log.Errorf("[PortalCardStorage][FindAllWithPagination] failed to count portal cards: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	s.logger.Infof("[PortalCardStorage][FindAllWithPagination] retrieved %d portal cards", len(data))
+	log.Infof("[PortalCardStorage][FindAllWithPagination] retrieved %d portal cards", len(data))
 
 	// 8. Return standard paginated response
 	return &types.PaginatedResponse[[]model.Card]{
@@ -89,9 +91,11 @@ func (s *PortalCardStorage) FindAllWithPagination(ctx context.Context, filterPar
 }
 
 func (o *PortalCardStorage) ValidatePortalCard(ctx context.Context, names []string) (bool, error) {
-	o.logger.Infof("[PortalCardStorage][ValidatePortalCard] validating portal cards")
+	log := local_util.LoggerFromCtx(ctx, o.logger)
+
+	log.Infof("[PortalCardStorage][ValidatePortalCard] validating portal cards")
 	if len(names) == 0 {
-		o.logger.Errorf("[PortalCardStorage][ValidatePortalCard] empty portal card array")
+		log.Errorf("[PortalCardStorage][ValidatePortalCard] empty portal card array")
 		return false, fmt.Errorf("PORTAL_CARD_ARRAY_EMPTY")
 	}
 
@@ -103,7 +107,7 @@ func (o *PortalCardStorage) ValidatePortalCard(ctx context.Context, names []stri
 	}
 
 	if len(cleaned) == 0 {
-		o.logger.Errorf("[PortalCardStorage][ValidatePortalCard] no valid portal card names")
+		log.Errorf("[PortalCardStorage][ValidatePortalCard] no valid portal card names")
 		return false, fmt.Errorf("NO_VALID_PORTAL_CARD_NAME")
 	}
 
@@ -113,7 +117,7 @@ func (o *PortalCardStorage) ValidatePortalCard(ctx context.Context, names []stri
 		bson.M{"card_name": 1},
 	)
 	if err != nil {
-		o.logger.Errorf("[PortalCardStorage][ValidatePortalCard] failed to query portal cards: %v", err)
+		log.Errorf("[PortalCardStorage][ValidatePortalCard] failed to query portal cards: %v", err)
 		return false, fmt.Errorf("DB_ERROR: %w", err)
 	}
 
@@ -134,16 +138,18 @@ func (o *PortalCardStorage) ValidatePortalCard(ctx context.Context, names []stri
 	}
 
 	if len(missing) > 0 {
-		o.logger.Errorf("[PortalCardStorage][ValidatePortalCard] portal cards not found: %v", missing)
+		log.Errorf("[PortalCardStorage][ValidatePortalCard] portal cards not found: %v", missing)
 		return false, fmt.Errorf("PORTAL_CARD_NOT_FOUND")
 	}
-	o.logger.Infof("[PortalCardStorage][ValidatePortalCard] portal cards validated successfully")
+	log.Infof("[PortalCardStorage][ValidatePortalCard] portal cards validated successfully")
 	return true, nil
 }
 func (o *PortalCardStorage) ValidatePortalCardByID(ctx context.Context, ids []string) (bool, error) {
-	o.logger.Infof("[PortalCardStorage][ValidatePortalCardByID] validating portal cards by id")
+	log := local_util.LoggerFromCtx(ctx, o.logger)
+
+	log.Infof("[PortalCardStorage][ValidatePortalCardByID] validating portal cards by id")
 	if len(ids) == 0 {
-		o.logger.Errorf("[PortalCardStorage][ValidatePortalCardByID] empty portal card array")
+		log.Errorf("[PortalCardStorage][ValidatePortalCardByID] empty portal card array")
 		return false, fmt.Errorf("PORTAL_CARD_ARRAY_EMPTY")
 	}
 
@@ -152,7 +158,7 @@ func (o *PortalCardStorage) ValidatePortalCardByID(ctx context.Context, ids []st
 		if trimmed := strings.TrimSpace(id); trimmed != "" {
 			objID, err := bson.ObjectIDFromHex(trimmed)
 			if err != nil {
-				o.logger.Errorf("[PortalCardStorage][ValidatePortalCardByID] invalid object id: %v", err)
+				log.Errorf("[PortalCardStorage][ValidatePortalCardByID] invalid object id: %v", err)
 				return false, errors.New(localization.ErrorInvalidID.Code)
 			}
 			cleaned = append(cleaned, objID)
@@ -160,7 +166,7 @@ func (o *PortalCardStorage) ValidatePortalCardByID(ctx context.Context, ids []st
 	}
 
 	if len(cleaned) == 0 {
-		o.logger.Errorf("[PortalCardStorage][ValidatePortalCardByID] no valid portal card ids")
+		log.Errorf("[PortalCardStorage][ValidatePortalCardByID] no valid portal card ids")
 		return false, fmt.Errorf("NO_VALID_PORTAL_CARD_ID")
 	}
 	// Query DB for all given ids
@@ -169,14 +175,14 @@ func (o *PortalCardStorage) ValidatePortalCardByID(ctx context.Context, ids []st
 
 	cards, err := o.dal.FindAll(ctx, filter, projection)
 	if err != nil {
-		o.logger.Errorf("[PortalCardStorage][ValidatePortalCardByID] failed to query portal cards: %v", err)
+		log.Errorf("[PortalCardStorage][ValidatePortalCardByID] failed to query portal cards: %v", err)
 		return false, fmt.Errorf("DB_ERROR: %w", err)
 	}
 
 	if len(ids) != len(cards) {
-		o.logger.Errorf("[PortalCardStorage][ValidatePortalCardByID] portal card count mismatch")
+		log.Errorf("[PortalCardStorage][ValidatePortalCardByID] portal card count mismatch")
 		return false, fmt.Errorf("PORTAL_CARD_NOT_FOUND")
 	}
-	o.logger.Infof("[PortalCardStorage][ValidatePortalCardByID] portal cards validated successfully")
+	log.Infof("[PortalCardStorage][ValidatePortalCardByID] portal cards validated successfully")
 	return true, nil
 }

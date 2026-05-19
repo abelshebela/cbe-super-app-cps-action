@@ -32,6 +32,8 @@ type KYCVerifierStorage struct {
 
 // FindByIDPopulated returns a populated response with user details
 func (s *KYCVerifierStorage) FindByIDPopulated(ctx context.Context, id string) (*dto.KYCVerifierResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	idObj, ok := local_util.StringToObjectID(id)
 	if !ok {
 		return nil, errors.New(localization.ErrorInvalidID.Code)
@@ -80,7 +82,7 @@ func (s *KYCVerifierStorage) FindByIDPopulated(ctx context.Context, id string) (
 	}
 	cur, err := s.coll.Aggregate(ctx, pipeline)
 	if err != nil {
-		s.logger.Errorf("aggregate kyc by id: %v", err)
+		log.Errorf("aggregate kyc by id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cur.Close(ctx)
@@ -89,7 +91,7 @@ func (s *KYCVerifierStorage) FindByIDPopulated(ctx context.Context, id string) (
 	}
 	var resp dto.KYCVerifierResponse
 	if err := cur.Decode(&resp); err != nil {
-		s.logger.Errorf("decode kyc populated by id: %v", err)
+		log.Errorf("decode kyc populated by id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return &resp, nil
@@ -97,6 +99,8 @@ func (s *KYCVerifierStorage) FindByIDPopulated(ctx context.Context, id string) (
 
 // FindAllWithPaginationPopulated returns populated list with pagination
 func (s *KYCVerifierStorage) FindAllWithPaginationPopulated(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]dto.KYCVerifierResponse], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	searchKeys := bson.M{}
 	allowedKeys := []string{"kyc_status", "kyc_level", "kyc_approved", "enabled"}
 	if filterParam.Search != "" {
@@ -155,7 +159,7 @@ func (s *KYCVerifierStorage) FindAllWithPaginationPopulated(ctx context.Context,
 
 	cur, err := s.coll.Aggregate(ctx, pipeline)
 	if err != nil {
-		s.logger.Errorf("aggregate kyc list: %v", err)
+		log.Errorf("aggregate kyc list: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cur.Close(ctx)
@@ -167,7 +171,7 @@ func (s *KYCVerifierStorage) FindAllWithPaginationPopulated(ctx context.Context,
 		} `bson:"total"`
 	}
 	if err := cur.All(ctx, result); err != nil {
-		s.logger.Errorf("decode kyc list: %v", err)
+		log.Errorf("decode kyc list: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	var data []dto.KYCVerifierResponse
@@ -228,15 +232,17 @@ func (s *KYCVerifierStorage) EnableOrDisable(ctx context.Context, id string, ena
 }
 
 func (s *KYCVerifierStorage) FindByID(ctx context.Context, id string) (*model.CustomerKYC, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	idObj, ok := local_util.StringToObjectID(id)
 	if !ok {
-		s.logger.Errorf("Invalid ObjectID for fetch by id: %s", id)
+		log.Errorf("Invalid ObjectID for fetch by id: %s", id)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": idObj, "is_deleted": false, "kyc_status": "PENDING"}
 	result, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		s.logger.Errorf("Error finding kyc verifier: %v", err)
+		log.Errorf("Error finding kyc verifier: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil

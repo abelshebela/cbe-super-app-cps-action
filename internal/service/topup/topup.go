@@ -50,9 +50,11 @@ func NewTopupService(repo storage.TopupRepository, cps service.CPSActionService,
 }
 
 func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupRequest) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateTopup", "topupService", "topupService")
 	defer span.End()
-	s.logger.Infof("[TopupSvc][Create] name: %s", req.Name)
+	log.Infof("[TopupSvc][Create] name: %s", req.Name)
 
 	exist, err := s.repo.Find(ctx, req.Code, req.Name)
 	if err != nil {
@@ -100,7 +102,7 @@ func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupReques
 	// if err := core.HandleCPSAction(ctx, s.cpsService, topup.ID.Hex(), constants.RequestCreatetopup, topup, nil, constants.ActionCreate); err != nil {
 	if err := core.HandleCPSAction(ctx, s.cpsService, topup.ID.Hex(), constants.RequestCreateTopup, topup, nil, constants.ActionCreate); err != nil {
 		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("code", topup.Code)))
-		s.logger.Errorf("[TopupSvc][Create] cps action err for %s: %v", topup.Code, err)
+		log.Errorf("[TopupSvc][Create] cps action err for %s: %v", topup.Code, err)
 		return err
 	}
 
@@ -109,9 +111,11 @@ func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupReques
 }
 
 func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.TopupRequest) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateTopup", "topupService", "topupService")
 	defer span.End()
-	s.logger.Infof("[TopupSvc][Update] id: %s", id)
+	log.Infof("[TopupSvc][Update] id: %s", id)
 	var existing model.Topup
 	var err error
 	prevtopup, err := s.repo.FindByID(ctx, id)
@@ -127,7 +131,7 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 		}})
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
-				s.logger.Errorf("[TopupSvc][Update] check name err: %v", err)
+				log.Errorf("[TopupSvc][Update] check name err: %v", err)
 				return err
 			}
 		} else {
@@ -142,7 +146,7 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 		}})
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
-				s.logger.Errorf("[TopupSvc][Update] check code err: %v", err)
+				log.Errorf("[TopupSvc][Update] check code err: %v", err)
 				return err
 			}
 		} else {
@@ -152,7 +156,7 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 	}
 
 	if err := core.ExistingIdentifierForUpdate(existing, id, req); err != nil {
-		s.logger.Infof("[TopupSvc][Update] data already exists err: %v", err)
+		log.Infof("[TopupSvc][Update] data already exists err: %v", err)
 		return err
 	}
 
@@ -189,7 +193,7 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestUpdateTopup, Updatetopup, *prevtopup, constants.ActionUpdate); err != nil {
 		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("code", Updatetopup.Code)))
-		s.logger.Errorf("[TopupSvc][Update] cps action err: %v", err)
+		log.Errorf("[TopupSvc][Update] cps action err: %v", err)
 		return err
 	}
 
@@ -198,9 +202,11 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 }
 
 func (s *topupService) DeleteTopup(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteTopup", "topupService", "topupService")
 	defer span.End()
-	s.logger.Infof("[TopupSvc][Delete] id: %s", id)
+	log.Infof("[TopupSvc][Delete] id: %s", id)
 
 	prevtopup, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -215,7 +221,7 @@ func (s *topupService) DeleteTopup(ctx context.Context, id string) error {
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestDeleteTopup, deletedtopup, *prevtopup, constants.ActionDelete); err != nil {
 		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("code", deletedtopup.Code)))
-		s.logger.Errorf("[TopupSvc][Delete] cps action err: %v", err)
+		log.Errorf("[TopupSvc][Delete] cps action err: %v", err)
 		return err
 	}
 
@@ -224,9 +230,11 @@ func (s *topupService) DeleteTopup(ctx context.Context, id string) error {
 }
 
 func (s *topupService) EnableOrDisableTopup(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableTopup", "topupService", "topupService")
 	defer span.End()
-	s.logger.Infof("[TopupSvc][EnableDisable] id: %s, enable: %v", id, enable)
+	log.Infof("[TopupSvc][EnableDisable] id: %s, enable: %v", id, enable)
 
 	prevtopup, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -242,7 +250,7 @@ func (s *topupService) EnableOrDisableTopup(ctx context.Context, id string, enab
 		span.AddEvent("Topup already disabled", trace.WithAttributes(attribute.String("id", id)))
 		return errors.New(localization.ErrorTopupAlreadyDisabled.Code)
 	}
-	s.logger.Infof("[TopupSvc][EnableDisable] proceeding enable: %v, current: %v", enable, prevtopup.Enabled)
+	log.Infof("[TopupSvc][EnableDisable] proceeding enable: %v, current: %v", enable, prevtopup.Enabled)
 
 	updatedtopup := *prevtopup
 	updatedtopup.Enabled = enable
@@ -257,7 +265,7 @@ func (s *topupService) EnableOrDisableTopup(ctx context.Context, id string, enab
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, action, updatedtopup, *prevtopup, constants.ActionUpdate); err != nil {
 		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("code", updatedtopup.Code)))
-		s.logger.Errorf("[TopupSvc][EnableDisable] cps action err: %v", err)
+		log.Errorf("[TopupSvc][EnableDisable] cps action err: %v", err)
 		return err
 	}
 
@@ -266,21 +274,27 @@ func (s *topupService) EnableOrDisableTopup(ctx context.Context, id string, enab
 }
 
 func (s *topupService) GetTopup(ctx context.Context, id string) (*model.Topup, error) {
-	s.logger.Infof("[TopupSvc][Get] id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
+	log.Infof("[TopupSvc][Get] id: %s", id)
 
 	return s.repo.FindByID(ctx, id)
 }
 
 func (s *topupService) GetAllTopup(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]model.Topup], error) {
-	s.logger.Infof("[TopupSvc][GetAll] fetching")
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
+	log.Infof("[TopupSvc][GetAll] fetching")
 
 	return s.repo.FindAllWithPagination(ctx, filterParams)
 }
 
 func (s *topupService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorizetopup", "topupService", "topupService")
 	defer span.End()
-	s.logger.Infof("[TopupSvc][Authorize] action: %s", action.ActionCode)
+	log.Infof("[TopupSvc][Authorize] action: %s", action.ActionCode)
 
 	topup, err := local_util.JsonUnmarshal[model.Topup](action.CurrentAction)
 	if err != nil {

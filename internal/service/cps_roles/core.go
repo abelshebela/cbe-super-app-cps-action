@@ -7,17 +7,20 @@ import (
 	cps_roles_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
 	"cbe-super-app-cps-action/internal/constants/types"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"github.com/hugokessem/coreio/core"
 )
 
 func (r *cpsRoleService) GlobalLimits(ctx context.Context) {}
 
 func (r *cpsRoleService) ServiceLevelLimit(ctx context.Context, serviceCode string) (*core.CustomerLimitFetchByServiceResult, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	response, err := r.core.CustomerLimitFetchByService(core.CustomerLimitFetchByServiceParam{
 		ServiceCode: serviceCode,
 	})
 	if err != nil {
-		r.logger.Errorf("failed to make request to get service-level limit", err)
+		log.Errorf("failed to make request to get service-level limit", err)
 		return nil, err
 	}
 
@@ -27,13 +30,13 @@ func (r *cpsRoleService) ServiceLevelLimit(ctx context.Context, serviceCode stri
 			message += msg
 		}
 
-		r.logger.Warnf("(core) failed to get customer-level limit", message)
+		log.Warnf("(core) failed to get customer-level limit", message)
 
 		return nil, err
 	}
 
 	if response.Detail == nil {
-		r.logger.Errorf("service-level limit successfully fetched")
+		log.Errorf("service-level limit successfully fetched")
 		return nil, err
 	}
 
