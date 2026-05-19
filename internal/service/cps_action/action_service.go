@@ -136,12 +136,12 @@ func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 
 func (ca *cpsActionService) logUserAction(ctx context.Context, action *model.CPSAction, responsibility imodel.UserActionResponsibility, givenStatus string, auditorMark imodel.AuditorMark, checkerLevel, auditorLevel string) {
 	reqLog := local_util.LoggerFromCtx(ctx, ca.logger)
-
+	userData := local_util.ExtractUserFromContext(ctx)
 	if ca.actionLogRepo == nil {
 		return
 	}
 
-	userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
+	// userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
 
 	userOID, _ := bson.ObjectIDFromHex(userData.UserID)
 	actionOID := action.ID
@@ -162,7 +162,7 @@ func (ca *cpsActionService) logUserAction(ctx context.Context, action *model.CPS
 		CheckerLevel:               checkerLevel,
 		AuditorLevel:               auditorLevel,
 		UserID:                     userOID,
-		Username:                   userData.FullName,
+		Username:                   userData.UserName,
 		UserPhone:                  userData.PhoneNumber,
 		UserActionResponsibilities: responsibility,
 		CreatedAt:                  time.Now(),
@@ -189,12 +189,12 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	// CREATE actions: No blockers - allow direct creation
 	if strings.Contains(cpsAction.RequestAction, string(constants.CREATE)) {
 		cpsAction.RoleCode = roleCode
-		err = ca.repo.Save(ctx, cpsAction)
+		cpsActionResult, err := ca.repo.Save(ctx, cpsAction)
 		if err != nil {
 			span.AddEvent("failed to save cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
 		}
-		ca.logUserAction(ctx, cpsAction, imodel.MAKER, "PENDING", "", "", "")
+		ca.logUserAction(ctx, &cpsActionResult, imodel.MAKER, "PENDING", "", "", "")
 		return nil
 	}
 
@@ -239,12 +239,12 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	}
 
 	cpsAction.RoleCode = roleCode
-	err = ca.repo.Save(ctx, cpsAction)
+	cpsActionResult, err := ca.repo.Save(ctx, cpsAction)
 	if err != nil {
 		span.AddEvent("failed to save cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
-	ca.logUserAction(ctx, cpsAction, imodel.MAKER, "PENDING", "", "", "")
+	ca.logUserAction(ctx, &cpsActionResult, imodel.MAKER, "PENDING", "", "", "")
 	return nil
 }
 
