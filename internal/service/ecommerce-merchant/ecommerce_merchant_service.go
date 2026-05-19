@@ -135,7 +135,7 @@ func (m *ecommerceMerchantService) Create(ctx context.Context, req *merchantDto.
 			m.logger.Errorf("failed while checking account number existence: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
-		if accountID == "" {
+		if accountDetail != nil && accountID == "" {
 			m.logger.Errorf("failed while inserting account number to ACCOUNTS: %v", err)
 			accountID, err = m.serviceRepo.InsertAccountNumberToAccounts(ctx, *accountDetail)
 			if err != nil {
@@ -225,7 +225,7 @@ func (m *ecommerceMerchantService) Update(ctx context.Context, id string, req *m
 			m.logger.Errorf("failed while checking account number existence: %v", err)
 			return nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
-		if accountID == "" {
+		if accountDetail != nil && accountID == "" {
 			m.logger.Errorf("failed while inserting account number to ACCOUNTS: %v", err)
 			accountID, err = m.serviceRepo.InsertAccountNumberToAccounts(ctx, *accountDetail)
 			if err != nil {
