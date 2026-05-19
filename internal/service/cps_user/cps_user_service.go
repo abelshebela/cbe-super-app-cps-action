@@ -25,7 +25,7 @@ import (
 
 type cpsUserService struct {
 	repo              storage.CpsUserRepository
-	roleRepo          storage.RoleRepository
+	jobRoleRepo          storage.JobRoleRepository
 	approverRepo      storage.CPSActionApproveIndexRepository
 	bpsApproverRepo   storage.BPSActionApproveIndexRepository
 	permissionService service.PermissionService
@@ -35,11 +35,11 @@ type cpsUserService struct {
 	bpsRepo           storage.BPSUserRepository
 }
 
-func NewCPSUserService(repo storage.CpsUserRepository, roleRepo storage.RoleRepository, approverRepo storage.CPSActionApproveIndexRepository, bpsApproverRepo storage.BPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, bps storage.BPSUserRepository, logger shared_utils.Logger) service.CPSUserService {
+func NewCPSUserService(repo storage.CpsUserRepository, JobRoleRepo storage.JobRoleRepository, approverRepo storage.CPSActionApproveIndexRepository, bpsApproverRepo storage.BPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, bps storage.BPSUserRepository, logger shared_utils.Logger) service.CPSUserService {
 	return &cpsUserService{
 		repo:              repo,
 		bpsRepo:           bps,
-		roleRepo:          roleRepo,
+		jobRoleRepo:          JobRoleRepo,
 		approverRepo:      approverRepo,
 		bpsApproverRepo:   bpsApproverRepo,
 		permissionService: permission,
@@ -432,7 +432,7 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 		return nil, err
 	}
 
-	roles, err := s.roleRepo.FindByName(ctx, user.JobTitle)
+	roles, err := s.jobRoleRepo.FindByName(ctx, user.JobTitle)
 	if err != nil {
 		span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
@@ -498,9 +498,9 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 	}
 
 	var makerAlloc, checkerAlloc, auditorAlloc, portalCard, bpsCheckerAlloc, bpsAuditorAlloc []string
-	var roles *imodel.Role
+	var roles *imodel.JobRole
 	if populated.JobTitle != "" {
-		roles, err = s.roleRepo.FindByName(ctx, populated.JobTitle)
+		roles, err = s.jobRoleRepo.FindByName(ctx, populated.JobTitle)
 		if err != nil {
 			span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err

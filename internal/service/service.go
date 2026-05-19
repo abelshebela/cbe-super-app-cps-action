@@ -520,17 +520,6 @@ type MiniAppMerchant interface {
 	FindByID(ctx context.Context, id string) (*mini_model.MiniAppMerchant, error)
 }
 type JobRoleService interface {
-	Create(ctx context.Context, jobs imodel.Role) error
-	Update(ctx context.Context, id string, update imodel.Role) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	Delete(ctx context.Context, id string) error
-	FindById(ctx context.Context, id string) (*imodel.Role, error)
-	FindAll(ctx context.Context) (*[]imodel.Role, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Role], error)
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-}
-
-type RoleService interface {
 	Create(ctx context.Context, jobs imodel.JobRole) error
 	Update(ctx context.Context, id string, update imodel.JobRole) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
@@ -538,6 +527,17 @@ type RoleService interface {
 	FindById(ctx context.Context, id string) (*imodel.JobRole, error)
 	FindAll(ctx context.Context) (*[]imodel.JobRole, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type RoleService interface {
+	Create(ctx context.Context, jobs imodel.Role) error
+	Update(ctx context.Context, id string, update imodel.Role) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	Delete(ctx context.Context, id string) error
+	FindById(ctx context.Context, id string) (*imodel.Role, error)
+	FindAll(ctx context.Context) (*[]imodel.Role, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Role], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
