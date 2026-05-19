@@ -668,3 +668,19 @@ func (s *accountBlockService) GetAccountBlockDetails(ctx context.Context, id str
 
 	return result, nil
 }
+
+func (s *accountBlockService) GetPreviousReasons(ctx context.Context, id string) (*account_block_dto.PreviousDisableReasonsResponse, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetPreviousReasons", "BlockAccount", "GetPreviousReasons")
+	defer span.End()
+
+	reasons, err := s.repo.GetPreviousReasons(ctx, id)
+	if err != nil {
+		s.logger.Errorf("[AccBlockSvc][GetPreviousReasons] id=%s err: %v", id, err)
+		return nil, err
+	}
+
+	return &account_block_dto.PreviousDisableReasonsResponse{
+		AccountBlockID: id,
+		DisableReason:  reasons,
+	}, nil
+}

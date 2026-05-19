@@ -3,13 +3,12 @@ package core
 import (
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"encoding/json"
 	"errors"
 	"time"
-
-	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 )
 
 func DonationNameExists(
@@ -38,8 +37,8 @@ func BindAction(source any, target any) error {
 	return json.Unmarshal(bytes, target)
 }
 
-func MapToDonationCategory(categoryName, iconURL string, enabled bool,is_deleted bool) *donation_model.DonationCategory {
-	return &donation_model.DonationCategory{
+func MapToDonationCategory(categoryName, iconURL string, enabled bool, is_deleted bool) *imodel.DonationCategoryOracle {
+	return &imodel.DonationCategoryOracle{
 		CategoryName:   categoryName,
 		Icon:           iconURL,
 		IsDeleted:      is_deleted,
@@ -48,7 +47,7 @@ func MapToDonationCategory(categoryName, iconURL string, enabled bool,is_deleted
 	}
 }
 
-func IsDataSimilar(request donation_category.DonationCategoryRequest, existing *donation_model.DonationCategory) bool {
+func IsDataSimilar(request donation_category.DonationCategoryRequest, existing *imodel.DonationCategoryOracle) bool {
 	// Check if category name is the same (if provided in request)
 	if request.CategoryName != "" && request.CategoryName != existing.CategoryName {
 		return false

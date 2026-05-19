@@ -297,12 +297,6 @@ func (a *AccountBlockStorage) populateParentsAndReasons(ctx context.Context, blo
 			return err
 		}
 	}
-	a.logger.Debugf("[populateParentsAndReasons] finished parent chains, attaching reasons...")
-	err := a.attachReasons(ctx, blocks)
-	if err != nil {
-		a.logger.Errorf("[populateParentsAndReasons] error attaching reasons: %v", err)
-		return err
-	}
 	a.logger.Debugf("[populateParentsAndReasons] completed successfully")
 	return nil
 }
@@ -464,10 +458,6 @@ func (a *AccountBlockStorage) findByIDWithParents(ctx context.Context, id string
 		blocks[i-1].Parent = blocks[i]
 	}
 
-	if err := a.attachReasons(ctx, []*imodel.AccountBlock{blocks[0]}); err != nil {
-		return nil, err
-	}
-
 	return blocks[0], nil
 }
 
@@ -493,9 +483,6 @@ func (a *AccountBlockStorage) FindByFilterKey(ctx context.Context, field, value 
 		return nil, err
 	}
 	if err := a.populateParentChain(ctx, ab, 0); err != nil {
-		return nil, err
-	}
-	if err := a.attachReasons(ctx, []*imodel.AccountBlock{ab}); err != nil {
 		return nil, err
 	}
 	return ab, nil
@@ -621,12 +608,58 @@ func (a *AccountBlockStorage) GetDistrictsByIds(ctx context.Context, ids []strin
 	return a.getByIds(ctx, ids, imodel.TypeDistrict)
 }
 
-// func (a *AccountBlockStorage) GetCitiesByIds(ctx context.Context, ids []string) ([]*imodel.AccountBlock, error) {
-// 	a.logger.Infof("[AccountBlockStorage][GetCitiesByIds] fetching %d cities", len(ids))
-// 	return a.getByIds(ctx, ids, imodel.TypeCity)
-// }
-
 // ─── Paginated list ─────────────────────────────────────────────────────────
+
+// hexIDsFromFilterValue normalizes region_id / district_id values from ExtractFilterParams
+// (comma-separated string, []interface{} from repeated keys or parseValue splits, []string, etc.).
+func hexIDsFromFilterValue(v interface{}) []string {
+	if v == nil {
+		return nil
+	}
+	switch t := v.(type) {
+	case string:
+		var ids []string
+		for _, part := range strings.Split(t, ",") {
+			if s := strings.TrimSpace(part); s != "" {
+				ids = append(ids, s)
+			}
+		}
+		return ids
+	case []string:
+		ids := make([]string, 0, len(t))
+		for _, s := range t {
+			if s = strings.TrimSpace(s); s != "" {
+				ids = append(ids, s)
+			}
+		}
+		return ids
+	case []interface{}:
+		var ids []string
+		for _, x := range t {
+			ids = append(ids, hexIDsFromFilterValue(x)...)
+		}
+		return ids
+	default:
+		if s := strings.TrimSpace(fmt.Sprint(t)); s != "" {
+			return []string{s}
+		}
+		return nil
+	}
+}
+
+func buildHexIDMatchClause(column string, ids []string, paramPrefix string) (string, []interface{}) {
+	if len(ids) == 0 {
+		return "", nil
+	}
+	conditions := make([]string, len(ids))
+	named := make([]interface{}, 0, len(ids))
+	for i, id := range ids {
+		name := fmt.Sprintf("%s_%d", paramPrefix, i)
+		conditions[i] = fmt.Sprintf("%s = HEXTORAW(:%s)", column, name)
+		named = append(named, sql.Named(name, id))
+	}
+	return "(" + strings.Join(conditions, " OR ") + ")", named
+}
 
 func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterParam types.Filter, entityType imodel.AccountBlockType) (*types.PaginatedResponse[[]*imodel.AccountBlock], error) {
 	offset := (filterParam.Page - 1) * filterParam.PerPage
@@ -647,25 +680,12 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		search = filterParam.Search
 	}
 
-	// Extract filters from map
 	if filterParam.Filters != nil {
 		if v, ok := filterParam.Filters["region_id"]; ok {
-			if regionStr, ok := v.(string); ok && regionStr != "" {
-				// Split comma-separated region IDs
-				regionIDs = strings.Split(regionStr, ",")
-				for i, id := range regionIDs {
-					regionIDs[i] = strings.TrimSpace(id)
-				}
-			}
+			regionIDs = hexIDsFromFilterValue(v)
 		}
 		if v, ok := filterParam.Filters["district_id"]; ok {
-			if districtStr, ok := v.(string); ok && districtStr != "" {
-				// Split comma-separated district IDs
-				districtIDs = strings.Split(districtStr, ",")
-				for i, id := range districtIDs {
-					districtIDs[i] = strings.TrimSpace(id)
-				}
-			}
+			districtIDs = hexIDsFromFilterValue(v)
 		}
 		if v, ok := filterParam.Filters["is_enabled"]; ok {
 			if enabled, isBool := v.(bool); isBool {
@@ -674,131 +694,55 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 		}
 	}
 
-	// Build dynamic query based on whether we have multiple region IDs or district IDs
-	var query string
+	var idClauses []string
 	var args []interface{}
-
-	if len(regionIDs) > 1 {
-		// Build query with multiple region IDs (existing logic)
-		var regionConditions []string
-		for i, id := range regionIDs {
-			paramName := fmt.Sprintf("region_%d", i)
-			regionConditions = append(regionConditions, "region_id = HEXTORAW(:"+paramName+")")
-			args = append(args, sql.Named(paramName, id))
-		}
-
-		query = fmt.Sprintf(`SELECT
-			RAWTOHEX(id) AS id,
-			name,
-			code,
-			address,
-			slug,
-			type,
-			is_enabled,
-			RAWTOHEX(district_id) AS district_id,
-			RAWTOHEX(region_id) AS region_id,
-			is_deleted,
-			created_at,
-			updated_at,
-			COUNT(*) OVER() AS total_count
-		FROM ACCOUNT_BLOCKS
-		WHERE type = :type
-		  AND is_deleted = 0
-		  AND (%s)
-		  AND (:search IS NULL
-		       OR LOWER(name) LIKE '%' || LOWER(:search) || '%'
-		       OR LOWER(code) LIKE '%' || LOWER(:search) || '%'
-		       OR LOWER(address) LIKE '%' || LOWER(:search) || '%')
-		  AND (:district_id IS NULL OR district_id = HEXTORAW(:district_id))
-		  AND (:is_enabled IS NULL OR is_enabled = :is_enabled)
-		ORDER BY created_at DESC
-		OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, strings.Join(regionConditions, " OR "))
-
-		// Add other parameters
-		var districtID interface{}
-		if len(districtIDs) > 0 {
-			districtID = districtIDs[0]
-		}
-		args = append(args,
-			sql.Named("type", string(entityType)),
-			sql.Named("search", search),
-			sql.Named("district_id", districtID),
-			sql.Named("is_enabled", isEnabledFilter),
-			sql.Named("offset", offset),
-			sql.Named("limit", limit),
-		)
-	} else if len(districtIDs) > 1 {
-		// Build query with multiple district IDs (new logic)
-		var districtConditions []string
-		for i, id := range districtIDs {
-			paramName := fmt.Sprintf("district_%d", i)
-			districtConditions = append(districtConditions, "district_id = HEXTORAW(:"+paramName+")")
-			args = append(args, sql.Named(paramName, id))
-		}
-
-		query = fmt.Sprintf(`SELECT
-			RAWTOHEX(id) AS id,
-			name,
-			code,
-			address,
-			slug,
-			type,
-			is_enabled,
-			RAWTOHEX(district_id) AS district_id,
-			RAWTOHEX(region_id) AS region_id,
-			is_deleted,
-			created_at,
-			updated_at,
-			COUNT(*) OVER() AS total_count
-		FROM ACCOUNT_BLOCKS
-		WHERE type = :type
-		  AND is_deleted = 0
-		  AND (%s)
-		  AND (:search IS NULL
-		       OR LOWER(name) LIKE '%' || LOWER(:search) || '%'
-		       OR LOWER(code) LIKE '%' || LOWER(:search) || '%'
-		       OR LOWER(address) LIKE '%' || LOWER(:search) || '%')
-		  AND (:region_id IS NULL OR region_id = HEXTORAW(:region_id))
-		  AND (:is_enabled IS NULL OR is_enabled = :is_enabled)
-		ORDER BY created_at DESC
-		OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, strings.Join(districtConditions, " OR "))
-
-		// Add other parameters
-		var regionID interface{}
-		if len(regionIDs) > 0 {
-			regionID = regionIDs[0]
-		}
-		args = append(args,
-			sql.Named("type", string(entityType)),
-			sql.Named("search", search),
-			sql.Named("region_id", regionID),
-			sql.Named("is_enabled", isEnabledFilter),
-			sql.Named("offset", offset),
-			sql.Named("limit", limit),
-		)
-	} else {
-		// Use existing query for single region/district or no filter
-		query = listAccountBlocksByType
-		var regionID interface{}
-		var districtID interface{}
-
-		if len(regionIDs) == 1 {
-			regionID = regionIDs[0]
-		}
-		if len(districtIDs) == 1 {
-			districtID = districtIDs[0]
-		}
-
-		args = []interface{}{
-			sql.Named("type", string(entityType)),
-			sql.Named("search", search),
-			sql.Named("region_id", regionID),
-			sql.Named("district_id", districtID),
-			sql.Named("is_enabled", isEnabledFilter),
-			sql.Named("offset", offset),
-			sql.Named("limit", limit),
-		}
+	if clause, clauseArgs := buildHexIDMatchClause("region_id", regionIDs, "region"); clause != "" {
+		idClauses = append(idClauses, clause)
+		args = append(args, clauseArgs...)
 	}
+	if clause, clauseArgs := buildHexIDMatchClause("district_id", districtIDs, "district"); clause != "" {
+		idClauses = append(idClauses, clause)
+		args = append(args, clauseArgs...)
+	}
+
+	idFilterSQL := ""
+	if len(idClauses) > 0 {
+		idFilterSQL = " AND " + strings.Join(idClauses, " AND ")
+	}
+
+	query := fmt.Sprintf(`SELECT
+			RAWTOHEX(id) AS id,
+			name,
+			code,
+			address,
+			slug,
+			type,
+			is_enabled,
+			RAWTOHEX(district_id) AS district_id,
+			RAWTOHEX(region_id) AS region_id,
+			is_deleted,
+			created_at,
+			updated_at,
+			COUNT(*) OVER() AS total_count
+		FROM ACCOUNT_BLOCKS
+		WHERE type = :type
+		  AND is_deleted = 0
+		  %s
+		  AND (:search IS NULL
+		       OR LOWER(name) LIKE '%%' || LOWER(:search) || '%%'
+		       OR LOWER(code) LIKE '%%' || LOWER(:search) || '%%'
+		       OR LOWER(address) LIKE '%%' || LOWER(:search) || '%%')
+		  AND (:is_enabled IS NULL OR is_enabled = :is_enabled)
+		ORDER BY created_at DESC
+		OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, idFilterSQL)
+
+	args = append(args,
+		sql.Named("type", string(entityType)),
+		sql.Named("search", search),
+		sql.Named("is_enabled", isEnabledFilter),
+		sql.Named("offset", offset),
+		sql.Named("limit", limit),
+	)
 
 	rows, err := a.db.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -858,20 +802,16 @@ func (a *AccountBlockStorage) findAllWithPagination(ctx context.Context, filterP
 	}
 
 	a.logger.Debugf("[findAllWithPagination] populateParentsAndReasons completed")
-	a.logger.Debugf("[findAllWithPagination] totalCount: %d, perPage: %d", totalCount, filterParam.PerPage)
 
 	totalPages := int((totalCount + int64(filterParam.PerPage) - 1) / int64(filterParam.PerPage))
-	a.logger.Debugf("[findAllWithPagination] totalPages: %d, currentPage: %d", totalPages, filterParam.Page)
 	var prevPage, nextPage *int
 	if filterParam.Page > 1 {
 		p := filterParam.Page - 1
 		prevPage = &p
-		a.logger.Debugf("[findAllWithPagination] prevPage: %d", p)
 	}
 	if filterParam.Page < totalPages {
 		n := filterParam.Page + 1
 		nextPage = &n
-		a.logger.Debugf("[findAllWithPagination] nextPage: %d", n)
 	}
 
 	resp := &types.PaginatedResponse[[]*imodel.AccountBlock]{
@@ -907,11 +847,6 @@ func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context
 	return a.findAllWithPagination(ctx, filterParam, imodel.TypeDistrict)
 }
 
-// func (a *AccountBlockStorage) FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.AccountBlock], error) {
-// 	a.logger.Infof("[AccountBlockStorage][FindAllCitiesWithPagination] fetching cities")
-// 	return a.findAllWithPagination(ctx, filterParam, imodel.TypeCity)
-// }
-
 // ─── Enable / Disable ───────────────────────────────────────────────────────
 
 func (a *AccountBlockStorage) enableOrDisable(ctx context.Context, ids []string, reason *types.Reason, enabled bool, entityType imodel.AccountBlockType) error {
@@ -932,14 +867,7 @@ func (a *AccountBlockStorage) enableOrDisable(ctx context.Context, ids []string,
 		sql.Named("type", string(entityType)),
 	)
 
-	if enabled {
-		if err := a.deleteReasonsForBlockIDs(ctx, ids); err != nil {
-			return err
-		}
-	} else {
-		if err := a.deleteReasonsForBlockIDs(ctx, ids); err != nil {
-			return err
-		}
+	if !enabled {
 		if err := a.insertDisableReasonForBlocks(ctx, ids, reason); err != nil {
 			return err
 		}

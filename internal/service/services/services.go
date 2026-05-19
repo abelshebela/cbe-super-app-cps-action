@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"strings"
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -19,21 +21,24 @@ import (
 	coreio "github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type servicesService struct {
-	repo   storage.ServicesRepository
-	cps    service.CPSActionService
-	core   coreio.CBECoreAPIInterface
-	logger utils.Logger
+	repo         storage.ServicesRepository
+	ussdMerchant storage.UssdMerchantRepository
+	cps          service.CPSActionService
+	core         coreio.CBECoreAPIInterface
+	logger       utils.Logger
 }
 
-func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionService, core coreio.CBECoreAPIInterface, logger utils.Logger) *servicesService {
+func NewServicesService(repo storage.ServicesRepository, ussdMerchant storage.UssdMerchantRepository, cps service.CPSActionService, core coreio.CBECoreAPIInterface, logger utils.Logger) *servicesService {
 	return &servicesService{
-		repo:   repo,
-		cps:    cps,
-		core:   core,
-		logger: logger,
+		repo:         repo,
+		ussdMerchant: ussdMerchant,
+		cps:          cps,
+		core:         core,
+		logger:       logger,
 	}
 }
 
@@ -53,10 +58,17 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 			return errors.New(localization.ErrorAccountNumberValidationFailed.Code)
 		}
 
-		err = s.repo.CheckAccountNumberExistence(ctx, *accountDetail, req.ProductGlAccount, req.ProductGlAccountCurrency)
+		accountID, err := s.repo.CheckAccountNumberExistence(ctx, req.ProductGlAccount)
 		if err != nil {
-			s.logger.Errorf("[servicesService][Authorize] failed to check account number error: %v", err)
-			return errors.New(localization.ErrorUnexpectedError.Code)
+			s.logger.Errorf("failed while checking account number existence: %v", err)
+			return err
+		}
+		if accountDetail != nil && accountID == "" {
+			s.logger.Errorf("failed while inserting account number to ACCOUNTS: %v", err)
+			accountID, err = s.repo.InsertAccountNumberToAccounts(ctx, *accountDetail)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -84,11 +96,19 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 			return errors.New(localization.ErrorAccountNumberValidationFailed.Code)
 		}
 
-		err = s.repo.CheckAccountNumberExistence(ctx, *accountDetail, *req.ProductGlAccount, *req.ProductGlAccountCurrency)
+		accountID, err := s.repo.CheckAccountNumberExistence(ctx, *req.ProductGlAccount)
 		if err != nil {
-			s.logger.Errorf("[servicesService][Authorize] failed to check account number error: %v", err)
+			s.logger.Errorf("failed while checking account number existence: %v", err)
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
+		if accountDetail != nil && accountID == "" {
+			s.logger.Errorf("failed while inserting account number to ACCOUNTS: %v", err)
+			accountID, err = s.repo.InsertAccountNumberToAccounts(ctx, *accountDetail)
+			if err != nil {
+				return errors.New(localization.ErrorUnexpectedError.Code)
+			}
+		}
+
 	}
 
 	mapped := core.MapToServiceUpdateModel(req, *prev)
@@ -142,7 +162,38 @@ func (s *servicesService) DeleteServices(ctx context.Context, id string) error {
 		return err
 	}
 
-	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
+	// Check service
+	wal, err := s.repo.FindWalletByServiceId(ctx, id)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		return err
+	}
+	if wal {
+		return errors.New("There is an active wallet connected with this service")
+	}
+
+	// Check Donation
+	don, err := s.repo.FindDonationByServiceId(ctx, id)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		return err
+	}
+	if don {
+		return errors.New("There is an active donation connected with this service")
+	}
+
+	// Check ussd_merchants
+	if s.ussdMerchant != nil {
+		ussdMerchant, err := s.ussdMerchant.Find(ctx, bson.M{
+			"service": id,
+		})
+		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+			return err
+		}
+		if strings.EqualFold(ussdMerchant.Service, id) {
+			return errors.New("There is an active ussd merchant connected with this service")
+		}
+	}
+
+	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteService, nil, prev, constants.ActionDelete)
 }
 
 func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error) {
@@ -223,12 +274,39 @@ func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error
 		return err
 	}
 
+	// Check service
+	service, err := s.repo.FindServiceByAccessListID(ctx, id)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		return err
+	}
+	if service != nil {
+		return errors.New("There is an active service with this access list")
+	}
+
+	// Check Access list by superapp role
+	sar, err := s.repo.FindSupperAppRoleByAccessList(ctx, id)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		return err
+	}
+	if sar {
+		return errors.New("There is an active customer segmentation with this access list")
+	}
+
+	// Check Geographical Area
+	geo, err := s.repo.FindGeographicalLocationByAccessList(ctx, id)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		return err
+	}
+	if geo {
+		return errors.New("There is an active geographical_location with this access list")
+	}
+
 	s.logger.Infof("[servicesService][DeleteServiceKey] Deleting service key with id=%s, found service list: %+v", id, prev)
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
 }
 
-func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string) (*coreio.AccountLookupResult, error) {
-	response, err := s.core.AccountLookup(coreio.AccountLookupParam{AccountNumber: accountNumber})
+func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string) (*model.AccountDetail, error) {
+	response, err := s.core.NameLookup(coreio.NameLookupParam{AccountNumber: accountNumber})
 	if err != nil {
 		return nil, err
 	}
@@ -240,16 +318,24 @@ func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Conte
 		}
 
 		s.logger.Warnf("(core) failed to get account details: %s", message)
-
-		return nil, err
+		return nil, fmt.Errorf("account lookup failed: %s", message)
 	}
 
 	if response.Detail == nil {
 		s.logger.Errorf("account lookup successful but no account details found for account number %s", accountNumber)
-		return nil, err
+		return nil, fmt.Errorf("no account details found for account number %s", accountNumber)
 	}
 
-	return response, nil
+	detail := response.Detail
+	return &model.AccountDetail{
+		AccountNumber:  detail.AccountNumber,
+		CustomerName:   detail.AccountName,
+		Restriction:    detail.RestrictionType,
+		Currency:       detail.Currency,
+		WorkingBalance: "",
+		CustomerID:     detail.CustomerNumber,
+		AccountType:    detail.RestrictionType,
+	}, nil
 }
 
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {

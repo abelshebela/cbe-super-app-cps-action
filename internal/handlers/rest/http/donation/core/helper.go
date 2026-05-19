@@ -59,6 +59,7 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (donation.Don
 	req.DonationCode = r.FormValue("donation_code")
 	req.CompanyID = r.FormValue("company_id")
 	req.CategoryID = r.FormValue("category_id")
+	req.ServiceID = r.FormValue("service_id")
 	req.Title = r.FormValue("title")
 	req.RemovedImages = r.Form["removed_images"]
 	req.DonationDescription = r.FormValue("donation_description")

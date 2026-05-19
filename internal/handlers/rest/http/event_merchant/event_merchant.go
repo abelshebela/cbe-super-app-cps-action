@@ -103,7 +103,7 @@ func (e *EventMerchantHandler) CreateEventMerchant(w http.ResponseWriter, r *htt
 		return
 	} else if md.IsMakerOnly {
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreated, nil)
+		localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreated, md.Id)
 	} else {
 		e.logger.Infof("[CreateEventMerchant] request sent successfully for create event merchant")
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)

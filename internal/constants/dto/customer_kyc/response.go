@@ -1,54 +1,50 @@
 package customerkyc
 
-import (
-	"cbe-super-app-cps-action/internal/constants"
-)
-
 type CustomerKYCResponse struct {
-	ID                   string                     `json:"id"`
-	AccountType          constants.AccountType      `json:"account_type"`
-	CustomerCode         string                     `json:"customer_code"`
-	CustomerName         CustomerInfoResp           `json:"customer_name"`
-	Address              AddressResp                `json:"address"`
-	Nationality          string                     `json:"nationality"`
-	MaritalStatus        constants.MaritalStatus    `json:"marital_status"`
-	CustomerStatus       constants.CustomerStatus   `json:"customer_status"`
-	EmploymentStatus     constants.EmploymentStatus `json:"employment_status"`
-	Occupation           string                     `json:"occupation,omitempty"`
-	AverageMonthlyIncome string                     `json:"average_monthly_income,omitempty"`
-	EducationStatus      string                     `json:"education_status,omitempty"`
-	SourceOfFund         string                     `json:"source_of_fund,omitempty"`
-	KYCStatus            string                     `json:"kyc_status"`
-	LivenessCheck        AlivenessCheckResp         `json:"liveness_check,omitempty"`
-	MoneyLaunderingFree  bool                       `json:"money_laundering_free"`
-	TermsAndConditions   string                     `json:"terms_and_conditions,omitempty"`
-	CreatedAt            string                     `json:"created_at"`
-	UpdatedAt            string                     `json:"updated_at"`
+	ID                   string               `json:"id"`
+	PersonalInformation  PersonalInformation  `json:"personal_information"`
+	ResidentialAddress   ResidentialAddress   `json:"residential_address"`
+	FinancialInformation FinancialInformation `json:"financial_information"`
+	CapturedDocuments    CapturedDocuments    `json:"captured_documents"`
+	CustomerStatus       string               `json:"customer_status"`
+	KYCStatus            string               `json:"kyc_status"`
+	MoneyLaunderingFree  *bool                `json:"money_laundering_free"`
+	TermsAndConditions   string               `json:"terms_and_conditions,omitempty"`
+	CreatedAt            string               `json:"created_at"`
+	UpdatedAt            string               `json:"updated_at"`
 }
 
-type CustomerInfoResp struct {
-	FirstName   string `json:"first_name"`
-	MiddleName  string `json:"middle_name,omitempty"`
-	LastName    string `json:"last_name"`
-	PhoneNumber string `json:"phone_number"`
-	Email       string `json:"email"`
-	DateOfBirth string `json:"date_of_birth"`
-	Gender      string `json:"gender"`
-	MotherName  string `json:"mother_name"`
+type PersonalInformation struct {
+	FirstName    string `json:"first_name" validate:"required"`
+	MiddleName   string `json:"middle_name,omitempty"`
+	LastName     string `json:"last_name" validate:"required"`
+	MotherName   string `json:"mother_name" validate:"required"`
+	PhoneNumber  string `json:"phone_number" validate:"required"`
+	Gender       string `json:"gender" validate:"required,oneof=MALE FEMALE"`
+	MaritalStaus string `json:"marital_status"`
+	Nationality  string `json:"nationality"`
+	DateOfBirth  string `json:"date_of_birth" validate:"required"`
 }
 
-type AddressResp struct {
-	Country     string `json:"country"`
-	Region      string `json:"region"`
-	City        string `json:"city"`
+type CapturedDocuments struct {
+	Photo         string `json:"photo"`
+	LivenessVideo string `json:"liveness_video"`
+	IDCardFront   string `json:"id_card_front"`
+	IDCardBack    string `json:"id_card_back"`
+}
+
+type FinancialInformation struct {
+	EmploymentStatus     string `json:"employment_status"`
+	Occupation           string `json:"occupation"`
+	AverageMonthlyIncome string `json:"average_monthly_income"`
+}
+
+type ResidentialAddress struct {
+	Country     string `json:"country" validate:"required"`
+	Region      string `json:"region" validate:"required"`
+	City        string `json:"city" validate:"required"`
 	SubCity     string `json:"sub_city,omitempty"`
 	Wereda      string `json:"wereda,omitempty"`
 	Kebele      string `json:"kebele,omitempty"`
 	HouseNumber string `json:"house_number,omitempty"`
-}
-
-type AlivenessCheckResp struct {
-	IDCardFront        string `json:"id_card_front,omitempty"`
-	IDCardBack         string `json:"id_card_back,omitempty"`
-	LivenessCheckVideo string `json:"liveness_video,omitempty"`
 }

@@ -71,30 +71,26 @@ var cpsActionRegistry = map[string]string{
 	"GET amount_based_auth":   "AMOUNTBASEDAUTH",
 
 	// Banks
-	"GET banks":                "BANK",
-	"GET banks/{id}":           "BANK",
-	"POST banks":               "BANK",
-	"PATCH banks":              "BANK",
-	"DELETE banks":             "BANK",
-	"PATCH banks/{id}/enable":  "BANK",
-	"PATCH banks/{id}/disable": "BANK",
-	"PATCH banks/{id}/logo":    "BANK",
+	"GET banks":    "BANK",
+	"POST banks":   "BANK",
+	"PATCH banks":  "BANK",
+	"DELETE banks": "BANK",
 
 	// Wallet
-	"GET wallets":                "WALLET",
-	"GET wallets/{id}":           "WALLET",
-	"POST wallets":               "WALLET",
-	"PATCH wallets":              "WALLET",
-	"DELETE wallets":             "WALLET",
-	"PATCH wallets/{id}/enable":  "WALLET",
-	"PATCH wallets/{id}/disable": "WALLET",
+	"GET wallets":           "WALLET",
+	"POST wallets":          "WALLET",
+	"PATCH wallets":         "WALLET",
+	"DELETE wallets":        "WALLET",
+	"PATCH wallets_service": "WALLET",
 
 	// Roles (GET operations)
 	"GET roles":     "ROLE",
 	"GET job_roles": "JOBROLE",
 
 	// Services (GET operations)
-	"GET services": "SERVICE",
+	"GET services":    "SERVICE",
+	"DELETE services": "SERVICE",
+	"PATCH services":  "SERVICE",
 
 	// Topup (GET operations)
 	"GET topups":      "TOPUP",
@@ -247,8 +243,7 @@ var cpsActionRegistry = map[string]string{
 	"DELETE service": "Service",
 
 	// Services module
-	"POST services":  "SERVICE",
-	"PATCH services": "SERVICE",
+	"POST services": "SERVICE",
 
 	// Topup
 	"POST topups":                     "TOPUP",
@@ -283,8 +278,144 @@ var cpsActionRegistry = map[string]string{
 	"DELETE customer-segmentations": "CUSTOMERSEGMENTATIONS",
 
 	// CPS Roles
-	"POST cps-roles":  "CPSROLES",
-	"PATCH cps-roles": "CPSROLES",
+	"POST cps-roles":  "CPSROLE",
+	"PATCH cps-roles": "CPSROLE",
+
+	// CPS Action
+	"PATCH actions": "CPSACTION",
+	"GET actions":   "CPSACTION",
+
+	// BPS Action
+	"PATCH bps_actions": "BPSACTION",
+	"GET bps_actions":   "BPSACTION",
+	"POST bps_actions":  "BPSACTION",
+
+	// Feedback
+	"POST feedback-surveys":  "FEEDBACK",
+	"GET feedback":           "FEEDBACK",
+	"GET customer-feedbacks": "FEEDBACK",
+	"GET survey-feedbacks":   "FEEDBACK",
+
+	// Sitota
+	"GET sitotas": "SITOTA",
+
+	// Transaction
+	"GET transactions": "TRANSACTION",
+
+	// Portal Card
+	"GET portal_cards": "PORTALCARD",
+
+	//========= the missing ones (to be categorized properly) =========
+	// Access List Segmentation
+	"GET access_list_segmentation": "ACCESSLISTSEGMENTATION",
+
+	// Advert
+	"GET adverts": "ADVERT",
+
+	// Amount Based Auth
+	"DELETE amount_based_auth": "AMOUNTBASEDAUTH",
+	"POST amount_based_auth":   "AMOUNTBASEDAUTH",
+
+	// Avatar
+	"GET avatar": "AVATAR",
+
+	// BankVault
+	// "GET vault":     "BANKVAULT",
+
+	// Vault Categories
+	"GET vault": "VAULTCATEGORIES",
+
+	// Vault Deadlocks
+	"GET vault/deadlocks": "VAULTEMERGENCYDEADLOCKREQUEST",
+
+	// BPS Action Role
+	"GET bps-action-roles":    "BPSACTIONROLE",
+	"GET bps-action-list":     "BPSACTIONROLE",
+	"DELETE bps-action-roles": "BPSACTIONROLE",
+
+	// BPS User
+	"DELETE bps_users": "BPSUSER",
+
+	// Budget Category
+	"GET budget-category": "BUDGETCATEGORY",
+
+	// Bulk Service
+	"GET bulk_services": "BULKSERVICEALLUSER",
+
+	// CPS Action Role
+	"GET cps-action-roles":    "CPSACTIONROLE",
+	"GET cps-action-list":     "CPSACTIONROLE",
+	"DELETE cps-action-roles": "CPSACTIONROLE",
+
+	// CPS Roles
+	"GET cps-roles":    "CPSROLE",
+	"DELETE cps-roles": "CPSROLE",
+
+	// Customer KYC
+	"POST customers/kyc":   "CUSTOMERKYC",
+	"DELETE customers/kyc": "CUSTOMERKYC",
+
+	// Customer Segmentation
+	"GET customer-segmentations": "BULKSERVICECUSTOMERSEGMENT",
+
+	// Department
+	"DELETE departments": "DEPARTMENT",
+
+	// Device Version
+	"GET device_versions": "DEVICEVERSION",
+
+	// Donation
+	"GET donation": "DONATION",
+
+	// Donation Category
+	"GET donation_category":    "DONATIONCATEGORY",
+	"DELETE donation_category": "DONATIONCATEGORY",
+
+	// Donation Company
+	"GET donation_company":    "DONATIONCOMPANY",
+	"DELETE donation_company": "DONATIONCOMPANY",
+	"GET account_lookup":      "DONATIONCOMPANY",
+
+	// Ecommerce Merchant
+	"GET ecommerce-merchant": "ECOMMERCEMERCHANT",
+
+	// Event Merchant
+	"GET event_merchants": "EVENTMERCHANT",
+	"GET event-merchant":  "EVENTMERCHANT",
+
+	// HQ
+	"GET hq": "HQ",
+
+	// Job Roles
+	"DELETE job_roles": "JOBROLE",
+
+	// KYC Verifier
+	"GET kyc_verifier": "KYCVERIFIER",
+
+	// Logistics Merchant
+	"GET logistics_merchants":    "LOGISTICSMERCHANT",
+	"DELETE logistics_merchants": "LOGISTICSMERCHANT",
+
+	// News Category
+	"GET news/category": "NEWSCATEGORY",
+
+	// News Tag
+	"GET news/tags": "NEWSTAG",
+
+	// Password Rule
+	"GET password_rule": "PASSWORDRULE",
+
+	// Roles
+	"DELETE roles": "ROLE",
+
+	// Services
+	"GET services_list":    "SERVICE",
+	"POST services_list":   "SERVICE",
+	"PATCH services_list":  "SERVICE",
+	"DELETE services_list": "SERVICE",
+
+	// Unlink
+	"GET unlink": "UNLINKDEVICE",
 }
 
 func extractResource(path string) string {
@@ -500,48 +631,49 @@ func CPSActionRouteGuard(r *http.Request, whitelist []string) error {
 	}
 
 	// Check if the user's job_title role is enabled
-	if roleRepo != nil {
-		roleCacheKey := "role_enabled:" + roleCode
+	// if roleRepo != nil {
+	// 	roleCacheKey := "role_enabled:" + roleCode
 
-		if ent, ok := roleEnabledCache.get(roleCacheKey); ok {
-			if !ent.allow {
-				return errors.New(localization.ErrorOperationNotAllowed.Message)
-			}
-		} else {
-			role, err := cpsApproveRepo.FindByRoleAndAction(r.Context(), roleCode, actionName, 0)
-			if err != nil || role == nil {
-				if guardLogger != nil {
-					guardLogger.Errorf("[ActionRegistry][RouteGuard] role lookup err code: %s: %v", roleCode, err)
-				}
-				return errors.New(localization.ErrorOperationNotAllowed.Message)
-			}
+	// 	if ent, ok := roleEnabledCache.get(roleCacheKey); ok {
+	// 		if !ent.allow {
+	// 			return errors.New(localization.ErrorOperationNotAllowed.Message)
+	// 		}
+	// 	} else {
+	// 		guardLogger.Infof("[ActionRegistry][RouteGuard] role enabled cache miss for role code: %s actionName: %s", roleCode, actionName)
+	// 		role, err := cpsApproveRepo.FindByRoleAndAction(r.Context(), roleCode, actionName, 0)
+	// 		if err != nil {
+	// 			if guardLogger != nil {
+	// 				guardLogger.Errorf("[ActionRegistry][RouteGuard] role lookup err code: %s: %v", roleCode, err)
+	// 			}
+	// 			return errors.New(localization.ErrorOperationNotAllowed.Message)
+	// 		}
 
-			if role != nil {
-				actionRole, actionErr := actionRoleRepo.FindByActionName(r.Context(), actionName)
-				if actionErr != nil || actionRole == nil {
-					if guardLogger != nil {
-						guardLogger.Errorf("[ActionRegistry][RouteGuard] action role lookup err for action: %s: %v", actionName, actionErr)
-					}
-				}
+	// 		if role != nil {
+	// 			actionRole, actionErr := actionRoleRepo.FindByActionName(r.Context(), actionName)
+	// 			if actionErr != nil || actionRole == nil {
+	// 				if guardLogger != nil {
+	// 					guardLogger.Errorf("[ActionRegistry][RouteGuard] action role lookup err for action: %s: %v", actionName, actionErr)
+	// 				}
+	// 			}
 
-				roleEnabledCache.set(roleCacheKey, allowEntry{
-					allow: actionRole.Enabled,
-					exp:   nowPlus(roleEnabledCache.ttl),
-				})
+	// 			roleEnabledCache.set(roleCacheKey, allowEntry{
+	// 				allow: actionRole.Enabled,
+	// 				exp:   nowPlus(roleEnabledCache.ttl),
+	// 			})
 
-				if !actionRole.Enabled {
-					return errors.New(localization.ErrorOperationNotAllowed.Message)
-				}
-			}
-		}
-	}
+	// 			if !actionRole.Enabled {
+	// 				return errors.New(localization.ErrorOperationNotAllowed.Message)
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	action := strings.ToUpper(strings.TrimSpace(actionName))
-	cacheKey := roleCode + ":" + action
+	// cacheKey := roleCode + ":" + action
 
-	if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
-		return nil
-	}
+	// if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
+	// 	return nil
+	// }
 
 	allowed, err := cpsApproveRepo.ExistsByRoleAndAction(r.Context(), roleCode, action)
 	if err != nil {
@@ -551,12 +683,12 @@ func CPSActionRouteGuard(r *http.Request, whitelist []string) error {
 		return errors.New(localization.ErrorOperationNotAllowed.Message)
 	}
 
-	if allowed {
-		cpsGuardCache.set(cacheKey, allowEntry{
-			allow: true,
-			exp:   nowPlus(cpsGuardCache.ttl),
-		})
-	}
+	// if allowed {
+	// cpsGuardCache.set(cacheKey, allowEntry{
+	// 	allow: true,
+	// 	exp:   nowPlus(cpsGuardCache.ttl),
+	// })
+	// }
 
 	if !allowed {
 		return errors.New(localization.ErrorOperationNotAllowed.Message)
@@ -686,6 +818,10 @@ func GetActionNameFromPath(method, path string) string {
 
 	// Handle special cases for news endpoints
 	if strings.Contains(relPath, "news/category") {
+		return "NEWSCATEGORY"
+	}
+
+	if strings.Contains(relPath, "news/categories") {
 		return "NEWSCATEGORY"
 	}
 	if strings.Contains(relPath, "news/tag") {

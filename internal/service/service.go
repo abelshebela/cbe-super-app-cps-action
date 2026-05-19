@@ -42,11 +42,8 @@ import (
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 
-	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
-
 	cps_role_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
-	customer_kyc_dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
 
 	"context"
@@ -54,6 +51,8 @@ import (
 
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
+
+	event_model "cbe-super-app-cps-action/internal/constants/model"
 
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
@@ -63,6 +62,7 @@ import (
 
 	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
 	cps_roles_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
+	cust_kyc_dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	queue "cbe-super-app-cps-action/internal/storage/queue_system"
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
@@ -229,7 +229,7 @@ type DonationCompanyService interface {
 	CreateDonationCompany(ctx context.Context, donationCompany donationComp_dto.DonationCompanyRequest) error
 	FetchDonationCompany(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]donationComp_dto.DonationCompanyListResponse], error)
 	FetchDonationCompanyByID(ctx context.Context, id string) (*donationComp_dto.DonationCompanyListResponse, error)
-	UpdateDonationCompany(ctx context.Context, id string, donationCompany donationComp_dto.DonationCompanyRequest) (*donation_model.DonationCompany, error)
+	UpdateDonationCompany(ctx context.Context, id string, donationCompany donationComp_dto.DonationCompanyRequest) (*imodel.DonationCompanyOracle, error)
 	AccountLookup(ctx context.Context, accountNumber string) (*model.AccountDetail, error)
 	EnableDonationCompany(ctx context.Context, id string) error
 	DisableDonationCompany(ctx context.Context, id string) error
@@ -309,6 +309,8 @@ type EcommerceMerchantService interface {
 	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
+	DeleteBranch(ctx context.Context, id string) error
+	EnableOrDisableBranch(ctx context.Context, id string, enable bool) error
 	MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error)
 }
 
@@ -383,6 +385,7 @@ type WalletService interface {
 	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest) error
 	DeleteWallet(ctx context.Context, id string) error
 	EnableOrDisableWallet(ctx context.Context, id string, enable bool) error
+	EnableOrDisableWalletService(ctx context.Context, id string, enable bool) error
 	GetWallet(ctx context.Context, id string) (*local_model.WalletOracle, error)
 	GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.WalletOracle], error)
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
@@ -415,6 +418,7 @@ type AccountBlockService interface {
 	EnableOrDisableDistricts(ctx context.Context, regionIds []string, reason string, enabled bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	GetAccountBlockDetails(ctx context.Context, id string, filter *types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error)
+	GetPreviousReasons(ctx context.Context, id string) (*account_block_dto.PreviousDisableReasonsResponse, error)
 }
 
 type AccountValidationService interface {
@@ -491,12 +495,12 @@ type KeyGeneratorService interface {
 }
 
 type EventMerchantService interface {
-	Update(ctx context.Context, id string, eventMerchant model.EventMerchant) error
-	Create(ctx context.Context, eventMerchant model.EventMerchant) error
+	Update(ctx context.Context, id string, eventMerchant event_model.EventMerchant) error
+	Create(ctx context.Context, eventMerchant event_model.EventMerchant) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error)
+	FindByID(ctx context.Context, id string) (*event_model.EventMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]event_model.EventMerchant], error)
 	EventMerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
@@ -834,10 +838,11 @@ type UssdMerchantService interface {
 }
 
 type CustomerKYCService interface {
-	Create(ctx context.Context, req customer_kyc_dto.CreateCustomerKYCRequest) error
-	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error)
-	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
-	UpdateKYCStatus(ctx context.Context, id, status string) error
-	Delete(ctx context.Context, id string) error
+	// Create(ctx context.Context, req customer_kyc_dto.CreateCustomerKYCRequest) error
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]cust_kyc_dto.CustomerKYCResponse], error)
+	FindByID(ctx context.Context, id string) (*cust_kyc_dto.CustomerKYCResponse, error)
+	EnableOrDisable(ctx context.Context, id, reason string, enable bool) error
+	// UpdateKYCStatus(ctx context.Context, id, status string) error
+	// Delete(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

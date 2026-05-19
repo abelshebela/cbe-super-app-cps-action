@@ -14,14 +14,13 @@ import (
 	"context"
 	"errors"
 	"path"
-	"strings"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
-	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.opentelemetry.io/otel/attribute"
@@ -96,9 +95,9 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		span.AddEvent("Incomplete user data", trace.WithAttributes(
-			attribute.String("error", localization.ErrorAccountNumberRequired.Code),
+			attribute.String("error", localization.ErrorIncompleteUserInfo.Code),
 		))
-		return errors.New(localization.ErrorAccountNumberRequired.Code)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	ok, err := core.CompanyNameExists(ctx, donationCompany.CompanyName, d.DonationCompanyRepo)
 	if err != nil {
@@ -114,24 +113,6 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 			attribute.String("company_name", donationCompany.CompanyName),
 		))
 		return errors.New(localization.ErrorCompanyNameAlreadyExists.Code)
-	}
-
-	if err = core.CheckIfAccountExists(ctx, donationCompany.AccountNumber, d.DonationCompanyRepo); err != nil {
-		span.AddEvent("Account already exists", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("account_number", donationCompany.AccountNumber),
-		))
-		return err
-	}
-
-	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService)
-	if err != nil {
-		d.logger.Errorf("[DonCompSvc][Create] account validation err: %v", err)
-		span.AddEvent("Account number validation failed", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("account_number", donationCompany.AccountNumber),
-		))
-		return err
 	}
 
 	if donationCompany.CompanyLogo == nil {
@@ -151,16 +132,6 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 
 	donationCompany.CompanyCode = "DON-COMPANY-" + local_util.UniqueIdGenerator()
 	result := core.MapToDonationCompanyResponse(donationCompany, url)
-	result.AccountHolderName = accountDetail.CustomerName
-	if strings.Contains(accountDetail.Restriction, "YES") {
-		// Handle the case where the account is restricted
-		span.AddEvent("Account number is restricted", trace.WithAttributes(
-			attribute.String("account_number", donationCompany.AccountNumber),
-			attribute.String("restriction", accountDetail.Restriction),
-		))
-		d.logger.Warnf("[DonCompSvc][Create] account number is restricted: %s", donationCompany.AccountNumber)
-		return errors.New(localization.ErrorAccountNumberRestricted.Code)
-	}
 	cpsAction := lib.CpsModelBuilder("", makerData, "", result, string(constants.RequestCreateDonationCompany), constants.CREATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
@@ -171,17 +142,17 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 	return nil
 }
 
-func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, donationCompany dto.DonationCompanyRequest) (*donation_model.DonationCompany, error) {
+func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, donationCompany dto.DonationCompanyRequest) (*imodel.DonationCompanyOracle, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateDonationCompany", "DonationCompany", "UpdateDonationCompany")
 	defer span.End()
 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		span.AddEvent("Incomplete user data", trace.WithAttributes(
-			attribute.String("error", localization.ErrorAccountNumberRequired.Code),
+			attribute.String("error", localization.ErrorIncompleteUserInfo.Code),
 			attribute.String("id", id),
 		))
-		return nil, errors.New(localization.ErrorAccountNumberRequired.Code)
+		return nil, errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	existingCompany, err := d.DonationCompanyRepo.FindByID(ctx, id)
@@ -200,7 +171,7 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 		return nil, errors.New(localization.ErrorFileNotFound.Code)
 	}
 
-	if err := core.CheckDataSimilarityAndValidation(ctx, donationCompany, existingCompany, d.DonationCompanyRepo, d.accountLookupService); err != nil {
+	if err := core.CheckDataSimilarityAndValidation(ctx, donationCompany, existingCompany, d.DonationCompanyRepo); err != nil {
 		span.AddEvent("Data similarity validation failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -232,21 +203,6 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 	if donationCompany.CompanyName == "" {
 		updateData.CompanyName = existingCompany.CompanyName
 	}
-	if donationCompany.AccountNumber != "" {
-		accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService)
-		if err != nil {
-			span.AddEvent("Account number validation failed", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("id", id),
-				attribute.String("account_number", donationCompany.AccountNumber),
-			))
-			return nil, err
-		}
-		updateData.AccountHolderName = accountDetail.CustomerName
-	} else {
-		updateData.AccountNumber = existingCompany.AccountNumber
-		updateData.AccountHolderName = existingCompany.AccountHolderName
-	}
 
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingCompany, updateData, string(constants.RequestUpdateDonationCompany), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
@@ -274,7 +230,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
 
-	donationCompoany, err := local_util.JsonUnmarshal[donation_model.DonationCompany](action.CurrentAction)
+	donationCompoany, err := local_util.JsonUnmarshal[imodel.DonationCompanyOracle](action.CurrentAction)
 	if err != nil {
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -367,7 +323,7 @@ func (d *DonationCompany) AccountLookup(ctx context.Context, accountNumber strin
 	ctx, span := local_util.TraceLogger(ctx, "service", "AccountLookup", "DonationCompany", "AccountLookup")
 	defer span.End()
 
-	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, accountNumber, d.accountLookupService)
+	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, accountNumber, d.accountLookupService, d.logger)
 	if err != nil {
 		d.logger.Errorf("[DonCompSvc][AccountLookup] validation err: %v", err)
 		span.AddEvent("Account number validation failed", trace.WithAttributes(

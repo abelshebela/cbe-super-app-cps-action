@@ -98,7 +98,7 @@ func (q *accessListSegmentationOracle) CreateAccountSegment(ctx context.Context,
 
 	paramIdx := 1
 	for _, key := range accessListSegmentation.AccessListKeys {
-		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), HEXTORAW(:%d), :%d, :%d, :%d, :%d, :%d)", paramIdx, paramIdx+1, paramIdx+2, paramIdx+3, paramIdx+4, paramIdx+5))
+		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), HEXTORAW(:%d), :%d, :%d, :%d, :%d, :%d, :%d)", paramIdx, paramIdx+1, paramIdx+2, paramIdx+3, paramIdx+4, paramIdx+5, paramIdx+6))
 		valueArgs = append(valueArgs,
 			key,                                   // ACCESS_LIST_ID
 			accessListSegmentation.SegmentationID, // SUPERAPP_ROLE_ID
@@ -112,7 +112,7 @@ func (q *accessListSegmentationOracle) CreateAccountSegment(ctx context.Context,
 			SegmentedID:   accessListSegmentation.SegmentationID,
 			Enabled:       true,
 		})
-		paramIdx += 6
+		paramIdx += 7
 	}
 
 	stmt := `
@@ -154,7 +154,7 @@ func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, a
 	// Use positional parameters for each value
 	paramIdx := 1
 	for _, key := range accessListSegmentation.AccessListKeys {
-		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), HEXTORAW(:%d), :%d, :%d, :%d, :%d, :%d, :%d)", paramIdx, paramIdx+1, paramIdx+2, paramIdx+3, paramIdx+4, paramIdx+5, paramIdx+6))
+		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), HEXTORAW(:%d), :%d, :%d, :%d, :%d, :%d, :%d, :%d)", paramIdx, paramIdx+1, paramIdx+2, paramIdx+3, paramIdx+4, paramIdx+5, paramIdx+6, paramIdx+7))
 		valueArgs = append(valueArgs,
 			key,                                   // ACCESS_LIST_ID
 			accessListSegmentation.SegmentationID, // SUPERAPP_ROLE_ID
@@ -169,7 +169,7 @@ func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, a
 			SegmentedID:   accessListSegmentation.SegmentationID,
 			Enabled:       true,
 		})
-		paramIdx += 7
+		paramIdx += 8
 	}
 
 	stmt := `

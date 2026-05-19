@@ -545,6 +545,22 @@ WHERE SR.ID = HEXTORAW(:1)
 
 	return &r, nil
 }
+
+func (m *cpsRoleStorage) FindSupperAppRoleByAccessList(ctx context.Context, accessListID string) (bool, error) {
+	const q = `SELECT ID FROM ACCESS_LIST_BY_SUPERAPP_ROLE WHERE SUPERAPP_ROLE_ID = :1 AND IS_DELETED = 0`
+
+	var id string
+	err := m.db.QueryRowContext(ctx, q, accessListID).Scan(&id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		m.logger.Errorf("[CPSRolesStorage][FindSupperAppRoleByAccessList] query failed: %v", err)
+		return false, err
+	}
+	return true, nil
+}
+
 func (m *cpsRoleStorage) FindByNameOrRoleCode(ctx context.Context, name, roleCode string) (*imodel.CPSRoles, error) {
 	name = strings.TrimSpace(name)
 	roleCode = strings.TrimSpace(roleCode)

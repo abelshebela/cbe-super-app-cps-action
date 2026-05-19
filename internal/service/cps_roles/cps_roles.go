@@ -214,6 +214,15 @@ func (r *cpsRoleService) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
+	// Check Access list by superapp role
+	sar, err := r.repo.FindSupperAppRoleByAccessList(ctx, id)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		return err
+	}
+	if sar {
+		return errors.New("There is an active customer segmentation with this access list")
+	}
+
 	updated := *existing
 	updated.DeletedAt = time.Now()
 

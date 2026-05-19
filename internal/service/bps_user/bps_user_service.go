@@ -414,10 +414,10 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 			if err.Error() != localization.ErrorResourceNotFound.Code {
 			b.logger.Errorf("[UpdateBPSUser] branch not found")
 			return errors.New(localization.ErrorBranchNotFoundRequired.Code)
-		} else{
-			b.logger.Errorf("[UpdateBPSUser] Get error while locking branch name by branch code")
-			return errors.New(localization.ErrorInternalServerError.Code)
-		}
+			} else{
+				b.logger.Errorf("[UpdateBPSUser] Get error while locking branch name by branch code")
+				return errors.New(localization.ErrorInternalServerError.Code)
+			}
 		}
 		if branch_detail == nil {
 			b.logger.Warnf("[UpdateBPSUser] branch not found with given branch code")

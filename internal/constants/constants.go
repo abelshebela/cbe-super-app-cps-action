@@ -667,11 +667,14 @@ const (
 	RequestDisableUssdMerchant string = "DISABLE_USSD_MERCHANT"
 
 	// Ecommerce Merchant
-	RequestCreateEcommerceMerchant  RequestAction = "CREATE_ECOMMERCE_MERCHANT"
-	RequestUpdateEcommerceMerchant  RequestAction = "UPDATE_ECOMMERCE_MERCHANT"
-	RequestEnableEcommerceMerchant  RequestAction = "ENABLE_ECOMMERCE_MERCHANT"
-	RequestDisableEcommerceMerchant RequestAction = "DISABLE_ECOMMERCE_MERCHANT"
-	RequestDeleteEcommerceMerchant  RequestAction = "DELETE_ECOMMERCE_MERCHANT"
+	RequestCreateEcommerceMerchant        RequestAction = "CREATE_ECOMMERCE_MERCHANT"
+	RequestUpdateEcommerceMerchant        RequestAction = "UPDATE_ECOMMERCE_MERCHANT"
+	RequestEnableEcommerceMerchant        RequestAction = "ENABLE_ECOMMERCE_MERCHANT"
+	RequestDisableEcommerceMerchant       RequestAction = "DISABLE_ECOMMERCE_MERCHANT"
+	RequestDeleteEcommerceMerchant        RequestAction = "DELETE_ECOMMERCE_MERCHANT"
+	RequestDeleteEcommerceMerchantBranch  RequestAction = "DELETE_ECOMMERCE_MERCHANT_BRANCH"
+	RequestEnableEcommerceMerchantBranch  RequestAction = "ENABLE_ECOMMERCE_MERCHANT_BRANCH"
+	RequestDisableEcommerceMerchantBranch RequestAction = "DISABLE_ECOMMERCE_MERCHANT_BRANCH"
 
 	// Action Role
 	RequestUser                 RequestAction = "USER"
@@ -774,11 +777,13 @@ const (
 	RequestEnableFaydaAccount    RequestAction = "ENABLE_FAYDA_ACCOUNT"
 
 	// Wallet
-	RequestCreateWallet  RequestAction = "CREATE_WALLET"
-	RequestUpdateWallet  RequestAction = "UPDATE_WALLET"
-	RequestDeleteWallet  RequestAction = "DELETE_WALLET"
-	RequestEnableWallet  RequestAction = "ENABLE_WALLET"
-	RequestDisableWallet RequestAction = "DISABLE_WALLET"
+	RequestCreateWallet         RequestAction = "CREATE_WALLET"
+	RequestUpdateWallet         RequestAction = "UPDATE_WALLET"
+	RequestDeleteWallet         RequestAction = "DELETE_WALLET"
+	RequestEnableWallet         RequestAction = "ENABLE_WALLET"
+	RequestDisableWallet        RequestAction = "DISABLE_WALLET"
+	RequestEnableWalletService  RequestAction = "ENABLE_WALLET_SERVICE"
+	RequestDisableWalletService RequestAction = "DISABLE_WALLET_SERVICE"
 
 	// Services catalog (model.Services)
 	RequestCreateServiceList  RequestAction = "CREATE_SERVICE_LIST"
@@ -1058,9 +1063,11 @@ const (
 	RequestDeleteShortVideo  string = "DELETE_SHORT_VIDEO"
 
 	// Customer KYC
-	RequestCreateCustomerKYC RequestAction = "CREATE_CUSTOMER_KYC"
-	RequestUpdateCustomerKYC RequestAction = "UPDATE_CUSTOMER_KYC"
-	RequestDeleteCustomerKYC RequestAction = "DELETE_CUSTOMER_KYC"
+	// RequestCreateCustomerKYC  RequestAction = "CREATE_CUSTOMER_KYC"
+	RequestApproveCustomerKYC RequestAction = "APPROVE_CUSTOMER_KYC"
+	RequestRejectCustomerKYC  RequestAction = "REJECT_CUSTOMER_KYC"
+	// RequestUpdateCustomerKYC RequestAction = "UPDATE_CUSTOMER_KYC"
+	// RequestDeleteCustomerKYC RequestAction = "DELETE_CUSTOMER_KYC"
 )
 
 const (

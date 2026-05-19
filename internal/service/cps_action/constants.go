@@ -42,9 +42,11 @@ func IsValidActionType(actionType string) bool {
 
 const (
 	// Customer KYC
-	RequestCreateCustomerKYC constants.RequestAction = "CREATE_CUSTOMER_KYC"
-	RequestUpdateCustomerKYC constants.RequestAction = "UPDATE_CUSTOMER_KYC"
-	RequestDeleteCustomerKYC constants.RequestAction = "DELETE_CUSTOMER_KYC"
+	// RequestCreateCustomerKYC  constants.RequestAction = "CREATE_CUSTOMER_KYC"
+	RequestApproveCustomerKYC constants.RequestAction = "APPROVE_CUSTOMER_KYC"
+	RequestRejectCustomerKYC  constants.RequestAction = "REJECT_CUSTOMER_KYC"
+	// RequestUpdateCustomerKYC  constants.RequestAction = "UPDATE_CUSTOMER_KYC"
+	// RequestDeleteCustomerKYC  constants.RequestAction = "DELETE_CUSTOMER_KYC"
 
 	RequestCreateCpsRole     constants.RequestAction = "CREATE_CPS_ROLE"
 	RequestUpdateCpsRole     constants.RequestAction = "UPDATE_CPS_ROLE"
@@ -147,18 +149,24 @@ const (
 	RequestDeleteWallet               constants.RequestAction = "DELETE_WALLET"
 	RequestEnableWallet               constants.RequestAction = "ENABLE_WALLET"
 	RequestDisableWallet              constants.RequestAction = "DISABLE_WALLET"
+	RequestEnableWalletService        constants.RequestAction = "ENABLE_WALLET_SERVICE"
+	RequestDisableWalletService       constants.RequestAction = "DISABLE_WALLET_SERVICE"
 
-	RequestCreateEcommerceMerchant  constants.RequestAction = "CREATE_ECOMMERCE_MERCHANT"
-	RequestUpdateEcommerceMerchant  constants.RequestAction = "UPDATE_ECOMMERCE_MERCHANT"
-	RequestEnableEcommerceMerchant  constants.RequestAction = "ENABLE_ECOMMERCE_MERCHANT"
-	RequestDisableEcommerceMerchant constants.RequestAction = "DISABLE_ECOMMERCE_MERCHANT"
-	RequestDeleteEcommerceMerchant  constants.RequestAction = "DELETE_ECOMMERCE_MERCHANT"
+	RequestCreateEcommerceMerchant        constants.RequestAction = "CREATE_ECOMMERCE_MERCHANT"
+	RequestUpdateEcommerceMerchant        constants.RequestAction = "UPDATE_ECOMMERCE_MERCHANT"
+	RequestEnableEcommerceMerchant        constants.RequestAction = "ENABLE_ECOMMERCE_MERCHANT"
+	RequestDisableEcommerceMerchant       constants.RequestAction = "DISABLE_ECOMMERCE_MERCHANT"
+	RequestDeleteEcommerceMerchant        constants.RequestAction = "DELETE_ECOMMERCE_MERCHANT"
+	RequestDeleteEcommerceMerchantBranch  constants.RequestAction = "DELETE_ECOMMERCE_MERCHANT_BRANCH"
+	RequestEnableEcommerceMerchantBranch  constants.RequestAction = "ENABLE_ECOMMERCE_MERCHANT_BRANCH"
+	RequestDisableEcommerceMerchantBranch constants.RequestAction = "DISABLE_ECOMMERCE_MERCHANT_BRANCH"
 
 	// Services catalog (model.Services)
 	RequestCreateService      constants.RequestAction = "CREATE_SERVICE"
 	RequestUpdateService      constants.RequestAction = "UPDATE_SERVICE"
 	RequestEnableService      constants.RequestAction = "ENABLE_SERVICE"
 	RequestDisableService     constants.RequestAction = "DISABLE_SERVICE"
+	RequestDeleteService      constants.RequestAction = "DELETE_SERVICE"
 	RequestCreateServiceList  constants.RequestAction = "CREATE_SERVICE_LIST"
 	RequestUpdateServiceList  constants.RequestAction = "UPDATE_SERVICE_LIST"
 	RequestEnableServiceList  constants.RequestAction = "ENABLE_SERVICE_LIST"
@@ -439,11 +447,14 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestBpsUserEnable:  {},
 	RequestBpsUserDisable: {},
 
-	RequestCreateEcommerceMerchant:  {},
-	RequestUpdateEcommerceMerchant:  {},
-	RequestEnableEcommerceMerchant:  {},
-	RequestDisableEcommerceMerchant: {},
-	RequestDeleteEcommerceMerchant:  {},
+	RequestCreateEcommerceMerchant:        {},
+	RequestUpdateEcommerceMerchant:        {},
+	RequestEnableEcommerceMerchant:        {},
+	RequestDisableEcommerceMerchant:       {},
+	RequestDeleteEcommerceMerchant:        {},
+	RequestDeleteEcommerceMerchantBranch:  {},
+	RequestEnableEcommerceMerchantBranch:  {},
+	RequestDisableEcommerceMerchantBranch: {},
 
 	RequestCreateDonationCategory: {},
 	RequestUpdateDonationCategory: {},
@@ -491,26 +502,29 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestBPSUser:          {},
 	// RequestDisableBPSUser:   {},
 	// RequestEnableBPSUser:    {},
-	RequestUpdateUser:      {},
-	RequestTotalDailyLimit: {},
-	RequestUpdateVAT:       {},
-	RequestAuthTier:        {},
-	RequestCreateAdvert:    {},
-	RequestUpdateAdvert:    {},
-	RequestEnableAdvert:    {},
-	RequestDisableAdvert:   {},
-	RequestDeleteAdvert:    {},
-	RequestCreateBank:      {},
-	RequestUpdateBank:      {},
-	RequestUpdateBankLogo:  {},
-	RequestEnableWallet:    {},
-	RequestDisableWallet:   {},
+	RequestUpdateUser:           {},
+	RequestTotalDailyLimit:      {},
+	RequestUpdateVAT:            {},
+	RequestAuthTier:             {},
+	RequestCreateAdvert:         {},
+	RequestUpdateAdvert:         {},
+	RequestEnableAdvert:         {},
+	RequestDisableAdvert:        {},
+	RequestDeleteAdvert:         {},
+	RequestCreateBank:           {},
+	RequestUpdateBank:           {},
+	RequestUpdateBankLogo:       {},
+	RequestEnableWallet:         {},
+	RequestDisableWallet:        {},
+	RequestEnableWalletService:  {},
+	RequestDisableWalletService: {},
 
 	// Services catalog
 	RequestCreateService:      {},
 	RequestUpdateService:      {},
 	RequestEnableService:      {},
 	RequestDisableService:     {},
+	RequestDeleteService:      {},
 	RequestCreateServiceList:  {},
 	RequestUpdateServiceList:  {},
 	RequestEnableServiceList:  {},
@@ -714,9 +728,11 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestUpdateAccessListSegmentation:        {},
 	RequestEnableDisableAccessListSegmentation: {},
 
-	RequestCreateCustomerKYC: {},
-	RequestUpdateCustomerKYC: {},
-	RequestDeleteCustomerKYC: {},
+	RequestApproveCustomerKYC: {},
+	RequestRejectCustomerKYC:  {},
+	// RequestCreateCustomerKYC: {},
+	// RequestUpdateCustomerKYC: {},
+	// RequestDeleteCustomerKYC: {},
 
 	RequestEnableDisableBank: {},
 }
@@ -812,6 +828,7 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestUpdateService,
 		RequestEnableService,
 		RequestDisableService,
+		RequestDeleteService,
 		RequestCreateServiceList,
 		RequestUpdateServiceList,
 		RequestEnableServiceList,
@@ -950,6 +967,8 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestDeleteWallet,
 		RequestEnableWallet,
 		RequestDisableWallet,
+		RequestEnableWalletService,
+		RequestDisableWalletService,
 	},
 	"TOPUP": {
 		RequestCreateTopup,
@@ -1198,6 +1217,9 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestEnableEcommerceMerchant,
 		RequestDisableEcommerceMerchant,
 		RequestDeleteEcommerceMerchant,
+		RequestDeleteEcommerceMerchantBranch,
+		RequestEnableEcommerceMerchantBranch,
+		RequestDisableEcommerceMerchantBranch,
 	},
 	"CPSROLE": {
 		RequestCreateCpsRole,
@@ -1207,9 +1229,11 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestDisableCpsRole,
 	},
 	"CUSTOMERKYC": {
-		RequestCreateCustomerKYC,
-		RequestUpdateCustomerKYC,
-		RequestDeleteCustomerKYC,
+		RequestApproveCustomerKYC,
+		RequestRejectCustomerKYC,
+		// RequestCreateCustomerKYC,
+		// RequestUpdateCustomerKYC,
+		// RequestDeleteCustomerKYC,
 	},
 }
 

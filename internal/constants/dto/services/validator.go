@@ -216,7 +216,7 @@ func validateCap(cap CapRequest) error {
 func (r CreateServiceRequest) Validate() error {
 	err := validation.ValidateStruct(&r,
 		validation.Field(&r.ServiceKeyId, validation.Required, validation.By(utils.NoSpecialChars)),
-		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars), validation.Length(3, 16).Error("service code length must be between 3 - 16 characters")),
 		validation.Field(&r.ProductGlAccount,
 			validation.When(r.ProductGlAccount != "",
 				validation.Match(regexp.MustCompile(`^[a-zA-Z0-9]+$`)).Error("cbe_gl_product_account should be number or alphanumeric")),
@@ -269,7 +269,7 @@ func (r UpdateServiceRequest) Validate() error {
 	err := validation.ValidateStruct(&r,
 		validation.Field(&r.ServiceKeyId, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ServiceKey, validation.By(utils.NoSpecialChars)),
-		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars), validation.Length(3, 16).Error("service code length must be between 3 - 16 characters")),
 		validation.Field(&r.MinimumFraudAmount, validation.Min(0.0).Error("Minimum fraud amount must be greater or equal to zero")),
 		validation.Field(&r.ProductGlAccount,
 			validation.By(utils.NoSpecialChars),
