@@ -151,7 +151,7 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	localization.UpdateWriterContext(w, ctx)
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
 
-	var body roles_dto.RequestRolesCreate
+	var body roles_dto.RequestJobRolesCreate
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
@@ -163,7 +163,7 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role := imodel.Role{
+	role := imodel.JobRole{
 		JobTitle:  strings.TrimSpace(body.JobTitle),
 		Role:      strings.TrimSpace(body.Role),
 		CreatedAt: time.Now(),
@@ -210,7 +210,7 @@ func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var body roles_dto.RequestRolesUpdate
+	var body roles_dto.RequestJobRolesUpdate
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
@@ -221,7 +221,7 @@ func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updated := imodel.Role{
+	updated := imodel.JobRole{
 		UpdateAt: time.Now(),
 	}
 	if body.JobTitle != "" {

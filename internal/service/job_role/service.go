@@ -23,8 +23,8 @@ import (
 
 type jobRoleService struct {
 	cpsService        service.CPSActionService
-	jobRoleRepository storage.JobRoleRepository
-	roleRepository    storage.RoleRepository
+	JobRoleRepository storage.JobRoleRepository
+	RoleRepository    storage.RoleRepository
 	cpsUserRepo       storage.CpsUserRepository
 	cfg               config.VaultConfig
 	logger            utils.Logger
@@ -33,27 +33,27 @@ type jobRoleService struct {
 func NewJobRoleService(jobRole storage.JobRoleRepository, roleRepo storage.RoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository, cfg config.VaultConfig, logger utils.Logger) service.JobRoleService {
 	return &jobRoleService{
 		cpsService:        cpsService,
-		jobRoleRepository: jobRole,
-		roleRepository:    roleRepo,
+		JobRoleRepository: jobRole,
+		RoleRepository:    roleRepo,
 		cpsUserRepo:       cpsUserRepo,
 		cfg:               cfg,
 		logger:            logger,
 	}
 }
 
-func (j *jobRoleService) Create(ctx context.Context, role imodel.Role) error {
+func (j *jobRoleService) Create(ctx context.Context, role imodel.JobRole) error {
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		j.logger.Errorf("[JobRole Service][Create] maker data is incomplete")
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	if err := core.CheckRoleExistent(ctx, role.Role, j.jobRoleRepository); err != nil {
+	if err := core.CheckRoleExistent(ctx, role.Role, j.RoleRepository); err != nil {
 		j.logger.Errorf("[JobRole Service] the give role not found %v", err)
 		return err
 	}
 
-	if err := core.JobTitleExistentChecker(ctx, constants.CREATE, "", role.JobTitle, j.roleRepository); err != nil {
+	if err := core.JobTitleExistentChecker(ctx, constants.CREATE, "", role.JobTitle, j.JobRoleRepository); err != nil {
 		j.logger.Errorf("[JobRole Service] the give job title already exists %v", err)
 		if err.Error() != localization.ErrorResourceNotFound.Code {
 			j.logger.Errorf("[JobRole Service] the give job title not exists")
@@ -65,24 +65,24 @@ func (j *jobRoleService) Create(ctx context.Context, role imodel.Role) error {
 }
 
 // FindAll returns enabled rows from the roles collection with job_roles fields (type, role_code, role_name) via RoleRepository aggregation. Used by GET /job_roles/all.
-func (j *jobRoleService) FindAll(ctx context.Context) (*[]imodel.Role, error) {
-	return j.roleRepository.FindAll(ctx)
+func (j *jobRoleService) FindAll(ctx context.Context) (*[]imodel.JobRole, error) {
+	return j.JobRoleRepository.FindAll(ctx)
 }
 
-func (j *jobRoleService) Update(ctx context.Context, id string, update imodel.Role) error {
+func (j *jobRoleService) Update(ctx context.Context, id string, update imodel.JobRole) error {
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		j.logger.Errorf("[JobRole Service][Update] maker data is incomplete")
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	prev, err := j.roleRepository.FindByID(ctx, id)
+	prev, err := j.JobRoleRepository.FindByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
 	if update.JobTitle != "" {
-		if err := core.CheckJobTitleExistent(ctx, *prev, update.JobTitle, j.roleRepository); err != nil {
+		if err := core.CheckJobTitleExistent(ctx, *prev, update.JobTitle, j.JobRoleRepository); err != nil {
 			j.logger.Errorf("[JobRole Service] the give job title not found")
 			return err
 		}
@@ -109,7 +109,7 @@ func (j *jobRoleService) EnableOrDisable(ctx context.Context, id string, enable 
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	existing, err := j.roleRepository.FindByID(ctx, id)
+	existing, err := j.JobRoleRepository.FindByID(ctx, id)
 	if err != nil {
 		j.logger.Errorf("[JobRole Service][EnableOrDisable] failed to find existing job role: %v", err)
 		return err
@@ -147,7 +147,7 @@ func (j *jobRoleService) Delete(ctx context.Context, id string) error {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	hasActive, err := j.roleRepository.CheckIfExists(ctx, id)
+	hasActive, err := j.JobRoleRepository.CheckIfExists(ctx, id)
 	if err != nil {
 		j.logger.Errorf("[JobRole Service][Delete] failed to find existing job role: %v", err)
 		if err.Error() != localization.ErrorResourceNotFound.Code {
@@ -177,13 +177,13 @@ func (j *jobRoleService) Delete(ctx context.Context, id string) error {
 }
 
 // FindById returns one roles document by id with job_roles join fields. Used by GET /job_roles/{id}.
-func (j *jobRoleService) FindById(ctx context.Context, id string) (*imodel.Role, error) {
-	return j.roleRepository.FindByID(ctx, id)
+func (j *jobRoleService) FindById(ctx context.Context, id string) (*imodel.JobRole, error) {
+	return j.JobRoleRepository.FindByID(ctx, id)
 }
 
 // FindAllWithPagination lists roles collection rows with filters and job_roles enrichment. Used by GET /job_roles.
-func (j *jobRoleService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Role], error) {
-	return j.roleRepository.FindAllWithPagination(ctx, filterParam)
+func (j *jobRoleService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error) {
+	return j.JobRoleRepository.FindAllWithPagination(ctx, filterParam)
 }
 
 func (j *jobRoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.CPSAction) (*sharedmodel.CPSAction, error) {
@@ -200,7 +200,7 @@ func (j *jobRoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.C
 	}
 
 	raw2, _ := json.Marshal(asAny)
-	var role imodel.Role
+	var role imodel.JobRole
 	if err := json.Unmarshal(raw2, &role); err != nil {
 		j.logger.Errorf("[JobRole Service][Authorize] map to Role failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -214,24 +214,24 @@ func (j *jobRoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.C
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestCreateJobRole):
 		role.CreatedAt = time.Now()
-		if err := j.roleRepository.Create(ctx, &role); err != nil {
+		if err := j.JobRoleRepository.Create(ctx, &role); err != nil {
 			return nil, err
 		}
 	case string(constants.RequestUpdateJobRole):
 		role.UpdateAt = time.Now()
-		if err := j.roleRepository.Update(ctx, role.ID.Hex(), &role); err != nil {
+		if err := j.JobRoleRepository.Update(ctx, role.ID.Hex(), &role); err != nil {
 			return nil, err
 		}
 	case constants.RequestEnableJobRole:
-		if err := j.roleRepository.EnableOrDisable(ctx, cpsAction.UniqueId, true); err != nil {
+		if err := j.JobRoleRepository.EnableOrDisable(ctx, cpsAction.UniqueId, true); err != nil {
 			return nil, err
 		}
 	case constants.RequestDisableJobRole:
-		if err := j.roleRepository.EnableOrDisable(ctx, cpsAction.UniqueId, false); err != nil {
+		if err := j.JobRoleRepository.EnableOrDisable(ctx, cpsAction.UniqueId, false); err != nil {
 			return nil, err
 		}
 	case constants.RequestDeleteJobRole:
-		if err := j.roleRepository.SoftDelete(ctx, cpsAction.UniqueId); err != nil {
+		if err := j.JobRoleRepository.SoftDelete(ctx, cpsAction.UniqueId); err != nil {
 			return nil, err
 		}
 	default:
