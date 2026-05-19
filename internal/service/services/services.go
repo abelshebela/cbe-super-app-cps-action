@@ -356,19 +356,19 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		return nil, s.repo.Update(ctx, action.UniqueId, serviceDoc, serviceDoc.ProductGlAccount)
 	case string(constants.RequestEnableService):
 		// err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
-		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, true)
+		return nil, s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, true)
 	case string(constants.RequestDisableService):
 		// err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
-		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, false)
+		return nil, s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, false)
 	case string(constants.RequestDeleteService):
-		err = s.repo.Delete(ctx, action.UniqueId, "")
+		return nil, s.repo.Delete(ctx, action.UniqueId, "")
 	case string(constants.RequestCreateServiceList):
 		listDoc, err := local_util.JsonUnmarshal[imodel.ServiceKey](action.CurrentAction)
 		if err != nil {
 			return nil, localization.ErrorInvalidActionData
 		}
 
-		err = s.repo.CreateServiceKey(ctx, listDoc)
+		return nil, s.repo.CreateServiceKey(ctx, listDoc)
 	case string(constants.RequestUpdateServiceList):
 		listDoc, err := local_util.JsonUnmarshal[imodel.ServiceKey](action.CurrentAction)
 		if err != nil {
@@ -379,11 +379,11 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 			return nil, localization.ErrorInvalidActionData
 		}
 
-		err = s.repo.UpdateServiceKey(ctx, action.UniqueId, prevListDoc.ServiceKey, listDoc)
+		return nil, s.repo.UpdateServiceKey(ctx, action.UniqueId, prevListDoc.ServiceKey, listDoc)
 	case string(constants.RequestDeleteServiceList):
-		err = s.repo.Delete(ctx, "", action.UniqueId)
+		return nil, s.repo.Delete(ctx, "", action.UniqueId)
 	// case string(constants.RequestDeleteServiceKey):
-	// 	err = s.repo.DeleteServiceKey(ctx, action.UniqueId)
+	// 	return nil, s.repo.DeleteServiceKey(ctx, action.UniqueId)
 	case string(constants.RequestEnableServiceList):
 		// listDoc, err := local_util.JsonUnmarshal[model.ServiceKey](action.PreviousAction)
 		// if err != nil {
