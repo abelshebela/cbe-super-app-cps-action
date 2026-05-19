@@ -351,6 +351,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	// --- Service Validation ---
 	serviceForCPS := existingDonation.Service
 	if donation.ServiceID != "" {
+		log.Infof("[DonationSvc][Update] validating service id: %s", donation.ServiceID)
 		svc, err := d.ServicesRepo.FindByID(ctx, donation.ServiceID)
 		if err != nil {
 			span.AddEvent("Service id not found", trace.WithAttributes(
