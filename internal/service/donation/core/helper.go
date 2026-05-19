@@ -37,7 +37,7 @@ func ConvertToDonationImages(images []types.DonationImage) []shared_types.Donati
 
 func DonationTitleExists(ctx context.Context, title string, donationRepo storage.DonationRepository) (bool, error) {
 	donations, err := donationRepo.FindAllWithPagination(ctx, types.Filter{
-		Search: title,
+		Filters: map[string]any{"title": title},
 	})
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		return false, err

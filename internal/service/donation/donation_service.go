@@ -149,7 +149,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 			attribute.String("error", err.Error()),
 			attribute.String("service_id", donation.ServiceID),
 		))
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 
 	if checkExistentDonationForService != nil {
@@ -309,7 +309,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	}
 
 	checkExistentDonationForService, err := d.DonationRepo.FindByServiceID(ctx, donation.ServiceID)
-	if err != nil {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("Failed to check existing donation for service", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("service_id", donation.ServiceID),
@@ -587,8 +587,11 @@ func (d *Donation) UpdateDonationImage(ctx context.Context, id string, image dto
 	}
 
 	var objectkey string
-	if len(existingDonation.DonationImages) > 0 && existingDonation.DonationImages[0].PhotoURL != "" {
-		objectkey = path.Base(existingDonation.DonationImages[0].PhotoURL)
+	for _, img := range existingDonation.DonationImages {
+		if img.ID == image.ImageID && img.PhotoURL != "" {
+			objectkey = path.Base(img.PhotoURL)
+			break
+		}
 	}
 
 	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, image.Image, string(constants.DonationFolderName), *d.cfg, objectkey, d.logger)
@@ -701,13 +704,8 @@ func (d *Donation) AddDonationImage(ctx context.Context, id string, image dto.Do
 	}
 
 	donationImages := make([]types.DonationImage, 0)
-	for i, img := range image.DonationImages {
-		var objectkey string
-		if len(existingDonation.DonationImages) > 0 && existingDonation.DonationImages[i].PhotoURL != "" {
-			objectkey = path.Base(existingDonation.DonationImages[i].PhotoURL)
-		}
-
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationFolderName), *d.cfg, objectkey, d.logger)
+	for _, img := range image.DonationImages {
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationFolderName), *d.cfg, "", d.logger)
 		if err != nil {
 			span.AddEvent("Failed to upload image", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -929,6 +927,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		updateRequest := dto.DonationRequest{
 			CompanyID:           donationCPS.Company.ID,
 			CategoryID:          donationCPS.Category.ID,
+			ServiceID:           donationCPS.Service.ID,
 			Title:               donationCPS.Title,
 			IsFeatured:          donationCPS.IsFeatured,
 			Target:              donationCPS.Target,
