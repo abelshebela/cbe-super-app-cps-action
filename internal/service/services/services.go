@@ -63,7 +63,7 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 			s.logger.Errorf("failed while checking account number existence: %v", err)
 			return err
 		}
-		if accountID == "" {
+		if accountDetail != nil && accountID == "" {
 			s.logger.Errorf("failed while inserting account number to ACCOUNTS: %v", err)
 			accountID, err = s.repo.InsertAccountNumberToAccounts(ctx, *accountDetail)
 			if err != nil {
@@ -101,7 +101,7 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 			s.logger.Errorf("failed while checking account number existence: %v", err)
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
-		if accountID == "" {
+		if accountDetail != nil && accountID == "" {
 			s.logger.Errorf("failed while inserting account number to ACCOUNTS: %v", err)
 			accountID, err = s.repo.InsertAccountNumberToAccounts(ctx, *accountDetail)
 			if err != nil {
