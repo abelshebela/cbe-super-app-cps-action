@@ -111,7 +111,7 @@ func (r *customerStorage) updateCustomerGroupLabelTx(ctx context.Context, tx *sq
 	}
 	const updateQ = `
 UPDATE CUSTOMER_GROUPS
-SET LABEL = :1, LAST_MODIFIED_AT = :2
+SET LABELS = :1, LAST_MODIFIED_AT = :2
 WHERE ID = HEXTORAW(:3) AND IS_DELETED = 0`
 	if _, err := tx.ExecContext(ctx, updateQ, label, now, groupHex); err != nil {
 		r.logger.Errorf("[CustomerSegmentation][updateCustomerGroupLabelTx] update failed: %v", err)
@@ -148,7 +148,7 @@ func (r *customerStorage) findOrCreateCustomerGroupTx(ctx context.Context, tx *s
 	const insertQ = `
 	INSERT INTO CUSTOMER_GROUPS (
 	  NAME,
-	  LABEL,
+	  LABELS,
 	  IS_ENABLED,
 	  IS_DELETED,
 	  CREATED_AT,
@@ -185,7 +185,7 @@ func (r *customerStorage) updateSegmentationLabelTx(ctx context.Context, tx *sql
 	}
 	const updateQ = `
 UPDATE CUSTOMER_SEGMENTATIONS
-SET LABEL = :1, LAST_MODIFIED_AT = :2
+SET LABELS = :1, LAST_MODIFIED_AT = :2
 WHERE ID = HEXTORAW(:3) AND IS_DELETED = 0`
 	if _, err := tx.ExecContext(ctx, updateQ, label, now, segHex); err != nil {
 		r.logger.Errorf("[CustomerSegmentation][updateSegmentationLabelTx] update failed: %v", err)
@@ -224,7 +224,7 @@ func (r *customerStorage) findOrCreateSegmentationTx(ctx context.Context, tx *sq
 	const insertQ = `
 	INSERT INTO CUSTOMER_SEGMENTATIONS (
 		NAME,
-		LABEL,
+		LABELS,
 		CUSTOMER_GROUP_ID,
 		IS_ENABLED,
 		IS_DELETED,
@@ -384,7 +384,7 @@ func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmen
 	const insertSubQ = `
 INSERT INTO CUSTOMER_SUB_SEGMENTS (
   NAME,
-  LABEL,
+  LABELS,
   CUSTOMER_SEGMENTATION_ID,
   SUPERAPP_ROLE_ID,
   IS_ENABLED,
@@ -508,7 +508,7 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND IS_ENABLED = 1`
 	const insertSubQ = `
 INSERT INTO CUSTOMER_SUB_SEGMENTS (
   NAME,
-  LABEL,
+  LABELS,
   CUSTOMER_SEGMENTATION_ID,
   SUPERAPP_ROLE_ID,
   IS_ENABLED,
@@ -642,7 +642,7 @@ func (r *customerStorage) fillAggregateBySuperAppRoleID(ctx context.Context, rol
 SELECT
   RAWTOHEX(sar.ID),
   sar.NAME,
-  NVL(sar.LABEL, ''),
+  NVL(sar.LABELS, ''),
   sar.IS_ENABLED,
   sar.IS_DELETED,
   MIN(cs.IS_ENABLED),
@@ -656,7 +656,7 @@ JOIN CUSTOMER_GROUPS cg ON cg.ID = cs.CUSTOMER_GROUP_ID AND cg.IS_DELETED = 0 AN
 WHERE css.SUPERAPP_ROLE_ID = HEXTORAW(:1)
   AND css.IS_DELETED = 0
   AND css.IS_ENABLED = 1
-GROUP BY sar.ID, sar.NAME, sar.LABEL, sar.IS_ENABLED, sar.IS_DELETED`
+GROUP BY sar.ID, sar.NAME, sar.LABELS, sar.IS_ENABLED, sar.IS_DELETED`
 
 	var (
 		roleID, roleName, roleLabel string
@@ -704,11 +704,11 @@ GROUP BY sar.ID, sar.NAME, sar.LABEL, sar.IS_ENABLED, sar.IS_DELETED`
 SELECT
   RAWTOHEX(css.ID),
   cg.NAME,
-  NVL(cg.LABEL, ''),
+  NVL(cg.LABELS, ''),
   cs.NAME,
-  NVL(cs.LABEL, ''),
+  NVL(cs.LABELS, ''),
   css.NAME,
-  NVL(css.LABEL, '')
+  NVL(css.LABELS, '')
 FROM CUSTOMER_SUB_SEGMENTS css
 JOIN CUSTOMER_SEGMENTATIONS cs ON cs.ID = css.CUSTOMER_SEGMENTATION_ID AND cs.IS_DELETED = 0
 JOIN CUSTOMER_GROUPS cg ON cg.ID = cs.CUSTOMER_GROUP_ID AND cg.IS_DELETED = 0 AND cg.IS_ENABLED = 1
@@ -838,13 +838,13 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 		clauses = append(clauses, `
 			(
 				LOWER(cg.NAME) LIKE '%' || LOWER(:search) || '%'
-				OR LOWER(NVL(cg.LABEL, '')) LIKE '%' || LOWER(:search) || '%'
+				OR LOWER(NVL(cg.LABELS, '')) LIKE '%' || LOWER(:search) || '%'
 				OR LOWER(cs.NAME) LIKE '%' || LOWER(:search) || '%'
-				OR LOWER(NVL(cs.LABEL, '')) LIKE '%' || LOWER(:search) || '%'
+				OR LOWER(NVL(cs.LABELS, '')) LIKE '%' || LOWER(:search) || '%'
 				OR LOWER(css.NAME) LIKE '%' || LOWER(:search) || '%'
-				OR LOWER(NVL(css.LABEL, '')) LIKE '%' || LOWER(:search) || '%'
+				OR LOWER(NVL(css.LABELS, '')) LIKE '%' || LOWER(:search) || '%'
 				OR LOWER(sar.NAME) LIKE '%' || LOWER(:search) || '%'
-				OR LOWER(NVL(sar.LABEL, '')) LIKE '%' || LOWER(:search) || '%'
+				OR LOWER(NVL(sar.LABELS, '')) LIKE '%' || LOWER(:search) || '%'
 				OR LOWER(sar.ROLE_CODE) LIKE '%' || LOWER(:search) || '%'
 			)
 		`)
@@ -906,7 +906,7 @@ SELECT
   RAWTOHEX(css.SUPERAPP_ROLE_ID) AS ROLE_ID,
 
   sar.NAME AS ROLE_NAME,
-  NVL(sar.LABEL, '') AS ROLE_LABEL,
+  NVL(sar.LABELS, '') AS ROLE_LABEL,
   sar.ROLE_CODE,
   sar.DESCRIPTION,
 
@@ -919,14 +919,14 @@ SELECT
 
   RAWTOHEX(cs.ID) AS SEGMENT_ID,
   cs.NAME AS SEGMENT_NAME,
-  NVL(cs.LABEL, '') AS SEGMENT_LABEL,
+  NVL(cs.LABELS, '') AS SEGMENT_LABEL,
 
   cg.NAME AS GROUP_NAME,
-  NVL(cg.LABEL, '') AS GROUP_LABEL,
+  NVL(cg.LABELS, '') AS GROUP_LABEL,
 
   RAWTOHEX(css.ID) AS SUB_SEGMENT_ID,
   css.NAME AS SUB_SEGMENT_NAME,
-  NVL(css.LABEL, '') AS SUB_SEGMENT_LABEL
+  NVL(css.LABELS, '') AS SUB_SEGMENT_LABEL
 
 %s
 WHERE css.IS_DELETED = 0 AND %s
@@ -958,7 +958,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
 			roleID string
 
 			roleName, roleLabel, roleCode, roleDesc string
-			enabledN, deletedN                        int
+			enabledN, deletedN                      int
 			createdAt, updatedAt, deletedAt         sql.NullTime
 
 			segID, segName, segLabel string

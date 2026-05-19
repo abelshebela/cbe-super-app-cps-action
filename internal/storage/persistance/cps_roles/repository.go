@@ -129,7 +129,7 @@ func (m *cpsRoleStorage) Create(ctx context.Context, req imodel.CPSRoles) error 
 	const q = `
 	INSERT INTO SUPERAPP_ROLES (
 	NAME,
-	LABEL,
+	LABELS,
 	ROLE_CODE,
 	DESCRIPTION,
 	IS_ENABLED,
@@ -185,7 +185,7 @@ func (m *cpsRoleStorage) Update(ctx context.Context, id string, req imodel.CPSRo
 		args = append(args, sql.Named("name", strings.ToUpper(strings.TrimSpace(req.Name))))
 	}
 	if strings.TrimSpace(req.Lable) != "" {
-		sets = append(sets, "LABEL = :label")
+		sets = append(sets, "LABELS = :label")
 		args = append(args, sql.Named("label", strings.TrimSpace(req.Lable)))
 	}
 	if strings.TrimSpace(req.RoleCode) != "" {
@@ -411,7 +411,7 @@ func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRo
 SELECT
   RAWTOHEX(SR.ID) AS ID,
   NVL(SR.NAME, '') AS NAME,
-  NVL(SR.LABEL, '') AS LABEL,
+  NVL(SR.LABELS, '') AS LABELS,
   NVL(SR.ROLE_CODE, '') AS ROLE_CODE,
   NVL(SR.DESCRIPTION, '') AS DESCRIPTION,
   SR.IS_ENABLED,
@@ -584,7 +584,7 @@ func (m *cpsRoleStorage) FindByNameOrRoleCode(ctx context.Context, name, roleCod
 SELECT
   RAWTOHEX(ID),
   NAME,
-  LABEL,
+  LABELS,
   ROLE_CODE,
   DESCRIPTION,
   IS_ENABLED,
@@ -681,7 +681,7 @@ func (m *cpsRoleStorage) FindByCustomerSegmentation(ctx context.Context, custome
 SELECT
   RAWTOHEX(cr.ID),
   cr.NAME,
-  cr.LABEL,
+  cr.LABELS,
   cr.ROLE_CODE,
   cr.DESCRIPTION,
   cr.IS_ENABLED,
