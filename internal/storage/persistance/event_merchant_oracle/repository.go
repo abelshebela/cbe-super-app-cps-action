@@ -38,41 +38,41 @@ func boolToInt(b bool) int {
 }
 
 func (m *EventMerchantOracleRepository) Create(ctx context.Context, merchant model.EventMerchant) error {
-	// Use RETURNING to get the inserted ID
 	query := `INSERT INTO MERCHANTS (
-		ID,
-		MERCHANT_ACCOUNT_NUMBER,
-		MERCHANT_CODE,
-		MERCHANT_NAME,
-		SETTLEMENT_METHOD,
-		MERCHANT_TYPE,
-		CONTACT_EMAIL,
-		CONTACT_PHONE,
-		IS_ENABLED,
-		IS_DELETED,
-		CREATED_AT,
-		LAST_MODIFIED_AT,
-		DELETED_AT
-	) VALUES (
-		SYS_GUID(), :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12
-	) RETURNING RAWTOHEX(ID)`
+	   ID,
+	   MERCHANT_ACCOUNT_NUMBER,
+	   MERCHANT_CODE,
+	   MERCHANT_NAME,
+	   SETTLEMENT_METHOD,
+	   MERCHANT_TYPE,
+	   CONTACT_EMAIL,
+	   CONTACT_PHONE,
+	   IS_ENABLED,
+	   IS_DELETED,
+	   CREATED_AT,
+	   LAST_MODIFIED_AT,
+	   DELETED_AT
+   ) VALUES (
+	   SYS_GUID(), :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12
+   ) RETURNING RAWTOHEX(ID) INTO :13`
 
 	var insertedID string
-	err := m.OracleCliant.QueryRowContext(
+	_, err := m.OracleCliant.ExecContext(
 		ctx, query,
-		merchant.BankAccountNumber,    // :1
-		merchant.MerchantID,           // :2
-		merchant.MerchantName,         // :3
-		merchant.SettlementMethod,     // :4
-		merchant.MerchantType,         // :5
-		merchant.Email,                // :6
-		merchant.PhoneNumber,          // :7
-		boolToInt(merchant.Enabled),   // :8 (should be int: 1/0)
-		boolToInt(merchant.IsDeleted), // :9 (should be int: 1/0)
-		merchant.CreatedAt,            // :10
-		merchant.UpdatedAt,            // :11
-		merchant.DeletedAt,            // :12
-	).Scan(&insertedID)
+		merchant.BankAccountNumber,                           // :1
+		merchant.MerchantID,                                  // :2
+		merchant.MerchantName,                                // :3
+		merchant.SettlementMethod,                            // :4
+		merchant.MerchantType,                                // :5
+		merchant.Email,                                       // :6
+		merchant.PhoneNumber,                                 // :7
+		boolToInt(merchant.Enabled),                          // :8 (should be int: 1/0)
+		boolToInt(merchant.IsDeleted),                        // :9 (should be int: 1/0)
+		merchant.CreatedAt,                                   // :10
+		merchant.UpdatedAt,                                   // :11
+		merchant.DeletedAt,                                   // :12
+		sql.Named("inserted_id", sql.Out{Dest: &insertedID}), // :13
+	)
 	if err != nil {
 		m.logger.Errorf("[persistance oracle create] got error while creating event merchant: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
