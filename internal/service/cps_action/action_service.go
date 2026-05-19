@@ -238,6 +238,44 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		}
 	}
 
+	// ENABLE actions: blocked by pending UPDATE and ENABLE actions on the same resource
+	if strings.Contains(cpsAction.RequestAction, constants.ENABLE) {
+		reqs := ca.pendingEnableLockRequestActions(actionName, cpsAction.RequestAction)
+		if len(reqs) > 0 {
+			existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
+			if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
+				span.AddEvent("failed to get cps action by role and request actions", trace.WithAttributes(attribute.String("error", err.Error())))
+				return err
+			}
+		}
+
+		if existing != nil {
+			span.AddEvent("pending enable cps action exists", trace.WithAttributes(attribute.String("error", "pending enable cps action exists")))
+			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), existing.ActionCode)
+			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), existing.ActionStatus)
+			return errors.New(localization.ErrorPendingCpsActionExists.Code)
+		}
+	}
+
+	// DISABLE actions: blocked only by other pending DISABLE actions on the same resource
+	if strings.Contains(cpsAction.RequestAction, constants.DISABLE) {
+		reqs := ca.pendingDisableLockRequestActions(actionName, cpsAction.RequestAction)
+		if len(reqs) > 0 {
+			existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
+			if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
+				span.AddEvent("failed to get cps action by role and request actions", trace.WithAttributes(attribute.String("error", err.Error())))
+				return err
+			}
+		}
+
+		if existing != nil {
+			span.AddEvent("pending disable cps action exists", trace.WithAttributes(attribute.String("error", "pending disable cps action exists")))
+			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), existing.ActionCode)
+			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), existing.ActionStatus)
+			return errors.New(localization.ErrorPendingCpsActionExists.Code)
+		}
+	}
+
 	cpsAction.RoleCode = roleCode
 	cpsActionResult, err := ca.repo.Save(ctx, cpsAction)
 	if err != nil {
@@ -301,13 +339,16 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 	return reqs
 }
 
-// pendingUpdateLockRequestActions returns only UPDATE actions for blocking UPDATE requests
+// pendingUpdateLockRequestActions returns UPDATE, ENABLE, DISABLE, and DELETE actions for blocking UPDATE requests.
+// UPDATE is blocked by any pending UPDATE, ENABLE, DISABLE, or DELETE action on the same resource.
 func (ca *cpsActionService) pendingUpdateLockRequestActions(actionName string, requestAction string) []string {
 	normalize := func(s string) string {
 		return strings.ToUpper(strings.TrimSpace(s))
 	}
-	isUpdate := func(s string) bool {
-		return strings.Contains(normalize(s), constants.UPDATE)
+	isUpdateEnableDisableOrDelete := func(s string) bool {
+		n := normalize(s)
+		return strings.Contains(n, constants.UPDATE) || strings.Contains(n, constants.ENABLE) ||
+			strings.Contains(n, constants.DISABLE) || strings.Contains(n, constants.DELETE)
 	}
 
 	defaultReq := []string{normalize(requestAction)}
@@ -320,7 +361,6 @@ func (ca *cpsActionService) pendingUpdateLockRequestActions(actionName string, r
 		return defaultReq
 	}
 
-	wantUpdateOnly := isUpdate(requestAction)
 	seen := map[string]struct{}{}
 	reqs := make([]string, 0, len(lst))
 
@@ -329,12 +369,9 @@ func (ca *cpsActionService) pendingUpdateLockRequestActions(actionName string, r
 		if _, ok := seen[key]; ok {
 			continue
 		}
-
-		isKeyUpdate := isUpdate(key)
-		if !wantUpdateOnly || !isKeyUpdate {
-			continue // Only include UPDATE actions
+		if !isUpdateEnableDisableOrDelete(key) {
+			continue
 		}
-
 		seen[key] = struct{}{}
 		reqs = append(reqs, key)
 	}
@@ -379,6 +416,90 @@ func (ca *cpsActionService) pendingDeleteLockRequestActions(actionName string, r
 			continue // Only include DELETE actions
 		}
 
+		seen[key] = struct{}{}
+		reqs = append(reqs, key)
+	}
+
+	if len(reqs) == 0 {
+		return defaultReq
+	}
+	return reqs
+}
+
+// pendingEnableLockRequestActions returns UPDATE, ENABLE, and DISABLE actions for blocking ENABLE requests.
+// ENABLE is blocked by any pending UPDATE, ENABLE, or DISABLE action on the same resource.
+func (ca *cpsActionService) pendingEnableLockRequestActions(actionName string, requestAction string) []string {
+	normalize := func(s string) string {
+		return strings.ToUpper(strings.TrimSpace(s))
+	}
+	isUpdateOrEnable := func(s string) bool {
+		n := normalize(s)
+		return strings.Contains(n, constants.UPDATE) || strings.Contains(n, constants.ENABLE) ||
+			strings.Contains(n, constants.DISABLE)
+	}
+
+	defaultReq := []string{normalize(requestAction)}
+	if actionName == "" {
+		return defaultReq
+	}
+
+	lst, ok := RequestActionGroups[actionName]
+	if !ok {
+		return defaultReq
+	}
+
+	seen := map[string]struct{}{}
+	reqs := make([]string, 0, len(lst))
+
+	for _, ra := range lst {
+		key := string(ra)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		if !isUpdateOrEnable(key) {
+			continue
+		}
+		seen[key] = struct{}{}
+		reqs = append(reqs, key)
+	}
+
+	if len(reqs) == 0 {
+		return defaultReq
+	}
+	return reqs
+}
+
+// pendingDisableLockRequestActions returns only DISABLE actions for blocking DISABLE requests.
+// DISABLE is blocked only by another pending DISABLE action on the same resource.
+func (ca *cpsActionService) pendingDisableLockRequestActions(actionName string, requestAction string) []string {
+	normalize := func(s string) string {
+		return strings.ToUpper(strings.TrimSpace(s))
+	}
+	isDisable := func(s string) bool {
+		return strings.Contains(normalize(s), constants.DISABLE)
+	}
+
+	defaultReq := []string{normalize(requestAction)}
+	if actionName == "" {
+		return defaultReq
+	}
+
+	lst, ok := RequestActionGroups[actionName]
+	if !ok {
+		return defaultReq
+	}
+
+	seen := map[string]struct{}{}
+	reqs := make([]string, 0, len(lst))
+
+	for _, ra := range lst {
+		key := string(ra)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		if !isDisable(key) {
+			continue
+		}
 		seen[key] = struct{}{}
 		reqs = append(reqs, key)
 	}
