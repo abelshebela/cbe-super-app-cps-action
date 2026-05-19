@@ -25,15 +25,15 @@ import (
 type RoleService struct {
 	cpsService           service.CPSActionService
 	portalCardRepo       storage.PortalCardRepository
-	roleRepository       storage.JobRoleRepository
+	roleRepository       storage.RoleRepository
 	approveIndexRepo     storage.CPSActionApproveIndexRepository
-	jobRepo              storage.RoleRepository
+	jobRepo              storage.JobRoleRepository
 	bpsApproverIndexRepo storage.BPSActionApproveIndexRepository
 	cfg                  config.VaultConfig
 	logger               utils.Logger
 }
 
-func NewRoleService(roleRepo storage.JobRoleRepository, portalCard storage.PortalCardRepository, approveIndexRepo storage.CPSActionApproveIndexRepository, jobRepo storage.RoleRepository, bpsAprroverIndexRepo storage.BPSActionApproveIndexRepository, cpsService service.CPSActionService, cfg config.VaultConfig, logger utils.Logger) service.RoleService {
+func NewRoleService(roleRepo storage.RoleRepository, portalCard storage.PortalCardRepository, approveIndexRepo storage.CPSActionApproveIndexRepository, jobRepo storage.JobRoleRepository, bpsAprroverIndexRepo storage.BPSActionApproveIndexRepository, cpsService service.CPSActionService, cfg config.VaultConfig, logger utils.Logger) service.RoleService {
 	return &RoleService{
 		cpsService:           cpsService,
 		portalCardRepo:       portalCard,
@@ -46,7 +46,7 @@ func NewRoleService(roleRepo storage.JobRoleRepository, portalCard storage.Porta
 	}
 }
 
-func (j *RoleService) Create(ctx context.Context, role imodel.JobRole) error {
+func (j *RoleService) Create(ctx context.Context, role imodel.Role) error {
 	log := local_util.LoggerFromCtx(ctx, j.logger)
 
 	maker := local_util.ExtractUserFromContext(ctx)
@@ -64,11 +64,11 @@ func (j *RoleService) Create(ctx context.Context, role imodel.JobRole) error {
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 
-func (j *RoleService) FindAll(ctx context.Context) (*[]imodel.JobRole, error) {
+func (j *RoleService) FindAll(ctx context.Context) (*[]imodel.Role, error) {
 	return j.roleRepository.FindAll(ctx)
 }
 
-func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRole) error {
+func (j *RoleService) Update(ctx context.Context, id string, update imodel.Role) error {
 	log := local_util.LoggerFromCtx(ctx, j.logger)
 
 	maker := local_util.ExtractUserFromContext(ctx)
@@ -223,7 +223,7 @@ func (j *RoleService) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (j *RoleService) FindById(ctx context.Context, id string) (*imodel.JobRole, error) {
+func (j *RoleService) FindById(ctx context.Context, id string) (*imodel.Role, error) {
 	log := local_util.LoggerFromCtx(ctx, j.logger)
 
 	role, err := j.roleRepository.FindByID(ctx, id)
@@ -254,7 +254,7 @@ func (j *RoleService) FindById(ctx context.Context, id string) (*imodel.JobRole,
 	return role, nil
 }
 
-func (j *RoleService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error) {
+func (j *RoleService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Role], error) {
 	return j.roleRepository.FindAllWithPagination(ctx, filterParam)
 }
 
@@ -275,7 +275,7 @@ func (j *RoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.CPSA
 	log.Infof("[Role Service][Authorize] CPS action data as any: %v", asAny)
 
 	raw2, _ := json.Marshal(asAny)
-	var role imodel.JobRole
+	var role imodel.Role
 	if err := json.Unmarshal(raw2, &role); err != nil {
 		log.Errorf("[JobRole Service][Authorize] map to Role failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)

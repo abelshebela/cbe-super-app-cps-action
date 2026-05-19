@@ -38,29 +38,26 @@ func boolToInt(b bool) int {
 }
 
 func (m *EventMerchantOracleRepository) Create(ctx context.Context, merchant model.EventMerchant) error {
-	log := local_util.LoggerFromCtx(ctx, m.logger)
-
-	// query := `INSERT INTO MERCHANTS (ID,MERCHANT_ID,MERCHANT_TYPE,SETTLEMENT_METHOD,METCHANT_NAME,BANK_ACCOUNT_NUMBER,EMAIL,PHONE_NUMBER,ENABLED,IS_DELETED,CREATED_AT,UPDATED_AT) VALUES (SYST_GEN(),:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,:12)`
-
 	query := `INSERT INTO MERCHANTS (
-    ID,
-    MERCHANT_ACCOUNT_NUMBER,
-    MERCHANT_CODE,
-    MERCHANT_NAME,
-    SETTLEMENT_METHOD,
-    MERCHANT_TYPE,
-    CONTACT_EMAIL,
-    CONTACT_PHONE,
-    IS_ENABLED,
-    IS_DELETED,
-    CREATED_AT,
-    LAST_MODIFIED_AT,
-    DELETED_AT
-) VALUES (
-    SYS_GUID(), :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12
-)`
+	   ID,
+	   MERCHANT_ACCOUNT_NUMBER,
+	   MERCHANT_CODE,
+	   MERCHANT_NAME,
+	   SETTLEMENT_METHOD,
+	   MERCHANT_TYPE,
+	   CONTACT_EMAIL,
+	   CONTACT_PHONE,
+	   IS_ENABLED,
+	   IS_DELETED,
+	   CREATED_AT,
+	   LAST_MODIFIED_AT,
+	   DELETED_AT
+   ) VALUES (
+	   SYS_GUID(), :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12
+   ) RETURNING RAWTOHEX(ID) INTO :13`
 
-	row, err := m.OracleCliant.ExecContext(
+	var insertedID string
+	_, err := m.OracleCliant.ExecContext(
 		ctx, query,
 		merchant.BankAccountNumber,    // :1
 		merchant.MerchantID,           // :2
@@ -74,53 +71,44 @@ func (m *EventMerchantOracleRepository) Create(ctx context.Context, merchant mod
 		merchant.CreatedAt,            // :10
 		merchant.UpdatedAt,            // :11
 		merchant.DeletedAt,            // :12
+		sql.Out{Dest: &insertedID},    // :13 (output parameter for inserted ID)
 	)
 	if err != nil {
-		log.Errorf("[persistance oracle create ] got error while crearing event merchant error:", err)
+		m.logger.Errorf("[persistance oracle create] got error while creating event merchant: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
-	affected_row, err := row.RowsAffected()
-
-	if affected_row != 1 {
-		return errors.New(localization.ErrorUnexpectedError.Code)
-
-	}
+	types.SetId(ctx, insertedID)
 	return nil
 
 }
 
 func (m *EventMerchantOracleRepository) Update(ctx context.Context, id string, merchant model.EventMerchant) error {
-	log := local_util.LoggerFromCtx(ctx, m.logger)
-
 	query, args := buildUpdateQuery(id, merchant)
 
 	rows, err := m.OracleCliant.ExecContext(ctx, query, args...)
 	if err != nil {
-		log.Errorf("[EVENT MERCHANT persistance UPDATE] got error while updated event merchant error : ", err)
+		m.logger.Errorf("[EVENT MERCHANT persistance UPDATE] got error while updated event merchant error : %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	row_affected, _ := rows.RowsAffected()
 	if row_affected != 1 {
-		log.Errorf("[event_merchant persistance update]no affected row found on update")
+		m.logger.Errorf("[event_merchant persistance update]no affected row found on update")
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 func (m *EventMerchantOracleRepository) Delete(ctx context.Context, id string) error {
-	log := local_util.LoggerFromCtx(ctx, m.logger)
-
 	query := `UPDATE  MERCHANTS SET IS_DELETED = 1,DELETED_AT = SYSDATE WHERE ID = HEXTORAW(:1) AND MERCHANT_TYPE = 'EVENT'`
 
 	rows, err := m.OracleCliant.ExecContext(ctx, query, id)
 	if err != nil {
-		log.Errorf("[EVENT MERCHANT persistance Delet] got error while delete event merchant error : ", err)
+		m.logger.Errorf("[EVENT MERCHANT persistance Delete] got error while deleting event merchant error : %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	row_affected, _ := rows.RowsAffected()
 	if row_affected != 1 {
-		log.Errorf("[event_merchant persistance delete]no affected row found on update")
+		m.logger.Errorf("[event_merchant persistance delete]no affected row found on delete")
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -128,8 +116,6 @@ func (m *EventMerchantOracleRepository) Delete(ctx context.Context, id string) e
 }
 
 func (m *EventMerchantOracleRepository) EnableOrDisable(ctx context.Context, ids []string, enable bool) error {
-	log := local_util.LoggerFromCtx(ctx, m.logger)
-
 	if len(ids) == 0 {
 		return nil // nothing to do
 	}
@@ -148,11 +134,11 @@ func (m *EventMerchantOracleRepository) EnableOrDisable(ctx context.Context, ids
 	var count int
 	err := m.OracleCliant.QueryRowContext(ctx, checkQuery, args...).Scan(&count)
 	if err != nil {
-		log.Errorf("[EVENT MERCHANT EnableOrDisable] error checking IDs: %v", err)
+		m.logger.Errorf("[EVENT MERCHANT EnableOrDisable] error checking IDs: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	if count != len(ids) {
-		log.Warnf("[EVENT MERCHANT EnableOrDisable] not all IDs exist or are not deleted, requested: %d, found: %d", len(ids), count)
+		m.logger.Warnf("[EVENT MERCHANT EnableOrDisable] not all IDs exist or are not deleted, requested: %d, found: %d", len(ids), count)
 		return errors.New("one or more IDs do not exist or are deleted")
 	}
 
@@ -166,12 +152,12 @@ func (m *EventMerchantOracleRepository) EnableOrDisable(ctx context.Context, ids
 	updateQuery := fmt.Sprintf("UPDATE MERCHANTS SET IS_ENABLED = :1 WHERE ID IN (%s) AND IS_DELETED = 0 AND MERCHANT_TYPE = 'EVENT'", inClause)
 	result, err := m.OracleCliant.ExecContext(ctx, updateQuery, updateArgs...)
 	if err != nil {
-		log.Errorf("[EVENT MERCHANT EnableOrDisable] error updating: %v", err)
+		m.logger.Errorf("[EVENT MERCHANT EnableOrDisable] error updating: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	rowsAffected, _ := result.RowsAffected()
 	if int(rowsAffected) != len(ids) {
-		log.Warnf("[EVENT MERCHANT EnableOrDisable] not all IDs updated, requested: %d, updated: %d", len(ids), rowsAffected)
+		m.logger.Warnf("[EVENT MERCHANT EnableOrDisable] not all IDs updated, requested: %d, updated: %d", len(ids), rowsAffected)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -180,7 +166,6 @@ func (m *EventMerchantOracleRepository) EnableOrDisable(ctx context.Context, ids
 
 //   //MINE
 // func (m *EventMerchantOracleRepository) EnableOrDisable(ctx context.Context, ids []string, enable bool) error {
-
 // 	if len(ids) == 0 {
 // 		return nil // nothing to do
 // 	}
@@ -199,11 +184,11 @@ func (m *EventMerchantOracleRepository) EnableOrDisable(ctx context.Context, ids
 // 	var count int
 // 	err := m.OracleCliant.QueryRowContext(ctx, checkQuery, args...).Scan(&count)
 // 	if err != nil {
-// 		log.Errorf("[EVENT MERCHANT EnableOrDisable] error checking IDs: %v", err)
+// 		m.logger.Errorf("[EVENT MERCHANT EnableOrDisable] error checking IDs: %v", err)
 // 		return errors.New(localization.ErrorUnexpectedError.Code)
 // 	}
 // 	if count != len(ids) {
-// 		log.Warnf("[EVENT MERCHANT EnableOrDisable] not all IDs exist or are not deleted, requested: %d, found: %d", len(ids), count)
+// 		m.logger.Warnf("[EVENT MERCHANT EnableOrDisable] not all IDs exist or are not deleted, requested: %d, found: %d", len(ids), count)
 // 		return errors.New("one or more IDs do not exist or are deleted")
 // 	}
 
@@ -213,12 +198,12 @@ func (m *EventMerchantOracleRepository) EnableOrDisable(ctx context.Context, ids
 // 	updateQuery := fmt.Sprintf("UPDATE MERCHANTS SET ENABLED = :1 WHERE ID IN (%s) AND IS_DELETED = 0 AND MERCHANT_TYPE = 'EVENT'", inClause)
 // 	result, err := m.OracleCliant.ExecContext(ctx, updateQuery, updateArgs...)
 // 	if err != nil {
-// 		log.Errorf("[EVENT MERCHANT EnableOrDisable] error updating: %v", err)
+// 		m.logger.Errorf("[EVENT MERCHANT EnableOrDisable] error updating: %v", err)
 // 		return errors.New(localization.ErrorUnexpectedError.Code)
 // 	}
 // 	rowsAffected, _ := result.RowsAffected()
 // 	if int(rowsAffected) != len(ids) {
-// 		log.Warnf("[EVENT MERCHANT EnableOrDisable] not all IDs updated, requested: %d, updated: %d", len(ids), rowsAffected)
+// 		m.logger.Warnf("[EVENT MERCHANT EnableOrDisable] not all IDs updated, requested: %d, updated: %d", len(ids), rowsAffected)
 // 		return errors.New(localization.ErrorUnexpectedError.Code)
 // 	}
 
@@ -226,8 +211,6 @@ func (m *EventMerchantOracleRepository) EnableOrDisable(ctx context.Context, ids
 // }
 
 func (m *EventMerchantOracleRepository) FindByID(ctx context.Context, id string) (*model.EventMerchant, error) {
-	log := local_util.LoggerFromCtx(ctx, m.logger)
-
 	query := `SELECT 
         ID, 
         MERCHANT_ACCOUNT_NUMBER, 
@@ -284,7 +267,7 @@ func (m *EventMerchantOracleRepository) FindByID(ctx context.Context, id string)
 	MerchantData.ID = hex.EncodeToString(byteData)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			log.Warnf("[event merchant persistance findbyID] No row find with given ID")
+			m.logger.Warnf("[event merchant persistance findbyID] No row find with given ID")
 			return nil, errors.New(localization.UserNotFoundWithGivenID.Code)
 		}
 		return nil, err
@@ -293,8 +276,6 @@ func (m *EventMerchantOracleRepository) FindByID(ctx context.Context, id string)
 }
 
 func (m *EventMerchantOracleRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error) {
-	log := local_util.LoggerFromCtx(ctx, m.logger)
-
 	// Set default pagination values
 	if filterParam.Page <= 0 {
 		filterParam.Page = 1
@@ -370,7 +351,7 @@ func (m *EventMerchantOracleRepository) FindAllWithPagination(ctx context.Contex
 	var total int
 	err = m.OracleCliant.QueryRowContext(ctx, countQuery, args[:len(args)-2]...).Scan(&total)
 	if err != nil {
-		log.Errorf("[event merchant persistance FindAllWithPagination] error counting documents: %v", err)
+		m.logger.Errorf("[event merchant persistance FindAllWithPagination] error counting documents: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 

@@ -21,9 +21,9 @@ func CheckPortalCardsExistent(ctx context.Context, portalCards []string, portalC
 	return nil
 }
 
-func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel.JobRole, roleRepo storage.JobRoleRepository) error {
+func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel.Role, roleRepo storage.RoleRepository) error {
 
-	var role *imodel.JobRole
+	var role *imodel.Role
 	var err error
 
 	if types == constants.CREATE {

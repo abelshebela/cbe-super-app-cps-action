@@ -20,7 +20,10 @@ import (
 	"time"
 
 	event_merchant_model "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
