@@ -59,19 +59,19 @@ func (m *EventMerchantOracleRepository) Create(ctx context.Context, merchant mod
 	var insertedID string
 	_, err := m.OracleCliant.ExecContext(
 		ctx, query,
-		merchant.BankAccountNumber,                           // :1
-		merchant.MerchantID,                                  // :2
-		merchant.MerchantName,                                // :3
-		merchant.SettlementMethod,                            // :4
-		merchant.MerchantType,                                // :5
-		merchant.Email,                                       // :6
-		merchant.PhoneNumber,                                 // :7
-		boolToInt(merchant.Enabled),                          // :8 (should be int: 1/0)
-		boolToInt(merchant.IsDeleted),                        // :9 (should be int: 1/0)
-		merchant.CreatedAt,                                   // :10
-		merchant.UpdatedAt,                                   // :11
-		merchant.DeletedAt,                                   // :12
-		sql.Named("inserted_id", sql.Out{Dest: &insertedID}), // :13
+		merchant.BankAccountNumber,    // :1
+		merchant.MerchantID,           // :2
+		merchant.MerchantName,         // :3
+		merchant.SettlementMethod,     // :4
+		merchant.MerchantType,         // :5
+		merchant.Email,                // :6
+		merchant.PhoneNumber,          // :7
+		boolToInt(merchant.Enabled),   // :8 (should be int: 1/0)
+		boolToInt(merchant.IsDeleted), // :9 (should be int: 1/0)
+		merchant.CreatedAt,            // :10
+		merchant.UpdatedAt,            // :11
+		merchant.DeletedAt,            // :12
+		sql.Out{Dest: &insertedID},    // :13 (output parameter for inserted ID)
 	)
 	if err != nil {
 		m.logger.Errorf("[persistance oracle create] got error while creating event merchant: %v", err)
