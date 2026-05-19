@@ -19,8 +19,8 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	event_merchant_model "cbe-super-app-cps-action/internal/constants/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -41,10 +41,11 @@ type EventMerchantService struct {
 func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "EventMerchant", "Authorize")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, e.logger)
 
 	merchant, err := local_util.JsonUnmarshal[event_merchant_model.EventMerchant](cpsAction.CurrentAction)
 	if err != nil {
-		e.logger.Errorf("[EventMerchSvc][Authorize] unmarshal err: %v", err)
+		log.Errorf("[EventMerchSvc][Authorize] unmarshal err: %v", err)
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
@@ -72,7 +73,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 				Branches:          []erp_merchant_update_dto.ERPBranch{},
 			}
 			if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, true, e.logger); err != nil {
-				e.logger.Errorf("[EventMerchSvc][Authorize] ERP create err: %v", err)
+				log.Errorf("[EventMerchSvc][Authorize] ERP create err: %v", err)
 				span.AddEvent("Failed to update ERP", trace.WithAttributes(
 					attribute.String("error", err.Error()),
 					attribute.String("unique_id", cpsAction.UniqueId),
@@ -95,7 +96,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 		if !isErp {
 			prevMerchant, err := local_util.JsonUnmarshal[model.EventMerchant](cpsAction.PreviousAction)
 			if err != nil {
-				e.logger.Errorf("[EventMerchSvc][Authorize] unmarshal prev err: %v", err)
+				log.Errorf("[EventMerchSvc][Authorize] unmarshal prev err: %v", err)
 				span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 					attribute.String("error", err.Error()),
 					attribute.String("unique_id", cpsAction.UniqueId),
@@ -107,7 +108,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 					MainAccountNumber: merchant.BankAccountNumber,
 				}
 				if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, true, e.logger); err != nil {
-					e.logger.Errorf("[EventMerchSvc][Authorize] ERP update err: %v", err)
+					log.Errorf("[EventMerchSvc][Authorize] ERP update err: %v", err)
 					span.AddEvent("Failed to update ERP", trace.WithAttributes(
 						attribute.String("error", err.Error()),
 						attribute.String("unique_id", cpsAction.UniqueId),
@@ -134,7 +135,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 				CpsEnabled: &enabled,
 			}
 			if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, true, e.logger); err != nil {
-				e.logger.Errorf("[EventMerchSvc][Authorize] ERP delete err: %v", err)
+				log.Errorf("[EventMerchSvc][Authorize] ERP delete err: %v", err)
 				span.AddEvent("Failed to update ERP", trace.WithAttributes(
 					attribute.String("error", err.Error()),
 					attribute.String("unique_id", cpsAction.UniqueId),
@@ -160,7 +161,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 				CpsEnabled: &enabled,
 			}
 			if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, true, e.logger); err != nil {
-				e.logger.Errorf("[EventMerchSvc][Authorize] ERP enable err: %v", err)
+				log.Errorf("[EventMerchSvc][Authorize] ERP enable err: %v", err)
 				span.AddEvent("Failed to update ERP", trace.WithAttributes(
 					attribute.String("error", err.Error()),
 					attribute.String("unique_id", cpsAction.UniqueId),
@@ -186,7 +187,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 				CpsEnabled: &enabled,
 			}
 			if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, true, e.logger); err != nil {
-				e.logger.Errorf("[EventMerchSvc][Authorize] ERP disable err: %v", err)
+				log.Errorf("[EventMerchSvc][Authorize] ERP disable err: %v", err)
 				span.AddEvent("Failed to update ERP", trace.WithAttributes(
 					attribute.String("error", err.Error()),
 					attribute.String("unique_id", cpsAction.UniqueId),
@@ -196,7 +197,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 			}
 		}
 	default:
-		e.logger.Errorf("[EventMerchSvc][Authorize] unsupported: %s", cpsAction.RequestAction)
+		log.Errorf("[EventMerchSvc][Authorize] unsupported: %s", cpsAction.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
@@ -206,7 +207,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 	}
 
 	cpsAction.CurrentAction = merchant
-	e.logger.Infof("[EventMerchSvc][Authorize] done action=%s id=%s", cpsAction.RequestAction, merchant.ID)
+	log.Infof("[EventMerchSvc][Authorize] done action=%s id=%s", cpsAction.RequestAction, merchant.ID)
 	return cpsAction, nil
 }
 
@@ -214,8 +215,9 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 func (e *EventMerchantService) Create(ctx context.Context, eventMerchant event_merchant_model.EventMerchant) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "EventMerchant", "Create")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, e.logger)
 
-	e.logger.Infof("[EventMerchSvc][Create] name: %s", eventMerchant.MerchantName)
+	log.Infof("[EventMerchSvc][Create] name: %s", eventMerchant.MerchantName)
 
 	// exist, err := core.CheckMerchantExists(ctx, e.repo, &types.CheckMerchant{
 	// 	BankAccountNumber: eventMerchant.BankAccountNumber,
@@ -231,7 +233,7 @@ func (e *EventMerchantService) Create(ctx context.Context, eventMerchant event_m
 		PhoneNumber:       eventMerchant.PhoneNumber,
 	})
 	if err != nil {
-		e.logger.Errorf("[EventMerchSvc][Create] exist check err: %v", err)
+		log.Errorf("[EventMerchSvc][Create] exist check err: %v", err)
 		if err.Error() != localization.ErrorResourceNotFound.Code {
 			span.AddEvent("Failed to check merchant existence", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -242,19 +244,19 @@ func (e *EventMerchantService) Create(ctx context.Context, eventMerchant event_m
 	}
 
 	if exist {
-		e.logger.Warnf("[EventMerchSvc][Create] already exists acct: %s", eventMerchant.BankAccountNumber)
+		log.Warnf("[EventMerchSvc][Create] already exists acct: %s", eventMerchant.BankAccountNumber)
 		span.AddEvent("Merchant already exists", trace.WithAttributes(
 			attribute.String("error", localization.ErrorAccountNumberAlreadyExists.Code),
 			attribute.String("bank_account_number", eventMerchant.BankAccountNumber),
 		))
 		return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
-	eventMerchant.CreatedAt =time.Now()
-	eventMerchant.UpdatedAt  = time.Now()
+	eventMerchant.CreatedAt = time.Now()
+	eventMerchant.UpdatedAt = time.Now()
 	if eventMerchant.MerchantType == "merchant" {
 		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, eventMerchant.BankAccountNumber, e.accountLookupService)
 		if err != nil {
-			e.logger.Errorf("[EventMerchSvc][Create] acct validation err: %v", err)
+			log.Errorf("[EventMerchSvc][Create] acct validation err: %v", err)
 			span.AddEvent("Account number validation failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("bank_account_number", eventMerchant.BankAccountNumber),
@@ -265,14 +267,14 @@ func (e *EventMerchantService) Create(ctx context.Context, eventMerchant event_m
 
 	err = core.HandleCPSActionForEventMerchant(ctx, e.cpsService, "", constants.RequestCreateEventMerchant, eventMerchant, nil, constants.ActionCreate)
 	if err != nil {
-		e.logger.Errorf("[EventMerchSvc][Create] cps action err: %v", err)
+		log.Errorf("[EventMerchSvc][Create] cps action err: %v", err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
 		return err
 	}
 
-	e.logger.Infof("[EventMerchSvc][Create] done name: %s", eventMerchant.MerchantName)
+	log.Infof("[EventMerchSvc][Create] done name: %s", eventMerchant.MerchantName)
 	return nil
 }
 
@@ -280,12 +282,13 @@ func (e *EventMerchantService) Create(ctx context.Context, eventMerchant event_m
 func (e *EventMerchantService) Delete(ctx context.Context, id string) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Delete", "EventMerchant", "Delete")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, e.logger)
 
-	e.logger.Infof("[EventMerchSvc][Delete] id: %s", id)
+	log.Infof("[EventMerchSvc][Delete] id: %s", id)
 
 	prev, err := e.repo.FindByID(ctx, id)
 	if err != nil {
-		e.logger.Errorf("[EventMerchSvc][Delete] find err id=%s: %v", id, err)
+		log.Errorf("[EventMerchSvc][Delete] find err id=%s: %v", id, err)
 		span.AddEvent("Failed to find merchant", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -300,7 +303,7 @@ func (e *EventMerchantService) Delete(ctx context.Context, id string) error {
 
 	err = core.HandleCPSActionForEventMerchant(ctx, e.cpsService, id, constants.RequestDeleteEventMerchant, deletedMerchant, *prev, constants.ActionDelete)
 	if err != nil {
-		e.logger.Errorf("[EventMerchSvc][Delete] cps action err id=%s: %v", id, err)
+		log.Errorf("[EventMerchSvc][Delete] cps action err id=%s: %v", id, err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -308,7 +311,7 @@ func (e *EventMerchantService) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	e.logger.Infof("[EventMerchSvc][Delete] done id: %s", id)
+	log.Infof("[EventMerchSvc][Delete] done id: %s", id)
 	return nil
 }
 
@@ -316,6 +319,7 @@ func (e *EventMerchantService) Delete(ctx context.Context, id string) error {
 func (e *EventMerchantService) EnableOrDisable(ctx context.Context, ids []string, enable bool) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisable", "EventMerchant", "EnableOrDisable")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, e.logger)
 
 	var action constants.RequestAction
 	if enable {
@@ -325,11 +329,11 @@ func (e *EventMerchantService) EnableOrDisable(ctx context.Context, ids []string
 	}
 
 	for _, id := range ids {
-		e.logger.Infof("[EventMerchSvc][EnableDisable] id: %s enable: %v", id, enable)
+		log.Infof("[EventMerchSvc][EnableDisable] id: %s enable: %v", id, enable)
 
 		prevMerchant, err := e.repo.FindByID(ctx, id)
 		if err != nil {
-			e.logger.Errorf("[EventMerchSvc][EnableDisable] find err id=%s: %v", id, err)
+			log.Errorf("[EventMerchSvc][EnableDisable] find err id=%s: %v", id, err)
 			span.AddEvent("Merchant not found", trace.WithAttributes(
 				attribute.String("error", localization.ErrorEventMerchantNotFound.Code),
 				attribute.String("id", id),
@@ -338,7 +342,7 @@ func (e *EventMerchantService) EnableOrDisable(ctx context.Context, ids []string
 		}
 
 		if enable && prevMerchant.Enabled {
-			e.logger.Warnf("[EventMerchSvc][EnableDisable] already enabled id: %s", id)
+			log.Warnf("[EventMerchSvc][EnableDisable] already enabled id: %s", id)
 			span.AddEvent("Merchant already enabled", trace.WithAttributes(
 				attribute.String("error", localization.ErrorEventMerchantAlreadyEnabled.Code),
 				attribute.String("id", id),
@@ -346,7 +350,7 @@ func (e *EventMerchantService) EnableOrDisable(ctx context.Context, ids []string
 			return localization.ErrorEventMerchantAlreadyEnabled
 		}
 		if !enable && !prevMerchant.Enabled {
-			e.logger.Warnf("[EventMerchSvc][EnableDisable] already disabled id: %s", id)
+			log.Warnf("[EventMerchSvc][EnableDisable] already disabled id: %s", id)
 			span.AddEvent("Merchant already disabled", trace.WithAttributes(
 				attribute.String("error", localization.ErrorEventMerchantAlreadyDisabled.Code),
 				attribute.String("id", id),
@@ -360,7 +364,7 @@ func (e *EventMerchantService) EnableOrDisable(ctx context.Context, ids []string
 
 		err = core.HandleCPSActionForEventMerchant(ctx, e.cpsService, id, action, updatedMerchant, *prevMerchant, constants.ActionUpdate)
 		if err != nil {
-			e.logger.Errorf("[EventMerchSvc][EnableDisable] cps action err id=%s: %v", id, err)
+			log.Errorf("[EventMerchSvc][EnableDisable] cps action err id=%s: %v", id, err)
 			span.AddEvent("CPS action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("id", id),
@@ -369,7 +373,7 @@ func (e *EventMerchantService) EnableOrDisable(ctx context.Context, ids []string
 		}
 	}
 
-	e.logger.Infof("[EventMerchSvc][EnableDisable] done ids: %v enabled: %v", ids, enable)
+	log.Infof("[EventMerchSvc][EnableDisable] done ids: %v enabled: %v", ids, enable)
 	return nil
 }
 
@@ -377,8 +381,9 @@ func (e *EventMerchantService) EnableOrDisable(ctx context.Context, ids []string
 func (e *EventMerchantService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]event_merchant_model.EventMerchant], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "EventMerchant", "FindAllWithPagination")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, e.logger)
 
-	e.logger.Infof("[EventMerchSvc][FindAll] filter: %+v", filterParam)
+	log.Infof("[EventMerchSvc][FindAll] filter: %+v", filterParam)
 	result, err := e.repo.FindAllWithPagination(ctx, filterParam)
 	if err != nil {
 		span.AddEvent("Failed to find mini app merchants", trace.WithAttributes(
@@ -393,8 +398,9 @@ func (e *EventMerchantService) FindAllWithPagination(ctx context.Context, filter
 func (e *EventMerchantService) FindByID(ctx context.Context, id string) (*event_merchant_model.EventMerchant, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindByID", "EventMerchant", "FindByID")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, e.logger)
 
-	e.logger.Infof("[EventMerchSvc][FindByID] id: %s", id)
+	log.Infof("[EventMerchSvc][FindByID] id: %s", id)
 	result, err := e.repo.FindByID(ctx, id)
 	if err != nil {
 		span.AddEvent("Failed to find mini app merchant", trace.WithAttributes(
@@ -410,12 +416,13 @@ func (e *EventMerchantService) FindByID(ctx context.Context, id string) (*event_
 func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerchant event_merchant_model.EventMerchant) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "EventMerchant", "Update")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, e.logger)
 
-	e.logger.Infof("[EventMerchSvc][Update] id: %s", id)
+	log.Infof("[EventMerchSvc][Update] id: %s", id)
 
 	old, err := e.repo.FindByID(ctx, id)
 	if err != nil {
-		e.logger.Errorf("[EventMerchSvc][Update] find err id=%s: %v", id, err)
+		log.Errorf("[EventMerchSvc][Update] find err id=%s: %v", id, err)
 		span.AddEvent("Failed to find merchant", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -424,7 +431,7 @@ func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerch
 	}
 
 	if old.BankAccountNumber == eventMerchant.BankAccountNumber && old.MerchantName == eventMerchant.MerchantName {
-		e.logger.Infof("[EventMerchSvc][Update] no changes id: %s", id)
+		log.Infof("[EventMerchSvc][Update] no changes id: %s", id)
 		return errors.New(localization.ErrorNoChangesDetected.Code)
 	}
 
@@ -445,7 +452,7 @@ func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerch
 	if check.BankAccountNumber != "" || check.Email != "" || check.PhoneNumber != "" {
 		exist, err := core.CheckEventMercahntExist(ctx, e.repo, &check)
 		if err != nil {
-			e.logger.Errorf("[EventMerchSvc][Update] exist check err: %v", err)
+			log.Errorf("[EventMerchSvc][Update] exist check err: %v", err)
 			span.AddEvent("Failed to check merchant existence", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("id", id),
@@ -453,7 +460,7 @@ func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerch
 			return errors.New(localization.ErrorMerchantNotFound.Code)
 		}
 		if exist {
-			e.logger.Warnf("[EventMerchSvc][Update] already exists id: %s", id)
+			log.Warnf("[EventMerchSvc][Update] already exists id: %s", id)
 			span.AddEvent("Merchant already exists", trace.WithAttributes(
 				attribute.String("error", localization.ErrorAccountNumberAlreadyExists.Code),
 				attribute.String("id", id),
@@ -464,7 +471,7 @@ func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerch
 	if check.BankAccountNumber != "" {
 		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, eventMerchant.BankAccountNumber, e.accountLookupService)
 		if err != nil {
-			e.logger.Errorf("[EventMerchSvc][Update] acct validation err: %v", err)
+			log.Errorf("[EventMerchSvc][Update] acct validation err: %v", err)
 			span.AddEvent("Account number validation failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("id", id),
@@ -475,7 +482,7 @@ func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerch
 
 	err = core.HandleCPSActionForEventMerchant(ctx, e.cpsService, id, constants.RequestUpdateEventMerchant, updated, old, constants.ActionUpdate)
 	if err != nil {
-		e.logger.Errorf("[EventMerchSvc][Update] cps action err id=%s: %v", id, err)
+		log.Errorf("[EventMerchSvc][Update] cps action err id=%s: %v", id, err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -483,13 +490,14 @@ func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerch
 		return err
 	}
 
-	e.logger.Infof("[EventMerchSvc][Update] done id: %s", id)
+	log.Infof("[EventMerchSvc][Update] done id: %s", id)
 	return nil
 }
 
 func (e *EventMerchantService) EventMerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "EventMerchantLookup", "MiniAppMerchant", "EventMerchantLookup")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, e.logger)
 
 	base := strings.TrimRight(e.cfg.OddoEcommerceBaseUrl, "/")
 	// base := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce"
@@ -498,7 +506,7 @@ func (e *EventMerchantService) EventMerchantLookup(ctx context.Context, merchant
 
 	merchantData, err := e.merchantLookup.LookupMerchant(ctx, merchantID, xAPIKey, url)
 	if err != nil {
-		e.logger.Errorf("[EventMerchSvc][EventMerchantLookup] err: %v", err)
+		log.Errorf("[EventMerchSvc][EventMerchantLookup] err: %v", err)
 		span.AddEvent("Merchant lookup failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("merchant_id", merchantID),

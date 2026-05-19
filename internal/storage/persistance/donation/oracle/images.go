@@ -13,11 +13,13 @@ import (
 )
 
 func (r *repository) replaceImages(ctx context.Context, donationID string, images []shared_types.DonationImage) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	if _, err := r.db.ExecContext(ctx,
 		`DELETE FROM DONATION_IMAGES WHERE DONATION_ID = HEXTORAW(:1)`,
 		donationID,
 	); err != nil {
-		r.logger.Errorf("[DonationOracle][replaceImages] delete failed: %v", err)
+		log.Errorf("[DonationOracle][replaceImages] delete failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
@@ -27,7 +29,7 @@ func (r *repository) replaceImages(ctx context.Context, donationID string, image
 			continue
 		}
 		if _, err := r.db.ExecContext(ctx, insertChild, donationID, img.PhotoURL); err != nil {
-			r.logger.Errorf("[DonationOracle][replaceImages] insert failed: %v", err)
+			log.Errorf("[DonationOracle][replaceImages] insert failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 	}
@@ -35,6 +37,8 @@ func (r *repository) replaceImages(ctx context.Context, donationID string, image
 }
 
 func (r *repository) fetchImagesFor(ctx context.Context, donationIDs []string) (map[string][]types.DonationImage, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	out := make(map[string][]types.DonationImage, len(donationIDs))
 	if len(donationIDs) == 0 {
 		return out, nil
@@ -53,7 +57,7 @@ func (r *repository) fetchImagesFor(ctx context.Context, donationIDs []string) (
 
 	rows, err := r.db.QueryContext(ctx, q, args...)
 	if err != nil {
-		r.logger.Errorf("[DonationOracle][fetchImagesFor] query failed: %v", err)
+		log.Errorf("[DonationOracle][fetchImagesFor] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -62,7 +66,7 @@ func (r *repository) fetchImagesFor(ctx context.Context, donationIDs []string) (
 		var imgID, donationID, photoURL string
 		var createdAt time.Time
 		if err := rows.Scan(&imgID, &donationID, &photoURL, &createdAt); err != nil {
-			r.logger.Errorf("[DonationOracle][fetchImagesFor] scan failed: %v", err)
+			log.Errorf("[DonationOracle][fetchImagesFor] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 		out[donationID] = append(out[donationID], types.DonationImage{

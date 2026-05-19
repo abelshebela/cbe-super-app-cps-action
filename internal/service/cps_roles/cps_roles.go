@@ -32,16 +32,17 @@ func NewCPSRoleService(repo storage.CPSRolesRepository, cpsService service.CPSAc
 }
 
 func (r *cpsRoleService) Create(ctx context.Context, req cps_role_dto.CreateCPSRoleRequest) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
 	cpsRole, _ := r.repo.FindByNameOrRoleCode(ctx, req.Name, req.RoleCode)
 	if cpsRole != nil {
 		if strings.EqualFold(cpsRole.Name, req.Name) {
-			r.logger.Warnf("[CpsRoleSvc][Create] name exists: %s", req.Name)
+			log.Warnf("[CpsRoleSvc][Create] name exists: %s", req.Name)
 			return errors.New(localization.ErrorCPSRoleNameAlreadyExists.Code)
 		}
 		if strings.EqualFold(cpsRole.RoleCode, req.RoleCode) {
-			r.logger.Warnf("[CpsRoleSvc][Create] code exists: %s", req.RoleCode)
+			log.Warnf("[CpsRoleSvc][Create] code exists: %s", req.RoleCode)
 			return errors.New(localization.ErrorCPSRoleCodeAlreadyExists.Code)
 		}
 	}
@@ -60,20 +61,22 @@ func (r *cpsRoleService) Create(ctx context.Context, req cps_role_dto.CreateCPSR
 	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, role, string(constants.RequestCreateCpsRole), constants.CREATE)
 
 	if err := r.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		r.logger.Errorf("[CpsRoleSvc][Create] cps action err: %v", err)
+		log.Errorf("[CpsRoleSvc][Create] cps action err: %v", err)
 		return err
 	}
 
-	r.logger.Infof("[CpsRoleSvc][Create] request created")
+	log.Infof("[CpsRoleSvc][Create] request created")
 	return nil
 }
 
 func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto.UpdateCPSRoleRequest) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
 	existing, err := r.repo.FindById(ctx, id)
 	if err != nil {
-		r.logger.Errorf("[CpsRoleSvc][Update] find err: %v", err)
+		log.Errorf("[CpsRoleSvc][Update] find err: %v", err)
 		return err
 	}
 
@@ -89,21 +92,21 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 	}
 	cpsRole, err := r.repo.FindByNameOrRoleCode(ctx, name, roleCode)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-		r.logger.Errorf("[CpsRoleSvc][Update] check existing err: %v", err)
+		log.Errorf("[CpsRoleSvc][Update] check existing err: %v", err)
 		return err
 	}
 
 	if cpsRole != nil && cpsRole.ID != id {
 		if strings.EqualFold(cpsRole.Name, name) && existing.Name != name {
-			r.logger.Warnf("[CpsRoleSvc][Update] name exists: %s", req.Name)
+			log.Warnf("[CpsRoleSvc][Update] name exists: %s", req.Name)
 			return errors.New(localization.ErrorCPSRoleNameAlreadyExists.Code)
 		}
 		if cpsRole.RoleCode == roleCode && existing.RoleCode != roleCode {
-			r.logger.Warnf("[CpsRoleSvc][Update] code exists: %s", req.RoleCode)
+			log.Warnf("[CpsRoleSvc][Update] code exists: %s", req.RoleCode)
 			return errors.New(localization.ErrorCPSRoleCodeAlreadyExists.Code)
 		}
 		if cpsRole.Lable == label && existing.Lable != label {
-			r.logger.Warnf("[CpsRoleSvc][Update] label exists: %s", req.Lable)
+			log.Warnf("[CpsRoleSvc][Update] label exists: %s", req.Lable)
 			return errors.New(localization.ErrorCPSRoleLabelAlreadyExists.Code)
 		}
 	}
@@ -126,29 +129,31 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 	cpsActionData := lib.CpsModelBuilder(id, makerUser, existing, updated, string(constants.RequestUpdateCpsRole), constants.UPDATE)
 
 	if err := r.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		r.logger.Errorf("[CpsRoleSvc][Update] cps action err: %v", err)
+		log.Errorf("[CpsRoleSvc][Update] cps action err: %v", err)
 		return err
 	}
 
-	r.logger.Infof("[CpsRoleSvc][Update] request created")
+	log.Infof("[CpsRoleSvc][Update] request created")
 	return nil
 }
 
 func (r *cpsRoleService) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
 	existing, err := r.repo.FindById(ctx, id)
 	if err != nil {
-		r.logger.Errorf("[CpsRoleSvc][EnableDisable] find err: %v", err)
+		log.Errorf("[CpsRoleSvc][EnableDisable] find err: %v", err)
 		return err
 	}
 
 	if enable && *existing.Enabled {
-		r.logger.Warnf("[CpsRoleSvc][EnableDisable] already enabled id: %s", id)
+		log.Warnf("[CpsRoleSvc][EnableDisable] already enabled id: %s", id)
 		return errors.New(localization.ErrorCPSRoleAlreadyEnabled.Code)
 	}
 	if !enable && !*existing.Enabled {
-		r.logger.Warnf("[CpsRoleSvc][EnableDisable] already disabled id: %s", id)
+		log.Warnf("[CpsRoleSvc][EnableDisable] already disabled id: %s", id)
 		return errors.New(localization.ErrorCPSRoleAlreadyDisabled.Code)
 	}
 
@@ -166,7 +171,7 @@ func (r *cpsRoleService) EnableOrDisable(ctx context.Context, id string, enable 
 	cpsActionData := lib.CpsModelBuilder(id, makerUser, existing, updated, requestType, constants.UPDATE)
 
 	if err := r.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		r.logger.Errorf("[CpsRoleSvc][EnableDisable] cps action err: %v", err)
+		log.Errorf("[CpsRoleSvc][EnableDisable] cps action err: %v", err)
 		return err
 	}
 
@@ -182,35 +187,41 @@ func (r *cpsRoleService) FindById(ctx context.Context, id string) (*imodel.CPSRo
 }
 
 func (r *cpsRoleService) EnableServiceAccess(ctx context.Context, roleID string, req cps_role_dto.ToggleServiceAccessRequest) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	if err := r.repo.EnableServiceAccess(ctx, roleID, req.AccessListKeys); err != nil {
-		r.logger.Errorf("[CpsRoleSvc][EnableAccess] err for role %s: %v", roleID, err)
+		log.Errorf("[CpsRoleSvc][EnableAccess] err for role %s: %v", roleID, err)
 		return err
 	}
-	r.logger.Infof("[CpsRoleSvc][EnableAccess] enabled role: %s, keys: %v", roleID, req.AccessListKeys)
+	log.Infof("[CpsRoleSvc][EnableAccess] enabled role: %s, keys: %v", roleID, req.AccessListKeys)
 	return nil
 }
 
 func (r *cpsRoleService) DisableServiceAccess(ctx context.Context, roleID string, req cps_role_dto.ToggleServiceAccessRequest) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	if err := r.repo.DisableServiceAccess(ctx, roleID, req.AccessListKeys); err != nil {
-		r.logger.Errorf("[CpsRoleSvc][DisableAccess] err for role %s: %v", roleID, err)
+		log.Errorf("[CpsRoleSvc][DisableAccess] err for role %s: %v", roleID, err)
 		return err
 	}
-	r.logger.Infof("[CpsRoleSvc][DisableAccess] disabled role: %s, keys: %v", roleID, req.AccessListKeys)
+	log.Infof("[CpsRoleSvc][DisableAccess] disabled role: %s, keys: %v", roleID, req.AccessListKeys)
 	return nil
 }
 
 func (r *cpsRoleService) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
 	existing, err := r.repo.FindById(ctx, id)
 	if err != nil {
-		r.logger.Errorf("[CpsRoleSvc][Delete] find err: %v", err)
+		log.Errorf("[CpsRoleSvc][Delete] find err: %v", err)
 		return err
 	}
 
 	err = r.repo.CheckUserExistence(ctx, existing.RoleCode)
 	if err != nil {
-		r.logger.Errorf("[CpsRoleSvc][Delete] check user existence err: %v", err)
+		log.Errorf("[CpsRoleSvc][Delete] check user existence err: %v", err)
 		return err
 	}
 
@@ -231,7 +242,7 @@ func (r *cpsRoleService) Delete(ctx context.Context, id string) error {
 	cpsActionData := lib.CpsModelBuilder(id, makerUser, existing, updated, requestType, constants.DELETE)
 
 	if err := r.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		r.logger.Errorf("[CpsRoleSvc][Delete] cps action err: %v", err)
+		log.Errorf("[CpsRoleSvc][Delete] cps action err: %v", err)
 		return err
 	}
 
@@ -239,12 +250,14 @@ func (r *cpsRoleService) Delete(ctx context.Context, id string) error {
 }
 
 func (r *cpsRoleService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	r.logger.Infof("[CpsRoleSvc][Authorize] action: %s", action.RequestAction)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[CpsRoleSvc][Authorize] action: %s", action.RequestAction)
 
 	var err error
 	role, marshal_err := local_util.JsonUnmarshal[imodel.CPSRoles](action.CurrentAction)
 	if marshal_err != nil || role == nil {
-		r.logger.Errorf("[CpsRoleSvc][Authorize] unmarshal err: %v", marshal_err)
+		log.Errorf("[CpsRoleSvc][Authorize] unmarshal err: %v", marshal_err)
 		return nil, marshal_err
 	}
 
@@ -260,15 +273,15 @@ func (r *cpsRoleService) Authorize(ctx context.Context, action *model.CPSAction)
 	case string(constants.RequestDeleteCpsRole):
 		err = r.repo.Delete(ctx, action.UniqueId)
 	default:
-		r.logger.Errorf("[CpsRoleSvc][Authorize] unsupported action: %s", action.RequestAction)
+		log.Errorf("[CpsRoleSvc][Authorize] unsupported action: %s", action.RequestAction)
 		return nil, errors.New("unsupported action")
 	}
 
 	if err != nil {
-		r.logger.Errorf("[CpsRoleSvc][Authorize] operation err: %v", err)
+		log.Errorf("[CpsRoleSvc][Authorize] operation err: %v", err)
 		return nil, err
 	}
 
-	r.logger.Infof("[CpsRoleSvc][Authorize] completed: %s", action.RequestAction)
+	log.Infof("[CpsRoleSvc][Authorize] completed: %s", action.RequestAction)
 	return action, nil
 }

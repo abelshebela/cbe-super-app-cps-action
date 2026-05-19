@@ -41,6 +41,8 @@ func NewLogisticsMerchantRepository(client *mongo.Client, cfg *config.VaultConfi
 }
 
 func (m *LogisticsMerchantRepository) Create(ctx context.Context, merchant local_model.LogisticsMerchant) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	if merchant.ID.IsZero() {
 		merchant.ID = bson.ObjectID(primitive.NewObjectID())
 	}
@@ -51,7 +53,7 @@ func (m *LogisticsMerchantRepository) Create(ctx context.Context, merchant local
 	coll := m.client.Database(m.dbName).Collection(m.collection)
 	res, err := coll.InsertOne(ctx, merchant)
 	if err != nil {
-		m.logger.Errorf("Failed to create logistics merchant: %v", err)
+		log.Errorf("Failed to create logistics merchant: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	merchant.ID = res.InsertedID.(bson.ObjectID)
@@ -61,9 +63,11 @@ func (m *LogisticsMerchantRepository) Create(ctx context.Context, merchant local
 }
 
 func (m *LogisticsMerchantRepository) Update(ctx context.Context, id string, merchant local_model.LogisticsMerchant) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+		log.Errorf("Invalid ID format: %s, error: %v", id, err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -79,9 +83,11 @@ func (m *LogisticsMerchantRepository) Update(ctx context.Context, id string, mer
 }
 
 func (m *LogisticsMerchantRepository) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+		log.Errorf("Invalid ID format: %s, error: %v", id, err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -101,10 +107,12 @@ func (m *LogisticsMerchantRepository) Delete(ctx context.Context, id string) err
 }
 
 func (m *LogisticsMerchantRepository) EnableOrDisable(ctx context.Context, ids []string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	for _, id := range ids {
 		objID, err := bson.ObjectIDFromHex(id)
 		if err != nil {
-			m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+			log.Errorf("Invalid ID format: %s, error: %v", id, err)
 			return errors.New(localization.ErrorInvalidID.Code)
 		}
 
@@ -120,9 +128,11 @@ func (m *LogisticsMerchantRepository) EnableOrDisable(ctx context.Context, ids [
 }
 
 func (m *LogisticsMerchantRepository) FindByID(ctx context.Context, id string) (*local_model.LogisticsMerchant, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+		log.Errorf("Invalid ID format: %s, error: %v", id, err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -135,6 +145,8 @@ func (m *LogisticsMerchantRepository) FindByID(ctx context.Context, id string) (
 }
 
 func (s *LogisticsMerchantRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchant], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "merchant_type", "merchant_id", "merchant_name", "email", "phone_number", "enabled", "bank_account_number"}
 
@@ -155,13 +167,13 @@ func (s *LogisticsMerchantRepository) FindAllWithPagination(ctx context.Context,
 
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		s.logger.Errorf("Failed to fetch paginated logistics merchants: %v", err)
+		log.Errorf("Failed to fetch paginated logistics merchants: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		s.logger.Errorf("Failed to count total logistics merchants: %v", err)
+		log.Errorf("Failed to count total logistics merchants: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 

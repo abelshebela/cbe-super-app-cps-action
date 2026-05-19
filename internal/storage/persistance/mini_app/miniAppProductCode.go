@@ -42,10 +42,12 @@ func (a *miniAppProductCode) Create(ctx context.Context, productCode *model.Mini
 }
 
 func (a *miniAppProductCode) Update(ctx context.Context, productCode *model.MiniAppProductCode, id string) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	objId, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
-		a.logger.Errorf(invalidCategoryID, err)
+		log.Errorf(invalidCategoryID, err)
 		return middleware.NewBadRequestError(invalidCategoryID, err)
 	}
 	filter := bson.M{"_id": objId}
@@ -58,10 +60,12 @@ func (a *miniAppProductCode) Update(ctx context.Context, productCode *model.Mini
 }
 
 func (a *miniAppProductCode) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	objId, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
-		a.logger.Errorf("Invalid mini app product code ID:", err)
+		log.Errorf("Invalid mini app product code ID:", err)
 		return middleware.NewBadRequestError(invalidCategoryID, err)
 	}
 	filter := bson.M{"_id": objId}

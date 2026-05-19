@@ -11,6 +11,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 )
 
 func isOracleTableMissingErr(err error) bool {
@@ -81,6 +82,8 @@ func (a *AccountBlockStorage) insertDisableReasonForBlocks(ctx context.Context, 
 }
 
 func (a *AccountBlockStorage) fetchReasonsMap(ctx context.Context, blockIDs []string) (map[string][]imodel.AccountBlockReason, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	out := make(map[string][]imodel.AccountBlockReason)
 	if len(blockIDs) == 0 {
 		return out, nil
@@ -102,7 +105,7 @@ func (a *AccountBlockStorage) fetchReasonsMap(ctx context.Context, blockIDs []st
 		// Keep account-block APIs available even if disable-reason table
 		// is not present in a given environment yet.
 		if isOracleTableMissingErr(err) {
-			a.logger.Warnf("[AccountBlockStorage][fetchReasonsMap] reason table missing, continuing without reasons: %v", err)
+			log.Warnf("[AccountBlockStorage][fetchReasonsMap] reason table missing, continuing without reasons: %v", err)
 			return out, nil
 		}
 		return nil, err
@@ -137,7 +140,9 @@ func (a *AccountBlockStorage) fetchReasonsMap(ctx context.Context, blockIDs []st
 }
 
 func (a *AccountBlockStorage) GetPreviousReasons(ctx context.Context, accountBlockID string) ([]imodel.AccountBlockReason, error) {
-	a.logger.Infof("[AccountBlockStorage][GetPreviousReasons] account_block_id=%s", accountBlockID)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
+	log.Infof("[AccountBlockStorage][GetPreviousReasons] account_block_id=%s", accountBlockID)
 	if _, err := a.fetchBlockByID(ctx, accountBlockID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
@@ -146,7 +151,7 @@ func (a *AccountBlockStorage) GetPreviousReasons(ctx context.Context, accountBlo
 	}
 	m, err := a.fetchReasonsMap(ctx, []string{accountBlockID})
 	if err != nil {
-		a.logger.Errorf("[AccountBlockStorage][GetPreviousReasons] fetch failed: %v", err)
+		log.Errorf("[AccountBlockStorage][GetPreviousReasons] fetch failed: %v", err)
 		return nil, err
 	}
 	reasons := m[normalizeHexID(accountBlockID)]

@@ -43,13 +43,15 @@ func NewDeviceVersionService(deviceVersionRepo storage.DeviceVersionControlRepos
 
 // Authorize applies the approved CPS action for Device Version operations.
 func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "DeviceVersion", "Authorize")
 	defer span.End()
 
-	d.logger.Infof("[DevVerSvc][Authorize] action: %s", cpsAction.RequestAction)
+	log.Infof("[DevVerSvc][Authorize] action: %s", cpsAction.RequestAction)
 	actionData, err := local_util.JsonUnmarshal[model.DeviceVersionControl](cpsAction.CurrentAction)
 	if err != nil {
-		d.logger.Errorf("[DevVerSvc][Authorize] unmarshal err: %v", err)
+		log.Errorf("[DevVerSvc][Authorize] unmarshal err: %v", err)
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
@@ -63,7 +65,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 		if actionData.ForceUpdate {
 			err = d.DisableExistingDeviceVersion(ctx, actionData.Platform)
 			if err != nil {
-				d.logger.Errorf("[DevVerSvc][Authorize] disable existing err: %v", err)
+				log.Errorf("[DevVerSvc][Authorize] disable existing err: %v", err)
 				span.AddEvent("Failed to disable existing device version", trace.WithAttributes(
 					attribute.String("error", err.Error()),
 					attribute.String("platform", actionData.Platform),
@@ -73,7 +75,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 		}
 
 		if err = d.deviceVersionRepo.Save(ctx, *actionData); err != nil {
-			d.logger.Errorf("[DevVerSvc][Authorize] create err: %v", err)
+			log.Errorf("[DevVerSvc][Authorize] create err: %v", err)
 			span.AddEvent("Device version create action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("platform", actionData.Platform),
@@ -83,7 +85,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 
 		createdDeviceVersion, err := d.deviceVersionRepo.FindOne(ctx, actionData.Platform, actionData.LatestVersion)
 		if err != nil {
-			d.logger.Errorf("[DevVerSvc][Authorize] fetch created for kafka err: %v", err)
+			log.Errorf("[DevVerSvc][Authorize] fetch created for kafka err: %v", err)
 			span.AddEvent("Failed to fetch created device version for kafka publish", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("platform", actionData.Platform),
@@ -92,7 +94,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 		} else {
 			if d.kafkaProducer != nil {
 				if err := d.kafkaProducer.PublishMessage(ctx, createdDeviceVersion, string(constants.DeviceVersionControlTopic), string(constants.DeviceVersionControlTopic), "new device version control created"); err != nil {
-					d.logger.Errorf("[DevVerSvc][Authorize] kafka publish err: %v", err)
+					log.Errorf("[DevVerSvc][Authorize] kafka publish err: %v", err)
 					span.AddEvent("Kafka publish failed for created device version", trace.WithAttributes(
 						attribute.String("error", err.Error()),
 						attribute.String("platform", actionData.Platform),
@@ -101,12 +103,12 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 				}
 			}
 		}
-		d.logger.Infof("[DevVerSvc][Authorize] created platform: %s", actionData.Platform)
+		log.Infof("[DevVerSvc][Authorize] created platform: %s", actionData.Platform)
 	case string(constants.RequestUpdateDeviceVersion), string(constants.RequestEnableDisableDeviceVersion):
 		if actionData.ForceUpdate {
 			err = d.DisableExistingDeviceVersion(ctx, actionData.Platform)
 			if err != nil {
-				d.logger.Errorf("[DevVerSvc][Authorize] disable existing err: %v", err)
+				log.Errorf("[DevVerSvc][Authorize] disable existing err: %v", err)
 				span.AddEvent("Failed to disable existing device version", trace.WithAttributes(
 					attribute.String("error", err.Error()),
 					attribute.String("platform", actionData.Platform),
@@ -116,16 +118,16 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 		}
 		updateData, err := core.UpdateDeviceVersionBsonForDb(*actionData, cpsAction.MakerName)
 		if err != nil {
-			d.logger.Errorf("[DevVerSvc][Authorize] prepare update err: %v", err)
+			log.Errorf("[DevVerSvc][Authorize] prepare update err: %v", err)
 			span.AddEvent("Failed to prepare update data", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			return nil, err
 		}
-		
+
 		if err := d.deviceVersionRepo.Update(ctx, cpsAction.UniqueId, updateData); err != nil {
-			d.logger.Errorf("[DevVerSvc][Authorize] update err: %v", err)
+			log.Errorf("[DevVerSvc][Authorize] update err: %v", err)
 			span.AddEvent("Device version update/enable-disable action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
@@ -135,7 +137,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 
 		updatedDeviceVersion, err := d.deviceVersionRepo.FindByID(ctx, cpsAction.UniqueId)
 		if err != nil {
-			d.logger.Errorf("[DevVerSvc][Authorize] fetch updated for kafka err: %v", err)
+			log.Errorf("[DevVerSvc][Authorize] fetch updated for kafka err: %v", err)
 			span.AddEvent("Failed to fetch updated device version for kafka publish", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
@@ -143,7 +145,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 		} else {
 			if d.kafkaProducer != nil {
 				if err := d.kafkaProducer.PublishMessage(ctx, updatedDeviceVersion, string(constants.DeviceVersionControlTopic), string(constants.DeviceVersionControlTopic), "update device version control"); err != nil {
-					d.logger.Errorf("[DevVerSvc][Authorize] kafka publish updated err: %v", err)
+					log.Errorf("[DevVerSvc][Authorize] kafka publish updated err: %v", err)
 					span.AddEvent("Kafka publish failed for updated device version", trace.WithAttributes(
 						attribute.String("error", err.Error()),
 						attribute.String("unique_id", cpsAction.UniqueId),
@@ -151,20 +153,20 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 				}
 			}
 		}
-		d.logger.Infof("[DevVerSvc][Authorize] updated id: %s", cpsAction.UniqueId)
+		log.Infof("[DevVerSvc][Authorize] updated id: %s", cpsAction.UniqueId)
 
 	case string(constants.RequestDeleteDeviceVersion):
 		if err := d.deviceVersionRepo.Delete(ctx, cpsAction.UniqueId); err != nil {
-			d.logger.Errorf("[DevVerSvc][Authorize] delete err: %v", err)
+			log.Errorf("[DevVerSvc][Authorize] delete err: %v", err)
 			span.AddEvent("Device version delete action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			return nil, err
 		}
-		d.logger.Infof("[DevVerSvc][Authorize] deleted id: %s", cpsAction.UniqueId)
+		log.Infof("[DevVerSvc][Authorize] deleted id: %s", cpsAction.UniqueId)
 	default:
-		d.logger.Errorf("[DevVerSvc][Authorize] unsupported: %s", cpsAction.RequestAction)
+		log.Errorf("[DevVerSvc][Authorize] unsupported: %s", cpsAction.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
@@ -172,18 +174,20 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
-	d.logger.Infof("[DevVerSvc][Authorize] done: %s", cpsAction.RequestAction)
+	log.Infof("[DevVerSvc][Authorize] done: %s", cpsAction.RequestAction)
 	return cpsAction, nil
 }
 
 // CreateDeviceVersion implements service.DeviceVersionService.
 func (d *DeviceVersionService) CreateDeviceVersion(ctx context.Context, deviceVersion deviceversion.CreateDeviceVersionRequest) error {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateDeviceVersion", "DeviceVersion", "CreateDeviceVersion")
 	defer span.End()
 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		d.logger.Errorf("[DevVerSvc][Create] incomplete user")
+		log.Errorf("[DevVerSvc][Create] incomplete user")
 		span.AddEvent("Incomplete user data", trace.WithAttributes(
 			attribute.String("error", constants.IncompleteUserInfo),
 			attribute.String("platform", deviceVersion.Platform),
@@ -216,25 +220,27 @@ func (d *DeviceVersionService) CreateDeviceVersion(ctx context.Context, deviceVe
 
 	action := lib.CpsModelBuilder("", makerData, nil, new_device_version, string(constants.RequestCreateDeviceVersion), constants.CREATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &action); err != nil {
-		d.logger.Errorf("[DevVerSvc][Create] cps action err: %v", err)
+		log.Errorf("[DevVerSvc][Create] cps action err: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("platform", deviceVersion.Platform),
 		))
 		return err
 	}
-	d.logger.Infof("[DevVerSvc][Create] request created platform: %s", deviceVersion.Platform)
+	log.Infof("[DevVerSvc][Create] request created platform: %s", deviceVersion.Platform)
 	return nil
 }
 
 // EnableDisableDeviceVersion implements service.DeviceVersionService.
 func (d *DeviceVersionService) EnableDisableDeviceVersion(ctx context.Context, id string, enableDisable bool) error {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableDisableDeviceVersion", "DeviceVersion", "EnableDisableDeviceVersion")
 	defer span.End()
 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		d.logger.Errorf("[DevVerSvc][EnableDisable] incomplete user")
+		log.Errorf("[DevVerSvc][EnableDisable] incomplete user")
 		span.AddEvent("Incomplete user data", trace.WithAttributes(
 			attribute.String("error", constants.IncompleteUserInfo),
 			attribute.String("id", id),
@@ -243,7 +249,7 @@ func (d *DeviceVersionService) EnableDisableDeviceVersion(ctx context.Context, i
 	}
 	deviceVersion, err := d.deviceVersionRepo.FindByID(ctx, id)
 	if err != nil {
-		d.logger.Errorf("[DevVerSvc][EnableDisable] find err: %v", err)
+		log.Errorf("[DevVerSvc][EnableDisable] find err: %v", err)
 		span.AddEvent("Failed to find device version", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -274,62 +280,68 @@ func (d *DeviceVersionService) EnableDisableDeviceVersion(ctx context.Context, i
 	// create CPS action for enable/disable
 	action := lib.CpsModelBuilder(id, makerData, &deviceVersion, updated, string(constants.RequestEnableDisableDeviceVersion), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &action); err != nil {
-		d.logger.Errorf("[DevVerSvc][EnableDisable] cps action err: %v", err)
+		log.Errorf("[DevVerSvc][EnableDisable] cps action err: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return err
 	}
-	d.logger.Infof("[DevVerSvc][EnableDisable] request created id: %s enabled: %v", id, enableDisable)
+	log.Infof("[DevVerSvc][EnableDisable] request created id: %s enabled: %v", id, enableDisable)
 	return nil
 }
 
 // GetAllDeviceVersions implements service.DeviceVersionService.
 func (d *DeviceVersionService) GetAllDeviceVersions(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]model.DeviceVersionControl], error) {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllDeviceVersions", "DeviceVersion", "GetAllDeviceVersions")
 	defer span.End()
 
 	// repository returns value slice; map to pointer slice to match signature
 	res, err := d.deviceVersionRepo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
-		d.logger.Errorf("[DevVerSvc][GetAll] fetch err: %v", err)
+		log.Errorf("[DevVerSvc][GetAll] fetch err: %v", err)
 		span.AddEvent("Failed to fetch device versions", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
 		return types.PaginatedResponse[[]model.DeviceVersionControl]{}, err
 	}
-	d.logger.Infof("[DevVerSvc][GetAll] count: %d", len(res.Data))
+	log.Infof("[DevVerSvc][GetAll] count: %d", len(res.Data))
 	return res, nil
 }
 
 // GetDeviceVersionByID implements service.DeviceVersionService.
 func (d *DeviceVersionService) GetDeviceVersionByID(ctx context.Context, id string) (model.DeviceVersionControl, error) {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetDeviceVersionByID", "DeviceVersion", "GetDeviceVersionByID")
 	defer span.End()
 
 	dv, err := d.deviceVersionRepo.FindByID(ctx, id)
 	if err != nil {
-		d.logger.Errorf("[DevVerSvc][GetByID] find err: %v", err)
+		log.Errorf("[DevVerSvc][GetByID] find err: %v", err)
 		span.AddEvent("Failed to find device version", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return model.DeviceVersionControl{}, err
 	}
-	d.logger.Infof("[DevVerSvc][GetByID] found id: %s", id)
+	log.Infof("[DevVerSvc][GetByID] found id: %s", id)
 	return dv, nil
 
 }
 
 // UpdateDeviceVersion implements service.DeviceVersionService.
 func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id string, req deviceversion.UpdateDeviceVersionRequest) error {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateDeviceVersion", "DeviceVersion", "UpdateDeviceVersion")
 	defer span.End()
 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		d.logger.Errorf("[DevVerSvc][Update] incomplete user")
+		log.Errorf("[DevVerSvc][Update] incomplete user")
 		span.AddEvent("Incomplete user data", trace.WithAttributes(
 			attribute.String("error", constants.IncompleteUserInfo),
 			attribute.String("id", id),
@@ -338,7 +350,7 @@ func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id strin
 	}
 	existing, err := d.deviceVersionRepo.FindByID(ctx, id)
 	if err != nil {
-		d.logger.Errorf("[DevVerSvc][Update] find err: %v", err)
+		log.Errorf("[DevVerSvc][Update] find err: %v", err)
 		span.AddEvent("Failed to find device version", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -347,7 +359,7 @@ func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id strin
 	}
 
 	if existing == (model.DeviceVersionControl{}) {
-		d.logger.Errorf("[DevVerSvc][Update] not found: %s", id)
+		log.Errorf("[DevVerSvc][Update] not found: %s", id)
 		span.AddEvent("Device version not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorResourceNotFound.Code),
 			attribute.String("id", id),
@@ -355,9 +367,9 @@ func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id strin
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	// apply updates
-	update, err := core.UpdateDeviceVersionBson(req, makerData.FullName,existing.Enabled,existing.ForceUpdate )
+	update, err := core.UpdateDeviceVersionBson(req, makerData.FullName, existing.Enabled, existing.ForceUpdate)
 	if err != nil {
-		d.logger.Errorf("[DevVerSvc][Update] prepare data err: %v", err)
+		log.Errorf("[DevVerSvc][Update] prepare data err: %v", err)
 		span.AddEvent("Failed to prepare update data", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -368,29 +380,31 @@ func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id strin
 
 	action := lib.CpsModelBuilder(existing.ID.Hex(), makerData, &existing, update, string(constants.RequestUpdateDeviceVersion), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &action); err != nil {
-		d.logger.Errorf("[DevVerSvc][Update] cps action err: %v", err)
+		log.Errorf("[DevVerSvc][Update] cps action err: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return err
 	}
-	d.logger.Infof("[DevVerSvc][Update] request created id: %s", id)
+	log.Infof("[DevVerSvc][Update] request created id: %s", id)
 	return nil
 }
 
 func (d *DeviceVersionService) DisableExistingDeviceVersion(ctx context.Context, platform string) error {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "DisableExistingDeviceVersion", "DeviceVersion", "DisableExistingDeviceVersion")
 	defer span.End()
 
-	d.logger.Infof("[DevVerSvc][DisableExisting] platform: %s", platform)
+	log.Infof("[DevVerSvc][DisableExisting] platform: %s", platform)
 	existing, err := d.deviceVersionRepo.FindOne(ctx, platform, "")
 	if err != nil {
 		if err.Error() == localization.ErrorResourceNotFound.Code {
-			d.logger.Infof("[DevVerSvc][DisableExisting] none found platform: %s", platform)
+			log.Infof("[DevVerSvc][DisableExisting] none found platform: %s", platform)
 			return nil
 		}
-		d.logger.Errorf("[DevVerSvc][DisableExisting] find err: %v", err)
+		log.Errorf("[DevVerSvc][DisableExisting] find err: %v", err)
 		span.AddEvent("Failed to find existing device version", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("platform", platform),
@@ -398,12 +412,12 @@ func (d *DeviceVersionService) DisableExistingDeviceVersion(ctx context.Context,
 		return err
 	}
 	if existing == (model.DeviceVersionControl{}) {
-		d.logger.Infof("[DevVerSvc][DisableExisting] none found platform: %s", platform)
+		log.Infof("[DevVerSvc][DisableExisting] none found platform: %s", platform)
 		return nil
 	}
 	err = d.deviceVersionRepo.EnableOrDisable(ctx, existing.ID.Hex(), false)
 	if err != nil {
-		d.logger.Errorf("[DevVerSvc][DisableExisting] disable err: %v", err)
+		log.Errorf("[DevVerSvc][DisableExisting] disable err: %v", err)
 		span.AddEvent("Failed to disable existing device version", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("platform", platform),
@@ -411,6 +425,6 @@ func (d *DeviceVersionService) DisableExistingDeviceVersion(ctx context.Context,
 		))
 		return errors.New(localization.ErrorOnDisablingExistingDeviceControl.Code)
 	}
-	d.logger.Infof("[DevVerSvc][DisableExisting] disabled platform: %s", platform)
+	log.Infof("[DevVerSvc][DisableExisting] disabled platform: %s", platform)
 	return nil
 }

@@ -48,16 +48,18 @@ func NewAvatarService(avatar storage.AvatarRepository, cpsService service.CPSAct
 }
 
 func (a *avatarService) CreateAvatar(ctx context.Context, avatar *model.Avatar, fileHeader *multipart.FileHeader) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateAvatar", "Avatar", "CreateAvatar")
 	defer span.End()
 
-	a.logger.Infof("[AvatarSvc][Create] creating")
+	log.Infof("[AvatarSvc][Create] creating")
 	makerData := local_util.ExtractUserFromContext(ctx)
 	existing, _ := a.avatar.Find(ctx, bson.M{"label": avatar.Label}, nil)
 
 	if existing != nil {
 		span.AddEvent("[CreateAvatar] avatar with label already exists", trace.WithAttributes(attribute.String("label", avatar.Label)))
-		a.logger.Errorf("[AvatarSvc][Create] label exists")
+		log.Errorf("[AvatarSvc][Create] label exists")
 		return errors.New(localization.ErrorAvatarAlreadyExist.Code)
 	}
 
@@ -82,14 +84,16 @@ func (a *avatarService) CreateAvatar(ctx context.Context, avatar *model.Avatar, 
 	return nil
 }
 func (a *avatarService) UpdateAvatar(ctx context.Context, id string, avatar *model.Avatar, fileHeader *multipart.FileHeader, fromEnabledDisable bool) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateAvatar", "Avatar", "UpdateAvatar")
 	defer span.End()
 
-	a.logger.Infof("[AvatarSvc][Update] id: %s", id)
+	log.Infof("[AvatarSvc][Update] id: %s", id)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplete := local_util.IsIncomplete(makerData); incomplete {
 		span.AddEvent("[UpdateAvatar] incomplete user data", trace.WithAttributes(attribute.String("id", id)))
-		a.logger.Errorf("[AvatarSvc][Update] incomplete user")
+		log.Errorf("[AvatarSvc][Update] incomplete user")
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
@@ -100,14 +104,14 @@ func (a *avatarService) UpdateAvatar(ctx context.Context, id string, avatar *mod
 				attribute.String("error", err.Error()),
 				attribute.String("id", id),
 			))
-			a.logger.Errorf("[AvatarSvc][Update] find err: %v", err)
+			log.Errorf("[AvatarSvc][Update] find err: %v", err)
 			return errors.New(localization.ErrorAvatarAlreadyExist.Code)
 		}
 	}
 
 	if existing == nil {
 		span.AddEvent("[UpdateAvatar] avatar with label already exists", trace.WithAttributes(attribute.String("label", avatar.Label)))
-		a.logger.Errorf("[AvatarSvc][Update] label exists")
+		log.Errorf("[AvatarSvc][Update] label exists")
 		return errors.New(localization.ErrorAvatarAlreadyExist.Code)
 	}
 
@@ -117,7 +121,7 @@ func (a *avatarService) UpdateAvatar(ctx context.Context, id string, avatar *mod
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		a.logger.Errorf("[AvatarSvc][Update] build data err: %v", err)
+		log.Errorf("[AvatarSvc][Update] build data err: %v", err)
 		return err
 	}
 
@@ -134,7 +138,7 @@ func (a *avatarService) UpdateAvatar(ctx context.Context, id string, avatar *mod
 				attribute.String("error", err.Error()),
 				attribute.String("id", id),
 			))
-			a.logger.Errorf("[AvatarSvc][Update] upload err: %v", err)
+			log.Errorf("[AvatarSvc][Update] upload err: %v", err)
 			return err
 		}
 		existed.Avatar = url
@@ -151,23 +155,25 @@ func (a *avatarService) UpdateAvatar(ctx context.Context, id string, avatar *mod
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		a.logger.Errorf("[AvatarSvc][Update] cps action err: %v", err)
+		log.Errorf("[AvatarSvc][Update] cps action err: %v", err)
 		return err
 	}
-	a.logger.Infof("[AvatarSvc][Update] request created id: %s", id)
+	log.Infof("[AvatarSvc][Update] request created id: %s", id)
 	return nil
 
 }
 
 func (a *avatarService) EnableDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableDisable", "Avatar", "EnableDisable")
 	defer span.End()
 
-	a.logger.Infof("[AvatarSvc][EnableDisable] id: %s enabled: %v", id, enable)
+	log.Infof("[AvatarSvc][EnableDisable] id: %s enabled: %v", id, enable)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplete := local_util.IsIncomplete(makerData); incomplete {
 		span.AddEvent("[EnableDisable] incomplete user data", trace.WithAttributes(attribute.String("id", id)))
-		a.logger.Errorf("[AvatarSvc][EnableDisable] incomplete user")
+		log.Errorf("[AvatarSvc][EnableDisable] incomplete user")
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	data, err := a.avatar.FindByID(ctx, id)
@@ -176,18 +182,18 @@ func (a *avatarService) EnableDisable(ctx context.Context, id string, enable boo
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		a.logger.Errorf("[AvatarSvc][EnableDisable] find err: %v", err)
+		log.Errorf("[AvatarSvc][EnableDisable] find err: %v", err)
 		return err
 	}
 
 	if data.Enable == enable {
 		if enable {
 			span.AddEvent("[EnableDisable] avatar already enabled", trace.WithAttributes(attribute.String("id", id)))
-			a.logger.Errorf("[AvatarSvc][EnableDisable] already enabled")
+			log.Errorf("[AvatarSvc][EnableDisable] already enabled")
 			return errors.New(localization.ErrorAvatarAlreadyEnabled.Code)
 		}
 		span.AddEvent("[EnableDisable] avatar already disabled", trace.WithAttributes(attribute.String("id", id)))
-		a.logger.Errorf("[AvatarSvc][EnableDisable] already disabled")
+		log.Errorf("[AvatarSvc][EnableDisable] already disabled")
 		return errors.New(localization.ErrorAvatarAlreadyDisabled.Code)
 	}
 	var requestAction string
@@ -205,17 +211,19 @@ func (a *avatarService) EnableDisable(ctx context.Context, id string, enable boo
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		a.logger.Errorf("[AvatarSvc][EnableDisable] cps action err: %v", err)
+		log.Errorf("[AvatarSvc][EnableDisable] cps action err: %v", err)
 		return err
 	}
-	a.logger.Infof("[AvatarSvc][EnableDisable] request created id: %s", id)
+	log.Infof("[AvatarSvc][EnableDisable] request created id: %s", id)
 	return nil
 }
 func (a *avatarService) DeleteAvatar(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteAvatar", "Avatar", "DeleteAvatar")
 	defer span.End()
 
-	a.logger.Infof("[AvatarSvc][Delete] id: %s", id)
+	log.Infof("[AvatarSvc][Delete] id: %s", id)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	existing, err := a.avatar.FindByID(ctx, id)
 	if err != nil {
@@ -223,13 +231,13 @@ func (a *avatarService) DeleteAvatar(ctx context.Context, id string) error {
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		a.logger.Errorf("[AvatarSvc][Delete] find err: %v", err)
+		log.Errorf("[AvatarSvc][Delete] find err: %v", err)
 		return err
 	}
 
 	if existing == nil {
 		span.AddEvent("[DeleteAvatar] avatar not found", trace.WithAttributes(attribute.String("id", id)))
-		a.logger.Errorf("[AvatarSvc][Delete] not found: %s", id)
+		log.Errorf("[AvatarSvc][Delete] not found: %s", id)
 		return errors.New(localization.ErrorAvatarNotExist.Code)
 	}
 
@@ -239,13 +247,15 @@ func (a *avatarService) DeleteAvatar(ctx context.Context, id string) error {
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		a.logger.Errorf("[AvatarSvc][Delete] cps action err: %v", err)
+		log.Errorf("[AvatarSvc][Delete] cps action err: %v", err)
 		return err
 	}
-	a.logger.Infof("[AvatarSvc][Delete] request created id: %s", id)
+	log.Infof("[AvatarSvc][Delete] request created id: %s", id)
 	return nil
 }
 func (a *avatarService) FetchAllAvatar(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]model.Avatar], error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchAllAvatar", "Avatar", "FetchAllAvatar")
 	defer span.End()
 
@@ -254,13 +264,15 @@ func (a *avatarService) FetchAllAvatar(ctx context.Context, filterParams types.F
 		span.AddEvent("[FetchAllAvatar] failed to fetch avatars", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
-		a.logger.Errorf("[AvatarSvc][FetchAll] fetch err: %v", err)
+		log.Errorf("[AvatarSvc][FetchAll] fetch err: %v", err)
 		return nil, err
 	}
-	a.logger.Infof("[AvatarSvc][FetchAll] count: %d", len(data.Data))
+	log.Infof("[AvatarSvc][FetchAll] count: %d", len(data.Data))
 	return data, nil
 }
 func (a *avatarService) FetchAvatarById(ctx context.Context, id string) (*model.Avatar, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchAvatarById", "Avatar", "FetchAvatarById")
 	defer span.End()
 
@@ -270,17 +282,19 @@ func (a *avatarService) FetchAvatarById(ctx context.Context, id string) (*model.
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		a.logger.Errorf("[AvatarSvc][FetchByID] fetch err: %v", err)
+		log.Errorf("[AvatarSvc][FetchByID] fetch err: %v", err)
 		return nil, err
 	}
-	a.logger.Infof("[AvatarSvc][FetchByID] found id: %s", id)
+	log.Infof("[AvatarSvc][FetchByID] found id: %s", id)
 	return data, nil
 }
 func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Avatar", "Authorize")
 	defer span.End()
 
-	a.logger.Infof("[AvatarSvc][Authorize] action: %s", cpsAction.RequestAction)
+	log.Infof("[AvatarSvc][Authorize] action: %s", cpsAction.RequestAction)
 
 	avatar, err := local_util.JsonUnmarshal[model.Avatar](cpsAction.CurrentAction)
 	if err != nil {
@@ -288,7 +302,7 @@ func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		a.logger.Errorf("[AvatarSvc][Authorize] unmarshal err: %v", err)
+		log.Errorf("[AvatarSvc][Authorize] unmarshal err: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -300,10 +314,10 @@ func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			a.logger.Errorf("[AvatarSvc][Authorize] create err: %v", err)
+			log.Errorf("[AvatarSvc][Authorize] create err: %v", err)
 			return nil, err
 		}
-		a.logger.Infof("[AvatarSvc][Authorize] created")
+		log.Infof("[AvatarSvc][Authorize] created")
 	case string(constants.RequestUpdateAvatar):
 		err = a.avatar.Update(ctx, cpsAction.UniqueId, &model.Avatar{Avatar: avatar.Avatar, Label: avatar.Label, Enable: avatar.Enable})
 		if err != nil {
@@ -311,10 +325,10 @@ func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			a.logger.Errorf("[AvatarSvc][Authorize] update err: %v", err)
+			log.Errorf("[AvatarSvc][Authorize] update err: %v", err)
 			return nil, err
 		}
-		a.logger.Infof("[AvatarSvc][Authorize] updated id: %s", cpsAction.UniqueId)
+		log.Infof("[AvatarSvc][Authorize] updated id: %s", cpsAction.UniqueId)
 	case string(constants.RequestDeleteAvatar):
 		err = a.avatar.Delete(ctx, cpsAction.UniqueId)
 		if err != nil {
@@ -322,10 +336,10 @@ func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			a.logger.Errorf("[AvatarSvc][Authorize] delete err: %v", err)
+			log.Errorf("[AvatarSvc][Authorize] delete err: %v", err)
 			return nil, err
 		}
-		a.logger.Infof("[AvatarSvc][Authorize] deleted id: %s", cpsAction.UniqueId)
+		log.Infof("[AvatarSvc][Authorize] deleted id: %s", cpsAction.UniqueId)
 	case string(constants.RequestEnableAvatar):
 		err = a.avatar.EnableOrDisable(ctx, cpsAction.UniqueId, true)
 		if err != nil {
@@ -333,10 +347,10 @@ func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			a.logger.Errorf("[AvatarSvc][Authorize] enable err: %v", err)
+			log.Errorf("[AvatarSvc][Authorize] enable err: %v", err)
 			return nil, err
 		}
-		a.logger.Infof("[AvatarSvc][Authorize] enabled id: %s", cpsAction.UniqueId)
+		log.Infof("[AvatarSvc][Authorize] enabled id: %s", cpsAction.UniqueId)
 	case string(constants.RequestDisableAvatar):
 		err = a.avatar.EnableOrDisable(ctx, cpsAction.UniqueId, false)
 		if err != nil {
@@ -344,15 +358,15 @@ func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			a.logger.Errorf("[AvatarSvc][Authorize] disable err: %v", err)
+			log.Errorf("[AvatarSvc][Authorize] disable err: %v", err)
 			return nil, err
 		}
-		a.logger.Infof("[AvatarSvc][Authorize] disabled id: %s", cpsAction.UniqueId)
+		log.Infof("[AvatarSvc][Authorize] disabled id: %s", cpsAction.UniqueId)
 	default:
 		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", cpsAction.RequestAction)))
-		a.logger.Errorf("[AvatarSvc][Authorize] unsupported: %s", cpsAction.RequestAction)
+		log.Errorf("[AvatarSvc][Authorize] unsupported: %s", cpsAction.RequestAction)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
-	a.logger.Infof("[AvatarSvc][Authorize] done: %s", cpsAction.RequestAction)
+	log.Infof("[AvatarSvc][Authorize] done: %s", cpsAction.RequestAction)
 	return cpsAction, nil
 }

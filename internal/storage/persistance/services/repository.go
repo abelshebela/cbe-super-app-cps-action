@@ -52,6 +52,7 @@ package services
 // }
 
 // func (s *ServicesStorage) Create(ctx context.Context, service *model.Service) error {
+
 // 	if service.ID == bson.NilObjectID {
 // 		service.ID = bson.NewObjectID()
 // 	}
@@ -63,7 +64,7 @@ package services
 
 // 	createService, err := s.dal.InsertOne(ctx, *service)
 // 	if err != nil {
-// 		s.logger.Errorf("[ServicesStorage][Create] failed to insert service: %v", err)
+// 		log.Errorf("[ServicesStorage][Create] failed to insert service: %v", err)
 // 		return errors.New(localization.ErrorUnexpectedError.Code)
 // 	}
 // 	s.kafkaProducer.PublishMessage(ctx, createService, string(constants.ClientOrchestrationServicesTopic), string(constants.ClientOrchestrationServicesTopic), "new service created")
@@ -71,9 +72,10 @@ package services
 // }
 
 // func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.Service) error {
+
 // 	objID, err := bson.ObjectIDFromHex(id)
 // 	if err != nil {
-// 		s.logger.Errorf("[ServicesStorage][Update] invalid object id: %v", err)
+// 		log.Errorf("[ServicesStorage][Update] invalid object id: %v", err)
 // 		return errors.New(localization.ErrorInvalidID.Code)
 // 	}
 
@@ -84,7 +86,7 @@ package services
 
 // 	prev, err := s.dal.FindOne(ctx, bson.M{"_id": objID}, bson.M{})
 // 	if err != nil {
-// 		s.logger.Errorf("[ServicesStorage][Update] failed to find previous service: %v", err)
+// 		log.Errorf("[ServicesStorage][Update] failed to find previous service: %v", err)
 // 		return local_util.HandleDBError(err)
 // 	}
 
@@ -96,7 +98,7 @@ package services
 
 // 	updatedService, err := s.dal.UpdateOne(ctx, filter, update)
 // 	if err != nil {
-// 		s.logger.Errorf("[ServicesStorage][Update] failed to update service: %v", err)
+// 		log.Errorf("[ServicesStorage][Update] failed to update service: %v", err)
 // 		return local_util.HandleDBError(err)
 // 	}
 
@@ -110,39 +112,41 @@ package services
 
 // 	err = s.redis.Set(ctx, s.cfg.CPSServiceUpdate, updatedService, -1)
 // 	if err != nil {
-// 		s.logger.Errorf("[ServivcesStorage][Update] failed to set services updated data to redis: %v", err)
+// 		log.Errorf("[ServivcesStorage][Update] failed to set services updated data to redis: %v", err)
 // 	}
 
 // 	return nil
 // }
 
 // func (s *ServicesStorage) Delete(ctx context.Context, id string) error {
+
 // 	objID, err := bson.ObjectIDFromHex(id)
 // 	if err != nil {
-// 		s.logger.Errorf("[ServicesStorage][Delete] invalid object id: %v", err)
+// 		log.Errorf("[ServicesStorage][Delete] invalid object id: %v", err)
 // 		return errors.New(localization.ErrorInvalidID.Code)
 // 	}
 // 	filter := bson.M{"_id": objID, "is_deleted": false}
 // 	update := bson.M{"is_deleted": true, "deleted_at": time.Now()}
 // 	_, err = s.dal.UpdateOne(ctx, filter, update)
 // 	if err != nil {
-// 		s.logger.Errorf("[ServicesStorage][Delete] failed to delete service: %v", err)
+// 		log.Errorf("[ServicesStorage][Delete] failed to delete service: %v", err)
 // 		return local_util.HandleDBError(err)
 // 	}
 // 	return nil
 // }
 
 // func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+
 // 	objID, err := bson.ObjectIDFromHex(id)
 // 	if err != nil {
-// 		s.logger.Errorf("[ServicesStorage][EnableOrDisable] invalid object id: %v", err)
+// 		log.Errorf("[ServicesStorage][EnableOrDisable] invalid object id: %v", err)
 // 		return errors.New(localization.ErrorInvalidID.Code)
 // 	}
 // 	filter := bson.M{"_id": objID, "is_deleted": false}
 // 	update := bson.M{"enabled": enable, "last_modified_at": time.Now()}
 // 	updatedService, err := s.dal.UpdateOne(ctx, filter, update)
 // 	if err != nil {
-// 		s.logger.Errorf("[ServicesStorage][EnableOrDisable] failed to enable/disable service: %v", err)
+// 		log.Errorf("[ServicesStorage][EnableOrDisable] failed to enable/disable service: %v", err)
 // 		return local_util.HandleDBError(err)
 // 	}
 
@@ -152,21 +156,23 @@ package services
 // }
 
 // func (s *ServicesStorage) FindByID(ctx context.Context, id string) (*model.Service, error) {
+
 // 	objID, err := bson.ObjectIDFromHex(id)
 // 	if err != nil {
-// 		s.logger.Errorf("[ServicesStorage][FindByID] invalid object id: %v", err)
+// 		log.Errorf("[ServicesStorage][FindByID] invalid object id: %v", err)
 // 		return nil, errors.New(localization.ErrorInvalidID.Code)
 // 	}
 // 	filter := bson.M{"_id": objID, "is_deleted": false}
 // 	doc, err := s.dal.FindOne(ctx, filter, nil)
 // 	if err != nil {
-// 		s.logger.Errorf("[ServicesStorage][FindByID] failed to find service: %v", err)
+// 		log.Errorf("[ServicesStorage][FindByID] failed to find service: %v", err)
 // 		return nil, local_util.HandleDBError(err)
 // 	}
 // 	return doc, nil
 // }
 
 // func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Service], error) {
+
 // 	allowed := []string{"service_name", "service_code", "service_key", "enabled"}
 // 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 // 	if filterParam.Search != "" {
@@ -201,12 +207,12 @@ package services
 
 // 	items, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 // 	if err != nil {
-// 		s.logger.Errorf("[ServicesStorage][FindAllWithPagination] failed to fetch services: %v", err)
+// 		log.Errorf("[ServicesStorage][FindAllWithPagination] failed to fetch services: %v", err)
 // 		return nil, local_util.HandleDBError(err)
 // 	}
 // 	total, err := s.dal.TotalCount(ctx, filter)
 // 	if err != nil {
-// 		s.logger.Errorf("[ServicesStorage][FindAllWithPagination] failed to count services: %v", err)
+// 		log.Errorf("[ServicesStorage][FindAllWithPagination] failed to count services: %v", err)
 // 		return nil, local_util.HandleDBError(err)
 // 	}
 // 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -217,6 +223,7 @@ package services
 // }
 
 // func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error) {
+
 // 	allowed := []string{"service_name", "service_key", "is_enabled"}
 
 // 	projection := bson.M{}
@@ -244,20 +251,20 @@ package services
 // 	collection := s.client.Database(s.dbName).Collection("service_list")
 // 	cur, err := collection.Aggregate(ctx, pipeline)
 // 	if err != nil {
-// 		s.logger.Errorf("[GetAllServiceLists][FindAllWithPagination] failed to aggregate service lists: %v", err)
+// 		log.Errorf("[GetAllServiceLists][FindAllWithPagination] failed to aggregate service lists: %v", err)
 // 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 // 	}
 // 	defer cur.Close(ctx)
 
 // 	var data []model.ServiceList
 // 	if err := cur.All(ctx, &data); err != nil {
-// 		s.logger.Errorf("[ServiceList][FindAllWithPagination] failed to decode service lists: %v", err)
+// 		log.Errorf("[ServiceList][FindAllWithPagination] failed to decode service lists: %v", err)
 // 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 // 	}
 
 // 	total, err := s.serviceDal.TotalCount(ctx, filter)
 // 	if err != nil {
-// 		s.logger.Errorf("[ServicesStorage][FindAllServiceListWithPagination] failed to count service list: %v", err)
+// 		log.Errorf("[ServicesStorage][FindAllServiceListWithPagination] failed to count service list: %v", err)
 // 		return nil, local_util.HandleDBError(err)
 // 	}
 
@@ -269,6 +276,7 @@ package services
 // }
 
 // func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error) {
+
 // 	// Build an OR filter with exact matches only.
 // 	// service_key, service_code and service_name must match exactly (no regex / partial match).
 // 	orConditions := make([]bson.M, 0, 3)
@@ -295,7 +303,7 @@ package services
 // 		if errors.Is(err, mongo.ErrNoDocuments) {
 // 			return false, nil
 // 		}
-// 		s.logger.Errorf("[ServicesStorage][CheckServiceExistence] failed to check service existence: %v", err)
+// 		log.Errorf("[ServicesStorage][CheckServiceExistence] failed to check service existence: %v", err)
 // 		return false, local_util.HandleDBError(err)
 // 	}
 
@@ -303,9 +311,10 @@ package services
 // }
 
 // func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*model.ServiceList, error) {
+
 // 	objID, err := bson.ObjectIDFromHex(id)
 // 	if err != nil {
-// 		s.logger.Errorf("[UpdateServiceList][Update] invalid object id: %v", err)
+// 		log.Errorf("[UpdateServiceList][Update] invalid object id: %v", err)
 // 		return nil, errors.New(localization.ErrorInvalidID.Code)
 // 	}
 // 	filter := bson.M{"_id": objID}
@@ -314,7 +323,7 @@ package services
 // 		if errors.Is(err, mongo.ErrNoDocuments) {
 // 			return nil, errors.New(localization.ErrorServiceListNotFound.Code)
 // 		}
-// 		s.logger.Errorf("[ServicesStorage][FindServiceListByID] failed to find service list: %v", err)
+// 		log.Errorf("[ServicesStorage][FindServiceListByID] failed to find service list: %v", err)
 // 		return nil, local_util.HandleDBError(err)
 // 	}
 
@@ -322,6 +331,7 @@ package services
 // }
 
 // func (s *ServicesStorage) CreateServiceList(ctx context.Context, serviceList *model.ServiceList) error {
+
 // 	serviceList.ID = bson.NewObjectID()
 // 	serviceList.CreatedAt = time.Now()
 // 	serviceList.LastModifiedAt = time.Now()
@@ -329,12 +339,12 @@ package services
 
 // 	_, err := s.serviceDal.InsertOne(ctx, *serviceList)
 // 	if err != nil {
-// 		s.logger.Errorf("[ServicesStorage][CreateServiceList] failed to insert service list: %v", err)
+// 		log.Errorf("[ServicesStorage][CreateServiceList] failed to insert service list: %v", err)
 // 		return errors.New(localization.ErrorUnexpectedError.Code)
 // 	}
 // 	_, err = s.accessDal.InsertOne(ctx, model.APPAccessList{Key: serviceList.ServiceKey, AccessListName: serviceList.ServiceName})
 // 	if err != nil {
-// 		s.logger.Errorf("[ServicesStorage][CreateServiceList] failed to insert access list: %v", err)
+// 		log.Errorf("[ServicesStorage][CreateServiceList] failed to insert access list: %v", err)
 // 		return errors.New(localization.ErrorUnexpectedError.Code)
 // 	}
 
@@ -344,6 +354,7 @@ package services
 // }
 
 // func (s *ServicesStorage) FindServiceListByNameOrKey(ctx context.Context, name, key string) (*model.ServiceList, error) {
+
 // 	var condition []bson.M
 
 // 	if name != "" {
@@ -364,16 +375,17 @@ package services
 // 		if errors.Is(err, mongo.ErrNoDocuments) {
 // 			return nil, errors.New(localization.ErrorServiceListNotFound.Code)
 // 		}
-// 		s.logger.Errorf("[ServicesStorage][FindServiceListByNameOrKey] failed to find service list: %v", err)
+// 		log.Errorf("[ServicesStorage][FindServiceListByNameOrKey] failed to find service list: %v", err)
 // 		return nil, local_util.HandleDBError(err)
 // 	}
 // 	return doc, nil
 // }
 
 // func (s *ServicesStorage) UpdateServiceList(ctx context.Context, id, serviceKey string, serviceList *model.ServiceList) error {
+
 // 	objID, err := bson.ObjectIDFromHex(id)
 // 	if err != nil {
-// 		s.logger.Errorf("[UpdateServiceList][Update] invalid object id: %v", err)
+// 		log.Errorf("[UpdateServiceList][Update] invalid object id: %v", err)
 // 		return errors.New(localization.ErrorInvalidID.Code)
 // 	}
 // 	filter := bson.M{"_id": objID}
@@ -392,7 +404,7 @@ package services
 // 	// update service_list collection
 // 	_, err = s.serviceDal.UpdateOne(ctx, filter, serviceListUpdate)
 // 	if err != nil {
-// 		s.logger.Errorf("[UpdateServiceList] failed to update service lists: %v", err)
+// 		log.Errorf("[UpdateServiceList] failed to update service lists: %v", err)
 // 		return errors.New(localization.ErrorUnexpectedError.Code)
 // 	}
 
@@ -408,7 +420,7 @@ package services
 // 		accessListUpdate["last_modified_at"] = time.Now()
 // 		_, err = s.accessDal.UpdateOne(ctx, bson.M{"key": serviceKey}, accessListUpdate)
 // 		if err != nil {
-// 			s.logger.Errorf("[UpdateServiceList] failed to update access lists: %v", err)
+// 			log.Errorf("[UpdateServiceList] failed to update access lists: %v", err)
 // 			return errors.New(localization.ErrorUnexpectedError.Code)
 // 		}
 // 	}
@@ -417,16 +429,17 @@ package services
 // }
 
 // func (s *ServicesStorage) EnableOrDisableServiceList(ctx context.Context, id, serviceKey string, enable bool) error {
+
 // 	objID, err := bson.ObjectIDFromHex(id)
 // 	if err != nil {
-// 		s.logger.Errorf("[UpdateServiceList][Update] invalid object id: %v", err)
+// 		log.Errorf("[UpdateServiceList][Update] invalid object id: %v", err)
 // 		return errors.New(localization.ErrorInvalidID.Code)
 // 	}
 // 	filter := bson.M{"_id": objID}
 // 	update := bson.M{"is_enabled": enable}
 // 	_, err = s.serviceDal.UpdateOne(ctx, filter, update)
 // 	if err != nil {
-// 		s.logger.Errorf("[EnableOrDisableServiceList] failed to update service list: %v", err)
+// 		log.Errorf("[EnableOrDisableServiceList] failed to update service list: %v", err)
 // 		return errors.New(localization.ErrorUnexpectedError.Code)
 // 	}
 
@@ -434,7 +447,7 @@ package services
 // 	accessListUpdate := bson.M{"enabled": enable}
 // 	_, err = s.accessDal.UpdateOne(ctx, bson.M{"key": serviceKey}, accessListUpdate)
 // 	if err != nil {
-// 		s.logger.Errorf("[EnableOrDisableServiceList] failed to update access list: %v", err)
+// 		log.Errorf("[EnableOrDisableServiceList] failed to update access list: %v", err)
 // 		return errors.New(localization.ErrorUnexpectedError.Code)
 // 	}
 

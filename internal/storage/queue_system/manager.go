@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -31,13 +32,15 @@ func NewQueueManager(memory Queue, redis Queue, logger utils.Logger) *QueueManag
 }
 
 func (qm *QueueManager) Start(ctx context.Context, workers int) {
+	log := local_util.LoggerFromCtx(ctx, qm.logger)
+
 	if qm.memory != nil {
 		qm.memory.Start(ctx, workers)
 	}
 	if qm.redis != nil {
 		qm.redis.Start(ctx, workers)
 	}
-	qm.logger.Infof("[queue_manager] started with %d workers", workers)
+	log.Infof("[queue_manager] started with %d workers", workers)
 }
 
 func (qm *QueueManager) Stop() {
@@ -56,6 +59,8 @@ func (qm *QueueManager) Stop() {
 // configured on the HandlerRegistry, only the first backend to process the job will
 // actually execute the handler; the second will be silently deduplicated.
 func (qm *QueueManager) Enqueue(ctx context.Context, job Job, mode QueueMode) error {
+	log := local_util.LoggerFromCtx(ctx, qm.logger)
+
 	// Normalize once so both backends share the same ID (critical for dedup).
 	job.Normalize()
 	switch mode {
@@ -83,21 +88,21 @@ func (qm *QueueManager) Enqueue(ctx context.Context, job Job, mode QueueMode) er
 			redisErr = qm.redis.Enqueue(ctx, job)
 		}
 		if memErr != nil && redisErr != nil {
-			qm.logger.Errorf("[queue_manager] Enqueue: failed to enqueue to both queues %s: memory=%v, redis=%v", job.LogPrefix(), memErr, redisErr)
+			log.Errorf("[queue_manager] Enqueue: failed to enqueue to both queues %s: memory=%v, redis=%v", job.LogPrefix(), memErr, redisErr)
 			return fmt.Errorf("memory: %w, redis: %v", memErr, redisErr)
 		}
 		if memErr != nil {
-			qm.logger.Warnf("[queue_manager] Enqueue: failed to enqueue to memory queue %s: %v", job.LogPrefix(), memErr)
+			log.Warnf("[queue_manager] Enqueue: failed to enqueue to memory queue %s: %v", job.LogPrefix(), memErr)
 		}
 		if redisErr != nil {
-			qm.logger.Warnf("[queue_manager] Enqueue: failed to enqueue to redis queue %s: %v", job.LogPrefix(), redisErr)
+			log.Warnf("[queue_manager] Enqueue: failed to enqueue to redis queue %s: %v", job.LogPrefix(), redisErr)
 		}
 		return nil
 
 	case ModeFallback:
 		if qm.redis != nil {
 			if err := qm.redis.Enqueue(ctx, job); err != nil {
-				qm.logger.Warnf("[queue_manager] Enqueue: redis failed, falling back to memory %s: %v", job.LogPrefix(), err)
+				log.Warnf("[queue_manager] Enqueue: redis failed, falling back to memory %s: %v", job.LogPrefix(), err)
 			} else {
 				return nil
 			}

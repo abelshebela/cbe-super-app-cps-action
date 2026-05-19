@@ -6,6 +6,7 @@ import (
 
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -13,6 +14,8 @@ import (
 // FindByRoleAndAction returns the approver index document for the given roleID and actionName
 // Requires maker_index to exist and be non-null
 func (r *BPSActionApproveIndexRepository) FindByRoleAndAction(ctx context.Context, roleID string, actionName string) (*imodel.BPSActionApproveIndex, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	filter := bson.M{
 		"role_id":     roleID,
 		"action_name": strings.ToUpper(strings.TrimSpace(actionName)),
@@ -25,7 +28,7 @@ func (r *BPSActionApproveIndexRepository) FindByRoleAndAction(ctx context.Contex
 	}
 
 	if err != nil {
-		r.logger.Errorf("[FindByRoleAndAction] failed to find approver index: %v", err)
+		log.Errorf("[FindByRoleAndAction] failed to find approver index: %v", err)
 		return nil, err
 	}
 	return &res, nil

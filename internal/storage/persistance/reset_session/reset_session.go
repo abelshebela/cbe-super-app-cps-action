@@ -29,17 +29,19 @@ func NewResetSessionRepository(client *mongo.Client, cfg *config.VaultConfig, db
 }
 
 func (r *ResetSessionRepository) Save(ctx context.Context, session *model.PinResetSession) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	_, err := r.resetSessionDal.InsertOne(ctx, *session)
 	if err != nil {
-		r.logger.Errorf("Unexpected error while saving reset session. error=%v, session=%+v", err, session)
+		log.Errorf("Unexpected error while saving reset session. error=%v, session=%+v", err, session)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	r.logger.Infof("Reset session saved successfully. session=%+v", session)
+	log.Infof("Reset session saved successfully. session=%+v", session)
 	return nil
 }
 
 func (r *ResetSessionRepository) FindById(ctx context.Context, id string) (*model.PinResetSession, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	projection := ResetSessionProjection()
 	filter := ResetSessionIdFilterAttachment(id)
@@ -48,11 +50,12 @@ func (r *ResetSessionRepository) FindById(ctx context.Context, id string) (*mode
 	if err != nil {
 		return nil, local_util.HandleDBError(err)
 	}
-	r.logger.Infof("Reset session found by id successfully. id=%s", id)
+	log.Infof("Reset session found by id successfully. id=%s", id)
 	return session, nil
 }
 
 func (r *ResetSessionRepository) FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.PinResetSession, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	projection := ResetSessionProjection()
 	filter := ResetSessionPhoneFilterAttachment(phoneNumber)
@@ -62,11 +65,12 @@ func (r *ResetSessionRepository) FindByPhoneNumber(ctx context.Context, phoneNum
 
 		return nil, local_util.HandleDBError(err)
 	}
-	r.logger.Infof("Reset session found by phone number successfully. phoneNumber=%s", phoneNumber)
+	log.Infof("Reset session found by phone number successfully. phoneNumber=%s", phoneNumber)
 	return session, nil
 }
 
 func (r *ResetSessionRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string) (*model.PinResetSession, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	projection := ResetSessionProjection()
 	filter := bson.M{}
@@ -76,13 +80,15 @@ func (r *ResetSessionRepository) FindByDeviceUUID(ctx context.Context, deviceUUI
 	if err != nil {
 		return nil, local_util.HandleDBError(err)
 	}
-	r.logger.Infof("Reset session found by deviceUUID successfully. deviceUUID=%s", deviceUUID)
+	log.Infof("Reset session found by deviceUUID successfully. deviceUUID=%s", deviceUUID)
 	return session, nil
 }
 
 func (r *ResetSessionRepository) Update(ctx context.Context, id string, update *model.PinResetSession) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	if update == nil {
-		r.logger.Errorf("Update reset session failed: update is nil")
+		log.Errorf("Update reset session failed: update is nil")
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -108,25 +114,26 @@ func (r *ResetSessionRepository) Update(ctx context.Context, id string, update *
 
 	_, err := r.resetSessionDal.UpdateOne(ctx, filter, updateDoc)
 	if err != nil {
-		r.logger.Errorf("Unexpected error while updating reset session. error=%v, id=%s", err, id)
+		log.Errorf("Unexpected error while updating reset session. error=%v, id=%s", err, id)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	r.logger.Infof("Reset session updated successfully. id=%s", id)
+	log.Infof("Reset session updated successfully. id=%s", id)
 	return nil
 }
 
 func (r *ResetSessionRepository) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	filter, err := local_util.FilterIdFor(id)
 
 	if err != nil {
-		r.logger.Errorf("Delete OTP failed: error creating filter. error=%v, id=%s", err, id)
+		log.Errorf("Delete OTP failed: error creating filter. error=%v, id=%s", err, id)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	if err := r.resetSessionDal.DeleteOne(ctx, filter); err != nil {
-		r.logger.Errorf("Delete OTP failed: error deleting OTP. error=%v, id=%s", err, id)
+		log.Errorf("Delete OTP failed: error deleting OTP. error=%v, id=%s", err, id)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	r.logger.Infof("OTP deleted successfully. id=%s", id)
+	log.Infof("OTP deleted successfully. id=%s", id)
 	return nil
 }

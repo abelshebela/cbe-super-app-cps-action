@@ -75,6 +75,8 @@ const (
 )
 
 func (r *VaultCategoryRepository) FindAllTransactionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.VaultTransaction], error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	limit := int64(50)
 	page := int64(1)
 	if filterParam.PerPage > 0 {
@@ -87,13 +89,13 @@ func (r *VaultCategoryRepository) FindAllTransactionsWithPagination(ctx context.
 
 	var total int64
 	if err := r.db.QueryRowContext(ctx, countTransactions).Scan(&total); err != nil {
-		r.logger.Errorf("failed to count withdrawal requests: %v", err)
+		log.Errorf("failed to count withdrawal requests: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
 	rows, err := r.db.QueryContext(ctx, listTransactions, sql.Named("offset", offset), sql.Named("limit", limit))
 	if err != nil {
-		r.logger.Errorf("failed to list withdrawal requests: %v", err)
+		log.Errorf("failed to list withdrawal requests: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -143,7 +145,7 @@ func (r *VaultCategoryRepository) FindAllTransactionsWithPagination(ctx context.
 			&w.VaultID,
 			&w.VaultTxType,
 		); err != nil {
-			r.logger.Errorf("failed to scan transaction row: %v", err)
+			log.Errorf("failed to scan transaction row: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 
@@ -158,6 +160,8 @@ func (r *VaultCategoryRepository) FindAllTransactionsWithPagination(ctx context.
 }
 
 func (r VaultCategoryRepository) FindVaultTransaction(ctx context.Context, id string) (*imodel.VaultTransaction, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	var w imodel.VaultTransaction
 	err := r.db.QueryRowContext(ctx, selectTransactionByID, id).Scan(
 		// 1–5
@@ -200,7 +204,7 @@ func (r VaultCategoryRepository) FindVaultTransaction(ctx context.Context, id st
 		&w.VaultTxType,
 	)
 	if err != nil {
-		r.logger.Errorf("failed to get vault transaction for id %s: %v", id, err)
+		log.Errorf("failed to get vault transaction for id %s: %v", id, err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return &w, nil

@@ -39,14 +39,18 @@ func NewBPSActionRoleRepository(client *mongo.Client, cfg *config.VaultConfig, d
 }
 
 func (a *BPSActionRoleRepository) UpdateActionList(ctx context.Context, actionCode string, status bool) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	_, err := a.actionListDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, bson.M{"is_configured": status})
 	if err != nil {
-		a.logger.Errorf("[BPSActionRoleRepository][UpdateActionList] failed to update action list: %v", err)
+		log.Errorf("[BPSActionRoleRepository][UpdateActionList] failed to update action list: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 func (a *BPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.BPSActionList], error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	searchKeys := bson.M{}
 	allowedKeys := []string{"action_name", "action_code"}
 	if filterParam.Search != "" {
@@ -59,18 +63,18 @@ func (a *BPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Co
 
 	data, err := a.actionListDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		a.logger.Errorf("[BPSActionRoleRepository][FindAllAccessListWithPagination] failed to fetch access lists: %v", err)
+		log.Errorf("[BPSActionRoleRepository][FindAllAccessListWithPagination] failed to fetch access lists: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := a.actionListDal.TotalCount(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("[BPSActionRoleRepository][FindAllAccessListWithPagination] failed to count access lists: %v", err)
+		log.Errorf("[BPSActionRoleRepository][FindAllAccessListWithPagination] failed to count access lists: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	a.logger.Infof("[BPSActionRoleRepository][FindAllAccessListWithPagination] retrieved %d access lists", len(data))
+	log.Infof("[BPSActionRoleRepository][FindAllAccessListWithPagination] retrieved %d access lists", len(data))
 
 	return &types.PaginatedResponse[[]imodel.BPSActionList]{
 		Data: data,
@@ -79,19 +83,23 @@ func (a *BPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Co
 }
 
 func (r *BPSActionRoleRepository) Create(ctx context.Context, actionRole *imodel.BPSActionRole) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	_, err := r.mongoDal.InsertOne(ctx, *actionRole)
 	if err != nil {
 		if mongo.IsTimeout(err) {
-			r.logger.Errorf("[BPSActionRoleRepository][Create] timeout creating action role: %v", err)
+			log.Errorf("[BPSActionRoleRepository][Create] timeout creating action role: %v", err)
 			return errors.New(localization.ErrorInternalServerTimeout.Code)
 		}
-		r.logger.Errorf("[BPSActionRoleRepository][Create] failed to create action role: %v", err)
+		log.Errorf("[BPSActionRoleRepository][Create] failed to create action role: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 
 func (r *BPSActionRoleRepository) UpdateByActionCode(ctx context.Context, actionCode string, actionRole *imodel.BPSActionRole) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	update := bson.M{
 		"action_name":             actionRole.ActionName,
 		"assigned_makers_roles":   actionRole.AssignedMakersRoles,
@@ -104,30 +112,34 @@ func (r *BPSActionRoleRepository) UpdateByActionCode(ctx context.Context, action
 	}
 	_, err := r.mongoDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, update)
 	if err != nil {
-		r.logger.Errorf("[BPSActionRoleRepository][UpdateByActionCode] failed to update action role: %v", err)
+		log.Errorf("[BPSActionRoleRepository][UpdateByActionCode] failed to update action role: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 
 func (r *BPSActionRoleRepository) EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	_, err := r.mongoDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, bson.M{"enabled": enable})
 	if err != nil {
-		r.logger.Errorf("[BPSActionRoleRepository][EnableOrDisableByActionCode] failed to enable/disable action code %s: %v", actionCode, err)
+		log.Errorf("[BPSActionRoleRepository][EnableOrDisableByActionCode] failed to enable/disable action code %s: %v", actionCode, err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 
 func (r *BPSActionRoleRepository) DeleteByActionCode(ctx context.Context, actionCode string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	err := r.mongoDal.DeleteOne(ctx, bson.M{"action_code": actionCode})
 	if err != nil {
-		r.logger.Errorf("[BPSActionRoleRepository][DeleteByActionCode] failed to delete action code %s: %v", actionCode, err)
+		log.Errorf("[BPSActionRoleRepository][DeleteByActionCode] failed to delete action code %s: %v", actionCode, err)
 		return local_util.HandleDBError(err)
 	}
 
 	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": actionCode}); err != nil {
-		r.logger.Errorf("SyncIndices: DeleteMany failed: %v", err)
+		log.Errorf("SyncIndices: DeleteMany failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -137,6 +149,7 @@ func (r *BPSActionRoleRepository) FindByActionCode(
 	ctx context.Context,
 	actionCode string,
 ) (*actionrole_dto.GetActionRoleByActionCodeRes, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	const rolesCollection = "job_roles"
 
@@ -351,13 +364,13 @@ func (r *BPSActionRoleRepository) FindByActionCode(
 
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		r.logger.Errorf("[BPSActionRoleRepository][FindByActionCode] failed to aggregate: %v", err)
+		log.Errorf("[BPSActionRoleRepository][FindByActionCode] failed to aggregate: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	var results []*actionrole_dto.GetActionRoleByActionCodeRes
 	if err := cursor.All(ctx, &results); err != nil {
-		r.logger.Errorf("[BPSActionRoleRepository][FindByActionCode] failed to decode results: %v", err)
+		log.Errorf("[BPSActionRoleRepository][FindByActionCode] failed to decode results: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -372,6 +385,7 @@ func (r *BPSActionRoleRepository) FindAllWithPagination(
 	ctx context.Context,
 	filterParam types.Filter,
 ) (*types.PaginatedResponse[[]*imodel.BPSActionRoleResposne], error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	// ----------------------------------
 	// Build search filter
@@ -533,14 +547,14 @@ func (r *BPSActionRoleRepository) FindAllWithPagination(
 	// ----------------------------------
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		r.logger.Errorf("[BPSActionRoleRepository][FindAllWithPagination] failed to aggregate action roles: %v", err)
+		log.Errorf("[BPSActionRoleRepository][FindAllWithPagination] failed to aggregate action roles: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var data []*imodel.BPSActionRoleResposne
 	if err := cursor.All(ctx, &data); err != nil {
-		r.logger.Errorf("[BPSActionRoleRepository][FindAllWithPagination] failed to decode action roles: %v", err)
+		log.Errorf("[BPSActionRoleRepository][FindAllWithPagination] failed to decode action roles: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -549,7 +563,7 @@ func (r *BPSActionRoleRepository) FindAllWithPagination(
 	// ----------------------------------
 	total, err := r.mongoDal.TotalCount(ctx, filter)
 	if err != nil {
-		r.logger.Errorf("[BPSActionRoleRepository][FindAllWithPagination] failed to count action roles: %v", err)
+		log.Errorf("[BPSActionRoleRepository][FindAllWithPagination] failed to count action roles: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -566,10 +580,11 @@ func (r *BPSActionRoleRepository) FindAllWithPagination(
 }
 
 func (r *BPSActionRoleRepository) FindByActionName(ctx context.Context, actionName string) (*imodel.BPSActionRole, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	roleData, err := r.mongoDal.FindOne(ctx, bson.M{"action_name": actionName}, bson.M{})
 	if err != nil {
-		r.logger.Errorf("[BPSActionRoleRepository][FindByActionName] error finding role by action name: %v error: %v", actionName, err)
+		log.Errorf("[BPSActionRoleRepository][FindByActionName] error finding role by action name: %v error: %v", actionName, err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -577,18 +592,22 @@ func (r *BPSActionRoleRepository) FindByActionName(ctx context.Context, actionNa
 }
 
 func (r *BPSActionRoleRepository) FindApproverByActionName(ctx context.Context, actionName, role_code string) (imodel.BPSActionApproveIndex, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	approverModal, err := r.approverDal.FindOne(ctx, bson.M{"action_name": actionName, "role_id": role_code}, bson.M{})
 	if err != nil {
-		r.logger.Errorf("[BPSActionRoleRepository][FindApproverByActionName] error finding approver index: %v", err)
+		log.Errorf("[BPSActionRoleRepository][FindApproverByActionName] error finding approver index: %v", err)
 		return imodel.BPSActionApproveIndex{}, local_util.HandleDBError(err)
 	}
 
 	return *approverModal, nil
 }
 func (r *BPSActionRoleRepository) FindByActionCodeOne(ctx context.Context, actionCode string) (*imodel.BPSActionRole, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	result, err := r.mongoDal.FindOne(ctx, bson.M{"action_code": actionCode}, bson.M{})
 	if err != nil {
-		r.logger.Errorf("[BPSActionRoleRepository][FindByActionCodeOne] failed to find action role by code %s: %v", actionCode, err)
+		log.Errorf("[BPSActionRoleRepository][FindByActionCodeOne] failed to find action role by code %s: %v", actionCode, err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil

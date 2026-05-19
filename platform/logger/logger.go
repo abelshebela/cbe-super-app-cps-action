@@ -143,6 +143,16 @@ func New(l *zap.Logger, options Options) Logger {
 				},
 			},
 			{
+				KeyInContext: constants.ContextKey("session_id"),
+				Func: func(v any) zap.Field {
+					if vString, ok := v.(string); ok {
+						return zap.String("session_id", vString)
+					}
+
+					return zap.Skip()
+				},
+			},
+			{
 				KeyInContext: constants.ContextKey("request-start-time"),
 				Func: func(v any) zap.Field {
 					if vTime, ok := v.(time.Time); ok {

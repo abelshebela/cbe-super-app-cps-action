@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -65,10 +66,12 @@ func NewInMemoryQueue(size int, logger utils.Logger, opts ...InMemoryQueueOption
 }
 
 func (q *InMemoryQueue) Start(ctx context.Context, workers int) {
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+
 	q.mu.Lock()
 	if q.cancel != nil {
 		q.mu.Unlock()
-		q.logger.Warnf("[memory_queue] Start: already running, ignoring duplicate start")
+		log.Warnf("[memory_queue] Start: already running, ignoring duplicate start")
 		return
 	}
 	ctx, cancel := context.WithCancel(ctx)
@@ -82,7 +85,7 @@ func (q *InMemoryQueue) Start(ctx context.Context, workers int) {
 
 	q.wg.Add(1)
 	go q.retryScheduler(ctx)
-	q.logger.Infof("[memory_queue] started with %d workers, buffer_size=%d", workers, cap(q.queue))
+	log.Infof("[memory_queue] started with %d workers, buffer_size=%d", workers, cap(q.queue))
 }
 
 func (q *InMemoryQueue) Stop() {
@@ -141,33 +144,37 @@ drainLoop:
 }
 
 func (q *InMemoryQueue) Enqueue(ctx context.Context, job Job) error {
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+
 	select {
 	case q.queue <- job:
 		q.metrics.IncEnqueued("memory", job.Type)
-		q.logger.Debugf("[memory_queue] Enqueue: job enqueued %s", job.LogPrefix())
+		log.Debugf("[memory_queue] Enqueue: job enqueued %s", job.LogPrefix())
 		return nil
 	default:
-		q.logger.Errorf("[memory_queue] Enqueue: queue is full, job dropped %s", job.LogPrefix())
+		log.Errorf("[memory_queue] Enqueue: queue is full, job dropped %s", job.LogPrefix())
 		return fmt.Errorf("in-memory queue is full, job %s dropped", job.ID)
 	}
 }
 
 func (q *InMemoryQueue) worker(ctx context.Context, id int) {
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+
 	defer q.wg.Done()
-	q.logger.Infof("[memory_queue] worker %d started", id)
+	log.Infof("[memory_queue] worker %d started", id)
 	for {
 		select {
 		case <-ctx.Done():
-			q.logger.Infof("[memory_queue] worker %d stopped", id)
+			log.Infof("[memory_queue] worker %d stopped", id)
 			return
 		case job := <-q.queue:
 			if err := q.handler(ctx, job); err != nil {
 				q.metrics.IncFailed("memory", job.Type)
-				q.logger.Warnf("[memory_queue] worker(%d): job execution failed %s retry=%d: %v", id, job.LogPrefix(), job.Retry, err)
+				log.Warnf("[memory_queue] worker(%d): job execution failed %s retry=%d: %v", id, job.LogPrefix(), job.Retry, err)
 				q.scheduleRetry(job)
 			} else {
 				q.metrics.IncProcessed("memory", job.Type)
-				q.logger.Debugf("[memory_queue] worker(%d): job completed %s", id, job.LogPrefix())
+				log.Debugf("[memory_queue] worker(%d): job completed %s", id, job.LogPrefix())
 			}
 		}
 	}

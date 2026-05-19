@@ -56,10 +56,12 @@ func NewBudgetCategoryService(
 }
 
 func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Budget Category", "Authorize")
 	defer span.End()
 
-	b.logger.Infof("[BudgetCatSvc][Authorize] action: %s", action.RequestAction)
+	log.Infof("[BudgetCatSvc][Authorize] action: %s", action.RequestAction)
 	var err error
 
 	budgetCategory, marshalErr := local_util.JsonUnmarshal[imodel.BudgetCategoryOracle](action.CurrentAction)
@@ -72,7 +74,7 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 			attribute.String("error", errMsg),
 			attribute.String("unique_id", action.UniqueId),
 		))
-		b.logger.Errorf("[BudgetCatSvc][Authorize] unmarshal err: %v", marshalErr)
+		log.Errorf("[BudgetCatSvc][Authorize] unmarshal err: %v", marshalErr)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
@@ -84,10 +86,10 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			b.logger.Errorf("[BudgetCatSvc][Authorize] create err: %v", err)
+			log.Errorf("[BudgetCatSvc][Authorize] create err: %v", err)
 			return nil, err
 		}
-		b.logger.Infof("[BudgetCatSvc][Authorize] created")
+		log.Infof("[BudgetCatSvc][Authorize] created")
 	case string(constants.RequestUpdateBudgetCategory):
 		err = b.budgetCategoryRepo.Update(ctx, action.UniqueId, budgetCategory)
 		if err != nil {
@@ -95,10 +97,10 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			b.logger.Errorf("[BudgetCatSvc][Authorize] update err: %v", err)
+			log.Errorf("[BudgetCatSvc][Authorize] update err: %v", err)
 			return nil, err
 		}
-		b.logger.Infof("[BudgetCatSvc][Authorize] updated id: %s", action.UniqueId)
+		log.Infof("[BudgetCatSvc][Authorize] updated id: %s", action.UniqueId)
 	case string(constants.RequestDisableBudgetCategory):
 		// Do not use CurrentAction for flags: CPS/Oracle JSON often uses uppercase keys (ENABLED),
 		// so encoding/json leaves IsEnabled at 0 and Update would persist wrong values.
@@ -108,10 +110,10 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			b.logger.Errorf("[BudgetCatSvc][Authorize] disable err: %v", err)
+			log.Errorf("[BudgetCatSvc][Authorize] disable err: %v", err)
 			return nil, err
 		}
-		b.logger.Infof("[BudgetCatSvc][Authorize] disabled id: %s", action.UniqueId)
+		log.Infof("[BudgetCatSvc][Authorize] disabled id: %s", action.UniqueId)
 	case string(constants.RequestEnableBudgetCategory):
 		err = b.budgetCategoryRepo.EnableOrDisable(ctx, action.UniqueId, true)
 		if err != nil {
@@ -119,10 +121,10 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			b.logger.Errorf("[BudgetCatSvc][Authorize] enable err: %v", err)
+			log.Errorf("[BudgetCatSvc][Authorize] enable err: %v", err)
 			return nil, err
 		}
-		b.logger.Infof("[BudgetCatSvc][Authorize] enabled id: %s", action.UniqueId)
+		log.Infof("[BudgetCatSvc][Authorize] enabled id: %s", action.UniqueId)
 	case string(constants.RequestDeleteBudgetCategory):
 		err = b.budgetCategoryRepo.Delete(ctx, action.UniqueId)
 		if err != nil {
@@ -130,22 +132,24 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			b.logger.Errorf("[BudgetCatSvc][Authorize] delete err: %v", err)
+			log.Errorf("[BudgetCatSvc][Authorize] delete err: %v", err)
 			return nil, err
 		}
-		b.logger.Infof("[BudgetCatSvc][Authorize] deleted id: %s", action.UniqueId)
+		log.Infof("[BudgetCatSvc][Authorize] deleted id: %s", action.UniqueId)
 	default:
 		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", action.RequestAction)))
-		b.logger.Errorf("[BudgetCatSvc][Authorize] unsupported: %s", action.RequestAction)
+		log.Errorf("[BudgetCatSvc][Authorize] unsupported: %s", action.RequestAction)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	action.ActionStatus = (string)(constants.Approved)
-	b.logger.Infof("[BudgetCatSvc][Authorize] done: %s", action.RequestAction)
+	log.Infof("[BudgetCatSvc][Authorize] done: %s", action.RequestAction)
 	return action, nil
 }
 
 func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req budget_category_dto.CreateBudgetRequest) error {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateBudgetCategory", "Budget Category", "CreateBudgetCategory")
 	defer span.End()
 
@@ -159,7 +163,7 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 				attribute.String("error", err.Error()),
 				attribute.String("name", req.Name),
 			))
-			b.logger.Errorf("[BudgetCatSvc][Create] upload icon err: %v", err)
+			log.Errorf("[BudgetCatSvc][Create] upload icon err: %v", err)
 			return err
 		}
 		iconURL = url
@@ -171,12 +175,12 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 			attribute.String("error", err.Error()),
 			attribute.String("name", req.Name),
 		))
-		b.logger.Errorf("[BudgetCatSvc][Create] dup check err: %v", err)
+		log.Errorf("[BudgetCatSvc][Create] dup check err: %v", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 	if isDuplicate != nil {
 		span.AddEvent("[CreateBudgetCategory] duplicate budget category found", trace.WithAttributes(attribute.String("name", req.Name)))
-		b.logger.Errorf("[BudgetCatSvc][Create] name exists")
+		log.Errorf("[BudgetCatSvc][Create] name exists")
 		return errors.New(localization.ErrorBudgetCategoryNameAlreadyExists.Code)
 	}
 
@@ -196,15 +200,17 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 			attribute.String("error", err.Error()),
 			attribute.String("name", req.Name),
 		))
-		b.logger.Errorf("[BudgetCatSvc][Create] cps action err: %v", err)
+		log.Errorf("[BudgetCatSvc][Create] cps action err: %v", err)
 		return err
 	}
 
-	b.logger.Infof("[BudgetCatSvc][Create] request created")
+	log.Infof("[BudgetCatSvc][Create] request created")
 	return nil
 }
 
 func (b *BudgetCategoryService) FetchBudgetCategory(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]budget_category_dto.BudgetCategoryResponse], error) {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchBudgetCategory", "Budget Category", "FetchBudgetCategory")
 	defer span.End()
 
@@ -213,7 +219,7 @@ func (b *BudgetCategoryService) FetchBudgetCategory(ctx context.Context, filterP
 		span.AddEvent("[FetchBudgetCategory] failed to fetch budget categories", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
-		b.logger.Errorf("[BudgetCatSvc][FetchAll] err: %v", err)
+		log.Errorf("[BudgetCatSvc][FetchAll] err: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -231,7 +237,7 @@ func (b *BudgetCategoryService) FetchBudgetCategory(ctx context.Context, filterP
 		})
 	}
 
-	b.logger.Infof("[BudgetCatSvc][FetchAll] count: %d", len(responseData))
+	log.Infof("[BudgetCatSvc][FetchAll] count: %d", len(responseData))
 	return &types.PaginatedResponse[[]budget_category_dto.BudgetCategoryResponse]{
 		Data: responseData,
 		Meta: budgetCategories.Meta,
@@ -239,6 +245,8 @@ func (b *BudgetCategoryService) FetchBudgetCategory(ctx context.Context, filterP
 }
 
 func (b *BudgetCategoryService) FetchBudgetCategoryByID(ctx context.Context, id string) (*budget_category_dto.BudgetCategoryResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchBudgetCategoryByID", "Budget Category", "FetchBudgetCategoryByID")
 	defer span.End()
 
@@ -248,10 +256,10 @@ func (b *BudgetCategoryService) FetchBudgetCategoryByID(ctx context.Context, id 
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		b.logger.Errorf("[BudgetCatSvc][FetchByID] err: %v", err)
+		log.Errorf("[BudgetCatSvc][FetchByID] err: %v", err)
 		return nil, err
 	}
-	b.logger.Infof("[BudgetCatSvc][FetchByID] found id: %s", id)
+	log.Infof("[BudgetCatSvc][FetchByID] found id: %s", id)
 
 	return &budget_category_dto.BudgetCategoryResponse{
 		ID:        budgetCategory.ID,
@@ -266,10 +274,12 @@ func (b *BudgetCategoryService) FetchBudgetCategoryByID(ctx context.Context, id 
 }
 
 func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id string, req budget_category_dto.UpdateBudgetRequest) error {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateBudgetCategory", "Budget Category", "UpdateBudgetCategory")
 	defer span.End()
 
-	b.logger.Infof("[BudgetCatSvc][Update] id: %s", id)
+	log.Infof("[BudgetCatSvc][Update] id: %s", id)
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
 	existingBudgetCategory, err := b.budgetCategoryRepo.FindByID(ctx, id)
@@ -278,7 +288,7 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		b.logger.Errorf("[BudgetCatSvc][Update] find err: %v", err)
+		log.Errorf("[BudgetCatSvc][Update] find err: %v", err)
 		return err
 	}
 
@@ -292,12 +302,12 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 				attribute.String("error", err.Error()),
 				attribute.String("id", id),
 			))
-			b.logger.Errorf("[BudgetCatSvc][Update] dup check err: %v", err)
+			log.Errorf("[BudgetCatSvc][Update] dup check err: %v", err)
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
 		if isDuplicate != nil && isDuplicate.ID != id {
 			span.AddEvent("[UpdateBudgetCategory] duplicate budget category found", trace.WithAttributes(attribute.String("name", req.Name)))
-			b.logger.Errorf("[BudgetCatSvc][Update] name exists")
+			log.Errorf("[BudgetCatSvc][Update] name exists")
 			return errors.New(localization.ErrorBudgetCategoryNameAlreadyExists.Code)
 		}
 
@@ -330,7 +340,7 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 				attribute.String("error", err.Error()),
 				attribute.String("id", id),
 			))
-			b.logger.Errorf("[BudgetCatSvc][Update] upload icon err: %v", err)
+			log.Errorf("[BudgetCatSvc][Update] upload icon err: %v", err)
 			return err
 		}
 		newBudgetCategory.Icon = url
@@ -363,10 +373,12 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 }
 
 func (b *BudgetCategoryService) DeleteBudgetCategory(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteBudgetCategory", "Budget Category", "DeleteBudgetCategory")
 	defer span.End()
 
-	b.logger.Infof("[BudgetCatSvc][Delete] id: %s", id)
+	log.Infof("[BudgetCatSvc][Delete] id: %s", id)
 	makerUser := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerUser); incomplet {
 		span.AddEvent("Incomplete user data", trace.WithAttributes(
@@ -382,7 +394,7 @@ func (b *BudgetCategoryService) DeleteBudgetCategory(ctx context.Context, id str
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		b.logger.Errorf("[BudgetCatSvc][Delete] find err: %v", err)
+		log.Errorf("[BudgetCatSvc][Delete] find err: %v", err)
 		return err
 	}
 	if existingBudgetCategory == nil {
@@ -393,9 +405,9 @@ func (b *BudgetCategoryService) DeleteBudgetCategory(ctx context.Context, id str
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
 	//check if the catagory not in use before delete
-	in_user,err := b.budgetCategoryRepo.CheckBudgetCatagoryINUse(ctx,id)
+	in_user, err := b.budgetCategoryRepo.CheckBudgetCatagoryINUse(ctx, id)
 	if in_user {
-		b.logger.Infof("Budget catagory in user")
+		log.Infof("Budget catagory in user")
 		return errors.New(localization.ErrorBudgetCAtagoryINuser.Code)
 	}
 	if existingBudgetCategory.IsDeleted == 1 {
@@ -417,18 +429,20 @@ func (b *BudgetCategoryService) DeleteBudgetCategory(ctx context.Context, id str
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		b.logger.Errorf("[BudgetCatSvc][Delete] cps action err: %v", err)
+		log.Errorf("[BudgetCatSvc][Delete] cps action err: %v", err)
 		return err
 	}
-	b.logger.Infof("[BudgetCatSvc][Delete] request created id: %s", id)
+	log.Infof("[BudgetCatSvc][Delete] request created id: %s", id)
 	return nil
 }
 
 func (b *BudgetCategoryService) EnableOrDisableBudgetCategory(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableBudgetCategory", "Budget Category", "EnableOrDisableBudgetCategory")
 	defer span.End()
 
-	b.logger.Infof("[BudgetCatSvc][EnableDisable] id: %s enable: %v", id, enable)
+	log.Infof("[BudgetCatSvc][EnableDisable] id: %s enable: %v", id, enable)
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
 	existingBudgetCategory, err := b.budgetCategoryRepo.FindByID(ctx, id)
@@ -437,18 +451,18 @@ func (b *BudgetCategoryService) EnableOrDisableBudgetCategory(ctx context.Contex
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		b.logger.Errorf("[BudgetCatSvc][EnableDisable] find err: %v", err)
+		log.Errorf("[BudgetCatSvc][EnableDisable] find err: %v", err)
 		return err
 	}
 
 	if enable && existingBudgetCategory.IsEnabled == 1 {
 		span.AddEvent("[EnableOrDisableBudgetCategory] budget category already enabled", trace.WithAttributes(attribute.String("id", id)))
-		b.logger.Errorf("[BudgetCatSvc][EnableDisable] already enabled")
+		log.Errorf("[BudgetCatSvc][EnableDisable] already enabled")
 		return errors.New(localization.ErrorBudgetCategoryAlreadyEnabled.Code)
 	}
 	if !enable && existingBudgetCategory.IsEnabled == 0 {
 		span.AddEvent("[EnableOrDisableBudgetCategory] budget category already disabled", trace.WithAttributes(attribute.String("id", id)))
-		b.logger.Errorf("[BudgetCatSvc][EnableDisable] already disabled")
+		log.Errorf("[BudgetCatSvc][EnableDisable] already disabled")
 		return errors.New(localization.ErrorBudgetCategoryAlreadyDisabled.Code)
 	}
 

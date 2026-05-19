@@ -14,6 +14,7 @@ import (
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/constants/localization"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -52,6 +53,8 @@ func (c *SessionGRPCClient) Close() error {
 
 // CreateSession creates a new session via gRPC
 func (c *SessionGRPCClient) CreateSession(ctx context.Context, request *session.CreateSessionRequest, opts ...grpc.CallOption) (*session.CreateSessionResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
@@ -62,16 +65,18 @@ func (c *SessionGRPCClient) CreateSession(ctx context.Context, request *session.
 
 	response, err := c.client.CreateSession(ctx, request)
 	if err != nil {
-		c.logger.Errorf("Failed to create session via gRPC: %v", err)
+		log.Errorf("Failed to create session via gRPC: %v", err)
 		return nil, errors.New(localization.ErrorSessionCreationFailed.Code)
 	}
 
-	c.logger.Infof("Successfully created session with ID: %s", response.GetId())
+	log.Infof("Successfully created session with ID: %s", response.GetId())
 	return response, nil
 }
 
 // UpdateSession updates an existing session via gRPC
 func (c *SessionGRPCClient) UpdateSession(ctx context.Context, request *session.UpdateSessionRequest, opts ...grpc.CallOption) (*session.UpdateSessionResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
@@ -82,16 +87,18 @@ func (c *SessionGRPCClient) UpdateSession(ctx context.Context, request *session.
 
 	response, err := c.client.UpdateSession(ctx, request)
 	if err != nil {
-		c.logger.Errorf("Failed to update session via gRPC: %v", err)
+		log.Errorf("Failed to update session via gRPC: %v", err)
 		return nil, errors.New(localization.ErrorSessionCreationFailed.Code)
 	}
 
-	c.logger.Infof("Successfully updated session with ID: %s", response.GetSessionId())
+	log.Infof("Successfully updated session with ID: %s", response.GetSessionId())
 	return response, nil
 }
 
 // GetSession retrieves session information via gRPC
 func (c *SessionGRPCClient) GetSession(ctx context.Context, request *session.GetSessionRequest, opts ...grpc.CallOption) (*session.GetSessionResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
@@ -102,16 +109,18 @@ func (c *SessionGRPCClient) GetSession(ctx context.Context, request *session.Get
 
 	response, err := c.client.GetSession(ctx, request)
 	if err != nil {
-		c.logger.Errorf("Failed to get session via gRPC: %v", err)
+		log.Errorf("Failed to get session via gRPC: %v", err)
 		return nil, errors.New(localization.ErrorSessionRetrievalFailed.Code)
 	}
 
-	c.logger.Infof("Successfully retrieved session with ID: %s", request.GetSessionId())
+	log.Infof("Successfully retrieved session with ID: %s", request.GetSessionId())
 	return response, nil
 }
 
 // HealthCheck performs a health check via gRPC
 func (c *SessionGRPCClient) HealthCheck(ctx context.Context, opts ...grpc.CallOption) (*session.HealthCheckResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
@@ -123,10 +132,10 @@ func (c *SessionGRPCClient) HealthCheck(ctx context.Context, opts ...grpc.CallOp
 	request := &session.HealthCheckRequest{}
 	response, err := c.client.HealthCheck(ctx, request)
 	if err != nil {
-		c.logger.Errorf("Failed to perform health check via gRPC: %v", err)
+		log.Errorf("Failed to perform health check via gRPC: %v", err)
 		return nil, errors.New(localization.ErrorHealthCheck.Code)
 	}
 
-	c.logger.Infof("Health check successful: %s", response.GetStatus())
+	log.Infof("Health check successful: %s", response.GetStatus())
 	return response, nil
 }

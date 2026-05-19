@@ -51,7 +51,9 @@ func NewBPSUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName 
 }
 
 func (b *BPSUserStorage) FindByOr(ctx context.Context, phone, email, username string) (*bps_model.BPSUser, error) {
-	b.logger.Infof("[BPSUserStorage][FindByOr] searching for BPS user by phone, email, or username")
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BPSUserStorage][FindByOr] searching for BPS user by phone, email, or username")
 	// Build conditions dynamically, only for non-empty parameters
 	conditions := []bson.M{}
 
@@ -73,20 +75,22 @@ func (b *BPSUserStorage) FindByOr(ctx context.Context, phone, email, username st
 		})
 	}
 	if len(conditions) == 0 {
-		b.logger.Infof("[BPSUserStorage][FindByOr] no search parameters provided, returning nil")
+		log.Infof("[BPSUserStorage][FindByOr] no search parameters provided, returning nil")
 		return nil, nil
 	}
 	filter := bson.M{"$or": conditions}
 	data, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		b.logger.Errorf("[BPSUserStorage][FindByOr] failed to find bps user: %v", err)
+		log.Errorf("[BPSUserStorage][FindByOr] failed to find bps user: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return data, nil
 }
 
 func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*bpsUserDto.BPSUserResposenDTO, error) {
-	b.logger.Infof("[BPSUserStorage][GetByUserCode] fetching BPS user by user code")
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BPSUserStorage][GetByUserCode] fetching BPS user by user code")
 
 	pipeline := mongo.Pipeline{
 		// Match by user_code and not deleted
@@ -135,43 +139,47 @@ func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*b
 
 	cursor, err := b.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		b.logger.Errorf("[BPSUserStorage][GetByUserCode] failed aggregation: %v", err)
+		log.Errorf("[BPSUserStorage][GetByUserCode] failed aggregation: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer cursor.Close(ctx)
 
 	var results []bpsUserDto.BPSUserResposenDTO
 	if err := cursor.All(ctx, &results); err != nil {
-		b.logger.Errorf("[BPSUserStorage][GetByUserCode] failed to decode user: %v", err)
+		log.Errorf("[BPSUserStorage][GetByUserCode] failed to decode user: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
 	if len(results) == 0 {
-		b.logger.Infof("[BPSUserStorage][GetByUserCode] no BPS user found with user_code: %s", userCode)
+		log.Infof("[BPSUserStorage][GetByUserCode] no BPS user found with user_code: %s", userCode)
 		return nil, errors.New(localization.ErrorUserNotFound.Code)
 	}
 
-	b.logger.Infof("[BPSUserStorage][GetByUserCode] BPS user retrieved successfully with role")
+	log.Infof("[BPSUserStorage][GetByUserCode] BPS user retrieved successfully with role")
 	return &results[0], nil
 }
 func (b *BPSUserStorage) GetByUserID(ctx context.Context, userID string) (*bps_model.BPSUser, error) {
-	b.logger.Infof("[BPSUserStorage][GetByUserID] fetching BPS user by user ID")
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BPSUserStorage][GetByUserID] fetching BPS user by user ID")
 	objID, err := bson.ObjectIDFromHex(userID)
 	if err != nil {
-		b.logger.Errorf("[BPSUserStorage][GetByUserID] invalid user ID format: %v", err)
+		log.Errorf("[BPSUserStorage][GetByUserID] invalid user ID format: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": bson.M{"$ne": true}}
 	result, err := b.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		b.logger.Errorf("[BPSUserStorage][GetByUserID] failed to find BPS user: %v", err)
+		log.Errorf("[BPSUserStorage][GetByUserID] failed to find BPS user: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	b.logger.Infof("[BPSUserStorage][GetByUserID] BPS user retrieved successfully")
+	log.Infof("[BPSUserStorage][GetByUserID] BPS user retrieved successfully")
 	return result, nil
 }
 
 func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]bpsUserDto.BPSUserResposenDTO], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	// Base match: only active users (include legacy docs without is_deleted)
 	match := bpsUserActiveFilter()
 	// Search filters
@@ -180,9 +188,8 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	}
 	filterParam.Search = strings.TrimSpace(filterParam.Search)
 	if strings.HasPrefix(filterParam.Search, "09") || strings.HasPrefix(filterParam.Search, "07") {
-	filterParam.Search = filterParam.Search[1:]
-}
-	
+		filterParam.Search = filterParam.Search[1:]
+	}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -199,7 +206,7 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	// Count total documents (for pagination metadata)
 	total, err := s.collection.CountDocuments(ctx, match)
 	if err != nil {
-		s.logger.Errorf("[BPSUserStorage][FindAllWithPagination] failed to count users: %v", err)
+		log.Errorf("[BPSUserStorage][FindAllWithPagination] failed to count users: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -207,7 +214,7 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	if offset >= int(total) {
 		// No data for this page, return empty result
 		meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-		s.logger.Infof("[BPSUserStorage][FindAllWithPagination] offset >= total, returning empty result")
+		log.Infof("[BPSUserStorage][FindAllWithPagination] offset >= total, returning empty result")
 		return &types.PaginatedResponse[[]bpsUserDto.BPSUserResposenDTO]{
 			Data: []bpsUserDto.BPSUserResposenDTO{},
 			Meta: meta,
@@ -263,20 +270,20 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	//  Execute aggregation
 	cursor, err := s.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		s.logger.Errorf("[BPSUserStorage][FindAllWithPagination] failed aggregation: %v", err)
+		log.Errorf("[BPSUserStorage][FindAllWithPagination] failed aggregation: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var users []bpsUserDto.BPSUserResposenDTO
 	if err := cursor.All(ctx, &users); err != nil {
-		s.logger.Errorf("[BPSUserStorage][FindAllWithPagination] failed to decode users: %v", err)
+		log.Errorf("[BPSUserStorage][FindAllWithPagination] failed to decode users: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	//  Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	s.logger.Infof("[BPSUserStorage][FindAllWithPagination] retrieved %d BPS users", len(users))
+	log.Infof("[BPSUserStorage][FindAllWithPagination] retrieved %d BPS users", len(users))
 
 	//  Return paginated response
 	return &types.PaginatedResponse[[]bpsUserDto.BPSUserResposenDTO]{
@@ -286,24 +293,27 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 }
 
 func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *bps_model.BPSUser) error {
-	b.logger.Infof("[BPSUserStorage][Update] updating BPS user")
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BPSUserStorage][Update] updating BPS user")
 	filter := bson.M{"_id": BpsUser.ID, "is_deleted": bson.M{"$ne": true}}
 	_, err := b.dal.UpdateOne(ctx, filter, BPSUserMapper(*BpsUser))
 	if err != nil {
-		b.logger.Errorf("[BPSUserStorage][Update] failed to update BPS user: %v", err)
+		log.Errorf("[BPSUserStorage][Update] failed to update BPS user: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	b.logger.Infof("[BPSUserStorage][Update] BPS user updated successfully")
+	log.Infof("[BPSUserStorage][Update] BPS user updated successfully")
 	return nil
 
 }
 
 func (b *BPSUserStorage) Create(ctx context.Context, req bps_model.BPSUser) error {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateBPSUser", "BPS User", "CreateBPSUser")
 	defer span.End()
 
-	b.logger.Infof("[BPSUserStorage][Create] creating BPS user with user_code: %s", req.UserCode)
+	log.Infof("[BPSUserStorage][Create] creating BPS user with user_code: %s", req.UserCode)
 	req.CreatedAt = time.Now()
 	req.LastModifiedAt = time.Now()
 	req.IsFirstTimeLogin = true
@@ -315,23 +325,25 @@ func (b *BPSUserStorage) Create(ctx context.Context, req bps_model.BPSUser) erro
 		//     attribute.String("error", err.Error()),
 		//     attribute.String("user_code", req.UserCode),
 		// ))
-		b.logger.Errorf("[BPSUserStorage][Create] failed to create BPS user: %v", err)
+		log.Errorf("[BPSUserStorage][Create] failed to create BPS user: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	b.logger.Infof("[BPSUserStorage][Create] BPS user created successfully for user_code: %s", req.UserCode)
+	log.Infof("[BPSUserStorage][Create] BPS user created successfully for user_code: %s", req.UserCode)
 	return nil
 }
 
 func (b *BPSUserStorage) FindByFilterKey(ctx context.Context, field, value string) (*bps_model.BPSUser, error) {
-	b.logger.Infof("[BPSUserStorage][FindByFilterKey] searching BPS user by %s: %s", field, value)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BPSUserStorage][FindByFilterKey] searching BPS user by %s: %s", field, value)
 	var filter bson.M
 
 	if field == "id" {
 		field = "_id"
 		objID, err := bson.ObjectIDFromHex(value)
 		if err != nil {
-			b.logger.Errorf("[BPSUserStorage][FindByFilterKey] invalid ObjectID: %v", err)
+			log.Errorf("[BPSUserStorage][FindByFilterKey] invalid ObjectID: %v", err)
 			return nil, errors.New(localization.ErrorInvalidID.Code)
 		}
 		filter = bson.M{field: objID, "is_deleted": bson.M{"$ne": true}}
@@ -341,7 +353,7 @@ func (b *BPSUserStorage) FindByFilterKey(ctx context.Context, field, value strin
 
 	result, err := b.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		b.logger.Errorf("[BPSUserStorage][FindByFilterKey] failed to find BPS user: %v", err)
+		log.Errorf("[BPSUserStorage][FindByFilterKey] failed to find BPS user: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
