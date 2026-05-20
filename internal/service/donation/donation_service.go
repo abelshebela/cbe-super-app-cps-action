@@ -144,7 +144,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	}
 
 	checkExistentDonationForService, err := d.DonationRepo.FindByServiceID(ctx, donation.ServiceID)
-	if err != nil {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("Failed to check existing donation for service", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("service_id", donation.ServiceID),
