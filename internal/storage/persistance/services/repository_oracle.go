@@ -478,30 +478,16 @@ func (s *ServicesStorage) Delete(ctx context.Context, serviceID, accessListID st
 	defer func() { _ = tx.Rollback() }()
 
 	if serviceID != "" {
-		const updateCapsQ = `
-UPDATE service_cap
-SET
-  is_deleted = 1,
-  deleted_at = SYSTIMESTAMP,
-  last_modified_at = SYSTIMESTAMP
-WHERE service_id = HEXTORAW(:1)
-  AND is_deleted = 0`
-		if _, err := tx.ExecContext(ctx, updateCapsQ, serviceID); err != nil {
-			s.logger.Errorf("[ServicesRepo][Delete] update service_cap failed: %v", err)
+		const deleteCapsQ = `DELETE FROM service_cap WHERE service_id = HEXTORAW(:1)`
+		if _, err := tx.ExecContext(ctx, deleteCapsQ, serviceID); err != nil {
+			s.logger.Errorf("[ServicesRepo][Delete] delete service_cap failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 
-		const updateServiceQ = `
-UPDATE services
-SET
-  is_deleted = 1,
-  deleted_at = SYSTIMESTAMP,
-  last_modified_at = SYSTIMESTAMP
-WHERE id = HEXTORAW(:1)
-  AND is_deleted = 0`
-		res, err := tx.ExecContext(ctx, updateServiceQ, serviceID)
+		const deleteServiceQ = `DELETE FROM services WHERE id = HEXTORAW(:1)`
+		res, err := tx.ExecContext(ctx, deleteServiceQ, serviceID)
 		if err != nil {
-			s.logger.Errorf("[ServicesRepo][Delete] update services failed: %v", err)
+			s.logger.Errorf("[ServicesRepo][Delete] delete services failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 
@@ -512,19 +498,10 @@ WHERE id = HEXTORAW(:1)
 	}
 
 	if accessListID != "" {
-		const q = `
-	UPDATE access_lists
-	SET
-	  is_deleted = 1,
-	  deleted_at = SYSTIMESTAMP,
-	  last_modified_at = SYSTIMESTAMP
-	WHERE
-	  id = HEXTORAW(:1)
-	AND is_deleted = 0`
-
+		const q = `DELETE FROM access_lists WHERE id = HEXTORAW(:1)`
 		result, err := tx.ExecContext(ctx, q, accessListID)
 		if err != nil {
-			s.logger.Errorf("[ServicesRepo][Delete] delete service failed: %v", err)
+			s.logger.Errorf("[ServicesRepo][Delete] delete access_lists failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 
@@ -1078,12 +1055,13 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 
 func (s *ServicesStorage) FindServiceListByID(ctx context.Context, id string) (*imodel.ServiceKey, error) {
 	const q = `
-SELECT RAWTOHEX(id), name, service_key, account_type, is_enabled, created_at, last_modified_at
+SELECT RAWTOHEX(id), name, service_key, account_type, is_enabled, created_at, last_modified_at, deleted_at
 FROM access_lists
 WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 
 	var item imodel.ServiceKey
 	var listID string
+	var deletedAt sql.NullTime
 	err := s.db.QueryRowContext(ctx, q, id).Scan(
 		&listID,
 		&item.ServiceName,
@@ -1092,6 +1070,7 @@ WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 		&item.IsEnabled,
 		&item.CreatedAt,
 		&item.LastModifiedAt,
+		&deletedAt,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -1101,6 +1080,9 @@ WHERE id = HEXTORAW(:1) AND is_deleted = 0`
 	}
 
 	item.ID = listID
+	if deletedAt.Valid {
+		item.DeletedAt = &deletedAt.Time
+	}
 
 	return &item, nil
 }
@@ -1364,48 +1346,17 @@ WHERE id = :2`
 }
 
 func (s *ServicesStorage) DeleteServiceKey(ctx context.Context, id string) error {
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		s.logger.Errorf("[ServicesRepo][Create] begin tx failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	defer func() { _ = tx.Rollback() }()
-
-	// check if services use's this access list
 	const checkQ = `SELECT COUNT(*) FROM services WHERE access_list_id = HEXTORAW(:1) AND is_deleted = 0`
 	var count int64
-	if err := tx.QueryRowContext(ctx, checkQ, id).Scan(&count); err != nil {
-		s.logger.Errorf("[ServicesRepo][DeleteServiceList] check services failed: %v", err)
+	if err := s.db.QueryRowContext(ctx, checkQ, id).Scan(&count); err != nil {
+		s.logger.Errorf("[ServicesRepo][DeleteServiceKey] check services failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	if count > 0 {
 		return errors.New(localization.ErrorServiceListInUse.Code)
 	}
 
-	// Delete the service list from access_lists and then delete the service which has the access_list_id
-	const q = `
-	UPDATE access_lists 
-	SET
-		is_deleted = 1, 
-		deleted_at = SYSTIMESTAMP, 
-		last_modified_at = SYSTIMESTAMP 
-	WHERE id = HEXTORAW(:1) AND is_deleted = 0`
-	res, err := tx.ExecContext(ctx, q, id)
-	if err != nil {
-		s.logger.Errorf("[ServicesRepo][DeleteServiceList] delete failed: %v", err)
-		return local_util.HandleDBError(err)
-	}
-	rows, _ := res.RowsAffected()
-	if rows == 0 {
-		return errors.New(localization.ErrorAccessListNotFound.Code)
-	}
-
-	if err := tx.Commit(); err != nil {
-		s.logger.Errorf("[ServicesRepo][DeleteServiceList] commit failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	return nil
+	return s.Delete(ctx, "", id)
 }
 
 // CheckIfIDsExist implements [storage.ServicesRepository].
