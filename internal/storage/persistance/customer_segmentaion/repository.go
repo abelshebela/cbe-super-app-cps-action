@@ -1158,6 +1158,9 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
 		sql.Named("limit", limit),
 	)
 
+	fmt.Printf("*************************************")
+	fmt.Printf("listQ: %s", listQ)
+	fmt.Printf("*************************************")
 	rows, err := r.db.QueryContext(ctx, listQ, listArgs...)
 	if err != nil {
 		log.Errorf("[CustomerSegmentation][FindAll] list query failed: %v", err)
