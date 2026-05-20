@@ -84,6 +84,22 @@ func normalizeRawHex32(id string) (string, bool) {
 	return s, true
 }
 
+func uniqueHexIDs(ids []string) []string {
+	seen := make(map[string]struct{}, len(ids))
+	out := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if id == "" {
+			continue
+		}
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
+		out = append(out, id)
+	}
+	return out
+}
+
 func (r *customerStorage) assertSuperAppRoleExistsTx(ctx context.Context, tx *sql.Tx, roleHex string) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
@@ -801,7 +817,7 @@ WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
 func (r *customerStorage) Delete(ctx context.Context, id string) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	_, segHex, err := r.resolveSegmentationIDs(ctx, id)
+	roleHex, _, err := r.resolveSegmentationIDs(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -813,30 +829,86 @@ func (r *customerStorage) Delete(ctx context.Context, id string) error {
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	const softSubQ = `
-UPDATE CUSTOMER_SUB_SEGMENTS
-SET IS_DELETED = 1, LAST_MODIFIED_AT = SYSTIMESTAMP
-WHERE CUSTOMER_SEGMENTATION_ID = HEXTORAW(:1) AND IS_DELETED = 0`
-	if _, err := tx.ExecContext(ctx, softSubQ, segHex); err != nil {
-		log.Errorf("[CustomerSegmentation][Delete] soft-delete sub segments failed: %v", err)
-		return local_util.HandleDBError(err)
-	}
-
-	const q = `
-UPDATE CUSTOMER_SEGMENTATIONS
-SET
-  IS_DELETED = 1,
-  LAST_MODIFIED_AT = SYSTIMESTAMP
-WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
-
-	res, err := tx.ExecContext(ctx, q, segHex)
+	const listSegQ = `
+SELECT RAWTOHEX(CUSTOMER_SEGMENTATION_ID)
+FROM CUSTOMER_SUB_SEGMENTS
+WHERE SUPERAPP_ROLE_ID = HEXTORAW(:1) AND IS_DELETED = 0`
+	rows, err := tx.QueryContext(ctx, listSegQ, roleHex)
 	if err != nil {
-		log.Errorf("[CustomerSegmentation][Delete] delete failed: %v", err)
+		log.Errorf("[CustomerSegmentation][Delete] list segmentations failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	rows, _ := res.RowsAffected()
-	if rows == 0 {
+	defer rows.Close()
+
+	segIDs := make([]string, 0)
+	for rows.Next() {
+		var segID string
+		if err := rows.Scan(&segID); err != nil {
+			log.Errorf("[CustomerSegmentation][Delete] scan segmentation id failed: %v", err)
+			return local_util.HandleDBError(err)
+		}
+		if h, ok := normalizeRawHex32(segID); ok {
+			segIDs = append(segIDs, h)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		log.Errorf("[CustomerSegmentation][Delete] list segmentations rows err: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
+	const deleteSubQ = `
+DELETE FROM CUSTOMER_SUB_SEGMENTS
+WHERE SUPERAPP_ROLE_ID = HEXTORAW(:1) AND IS_DELETED = 0`
+	res, err := tx.ExecContext(ctx, deleteSubQ, roleHex)
+	if err != nil {
+		log.Errorf("[CustomerSegmentation][Delete] delete sub segments failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	subRows, _ := res.RowsAffected()
+	if subRows == 0 && len(segIDs) == 0 {
 		return errors.New(localization.ErrorResourceNotFound.Code)
+	}
+
+	const deleteSegQ = `
+DELETE FROM CUSTOMER_SEGMENTATIONS
+WHERE ID = HEXTORAW(:1)
+  AND NOT EXISTS (
+    SELECT 1 FROM CUSTOMER_SUB_SEGMENTS css
+    WHERE css.CUSTOMER_SEGMENTATION_ID = HEXTORAW(:1)
+  )`
+	for _, segID := range uniqueHexIDs(segIDs) {
+		if _, err := tx.ExecContext(ctx, deleteSegQ, segID); err != nil {
+			log.Errorf("[CustomerSegmentation][Delete] delete segmentation %s failed: %v", segID, err)
+			return local_util.HandleDBError(err)
+		}
+	}
+
+	const deleteGroupQ = `
+DELETE FROM CUSTOMER_GROUPS
+WHERE ID = HEXTORAW(:1)
+  AND NOT EXISTS (
+    SELECT 1 FROM CUSTOMER_SEGMENTATIONS cs
+    WHERE cs.CUSTOMER_GROUP_ID = HEXTORAW(:1)
+  )`
+	const listGroupQ = `
+SELECT RAWTOHEX(cs.CUSTOMER_GROUP_ID)
+FROM CUSTOMER_SEGMENTATIONS cs
+WHERE cs.ID = HEXTORAW(:1)`
+	for _, segID := range uniqueHexIDs(segIDs) {
+		var groupID string
+		if err := tx.QueryRowContext(ctx, listGroupQ, segID).Scan(&groupID); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				continue
+			}
+			log.Errorf("[CustomerSegmentation][Delete] list group for seg %s failed: %v", segID, err)
+			return local_util.HandleDBError(err)
+		}
+		if h, ok := normalizeRawHex32(groupID); ok {
+			if _, err := tx.ExecContext(ctx, deleteGroupQ, h); err != nil {
+				log.Errorf("[CustomerSegmentation][Delete] delete group %s failed: %v", h, err)
+				return local_util.HandleDBError(err)
+			}
+		}
 	}
 
 	if err := tx.Commit(); err != nil {

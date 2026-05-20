@@ -848,13 +848,7 @@ func (m *cpsRoleStorage) Delete(ctx context.Context, id string) error {
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
-	const q = `
-UPDATE SUPERAPP_ROLES
-SET
-  IS_DELETED = 1,
-  LAST_MODIFIED_AT = SYSTIMESTAMP,
-  DELETED_AT = SYSTIMESTAMP
-WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
+	const q = `DELETE FROM SUPERAPP_ROLES WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
 	res, err := m.db.ExecContext(ctx, q, idHex)
 	if err != nil {
