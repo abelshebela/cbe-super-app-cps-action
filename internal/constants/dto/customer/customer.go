@@ -82,6 +82,15 @@ type PersonalInfo struct {
 	Nationality         string `json:"nationality" bson:"nationality"`                     // customer_kyc.kyc_data
 	Branch              string `json:"branch_code" bson:"branch_code"`                     // members
 	BranchName          string `json:"branch_name" bson:"branch_name"`
+	Industry            string `json:"industry" bson:"industry"`                   // core response
+	Ownership           string `json:"ownership" bson:"ownership"`                 // core response
+	Restriction         string `json:"restriction" bson:"restriction"`             // core response
+	RestrictionType     string `json:"restriction_type" bson:"restriction_type"`   // core response
+	Sector              string `json:"sector" bson:"sector"`                       // core response
+	Target              string `json:"target" bson:"target"`                       // core response
+	CustomerSegment     string `json:"customer_segment" bson:"customer_segment"`   // core response
+	CustomerCategory    string `json:"customer_category" bson:"customer_category"` // core response
+
 }
 
 type CustomerDetailResponse struct {
