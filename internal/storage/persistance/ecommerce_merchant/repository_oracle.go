@@ -75,6 +75,8 @@ func parseOracleBool(v interface{}) (bool, bool) {
 }
 
 func (m *EcommerceMerchantStorage) insertBranches(ctx context.Context, tx *sql.Tx, merchantID string, branches []model.BranchInformation) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	if len(branches) == 0 {
 		return nil
 	}
@@ -106,7 +108,7 @@ INSERT INTO MERCHANT_BRANCHES (
 			nullString(branch.BranchOwner),
 			branch.BranchAccountNumber,
 		); err != nil {
-			m.logger.Errorf("[EcommerceMerchantRepo][insertBranches] insert failed: %v", err)
+			log.Errorf("[EcommerceMerchantRepo][insertBranches] insert failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 	}
@@ -115,13 +117,15 @@ INSERT INTO MERCHANT_BRANCHES (
 }
 
 func (m *EcommerceMerchantStorage) upsertBranches(ctx context.Context, tx *sql.Tx, merchantID string, branches []model.BranchInformation) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	const markDeletedQ = `
 UPDATE MERCHANT_BRANCHES
 SET IS_DELETED = 1, DELETED_AT = SYSTIMESTAMP, LAST_MODIFIED_AT = SYSTIMESTAMP
 WHERE MERCHANT_ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
 	if _, err := tx.ExecContext(ctx, markDeletedQ, merchantID); err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][upsertBranches] mark delete failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][upsertBranches] mark delete failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
@@ -129,6 +133,8 @@ WHERE MERCHANT_ID = HEXTORAW(:1) AND IS_DELETED = 0`
 }
 
 func (m *EcommerceMerchantStorage) updateBranchesByID(ctx context.Context, tx *sql.Tx, merchantID string, branches []model.BranchInformation) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	if len(branches) == 0 {
 		return nil
 	}
@@ -173,7 +179,7 @@ FETCH FIRST 1 ROWS ONLY`
 			if errors.Is(err, sql.ErrNoRows) {
 				return errors.New(localization.ErrorEcommerceMerchantNotFound.Code)
 			}
-			m.logger.Errorf("[EcommerceMerchantRepo][updateBranchesByID] fetch existing branch failed: %v", err)
+			log.Errorf("[EcommerceMerchantRepo][updateBranchesByID] fetch existing branch failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 
@@ -189,7 +195,7 @@ FETCH FIRST 1 ROWS ONLY`
 				return errors.New(localization.ErrorCodeAlreadyExist.Code)
 			}
 			if !errors.Is(err, sql.ErrNoRows) {
-				m.logger.Errorf("[EcommerceMerchantRepo][updateBranchesByID] check branch code conflict failed: %v", err)
+				log.Errorf("[EcommerceMerchantRepo][updateBranchesByID] check branch code conflict failed: %v", err)
 				return local_util.HandleDBError(err)
 			}
 		}
@@ -206,7 +212,7 @@ FETCH FIRST 1 ROWS ONLY`
 			merchantID,
 		)
 		if err != nil {
-			m.logger.Errorf("[EcommerceMerchantRepo][updateBranchesByID] update failed: %v", err)
+			log.Errorf("[EcommerceMerchantRepo][updateBranchesByID] update failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 
@@ -220,6 +226,8 @@ FETCH FIRST 1 ROWS ONLY`
 }
 
 func (m *EcommerceMerchantStorage) getBranchesByMerchantID(ctx context.Context, merchantID string) ([]model.BranchInformation, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	const q = `
 SELECT RAWTOHEX(ID), BRANCH_CODE, BRANCH_NAME, BRANCH_ADDRESS, BRANCH_OWNER, BRANCH_ACCOUNT_NUMBER, IS_ENABLED
 FROM MERCHANT_BRANCHES
@@ -228,7 +236,7 @@ ORDER BY CREATED_AT ASC`
 
 	rows, err := m.db.QueryContext(ctx, q, merchantID)
 	if err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][getBranchesByMerchantID] query failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][getBranchesByMerchantID] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -238,7 +246,7 @@ ORDER BY CREATED_AT ASC`
 		var b model.BranchInformation
 		var address, owner sql.NullString
 		if err := rows.Scan(&b.ID, &b.BranchCode, &b.BranchName, &address, &owner, &b.BranchAccountNumber, &b.IsEnabled); err != nil {
-			m.logger.Errorf("[EcommerceMerchantRepo][getBranchesByMerchantID] scan failed: %v", err)
+			log.Errorf("[EcommerceMerchantRepo][getBranchesByMerchantID] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 		if address.Valid {
@@ -288,6 +296,8 @@ func (m *EcommerceMerchantStorage) scanMerchant(row interface {
 }
 
 func (m *EcommerceMerchantStorage) Create(ctx context.Context, merchant *model.EcommerceMerchant) (*model.EcommerceMerchant, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	const insertMerchantQ = `
 INSERT INTO MERCHANTS (
 	MERCHANT_ACCOUNT_NUMBER,
@@ -308,7 +318,7 @@ RETURNING RAWTOHEX(ID) INTO :9`
 
 	tx, err := m.db.BeginTx(ctx, nil)
 	if err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][Create] begin tx failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][Create] begin tx failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
@@ -329,7 +339,7 @@ RETURNING RAWTOHEX(ID) INTO :9`
 		boolToOracleNumber(merchant.IsDeleted),
 		sql.Out{Dest: &merchantID},
 	); err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][Create] insert merchant failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][Create] insert merchant failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -338,7 +348,7 @@ RETURNING RAWTOHEX(ID) INTO :9`
 	}
 
 	if err := tx.Commit(); err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][Create] commit failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][Create] commit failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -348,9 +358,11 @@ RETURNING RAWTOHEX(ID) INTO :9`
 }
 
 func (m *EcommerceMerchantStorage) Update(ctx context.Context, id string, merchant *model.EcommerceMerchant) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	tx, err := m.db.BeginTx(ctx, nil)
 	if err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][Update] begin tx failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][Update] begin tx failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
@@ -397,7 +409,7 @@ func (m *EcommerceMerchantStorage) Update(ctx context.Context, id string, mercha
 
 		res, err := tx.ExecContext(ctx, query, args...)
 		if err != nil {
-			m.logger.Errorf("[EcommerceMerchantRepo][Update] update merchant failed: %v", err)
+			log.Errorf("[EcommerceMerchantRepo][Update] update merchant failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 
@@ -427,7 +439,7 @@ func (m *EcommerceMerchantStorage) Update(ctx context.Context, id string, mercha
 	}
 
 	if err := tx.Commit(); err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][Update] commit failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][Update] commit failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -435,9 +447,11 @@ func (m *EcommerceMerchantStorage) Update(ctx context.Context, id string, mercha
 }
 
 func (m *EcommerceMerchantStorage) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	tx, err := m.db.BeginTx(ctx, nil)
 	if err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][Delete] begin tx failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][Delete] begin tx failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
@@ -452,7 +466,7 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
 	res, err := tx.ExecContext(ctx, deleteMerchantQ, id)
 	if err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][Delete] merchant delete failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][Delete] merchant delete failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	rows, _ := res.RowsAffected()
@@ -468,12 +482,12 @@ SET
 	LAST_MODIFIED_AT = SYSTIMESTAMP
 WHERE MERCHANT_ID = HEXTORAW(:1) AND IS_DELETED = 0`
 	if _, err := tx.ExecContext(ctx, deleteBranchesQ, id); err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][Delete] branch delete failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][Delete] branch delete failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][Delete] commit failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][Delete] commit failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -481,6 +495,8 @@ WHERE MERCHANT_ID = HEXTORAW(:1) AND IS_DELETED = 0`
 }
 
 func (m *EcommerceMerchantStorage) DeleteBranch(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	const q = `
 UPDATE MERCHANT_BRANCHES
 SET
@@ -491,7 +507,7 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
 	res, err := m.db.ExecContext(ctx, q, id)
 	if err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][DeleteBranch] failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][DeleteBranch] failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
@@ -504,9 +520,11 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 }
 
 func (m *EcommerceMerchantStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	tx, err := m.db.BeginTx(ctx, nil)
 	if err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][EnableOrDisable] begin tx failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][EnableOrDisable] begin tx failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
@@ -520,7 +538,7 @@ WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
 
 	res, err := tx.ExecContext(ctx, merchantQ, boolToOracleNumber(enable), id)
 	if err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][EnableOrDisable] merchant update failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][EnableOrDisable] merchant update failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	rows, _ := res.RowsAffected()
@@ -535,12 +553,12 @@ SET
 	LAST_MODIFIED_AT = SYSTIMESTAMP
 WHERE MERCHANT_ID = HEXTORAW(:2) AND IS_DELETED = 0`
 	if _, err := tx.ExecContext(ctx, branchQ, boolToOracleNumber(enable), id); err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][EnableOrDisable] branch update failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][EnableOrDisable] branch update failed: %v", err)
 		return err
 	}
 
 	if err := tx.Commit(); err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][EnableOrDisable] commit failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][EnableOrDisable] commit failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -548,6 +566,8 @@ WHERE MERCHANT_ID = HEXTORAW(:2) AND IS_DELETED = 0`
 }
 
 func (m *EcommerceMerchantStorage) EnableOrDisableBranch(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	const q = `
 UPDATE MERCHANT_BRANCHES
 SET
@@ -557,7 +577,7 @@ WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
 
 	res, err := m.db.ExecContext(ctx, q, boolToOracleNumber(enable), id)
 	if err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][EnableOrDisableBranch] failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][EnableOrDisableBranch] failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
@@ -570,6 +590,8 @@ WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
 }
 
 func (m *EcommerceMerchantStorage) FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	const q = `
 SELECT
 	RAWTOHEX(ID),
@@ -592,7 +614,7 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(localization.ErrorEcommerceMerchantNotFound.Code)
 		}
-		m.logger.Errorf("[EcommerceMerchantRepo][FindByID] query failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][FindByID] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -606,6 +628,8 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 }
 
 func (m *EcommerceMerchantStorage) FindBranchByID(ctx context.Context, id string) (*model.BranchInformation, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	const q = `
 SELECT RAWTOHEX(ID), BRANCH_CODE, BRANCH_NAME, BRANCH_ADDRESS, BRANCH_OWNER, BRANCH_ACCOUNT_NUMBER, IS_ENABLED
 FROM MERCHANT_BRANCHES
@@ -625,7 +649,7 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(localization.ErrorEcommerceMerchantBranchNotFound.Code)
 		}
-		m.logger.Errorf("[EcommerceMerchantRepo][FindBranchByID] query failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][FindBranchByID] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -640,6 +664,8 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 }
 
 func (m *EcommerceMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	limit := int64(defaultPageSize)
 	page := int64(1)
 	if filterParam.PerPage > 0 {
@@ -690,7 +716,7 @@ func (m *EcommerceMerchantStorage) FindAllWithPagination(ctx context.Context, fi
 	countQ := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s", merchantsTable, where)
 	var total int64
 	if err := m.db.QueryRowContext(ctx, countQ, args...).Scan(&total); err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][FindAllWithPagination] count failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][FindAllWithPagination] count failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -716,7 +742,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, merchantsTable, where)
 	listArgs := append(args, sql.Named("offset", offset), sql.Named("limit", limit))
 	rows, err := m.db.QueryContext(ctx, listQ, listArgs...)
 	if err != nil {
-		m.logger.Errorf("[EcommerceMerchantRepo][FindAllWithPagination] list query failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][FindAllWithPagination] list query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -725,7 +751,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, merchantsTable, where)
 	for rows.Next() {
 		merchant, err := m.scanMerchant(rows)
 		if err != nil {
-			m.logger.Errorf("[EcommerceMerchantRepo][FindAllWithPagination] scan failed: %v", err)
+			log.Errorf("[EcommerceMerchantRepo][FindAllWithPagination] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 
@@ -746,6 +772,8 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, merchantsTable, where)
 }
 
 func (m *EcommerceMerchantStorage) FindOne(ctx context.Context, filter bson.M) (*model.EcommerceMerchant, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	clauses := []string{"IS_DELETED = 0", "MERCHANT_TYPE = 'ECOMMERCE'"}
 	args := make([]interface{}, 0)
 	paramIdx := 1
@@ -814,7 +842,7 @@ FROM MERCHANTS`
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(localization.ErrorEcommerceMerchantNotFound.Code)
 		}
-		m.logger.Errorf("[EcommerceMerchantRepo][FindOne] query failed: %v", err)
+		log.Errorf("[EcommerceMerchantRepo][FindOne] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 

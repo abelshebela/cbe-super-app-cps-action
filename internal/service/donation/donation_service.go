@@ -97,6 +97,8 @@ func (d *Donation) FetchDonationByID(ctx context.Context, id string) (*dto.Donat
 }
 
 func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequest) error {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateDonation", "Donation", "CreateDonation")
 	defer span.End()
 
@@ -114,7 +116,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 			attribute.String("error", err.Error()),
 			attribute.String("title", donation.Title),
 		))
-		d.logger.Errorf("[Donation][Create] Failed to check donation title existence: %v", err)
+		log.Errorf("[Donation][Create] Failed to check donation title existence: %v", err)
 		return err
 	}
 	if ok {
@@ -122,7 +124,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 			attribute.String("error", localization.ErrorDonationTitleDuplicated.Code),
 			attribute.String("title", donation.Title),
 		))
-		d.logger.Warnf("[Donation][Create] Donation title duplicated: %s", donation.Title)
+		log.Warnf("[Donation][Create] Donation title duplicated: %s", donation.Title)
 		return errors.New(localization.ErrorDonationTitleDuplicated.Code)
 	}
 
@@ -142,12 +144,12 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	}
 
 	checkExistentDonationForService, err := d.DonationRepo.FindByServiceID(ctx, donation.ServiceID)
-	if err != nil {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("Failed to check existing donation for service", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("service_id", donation.ServiceID),
 		))
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 
 	if checkExistentDonationForService != nil {
@@ -211,11 +213,11 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	}
 
 	donationImages := make([]types.DonationImage, 0)
-	d.logger.Infof("[DonationSvc][Create] processing %d images", len(donation.DonationImages))
+	log.Infof("[DonationSvc][Create] processing %d images", len(donation.DonationImages))
 	for _, img := range donation.DonationImages {
 		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationFolderName), *d.cfg, "", d.logger)
 		if err != nil {
-			d.logger.Errorf("[DonationSvc][Create] upload image err: %v", err)
+			log.Errorf("[DonationSvc][Create] upload image err: %v", err)
 			span.AddEvent("Failed to upload donation image", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 			))
@@ -228,11 +230,11 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 			CreatedAt: time.Now(),
 		})
 
-		d.logger.Infof("[DonationSvc][Create] uploaded image: %s", url)
+		log.Infof("[DonationSvc][Create] uploaded image: %s", url)
 	}
 
 	donationCode := core.GenerateDonationCode()
-	d.logger.Infof("[DonationSvc][Create] building cps target: %d, images: %d", donation.Target, len(donationImages))
+	log.Infof("[DonationSvc][Create] building cps target: %d, images: %d", donation.Target, len(donationImages))
 	tempval := false
 	result := dto.DonationCPSRequest{
 		DonationCode: donationCode,
@@ -263,7 +265,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		StartDate:           donation.StartDate.Format(time.RFC3339),
 		Enabled:             &tempval,
 	}
-	d.logger.Infof("[DonationSvc][Create] cps request target: %d, images: %d", result.Target, len(result.DonationImages))
+	log.Infof("[DonationSvc][Create] cps request target: %d, images: %d", result.Target, len(result.DonationImages))
 
 	cpsAction := lib.CpsModelBuilder("", makerData, "", result, string(constants.RequestCreateDonation), constants.CREATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
@@ -276,6 +278,8 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 }
 
 func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.DonationRequest) error {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateDonation", "Donation", "UpdateDonation")
 	defer span.End()
 
@@ -305,7 +309,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	}
 
 	checkExistentDonationForService, err := d.DonationRepo.FindByServiceID(ctx, donation.ServiceID)
-	if err != nil {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("Failed to check existing donation for service", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("service_id", donation.ServiceID),
@@ -347,6 +351,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	// --- Service Validation ---
 	serviceForCPS := existingDonation.Service
 	if donation.ServiceID != "" {
+		log.Infof("[DonationSvc][Update] validating service id: %s", donation.ServiceID)
 		svc, err := d.ServicesRepo.FindByID(ctx, donation.ServiceID)
 		if err != nil {
 			span.AddEvent("Service id not found", trace.WithAttributes(
@@ -464,7 +469,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	}
 
 	// --- Add New Images ---
-	d.logger.Infof("[DonationSvc][Update] processing %d new images", len(donation.DonationImages))
+	log.Infof("[DonationSvc][Update] processing %d new images", len(donation.DonationImages))
 	for _, fileHeader := range donation.DonationImages {
 		var objectkey string
 
@@ -479,7 +484,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 			d.logger,
 		)
 		if err != nil {
-			d.logger.Errorf("[DonationSvc][Update] upload image err: %v", err)
+			log.Errorf("[DonationSvc][Update] upload image err: %v", err)
 			span.AddEvent("Failed to upload donation image", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("id", id),
@@ -493,7 +498,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 			CreatedAt: time.Now(),
 		})
 
-		d.logger.Infof("[DonationSvc][Update] uploaded image: %s", url)
+		log.Infof("[DonationSvc][Update] uploaded image: %s", url)
 	}
 
 	// --- Map Update Data ---
@@ -582,8 +587,11 @@ func (d *Donation) UpdateDonationImage(ctx context.Context, id string, image dto
 	}
 
 	var objectkey string
-	if len(existingDonation.DonationImages) > 0 && existingDonation.DonationImages[0].PhotoURL != "" {
-		objectkey = path.Base(existingDonation.DonationImages[0].PhotoURL)
+	for _, img := range existingDonation.DonationImages {
+		if img.ID == image.ImageID && img.PhotoURL != "" {
+			objectkey = path.Base(img.PhotoURL)
+			break
+		}
 	}
 
 	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, image.Image, string(constants.DonationFolderName), *d.cfg, objectkey, d.logger)
@@ -696,13 +704,8 @@ func (d *Donation) AddDonationImage(ctx context.Context, id string, image dto.Do
 	}
 
 	donationImages := make([]types.DonationImage, 0)
-	for i, img := range image.DonationImages {
-		var objectkey string
-		if len(existingDonation.DonationImages) > 0 && existingDonation.DonationImages[i].PhotoURL != "" {
-			objectkey = path.Base(existingDonation.DonationImages[i].PhotoURL)
-		}
-
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationFolderName), *d.cfg, objectkey, d.logger)
+	for _, img := range image.DonationImages {
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationFolderName), *d.cfg, "", d.logger)
 		if err != nil {
 			span.AddEvent("Failed to upload image", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -876,11 +879,13 @@ func (d *Donation) DisableDonation(ctx context.Context, id string) error {
 }
 
 func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Donation", "Authorize")
 	defer span.End()
 
 	if action.ActionStatus != constants.Approved {
-		d.logger.Errorf("[DonationSvc][Authorize] not approved")
+		log.Errorf("[DonationSvc][Authorize] not approved")
 		span.AddEvent("CPS action status invalid", trace.WithAttributes(
 			attribute.String("error", localization.ErrorCPSActionStatusInvalid.Code),
 			attribute.String("unique_id", action.UniqueId),
@@ -890,7 +895,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 	var donationCPS *dto.DonationCPSRequest
 	bindErr := core.BindAction(action.CurrentAction, &donationCPS)
 	if bindErr != nil {
-		d.logger.Errorf("[DonationSvc][Authorize] bind err: %v", bindErr)
+		log.Errorf("[DonationSvc][Authorize] bind err: %v", bindErr)
 		span.AddEvent("Failed to bind current action", trace.WithAttributes(
 			attribute.String("error", bindErr.Error()),
 			attribute.String("unique_id", action.UniqueId),
@@ -903,14 +908,14 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		donationModel := core.MapToDonationModel(donationCPS)
 		err := d.DonationRepo.Create(ctx, donationModel)
 		if err != nil {
-			d.logger.Errorf("[DonationSvc][Authorize] create err: %v", err)
+			log.Errorf("[DonationSvc][Authorize] create err: %v", err)
 			return nil, err
 		}
 
 	case string(constants.RequestUpdateDonation):
 		existingDonation, err := d.DonationRepo.FindByID(ctx, action.UniqueId)
 		if err != nil {
-			d.logger.Errorf("[DonationSvc][Authorize] find for update err: %v", err)
+			log.Errorf("[DonationSvc][Authorize] find for update err: %v", err)
 			return nil, err
 		}
 		if existingDonation == nil {
@@ -922,6 +927,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		updateRequest := dto.DonationRequest{
 			CompanyID:           donationCPS.Company.ID,
 			CategoryID:          donationCPS.Category.ID,
+			ServiceID:           donationCPS.Service.ID,
 			Title:               donationCPS.Title,
 			IsFeatured:          donationCPS.IsFeatured,
 			Target:              donationCPS.Target,
@@ -955,7 +961,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
 		if err != nil {
-			d.logger.Errorf("[DonationSvc][Authorize] update err: %v", err)
+			log.Errorf("[DonationSvc][Authorize] update err: %v", err)
 			span.AddEvent("Failed to update donation", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -966,7 +972,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 	case string(constants.RequestUpdateDonationImage):
 		existingDonation, err := d.DonationRepo.FindByID(ctx, action.UniqueId)
 		if err != nil {
-			d.logger.Errorf("[DonationSvc][Authorize] find for img update err: %v", err)
+			log.Errorf("[DonationSvc][Authorize] find for img update err: %v", err)
 			span.AddEvent("Failed to find donation for image update", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -985,7 +991,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		var imageUpdateData *dto.DonationImageUpdateCPSRequest
 		bindErr := core.BindAction(action.CurrentAction, &imageUpdateData)
 		if bindErr != nil {
-			d.logger.Errorf("[DonationSvc][Authorize] bind img update err: %v", bindErr)
+			log.Errorf("[DonationSvc][Authorize] bind img update err: %v", bindErr)
 			span.AddEvent("Failed to bind current action to donation image update", trace.WithAttributes(
 				attribute.String("error", bindErr.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -1016,7 +1022,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		}
 
 		if !imageUpdated {
-			d.logger.Errorf("[DonationSvc][Authorize] img %s not found in %s", imageUpdateData.ImageID, action.UniqueId)
+			log.Errorf("[DonationSvc][Authorize] img %s not found in %s", imageUpdateData.ImageID, action.UniqueId)
 			span.AddEvent("Image ID not found", trace.WithAttributes(
 				attribute.String("error", localization.ErrorFileNotFound.Code),
 				attribute.String("unique_id", action.UniqueId),
@@ -1051,7 +1057,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
 		if err != nil {
-			d.logger.Errorf("[DonationSvc][Authorize] update img err: %v", err)
+			log.Errorf("[DonationSvc][Authorize] update img err: %v", err)
 			span.AddEvent("Failed to update donation image", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -1062,7 +1068,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 	case string(constants.RequestDeleteDonationImage):
 		existingDonation, err := d.DonationRepo.FindByID(ctx, action.UniqueId)
 		if err != nil {
-			d.logger.Errorf("[DonationSvc][Authorize] find for img delete err: %v", err)
+			log.Errorf("[DonationSvc][Authorize] find for img delete err: %v", err)
 			span.AddEvent("Failed to find donation for image deletion", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -1115,7 +1121,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
 		if err != nil {
-			d.logger.Errorf("[DonationSvc][Authorize] delete img err: %v", err)
+			log.Errorf("[DonationSvc][Authorize] delete img err: %v", err)
 			span.AddEvent("Failed to delete donation image", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -1126,7 +1132,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 	case string(constants.RequestAddDonationImage):
 		existingDonation, err := d.DonationRepo.FindByID(ctx, action.UniqueId)
 		if err != nil {
-			d.logger.Errorf("[DonationSvc][Authorize] find for img add err: %v", err)
+			log.Errorf("[DonationSvc][Authorize] find for img add err: %v", err)
 			span.AddEvent("Failed to find donation for image addition", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -1185,7 +1191,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
 		if err != nil {
-			d.logger.Errorf("[DonationSvc][Authorize] add images err: %v", err)
+			log.Errorf("[DonationSvc][Authorize] add images err: %v", err)
 			span.AddEvent("Failed to add donation images", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -1196,7 +1202,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 	case string(constants.RequestEnableDonation):
 		existingDonation, err := d.DonationRepo.FindByID(ctx, action.UniqueId)
 		if err != nil {
-			d.logger.Errorf("[DonationSvc][Authorize] find for enable err: %v", err)
+			log.Errorf("[DonationSvc][Authorize] find for enable err: %v", err)
 			span.AddEvent("Failed to find donation", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -1230,7 +1236,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
 		if err != nil {
-			d.logger.Errorf("[DonationSvc][Authorize] enable err: %v", err)
+			log.Errorf("[DonationSvc][Authorize] enable err: %v", err)
 			span.AddEvent("Failed to enable donation", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -1241,7 +1247,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 	case string(constants.RequestDisableDonation):
 		existingDonation, err := d.DonationRepo.FindByID(ctx, action.UniqueId)
 		if err != nil {
-			d.logger.Errorf("[DonationSvc][Authorize] find for disable err: %v", err)
+			log.Errorf("[DonationSvc][Authorize] find for disable err: %v", err)
 			span.AddEvent("Failed to find donation", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -1275,7 +1281,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
 		if err != nil {
-			d.logger.Errorf("[DonationSvc][Authorize] disable err: %v", err)
+			log.Errorf("[DonationSvc][Authorize] disable err: %v", err)
 			span.AddEvent("Failed to disable donation", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -1286,7 +1292,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 	case string(constants.RequestDeleteDonation):
 		err := d.DonationRepo.Delete(ctx, action.UniqueId)
 		if err != nil {
-			d.logger.Errorf("[DonationSvc][Authorize] delete err: %v", err)
+			log.Errorf("[DonationSvc][Authorize] delete err: %v", err)
 			span.AddEvent("Failed to delete donation", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -1295,7 +1301,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		}
 
 	default:
-		d.logger.Errorf("[DonationSvc][Authorize] unsupported action: %s", action.RequestAction)
+		log.Errorf("[DonationSvc][Authorize] unsupported action: %s", action.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(action.RequestAction)),
@@ -1303,7 +1309,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
-	d.logger.Infof("[DonationSvc][Authorize] completed: %s", action.RequestAction)
+	log.Infof("[DonationSvc][Authorize] completed: %s", action.RequestAction)
 	return action, nil
 }
 

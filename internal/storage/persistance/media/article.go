@@ -10,6 +10,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -34,9 +35,11 @@ func NewsArticleRepository(logger shared_utils.Logger, client *mongo.Client, cfg
 }
 
 func (a *article) CreateArticle(ctx context.Context, article *model.NewsArticle) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	newNewsArticle, err := a.articleDal.InsertOne(ctx, *article)
 	if err != nil {
-		a.logger.Errorf("Error inserting article into database:", err)
+		log.Errorf("Error inserting article into database:", err)
 		return middleware.NewDatabaseError("Error inserting article into database", err)
 	}
 	a.kafkaProducer.PublishMessage(ctx, newNewsArticle, string(constants.ClientOrchestrationArticleTopic), string(constants.ClientOrchestrationArticleTopic), "new article created")
@@ -45,6 +48,7 @@ func (a *article) CreateArticle(ctx context.Context, article *model.NewsArticle)
 }
 
 func (a *article) UpdateArticle(ctx context.Context, article *model.NewsArticle, id string) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 
 	objId, err := a.getArticleID(id)
 	if err != nil {
@@ -55,7 +59,7 @@ func (a *article) UpdateArticle(ctx context.Context, article *model.NewsArticle,
 
 	updateArticle, err := a.articleDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("Error updating article in database:", err)
+		log.Errorf("Error updating article in database:", err)
 		if err == mongo.ErrNoDocuments {
 			return middleware.NewNotFoundError("article")
 		}
@@ -68,6 +72,8 @@ func (a *article) UpdateArticle(ctx context.Context, article *model.NewsArticle,
 }
 
 func (a *article) DeleteArticle(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	objId, err := a.getArticleID(id)
 	if err != nil {
 		return err
@@ -75,7 +81,7 @@ func (a *article) DeleteArticle(ctx context.Context, id string) error {
 
 	filter := bson.M{"_id": objId, "is_deleted": false}
 	if err := a.articleDal.DeleteOne(ctx, filter); err != nil {
-		a.logger.Errorf("Error deleting article from database:", err)
+		log.Errorf("Error deleting article from database:", err)
 		if err == mongo.ErrNoDocuments {
 			return middleware.NewNotFoundError("article")
 		}
@@ -85,6 +91,8 @@ func (a *article) DeleteArticle(ctx context.Context, id string) error {
 }
 
 func (a *article) PublishUnpublishArticle(ctx context.Context, id string, isPublished bool) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	objId, err := a.getArticleID(id)
 	if err != nil {
 		return err
@@ -102,7 +110,7 @@ func (a *article) PublishUnpublishArticle(ctx context.Context, id string, isPubl
 
 	updateArticle, err := a.articleDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("Error updating article publish status in database:", err)
+		log.Errorf("Error updating article publish status in database:", err)
 		if err == mongo.ErrNoDocuments {
 			return middleware.NewNotFoundError("article")
 		}

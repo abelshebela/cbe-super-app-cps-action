@@ -39,36 +39,41 @@ func NewUssdMerchant(client *mongo.Client, dbName string, collection string, cfg
 }
 
 func (u *UssdMerchantRepository) Create(ctx context.Context, data imodel.UssdMerchant) error {
+	log := local_util.LoggerFromCtx(ctx, u.logger)
 
 	data.ID = bson.NewObjectID()
 	data.CreatedAt = time.Now()
 	_, err := u.dal.InsertOne(ctx, data)
 	if err != nil {
-		u.logger.Errorf("[UssdMerchantRepository][Create] error creating ussd_merchant: %v", err)
+		log.Errorf("[UssdMerchantRepository][Create] error creating ussd_merchant: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 func (u *UssdMerchantRepository) Update(ctx context.Context, id string, update bson.M) error {
+	log := local_util.LoggerFromCtx(ctx, u.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		u.logger.Errorf("[UssdMerchantRepository][Update] error parsing id: %v", err)
+		log.Errorf("[UssdMerchantRepository][Update] error parsing id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	_, err = u.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		u.logger.Errorf("[UssdMerchantRepository][Update] error updating ussd_merchant: %v", err)
+		log.Errorf("[UssdMerchantRepository][Update] error updating ussd_merchant: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 
 func (u *UssdMerchantRepository) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, u.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		u.logger.Errorf("[UssdMerchantRepository][Delete] error parsing id: %v", err)
+		log.Errorf("[UssdMerchantRepository][Delete] error parsing id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -81,21 +86,23 @@ func (u *UssdMerchantRepository) Delete(ctx context.Context, id string) error {
 
 	_, err = u.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		u.logger.Errorf("[UssdMerchantRepository][Delete] error deleting ussd_merchant: %v", err)
+		log.Errorf("[UssdMerchantRepository][Delete] error deleting ussd_merchant: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 func (u *UssdMerchantRepository) FindById(ctx context.Context, id string) (ussd_merchant_dto.UssdMerchantResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, u.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		u.logger.Errorf("[UssdMerchantRepository][FindById] error parsing id: %v", err)
+		log.Errorf("[UssdMerchantRepository][FindById] error parsing id: %v", err)
 		return ussd_merchant_dto.UssdMerchantResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	data, err := u.dal.FindOne(ctx, bson.M{"_id": objID, "is_deleted": false}, nil)
 	if err != nil {
-		u.logger.Errorf("[UssdMerchantRepository][FindById] error fetching ussd_merchant: %v", err)
+		log.Errorf("[UssdMerchantRepository][FindById] error fetching ussd_merchant: %v", err)
 		return ussd_merchant_dto.UssdMerchantResponse{}, local_util.HandleDBError(err)
 	}
 
@@ -105,10 +112,11 @@ func (u *UssdMerchantRepository) FindById(ctx context.Context, id string) (ussd_
 }
 
 func (u *UssdMerchantRepository) Find(ctx context.Context, filter bson.M) (ussd_merchant_dto.UssdMerchantResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, u.logger)
 
 	data, err := u.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		u.logger.Errorf("[UssdMerchantRepository][Find] error fetching ussd_merchant: %v", err)
+		log.Errorf("[UssdMerchantRepository][Find] error fetching ussd_merchant: %v", err)
 		return ussd_merchant_dto.UssdMerchantResponse{}, local_util.HandleDBError(err)
 	}
 
@@ -118,6 +126,7 @@ func (u *UssdMerchantRepository) Find(ctx context.Context, filter bson.M) (ussd_
 }
 
 func (u *UssdMerchantRepository) FindByOr(ctx context.Context, phone, email, account_number string) (imodel.UssdMerchant, error) {
+	log := local_util.LoggerFromCtx(ctx, u.logger)
 
 	// Build conditions dynamically, only for non-empty parameters
 	conditions := []bson.M{}
@@ -144,13 +153,15 @@ func (u *UssdMerchantRepository) FindByOr(ctx context.Context, phone, email, acc
 	filter["is_deleted"] = false
 	data, err := u.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		u.logger.Errorf("[UssdMerchantRepository][FindByOr] failed to find merchant: %v", err)
+		log.Errorf("[UssdMerchantRepository][FindByOr] failed to find merchant: %v", err)
 		return imodel.UssdMerchant{}, local_util.HandleDBError(err)
 	}
 	return *data, nil
 }
 
 func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse], error) {
+	log := local_util.LoggerFromCtx(ctx, u.logger)
+
 	filter := bson.M{"is_deleted": bson.M{"$ne": true}}
 	searchKeys := bson.M{}
 
@@ -245,10 +256,10 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 		}}},
 	}
 
-	u.logger.Infof("[UssdMerchantRepository][FindAllWithPagination] fetching Ussd Merchant with pagination")
+	log.Infof("[UssdMerchantRepository][FindAllWithPagination] fetching Ussd Merchant with pagination")
 	cursor, err := u.mongoCollection.Aggregate(ctx, pipeline)
 	if err != nil {
-		u.logger.Errorf("[UssdMerchantRepository][FindAllWithPagination] failed to execute aggregation pipeline: %v", err)
+		log.Errorf("[UssdMerchantRepository][FindAllWithPagination] failed to execute aggregation pipeline: %v", err)
 		return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
@@ -261,7 +272,7 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 	}
 
 	if err := cursor.All(ctx, &results); err != nil {
-		u.logger.Errorf("[UssdMerchantRepository][FindAllWithPagination] failed to decode aggregation results: %v", err)
+		log.Errorf("[UssdMerchantRepository][FindAllWithPagination] failed to decode aggregation results: %v", err)
 		return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -278,7 +289,7 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	u.logger.Infof("[UssdMerchantRepository][FindAllWithPagination] retrieved %d Ussd Merchant", len(results[0].Data))
+	log.Infof("[UssdMerchantRepository][FindAllWithPagination] retrieved %d Ussd Merchant", len(results[0].Data))
 	return types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse]{
 		Data: results[0].Data,
 		Meta: meta,
@@ -287,9 +298,10 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 }
 
 // func (w *UssdMerchantRepository) Delete(ctx context.Context, id string) error {
+
 // 	objID, err := bson.ObjectIDFromHex(id)
 // 	if err != nil {
-// 		w.logger.Errorf("[UssdMerchantStorage][Delete] invalid object id: %v", err)
+// 		log.Errorf("[UssdMerchantStorage][Delete] invalid object id: %v", err)
 // 		return errors.New(localization.ErrorInvalidID.Code)
 // 	}
 
@@ -298,7 +310,7 @@ func (u *UssdMerchantRepository) FindAllWithPagination(ctx context.Context, filt
 
 // 	_, err = w.dal.UpdateOne(ctx, filter, update)
 // 	if err != nil {
-// 		w.logger.Errorf("[UssdMerchantStorage][Delete] failed to delete USSD Merchant: %v", err)
+// 		log.Errorf("[UssdMerchantStorage][Delete] failed to delete USSD Merchant: %v", err)
 // 		return local_util.HandleDBError(err)
 // 	}
 // 	return nil

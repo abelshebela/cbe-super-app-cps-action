@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -52,13 +53,15 @@ func (r *CPSActionApproveIndexRepository) FindByRoleAndAction(ctx context.Contex
 
 // FindVersionsByActionName returns distinct versions for a given action_name from cps_action_approver_index.
 func (r *CPSActionApproveIndexRepository) FindVersionsByActionName(ctx context.Context, actionName string) ([]int64, error) {
-	r.logger.Infof("FindVersionsByActionName: actionName=%s", actionName)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("FindVersionsByActionName: actionName=%s", actionName)
 	filter := bson.M{
 		"action_name": strings.ToUpper(strings.TrimSpace(actionName)),
 	}
 	cursor, err := r.collection.Find(ctx, filter)
 	if err != nil {
-		r.logger.Errorf("FindVersionsByActionName: Find failed: %v", err)
+		log.Errorf("FindVersionsByActionName: Find failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
@@ -77,14 +80,16 @@ func (r *CPSActionApproveIndexRepository) FindVersionsByActionName(ctx context.C
 			versions = append(versions, doc.Version)
 		}
 	}
-	r.logger.Infof("FindVersionsByActionName: found %d versions for actionName=%s", len(versions), actionName)
+	log.Infof("FindVersionsByActionName: found %d versions for actionName=%s", len(versions), actionName)
 	return versions, nil
 }
 
 // UpdateRoleInIndices updates all cps_action_approver_index documents matching
 // the given actionName and version, swapping oldRoleCode to newRoleCode.
 func (r *CPSActionApproveIndexRepository) UpdateRoleInIndices(ctx context.Context, actionName string, version int64, oldRoleCode, newRoleCode string) (int64, error) {
-	r.logger.Infof("UpdateRoleInIndices: actionName=%s version=%d old=%s new=%s", actionName, version, oldRoleCode, newRoleCode)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("UpdateRoleInIndices: actionName=%s version=%d old=%s new=%s", actionName, version, oldRoleCode, newRoleCode)
 	filter := bson.M{
 		"action_name": strings.ToUpper(strings.TrimSpace(actionName)),
 		"version":     version,
@@ -98,10 +103,10 @@ func (r *CPSActionApproveIndexRepository) UpdateRoleInIndices(ctx context.Contex
 	}
 	result, err := r.collection.UpdateMany(ctx, filter, update)
 	if err != nil {
-		r.logger.Errorf("UpdateRoleInIndices: UpdateMany failed: %v", err)
+		log.Errorf("UpdateRoleInIndices: UpdateMany failed: %v", err)
 		return 0, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	r.logger.Infof("UpdateRoleInIndices: updated %d documents", result.ModifiedCount)
+	log.Infof("UpdateRoleInIndices: updated %d documents", result.ModifiedCount)
 	return result.ModifiedCount, nil
 }
 
@@ -109,21 +114,23 @@ func (r *CPSActionApproveIndexRepository) UpdateRoleInIndices(ctx context.Contex
 // where the given role has the specified index type (e.g. "checker_index" or "auditor_index").
 // This is used for version-aware fetch filtering of pending/unclaimed actions.
 func (r *CPSActionApproveIndexRepository) FindAllocationsWithVersions(ctx context.Context, roleID string, indexField string) (map[string][]int64, error) {
-	r.logger.Infof("FindAllocationsWithVersions: roleID=%s indexField=%s", roleID, indexField)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("FindAllocationsWithVersions: roleID=%s indexField=%s", roleID, indexField)
 	filter := bson.M{
 		"role_id":  roleID,
 		indexField: bson.M{"$ne": nil},
 	}
 	cursor, err := r.collection.Find(ctx, filter)
 	if err != nil {
-		r.logger.Errorf("FindAllocationsWithVersions: Find failed: %v", err)
+		log.Errorf("FindAllocationsWithVersions: Find failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var docs []imodel.CPSActionApproveIndex
 	if err := cursor.All(ctx, &docs); err != nil {
-		r.logger.Errorf("FindAllocationsWithVersions: Cursor.All failed: %v", err)
+		log.Errorf("FindAllocationsWithVersions: Cursor.All failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -140,6 +147,6 @@ func (r *CPSActionApproveIndexRepository) FindAllocationsWithVersions(ctx contex
 			result[doc.ActionName] = append(result[doc.ActionName], doc.Version)
 		}
 	}
-	r.logger.Infof("FindAllocationsWithVersions: found %d action_name groups for roleID=%s", len(result), roleID)
+	log.Infof("FindAllocationsWithVersions: found %d action_name groups for roleID=%s", len(result), roleID)
 	return result, nil
 }

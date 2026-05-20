@@ -38,6 +38,8 @@ func formatNullTime(t sql.NullTime) time.Time {
 }
 
 func (r *Repository) Create(ctx context.Context, tier *local_model.AuthTierOracle) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	if tier == nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -55,7 +57,7 @@ func (r *Repository) Create(ctx context.Context, tier *local_model.AuthTierOracl
 		tier.IsDeleted,
 	)
 	if err != nil {
-		r.logger.Errorf("[AmountBasedAuthOracle][Create] failed: %v", err)
+		log.Errorf("[AmountBasedAuthOracle][Create] failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
@@ -72,6 +74,8 @@ func (r *Repository) CreateMany(ctx context.Context, tiers []local_model.AuthTie
 }
 
 func (r *Repository) Update(ctx context.Context, id string, update *local_model.AuthTierOracle) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	if update == nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -96,13 +100,15 @@ func (r *Repository) Update(ctx context.Context, id string, update *local_model.
 		id,
 	)
 	if err != nil {
-		r.logger.Errorf("[AmountBasedAuthOracle][Update] failed: %v", err)
+		log.Errorf("[AmountBasedAuthOracle][Update] failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 
 func (r *Repository) DeleteByCurrency(ctx context.Context, currency string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	q := `UPDATE AMOUNT_BASED_AUTH_TIERS
 		SET is_deleted = 1,
 			last_modified_at = CURRENT_TIMESTAMP
@@ -110,13 +116,15 @@ func (r *Repository) DeleteByCurrency(ctx context.Context, currency string) erro
 
 	_, err := r.db.ExecContext(ctx, q, currency)
 	if err != nil {
-		r.logger.Errorf("[AmountBasedAuthOracle][DeleteByCurrency] failed: %v", err)
+		log.Errorf("[AmountBasedAuthOracle][DeleteByCurrency] failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 
 func (r *Repository) DeleteByID(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	q := `UPDATE AMOUNT_BASED_AUTH_TIERS
 		SET is_deleted = 1,
 			last_modified_at = SYSTIMESTAMP
@@ -124,7 +132,7 @@ func (r *Repository) DeleteByID(ctx context.Context, id string) error {
 
 	res, err := r.db.ExecContext(ctx, q, id)
 	if err != nil {
-		r.logger.Errorf("[AmountBasedAuthOracle][DeleteByID] failed: %v", err)
+		log.Errorf("[AmountBasedAuthOracle][DeleteByID] failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	n, err := res.RowsAffected()
@@ -138,11 +146,13 @@ func (r *Repository) DeleteByID(ctx context.Context, id string) error {
 }
 
 func (r *Repository) CurrencyExists(ctx context.Context, currency string) (bool, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	q := `SELECT COUNT(*) FROM AMOUNT_BASED_AUTH_TIERS WHERE currency = :1 AND is_deleted = 0`
 
 	var total int64
 	if err := r.db.QueryRowContext(ctx, q, currency).Scan(&total); err != nil {
-		r.logger.Errorf("[AmountBasedAuthOracle][CurrencyExists] failed: %v", err)
+		log.Errorf("[AmountBasedAuthOracle][CurrencyExists] failed: %v", err)
 		return false, local_util.HandleDBError(err)
 	}
 	return total > 0, nil
@@ -264,6 +274,8 @@ func (r *Repository) FindActiveByCurrency(ctx context.Context, currency string) 
 }
 
 func (r *Repository) FindAllActiveForSearch(ctx context.Context, search string) ([]local_model.AuthTierOracle, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	search = strings.TrimSpace(search)
 	var q string
 	var args []interface{}
@@ -283,7 +295,7 @@ func (r *Repository) FindAllActiveForSearch(ctx context.Context, search string) 
 
 	rows, err := r.db.QueryContext(ctx, q, args...)
 	if err != nil {
-		r.logger.Errorf("[GetAllAmountBasedAuth] persistance query context error: %v", err)
+		log.Errorf("[GetAllAmountBasedAuth] persistance query context error: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -303,7 +315,7 @@ func (r *Repository) FindAllActiveForSearch(ctx context.Context, search string) 
 			&createdAt,
 			&lastModified,
 		); err != nil {
-			r.logger.Errorf("[GetAllAmountBasedAuth] scan  error:%v", err)
+			log.Errorf("[GetAllAmountBasedAuth] scan  error:%v", err)
 			return nil, err
 		}
 		tier.CreatedAt = formatNullTime(createdAt)
@@ -311,7 +323,7 @@ func (r *Repository) FindAllActiveForSearch(ctx context.Context, search string) 
 		result = append(result, tier)
 	}
 	if err := rows.Err(); err != nil {
-		r.logger.Errorf("[GetAllAmountBasedAuth] row error : %v", err)
+		log.Errorf("[GetAllAmountBasedAuth] row error : %v", err)
 
 		return nil, err
 	}

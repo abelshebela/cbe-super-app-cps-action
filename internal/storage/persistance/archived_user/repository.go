@@ -46,32 +46,34 @@ func NewArchivedUserRepository(client *mongo.Client, cfg *config.VaultConfig, db
 }
 
 func (a *archivedUserStorage) Create(ctx context.Context, user *member.User) error {
-
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	archivedUser := UserToArchivedUser(user)
 	_, err := a.dal.InsertOne(ctx, *archivedUser)
 	if err != nil {
-		a.logger.Errorf("[ArchivedUserStorage][Create] failed to create archived user: %v", err)
+		log.Errorf("[ArchivedUserStorage][Create] failed to create archived user: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 
 func (a *archivedUserStorage) FindByID(ctx context.Context, id string) (*model.ArchivedUser, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[ArchivedUserStorage][FindByID] invalid object id: %v", err)
+		log.Errorf("[ArchivedUserStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		a.logger.Errorf("[ArchivedUserStorage][FindByID] failed to find archived user: %v", err)
+		log.Errorf("[ArchivedUserStorage][FindByID] failed to find archived user: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
 
 func (s *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ArchivedUser], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
@@ -95,14 +97,14 @@ func (s *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterP
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		s.logger.Errorf("[ArchivedUserStorage][FindAllWithPagination] failed to fetch archived users: %v", err)
+		log.Errorf("[ArchivedUserStorage][FindAllWithPagination] failed to fetch archived users: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		s.logger.Errorf("[ArchivedUserStorage][FindAllWithPagination] failed to count archived users: %v", err)
+		log.Errorf("[ArchivedUserStorage][FindAllWithPagination] failed to count archived users: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -116,7 +118,8 @@ func (s *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterP
 }
 
 func (s *archivedUserStorage) FindAllArchievedUsersWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*unlink_dto.ArchivedUserResponse], error) {
-	s.logger.Infof("[ArchivedUserStorage][FindAllArchievedUsersWithPagination] fetching archived users with pipeline")
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+	log.Infof("[ArchivedUserStorage][FindAllArchievedUsersWithPagination] fetching archived users with pipeline")
 
 	// base and dynamic filters
 	filter := bson.M{"is_deleted": false}
@@ -262,7 +265,7 @@ func (s *archivedUserStorage) FindAllArchievedUsersWithPagination(ctx context.Co
 
 	cursor, err := s.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		s.logger.Errorf("[ArchivedUserStorage][FindAllArchievedUsersWithPagination] aggregation failed: %v", err)
+		log.Errorf("[ArchivedUserStorage][FindAllArchievedUsersWithPagination] aggregation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
@@ -275,7 +278,7 @@ func (s *archivedUserStorage) FindAllArchievedUsersWithPagination(ctx context.Co
 	}
 
 	if err = cursor.All(ctx, &results); err != nil {
-		s.logger.Errorf("[ArchivedUserStorage][FindAllArchievedUsersWithPagination] decode failed: %v", err)
+		log.Errorf("[ArchivedUserStorage][FindAllArchievedUsersWithPagination] decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 

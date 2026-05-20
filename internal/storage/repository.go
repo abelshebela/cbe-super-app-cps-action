@@ -209,7 +209,7 @@ type DeviceVersionControlRepository interface {
 }
 
 type CPSActionRepository interface {
-	Save(ctx context.Context, cpsAction *model.CPSAction) error
+	Save(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (types.PaginatedResponse[[]model.CPSAction], error)
 	FindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
 	SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error)

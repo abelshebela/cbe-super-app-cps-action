@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"github.com/IBM/sarama"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -97,6 +98,8 @@ func (dlq *SimpleDeadLetterQueue) GetDeadLetterMessages(_ context.Context) ([]*D
 }
 
 func (dlq *SimpleDeadLetterQueue) RetryDeadLetterMessage(ctx context.Context, msg *DeadLetterMessage) error {
+	log := local_util.LoggerFromCtx(ctx, dlq.logger)
+
 	if msg == nil {
 		return fmt.Errorf("message is nil")
 	}
@@ -117,7 +120,7 @@ func (dlq *SimpleDeadLetterQueue) RetryDeadLetterMessage(ctx context.Context, ms
 
 	_, _, err := dlq.producer.SendMessage(producerMsg)
 	if err != nil {
-		dlq.logger.Errorf("[dead_letter_queue] retry failed for topic %s: %v", msg.OriginalTopic, err)
+		log.Errorf("[dead_letter_queue] retry failed for topic %s: %v", msg.OriginalTopic, err)
 		return fmt.Errorf("retry send failed: %w", err)
 	}
 
@@ -131,7 +134,7 @@ func (dlq *SimpleDeadLetterQueue) RetryDeadLetterMessage(ctx context.Context, ms
 	}
 	dlq.mu.Unlock()
 
-	dlq.logger.Infof("[dead_letter_queue] successfully retried message from topic: %s", msg.OriginalTopic)
+	log.Infof("[dead_letter_queue] successfully retried message from topic: %s", msg.OriginalTopic)
 	return nil
 }
 

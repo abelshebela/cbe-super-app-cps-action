@@ -28,28 +28,32 @@ func NewportalCardService(storage storage.PortalCardRepository, logger utils.Log
 }
 
 func (s *portalCardService) GetAll(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.Card], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAll", "PortalCard", "GetAll")
 	defer span.End()
 
 	cards, err := s.appService.FindAllWithPagination(ctx, *filterParam)
 	if err != nil {
-		s.logger.Errorf("[GetAll] failed to fetch portal cards: %v", err)
+		log.Errorf("[GetAll] failed to fetch portal cards: %v", err)
 		span.AddEvent("Failed to fetch portal cards", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
 		return nil, err
 	}
-	s.logger.Infof("[GetAll] retrieved %d portal cards", len(cards.Data))
+	log.Infof("[GetAll] retrieved %d portal cards", len(cards.Data))
 	return cards, nil
 }
 
 func (s *portalCardService) ValidatePortalCard(ctx context.Context, names []string) (bool, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "ValidatePortalCard", "PortalCard", "ValidatePortalCard")
 	defer span.End()
 
 	card, err := s.appService.ValidatePortalCard(ctx, names)
 	if err != nil {
-		s.logger.Errorf("[ValidatePortalCard] failed to validate portal cards: %v", err)
+		log.Errorf("[ValidatePortalCard] failed to validate portal cards: %v", err)
 		span.AddEvent("Failed to validate portal cards", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))

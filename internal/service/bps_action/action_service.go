@@ -38,6 +38,7 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -161,6 +162,7 @@ func (ba *bpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 // AuditorMark records an auditor's mark and advances to the next group or finishes.
 
 func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int, customerBar bool) error {
+	log := local_util.LoggerFromCtx(ctx, ba.logger)
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "AuditorMark", "CPSAction", "AuditorMark")
 	// checkData := lobal_util.ExtractUserFromContext(ctx)
@@ -188,7 +190,7 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 
 	if err != nil || action == nil {
 
-		ba.logger.Errorf("[BpsActionSvc][AuditorMark] action not found: %s", actionCode)
+		log.Errorf("[BpsActionSvc][AuditorMark] action not found: %s", actionCode)
 
 		return errors.New(localization.ErrorActionNotFound.Code)
 
@@ -200,7 +202,7 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	// }
 	err = MarkActionAsAudited(ctx, ba.repo, actionCode, auditorApproval, auditor.AuditorReason, ba.logger)
 	if err != nil {
-		ba.logger.Errorf("[BPSAction][AuditorMark] failed to updat eh mark")
+		log.Errorf("[BPSAction][AuditorMark] failed to updat eh mark")
 		return err
 	}
 
@@ -209,6 +211,7 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 }
 
 func (ba *bpsActionService) ApproveBPSAction(ctx context.Context, action *bps_model.BPSAction) error {
+	log := local_util.LoggerFromCtx(ctx, ba.logger)
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "ApproveBPSAction", "BPSAction", "ApproveBPSAction")
 
@@ -234,12 +237,12 @@ func (ba *bpsActionService) ApproveBPSAction(ctx context.Context, action *bps_mo
 
 	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, RoleCode: rawRoleID, UserData: userData}
 
-	ba.logger.Infof("[BPSAction][ApproveBPSAction] payload: %+v", payload)
+	log.Infof("[BPSAction][ApproveBPSAction] payload: %+v", payload)
 	if err := producer.PublishMessage(ctx, payload, "bps.approve", constants.BPSApproveTopic, "BPS_APPROVE"); err != nil {
 
 		span.AddEvent("failed to publish bps approve", trace.WithAttributes(attribute.String("error", err.Error())))
 
-		ba.logger.Errorf("[BPSAction][ApproveBPSAction] failed to publish bps approve: %v", err)
+		log.Errorf("[BPSAction][ApproveBPSAction] failed to publish bps approve: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 
 	}
@@ -249,6 +252,7 @@ func (ba *bpsActionService) ApproveBPSAction(ctx context.Context, action *bps_mo
 }
 
 func (ba *bpsActionService) RejectBPSAction(ctx context.Context, action_code string, action *bps_model.BPSAction) error {
+	log := local_util.LoggerFromCtx(ctx, ba.logger)
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "RejectCPSAction", "CPSAction", "RejectCPSAction")
 
@@ -258,7 +262,7 @@ func (ba *bpsActionService) RejectBPSAction(ctx context.Context, action_code str
 
 	if producer == nil {
 
-		ba.logger.Errorf("[BPSAction][RejectBPSAction] client orchestration producer is nil")
+		log.Errorf("[BPSAction][RejectBPSAction] client orchestration producer is nil")
 		return errors.New(localization.ErrorUnexpectedError.Code)
 
 	}
@@ -278,12 +282,12 @@ func (ba *bpsActionService) RejectBPSAction(ctx context.Context, action_code str
 	_ = action_code
 
 	payload := bpsActionPublishPayload{ActionCode: action.ActionCode, ActionStatus: action.Status, RoleCode: rawRoleID, UserData: userData, Reason: reason}
-	ba.logger.Infof("[BPSAction][RejectBPSAction] payload: %+v", payload)
+	log.Infof("[BPSAction][RejectBPSAction] payload: %+v", payload)
 	if err := producer.PublishMessage(ctx, payload, "bps.reject", constants.BPSApproveTopic, "BPS_REJECT"); err != nil {
 
 		span.AddEvent("failed to publish bps reject", trace.WithAttributes(attribute.String("error", err.Error())))
 
-		ba.logger.Errorf("[BPSAction][RejectBPSAction] failed to publish bps reject: %v", err)
+		log.Errorf("[BPSAction][RejectBPSAction] failed to publish bps reject: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 
 	}
@@ -373,6 +377,7 @@ func (ba *bpsActionService) GetBPSActions(ctx context.Context, userID, role stri
 }
 
 func (ba *bpsActionService) GetBPSActionByID(ctx context.Context, id, department string) (*bps_model.BPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, ba.logger)
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetCPSActionByID", "CPSAction", "GetCPSActionByID")
 
@@ -384,7 +389,7 @@ func (ba *bpsActionService) GetBPSActionByID(ctx context.Context, id, department
 
 		span.AddEvent("failed to parse the string to bson object", trace.WithAttributes(attribute.String("error", err.Error())))
 
-		ba.logger.Errorf("[BpsActionSvc][GetByID] parse id err")
+		log.Errorf("[BpsActionSvc][GetByID] parse id err")
 
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 
@@ -520,6 +525,8 @@ func (ba *bpsActionService) GetBPSActionByActionCode(ctx context.Context, unique
 // When the action does not target a customer (no UserInformation.UserID) the enrichment
 // fields are returned as nil / empty slices.
 func (ba *bpsActionService) GetBPSActionDetailByActionCode(ctx context.Context, uniqueID, department string) (*bpsActionDto.BPSActionDetailResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, ba.logger)
+
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetBPSActionDetailByActionCode", "BPSAction", "GetBPSActionDetailByActionCode")
 	defer span.End()
 
@@ -551,9 +558,9 @@ func (ba *bpsActionService) GetBPSActionDetailByActionCode(ctx context.Context, 
 	if ba.customerRepo != nil {
 		if detail, derr := ba.customerRepo.FindCustomerDetailByID(ctx, userCode); derr != nil {
 			if derr.Error() == localization.ErrorResourceNotFound.Code {
-				ba.logger.Infof("[BpsActionSvc][Detail] no member detail for user_code %s", userCode)
+				log.Infof("[BpsActionSvc][Detail] no member detail for user_code %s", userCode)
 			} else {
-				ba.logger.Errorf("[BpsActionSvc][Detail] member detail lookup failed for user_code %s: %v", userCode, derr)
+				log.Errorf("[BpsActionSvc][Detail] member detail lookup failed for user_code %s: %v", userCode, derr)
 				span.AddEvent("member detail lookup failed", trace.WithAttributes(attribute.String("error", derr.Error())))
 			}
 		} else if detail != nil {
@@ -572,9 +579,9 @@ func (ba *bpsActionService) GetBPSActionDetailByActionCode(ctx context.Context, 
 		if cif != "" {
 			if unlinked, uerr := ba.archivedLinkedAccountRepo.FindAllByCustomerNumber(ctx, cif); uerr != nil {
 				if uerr.Error() == localization.ErrorResourceNotFound.Code {
-					ba.logger.Infof("[BpsActionSvc][Detail] no unlinked accounts for cif %s", cif)
+					log.Infof("[BpsActionSvc][Detail] no unlinked accounts for cif %s", cif)
 				} else {
-					ba.logger.Errorf("[BpsActionSvc][Detail] unlinked accounts lookup failed for cif %s: %v", cif, uerr)
+					log.Errorf("[BpsActionSvc][Detail] unlinked accounts lookup failed for cif %s: %v", cif, uerr)
 					span.AddEvent("unlinked accounts lookup failed", trace.WithAttributes(attribute.String("error", uerr.Error())))
 				}
 			} else if unlinked != nil {
@@ -607,6 +614,8 @@ func (ba *bpsActionService) resolveActionUsers(ctx context.Context, ids []string
 // resolveOneActionUser tries bps_user.GetByUserID, then cps_user.FindByID.
 // Always returns a populated BPSActionUserInfo with at least the ID.
 func (ba *bpsActionService) resolveOneActionUser(ctx context.Context, id string) bpsActionDto.BPSActionUserInfo {
+	log := local_util.LoggerFromCtx(ctx, ba.logger)
+
 	info := bpsActionDto.BPSActionUserInfo{ID: id}
 
 	if ba.bpsUserRepo != nil {
@@ -622,7 +631,7 @@ func (ba *bpsActionService) resolveOneActionUser(ctx context.Context, id string)
 			info.Source = "bps_user"
 			return info
 		} else if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-			ba.logger.Infof("[BpsActionSvc][Detail] bps_user lookup for %s failed: %v", id, err)
+			log.Infof("[BpsActionSvc][Detail] bps_user lookup for %s failed: %v", id, err)
 		}
 	}
 
@@ -637,7 +646,7 @@ func (ba *bpsActionService) resolveOneActionUser(ctx context.Context, id string)
 			info.Source = "cps_user"
 			return info
 		} else if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-			ba.logger.Infof("[BpsActionSvc][Detail] cps_user lookup for %s failed: %v", id, err)
+			log.Infof("[BpsActionSvc][Detail] cps_user lookup for %s failed: %v", id, err)
 		}
 	}
 
@@ -645,6 +654,8 @@ func (ba *bpsActionService) resolveOneActionUser(ctx context.Context, id string)
 }
 
 func (ba *bpsActionService) RollBack(ctx context.Context, action *bps_model.BPSAction) error {
+	log := local_util.LoggerFromCtx(ctx, ba.logger)
+
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "RollBack", "BPSAction", "RollBack")
 	defer span.End()
 
@@ -671,7 +682,7 @@ func (ba *bpsActionService) RollBack(ctx context.Context, action *bps_model.BPSA
 		span.AddEvent("failed to roll back bps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
-	ba.logger.Infof("[BpsActionSvc][RollBack] reverted: %s", action.ActionCode)
+	log.Infof("[BpsActionSvc][RollBack] reverted: %s", action.ActionCode)
 	return nil
 }
 

@@ -37,6 +37,8 @@ func NewHQRepository(client *mongo.Client, cfg *config.VaultConfig, dbName strin
 }
 
 func (h *HQStorage) FindByID(ctx context.Context, id string) (*model.HQ, error) {
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -46,19 +48,21 @@ func (h *HQStorage) FindByID(ctx context.Context, id string) (*model.HQ, error) 
 
 	result, err := h.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		h.logger.Errorf("[FindByID] failed to find HQ: %v", err)
+		log.Errorf("[FindByID] failed to find HQ: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
 func (p *HQStorage) Find(ctx context.Context, projections ...bson.M) (*model.HQ, error) {
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
 	projection := bson.M{}
 	if len(projections) > 0 {
 		projection = projections[0]
 	}
 	result, err := p.dal.FindOne(ctx, bson.M{}, projection)
 	if err != nil {
-		p.logger.Errorf("failed to fetch HQ: %v", err)
+		log.Errorf("failed to fetch HQ: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -66,6 +70,7 @@ func (p *HQStorage) Find(ctx context.Context, projections ...bson.M) (*model.HQ,
 }
 
 func (p *HQStorage) Update(ctx context.Context, field string, value interface{}, now time.Time) error {
+	log := local_util.LoggerFromCtx(ctx, p.logger)
 
 	hqDoc, err := p.Find(ctx)
 	if err != nil {
@@ -84,7 +89,7 @@ func (p *HQStorage) Update(ctx context.Context, field string, value interface{},
 	}
 	_, err = p.dal.UpdateOne(ctx, bson.M{"_id": hqDoc.ID}, updateDoc)
 	if err != nil {
-		p.logger.Errorf("failed to update HQ field %s: %v", field, err)
+		log.Errorf("failed to update HQ field %s: %v", field, err)
 		return local_util.HandleDBError(err)
 	}
 	return nil

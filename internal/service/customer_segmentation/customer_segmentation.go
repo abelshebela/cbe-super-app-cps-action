@@ -41,27 +41,28 @@ func NewCustomerSegmentation(repo storage.CustomerSegmentationRepository, cpsRol
 }
 
 func (s *customerSegmentationService) Create(ctx context.Context, req cust_seg.CreateCustomerSegmentationRequest) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
 	var newData imodel.CustomerSegmentation
 	role, err := s.cpsRoleRepo.FindById(ctx, req.CustomerRole)
 	if err != nil {
 		if err.Error() == localization.ErrorResourceNotFound.Code {
-			s.logger.Errorf("[CustSegSvc][Create] role not found: %s", req.CustomerRole)
+			log.Errorf("[CustSegSvc][Create] role not found: %s", req.CustomerRole)
 			return fmt.Errorf("This role not found")
 		} else {
-			s.logger.Errorf("[CustSegSvc][Create] role fetch err: %s, %v", req.CustomerRole, err)
+			log.Errorf("[CustSegSvc][Create] role fetch err: %s, %v", req.CustomerRole, err)
 			return err
 		}
 	}
 
 	exist, err := s.repo.CheckIfCustomerSubSegmentExists(ctx, role.ID)
 	if err != nil {
-		s.logger.Errorf("[CustSegSvc][Create] sub-segment check err: %s, %v", role.ID, err)
+		log.Errorf("[CustSegSvc][Create] sub-segment check err: %s, %v", role.ID, err)
 		return err
 	}
 	if exist {
-		s.logger.Errorf("[CustSegSvc][Create] sub-segment already exists: %s", role.ID)
+		log.Errorf("[CustSegSvc][Create] sub-segment already exists: %s", role.ID)
 		return fmt.Errorf("Customer segmentation already exists")
 	}
 
@@ -75,53 +76,50 @@ func (s *customerSegmentationService) Create(ctx context.Context, req cust_seg.C
 		newData.SyncSegmentsFromCustomer()
 	}
 
-	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, core.MapCustomerSegmentationToMap(newData, nil), string(constants.RequestCreateCustomerSegmentation), constants.CREATE)
+	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, core.MapCustomerSegmentationToMap(newData), string(constants.RequestCreateCustomerSegmentation), constants.CREATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		s.logger.Errorf("[CustSegSvc][Create] cps action err: %v", err)
+		log.Errorf("[CustSegSvc][Create] cps action err: %v", err)
 		return err
 	}
-	s.logger.Infof("[CustSegSvc][Create] request created")
+	log.Infof("[CustSegSvc][Create] request created")
 
 	return nil
 }
 
 func (s *customerSegmentationService) Update(ctx context.Context, id string, req cust_seg.UpdateCustomerSegmentationRequest) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
 	existing, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		s.logger.Errorf("[CustSegSvc][Update] find err: %v", err)
+		log.Errorf("[CustSegSvc][Update] find err: %v", err)
 		return err
 	}
 
 	updated := *existing
-	if req.Customer != nil {
-		updated.Customer = req.Customer
-		updated.SyncSegmentsFromCustomer()
-	}
-
+	updated.Customer = req.Customer
 	updated.UpdatedAt = time.Now()
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing, nil), core.MapCustomerSegmentationToMap(updated, req.RemovedCustomerSegmentIds), string(constants.RequestUpdateCustomerSegmentation), constants.UPDATE)
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing), core.MapCustomerSegmentationToMap(updated), string(constants.RequestUpdateCustomerSegmentation), constants.UPDATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		s.logger.Errorf("[CustSegSvc][Update] cps action err: %v", err)
+		log.Errorf("[CustSegSvc][Update] cps action err: %v", err)
 		return err
 	}
 
-	s.logger.Infof("[CustSegSvc][Update] request created")
+	log.Infof("[CustSegSvc][Update] request created")
 	return nil
 }
 
-func (s *customerSegmentationService) isSubSegmentsEqual(existing, incoming []imodel.CustSegment) bool {
+func (s *customerSegmentationService) isSubSegmentsEqual(existing, incoming []imodel.CustomerEntry) bool {
 	if len(existing) != len(incoming) {
 		return false
 	}
 
 	for i := range existing {
-		if existing[i].CustGroupName != incoming[i].CustGroupName ||
-			existing[i].CustSegName != incoming[i].CustSegName {
+		if existing[i].Group.CustGroup != incoming[i].Group.CustGroup ||
+			existing[i].Segment.CustSegmentName != incoming[i].Segment.CustSegmentName {
 			return false
 		}
 	}
@@ -138,21 +136,22 @@ func (s *customerSegmentationService) FindById(ctx context.Context, id string) (
 }
 
 func (s *customerSegmentationService) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
 	existing, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		s.logger.Errorf("[CustSegSvc][EnableDisable] find err: %v", err)
+		log.Errorf("[CustSegSvc][EnableDisable] find err: %v", err)
 		return err
 	}
 
 	if existing.IsEnabled && enable {
-		s.logger.Warnf("[CustSegSvc][EnableDisable] already in state id: %s, enabled: %v", id, enable)
+		log.Warnf("[CustSegSvc][EnableDisable] already in state id: %s, enabled: %v", id, enable)
 		return errors.New("database key already enabled")
 	}
 
 	if !existing.IsEnabled && !enable {
-		s.logger.Warnf("[CustSegSvc][EnableDisable] already in state id: %s, disabled: %v", id, enable)
+		log.Warnf("[CustSegSvc][EnableDisable] already in state id: %s, disabled: %v", id, enable)
 		return errors.New("database key already disabled")
 	}
 
@@ -167,10 +166,10 @@ func (s *customerSegmentationService) EnableOrDisable(ctx context.Context, id st
 		action = constants.RequestDisableCustomerSegmentation
 	}
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing, nil), core.MapCustomerSegmentationToMap(updated, nil), string(action), constants.UPDATE)
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing), core.MapCustomerSegmentationToMap(updated), string(action), constants.UPDATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		s.logger.Errorf("[CustSegSvc][EnableDisable] cps action err: %v", err)
+		log.Errorf("[CustSegSvc][EnableDisable] cps action err: %v", err)
 		return err
 	}
 
@@ -178,20 +177,21 @@ func (s *customerSegmentationService) EnableOrDisable(ctx context.Context, id st
 }
 
 func (s *customerSegmentationService) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
 	existing, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		s.logger.Errorf("[CustSegSvc][Delete] find err: %v", err)
+		log.Errorf("[CustSegSvc][Delete] find err: %v", err)
 		return err
 	}
 
 	updated := *existing
 	updated.IsDeleted = true
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing, nil), core.MapCustomerSegmentationToMap(updated, nil), string(constants.RequestDeleteCustomerSegmentation), constants.DELETE)
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing), core.MapCustomerSegmentationToMap(updated), string(constants.RequestDeleteCustomerSegmentation), constants.DELETE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		s.logger.Errorf("[CustSegSvc][Delete] cps action err: %v", err)
+		log.Errorf("[CustSegSvc][Delete] cps action err: %v", err)
 		return err
 	}
 
@@ -199,7 +199,8 @@ func (s *customerSegmentationService) Delete(ctx context.Context, id string) err
 }
 
 func (s *customerSegmentationService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	s.logger.Infof("[CustSegSvc][Authorize] action: %s", action.RequestAction)
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+	log.Infof("[CustSegSvc][Authorize] action: %s", action.RequestAction)
 
 	var (
 		err error
@@ -208,49 +209,47 @@ func (s *customerSegmentationService) Authorize(ctx context.Context, action *mod
 
 	seg, marshal_err := local_util.JsonUnmarshal[imodel.CustomerSegmentation](action.CurrentAction)
 	if marshal_err != nil || seg == nil {
-		s.logger.Errorf("[CustSegSvc][Authorize] unmarshal err: %v", marshal_err)
+		log.Errorf("[CustSegSvc][Authorize] unmarshal err: %v", marshal_err)
 		return nil, marshal_err
 	}
-	seg.SyncSegmentsFromCustomer()
-
 	switch action.RequestAction {
 	case string(constants.RequestCreateCustomerSegmentation):
 		err = s.repo.Create(ctx, seg)
 		if err != nil {
-			s.logger.Errorf("[CustSegSvc][Authorize] create err: %v", err)
+			log.Errorf("[CustSegSvc][Authorize] create err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[CustSegSvc][Authorize] created")
+		log.Infof("[CustSegSvc][Authorize] created")
 	case string(constants.RequestUpdateCustomerSegmentation):
 		err = s.repo.Update(ctx, action.UniqueId, seg)
 		if err != nil {
-			s.logger.Errorf("[CustSegSvc][Authorize] update err: %v", err)
+			log.Errorf("[CustSegSvc][Authorize] update err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[CustSegSvc][Authorize] updated")
+		log.Infof("[CustSegSvc][Authorize] updated")
 	case string(constants.RequestDeleteCustomerSegmentation):
 		err = s.repo.Delete(ctx, action.UniqueId)
 		if err != nil {
-			s.logger.Errorf("[CustSegSvc][Authorize] delete err: %v", err)
+			log.Errorf("[CustSegSvc][Authorize] delete err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[CustSegSvc][Authorize] deleted")
+		log.Infof("[CustSegSvc][Authorize] deleted")
 	case string(constants.RequestEnableCustomerSegmentation):
 		err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
 		if err != nil {
-			s.logger.Errorf("[CustSegSvc][Authorize] enable err: %v", err)
+			log.Errorf("[CustSegSvc][Authorize] enable err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[CustSegSvc][Authorize] enabled")
+		log.Infof("[CustSegSvc][Authorize] enabled")
 	case string(constants.RequestDisableCustomerSegmentation):
 		err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
 		if err != nil {
-			s.logger.Errorf("[CustSegSvc][Authorize] disable err: %v", err)
+			log.Errorf("[CustSegSvc][Authorize] disable err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[CustSegSvc][Authorize] disabled")
+		log.Infof("[CustSegSvc][Authorize] disabled")
 	default:
-		s.logger.Errorf("[CustSegSvc][Authorize] unsupported action: %s", action.RequestAction)
+		log.Errorf("[CustSegSvc][Authorize] unsupported action: %s", action.RequestAction)
 		return nil, errors.New("unsupported action")
 	}
 	return action, nil
