@@ -136,6 +136,8 @@ func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 
 func (ca *cpsActionService) logUserAction(ctx context.Context, action *model.CPSAction, responsibility imodel.UserActionResponsibility, givenStatus string, auditorMark imodel.AuditorMark, checkerLevel, auditorLevel string) {
 	reqLog := local_util.LoggerFromCtx(ctx, ca.logger)
+	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
+
 	userData := local_util.ExtractUserFromContext(ctx)
 	if ca.actionLogRepo == nil {
 		return
@@ -161,6 +163,7 @@ func (ca *cpsActionService) logUserAction(ctx context.Context, action *model.CPS
 		ActionTakenServiceName:     serviceName,
 		CheckerLevel:               checkerLevel,
 		AuditorLevel:               auditorLevel,
+		UserRoleCode:               roleCode,
 		UserID:                     userOID,
 		Username:                   userData.UserName,
 		UserPhone:                  userData.PhoneNumber,

@@ -277,6 +277,12 @@ var cpsActionRegistry = map[string]string{
 	"PATCH customer-segmentations":  "CUSTOMERSEGMENTATIONS",
 	"DELETE customer-segmentations": "CUSTOMERSEGMENTATIONS",
 
+	// Customer Group
+	"POST customer-groups":   "CUSTOMERSEGMENTATIONS",
+	"GET customer-groups":    "CUSTOMERSEGMENTATIONS",
+	"PATCH customer-groups":  "CUSTOMERSEGMENTATIONS",
+	"DELETE customer-groups": "CUSTOMERSEGMENTATIONS",
+
 	// CPS Roles
 	"POST cps-roles":  "CPSROLE",
 	"PATCH cps-roles": "CPSROLE",
