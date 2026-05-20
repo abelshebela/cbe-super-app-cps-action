@@ -513,19 +513,9 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 	if len(coreRes) > 0 {
 		res.PersonalInfo.DateOfBirth = coreRes[0].BirthOfDate
 		res.PersonalInfo.MaritalStatus = coreRes[0].Email
-		res.PersonalInfo.Branch = coreRes[0].Branch
-		res.PersonalInfo.BranchName = coreRes[0].BranchName
 		res.PersonalInfo.Gender = coreRes[0].Gender
 		res.PersonalInfo.Email = coreRes[0].Email
-		res.PersonalInfo.Industry = coreRes[0].Industry
-		res.PersonalInfo.Ownership = coreRes[0].Ownership
 		res.PersonalInfo.PhoneNumber = coreRes[0].PhoneNo
-		res.PersonalInfo.Restriction = coreRes[0].Restriction
-		res.PersonalInfo.RestrictionType = coreRes[0].RestrictionType
-		res.PersonalInfo.Sector = coreRes[0].Sector
-		res.PersonalInfo.Target = coreRes[0].Target
-		res.PersonalInfo.CustomerSegment = coreRes[0].CustomerSegment
-		res.PersonalInfo.CustomerCategory = coreRes[0].Category
 	}
 
 	if len(res.LinkedAccount) != 0 {
