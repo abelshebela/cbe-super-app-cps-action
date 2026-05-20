@@ -88,7 +88,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return err
 	}
 
-	if err := core.CheckServiceIDInWalletService(ctx, req.SelfServiceID, req.OtherServiceID, req.AgentServiceID, s.repo, s.logger); err != nil {
+	if err := core.CheckServiceIDInWalletService(ctx, req.SelfServiceID, req.OtherServiceID, req.AgentServiceID, s.repo, nil, s.logger); err != nil {
 		return err
 	}
 
@@ -171,7 +171,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 		return err
 	}
 
-	if err := core.CheckServiceIDInWalletService(ctx, req.SelfServiceID, req.OtherServiceID, req.AgentServiceID, s.repo, s.logger); err != nil {
+	if err := core.CheckServiceIDInWalletService(ctx, req.SelfServiceID, req.OtherServiceID, req.AgentServiceID, s.repo, prevWallet, s.logger); err != nil {
 		return err
 	}
 
