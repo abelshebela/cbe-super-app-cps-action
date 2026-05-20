@@ -268,6 +268,252 @@ func (r *customerStorage) findOrCreateSegmentationTx(ctx context.Context, tx *sq
 	return strings.ToLower(newID), nil
 }
 
+func requireEntityHex(id, entity string) (string, error) {
+	hex, ok := normalizeRawHex32(id)
+	if !ok {
+		return "", fmt.Errorf("invalid %s id", entity)
+	}
+	return hex, nil
+}
+
+func (r *customerStorage) updateCustomerGroupTx(ctx context.Context, tx *sql.Tx, block imodel.CustGroupBlock, now time.Time) error {
+	groupHex, err := requireEntityHex(block.ID, "customer group")
+	if err != nil {
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+	const updateQ = `
+UPDATE CUSTOMER_GROUPS
+SET NAME = UPPER(TRIM(:1)), LABELS = :2, LAST_MODIFIED_AT = :3
+WHERE ID = HEXTORAW(:4) AND IS_DELETED = 0`
+	res, err := tx.ExecContext(ctx, updateQ, block.CustGroup, strings.TrimSpace(block.CustGroupLabel), now, groupHex)
+	if err != nil {
+		r.logger.Errorf("[CustomerSegmentation][updateCustomerGroupTx] update failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return errors.New(localization.ErrorResourceNotFound.Code)
+	}
+	return nil
+}
+
+func (r *customerStorage) softDeleteCustomerGroupTx(ctx context.Context, tx *sql.Tx, id string) error {
+	groupHex, err := requireEntityHex(id, "customer group")
+	if err != nil {
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+	const q = `
+UPDATE CUSTOMER_GROUPS
+SET IS_DELETED = 1, DELETED_AT = SYSTIMESTAMP, LAST_MODIFIED_AT = SYSTIMESTAMP
+WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
+	res, err := tx.ExecContext(ctx, q, groupHex)
+	if err != nil {
+		r.logger.Errorf("[CustomerSegmentation][softDeleteCustomerGroupTx] failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return errors.New(localization.ErrorResourceNotFound.Code)
+	}
+	return nil
+}
+
+func (r *customerStorage) updateSegmentationFullTx(ctx context.Context, tx *sql.Tx, block imodel.CustSegmentBlock, now time.Time) error {
+	segHex, err := requireEntityHex(block.ID, "customer segment")
+	if err != nil {
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+	const updateQ = `
+UPDATE CUSTOMER_SEGMENTATIONS
+SET NAME = UPPER(TRIM(:1)), LABELS = :2, LAST_MODIFIED_AT = :3
+WHERE ID = HEXTORAW(:4) AND IS_DELETED = 0`
+	res, err := tx.ExecContext(ctx, updateQ, block.CustSegmentName, strings.TrimSpace(block.CustSegmentLabel), now, segHex)
+	if err != nil {
+		r.logger.Errorf("[CustomerSegmentation][updateSegmentationFullTx] update failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return errors.New(localization.ErrorResourceNotFound.Code)
+	}
+	return nil
+}
+
+func (r *customerStorage) softDeleteSegmentationTx(ctx context.Context, tx *sql.Tx, id string) error {
+	segHex, err := requireEntityHex(id, "customer segment")
+	if err != nil {
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+	const q = `
+UPDATE CUSTOMER_SEGMENTATIONS
+SET IS_DELETED = 1, DELETED_AT = SYSTIMESTAMP, LAST_MODIFIED_AT = SYSTIMESTAMP
+WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
+	res, err := tx.ExecContext(ctx, q, segHex)
+	if err != nil {
+		r.logger.Errorf("[CustomerSegmentation][softDeleteSegmentationTx] failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return errors.New(localization.ErrorResourceNotFound.Code)
+	}
+	return nil
+}
+
+func (r *customerStorage) updateSubSegmentTx(ctx context.Context, tx *sql.Tx, block imodel.CustSubSegmentBlock, now time.Time) error {
+	subHex, err := requireEntityHex(block.ID, "customer sub segment")
+	if err != nil {
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+	const updateQ = `
+UPDATE CUSTOMER_SUB_SEGMENTS
+SET NAME = UPPER(TRIM(:1)), LABELS = :2, LAST_MODIFIED_AT = :3
+WHERE ID = HEXTORAW(:4) AND IS_DELETED = 0`
+	res, err := tx.ExecContext(ctx, updateQ, block.CustSubSegmentName, strings.TrimSpace(block.CustSubSegmentLabel), now, subHex)
+	if err != nil {
+		r.logger.Errorf("[CustomerSegmentation][updateSubSegmentTx] update failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return errors.New(localization.ErrorResourceNotFound.Code)
+	}
+	return nil
+}
+
+func (r *customerStorage) softDeleteSubSegmentTx(ctx context.Context, tx *sql.Tx, id, roleIDHex string) error {
+	subHex, err := requireEntityHex(id, "customer sub segment")
+	if err != nil {
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+	const q = `
+UPDATE CUSTOMER_SUB_SEGMENTS
+SET IS_DELETED = 1, DELETED_AT = SYSTIMESTAMP, LAST_MODIFIED_AT = SYSTIMESTAMP
+WHERE ID = HEXTORAW(:1)
+  AND SUPERAPP_ROLE_ID = HEXTORAW(:2)
+  AND IS_DELETED = 0`
+	res, err := tx.ExecContext(ctx, q, subHex, roleIDHex)
+	if err != nil {
+		r.logger.Errorf("[CustomerSegmentation][softDeleteSubSegmentTx] failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return errors.New(localization.ErrorResourceNotFound.Code)
+	}
+	return nil
+}
+
+func (r *customerStorage) insertSubSegmentTx(ctx context.Context, tx *sql.Tx, roleIDHex, segHex string, block imodel.CustSubSegmentBlock, now time.Time, isEnabled bool) error {
+	const insertSubQ = `
+INSERT INTO CUSTOMER_SUB_SEGMENTS (
+  NAME,
+  LABELS,
+  CUSTOMER_SEGMENTATION_ID,
+  SUPERAPP_ROLE_ID,
+  IS_ENABLED,
+  IS_DELETED,
+  CREATED_AT,
+  LAST_MODIFIED_AT
+)
+VALUES (
+  UPPER(TRIM(:1)),
+  :2,
+  HEXTORAW(:3),
+  HEXTORAW(:4),
+  :5,
+  0,
+  :6,
+  :7
+)`
+	if _, err := tx.ExecContext(ctx, insertSubQ,
+		block.CustSubSegmentName,
+		strings.TrimSpace(block.CustSubSegmentLabel),
+		segHex,
+		roleIDHex,
+		boolToOracleNumber(isEnabled),
+		now,
+		now,
+	); err != nil {
+		r.logger.Errorf("[CustomerSegmentation][insertSubSegmentTx] insert failed: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	return nil
+}
+
+func (r *customerStorage) applyCustomerEntryUpdate(ctx context.Context, tx *sql.Tx, roleIDHex string, entry imodel.CustomerEntry, now time.Time, isEnabled bool) error {
+	groupStatus := imodel.NormalizeCustomerSegmentChangeStatus(entry.Group.Status)
+	segmentStatus := imodel.NormalizeCustomerSegmentChangeStatus(entry.Segment.Status)
+	subStatus := imodel.NormalizeCustomerSegmentChangeStatus(entry.SubSegment.Status)
+
+	// Delete only group/segment/sub_segment rows — never SUPERAPP_ROLES (customer_role).
+	// Sub-segment is the role-specific link; when it is deleted, remove that customer entry only.
+	if subStatus == imodel.CustomerSegmentStatusDeleted {
+		return r.softDeleteSubSegmentTx(ctx, tx, entry.SubSegment.ID, roleIDHex)
+	}
+	if segmentStatus == imodel.CustomerSegmentStatusDeleted {
+		return r.softDeleteSegmentationTx(ctx, tx, entry.Segment.ID)
+	}
+	if groupStatus == imodel.CustomerSegmentStatusDeleted {
+		return r.softDeleteCustomerGroupTx(ctx, tx, entry.Group.ID)
+	}
+
+	var groupHex string
+	var err error
+
+	switch groupStatus {
+	case imodel.CustomerSegmentStatusUnchanged:
+		groupHex, err = requireEntityHex(entry.Group.ID, "customer group")
+		if err != nil {
+			return errors.New(localization.ErrorInvalidID.Code)
+		}
+	case imodel.CustomerSegmentStatusUpdated:
+		if err := r.updateCustomerGroupTx(ctx, tx, entry.Group, now); err != nil {
+			return err
+		}
+		groupHex, err = requireEntityHex(entry.Group.ID, "customer group")
+		if err != nil {
+			return errors.New(localization.ErrorInvalidID.Code)
+		}
+	default:
+		groupHex, err = r.findOrCreateCustomerGroupTx(ctx, tx, entry.Group.CustGroup, entry.Group.CustGroupLabel, now, isEnabled)
+		if err != nil {
+			return err
+		}
+	}
+
+	var segHex string
+	switch segmentStatus {
+	case imodel.CustomerSegmentStatusUnchanged:
+		segHex, err = requireEntityHex(entry.Segment.ID, "customer segment")
+		if err != nil {
+			return errors.New(localization.ErrorInvalidID.Code)
+		}
+	case imodel.CustomerSegmentStatusUpdated:
+		if err := r.updateSegmentationFullTx(ctx, tx, entry.Segment, now); err != nil {
+			return err
+		}
+		segHex, err = requireEntityHex(entry.Segment.ID, "customer segment")
+		if err != nil {
+			return errors.New(localization.ErrorInvalidID.Code)
+		}
+	default:
+		segHex, err = r.findOrCreateSegmentationTx(ctx, tx, groupHex, entry.Segment.CustSegmentName, entry.Segment.CustSegmentLabel, now, isEnabled)
+		if err != nil {
+			return err
+		}
+	}
+
+	switch subStatus {
+	case imodel.CustomerSegmentStatusUnchanged:
+		return nil
+	case imodel.CustomerSegmentStatusUpdated:
+		return r.updateSubSegmentTx(ctx, tx, entry.SubSegment, now)
+	default:
+		return r.insertSubSegmentTx(ctx, tx, roleIDHex, segHex, entry.SubSegment, now, isEnabled)
+	}
+}
+
 func (r *customerStorage) resolveSuperAppRoleIDTx(ctx context.Context, tx *sql.Tx, idHex string) (string, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
@@ -362,8 +608,8 @@ func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmen
 		log.Warnf("[CustomerSegmentation][Create] segmentation is nil")
 		return errors.New(localization.ErrorNoDataProvided.Code)
 	}
-	if len(seg.CustomerSegments) == 0 {
-		log.Warnf("[CustomerSegmentation][Create] segmentation has no CustomerSegments")
+	if len(seg.Customer) == 0 {
+		r.logger.Warnf("[CustomerSegmentation][Create] segmentation has no CustomerEntries")
 		return errors.New(localization.ErrorNoDataProvided.Code)
 	}
 
@@ -419,22 +665,22 @@ VALUES (
   :7
 )`
 
-	for i, sub := range seg.CustomerSegments {
-		log.Debugf("[CustomerSegmentation][Create] Processing CustomerSegment[%d]: %+v", i, sub)
-		groupHex, err := r.findOrCreateCustomerGroupTx(ctx, tx, sub.CustGroupName, sub.CustGroupLabel, now, seg.IsEnabled)
+	for i, sub := range seg.Customer {
+		r.logger.Debugf("[CustomerSegmentation][Create] Processing CustomerEntry[%d]: %+v", i, sub)
+		groupHex, err := r.findOrCreateCustomerGroupTx(ctx, tx, sub.Group.CustGroup, sub.Group.CustGroupLabel, now, seg.IsEnabled)
 		if err != nil {
-			log.Errorf("[CustomerSegmentation][Create] findOrCreateCustomerGroupTx failed for CustGroupName='%s': %v", sub.CustGroupName, err)
+			r.logger.Errorf("[CustomerSegmentation][Create] findOrCreateCustomerGroupTx failed for CustGroupName='%s': %v", sub.Group.CustGroup, err)
 			return err
 		}
-		segHex, err := r.findOrCreateSegmentationTx(ctx, tx, groupHex, sub.CustSegName, sub.CustSegLabel, now, seg.IsEnabled)
+		segHex, err := r.findOrCreateSegmentationTx(ctx, tx, groupHex, sub.Segment.CustSegmentName, sub.Segment.CustSegmentLabel, now, seg.IsEnabled)
 		if err != nil {
-			log.Errorf("[CustomerSegmentation][Create] findOrCreateSegmentationTx failed for CustSegName='%s': %v", sub.CustSegName, err)
+			r.logger.Errorf("[CustomerSegmentation][Create] findOrCreateSegmentationTx failed for CustSegName='%s': %v", sub.Segment.CustSegmentName, err)
 			return err
 		}
-		log.Debugf("[CustomerSegmentation][Create] Inserting sub segment: CustSubSegName='%s', segHex='%s', roleIDHex='%s'", sub.CustSubSegName, segHex, roleIDHex)
+		r.logger.Debugf("[CustomerSegmentation][Create] Inserting sub segment: CustSubSegName='%s', segHex='%s', roleIDHex='%s'", sub.SubSegment.CustSubSegmentName, segHex, roleIDHex)
 		if _, err := tx.ExecContext(ctx, insertSubQ,
-			sub.CustSubSegName,
-			strings.TrimSpace(sub.CustSubSegLabel),
+			sub.SubSegment.CustSubSegmentName,
+			strings.TrimSpace(sub.SubSegment.CustSubSegmentLabel),
 			segHex,
 			roleIDHex,
 			boolToOracleNumber(seg.IsEnabled),
@@ -501,70 +747,11 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND IS_ENABLED = 1`
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
-	const deleteSubQ = `DELETE FROM CUSTOMER_SUB_SEGMENTS WHERE SUPERAPP_ROLE_ID = HEXTORAW(:1)`
-	if _, err := tx.ExecContext(ctx, deleteSubQ, roleIDHex); err != nil {
-		log.Errorf("[CustomerSegmentation][Update] delete sub segments failed: %v", err)
-		return local_util.HandleDBError(err)
-	}
-
-	if len(seg.CustomerSegments) == 0 {
-		if err := tx.Commit(); err != nil {
-			log.Errorf("[CustomerSegmentation][Update] commit failed: %v", err)
-			return errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		_ = r.kafkaProducer.PublishMessage(
-			ctx,
-			seg,
-			string(constants.ClientOrchestrationServicesTopic),
-			string(constants.CustomerSegmentationUpdatedTopic),
-			"customer segmentation updated",
-		)
-		return nil
-	}
-
 	now := time.Now()
-	const insertSubQ = `
-INSERT INTO CUSTOMER_SUB_SEGMENTS (
-  NAME,
-  LABELS,
-  CUSTOMER_SEGMENTATION_ID,
-  SUPERAPP_ROLE_ID,
-  IS_ENABLED,
-  IS_DELETED,
-  CREATED_AT,
-  LAST_MODIFIED_AT
-)
-VALUES (
-  UPPER(TRIM(:1)),
-  :2,
-  HEXTORAW(:3),
-  HEXTORAW(:4),
-  :5,
-  0,
-  :6,
-  :7
-)`
-
-	for _, sub := range seg.CustomerSegments {
-		groupHex, err := r.findOrCreateCustomerGroupTx(ctx, tx, sub.CustGroupName, sub.CustGroupLabel, now, seg.IsEnabled)
-		if err != nil {
+	for _, entry := range seg.Customer {
+		if err := r.applyCustomerEntryUpdate(ctx, tx, roleIDHex, entry, now, seg.IsEnabled); err != nil {
+			r.logger.Errorf("[CustomerSegmentation][Update] apply entry failed: %v", err)
 			return err
-		}
-		segHex, err := r.findOrCreateSegmentationTx(ctx, tx, groupHex, sub.CustSegName, sub.CustSegLabel, now, seg.IsEnabled)
-		if err != nil {
-			return err
-		}
-		if _, err := tx.ExecContext(ctx, insertSubQ,
-			sub.CustSubSegName,
-			strings.TrimSpace(sub.CustSubSegLabel),
-			segHex,
-			roleIDHex,
-			boolToOracleNumber(seg.IsEnabled),
-			now,
-			now,
-		); err != nil {
-			log.Errorf("[CustomerSegmentation][Update] insert sub segment failed: %v", err)
-			return local_util.HandleDBError(err)
 		}
 	}
 
@@ -727,8 +914,10 @@ GROUP BY sar.ID, sar.NAME, sar.LABELS, sar.IS_ENABLED, sar.IS_DELETED`
 	const rowsQ = `
 SELECT
   RAWTOHEX(css.ID),
+  RAWTOHEX(cg.ID),
   cg.NAME,
   NVL(cg.LABELS, ''),
+  RAWTOHEX(cs.ID),
   cs.NAME,
   NVL(cs.LABELS, ''),
   css.NAME,
@@ -750,23 +939,31 @@ ORDER BY css.CREATED_AT, css.ID`
 	defer detailRows.Close()
 
 	for detailRows.Next() {
-		var cssId, gName, gLabel, sName, sLabel, subName, subLabel sql.NullString
-		if err := detailRows.Scan(&cssId, &gName, &gLabel, &sName, &sLabel, &subName, &subLabel); err != nil {
-			log.Errorf("[CustomerSegmentation][fillAggregateBySuperAppRoleID] detail scan failed: %v", err)
+		var cssId, gID, gName, gLabel, sID, sName, sLabel, subName, subLabel sql.NullString
+		if err := detailRows.Scan(&cssId, &gID, &gName, &gLabel, &sID, &sName, &sLabel, &subName, &subLabel); err != nil {
+			r.logger.Errorf("[CustomerSegmentation][fillAggregateBySuperAppRoleID] detail scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
-		seg.CustomerSegments = append(seg.CustomerSegments, imodel.CustSegment{
-			Id:              cssId.String,
-			CustGroupName:   gName.String,
-			CustGroupLabel:  gLabel.String,
-			CustSegName:     sName.String,
-			CustSegLabel:    sLabel.String,
-			CustSubSegName:  subName.String,
-			CustSubSegLabel: subLabel.String,
+		seg.Customer = append(seg.Customer, imodel.CustomerEntry{
+			Group: imodel.CustGroupBlock{
+				ID:             gID.String,
+				CustGroup:      gName.String,
+				CustGroupLabel: gLabel.String,
+			},
+			Segment: imodel.CustSegmentBlock{
+				ID:               sID.String,
+				CustSegmentName:  sName.String,
+				CustSegmentLabel: sLabel.String,
+			},
+			SubSegment: imodel.CustSubSegmentBlock{
+				ID:                  cssId.String,
+				CustSubSegmentName:  subName.String,
+				CustSubSegmentLabel: subLabel.String,
+			},
 		})
 	}
 
-	if len(seg.CustomerSegments) == 0 {
+	if len(seg.Customer) == 0 {
 		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
@@ -775,13 +972,6 @@ ORDER BY css.CREATED_AT, css.ID`
 }
 
 func (r *customerStorage) FindByID(ctx context.Context, id string) (*imodel.CustomerSegmentation, error) {
-	log := local_util.LoggerFromCtx(ctx, r.logger)
-
-	// idHex, ok := normalizeRawHex32(id)
-	// if !ok {
-	// 	return nil, errors.New(localization.ErrorInvalidID.Code)
-	// }
-
 	const roleFromSegQ = `
 SELECT RAWTOHEX(css.SUPERAPP_ROLE_ID)
 FROM CUSTOMER_SUB_SEGMENTS css
@@ -948,6 +1138,7 @@ SELECT
   cs.NAME AS SEGMENT_NAME,
   NVL(cs.LABELS, '') AS SEGMENT_LABEL,
 
+  RAWTOHEX(cg.ID) AS GROUP_ID,
   cg.NAME AS GROUP_NAME,
   NVL(cg.LABELS, '') AS GROUP_LABEL,
 
@@ -988,10 +1179,10 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
 			enabledN, deletedN                      int
 			createdAt, updatedAt, deletedAt         sql.NullTime
 
-			segID, segName, segLabel string
-			groupName, groupLabel    string
-			subSegID, subSegName     string
-			subSegLabel              string
+			segID, segName, segLabel       string
+			groupID, groupName, groupLabel string
+			subSegID, subSegName           string
+			subSegLabel                    string
 		)
 
 		if err := rows.Scan(
@@ -1008,6 +1199,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
 			&segID,
 			&segName,
 			&segLabel,
+			&groupID,
 			&groupName,
 			&groupLabel,
 			&subSegID,
@@ -1028,9 +1220,9 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
 					Name:  roleName,
 					Label: roleLabel,
 				},
-				CustomerSegments: make([]imodel.CustSegment, 0),
-				IsEnabled:        enabledN == 1,
-				IsDeleted:        deletedN == 1,
+				Customer:  make([]imodel.CustomerEntry, 0),
+				IsEnabled: enabledN == 1,
+				IsDeleted: deletedN == 1,
 			}
 
 			if createdAt.Valid {
@@ -1047,14 +1239,22 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
 		// ----------------------------
 		// APPEND MULTIPLE SEGMENTS
 		// ----------------------------
-		role.CustomerSegments = append(role.CustomerSegments, imodel.CustSegment{
-			Id:              subSegID,
-			CustGroupName:   groupName,
-			CustGroupLabel:  groupLabel,
-			CustSegName:     segName,
-			CustSegLabel:    segLabel,
-			CustSubSegName:  subSegName,
-			CustSubSegLabel: subSegLabel,
+		role.Customer = append(role.Customer, imodel.CustomerEntry{
+			Group: imodel.CustGroupBlock{
+				ID:             groupID,
+				CustGroup:      groupName,
+				CustGroupLabel: groupLabel,
+			},
+			Segment: imodel.CustSegmentBlock{
+				ID:               segID,
+				CustSegmentName:  segName,
+				CustSegmentLabel: segLabel,
+			},
+			SubSegment: imodel.CustSubSegmentBlock{
+				ID:                  subSegID,
+				CustSubSegmentName:  subSegName,
+				CustSubSegmentLabel: subSegLabel,
+			},
 		})
 	}
 
