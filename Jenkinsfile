@@ -1,7 +1,7 @@
 pipeline {
     agent {
         node {
-            label 'kr-jenkins-slave-1'
+            label 'aa-jenkins-slave-1'
         }
 
     }
