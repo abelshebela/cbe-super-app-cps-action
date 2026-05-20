@@ -68,13 +68,10 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	log.Infof("[CPSAction][FindAllWithPagination] fetching CPS actions with pagination for department: %s", department)
-	filter := bson.M{
-		"is_deleted": false,
-		"department": department,
-	}
+
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"unique_id", "action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "created_at"}
+	allowedKeys := []string{"unique_id", "action_status", "action_code", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_id", "created_at"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -93,6 +90,14 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 	}
 
 	filter, _, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+	// Always enforce base constraints — FilterBuilder returns a fresh bson.M
+	// and does not carry over is_deleted or department.
+	filter["is_deleted"] = false
+	filter["department"] = department
+
+	applyActionStatusFilter(filterParam.Filters, filter)
+
 	Filter := dal.FilterOp{
 		Filter:     filter,
 		Limit:      limit,
@@ -1026,6 +1031,36 @@ func (r *CPSActionStorage) ActionByDateRange(ctx context.Context, filterParam ty
 	// 8. Return standard paginated response
 	return results, nil
 }
+
+// applyActionStatusFilter converts action_status to a $in query when the caller
+// supplies a slice, leaving single-string values handled by FilterBuilder as-is.
+func applyActionStatusFilter(filters map[string]interface{}, filter bson.M) {
+	raw, ok := filters["action_status"]
+	if !ok {
+		return
+	}
+	switch v := raw.(type) {
+	case string:
+		if v != "" {
+			filter["action_status"] = bson.M{"$in": []string{v}}
+		}
+	case []string:
+		if len(v) > 0 {
+			filter["action_status"] = bson.M{"$in": v}
+		}
+	case []interface{}:
+		statuses := make([]string, 0, len(v))
+		for _, item := range v {
+			if s, ok := item.(string); ok && s != "" {
+				statuses = append(statuses, s)
+			}
+		}
+		if len(statuses) > 0 {
+			filter["action_status"] = bson.M{"$in": statuses}
+		}
+	}
+}
+
 func buildCPSActionDateRangeFilter(startDate, endDate time.Time) bson.M {
 	rangeFilter := bson.M{
 		"$gte": startDate,

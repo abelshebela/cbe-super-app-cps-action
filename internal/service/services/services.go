@@ -196,7 +196,8 @@ func (s *servicesService) DeleteServices(ctx context.Context, id string) error {
 		}
 	}
 
-	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteService, nil, prev, constants.ActionDelete)
+	deleted := core.BuildServiceDeleteSnapshot(*prev)
+	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteService, deleted, prev, constants.ActionDelete)
 }
 
 func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error) {
@@ -305,8 +306,9 @@ func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error
 		return errors.New("There is an active geographical_location with this access list")
 	}
 
-	log.Infof("[servicesService][DeleteServiceKey] Deleting service key with id=%s, found service list: %+v", id, prev)
-	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, nil, prev, constants.ActionDelete)
+	s.logger.Infof("[servicesService][DeleteServiceKey] Deleting service key with id=%s, found service list: %+v", id, prev)
+	deleted := core.BuildServiceKeyDeleteSnapshot(*prev)
+	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDeleteServiceList, deleted, prev, constants.ActionDelete)
 }
 
 func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string) (*model.AccountDetail, error) {
@@ -347,63 +349,63 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	log.Infof("[servicesService][Authorize] Authorize called for action: %+v", action)
 
-	serviceDoc, err := local_util.JsonUnmarshal[imodel.Service](action.CurrentAction)
-	if err != nil {
-		return nil, localization.ErrorInvalidActionData
-	}
+	var err error
 
 	switch action.RequestAction {
-	case string(constants.RequestCreateService):
-		log.Infof("[servicesService][Authorize] Authorizing create service with data: %+v", serviceDoc)
-
-		return nil, s.repo.Create(ctx, serviceDoc.ProductGlAccount, serviceDoc)
-	case string(constants.RequestUpdateService):
-		log.Infof("[servicesService][Authorize] Authorizing update service with data: %+v", serviceDoc)
-		return nil, s.repo.Update(ctx, action.UniqueId, serviceDoc, serviceDoc.ProductGlAccount)
-	case string(constants.RequestEnableService):
-		// err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
-		return nil, s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, true)
-	case string(constants.RequestDisableService):
-		// err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
-		return nil, s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, false)
 	case string(constants.RequestDeleteService):
-		return nil, s.repo.Delete(ctx, action.UniqueId, "")
-	case string(constants.RequestCreateServiceList):
-		listDoc, err := local_util.JsonUnmarshal[imodel.ServiceKey](action.CurrentAction)
-		if err != nil {
-			return nil, localization.ErrorInvalidActionData
-		}
-
-		return nil, s.repo.CreateServiceKey(ctx, listDoc)
-	case string(constants.RequestUpdateServiceList):
-		listDoc, err := local_util.JsonUnmarshal[imodel.ServiceKey](action.CurrentAction)
-		if err != nil {
-			return nil, localization.ErrorInvalidActionData
-		}
-		prevListDoc, err := local_util.JsonUnmarshal[imodel.ServiceKey](action.PreviousAction)
-		if err != nil {
-			return nil, localization.ErrorInvalidActionData
-		}
-
-		return nil, s.repo.UpdateServiceKey(ctx, action.UniqueId, prevListDoc.ServiceKey, listDoc)
+		err = s.repo.Delete(ctx, action.UniqueId, "")
 	case string(constants.RequestDeleteServiceList):
-		return nil, s.repo.Delete(ctx, "", action.UniqueId)
-	// case string(constants.RequestDeleteServiceKey):
-	// 	return nil, s.repo.DeleteServiceKey(ctx, action.UniqueId)
+		err = s.repo.Delete(ctx, "", action.UniqueId)
+	case string(constants.RequestCreateService):
+		serviceDoc, unmarshalErr := local_util.JsonUnmarshal[imodel.Service](action.CurrentAction)
+		if unmarshalErr != nil {
+			return nil, localization.ErrorInvalidActionData
+		}
+		s.logger.Infof("[servicesService][Authorize] Authorizing create service with data: %+v", serviceDoc)
+		err = s.repo.Create(ctx, serviceDoc.ProductGlAccount, serviceDoc)
+		if err == nil {
+			action.CurrentAction = serviceDoc
+		}
+	case string(constants.RequestUpdateService):
+		serviceDoc, unmarshalErr := local_util.JsonUnmarshal[imodel.Service](action.CurrentAction)
+		if unmarshalErr != nil {
+			return nil, localization.ErrorInvalidActionData
+		}
+		s.logger.Infof("[servicesService][Authorize] Authorizing update service with data: %+v", serviceDoc)
+		err = s.repo.Update(ctx, action.UniqueId, serviceDoc, serviceDoc.ProductGlAccount)
+		if err == nil {
+			action.CurrentAction = serviceDoc
+		}
+	case string(constants.RequestEnableService):
+		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, true)
+	case string(constants.RequestDisableService):
+		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, false)
+	case string(constants.RequestCreateServiceList):
+		listDoc, unmarshalErr := local_util.JsonUnmarshal[imodel.ServiceKey](action.CurrentAction)
+		if unmarshalErr != nil {
+			return nil, localization.ErrorInvalidActionData
+		}
+		err = s.repo.CreateServiceKey(ctx, listDoc)
+		if err == nil {
+			action.CurrentAction = listDoc
+		}
+	case string(constants.RequestUpdateServiceList):
+		listDoc, unmarshalErr := local_util.JsonUnmarshal[imodel.ServiceKey](action.CurrentAction)
+		if unmarshalErr != nil {
+			return nil, localization.ErrorInvalidActionData
+		}
+		prevListDoc, prevErr := local_util.JsonUnmarshal[imodel.ServiceKey](action.PreviousAction)
+		if prevErr != nil {
+			return nil, localization.ErrorInvalidActionData
+		}
+		err = s.repo.UpdateServiceKey(ctx, action.UniqueId, prevListDoc.ServiceKey, listDoc)
+		if err == nil {
+			action.CurrentAction = listDoc
+		}
 	case string(constants.RequestEnableServiceList):
-		// listDoc, err := local_util.JsonUnmarshal[model.ServiceKey](action.PreviousAction)
-		// if err != nil {
-		// 	return nil, localization.ErrorInvalidActionData
-		// }
 		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, true)
 	case string(constants.RequestDisableServiceList):
-		// listDoc, err := local_util.JsonUnmarshal[model.ServiceKey](action.PreviousAction)
-		// if err != nil {
-		// 	return nil, localization.ErrorInvalidActionData
-		// }
-
 		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, false)
-
 	default:
 		return nil, localization.ErrorInvalidRequest
 	}
@@ -413,6 +415,5 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 		return nil, err
 	}
 
-	action.CurrentAction = serviceDoc
 	return action, nil
 }
