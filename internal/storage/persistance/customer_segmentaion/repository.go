@@ -992,7 +992,7 @@ FETCH FIRST 1 ROWS ONLY`
 		return r.fillAggregateBySuperAppRoleID(ctx, rh, id)
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
-		log.Errorf("[CustomerSegmentation][FindByID] role-from-seg query failed: %v", err)
+		r.logger.Errorf("[CustomerSegmentation][FindByID] role-from-seg query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -1005,7 +1005,7 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND IS_ENABLED = 1`
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
-		log.Errorf("[CustomerSegmentation][FindByID] role lookup failed: %v", err)
+		r.logger.Errorf("[CustomerSegmentation][FindByID] role lookup failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -1018,7 +1018,7 @@ WHERE css.SUPERAPP_ROLE_ID = HEXTORAW(:1)
   AND css.IS_ENABLED = 1`
 	var docID string
 	if err := r.db.QueryRowContext(ctx, docIDQ, id).Scan(&docID); err != nil {
-		log.Errorf("[CustomerSegmentation][FindByID] doc id query failed: %v", err)
+		r.logger.Errorf("[CustomerSegmentation][FindByID] doc id query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	dh, ok := normalizeRawHex32(docID)
