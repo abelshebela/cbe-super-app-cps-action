@@ -76,7 +76,7 @@ func (s *customerSegmentationService) Create(ctx context.Context, req cust_seg.C
 		newData.SyncSegmentsFromCustomer()
 	}
 
-	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, core.MapCustomerSegmentationToMap(newData, nil), string(constants.RequestCreateCustomerSegmentation), constants.CREATE)
+	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, core.MapCustomerSegmentationToMap(newData), string(constants.RequestCreateCustomerSegmentation), constants.CREATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		log.Errorf("[CustSegSvc][Create] cps action err: %v", err)
@@ -98,14 +98,10 @@ func (s *customerSegmentationService) Update(ctx context.Context, id string, req
 	}
 
 	updated := *existing
-	if req.Customer != nil {
-		updated.Customer = req.Customer
-		updated.SyncSegmentsFromCustomer()
-	}
-
+	updated.Customer = req.Customer
 	updated.UpdatedAt = time.Now()
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing, nil), core.MapCustomerSegmentationToMap(updated, req.RemovedCustomerSegmentIds), string(constants.RequestUpdateCustomerSegmentation), constants.UPDATE)
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing), core.MapCustomerSegmentationToMap(updated), string(constants.RequestUpdateCustomerSegmentation), constants.UPDATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		log.Errorf("[CustSegSvc][Update] cps action err: %v", err)
@@ -116,14 +112,14 @@ func (s *customerSegmentationService) Update(ctx context.Context, id string, req
 	return nil
 }
 
-func (s *customerSegmentationService) isSubSegmentsEqual(existing, incoming []imodel.CustSegment) bool {
+func (s *customerSegmentationService) isSubSegmentsEqual(existing, incoming []imodel.CustomerEntry) bool {
 	if len(existing) != len(incoming) {
 		return false
 	}
 
 	for i := range existing {
-		if existing[i].CustGroupName != incoming[i].CustGroupName ||
-			existing[i].CustSegName != incoming[i].CustSegName {
+		if existing[i].Group.CustGroup != incoming[i].Group.CustGroup ||
+			existing[i].Segment.CustSegmentName != incoming[i].Segment.CustSegmentName {
 			return false
 		}
 	}
@@ -170,7 +166,7 @@ func (s *customerSegmentationService) EnableOrDisable(ctx context.Context, id st
 		action = constants.RequestDisableCustomerSegmentation
 	}
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing, nil), core.MapCustomerSegmentationToMap(updated, nil), string(action), constants.UPDATE)
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing), core.MapCustomerSegmentationToMap(updated), string(action), constants.UPDATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		log.Errorf("[CustSegSvc][EnableDisable] cps action err: %v", err)
@@ -192,7 +188,7 @@ func (s *customerSegmentationService) Delete(ctx context.Context, id string) err
 
 	updated := *existing
 	updated.IsDeleted = true
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing, nil), core.MapCustomerSegmentationToMap(updated, nil), string(constants.RequestDeleteCustomerSegmentation), constants.DELETE)
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing), core.MapCustomerSegmentationToMap(updated), string(constants.RequestDeleteCustomerSegmentation), constants.DELETE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		log.Errorf("[CustSegSvc][Delete] cps action err: %v", err)
@@ -216,8 +212,6 @@ func (s *customerSegmentationService) Authorize(ctx context.Context, action *mod
 		log.Errorf("[CustSegSvc][Authorize] unmarshal err: %v", marshal_err)
 		return nil, marshal_err
 	}
-	seg.SyncSegmentsFromCustomer()
-
 	switch action.RequestAction {
 	case string(constants.RequestCreateCustomerSegmentation):
 		err = s.repo.Create(ctx, seg)
