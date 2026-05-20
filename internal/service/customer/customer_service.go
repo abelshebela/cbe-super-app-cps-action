@@ -509,56 +509,17 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 	}
 
 	log.Infof("core result data---------------------: %v", coreRes)
-	log.Infof("core result data branch name---------------------: %v", coreRes[0].BranchName)
-	log.Infof("core result data Account Number---------------------: %v", coreRes[0].AccountNumber)
-	log.Infof("core result data Account Type---------------------: %v", coreRes[0].AccountType)
-	log.Infof("core result data Birth Date---------------------: %v", coreRes[0].BirthOfDate)
-	log.Infof("core result data Branch---------------------: %v", coreRes[0].Branch)
-	log.Infof("core result data Email---------------------: %v", coreRes[0].Email)
-	log.Infof("core result data Category---------------------: %v", coreRes[0].Category)
-	log.Infof("core result data Gender---------------------: %v", coreRes[0].Gender)
-	log.Infof("core result data Industry---------------------: %v", coreRes[0].Industry)
-	log.Infof("core result data Currency---------------------: %v", coreRes[0].Currency)
-	log.Infof("core result data Customer Name---------------------: %v", coreRes[0].CustomerName)
-	log.Infof("core result data Customer Segment---------------------: %v", coreRes[0].CustomerSegment)
-	log.Infof("core result data District Name---------------------: %v", coreRes[0].DistrictName)
-	log.Infof("core result data Ownership---------------------: %v", coreRes[0].Ownership)
-	log.Infof("core result data Phone Number---------------------: %v", coreRes[0].PhoneNo)
-	log.Infof("core result data Phone Number---------------------: %v", coreRes[0].PhoneNumber)
-	log.Infof("core result data Restriction---------------------: %v", coreRes[0].Restriction)
-	log.Infof("core result data Restriction Type---------------------: %v", coreRes[0].RestrictionType)
-	log.Infof("core result data Sector---------------------: %v", coreRes[0].Sector)
-	log.Infof("core result data Target---------------------: %v", coreRes[0].Target)
-	log.Infof("core result data Branch Code---------------------: %v", coreRes[0].BranchCode)
+
 	if len(coreRes) > 0 {
 		res.PersonalInfo.DateOfBirth = coreRes[0].BirthOfDate
 		res.PersonalInfo.MaritalStatus = coreRes[0].Email
-		res.PersonalInfo.Branch = coreRes[0].Branch
-		res.PersonalInfo.BranchName = coreRes[0].BranchName
 		res.PersonalInfo.Gender = coreRes[0].Gender
 		res.PersonalInfo.Email = coreRes[0].Email
-		res.PersonalInfo.Industry = coreRes[0].Industry
-		res.PersonalInfo.Ownership = coreRes[0].Ownership
 		res.PersonalInfo.PhoneNumber = coreRes[0].PhoneNo
-		res.PersonalInfo.Restriction = coreRes[0].Restriction
-		res.PersonalInfo.RestrictionType = coreRes[0].RestrictionType
-		res.PersonalInfo.Sector = coreRes[0].Sector
-		res.PersonalInfo.Target = coreRes[0].Target
-		res.PersonalInfo.CustomerSegment = coreRes[0].CustomerSegment
-		res.PersonalInfo.CustomerCategory = coreRes[0].Category
 	}
 
 	if len(res.LinkedAccount) != 0 {
 		for i, linkedAccount := range res.LinkedAccount {
-			// coreResBranch, err := d.core.LookupAccountByAccountNumberFromBps(ctx, linkedAccount.AccountNumber)
-			// if err != nil {
-			// 	log.Errorf("[CustomerSvc][GetCustomerDetailByID] LookupAccountByAccountNumberFromBps error: %v", err)
-			// 	span.AddEvent("Failed to lookup account by account number from BPS", trace.WithAttributes(
-			// 		attribute.String("error", err.Error()),
-			// 		attribute.String("account_number", linkedAccount.AccountNumber),
-			// 	))
-			// 	continue
-			// }
 
 			if len(coreRes) != 0 {
 				for _, coreResBranch := range coreRes {
@@ -569,7 +530,6 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 					}
 				}
 			}
-			// res.LinkedAccount[i].AccountBranchCode = coreResBranch.Data.AccountBranchCode
 			// res.LinkedAccount[i].AccountBranchName = coreResBranch.Data.na
 		}
 	}
