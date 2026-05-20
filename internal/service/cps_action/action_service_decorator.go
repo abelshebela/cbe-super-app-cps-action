@@ -15,6 +15,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 )
 
 type cpsActionServiceWithRoles struct {
@@ -34,6 +35,8 @@ func (s *cpsActionServiceWithRoles) IsMakerOnlyForRequest(ctx context.Context, r
 }
 
 func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsAction *model.CPSAction) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
 
 	actType := strings.ToUpper(strings.TrimSpace(cpsAction.ActionType))
@@ -78,14 +81,14 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			}
 
 			if !isErp && (role == nil || approverData.ID.IsZero()) {
-				s.logger.Errorf("[action_service] CreateCPSAction: role or approver not found for action %s", mod)
+				log.Errorf("[action_service] CreateCPSAction: role or approver not found for action %s", mod)
 				return localization.ErrorOperationNotAllowed
 			}
 
-			s.logger.Infof("[action_service] CreateCPSAction: maker index not found for is erp %s", isErp)
+			log.Infof("[action_service] CreateCPSAction: maker index not found for is erp %s", isErp)
 
 			if !isErp && (approverData.MakerIndex == nil) {
-				s.logger.Errorf("[action_service] CreateCPSAction: maker index not found for action %s,  req approver: %v ", mod)
+				log.Errorf("[action_service] CreateCPSAction: maker index not found for action %s,  req approver: %v ", mod)
 				return localization.ErrorOperationNotAllowed
 			}
 
@@ -115,7 +118,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			}
 
 		} else {
-			s.logger.Errorf("[action_service] CreateCPSAction: role or approver not found for action %s", mod)
+			log.Errorf("[action_service] CreateCPSAction: role or approver not found for action %s", mod)
 			return localization.ErrorOperationNotAllowed
 		}
 	}

@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func JobRoleMapper(data imodel.JobRole) bson.M {
+func RoleMapper(data imodel.Role) bson.M {
 	result := bson.M{}
 	if data.Code != "" {
 		result["code"] = data.Code

@@ -67,12 +67,14 @@ func (a *hqService) GetHQ(ctx context.Context, id string) (hqDto.HQ, error) {
 }
 
 func (a *hqService) GetBlockTime(ctx context.Context) (hqDto.BlockTimeResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetBlockTime", "HQ", "GetBlockTime")
 	defer span.End()
 
 	hq, err := a.repo.Find(ctx)
 	if err != nil {
-		a.logger.Errorf("[HqSvc][GetBlockTime] fetch err: %v", err)
+		log.Errorf("[HqSvc][GetBlockTime] fetch err: %v", err)
 		span.AddEvent("Failed to fetch HQ", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -86,12 +88,14 @@ func (a *hqService) GetBlockTime(ctx context.Context) (hqDto.BlockTimeResponse, 
 }
 
 func (a *hqService) GetArchiveTime(ctx context.Context) (hqDto.ArchiveTimeResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetArchiveTime", "HQ", "GetArchiveTime")
 	defer span.End()
 
 	hq, err := a.repo.Find(ctx)
 	if err != nil {
-		a.logger.Errorf("[HqSvc][GetArchiveTime] fetch err: %v", err)
+		log.Errorf("[HqSvc][GetArchiveTime] fetch err: %v", err)
 		span.AddEvent("Failed to fetch HQ", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -106,12 +110,14 @@ func (a *hqService) GetArchiveTime(ctx context.Context) (hqDto.ArchiveTimeRespon
 }
 
 func (a *hqService) GetPasswordExpiry(ctx context.Context) (hqDto.PasswordExpiryResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetPasswordExpiry", "HQ", "GetPasswordExpiry")
 	defer span.End()
 
 	hq, err := a.repo.Find(ctx)
 	if err != nil {
-		a.logger.Errorf("[HqSvc][GetPwdExpiry] fetch err: %v", err)
+		log.Errorf("[HqSvc][GetPwdExpiry] fetch err: %v", err)
 		span.AddEvent("Failed to fetch HQ", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -125,12 +131,14 @@ func (a *hqService) GetPasswordExpiry(ctx context.Context) (hqDto.PasswordExpiry
 }
 
 func (a *hqService) UpdateBlockTime(ctx context.Context, request hqDto.UpdateBlockTimeRequest) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateBlockTime", "HQ", "UpdateBlockTime")
 	defer span.End()
 
 	originalHQ, err := a.repo.Find(ctx)
 	if err != nil {
-		a.logger.Errorf("[HqSvc][UpdateBlockTime] fetch err: %v", err)
+		log.Errorf("[HqSvc][UpdateBlockTime] fetch err: %v", err)
 		span.AddEvent("Failed to fetch HQ", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -141,7 +149,7 @@ func (a *hqService) UpdateBlockTime(ctx context.Context, request hqDto.UpdateBlo
 	updatedHQ.BlockTime = request.BlockTime
 
 	if err := core.HandleCPSAction(ctx, a.cpsService, originalHQ.ID.Hex(), constants.RequestUpdateHQBlockTime, updatedHQ, *originalHQ, constants.ActionUpdate); err != nil {
-		a.logger.Errorf("[HqSvc][UpdateBlockTime] cps action err: %v", err)
+		log.Errorf("[HqSvc][UpdateBlockTime] cps action err: %v", err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", originalHQ.ID.Hex()),
@@ -152,12 +160,14 @@ func (a *hqService) UpdateBlockTime(ctx context.Context, request hqDto.UpdateBlo
 }
 
 func (a *hqService) UpdateArchiveTime(ctx context.Context, request hqDto.UpdateArchiveTimeRequest) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateArchiveTime", "HQ", "UpdateArchiveTime")
 	defer span.End()
 
 	originalHQ, err := a.repo.Find(ctx)
 	if err != nil {
-		a.logger.Errorf("[HqSvc][UpdateArchiveTime] fetch err: %v", err)
+		log.Errorf("[HqSvc][UpdateArchiveTime] fetch err: %v", err)
 		span.AddEvent("Failed to fetch HQ", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -168,7 +178,7 @@ func (a *hqService) UpdateArchiveTime(ctx context.Context, request hqDto.UpdateA
 	updatedHQ.ArchiveTime = request.ArchiveTime
 
 	if err := core.HandleCPSAction(ctx, a.cpsService, originalHQ.ID.Hex(), constants.RequestUpdateHQArchiveTime, updatedHQ, *originalHQ, constants.ActionUpdate); err != nil {
-		a.logger.Errorf("[HqSvc][UpdateArchiveTime] cps action err: %v", err)
+		log.Errorf("[HqSvc][UpdateArchiveTime] cps action err: %v", err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", originalHQ.ID.Hex()),
@@ -180,12 +190,14 @@ func (a *hqService) UpdateArchiveTime(ctx context.Context, request hqDto.UpdateA
 }
 
 func (a *hqService) UpdatePasswordExpiry(ctx context.Context, request hqDto.UpdatePasswordExpiryRequest) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdatePasswordExpiry", "HQ", "UpdatePasswordExpiry")
 	defer span.End()
 
 	originalHQ, err := a.repo.Find(ctx)
 	if err != nil {
-		a.logger.Errorf("[HqSvc][UpdatePwdExpiry] fetch err: %v", err)
+		log.Errorf("[HqSvc][UpdatePwdExpiry] fetch err: %v", err)
 		span.AddEvent("Failed to fetch HQ", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -196,7 +208,7 @@ func (a *hqService) UpdatePasswordExpiry(ctx context.Context, request hqDto.Upda
 	updatedHQ.PasswordExpiry = request.PasswordExpiry
 
 	if err := core.HandleCPSAction(ctx, a.cpsService, originalHQ.ID.Hex(), constants.RequestUpdatePasswordExpiry, updatedHQ, *originalHQ, constants.ActionUpdate); err != nil {
-		a.logger.Errorf("[HqSvc][UpdatePwdExpiry] cps action err: %v", err)
+		log.Errorf("[HqSvc][UpdatePwdExpiry] cps action err: %v", err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", originalHQ.ID.Hex()),
@@ -208,6 +220,8 @@ func (a *hqService) UpdatePasswordExpiry(ctx context.Context, request hqDto.Upda
 }
 
 func (s *hqService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "HQ", "Authorize")
 	defer span.End()
 
@@ -263,6 +277,6 @@ func (s *hqService) Authorize(ctx context.Context, action *model.CPSAction) (*mo
 
 	action.CurrentAction = hq
 	action.ActionStatus = constants.Approved
-	s.logger.Infof("[HqSvc][Authorize] approved action: %s code: %s", requestedAction, action.ActionCode)
+	log.Infof("[HqSvc][Authorize] approved action: %s code: %s", requestedAction, action.ActionCode)
 	return action, nil
 }

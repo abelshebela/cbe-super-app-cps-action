@@ -32,6 +32,8 @@ func NewMediaService(repo storage.ArticleRepository, cache storage.RedisReposito
 }
 
 func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Media", "Authorize")
 	defer span.End()
 
@@ -39,7 +41,7 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 		NewsArticleCacheKeyPattern   = "news:article:%s"
 		NewsArticleCacheDeleteErrMsg = "failed to delete cache for article %s: %v"
 	)
-	m.logger.Infof("[ArticleSvc][Authorize] action: %s", cpsAction.ActionCode)
+	log.Infof("[ArticleSvc][Authorize] action: %s", cpsAction.ActionCode)
 
 	article, err := local_util.JsonUnmarshal[model.NewsArticleDetail](cpsAction.CurrentAction)
 	if err != nil {
@@ -72,7 +74,7 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 
 		cacheKey := fmt.Sprintf(NewsArticleCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
-			m.logger.Warnf(NewsArticleCacheDeleteErrMsg, article.ID, err)
+			log.Warnf(NewsArticleCacheDeleteErrMsg, article.ID, err)
 		}
 	case string(constants.RequestDeleteArticle):
 		err = m.repo.DeleteArticle(ctx, cpsAction.UniqueId)
@@ -86,7 +88,7 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 
 		cacheKey := fmt.Sprintf(NewsArticleCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
-			m.logger.Warnf(NewsArticleCacheDeleteErrMsg, article.ID, err)
+			log.Warnf(NewsArticleCacheDeleteErrMsg, article.ID, err)
 		}
 	case string(constants.RequestEnableArticle):
 		err = m.repo.PublishUnpublishArticle(ctx, cpsAction.UniqueId, true)
@@ -100,7 +102,7 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 
 		cacheKey := fmt.Sprintf(NewsArticleCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
-			m.logger.Warnf(NewsArticleCacheDeleteErrMsg, article.ID, err)
+			log.Warnf(NewsArticleCacheDeleteErrMsg, article.ID, err)
 		}
 	case string(constants.RequestDisableArticle):
 		err = m.repo.PublishUnpublishArticle(ctx, cpsAction.UniqueId, false)
@@ -114,10 +116,10 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 
 		cacheKey := fmt.Sprintf(NewsArticleCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
-			m.logger.Warnf(NewsArticleCacheDeleteErrMsg, article.ID, err)
+			log.Warnf(NewsArticleCacheDeleteErrMsg, article.ID, err)
 		}
 	default:
-		m.logger.Errorf("[ArticleSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
+		log.Errorf("[ArticleSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 		span.AddEvent("Unsupported request action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorInvalidRequest.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
@@ -126,7 +128,7 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 	}
 
 	cpsAction.CurrentAction = article
-	m.logger.Infof("[ArticleSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, article.ID)
+	log.Infof("[ArticleSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, article.ID)
 
 	return cpsAction, nil
 }

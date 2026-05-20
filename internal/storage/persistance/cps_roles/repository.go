@@ -31,11 +31,13 @@ type cpsRoleStorage struct {
 
 // CheckUserExistence implements [storage.CPSRolesRepository].
 func (m *cpsRoleStorage) CheckUserExistence(ctx context.Context, roleID string) error {
-	m.logger.Infof("[CPSRolesStorage][CheckUserExistence] checking user existence for roleID: %s", roleID)
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
+	log.Infof("[CPSRolesStorage][CheckUserExistence] checking user existence for roleID: %s", roleID)
 	const q = `SELECT COUNT(*) FROM USERS WHERE CUSTOMER_SEGMENTATION = :1`
 	var count int
 	if err := m.db.QueryRowContext(ctx, q, roleID).Scan(&count); err != nil {
-		m.logger.Errorf("[CPSRolesStorage][CheckUserExistence] query failed: %v", err)
+		log.Errorf("[CPSRolesStorage][CheckUserExistence] query failed: %v", err)
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
@@ -109,6 +111,8 @@ func normalizeRawHex32(id string) (string, bool) {
 }
 
 func (m *cpsRoleStorage) Create(ctx context.Context, req imodel.CPSRoles) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	req.Name = strings.ToUpper(strings.TrimSpace(req.Name))
 	req.RoleCode = strings.TrimSpace(req.RoleCode)
 
@@ -152,7 +156,7 @@ func (m *cpsRoleStorage) Create(ctx context.Context, req imodel.CPSRoles) error 
 		req.UpdatedAt,
 		sql.Out{Dest: &id},
 	); err != nil {
-		m.logger.Errorf("[CPSRolesStorage][Create] insert failed: %v", err)
+		log.Errorf("[CPSRolesStorage][Create] insert failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
@@ -172,6 +176,8 @@ func (m *cpsRoleStorage) Create(ctx context.Context, req imodel.CPSRoles) error 
 }
 
 func (m *cpsRoleStorage) Update(ctx context.Context, id string, req imodel.CPSRoles) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	idHex, ok := normalizeRawHex32(id)
 	if !ok {
 		return errors.New(localization.ErrorInvalidID.Code)
@@ -209,7 +215,7 @@ WHERE ID = HEXTORAW(:id) AND IS_DELETED = 0`, superAppRoleTable, strings.Join(se
 
 	res, err := m.db.ExecContext(ctx, q, args...)
 	if err != nil {
-		m.logger.Errorf("[CPSRolesStorage][Update] update failed: %v", err)
+		log.Errorf("[CPSRolesStorage][Update] update failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	rows, _ := res.RowsAffected()
@@ -232,6 +238,8 @@ WHERE ID = HEXTORAW(:id) AND IS_DELETED = 0`, superAppRoleTable, strings.Join(se
 }
 
 func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]imodel.CPSRoles], error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	if filterParam == nil {
 		filterParam = &types.Filter{}
 	}
@@ -296,7 +304,7 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	err := m.db.QueryRowContext(ctx, countQ, args...).Scan(&total)
 	if err != nil {
-		m.logger.Errorf("[CPSRolesStorage][countCPSRoles] count failed: %v", err)
+		log.Errorf("[CPSRolesStorage][countCPSRoles] count failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -321,7 +329,7 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	listArgs := append(args, sql.Named("offset", offset), sql.Named("limit", limit))
 	rows, err := m.db.QueryContext(ctx, selectQuery, listArgs...)
 	if err != nil {
-		m.logger.Errorf("[CPSRolesStorage][FindAllWithPagination] list query failed: %v", err)
+		log.Errorf("[CPSRolesStorage][FindAllWithPagination] list query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -354,7 +362,7 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		)
 
 		if err != nil {
-			m.logger.Errorf("[CPSRolesStorage][FindAllWithPagination] scan failed: %v", err)
+			log.Errorf("[CPSRolesStorage][FindAllWithPagination] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 
@@ -402,6 +410,8 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 }
 
 func (m *cpsRoleStorage) FindById(ctx context.Context, id string) (*imodel.CPSRoles, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	idHex, ok := normalizeRawHex32(id)
 	if !ok {
 		return nil, errors.New(localization.ErrorInvalidID.Code)
@@ -504,7 +514,7 @@ WHERE SR.ID = HEXTORAW(:1)
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
-		m.logger.Errorf("[CPSRolesStorage][FindById] query failed: %v", err)
+		log.Errorf("[CPSRolesStorage][FindById] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -547,6 +557,8 @@ WHERE SR.ID = HEXTORAW(:1)
 }
 
 func (m *cpsRoleStorage) FindSupperAppRoleByAccessList(ctx context.Context, accessListID string) (bool, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	const q = `SELECT ID FROM ACCESS_LIST_BY_SUPERAPP_ROLE WHERE SUPERAPP_ROLE_ID = :1 AND IS_DELETED = 0`
 
 	var id string
@@ -555,13 +567,15 @@ func (m *cpsRoleStorage) FindSupperAppRoleByAccessList(ctx context.Context, acce
 		if err == sql.ErrNoRows {
 			return false, nil
 		}
-		m.logger.Errorf("[CPSRolesStorage][FindSupperAppRoleByAccessList] query failed: %v", err)
+		log.Errorf("[CPSRolesStorage][FindSupperAppRoleByAccessList] query failed: %v", err)
 		return false, err
 	}
 	return true, nil
 }
 
 func (m *cpsRoleStorage) FindByNameOrRoleCode(ctx context.Context, name, roleCode string) (*imodel.CPSRoles, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	name = strings.TrimSpace(name)
 	roleCode = strings.TrimSpace(roleCode)
 	if name == "" && roleCode == "" {
@@ -619,7 +633,7 @@ FETCH FIRST 1 ROWS ONLY`, superAppRoleTable, cond)
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
-		m.logger.Errorf("[CPSRolesStorage][FindByNameOrRoleCode] query failed: %v", err)
+		log.Errorf("[CPSRolesStorage][FindByNameOrRoleCode] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -646,6 +660,8 @@ FETCH FIRST 1 ROWS ONLY`, superAppRoleTable, cond)
 }
 
 func (m *cpsRoleStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	idHex, ok := normalizeRawHex32(id)
 	if !ok {
 		return errors.New(localization.ErrorInvalidID.Code)
@@ -660,7 +676,7 @@ WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
 
 	res, err := m.db.ExecContext(ctx, q, boolToOracleNumber(enable), idHex)
 	if err != nil {
-		m.logger.Errorf("[CPSRolesStorage][EnableOrDisable] update failed: %v", err)
+		log.Errorf("[CPSRolesStorage][EnableOrDisable] update failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	rows, _ := res.RowsAffected()
@@ -671,6 +687,8 @@ WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
 }
 
 func (m *cpsRoleStorage) FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CPSRoles, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	customerSegment = strings.TrimSpace(customerSegment)
 	if customerSegment == "" {
 		return nil, errors.New(localization.ErrorNoDataProvided.Code)
@@ -722,7 +740,7 @@ FETCH FIRST 1 ROWS ONLY`
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
-		m.logger.Errorf("[CPSRolesStorage][FindByCustomerSegmentation] query failed: %v", err)
+		log.Errorf("[CPSRolesStorage][FindByCustomerSegmentation] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -749,6 +767,8 @@ FETCH FIRST 1 ROWS ONLY`
 }
 
 func (m *cpsRoleStorage) FindByCustomerSegmentationByID(ctx context.Context, customerSegment string) (*imodel.CPSRoles, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	customerSegment = strings.TrimSpace(customerSegment)
 	if customerSegment == "" {
 		return nil, errors.New(localization.ErrorNoDataProvided.Code)
@@ -778,7 +798,7 @@ WHERE  ID = HEXTORAW(:1)`
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
-		m.logger.Errorf("[CPSRolesStorage][FindByCustomerSegmentationByID] query failed: %v", err)
+		log.Errorf("[CPSRolesStorage][FindByCustomerSegmentationByID] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -805,18 +825,24 @@ WHERE  ID = HEXTORAW(:1)`
 }
 
 func (m *cpsRoleStorage) EnableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	// Oracle schema for access-list segmentation is not yet available in this service.
-	m.logger.Warnf("[CPSRolesStorage][EnableServiceAccess] not implemented for oracle; roleID=%s keys=%v", roleID, accessListKeys)
+	log.Warnf("[CPSRolesStorage][EnableServiceAccess] not implemented for oracle; roleID=%s keys=%v", roleID, accessListKeys)
 	return errors.New(localization.ErrorUnexpectedError.Code)
 }
 
 func (m *cpsRoleStorage) DisableServiceAccess(ctx context.Context, roleID string, accessListKeys []string) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	// Oracle schema for access-list segmentation is not yet available in this service.
-	m.logger.Warnf("[CPSRolesStorage][DisableServiceAccess] not implemented for oracle; roleID=%s keys=%v", roleID, accessListKeys)
+	log.Warnf("[CPSRolesStorage][DisableServiceAccess] not implemented for oracle; roleID=%s keys=%v", roleID, accessListKeys)
 	return errors.New(localization.ErrorUnexpectedError.Code)
 }
 
 func (m *cpsRoleStorage) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	idHex, ok := normalizeRawHex32(id)
 	if !ok {
 		return errors.New(localization.ErrorInvalidID.Code)
@@ -832,7 +858,7 @@ WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
 	res, err := m.db.ExecContext(ctx, q, idHex)
 	if err != nil {
-		m.logger.Errorf("[CPSRolesStorage][Delete] delete failed: %v", err)
+		log.Errorf("[CPSRolesStorage][Delete] delete failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	rows, _ := res.RowsAffected()

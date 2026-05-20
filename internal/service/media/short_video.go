@@ -34,10 +34,12 @@ func NewShortVideoService(repo storage.ShortVideoRepository, cache storage.Redis
 }
 
 func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Media", "Authorize")
 	defer span.End()
 
-	m.logger.Infof("[ShortVideoSvc][Authorize] action: %s", cpsAction.ActionCode)
+	log.Infof("[ShortVideoSvc][Authorize] action: %s", cpsAction.ActionCode)
 
 	const (
 		NewsShortVideoCacheKeyPattern   = "news:shortVideo:%s"
@@ -66,9 +68,9 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 
 		shortVideoID := createdVideo.ID.Hex()
 		if err := m.producer.PublishShortVideoEvent(shortVideo.VideoURL, shortVideoID); err != nil {
-			m.logger.Errorf("[ShortVideoSvc][Authorize] publish err: %v", err)
+			log.Errorf("[ShortVideoSvc][Authorize] publish err: %v", err)
 		} else {
-			m.logger.Infof("[ShortVideoSvc][Authorize] published id: %s", shortVideoID)
+			log.Infof("[ShortVideoSvc][Authorize] published id: %s", shortVideoID)
 		}
 		shortVideo.ID = createdVideo.ID
 	case string(constants.RequestUpdateShortVideo):
@@ -96,15 +98,15 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 				shortVideoID = cpsAction.UniqueId
 			}
 			if err := m.producer.PublishShortVideoEvent(shortVideo.VideoURL, shortVideoID); err != nil {
-				m.logger.Errorf("[ShortVideoSvc][Authorize] publish err: %v", err)
+				log.Errorf("[ShortVideoSvc][Authorize] publish err: %v", err)
 			} else {
-				m.logger.Infof("[ShortVideoSvc][Authorize] published id: %s", shortVideoID)
+				log.Infof("[ShortVideoSvc][Authorize] published id: %s", shortVideoID)
 			}
 		}
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
-			m.logger.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
+			log.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
 		}
 	case string(constants.RequestDeleteShortVideo):
 		err = m.repo.Delete(ctx, cpsAction.UniqueId)
@@ -118,7 +120,7 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
-			m.logger.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
+			log.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
 		}
 	case string(constants.RequestEnableShortVideo):
 		err = m.repo.PublishUnpublish(ctx, cpsAction.UniqueId, true)
@@ -132,7 +134,7 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
-			m.logger.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
+			log.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
 		}
 	case string(constants.RequestDisableShortVideo):
 		err = m.repo.PublishUnpublish(ctx, cpsAction.UniqueId, false)
@@ -146,10 +148,10 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
-			m.logger.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
+			log.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
 		}
 	default:
-		m.logger.Errorf("[ShortVideoSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
+		log.Errorf("[ShortVideoSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 		span.AddEvent("Unsupported request action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorInvalidRequest.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
@@ -158,7 +160,7 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 	}
 
 	cpsAction.CurrentAction = shortVideo
-	m.logger.Infof("[ShortVideoSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, shortVideo.ID)
+	log.Infof("[ShortVideoSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, shortVideo.ID)
 	return cpsAction, nil
 
 }

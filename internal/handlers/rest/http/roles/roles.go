@@ -148,7 +148,7 @@ func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role := imodel.JobRole{
+	role := imodel.Role{
 		Name: strings.TrimSpace(body.Name),
 		Code: body.Code,
 		Type: strings.ToUpper(strings.TrimSpace(body.Type)),
@@ -210,7 +210,7 @@ func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updated := imodel.JobRole{
+	updated := imodel.Role{
 		UpdatedAt: time.Now(),
 	}
 	if body.Name != "" {

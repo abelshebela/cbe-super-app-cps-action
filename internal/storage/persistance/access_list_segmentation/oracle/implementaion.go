@@ -42,7 +42,9 @@ func NewAccessListSegmentationOracle(db DBTX, cfg config.VaultConfig, kafkaProdu
 
 // BulkDisable implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error {
-	q.logger.Infof("[AccessListSegmentation][BulkDisable] bulk disable request: %+v", req)
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+
+	log.Infof("[AccessListSegmentation][BulkDisable] bulk disable request: %+v", req)
 	var filter string
 	var args []interface{}
 	if len(req.Keys) == 0 {
@@ -70,12 +72,12 @@ func (q *accessListSegmentationOracle) BulkDisable(ctx context.Context, req acce
 
 	res, err := q.db.ExecContext(ctx, stmt, args...)
 	if err != nil {
-		q.logger.Errorf("[AccessListSegmentation][BulkDisable] failed to bulk disable access list segmentation: %v", err)
+		log.Errorf("[AccessListSegmentation][BulkDisable] failed to bulk disable access list segmentation: %v", err)
 		return localization.ErrorUnexpectedError
 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
-		q.logger.Warnf("[AccessListSegmentation][BulkDisable] no rows deleted for filter: %s", filter)
+		log.Warnf("[AccessListSegmentation][BulkDisable] no rows deleted for filter: %s", filter)
 		// Optionally, return a specific error or nil if that's not an error in your logic
 		return localization.ErrorUnexpectedError
 	}
@@ -86,6 +88,8 @@ func (q *accessListSegmentationOracle) BulkDisable(ctx context.Context, req acce
 }
 
 func (q *accessListSegmentationOracle) CreateAccountSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error {
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+
 	n := len(accessListSegmentation.AccessListKeys)
 	if n == 0 {
 		return nil
@@ -122,7 +126,7 @@ func (q *accessListSegmentationOracle) CreateAccountSegment(ctx context.Context,
 
 	_, err := q.db.ExecContext(ctx, stmt, valueArgs...)
 	if err != nil {
-		q.logger.Errorf("[AccessListSegmentation][CreateAccountSegment] failed to insert rows: %v", err)
+		log.Errorf("[AccessListSegmentation][CreateAccountSegment] failed to insert rows: %v", err)
 		return err
 	}
 
@@ -136,6 +140,8 @@ func (q *accessListSegmentationOracle) CreateAccountSegment(ctx context.Context,
 }
 
 func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error {
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+
 	if len(accessListSegmentation.SegmentationID) == 0 {
 		return fmt.Errorf("SegmentationID is required")
 	}
@@ -179,7 +185,7 @@ func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, a
 
 	_, err := q.db.ExecContext(ctx, stmt, valueArgs...)
 	if err != nil {
-		q.logger.Errorf("[AccessListSegmentation][CreateBlockSegment] failed to insert rows: %v", err)
+		log.Errorf("[AccessListSegmentation][CreateBlockSegment] failed to insert rows: %v", err)
 		return localization.ErrorUnexpectedError
 	}
 
@@ -194,6 +200,7 @@ func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, a
 
 // FindAllForBlock implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geographicalID string) ([]local_model.APPAccessList, error) {
+	log := local_util.LoggerFromCtx(ctx, q.logger)
 
 	query := `SELECT RAWTOHEX(g.ACCESS_LIST_ID), a.name,a.service_key, RAWTOHEX(a.id), g.is_enabled
 		FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS g
@@ -201,7 +208,7 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 		WHERE g.LOCATION_ID = :1`
 	rows, err := q.db.QueryContext(ctx, query, geographicalID)
 	if err != nil {
-		q.logger.Errorf("[AccessListSegmentation][FindAllForBlock] query failed: %v", err)
+		log.Errorf("[AccessListSegmentation][FindAllForBlock] query failed: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -212,13 +219,13 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 		err := rows.Scan(&key, &accessListName, &accessListServiceKey, &accessListID, &is_enabled)
 		if err != nil {
 			if err.Error() == "sql: no rows in result set" {
-				q.logger.Infof("[AccessListSegmentation][FindAllForBlock] no access list segmentation found for geographicalID: %s", geographicalID)
+				log.Infof("[AccessListSegmentation][FindAllForBlock] no access list segmentation found for geographicalID: %s", geographicalID)
 				return nil, localization.ErrorResourceNotFound
 			}
-			q.logger.Errorf("[AccessListSegmentation][FindAllForBlock] query failed: %v", err)
+			log.Errorf("[AccessListSegmentation][FindAllForBlock] query failed: %v", err)
 			return nil, err
 		}
-		q.logger.Infof("[AccessListSegmentation][FindAllForBlock] found access list segmentation: key=%s, name=%s, service_key=%s, id=%s, is_enabled=%v", key, accessListName, accessListServiceKey, accessListID, is_enabled)
+		log.Infof("[AccessListSegmentation][FindAllForBlock] found access list segmentation: key=%s, name=%s, service_key=%s, id=%s, is_enabled=%v", key, accessListName, accessListServiceKey, accessListID, is_enabled)
 		result = append(result, local_model.APPAccessList{
 			ID:             accessListID,
 			Key:            accessListServiceKey,
@@ -231,6 +238,8 @@ func (q *accessListSegmentationOracle) FindAllForBlock(ctx context.Context, geog
 
 // FindAllForBlockParents implements [storage.AccessListSegmentationRepositoryOracle].
 func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Context, geographicalID string) ([]local_model.APPAccessList, error) {
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+
 	// Step 1: Fetch city_id, region_id, district_id for the given account block id
 	var regionID, districtID sql.NullString
 	err := q.db.QueryRowContext(ctx, `
@@ -239,7 +248,7 @@ func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Contex
     WHERE id = HEXTORAW(:1)
 `, geographicalID).Scan(&regionID, &districtID)
 	if err != nil {
-		q.logger.Errorf("[AccessListSegmentation][FindAllForBlockParents] failed to fetch block: %v", err)
+		log.Errorf("[AccessListSegmentation][FindAllForBlockParents] failed to fetch block: %v", err)
 		return nil, err
 	}
 
@@ -271,7 +280,7 @@ func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Contex
 
 	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		q.logger.Errorf("[AccessListSegmentation][FindAllForBlock] query failed: %v", err)
+		log.Errorf("[AccessListSegmentation][FindAllForBlock] query failed: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -282,13 +291,13 @@ func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Contex
 		err := rows.Scan(&key, &accessListName, &accessListServiceKey, &accessListID, &is_enabled)
 		if err != nil {
 			if err.Error() == "sql: no rows in result set" {
-				q.logger.Infof("[AccessListSegmentation][FindAllForBlock] no access list segmentation found for geographicalID: %s", geographicalID)
+				log.Infof("[AccessListSegmentation][FindAllForBlock] no access list segmentation found for geographicalID: %s", geographicalID)
 				return nil, localization.ErrorResourceNotFound
 			}
-			q.logger.Errorf("[AccessListSegmentation][FindAllForBlock] query failed: %v", err)
+			log.Errorf("[AccessListSegmentation][FindAllForBlock] query failed: %v", err)
 			return nil, err
 		}
-		q.logger.Infof("[AccessListSegmentation][FindAllForBlock] found access list segmentation: key=%s, name=%s, service_key=%s, id=%s, is_enabled=%v", key, accessListName, accessListServiceKey, accessListID, is_enabled)
+		log.Infof("[AccessListSegmentation][FindAllForBlock] found access list segmentation: key=%s, name=%s, service_key=%s, id=%s, is_enabled=%v", key, accessListName, accessListServiceKey, accessListID, is_enabled)
 		result = append(result, local_model.APPAccessList{
 			ID:             accessListID,
 			Key:            accessListServiceKey,
@@ -301,7 +310,9 @@ func (q *accessListSegmentationOracle) FindAllForBlockParents(ctx context.Contex
 
 // FindAllBySegmentIDorSegmentCode implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, customer_seg_id string) ([]local_model.APPAccessList, error) {
-	q.logger.Infof("[AccessListSegmentationOracle][FindAllForAccount] called with customer_seg_id: %s", customer_seg_id)
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+
+	log.Infof("[AccessListSegmentationOracle][FindAllForAccount] called with customer_seg_id: %s", customer_seg_id)
 
 	query := `SELECT RAWTOHEX(g.ACCESS_LIST_ID), a.name,a.service_key, RAWTOHEX(a.id), g.is_enabled
 		FROM ACCESS_LIST_BY_SUPERAPP_ROLE g
@@ -309,7 +320,7 @@ func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, cu
 		WHERE g.SUPERAPP_ROLE_ID = HEXTORAW(:1)`
 	rows, err := q.db.QueryContext(ctx, query, customer_seg_id)
 	if err != nil {
-		q.logger.Errorf("[AccessListSegmentation][FindAllForAccount] query failed: %v", err)
+		log.Errorf("[AccessListSegmentation][FindAllForAccount] query failed: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -320,13 +331,13 @@ func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, cu
 		err := rows.Scan(&key, &accessListName, &accessListServiceKey, &accessListID, &is_enabled)
 		if err != nil {
 			if err.Error() == "sql: no rows in result set" {
-				q.logger.Infof("[AccessListSegmentation][FindAllForAccount] no access list segmentation found for customer_seg_id: %s", customer_seg_id)
+				log.Infof("[AccessListSegmentation][FindAllForAccount] no access list segmentation found for customer_seg_id: %s", customer_seg_id)
 				return nil, localization.ErrorResourceNotFound
 			}
-			q.logger.Errorf("[AccessListSegmentation][FindAllForAccount] query failed: %v", err)
+			log.Errorf("[AccessListSegmentation][FindAllForAccount] query failed: %v", err)
 			return nil, err
 		}
-		q.logger.Infof("[AccessListSegmentation][FindAllForAccount] found access list segmentation: key=%s, name=%s, service_key=%s, id=%s, is_enabled=%v", key, accessListName, accessListServiceKey, accessListID, is_enabled)
+		log.Infof("[AccessListSegmentation][FindAllForAccount] found access list segmentation: key=%s, name=%s, service_key=%s, id=%s, is_enabled=%v", key, accessListName, accessListServiceKey, accessListID, is_enabled)
 		result = append(result, local_model.APPAccessList{
 			ID:             accessListID,
 			Key:            accessListServiceKey,
@@ -334,13 +345,15 @@ func (q *accessListSegmentationOracle) FindAllForAccount(ctx context.Context, cu
 			Enabled:        is_enabled,
 		})
 	}
-	q.logger.Infof("[AccessListSegmentation][FindAllForAccount] total access list segmentations found for customer_seg_id %s: %d", customer_seg_id, len(result))
+	log.Infof("[AccessListSegmentation][FindAllForAccount] total access list segmentations found for customer_seg_id %s: %d", customer_seg_id, len(result))
 	return result, nil
 }
 
 // FindAllBySegmentIDorSegmentCodeAndKeys implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindAllByBlockAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]model.AccessListSegmentation, error) {
-	q.logger.Infof("[AccessListSegmentationOracle][FindAllByBlockAndKeys] called with segmentIDorCode: %s, keys: %v", segmentIDorCode, keys)
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+
+	log.Infof("[AccessListSegmentationOracle][FindAllByBlockAndKeys] called with segmentIDorCode: %s, keys: %v", segmentIDorCode, keys)
 	if len(keys) == 0 {
 		return nil, fmt.Errorf("no keys provided")
 	}
@@ -355,7 +368,7 @@ func (q *accessListSegmentationOracle) FindAllByBlockAndKeys(ctx context.Context
 	query = query + strings.Join(placeholders, ",") + `)`
 	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		q.logger.Errorf("[AccessListSegmentationOracle][FindAllByBlockAndKeys] query failed: %v", err)
+		log.Errorf("[AccessListSegmentationOracle][FindAllByBlockAndKeys] query failed: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -365,10 +378,10 @@ func (q *accessListSegmentationOracle) FindAllByBlockAndKeys(ctx context.Context
 		err := rows.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled)
 		if err != nil {
 			if err.Error() == "sql: no rows in result set" {
-				q.logger.Infof("[AccessListSegmentationOracle][FindAllByBlockAndKeys] no access list segmentation found for segmentIDorCode: %s and keys: %v", segmentIDorCode, keys)
+				log.Infof("[AccessListSegmentationOracle][FindAllByBlockAndKeys] no access list segmentation found for segmentIDorCode: %s and keys: %v", segmentIDorCode, keys)
 				return nil, localization.ErrorResourceNotFound
 			}
-			q.logger.Errorf("[AccessListSegmentationOracle][FindAllByBlockAndKeys] query failed: %v", err)
+			log.Errorf("[AccessListSegmentationOracle][FindAllByBlockAndKeys] query failed: %v", err)
 			return nil, err
 		}
 		result = append(result, seg)
@@ -378,7 +391,9 @@ func (q *accessListSegmentationOracle) FindAllByBlockAndKeys(ctx context.Context
 
 // FindAllBySegmentIDorSegmentCodeAndKeys implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindAllByAccountAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]model.AccessListSegmentation, error) {
-	q.logger.Infof("[AccessListSegmentationOracle][FindAllByAccountAndKeys] called with segmentIDorCode: %s, keys: %v", segmentIDorCode, keys)
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+
+	log.Infof("[AccessListSegmentationOracle][FindAllByAccountAndKeys] called with segmentIDorCode: %s, keys: %v", segmentIDorCode, keys)
 	if len(keys) == 0 {
 		return nil, fmt.Errorf("no keys provided")
 	}
@@ -393,7 +408,7 @@ func (q *accessListSegmentationOracle) FindAllByAccountAndKeys(ctx context.Conte
 	query = query + strings.Join(placeholders, ",") + `)`
 	rows, err := q.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		q.logger.Errorf("[AccessListSegmentationOracle][FindAllByAccountAndKeys] query failed: %v", err)
+		log.Errorf("[AccessListSegmentationOracle][FindAllByAccountAndKeys] query failed: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -404,10 +419,10 @@ func (q *accessListSegmentationOracle) FindAllByAccountAndKeys(ctx context.Conte
 		err := rows.Scan(&segID, &seg.AccessListKey, &seg.SegmentedID, &seg.Enabled)
 		if err != nil {
 			if err.Error() == "sql: no rows in result set" {
-				q.logger.Infof("[AccessListSegmentationOracle][FindAllByAccountAndKeys] no access list segmentation found for segmentIDorCode: %s and keys: %v", segmentIDorCode, keys)
+				log.Infof("[AccessListSegmentationOracle][FindAllByAccountAndKeys] no access list segmentation found for segmentIDorCode: %s and keys: %v", segmentIDorCode, keys)
 				return nil, localization.ErrorResourceNotFound
 			}
-			q.logger.Errorf("[AccessListSegmentationOracle][FindAllByAccountAndKeys] query failed: %v", err)
+			log.Errorf("[AccessListSegmentationOracle][FindAllByAccountAndKeys] query failed: %v", err)
 			return nil, err
 		}
 		result = append(result, seg)
@@ -417,7 +432,9 @@ func (q *accessListSegmentationOracle) FindAllByAccountAndKeys(ctx context.Conte
 
 // FindAllWithPagination implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.AccessListSegmentation], error) {
-	q.logger.Infof("[AccessListSegmentation][FindAllWithPagination] filter params: %+v", filterParam)
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+
+	log.Infof("[AccessListSegmentation][FindAllWithPagination] filter params: %+v", filterParam)
 
 	// Validate pagination params
 	if filterParam.Page < 1 || filterParam.PerPage < 1 {
@@ -455,7 +472,7 @@ func (q *accessListSegmentationOracle) FindAllWithPagination(ctx context.Context
 	countRow := q.db.QueryRowContext(ctx, countQuery, args...)
 	var total int64
 	if err := countRow.Scan(&total); err != nil {
-		q.logger.Errorf("[AccessListSegmentation][FindAllWithPagination] count error: %v", err)
+		log.Errorf("[AccessListSegmentation][FindAllWithPagination] count error: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -464,7 +481,7 @@ func (q *accessListSegmentationOracle) FindAllWithPagination(ctx context.Context
 	offset := (page - 1) * perPage
 
 	if int64(offset+perPage) >= total {
-		q.logger.Infof("[AccessListSegmentation][FindAllWithPagination] offset %d exceeds total %d, returning empty result", offset, total)
+		log.Infof("[AccessListSegmentation][FindAllWithPagination] offset %d exceeds total %d, returning empty result", offset, total)
 		return &types.PaginatedResponse[[]model.AccessListSegmentation]{
 			Data: []model.AccessListSegmentation{},
 			Meta: local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage),
@@ -476,7 +493,7 @@ func (q *accessListSegmentationOracle) FindAllWithPagination(ctx context.Context
 	argsWithPag := append(args, offset, perPage)
 	rows, err := q.db.QueryContext(ctx, query, argsWithPag...)
 	if err != nil {
-		q.logger.Errorf("[AccessListSegmentation][FindAllWithPagination] query failed: %v", err)
+		log.Errorf("[AccessListSegmentation][FindAllWithPagination] query failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer rows.Close()
@@ -485,14 +502,14 @@ func (q *accessListSegmentationOracle) FindAllWithPagination(ctx context.Context
 		var seg model.AccessListSegmentation
 		err := rows.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
 		if err != nil {
-			q.logger.Errorf("[AccessListSegmentation][FindAllWithPagination] scan error: %v", err)
+			log.Errorf("[AccessListSegmentation][FindAllWithPagination] scan error: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		data = append(data, seg)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	q.logger.Infof("[AccessListSegmentation][FindAllWithPagination] retrieved %d segmentations", len(data))
+	log.Infof("[AccessListSegmentation][FindAllWithPagination] retrieved %d segmentations", len(data))
 
 	return &types.PaginatedResponse[[]model.AccessListSegmentation]{
 		Data: data,
@@ -502,17 +519,19 @@ func (q *accessListSegmentationOracle) FindAllWithPagination(ctx context.Context
 
 // FindBlockSegmentByID implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindBlockSegmentByID(ctx context.Context, id string) (*model.AccessListSegmentation, error) {
-	q.logger.Infof("[AccessListSegmentationOracle][FindBlockSegmentByID] called with id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+
+	log.Infof("[AccessListSegmentationOracle][FindBlockSegmentByID] called with id: %s", id)
 	query := `SELECT RAWTOHEX(id), RAWTOHEX(ACCESS_LIST_ID), RAWTOHEX(LOCATION_ID), ACCOUNT_TYPE, is_enabled, created_at, LAST_MODIFIED_AT, deleted_at FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS WHERE id = HEXTORAW(:1)`
 	row := q.db.QueryRowContext(ctx, query, id)
 	var seg model.AccessListSegmentation
 	err := row.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
-			q.logger.Infof("[AccessListSegmentationOracle][FindBlockSegmentByID] no access list segmentation found for id: %s", id)
+			log.Infof("[AccessListSegmentationOracle][FindBlockSegmentByID] no access list segmentation found for id: %s", id)
 			return nil, localization.ErrorResourceNotFound
 		}
-		q.logger.Errorf("[AccessListSegmentationOracle][FindBlockSegmentByID] query failed: %v", err)
+		log.Errorf("[AccessListSegmentationOracle][FindBlockSegmentByID] query failed: %v", err)
 		return nil, err
 	}
 	return &seg, nil
@@ -520,17 +539,19 @@ func (q *accessListSegmentationOracle) FindBlockSegmentByID(ctx context.Context,
 
 // FindAccountSegmentByID implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindAccountSegmentByID(ctx context.Context, id string) (*model.AccessListSegmentation, error) {
-	q.logger.Infof("[AccessListSegmentationOracle][FindAccountSegmentByID] called with id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+
+	log.Infof("[AccessListSegmentationOracle][FindAccountSegmentByID] called with id: %s", id)
 	query := `SELECT RAWTOHEX(id), RAWTOHEX(ACCESS_LIST_ID), RAWTOHEX(SUPERAPP_ROLE_ID), ACCOUNT_TYPE, is_enabled, created_at, LAST_MODIFIED_AT, deleted_at FROM ACCESS_LIST_BY_SUPERAPP_ROLE WHERE id = HEXTORAW(:1)`
 	row := q.db.QueryRowContext(ctx, query, id)
 	var seg model.AccessListSegmentation
 	err := row.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
-			q.logger.Infof("[AccessListSegmentationOracle][FindAccountSegmentByID] no access list segmentation found for id: %s", id)
+			log.Infof("[AccessListSegmentationOracle][FindAccountSegmentByID] no access list segmentation found for id: %s", id)
 			return nil, localization.ErrorResourceNotFound
 		}
-		q.logger.Errorf("[AccessListSegmentationOracle][FindAccountSegmentByID] query failed: %v", err)
+		log.Errorf("[AccessListSegmentationOracle][FindAccountSegmentByID] query failed: %v", err)
 		return nil, err
 	}
 	return &seg, nil
@@ -538,17 +559,19 @@ func (q *accessListSegmentationOracle) FindAccountSegmentByID(ctx context.Contex
 
 // FindByIDAndType implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindByIDAndType(ctx context.Context, ids string, t string) (*model.AccessListSegmentation, error) {
-	q.logger.Infof("[AccessListSegmentationOracle][FindByIDAndType] called with ids: %s, type: %s", ids, t)
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+
+	log.Infof("[AccessListSegmentationOracle][FindByIDAndType] called with ids: %s, type: %s", ids, t)
 	query := `SELECT RAWTOHEX(id), RAWTOHEX(ACCESS_LIST_ID), RAWTOHEX(LOCATION_ID), ACCOUNT_TYPE, is_enabled, created_at, LAST_MODIFIED_AT, deleted_at FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS WHERE id = HEXTORAW(:1) AND type = :2`
 	row := q.db.QueryRowContext(ctx, query, ids, t)
 	var seg model.AccessListSegmentation
 	err := row.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
-			q.logger.Infof("[AccessListSegmentationOracle][FindByIDAndType] no access list segmentation found for id: %s and type: %s", ids, t)
+			log.Infof("[AccessListSegmentationOracle][FindByIDAndType] no access list segmentation found for id: %s and type: %s", ids, t)
 			return nil, localization.ErrorResourceNotFound
 		}
-		q.logger.Errorf("[AccessListSegmentationOracle][FindByIDAndType] query failed: %v", err)
+		log.Errorf("[AccessListSegmentationOracle][FindByIDAndType] query failed: %v", err)
 		return nil, err
 	}
 	return &seg, nil
@@ -562,7 +585,9 @@ func (q *accessListSegmentationOracle) FindByIDS(ctx context.Context, ids []stri
 
 // FindBySegmentIDAndAccessListKeys implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindBySegmentIDAndAccessListKeys(ctx context.Context, id string, keys []string) (*model.AccessListSegmentation, error) {
-	q.logger.Infof("[AccessListSegmentationOracle][FindBySegmentIDAndAccessListKeys] called with id: %s, keys: %v", id, keys)
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+
+	log.Infof("[AccessListSegmentationOracle][FindBySegmentIDAndAccessListKeys] called with id: %s, keys: %v", id, keys)
 	var regionID, districtID sql.NullString
 	err := q.db.QueryRowContext(ctx, `
 		SELECT region_id, district_id
@@ -570,7 +595,7 @@ func (q *accessListSegmentationOracle) FindBySegmentIDAndAccessListKeys(ctx cont
 		WHERE id = :1
 	`, id).Scan(&regionID, &districtID)
 	if err != nil {
-		q.logger.Errorf("[AccessListSegmentation][FindBySegmentIDAndAccessListKeys] failed to fetch block: %v", err)
+		log.Errorf("[AccessListSegmentation][FindBySegmentIDAndAccessListKeys] failed to fetch block: %v", err)
 		return nil, err
 	}
 	if len(keys) == 0 {
@@ -612,7 +637,7 @@ func (q *accessListSegmentationOracle) FindBySegmentIDAndAccessListKeys(ctx cont
 	err = row.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Type, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
-			q.logger.Errorf("[AccessListSegmentationOracle][FindBySegmentIDAndAccessListKeys] query failed: %v", err)
+			log.Errorf("[AccessListSegmentationOracle][FindBySegmentIDAndAccessListKeys] query failed: %v", err)
 			return nil, nil
 		}
 		return nil, err
@@ -622,6 +647,7 @@ func (q *accessListSegmentationOracle) FindBySegmentIDAndAccessListKeys(ctx cont
 
 // FindByAccountSegmentationAndAccessListKeys implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindByAccountSegmentationAndAccessListKeys(ctx context.Context, customerSegments string, segmentKeys []string) (*model.AccessListSegmentation, error) {
+	log := local_util.LoggerFromCtx(ctx, q.logger)
 
 	if len(segmentKeys) == 0 {
 		return nil, fmt.Errorf("no keys provided")
@@ -641,7 +667,7 @@ func (q *accessListSegmentationOracle) FindByAccountSegmentationAndAccessListKey
 	err := row.Scan(&seg.ID, &seg.AccessListKey, &seg.SegmentedID, &seg.Enabled, &seg.CreatedAt, &seg.UpdatedAt, &seg.DeletedAt)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
-			q.logger.Errorf("[AccessListSegmentationOracle][FindByAccountSegmentationAndAccessListKeys] query failed: %v", err)
+			log.Errorf("[AccessListSegmentationOracle][FindByAccountSegmentationAndAccessListKeys] query failed: %v", err)
 			return nil, nil
 		}
 		return nil, err
@@ -656,18 +682,19 @@ func (q *accessListSegmentationOracle) FindBySegmentationAndServiceID(ctx contex
 
 // FindParentChildRelationship implements [storage.AccessListSegmentationRepository].
 func (q *accessListSegmentationOracle) FindParentChildRelationship(ctx context.Context) ([]model.AccessItemRelation, error) {
+	log := local_util.LoggerFromCtx(ctx, q.logger)
 
 	query := `SELECT RAWTOHEX(PARENT_ID), RAWTOHEX(CHILD_ID) FROM ACCESS_LIST_RELATIONS`
 	rows, err := q.db.QueryContext(ctx, query)
 	if err != nil {
-		q.logger.Errorf("[AccessListSegmentation][FindParentChildRelationship] query failed: %v", err)
+		log.Errorf("[AccessListSegmentation][FindParentChildRelationship] query failed: %v", err)
 		return nil, err
 	}
 	var relations []local_model.AccessItemRelation
 	for rows.Next() {
 		var rel local_model.AccessItemRelation
 		if err := rows.Scan(&rel.ParentKey, &rel.ChildKey); err != nil {
-			q.logger.Errorf("[AccessListSegmentation][FindParentChildRelationship] failed to scan row: %v", err)
+			log.Errorf("[AccessListSegmentation][FindParentChildRelationship] failed to scan row: %v", err)
 			return nil, localization.ErrorUnexpectedError
 		}
 		relations = append(relations, rel)

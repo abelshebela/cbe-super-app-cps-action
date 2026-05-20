@@ -71,6 +71,7 @@ const (
 // so keeping this method would break compilation.
 //
 // func (r *VaultCategoryRepository) CreateWithdrawalRequest(ctx context.Context, withdrawal *imodel.Withdrawal) error {
+
 // 	id := withdrawal.ID
 // 	if id == "" {
 // 		id = uuid.New().String()
@@ -89,16 +90,18 @@ const (
 // 		isActive,
 // 	)
 // 	if err != nil {
-// 		r.logger.Errorf("failed to create withdrawal request: %v", err)
+// 		log.Errorf("failed to create withdrawal request: %v", err)
 // 		return errors.New(localization.ErrorUnexpectedError.Code)
 // 	}
 // 	return nil
 // }
 
 func (r *VaultCategoryRepository) UpdateVaultDeadlock(ctx context.Context, id string, status string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		r.logger.Errorf("failed to begin tx for deadlock update: %v", err)
+		log.Errorf("failed to begin tx for deadlock update: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() {
@@ -110,12 +113,12 @@ func (r *VaultCategoryRepository) UpdateVaultDeadlock(ctx context.Context, id st
 		if err == sql.ErrNoRows {
 			return errors.New(localization.ErrorResourceNotFound.Code)
 		}
-		r.logger.Errorf("failed to fetch vault id by deadlock request id: %v", err)
+		log.Errorf("failed to fetch vault id by deadlock request id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	res, err := tx.ExecContext(ctx, updateDeadlockRequestStatus, status, id)
 	if err != nil {
-		r.logger.Errorf("failed to update deadlock request status: %v", err)
+		log.Errorf("failed to update deadlock request status: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	rows, _ := res.RowsAffected()
@@ -125,7 +128,7 @@ func (r *VaultCategoryRepository) UpdateVaultDeadlock(ctx context.Context, id st
 
 	vaultRes, err := tx.ExecContext(ctx, updateVaultDeadlockFalse, vaultID)
 	if err != nil {
-		r.logger.Errorf("failed to update vault deadlock flag: %v", err)
+		log.Errorf("failed to update vault deadlock flag: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	vaultRows, _ := vaultRes.RowsAffected()
@@ -134,13 +137,15 @@ func (r *VaultCategoryRepository) UpdateVaultDeadlock(ctx context.Context, id st
 	}
 
 	if err := tx.Commit(); err != nil {
-		r.logger.Errorf("failed to commit deadlock unlock tx: %v", err)
+		log.Errorf("failed to commit deadlock unlock tx: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 
 func (r *VaultCategoryRepository) GetDeadlockRequest(ctx context.Context, id string) (*imodel.DeadlockRequest, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	var request imodel.DeadlockRequest
 	err := r.db.QueryRowContext(ctx, selectDeadlockRequestByID, id).Scan(
 		&request.ID,
@@ -162,14 +167,16 @@ func (r *VaultCategoryRepository) GetDeadlockRequest(ctx context.Context, id str
 		if err == sql.ErrNoRows {
 			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
-		r.logger.Errorf("failed to get deadlock request: %v", err)
+		log.Errorf("failed to get deadlock request: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return &request, nil
 }
 
 func (r *VaultCategoryRepository) GetAllDeadlockedRequests(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.DeadlockRequest], error) {
-	r.logger.Infof("[GetAllDeadlockedRequests] getting all deadlock requests")
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[GetAllDeadlockedRequests] getting all deadlock requests")
 	limit := int64(50)
 	page := int64(1)
 
@@ -204,7 +211,7 @@ func (r *VaultCategoryRepository) GetAllDeadlockedRequests(ctx context.Context, 
 		sql.Named("limit", limit),
 	)
 	if err != nil {
-		r.logger.Errorf("failed to list deadlock requests: %v", err)
+		log.Errorf("failed to list deadlock requests: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer rows.Close()
@@ -233,7 +240,7 @@ func (r *VaultCategoryRepository) GetAllDeadlockedRequests(ctx context.Context, 
 			&request.UpdatedAt,
 			&count,
 		); err != nil {
-			r.logger.Errorf("failed to scan deadlock request: %v", err)
+			log.Errorf("failed to scan deadlock request: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 

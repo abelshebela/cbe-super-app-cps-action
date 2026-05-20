@@ -8,6 +8,7 @@ import (
 
 	"github.com/IBM/sarama"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.uber.org/zap"
@@ -56,10 +57,12 @@ func NewAccessListSegmentationProducer(cfg *config.VaultConfig, producer sarama.
 
 // Close closes the Access List Segmentation Kafka producer
 func (asp *AccessListSegmentationProducer) Close(ctx context.Context) {
+	log := local_util.LoggerFromCtx(ctx, asp.logger)
+
 	if err := asp.producer.Close(); err != nil {
-		asp.logger.Errorf("Failed to close Access List Segmentation Kafka producer", zap.Error(err))
+		log.Errorf("Failed to close Access List Segmentation Kafka producer", zap.Error(err))
 	} else {
-		asp.logger.Infof("Access List Segmentation Kafka producer closed successfully")
+		log.Infof("Access List Segmentation Kafka producer closed successfully")
 	}
 }
 
@@ -103,6 +106,8 @@ func (asp *AccessListSegmentationProducer) PublishMessage(ctx context.Context, m
 func (asp *AccessListSegmentationProducer) produceAndWait(ctx context.Context,
 	kafkaMsg *sarama.ProducerMessage,
 	messageID, topic, logType string) error {
+	log := local_util.LoggerFromCtx(ctx, asp.logger)
+
 	// Create a channel for handling the send with timeout
 	done := make(chan error, 1)
 
@@ -113,7 +118,7 @@ func (asp *AccessListSegmentationProducer) produceAndWait(ctx context.Context,
 			return
 		}
 
-		asp.logger.Infof(
+		log.Infof(
 			fmt.Sprintf("%s Access List Segmentation message published successfully", logType),
 			zap.String("message_id", messageID),
 			zap.String("topic", topic),

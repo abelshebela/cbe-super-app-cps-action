@@ -81,6 +81,8 @@ func parseBoolFilter(v interface{}) (bool, bool) {
 }
 
 func (s *ServicesStorage) getServiceCaps(ctx context.Context, serviceID string) ([]imodel.Cap, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	const q = `
 SELECT source, currency, single_cap, minimum_transfer_cap
 FROM service_cap
@@ -88,7 +90,7 @@ WHERE service_id = HEXTORAW(:1)`
 
 	rows, err := s.db.QueryContext(ctx, q, serviceID)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][getServiceCaps] query caps failed: %v", err)
+		log.Errorf("[ServicesRepo][getServiceCaps] query caps failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -98,7 +100,7 @@ WHERE service_id = HEXTORAW(:1)`
 		var sourceStr string
 		var currency, singleCap, minTransferCap string
 		if err := rows.Scan(&sourceStr, &currency, &singleCap, &minTransferCap); err != nil {
-			s.logger.Errorf("[ServicesRepo][getServiceCaps] scan failed: %v", err)
+			log.Errorf("[ServicesRepo][getServiceCaps] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 
@@ -113,6 +115,8 @@ WHERE service_id = HEXTORAW(:1)`
 }
 
 func (s *ServicesStorage) CheckAccountNumberExistence(ctx context.Context, accountNumber string) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	const checkQ = `
 		SELECT RAWTOHEX(id)
 		FROM accounts
@@ -122,13 +126,15 @@ func (s *ServicesStorage) CheckAccountNumberExistence(ctx context.Context, accou
 	var accountID string
 	err := s.db.QueryRowContext(ctx, checkQ, accountNumber).Scan(&accountID)
 	if err != nil && err != sql.ErrNoRows {
-		s.logger.Errorf("[ServicesRepo][CheckAccountNumberExistence] query failed: %v", err)
+		log.Errorf("[ServicesRepo][CheckAccountNumberExistence] query failed: %v", err)
 		return "", local_util.HandleDBError(err)
 	}
 	return accountID, nil
 }
 
 func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, accountDetail model.AccountDetail) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	const bankQ = `
 		SELECT RAWTOHEX(id)
 		FROM banks
@@ -165,23 +171,23 @@ func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, acc
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		s.logger.Errorf("[InsertAccountNumberToAccounts] begin tx failed: %v", err)
+		log.Errorf("[InsertAccountNumberToAccounts] begin tx failed: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
 
 	// ── Step 1: resolve the CBE bank ID ─────────────────────────────────────
-	s.logger.Debugf("[InsertAccountNumberToAccounts] resolving CBE bank ID")
+	log.Debugf("[InsertAccountNumberToAccounts] resolving CBE bank ID")
 
 	var bankID string
 	err = tx.QueryRowContext(ctx, bankQ).Scan(&bankID)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		s.logger.Errorf("[InsertAccountNumberToAccounts] no active CBE bank found")
+		log.Errorf("[InsertAccountNumberToAccounts] no active CBE bank found")
 		return "", errors.New("cbe bank not found")
 
 	case err != nil:
-		s.logger.Errorf("[InsertAccountNumberToAccounts] failed to fetch CBE bank: %v", err)
+		log.Errorf("[InsertAccountNumberToAccounts] failed to fetch CBE bank: %v", err)
 		return "", local_util.HandleDBError(err)
 	}
 
@@ -191,7 +197,7 @@ func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, acc
 		customerNumber = accountDetail.CustomerID
 	}
 
-	s.logger.Debugf(
+	log.Debugf(
 		"[InsertAccountNumberToAccounts] inserting account %s with bank_id %s",
 		accountDetail.AccountNumber, bankID,
 	)
@@ -210,37 +216,37 @@ func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, acc
 		if oraErr, ok := godror.AsOraErr(err); ok {
 			switch oraErr.Code() {
 			case 1: // ORA-00001: race condition between check and insert
-				s.logger.Warnf(
+				log.Warnf(
 					"[InsertAccountNumberToAccounts] concurrent insert detected for account %s, fetching existing id",
 					accountDetail.AccountNumber,
 				)
 				fetchErr := tx.QueryRowContext(ctx, checkQ, accountDetail.AccountNumber).Scan(&accountID)
 				if fetchErr != nil {
-					s.logger.Errorf("[InsertAccountNumberToAccounts] fallback fetch after race failed: %v", fetchErr)
+					log.Errorf("[InsertAccountNumberToAccounts] fallback fetch after race failed: %v", fetchErr)
 					return "", local_util.HandleDBError(fetchErr)
 				}
 				// accountID is now populated — fall through to commit
 
 			case 2291: // ORA-02291: FK violation — bank_id not in banks
-				s.logger.Errorf("[InsertAccountNumberToAccounts] bank_id %s not found in banks table", bankID)
+				log.Errorf("[InsertAccountNumberToAccounts] bank_id %s not found in banks table", bankID)
 				return "", errors.New("bank id not found")
 
 			default:
-				s.logger.Errorf("[InsertAccountNumberToAccounts] insert failed (ORA-%05d): %v", oraErr.Code(), err)
+				log.Errorf("[InsertAccountNumberToAccounts] insert failed (ORA-%05d): %v", oraErr.Code(), err)
 				return "", local_util.HandleDBError(err)
 			}
 		} else {
-			s.logger.Errorf("[InsertAccountNumberToAccounts] insert failed: %v", err)
+			log.Errorf("[InsertAccountNumberToAccounts] insert failed: %v", err)
 			return "", local_util.HandleDBError(err)
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
-		s.logger.Errorf("[InsertAccountNumberToAccounts] commit failed: %v", err)
+		log.Errorf("[InsertAccountNumberToAccounts] commit failed: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	s.logger.Infof(
+	log.Infof(
 		"[InsertAccountNumberToAccounts] account %s created (id=%s)",
 		accountDetail.AccountNumber, accountID,
 	)
@@ -249,13 +255,15 @@ func (s *ServicesStorage) InsertAccountNumberToAccounts(ctx context.Context, acc
 }
 
 func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, accountNumber string, service *imodel.Service) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	var serviceID string
 	if strings.TrimSpace(service.ServiceKeyId) == "" {
 		return "", errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	// ── Step 4: insert into services ────────────────────────────────────────
-	s.logger.Debugf("[insertService] inserting service with ServiceKeyId %s and GL account %s", service.ServiceKeyId, accountNumber)
+	log.Debugf("[insertService] inserting service with ServiceKeyId %s and GL account %s", service.ServiceKeyId, accountNumber)
 
 	const insertServiceQ = `
 		INSERT INTO services (
@@ -283,7 +291,7 @@ func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, account
 		service.LastModifiedAt,
 		sql.Out{Dest: &serviceID},
 	); err != nil {
-		s.logger.Errorf("[insertService] insert service failed: %v", err)
+		log.Errorf("[insertService] insert service failed: %v", err)
 
 		if oraErr, ok := godror.AsOraErr(err); ok {
 			if oraErr.Code() == 2291 {
@@ -320,7 +328,7 @@ func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, account
 			cap.SingleCap,
 			cap.MinimumTransferCap,
 		); err != nil {
-			s.logger.Errorf("[insertService] insert cap failed for service %s: %v", serviceID, err)
+			log.Errorf("[insertService] insert cap failed for service %s: %v", serviceID, err)
 			return "", local_util.HandleDBError(err)
 		}
 	}
@@ -329,9 +337,11 @@ func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, account
 }
 
 func (s *ServicesStorage) updateServiceCaps(ctx context.Context, tx *sql.Tx, serviceID string, caps []imodel.Cap) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	const deleteCapsQ = `DELETE FROM service_cap WHERE service_id = HEXTORAW(:1)`
 	if _, err := tx.ExecContext(ctx, deleteCapsQ, serviceID); err != nil {
-		s.logger.Errorf("[ServicesRepo][updateServiceCaps] delete caps failed: %v", err)
+		log.Errorf("[ServicesRepo][updateServiceCaps] delete caps failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
@@ -359,7 +369,7 @@ VALUES (
 			cap.SingleCap,
 			cap.MinimumTransferCap,
 		); err != nil {
-			s.logger.Errorf("[ServicesRepo][updateServiceCaps] insert cap failed: %v", err)
+			log.Errorf("[ServicesRepo][updateServiceCaps] insert cap failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 	}
@@ -368,6 +378,8 @@ VALUES (
 }
 
 func (s *ServicesStorage) Create(ctx context.Context, accountNumber string, service *imodel.Service) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	if service.CreatedAt.IsZero() {
 		service.CreatedAt = time.Now()
 	}
@@ -377,21 +389,21 @@ func (s *ServicesStorage) Create(ctx context.Context, accountNumber string, serv
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][Create] begin tx failed: %v", err)
+		log.Errorf("[ServicesRepo][Create] begin tx failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	s.logger.Debugf("Creating service with ServiceKeyId %s", service.ServiceKeyId)
+	log.Debugf("Creating service with ServiceKeyId %s", service.ServiceKeyId)
 	serviceID, err := s.insertService(ctx, tx, accountNumber, service)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][Create] insert failed: %v", err)
+		log.Errorf("[ServicesRepo][Create] insert failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	service.ID = serviceID
 
 	if err := tx.Commit(); err != nil {
-		s.logger.Errorf("[ServicesRepo][Create] commit failed: %v", err)
+		log.Errorf("[ServicesRepo][Create] commit failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -408,15 +420,17 @@ func (s *ServicesStorage) Create(ctx context.Context, accountNumber string, serv
 }
 
 func (s *ServicesStorage) Update(ctx context.Context, id string, service *imodel.Service, accountDetail string) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][Update] begin tx failed: %v", err)
+		log.Errorf("[ServicesRepo][Update] begin tx failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
 	serviceKeyID := strings.TrimSpace(service.ServiceKeyId)
 
-	s.logger.Debugf("Updating service with ID %s and ServiceKeyId %s", id, serviceKeyID)
+	log.Debugf("Updating service with ID %s and ServiceKeyId %s", id, serviceKeyID)
 	const q = `
 UPDATE services
 SET
@@ -437,7 +451,7 @@ WHERE id = HEXTORAW(:6)`
 		id,
 	)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][Update] update services failed: %v", err)
+		log.Errorf("[ServicesRepo][Update] update services failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
@@ -452,7 +466,7 @@ WHERE id = HEXTORAW(:6)`
 	}
 
 	if err := tx.Commit(); err != nil {
-		s.logger.Errorf("[ServicesRepo][Update] commit failed: %v", err)
+		log.Errorf("[ServicesRepo][Update] commit failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -469,10 +483,11 @@ WHERE id = HEXTORAW(:6)`
 }
 
 func (s *ServicesStorage) Delete(ctx context.Context, serviceID, accessListID string) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][Delete] begin tx failed: %v", err)
+		log.Errorf("[ServicesRepo][Delete] begin tx failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
@@ -487,7 +502,7 @@ func (s *ServicesStorage) Delete(ctx context.Context, serviceID, accessListID st
 		const deleteServiceQ = `DELETE FROM services WHERE id = HEXTORAW(:1)`
 		res, err := tx.ExecContext(ctx, deleteServiceQ, serviceID)
 		if err != nil {
-			s.logger.Errorf("[ServicesRepo][Delete] delete services failed: %v", err)
+			log.Errorf("[ServicesRepo][Delete] update services failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 
@@ -501,7 +516,7 @@ func (s *ServicesStorage) Delete(ctx context.Context, serviceID, accessListID st
 		const q = `DELETE FROM access_lists WHERE id = HEXTORAW(:1)`
 		result, err := tx.ExecContext(ctx, q, accessListID)
 		if err != nil {
-			s.logger.Errorf("[ServicesRepo][Delete] delete access_lists failed: %v", err)
+			log.Errorf("[ServicesRepo][Delete] delete service failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 
@@ -512,7 +527,7 @@ func (s *ServicesStorage) Delete(ctx context.Context, serviceID, accessListID st
 	}
 
 	if err := tx.Commit(); err != nil {
-		s.logger.Errorf("[ServicesRepo][Delete] commit failed: %v", err)
+		log.Errorf("[ServicesRepo][Delete] commit failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -520,6 +535,8 @@ func (s *ServicesStorage) Delete(ctx context.Context, serviceID, accessListID st
 }
 
 func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	const q = `
 UPDATE access_lists
 SET
@@ -534,7 +551,7 @@ WHERE id = (
 
 	res, err := s.db.ExecContext(ctx, q, boolToOracleNumber(enable), id)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][EnableOrDisable] update failed: %v", err)
+		log.Errorf("[ServicesRepo][EnableOrDisable] update failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
@@ -545,7 +562,7 @@ WHERE id = (
 
 	_, err = s.db.ExecContext(ctx, `UPDATE services SET last_modified_at = SYSTIMESTAMP WHERE id = HEXTORAW(:1)`, id)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][EnableOrDisable] update services last_modified_at failed: %v", err)
+		log.Errorf("[ServicesRepo][EnableOrDisable] update services last_modified_at failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
@@ -553,6 +570,8 @@ WHERE id = (
 }
 
 func (s *ServicesStorage) FindByID(ctx context.Context, id string) (*service_dto.ServiceResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	const q = `
 SELECT
   RAWTOHEX(s.id),
@@ -592,7 +611,7 @@ WHERE s.id = HEXTORAW(:1) AND sk.is_deleted = 0`
 		&deletedAt,
 	)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][FindByID] query failed: %v", err)
+		log.Errorf("[ServicesRepo][FindByID] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -622,6 +641,8 @@ func (s *ServicesStorage) FindByAccessListID(ctx context.Context, accessListID s
 }
 
 func (s *ServicesStorage) FindServiceByAccessListID(ctx context.Context, accessListID string) (*service_dto.ServiceResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	const q = `
 SELECT
   RAWTOHEX(s.id),
@@ -661,7 +682,7 @@ WHERE sk.id = HEXTORAW(:1) AND s.is_deleted = 0`
 		&deletedAt,
 	)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][FindByID] query failed: %v", err)
+		log.Errorf("[ServicesRepo][FindByID] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -680,6 +701,7 @@ WHERE sk.id = HEXTORAW(:1) AND s.is_deleted = 0`
 }
 
 func (s *ServicesStorage) FindSupperAppRoleByAccessList(ctx context.Context, accessListID string) (bool, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	const q = `SELECT ID FROM ACCESS_LIST_BY_SUPERAPP_ROLE WHERE ACCESS_LIST_ID = :1 AND IS_DELETED = 0`
 
@@ -689,13 +711,15 @@ func (s *ServicesStorage) FindSupperAppRoleByAccessList(ctx context.Context, acc
 		if err == sql.ErrNoRows {
 			return false, nil
 		}
-		s.logger.Errorf("[ServiceRepo][FindSupperAppRoleByAccessList] query failed: %v", err)
+		log.Errorf("[ServiceRepo][FindSupperAppRoleByAccessList] query failed: %v", err)
 		return false, local_util.HandleDBError(err)
 	}
 	return true, nil
 }
 
 func (s *ServicesStorage) FindGeographicalLocationByAccessList(ctx context.Context, accessListID string) (bool, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	const q = `SELECT ID FROM ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS WHERE ACCESS_LIST_ID = :1 AND IS_DELETED = 0`
 
 	var id string
@@ -704,7 +728,7 @@ func (s *ServicesStorage) FindGeographicalLocationByAccessList(ctx context.Conte
 		if err == sql.ErrNoRows {
 			return false, nil
 		}
-		s.logger.Errorf("[ServiceRepo][FindGeographicalLocationByAccessList] query failed: %v", err)
+		log.Errorf("[ServiceRepo][FindGeographicalLocationByAccessList] query failed: %v", err)
 		return false, local_util.HandleDBError(err)
 	}
 	return true, nil
@@ -712,6 +736,8 @@ func (s *ServicesStorage) FindGeographicalLocationByAccessList(ctx context.Conte
 }
 
 func (s *ServicesStorage) FindWalletByServiceId(ctx context.Context, serviceID string) (bool, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	const q = `SELECT ID FROM WALLET_SERVICES WHERE SERVICE_ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
 	var id string
@@ -720,13 +746,15 @@ func (s *ServicesStorage) FindWalletByServiceId(ctx context.Context, serviceID s
 		if err == sql.ErrNoRows {
 			return false, nil
 		}
-		s.logger.Errorf("[ServiceRepo][FindWalletByAccessList] query failed: %v", err)
+		log.Errorf("[ServiceRepo][FindWalletByAccessList] query failed: %v", err)
 		return false, local_util.HandleDBError(err)
 	}
 	return true, nil
 }
 
 func (s *ServicesStorage) FindDonationByServiceId(ctx context.Context, serviceID string) (bool, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	const q = `SELECT ID FROM DONATIONS WHERE SERVICE_ID = HEXTORAW(:1) AND IS_DELETED = 0`
 
 	var id string
@@ -735,13 +763,15 @@ func (s *ServicesStorage) FindDonationByServiceId(ctx context.Context, serviceID
 		if err == sql.ErrNoRows {
 			return false, nil
 		}
-		s.logger.Errorf("[ServiceRepo][FindDonationByAccessList] query failed: %v", err)
+		log.Errorf("[ServiceRepo][FindDonationByAccessList] query failed: %v", err)
 		return false, err
 	}
 	return true, nil
 }
 
 func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]service_dto.ServiceResponse], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	limit := int64(maxPaginationDefault)
 	page := int64(1)
 	if filterParam.PerPage > 0 {
@@ -807,7 +837,7 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 	countQ := fmt.Sprintf(`SELECT COUNT(*) %s WHERE %s`, fromClause, where)
 	var total int64
 	if err := s.db.QueryRowContext(ctx, countQ, args...).Scan(&total); err != nil {
-		s.logger.Errorf("[ServicesRepo][FindAllWithPagination] count failed: %v", err)
+		log.Errorf("[ServicesRepo][FindAllWithPagination] count failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -861,7 +891,7 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	rows, err := s.db.QueryContext(ctx, listQ, listArgs...)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][FindAllWithPagination] list query failed: %v", err)
+		log.Errorf("[ServicesRepo][FindAllWithPagination] list query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -887,7 +917,7 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 			&svc.LastModifiedAt,
 			&deletedAt,
 		); err != nil {
-			s.logger.Errorf("[ServicesRepo][FindAllWithPagination] scan failed: %v", err)
+			log.Errorf("[ServicesRepo][FindAllWithPagination] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 
@@ -910,6 +940,8 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 }
 
 func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	clauses := make([]string, 0, 3)
 	args := make([]interface{}, 0, 3)
 
@@ -939,7 +971,7 @@ func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode
 
 	var count int64
 	if err := s.db.QueryRowContext(ctx, q, args...).Scan(&count); err != nil {
-		s.logger.Errorf("[ServicesRepo][CheckServiceExistence] count failed: %v", err)
+		log.Errorf("[ServicesRepo][CheckServiceExistence] count failed: %v", err)
 		return false, local_util.HandleDBError(err)
 	}
 
@@ -947,6 +979,8 @@ func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode
 }
 
 func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceKey], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	limit := int64(maxPaginationDefault)
 	page := int64(1)
 	if filterParam.PerPage > 0 {
@@ -1001,7 +1035,7 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 	countQ := fmt.Sprintf(`SELECT COUNT(*) FROM %s WHERE %s AND is_deleted = 0`, accessListTable, where)
 	var total int64
 	if err := s.db.QueryRowContext(ctx, countQ, args...).Scan(&total); err != nil {
-		s.logger.Errorf("[ServicesRepo][FindAllServiceListWithPagination] count failed: %v", err)
+		log.Errorf("[ServicesRepo][FindAllServiceListWithPagination] count failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -1022,7 +1056,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 	listArgs := append(args, sql.Named("offset", offset), sql.Named("limit", limit))
 	rows, err := s.db.QueryContext(ctx, listQ, listArgs...)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][FindAllServiceListWithPagination] list query failed: %v", err)
+		log.Errorf("[ServicesRepo][FindAllServiceListWithPagination] list query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -1040,7 +1074,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, accessListTable, where)
 			&item.CreatedAt,
 			&item.LastModifiedAt,
 		); err != nil {
-			s.logger.Errorf("[ServicesRepo][FindAllServiceListWithPagination] scan failed: %v", err)
+			log.Errorf("[ServicesRepo][FindAllServiceListWithPagination] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 
@@ -1180,11 +1214,13 @@ FETCH FIRST 1 ROWS ONLY`, accessListTable, where)
 }
 
 func (s *ServicesStorage) CreateServiceKey(ctx context.Context, serviceList *imodel.ServiceKey) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	serviceList.IsEnabled = true
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][CreateServiceKey] begin tx failed: %v", err)
+		log.Errorf("[ServicesRepo][CreateServiceKey] begin tx failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
@@ -1206,7 +1242,7 @@ VALUES (
 		serviceList.AccountType,
 		boolToOracleNumber(serviceList.IsEnabled),
 	); err != nil {
-		s.logger.Errorf("[ServicesRepo][CreateServiceKey] insert failed: %v", err)
+		log.Errorf("[ServicesRepo][CreateServiceKey] insert failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -1231,12 +1267,12 @@ VALUES (
 	// 		serviceList.CreatedAt,
 	// 		serviceList.LastModifiedAt,
 	// 	); err != nil {
-	// 		s.logger.Errorf("[ServicesRepo][CreateServiceKey] insert access_list failed: %v", err)
+	// 		log.Errorf("[ServicesRepo][CreateServiceKey] insert access_list failed: %v", err)
 	// 		return local_util.HandleDBError(err)
 	// 	}
 
 	if err := tx.Commit(); err != nil {
-		s.logger.Errorf("[ServicesRepo][CreateServiceKey] commit failed: %v", err)
+		log.Errorf("[ServicesRepo][CreateServiceKey] commit failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -1253,9 +1289,11 @@ VALUES (
 }
 
 func (s *ServicesStorage) UpdateServiceKey(ctx context.Context, id, serviceKey string, serviceList *imodel.ServiceKey) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][UpdateServiceKey] begin tx failed: %v", err)
+		log.Errorf("[ServicesRepo][UpdateServiceKey] begin tx failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = tx.Rollback() }()
@@ -1276,7 +1314,7 @@ WHERE id = :4 AND service_key = :5`
 		serviceKey,
 	)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][UpdateServiceKey] update failed: %v", err)
+		log.Errorf("[ServicesRepo][UpdateServiceKey] update failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	rows, _ := res.RowsAffected()
@@ -1296,18 +1334,20 @@ WHERE id = :4 AND service_key = :5`
 	// 		serviceList.ServiceName,
 	// 		serviceKey,
 	// 	); err != nil {
-	// 		s.logger.Errorf("[ServicesRepo][UpdateServiceKey] update access_list failed: %v", err)
+	// 		log.Errorf("[ServicesRepo][UpdateServiceKey] update access_list failed: %v", err)
 	// 		return local_util.HandleDBError(err)
 	// 	}
 
 	if err := tx.Commit(); err != nil {
-		s.logger.Errorf("[ServicesRepo][UpdateServiceKey] commit failed: %v", err)
+		log.Errorf("[ServicesRepo][UpdateServiceKey] commit failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 
 func (s *ServicesStorage) EnableOrDisableServiceList(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	const q = `
 UPDATE access_lists
 SET
@@ -1317,7 +1357,7 @@ WHERE id = :2`
 
 	res, err := s.db.ExecContext(ctx, q, boolToOracleNumber(enable), id)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][EnableOrDisableServiceList] update failed: %v", err)
+		log.Errorf("[ServicesRepo][EnableOrDisableServiceList] update failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	rows, _ := res.RowsAffected()
@@ -1327,7 +1367,7 @@ WHERE id = :2`
 
 	// result, err := s.FindServiceListByID(ctx, id)
 	// if err != nil {
-	// 	s.logger.Errorf("[ServicesRepo][EnableOrDisableServiceList] find service list failed: %v", err)
+	// 	log.Errorf("[ServicesRepo][EnableOrDisableServiceList] find service list failed: %v", err)
 	// 	return err
 	// }
 
@@ -1338,7 +1378,7 @@ WHERE id = :2`
 	//   last_modified_at = SYSTIMESTAMP
 	// WHERE key = :2`
 	// if _, err := s.db.ExecContext(ctx, accessEnableQ, boolToOracleNumber(enable), result.ServiceKey); err != nil {
-	// 	s.logger.Errorf("[ServicesRepo][EnableOrDisableServiceList] update access_list failed: %v", err)
+	// 	log.Errorf("[ServicesRepo][EnableOrDisableServiceList] update access_list failed: %v", err)
 	// 	return local_util.HandleDBError(err)
 	// }
 
@@ -1349,7 +1389,6 @@ func (s *ServicesStorage) DeleteServiceKey(ctx context.Context, id string) error
 	const checkQ = `SELECT COUNT(*) FROM services WHERE access_list_id = HEXTORAW(:1) AND is_deleted = 0`
 	var count int64
 	if err := s.db.QueryRowContext(ctx, checkQ, id).Scan(&count); err != nil {
-		s.logger.Errorf("[ServicesRepo][DeleteServiceKey] check services failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	if count > 0 {
@@ -1361,6 +1400,8 @@ func (s *ServicesStorage) DeleteServiceKey(ctx context.Context, id string) error
 
 // CheckIfIDsExist implements [storage.ServicesRepository].
 func (s *ServicesStorage) CheckIfIDsExist(ctx context.Context, selfServiceID, otherServiceID, agentServiceID string) ([]imodel.Service, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	// Collect non-empty IDs
 	ids := make([]string, 0, 3)
 	if selfServiceID != "" {
@@ -1386,7 +1427,7 @@ func (s *ServicesStorage) CheckIfIDsExist(ctx context.Context, selfServiceID, ot
 
 	rows, err := s.db.QueryContext(ctx, query, toInterfaceSlice(ids)...)
 	if err != nil {
-		s.logger.Errorf("[ServicesRepo][CheckIfIDsExist] query failed: %v", err)
+		log.Errorf("[ServicesRepo][CheckIfIDsExist] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -1395,7 +1436,7 @@ func (s *ServicesStorage) CheckIfIDsExist(ctx context.Context, selfServiceID, ot
 	for rows.Next() {
 		var service imodel.Service
 		if err := rows.Scan(&service.ID, &service.ServiceName); err != nil {
-			s.logger.Errorf("[ServicesRepo][CheckIfIDsExist] scan failed: %v", err)
+			log.Errorf("[ServicesRepo][CheckIfIDsExist] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 		existingIDs = append(existingIDs, service)

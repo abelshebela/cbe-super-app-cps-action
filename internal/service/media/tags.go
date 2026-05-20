@@ -29,10 +29,12 @@ func NewMediaTagsService(repo storage.NewsTagsRepository, logger utils.Logger) s
 }
 
 func (m *mediaTagsService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Media", "Authorize")
 	defer span.End()
 
-	m.logger.Infof("[MediaTagsSvc][Authorize] action: %s", cpsAction.ActionCode)
+	log.Infof("[MediaTagsSvc][Authorize] action: %s", cpsAction.ActionCode)
 
 	tags, err := local_util.JsonUnmarshal[model.NewsTags](cpsAction.CurrentAction)
 	if err != nil {
@@ -90,7 +92,7 @@ func (m *mediaTagsService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 			return nil, err
 		}
 	default:
-		m.logger.Errorf("[MediaTagsSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
+		log.Errorf("[MediaTagsSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 		span.AddEvent("Unsupported request action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorInvalidRequest.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
@@ -99,7 +101,7 @@ func (m *mediaTagsService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 	}
 
 	cpsAction.CurrentAction = tags
-	m.logger.Infof("[MediaTagsSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, tags.ID)
+	log.Infof("[MediaTagsSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, tags.ID)
 	return cpsAction, nil
 
 }

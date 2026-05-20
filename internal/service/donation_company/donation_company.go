@@ -220,9 +220,10 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "DonationCompany", "Authorize")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 
 	if action.ActionStatus != constants.Approved {
-		d.logger.Errorf("[DonCompSvc][Authorize] invalid status")
+		log.Errorf("[DonCompSvc][Authorize] invalid status")
 		span.AddEvent("CPS action status invalid", trace.WithAttributes(
 			attribute.String("error", localization.ErrorCPSActionStatusInvalid.Code),
 			attribute.String("unique_id", action.UniqueId),
@@ -243,7 +244,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 	case string(constants.RequestCreateDonationCompany):
 		err := d.DonationCompanyRepo.Create(ctx, donationCompoany)
 		if err != nil {
-			d.logger.Errorf("[DonCompSvc][Authorize] create err: %v", err)
+			log.Errorf("[DonCompSvc][Authorize] create err: %v", err)
 			span.AddEvent("Failed to create donation company", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -253,7 +254,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 	case string(constants.RequestUpdateDonationCompany):
 		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
 		if err != nil {
-			d.logger.Errorf("[DonCompSvc][Authorize] update err: %v", err)
+			log.Errorf("[DonCompSvc][Authorize] update err: %v", err)
 			span.AddEvent("Failed to update donation company", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -264,7 +265,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 
 		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
 		if err != nil {
-			d.logger.Errorf("[DonCompSvc][Authorize] enable err: %v", err)
+			log.Errorf("[DonCompSvc][Authorize] enable err: %v", err)
 			span.AddEvent("Failed to enable donation company", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -275,7 +276,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 		// 1. Persist the company disable via CPS.
 		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
 		if err != nil {
-			d.logger.Errorf("[DonCompSvc][Authorize] disable err: %v", err)
+			log.Errorf("[DonCompSvc][Authorize] disable err: %v", err)
 			span.AddEvent("Failed to disable donation company", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -285,7 +286,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 
 		// 2. Atomically disable all enabled donations that belong to this company.
 		if err := d.DonationRepo.DisableAllByCompany(ctx, action.UniqueId); err != nil {
-			d.logger.Errorf("[DonCompSvc][Authorize] failed to disable company donations: %v", err)
+			log.Errorf("[DonCompSvc][Authorize] failed to disable company donations: %v", err)
 			span.AddEvent("Failed to bulk-disable donations for company", trace.WithAttributes(
 				attribute.String("error", localization.ErrorDonationUpdateFailed.Code),
 				attribute.String("unique_id", action.UniqueId),
@@ -296,7 +297,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 	case string(constants.RequestDeleteDonationCompany):
 		err := d.DonationCompanyRepo.Delete(ctx, action.UniqueId)
 		if err != nil {
-			d.logger.Errorf("[DonCompSvc][Authorize] delete err: %v", err)
+			log.Errorf("[DonCompSvc][Authorize] delete err: %v", err)
 			span.AddEvent("Failed to delete donation company", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
@@ -305,7 +306,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 		}
 
 	default:
-		d.logger.Errorf("[DonCompSvc][Authorize] unsupported action: %s", action.RequestAction)
+		log.Errorf("[DonCompSvc][Authorize] unsupported action: %s", action.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(action.RequestAction)),
@@ -313,7 +314,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
-	d.logger.Infof("[DonCompSvc][Authorize] completed: %s", action.RequestAction)
+	log.Infof("[DonCompSvc][Authorize] completed: %s", action.RequestAction)
 	return action, nil
 }
 
@@ -322,10 +323,11 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 func (d *DonationCompany) AccountLookup(ctx context.Context, accountNumber string) (*model.AccountDetail, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "AccountLookup", "DonationCompany", "AccountLookup")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 
 	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, accountNumber, d.accountLookupService, d.logger)
 	if err != nil {
-		d.logger.Errorf("[DonCompSvc][AccountLookup] validation err: %v", err)
+		log.Errorf("[DonCompSvc][AccountLookup] validation err: %v", err)
 		span.AddEvent("Account number validation failed", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("account_number", accountNumber),

@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -95,6 +96,8 @@ func (p *S3Persistence) Get(ctx context.Context, key string, bucketPrefix string
 
 // UploadMultipart uploads a multipart file part to S3 and returns the full URL
 func (p *S3Persistence) UploadMultipart(ctx context.Context, key string, file multipart.File, header *multipart.FileHeader, bucketPrefix string) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
 	k := strings.TrimSpace(key)
 	if k == "" && header != nil {
 		name := header.Filename
@@ -122,7 +125,7 @@ func (p *S3Persistence) UploadMultipart(ctx context.Context, key string, file mu
 	})
 
 	if err != nil {
-		p.logger.Errorf("failed to upload multipart to s3: %v", err)
+		log.Errorf("failed to upload multipart to s3: %v", err)
 		return "", err
 	}
 	return p.BuildURL(finalKey, ""), nil
@@ -130,6 +133,8 @@ func (p *S3Persistence) UploadMultipart(ctx context.Context, key string, file mu
 
 // UploadRaw uploads a raw byte slice to S3 and returns the full URL
 func (p *S3Persistence) UploadRaw(ctx context.Context, key string, body []byte, contentType string, bucketPrefix string) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
 	if key == "" {
 		return "", fmt.Errorf("missing key")
 	}
@@ -156,7 +161,7 @@ func (p *S3Persistence) UploadRaw(ctx context.Context, key string, body []byte, 
 		ContentType: aws.String(ct),
 	})
 	if err != nil {
-		p.logger.Errorf("failed to upload raw to s3: %v", err)
+		log.Errorf("failed to upload raw to s3: %v", err)
 		return "", err
 	}
 	return p.BuildURL(finalKey, ""), nil

@@ -36,14 +36,16 @@ func NewNewsCategoryService(repo storage.NewsCategoryRepository, cpsService serv
 
 // Authorize implements service.NewsCategoryService.
 func (n *NewsCategoryService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "NewsCategory", "Authorize")
 	defer span.End()
 
-	n.logger.Infof("[NewsCatSvc][Authorize] action: %s", cpsAction.RequestAction)
+	log.Infof("[NewsCatSvc][Authorize] action: %s", cpsAction.RequestAction)
 
 	actionData, err := local_util.JsonUnmarshal[model.NewsCategoryCPSAction](cpsAction.CurrentAction)
 	if err != nil {
-		n.logger.Errorf("[NewsCatSvc][Authorize] unmarshal err: %v", err)
+		log.Errorf("[NewsCatSvc][Authorize] unmarshal err: %v", err)
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
@@ -53,66 +55,68 @@ func (n *NewsCategoryService) Authorize(ctx context.Context, cpsAction *model.CP
 
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestCreateNewsCategory):
-		n.logger.Infof("[NewsCatSvc][Authorize] creating")
+		log.Infof("[NewsCatSvc][Authorize] creating")
 		err := n.repo.Create(ctx, actionData.CategoryNameList)
 		if err != nil {
-			n.logger.Errorf("[NewsCatSvc][Authorize] create err: %v", err)
+			log.Errorf("[NewsCatSvc][Authorize] create err: %v", err)
 			span.AddEvent("Failed to create news category", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			return nil, err
 		}
-		n.logger.Infof("[NewsCatSvc][Authorize] created")
+		log.Infof("[NewsCatSvc][Authorize] created")
 	case string(constants.RequestUpdateNewsCategory):
-		n.logger.Infof("[NewsCatSvc][Authorize] updating id: %s", actionData.ID.Hex())
+		log.Infof("[NewsCatSvc][Authorize] updating id: %s", actionData.ID.Hex())
 		err := n.repo.Update(ctx, actionData.ID.Hex(), actionData.CategoryName)
 		if err != nil {
-			n.logger.Errorf("[NewsCatSvc][Authorize] update err: %v", err)
+			log.Errorf("[NewsCatSvc][Authorize] update err: %v", err)
 			span.AddEvent("Failed to update news category", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			return nil, err
 		}
-		n.logger.Infof("[NewsCatSvc][Authorize] updated id: %s", actionData.ID.Hex())
+		log.Infof("[NewsCatSvc][Authorize] updated id: %s", actionData.ID.Hex())
 		return cpsAction, nil
 
 	case string(constants.RequestDeleteNewsCategory):
-		n.logger.Infof("[NewsCatSvc][Authorize] deleting id: %s", actionData.ID.Hex())
+		log.Infof("[NewsCatSvc][Authorize] deleting id: %s", actionData.ID.Hex())
 		err := n.repo.Delete(ctx, actionData.ID.Hex())
 		if err != nil {
-			n.logger.Errorf("[NewsCatSvc][Authorize] delete err: %v", err)
+			log.Errorf("[NewsCatSvc][Authorize] delete err: %v", err)
 			span.AddEvent("Failed to delete news category", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			return nil, err
 		}
-		n.logger.Infof("[NewsCatSvc][Authorize] deleted id: %s", actionData.ID.Hex())
+		log.Infof("[NewsCatSvc][Authorize] deleted id: %s", actionData.ID.Hex())
 		return cpsAction, nil
 
 	default:
-		n.logger.Errorf("[NewsCatSvc][Authorize] invalid: %s", cpsAction.RequestAction)
+		log.Errorf("[NewsCatSvc][Authorize] invalid: %s", cpsAction.RequestAction)
 		span.AddEvent("Invalid action", trace.WithAttributes(
 			attribute.String("error", localization.MsgInvalidAction),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
 		return nil, fmt.Errorf("%s", localization.MsgInvalidAction)
 	}
-	n.logger.Infof("[NewsCatSvc][Authorize] done: %s", cpsAction.RequestAction)
+	log.Infof("[NewsCatSvc][Authorize] done: %s", cpsAction.RequestAction)
 	return cpsAction, nil
 }
 
 // CreateNewsCategory implements service.NewsCategoryService.
 func (n *NewsCategoryService) CreateNewsCategory(ctx context.Context, categoryName []string) error {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateNewsCategory", "NewsCategory", "CreateNewsCategory")
 	defer span.End()
 
-	n.logger.Infof("[NewsCatSvc][Create] count: %d", len(categoryName))
+	log.Infof("[NewsCatSvc][Create] count: %d", len(categoryName))
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		n.logger.Errorf("[NewsCatSvc][Create] incomplete user")
+		log.Errorf("[NewsCatSvc][Create] incomplete user")
 		span.AddEvent("Incomplete user data", trace.WithAttributes(
 			attribute.String("error", constants.IncompleteUserInfo),
 		))
@@ -122,7 +126,7 @@ func (n *NewsCategoryService) CreateNewsCategory(ctx context.Context, categoryNa
 	code, _ := local_util.HandleMongoError(err)
 	if code != localization.ErrorResourceNotFound.Code {
 		if err != nil {
-			n.logger.Errorf("[NewsCatSvc][Create] find names err: %v", err)
+			log.Errorf("[NewsCatSvc][Create] find names err: %v", err)
 			span.AddEvent("Failed to find news categories", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 			))
@@ -131,7 +135,7 @@ func (n *NewsCategoryService) CreateNewsCategory(ctx context.Context, categoryNa
 	}
 
 	if news_cat != nil {
-		n.logger.Errorf("[NewsCatSvc][Create] name exists")
+		log.Errorf("[NewsCatSvc][Create] name exists")
 		span.AddEvent("News category already exists", trace.WithAttributes(
 			attribute.String("error", localization.ErrorNewsCategoryWithNameAlreadyExists.Code),
 		))
@@ -140,26 +144,28 @@ func (n *NewsCategoryService) CreateNewsCategory(ctx context.Context, categoryNa
 	cpsAction := lib.CpsModelBuilder("", makerData, nil, model.NewsCategoryCPSAction{CategoryNameList: categoryName}, string(constants.RequestCreateNewsCategory), constants.CREATE)
 
 	if err := n.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-		n.logger.Errorf("[NewsCatSvc][Create] cps action err: %v", err)
+		log.Errorf("[NewsCatSvc][Create] cps action err: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
 		return err
 	}
-	n.logger.Infof("[NewsCatSvc][Create] request created count: %d", len(categoryName))
+	log.Infof("[NewsCatSvc][Create] request created count: %d", len(categoryName))
 
 	return nil
 }
 
 // DeleteNewsCategory implements service.NewsCategoryService.
 func (n *NewsCategoryService) DeleteNewsCategory(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteNewsCategory", "NewsCategory", "DeleteNewsCategory")
 	defer span.End()
 
-	n.logger.Infof("[NewsCatSvc][Delete] id: %s", id)
+	log.Infof("[NewsCatSvc][Delete] id: %s", id)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		n.logger.Errorf("[NewsCatSvc][Delete] incomplete user")
+		log.Errorf("[NewsCatSvc][Delete] incomplete user")
 		span.AddEvent("Incomplete user data", trace.WithAttributes(
 			attribute.String("error", constants.IncompleteUserInfo),
 			attribute.String("id", id),
@@ -170,14 +176,14 @@ func (n *NewsCategoryService) DeleteNewsCategory(ctx context.Context, id string)
 	news_category, err := n.repo.Get(ctx, id)
 	code, _ := local_util.HandleMongoError(err)
 	if code == localization.ErrorResourceNotFound.Code {
-		n.logger.Errorf("[NewsCatSvc][Delete] not found: %s", id)
+		log.Errorf("[NewsCatSvc][Delete] not found: %s", id)
 		span.AddEvent("Resource not found", trace.WithAttributes(
 			attribute.String("error", localization.ErrorResourceNotFound.Code),
 			attribute.String("id", id),
 		))
 		return fmt.Errorf("%s", localization.ErrorResourceNotFound.Code)
 	} else if err != nil {
-		n.logger.Errorf("[NewsCatSvc][Delete] get err: %v", err)
+		log.Errorf("[NewsCatSvc][Delete] get err: %v", err)
 		span.AddEvent("Failed to get news category", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -193,80 +199,86 @@ func (n *NewsCategoryService) DeleteNewsCategory(ctx context.Context, id string)
 	cpsAction := lib.CpsModelBuilder(id, makerData, news_category, updated_news_category, string(constants.RequestDeleteNewsCategory), constants.DELETE)
 
 	if err := n.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-		n.logger.Errorf("[NewsCatSvc][Delete] cps action err: %v", err)
+		log.Errorf("[NewsCatSvc][Delete] cps action err: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return err
 	}
-	n.logger.Infof("[NewsCatSvc][Delete] request created id: %s", id)
+	log.Infof("[NewsCatSvc][Delete] request created id: %s", id)
 
 	return nil
 }
 
 // FindAllWithPagination implements service.NewsCategoryService.
 func (n *NewsCategoryService) FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.NewsCategory], error) {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "NewsCategory", "FindAllWithPagination")
 	defer span.End()
 
 	categories, err := n.repo.FindAllWithPagination(ctx, filter)
 	if err != nil {
-		n.logger.Errorf("[NewsCatSvc][FindAll] fetch err: %v", err)
+		log.Errorf("[NewsCatSvc][FindAll] fetch err: %v", err)
 		span.AddEvent("Failed to fetch news categories", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
 		return nil, err
 	}
-	n.logger.Infof("[NewsCatSvc][FindAll] count: %d", len(categories.Data))
+	log.Infof("[NewsCatSvc][FindAll] count: %d", len(categories.Data))
 	return categories, nil
 }
 
 // GetNewsCategoryByID implements service.NewsCategoryService.
 func (n *NewsCategoryService) GetNewsCategoryByID(ctx context.Context, id string) (*model.NewsCategory, error) {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetNewsCategoryByID", "NewsCategory", "GetNewsCategoryByID")
 	defer span.End()
 
 	news_category, err := n.repo.Get(ctx, id)
 	code, _ := local_util.HandleMongoError(err)
 	if code == localization.ErrorResourceNotFound.Code {
-		n.logger.Errorf("[NewsCatSvc][GetByID] not found: %s", id)
+		log.Errorf("[NewsCatSvc][GetByID] not found: %s", id)
 		span.AddEvent("Resource not found", trace.WithAttributes(
 			attribute.String("error", code),
 			attribute.String("id", id),
 		))
 		return nil, fmt.Errorf("%s", code)
 	} else if err != nil {
-		n.logger.Errorf("[NewsCatSvc][GetByID] get err: %v", err)
+		log.Errorf("[NewsCatSvc][GetByID] get err: %v", err)
 		span.AddEvent("Failed to get news category", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return nil, err
 	}
-	n.logger.Infof("[NewsCatSvc][GetByID] found id: %s", id)
+	log.Infof("[NewsCatSvc][GetByID] found id: %s", id)
 	return news_category, nil
 }
 
 // UpdateNewsCategory implements service.NewsCategoryService.
 func (n *NewsCategoryService) UpdateNewsCategory(ctx context.Context, id string, categoryName string) error {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateNewsCategory", "NewsCategory", "UpdateNewsCategory")
 	defer span.End()
 
-	n.logger.Infof("[NewsCatSvc][Update] id: %s", id)
+	log.Infof("[NewsCatSvc][Update] id: %s", id)
 	makerData := local_util.ExtractUserFromContext(ctx)
 
 	news_category, err := n.repo.Get(ctx, id)
 	code, _ := local_util.HandleMongoError(err)
 	if code == localization.ErrorResourceNotFound.Code {
-		n.logger.Errorf("[NewsCatSvc][Update] not found: %s", id)
+		log.Errorf("[NewsCatSvc][Update] not found: %s", id)
 		span.AddEvent("Resource not found", trace.WithAttributes(
 			attribute.String("error", code),
 			attribute.String("id", id),
 		))
 		return fmt.Errorf("%s", code)
 	} else if err != nil {
-		n.logger.Errorf("[NewsCatSvc][Update] get err: %v", err)
+		log.Errorf("[NewsCatSvc][Update] get err: %v", err)
 		span.AddEvent("Failed to get news category", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -277,7 +289,7 @@ func (n *NewsCategoryService) UpdateNewsCategory(ctx context.Context, id string,
 	code, _ = local_util.HandleMongoError(err)
 	if code != localization.ErrorResourceNotFound.Code {
 		if err != nil {
-			n.logger.Errorf("[NewsCatSvc][Update] find names err: %v", err)
+			log.Errorf("[NewsCatSvc][Update] find names err: %v", err)
 			span.AddEvent("Failed to find news categories", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("id", id),
@@ -287,7 +299,7 @@ func (n *NewsCategoryService) UpdateNewsCategory(ctx context.Context, id string,
 	}
 
 	if news_cat != nil {
-		n.logger.Errorf("[NewsCatSvc][Update] name exists")
+		log.Errorf("[NewsCatSvc][Update] name exists")
 		span.AddEvent("News category already exists", trace.WithAttributes(
 			attribute.String("error", localization.ErrorNewsCategoryWithNameAlreadyExists.Code),
 			attribute.String("id", id),
@@ -302,14 +314,14 @@ func (n *NewsCategoryService) UpdateNewsCategory(ctx context.Context, id string,
 	cpsAction := lib.CpsModelBuilder(id, makerData, news_category, updated_news_category, string(constants.RequestUpdateNewsCategory), constants.UPDATE)
 
 	if err := n.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-		n.logger.Errorf("[NewsCatSvc][Update] cps action err: %v", err)
+		log.Errorf("[NewsCatSvc][Update] cps action err: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return err
 	}
-	n.logger.Infof("[NewsCatSvc][Update] request created id: %s", id)
+	log.Infof("[NewsCatSvc][Update] request created id: %s", id)
 
 	return nil
 }

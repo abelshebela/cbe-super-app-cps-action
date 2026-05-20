@@ -59,7 +59,7 @@ type Persistence struct {
 	TopupPersistence                  storage.TopupRepository
 	ProductCodePersistence            storage.ProductCodeRepository
 	DepartmentPersistence             storage.DepartmentRepository
-	JobRolePersistence                storage.JobRoleRepository
+	RolePersistence                storage.RoleRepository
 	FaydaPersistence                  storage.FaydaRepository
 	PermissionPersistence             storage.PermissionRepository
 	ArticlePersistence                storage.ArticleRepository
@@ -71,7 +71,7 @@ type Persistence struct {
 	NewsTagsServiceContainer          storage.NewsTagsRepository
 	BPSActionRolePersistence          storage.BPSActionRoleRepository
 	BPSActionApproveIndexPersistence  storage.BPSActionApproveIndexRepository
-	RolePersistence                   storage.RoleRepository
+	JobRolePersistence                   storage.JobRoleRepository
 	MiniAppCategoryPersistence        storage.MiniAppCategoryRepository
 	CPSActionRolePersistence          storage.CPSActionRoleRepository
 	CPSActionApproveIndexPersistence  storage.CPSActionApproveIndexRepository
