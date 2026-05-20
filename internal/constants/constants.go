@@ -973,6 +973,13 @@ const (
 	RequestDisableCustomerSegmentation RequestAction = "DISABLE_CUSTOMER_SEGMENTATION"
 	RequestDeleteCustomerSegmentation  RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
 
+	// Customer Group
+	RequestCreateCustomerGroup  RequestAction = "CREATE_CUSTOMER_GROUP"
+	RequestUpdateCustomerGroup  RequestAction = "UPDATE_CUSTOMER_GROUP"
+	RequestEnableCustomerGroup  RequestAction = "ENABLE_CUSTOMER_GROUP"
+	RequestDisableCustomerGroup RequestAction = "DISABLE_CUSTOMER_GROUP"
+	RequestDeleteCustomerGroup  RequestAction = "DELETE_CUSTOMER_GROUP"
+
 	// Access List Customer Segmentation
 	RequestAccessListCreateCustomerSegmentation  RequestAction = "CREATE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
 	RequestAccessListUpdateCustomerSegmentation  RequestAction = "UPDATE_ACCESS_LIST_CUSTOMER_SEGMENTATION"

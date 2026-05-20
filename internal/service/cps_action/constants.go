@@ -61,6 +61,12 @@ const (
 	RequestEnableUssdMerchant  constants.RequestAction = "ENABLE_USSD_MERCHANT"
 	RequestDisableUssdMerchant constants.RequestAction = "DISABLE_USSD_MERCHANT"
 
+	RequestCreateCustomerGroup  constants.RequestAction = "CREATE_CUSTOMER_GROUP"
+	RequestUpdateCustomerGroup  constants.RequestAction = "UPDATE_CUSTOMER_GROUP"
+	RequestEnableCustomerGroup  constants.RequestAction = "ENABLE_CUSTOMER_GROUP"
+	RequestDisableCustomerGroup constants.RequestAction = "DISABLE_CUSTOMER_GROUP"
+	RequestDeleteCustomerGroup  constants.RequestAction = "DELETE_CUSTOMER_GROUP"
+
 	RequestCreateCustomerSegmentation  constants.RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
 	RequestUpdateCustomerSegmentation  constants.RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
 	RequestEnableCustomerSegmentation  constants.RequestAction = "ENABLE_CUSTOMER_SEGMENTATION"
@@ -567,6 +573,12 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	// Branch
 	RequestEnableBranches:  {},
 	RequestDisableBranches: {},
+
+	RequestCreateCustomerGroup:  {},
+	RequestUpdateCustomerGroup:  {},
+	RequestEnableCustomerGroup:  {},
+	RequestDisableCustomerGroup: {},
+	RequestDeleteCustomerGroup:  {},
 
 	RequestCreateCustomerSegmentation:    {},
 	RequestUpdateCustomerSegmentation:    {},
@@ -1194,6 +1206,13 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestEnableDisableAccessListSegmentation,
 		RequestEnableAccessListSegmentation,
 		RequestDisableAccessListSegmentation,
+	},
+	"CUSTOMERSEGMENTATIONS": {
+		RequestCreateCustomerGroup,
+		RequestUpdateCustomerGroup,
+		RequestEnableCustomerGroup,
+		RequestDisableCustomerGroup,
+		RequestDeleteCustomerGroup,
 	},
 	"BULKSERVICECUSTOMERSEGMENT": {
 		// "CUSTOMERSEGMENTATIONS": {
