@@ -123,6 +123,7 @@ func (c *CustomerSegmentationAdapter) UpdateCustomerSegmentation(w http.Response
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	req.CapitilizeCustomerSegmentationRequest()
 
 	if err := c.svc.Update(ctx, id, req); err != nil {
 		span.RecordError(err)
