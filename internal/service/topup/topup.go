@@ -134,7 +134,7 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 				return err
 			}
 		}
-		if &existingName != nil && existingName.ID.Hex() == id {
+		if &existingName != nil && existingName.ID.Hex() != id {
 			span.AddEvent("Topup name  already exists", trace.WithAttributes(attribute.String("name", req.Name)))
 			return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
 		}
@@ -149,7 +149,7 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 				return err
 			}
 		}
-		if &existingCode != nil && existingCode.ID.Hex() == id {
+		if &existingCode != nil && existingCode.ID.Hex() != id {
 			span.AddEvent("Topup code already exists", trace.WithAttributes(attribute.String("code", req.Code)))
 			return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
 		}
