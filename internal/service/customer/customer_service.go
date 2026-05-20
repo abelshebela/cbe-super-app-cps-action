@@ -496,6 +496,7 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 		))
 		return nil, err
 	}
+
 	// use external call to get missing account detail
 	coreRes, err := d.core.CifSearch(ctx, res.PersonalInfo.CustomerNumber)
 	if err != nil {
@@ -528,6 +529,7 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 	log.Infof("core result data Restriction Type---------------------: %v", coreRes[0].RestrictionType)
 	log.Infof("core result data Sector---------------------: %v", coreRes[0].Sector)
 	log.Infof("core result data Target---------------------: %v", coreRes[0].Target)
+	log.Infof("core result data Branch Code---------------------: %v", coreRes[0].BranchCode)
 	if len(coreRes) > 0 {
 		res.PersonalInfo.DateOfBirth = coreRes[0].BirthOfDate
 		res.PersonalInfo.MaritalStatus = coreRes[0].Email
@@ -545,18 +547,31 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 		res.PersonalInfo.CustomerSegment = coreRes[0].CustomerSegment
 		res.PersonalInfo.CustomerCategory = coreRes[0].Category
 	}
-	// for i, linkedAccount := range res.LinkedAccount {
-	// 	coreResBranch, err := d.core.LookupAccountByAccountNumberFromBps(ctx, linkedAccount.AccountNumber)
-	// 	if err != nil {
-	// 		log.Errorf("[CustomerSvc][GetCustomerDetailByID] LookupAccountByAccountNumberFromBps error: %v", err)
-	// 		span.AddEvent("Failed to lookup account by account number from BPS", trace.WithAttributes(
-	// 			attribute.String("error", err.Error()),
-	// 			attribute.String("account_number", linkedAccount.AccountNumber),
-	// 		))
-	// 		continue
-	// 	}
-	// 	res.LinkedAccount[i].AccountBranchCode = coreResBranch.Data.AccountBranchCode
-	// 	res.LinkedAccount[i].AccountBranchName = coreResBranch.Data.na
-	// }
+
+	if len(res.LinkedAccount) != 0 {
+		for i, linkedAccount := range res.LinkedAccount {
+			// coreResBranch, err := d.core.LookupAccountByAccountNumberFromBps(ctx, linkedAccount.AccountNumber)
+			// if err != nil {
+			// 	log.Errorf("[CustomerSvc][GetCustomerDetailByID] LookupAccountByAccountNumberFromBps error: %v", err)
+			// 	span.AddEvent("Failed to lookup account by account number from BPS", trace.WithAttributes(
+			// 		attribute.String("error", err.Error()),
+			// 		attribute.String("account_number", linkedAccount.AccountNumber),
+			// 	))
+			// 	continue
+			// }
+
+			if len(coreRes) != 0 {
+				for _, coreResBranch := range coreRes {
+					if linkedAccount.AccountNumber == coreResBranch.AccountNumber {
+						res.LinkedAccount[i].AccountBranchCode = coreResBranch.BranchCode
+						res.LinkedAccount[i].AccountBranchName = coreResBranch.Branch
+						break
+					}
+				}
+			}
+			// res.LinkedAccount[i].AccountBranchCode = coreResBranch.Data.AccountBranchCode
+			// res.LinkedAccount[i].AccountBranchName = coreResBranch.Data.na
+		}
+	}
 	return res, nil
 }
