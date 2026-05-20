@@ -339,8 +339,8 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 	return reqs
 }
 
-// pendingUpdateLockRequestActions returns UPDATE, ENABLE, DISABLE, and DELETE actions for blocking UPDATE requests.
-// UPDATE is blocked by any pending UPDATE, ENABLE, DISABLE, or DELETE action on the same resource.
+// pendingUpdateLockRequestActions returns UPDATE, ENABLE, and DELETE actions for blocking UPDATE requests.
+// UPDATE is blocked by any pending UPDATE, ENABLE, or DELETE action on the same resource.
 func (ca *cpsActionService) pendingUpdateLockRequestActions(actionName string, requestAction string) []string {
 	normalize := func(s string) string {
 		return strings.ToUpper(strings.TrimSpace(s))
@@ -348,7 +348,7 @@ func (ca *cpsActionService) pendingUpdateLockRequestActions(actionName string, r
 	isUpdateEnableDisableOrDelete := func(s string) bool {
 		n := normalize(s)
 		return strings.Contains(n, constants.UPDATE) || strings.Contains(n, constants.ENABLE) ||
-			strings.Contains(n, constants.DISABLE) || strings.Contains(n, constants.DELETE)
+			strings.Contains(n, constants.DELETE)
 	}
 
 	defaultReq := []string{normalize(requestAction)}

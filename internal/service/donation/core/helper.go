@@ -39,7 +39,7 @@ func DonationTitleExists(ctx context.Context, title string, donationRepo storage
 	donations, err := donationRepo.FindAllWithPagination(ctx, types.Filter{
 		Filters: map[string]any{"title": title},
 	})
-	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+	if err != nil {
 		return false, err
 	}
 
