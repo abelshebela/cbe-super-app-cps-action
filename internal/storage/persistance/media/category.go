@@ -10,6 +10,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -44,10 +45,12 @@ func (a *articleCategory) CreateArticleCategory(ctx context.Context, category *m
 }
 
 func (a *articleCategory) UpdateArticleCategory(ctx context.Context, category *model.NewsCategoryModel, id string) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	objId, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
-		a.logger.Errorf(invalidCategoryID, err)
+		log.Errorf(invalidCategoryID, err)
 		return middleware.NewBadRequestError(invalidCategoryID, err)
 	}
 	filter := bson.M{"_id": objId, "is_deleted": false}
@@ -60,10 +63,12 @@ func (a *articleCategory) UpdateArticleCategory(ctx context.Context, category *m
 }
 
 func (a *articleCategory) DeleteArticleCategory(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	objId, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
-		a.logger.Errorf("Invalid article category ID:", err)
+		log.Errorf("Invalid article category ID:", err)
 		return middleware.NewBadRequestError(invalidCategoryID, err)
 	}
 	err = a.articleCategoryDal.DeleteOne(ctx, bson.M{"_id": objId, "is_deleted": false})
@@ -74,10 +79,12 @@ func (a *articleCategory) DeleteArticleCategory(ctx context.Context, id string) 
 }
 
 func (a *articleCategory) EnableOrDisableArticleCategory(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	objId, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
-		a.logger.Errorf("Invalid article category ID:", err)
+		log.Errorf("Invalid article category ID:", err)
 		return middleware.NewBadRequestError(invalidCategoryID, err)
 	}
 	filter := bson.M{"_id": objId, "is_deleted": false}

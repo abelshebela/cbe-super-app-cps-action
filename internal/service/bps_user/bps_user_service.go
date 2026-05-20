@@ -30,22 +30,22 @@ import (
 )
 
 type bpsUserService struct {
-	cpsService    service.CPSActionService
-	repo          storage.BPSUserRepository
-	CPSUserRepo   storage.CpsUserRepository
-	roles_repo    storage.RoleRepository
-	Branch_blocks storage.AccountBlockRepository
-	logger        utils.Logger
+	cpsService     service.CPSActionService
+	repo           storage.BPSUserRepository
+	CPSUserRepo    storage.CpsUserRepository
+	Job_roles_repo storage.JobRoleRepository
+	Branch_blocks  storage.AccountBlockRepository
+	logger         utils.Logger
 }
 
-func NewBPSUserService(repo storage.BPSUserRepository, rolesRepo storage.RoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository, branch_blocks storage.AccountBlockRepository, logger utils.Logger) service.BPSUserService {
+func NewBPSUserService(repo storage.BPSUserRepository, JobRolesRepo storage.JobRoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository, branch_blocks storage.AccountBlockRepository, logger utils.Logger) service.BPSUserService {
 	return &bpsUserService{
-		cpsService:    cpsService,
-		repo:          repo,
-		CPSUserRepo:   cpsUserRepo,
-		roles_repo:    rolesRepo,
-		Branch_blocks: branch_blocks,
-		logger:        logger,
+		cpsService:     cpsService,
+		repo:           repo,
+		CPSUserRepo:    cpsUserRepo,
+		Job_roles_repo: JobRolesRepo,
+		Branch_blocks:  branch_blocks,
+		logger:         logger,
 	}
 }
 
@@ -262,7 +262,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		return err
 	}
 
-	roles, err := b.roles_repo.FindByFilterKey(ctx, "job_title", req.JobTitle)
+	roles, err := b.Job_roles_repo.FindByFilterKey(ctx, "job_title", req.JobTitle)
 	if err != nil {
 		b.logger.Errorf("[BpsUserSvc][Create] role lookup err for job_title: %s, err: %v", req.JobTitle, err)
 		return errors.New(localization.ErrorRoleNotFound.Code)
@@ -384,7 +384,7 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 			}
 		}
 	}
-	updatedUser.Enabled=curUser.Enabled
+	updatedUser.Enabled = curUser.Enabled
 	is_exist_on_CPS, err := b.CPSUserRepo.FindByEmailOrPhoneNumberOrUserName(ctx, updatedUser.Email, updatedUser.PhoneNumber, updatedUser.Username)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		b.logger.Errorf("[UpdateBPSUser] got error while checking user data exist on cps user ")
@@ -412,9 +412,9 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 		branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "code", strings.TrimSpace(updatedUser.BranchCode[0]))
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
-			b.logger.Errorf("[UpdateBPSUser] branch not found")
-			return errors.New(localization.ErrorBranchNotFoundRequired.Code)
-			} else{
+				b.logger.Errorf("[UpdateBPSUser] branch not found")
+				return errors.New(localization.ErrorBranchNotFoundRequired.Code)
+			} else {
 				b.logger.Errorf("[UpdateBPSUser] Get error while locking branch name by branch code")
 				return errors.New(localization.ErrorInternalServerError.Code)
 			}

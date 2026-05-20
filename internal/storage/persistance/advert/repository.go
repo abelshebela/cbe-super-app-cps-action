@@ -37,21 +37,23 @@ func NewAdvertRepository(client *mongo.Client, cfg *config.VaultConfig, dbName s
 }
 
 func (a *AdvertStorage) Create(ctx context.Context, advert *model.Advert) error {
-	a.logger.Infof("[AdvertStorage][Create] creating advert")
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AdvertStorage][Create] creating advert")
 	_, err := a.dal.InsertOne(ctx, *advert)
 	if err != nil {
-		a.logger.Errorf("[AdvertStorage][Create] failed to create advert: %v", err)
+		log.Errorf("[AdvertStorage][Create] failed to create advert: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	a.logger.Infof("[AdvertStorage][Create] advert created successfully")
+	log.Infof("[AdvertStorage][Create] advert created successfully")
 	return nil
 }
 
 func (a *AdvertStorage) Update(ctx context.Context, id string, advert *model.Advert) error {
-	a.logger.Infof("[AdvertStorage][Update] updating advert for id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AdvertStorage][Update] updating advert for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[AdvertStorage][Update] invalid object id: %v", err)
+		log.Errorf("[AdvertStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -59,67 +61,71 @@ func (a *AdvertStorage) Update(ctx context.Context, id string, advert *model.Adv
 
 	_, err = a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		a.logger.Errorf("[AdvertStorage][Update] failed to update advert: %v", err)
+		log.Errorf("[AdvertStorage][Update] failed to update advert: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	a.logger.Infof("[AdvertStorage][Update] advert updated successfully")
+	log.Infof("[AdvertStorage][Update] advert updated successfully")
 	return nil
 }
 
 func (a *AdvertStorage) Delete(ctx context.Context, id string) error {
-	a.logger.Infof("[AdvertStorage][Delete] deleting advert for id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AdvertStorage][Delete] deleting advert for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[AdvertStorage][Delete] invalid object id: %v", err)
+		log.Errorf("[AdvertStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	err = a.dal.DeleteOne(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("[AdvertStorage][Delete] failed to delete advert: %v", err)
+		log.Errorf("[AdvertStorage][Delete] failed to delete advert: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	a.logger.Infof("[AdvertStorage][Delete] advert deleted successfully")
+	log.Infof("[AdvertStorage][Delete] advert deleted successfully")
 	return nil
 }
 
 func (a *AdvertStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	a.logger.Infof("[AdvertStorage][EnableOrDisable] processing advert enable/disable for id: %s, enabled: %v", id, enable)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AdvertStorage][EnableOrDisable] processing advert enable/disable for id: %s, enabled: %v", id, enable)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[AdvertStorage][EnableOrDisable] invalid object id: %v", err)
+		log.Errorf("[AdvertStorage][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"enabled": enable}
 	_, err = a.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("[AdvertStorage][EnableOrDisable] failed to enable/disable advert: %v", err)
+		log.Errorf("[AdvertStorage][EnableOrDisable] failed to enable/disable advert: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	a.logger.Infof("[AdvertStorage][EnableOrDisable] advert enable/disable completed successfully")
+	log.Infof("[AdvertStorage][EnableOrDisable] advert enable/disable completed successfully")
 	return nil
 }
 
 func (a *AdvertStorage) FindByID(ctx context.Context, id string) (*model.Advert, error) {
-	a.logger.Infof("[AdvertStorage][FindByID] fetching advert by id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AdvertStorage][FindByID] fetching advert by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[AdvertStorage][FindByID] invalid object id: %v", err)
+		log.Errorf("[AdvertStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		a.logger.Errorf("[AdvertStorage][FindByID] failed to find advert: %v", err)
+		log.Errorf("[AdvertStorage][FindByID] failed to find advert: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	a.logger.Infof("[AdvertStorage][FindByID] advert retrieved successfully")
+	log.Infof("[AdvertStorage][FindByID] advert retrieved successfully")
 	return result, nil
 }
 
 func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Advert], error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 
 	allowedKeys := []string{"title", "description", "enabled", "advert_for"}
 
@@ -143,18 +149,18 @@ func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam t
 	// Fetch data with final filter
 	data, err := a.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		a.logger.Errorf("[AdvertStorage][FindAllWithPagination] failed to fetch adverts: %v", err)
+		log.Errorf("[AdvertStorage][FindAllWithPagination] failed to fetch adverts: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := a.dal.TotalCount(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("[AdvertStorage][FindAllWithPagination] failed to count adverts: %v", err)
+		log.Errorf("[AdvertStorage][FindAllWithPagination] failed to count adverts: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	a.logger.Infof("[AdvertStorage][FindAllWithPagination] retrieved %d adverts", len(data))
+	log.Infof("[AdvertStorage][FindAllWithPagination] retrieved %d adverts", len(data))
 
 	return &types.PaginatedResponse[[]model.Advert]{
 		Data: data,
@@ -163,7 +169,8 @@ func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam t
 }
 
 func (a *AdvertStorage) FindByTitle(ctx context.Context, title string) (*model.Advert, error) {
-	a.logger.Infof("[AdvertStorage][FindByTitle] searching for advert by title")
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AdvertStorage][FindByTitle] searching for advert by title")
 
 	filter := bson.M{
 		"title": bson.M{
@@ -176,12 +183,12 @@ func (a *AdvertStorage) FindByTitle(ctx context.Context, title string) (*model.A
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			a.logger.Infof("[AdvertStorage][FindByTitle] advert not found")
+			log.Infof("[AdvertStorage][FindByTitle] advert not found")
 			return nil, nil
 		}
-		a.logger.Errorf("[AdvertStorage][FindByTitle] failed to find advert: %v", err)
+		log.Errorf("[AdvertStorage][FindByTitle] failed to find advert: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	a.logger.Infof("[AdvertStorage][FindByTitle] advert retrieved successfully")
+	log.Infof("[AdvertStorage][FindByTitle] advert retrieved successfully")
 	return result, nil
 }

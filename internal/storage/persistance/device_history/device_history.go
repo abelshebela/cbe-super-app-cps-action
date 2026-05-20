@@ -9,6 +9,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -29,23 +30,27 @@ func NewDeviceLinkHistoryRepository(client *mongo.Client, cfg *config.VaultConfi
 }
 
 func (d *DeviceLinkHistoryRepository) Save(ctx context.Context, deviceLinkHistory *model.DeviceLinkHistroy) error {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	if deviceLinkHistory == nil {
-		d.logger.Errorf("Save device link history failed: deviceLinkHistory is nil")
+		log.Errorf("Save device link history failed: deviceLinkHistory is nil")
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	_, err := d.deviceHistoryDal.InsertOne(ctx, *deviceLinkHistory)
 	if err != nil {
-		d.logger.Errorf("Unexpected error while saving device link history. error=%v, deviceLinkHistory=%+v", err, deviceLinkHistory)
+		log.Errorf("Unexpected error while saving device link history. error=%v, deviceLinkHistory=%+v", err, deviceLinkHistory)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	d.logger.Infof("Device link history saved successfully. deviceLinkHistory=%+v", deviceLinkHistory)
+	log.Infof("Device link history saved successfully. deviceLinkHistory=%+v", deviceLinkHistory)
 	return nil
 }
 
 func (d *DeviceLinkHistoryRepository) Update(ctx context.Context, update *model.DeviceLinkHistroy) error {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	if update == nil {
-		d.logger.Errorf("Update device link history failed: update is nil")
+		log.Errorf("Update device link history failed: update is nil")
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -64,9 +69,9 @@ func (d *DeviceLinkHistoryRepository) Update(ctx context.Context, update *model.
 
 	_, err := d.deviceHistoryDal.UpdateOne(ctx, filter, updateDoc)
 	if err != nil {
-		d.logger.Errorf("Unexpected error while updating device link history. error=%v, update=%+v", err, update)
+		log.Errorf("Unexpected error while updating device link history. error=%v, update=%+v", err, update)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	d.logger.Infof("Device link history updated successfully. update=%+v", update)
+	log.Infof("Device link history updated successfully. update=%+v", update)
 	return nil
 }

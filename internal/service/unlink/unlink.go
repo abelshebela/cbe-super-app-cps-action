@@ -54,92 +54,100 @@ func NewUnlinkService(client *mongo.Client,
 }
 
 func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (customer.FindCustomerByIDResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, u.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetUserByAccount", "unlinkService", "unlinkService")
 	defer span.End()
 
 	account, err := u.linkedAccountRepo.FindByAccountNumber(ctx, accNumber)
 	if err != nil {
 		span.AddEvent("FindByAccountNumber error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("accountNumber", accNumber)))
-		u.logger.Errorf("[UnlinkSvc][GetUserByAccount] find account err: %v", err)
+		log.Errorf("[UnlinkSvc][GetUserByAccount] find account err: %v", err)
 		return customer.FindCustomerByIDResponse{}, err
 	}
 
 	user, err := u.userRepo.FindById(ctx, account.UserID.Hex())
 	if err != nil {
 		span.AddEvent("FindById error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("userID", account.UserID.Hex())))
-		u.logger.Errorf("[UnlinkSvc][GetUserByAccount] find user err: %v", err)
+		log.Errorf("[UnlinkSvc][GetUserByAccount] find user err: %v", err)
 		return customer.FindCustomerByIDResponse{}, err
 	}
 	res := core.MapToDto(user)
-	u.logger.Infof("[UnlinkSvc][GetUserByAccount] retrieved acc: %s", accNumber)
+	log.Infof("[UnlinkSvc][GetUserByAccount] retrieved acc: %s", accNumber)
 	return res, nil
 }
 
 func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.ArchivedUser], error) {
+	log := local_util.LoggerFromCtx(ctx, u.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllArchivedUser", "unlinkService", "unlinkService")
 	defer span.End()
 	result, err := u.archivedUserRepo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
 		span.AddEvent("FindAllWithPagination error", trace.WithAttributes(attribute.String("error", err.Error())))
-		u.logger.Errorf("[UnlinkSvc][GetAllArchived] fetch err: %v", err)
+		log.Errorf("[UnlinkSvc][GetAllArchived] fetch err: %v", err)
 		return nil, err
 	}
-	u.logger.Infof("[UnlinkSvc][GetAllArchived] retrieved %d", len(result.Data))
+	log.Infof("[UnlinkSvc][GetAllArchived] retrieved %d", len(result.Data))
 	return result, nil
 }
 
 func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) error {
+	log := local_util.LoggerFromCtx(ctx, u.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "UnlinkUserCif", "unlinkService", "unlinkService")
 	defer span.End()
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		span.AddEvent("Incomplete user data", trace.WithAttributes(attribute.String("userCode", userCode)))
-		u.logger.Errorf("[UnlinkSvc][UnlinkCif] incomplete user")
+		log.Errorf("[UnlinkSvc][UnlinkCif] incomplete user")
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	user, err := u.userRepo.FindByUserCode(ctx, userCode)
 	if err != nil {
 		span.AddEvent("FindByUserCode error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("userCode", userCode)))
-		u.logger.Errorf("[UnlinkSvc][UnlinkCif] find user err: %v", err)
+		log.Errorf("[UnlinkSvc][UnlinkCif] find user err: %v", err)
 		return err
 	}
 	cpsAction := lib.CpsModelBuilder(user.UserCode, makerData, user, nil, string(constants.RequestUnlinkUser), constants.DELETE)
 
 	if err := u.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("userCode", userCode)))
-		u.logger.Errorf("[UnlinkSvc][UnlinkCif] cps action err: %v", err)
+		log.Errorf("[UnlinkSvc][UnlinkCif] cps action err: %v", err)
 		return err
 	}
 
 	span.AddEvent("Unlink user request created", trace.WithAttributes(attribute.String("userCode", userCode)))
-	u.logger.Infof("[UnlinkSvc][UnlinkCif] request created code: %s", userCode)
+	log.Infof("[UnlinkSvc][UnlinkCif] request created code: %s", userCode)
 	return nil
 }
 
 func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, u.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "AuthorizeUnlink", "unlinkService", "unlinkService")
 	defer span.End()
-	u.logger.Infof("[UnlinkSvc][Authorize] user_code: %s", cpsAction.UniqueId)
+	log.Infof("[UnlinkSvc][Authorize] user_code: %s", cpsAction.UniqueId)
 	haveAccount := false
 	var archivedUserId, archivedLinkedAccountId string
 	var linkedAccountOldData *model.LinkedAccount
 	if cpsAction.ActionStatus != constants.Approved {
 		span.AddEvent("CPS action status not approved", trace.WithAttributes(attribute.String("status", string(cpsAction.ActionStatus)), attribute.String("userCode", cpsAction.UniqueId)))
-		u.logger.Errorf("[UnlinkSvc][Authorize] invalid status: %s", cpsAction.ActionStatus)
+		log.Errorf("[UnlinkSvc][Authorize] invalid status: %s", cpsAction.ActionStatus)
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
 
 	userOldData, err := u.userRepo.FindByUserCode(ctx, cpsAction.UniqueId)
 	if err != nil {
 		span.AddEvent("FindByUserCode error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("userCode", cpsAction.UniqueId)))
-		u.logger.Errorf("[UnlinkSvc][Authorize] find user err: %v", err)
+		log.Errorf("[UnlinkSvc][Authorize] find user err: %v", err)
 		return nil, err
 	}
 
 	if strings.EqualFold(userOldData.CustomerNumber, "") {
 		span.AddEvent("No account linked", trace.WithAttributes(attribute.String("userCode", cpsAction.UniqueId)))
-		u.logger.Infof("[UnlinkSvc][Authorize] no account linked")
+		log.Infof("[UnlinkSvc][Authorize] no account linked")
 	} else {
 		haveAccount = true
 	}
@@ -148,7 +156,7 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 		linkedAccountOldData, err = u.linkedAccountRepo.FindByCustomerNumber(ctx, userOldData.CustomerNumber)
 		if err != nil {
 			span.AddEvent("FindByCustomerNumber error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("customerNumber", userOldData.CustomerNumber)))
-			u.logger.Errorf("[UnlinkSvc][Authorize] find linked acc err: %v", err)
+			log.Errorf("[UnlinkSvc][Authorize] find linked acc err: %v", err)
 			return nil, errors.New(localization.ErrorUnlinkFaild.Code)
 		}
 	}
@@ -162,31 +170,31 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 
 	if archUserErr != nil || archLinkedAccErr != nil {
 		span.AddEvent("Archiving error", trace.WithAttributes(attribute.String("archUserErr", errorString(archUserErr)), attribute.String("archLinkedAccErr", errorString(archLinkedAccErr))))
-		u.logger.Errorf("[UnlinkSvc][Authorize] archive err: %v / %v", archUserErr, archLinkedAccErr)
+		log.Errorf("[UnlinkSvc][Authorize] archive err: %v / %v", archUserErr, archLinkedAccErr)
 		return nil, archUserErr
 	}
 
 	var userErr, linkedAccErr error
 	lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false},
 		func() {
-			u.logger.Infof("[UnlinkSvc][Authorize] deleting user: %s", archivedUserId)
+			log.Infof("[UnlinkSvc][Authorize] deleting user: %s", archivedUserId)
 			userErr = u.userRepo.Delete(ctx, archivedUserId)
 		},
 		func() {
 			if haveAccount {
-				u.logger.Infof("[UnlinkSvc][Authorize] deleting linked acc: %s", archivedLinkedAccountId)
+				log.Infof("[UnlinkSvc][Authorize] deleting linked acc: %s", archivedLinkedAccountId)
 				linkedAccErr = u.linkedAccountRepo.Delete(ctx, archivedLinkedAccountId)
 			}
 		},
 	)
 	if userErr != nil || linkedAccErr != nil {
 		span.AddEvent("Delete error", trace.WithAttributes(attribute.String("userErr", errorString(userErr)), attribute.String("linkedAccErr", errorString(linkedAccErr))))
-		u.logger.Errorf("[UnlinkSvc][Authorize] delete err: %v / %v", userErr, linkedAccErr)
+		log.Errorf("[UnlinkSvc][Authorize] delete err: %v / %v", userErr, linkedAccErr)
 		return nil, errors.New(localization.ErrorUnlinkFaild.Code)
 	}
 
 	span.AddEvent("User unlink authorized", trace.WithAttributes(attribute.String("userCode", cpsAction.UniqueId)))
-	u.logger.Infof("[UnlinkSvc][Authorize] authorized code: %s", cpsAction.UniqueId)
+	log.Infof("[UnlinkSvc][Authorize] authorized code: %s", cpsAction.UniqueId)
 	return nil, nil
 }
 

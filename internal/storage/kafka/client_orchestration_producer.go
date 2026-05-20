@@ -8,6 +8,7 @@ import (
 
 	"github.com/IBM/sarama"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.uber.org/zap"
@@ -57,10 +58,12 @@ func NewClientOrchestrationProducer(cfg *config.VaultConfig, producer sarama.Syn
 
 // Close closes the Kafka producer
 func (np *ClientOrchestrationProducer) Close(ctx context.Context) {
+	log := local_util.LoggerFromCtx(ctx, np.logger)
+
 	if err := np.producer.Close(); err != nil {
-		np.logger.Errorf("Failed to close Kafka producer", zap.Error(err))
+		log.Errorf("Failed to close Kafka producer", zap.Error(err))
 	} else {
-		np.logger.Infof("Kafka producer closed successfully")
+		log.Infof("Kafka producer closed successfully")
 	}
 }
 
@@ -105,6 +108,8 @@ func (np *ClientOrchestrationProducer) PublishMessage(ctx context.Context, msg i
 func (np *ClientOrchestrationProducer) produceAndWait(ctx context.Context,
 	kafkaMsg *sarama.ProducerMessage,
 	messageID, topic, logType string) error {
+	log := local_util.LoggerFromCtx(ctx, np.logger)
+
 	// Create a channel for handling the send with timeout
 	done := make(chan error, 1)
 
@@ -116,7 +121,7 @@ func (np *ClientOrchestrationProducer) produceAndWait(ctx context.Context,
 			return
 		}
 
-		np.logger.Infof(
+		log.Infof(
 			fmt.Sprintf("%s message published successfully", logType),
 			zap.String("message_id", messageID),
 			zap.String("topic", topic),

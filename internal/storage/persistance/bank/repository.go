@@ -36,32 +36,38 @@ func NewBankRepository(client *mongo.Client, cfg *config.VaultConfig, dbName str
 
 // FindBIC implements [storage.BankRepository].
 func (b *BankStorage) FindByBIC(ctx context.Context, bic string) (*model.Bank, error) {
-	b.logger.Infof("[BankStorage][FindByBIC] fetching bank by BIC: %s", bic)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BankStorage][FindByBIC] fetching bank by BIC: %s", bic)
 	bank, err := b.dal.FindOne(ctx, bson.M{"bic_code": bic, "enabled": true, "is_deleted": false}, nil)
 	if err != nil {
-		b.logger.Errorf("[BankStorage][FindByBIC] failed to fetch bank: %v", err)
+		log.Errorf("[BankStorage][FindByBIC] failed to fetch bank: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return bank, nil
 }
 
 func (b *BankStorage) Create(ctx context.Context, bank *model.Bank) error {
-	b.logger.Infof("[BankStorage][Create] creating bank")
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BankStorage][Create] creating bank")
 	bank.ID = bson.NewObjectID()
 	_, err := b.dal.InsertOne(ctx, *bank)
 	if err != nil {
-		b.logger.Errorf("[BankStorage][Create] failed to create bank: %v", err)
+		log.Errorf("[BankStorage][Create] failed to create bank: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	b.logger.Infof("[BankStorage][Create] bank created successfully")
+	log.Infof("[BankStorage][Create] bank created successfully")
 	return nil
 }
 
 func (b *BankStorage) Update(ctx context.Context, id string, bank *model.Bank) error {
-	b.logger.Infof("[BankStorage][Update] updating bank for id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BankStorage][Update] updating bank for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		b.logger.Errorf("[BankStorage][Update] invalid object id: %v", err)
+		log.Errorf("[BankStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -69,72 +75,79 @@ func (b *BankStorage) Update(ctx context.Context, id string, bank *model.Bank) e
 
 	_, err = b.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		b.logger.Errorf("[BankStorage][Update] failed to update bank: %v", err)
+		log.Errorf("[BankStorage][Update] failed to update bank: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	b.logger.Infof("[BankStorage][Update] bank updated successfully")
+	log.Infof("[BankStorage][Update] bank updated successfully")
 	return nil
 }
 
 func (b *BankStorage) Delete(ctx context.Context, id string) error {
-	b.logger.Infof("[BankStorage][Delete] deleting bank for id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BankStorage][Delete] deleting bank for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		b.logger.Errorf("[BankStorage][Delete] invalid object id: %v", err)
+		log.Errorf("[BankStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	err = b.dal.DeleteOne(ctx, filter)
 	if err != nil {
-		b.logger.Errorf("[BankStorage][Delete] failed to delete bank: %v", err)
+		log.Errorf("[BankStorage][Delete] failed to delete bank: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	b.logger.Infof("[BankStorage][Delete] bank deleted successfully")
+	log.Infof("[BankStorage][Delete] bank deleted successfully")
 	return nil
 }
 
 func (b *BankStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	b.logger.Infof("[BankStorage][EnableOrDisable] processing bank enable/disable for id: %s, enabled: %v", id, enable)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BankStorage][EnableOrDisable] processing bank enable/disable for id: %s, enabled: %v", id, enable)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		b.logger.Errorf("[BankStorage][EnableOrDisable] invalid object id: %v", err)
+		log.Errorf("[BankStorage][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"enabled": enable}
 	_, err = b.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		b.logger.Errorf("[BankStorage][EnableOrDisable] failed to enable/disable bank: %v", err)
+		log.Errorf("[BankStorage][EnableOrDisable] failed to enable/disable bank: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	b.logger.Infof("[BankStorage][EnableOrDisable] bank enable/disable completed successfully")
+	log.Infof("[BankStorage][EnableOrDisable] bank enable/disable completed successfully")
 	return nil
 }
 
 func (b *BankStorage) FindByID(ctx context.Context, id string) (*model.Bank, error) {
-	b.logger.Infof("[BankStorage][FindByID] fetching bank by id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BankStorage][FindByID] fetching bank by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		b.logger.Errorf("[BankStorage][FindByID] invalid object id: %v", err)
+		log.Errorf("[BankStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
 
 	result, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		b.logger.Errorf("[BankStorage][FindByID] failed to find bank: %v", err)
+		log.Errorf("[BankStorage][FindByID] failed to find bank: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	if result.IsDeleted {
-		b.logger.Errorf("[BankStorage][FindByID] bank is deleted")
+		log.Errorf("[BankStorage][FindByID] bank is deleted")
 		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
-	b.logger.Infof("[BankStorage][FindByID] bank retrieved successfully")
+	log.Infof("[BankStorage][FindByID] bank retrieved successfully")
 	return result, nil
 }
 
 func (s *BankStorage) FindByNameOrBIC(
 	ctx context.Context, bic, name string) (*model.Bank, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	// Build conditions dynamically, only for non-empty parameters
 	conditions := []bson.M{}
@@ -155,16 +168,18 @@ func (s *BankStorage) FindByNameOrBIC(
 	bank, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			s.logger.Infof("[BankStorage][FindByNameOrBIC] no bank found matching the criteria")
+			log.Infof("[BankStorage][FindByNameOrBIC] no bank found matching the criteria")
 			return nil, nil
 		}
-		s.logger.Errorf("[BankStorage][FindByNameOrBIC] failed to find bank: %v", err)
+		log.Errorf("[BankStorage][FindByNameOrBIC] failed to find bank: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return bank, nil
 }
 
 func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Bank], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "branch_code", "branch_name", "enabled", "enabled", "is_deleted"}
@@ -186,18 +201,18 @@ func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 	}
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		s.logger.Errorf("[BankStorage][FindAllWithPagination] failed to fetch banks: %v", err)
+		log.Errorf("[BankStorage][FindAllWithPagination] failed to fetch banks: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		s.logger.Errorf("[BankStorage][FindAllWithPagination] failed to count banks: %v", err)
+		log.Errorf("[BankStorage][FindAllWithPagination] failed to count banks: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	s.logger.Infof("[BankStorage][FindAllWithPagination] retrieved %d banks", len(data))
+	log.Infof("[BankStorage][FindAllWithPagination] retrieved %d banks", len(data))
 
 	return &types.PaginatedResponse[[]model.Bank]{
 		Data: data,

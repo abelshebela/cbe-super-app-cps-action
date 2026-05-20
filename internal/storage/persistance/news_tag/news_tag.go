@@ -40,16 +40,18 @@ func NewNewsTagRepository(client *mongo.Client, cfg *config.VaultConfig, databas
 
 // Create implements storage.NewsTagRepository.
 func (n *NewsTagRepository) Create(ctx context.Context, tagName []string) error {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	session, err := n.client.StartSession()
 	if err != nil {
-		n.logger.Errorf("[NewsTagRepository][Create] failed to start session: %v", err)
+		log.Errorf("[NewsTagRepository][Create] failed to start session: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer session.EndSession(ctx)
 
 	err = mongo.WithSession(ctx, session, func(sc context.Context) error {
 		if err := session.StartTransaction(); err != nil {
-			n.logger.Errorf("[NewsTagRepository][Create] failed to start transaction: %v", err)
+			log.Errorf("[NewsTagRepository][Create] failed to start transaction: %v", err)
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
@@ -61,21 +63,21 @@ func (n *NewsTagRepository) Create(ctx context.Context, tagName []string) error 
 				LastModifiedAt: time.Now(),
 			}
 			if _, err := n.mongoDal.InsertOne(sc, cat); err != nil {
-				n.logger.Errorf("[NewsTagRepository][Create] failed to insert tag: %v", err)
+				log.Errorf("[NewsTagRepository][Create] failed to insert tag: %v", err)
 				_ = session.AbortTransaction(sc)
 				return errors.New(localization.ErrorUnexpectedError.Code)
 			}
 		}
 
 		if err := session.CommitTransaction(sc); err != nil {
-			n.logger.Errorf("[NewsTagRepository][Create] failed to commit transaction: %v", err)
+			log.Errorf("[NewsTagRepository][Create] failed to commit transaction: %v", err)
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		n.kafkaProducer.PublishMessage(ctx, tagName, string(constants.ClientOrchestrationNewsTagTopic), string(constants.ClientOrchestrationNewsTagTopic), "new news tags created")
 		return nil
 	})
 	if err != nil {
-		n.logger.Errorf("[NewsTagRepository][Create] transaction failed: %v", err)
+		log.Errorf("[NewsTagRepository][Create] transaction failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -83,6 +85,8 @@ func (n *NewsTagRepository) Create(ctx context.Context, tagName []string) error 
 
 // Delete implements storage.NewsTagRepository.
 func (n *NewsTagRepository) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return localization.ErrorNewsTagInvalidID
@@ -90,7 +94,7 @@ func (n *NewsTagRepository) Delete(ctx context.Context, id string) error {
 
 	err = n.mongoDal.DeleteOne(ctx, bson.M{"_id": objID})
 	if err != nil {
-		n.logger.Errorf("[NewsTagRepository][Delete] failed to delete news tag: %v", err)
+		log.Errorf("[NewsTagRepository][Delete] failed to delete news tag: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -98,6 +102,7 @@ func (n *NewsTagRepository) Delete(ctx context.Context, id string) error {
 
 // FindAllWithPagination implements storage.NewsTagRepository.
 func (n *NewsTagRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.NewsTag], error) {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
 
 	searchKeys := bson.M{}
 
@@ -119,7 +124,7 @@ func (n *NewsTagRepository) FindAllWithPagination(ctx context.Context, filterPar
 	filter["is_deleted"] = false
 	categories, err := n.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		n.logger.Errorf("[NewsTagRepository][FindAllWithPagination] failed to fetch news tags: %v", err)
+		log.Errorf("[NewsTagRepository][FindAllWithPagination] failed to fetch news tags: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -215,6 +220,8 @@ func (n *NewsTagRepository) Get(ctx context.Context, id string) (*model.NewsTag,
 
 // Update implements storage.NewsTagRepository.
 func (n *NewsTagRepository) Update(ctx context.Context, id string, tagName string) error {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return localization.ErrorNewsCategoryInvalidID
@@ -222,7 +229,7 @@ func (n *NewsTagRepository) Update(ctx context.Context, id string, tagName strin
 
 	updatedNewsCategory, err := n.mongoDal.UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"tag_name": tagName})
 	if err != nil {
-		n.logger.Errorf("[NewsTagRepository][Update] failed to update news tag: %v", err)
+		log.Errorf("[NewsTagRepository][Update] failed to update news tag: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	n.kafkaProducer.PublishMessage(ctx, updatedNewsCategory, string(constants.ClientOrchestrationNewsTagTopic), string(constants.ClientOrchestrationNewsTagTopic), "news tag updated")

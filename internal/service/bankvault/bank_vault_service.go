@@ -37,6 +37,8 @@ func NewBankVaultService(re storage.BankVaultRepository, cpsS service.CPSActionS
 }
 
 func (s *bankVaultService) CreateBankVault(ctx context.Context, req *model.BankVaultProduct) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateBankVault", "Bank Vault", "CreateBankVault")
 	defer span.End()
 
@@ -52,7 +54,7 @@ func (s *bankVaultService) CreateBankVault(ctx context.Context, req *model.BankV
 					attribute.String("name", req.Name),
 				))
 				if s.logger != nil {
-					s.logger.Errorf("[BankVaultSvc][Create] cps action err: %v", err)
+					log.Errorf("[BankVaultSvc][Create] cps action err: %v", err)
 				}
 				return "", err
 			}
@@ -64,6 +66,8 @@ func (s *bankVaultService) CreateBankVault(ctx context.Context, req *model.BankV
 }
 
 func (s *bankVaultService) FindAllBankVaults(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*bankvault.BankVaultProductResponse], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllBankVaults", "Bank Vault", "FindAllBankVaults")
 	defer span.End()
 
@@ -77,14 +81,14 @@ func (s *bankVaultService) FindAllBankVaults(ctx context.Context, filterParams *
 		span.AddEvent("[FindAllBankVaults] failed to fetch bank vault products", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
-		s.logger.Errorf("[BankVaultSvc][FindAll] fetch err: %v", err)
+		log.Errorf("[BankVaultSvc][FindAll] fetch err: %v", err)
 		return nil, err
 	}
 	resp := make([]*bankvault.BankVaultProductResponse, 0, len(entities.Data))
 	for _, e := range entities.Data {
 		resp = append(resp, helper.MapBankVaultToResponse(e))
 	}
-	s.logger.Infof("[BankVaultSvc][FindAll] count: %d", len(resp))
+	log.Infof("[BankVaultSvc][FindAll] count: %d", len(resp))
 	return &types.PaginatedResponse[[]*bankvault.BankVaultProductResponse]{
 		Data: resp,
 		Meta: entities.Meta,
@@ -92,6 +96,8 @@ func (s *bankVaultService) FindAllBankVaults(ctx context.Context, filterParams *
 
 }
 func (s *bankVaultService) GetBankVault(ctx context.Context, id string) (*bankvault.BankVaultProductResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetBankVault", "Bank Vault", "GetBankVault")
 	defer span.End()
 
@@ -101,18 +107,20 @@ func (s *bankVaultService) GetBankVault(ctx context.Context, id string) (*bankva
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		s.logger.Errorf("[BankVaultSvc][GetOne] fetch err: %v", err)
+		log.Errorf("[BankVaultSvc][GetOne] fetch err: %v", err)
 		return nil, err
 	}
-	s.logger.Infof("[BankVaultSvc][GetOne] found id: %s", id)
+	log.Infof("[BankVaultSvc][GetOne] found id: %s", id)
 	return helper.MapBankVaultToResponse(entity), nil
 }
 
 func (s *bankVaultService) UpdateBankVault(ctx context.Context, id string, req *model.UpdateBankVault) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateBankVault", "Bank Vault", "UpdateBankVault")
 	defer span.End()
 
-	s.logger.Infof("[BankVaultSvc][Update] id: %s", id)
+	log.Infof("[BankVaultSvc][Update] id: %s", id)
 	req.UpdatedAt = time.Now().UTC()
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -120,7 +128,7 @@ func (s *bankVaultService) UpdateBankVault(ctx context.Context, id string, req *
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		s.logger.Errorf("[BankVaultSvc][Update] find err: %v", err)
+		log.Errorf("[BankVaultSvc][Update] find err: %v", err)
 		return "", err
 	}
 	current := helper.BuildUpdateBankVault(prev, req)
@@ -137,20 +145,22 @@ func (s *bankVaultService) UpdateBankVault(ctx context.Context, id string, req *
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		s.logger.Errorf("[BankVaultSvc][Update] cps action err: %v", err)
+		log.Errorf("[BankVaultSvc][Update] cps action err: %v", err)
 		return "", err
 	}
-	s.logger.Infof("[BankVaultSvc][Update] request created id: %s", id)
+	log.Infof("[BankVaultSvc][Update] request created id: %s", id)
 	return id, nil
 }
 func (s *bankVaultService) DeleteBankVault(ctx context.Context, id string) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteBankVault", "Bank Vault", "DeleteBankVault")
 	defer span.End()
 
-	s.logger.Infof("[BankVaultSvc][Delete] id: %s", id)
+	log.Infof("[BankVaultSvc][Delete] id: %s", id)
 	if id == "" {
 		span.AddEvent("[DeleteBankVault] empty id provided")
-		s.logger.Errorf("[BankVaultSvc][Delete] empty id")
+		log.Errorf("[BankVaultSvc][Delete] empty id")
 		return "", errors.New(localization.ErrorIdNotSetOnQueryParam.Code)
 	}
 	exist, err := s.repo.FindByID(ctx, id)
@@ -159,25 +169,25 @@ func (s *bankVaultService) DeleteBankVault(ctx context.Context, id string) (stri
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		s.logger.Errorf("[BankVaultSvc][Delete] find err: %v", err)
+		log.Errorf("[BankVaultSvc][Delete] find err: %v", err)
 		return "", err
 	}
 
 	if exist.IsActive {
 		span.AddEvent("[DeleteBankVault] cannot delete active bank vault product", trace.WithAttributes(attribute.String("id", id)))
-		s.logger.Errorf("[BankVaultSvc][Delete] active product")
+		log.Errorf("[BankVaultSvc][Delete] active product")
 		return "", errors.New(localization.ErrorCannotDeletedBankProduct.Code)
 	}
 
 	if exist.IsDeleted {
 		span.AddEvent("[DeleteBankVault] bank vault product already deleted", trace.WithAttributes(attribute.String("id", id)))
-		s.logger.Errorf("[BankVaultSvc][Delete] already deleted")
+		log.Errorf("[BankVaultSvc][Delete] already deleted")
 		return "", errors.New(localization.ErrorBankVaultProductAlreadyDeleted.Code)
 	}
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		span.AddEvent("[DeleteBankVault] incomplete user context", trace.WithAttributes(attribute.String("id", id)))
-		s.logger.Errorf("[BankVaultSvc][Delete] incomplete user")
+		log.Errorf("[BankVaultSvc][Delete] incomplete user")
 		return "", errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	// Convert to MongoDB-safe format
@@ -188,18 +198,20 @@ func (s *bankVaultService) DeleteBankVault(ctx context.Context, id string) (stri
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		s.logger.Errorf("[BankVaultSvc][Delete] cps action err: %v", err)
+		log.Errorf("[BankVaultSvc][Delete] cps action err: %v", err)
 		return "", err
 	}
-	s.logger.Infof("[BankVaultSvc][Delete] request created id: %s", id)
+	log.Infof("[BankVaultSvc][Delete] request created id: %s", id)
 	return id, nil
 }
 
 func (s *bankVaultService) EnableBankVault(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableBankVault", "Bank Vault", "EnableBankVault")
 	defer span.End()
 
-	s.logger.Infof("[BankVaultSvc][Enable] id: %s", id)
+	log.Infof("[BankVaultSvc][Enable] id: %s", id)
 	if id == "" {
 		span.AddEvent("[EnableBankVault] empty id provided")
 		return errors.New(localization.ErrorIdNotSetOnQueryParam.Code)
@@ -214,7 +226,7 @@ func (s *bankVaultService) EnableBankVault(ctx context.Context, id string) error
 	}
 	if prev.IsActive {
 		span.AddEvent("[EnableBankVault] bank vault already enabled", trace.WithAttributes(attribute.String("id", id)))
-		s.logger.Infof("[BankVaultSvc][Enable] already enabled: %s", id)
+		log.Infof("[BankVaultSvc][Enable] already enabled: %s", id)
 		return errors.New(localization.ErrorBankVaultAlreadyEnabled.Code)
 	}
 	maker := local_util.ExtractUserFromContext(ctx)
@@ -230,13 +242,15 @@ func (s *bankVaultService) EnableBankVault(ctx context.Context, id string) error
 }
 
 func (s *bankVaultService) DisableBankVault(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "DisableBankVault", "Bank Vault", "DisableBankVault")
 	defer span.End()
 
-	s.logger.Infof("[BankVaultSvc][Disable] id: %s", id)
+	log.Infof("[BankVaultSvc][Disable] id: %s", id)
 	if id == "" {
 		span.AddEvent("[DisableBankVault] empty id provided")
-		s.logger.Errorf("[BankVaultSvc][Disable] empty id")
+		log.Errorf("[BankVaultSvc][Disable] empty id")
 		return errors.New(localization.ErrorIdNotSetOnQueryParam.Code)
 	}
 	prev, err := s.repo.FindByID(ctx, id)
@@ -245,12 +259,12 @@ func (s *bankVaultService) DisableBankVault(ctx context.Context, id string) erro
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		s.logger.Errorf("[BankVaultSvc][Disable] find err: %v", err)
+		log.Errorf("[BankVaultSvc][Disable] find err: %v", err)
 		return err
 	}
 	if !prev.IsActive {
 		span.AddEvent("[DisableBankVault] bank vault already disabled", trace.WithAttributes(attribute.String("id", id)))
-		s.logger.Errorf("[BankVaultSvc][Disable] already disabled")
+		log.Errorf("[BankVaultSvc][Disable] already disabled")
 		return errors.New(localization.ErrorBankVaultAlreadyDisabled.Code)
 	}
 	maker := local_util.ExtractUserFromContext(ctx)
@@ -267,14 +281,16 @@ func (s *bankVaultService) DisableBankVault(ctx context.Context, id string) erro
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		s.logger.Errorf("[BankVaultSvc][Disable] cps action err: %v", err)
+		log.Errorf("[BankVaultSvc][Disable] cps action err: %v", err)
 		return err
 	}
-	s.logger.Infof("[BankVaultSvc][Disable] request created id: %s", id)
+	log.Infof("[BankVaultSvc][Disable] request created id: %s", id)
 	return nil
 }
 
 func (s *bankVaultService) FindAllBankLockedVaultsWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.LockedVault], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllBankLockedVaultsWithPagination", "Bank Vault", "FindAllBankLockedVaultsWithPagination")
 	defer span.End()
 
@@ -288,10 +304,10 @@ func (s *bankVaultService) FindAllBankLockedVaultsWithPagination(ctx context.Con
 		span.AddEvent("[FindAllBankLockedVaultsWithPagination] failed to fetch bank locked vaults", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
-		s.logger.Errorf("[BankVaultSvc][FindLockedVaults] fetch err: %v", err)
+		log.Errorf("[BankVaultSvc][FindLockedVaults] fetch err: %v", err)
 		return nil, err
 	}
-	s.logger.Infof("[BankVaultSvc][FindLockedVaults] count: %d", len(results.Data))
+	log.Infof("[BankVaultSvc][FindLockedVaults] count: %d", len(results.Data))
 	return &types.PaginatedResponse[[]*model.LockedVault]{
 		Data: results.Data,
 		Meta: results.Meta,
@@ -303,6 +319,8 @@ func (s *bankVaultService) FindAllBankLockedVaultsWithPagination(ctx context.Con
 // }
 
 func (s *bankVaultService) FindAllGroupVaultsWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.GroupVault], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllGroupVaultsWithPagination", "Bank Vault", "FindAllGroupVaultsWithPagination")
 	defer span.End()
 
@@ -316,10 +334,10 @@ func (s *bankVaultService) FindAllGroupVaultsWithPagination(ctx context.Context,
 		span.AddEvent("[FindAllGroupVaultsWithPagination] failed to fetch group vaults", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
-		s.logger.Errorf("[BankVaultSvc][FindGroupVaults] fetch err: %v", err)
+		log.Errorf("[BankVaultSvc][FindGroupVaults] fetch err: %v", err)
 		return nil, err
 	}
-	s.logger.Infof("[BankVaultSvc][FindGroupVaults] count: %d", len(results.Data))
+	log.Infof("[BankVaultSvc][FindGroupVaults] count: %d", len(results.Data))
 	return &types.PaginatedResponse[[]*model.GroupVault]{
 		Data: results.Data,
 		Meta: results.Meta,
@@ -332,10 +350,12 @@ func (s *bankVaultService) FindAllGroupVaultsWithPagination(ctx context.Context,
 // }
 
 func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Bank Vault", "Authorize")
 	defer span.End()
 
-	s.logger.Infof("[BankVaultSvc][Authorize] action: %s", cpsAction.RequestAction)
+	log.Infof("[BankVaultSvc][Authorize] action: %s", cpsAction.RequestAction)
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateBankVault):
 		bankvault, err := helper.BindBankVaultFromCPSAction(cpsAction.CurrentAction)
@@ -344,7 +364,7 @@ func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			s.logger.Errorf("[BankVaultSvc][Authorize] bind err: %v", err)
+			log.Errorf("[BankVaultSvc][Authorize] bind err: %v", err)
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 
@@ -353,10 +373,10 @@ func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			s.logger.Errorf("[BankVaultSvc][Authorize] create err: %v", err)
+			log.Errorf("[BankVaultSvc][Authorize] create err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[BankVaultSvc][Authorize] created")
+		log.Infof("[BankVaultSvc][Authorize] created")
 		return cpsAction, nil
 
 	case string(constants.RequestUpdateBankVault):
@@ -366,7 +386,7 @@ func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			s.logger.Errorf("[BankVaultSvc][Authorize] bind update err: %v", err)
+			log.Errorf("[BankVaultSvc][Authorize] bind update err: %v", err)
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 
@@ -375,10 +395,10 @@ func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			s.logger.Errorf("[BankVaultSvc][Authorize] update err: %v", err)
+			log.Errorf("[BankVaultSvc][Authorize] update err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[BankVaultSvc][Authorize] updated id: %s", cpsAction.UniqueId)
+		log.Infof("[BankVaultSvc][Authorize] updated id: %s", cpsAction.UniqueId)
 		return cpsAction, nil
 
 	case string(constants.RequestDeleteBankVault):
@@ -387,10 +407,10 @@ func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			s.logger.Errorf("[BankVaultSvc][Authorize] delete err: %v", err)
+			log.Errorf("[BankVaultSvc][Authorize] delete err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[BankVaultSvc][Authorize] deleted id: %s", cpsAction.UniqueId)
+		log.Infof("[BankVaultSvc][Authorize] deleted id: %s", cpsAction.UniqueId)
 		return cpsAction, nil
 	case string(constants.RequestEnableBankVault):
 		if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true); err != nil {
@@ -398,10 +418,10 @@ func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			s.logger.Errorf("[BankVaultSvc][Authorize] enable err: %v", err)
+			log.Errorf("[BankVaultSvc][Authorize] enable err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[BankVaultSvc][Authorize] enabled id: %s", cpsAction.UniqueId)
+		log.Infof("[BankVaultSvc][Authorize] enabled id: %s", cpsAction.UniqueId)
 		return cpsAction, nil
 	case string(constants.RequestDisAbleBankVault):
 		if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false); err != nil {
@@ -409,14 +429,14 @@ func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			s.logger.Errorf("[BankVaultSvc][Authorize] disable err: %v", err)
+			log.Errorf("[BankVaultSvc][Authorize] disable err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[BankVaultSvc][Authorize] disabled id: %s", cpsAction.UniqueId)
+		log.Infof("[BankVaultSvc][Authorize] disabled id: %s", cpsAction.UniqueId)
 		return cpsAction, nil
 	}
 
 	span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", cpsAction.RequestAction)))
-	s.logger.Errorf("[BankVaultSvc][Authorize] unsupported: %s", cpsAction.RequestAction)
+	log.Errorf("[BankVaultSvc][Authorize] unsupported: %s", cpsAction.RequestAction)
 	return nil, errors.New(localization.ErrorInvalidRequest.Code)
 }

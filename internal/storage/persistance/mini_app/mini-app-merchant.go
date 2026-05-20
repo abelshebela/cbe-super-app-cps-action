@@ -42,21 +42,25 @@ func NewMiniAppMerchantRepository(client *mongo.Client, cfg *config.VaultConfig,
 }
 
 func (m *MiniAppMerchantStorage) Create(ctx context.Context, merchant *mini_model.MiniAppMerchant) (*mini_model.MiniAppMerchant, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	if merchant.ID.IsZero() {
 		merchant.ID = bson.ObjectID(primitive.NewObjectID())
 	}
 	createdMerchant, err := m.dal.InsertOne(ctx, *merchant)
 	if err != nil {
-		m.logger.Errorf("Failed to create mini app merchant: %v", err)
+		log.Errorf("Failed to create mini app merchant: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return &createdMerchant, nil
 }
 
 func (m *MiniAppMerchantStorage) Update(ctx context.Context, id string, merchant *mini_model.MiniAppMerchant) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+		log.Errorf("Invalid ID format: %s, error: %v", id, err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -72,9 +76,11 @@ func (m *MiniAppMerchantStorage) Update(ctx context.Context, id string, merchant
 }
 
 func (m *MiniAppMerchantStorage) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+		log.Errorf("Invalid ID format: %s, error: %v", id, err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -94,9 +100,11 @@ func (m *MiniAppMerchantStorage) Delete(ctx context.Context, id string) error {
 }
 
 func (m *MiniAppMerchantStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+		log.Errorf("Invalid ID format: %s, error: %v", id, err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -111,10 +119,12 @@ func (m *MiniAppMerchantStorage) EnableOrDisable(ctx context.Context, id string,
 }
 
 func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*mini_model.MiniAppMerchant, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	fmt.Println("=============I ahvwbfkjsBDFKBFRKDBSSFSHF", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+		log.Errorf("Invalid ID format: %s, error: %v", id, err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -127,6 +137,8 @@ func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*mini
 }
 
 func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]mini_model.MiniAppMerchant], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "merchant_code", "merchant_name", "email", "phone_number", "enabled", "bank_account_number"}
 
@@ -147,13 +159,13 @@ func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filt
 
 	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		s.logger.Errorf("Failed to fetch paginated mini app merchants: %v", err)
+		log.Errorf("Failed to fetch paginated mini app merchants: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		s.logger.Errorf("Failed to count total mini app merchants: %v", err)
+		log.Errorf("Failed to count total mini app merchants: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 

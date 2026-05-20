@@ -24,10 +24,12 @@ func NewRepository(db *sql.DB, logger utils.Logger) *Repository {
 
 // FindParentChildRelationship implements the same contract as Mongo aggregation on access_items_relation.
 func (r *Repository) FindParentChildRelationship(ctx context.Context) ([]local_model.AccessItemRelation, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	q := `SELECT RAWTOHEX(PARENT_ID), RAWTOHEX(CHILD_ID) FROM ACCESS_LIST_RELATIONS ORDER BY PARENT_ID, CHILD_ID`
 	rows, err := r.db.QueryContext(ctx, q)
 	if err != nil {
-		r.logger.Errorf("[AccessItemsRelationOracle][FindParentChildRelationship] query failed: %v", err)
+		log.Errorf("[AccessItemsRelationOracle][FindParentChildRelationship] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -36,7 +38,7 @@ func (r *Repository) FindParentChildRelationship(ctx context.Context) ([]local_m
 	for rows.Next() {
 		var rel local_model.AccessItemRelation
 		if err := rows.Scan(&rel.ParentKey, &rel.ChildKey); err != nil {
-			r.logger.Errorf("[AccessItemsRelationOracle][FindParentChildRelationship] scan failed: %v", err)
+			log.Errorf("[AccessItemsRelationOracle][FindParentChildRelationship] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 		out = append(out, rel)

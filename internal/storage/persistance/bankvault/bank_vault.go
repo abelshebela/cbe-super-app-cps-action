@@ -14,6 +14,7 @@ package bankvault
 // }
 
 // func (r *bankVaultRepositary) ExecuteInTransaction(ctx context.Context, fn func(txRepo storage.BankVaultRepository) error) error {
+
 // 	tx, err := r.db.BeginTx(ctx, nil)
 // 	if err != nil {
 // 		return errors.New(localization.ErrorTransactionFailed.Code)
@@ -31,13 +32,14 @@ package bankvault
 // 	}
 
 // 	if err := tx.Commit(); err != nil {
-// 		r.logger.Errorf("[BankVaultRepository][ExecuteInTransaction] failed to commit transaction: %v", err)
+// 		log.Errorf("[BankVaultRepository][ExecuteInTransaction] failed to commit transaction: %v", err)
 // 		return errors.New(localization.ErrorUnexpectedError.Code)
 // 	}
 // 	return nil
 // }
 
 // func (r *bankVaultRepositary) Create(ctx context.Context, product *model.BankVaultProduct) (string, error) {
+
 // 	params := sqlc.SaveBankVaultParams{
 // 		Name:       product.Name,
 // 		Currency:   product.Currency,
@@ -59,7 +61,7 @@ package bankvault
 
 // 	id, err := r.queries.SaveBankVault(ctx, params)
 // 	if err != nil {
-// 		r.logger.Errorf("[BankVaultRepository][Create] failed to save bank vault: %v", err)
+// 		log.Errorf("[BankVaultRepository][Create] failed to save bank vault: %v", err)
 // 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 // 	}
 // 	return id, nil
@@ -132,6 +134,7 @@ package bankvault
 // }
 
 // func (r *bankVaultRepositary) FindAllBankLockedVaultsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.LockedVault], error) {
+
 // 	params := sqlc.ListLockedVaultParams{}
 
 // 	rows, err := r.queries.GetAllLockedVaults(ctx, params)
@@ -140,7 +143,7 @@ package bankvault
 
 // 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 // 		}
-// 		r.logger.Errorf("[BankVaultRepository][FindAllBankLockedVaultsWithPagination] failed to get locked vaults: %v", err)
+// 		log.Errorf("[BankVaultRepository][FindAllBankLockedVaultsWithPagination] failed to get locked vaults: %v", err)
 // 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 // 	}
 
@@ -204,6 +207,7 @@ package bankvault
 // }
 
 // func (r *bankVaultRepositary) FindAllGroupVaultWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.GroupVault], error) {
+
 // 	params := sqlc.GetAllGroupVaultsParams{}
 
 // 	rows, err := r.queries.GetAllGroupVaults(ctx, params)
@@ -211,7 +215,7 @@ package bankvault
 // 		if err == sql.ErrNoRows {
 // 			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
 // 		}
-// 		r.logger.Errorf("[BankVaultRepository][FindAllGroupVaultWithPagination] failed to get group vaults: %v", err)
+// 		log.Errorf("[BankVaultRepository][FindAllGroupVaultWithPagination] failed to get group vaults: %v", err)
 // 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 // 	}
 
@@ -240,7 +244,7 @@ package bankvault
 // 			} else {
 // 				// Try another common format if RFC3339 fails, or log it
 // 				// For now assuming RFC3339 based on codebase convention, but catching error
-// 				r.logger.Errorf("[BankVaultRepository][FindAllGroupVaultWithPagination] failed to parse CreatedAt: %v", err)
+// 				log.Errorf("[BankVaultRepository][FindAllGroupVaultWithPagination] failed to parse CreatedAt: %v", err)
 // 			}
 // 		}
 
@@ -249,7 +253,7 @@ package bankvault
 // 			if err == nil {
 // 				gv.UpdatedAt = t
 // 			} else {
-// 				r.logger.Errorf("[BankVaultRepository][FindAllGroupVaultWithPagination] failed to parse UpdatedAt: %v", err)
+// 				log.Errorf("[BankVaultRepository][FindAllGroupVaultWithPagination] failed to parse UpdatedAt: %v", err)
 // 			}
 // 		}
 
@@ -258,7 +262,7 @@ package bankvault
 // 			if err == nil {
 // 				gv.DeletedAt = &t
 // 			} else {
-// 				r.logger.Errorf("[BankVaultRepository][FindAllGroupVaultWithPagination] failed to parse DeletedAt: %v", err)
+// 				log.Errorf("[BankVaultRepository][FindAllGroupVaultWithPagination] failed to parse DeletedAt: %v", err)
 // 			}
 // 		}
 
@@ -311,15 +315,17 @@ package bankvault
 // }
 
 // func (r *bankVaultRepositary) FindBankVaultByName(ctx context.Context, name string) error {
+
 // 	_, err := r.queries.FindBankVaultByName(ctx, name)
 // 	if err != nil {
-// 		r.logger.Errorf("[BankVaultRepository][FindBankVaultByName] failed to find bank vault by name: %v", err)
+// 		log.Errorf("[BankVaultRepository][FindBankVaultByName] failed to find bank vault by name: %v", err)
 // 		return utils.HandleDBError(err)
 // 	}
 // 	return nil
 // }
 
 // func (r *bankVaultRepositary) Update(ctx context.Context, id string, product *model.BankVaultProduct) error {
+
 // 	existingProduct, err := r.FindByID(ctx, id)
 // 	if err != nil {
 // 		return utils.HandleDBError(err)
@@ -340,7 +346,7 @@ package bankvault
 
 // 	_, err = r.queries.UpdateBankVault(ctx, params)
 // 	if err != nil {
-// 		r.logger.Errorf("[BankVaultRepository][Update] failed to update bank vault: %v", err)
+// 		log.Errorf("[BankVaultRepository][Update] failed to update bank vault: %v", err)
 // 		return utils.HandleDBError(err)
 // 	}
 // 	return nil

@@ -18,6 +18,7 @@ import (
 )
 
 // func (s *vaultCategoryService) CreateWithdrawalRequest(ctx context.Context, req *vault_dto.CreateWithdrawalRequest) error {
+
 // 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateWithdrawalRequest", "vaultCategoryService", "vaultCategoryService")
 // 	defer span.End()
 
@@ -33,13 +34,15 @@ import (
 // 	makerData := local_util.ExtractUserFromContext(ctx)
 // 	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, withdrawal, string(constants.RequestCreateWithdrawal), string(constants.CREATE))
 // 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
-// 		s.logger.Errorf("[VaultDeadlockSvc][Create] cps action err: %v", err)
+// 		log.Errorf("[VaultDeadlockSvc][Create] cps action err: %v", err)
 // 		return err
 // 	}
 // 	return nil
 // }
 
 func (s *vaultCategoryService) UnlockDeadlockRequest(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "UnlockDeadlockRequest", "vaultCategoryService", "vaultCategoryService")
 	defer span.End()
 
@@ -48,7 +51,7 @@ func (s *vaultCategoryService) UnlockDeadlockRequest(ctx context.Context, id str
 		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, mongo.ErrNoDocuments) {
 			return errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
-		s.logger.Errorf("[VaultDeadlockSvc][Update] fetch err: %v", err)
+		log.Errorf("[VaultDeadlockSvc][Update] fetch err: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -56,13 +59,15 @@ func (s *vaultCategoryService) UnlockDeadlockRequest(ctx context.Context, id str
 	payload := map[string]string{"id": id, "is_deadlock": "false"}
 	cpsActionModel := lib.CpsModelBuilder(id, makerData, nil, payload, string(constants.RequestUnlockDeadlock), string(constants.UPDATE))
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
-		s.logger.Errorf("[VaultDeadlockSvc][Update] cps action err: %v", err)
+		log.Errorf("[VaultDeadlockSvc][Update] cps action err: %v", err)
 		return err
 	}
 	return nil
 }
 
 func (s *vaultCategoryService) GetAllDeadlockRequests(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.DeadlockRequest], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllWithdrawalRequests", "vaultCategoryService", "vaultCategoryService")
 	defer span.End()
 
@@ -72,13 +77,15 @@ func (s *vaultCategoryService) GetAllDeadlockRequests(ctx context.Context, filte
 	entities, err := s.repo.GetAllDeadlockedRequests(ctx, *filterParams)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[VaultDeadlockSvc][GetAll] fetch err: %v", err)
+		log.Errorf("[VaultDeadlockSvc][GetAll] fetch err: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return entities, nil
 }
 
 func (s *vaultCategoryService) GetDeadlockRequestById(ctx context.Context, id string) (*imodel.DeadlockRequest, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetWithdrawalRequest", "vaultCategoryService", "vaultCategoryService")
 	defer span.End()
 
@@ -87,7 +94,7 @@ func (s *vaultCategoryService) GetDeadlockRequestById(ctx context.Context, id st
 		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorVaultCategoryNotFound.Code {
 			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
-		s.logger.Errorf("[VaultDeadlockSvc][GetByID] fetch err: %v", err)
+		log.Errorf("[VaultDeadlockSvc][GetByID] fetch err: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return entity, nil
@@ -98,11 +105,13 @@ func (s *vaultCategoryService) GetDeadlockRequestById(ctx context.Context, id st
 // }
 
 func (s *vaultCategoryService) AuthorizeDeadlockStatusUpdate(ctx context.Context, id string, status string) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "AuthorizeDeadlockStatusUpdate", "vaultCategoryService", "vaultCategoryService")
 	defer span.End()
 
 	if err := s.repo.UpdateVaultDeadlock(ctx, id, status); err != nil {
-		s.logger.Errorf("[VaultDeadlockSvc][AuthorizeDeadlockStatusUpdate] update err: %v", err)
+		log.Errorf("[VaultDeadlockSvc][AuthorizeDeadlockStatusUpdate] update err: %v", err)
 		return err
 	}
 	return nil
