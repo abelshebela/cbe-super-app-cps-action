@@ -972,6 +972,7 @@ ORDER BY css.CREATED_AT, css.ID`
 }
 
 func (r *customerStorage) FindByID(ctx context.Context, id string) (*imodel.CustomerSegmentation, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 	const roleFromSegQ = `
 SELECT RAWTOHEX(css.SUPERAPP_ROLE_ID)
 FROM CUSTOMER_SUB_SEGMENTS css
