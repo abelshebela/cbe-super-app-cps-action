@@ -141,7 +141,6 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 	if req.Code != "" && prevtopup.Code != req.Code {
 		_, err := s.repo.FindByOr(ctx, bson.M{"code": bson.M{
 			"$regex":   req.Code,
-			"$options": "i",
 		}})
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
