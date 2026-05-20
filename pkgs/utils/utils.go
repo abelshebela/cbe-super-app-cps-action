@@ -378,7 +378,7 @@ func RandomGenerator(length uint8) string {
 }
 
 // var allowedChars = "a-zA-Z0-9\\s._@-"
-var allowedChars = `a-zA-Z0-9\s._@\p{Ethiopic}\(\)\-`
+var allowedChars = `a-zA-Z0-9\s._@&\p{Ethiopic}\(\)\-`
 var validNameRegex = regexp.MustCompile("^[" + allowedChars + "]+$")
 
 func NoSpecialChars(value any) error {
