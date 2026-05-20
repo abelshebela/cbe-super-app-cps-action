@@ -9,6 +9,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -43,10 +44,12 @@ func (n *newsTags) Create(ctx context.Context, newsTag *model.NewsTags) error {
 }
 
 func (n *newsTags) Update(ctx context.Context, newsTag *model.NewsTags, id string) error {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	objId, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
-		n.logger.Errorf(invalidTagID, err)
+		log.Errorf(invalidTagID, err)
 		return errors.New(invalidTagID)
 	}
 	filter := bson.M{"_id": objId, "is_deleted": false}
@@ -59,10 +62,12 @@ func (n *newsTags) Update(ctx context.Context, newsTag *model.NewsTags, id strin
 }
 
 func (n *newsTags) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	objId, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
-		n.logger.Errorf(invalidTagID, err)
+		log.Errorf(invalidTagID, err)
 		return errors.New(localization.ErrorInvalidRequest.Code)
 	}
 	filter := bson.M{"_id": objId, "is_deleted": false}
@@ -75,10 +80,12 @@ func (n *newsTags) Delete(ctx context.Context, id string) error {
 }
 
 func (n *newsTags) EnableDisable(ctx context.Context, id string, isEnable bool) error {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	objId, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
-		n.logger.Errorf(invalidTagID, err)
+		log.Errorf(invalidTagID, err)
 		return errors.New(localization.ErrorInvalidRequest.Code)
 	}
 	filter := bson.M{"_id": objId, "is_deleted": false}

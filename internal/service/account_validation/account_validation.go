@@ -33,13 +33,15 @@ func NewAccountValidationService(validationData storage.ValidationRuleRepository
 }
 
 func (s *accountValidationService) Update(ctx context.Context, id string, rule *model.ValidationRule) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "Account Validation", "Update")
 	defer span.End()
 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		span.AddEvent("[Update] incomplete user information", trace.WithAttributes(attribute.String("id", id)))
-		s.logger.Errorf("[AccValSvc][Update] incomplete user info")
+		log.Errorf("[AccValSvc][Update] incomplete user info")
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 	validationRule, err := s.validationRule.FindByID(ctx, id)
@@ -48,7 +50,7 @@ func (s *accountValidationService) Update(ctx context.Context, id string, rule *
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		s.logger.Errorf("[AccValSvc][Update] find err id %s: %v", id, err)
+		log.Errorf("[AccValSvc][Update] find err id %s: %v", id, err)
 		return err
 	}
 
@@ -59,15 +61,17 @@ func (s *accountValidationService) Update(ctx context.Context, id string, rule *
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		s.logger.Errorf("[AccValSvc][Update] cps action err: %v", err)
+		log.Errorf("[AccValSvc][Update] cps action err: %v", err)
 		return err
 	}
 
-	s.logger.Infof("[AccValSvc][Update] request created id: %s", id)
+	log.Infof("[AccValSvc][Update] request created id: %s", id)
 	return nil
 }
 
 func (s *accountValidationService) FindById(ctx context.Context, id string) (*model.ValidationRule, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindById", "Account Validation", "FindById")
 	defer span.End()
 
@@ -77,13 +81,15 @@ func (s *accountValidationService) FindById(ctx context.Context, id string) (*mo
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		s.logger.Errorf("[AccValSvc][FindById] find err id %s: %v", id, err)
+		log.Errorf("[AccValSvc][FindById] find err id %s: %v", id, err)
 		return nil, err
 	}
 	return rule, nil
 }
 
 func (s *accountValidationService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ValidationRule], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "Account Validation", "FindAllWithPagination")
 	defer span.End()
 
@@ -92,17 +98,19 @@ func (s *accountValidationService) FindAllWithPagination(ctx context.Context, fi
 		span.AddEvent("[FindAllWithPagination] failed to fetch validation rules", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
-		s.logger.Errorf("[AccValSvc][FindAll] fetch err: %v", err)
+		log.Errorf("[AccValSvc][FindAll] fetch err: %v", err)
 		return nil, err
 	}
 	return result, nil
 }
 
 func (f *accountValidationService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, f.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Account Validation", "Authorize")
 	defer span.End()
 
-	f.logger.Infof("[AccValSvc][Authorize] action: %s", cpsAction.ActionCode)
+	log.Infof("[AccValSvc][Authorize] action: %s", cpsAction.ActionCode)
 
 	// For now, return the action as appro-ved
 	if cpsAction.ActionStatus != constants.Approved {
@@ -110,7 +118,7 @@ func (f *accountValidationService) Authorize(ctx context.Context, cpsAction *mod
 			attribute.String("status", string(cpsAction.ActionStatus)),
 			attribute.String("action_code", cpsAction.ActionCode),
 		))
-		f.logger.Errorf("[AccValSvc][Authorize] invalid status: %s", cpsAction.ActionStatus)
+		log.Errorf("[AccValSvc][Authorize] invalid status: %s", cpsAction.ActionStatus)
 		return nil, errors.New(localization.ErrorCPSActionFailed.Code)
 	}
 
@@ -120,7 +128,7 @@ func (f *accountValidationService) Authorize(ctx context.Context, cpsAction *mod
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		f.logger.Errorf("[AccValSvc][Authorize] unmarshal err: %v", err)
+		log.Errorf("[AccValSvc][Authorize] unmarshal err: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -129,9 +137,9 @@ func (f *accountValidationService) Authorize(ctx context.Context, cpsAction *mod
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		f.logger.Errorf("[AccValSvc][Authorize] update err: %v", err)
+		log.Errorf("[AccValSvc][Authorize] update err: %v", err)
 		return nil, err
 	}
-	f.logger.Infof("[AccValSvc][Authorize] authorized id: %s", cpsAction.UniqueId)
+	log.Infof("[AccValSvc][Authorize] authorized id: %s", cpsAction.UniqueId)
 	return cpsAction, nil
 }

@@ -47,36 +47,36 @@ import (
 	"google.golang.org/grpc"
 )
 
-type RoleRepository interface {
+type JobRoleRepository interface {
 	Exists(ctx context.Context, id string) (bool, error)
 	ExistsMany(ctx context.Context, ids []string) (bool, error)
-	Create(ctx context.Context, role *imodel.Role) error
-	Update(ctx context.Context, id string, role *imodel.Role) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	SoftDelete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*imodel.Role, error)
-	CheckIfExists(ctx context.Context, id string) (*imodel.Role, error)
-	FindByName(ctx context.Context, name string) (*imodel.Role, error)
-	FindByCode(ctx context.Context, code string) (*imodel.Role, error)
-	FindByRole(ctx context.Context, jobTitle string) (*imodel.Role, error)
-	FindAll(ctx context.Context) (*[]imodel.Role, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Role], error)
-	FindByFilterKey(ctx context.Context, field string, value string) (*imodel.Role, error)
-	HasActiveJobRole(ctx context.Context, roleCode string) (bool, error)
-}
-
-type JobRoleRepository interface {
 	Create(ctx context.Context, role *imodel.JobRole) error
 	Update(ctx context.Context, id string, role *imodel.JobRole) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	SoftDelete(ctx context.Context, id string) error
-	ExistsMany(ctx context.Context, codes []string) (bool, error)
 	FindByID(ctx context.Context, id string) (*imodel.JobRole, error)
-	FindByCode(ctx context.Context, code string) (*imodel.JobRole, error)
-	Find(ctx context.Context, filter bson.M) (*imodel.JobRole, error)
-	FindAll(ctx context.Context) (*[]imodel.JobRole, error)
+	CheckIfExists(ctx context.Context, id string) (*imodel.JobRole, error)
 	FindByName(ctx context.Context, name string) (*imodel.JobRole, error)
+	FindByCode(ctx context.Context, code string) (*imodel.JobRole, error)
+	FindByRole(ctx context.Context, jobTitle string) (*imodel.JobRole, error)
+	FindAll(ctx context.Context) (*[]imodel.JobRole, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error)
+	FindByFilterKey(ctx context.Context, field string, value string) (*imodel.JobRole, error)
+	HasActiveJobRole(ctx context.Context, roleCode string) (bool, error)
+}
+
+type RoleRepository interface {
+	Create(ctx context.Context, role *imodel.Role) error
+	Update(ctx context.Context, id string, role *imodel.Role) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	SoftDelete(ctx context.Context, id string) error
+	ExistsMany(ctx context.Context, codes []string) (bool, error)
+	FindByID(ctx context.Context, id string) (*imodel.Role, error)
+	FindByCode(ctx context.Context, code string) (*imodel.Role, error)
+	Find(ctx context.Context, filter bson.M) (*imodel.Role, error)
+	FindAll(ctx context.Context) (*[]imodel.Role, error)
+	FindByName(ctx context.Context, name string) (*imodel.Role, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Role], error)
 }
 
 type UnlinkAccount interface {
@@ -209,7 +209,7 @@ type DeviceVersionControlRepository interface {
 }
 
 type CPSActionRepository interface {
-	Save(ctx context.Context, cpsAction *model.CPSAction) error
+	Save(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (types.PaginatedResponse[[]model.CPSAction], error)
 	FindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
 	SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error)

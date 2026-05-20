@@ -10,6 +10,7 @@ import (
 	"database/sql"
 	"time"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
@@ -57,7 +58,9 @@ func (c *customerOracleRepository) FindCustomerByIDs(ctx context.Context, ids []
 
 // FindCustomerByUserCode implements [storage.CustomerRepository].
 func (c *customerOracleRepository) FindCustomerByUserCode(ctx context.Context, usercode string) (*member.User, error) {
-	c.logger.Infof("[CustomerRepository][FindCustomerByUserCode][oracle] fetching feedback user fields by user_code: %s", usercode)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	log.Infof("[CustomerRepository][FindCustomerByUserCode][oracle] fetching feedback user fields by user_code: %s", usercode)
 
 	// Only fetch fields needed for feedback
 	userQuery := `
@@ -78,7 +81,7 @@ func (c *customerOracleRepository) FindCustomerByUserCode(ctx context.Context, u
 		if err.Error() == "sql: no rows in result set" {
 			return nil, localization.ErrorResourceNotFound
 		}
-		c.logger.Errorf("[CustomerRepository][FindCustomerByUserCode] user query failed: %v", err)
+		log.Errorf("[CustomerRepository][FindCustomerByUserCode] user query failed: %v", err)
 		return nil, localization.ErrorUnexpectedError
 	}
 	response := &member.User{
@@ -93,7 +96,8 @@ func (c *customerOracleRepository) FindCustomerByUserCode(ctx context.Context, u
 
 // // FindCustomerDetailByID implements [storage.CustomerRepository].
 // func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, id string) (*customer.CustomerDetailResponse, error) {
-// 	c.logger.Infof("[CustomerRepository][FindCustomerDetailByID] fetching customer detail by user_code: %s", id)
+
+// 	log.Infof("[CustomerRepository][FindCustomerDetailByID] fetching customer detail by user_code: %s", id)
 
 // 	// 1. Fetch user info by user_code
 // 	userQuery := `
@@ -119,7 +123,7 @@ func (c *customerOracleRepository) FindCustomerByUserCode(ctx context.Context, u
 // 		if err.Error() == "sql: no rows in result set" {
 // 			return nil, localization.ErrorResourceNotFound
 // 		}
-// 		c.logger.Errorf("[CustomerRepository][FindCustomerDetailByID] user query failed: %v", err)
+// 		log.Errorf("[CustomerRepository][FindCustomerDetailByID] user query failed: %v", err)
 // 		return nil, localization.ErrorUnexpectedError
 // 	}
 
@@ -139,7 +143,7 @@ func (c *customerOracleRepository) FindCustomerByUserCode(ctx context.Context, u
 
 // 	rows, err := c.db.QueryContext(ctx, linkedQuery, id)
 // 	if err != nil {
-// 		c.logger.Errorf("[CustomerRepository][FindCustomerDetailByID] linked accounts query failed: %v", err)
+// 		log.Errorf("[CustomerRepository][FindCustomerDetailByID] linked accounts query failed: %v", err)
 // 		return nil, localization.ErrorUnexpectedError
 // 	}
 // 	defer rows.Close()
@@ -149,7 +153,7 @@ func (c *customerOracleRepository) FindCustomerByUserCode(ctx context.Context, u
 // 		var accNum, accHolder, accType, branchCode, branchName sql.NullString
 // 		var isActiveAcc int
 // 		if err := rows.Scan(&accNum, &accHolder, &accType, &branchCode, &isActiveAcc, &branchName); err != nil {
-// 			c.logger.Errorf("[CustomerRepository][FindCustomerDetailByID] scan failed: %v", err)
+// 			log.Errorf("[CustomerRepository][FindCustomerDetailByID] scan failed: %v", err)
 // 			return nil, localization.ErrorUnexpectedError
 // 		}
 // 		linkedAccounts = append(linkedAccounts, customer.LinkedAccount{
@@ -184,7 +188,9 @@ func (c *customerOracleRepository) FindCustomerByUserCode(ctx context.Context, u
 
 // FindCustomerDetailByID implements [storage.CustomerRepository].
 func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, id string) (*customer.CustomerDetailResponse, error) {
-	c.logger.Infof("[CustomerRepository][FindCustomerDetailByID] fetching customer detail by user_code: %s", id)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	log.Infof("[CustomerRepository][FindCustomerDetailByID] fetching customer detail by user_code: %s", id)
 
 	// New query: join users, account_blocks, linked_accounts, accounts, fetch all required fields
 	query := `
@@ -215,7 +221,7 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 
 	rows, err := c.db.QueryContext(ctx, query, id)
 	if err != nil {
-		c.logger.Errorf("[CustomerRepository][FindCustomerDetailByID] query failed: %v", err)
+		log.Errorf("[CustomerRepository][FindCustomerDetailByID] query failed: %v", err)
 		return nil, localization.ErrorUnexpectedError
 	}
 	defer rows.Close()
@@ -241,7 +247,7 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 			&rowIsSuperAppActive, &rowIsUSSDActive, &rowIsSupperAppEnabled, &rowIsUSSDEnabled, &rowIsBlocked, &rowBirthOfDate,
 			&accHolder, &accType, &accNum, &branchName, &branchCode, &isActiveAcc,
 		); err != nil {
-			c.logger.Errorf("[CustomerRepository][FindCustomerDetailByID] scan failed: %v", err)
+			log.Errorf("[CustomerRepository][FindCustomerDetailByID] scan failed: %v", err)
 			return nil, localization.ErrorUnexpectedError
 		}
 		// Set user info from first row
@@ -302,7 +308,9 @@ func (c *customerOracleRepository) FindCustomerDetailByID(ctx context.Context, i
 
 // FindCustomerLinkedAccountByUserID implements [storage.CustomerRepository].
 func (c *customerOracleRepository) FindCustomerLinkedAccountByUserID(ctx context.Context, userID string) (*model.LinkedAccount, error) {
-	c.logger.Infof("[CustomerRepository][FindCustomerLinkedAccountByUserID] fetching linked account for user ID: %s", userID)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	log.Infof("[CustomerRepository][FindCustomerLinkedAccountByUserID] fetching linked account for user ID: %s", userID)
 
 	// 1. Find account_id from linked_accounts where user_id = :1 and is_main = 1
 	var accountID string
@@ -310,10 +318,10 @@ func (c *customerOracleRepository) FindCustomerLinkedAccountByUserID(ctx context
 	err := c.db.QueryRowContext(ctx, queryLinked, userID).Scan(&accountID)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
-			c.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] linked account not found for user ID: %s", userID)
+			log.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] linked account not found for user ID: %s", userID)
 			return nil, localization.ErrorResourceNotFound
 		}
-		c.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] failed to find linked account: %v", err)
+		log.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] failed to find linked account: %v", err)
 		return nil, localization.ErrorUnexpectedError
 	}
 
@@ -323,10 +331,10 @@ func (c *customerOracleRepository) FindCustomerLinkedAccountByUserID(ctx context
 	err = c.db.QueryRowContext(ctx, queryAccount, accountID).Scan(&accountNumber, &branchCode, &branchName)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
-			c.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] account not found for account_id: %s", accountID)
+			log.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] account not found for account_id: %s", accountID)
 			return nil, localization.ErrorResourceNotFound
 		}
-		c.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] failed to find account: %v", err)
+		log.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] failed to find account: %v", err)
 		return nil, localization.ErrorUnexpectedError
 	}
 
@@ -340,7 +348,9 @@ func (c *customerOracleRepository) FindCustomerLinkedAccountByUserID(ctx context
 
 // SearchCustomerByCIForAccountNumber implements [storage.CustomerRepository].
 func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer.CustomerListResponse, error) {
-	c.logger.Infof("[CustomerRepository][SearchCustomerByCIForAccountNumber] searching members by value: %s", number)
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	log.Infof("[CustomerRepository][SearchCustomerByCIForAccountNumber] searching members by value: %s", number)
 
 	// Oracle SQL: join USERS and LINKED_ACCOUNTS, search by phone, customer number, user code, or account id (as hex string)
 	query := `
@@ -379,7 +389,7 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 		if err.Error() == "sql: no rows in result set" {
 			return nil, localization.ErrorCustomerNotFound
 		}
-		c.logger.Errorf("[CustomerRepository][SearchCustomerByCIForAccountNumber] query failed: %v", err)
+		log.Errorf("[CustomerRepository][SearchCustomerByCIForAccountNumber] query failed: %v", err)
 		return nil, localization.ErrorUnexpectedError
 	}
 
@@ -401,22 +411,24 @@ func (c *customerOracleRepository) SearchCustomerByCIForAccountNumber(ctx contex
 
 // BlockCustomerByUserCode implements [storage.CustomerRepository].
 func (c *customerOracleRepository) BlockCustomerByUserCode(ctx context.Context, userCode string) error {
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
 	query := `UPDATE users SET is_blocked = 1 WHERE user_code = :1`
 	result, err := c.db.ExecContext(ctx, query, userCode)
 	if err != nil {
-		c.logger.Errorf("[CustomerRepository][BlockCustomerByUserCode] failed to block customer with user_code %s: %v", userCode, err)
+		log.Errorf("[CustomerRepository][BlockCustomerByUserCode] failed to block customer with user_code %s: %v", userCode, err)
 		return localization.ErrorUnexpectedError
 	}
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		c.logger.Errorf("[CustomerRepository][BlockCustomerByUserCode] failed to get rows affected: %v", err)
+		log.Errorf("[CustomerRepository][BlockCustomerByUserCode] failed to get rows affected: %v", err)
 		return localization.ErrorUnexpectedError
 	}
 	if rowsAffected == 0 {
-		c.logger.Errorf("[CustomerRepository][BlockCustomerByUserCode] no user found with user_code: %s", userCode)
+		log.Errorf("[CustomerRepository][BlockCustomerByUserCode] no user found with user_code: %s", userCode)
 		return localization.ErrorCustomerNotFound
 	}
-	c.logger.Infof("[CustomerRepository][BlockCustomerByUserCode] successfully blocked customer with user_code: %s", userCode)
+	log.Infof("[CustomerRepository][BlockCustomerByUserCode] successfully blocked customer with user_code: %s", userCode)
 	return nil
 }
 

@@ -50,12 +50,12 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/notification"
 	"cbe-super-app-cps-action/internal/storage/persistance/otp"
 
-	job_repo "cbe-super-app-cps-action/internal/storage/persistance/job_role"
+	roles "cbe-super-app-cps-action/internal/storage/persistance/roles"
 	password "cbe-super-app-cps-action/internal/storage/persistance/password_rule"
 	permission "cbe-super-app-cps-action/internal/storage/persistance/permission"
 	"cbe-super-app-cps-action/internal/storage/persistance/portal_card"
 	"cbe-super-app-cps-action/internal/storage/persistance/reset_session"
-	role_repo "cbe-super-app-cps-action/internal/storage/persistance/role"
+	job_roles "cbe-super-app-cps-action/internal/storage/persistance/job_roles"
 	Topup "cbe-super-app-cps-action/internal/storage/persistance/topup"
 	"cbe-super-app-cps-action/internal/storage/persistance/users"
 	"cbe-super-app-cps-action/internal/storage/persistance/wallet"
@@ -75,7 +75,7 @@ import (
 func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface core.CBECoreAPIInterface, notificationApi string, notificationProducer kafka.NotificationProducer, sharedKafkaProducer *shared_producer.NotificationProducer, clientOrchestrationProducer kafka.ClientOrchestrationProducer, accessListSegmentationProducer kafka.AccessListSegmentationProducer, redisRepository storage.RedisRepository, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
 	// AccountBlock now uses Oracle — initialized in OraclePersistence, wired in service.go
 	data := persistance.Persistence{
-		JobRolePersistence:               job_repo.NewJobRoleRepository(client, cfg, dbName, JobRolesCollection, logger),
+		RolePersistence:               roles.NewRoleRepository(client, cfg, dbName, JobRolesCollection, logger),
 		DeviceVersionControlPersistence:  deviceversioncontrol.NewDeviceVersionControlRepository(client, cfg, dbName, DeviceVersionControllCollection, clientOrchestrationProducer, logger),
 		AccountLookup:                    coreInterface,
 		UserPersistence:                  users.NewUserRepository(client, cfg, dbName, MembersCollection, clientOrchestrationProducer, logger),
@@ -126,7 +126,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		NewsTagsServiceContainer:          media.NewNewsTagsRepository(logger, client, cfg, dbName, NewsTagsCollection),
 		BPSActionRolePersistence:          actionrole_repo.NewBPSActionRoleRepository(client, cfg, dbName, []string{BPSActionRolesCollection, BPSActionListCollection, BPSActionApproveIndexCollection}, logger),
 		BPSActionApproveIndexPersistence:  actionrole_repo.NewBPSActionApproveIndexRepository(client, dbName, BPSActionApproveIndexCollection, logger),
-		RolePersistence:                   role_repo.NewRoleRepository(client, cfg, dbName, []string{RolesCollection, JobRolesCollection, CPSUsersCollection}, logger),
+		JobRolePersistence:                   job_roles.NewJobRoleRepository(client, cfg, dbName, []string{RolesCollection, JobRolesCollection, CPSUsersCollection}, logger),
 		MiniAppCategoryPersistence:        mini_app.NewMiniAppCategoryRepository(logger, client, cfg, dbName, MiniAppCategoryCollection),
 		CPSActionRolePersistence:          cps_actionrole_repo.NewCPSActionRoleRepository(client, cfg, dbName, []string{CPSActionRolesCollection, CPSActionListCollection, CPSActionApproveIndexCollection}, logger),
 		CPSActionApproveIndexPersistence:  cps_actionrole_repo.NewCPSActionApproveIndexRepository(client, dbName, CPSActionApproveIndexCollection, logger),

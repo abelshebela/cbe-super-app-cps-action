@@ -93,11 +93,13 @@ func (ca *cpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 }
 
 func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int) error {
+	log := local_util.LoggerFromCtx(ctx, ca.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "AuditorMark", "CPSAction", "AuditorMark")
 	defer span.End()
 	act, err := ca.repo.SanitizedFindOne(ctx, bson.M{"action_code": actionCode})
 	if err != nil || act == nil {
-		ca.logger.Errorf("[CpsActionSvc][AuditorMark] find err: %v", err)
+		log.Errorf("[CpsActionSvc][AuditorMark] find err: %v", err)
 		return errors.New(localization.ErrorActionNotFound.Code)
 	}
 
@@ -133,11 +135,13 @@ func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 }
 
 func (ca *cpsActionService) logUserAction(ctx context.Context, action *model.CPSAction, responsibility imodel.UserActionResponsibility, givenStatus string, auditorMark imodel.AuditorMark, checkerLevel, auditorLevel string) {
+	reqLog := local_util.LoggerFromCtx(ctx, ca.logger)
+	userData := local_util.ExtractUserFromContext(ctx)
 	if ca.actionLogRepo == nil {
 		return
 	}
 
-	userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
+	// userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
 
 	userOID, _ := bson.ObjectIDFromHex(userData.UserID)
 	actionOID := action.ID
@@ -147,7 +151,7 @@ func (ca *cpsActionService) logUserAction(ctx context.Context, action *model.CPS
 		serviceName = mod
 	}
 
-	log := &imodel.UserActionLog{
+	actionLog := &imodel.UserActionLog{
 		ID:                         bson.NewObjectID(),
 		ActionID:                   actionOID,
 		ActionCode:                 action.ActionCode,
@@ -158,24 +162,26 @@ func (ca *cpsActionService) logUserAction(ctx context.Context, action *model.CPS
 		CheckerLevel:               checkerLevel,
 		AuditorLevel:               auditorLevel,
 		UserID:                     userOID,
-		Username:                   userData.FullName,
+		Username:                   userData.UserName,
 		UserPhone:                  userData.PhoneNumber,
 		UserActionResponsibilities: responsibility,
 		CreatedAt:                  time.Now(),
 	}
 
-	if err := ca.actionLogRepo.Save(ctx, log); err != nil {
-		ca.logger.Errorf("[CpsActionSvc][logUserAction] failed to log action: %v", err)
+	if err := ca.actionLogRepo.Save(ctx, actionLog); err != nil {
+		reqLog.Errorf("[CpsActionSvc][logUserAction] failed to log action: %v", err)
 	}
 }
 
 func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *model.CPSAction) error {
+	log := local_util.LoggerFromCtx(ctx, ca.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateCPSAction", "CPSAction", "CreateCPSAction")
 	defer span.End()
 	var existing *model.CPSAction
 
 	var err error
-	ca.logger.Infof("[CpsActionSvc][Create] action: %s", cpsAction.RequestAction)
+	log.Infof("[CpsActionSvc][Create] action: %s", cpsAction.RequestAction)
 
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 	actionName, _ := ctx.Value(constants.ContextKey("action_name")).(string)
@@ -183,12 +189,12 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	// CREATE actions: No blockers - allow direct creation
 	if strings.Contains(cpsAction.RequestAction, string(constants.CREATE)) {
 		cpsAction.RoleCode = roleCode
-		err = ca.repo.Save(ctx, cpsAction)
+		cpsActionResult, err := ca.repo.Save(ctx, cpsAction)
 		if err != nil {
 			span.AddEvent("failed to save cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
 		}
-		ca.logUserAction(ctx, cpsAction, imodel.MAKER, "PENDING", "", "", "")
+		ca.logUserAction(ctx, &cpsActionResult, imodel.MAKER, "PENDING", "", "", "")
 		return nil
 	}
 
@@ -232,13 +238,51 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		}
 	}
 
+	// ENABLE actions: blocked by pending UPDATE and ENABLE actions on the same resource
+	if strings.Contains(cpsAction.RequestAction, constants.ENABLE) {
+		reqs := ca.pendingEnableLockRequestActions(actionName, cpsAction.RequestAction)
+		if len(reqs) > 0 {
+			existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
+			if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
+				span.AddEvent("failed to get cps action by role and request actions", trace.WithAttributes(attribute.String("error", err.Error())))
+				return err
+			}
+		}
+
+		if existing != nil {
+			span.AddEvent("pending enable cps action exists", trace.WithAttributes(attribute.String("error", "pending enable cps action exists")))
+			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), existing.ActionCode)
+			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), existing.ActionStatus)
+			return errors.New(localization.ErrorPendingCpsActionExists.Code)
+		}
+	}
+
+	// DISABLE actions: blocked only by other pending DISABLE actions on the same resource
+	if strings.Contains(cpsAction.RequestAction, constants.DISABLE) {
+		reqs := ca.pendingDisableLockRequestActions(actionName, cpsAction.RequestAction)
+		if len(reqs) > 0 {
+			existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
+			if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
+				span.AddEvent("failed to get cps action by role and request actions", trace.WithAttributes(attribute.String("error", err.Error())))
+				return err
+			}
+		}
+
+		if existing != nil {
+			span.AddEvent("pending disable cps action exists", trace.WithAttributes(attribute.String("error", "pending disable cps action exists")))
+			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), existing.ActionCode)
+			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), existing.ActionStatus)
+			return errors.New(localization.ErrorPendingCpsActionExists.Code)
+		}
+	}
+
 	cpsAction.RoleCode = roleCode
-	err = ca.repo.Save(ctx, cpsAction)
+	cpsActionResult, err := ca.repo.Save(ctx, cpsAction)
 	if err != nil {
 		span.AddEvent("failed to save cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
-	ca.logUserAction(ctx, cpsAction, imodel.MAKER, "PENDING", "", "", "")
+	ca.logUserAction(ctx, &cpsActionResult, imodel.MAKER, "PENDING", "", "", "")
 	return nil
 }
 
@@ -295,13 +339,16 @@ func (ca *cpsActionService) pendingLockRequestActions(actionName string, request
 	return reqs
 }
 
-// pendingUpdateLockRequestActions returns only UPDATE actions for blocking UPDATE requests
+// pendingUpdateLockRequestActions returns UPDATE, ENABLE, DISABLE, and DELETE actions for blocking UPDATE requests.
+// UPDATE is blocked by any pending UPDATE, ENABLE, DISABLE, or DELETE action on the same resource.
 func (ca *cpsActionService) pendingUpdateLockRequestActions(actionName string, requestAction string) []string {
 	normalize := func(s string) string {
 		return strings.ToUpper(strings.TrimSpace(s))
 	}
-	isUpdate := func(s string) bool {
-		return strings.Contains(normalize(s), constants.UPDATE)
+	isUpdateEnableDisableOrDelete := func(s string) bool {
+		n := normalize(s)
+		return strings.Contains(n, constants.UPDATE) || strings.Contains(n, constants.ENABLE) ||
+			strings.Contains(n, constants.DISABLE) || strings.Contains(n, constants.DELETE)
 	}
 
 	defaultReq := []string{normalize(requestAction)}
@@ -314,7 +361,6 @@ func (ca *cpsActionService) pendingUpdateLockRequestActions(actionName string, r
 		return defaultReq
 	}
 
-	wantUpdateOnly := isUpdate(requestAction)
 	seen := map[string]struct{}{}
 	reqs := make([]string, 0, len(lst))
 
@@ -323,12 +369,9 @@ func (ca *cpsActionService) pendingUpdateLockRequestActions(actionName string, r
 		if _, ok := seen[key]; ok {
 			continue
 		}
-
-		isKeyUpdate := isUpdate(key)
-		if !wantUpdateOnly || !isKeyUpdate {
-			continue // Only include UPDATE actions
+		if !isUpdateEnableDisableOrDelete(key) {
+			continue
 		}
-
 		seen[key] = struct{}{}
 		reqs = append(reqs, key)
 	}
@@ -383,22 +426,108 @@ func (ca *cpsActionService) pendingDeleteLockRequestActions(actionName string, r
 	return reqs
 }
 
+// pendingEnableLockRequestActions returns UPDATE, ENABLE, and DISABLE actions for blocking ENABLE requests.
+// ENABLE is blocked by any pending UPDATE, ENABLE, or DISABLE action on the same resource.
+func (ca *cpsActionService) pendingEnableLockRequestActions(actionName string, requestAction string) []string {
+	normalize := func(s string) string {
+		return strings.ToUpper(strings.TrimSpace(s))
+	}
+	isUpdateOrEnable := func(s string) bool {
+		n := normalize(s)
+		return strings.Contains(n, constants.UPDATE) || strings.Contains(n, constants.ENABLE) ||
+			strings.Contains(n, constants.DISABLE)
+	}
+
+	defaultReq := []string{normalize(requestAction)}
+	if actionName == "" {
+		return defaultReq
+	}
+
+	lst, ok := RequestActionGroups[actionName]
+	if !ok {
+		return defaultReq
+	}
+
+	seen := map[string]struct{}{}
+	reqs := make([]string, 0, len(lst))
+
+	for _, ra := range lst {
+		key := string(ra)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		if !isUpdateOrEnable(key) {
+			continue
+		}
+		seen[key] = struct{}{}
+		reqs = append(reqs, key)
+	}
+
+	if len(reqs) == 0 {
+		return defaultReq
+	}
+	return reqs
+}
+
+// pendingDisableLockRequestActions returns only DISABLE actions for blocking DISABLE requests.
+// DISABLE is blocked only by another pending DISABLE action on the same resource.
+func (ca *cpsActionService) pendingDisableLockRequestActions(actionName string, requestAction string) []string {
+	normalize := func(s string) string {
+		return strings.ToUpper(strings.TrimSpace(s))
+	}
+	isDisable := func(s string) bool {
+		return strings.Contains(normalize(s), constants.DISABLE)
+	}
+
+	defaultReq := []string{normalize(requestAction)}
+	if actionName == "" {
+		return defaultReq
+	}
+
+	lst, ok := RequestActionGroups[actionName]
+	if !ok {
+		return defaultReq
+	}
+
+	seen := map[string]struct{}{}
+	reqs := make([]string, 0, len(lst))
+
+	for _, ra := range lst {
+		key := string(ra)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		if !isDisable(key) {
+			continue
+		}
+		seen[key] = struct{}{}
+		reqs = append(reqs, key)
+	}
+
+	if len(reqs) == 0 {
+		return defaultReq
+	}
+	return reqs
+}
+
 func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
+	log := local_util.LoggerFromCtx(ctx, ca.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "ApproveCPSAction", "CPSAction", "ApproveCPSAction")
 	defer span.End()
-	ca.logger.Infof("[CpsActionSvc][Approve] action: %s", action.ActionCode)
+	log.Infof("[CpsActionSvc][Approve] action: %s", action.ActionCode)
 
 	mod, ok := ResolveModuleForRA(constants.RequestAction(action.RequestAction))
 	if !ok {
 		span.AddEvent("failed to resolve module for request action", trace.WithAttributes(attribute.String("error", "failed to resolve module for request action")))
-		ca.logger.Errorf("[CpsActionSvc][Approve] failed to resolve module for request action: %s", action.RequestAction)
+		log.Errorf("[CpsActionSvc][Approve] failed to resolve module for request action: %s", action.RequestAction)
 		return errors.New(localization.ErrorOperationNotAllowed.Code)
 	}
 
 	data, err := ca.repo.Update(ctx, action.ActionCode, *action, mod, RequestActionGroups)
 	if err != nil {
 		span.AddEvent("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
-		ca.logger.Errorf("[CpsActionSvc][Approve] update err: %v", err)
+		log.Errorf("[CpsActionSvc][Approve] update err: %v", err)
 		return err
 	}
 
@@ -415,11 +544,11 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 	approve, err := ca.dispatcher.Authorize(ctx, data)
 	if err != nil && approve == nil {
 		span.AddEvent("failed to authorize cps action", trace.WithAttributes(attribute.String("error", err.Error())))
-		ca.logger.Errorf("[CpsActionSvc][Approve] authorize err: %v", err)
+		log.Errorf("[CpsActionSvc][Approve] authorize err: %v", err)
 		RollErr := ca.RollBack(ctx, data)
 		if RollErr != nil {
 			span.AddEvent("failed to roll back cps action", trace.WithAttributes(attribute.String("error", RollErr.Error())))
-			ca.logger.Errorf("[CpsActionSvc][Approve] rollback err: %v", RollErr)
+			log.Errorf("[CpsActionSvc][Approve] rollback err: %v", RollErr)
 			return RollErr
 		}
 		if err.Error() == localization.ErrorTimeoutError.Code {
@@ -467,6 +596,8 @@ func (ca *cpsActionService) GetCPSActionsByDepartment(ctx context.Context, depar
 }
 
 func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
+	log := local_util.LoggerFromCtx(ctx, ca.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionsForApprover", "CPSAction", "GetCPSActionsForApprover")
 	defer span.End()
 	// var actionCodes []string
@@ -504,7 +635,7 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 		// Validate date filters for export
 		if createdAtFrom == "" || createdAtTo == "" {
 			span.AddEvent("missing date filters for export")
-			ca.logger.Errorf("[CpsActionSvc][Export] missing required date filters: from=%q, to=%q", createdAtFrom, createdAtTo)
+			log.Errorf("[CpsActionSvc][Export] missing required date filters: from=%q, to=%q", createdAtFrom, createdAtTo)
 			return nil, "", errors.New(localization.ErrorRequiredFieldMissing.Code)
 		}
 
@@ -514,7 +645,7 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, result.Data, CpsActionCSVHeader, ca.logger)
 		if err != nil {
 			span.AddEvent("failed to export CPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
-			ca.logger.Errorf("[CpsActionSvc][Export] export CPS actions err: %v", err)
+			log.Errorf("[CpsActionSvc][Export] export CPS actions err: %v", err)
 			return nil, "", err
 		}
 		return result, url, nil
@@ -523,9 +654,11 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 }
 
 func (ca *cpsActionService) exportCPSActions(ctx context.Context, filterParams *types.Filter, result *types.PaginatedResponse[[]*model.CPSAction]) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, ca.logger)
+
 	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(filterParams.Filters["created_at_from"].(string), filterParams.Filters["created_at_to"].(string))
 	if err != nil {
-		ca.logger.Errorf("[CpsActionSvc][Export] format date range to UTC strings err: %v", err)
+		log.Errorf("[CpsActionSvc][Export] format date range to UTC strings err: %v", err)
 		return "", errors.New(localization.ErrorInvalidDateFormat.Code)
 	}
 
@@ -556,12 +689,14 @@ func (ca *cpsActionService) exportCPSActions(ctx context.Context, filterParams *
 		}
 	})
 	if err != nil {
-		ca.logger.Errorf("[CpsActionSvc][Export] produce file from data err: %v", err)
+		log.Errorf("[CpsActionSvc][Export] produce file from data err: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return url, nil
 }
 func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
+	log := local_util.LoggerFromCtx(ctx, ca.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionsForAuditor", "CPSAction", "GetCPSActionsForAuditor")
 	defer span.End()
 	createdAtFrom, _ := filterParams.Filters["created_at_from"].(string)
@@ -576,7 +711,7 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 		// Validate date filters for export
 		if createdAtFrom == "" || createdAtTo == "" {
 			span.AddEvent("missing date filters for export")
-			ca.logger.Errorf("[CpsActionSvc][Export] missing required date filters: from=%q, to=%q", createdAtFrom, createdAtTo)
+			log.Errorf("[CpsActionSvc][Export] missing required date filters: from=%q, to=%q", createdAtFrom, createdAtTo)
 			return nil, "", errors.New(localization.ErrorRequiredFieldMissing.Code)
 		}
 
@@ -586,7 +721,7 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, result.Data, CpsActionCSVHeader, ca.logger)
 		if err != nil {
 			span.AddEvent("failed to export CPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
-			ca.logger.Errorf("[CpsActionSvc][Export] export CPS actions err: %v", err)
+			log.Errorf("[CpsActionSvc][Export] export CPS actions err: %v", err)
 			return nil, "", err
 		}
 		return result, url, nil
@@ -608,12 +743,14 @@ func (ca *cpsActionService) GetCPSActions(ctx context.Context, userID, role stri
 }
 
 func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, ca.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionByID", "CPSAction", "GetCPSActionByID")
 	defer span.End()
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		span.AddEvent("failed to parse the string to bson object", trace.WithAttributes(attribute.String("error", err.Error())))
-		ca.logger.Errorf("[CpsActionSvc][GetByID] parse id err")
+		log.Errorf("[CpsActionSvc][GetByID] parse id err")
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	action, err := ca.repo.SanitizedFindOne(ctx, bson.M{"_id": objID, "department": department})
@@ -642,12 +779,14 @@ func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestA
 }
 
 func (ca *cpsActionService) GetPendingCPSActionByRoleAndRequestActions(ctx context.Context, uniqueId string, requestActions []string) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, ca.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetPendingCPSActionByRoleAndRequestActions", "CPSAction", "GetPendingCPSActionByRoleAndRequestActions")
 	defer span.End()
 
 	// If requestActions is empty, return not found immediately
 	if len(requestActions) == 0 {
-		ca.logger.Warnf("[CpsActionSvc][GetPendingByRoleAndRA] empty requestActions provided")
+		log.Warnf("[CpsActionSvc][GetPendingByRoleAndRA] empty requestActions provided")
 		return nil, errors.New(localization.ErrorActionNotFound.Code)
 	}
 
@@ -660,11 +799,11 @@ func (ca *cpsActionService) GetPendingCPSActionByRoleAndRequestActions(ctx conte
 	action, err := ca.repo.SanitizedFindOne(ctx, filter)
 	if err != nil {
 		span.AddEvent("failed to find one", trace.WithAttributes(attribute.String("error", err.Error())))
-		ca.logger.Errorf("[CpsActionSvc][GetPendingByRoleAndRA] find one err: %v", err)
+		log.Errorf("[CpsActionSvc][GetPendingByRoleAndRA] find one err: %v", err)
 		return nil, err
 	}
 
-	ca.logger.Infof("[CpsActionSvc][GetPendingByRoleAndRA] found pending action: %s for uniqueId: %s and requestActions: %v", action.ActionCode, uniqueId, requestActions)
+	log.Infof("[CpsActionSvc][GetPendingByRoleAndRA] found pending action: %s for uniqueId: %s and requestActions: %v", action.ActionCode, uniqueId, requestActions)
 	return action, nil
 }
 
@@ -725,6 +864,8 @@ func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, unique
 //   - Multi-checker (CheckerCount > 0): revert the last checker and reset status to Pending.
 //   - Auditor fields are also reset when AuditorCount > 0.
 func (ca *cpsActionService) RollBack(ctx context.Context, data *model.CPSAction) error {
+	log := local_util.LoggerFromCtx(ctx, ca.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "RollBack", "CPSAction", "RollBack")
 	defer span.End()
 
@@ -740,7 +881,7 @@ func (ca *cpsActionService) RollBack(ctx context.Context, data *model.CPSAction)
 			span.AddEvent("failed to soft-delete maker-only cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
 		}
-		ca.logger.Infof("[CpsActionSvc][RollBack] soft-deleted: %s", data.ActionCode)
+		log.Infof("[CpsActionSvc][RollBack] soft-deleted: %s", data.ActionCode)
 		return nil
 	}
 
@@ -771,7 +912,7 @@ func (ca *cpsActionService) RollBack(ctx context.Context, data *model.CPSAction)
 		span.AddEvent("failed to roll back cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
-	ca.logger.Infof("[CpsActionSvc][RollBack] reverted to pending: %s", data.ActionCode)
+	log.Infof("[CpsActionSvc][RollBack] reverted to pending: %s", data.ActionCode)
 	return nil
 }
 
@@ -787,10 +928,12 @@ func (ca *cpsActionService) GetActionCountsByDepartemnt(ctx context.Context, dep
 }
 
 func (ca *cpsActionService) GetUserAuthorizerIndex(ctx context.Context, requestAction constants.RequestAction) (imodel.CPSActionApproveIndex, error) {
+	log := local_util.LoggerFromCtx(ctx, ca.logger)
+
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 	var approverData imodel.CPSActionApproveIndex
 
-	ca.logger.Infof("[CpsActionSvc][GetAuthIdx] role: %s action: %s", roleCode, requestAction)
+	log.Infof("[CpsActionSvc][GetAuthIdx] role: %s action: %s", roleCode, requestAction)
 	if mod, ok := ResolveModuleForRA(constants.RequestAction(requestAction)); ok && ca.roles != nil {
 		if approver, err := ca.roles.FindApproverByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil {
 			approverData = approver
@@ -803,6 +946,8 @@ func (ca *cpsActionService) GetUserAuthorizerIndex(ctx context.Context, requestA
 }
 
 func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
+	log := local_util.LoggerFromCtx(ctx, ca.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetUserCreatedActions", "CPSAction", "GetUserCreatedActions")
 	defer span.End()
 	if filterParams == nil {
@@ -816,7 +961,7 @@ func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID st
 	if ca.actionLogRepo != nil {
 		codes, err := ca.actionLogRepo.GetActionCodesByUser(ctx, userID, imodel.MAKER)
 		if err != nil {
-			ca.logger.Errorf("[CpsActionSvc][GetUserCreatedActions] failed to get action codes from log: %v", err)
+			log.Errorf("[CpsActionSvc][GetUserCreatedActions] failed to get action codes from log: %v", err)
 		}
 		if len(codes) > 0 {
 			filterParams.Filters["action_code_in"] = codes
@@ -840,18 +985,18 @@ func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID st
 		// Validate date filters for export
 		if createdAtFrom == "" || createdAtTo == "" {
 			span.AddEvent("missing date filters for export")
-			ca.logger.Errorf("[CpsActionSvc][Export] missing required date filters: from=%q, to=%q", createdAtFrom, createdAtTo)
+			log.Errorf("[CpsActionSvc][Export] missing required date filters: from=%q, to=%q", createdAtFrom, createdAtTo)
 			return nil, "", errors.New(localization.ErrorRequiredFieldMissing.Code)
 		}
 
 		filterParams.Filters["created_at_to"] = createdAtTo
 		filterParams.Filters["created_at_from"] = createdAtFrom
 
-		ca.logger.Infof("[CpsActionSvc][Export] export CPS actions with filters: %v and length: %v", filterParams.Filters, len(result.Data))
+		log.Infof("[CpsActionSvc][Export] export CPS actions with filters: %v and length: %v", filterParams.Filters, len(result.Data))
 		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, result.Data, CpsActionCSVHeader, ca.logger)
 		if err != nil {
 			span.AddEvent("failed to export CPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
-			ca.logger.Errorf("[CpsActionSvc][Export] export CPS actions err: %v", err)
+			log.Errorf("[CpsActionSvc][Export] export CPS actions err: %v", err)
 			return nil, "", err
 		}
 		return result, url, nil
@@ -861,6 +1006,8 @@ func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID st
 }
 
 func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], string, error) {
+	log := local_util.LoggerFromCtx(ctx, ca.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetUserCheckedActions", "CPSAction", "GetUserCheckedActions")
 	defer span.End()
 	if filterParams == nil {
@@ -874,7 +1021,7 @@ func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 	if ca.actionLogRepo != nil {
 		codes, err := ca.actionLogRepo.GetActionCodesByUser(ctx, userID, imodel.CHECKER)
 		if err != nil {
-			ca.logger.Errorf("[CpsActionSvc][GetUserCheckedActions] failed to get action codes from log: %v", err)
+			log.Errorf("[CpsActionSvc][GetUserCheckedActions] failed to get action codes from log: %v", err)
 		}
 		if len(codes) > 0 {
 			filterParams.Filters["action_code_in"] = codes
@@ -899,7 +1046,7 @@ func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 		// Validate date filters for export
 		if createdAtFrom == "" || createdAtTo == "" {
 			span.AddEvent("missing date filters for export")
-			ca.logger.Errorf("[CpsActionSvc][Export] missing required date filters: from=%q, to=%q", createdAtFrom, createdAtTo)
+			log.Errorf("[CpsActionSvc][Export] missing required date filters: from=%q, to=%q", createdAtFrom, createdAtTo)
 			return nil, "", errors.New(localization.ErrorRequiredFieldMissing.Code)
 		}
 
@@ -909,7 +1056,7 @@ func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 		url, err := lib.FileExporterForCPSAction(ctx, ca.cfg, ca.minioClient, ca.buckerName, filterParams, result.Data, CpsActionCSVHeader, ca.logger)
 		if err != nil {
 			span.AddEvent("failed to export CPS actions", trace.WithAttributes(attribute.String("error", err.Error())))
-			ca.logger.Errorf("[CpsActionSvc][Export] export CPS actions err: %v", err)
+			log.Errorf("[CpsActionSvc][Export] export CPS actions err: %v", err)
 			return nil, "", err
 		}
 		return result, url, nil
@@ -921,6 +1068,7 @@ func (ca *cpsActionService) ExportCpsActionData(
 	ctx context.Context, req []string, filterMap *types.Filter,
 	exportType string,
 ) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, ca.logger)
 
 	var filterFields []string
 	var rowCount int
@@ -937,7 +1085,7 @@ func (ca *cpsActionService) ExportCpsActionData(
 
 	startDate, endDate, err := local_util.FormatDateRangeToUTCStrings(filterMap.Filters["created_at_from"].(string), filterMap.Filters["created_at_to"].(string))
 	if err != nil {
-		ca.logger.Errorf("[CpsActionSvc][Export] format date range to UTC strings err: %v", err)
+		log.Errorf("[CpsActionSvc][Export] format date range to UTC strings err: %v", err)
 		return "", errors.New(localization.ErrorInvalidDateFormat.Code)
 	}
 	filterMap.Filters["created_at_from"] = startDate
@@ -960,20 +1108,20 @@ func (ca *cpsActionService) ExportCpsActionData(
 
 	actions, err := ca.repo.ActionByDateRange(ctx, *filterMap, req)
 	if err != nil {
-		ca.logger.Errorf("[CpsActionSvc][Export] find all with date range err: %v", err)
+		log.Errorf("[CpsActionSvc][Export] find all with date range err: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	for _, action := range actions {
 		rowCount++
 		if err := ca.processCPSAction(writer, action); err != nil {
-			ca.logger.Errorf("[CpsActionSvc][Export] process CPS action err: %v", err)
+			log.Errorf("[CpsActionSvc][Export] process CPS action err: %v", err)
 			return "", errors.New(localization.ErrorUnexpectedError.Code)
 		}
 	}
 
 	if rowCount == 0 {
-		ca.logger.Infof("[CpsActionSvc][Export] no data found in date range %v - %v",
+		log.Infof("[CpsActionSvc][Export] no data found in date range %v - %v",
 			filterMap.Filters["created_at_from"], filterMap.Filters["created_at_to"])
 		return "", errors.New(localization.CpsActionDataNotFoundInDateRange.Code)
 	}
@@ -987,13 +1135,13 @@ func (ca *cpsActionService) ExportCpsActionData(
 	)
 
 	if _, err := tmpFile.Seek(0, 0); err != nil {
-		ca.logger.Errorf("[CpsActionSvc][Export] seek temp file err: %v", err)
+		log.Errorf("[CpsActionSvc][Export] seek temp file err: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	stat, err := tmpFile.Stat()
 	if err != nil {
-		ca.logger.Errorf("[CpsActionSvc][Export] stat temp file err: %v", err)
+		log.Errorf("[CpsActionSvc][Export] stat temp file err: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -1007,13 +1155,13 @@ func (ca *cpsActionService) ExportCpsActionData(
 	if ft == "csv" {
 		url, err = lib.UploadCSVToMinio(ctx, ca.minioClient, ca.buckerName, tmpFile, stat.Size(), ca.cfg, objectName, ca.logger)
 		if err != nil {
-			ca.logger.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
+			log.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
 			return "", errors.New(localization.CpsActionDataExportedError.Code)
 		}
 	} else {
 		url, err = lib.UploadPDFToMinio(ctx, ca.minioClient, ca.buckerName, tmpFile, stat.Size(), ca.cfg, objectName, ca.logger)
 		if err != nil {
-			ca.logger.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
+			log.Errorf("[CpsActionSvc][Export] upload to MinIO err: %v", err)
 			return "", errors.New(localization.CpsActionDataExportedError.Code)
 		}
 	}

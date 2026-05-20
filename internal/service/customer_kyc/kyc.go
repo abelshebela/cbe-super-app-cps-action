@@ -56,12 +56,13 @@ func NewCustomerKYCService(repo storage.CustomerKYCRepository,
 }
 
 // func (s *customerKYCService) Create(ctx context.Context, req dto.CreateCustomerKYCRequest) error {
+
 // 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateCustomerKYC", "CustomerKYC", "Create")
 // 	defer span.End()
 
 // 	makerData := local_util.ExtractUserFromContext(ctx)
 // 	if local_util.IsIncomplete(makerData) {
-// 		s.logger.Errorf("[CustKycSvc][Create] incomplete user")
+// 		log.Errorf("[CustKycSvc][Create] incomplete user")
 // 		return errors.New(constants.IncompleteUserInfo)
 // 	}
 
@@ -152,7 +153,7 @@ func NewCustomerKYCService(repo storage.CustomerKYCRepository,
 // 	action := lib.CpsModelBuilder("", makerData, nil, kyc, string(constants.RequestCreateCustomerKYC), constants.CREATE)
 
 // 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
-// 		s.logger.Errorf("[CustKycSvc][Create] cps action err: %v", err)
+// 		log.Errorf("[CustKycSvc][Create] cps action err: %v", err)
 // 		return err
 // 	}
 
@@ -187,21 +188,22 @@ func (s *customerKYCService) FindByID(ctx context.Context, id string) (*dto.Cust
 }
 
 func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
 	userReq, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		s.logger.Errorf("[CustKycSvc][EnableDisable] find err: %v", err)
+		log.Errorf("[CustKycSvc][EnableDisable] find err: %v", err)
 		return err
 	}
 
 	if userReq.Enabled && enable && userReq.KYCStatus == imodel.KYCStatusApproved {
-		s.logger.Warnf("[CustKycSvc][EnableDisable] already in state id: %s, enabled: %v", id, enable)
+		log.Warnf("[CustKycSvc][EnableDisable] already in state id: %s, enabled: %v", id, enable)
 		return errors.New("Customer KYC is already approved")
 	}
 
 	if !userReq.Enabled && !enable && userReq.KYCStatus == imodel.KYCStatusRejected {
-		s.logger.Warnf("[CustKycSvc][EnableDisable] already in state id: %s, disabled: %v", id, enable)
+		log.Warnf("[CustKycSvc][EnableDisable] already in state id: %s, disabled: %v", id, enable)
 		return errors.New("Customer KYC is already rejected")
 	}
 
@@ -221,7 +223,7 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason str
 	cpsActionData := lib.CpsModelBuilder(id, makerUser, userReq, newReq, string(action), constants.UPDATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		s.logger.Errorf("[CustKycSvc][EnableDisable] cps action err: %v", err)
+		log.Errorf("[CustKycSvc][EnableDisable] cps action err: %v", err)
 		return err
 	}
 
@@ -229,13 +231,14 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason str
 }
 
 // func (s *customerKYCService) Delete(ctx context.Context, id string) error {
+
 // 	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteKYC", "CustomerKYC", "Delete")
 // 	defer span.End()
 
-// 	s.logger.Infof("[CustKycSvc][Delete] id: %s", id)
+// 	log.Infof("[CustKycSvc][Delete] id: %s", id)
 // 	makerData := local_util.ExtractUserFromContext(ctx)
 // 	if local_util.IsIncomplete(makerData) {
-// 		s.logger.Errorf("[CustKycSvc][Delete] incomplete user")
+// 		log.Errorf("[CustKycSvc][Delete] incomplete user")
 // 		return errors.New(constants.IncompleteUserInfo)
 // 	}
 
@@ -247,7 +250,7 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason str
 // 	action := lib.CpsModelBuilder(id, makerData, kyc, nil, string(constants.RequestDeleteCustomerKYC), constants.DELETE)
 
 // 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
-// 		s.logger.Errorf("[CustKycSvc][Delete] cps action err: %v", err)
+// 		log.Errorf("[CustKycSvc][Delete] cps action err: %v", err)
 // 		return err
 // 	}
 
@@ -255,13 +258,14 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason str
 // }
 
 // func (s *customerKYCService) UpdateKYCStatus(ctx context.Context, id string, status string) error {
+
 // 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateKYCStatus", "CustomerKYC", "UpdateKYCStatus")
 // 	defer span.End()
 
-// 	s.logger.Infof("[CustKycSvc][UpdateStatus] id: %s status: %s", id, status)
+// 	log.Infof("[CustKycSvc][UpdateStatus] id: %s status: %s", id, status)
 // 	makerData := local_util.ExtractUserFromContext(ctx)
 // 	if local_util.IsIncomplete(makerData) {
-// 		s.logger.Errorf("[CustKycSvc][UpdateStatus] incomplete user")
+// 		log.Errorf("[CustKycSvc][UpdateStatus] incomplete user")
 // 		return errors.New(constants.IncompleteUserInfo)
 // 	}
 
@@ -276,7 +280,7 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason str
 // 	action := lib.CpsModelBuilder(id, makerData, kyc, currentAction, string(constants.RequestUpdateCustomerKYC), constants.UPDATE)
 
 // 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
-// 		s.logger.Errorf("[CustKycSvc][UpdateStatus] cps action err: %v", err)
+// 		log.Errorf("[CustKycSvc][UpdateStatus] cps action err: %v", err)
 // 		return err
 // 	}
 
@@ -286,7 +290,8 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason str
 func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "CustomerKYC", "Authorize")
 	defer span.End()
-	s.logger.Infof("[CustKycSvc][Authorize] action: %s", cpsAction.RequestAction)
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+	log.Infof("[CustKycSvc][Authorize] action: %s", cpsAction.RequestAction)
 
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestApproveCustomerKYC):
@@ -305,7 +310,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 		}
 		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.logger)
 		if err != nil {
-			s.logger.Errorf("Core account creation failed: %v", err)
+			log.Errorf("Core account creation failed: %v", err)
 			return nil, err
 		}
 

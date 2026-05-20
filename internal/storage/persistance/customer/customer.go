@@ -51,6 +51,8 @@ func InitCustomerDetail(client *mongo.Client, cfg *config.VaultConfig, database 
 }
 
 func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error) {
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "gender", "branch_code", "kyc_level", "is_blocked", "enabled", "bps_reject_status"}
 
@@ -137,7 +139,7 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 
 	cursor, err := p.coll.Aggregate(ctx, pipeline)
 	if err != nil {
-		p.logger.Errorf("[CustomerRepository][FindAllWithPagination] aggregation failed: %v", err)
+		log.Errorf("[CustomerRepository][FindAllWithPagination] aggregation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
@@ -163,7 +165,7 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 	}
 
 	if err := cursor.All(ctx, &result); err != nil {
-		p.logger.Errorf("[CustomerRepository][FindAllWithPagination] cursor decode failed: %v", err)
+		log.Errorf("[CustomerRepository][FindAllWithPagination] cursor decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -191,7 +193,7 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	p.logger.Infof("[CustomerRepository][FindAllWithPagination] retrieved %d customers", len(data))
+	log.Infof("[CustomerRepository][FindAllWithPagination] retrieved %d customers", len(data))
 
 	return &types.PaginatedResponse[[]*customer_dto.CustomerListResponse]{
 		Data: data,
@@ -200,85 +202,95 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 }
 
 func (p *CustomerRepository) Update(ctx context.Context, id string, data member.User) error {
-	p.logger.Infof("[CustomerRepository][Update] updating customer for id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
+	log.Infof("[CustomerRepository][Update] updating customer for id: %s", id)
 	objId, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		p.logger.Errorf("[CustomerRepository][Update] invalid object id: %v", err)
+		log.Errorf("[CustomerRepository][Update] invalid object id: %v", err)
 		return localization.ErrorUnexpectedError
 	}
 
 	filter, update := FaydaEnable(objId, data)
 	updatedCustomer, err := p.mongoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		p.logger.Errorf("[CustomerRepository][Update] failed to update customer: %v", err)
+		log.Errorf("[CustomerRepository][Update] failed to update customer: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	p.kafkaProducer.PublishMessage(ctx, updatedCustomer, string(constants.ClientOrchestrationMemberTopic), string(constants.ClientOrchestrationMemberTopic), "Customer Update")
 
-	p.logger.Infof("[CustomerRepository][Update] customer updated successfully")
+	log.Infof("[CustomerRepository][Update] customer updated successfully")
 	return nil
 }
 func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*member.User, error) {
-	p.logger.Infof("[CustomerRepository][FindByID] fetching customer by id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
+	log.Infof("[CustomerRepository][FindByID] fetching customer by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		p.logger.Errorf("[CustomerRepository][FindByID] invalid object id: %v", err)
+		log.Errorf("[CustomerRepository][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
 	// user, err := p.mongoDal.FindOne(ctx, filter, UserProjection())
 	user, err := p.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		p.logger.Errorf("[CustomerRepository][FindByID] failed to fetch customer: %v", err)
+		log.Errorf("[CustomerRepository][FindByID] failed to fetch customer: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
 	if user == nil {
-		p.logger.Errorf("[CustomerRepository][FindByID] customer not found for id: %s", id)
+		log.Errorf("[CustomerRepository][FindByID] customer not found for id: %s", id)
 		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
-	p.logger.Infof("[CustomerRepository][FindByID] customer retrieved successfully")
+	log.Infof("[CustomerRepository][FindByID] customer retrieved successfully")
 	return user, nil
 }
 
 // EnableOrDisable implements storage.CustomerRepository.
 func (b *CustomerRepository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	b.logger.Infof("[CustomerRepository][EnableOrDisable] processing customer enable/disable for id: %s, enabled: %v", id, enable)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[CustomerRepository][EnableOrDisable] processing customer enable/disable for id: %s, enabled: %v", id, enable)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		b.logger.Errorf("[CustomerRepository][EnableOrDisable] invalid object id: %v", err)
+		log.Errorf("[CustomerRepository][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"enabled": enable}
 	updatedCustomer, err := b.mongoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		b.logger.Errorf("[CustomerRepository][EnableOrDisable] failed to enable/disable customer: %v", err)
+		log.Errorf("[CustomerRepository][EnableOrDisable] failed to enable/disable customer: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
 	b.kafkaProducer.PublishMessage(ctx, updatedCustomer, string(constants.ClientOrchestrationMemberTopic), string(constants.ClientOrchestrationMemberTopic), "enable/disable Customer")
 
-	b.logger.Infof("[CustomerRepository][EnableOrDisable] customer enable/disable completed successfully")
+	log.Infof("[CustomerRepository][EnableOrDisable] customer enable/disable completed successfully")
 	return nil
 }
 
 // BlockCustomerByUserCode implements storage.CustomerRepository.
 func (b *CustomerRepository) BlockCustomerByUserCode(ctx context.Context, userCode string) error {
-	b.logger.Infof("[CustomerRepository][BlockCustomerByUserCode] updating is_blocked for user_code: %s", userCode)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[CustomerRepository][BlockCustomerByUserCode] updating is_blocked for user_code: %s", userCode)
 	filter := bson.M{"user_code": userCode}
 	update := bson.M{"is_blocked": true}
 	_, err := b.mongoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		b.logger.Errorf("[CustomerRepository][BlockCustomerByUserCode] failed to block customer: %v", err)
+		log.Errorf("[CustomerRepository][BlockCustomerByUserCode] failed to block customer: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	b.logger.Infof("[CustomerRepository][BlockCustomerByUserCode] customer blocked successfully")
+	log.Infof("[CustomerRepository][BlockCustomerByUserCode] customer blocked successfully")
 	return nil
 }
 
 func (c *CustomerRepository) FetchLinkedAccount(ctx context.Context, id string) ([]model.LinkedAccount, error) {
-	c.logger.Infof("[CustomerRepository][FetchLinkedAccount] fetching linked accounts for customer number")
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	log.Infof("[CustomerRepository][FetchLinkedAccount] fetching linked accounts for customer number")
 
 	obj, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -291,24 +303,26 @@ func (c *CustomerRepository) FetchLinkedAccount(ctx context.Context, id string) 
 
 	linkedAccount, err := c.linkedAccountDal.FindAll(ctx, filter, bson.M{})
 	if err != nil {
-		c.logger.Errorf("[CustomerRepository][FetchLinkedAccount] failed to fetch linked accounts: %v", err)
+		log.Errorf("[CustomerRepository][FetchLinkedAccount] failed to fetch linked accounts: %v", err)
 		return []model.LinkedAccount{}, local_util.HandleDBError(err)
 	}
 	if len(linkedAccount) == 0 {
-		c.logger.Errorf("[CustomerRepository][FetchLinkedAccount] linked account not found: %v", err)
+		log.Errorf("[CustomerRepository][FetchLinkedAccount] linked account not found: %v", err)
 		return []model.LinkedAccount{}, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
-	c.logger.Infof("[CustomerRepository][FetchLinkedAccount] retrieved %d linked accounts", len(linkedAccount))
+	log.Infof("[CustomerRepository][FetchLinkedAccount] retrieved %d linked accounts", len(linkedAccount))
 
 	return linkedAccount, nil
 }
 
 func (p *CustomerRepository) FindCustomerDetailByiD(ctx context.Context, id string) (*customer_dto.CustomerDetailRespons, error) {
-	p.logger.Infof("[CustomerRepository][FindCustomerDetailByiD] fetching customer detail by id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
+	log.Infof("[CustomerRepository][FindCustomerDetailByiD] fetching customer detail by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		p.logger.Errorf("[CustomerRepository][FindCustomerDetailByiD] invalid object id: %v", err)
+		log.Errorf("[CustomerRepository][FindCustomerDetailByiD] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -366,7 +380,7 @@ func (p *CustomerRepository) FindCustomerDetailByiD(ctx context.Context, id stri
 
 	cursor, err := p.coll.Aggregate(ctx, pipeline)
 	if err != nil {
-		p.logger.Errorf("[CustomerRepository][FindCustomerDetailByiD] aggregation failed: %v", err)
+		log.Errorf("[CustomerRepository][FindCustomerDetailByiD] aggregation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
@@ -390,7 +404,7 @@ func (p *CustomerRepository) FindCustomerDetailByiD(ctx context.Context, id stri
 	}
 
 	if err = cursor.All(ctx, &results); err != nil {
-		p.logger.Errorf("[CustomerRepository][FindCustomerDetailByiD] cursor decode failed: %v", err)
+		log.Errorf("[CustomerRepository][FindCustomerDetailByiD] cursor decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -459,10 +473,12 @@ func (p *CustomerRepository) FindCustomerDetailByiD(ctx context.Context, id stri
 }
 
 func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error) {
-	p.logger.Infof("[CustomerRepository][FindCustomerDetailByID] fetching customer detail by id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
+	log.Infof("[CustomerRepository][FindCustomerDetailByID] fetching customer detail by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		p.logger.Errorf("[CustomerRepository][FindCustomerDetailByID] invalid object id: %v", err)
+		log.Errorf("[CustomerRepository][FindCustomerDetailByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -536,7 +552,7 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 
 	cursor, err := p.coll.Aggregate(ctx, pipeline)
 	if err != nil {
-		p.logger.Errorf("[CustomerRepository][FindCustomerDetailByID] aggregation failed: %v", err)
+		log.Errorf("[CustomerRepository][FindCustomerDetailByID] aggregation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
@@ -563,7 +579,7 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 	}
 
 	if err = cursor.All(ctx, &results); err != nil {
-		p.logger.Errorf("[CustomerRepository][FindCustomerDetailByID] cursor decode failed: %v", err)
+		log.Errorf("[CustomerRepository][FindCustomerDetailByID] cursor decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -605,7 +621,9 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 }
 
 func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error) {
-	p.logger.Infof("[CustomerRepository][SearchCustomerByCIForAccountNumber] searching members by value: %s", number)
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
+	log.Infof("[CustomerRepository][SearchCustomerByCIForAccountNumber] searching members by value: %s", number)
 
 	pipeline := mongo.Pipeline{
 		// 1. JOIN Linked Accounts
@@ -659,7 +677,7 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 
 	cursor, err := p.coll.Aggregate(ctx, pipeline) // p.coll must point to 'members'
 	if err != nil {
-		p.logger.Errorf("[CustomerRepository][SearchCustomerByCIForAccountNumber] aggregation failed: %v", err)
+		log.Errorf("[CustomerRepository][SearchCustomerByCIForAccountNumber] aggregation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
@@ -680,7 +698,7 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 	}
 
 	if err = cursor.All(ctx, &results); err != nil {
-		p.logger.Errorf("[CustomerRepository][SearchCustomerByCIForAccountNumber] cursor decode failed: %v", err)
+		log.Errorf("[CustomerRepository][SearchCustomerByCIForAccountNumber] cursor decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -706,12 +724,14 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 }
 
 func (p *CustomerRepository) FindCustomerByIDs(ctx context.Context, ids []string) ([]member.User, error) {
-	p.logger.Infof("[CustomerRepository][FindCustomerByIDs] fetching customers by ids")
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
+	log.Infof("[CustomerRepository][FindCustomerByIDs] fetching customers by ids")
 	var objIDs []bson.ObjectID
 	for _, idStr := range ids {
 		objID, err := bson.ObjectIDFromHex(idStr)
 		if err != nil {
-			p.logger.Errorf("[CustomerRepository][FindCustomerByIDs] invalid ObjectID: %s", idStr)
+			log.Errorf("[CustomerRepository][FindCustomerByIDs] invalid ObjectID: %s", idStr)
 			return nil, errors.New(localization.ErrorInvalidID.Code)
 		}
 		objIDs = append(objIDs, objID)
@@ -720,44 +740,50 @@ func (p *CustomerRepository) FindCustomerByIDs(ctx context.Context, ids []string
 
 	customers, err := p.mongoDal.FindAll(ctx, filter, nil)
 	if err != nil {
-		p.logger.Errorf("[CustomerRepository][FindCustomerByIDs] failed to find customers by ids: %v", err)
+		log.Errorf("[CustomerRepository][FindCustomerByIDs] failed to find customers by ids: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return customers, nil
 }
 
 func (p *CustomerRepository) FindCustomerByID(ctx context.Context, id string) (*member.User, error) {
-	p.logger.Infof("[CustomerRepository][FindCustomerByID] fetching customer by id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
+	log.Infof("[CustomerRepository][FindCustomerByID] fetching customer by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		p.logger.Errorf("[CustomerRepository][FindCustomerByID] invalid object id: %v", err)
+		log.Errorf("[CustomerRepository][FindCustomerByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
 	user, err := p.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		p.logger.Errorf("[CustomerRepository][FindCustomerByID] failed to fetch customer: %v", err)
+		log.Errorf("[CustomerRepository][FindCustomerByID] failed to fetch customer: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return user, nil
 }
 
 func (p *CustomerRepository) FindCustomerByUserCode(ctx context.Context, userCode string) (*member.User, error) {
-	p.logger.Infof("[CustomerRepository][FindCustomerByUserCode] fetching customer by user code: %s", userCode)
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
+	log.Infof("[CustomerRepository][FindCustomerByUserCode] fetching customer by user code: %s", userCode)
 	filter := bson.M{"user_code": userCode}
 	user, err := p.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		p.logger.Errorf("[CustomerRepository][FindCustomerByUserCode] failed to find customer by user code: %v", err)
+		log.Errorf("[CustomerRepository][FindCustomerByUserCode] failed to find customer by user code: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return user, nil
 }
 
 func (p *CustomerRepository) FindCustomerLinkedAccountByUserID(ctx context.Context, userID string) (*model.LinkedAccount, error) {
-	p.logger.Infof("[CustomerRepository][FindCustomerLinkedAccountByUserID] fetching linked account for user ID: %s", userID)
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
+	log.Infof("[CustomerRepository][FindCustomerLinkedAccountByUserID] fetching linked account for user ID: %s", userID)
 	objID, err := bson.ObjectIDFromHex(userID)
 	if err != nil {
-		p.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] invalid user ID: %v", err)
+		log.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] invalid user ID: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{
@@ -766,11 +792,11 @@ func (p *CustomerRepository) FindCustomerLinkedAccountByUserID(ctx context.Conte
 	}
 	linkedAccount, err := p.linkedAccountDal.FindOne(ctx, filter, nil)
 	if err != nil {
-		p.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] failed to find linked account: %v", err)
+		log.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] failed to find linked account: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	if linkedAccount == nil {
-		p.logger.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] linked account not found for user ID: %s", userID)
+		log.Errorf("[CustomerRepository][FindCustomerLinkedAccountByUserID] linked account not found for user ID: %s", userID)
 		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	return linkedAccount, nil

@@ -37,12 +37,14 @@ func (r *repository) WithTx(tx *sql.Tx) *repository {
 // Create wraps INSERT + DONATION_IMAGES inserts in a single transaction when
 // r.db is *sql.DB; if it's already *sql.Tx (via WithTx), the caller commits.
 func (r *repository) Create(ctx context.Context, d *imodel.DonationOracle) error {
-	r.logger.Infof("[DonationOracle][Create] code=%s title=%s", d.DonationCode, d.Title)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[DonationOracle][Create] code=%s title=%s", d.DonationCode, d.Title)
 
 	if dbHandle, ok := r.db.(*sql.DB); ok {
 		tx, err := dbHandle.BeginTx(ctx, nil)
 		if err != nil {
-			r.logger.Errorf("[DonationOracle][Create] BeginTx failed: %v", err)
+			log.Errorf("[DonationOracle][Create] BeginTx failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 		defer func() { _ = tx.Rollback() }()
@@ -50,7 +52,7 @@ func (r *repository) Create(ctx context.Context, d *imodel.DonationOracle) error
 			return err
 		}
 		if err := tx.Commit(); err != nil {
-			r.logger.Errorf("[DonationOracle][Create] Commit failed: %v", err)
+			log.Errorf("[DonationOracle][Create] Commit failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 		return nil
@@ -59,6 +61,8 @@ func (r *repository) Create(ctx context.Context, d *imodel.DonationOracle) error
 }
 
 func (r *repository) createInner(ctx context.Context, d *imodel.DonationOracle) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	insertParent := `INSERT INTO DONATIONS
 		(DONATION_CODE, SERVICE_ID, COMPANY_ID, CATEGORY_ID, TITLE, IS_FEATURED, TARGET, CURRENT_AMOUNT,
 		 DONATION_DESCRIPTION, COVER_IMAGE, START_DATE, END_DATE, IS_DELETED, ENABLED)
@@ -80,7 +84,7 @@ func (r *repository) createInner(ctx context.Context, d *imodel.DonationOracle) 
 		boolToInt(d.IsDeleted),
 		boolToInt(d.Enabled),
 	); err != nil {
-		r.logger.Errorf("[DonationOracle][Create] parent insert failed: %v", err)
+		log.Errorf("[DonationOracle][Create] parent insert failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
@@ -88,7 +92,7 @@ func (r *repository) createInner(ctx context.Context, d *imodel.DonationOracle) 
 	if err := r.db.QueryRowContext(ctx,
 		`SELECT RAWTOHEX(ID) FROM DONATIONS WHERE DONATION_CODE = :1`, d.DonationCode,
 	).Scan(&newID); err != nil {
-		r.logger.Errorf("[DonationOracle][Create] resolve new id failed: %v", err)
+		log.Errorf("[DonationOracle][Create] resolve new id failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
@@ -99,12 +103,14 @@ func (r *repository) createInner(ctx context.Context, d *imodel.DonationOracle) 
 }
 
 func (r *repository) Update(ctx context.Context, id string, d *imodel.DonationOracle) error {
-	r.logger.Infof("[DonationOracle][Update] id=%s", id)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[DonationOracle][Update] id=%s", id)
 
 	if dbHandle, ok := r.db.(*sql.DB); ok {
 		tx, err := dbHandle.BeginTx(ctx, nil)
 		if err != nil {
-			r.logger.Errorf("[DonationOracle][Update] BeginTx failed: %v", err)
+			log.Errorf("[DonationOracle][Update] BeginTx failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 		defer func() { _ = tx.Rollback() }()
@@ -112,7 +118,7 @@ func (r *repository) Update(ctx context.Context, id string, d *imodel.DonationOr
 			return err
 		}
 		if err := tx.Commit(); err != nil {
-			r.logger.Errorf("[DonationOracle][Update] Commit failed: %v", err)
+			log.Errorf("[DonationOracle][Update] Commit failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 		return nil
@@ -121,6 +127,8 @@ func (r *repository) Update(ctx context.Context, id string, d *imodel.DonationOr
 }
 
 func (r *repository) updateInner(ctx context.Context, id string, d *imodel.DonationOracle) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	q := `UPDATE DONATIONS
 	      SET DONATION_CODE        = :1,
 	          SERVICE_ID           = HEXTORAW(:2),
@@ -156,7 +164,7 @@ func (r *repository) updateInner(ctx context.Context, id string, d *imodel.Donat
 		id,
 	)
 	if err != nil {
-		r.logger.Errorf("[DonationOracle][Update] failed: %v", err)
+		log.Errorf("[DonationOracle][Update] failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	if n, _ := res.RowsAffected(); n == 0 {
@@ -172,18 +180,22 @@ func (r *repository) updateInner(ctx context.Context, id string, d *imodel.Donat
 // Delete is a soft-delete (IS_DELETED = 1). Returns nil if the row is missing
 // or already deleted.
 func (r *repository) Delete(ctx context.Context, id string) error {
-	r.logger.Infof("[DonationOracle][Delete] id=%s", id)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[DonationOracle][Delete] id=%s", id)
 	q := `UPDATE DONATIONS SET IS_DELETED = 1
 	      WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 	if _, err := r.db.ExecContext(ctx, q, id); err != nil {
-		r.logger.Errorf("[DonationOracle][Delete] failed: %v", err)
+		log.Errorf("[DonationOracle][Delete] failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 
 func (r *repository) FindByServiceID(ctx context.Context, serviceID string) (*donation_dto.DonationListResponse, error) {
-	r.logger.Infof("[DonationOracle][FindByServiceID] serviceID=%s", serviceID)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[DonationOracle][FindByServiceID] serviceID=%s", serviceID)
 	q := `SELECT ` + donationListSelectCols + donationListFromJoin + `
 	      WHERE d.SERVICE_ID = HEXTORAW(:1) AND d.IS_DELETED = 0`
 	row := r.db.QueryRowContext(ctx, q, serviceID)
@@ -192,7 +204,7 @@ func (r *repository) FindByServiceID(ctx context.Context, serviceID string) (*do
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
-		r.logger.Errorf("[DonationOracle][FindByServiceID] scan failed: %v", err)
+		log.Errorf("[DonationOracle][FindByServiceID] scan failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -200,7 +212,9 @@ func (r *repository) FindByServiceID(ctx context.Context, serviceID string) (*do
 }
 
 func (r *repository) FindByID(ctx context.Context, id string) (*donation_dto.DonationListResponse, error) {
-	r.logger.Infof("[DonationOracle][FindByID] id=%s", id)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[DonationOracle][FindByID] id=%s", id)
 
 	q := `SELECT ` + donationListSelectCols + donationListFromJoin + `
 	      WHERE d.ID = HEXTORAW(:1) AND d.IS_DELETED = 0`
@@ -211,7 +225,7 @@ func (r *repository) FindByID(ctx context.Context, id string) (*donation_dto.Don
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
-		r.logger.Errorf("[DonationOracle][FindByID] scan failed: %v", err)
+		log.Errorf("[DonationOracle][FindByID] scan failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -230,6 +244,7 @@ func (r *repository) FindAllWithPagination(
 	ctx context.Context,
 	filterParam types.Filter,
 ) (*types.PaginatedResponse[[]donation_dto.DonationListResponse], error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	page := filterParam.Page
 	if page < 1 {
@@ -355,7 +370,7 @@ func (r *repository) FindAllWithPagination(
 	countQuery := `SELECT COUNT(*) FROM DONATIONS d WHERE ` + whereClause
 	var total int64
 	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
-		r.logger.Errorf("[DonationOracle][FindAllWithPagination] count failed: %v", err)
+		log.Errorf("[DonationOracle][FindAllWithPagination] count failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -375,7 +390,7 @@ func (r *repository) FindAllWithPagination(
 
 	rows, err := r.db.QueryContext(ctx, selectQuery, args...)
 	if err != nil {
-		r.logger.Errorf("[DonationOracle][FindAllWithPagination] query failed: %v", err)
+		log.Errorf("[DonationOracle][FindAllWithPagination] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -385,14 +400,14 @@ func (r *repository) FindAllWithPagination(
 	for rows.Next() {
 		item, err := scanDonationListRow(rows)
 		if err != nil {
-			r.logger.Errorf("[DonationOracle][FindAllWithPagination] scan failed: %v", err)
+			log.Errorf("[DonationOracle][FindAllWithPagination] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 		out = append(out, *item)
 		ids = append(ids, item.ID)
 	}
 	if err := rows.Err(); err != nil {
-		r.logger.Errorf("[DonationOracle][FindAllWithPagination] rows: %v", err)
+		log.Errorf("[DonationOracle][FindAllWithPagination] rows: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -419,6 +434,8 @@ func (r *repository) StreamByDateRange(
 	startDate, endDate time.Time,
 	handler func(*imodel.DonationOracle) error,
 ) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	q := `SELECT
 	        RAWTOHEX(d.ID), d.DONATION_CODE,
 	        RAWTOHEX(d.SERVICE_ID), RAWTOHEX(d.COMPANY_ID), RAWTOHEX(d.CATEGORY_ID),
@@ -433,7 +450,7 @@ func (r *repository) StreamByDateRange(
 
 	rows, err := r.db.QueryContext(ctx, q, startDate, endDate)
 	if err != nil {
-		r.logger.Errorf("[DonationOracle][StreamByDateRange] query failed: %v", err)
+		log.Errorf("[DonationOracle][StreamByDateRange] query failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -454,7 +471,7 @@ func (r *repository) StreamByDateRange(
 			&startDt, &endDt, &isDeleted, &enabled,
 			&createdAt, &lastModifiedAt,
 		); err != nil {
-			r.logger.Errorf("[DonationOracle][StreamByDateRange] scan failed: %v", err)
+			log.Errorf("[DonationOracle][StreamByDateRange] scan failed: %v", err)
 			return local_util.HandleDBError(err)
 		}
 
@@ -491,35 +508,43 @@ func (r *repository) StreamByDateRange(
 }
 
 func (r *repository) HasActiveDonationsByCategory(ctx context.Context, categoryID string) (bool, error) {
-	r.logger.Infof("[DonationOracle][HasActiveDonationsByCategory] category=%s", categoryID)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[DonationOracle][HasActiveDonationsByCategory] category=%s", categoryID)
 	return r.hasActiveBy(ctx, "CATEGORY_ID", categoryID)
 }
 
 func (r *repository) HasActiveDonationsByCompany(ctx context.Context, companyID string) (bool, error) {
-	r.logger.Infof("[DonationOracle][HasActiveDonationsByCompany] company=%s", companyID)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[DonationOracle][HasActiveDonationsByCompany] company=%s", companyID)
 	return r.hasActiveBy(ctx, "COMPANY_ID", companyID)
 }
 
 func (r *repository) hasActiveBy(ctx context.Context, column, id string) (bool, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	q := fmt.Sprintf(
 		`SELECT COUNT(*) FROM DONATIONS WHERE %s = HEXTORAW(:1) AND IS_DELETED = 0 AND ENABLED = 1`,
 		column,
 	)
 	var n int64
 	if err := r.db.QueryRowContext(ctx, q, id).Scan(&n); err != nil {
-		r.logger.Errorf("[DonationOracle][hasActiveBy %s] failed: %v", column, err)
+		log.Errorf("[DonationOracle][hasActiveBy %s] failed: %v", column, err)
 		return false, local_util.HandleDBError(err)
 	}
 	return n > 0, nil
 }
 
 func (r *repository) DisableAllByCompany(ctx context.Context, companyID string) error {
-	r.logger.Infof("[DonationOracle][DisableAllByCompany] company=%s", companyID)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[DonationOracle][DisableAllByCompany] company=%s", companyID)
 	q := `UPDATE DONATIONS
 	      SET ENABLED = 0, LAST_MODIFIED_AT = :1
 	      WHERE COMPANY_ID = HEXTORAW(:2) AND IS_DELETED = 0 AND ENABLED = 1`
 	if _, err := r.db.ExecContext(ctx, q, time.Now(), companyID); err != nil {
-		r.logger.Errorf("[DonationOracle][DisableAllByCompany] failed: %v", err)
+		log.Errorf("[DonationOracle][DisableAllByCompany] failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil

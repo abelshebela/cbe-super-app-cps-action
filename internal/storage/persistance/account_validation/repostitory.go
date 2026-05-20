@@ -41,29 +41,31 @@ func NewAccountValidationStore(client *mongo.Client, cfg *config.VaultConfig, db
 
 // GetAccountValidationByID implements ValidationRuleRepository
 func (l *AccountValidationStore) FindByID(ctx context.Context, id string) (*model.ValidationRule, error) {
-	l.logger.Infof("[AccountValidationStore][FindByID] fetching account validation rule by id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, l.logger)
+	log.Infof("[AccountValidationStore][FindByID] fetching account validation rule by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		l.logger.Errorf("[AccountValidationStore][FindByID] invalid object id: %v", err)
+		log.Errorf("[AccountValidationStore][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
 
 	result, err := l.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		l.logger.Errorf("[AccountValidationStore][FindByID] failed to find account validation rule: %v", err)
+		log.Errorf("[AccountValidationStore][FindByID] failed to find account validation rule: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	l.logger.Infof("[AccountValidationStore][FindByID] account validation rule retrieved successfully")
+	log.Infof("[AccountValidationStore][FindByID] account validation rule retrieved successfully")
 	return result, nil
 }
 
 // UpdateAccountValidation implements ValidationRuleRepository
 func (a *AccountValidationStore) Update(ctx context.Context, id string, rule *model.ValidationRule) error {
-	a.logger.Infof("[AccountValidationStore][Update] updating account validation rule for id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AccountValidationStore][Update] updating account validation rule for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		a.logger.Errorf("[AccountValidationStore][Update] invalid object id: %v", err)
+		log.Errorf("[AccountValidationStore][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -71,13 +73,13 @@ func (a *AccountValidationStore) Update(ctx context.Context, id string, rule *mo
 
 	updateAccountValidation, err := a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		a.logger.Errorf("[AccountValidationStore][Update] failed to update account validation rule: %v", err)
+		log.Errorf("[AccountValidationStore][Update] failed to update account validation rule: %v", err)
 		return local_util.HandleDBError(err)
 	}
 
 	a.kafkaProducer.PublishMessage(ctx, updateAccountValidation, string(constants.ClientOrchestrationAccountValidationTopic), string(constants.ClientOrchestrationAccountValidationTopic), "update account validation rule")
 
-	a.logger.Infof("[AccountValidationStore][Update] account validation rule updated successfully")
+	log.Infof("[AccountValidationStore][Update] account validation rule updated successfully")
 	return nil
 }
 
@@ -104,22 +106,23 @@ func (l *AccountValidationStore) FindAllWithPagination(ctx context.Context, filt
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
 	// 5. Fetch data
+	log := local_util.LoggerFromCtx(ctx, l.logger)
 	data, err := l.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		l.logger.Errorf("[AccountValidationStore][FindAllWithPagination] failed to fetch account validation rules: %v", err)
+		log.Errorf("[AccountValidationStore][FindAllWithPagination] failed to fetch account validation rules: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := l.dal.TotalCount(ctx, filter)
 	if err != nil {
-		l.logger.Errorf("[AccountValidationStore][FindAllWithPagination] failed to count account validation rules: %v", err)
+		log.Errorf("[AccountValidationStore][FindAllWithPagination] failed to count account validation rules: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	l.logger.Infof("[AccountValidationStore][FindAllWithPagination] retrieved %d account validation rules", len(data))
+	log.Infof("[AccountValidationStore][FindAllWithPagination] retrieved %d account validation rules", len(data))
 
 	return &types.PaginatedResponse[[]model.ValidationRule]{
 		Data: data,

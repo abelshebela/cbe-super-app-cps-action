@@ -119,7 +119,8 @@ func (q *Queries) FindByBIC(ctx context.Context, bic string) (*imodel.BankOracle
 }
 
 func (q *Queries) FindByNameOrBIC(ctx context.Context, bic, name string) (*imodel.BankOracle, error) {
-	q.logger.Infof("[BankOracleRepository][FindByNameOrBIC] called with name: %s, bic: %s", name, bic)
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+	log.Infof("[BankOracleRepository][FindByNameOrBIC] called with name: %s, bic: %s", name, bic)
 	var conditions []string
 	var args []interface{}
 	idx := 1
@@ -161,7 +162,9 @@ func (q *Queries) FindByNameOrBIC(ctx context.Context, bic, name string) (*imode
 }
 
 func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.BankOracle], error) {
-	q.logger.Infof("[BankOracleRepository][FindAllWithPagination] called with filter: %+v", filterParam)
+	log := local_util.LoggerFromCtx(ctx, q.logger)
+
+	log.Infof("[BankOracleRepository][FindAllWithPagination] called with filter: %+v", filterParam)
 	// Build filtering logic
 	var filters []string
 	var args []interface{}
@@ -186,19 +189,19 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	}
 
 	whereClause := strings.Join(filters, " AND ")
-	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] whereClause: %s, args: %+v", whereClause, args)
+	log.Debugf("[BankOracleRepository][FindAllWithPagination] whereClause: %s, args: %+v", whereClause, args)
 
 	// Count total
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM BANKS WHERE %s AND is_deleted = 0", whereClause)
-	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] countQuery: %s", countQuery)
+	log.Debugf("[BankOracleRepository][FindAllWithPagination] countQuery: %s", countQuery)
 	var total int64
 
 	err := q.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
 	if err != nil {
-		q.logger.Errorf("[BankOracleRepository][FindAllWithPagination] failed to count: %v", err)
+		log.Errorf("[BankOracleRepository][FindAllWithPagination] failed to count: %v", err)
 		return nil, err
 	}
-	q.logger.Infof("[BankOracleRepository][FindAllWithPagination] total records: %d", total)
+	log.Infof("[BankOracleRepository][FindAllWithPagination] total records: %d", total)
 
 	if total == 0 {
 		meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
@@ -206,7 +209,7 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 			Data: []imodel.BankOracle{},
 			Meta: meta,
 		}
-		q.logger.Infof("[BankOracleRepository][FindAllWithPagination] no records found")
+		log.Infof("[BankOracleRepository][FindAllWithPagination] no records found")
 		return resp, nil
 	}
 
@@ -219,12 +222,12 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	} else if int64(offset)+int64(limit) > total {
 		limit = int(total) - offset
 	}
-	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] offset: %d, limit: %d", offset, limit)
+	log.Debugf("[BankOracleRepository][FindAllWithPagination] offset: %d, limit: %d", offset, limit)
 
 	// Determine sort order for name
 	orderBy := "created_at DESC"
 	if val, ok := filterParam.Filters["sort_name"]; ok {
-		q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] sort filter: %v", val)
+		log.Debugf("[BankOracleRepository][FindAllWithPagination] sort filter: %v", val)
 		if s, ok := val.(string); ok && (strings.ToUpper(s) == "ASC" || strings.ToUpper(s) == "DESC") {
 			orderBy = fmt.Sprintf("UPPER(bank_name) %s", strings.ToUpper(s))
 		}
@@ -233,15 +236,15 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 	// Fetch paginated results
 	selectQuery := fmt.Sprintf(`SELECT RAWTOHEX(ID) AS id, bank_name, logo, bic_code, is_enabled, account_length, has_alpha_numeric, created_at, last_modified_at, is_cbe FROM BANKS WHERE %s AND is_deleted = 0 ORDER BY %s OFFSET :%d ROWS FETCH NEXT :%d ROWS ONLY`, whereClause, orderBy, idx, idx+1)
 	args = append(args, offset, limit)
-	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] selectQuery: %s", selectQuery)
+	log.Debugf("[BankOracleRepository][FindAllWithPagination] selectQuery: %s", selectQuery)
 	rows, err := q.db.QueryContext(ctx, selectQuery, args...)
 	if err != nil {
-		q.logger.Errorf("[BankOracleRepository][FindAllWithPagination] failed to fetch rows: %v", err)
+		log.Errorf("[BankOracleRepository][FindAllWithPagination] failed to fetch rows: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
 	banks := []imodel.BankOracle{}
-	q.logger.Infof("[BankOracleRepository][FindAllWithPagination] scanning rows...")
+	log.Infof("[BankOracleRepository][FindAllWithPagination] scanning rows...")
 	for rows.Next() {
 		var bank imodel.BankOracle
 		err := rows.Scan(
@@ -257,23 +260,23 @@ func (q *Queries) FindAllWithPagination(ctx context.Context, filterParam types.F
 			&bank.IS_CBE,
 		)
 		if err != nil {
-			q.logger.Errorf("[BankOracleRepository][FindAllWithPagination] failed to scan row: %v", err)
+			log.Errorf("[BankOracleRepository][FindAllWithPagination] failed to scan row: %v", err)
 			return nil, err
 		}
-		q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] scanned bank: %+v", bank)
+		log.Debugf("[BankOracleRepository][FindAllWithPagination] scanned bank: %+v", bank)
 		banks = append(banks, bank)
 	}
 	if err := rows.Err(); err != nil {
-		q.logger.Errorf("[BankOracleRepository][FindAllWithPagination] rows iteration failed: %v", err)
+		log.Errorf("[BankOracleRepository][FindAllWithPagination] rows iteration failed: %v", err)
 		return nil, err
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	q.logger.Debugf("[BankOracleRepository][FindAllWithPagination] meta: %+v", meta)
+	log.Debugf("[BankOracleRepository][FindAllWithPagination] meta: %+v", meta)
 	resp := &types.PaginatedResponse[[]imodel.BankOracle]{
 		Data: banks,
 		Meta: meta,
 	}
-	q.logger.Infof("[BankOracleRepository][FindAllWithPagination] success, returning response")
+	log.Infof("[BankOracleRepository][FindAllWithPagination] success, returning response")
 	return resp, nil
 }

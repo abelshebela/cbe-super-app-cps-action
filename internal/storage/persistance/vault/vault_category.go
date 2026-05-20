@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	imodel "cbe-super-app-cps-action/internal/constants/model"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -37,17 +38,18 @@ func NewVaultCategoryRepository(db *sql.DB, cfg *config.VaultConfig, kafkaProduc
 
 // Create creates a new vault category in Oracle and returns its ID
 func (r *VaultCategoryRepository) Create(ctx context.Context, entity *imodel.VaultCategory) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 	q := sqlc.New(r.db)
 	if _, err := q.FindVaultCategoryByName(ctx, entity.Name); err == nil {
 		return "", errors.New(localization.ErrorDuplicateVaultCategory.Code)
 	} else if !errors.Is(err, sql.ErrNoRows) {
-		r.logger.Errorf("[Create] failed to check vault category existence: %v", err)
+		log.Errorf("[Create] failed to check vault category existence: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		r.logger.Errorf("[Create] failed to begin transaction: %v", err)
+		log.Errorf("[Create] failed to begin transaction: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer tx.Rollback()
@@ -56,18 +58,18 @@ func (r *VaultCategoryRepository) Create(ctx context.Context, entity *imodel.Vau
 
 	categoryID, err := qtx.SaveVaultCategory(ctx, entity)
 	if err != nil {
-		r.logger.Errorf("[Create] failed to save vault category: %v", err)
+		log.Errorf("[Create] failed to save vault category: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	err = qtx.SaveVaultTiers(ctx, categoryID, entity)
 	if err != nil {
-		r.logger.Errorf("[Create] failed to save vault tiers: %v", err)
+		log.Errorf("[Create] failed to save vault tiers: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if err := tx.Commit(); err != nil {
-		r.logger.Errorf("[Create] failed to commit transaction: %v", err)
+		log.Errorf("[Create] failed to commit transaction: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -75,6 +77,8 @@ func (r *VaultCategoryRepository) Create(ctx context.Context, entity *imodel.Vau
 }
 
 func (r *VaultCategoryRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.VaultCategory], error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	q := sqlc.New(r.db)
 
 	params := sqlc.FindVaultCategoryParams{}
@@ -100,7 +104,7 @@ func (r *VaultCategoryRepository) FindAllWithPagination(ctx context.Context, fil
 
 	rows, err := q.FindVaultCategories(ctx, params)
 	if err != nil {
-		r.logger.Errorf("failed to find vault categories: %v", err)
+		log.Errorf("failed to find vault categories: %v", err)
 		if err == sql.ErrNoRows {
 			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
@@ -180,10 +184,12 @@ func (r *VaultCategoryRepository) FindAllWithPagination(ctx context.Context, fil
 
 // FindByID fetches a single category by id, including deleted ones
 func (r *VaultCategoryRepository) FindByID(ctx context.Context, id string) (*imodel.VaultCategory, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	q := sqlc.New(r.db)
 	category, tiers, err := q.FindVaultCategoryWithTiers(ctx, id)
 	if err != nil {
-		r.logger.Errorf("failed to find vault category with it's tier: %v", err)
+		log.Errorf("failed to find vault category with it's tier: %v", err)
 		if err == sql.ErrNoRows {
 			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
@@ -205,13 +211,15 @@ func (r *VaultCategoryRepository) FindByID(ctx context.Context, id string) (*imo
 }
 
 func (r *VaultCategoryRepository) FindByName(ctx context.Context, name string) (*imodel.VaultCategory, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	q := sqlc.New(r.db)
 	category, err := q.FindVaultCategoryByName(ctx, name)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New(localization.ErrorVaultCategoryNotFound.Code)
 		}
-		r.logger.Errorf("[FindByName] failed to find vault category by name: %v", err)
+		log.Errorf("[FindByName] failed to find vault category by name: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -228,11 +236,13 @@ func (r *VaultCategoryRepository) FindByName(ctx context.Context, name string) (
 }
 
 func (r *VaultCategoryRepository) Update(ctx context.Context, id string, entity *imodel.VaultCategory) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	q := sqlc.New(r.db)
 
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		r.logger.Errorf("[Update] failed to begin transaction: %v", err)
+		log.Errorf("[Update] failed to begin transaction: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer tx.Rollback()
@@ -241,18 +251,18 @@ func (r *VaultCategoryRepository) Update(ctx context.Context, id string, entity 
 
 	_, err = qtx.UpdateVaultCategory(ctx, id, entity)
 	if err != nil {
-		r.logger.Errorf("[Update] failed to update vault category on transaction: %v", err)
+		log.Errorf("[Update] failed to update vault category on transaction: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	err = qtx.UpdateVaultTiers(ctx, id, entity)
 	if err != nil {
-		r.logger.Errorf("[Update] failed to update vault tiers on transaction: %v", err)
+		log.Errorf("[Update] failed to update vault tiers on transaction: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if err := tx.Commit(); err != nil {
-		r.logger.Errorf("[Update] failed to commit transaction: %v", err)
+		log.Errorf("[Update] failed to commit transaction: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -261,6 +271,8 @@ func (r *VaultCategoryRepository) Update(ctx context.Context, id string, entity 
 
 // Delete performs a soft delete; prevents double delete
 func (r *VaultCategoryRepository) Delete(ctx context.Context, id string) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	_, err := r.FindByID(ctx, id)
 	if err != nil {
 		return "", err
@@ -268,7 +280,7 @@ func (r *VaultCategoryRepository) Delete(ctx context.Context, id string) (string
 	q := sqlc.New(r.db)
 	ret, err := q.DeleteVaultCategory(ctx, id)
 	if err != nil {
-		r.logger.Errorf("[Delete] failed to delete vault category: %v", err)
+		log.Errorf("[Delete] failed to delete vault category: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	if ret == "" {
@@ -279,6 +291,8 @@ func (r *VaultCategoryRepository) Delete(ctx context.Context, id string) (string
 
 // EnableOrDisable toggles active state; prevents toggling deleted records
 func (r *VaultCategoryRepository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	_, err := r.FindByID(ctx, id)
 	if err != nil {
 		return err
@@ -287,14 +301,14 @@ func (r *VaultCategoryRepository) EnableOrDisable(ctx context.Context, id string
 	if enable {
 		_, err = q.ActivateVaultCategory(ctx, id)
 		if err != nil {
-			r.logger.Errorf("[EnableOrDisable] failed to activate vault category: %v", err)
+			log.Errorf("[EnableOrDisable] failed to activate vault category: %v", err)
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		return nil
 	}
 	_, err = q.DeactivateVaultCategory(ctx, id)
 	if err != nil {
-		r.logger.Errorf("[EnableOrDisable] failed to deactivate vault category: %v", err)
+		log.Errorf("[EnableOrDisable] failed to deactivate vault category: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil

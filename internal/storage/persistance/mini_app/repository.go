@@ -39,21 +39,24 @@ func NewMiniAppRepository(client *mongo.Client, cfg *config.VaultConfig, dbName 
 }
 
 func (m *MiniAppStorage) Create(ctx context.Context, miniApp *mini_model.MiniApp) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
 
 	miniAppDoc := MiniAppDocumentMapper(*miniApp)
 
 	_, err := m.dal.InsertOne(ctx, *miniAppDoc)
 	if err != nil {
-		m.logger.Errorf("Create MiniApp failed: %v", err)
+		log.Errorf("Create MiniApp failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 
 func (m *MiniAppStorage) Update(ctx context.Context, id string, miniApp *mini_model.MiniApp) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+		log.Errorf("Invalid ID format: %s, error: %v", id, err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -61,7 +64,7 @@ func (m *MiniAppStorage) Update(ctx context.Context, id string, miniApp *mini_mo
 
 	update := MiniAppDocumentToBsonM(*miniApp)
 	if len(update) == 1 {
-		m.logger.Warnf("No data provided for MiniApp update, ID: %s", id)
+		log.Warnf("No data provided for MiniApp update, ID: %s", id)
 		return errors.New(localization.ErrorUpdateMiniAppEmptyPayload.Code)
 	}
 
@@ -73,9 +76,11 @@ func (m *MiniAppStorage) Update(ctx context.Context, id string, miniApp *mini_mo
 }
 
 func (m *MiniAppStorage) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+		log.Errorf("Invalid ID format: %s, error: %v", id, err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -92,9 +97,11 @@ func (m *MiniAppStorage) Delete(ctx context.Context, id string) error {
 }
 
 func (m *MiniAppStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+		log.Errorf("Invalid ID format: %s, error: %v", id, err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -111,6 +118,8 @@ func (m *MiniAppStorage) EnableOrDisable(ctx context.Context, id string, enable 
 }
 
 func (m *MiniAppStorage) FindByIDWithMerchant(ctx context.Context, id string) (*mini_app.MiniAppResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidID.Code)
@@ -169,7 +178,7 @@ func (m *MiniAppStorage) FindByIDWithMerchant(ctx context.Context, id string) (*
 
 	cursor, err := m.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		m.logger.Errorf("aggregate mini app by id: %v", err)
+		log.Errorf("aggregate mini app by id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
@@ -180,16 +189,18 @@ func (m *MiniAppStorage) FindByIDWithMerchant(ctx context.Context, id string) (*
 
 	var resp mini_app.MiniAppResponse
 	if err := cursor.Decode(&resp); err != nil {
-		m.logger.Errorf("decode mini app response: %v", err)
+		log.Errorf("decode mini app response: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return &resp, nil
 }
 func (m *MiniAppStorage) DisableManyByMerchantIDs(ctx context.Context, merchantID string) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	objID, err := bson.ObjectIDFromHex(merchantID)
 	if err != nil {
-		m.logger.Errorf("Invalid Merchant ID format: %s, error: %v", merchantID, err)
+		log.Errorf("Invalid Merchant ID format: %s, error: %v", merchantID, err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{
@@ -202,19 +213,21 @@ func (m *MiniAppStorage) DisableManyByMerchantIDs(ctx context.Context, merchantI
 	}
 	_, err = m.collection.UpdateMany(ctx, filter, bson.M{"$set": update})
 	if err != nil {
-		m.logger.Errorf("DisableManyByMerchantIDs failed: %v", err)
+		log.Errorf("DisableManyByMerchantIDs failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	m.logger.Infof("Successfully disabled mini apps for merchant ID: %s", merchantID)
+	log.Infof("Successfully disabled mini apps for merchant ID: %s", merchantID)
 	return nil
 
 }
 
 func (m *MiniAppStorage) DeleteManyByMerchantIDs(ctx context.Context, merchantID string) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
 	objID, err := bson.ObjectIDFromHex(merchantID)
 	if err != nil {
-		m.logger.Errorf("Invalid Merchant ID format: %s, error: %v", merchantID, err)
+		log.Errorf("Invalid Merchant ID format: %s, error: %v", merchantID, err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{
@@ -228,7 +241,7 @@ func (m *MiniAppStorage) DeleteManyByMerchantIDs(ctx context.Context, merchantID
 	}
 	_, err = m.collection.UpdateMany(ctx, filter, bson.M{"$set": update})
 	if err != nil {
-		m.logger.Errorf("DeleteManyByMerchantIDs failed: %v", err)
+		log.Errorf("DeleteManyByMerchantIDs failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil

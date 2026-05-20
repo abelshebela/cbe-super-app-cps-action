@@ -25,7 +25,7 @@ import (
 
 type cpsUserService struct {
 	repo              storage.CpsUserRepository
-	roleRepo          storage.RoleRepository
+	jobRoleRepo          storage.JobRoleRepository
 	approverRepo      storage.CPSActionApproveIndexRepository
 	bpsApproverRepo   storage.BPSActionApproveIndexRepository
 	permissionService service.PermissionService
@@ -35,11 +35,11 @@ type cpsUserService struct {
 	bpsRepo           storage.BPSUserRepository
 }
 
-func NewCPSUserService(repo storage.CpsUserRepository, roleRepo storage.RoleRepository, approverRepo storage.CPSActionApproveIndexRepository, bpsApproverRepo storage.BPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, bps storage.BPSUserRepository, logger shared_utils.Logger) service.CPSUserService {
+func NewCPSUserService(repo storage.CpsUserRepository, JobRoleRepo storage.JobRoleRepository, approverRepo storage.CPSActionApproveIndexRepository, bpsApproverRepo storage.BPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, bps storage.BPSUserRepository, logger shared_utils.Logger) service.CPSUserService {
 	return &cpsUserService{
 		repo:              repo,
 		bpsRepo:           bps,
-		roleRepo:          roleRepo,
+		jobRoleRepo:          JobRoleRepo,
 		approverRepo:      approverRepo,
 		bpsApproverRepo:   bpsApproverRepo,
 		permissionService: permission,
@@ -50,6 +50,8 @@ func NewCPSUserService(repo storage.CpsUserRepository, roleRepo storage.RoleRepo
 }
 
 func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.CreateUserRequest) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateUserRequest", "CPSUser", "CreateUserRequest")
 	defer span.End()
 
@@ -63,7 +65,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		return err
 	}
 	if exists {
-		s.logger.Errorf("[CpsUserSvc][Create] username exists: %s", req.UserName)
+		log.Errorf("[CpsUserSvc][Create] username exists: %s", req.UserName)
 		span.AddEvent("username already exists", trace.WithAttributes(attribute.String("username", req.UserName)))
 		return errors.New(localization.ErrorUsernameAlreadyExists.Code)
 	}
@@ -126,14 +128,16 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
 		span.AddEvent("failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[CpsUserSvc][Create] cps action err: %v", err)
+		log.Errorf("[CpsUserSvc][Create] cps action err: %v", err)
 		return err
 	}
-	s.logger.Infof("[CpsUserSvc][Create] request created")
+	log.Infof("[CpsUserSvc][Create] request created")
 	return nil
 }
 
 func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string, req cpsuser.UpdateUserRequest) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateUserRequest", "CPSUser", "UpdateUserRequest")
 	defer span.End()
 
@@ -167,48 +171,48 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 		foundUser, err := s.repo.FindByEmailOrPhoneNumberOrUserName(ctx, req.Email, req.PhoneNumber, req.UserName)
 		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 			span.AddEvent("failed to find user by email, phone number, or username", trace.WithAttributes(attribute.String("error", err.Error())))
-			s.logger.Errorf("[CpsUserSvc][Update] error checking user conflicts: %v", err)
+			log.Errorf("[CpsUserSvc][Update] error checking user conflicts: %v", err)
 			return err
 		}
-		s.logger.Infof("[CpsUserSvc][Update] found user: %v", foundUser)
+		log.Infof("[CpsUserSvc][Update] found user: %v", foundUser)
 		if foundUser != nil && foundUser.UserCode != currentUser.UserCode {
 			if foundUser.Email == req.Email {
-				s.logger.Infof("[CpsUserSvc][Update] email already exists: %s", req.Email)
+				log.Infof("[CpsUserSvc][Update] email already exists: %s", req.Email)
 				span.AddEvent("email already exists", trace.WithAttributes(attribute.String("email", req.Email)))
 				return errors.New(localization.ErrorExistEmail.Code)
 			}
 			if foundUser.PhoneNumber == req.PhoneNumber {
-				s.logger.Infof("[CpsUserSvc][Update] phone number already exists: %s", req.PhoneNumber)
+				log.Infof("[CpsUserSvc][Update] phone number already exists: %s", req.PhoneNumber)
 				span.AddEvent("phone number already exists", trace.WithAttributes(attribute.String("phone_number", req.PhoneNumber)))
 				return errors.New(localization.ErrorExistPhoneNumber.Code)
 			}
 			if foundUser.UserName == req.UserName {
-				s.logger.Infof("[CpsUserSvc][Update] username already exists: %s", req.UserName)
+				log.Infof("[CpsUserSvc][Update] username already exists: %s", req.UserName)
 				span.AddEvent("username already exists", trace.WithAttributes(attribute.String("username", req.UserName)))
 				return errors.New(localization.ErrorUserAlreadyExists.Code)
 			}
 		}
-		s.logger.Infof("[CpsUserSvc][Update] no conflicts found, proceeding with update")
+		log.Infof("[CpsUserSvc][Update] no conflicts found, proceeding with update")
 		bpsUser, err := s.bpsRepo.FindByOr(ctx, req.PhoneNumber, req.Email, req.UserName)
 		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 			span.AddEvent("failed to find user by email, phone number, or username", trace.WithAttributes(attribute.String("error", err.Error())))
-			s.logger.Errorf("[CpsUserSvc][Update] error checking BPS user: %v", err)
+			log.Errorf("[CpsUserSvc][Update] error checking BPS user: %v", err)
 			return err
 		}
 
 		if bpsUser != nil {
 			if bpsUser.Email == req.Email {
-				s.logger.Infof("[CpsUserSvc][Update] email already exists: %s", req.Email)
+				log.Infof("[CpsUserSvc][Update] email already exists: %s", req.Email)
 				span.AddEvent("email already exists", trace.WithAttributes(attribute.String("email", req.Email)))
 				return errors.New(localization.ErrorExistEmail.Code)
 			}
 			if bpsUser.PhoneNumber == req.PhoneNumber {
-				s.logger.Infof("[CpsUserSvc][Update] phone number already exists: %s", req.PhoneNumber)
+				log.Infof("[CpsUserSvc][Update] phone number already exists: %s", req.PhoneNumber)
 				span.AddEvent("phone number already exists", trace.WithAttributes(attribute.String("phone_number", req.PhoneNumber)))
 				return errors.New(localization.ErrorExistPhoneNumber.Code)
 			}
 			if bpsUser.Username == req.UserName {
-				s.logger.Infof("[CpsUserSvc][Update] username already exists: %s", req.UserName)
+				log.Infof("[CpsUserSvc][Update] username already exists: %s", req.UserName)
 				span.AddEvent("username already exists", trace.WithAttributes(attribute.String("username", req.UserName)))
 				return errors.New(localization.ErrorUserAlreadyExists.Code)
 			}
@@ -263,7 +267,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 	}
 	if !changed {
 		span.AddEvent("no fields to update", trace.WithAttributes(attribute.String("user_code", usercode)))
-		s.logger.Infof("[CpsUserSvc][Update] no fields to update for user code: %s", usercode)
+		log.Infof("[CpsUserSvc][Update] no fields to update for user code: %s", usercode)
 		return errors.New("no fields to update")
 	}
 	makerData := local_util.ExtractUserFromContext(ctx)
@@ -285,6 +289,8 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 }
 
 func (s *cpsUserService) DeleteUserRequest(ctx context.Context, userCode string) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteUserRequest", "CPSUser", "DeleteUserRequest")
 	defer span.End()
 
@@ -333,7 +339,7 @@ func (s *cpsUserService) DeleteUserRequest(ctx context.Context, userCode string)
 		return err
 	}
 
-	s.logger.Infof("[CpsUserSvc][Delete] request created code: %s", userCode)
+	log.Infof("[CpsUserSvc][Delete] request created code: %s", userCode)
 	return nil
 }
 
@@ -432,7 +438,7 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 		return nil, err
 	}
 
-	roles, err := s.roleRepo.FindByName(ctx, user.JobTitle)
+	roles, err := s.jobRoleRepo.FindByName(ctx, user.JobTitle)
 	if err != nil {
 		span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
@@ -498,9 +504,9 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 	}
 
 	var makerAlloc, checkerAlloc, auditorAlloc, portalCard, bpsCheckerAlloc, bpsAuditorAlloc []string
-	var roles *imodel.Role
+	var roles *imodel.JobRole
 	if populated.JobTitle != "" {
-		roles, err = s.roleRepo.FindByName(ctx, populated.JobTitle)
+		roles, err = s.jobRoleRepo.FindByName(ctx, populated.JobTitle)
 		if err != nil {
 			span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err

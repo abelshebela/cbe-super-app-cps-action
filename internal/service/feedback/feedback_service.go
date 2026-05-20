@@ -34,24 +34,28 @@ func NewFeedbackService(repo storage.FeedbackRepository, memberRepo storage.Cust
 }
 
 func (f *feedbackService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, f.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Feedback", "Authorize")
 	defer span.End()
 
-	f.logger.Infof("[FeedbackSvc][Authorize] action: %s", cpsAction.RequestAction)
+	log.Infof("[FeedbackSvc][Authorize] action: %s", cpsAction.RequestAction)
 
 	// For now, return the action as approved
 	cpsAction.ActionStatus = "APPROVED"
-	f.logger.Infof("[FeedbackSvc][Authorize] authorized")
+	log.Infof("[FeedbackSvc][Authorize] authorized")
 	return cpsAction, nil
 }
 
 func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.FeedbackRequest, userCode string) (*local_model.Feedback, error) {
+	log := local_util.LoggerFromCtx(ctx, f.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateFeedback", "Feedback", "CreateFeedback")
 	defer span.End()
 
 	// Validate the request
 	if err := req.Validate(); err != nil {
-		f.logger.Errorf("[FeedbackSvc][Create] invalid request: %v", err)
+		log.Errorf("[FeedbackSvc][Create] invalid request: %v", err)
 		span.AddEvent("Invalid feedback request", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("user_id", userCode),
@@ -61,7 +65,7 @@ func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.Feedback
 
 	user, err := f.memberRepo.FindCustomerByUserCode(ctx, userCode)
 	if err != nil {
-		f.logger.Errorf("[FeedbackSvc][Create] user not found code: %s, err: %v", userCode, err)
+		log.Errorf("[FeedbackSvc][Create] user not found code: %s, err: %v", userCode, err)
 		span.AddEvent("Failed to find user", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("user_id", userCode),
@@ -72,21 +76,21 @@ func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.Feedback
 
 	linkedAccount, err := f.memberRepo.FindCustomerLinkedAccountByUserID(ctx, userCode)
 	if err != nil {
-		f.logger.Errorf("[FeedbackSvc][Create] failed to find linked account: %v", err)
+		log.Errorf("[FeedbackSvc][Create] failed to find linked account: %v", err)
 		span.AddEvent("Failed to find linked account", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("user_id", req.UserCode),
 		))
 		// return nil, errors.New("linked account not found")
 	} else {
-		f.logger.Infof("[FeedbackSvc][Create] found linked account for user ID: %s, account number: %s", req.UserCode, linkedAccount.AccountNumber)
+		log.Infof("[FeedbackSvc][Create] found linked account for user ID: %s, account number: %s", req.UserCode, linkedAccount.AccountNumber)
 		feedback.AccountNumber = linkedAccount.AccountNumber
 	}
 
 	// Call the Create method with the Feedback object
 	err = f.repo.Create(ctx, feedback)
 	if err != nil {
-		f.logger.Errorf("[FeedbackSvc][Create] create err: %v", err)
+		log.Errorf("[FeedbackSvc][Create] create err: %v", err)
 		span.AddEvent("Failed to create feedback", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("user_id", userCode),
@@ -94,18 +98,20 @@ func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.Feedback
 		return nil, err
 	}
 
-	f.logger.Infof("[FeedbackSvc][Create] created")
+	log.Infof("[FeedbackSvc][Create] created")
 	return feedback, nil
 }
 
 // CreateSurveyFeedback implements [service.FeedbackService].
 func (f *feedbackService) CreateSurveyFeedback(ctx context.Context, surveyFeedback fbdto.SurveyFeedbackReq) (*local_model.SurveyFeedback, error) {
+	log := local_util.LoggerFromCtx(ctx, f.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateSurveyFeedback", "Feedback", "CreateSurveyFeedback")
 	defer span.End()
 
 	// Validate the request
 	if err := surveyFeedback.Validate(); err != nil {
-		f.logger.Errorf("[FeedbackSvc][CreateSurvey] invalid request: %v", err)
+		log.Errorf("[FeedbackSvc][CreateSurvey] invalid request: %v", err)
 		span.AddEvent("Invalid feedback request", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("user_code", surveyFeedback.UserID),
@@ -114,7 +120,7 @@ func (f *feedbackService) CreateSurveyFeedback(ctx context.Context, surveyFeedba
 	}
 	user, err := f.memberRepo.FindCustomerByUserCode(ctx, surveyFeedback.UserID)
 	if err != nil {
-		f.logger.Errorf("[FeedbackSvc][CreateSurvey] user not found code: %s, err: %v", surveyFeedback.UserID, err)
+		log.Errorf("[FeedbackSvc][CreateSurvey] user not found code: %s, err: %v", surveyFeedback.UserID, err)
 		span.AddEvent("Failed to find user", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("user_id", surveyFeedback.UserID),
@@ -126,21 +132,21 @@ func (f *feedbackService) CreateSurveyFeedback(ctx context.Context, surveyFeedba
 
 	linkedAccount, err := f.memberRepo.FindCustomerLinkedAccountByUserID(ctx, user.UserCode)
 	if err != nil {
-		f.logger.Errorf("[FeedbackSvc][CreateSurvey] failed to find linked account: %v", err)
+		log.Errorf("[FeedbackSvc][CreateSurvey] failed to find linked account: %v", err)
 		span.AddEvent("Failed to find linked account", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("user_id", surveyFeedback.UserID),
 		))
 		// return nil, errors.New("linked account not found")
 	} else {
-		f.logger.Infof("[FeedbackSvc][CreateSurvey] found linked account for user ID: %s, account number: %s", surveyFeedback.UserID, linkedAccount.AccountNumber)
+		log.Infof("[FeedbackSvc][CreateSurvey] found linked account for user ID: %s, account number: %s", surveyFeedback.UserID, linkedAccount.AccountNumber)
 		surveyFeedbackEntity.AccountNumber = linkedAccount.AccountNumber
 	}
 
 	// Call the Create method with the Feedback object
 	err = f.repo.CreateSurveyFeedback(ctx, surveyFeedbackEntity)
 	if err != nil {
-		f.logger.Errorf("[FeedbackSvc][CreateSurvey] create err: %v", err)
+		log.Errorf("[FeedbackSvc][CreateSurvey] create err: %v", err)
 		span.AddEvent("Failed to create survey feedback", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("user_code", surveyFeedback.UserID),
@@ -148,100 +154,112 @@ func (f *feedbackService) CreateSurveyFeedback(ctx context.Context, surveyFeedba
 		return nil, err
 	}
 
-	f.logger.Infof("[FeedbackSvc][CreateSurvey] created")
+	log.Infof("[FeedbackSvc][CreateSurvey] created")
 	return surveyFeedbackEntity, nil
 }
 func (f *feedbackService) GetFeedbackByID(ctx context.Context, id string) (*local_model.Feedback, error) {
+	log := local_util.LoggerFromCtx(ctx, f.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetFeedbackByID", "Feedback", "GetFeedbackByID")
 	defer span.End()
 
 	feedback, err := f.repo.FindFeedbackByID(ctx, id)
 	if err != nil {
-		f.logger.Errorf("[FeedbackSvc][GetByID] fetch err: %v", err)
+		log.Errorf("[FeedbackSvc][GetByID] fetch err: %v", err)
 		span.AddEvent("Failed to get feedback", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return nil, err
 	}
-	f.logger.Infof("[FeedbackSvc][GetByID] retrieved id: %s", id)
+	log.Infof("[FeedbackSvc][GetByID] retrieved id: %s", id)
 	return feedback, nil
 }
 
 func (f *feedbackService) GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]local_model.Feedback], error) {
+	log := local_util.LoggerFromCtx(ctx, f.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetFeedbacks", "Feedback", "GetFeedbacks")
 	defer span.End()
 
 	feedbacks, err := f.repo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
-		f.logger.Errorf("[FeedbackSvc][GetAll] fetch err: %v", err)
+		log.Errorf("[FeedbackSvc][GetAll] fetch err: %v", err)
 		span.AddEvent("Failed to fetch feedbacks", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
 		return nil, err
 	}
 
-	f.logger.Infof("[FeedbackSvc][GetAll] retrieved %d", len(feedbacks.Data))
+	log.Infof("[FeedbackSvc][GetAll] retrieved %d", len(feedbacks.Data))
 	return feedbacks, nil
 }
 func (f *feedbackService) GetAllCustomerFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]local_model.CustomerFeedback], error) {
+	log := local_util.LoggerFromCtx(ctx, f.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllCustomerFeedbacks", "Feedback", "GetAllCustomerFeedbacks")
 	defer span.End()
 
 	feedbacks, err := f.repo.FindAllCustomerFeedbacks(ctx, *filterParams)
 	if err != nil {
-		f.logger.Errorf("[FeedbackSvc][GetAllCustomer] fetch err: %v", err)
+		log.Errorf("[FeedbackSvc][GetAllCustomer] fetch err: %v", err)
 		span.RecordError(err)
 		return nil, err
 	}
 
-	f.logger.Infof("[FeedbackSvc][GetAllCustomer] retrieved %d", len(feedbacks.Data))
+	log.Infof("[FeedbackSvc][GetAllCustomer] retrieved %d", len(feedbacks.Data))
 	return feedbacks, nil
 }
 func (f *feedbackService) GetAllSurveyFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]local_model.SurveyFeedback], error) {
+	log := local_util.LoggerFromCtx(ctx, f.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllSurveyFeedbacks", "Feedback", "GetAllSurveyFeedbacks")
 	defer span.End()
 
 	feedbacks, err := f.repo.FindAllSurveyFeedbacks(ctx, *filterParams)
 	if err != nil {
-		f.logger.Errorf("[FeedbackSvc][GetAllSurvey] fetch err: %v", err)
+		log.Errorf("[FeedbackSvc][GetAllSurvey] fetch err: %v", err)
 		span.RecordError(err)
 		return nil, err
 	}
 
-	f.logger.Infof("[FeedbackSvc][GetAllSurvey] retrieved %d", len(feedbacks.Data))
+	log.Infof("[FeedbackSvc][GetAllSurvey] retrieved %d", len(feedbacks.Data))
 	return feedbacks, nil
 }
 
 // GetSurveyFeedbackByID implements [service.FeedbackService].
 func (f *feedbackService) GetSurveyFeedbackByID(ctx context.Context, id string) (*local_model.SurveyFeedback, error) {
+	log := local_util.LoggerFromCtx(ctx, f.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetSurveyFeedbackByID", "Feedback", "GetSurveyFeedbackByID")
 	defer span.End()
 
 	feedback, err := f.repo.FindSurveyFeedbackByID(ctx, id)
 	if err != nil {
-		f.logger.Errorf("[FeedbackSvc][GetSurveyByID] fetch err: %v", err)
+		log.Errorf("[FeedbackSvc][GetSurveyByID] fetch err: %v", err)
 		span.AddEvent("Failed to get feedback", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return nil, err
 	}
-	f.logger.Infof("[FeedbackSvc][GetSurveyByID] retrieved id: %s", id)
+	log.Infof("[FeedbackSvc][GetSurveyByID] retrieved id: %s", id)
 	return feedback, nil
 }
 
 func (f *feedbackService) GetCustomerFeedback(ctx context.Context, id string) (*local_model.CustomerFeedback, error) {
+	log := local_util.LoggerFromCtx(ctx, f.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCustomerFeedback", "Feedback", "GetCustomerFeedback")
 	defer span.End()
 
 	feedback, err := f.repo.FindCustomerFeedbackByID(ctx, id)
 	if err != nil {
-		f.logger.Errorf("[FeedbackSvc][GetCustomer] fetch err id: %s, %v", id, err)
+		log.Errorf("[FeedbackSvc][GetCustomer] fetch err id: %s, %v", id, err)
 		span.RecordError(err)
 		return nil, err
 	}
 
-	f.logger.Infof("[FeedbackSvc][GetCustomer] retrieved id: %s", id)
+	log.Infof("[FeedbackSvc][GetCustomer] retrieved id: %s", id)
 	return feedback, nil
 }

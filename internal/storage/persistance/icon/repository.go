@@ -34,18 +34,22 @@ func NewIconRepository(client *mongo.Client, cfg *config.VaultConfig, dbName str
 }
 
 func (i *IconStorage) Create(ctx context.Context, icon *model.Icon) error {
+	log := local_util.LoggerFromCtx(ctx, i.logger)
+
 	_, err := i.dal.InsertOne(ctx, *icon)
 	if err != nil {
-		i.logger.Errorf("[IconStorage][Create] failed to create icon: %v", err)
+		log.Errorf("[IconStorage][Create] failed to create icon: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 
 func (i *IconStorage) Update(ctx context.Context, id string, icon *model.Icon) error {
+	log := local_util.LoggerFromCtx(ctx, i.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		i.logger.Errorf("[IconStorage][Update] invalid object id: %v", err)
+		log.Errorf("[IconStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -53,46 +57,52 @@ func (i *IconStorage) Update(ctx context.Context, id string, icon *model.Icon) e
 
 	_, err = i.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		i.logger.Errorf("[IconStorage][Update] failed to update icon: %v", err)
+		log.Errorf("[IconStorage][Update] failed to update icon: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 
 func (i *IconStorage) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, i.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		i.logger.Errorf("[IconStorage][Delete] invalid object id: %v", err)
+		log.Errorf("[IconStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	if err := i.dal.DeleteOne(ctx, filter); err != nil {
-		i.logger.Errorf("[IconStorage][Delete] failed to delete icon: %v", err)
+		log.Errorf("[IconStorage][Delete] failed to delete icon: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 
 func (i *IconStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, i.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		i.logger.Errorf("[IconStorage][EnableOrDisable] invalid object id: %v", err)
+		log.Errorf("[IconStorage][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"$set": bson.M{"enabled": enable}}
 	_, err = i.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		i.logger.Errorf("[IconStorage][EnableOrDisable] failed to enable/disable icon: %v", err)
+		log.Errorf("[IconStorage][EnableOrDisable] failed to enable/disable icon: %v", err)
 		return local_util.HandleDBError(err)
 	}
 	return nil
 }
 
 func (i *IconStorage) FindByID(ctx context.Context, id string) (*model.Icon, error) {
+	log := local_util.LoggerFromCtx(ctx, i.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		i.logger.Errorf("[IconStorage][FindByID] invalid object id: %v", err)
+		log.Errorf("[IconStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -100,13 +110,15 @@ func (i *IconStorage) FindByID(ctx context.Context, id string) (*model.Icon, err
 	result, err := i.dal.FindOne(ctx, filter, nil)
 
 	if err != nil {
-		i.logger.Errorf("[IconStorage][FindByID] failed to find icon: %v", err)
+		log.Errorf("[IconStorage][FindByID] failed to find icon: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
 
 func (s *IconStorage) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.Icon], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
 
@@ -116,13 +128,13 @@ func (s *IconStorage) FindAllWithPagination(ctx context.Context, filterParam *ty
 
 	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		s.logger.Errorf("[IconStorage][FindAllWithPagination] failed to fetch icons: %v", err)
+		log.Errorf("[IconStorage][FindAllWithPagination] failed to fetch icons: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		s.logger.Errorf("[IconStorage][FindAllWithPagination] failed to count icons: %v", err)
+		log.Errorf("[IconStorage][FindAllWithPagination] failed to count icons: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 

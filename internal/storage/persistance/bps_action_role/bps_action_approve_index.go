@@ -10,6 +10,7 @@ import (
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -29,8 +30,10 @@ func NewBPSActionApproveIndexRepository(client *mongo.Client, database string, c
 	}
 }
 
-func (r *BPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string,[]string, []string, []string, error) {
-	r.logger.Infof("PopulateUserApproverAllocations: Populating approver allocations for RoleID: %s", role_id)
+func (r *BPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string, []string, []string, []string, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("PopulateUserApproverAllocations: Populating approver allocations for RoleID: %s", role_id)
 	viwerSet := map[string]struct{}{}
 	makerSet := map[string]struct{}{}
 	checkerSet := map[string]struct{}{}
@@ -38,20 +41,20 @@ func (r *BPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx co
 
 	cursor, err := r.collection.Find(ctx, bson.M{"role_id": role_id})
 	if err != nil {
-		r.logger.Errorf("PopulateUserApproverAllocations: Find failed: %v", err)
-		return nil,nil, nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
+		log.Errorf("PopulateUserApproverAllocations: Find failed: %v", err)
+		return nil, nil, nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 	var results []imodel.BPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
-		r.logger.Errorf("PopulateUserApproverAllocations: Cursor.All failed: %v", err)
-		return nil,nil, nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
+		log.Errorf("PopulateUserApproverAllocations: Cursor.All failed: %v", err)
+		return nil, nil, nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	for _, v := range results {
 		actionName := v.ActionName
-		if v.ViewerIndex != nil{
-			viwerSet[actionName]=struct{}{}
+		if v.ViewerIndex != nil {
+			viwerSet[actionName] = struct{}{}
 		}
 		if v.MakerIndex != nil {
 			makerSet[actionName] = struct{}{}
@@ -63,8 +66,8 @@ func (r *BPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx co
 			auditorSet[actionName] = struct{}{}
 		}
 	}
-	viwerAllocations := make([]string,0,len(viwerSet))
-	for k := range viwerSet{
+	viwerAllocations := make([]string, 0, len(viwerSet))
+	for k := range viwerSet {
 		viwerAllocations = append(viwerAllocations, k)
 	}
 	makerAllocations := make([]string, 0, len(makerSet))
@@ -80,11 +83,13 @@ func (r *BPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx co
 		auditorAllocations = append(auditorAllocations, k)
 	}
 
-	r.logger.Infof("PopulateUserApproverAllocations: Found %d maker, %d checker, %d auditor allocations for RoleID: %s", len(makerAllocations), len(checkerAllocations), len(auditorAllocations), role_id)
-	return viwerAllocations,makerAllocations, checkerAllocations, auditorAllocations, nil
+	log.Infof("PopulateUserApproverAllocations: Found %d maker, %d checker, %d auditor allocations for RoleID: %s", len(makerAllocations), len(checkerAllocations), len(auditorAllocations), role_id)
+	return viwerAllocations, makerAllocations, checkerAllocations, auditorAllocations, nil
 }
 func (r *BPSActionApproveIndexRepository) SaveIndices(ctx context.Context, indices []imodel.BPSActionApproveIndex) error {
-	r.logger.Infof("SaveIndices: Saving %d indices to DB: %s, Collection: %s", len(indices), r.collection.Database().Name(), r.collection.Name())
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("SaveIndices: Saving %d indices to DB: %s, Collection: %s", len(indices), r.collection.Database().Name(), r.collection.Name())
 	if len(indices) == 0 {
 		return nil
 	}
@@ -94,18 +99,20 @@ func (r *BPSActionApproveIndexRepository) SaveIndices(ctx context.Context, indic
 	}
 	_, err := r.collection.InsertMany(ctx, docs)
 	if err != nil {
-		r.logger.Errorf("SaveIndices: InsertMany failed: %v", err)
+		log.Errorf("SaveIndices: InsertMany failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	r.logger.Infof("SaveIndices: Successfully saved %d indices", len(indices))
+	log.Infof("SaveIndices: Successfully saved %d indices", len(indices))
 	return nil
 }
 
 func (r *BPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldActionName string, newIndices []imodel.BPSActionApproveIndex) error {
-	r.logger.Infof("SyncIndices: Syncing %d indices for oldActionName: %s", len(newIndices), oldActionName)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("SyncIndices: Syncing %d indices for oldActionName: %s", len(newIndices), oldActionName)
 
 	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName}); err != nil {
-		r.logger.Errorf("SyncIndices: DeleteMany failed: %v", err)
+		log.Errorf("SyncIndices: DeleteMany failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -117,71 +124,77 @@ func (r *BPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldAc
 }
 
 func (r *BPSActionApproveIndexRepository) FindMakerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.BPSActionApproveIndex, error) {
-	r.logger.Infof("FindMakerAllocationsByRoleID: Finding maker allocations for RoleID: %s", roleID.Hex())
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("FindMakerAllocationsByRoleID: Finding maker allocations for RoleID: %s", roleID.Hex())
 
 	cursor, err := r.collection.Find(ctx, bson.M{
 		"role_id":     roleID.Hex(),
 		"maker_index": bson.M{"$ne": nil},
 	})
 	if err != nil {
-		r.logger.Errorf("FindMakerAllocationsByRoleID: Find failed: %v", err)
+		log.Errorf("FindMakerAllocationsByRoleID: Find failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var results []imodel.BPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
-		r.logger.Errorf("FindMakerAllocationsByRoleID: Cursor.All failed: %v", err)
+		log.Errorf("FindMakerAllocationsByRoleID: Cursor.All failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	r.logger.Infof("FindMakerAllocationsByRoleID: Found %d maker allocations for RoleID: %s", len(results), roleID.Hex())
+	log.Infof("FindMakerAllocationsByRoleID: Found %d maker allocations for RoleID: %s", len(results), roleID.Hex())
 	return results, nil
 }
 
 func (r *BPSActionApproveIndexRepository) FindCheckerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.BPSActionApproveIndex, error) {
-	r.logger.Infof("FindCheckerAllocationsByRoleID: Finding checker allocations for RoleID: %s", roleID.Hex())
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("FindCheckerAllocationsByRoleID: Finding checker allocations for RoleID: %s", roleID.Hex())
 
 	cursor, err := r.collection.Find(ctx, bson.M{
 		"role_id":       roleID.Hex(),
 		"checker_index": bson.M{"$ne": nil},
 	})
 	if err != nil {
-		r.logger.Errorf("FindCheckerAllocationsByRoleID: Find failed: %v", err)
+		log.Errorf("FindCheckerAllocationsByRoleID: Find failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var results []imodel.BPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
-		r.logger.Errorf("FindCheckerAllocationsByRoleID: Cursor.All failed: %v", err)
+		log.Errorf("FindCheckerAllocationsByRoleID: Cursor.All failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	r.logger.Infof("FindCheckerAllocationsByRoleID: Found %d checker allocations for RoleID: %s", len(results), roleID.Hex())
+	log.Infof("FindCheckerAllocationsByRoleID: Found %d checker allocations for RoleID: %s", len(results), roleID.Hex())
 	return results, nil
 }
 
 func (r *BPSActionApproveIndexRepository) FindAuditorAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.BPSActionApproveIndex, error) {
-	r.logger.Infof("FindAuditorAllocationsByRoleID: Finding auditor allocations for RoleID: %s", roleID.Hex())
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("FindAuditorAllocationsByRoleID: Finding auditor allocations for RoleID: %s", roleID.Hex())
 
 	cursor, err := r.collection.Find(ctx, bson.M{
 		"role_id":       roleID.Hex(),
 		"auditor_index": bson.M{"$ne": nil},
 	})
 	if err != nil {
-		r.logger.Errorf("FindAuditorAllocationsByRoleID: Find failed: %v", err)
+		log.Errorf("FindAuditorAllocationsByRoleID: Find failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var results []imodel.BPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
-		r.logger.Errorf("FindAuditorAllocationsByRoleID: Cursor.All failed: %v", err)
+		log.Errorf("FindAuditorAllocationsByRoleID: Cursor.All failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	r.logger.Infof("FindAuditorAllocationsByRoleID: Found %d auditor allocations for RoleID: %s", len(results), roleID.Hex())
+	log.Infof("FindAuditorAllocationsByRoleID: Found %d auditor allocations for RoleID: %s", len(results), roleID.Hex())
 	return results, nil
 }
 func (r *BPSActionApproveIndexRepository) InsertMany(
@@ -191,8 +204,9 @@ func (r *BPSActionApproveIndexRepository) InsertMany(
 	auditorIndex []bson.ObjectID,
 	roleCode string,
 ) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	r.logger.Infof("InsertMany: Insert or update indices for RoleCode: %s", roleCode)
+	log.Infof("InsertMany: Insert or update indices for RoleCode: %s", roleCode)
 
 	var models []mongo.WriteModel
 	now := time.Now()
@@ -268,11 +282,11 @@ func (r *BPSActionApproveIndexRepository) InsertMany(
 
 	_, err := r.collection.BulkWrite(ctx, models)
 	if err != nil {
-		r.logger.Errorf("InsertMany: BulkWrite failed: %v", err)
+		log.Errorf("InsertMany: BulkWrite failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	r.logger.Infof("InsertMany: Successfully processed indices for RoleCode: %s", roleCode)
+	log.Infof("InsertMany: Successfully processed indices for RoleCode: %s", roleCode)
 	return nil
 }
 
@@ -283,8 +297,9 @@ func (r *BPSActionApproveIndexRepository) DeleteMany(
 	auditorIndex []bson.ObjectID,
 	roleCode string,
 ) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	r.logger.Infof("DeleteMany: Deleting indices for RoleCode: %s", roleCode)
+	log.Infof("DeleteMany: Deleting indices for RoleCode: %s", roleCode)
 
 	var models []mongo.WriteModel
 
@@ -348,21 +363,23 @@ func (r *BPSActionApproveIndexRepository) DeleteMany(
 	}
 
 	if len(models) == 0 {
-		r.logger.Infof("DeleteMany: No delete models generated for RoleCode: %s", roleCode)
+		log.Infof("DeleteMany: No delete models generated for RoleCode: %s", roleCode)
 		return nil
 	}
 
 	_, err := r.collection.BulkWrite(ctx, models)
 	if err != nil {
-		r.logger.Errorf("DeleteMany: BulkWrite failed: %v", err)
+		log.Errorf("DeleteMany: BulkWrite failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	r.logger.Infof("DeleteMany: Successfully deleted indices for RoleCode: %s", roleCode)
+	log.Infof("DeleteMany: Successfully deleted indices for RoleCode: %s", roleCode)
 	return nil
 }
 
 func (r *BPSActionApproveIndexRepository) InsertAll(ctx context.Context, new imodel.BPSActionApproveIndex) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	if new.ID.IsZero() {
 		new.ID = bson.NewObjectID()
 	}
@@ -373,13 +390,15 @@ func (r *BPSActionApproveIndexRepository) InsertAll(ctx context.Context, new imo
 	}
 	_, err := r.collection.InsertOne(ctx, new)
 	if err != nil {
-		r.logger.Errorf("InsertAll: InsertOne failed: %v", err)
+		log.Errorf("InsertAll: InsertOne failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 
 func (r *BPSActionApproveIndexRepository) DeleteAll(ctx context.Context, prev imodel.BPSActionApproveIndex) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	filter := bson.M{}
 	if !prev.ID.IsZero() {
 		filter["_id"] = prev.ID
@@ -389,7 +408,7 @@ func (r *BPSActionApproveIndexRepository) DeleteAll(ctx context.Context, prev im
 	}
 	_, err := r.collection.DeleteMany(ctx, filter)
 	if err != nil {
-		r.logger.Errorf("DeleteAll: DeleteMany failed: %v", err)
+		log.Errorf("DeleteAll: DeleteMany failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil

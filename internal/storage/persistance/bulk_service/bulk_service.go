@@ -46,6 +46,8 @@ func InitBulkServicePersistence(client *mongo.Client, cfg *config.VaultConfig, d
 }
 
 func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.APPAccessList], error) {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
@@ -75,16 +77,16 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 				Meta: meta,
 			}, nil
 		}
-		b.logger.Errorf("[BulkServicePersistence][FindAllWithPagination] failed to fetch bulk services: %v", err)
+		log.Errorf("[BulkServicePersistence][FindAllWithPagination] failed to fetch bulk services: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
-	b.logger.Infof("[BulkServicePersistence][FindAllWithPagination] fetched %d bulk services with filter %v result %v", len(data), filter, data)
+	log.Infof("[BulkServicePersistence][FindAllWithPagination] fetched %d bulk services with filter %v result %v", len(data), filter, data)
 
 	// 6. Count total
 	total, err := b.mongoDalbulkService.TotalCount(ctx, filter)
 	if err != nil {
-		b.logger.Errorf("[BulkServicePersistence][FindAllWithPagination] failed to count bulk services: %v", err)
+		log.Errorf("[BulkServicePersistence][FindAllWithPagination] failed to count bulk services: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -99,21 +101,25 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 }
 
 func (b BulkServicePersistence) FindAll(ctx context.Context) ([]model.APPAccessList, error) {
-	b.logger.Infof("[BulkServicePersistence][FindAll] fetching all bulk services")
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BulkServicePersistence][FindAll] fetching all bulk services")
 	filter := bson.M{}
 
 	projection := bson.M{}
 	bulkServices, err := b.mongoDalbulkService.FindAll(ctx, filter, projection)
 	if err != nil {
-		b.logger.Errorf("[BulkServicePersistence][FindAll] failed to fetch bulk services: %v", err)
+		log.Errorf("[BulkServicePersistence][FindAll] failed to fetch bulk services: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	b.logger.Infof("[BulkServicePersistence][FindAll] retrieved %d bulk services", len(bulkServices))
+	log.Infof("[BulkServicePersistence][FindAll] retrieved %d bulk services", len(bulkServices))
 	return bulkServices, nil
 }
 
 func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state bool) error {
-	b.logger.Infof("[Update] updating bulk services, enabled: %v keys: %v", state, keys)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[Update] updating bulk services, enabled: %v keys: %v", state, keys)
 	publishBody := []model.APPAccessList{}
 
 	for _, key := range keys {
@@ -122,7 +128,7 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 
 		updatedParent, err := b.mongoDalbulkService.UpdateOne(ctx, parentFilter, parentUpdate)
 		if err != nil {
-			b.logger.Errorf("[UpdateBulkService] failed to update access list: %v", err)
+			log.Errorf("[UpdateBulkService] failed to update access list: %v", err)
 			return errors.New(localization.ErrorFailToUpdateBulkService.Code)
 		}
 		publishBody = append(publishBody, updatedParent)

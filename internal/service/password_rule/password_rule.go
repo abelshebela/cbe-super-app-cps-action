@@ -38,28 +38,32 @@ func NewPasswordRuleService(repo storage.PasswordRuleRepository, cpsService serv
 }
 
 func (p *passwordService) GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.PasswordRule], error) {
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllPasswordRules", "PasswordRule", "GetAllPasswordRules")
 	defer span.End()
 
 	result, err := p.repo.FindAllWithPagination(ctx, filterParams)
 	if err != nil {
-		p.logger.Errorf("[PwdRuleSvc][GetAll] fetch err: %v", err)
+		log.Errorf("[PwdRuleSvc][GetAll] fetch err: %v", err)
 		span.AddEvent("Failed to fetch password rules", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
 		return nil, err
 	}
-	p.logger.Infof("[PwdRuleSvc][GetAll] retrieved %d", len(result.Data))
+	log.Infof("[PwdRuleSvc][GetAll] retrieved %d", len(result.Data))
 	return result, nil
 }
 
 func (p *passwordService) RequestPasswordRuleUpdate(ctx context.Context, id string, body passwordrule.PasswordRuleUpdate) error {
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "RequestPasswordRuleUpdate", "PasswordRule", "RequestPasswordRuleUpdate")
 	defer span.End()
 
 	existingRule, err := p.repo.FindCurrentRule(ctx)
 	if err != nil {
-		p.logger.Errorf("[PwdRuleSvc][ReqUpdate] fetch current err: %v", err)
+		log.Errorf("[PwdRuleSvc][ReqUpdate] fetch current err: %v", err)
 		span.AddEvent("Failed to fetch current password rule", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -70,7 +74,7 @@ func (p *passwordService) RequestPasswordRuleUpdate(ctx context.Context, id stri
 
 	err = core.HandleCPSAction(ctx, p.cpsService, existingRule.ID.Hex(), constants.RequestUpdatePasswordRule, updated, existingRule, constants.ActionUpdate)
 	if err != nil {
-		p.logger.Errorf("[PwdRuleSvc][ReqUpdate] cps action err: %v", err)
+		log.Errorf("[PwdRuleSvc][ReqUpdate] cps action err: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -78,17 +82,19 @@ func (p *passwordService) RequestPasswordRuleUpdate(ctx context.Context, id stri
 		return err
 	}
 
-	p.logger.Infof("[PwdRuleSvc][ReqUpdate] request created")
+	log.Infof("[PwdRuleSvc][ReqUpdate] request created")
 	return nil
 }
 
 func (p *passwordService) CheckPasswordRule(ctx context.Context, password string) (bool, string) {
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CheckPasswordRule", "PasswordRule", "CheckPasswordRule")
 	defer span.End()
 
 	rule, err := p.repo.FindCurrentRule(ctx)
 	if err != nil || rule == nil {
-		p.logger.Errorf("[PwdRuleSvc][Check] retrieve err: %v", err)
+		log.Errorf("[PwdRuleSvc][Check] retrieve err: %v", err)
 		span.AddEvent("Failed to retrieve password rule", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
@@ -175,14 +181,16 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 }
 
 func (p *passwordService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "PasswordRule", "Authorize")
 	defer span.End()
 
-	p.logger.Infof("[PwdRuleSvc][Authorize] action: %s", cpsAction.RequestAction)
+	log.Infof("[PwdRuleSvc][Authorize] action: %s", cpsAction.RequestAction)
 
 	passwordRule, err := local_util.JsonUnmarshal[local_model.PasswordRule](cpsAction.CurrentAction)
 	if err != nil {
-		p.logger.Errorf("[PwdRuleSvc][Authorize] unmarshal err: %v", err)
+		log.Errorf("[PwdRuleSvc][Authorize] unmarshal err: %v", err)
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
@@ -192,7 +200,7 @@ func (p *passwordService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 
 	err = p.repo.Update(ctx, cpsAction.UniqueId, passwordRule)
 	if err != nil {
-		p.logger.Errorf("[PwdRuleSvc][Authorize] update err: %v", err)
+		log.Errorf("[PwdRuleSvc][Authorize] update err: %v", err)
 		span.AddEvent("Failed to update password rule", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
@@ -201,6 +209,6 @@ func (p *passwordService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 	}
 
 	cpsAction.CurrentAction = passwordRule
-	p.logger.Infof("[PwdRuleSvc][Authorize] authorized id: %s", cpsAction.UniqueId)
+	log.Infof("[PwdRuleSvc][Authorize] authorized id: %s", cpsAction.UniqueId)
 	return cpsAction, nil
 }
