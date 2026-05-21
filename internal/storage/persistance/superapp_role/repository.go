@@ -321,6 +321,23 @@ func (r *superAppRoleStorage) FindGloballyEnabledAccessLists(ctx context.Context
 	return scanAccessLists(rows)
 }
 
+func (r *superAppRoleStorage) FindGloballyDisabledAccessLists(ctx context.Context) ([]imodel.APPAccessList, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	const q = `SELECT RAWTOHEX(ID), NAME, SERVICE_KEY, IS_ENABLED
+		FROM ACCESS_LISTS
+		WHERE IS_ENABLED = 0 AND IS_DELETED = 0
+		ORDER BY NAME`
+
+	rows, err := r.db.QueryContext(ctx, q)
+	if err != nil {
+		log.Errorf("[SuperAppRoleRepo][FindGloballyDisabled] query err: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	defer rows.Close()
+	return scanAccessLists(rows)
+}
+
 func (r *superAppRoleStorage) FindAccessListsByIDs(ctx context.Context, ids []string) ([]imodel.APPAccessList, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
