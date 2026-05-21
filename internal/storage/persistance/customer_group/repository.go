@@ -72,8 +72,14 @@ func (r *customerGroupStorage) Create(ctx context.Context, seg *imodel.Segment) 
 	if seg == nil {
 		return errors.New(localization.ErrorNoDataProvided.Code)
 	}
-
-	data := fmt.Sprintf("%s:%s:%s", seg.CustomerGroup, seg.CustomerSegment, seg.CustomerSubsegment)
+	var segment, subsegment string
+	if seg.CustomerSegment == "" {
+		segment = "*"
+	}
+	if seg.CustomerSubsegment == "" {
+		subsegment = "*"
+	}
+	data := fmt.Sprintf("%s:%s:%s", seg.CustomerGroup, segment, subsegment)
 	checkSum := checksum.Checksum(data)
 
 	var count int
@@ -146,7 +152,18 @@ func (r *customerGroupStorage) Update(ctx context.Context, id string, seg *imode
 		return errors.New(localization.ErrorNoDataProvided.Code)
 	}
 
-	data := fmt.Sprintf("%s:%s:%s", seg.CustomerGroup, seg.CustomerSegment, seg.CustomerSubsegment)
+	var segment, subsegment string
+	if seg.CustomerSegment != "" {
+		segment = seg.CustomerSegment
+	} else {
+		segment = "*"
+	}
+	if seg.CustomerSubsegment != "" {
+		subsegment = seg.CustomerSubsegment
+	} else {
+		subsegment = "*"
+	}
+	data := fmt.Sprintf("%s:%s:%s", seg.CustomerGroup, segment, subsegment)
 	checkSum := checksum.Checksum(data)
 
 	var count int
