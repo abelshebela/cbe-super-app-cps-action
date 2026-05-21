@@ -19,6 +19,7 @@ import (
 
 	"github.com/hugokessem/coreio/core"
 	climit "github.com/hugokessem/coreio/lib/core/customer/customer_limit_fetch_by_service"
+	cifLimit "github.com/hugokessem/coreio/lib/core/customer/customer_limit_fetch_by_cif"
 	shared_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -149,6 +150,46 @@ func paginate(results []cps_roles_dto.ServiceLevelLimitResponse, filterParam typ
 	}
 }
 
+func (s *superAppRoleService) GetGlobalLimitByRole(ctx context.Context, superappRole string) (*cps_roles_dto.GlobalLimitResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
+	customerNumber := "GLOBAL-" + strings.ToUpper(superappRole)
+	response, err := s.core.CustomerLimitFetchByCustomerNumber(core.CustomerLimitFetchByCIFParam{
+		CustomerNumber: customerNumber,
+	})
+	if err != nil {
+		log.Errorf("[SuperAppRole][GetGlobalLimitByRole] core call err: %v", err)
+		return nil, err
+	}
+	if !response.Success {
+		log.Warnf("[SuperAppRole][GetGlobalLimitByRole] core returned failure for role: %s", superappRole)
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
+	}
+
+	return buildGlobalLimitResponse(response.Detail), nil
+}
+
+func buildGlobalLimitResponse(detail *cifLimit.CustomerLimitType) *cps_roles_dto.GlobalLimitResponse {
+	resp := &cps_roles_dto.GlobalLimitResponse{}
+	if detail == nil || detail.GUserChannel == nil {
+		return resp
+	}
+	for _, ch := range detail.GUserChannel.MUserChannel {
+		channel := cps_roles_dto.GlobalLimitChannelResponse{ChannelType: ch.UserChannelType}
+		if ch.SGServiceType != nil {
+			for _, svc := range ch.SGServiceType.Services {
+				channel.Services = append(channel.Services, cps_roles_dto.GlobalLimitServiceEntry{
+					ServiceType: svc.Name,
+					MaxAmount:   svc.ServiceMaxAmt,
+					MaxCount:    svc.UserMaxCnt,
+				})
+			}
+		}
+		resp.Channels = append(resp.Channels, channel)
+	}
+	return resp
+}
+
 func (s *superAppRoleService) EnableByRole(ctx context.Context, superappRole string) error {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	makerUser := local_util.ExtractUserFromContext(ctx)
@@ -223,7 +264,13 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 
 	globallyEnabled, err := s.repo.FindGloballyEnabledAccessLists(ctx)
 	if err != nil {
-		log.Errorf("[SuperAppRole][GetAccessListsByRole] global fetch err: %v", err)
+		log.Errorf("[SuperAppRole][GetAccessListsByRole] global enabled fetch err: %v", err)
+		return nil, nil, err
+	}
+
+	globallyDisabled, err := s.repo.FindGloballyDisabledAccessLists(ctx)
+	if err != nil {
+		log.Errorf("[SuperAppRole][GetAccessListsByRole] global disabled fetch err: %v", err)
 		return nil, nil, err
 	}
 
@@ -233,11 +280,24 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 		return nil, nil, err
 	}
 
+	// disabled = distinct union of role-blocked + globally disabled
+	disabledMap := make(map[string]imodel.APPAccessList, len(roleBlocked)+len(globallyDisabled))
+	for _, al := range roleBlocked {
+		disabledMap[al.ID] = al
+	}
+	for _, al := range globallyDisabled {
+		disabledMap[al.ID] = al
+	}
+	disabled := make([]imodel.APPAccessList, 0, len(disabledMap))
+	for _, al := range disabledMap {
+		disabled = append(disabled, al)
+	}
+
+	// enabled = globally enabled - role-blocked
 	blockedSet := make(map[string]struct{}, len(roleBlocked))
 	for _, al := range roleBlocked {
 		blockedSet[al.ID] = struct{}{}
 	}
-
 	enabled := make([]imodel.APPAccessList, 0, len(globallyEnabled))
 	for _, al := range globallyEnabled {
 		if _, blocked := blockedSet[al.ID]; !blocked {
@@ -245,7 +305,7 @@ func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superapp
 		}
 	}
 
-	return enabled, roleBlocked, nil
+	return enabled, disabled, nil
 }
 
 func (s *superAppRoleService) BulkDisableAccessLists(ctx context.Context, superappRole string, req superapproledto.BulkAccessListByRoleRequest) error {
@@ -351,6 +411,10 @@ func (s *superAppRoleService) authorizeBulkAccessList(ctx context.Context, role 
 	if err != nil {
 		log.Errorf("[SuperAppRole][authorizeBulkAccessList] unmarshal err: %v", err)
 		return errors.New(localization.ErrorInvalidActionData.Code)
+	}
+	if len(*lists) == 0 {
+		log.Errorf("[SuperAppRole][authorizeBulkAccessList] currentAction contains no access list entries for role %s", role)
+		return errors.New(localization.ErrorNoDataProvided.Code)
 	}
 	return repoFn(ctx, role, extractIDs(*lists))
 }

@@ -92,6 +92,36 @@ func (h *SuperAppRoleAdapter) GetTransferLimitByRole(w http.ResponseWriter, r *h
 	localization.SendPaginatedSuccessResponse(w, localization.SuperAppRoleFetchedSuccessfully, result.Data, result.Meta)
 }
 
+// GetGlobalLimitByRole fetches the overall channel-level limits for a superapp role from CoreIO.
+//
+//	@Summary		Get Global Limits by SuperApp Role
+//	@Description	Fetches global (channel-level) limits from the core banking system for the given superapp role
+//	@Tags			SuperAppRole
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			role	path		string	true	"SuperApp Role code"
+//	@Success		200	{object}	localization.StandardResponse{data=object}
+//	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/superapp-roles/{role}/global-limits [get]
+func (h *SuperAppRoleAdapter) GetGlobalLimitByRole(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), h.logger)
+
+	role := chi.URLParam(r, "role")
+	if role == "" {
+		log.Errorf("[GetGlobalLimitByRole] missing role param")
+		localization.SendErrorByCodeResponse(w, errors.New(localization.ErrorInvalidID.Code).Error())
+		return
+	}
+
+	result, err := h.svc.GetGlobalLimitByRole(r.Context(), role)
+	if err != nil {
+		log.Errorf("[GetGlobalLimitByRole] service err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuperAppRoleGlobalLimitFetchedSuccessfully, result)
+}
+
 // EnableByRole enables all segments for a given superapp role.
 //
 //	@Summary		Enable SuperApp Role

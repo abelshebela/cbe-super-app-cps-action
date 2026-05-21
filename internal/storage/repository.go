@@ -988,6 +988,7 @@ type SuperAppRoleRepository interface {
 	DeleteByRole(ctx context.Context, superappRole string) error
 	FindRoleBlockedAccessLists(ctx context.Context, superappRole string) ([]imodel.APPAccessList, error)
 	FindGloballyEnabledAccessLists(ctx context.Context) ([]imodel.APPAccessList, error)
+	FindGloballyDisabledAccessLists(ctx context.Context) ([]imodel.APPAccessList, error)
 	FindAccessListsByIDs(ctx context.Context, ids []string) ([]imodel.APPAccessList, error)
 	BulkDisableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error
 	BulkEnableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error
