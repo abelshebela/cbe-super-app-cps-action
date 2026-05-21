@@ -12,7 +12,7 @@ type Segment struct {
 	CustomerSubsegmentLabel string    `json:"customer_subsegment_label"`
 	SuperappRole            string    `json:"superapp_role"`
 	SuperappRoleLabel       string    `json:"superapp_role_label"`
-	CheckSum                uint32    `json:"-"`
+	CheckSum                string    `json:"-"`
 	IsEnabled               bool      `json:"is_enabled"`
 	CreatedAt               time.Time `json:"created_at"`
 	LastModifiedAt          time.Time `json:"last_modified_at"`
