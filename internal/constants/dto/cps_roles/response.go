@@ -5,15 +5,19 @@ type ServiceAccessInfo struct {
 	AccessListName string `json:"access_list_name" bson:"access_list_name"`
 }
 
-type Channel struct {
-	Name     string `json:"name"`
-	MaxLimit int64  `json:"max_limit"`
+type GlobalLimitServiceEntry struct {
+	ServiceType string `json:"service_type"`
+	MaxAmount   string `json:"max_amount"`
+	MaxCount    string `json:"max_count"`
+}
+
+type GlobalLimitChannelResponse struct {
+	ChannelType string                    `json:"channel_type"`
+	Services    []GlobalLimitServiceEntry `json:"services"`
 }
 
 type GlobalLimitResponse struct {
-	CustomerNumber   int64     `json:"customer_number"`
-	CustomerMaxLimit int64     `json:"customer_max_limit"`
-	Channels         []Channel `json:"channels"`
+	Channels []GlobalLimitChannelResponse `json:"channels"`
 }
 
 type ServiceLevelLimitResponse struct {
