@@ -8,11 +8,17 @@ import (
 )
 
 type UserActionResponsibility string
+type ActionType string
 
 const (
 	MAKER   UserActionResponsibility = "MAKER"
 	CHECKER UserActionResponsibility = "CHECKER"
 	AUDITOR UserActionResponsibility = "AUDITOR"
+)
+
+const (
+	CPSActions ActionType = "CPS_ACTION"
+	BPSActions ActionType = "BPS_ACTION"
 )
 
 type UserActionLog struct {
@@ -31,7 +37,9 @@ type UserActionLog struct {
 	UserPhone                  string                   `bson:"user_phone" json:"user_phone"`
 	UserRoleCode               string                   `bson:"user_role_code" json:"user_role_code"`
 	UserActionResponsibilities UserActionResponsibility `bson:"user_action_responsibilities" json:"user_action_responsibilities"`
+	ActionType                 ActionType               `bson:"action_type" json:"action_type"`
 	IsDeleted                  bool                     `bson:"is_deleted" json:"is_deleted"`
 	CreatedAt                  time.Time                `bson:"created_at" json:"created_at"`
 	DeletedAt                  time.Time                `bson:"deleted_at" json:"deleted_at"`
+	LastModifiedAt             time.Time                `bson:"last_modified_at" json:"last_modified_at"`
 }
