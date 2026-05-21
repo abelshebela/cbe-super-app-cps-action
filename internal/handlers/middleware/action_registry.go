@@ -284,9 +284,10 @@ var cpsActionRegistry = map[string]string{
 	"DELETE customer-groups": "CUSTOMERSEGMENTATIONS",
 
 	// SuperApp Role
-	"GET superapp-roles":    "SUPERAPPROLE",
-	"PATCH superapp-roles":  "SUPERAPPROLE",
-	"DELETE superapp-roles": "SUPERAPPROLE",
+	// this changed from "SUPERAPPROLE" to "CPSROLE"
+	"GET superapp-roles":    "CPSROLE",
+	"PATCH superapp-roles":  "CPSROLE",
+	"DELETE superapp-roles": "CPSROLE",
 
 	// CPS Roles
 	"POST cps-roles":  "CPSROLE",

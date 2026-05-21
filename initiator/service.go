@@ -153,7 +153,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	CPSRolesService := cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, nil, coreInterface, logger)
 	customerKYCService := kyc_service.NewCustomerKYCService(oracle.CustomerKYC, nil, accountLookupAdapter, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	customerGroupService := customer_group.NewCustomerGroupService(oracle.CustomerGroup, nil, logger)
-	superAppRoleService := superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, nil, logger)
+	superAppRoleService := superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, nil, coreInterface, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -317,7 +317,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	customerKYCService = kyc_service.NewCustomerKYCService(oracle.CustomerKYC, cpsActionService, accountLookupAdapter, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	customerGroupService = customer_group.NewCustomerGroupService(oracle.CustomerGroup, cpsActionService, logger)
 	serviceContainer.CustomerGroupContainer = customerGroupService
-	superAppRoleService = superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, cpsActionService, logger)
+	superAppRoleService = superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, cpsActionService, coreInterface, logger)
 	serviceContainer.SuperAppRoleContainer = superAppRoleService
 
 	return service.ServiceLayer{

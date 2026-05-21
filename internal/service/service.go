@@ -864,6 +864,7 @@ type CustomerKYCService interface {
 
 type SuperAppRoleService interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.SuperAppRoleGroup], error)
+	GetTransferLimitByRole(ctx context.Context, superappRole string, filterParam types.Filter) (*types.PaginatedResponse[[]cps_role_dto.ServiceLevelLimitResponse], error)
 	EnableByRole(ctx context.Context, superappRole string) error
 	DisableByRole(ctx context.Context, superappRole string) error
 	DeleteByRole(ctx context.Context, superappRole string) error

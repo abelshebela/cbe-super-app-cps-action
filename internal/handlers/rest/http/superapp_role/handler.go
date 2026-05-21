@@ -56,6 +56,40 @@ func (h *SuperAppRoleAdapter) GetAllSuperAppRoles(w http.ResponseWriter, r *http
 	localization.SendPaginatedSuccessResponse(w, localization.SuperAppRoleFetchedSuccessfully, result.Data, result.Meta)
 }
 
+// GetTransferLimitByRole fetches service-level transfer limits for a superapp role from CoreIO.
+//
+//	@Summary		Get Transfer Limits by SuperApp Role
+//	@Description	Fetches service-level transfer limits from the core banking system for the given superapp role
+//	@Tags			SuperAppRole
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			role		path		string	true	"SuperApp Role code"
+//	@Param			page		query		int		false	"Page number"
+//	@Param			per_page	query		int		false	"Items per page"
+//	@Success		200	{object}	localization.StandardResponse{data=object}
+//	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/superapp-roles/{role}/limits [get]
+func (h *SuperAppRoleAdapter) GetTransferLimitByRole(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), h.logger)
+
+	role := chi.URLParam(r, "role")
+	if role == "" {
+		log.Errorf("[GetTransferLimitByRole] missing role param")
+		localization.SendErrorByCodeResponse(w, errors.New(localization.ErrorInvalidID.Code).Error())
+		return
+	}
+
+	filterParams := local_util.ExtractFilterParams(r)
+
+	result, err := h.svc.GetTransferLimitByRole(r.Context(), role, *filterParams)
+	if err != nil {
+		log.Errorf("[GetTransferLimitByRole] service err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendPaginatedSuccessResponse(w, localization.SuperAppRoleFetchedSuccessfully, result.Data, result.Meta)
+}
+
 // EnableByRole enables all segments for a given superapp role.
 //
 //	@Summary		Enable SuperApp Role
