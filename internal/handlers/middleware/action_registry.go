@@ -289,8 +289,8 @@ var cpsActionRegistry = map[string]string{
 	"DELETE superapp-roles": "CPSROLE",
 
 	// CPS Roles
-	"POST cps-roles":  "CPSROLE",
-	"PATCH cps-roles": "CPSROLE",
+	"POST cps-roles": "CPSROLE",
+	// "PATCH cps-roles": "CPSROLE",
 
 	// CPS Action
 	"PATCH actions": "CPSACTION",
