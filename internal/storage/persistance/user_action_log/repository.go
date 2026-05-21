@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -40,6 +41,178 @@ func (r *userActionLogRepository) Save(ctx context.Context, entry *imodel.UserAc
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
+}
+
+func (r *userActionLogRepository) GetActionCodesByActionLogFilter(ctx context.Context, filter imodel.UserActionLogActionCodeFilter) ([]string, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][GetActionCodesByActionLogFilter] filter=%+v", filter)
+
+	pipeline, err := buildActionCodeFilterPipeline(filter)
+	if err != nil {
+		log.Errorf("[UserActionLog][GetActionCodesByActionLogFilter] invalid filter: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	cur, err := r.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		log.Errorf("[UserActionLog][GetActionCodesByActionLogFilter] aggregation failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer func() { _ = cur.Close(ctx) }()
+
+	var results []struct {
+		ActionCode string `bson:"action_code"`
+	}
+	if err := cur.All(ctx, &results); err != nil {
+		log.Errorf("[UserActionLog][GetActionCodesByActionLogFilter] cursor decode failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	actionCodes := make([]string, 0, len(results))
+	for _, result := range results {
+		actionCodes = append(actionCodes, result.ActionCode)
+	}
+
+	return actionCodes, nil
+}
+
+func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) (mongo.Pipeline, error) {
+	groupStage := bson.D{{Key: "_id", Value: "$action_code"}}
+	matchStage := bson.D{}
+
+	if len(filter.ActionStatuses) > 0 {
+		groupStage = append(groupStage, bson.E{
+			Key:   "action_status_match_count",
+			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{"$given_action_status", filter.ActionStatuses}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "action_status_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	if len(filter.AuditorStatuses) > 0 {
+		groupStage = append(groupStage, bson.E{
+			Key:   "auditor_status_match_count",
+			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{"$given_auditor_status", filter.AuditorStatuses}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "auditor_status_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	privateUserIDs, err := toObjectIDs(filter.PrivateUserIDs)
+	if err != nil {
+		return nil, fmt.Errorf("private users: %w", err)
+	}
+	if len(privateUserIDs) > 0 {
+		groupStage = append(groupStage, bson.E{
+			Key:   "private_user_match_count",
+			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{"$user_id", privateUserIDs}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "private_user_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	if len(filter.Levels) > 0 {
+		groupStage = append(groupStage, bson.E{
+			Key: "level_match_count",
+			Value: sumWhen(bson.D{{Key: "$or", Value: bson.A{
+				bson.D{{Key: "$in", Value: bson.A{"$checker_level", filter.Levels}}},
+				bson.D{{Key: "$in", Value: bson.A{"$auditor_level", filter.Levels}}},
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "level_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	if len(filter.Services) > 0 {
+		groupStage = append(groupStage, bson.E{
+			Key:   "service_match_count",
+			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{"$action_taken_service_name", filter.Services}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "service_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	checkerUserIDs, err := toObjectIDs(filter.CheckerUserIDs)
+	if err != nil {
+		return nil, fmt.Errorf("checker users: %w", err)
+	}
+	if len(checkerUserIDs) > 0 {
+		groupStage = append(groupStage, bson.E{
+			Key: "checker_match_count",
+			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
+				bson.D{{Key: "$eq", Value: bson.A{"$user_action_responsibilities", string(imodel.CHECKER)}}},
+				bson.D{{Key: "$in", Value: bson.A{"$user_id", checkerUserIDs}}},
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "checker_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	auditorUserIDs, err := toObjectIDs(filter.AuditorUserIDs)
+	if err != nil {
+		return nil, fmt.Errorf("auditor users: %w", err)
+	}
+	if len(auditorUserIDs) > 0 {
+		groupStage = append(groupStage, bson.E{
+			Key: "auditor_match_count",
+			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
+				bson.D{{Key: "$eq", Value: bson.A{"$user_action_responsibilities", string(imodel.AUDITOR)}}},
+				bson.D{{Key: "$in", Value: bson.A{"$user_id", auditorUserIDs}}},
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "auditor_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	makerUserIDs, err := toObjectIDs(filter.MakerUserIDs)
+	if err != nil {
+		return nil, fmt.Errorf("maker users: %w", err)
+	}
+	if len(makerUserIDs) > 0 {
+		groupStage = append(groupStage, bson.E{
+			Key: "maker_match_count",
+			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
+				bson.D{{Key: "$eq", Value: bson.A{"$user_action_responsibilities", string(imodel.MAKER)}}},
+				bson.D{{Key: "$in", Value: bson.A{"$user_id", makerUserIDs}}},
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "maker_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{"is_deleted": false}}},
+		{{Key: "$group", Value: groupStage}},
+	}
+
+	if len(matchStage) > 0 {
+		pipeline = append(pipeline, bson.D{{Key: "$match", Value: matchStage}})
+	}
+
+	pipeline = append(pipeline, bson.D{{Key: "$project", Value: bson.M{
+		"_id":         0,
+		"action_code": "$_id",
+	}}})
+
+	return pipeline, nil
+}
+
+func sumWhen(condition interface{}) bson.D {
+	return bson.D{{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{condition, 1, 0}}}}}
+}
+
+func toObjectIDs(userIDs []string) ([]bson.ObjectID, error) {
+	if len(userIDs) == 0 {
+		return nil, nil
+	}
+
+	objectIDs := make([]bson.ObjectID, 0, len(userIDs))
+	for _, userID := range userIDs {
+		if userID == "" {
+			continue
+		}
+
+		objectID, err := bson.ObjectIDFromHex(userID)
+		if err != nil {
+			return nil, fmt.Errorf("invalid object id %q: %w", userID, err)
+		}
+		objectIDs = append(objectIDs, objectID)
+	}
+
+	return objectIDs, nil
 }
 
 func (r *userActionLogRepository) GetActionCodesBySearch(ctx context.Context, search string) ([]string, error) {
@@ -275,6 +448,32 @@ func (r *userActionLogRepository) RejectUserActionsByActionCode(ctx context.Cont
 	}
 
 	return nil
+}
+
+func (r *userActionLogRepository) GetLogsByResponsibility(ctx context.Context, responsibility imodel.UserActionResponsibility) ([]string, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][GetLogsByResponsibility] responsibility=%s", responsibility)
+
+	filter := bson.M{"user_action_responsibilities": string(responsibility)}
+	cur, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		log.Errorf("[UserActionLog][GetLogsByResponsibility] failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer func() { _ = cur.Close(ctx) }()
+
+	var logs []imodel.UserActionLog
+	if err := cur.All(ctx, &logs); err != nil {
+		log.Errorf("[UserActionLog][GetLogsByResponsibility] cursor decode failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	var actionCodeList []string
+	for _, logEntry := range logs {
+		actionCodeList = append(actionCodeList, logEntry.ActionCode)
+	}
+	return actionCodeList, nil
 }
 
 func (r *userActionLogRepository) CancelUserActionsByActionCode(ctx context.Context, actionCode string) error {

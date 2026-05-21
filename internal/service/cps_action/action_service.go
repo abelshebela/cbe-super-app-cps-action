@@ -636,6 +636,14 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 	createdAtFrom, _ := filterParams.Filters["created_at_from"].(string)
 	createdAtTo, _ := filterParams.Filters["created_at_to"].(string)
 
+	actionCodeList, err := ca.actionLogRepo.GetLogsByResponsibility(ctx, imodel.CHECKER)
+	if err != nil {
+		log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] failed to get action logs by responsibility: %v", err)
+		return nil, "", err
+	}
+
+	filterParams.Filters["action_codes"] = actionCodeList
+
 	result, err := ca.repo.SanitizedFindAllWithPaginationForApprover(ctx, userID, *filterParams, RAList)
 	if err != nil {
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -712,6 +720,15 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	defer span.End()
 	createdAtFrom, _ := filterParams.Filters["created_at_from"].(string)
 	createdAtTo, _ := filterParams.Filters["created_at_to"].(string)
+
+	actionCodeList, err := ca.actionLogRepo.GetLogsByResponsibility(ctx, imodel.AUDITOR)
+	if err != nil {
+		log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] failed to get action logs by user ID and responsibility: %v", err)
+		return nil, "", err
+	}
+
+	filterParams.Filters["action_codes"] = actionCodeList
+
 	result, err := ca.repo.SanitizedFindAllWithPaginationForAuditor(ctx, userID, *filterParams, RAList)
 	if err != nil {
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -986,6 +1003,15 @@ func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID st
 
 	createdAtFrom, _ := filterParams.Filters["created_at_from"].(string)
 	createdAtTo, _ := filterParams.Filters["created_at_to"].(string)
+
+	actionCodeList, err := ca.actionLogRepo.GetLogsByUserIDAndResponsibility(ctx, userID, imodel.MAKER)
+	if err != nil {
+		log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] failed to get action logs by user ID and responsibility: %v", err)
+		return nil, "", err
+	}
+
+	filterParams.Filters["action_codes"] = actionCodeList
+
 	result, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterParams, "")
 	if err != nil {
 		span.AddEvent("failed to find pending cps actions by user", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -1046,6 +1072,14 @@ func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 
 	createdAtFrom, _ := filterParams.Filters["created_at_from"].(string)
 	createdAtTo, _ := filterParams.Filters["created_at_to"].(string)
+
+	actionCodeList, err := ca.actionLogRepo.GetLogsByUserIDAndResponsibility(ctx, userID, imodel.CHECKER)
+	if err != nil {
+		log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] failed to get action logs by user ID and responsibility: %v", err)
+		return nil, "", err
+	}
+
+	filterParams.Filters["action_codes"] = actionCodeList
 
 	result, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterParams, "")
 	if err != nil {

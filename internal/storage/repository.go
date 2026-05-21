@@ -961,8 +961,10 @@ type UserActionLogRepository interface {
 	Save(ctx context.Context, log *imodel.UserActionLog) error
 	GetActionCodesByUser(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error)
 	GetActionCodesByUserAndAuditorStatus(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility, status string) ([]string, error)
+	GetActionCodesByActionLogFilter(ctx context.Context, filter imodel.UserActionLogActionCodeFilter) ([]string, error)
 	AuditorMarkLogsByActionCode(ctx context.Context, actionCode string, auditorStatus string) error
 	GetLogsByUserIDAndResponsibility(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error)
+	GetLogsByResponsibility(ctx context.Context, responsibility imodel.UserActionResponsibility) ([]string, error)
 	GetLogsByUserID(ctx context.Context, userID string) ([]string, error)
 	CancelUserActionsByActionCode(ctx context.Context, actionCode string) error
 	RejectUserActionsByActionCode(ctx context.Context, actionCode string) error

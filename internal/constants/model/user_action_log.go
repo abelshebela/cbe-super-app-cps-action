@@ -43,3 +43,16 @@ type UserActionLog struct {
 	DeletedAt                  time.Time                `bson:"deleted_at" json:"deleted_at"`
 	LastModifiedAt             time.Time                `bson:"last_modified_at" json:"last_modified_at"`
 }
+
+// UserActionLogActionCodeFilter describes the action-log predicates used to
+// resolve a list of action codes from user_action_logs.
+type UserActionLogActionCodeFilter struct {
+	ActionStatuses  []string `json:"action_statuses"`
+	AuditorStatuses []string `json:"auditor_statuses"`
+	PrivateUserIDs  []string `json:"private_user_ids"`
+	Levels          []string `json:"levels"`
+	Services        []string `json:"services"`
+	CheckerUserIDs  []string `json:"checker_user_ids"`
+	AuditorUserIDs  []string `json:"auditor_user_ids"`
+	MakerUserIDs    []string `json:"maker_user_ids"`
+}

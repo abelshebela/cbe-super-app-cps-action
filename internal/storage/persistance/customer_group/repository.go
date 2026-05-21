@@ -88,6 +88,7 @@ func (r *customerGroupStorage) Create(ctx context.Context, seg *imodel.Segment) 
 		log.Errorf("[CustomerGroup][Create] duplicate check failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
+
 	if count > 0 {
 		log.Warnf("[CustomerGroup][Create] duplicate combination detected checksum=%s", checkSum)
 		return errors.New(localization.ErrorCustomerGroupAlreadyExists.Code)
