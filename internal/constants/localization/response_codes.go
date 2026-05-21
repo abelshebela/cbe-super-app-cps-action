@@ -6176,6 +6176,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorDuplicateSegment = ResponseCode{
+		Code:       "ERROR_DUPLICATE_SEGMENT",
+		StatusCode: StatusConflict,
+		Message:    MsgDuplicateSegment,
+		Type:       "error",
+	}
+
 	ErrorServiceAccountNumberNotProperlyConfigured = ResponseCode{
 		Code:       "ERROR_SERVICE_ACCOUNT_NUMBER_NOT_PROPERLY_CONFIGURED",
 		StatusCode: StatusConflict,
