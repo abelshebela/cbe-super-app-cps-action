@@ -43,6 +43,7 @@ import (
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 
 	cps_role_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
+	superapproledto "cbe-super-app-cps-action/internal/constants/dto/superapp_role"
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
 	customer_group_dto "cbe-super-app-cps-action/internal/constants/dto/customer_group"
@@ -868,5 +869,8 @@ type SuperAppRoleService interface {
 	EnableByRole(ctx context.Context, superappRole string) error
 	DisableByRole(ctx context.Context, superappRole string) error
 	DeleteByRole(ctx context.Context, superappRole string) error
+	GetAccessListsByRole(ctx context.Context, superappRole string) ([]imodel.APPAccessList, []imodel.APPAccessList, error)
+	BulkDisableAccessLists(ctx context.Context, superappRole string, req superapproledto.BulkAccessListByRoleRequest) error
+	BulkEnableAccessLists(ctx context.Context, superappRole string, req superapproledto.BulkAccessListByRoleRequest) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

@@ -8,4 +8,7 @@ type SuperAppRole interface {
 	EnableByRole(w http.ResponseWriter, r *http.Request)
 	DisableByRole(w http.ResponseWriter, r *http.Request)
 	DeleteByRole(w http.ResponseWriter, r *http.Request)
+	GetAccessListsByRole(w http.ResponseWriter, r *http.Request)
+	BulkDisableAccessLists(w http.ResponseWriter, r *http.Request)
+	BulkEnableAccessLists(w http.ResponseWriter, r *http.Request)
 }
