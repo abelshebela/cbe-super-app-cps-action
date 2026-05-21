@@ -125,31 +125,29 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 	}
 
 	if req.Name != "" && prevtopup.Name != req.Name {
-		existingName, err := s.repo.FindByOr(ctx, bson.M{"name": bson.M{
-			"$regex": req.Name,
-		}})
+		existingName, err := s.repo.FindByOr(ctx, bson.M{"name":req.Name,
+		})
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
 				log.Errorf("[TopupSvc][Update] check name err: %v", err)
 				return err
 			}
 		}
-		if &existingName != nil && existingName.ID.Hex() != id {
+		if existingName.Name != "" && existingName.ID.Hex() != id {
 			span.AddEvent("Topup name  already exists", trace.WithAttributes(attribute.String("name", req.Name)))
 			return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
 		}
 	}
 	if req.Code != "" && prevtopup.Code != req.Code {
-		existingCode, err := s.repo.FindByOr(ctx, bson.M{"code": bson.M{
-			"$regex": req.Code,
-		}})
+		existingCode, err := s.repo.FindByOr(ctx, bson.M{"code":  req.Code,
+		})
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
 				log.Errorf("[TopupSvc][Update] check code err: %v", err)
 				return err
 			}
 		}
-		if &existingCode != nil && existingCode.ID.Hex() != id {
+		if existingCode.Code != "" && existingCode.ID.Hex() != id {
 			span.AddEvent("Topup code already exists", trace.WithAttributes(attribute.String("code", req.Code)))
 			return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
 		}
