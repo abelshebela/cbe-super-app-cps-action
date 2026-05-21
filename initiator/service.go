@@ -49,6 +49,7 @@ import (
 	cps_action_role_service "cbe-super-app-cps-action/internal/service/cps_action_role"
 	cps_role "cbe-super-app-cps-action/internal/service/cps_roles"
 	customer_group "cbe-super-app-cps-action/internal/service/customer_group"
+	superapp_role "cbe-super-app-cps-action/internal/service/superapp_role"
 	kyc_service "cbe-super-app-cps-action/internal/service/customer_kyc"
 	customer_segmentation "cbe-super-app-cps-action/internal/service/customer_segmentation"
 	donation "cbe-super-app-cps-action/internal/service/donation"
@@ -152,6 +153,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	CPSRolesService := cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, nil, coreInterface, logger)
 	customerKYCService := kyc_service.NewCustomerKYCService(oracle.CustomerKYC, nil, accountLookupAdapter, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	customerGroupService := customer_group.NewCustomerGroupService(oracle.CustomerGroup, nil, logger)
+	superAppRoleService := superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, nil, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -214,6 +216,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CustomerKYCContainer:              customerKYCService,
 		UssdMerchantContainer:             ussdMerchant,
 		CustomerGroupContainer:            customerGroupService,
+		SuperAppRoleContainer:             superAppRoleService,
 	}
 
 	// CPSActionService Appended
@@ -314,6 +317,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	customerKYCService = kyc_service.NewCustomerKYCService(oracle.CustomerKYC, cpsActionService, accountLookupAdapter, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	customerGroupService = customer_group.NewCustomerGroupService(oracle.CustomerGroup, cpsActionService, logger)
 	serviceContainer.CustomerGroupContainer = customerGroupService
+	superAppRoleService = superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, cpsActionService, logger)
+	serviceContainer.SuperAppRoleContainer = superAppRoleService
 
 	return service.ServiceLayer{
 		RoleService:       RoleService,
@@ -373,6 +378,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CPSRoles:                      CPSRolesService,
 		CustomerKYC:                   customerKYCService,
 		CustomerGroup:                 customerGroupService,
+		SuperAppRole:                  superAppRoleService,
 		UssdMerchantService:           ussdMerchant,
 		BPSActionService:              bpsActionService,
 		QueueManager:                  queueManager,

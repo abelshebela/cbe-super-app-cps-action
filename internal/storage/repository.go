@@ -979,3 +979,10 @@ type CustomerGroupRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Segment], error)
 	DuplicateCheck(ctx context.Context, action, id, group, segment, subsegment string) (bool, error)
 }
+
+type SuperAppRoleRepository interface {
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.SuperAppRoleGroup], error)
+	EnableByRole(ctx context.Context, superappRole string) error
+	DisableByRole(ctx context.Context, superappRole string) error
+	DeleteByRole(ctx context.Context, superappRole string) error
+}

@@ -67,6 +67,10 @@ const (
 	RequestDisableCustomerGroup constants.RequestAction = "DISABLE_CUSTOMER_GROUP"
 	RequestDeleteCustomerGroup  constants.RequestAction = "DELETE_CUSTOMER_GROUP"
 
+	RequestEnableSuperAppRole  constants.RequestAction = "ENABLE_SUPERAPP_ROLE"
+	RequestDisableSuperAppRole constants.RequestAction = "DISABLE_SUPERAPP_ROLE"
+	RequestDeleteSuperAppRole  constants.RequestAction = "DELETE_SUPERAPP_ROLE"
+
 	RequestCreateCustomerSegmentation  constants.RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
 	RequestUpdateCustomerSegmentation  constants.RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
 	RequestEnableCustomerSegmentation  constants.RequestAction = "ENABLE_CUSTOMER_SEGMENTATION"
@@ -579,6 +583,10 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestEnableCustomerGroup:  {},
 	RequestDisableCustomerGroup: {},
 	RequestDeleteCustomerGroup:  {},
+
+	RequestEnableSuperAppRole:  {},
+	RequestDisableSuperAppRole: {},
+	RequestDeleteSuperAppRole:  {},
 
 	RequestCreateCustomerSegmentation:    {},
 	RequestUpdateCustomerSegmentation:    {},
@@ -1207,12 +1215,18 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestEnableAccessListSegmentation,
 		RequestDisableAccessListSegmentation,
 	},
+	// this is made as alternative to "CUSTOMERGROUP"
 	"CUSTOMERSEGMENTATIONS": {
 		RequestCreateCustomerGroup,
 		RequestUpdateCustomerGroup,
 		RequestEnableCustomerGroup,
 		RequestDisableCustomerGroup,
 		RequestDeleteCustomerGroup,
+	},
+	"SUPERAPPROLE": {
+		RequestEnableSuperAppRole,
+		RequestDisableSuperAppRole,
+		RequestDeleteSuperAppRole,
 	},
 	"BULKSERVICECUSTOMERSEGMENT": {
 		// "CUSTOMERSEGMENTATIONS": {
