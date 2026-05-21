@@ -75,11 +75,15 @@ func (r *customerGroupStorage) Create(ctx context.Context, seg *imodel.Segment) 
 	var segment, subsegment string
 	if seg.CustomerSegment == "" {
 		segment = "*"
+	} else {
+		segment = strings.TrimSpace(seg.CustomerSegment)
 	}
 	if seg.CustomerSubsegment == "" {
 		subsegment = "*"
+	} else {
+		subsegment = strings.TrimSpace(seg.CustomerSubsegment)
 	}
-	data := fmt.Sprintf("%s:%s:%s", seg.CustomerGroup, segment, subsegment)
+	data := fmt.Sprintf("%s:%s:%s", strings.TrimSpace(seg.CustomerGroup), segment, subsegment)
 	checkSum := checksum.Checksum(data)
 
 	var count int
