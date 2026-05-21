@@ -299,7 +299,7 @@ func (r *superAppRoleStorage) FindRoleBlockedAccessLists(ctx context.Context, su
 	const q = `SELECT RAWTOHEX(g.ACCESS_LIST_ID), a.NAME, a.SERVICE_KEY, RAWTOHEX(a.ID), g.IS_ENABLED
 		FROM ACCESS_LIST_BY_SUPERAPP_ROLE g
 		JOIN ACCESS_LISTS a ON g.ACCESS_LIST_ID = a.ID
-		WHERE g.SUPERAPP_ROLE_ID = HEXTORAW(:1)
+		WHERE g.SUPERAPP_ROLE_ID = :1
 		  AND g.IS_ENABLED = 1
 		  AND g.IS_DELETED = 0`
 
@@ -389,7 +389,7 @@ func (r *superAppRoleStorage) BulkDisableAccessLists(ctx context.Context, supera
 	for _, alID := range accessListIDs {
 		const q = `MERGE INTO ACCESS_LIST_BY_SUPERAPP_ROLE dst
 			USING (SELECT HEXTORAW(:1) AS AL_ID FROM DUAL) src
-			ON (dst.ACCESS_LIST_ID = src.AL_ID AND dst.SUPERAPP_ROLE_ID = HEXTORAW(:2))
+			ON (dst.ACCESS_LIST_ID = src.AL_ID AND dst.SUPERAPP_ROLE_ID = :2)
 			WHEN MATCHED THEN
 				UPDATE SET IS_ENABLED = 1, LAST_MODIFIED_AT = SYSDATE
 			WHEN NOT MATCHED THEN
@@ -424,7 +424,7 @@ func (r *superAppRoleStorage) BulkEnableAccessLists(ctx context.Context, superap
 	}
 
 	q := fmt.Sprintf(`DELETE FROM ACCESS_LIST_BY_SUPERAPP_ROLE
-		WHERE SUPERAPP_ROLE_ID = HEXTORAW(:1)
+		WHERE SUPERAPP_ROLE_ID = :1
 		  AND ACCESS_LIST_ID IN (%s)`, strings.Join(placeholders, ", "))
 
 	if _, err := r.db.ExecContext(ctx, q, args...); err != nil {
