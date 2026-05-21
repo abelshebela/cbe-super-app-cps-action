@@ -53,7 +53,7 @@ func (h *SuperAppRoleAdapter) GetAllSuperAppRoles(w http.ResponseWriter, r *http
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuperAppRoleFetchedSuccessfully, result)
+	localization.SendPaginatedSuccessResponse(w, localization.SuperAppRoleFetchedSuccessfully, result.Data, result.Meta)
 }
 
 // EnableByRole enables all segments for a given superapp role.

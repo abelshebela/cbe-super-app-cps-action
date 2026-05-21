@@ -189,6 +189,36 @@ func SendSuccessResponse(w http.ResponseWriter, responseCode ResponseCode, data 
 	}
 }
 
+type PaginatedStandardResponse struct {
+	Status    int         `json:"status"`
+	Message   string      `json:"message"`
+	Data      interface{} `json:"data"`
+	Meta      interface{} `json:"meta,omitempty"`
+	TraceID   string      `json:"trace_id,omitempty"`
+	RequestID string      `json:"request_id,omitempty"`
+}
+
+func SendPaginatedSuccessResponse(w http.ResponseWriter, responseCode ResponseCode, data, meta interface{}) {
+	ctx := contextFromWriter(w)
+
+	setActionCodeHeader(w, ctx)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(responseCode.StatusCode)
+
+	response := PaginatedStandardResponse{
+		Status:    responseCode.StatusCode,
+		Message:   responseCode.Message,
+		Data:      data,
+		Meta:      meta,
+		TraceID:   extractTraceID(ctx),
+		RequestID: extractRequestID(ctx),
+	}
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		SendErrorResponse(w, ErrorUnexpectedError, nil, nil)
+	}
+}
+
 // SendErrorResponse sends a standardized error response
 func SendErrorResponse(w http.ResponseWriter, responseCode ResponseCode, fieldErrors []FieldError, details map[string]interface{}) {
 	ctx := contextFromWriter(w)
