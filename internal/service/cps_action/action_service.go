@@ -635,26 +635,7 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 
 	createdAtFrom, _ := filterParams.Filters["created_at_from"].(string)
 	createdAtTo, _ := filterParams.Filters["created_at_to"].(string)
-	// userData := local_util.ExtractUserFromContext(ctx)
-	// if filterParams.Search != "" || len(filterParams.Filters) > 0 {
 
-	// 	if filterParams.Filters["action_status"] == constants.Approved || filterParams.Filters["action_status"] == constants.Rejected {
-	// 		actionCodes, err = ca.actionLogRepo.GetActionCodesByUser(ctx, userData.UserID, constants.Checker)
-	// 		if err != nil {
-	// 			span.AddEvent("failed to get action codes by user", trace.WithAttributes(attribute.String("error", err.Error())))
-	// 			return nil, "", err
-	// 		}
-	// 	} else if filterParams.Search != "" {
-	// 		actionCodes, err = ca.actionLogRepo.GetActionCodesBySearch(ctx, filterParams.Search)
-	// 		if err != nil {
-	// 			span.AddEvent("failed to get action codes by search", trace.WithAttributes(attribute.String("error", err.Error())))
-	// 			return nil, "", err
-	// 		}
-	// 	}
-
-	// 	filterParams.Filters["action_code"] = bson.M{"$in": actionCodes}
-	// 	// TODO: Use the action codes to filter the results
-	// }
 	result, err := ca.repo.SanitizedFindAllWithPaginationForApprover(ctx, userID, *filterParams, RAList)
 	if err != nil {
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
