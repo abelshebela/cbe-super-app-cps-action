@@ -2,10 +2,12 @@ package superapprole
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/constants"
+	superapproledto "cbe-super-app-cps-action/internal/constants/dto/superapp_role"
 	sar_iface "cbe-super-app-cps-action/internal/constants/interfaces/superapp_role"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -214,4 +216,135 @@ func (h *SuperAppRoleAdapter) DeleteByRole(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuperAppRoleDeleteSubmittedSuccessfully, nil)
+}
+
+// GetAccessListsByRole returns enabled and disabled access lists for a superapp role.
+//
+//	@Summary		Get Access Lists by SuperApp Role
+//	@Description	Returns enabled and disabled access lists for the given superapp role
+//	@Tags			SuperAppRole
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			role	path		string	true	"SuperApp Role code"
+//	@Success		200	{object}	localization.StandardResponse{data=object}
+//	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/superapp-roles/{role}/access-lists [get]
+func (h *SuperAppRoleAdapter) GetAccessListsByRole(w http.ResponseWriter, r *http.Request) {
+	log := local_util.LoggerFromCtx(r.Context(), h.logger)
+
+	role := chi.URLParam(r, "role")
+	if role == "" {
+		localization.SendErrorByCodeResponse(w, errors.New(localization.ErrorInvalidID.Code).Error())
+		return
+	}
+
+	enabled, disabled, err := h.svc.GetAccessListsByRole(r.Context(), role)
+	if err != nil {
+		log.Errorf("[GetAccessListsByRole] service err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuperAppRoleAccessListsFetchedSuccessfully, map[string]interface{}{
+		"enabled_services":  enabled,
+		"disabled_services": disabled,
+	})
+}
+
+// BulkDisableAccessLists disables a list of access lists for a superapp role.
+//
+//	@Summary		Bulk Disable Access Lists
+//	@Description	Adds the given access list IDs to the block list for the superapp role
+//	@Tags			SuperAppRole
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			role	path		string									true	"SuperApp Role code"
+//	@Param			body	body		superapproledto.BulkAccessListByRoleRequest	true	"Access list IDs"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}
+//	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/superapp-roles/{role}/access-lists/disable [patch]
+func (h *SuperAppRoleAdapter) BulkDisableAccessLists(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "BulkDisableAccessLists", "handler", "superAppRole")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	role := chi.URLParam(r, "role")
+	if role == "" {
+		localization.SendErrorByCodeResponse(w, errors.New(localization.ErrorInvalidID.Code).Error())
+		return
+	}
+
+	var req superapproledto.BulkAccessListByRoleRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		localization.SendErrorByCodeResponse(w, errors.New(localization.ErrorInvalidRequestBody.Code).Error())
+		return
+	}
+
+	if err := h.svc.BulkDisableAccessLists(ctx, role, req); err != nil {
+		span.RecordError(err)
+		log.Errorf("[BulkDisableAccessLists] service err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuperAppRoleAccessListsBulkDisabledSuccessfully, nil)
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuperAppRoleAccessListsBulkDisableSubmittedSuccessfully, nil)
+}
+
+// BulkEnableAccessLists enables (removes from block list) access lists for a superapp role.
+//
+//	@Summary		Bulk Enable Access Lists
+//	@Description	Removes the given access list IDs from the block list for the superapp role
+//	@Tags			SuperAppRole
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			role	path		string									true	"SuperApp Role code"
+//	@Param			body	body		superapproledto.BulkAccessListByRoleRequest	true	"Access list IDs"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}
+//	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/superapp-roles/{role}/access-lists/enable [patch]
+func (h *SuperAppRoleAdapter) BulkEnableAccessLists(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "BulkEnableAccessLists", "handler", "superAppRole")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	role := chi.URLParam(r, "role")
+	if role == "" {
+		localization.SendErrorByCodeResponse(w, errors.New(localization.ErrorInvalidID.Code).Error())
+		return
+	}
+
+	var req superapproledto.BulkAccessListByRoleRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		localization.SendErrorByCodeResponse(w, errors.New(localization.ErrorInvalidRequestBody.Code).Error())
+		return
+	}
+
+	if err := h.svc.BulkEnableAccessLists(ctx, role, req); err != nil {
+		span.RecordError(err)
+		log.Errorf("[BulkEnableAccessLists] service err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuperAppRoleAccessListsBulkEnabledSuccessfully, nil)
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuperAppRoleAccessListsBulkEnableSubmittedSuccessfully, nil)
 }

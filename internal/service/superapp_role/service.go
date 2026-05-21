@@ -7,6 +7,7 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 	cps_roles_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
+	superapproledto "cbe-super-app-cps-action/internal/constants/dto/superapp_role"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -208,6 +209,119 @@ func (s *superAppRoleService) DeleteByRole(ctx context.Context, superappRole str
 	return nil
 }
 
+func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superappRole string) ([]imodel.APPAccessList, []imodel.APPAccessList, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
+	globallyEnabled, err := s.repo.FindGloballyEnabledAccessLists(ctx)
+	if err != nil {
+		log.Errorf("[SuperAppRole][GetAccessListsByRole] global fetch err: %v", err)
+		return nil, nil, err
+	}
+
+	roleBlocked, err := s.repo.FindRoleBlockedAccessLists(ctx, superappRole)
+	if err != nil {
+		log.Errorf("[SuperAppRole][GetAccessListsByRole] role blocked fetch err: %v", err)
+		return nil, nil, err
+	}
+
+	blockedSet := make(map[string]struct{}, len(roleBlocked))
+	for _, al := range roleBlocked {
+		blockedSet[al.ID] = struct{}{}
+	}
+
+	enabled := make([]imodel.APPAccessList, 0, len(globallyEnabled))
+	for _, al := range globallyEnabled {
+		if _, blocked := blockedSet[al.ID]; !blocked {
+			enabled = append(enabled, al)
+		}
+	}
+
+	return enabled, roleBlocked, nil
+}
+
+func (s *superAppRoleService) BulkDisableAccessLists(ctx context.Context, superappRole string, req superapproledto.BulkAccessListByRoleRequest) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+	makerUser := local_util.ExtractUserFromContext(ctx)
+
+	objects, err := s.repo.FindAccessListsByIDs(ctx, req.AccessListIDs)
+	if err != nil {
+		log.Errorf("[SuperAppRole][BulkDisableAccessLists] fetch ids err: %v", err)
+		return err
+	}
+
+	prev := setEnabled(objects, true)
+	curr := setEnabled(objects, false)
+
+	cpsActionData := lib.CpsModelBuilder(
+		superappRole,
+		makerUser,
+		prev,
+		curr,
+		string(constants.RequestBulkDisableAccessListByRole),
+		constants.UPDATE,
+	)
+	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+		log.Errorf("[SuperAppRole][BulkDisableAccessLists] cps action err: %v", err)
+		return err
+	}
+	return nil
+}
+
+func (s *superAppRoleService) BulkEnableAccessLists(ctx context.Context, superappRole string, req superapproledto.BulkAccessListByRoleRequest) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+	makerUser := local_util.ExtractUserFromContext(ctx)
+
+	objects, err := s.repo.FindAccessListsByIDs(ctx, req.AccessListIDs)
+	if err != nil {
+		log.Errorf("[SuperAppRole][BulkEnableAccessLists] fetch ids err: %v", err)
+		return err
+	}
+
+	prev := setEnabled(objects, false)
+	curr := setEnabled(objects, true)
+
+	cpsActionData := lib.CpsModelBuilder(
+		superappRole,
+		makerUser,
+		prev,
+		curr,
+		string(constants.RequestBulkEnableAccessListByRole),
+		constants.UPDATE,
+	)
+	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+		log.Errorf("[SuperAppRole][BulkEnableAccessLists] cps action err: %v", err)
+		return err
+	}
+	return nil
+}
+
+func setEnabled(objects []imodel.APPAccessList, enabled bool) []imodel.APPAccessList {
+	copies := make([]imodel.APPAccessList, len(objects))
+	copy(copies, objects)
+	for i := range copies {
+		copies[i].Enabled = enabled
+	}
+	return copies
+}
+
+func extractIDs(objects []imodel.APPAccessList) []string {
+	ids := make([]string, len(objects))
+	for i, o := range objects {
+		ids[i] = o.ID
+	}
+	return ids
+}
+
+func (s *superAppRoleService) authorizeBulkAccessList(ctx context.Context, role string, currentAction interface{}, repoFn func(context.Context, string, []string) error) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+	lists, err := local_util.JsonUnmarshal[[]imodel.APPAccessList](currentAction)
+	if err != nil {
+		log.Errorf("[SuperAppRole][authorizeBulkAccessList] unmarshal err: %v", err)
+		return errors.New(localization.ErrorInvalidActionData.Code)
+	}
+	return repoFn(ctx, role, extractIDs(*lists))
+}
+
 func (s *superAppRoleService) Authorize(ctx context.Context, action *shared_model.CPSAction) (*shared_model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	log.Infof("[SuperAppRole][Authorize] action: %s, role: %s", action.RequestAction, action.UniqueId)
@@ -233,6 +347,10 @@ func (s *superAppRoleService) Authorize(ctx context.Context, action *shared_mode
 			log.Errorf("[SuperAppRole][Authorize] delete err: %v", err)
 			return nil, err
 		}
+	case string(constants.RequestBulkDisableAccessListByRole):
+		return action, s.authorizeBulkAccessList(ctx, role, action.CurrentAction, s.repo.BulkDisableAccessLists)
+	case string(constants.RequestBulkEnableAccessListByRole):
+		return action, s.authorizeBulkAccessList(ctx, role, action.CurrentAction, s.repo.BulkEnableAccessLists)
 	default:
 		log.Errorf("[SuperAppRole][Authorize] unsupported action: %s", action.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)

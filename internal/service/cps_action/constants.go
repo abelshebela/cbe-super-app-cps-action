@@ -67,9 +67,11 @@ const (
 	RequestDisableCustomerGroup constants.RequestAction = "DISABLE_CUSTOMER_GROUP"
 	RequestDeleteCustomerGroup  constants.RequestAction = "DELETE_CUSTOMER_GROUP"
 
-	RequestEnableSuperAppRole  constants.RequestAction = "ENABLE_SUPERAPP_ROLE"
-	RequestDisableSuperAppRole constants.RequestAction = "DISABLE_SUPERAPP_ROLE"
-	RequestDeleteSuperAppRole  constants.RequestAction = "DELETE_SUPERAPP_ROLE"
+	RequestEnableSuperAppRole          constants.RequestAction = "ENABLE_SUPERAPP_ROLE"
+	RequestDisableSuperAppRole         constants.RequestAction = "DISABLE_SUPERAPP_ROLE"
+	RequestDeleteSuperAppRole          constants.RequestAction = "DELETE_SUPERAPP_ROLE"
+	RequestBulkDisableAccessListByRole constants.RequestAction = "BULK_DISABLE_ACCESS_LIST_BY_SUPERAPP_ROLE"
+	RequestBulkEnableAccessListByRole  constants.RequestAction = "BULK_ENABLE_ACCESS_LIST_BY_SUPERAPP_ROLE"
 
 	RequestCreateCustomerSegmentation  constants.RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
 	RequestUpdateCustomerSegmentation  constants.RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
@@ -584,9 +586,11 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestDisableCustomerGroup: {},
 	RequestDeleteCustomerGroup:  {},
 
-	RequestEnableSuperAppRole:  {},
-	RequestDisableSuperAppRole: {},
-	RequestDeleteSuperAppRole:  {},
+	RequestEnableSuperAppRole:          {},
+	RequestDisableSuperAppRole:         {},
+	RequestDeleteSuperAppRole:          {},
+	RequestBulkDisableAccessListByRole: {},
+	RequestBulkEnableAccessListByRole:  {},
 
 	RequestCreateCustomerSegmentation:    {},
 	RequestUpdateCustomerSegmentation:    {},
@@ -1223,11 +1227,12 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestDisableCustomerGroup,
 		RequestDeleteCustomerGroup,
 	},
-	// this is made as alternative to "SUPPERROLE"
-	"CPSROLE": {
+	"SUPERAPPROLE": {
 		RequestEnableSuperAppRole,
 		RequestDisableSuperAppRole,
 		RequestDeleteSuperAppRole,
+		RequestBulkDisableAccessListByRole,
+		RequestBulkEnableAccessListByRole,
 	},
 	"BULKSERVICECUSTOMERSEGMENT": {
 		// "CUSTOMERSEGMENTATIONS": {
