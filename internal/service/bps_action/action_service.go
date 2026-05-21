@@ -225,6 +225,7 @@ func (ba *bpsActionService) ApproveBPSAction(ctx context.Context, action *bps_mo
 	}
 
 	rawRoleID, _ := ctx.Value(constants.ContextKey("role_code")).(string)
+	checkerLevel, _ := ctx.Value(constants.ContextKey("role_checker_group")).(string)
 
 	if strings.TrimSpace(rawRoleID) == "" {
 
@@ -246,6 +247,8 @@ func (ba *bpsActionService) ApproveBPSAction(ctx context.Context, action *bps_mo
 
 	}
 
+	ba.logUserAction(ctx, action, imodel.CHECKER, action.Status, "", checkerLevel, "")
+
 	return nil
 
 }
@@ -253,7 +256,7 @@ func (ba *bpsActionService) ApproveBPSAction(ctx context.Context, action *bps_mo
 func (ba *bpsActionService) RejectBPSAction(ctx context.Context, action_code string, action *bps_model.BPSAction) error {
 	log := local_util.LoggerFromCtx(ctx, ba.logger)
 
-	ctx, span := lobal_util.TraceLogger(ctx, "service", "RejectCPSAction", "CPSAction", "RejectCPSAction")
+	ctx, span := lobal_util.TraceLogger(ctx, "service", "RejectBPSAction", "BPSAction", "RejectBPSAction")
 
 	defer span.End()
 
@@ -291,6 +294,7 @@ func (ba *bpsActionService) RejectBPSAction(ctx context.Context, action_code str
 
 	}
 
+	ba.logUserAction(ctx, action, imodel.CHECKER, action.Status, "", "", "")
 	return nil
 
 }
@@ -797,12 +801,12 @@ func (ba *bpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 
 }
 
-func (ca *bpsActionService) logUserAction(ctx context.Context, action *model.CPSAction, responsibility imodel.UserActionResponsibility, givenStatus string, auditorMark imodel.AuditorMark, checkerLevel, auditorLevel string) {
-	reqLog := local_util.LoggerFromCtx(ctx, ca.logger)
+func (ba *bpsActionService) logUserAction(ctx context.Context, action *bps_model.BPSAction, responsibility imodel.UserActionResponsibility, givenStatus string, auditorMark imodel.AuditorMark, checkerLevel, auditorLevel string) {
+	reqLog := local_util.LoggerFromCtx(ctx, ba.logger)
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 
 	userData := local_util.ExtractUserFromContext(ctx)
-	if ca.actionLogRepo == nil {
+	if ba.actionLogRepo == nil {
 		return
 	}
 
@@ -835,7 +839,7 @@ func (ca *bpsActionService) logUserAction(ctx context.Context, action *model.CPS
 		CreatedAt:                  time.Now(),
 	}
 
-	if err := ca.actionLogRepo.Save(ctx, actionLog); err != nil {
-		reqLog.Errorf("[CpsActionSvc][logUserAction] failed to log action: %v", err)
+	if err := ba.actionLogRepo.Save(ctx, actionLog); err != nil {
+		reqLog.Errorf("[BpsActionSvc][logUserAction] failed to log action: %v", err)
 	}
 }
