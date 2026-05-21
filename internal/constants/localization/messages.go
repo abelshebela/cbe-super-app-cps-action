@@ -14,6 +14,7 @@ const (
 	MsgAvatarEnabledSuccessfullySP = "Avatar enabled successfully"
 
 	MsgServiceNotFound                           = "Service not found"
+	MsgDuplicateSegment                          = "Duplicate segment found with the same group, segment and subsegment"
 	MsgServiceAccountNumberNotProperlyConfigured = "Service account number is not properly configured"
 	MsgAvatarDisabledSuccessfully                = "Avatar diabled request sent successfully"
 	MsgAvatarDisabledSuccessfullySP              = "Avatar disabled successfully"
