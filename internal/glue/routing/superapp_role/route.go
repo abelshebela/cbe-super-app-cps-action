@@ -20,6 +20,14 @@ func Init(router chi.Router, handler sar_iface.SuperAppRole, authMiddleware midd
 			},
 		},
 		{
+			Method:  http.MethodGet,
+			Path:    "/superapp-roles/{role}/limits",
+			Handler: handler.GetTransferLimitByRole,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
 			Method:  http.MethodPatch,
 			Path:    "/superapp-roles/{role}/enable",
 			Handler: handler.EnableByRole,
