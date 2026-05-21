@@ -961,7 +961,13 @@ type UserActionLogRepository interface {
 	Save(ctx context.Context, log *imodel.UserActionLog) error
 	GetActionCodesByUser(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error)
 	GetActionCodesByUserAndAuditorStatus(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility, status string) ([]string, error)
-	GetLogsByActionCode(ctx context.Context, actionCode string) ([]imodel.UserActionLog, error)
+	AuditorMarkLogsByActionCode(ctx context.Context, actionCode string, auditorStatus string) error
+	GetLogsByUserIDAndResponsibility(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error)
+	GetLogsByUserID(ctx context.Context, userID string) ([]string, error)
+	CancelUserActionsByActionCode(ctx context.Context, actionCode string) error
+	RejectUserActionsByActionCode(ctx context.Context, actionCode string) error
+	ApproveUserActionsByActionCode(ctx context.Context, actionCode string) error
+	GetLogsByActionCode(ctx context.Context, actionCode string) ([]string, error)
 }
 
 type CustomerGroupRepository interface {
