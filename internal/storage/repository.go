@@ -982,6 +982,7 @@ type CustomerGroupRepository interface {
 
 type SuperAppRoleRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.SuperAppRoleGroup], error)
+	RoleExists(ctx context.Context, superappRole string) (bool, error)
 	EnableByRole(ctx context.Context, superappRole string) error
 	DisableByRole(ctx context.Context, superappRole string) error
 	DeleteByRole(ctx context.Context, superappRole string) error

@@ -276,6 +276,15 @@ func (r *superAppRoleStorage) DeleteByRole(ctx context.Context, superappRole str
 	return nil
 }
 
+func (r *superAppRoleStorage) RoleExists(ctx context.Context, superappRole string) (bool, error) {
+	const q = `SELECT COUNT(1) FROM SEGMENTS WHERE SUPERAPP_ROLE = :1`
+	var count int
+	if err := r.db.QueryRowContext(ctx, q, superappRole).Scan(&count); err != nil {
+		return false, local_util.HandleDBError(err)
+	}
+	return count > 0, nil
+}
+
 func (r *superAppRoleStorage) FindRoleBlockedAccessLists(ctx context.Context, superappRole string) ([]imodel.APPAccessList, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
@@ -336,6 +345,7 @@ func (r *superAppRoleStorage) FindAccessListsByIDs(ctx context.Context, ids []st
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
+
 	return scanAccessLists(rows)
 }
 

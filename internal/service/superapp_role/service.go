@@ -212,6 +212,15 @@ func (s *superAppRoleService) DeleteByRole(ctx context.Context, superappRole str
 func (s *superAppRoleService) GetAccessListsByRole(ctx context.Context, superappRole string) ([]imodel.APPAccessList, []imodel.APPAccessList, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
+	exists, err := s.repo.RoleExists(ctx, superappRole)
+	if err != nil {
+		log.Errorf("[SuperAppRole][GetAccessListsByRole] role check err: %v", err)
+		return nil, nil, err
+	}
+	if !exists {
+		return nil, nil, errors.New(localization.ErrorResourceNotFound.Code)
+	}
+
 	globallyEnabled, err := s.repo.FindGloballyEnabledAccessLists(ctx)
 	if err != nil {
 		log.Errorf("[SuperAppRole][GetAccessListsByRole] global fetch err: %v", err)
@@ -243,10 +252,22 @@ func (s *superAppRoleService) BulkDisableAccessLists(ctx context.Context, supera
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
+	exists, err := s.repo.RoleExists(ctx, superappRole)
+	if err != nil {
+		log.Errorf("[SuperAppRole][BulkDisableAccessLists] role check err: %v", err)
+		return err
+	}
+	if !exists {
+		return errors.New(localization.ErrorResourceNotFound.Code)
+	}
+
 	objects, err := s.repo.FindAccessListsByIDs(ctx, req.AccessListIDs)
 	if err != nil {
 		log.Errorf("[SuperAppRole][BulkDisableAccessLists] fetch ids err: %v", err)
 		return err
+	}
+	if len(objects) != len(req.AccessListIDs) {
+		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
 	prev := setEnabled(objects, true)
@@ -271,10 +292,22 @@ func (s *superAppRoleService) BulkEnableAccessLists(ctx context.Context, superap
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
+	exists, err := s.repo.RoleExists(ctx, superappRole)
+	if err != nil {
+		log.Errorf("[SuperAppRole][BulkEnableAccessLists] role check err: %v", err)
+		return err
+	}
+	if !exists {
+		return errors.New(localization.ErrorResourceNotFound.Code)
+	}
+
 	objects, err := s.repo.FindAccessListsByIDs(ctx, req.AccessListIDs)
 	if err != nil {
 		log.Errorf("[SuperAppRole][BulkEnableAccessLists] fetch ids err: %v", err)
 		return err
+	}
+	if len(objects) != len(req.AccessListIDs) {
+		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
 	prev := setEnabled(objects, false)
