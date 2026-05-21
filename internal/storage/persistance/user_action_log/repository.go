@@ -8,6 +8,7 @@ import (
 	"errors"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -216,7 +217,7 @@ func (r *userActionLogRepository) GetActionCodesByUserAndAuditorStatus(ctx conte
 	return codes, nil
 }
 
-func (r *userActionLogRepository) GetLogsByActionCode(ctx context.Context, actionCode string) ([]imodel.UserActionLog, error) {
+func (r *userActionLogRepository) GetLogsByActionCode(ctx context.Context, actionCode string) ([]string, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	log.Infof("[UserActionLog][GetLogsByActionCode] action_code=%s", actionCode)
@@ -234,5 +235,145 @@ func (r *userActionLogRepository) GetLogsByActionCode(ctx context.Context, actio
 		log.Errorf("[UserActionLog][GetLogsByActionCode] cursor decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return logs, nil
+
+	var actionCodeList []string
+	for _, logEntry := range logs {
+		actionCodeList = append(actionCodeList, logEntry.ActionCode)
+	}
+	return actionCodeList, nil
+}
+
+func (r *userActionLogRepository) ApproveUserActionsByActionCode(ctx context.Context, actionCode string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][ApproveUserActionsByActionCode] action_code=%s", actionCode)
+
+	filter := bson.M{"action_code": actionCode}
+	update := bson.M{"$set": bson.M{"given_auditor_status": "APPROVED"}}
+
+	_, err := r.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[UserActionLog][ApproveUserActionsByActionCode] update failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
+}
+
+func (r *userActionLogRepository) RejectUserActionsByActionCode(ctx context.Context, actionCode string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][RejectUserActionsByActionCode] action_code=%s", actionCode)
+
+	filter := bson.M{"action_code": actionCode}
+	update := bson.M{"$set": bson.M{"given_auditor_status": "REJECTED"}}
+
+	_, err := r.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[UserActionLog][RejectUserActionsByActionCode] update failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
+}
+
+func (r *userActionLogRepository) CancelUserActionsByActionCode(ctx context.Context, actionCode string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][CancelUserActionsByActionCode] action_code=%s", actionCode)
+
+	filter := bson.M{"action_code": actionCode}
+	update := bson.M{"$set": bson.M{"given_auditor_status": "CANCELLED"}}
+
+	_, err := r.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[UserActionLog][CancelUserActionsByActionCode] update failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
+}
+
+func (r *userActionLogRepository) GetLogsByUserID(ctx context.Context, userID string) ([]string, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][GetLogsByUserID] user_id=%s", userID)
+
+	objectID, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		log.Errorf("[UserActionLog][GetLogsByUserID] invalid user_id: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	filter := bson.M{"user_id": objectID}
+	cur, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		log.Errorf("[UserActionLog][GetLogsByUserID] failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer func() { _ = cur.Close(ctx) }()
+
+	var logs []imodel.UserActionLog
+	if err := cur.All(ctx, &logs); err != nil {
+		log.Errorf("[UserActionLog][GetLogsByUserID] cursor decode failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	var actionCodeList []string
+	for _, logEntry := range logs {
+		actionCodeList = append(actionCodeList, logEntry.ActionCode)
+	}
+	return actionCodeList, nil
+}
+
+func (r *userActionLogRepository) GetLogsByUserIDAndResponsibility(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][GetLogsByUserIDAndResponsibility] user_id=%s responsibility=%s", userID, responsibility)
+
+	objectID, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		log.Errorf("[UserActionLog][GetLogsByUserIDAndResponsibility] invalid user_id: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	filter := bson.M{
+		"user_id":                      objectID,
+		"user_action_responsibilities": string(responsibility),
+	}
+	cur, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		log.Errorf("[UserActionLog][GetLogsByUserIDAndResponsibility] failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer func() { _ = cur.Close(ctx) }()
+
+	var logs []imodel.UserActionLog
+	if err := cur.All(ctx, &logs); err != nil {
+		log.Errorf("[UserActionLog][GetLogsByUserIDAndResponsibility] cursor decode failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	var actionCodeList []string
+
+	for _, logEntry := range logs {
+		actionCodeList = append(actionCodeList, logEntry.ActionCode)
+	}
+	return actionCodeList, nil
+}
+
+func (r *userActionLogRepository) AuditorMarkLogsByActionCode(ctx context.Context, actionCode string, auditorStatus string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][AuditorMarkLogsByActionCode] action_code=%s auditor_status=%s", actionCode, auditorStatus)
+
+	filter := bson.M{"action_code": actionCode}
+	update := bson.M{"$set": bson.M{"given_auditor_status": auditorStatus}}
+
+	_, err := r.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[UserActionLog][AuditorMarkLogsByActionCode] update failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
 }

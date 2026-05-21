@@ -14,13 +14,13 @@ import (
 
 var cpsActionRegistry = map[string]string{
 	// Notification
-	"POST notifications":               "NOTIFICATIONS",
-	"PATCH notifications":              "NOTIFICATIONS",
-	"DELETE notifications":             "NOTIFICATIONS",
-	"GET notifications":                "NOTIFICATIONS",
-	"GET notifications/{id}":           "NOTIFICATIONS",
-	"PATCH notifications/enable/{id}":  "NOTIFICATIONS",
-	"PATCH notifications/disable/{id}": "NOTIFICATIONS",
+	"POST notifications":               "NOTIFICATION",
+	"PATCH notifications":              "NOTIFICATION",
+	"DELETE notifications":             "NOTIFICATION",
+	"GET notifications":                "NOTIFICATION",
+	"GET notifications/{id}":           "NOTIFICATION",
+	"PATCH notifications/enable/{id}":  "NOTIFICATION",
+	"PATCH notifications/disable/{id}": "NOTIFICATION",
 
 	// MiniAppMerchant
 	"POST mini-app-merchants":   "MINIAPPMERCHANT",

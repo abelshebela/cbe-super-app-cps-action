@@ -559,6 +559,7 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 		}
 		return err
 	}
+
 	return nil
 
 }
