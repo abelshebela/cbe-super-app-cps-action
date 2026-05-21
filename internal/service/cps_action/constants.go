@@ -1227,7 +1227,8 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestDisableCustomerGroup,
 		RequestDeleteCustomerGroup,
 	},
-	"SUPERAPPROLE": {
+	// this is made as alternative to "SUPERAPPROLE"
+	"CPSROLE": {
 		RequestEnableSuperAppRole,
 		RequestDisableSuperAppRole,
 		RequestDeleteSuperAppRole,
