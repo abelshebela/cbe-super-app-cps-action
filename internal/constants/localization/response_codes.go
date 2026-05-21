@@ -912,6 +912,15 @@ var ResponseCodesList = []ResponseCode{
 	CustomerGroupCreated,
 	CustomerGroupUpdated,
 
+	// SuperApp Role
+	SuperAppRoleFetchedSuccessfully,
+	SuperAppRoleEnableSubmittedSuccessfully,
+	SuperAppRoleEnabledSuccessfully,
+	SuperAppRoleDisableSubmittedSuccessfully,
+	SuperAppRoleDisabledSuccessfully,
+	SuperAppRoleDeleteSubmittedSuccessfully,
+	SuperAppRoleDeletedSuccessfully,
+
 	// Customer segmentations
 	CustomerSegmentationCreationSubmittedSuccessfully,
 	CustomerSegmentationUpdateSubmittedSuccessfully,
@@ -7275,6 +7284,50 @@ var (
 		Code:       "CUSTOMER_GROUP_UPDATED",
 		StatusCode: StatusOK,
 		Message:    "Customer group updated successfully",
+		Type:       "success",
+	}
+
+	// SuperApp Role response codes
+	SuperAppRoleFetchedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp roles fetched successfully",
+		Type:       "success",
+	}
+	SuperAppRoleEnableSubmittedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_ENABLE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role enable request submitted successfully",
+		Type:       "success",
+	}
+	SuperAppRoleEnabledSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role enabled successfully",
+		Type:       "success",
+	}
+	SuperAppRoleDisableSubmittedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_DISABLE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role disable request submitted successfully",
+		Type:       "success",
+	}
+	SuperAppRoleDisabledSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role disabled successfully",
+		Type:       "success",
+	}
+	SuperAppRoleDeleteSubmittedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_DELETE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role delete request submitted successfully",
+		Type:       "success",
+	}
+	SuperAppRoleDeletedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_DELETED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role deleted successfully",
 		Type:       "success",
 	}
 

@@ -84,7 +84,7 @@ func (r *customerGroupStorage) DuplicateCheck(ctx context.Context, action, id, g
 
 	var count int
 
-	dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1`
+	// dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1`
 
 	if action == "update" {
 		dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1 AND ID != HEXTORAW(:2)`
