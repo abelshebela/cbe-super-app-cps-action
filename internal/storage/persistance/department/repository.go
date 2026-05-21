@@ -36,20 +36,24 @@ func NewDepartmentRepository(client *mongo.Client, cfg *config.VaultConfig, dbNa
 }
 
 func (b *DepartmentStorage) Create(ctx context.Context, Department *model.Department) error {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
 	Department.ID = bson.NewObjectID()
 	_, err := b.dal.InsertOne(ctx, *Department)
 	if err != nil {
-		b.logger.Errorf("[DepartmentStorage][Create] failed to create department: %v", err)
+		log.Errorf("[DepartmentStorage][Create] failed to create department: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 
 func (b *DepartmentStorage) Update(ctx context.Context, id string, Department *model.Department) error {
-	b.logger.Infof("[DepartmentStorage][Update] updating department for id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[DepartmentStorage][Update] updating department for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		b.logger.Errorf("[DepartmentStorage][Update] invalid object id: %v", err)
+		log.Errorf("[DepartmentStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorDepartmentInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -57,66 +61,74 @@ func (b *DepartmentStorage) Update(ctx context.Context, id string, Department *m
 
 	_, err = b.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		b.logger.Errorf("[DepartmentStorage][Update] failed to update department: %v", err)
+		log.Errorf("[DepartmentStorage][Update] failed to update department: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	b.logger.Infof("[DepartmentStorage][Update] department updated successfully")
+	log.Infof("[DepartmentStorage][Update] department updated successfully")
 	return nil
 }
 
 func (b *DepartmentStorage) Delete(ctx context.Context, id string) error {
-	b.logger.Infof("[DepartmentStorage][Delete] deleting department for id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[DepartmentStorage][Delete] deleting department for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		b.logger.Errorf("[DepartmentStorage][Delete] invalid object id: %v", err)
+		log.Errorf("[DepartmentStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	err = b.dal.DeleteOne(ctx, filter)
 	if err != nil {
-		b.logger.Errorf("[DepartmentStorage][Delete] failed to delete department: %v", err)
+		log.Errorf("[DepartmentStorage][Delete] failed to delete department: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	b.logger.Infof("[DepartmentStorage][Delete] department deleted successfully")
+	log.Infof("[DepartmentStorage][Delete] department deleted successfully")
 	return nil
 }
 
 func (b *DepartmentStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	b.logger.Infof("[DepartmentStorage][EnableOrDisable] processing department enable/disable for id: %s, enabled: %v", id, enable)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[DepartmentStorage][EnableOrDisable] processing department enable/disable for id: %s, enabled: %v", id, enable)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		b.logger.Errorf("[DepartmentStorage][EnableOrDisable] invalid object id: %v", err)
+		log.Errorf("[DepartmentStorage][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	update := bson.M{"enabled": enable}
 	_, err = b.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		b.logger.Errorf("[DepartmentStorage][EnableOrDisable] failed to enable/disable department: %v", err)
+		log.Errorf("[DepartmentStorage][EnableOrDisable] failed to enable/disable department: %v", err)
 		return local_util.HandleDBError(err)
 	}
-	b.logger.Infof("[DepartmentStorage][EnableOrDisable] department enable/disable completed successfully")
+	log.Infof("[DepartmentStorage][EnableOrDisable] department enable/disable completed successfully")
 	return nil
 }
 
 func (b *DepartmentStorage) FindByID(ctx context.Context, id string) (*model.Department, error) {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		b.logger.Errorf("[DepartmentStorage][FindByID] invalid object id: %v", err)
+		log.Errorf("[DepartmentStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorDepartmentInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	result, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		b.logger.Errorf("[DepartmentStorage][FindByID] failed to find department: %v", err)
+		log.Errorf("[DepartmentStorage][FindByID] failed to find department: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
-	b.logger.Infof("[DepartmentStorage][FindByID] department retrieved successfully")
+	log.Infof("[DepartmentStorage][FindByID] department retrieved successfully")
 	return result, nil
 }
 func (b *DepartmentStorage) FindByName(ctx context.Context, name string) (*model.Department, error) {
-	b.logger.Infof("[DepartmentStorage][FindByName] searching for department by name")
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[DepartmentStorage][FindByName] searching for department by name")
 	filter := bson.M{
 		"department": bson.M{
 			"$regex":   "^" + strings.ToLower(name) + "$",
@@ -129,14 +141,15 @@ func (b *DepartmentStorage) FindByName(ctx context.Context, name string) (*model
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
 		}
-		b.logger.Errorf("[DepartmentStorage][FindByName] failed to find department: %v", err)
+		log.Errorf("[DepartmentStorage][FindByName] failed to find department: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	b.logger.Infof("[DepartmentStorage][FindByName] department retrieved successfully")
+	log.Infof("[DepartmentStorage][FindByName] department retrieved successfully")
 	return result, nil
 }
 
 func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]model.Department], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	searchKeys := bson.M{}
 
@@ -163,26 +176,26 @@ func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterPar
 
 	// data, err := s.dal.FindAllWithCursorBasedPagination(ctx, Filter)
 	// if err != nil {
-	// 	s.logger.Errorf("[FindAllWithPagination] failed to fetch departments: %v", err)
+	// 	log.Errorf("[FindAllWithPagination] failed to fetch departments: %v", err)
 	// 	return types.PaginatedResponse[[]model.Department]{}, errors.New(localization.ErrorUnexpectedError.Message)
 	// }
 	filter["is_deleted"] = false
 	results, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		s.logger.Errorf("[DepartmentStorage][FindAllWithPagination] failed to fetch departments: %v", err)
+		log.Errorf("[DepartmentStorage][FindAllWithPagination] failed to fetch departments: %v", err)
 		return types.PaginatedResponse[[]model.Department]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		s.logger.Errorf("[DepartmentStorage][FindAllWithPagination] failed to count departments: %v", err)
+		log.Errorf("[DepartmentStorage][FindAllWithPagination] failed to count departments: %v", err)
 		return types.PaginatedResponse[[]model.Department]{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	s.logger.Infof("[DepartmentStorage][FindAllWithPagination] retrieved %d departments", len(results))
+	log.Infof("[DepartmentStorage][FindAllWithPagination] retrieved %d departments", len(results))
 
 	// 8. Return standard paginated response
 	return types.PaginatedResponse[[]model.Department]{

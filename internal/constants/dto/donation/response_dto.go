@@ -6,6 +6,7 @@ import "cbe-super-app-cps-action/internal/constants/types"
 
 type DonationResponse struct {
 	DonationCode        string                `json:"donation_code" bson:"donation_code"`
+	ServiceID           string                `json:"service_id" bson:"service_id"`
 	CompanyID           string                `json:"company_id" bson:"company_id"`
 	CategoryID          string                `json:"category_id" bson:"category_id"`
 	Title               string                `json:"title" bson:"title"`
@@ -19,11 +20,10 @@ type DonationResponse struct {
 	Enabled             bool                  `json:"enabled" bson:"enabled"`
 }
 type Company struct {
-	ID            string `json:"id" bson:"id"`
-	CompanyName   string `json:"company_name" bson:"company_name"`
-	CompanyLogo   string `json:"company_logo" bson:"company_logo"`
-	AccountNumber string `json:"account_number" bson:"account_number"`
-	Enabled       bool   `json:"enabled" bson:"enabled"`
+	ID          string `json:"id" bson:"id"`
+	CompanyName string `json:"company_name" bson:"company_name"`
+	CompanyLogo string `json:"company_logo" bson:"company_logo"`
+	Enabled     bool   `json:"enabled" bson:"enabled"`
 }
 
 type Category struct {
@@ -32,15 +32,24 @@ type Category struct {
 	Icon         string `json:"icon" bson:"icon"`
 }
 
+// Service is the surfaced view of the SERVICES row referenced by a donation.
+type Service struct {
+	ID          string `json:"id" bson:"id"`
+	ServiceName string `json:"service_name" bson:"service_name"`
+	ServiceKey  string `json:"service_key" bson:"service_key"`
+}
+
 type DonationListResponse struct {
 	ID                  string                `json:"id" bson:"id"`
 	DonationCode        string                `json:"donation_code" bson:"donation_code"`
+	Service             Service               `json:"service" bson:"service"`
 	Company             Company               `json:"company" bson:"company"`
 	Category            Category              `json:"category" bson:"category"`
 	Title               string                `json:"title" bson:"title"`
 	IsFeatured          bool                  `json:"is_featured" bson:"is_featured"`
 	Target              string                `json:"target" bson:"target"`
 	CurrentAmount       string                `json:"current_amount" bson:"current_amount"`
+	AcountNumber        string                `json:"account_number" bson:"account_number"`
 	DonationDescription string                `json:"donation_description" bson:"donation_description"`
 	DonationImages      []types.DonationImage `json:"donation_images" bson:"donation_images"`
 	CoverImage          string                `json:"cover_image,omitempty" bson:"cover_image,omitempty"` // URL for cover image

@@ -35,6 +35,8 @@ func NewBudgetCategoryOracleRepository(db *sql.DB, kafkaProducer kafka.ClientOrc
 }
 
 func (r *Repository) Create(ctx context.Context, bc *imodel.BudgetCategoryOracle) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	// Updated to match new table structure with ACCOUNT_TYPE, CREATED_AT, LAST_MODIFIED_AT
 	q := `INSERT INTO BUDGET_CATEGORIES (ID, NAME, ACCOUNT_TYPE, COLOR, ICON, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT)
 		VALUES (SYS_GUID(), :1, :2, :3, :4, :5, :6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
@@ -47,7 +49,7 @@ func (r *Repository) Create(ctx context.Context, bc *imodel.BudgetCategoryOracle
 		bc.IsDeleted,
 	)
 	if err != nil {
-		r.logger.Errorf("[BudgetCategoryOracle][Create] insert failed: %v", err)
+		log.Errorf("[BudgetCategoryOracle][Create] insert failed: %v", err)
 		return err
 	}
 	created, err := r.FindByName(ctx, bc.Name)
@@ -61,6 +63,8 @@ func (r *Repository) Create(ctx context.Context, bc *imodel.BudgetCategoryOracle
 }
 
 func (r *Repository) Update(ctx context.Context, id string, bc *imodel.BudgetCategoryOracle) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	q := `UPDATE BUDGET_CATEGORIES SET NAME = :1, ACCOUNT_TYPE = :2, COLOR = :3, ICON = :4, LAST_MODIFIED_AT = CURRENT_TIMESTAMP WHERE ID = HEXTORAW(:5)`
 	_, err := r.db.ExecContext(ctx, q,
 		bc.Name,
@@ -70,7 +74,7 @@ func (r *Repository) Update(ctx context.Context, id string, bc *imodel.BudgetCat
 		id,
 	)
 	if err != nil {
-		r.logger.Errorf("[BudgetCategoryOracle][Update] failed: %v", err)
+		log.Errorf("[BudgetCategoryOracle][Update] failed: %v", err)
 		return err
 	}
 	updated, err := r.FindByID(ctx, id)
@@ -84,16 +88,20 @@ func (r *Repository) Update(ctx context.Context, id string, bc *imodel.BudgetCat
 }
 
 func (r *Repository) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	q := `UPDATE BUDGET_CATEGORIES SET IS_DELETED = 1, DELETED_AT = CURRENT_TIMESTAMP WHERE ID = HEXTORAW(:1)`
 	_, err := r.db.ExecContext(ctx, q, id)
 	if err != nil {
-		r.logger.Errorf("[BudgetCategoryOracle][Delete] failed: %v", err)
+		log.Errorf("[BudgetCategoryOracle][Delete] failed: %v", err)
 		return err
 	}
 	return nil
 }
 
 func (r *Repository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	// Each :n is a distinct bind for godror; repeating :1 still expects one value per placeholder.
 	q := `UPDATE BUDGET_CATEGORIES SET IS_ENABLED = :1, LAST_MODIFIED_AT = CURRENT_TIMESTAMP WHERE ID = HEXTORAW(:2)`
 	var v int
@@ -104,7 +112,7 @@ func (r *Repository) EnableOrDisable(ctx context.Context, id string, enable bool
 	}
 	_, err := r.db.ExecContext(ctx, q, v, id)
 	if err != nil {
-		r.logger.Errorf("[BudgetCategoryOracle][EnableOrDisable] failed: %v", err)
+		log.Errorf("[BudgetCategoryOracle][EnableOrDisable] failed: %v", err)
 		return err
 	}
 	updated, err := r.FindByID(ctx, id)
@@ -149,7 +157,9 @@ func (r *Repository) FindByID(ctx context.Context, id string) (*imodel.BudgetCat
 }
 
 func (r *Repository) FindByName(ctx context.Context, name string) (*imodel.BudgetCategoryOracle, error) {
-	r.logger.Debugf("[FindByName] Querying for budget category with name: %s", name)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Debugf("[FindByName] Querying for budget category with name: %s", name)
 	q := `SELECT RAWTOHEX(ID) AS id, NAME, ACCOUNT_TYPE, COLOR, ICON, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT
 		FROM BUDGET_CATEGORIES WHERE UPPER(NAME) = UPPER(:1) AND IS_DELETED = 0`
 	row := r.db.QueryRowContext(ctx, q, name)
@@ -168,18 +178,18 @@ func (r *Repository) FindByName(ctx context.Context, name string) (*imodel.Budge
 		&deletedAt,
 	)
 	if err == sql.ErrNoRows {
-		r.logger.Infof("[FindByName] No budget category found for name: %s", name)
+		log.Infof("[FindByName] No budget category found for name: %s", name)
 		return nil, nil
 	}
 	if err != nil {
-		r.logger.Errorf("[FindByName] QueryRowContext/Scan error for name %s: %v", name, err)
+		log.Errorf("[FindByName] QueryRowContext/Scan error for name %s: %v", name, err)
 		return nil, err
 	}
-	r.logger.Debugf("[FindByName] Found budget category: ID=%s, Name=%s", bc.ID, bc.Name)
+	log.Debugf("[FindByName] Found budget category: ID=%s, Name=%s", bc.ID, bc.Name)
 	bc.CreatedAt = formatNullTime(createdAt)
 	bc.LastModifiedAt = formatNullTime(lastModifiedAt)
 	bc.DeletedAt = formatNullTime(deletedAt)
-	r.logger.Debugf("[FindByName] Returning budget category: %+v", bc)
+	log.Debugf("[FindByName] Returning budget category: %+v", bc)
 	return &bc, nil
 }
 
@@ -191,6 +201,8 @@ func formatNullTime(t sql.NullTime) string {
 }
 
 func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BudgetCategoryOracle], error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	if filterParams == nil {
 		fp := types.Filter{Page: 1, PerPage: 10}
 		filterParams = &fp
@@ -245,7 +257,7 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *ty
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM BUDGET_CATEGORIES WHERE IS_DELETED = 0 AND %s", whereClause)
 	var total int64
 	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
-		r.logger.Errorf("[BudgetCategoryOracle][FindAllWithPagination] count failed: %v", err)
+		log.Errorf("[BudgetCategoryOracle][FindAllWithPagination] count failed: %v", err)
 		return nil, err
 	}
 
@@ -281,7 +293,7 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *ty
 
 	rows, err := r.db.QueryContext(ctx, selectQuery, args...)
 	if err != nil {
-		r.logger.Errorf("[BudgetCategoryOracle][FindAllWithPagination] query failed: %v", err)
+		log.Errorf("[BudgetCategoryOracle][FindAllWithPagination] query failed: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -315,4 +327,18 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams *ty
 
 	meta := local_util.BuildPaginationMeta(total, page, perPage)
 	return &types.PaginatedResponse[[]imodel.BudgetCategoryOracle]{Data: list, Meta: meta}, nil
+}
+
+func (r *Repository) CheckBudgetCatagoryINUse(ctx context.Context, catagory_id string) (bool, error) {
+	query := `SELECT COUNT(*) FROM BUDGET_CATAGORY_ALLOCATIONS WHERE BUDGET_ID = HEXTORAW(:1)`
+
+	row := r.db.QueryRowContext(ctx, query, catagory_id)
+
+	var count int
+	if err := row.Scan(&count); err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+
 }

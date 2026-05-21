@@ -23,7 +23,7 @@ pipeline {
     }
 
     stages {
-        // Initializing Env Variales
+        // Initializing Env Varialed
         stage('Initialize Environment') {
             steps {
                 script {

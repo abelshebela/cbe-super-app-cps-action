@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-type JobRole struct {
+type Role struct {
 	ID             bson.ObjectID `bson:"_id,omitempty" json:"id"`
 	Code           string        `json:"code" bson:"code"`
 	Name           string        `json:"name" bson:"name"`

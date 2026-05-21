@@ -31,38 +31,41 @@ func NewOtpRepository(client *mongo.Client, cfg *config.VaultConfig, dbName stri
 }
 
 func (o *OTPRepository) Find(ctx context.Context, filter bson.M) (*model.OTP, error) {
+	log := local_util.LoggerFromCtx(ctx, o.logger)
 
 	projection := OtpProjection()
 	otp, err := o.otpDal.FindOne(ctx, filter, projection)
 	if err != nil {
 		return nil, local_util.HandleDBError(err)
 	}
-	o.logger.Infof("OTP found successfully. otp=%+v", otp)
+	log.Infof("OTP found successfully. otp=%+v", otp)
 	return otp, nil
 }
 
 func (o *OTPRepository) Save(ctx context.Context, otp *model.OTP) error {
+	log := local_util.LoggerFromCtx(ctx, o.logger)
 
 	_, err := o.otpDal.InsertOne(ctx, *otp)
 	if err != nil {
-		o.logger.Errorf("Unexpected error while saving OTP. error=%v, otp=%+v", err, otp)
+		log.Errorf("Unexpected error while saving OTP. error=%v, otp=%+v", err, otp)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	o.logger.Infof("OTP saved successfully. otp=%+v", otp)
+	log.Infof("OTP saved successfully. otp=%+v", otp)
 	return nil
 }
 
 func (o *OTPRepository) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, o.logger)
 
 	filter, err := local_util.FilterIdFor(id)
 	if err != nil {
-		o.logger.Errorf("Delete OTP failed: error creating filter. error=%v, id=%s", err, id)
+		log.Errorf("Delete OTP failed: error creating filter. error=%v, id=%s", err, id)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	if err := o.otpDal.DeleteOne(ctx, filter); err != nil {
-		o.logger.Errorf("Delete OTP failed: error deleting OTP. error=%v, id=%s", err, id)
+		log.Errorf("Delete OTP failed: error deleting OTP. error=%v, id=%s", err, id)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	o.logger.Infof("OTP deleted successfully. id=%s", id)
+	log.Infof("OTP deleted successfully. id=%s", id)
 	return nil
 }

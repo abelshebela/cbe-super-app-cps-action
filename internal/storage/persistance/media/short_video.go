@@ -12,6 +12,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -51,10 +52,12 @@ func (s *shortVideoRepo) Create(ctx context.Context, shortVideo *model.ShortVide
 }
 
 func (s *shortVideoRepo) Update(ctx context.Context, shortVideo *model.ShortVideo, id string) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	objId, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
-		s.logger.Errorf(invalidID, err)
+		log.Errorf(invalidID, err)
 		return middleware.NewBadRequestError(invalidID, err)
 	}
 	filter := bson.M{"_id": objId, "is_deleted": false}
@@ -68,10 +71,12 @@ func (s *shortVideoRepo) Update(ctx context.Context, shortVideo *model.ShortVide
 }
 
 func (s *shortVideoRepo) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	objId, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
-		s.logger.Errorf("Invalid short video ID:", err)
+		log.Errorf("Invalid short video ID:", err)
 		return middleware.NewBadRequestError(invalidID, err)
 	}
 	filter := bson.M{"_id": objId, "is_deleted": false}
@@ -88,10 +93,12 @@ func (s *shortVideoRepo) Delete(ctx context.Context, id string) error {
 }
 
 func (s *shortVideoRepo) PublishUnpublish(ctx context.Context, id string, isPublished bool) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	objId, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
-		s.logger.Errorf("Invalid short video ID:", err)
+		log.Errorf("Invalid short video ID:", err)
 		return middleware.NewBadRequestError(invalidID, err)
 	}
 	filter := bson.M{"_id": objId, "is_deleted": false}

@@ -83,6 +83,33 @@ func Init(router chi.Router, handler miniappmerchat.EcommerceMerchant, authMiddl
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/ecommerce-merchant/branch/delete/{id}",
+			Handler: handler.DeleteBranch,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/ecommerce-merchant/branch/enable/{id}",
+			Handler: handler.EnableBranch,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/ecommerce-merchant/branch/disable/{id}",
+			Handler: handler.DisableBranch,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateTokenOrMerchantIntegrationAPIKey,
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

@@ -17,6 +17,8 @@ import (
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
 	cpsUserInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_user"
 	customerInbound "cbe-super-app-cps-action/internal/constants/interfaces/customer"
+	cg_iface "cbe-super-app-cps-action/internal/constants/interfaces/customer_group"
+	sar_iface "cbe-super-app-cps-action/internal/constants/interfaces/superapp_role"
 	customer_seg "cbe-super-app-cps-action/internal/constants/interfaces/customer_segmentation"
 	dviface "cbe-super-app-cps-action/internal/constants/interfaces/device_version"
 	ecommerce_merchant "cbe-super-app-cps-action/internal/constants/interfaces/ecommerce_merchant"
@@ -53,6 +55,8 @@ import (
 	cps_actionrole_iface "cbe-super-app-cps-action/internal/constants/interfaces/cps_action_role"
 	accesslistsegmentaion "cbe-super-app-cps-action/internal/handlers/rest/http/access_list_segmentaion"
 	cps_actionrole_handler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_role"
+	customer_group_handler "cbe-super-app-cps-action/internal/handlers/rest/http/customer_group"
+	superapp_role_handler "cbe-super-app-cps-action/internal/handlers/rest/http/superapp_role"
 	customer_hand "cbe-super-app-cps-action/internal/handlers/rest/http/customer_segmentation"
 	event_merchant_handler "cbe-super-app-cps-action/internal/handlers/rest/http/event_merchant"
 	logistics_merchant_handler "cbe-super-app-cps-action/internal/handlers/rest/http/logistics_merchant"
@@ -161,9 +165,11 @@ type Handler struct {
 	EcommerceMerchantHandler      ecommerce_merchant.EcommerceMerchant
 	AccessLostSegmentationHandler accesslistsegmentation.AccessListSegmentationHandler
 	CustomerSegmentationHandler   customer_seg.CustomerSegmentation
+	CustomerGroupHandler          cg_iface.CustomerGroup
 	CPSRolesHandler               cpsRoleInbound.CPSRolesAdapter
 	CustomerKYCHandler            customerKycInbound.CustomerKYC
 	UssdMerchantHandler           ussd_merchant_interface.UssdMerchantInbound
+	SuperAppRoleHandler           sar_iface.SuperAppRole
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger, queueManager *queue.QueueManager) Handler {
@@ -216,8 +222,10 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger, queueMa
 
 		AccessLostSegmentationHandler: accesslistsegmentaion.InitAccessListSegmentationAdapter(serviceLayer.AccessListSegmentationService, logger),
 		CustomerSegmentationHandler:   customer_hand.NewCustomerSegmentation(serviceLayer.CustomerSegmentation, logger),
+		CustomerGroupHandler:          customer_group_handler.NewCustomerGroupHandler(serviceLayer.CustomerGroup, logger),
 		CPSRolesHandler:               cpsRoleHandler.NewCPSRolesHandler(serviceLayer.CPSRoles, logger),
 		CustomerKYCHandler:            CustomerKYCHandler.NewCustomerKYCAdapter(serviceLayer.CustomerKYC, logger),
 		UssdMerchantHandler:           ussd_merchant.NewUssdMerchantHandler(serviceLayer.UssdMerchantService, logger),
+		SuperAppRoleHandler:           superapp_role_handler.NewSuperAppRoleHandler(serviceLayer.SuperAppRole, logger),
 	}
 }

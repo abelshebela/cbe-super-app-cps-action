@@ -7,6 +7,8 @@ import (
 	"context"
 	"errors"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -28,18 +30,22 @@ func NewUserActionLogRepository(client *mongo.Client, cfg *config.VaultConfig, d
 	}
 }
 
-func (r *userActionLogRepository) Save(ctx context.Context, log *imodel.UserActionLog) error {
-	r.logger.Infof("[UserActionLog][Save] saving action log for action_code=%s user=%s role=%s", log.ActionCode, log.Username, log.UserActionResponsibilities)
-	_, err := r.dal.InsertOne(ctx, *log)
+func (r *userActionLogRepository) Save(ctx context.Context, entry *imodel.UserActionLog) error {
+	reqLog := local_util.LoggerFromCtx(ctx, r.logger)
+
+	reqLog.Infof("[UserActionLog][Save] saving action log for action_code=%s user=%s role=%s", entry.ActionCode, entry.Username, entry.UserActionResponsibilities)
+	_, err := r.dal.InsertOne(ctx, *entry)
 	if err != nil {
-		r.logger.Errorf("[UserActionLog][Save] failed to save action log: %v", err)
+		reqLog.Errorf("[UserActionLog][Save] failed to save action log: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 
 func (r *userActionLogRepository) GetActionCodesBySearch(ctx context.Context, search string) ([]string, error) {
-	r.logger.Infof("[UserActionLog][GetActionCodesBySearch] search=%s", search)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][GetActionCodesBySearch] search=%s", search)
 
 	filter := bson.M{
 		"$or": []bson.M{
@@ -59,23 +65,23 @@ func (r *userActionLogRepository) GetActionCodesBySearch(ctx context.Context, se
 
 	cursor, err := r.collection.Find(ctx, filter)
 	if err != nil {
-		r.logger.Errorf("[UserActionLog][GetActionCodesBySearch] failed to find action codes: %v", err)
+		log.Errorf("[UserActionLog][GetActionCodesBySearch] failed to find action codes: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var actionCodes []string
 	for cursor.Next(ctx) {
-		var log imodel.UserActionLog
-		if err := cursor.Decode(&log); err != nil {
-			r.logger.Errorf("[UserActionLog][GetActionCodesBySearch] failed to decode log: %v", err)
+		var entry imodel.UserActionLog
+		if err := cursor.Decode(&entry); err != nil {
+			log.Errorf("[UserActionLog][GetActionCodesBySearch] failed to decode log: %v", err)
 			continue
 		}
-		actionCodes = append(actionCodes, log.ActionCode)
+		actionCodes = append(actionCodes, entry.ActionCode)
 	}
 
 	if err := cursor.Err(); err != nil {
-		r.logger.Errorf("[UserActionLog][GetActionCodesBySearch] cursor error: %v", err)
+		log.Errorf("[UserActionLog][GetActionCodesBySearch] cursor error: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -83,7 +89,9 @@ func (r *userActionLogRepository) GetActionCodesBySearch(ctx context.Context, se
 }
 
 func (r *userActionLogRepository) GetActionCodesByFilter(ctx context.Context, filter map[string]interface{}) ([]string, error) {
-	r.logger.Infof("[UserActionLog][GetActionCodesByFilter] filter=%v", filter)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][GetActionCodesByFilter] filter=%v", filter)
 
 	filter["is_deleted"] = false
 
@@ -95,23 +103,23 @@ func (r *userActionLogRepository) GetActionCodesByFilter(ctx context.Context, fi
 
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		r.logger.Errorf("[UserActionLog][GetActionCodesByFilter] failed to find action codes: %v", err)
+		log.Errorf("[UserActionLog][GetActionCodesByFilter] failed to find action codes: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var actionCodes []string
 	for cursor.Next(ctx) {
-		var log imodel.UserActionLog
-		if err := cursor.Decode(&log); err != nil {
-			r.logger.Errorf("[UserActionLog][GetActionCodesBySearch] failed to decode log: %v", err)
+		var entry imodel.UserActionLog
+		if err := cursor.Decode(&entry); err != nil {
+			log.Errorf("[UserActionLog][GetActionCodesBySearch] failed to decode log: %v", err)
 			continue
 		}
-		actionCodes = append(actionCodes, log.ActionCode)
+		actionCodes = append(actionCodes, entry.ActionCode)
 	}
 
 	if err := cursor.Err(); err != nil {
-		r.logger.Errorf("[UserActionLog][GetActionCodesBySearch] cursor error: %v", err)
+		log.Errorf("[UserActionLog][GetActionCodesBySearch] cursor error: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -119,11 +127,13 @@ func (r *userActionLogRepository) GetActionCodesByFilter(ctx context.Context, fi
 }
 
 func (r *userActionLogRepository) GetActionCodesByUser(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error) {
-	r.logger.Infof("[UserActionLog][GetActionCodesByUser] user_id=%s responsibility=%s", userID, responsibility)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][GetActionCodesByUser] user_id=%s responsibility=%s", userID, responsibility)
 
 	objectID, err := bson.ObjectIDFromHex(userID)
 	if err != nil {
-		r.logger.Errorf("[UserActionLog][GetActionCodesByUser] invalid user_id: %v", err)
+		log.Errorf("[UserActionLog][GetActionCodesByUser] invalid user_id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -141,7 +151,7 @@ func (r *userActionLogRepository) GetActionCodesByUser(ctx context.Context, user
 
 	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		r.logger.Errorf("[UserActionLog][GetActionCodesByUser] aggregation failed: %v", err)
+		log.Errorf("[UserActionLog][GetActionCodesByUser] aggregation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = cur.Close(ctx) }()
@@ -150,7 +160,7 @@ func (r *userActionLogRepository) GetActionCodesByUser(ctx context.Context, user
 		ActionCode string `bson:"_id"`
 	}
 	if err := cur.All(ctx, &results); err != nil {
-		r.logger.Errorf("[UserActionLog][GetActionCodesByUser] cursor decode failed: %v", err)
+		log.Errorf("[UserActionLog][GetActionCodesByUser] cursor decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -162,11 +172,13 @@ func (r *userActionLogRepository) GetActionCodesByUser(ctx context.Context, user
 }
 
 func (r *userActionLogRepository) GetActionCodesByUserAndAuditorStatus(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility, status string) ([]string, error) {
-	r.logger.Infof("[UserActionLog][GetActionCodesByUserAndStatus] user_id=%s responsibility=%s status=%s", userID, responsibility, status)
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][GetActionCodesByUserAndStatus] user_id=%s responsibility=%s status=%s", userID, responsibility, status)
 
 	objectID, err := bson.ObjectIDFromHex(userID)
 	if err != nil {
-		r.logger.Errorf("[UserActionLog][GetActionCodesByUserAndStatus] invalid user_id: %v", err)
+		log.Errorf("[UserActionLog][GetActionCodesByUserAndStatus] invalid user_id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -185,7 +197,7 @@ func (r *userActionLogRepository) GetActionCodesByUserAndAuditorStatus(ctx conte
 
 	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		r.logger.Errorf("[UserActionLog][GetActionCodesByUser] aggregation failed: %v", err)
+		log.Errorf("[UserActionLog][GetActionCodesByUser] aggregation failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = cur.Close(ctx) }()
@@ -194,7 +206,7 @@ func (r *userActionLogRepository) GetActionCodesByUserAndAuditorStatus(ctx conte
 		ActionCode string `bson:"_id"`
 	}
 	if err := cur.All(ctx, &results); err != nil {
-		r.logger.Errorf("[UserActionLog][GetActionCodesByUser] cursor decode failed: %v", err)
+		log.Errorf("[UserActionLog][GetActionCodesByUser] cursor decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -205,21 +217,163 @@ func (r *userActionLogRepository) GetActionCodesByUserAndAuditorStatus(ctx conte
 	return codes, nil
 }
 
-func (r *userActionLogRepository) GetLogsByActionCode(ctx context.Context, actionCode string) ([]imodel.UserActionLog, error) {
-	r.logger.Infof("[UserActionLog][GetLogsByActionCode] action_code=%s", actionCode)
+func (r *userActionLogRepository) GetLogsByActionCode(ctx context.Context, actionCode string) ([]string, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][GetLogsByActionCode] action_code=%s", actionCode)
 
 	filter := bson.M{"action_code": actionCode}
 	cur, err := r.collection.Find(ctx, filter)
 	if err != nil {
-		r.logger.Errorf("[UserActionLog][GetLogsByActionCode] failed: %v", err)
+		log.Errorf("[UserActionLog][GetLogsByActionCode] failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer func() { _ = cur.Close(ctx) }()
 
 	var logs []imodel.UserActionLog
 	if err := cur.All(ctx, &logs); err != nil {
-		r.logger.Errorf("[UserActionLog][GetLogsByActionCode] cursor decode failed: %v", err)
+		log.Errorf("[UserActionLog][GetLogsByActionCode] cursor decode failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return logs, nil
+
+	var actionCodeList []string
+	for _, logEntry := range logs {
+		actionCodeList = append(actionCodeList, logEntry.ActionCode)
+	}
+	return actionCodeList, nil
+}
+
+func (r *userActionLogRepository) ApproveUserActionsByActionCode(ctx context.Context, actionCode string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][ApproveUserActionsByActionCode] action_code=%s", actionCode)
+
+	filter := bson.M{"action_code": actionCode}
+	update := bson.M{"$set": bson.M{"given_auditor_status": "APPROVED"}}
+
+	_, err := r.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[UserActionLog][ApproveUserActionsByActionCode] update failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
+}
+
+func (r *userActionLogRepository) RejectUserActionsByActionCode(ctx context.Context, actionCode string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][RejectUserActionsByActionCode] action_code=%s", actionCode)
+
+	filter := bson.M{"action_code": actionCode}
+	update := bson.M{"$set": bson.M{"given_auditor_status": "REJECTED"}}
+
+	_, err := r.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[UserActionLog][RejectUserActionsByActionCode] update failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
+}
+
+func (r *userActionLogRepository) CancelUserActionsByActionCode(ctx context.Context, actionCode string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][CancelUserActionsByActionCode] action_code=%s", actionCode)
+
+	filter := bson.M{"action_code": actionCode}
+	update := bson.M{"$set": bson.M{"given_auditor_status": "CANCELLED"}}
+
+	_, err := r.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[UserActionLog][CancelUserActionsByActionCode] update failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
+}
+
+func (r *userActionLogRepository) GetLogsByUserID(ctx context.Context, userID string) ([]string, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][GetLogsByUserID] user_id=%s", userID)
+
+	objectID, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		log.Errorf("[UserActionLog][GetLogsByUserID] invalid user_id: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	filter := bson.M{"user_id": objectID}
+	cur, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		log.Errorf("[UserActionLog][GetLogsByUserID] failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer func() { _ = cur.Close(ctx) }()
+
+	var logs []imodel.UserActionLog
+	if err := cur.All(ctx, &logs); err != nil {
+		log.Errorf("[UserActionLog][GetLogsByUserID] cursor decode failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	var actionCodeList []string
+	for _, logEntry := range logs {
+		actionCodeList = append(actionCodeList, logEntry.ActionCode)
+	}
+	return actionCodeList, nil
+}
+
+func (r *userActionLogRepository) GetLogsByUserIDAndResponsibility(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][GetLogsByUserIDAndResponsibility] user_id=%s responsibility=%s", userID, responsibility)
+
+	objectID, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		log.Errorf("[UserActionLog][GetLogsByUserIDAndResponsibility] invalid user_id: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	filter := bson.M{
+		"user_id":                      objectID,
+		"user_action_responsibilities": string(responsibility),
+	}
+	cur, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		log.Errorf("[UserActionLog][GetLogsByUserIDAndResponsibility] failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer func() { _ = cur.Close(ctx) }()
+
+	var logs []imodel.UserActionLog
+	if err := cur.All(ctx, &logs); err != nil {
+		log.Errorf("[UserActionLog][GetLogsByUserIDAndResponsibility] cursor decode failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	var actionCodeList []string
+
+	for _, logEntry := range logs {
+		actionCodeList = append(actionCodeList, logEntry.ActionCode)
+	}
+	return actionCodeList, nil
+}
+
+func (r *userActionLogRepository) AuditorMarkLogsByActionCode(ctx context.Context, actionCode string, auditorStatus string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][AuditorMarkLogsByActionCode] action_code=%s auditor_status=%s", actionCode, auditorStatus)
+
+	filter := bson.M{"action_code": actionCode}
+	update := bson.M{"$set": bson.M{"given_auditor_status": auditorStatus}}
+
+	_, err := r.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[UserActionLog][AuditorMarkLogsByActionCode] update failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
 }

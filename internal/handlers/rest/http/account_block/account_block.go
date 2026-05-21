@@ -988,3 +988,48 @@ func (a *accountBlockAdapter) GetAccountBlockDetails(w http.ResponseWriter, r *h
 	log.Infof("[AccBlockH][GetDetails] ok: %s", id)
 	localization.SendSuccessResponse(w, localization.DataRetrievedSuccessfully, data)
 }
+
+// GetPreviousReasons godoc
+//
+//	@Summary		Get previous disable reasons for an account block
+//	@Description	Returns the disable-reason history for a branch, district, or region by account block id.
+//	@Tags			Account Block
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string																	true	"Account block ID"
+//	@Success		200	{object}	localization.StandardResponse{data=accountblock.PreviousDisableReasonsResponse}	"Disable reasons retrieved"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}									"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}									"Not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}									"Server error"
+//	@Security		BearerAuth
+//	@Router			/account_block/previous_reasons/{id} [get]
+func (a *accountBlockAdapter) GetPreviousReasons(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "GetPreviousReasons", "handler", "accountBlock")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
+	id, ok := local_util.GetParam(r, "id")
+	if !ok {
+		log.Errorf("[AccBlockH][GetPreviousReasons] missing param")
+		localization.SendErrorByCodeResponse(w, localization.ErrorCodeRequired.Code)
+		return
+	}
+	if id == "" {
+		log.Errorf("[AccBlockH][GetPreviousReasons] invalid id: %s", id)
+		localization.SendBadRequestResponse(w, "invalid id")
+		return
+	}
+
+	span.SetAttributes(attribute.String("account_block.id", id))
+
+	data, err := a.accountBlockApplication.GetPreviousReasons(ctx, id)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[AccBlockH][GetPreviousReasons] svc err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	log.Infof("[AccBlockH][GetPreviousReasons] ok: %s count=%d", id, len(data.DisableReason))
+	localization.SendSuccessResponse(w, localization.DataRetrievedSuccessfully, data)
+}

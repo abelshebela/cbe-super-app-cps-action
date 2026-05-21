@@ -166,6 +166,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.JobRoleContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "ROLE"):
 		return d.app.RoleContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(constants.RequestAction(action), "CUSTOMERGROUP"):
+		return d.app.CustomerGroupContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "BULKSERVICECUSTOMERSEGMENT"):
 		return d.app.CustomerSegmentationContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "ACCESSLISTCUSTOMERSEGMENT"):
@@ -176,6 +178,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.CPSRolesContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "CUSTOMERKYC"):
 		return d.app.CustomerKYCContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(constants.RequestAction(action), "SUPERAPPROLE"):
+		return d.app.SuperAppRoleContainer.Authorize(ctx, cpsAction)
 	// case IsActionInGroup(constants.RequestAction(action), "VAULT"):
 	// 	return d.app.VaultCategoryContainer.Authorize(ctx, cpsAction)
 

@@ -121,7 +121,7 @@ func (a *bpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	localization.SendSuccessResponse(w, localization.SuccessBPSActionChecked, nil)
 }
 
-// ApproveCPSAction approves a CPS action
+// ApproveBPSAction approves a CPS action
 //
 //	@Summary		Approve CPS action
 //	@Description	Approves a CPS action by action code

@@ -118,6 +118,12 @@ var ResponseCodesList = []ResponseCode{
 	SuccessEcommerceMerchantUpdated,
 	SuccessEcommerceMerchantDeleted,
 	SuccessEcommerceMerchantEnable,
+	SuccessEcommerceMerchantBranchDeleted,
+	SuccessEcommerceMerchantBranchDeletedSuccessfully,
+	SuccessEcommerceMerchantBranchEnabled,
+	SuccessEcommerceMerchantBranchEnabledSuccessfully,
+	SuccessEcommerceMerchantBranchDisabled,
+	SuccessEcommerceMerchantBranchDisabledSuccessfully,
 	SuccessEcommerceMerchantDisable,
 	SuccessEcommerceMerchantUpdatedSuccessfully,
 	SuccessEcommerceMerchantDeletedSuccessfully,
@@ -254,6 +260,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessMiniAppFetchedByID,
 	SuccessMiniAppActionCompleted,
 	ErrorEcommerceMerchantNotFound,
+	ErrorEcommerceMerchantBranchNotFound,
 	ErrorEcommerceMerchantDisabled,
 
 	// Sitota Related success
@@ -434,6 +441,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMissingOrInvalidImage,
 	ErrorPendingCpsActionExists,
 	ErrorUnexpectedError,
+	ErrorDonationForServiceAlreadyExists,
 	ErrorMarchantDataAlready,
 	ErrorExternalServiceError,
 	ErrorFileNotFound,
@@ -455,6 +463,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletCodeRequired,
 	ErrorWalletTypeRequired,
 	ErrorWalletAvatarRequired,
+	ErrorWalletSelfServiceIDRequired,
+	ErrorWalletOtherServiceIDRequired,
+	ErrorWalletAgentServiceIDRequired,
 	ErrorWalletAvatarInvalid,
 	ErrorWalletAvatarTooLarge,
 	ErrorWalletAvatarInvalidType,
@@ -466,9 +477,21 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletServiceIDAlreadyExists,
 	ErrorWalletWithNameOrCodeAlreadyExists,
 	ErrorWalletAlreadyDisabled,
+	ErrorWalletServiceAlreadyDisabled,
+	ErrorAgentServiceNotFound,
+	ErrorOtherServiceNotFound,
+	ErrorSelfServiceNotFound,
+	ErrorSelfServiceAlreadyExist,
+	ErrorOtherServiceAlreadyExists,
+	ErrorAgentServiceAlreadyExists,
+	ErrorInvalidAgentServiceID,
+	ErrorInvalidOtherServiceID,
+	ErrorInvalidSelfServiceID,
 	ErrorWalletAlreadyEnabled,
+	ErrorWalletServiceAlreadyEnabled,
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
+	ErrorWalletServiceNotFound,
 	ErrorWalletUpdateEmptyPayload,
 	ErrorInvalidWalletCode,
 	ErrorInvalidWalletType,
@@ -664,6 +687,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCodeAlreadyExist,
 	ErrorLogoIsRequired,
 	ErrorAccountNumberRestricted,
+	ErrorAccountNumberNotFound,
 	ErrorAccountNumberValidationFailed,
 	ErrorAccountNumberNotActive,
 	ErrorAccountNumberNotFound,
@@ -859,6 +883,7 @@ var ResponseCodesList = []ResponseCode{
 	UnableToCreateAccessListSegmentation,
 	ErrorAccessListSegmentationInvalidID,
 	ErrorAccessListSegmentationIDSRequired,
+	ErrorReasonRequired,
 	ErrorAccessListSegmentationNameAlreadyExists,
 	ErrorCustomerSegmentationCodeNotFound,
 	ErrorAccessListKeysRequired,
@@ -872,6 +897,29 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAccessListSegmentationUpdated,
 	SuccessAccessListSegmentationCreated,
 	AccessListSegmentationCreatedSuccessfully,
+
+	// Customer Group
+	ErrorCustomerGroupAlreadyExists,
+	CustomerGroupCreationSubmittedSuccessfully,
+	CustomerGroupUpdateSubmittedSuccessfully,
+	CustomerGroupFetchedSuccessfully,
+	CustomerGroupDeletedSuccessfully,
+	CustomerGroupDeleteRequestSubmittedSuccessfully,
+	CustomerGroupEnableSubmittedSuccessfully,
+	CustomerGroupEnabledSuccessfully,
+	CustomerGroupDisableSubmittedSuccessfully,
+	CustomerGroupDisabledSuccessfully,
+	CustomerGroupCreated,
+	CustomerGroupUpdated,
+
+	// SuperApp Role
+	SuperAppRoleFetchedSuccessfully,
+	SuperAppRoleEnableSubmittedSuccessfully,
+	SuperAppRoleEnabledSuccessfully,
+	SuperAppRoleDisableSubmittedSuccessfully,
+	SuperAppRoleDisabledSuccessfully,
+	SuperAppRoleDeleteSubmittedSuccessfully,
+	SuperAppRoleDeletedSuccessfully,
 
 	// Customer segmentations
 	CustomerSegmentationCreationSubmittedSuccessfully,
@@ -967,6 +1015,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDepartmentUpdatedSuccessfully,
 	SuccessDepartmentEnabled,
 	SuccessDepartmentDisabled,
+	SuccessDeleteCreated,
+	ErrorBudgetCAtagoryINuser,
 }
 
 // Success Response Codes
@@ -1628,6 +1678,35 @@ var (
 		Type:       "success",
 	}
 
+	// Customer KYC Request
+	CustomerKycRequestApprovedSuccessfully = ResponseCode{
+		Code:       "SUCCCESS_KYC_REQUEST_APPROVED",
+		StatusCode: StatusOK,
+		Message:    "KYC request approved successfully",
+		Type:       "success",
+	}
+
+	CustomerKycApprovalRequestSubmittedSuccessfully = ResponseCode{
+		Code:       "SUCCCESS_KYC_APPROVAL_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "KYC approval request submitted successfully",
+		Type:       "success",
+	}
+
+	CustomerKycRequestRejectedSuccessfully = ResponseCode{
+		Code:       "SUCCCESS_KYC_REQUEST_REJECTED",
+		StatusCode: StatusOK,
+		Message:    "KYC request rejected successfully",
+		Type:       "success",
+	}
+
+	CustomerKycRejectRequestSubmittedSuccessfully = ResponseCode{
+		Code:       "SUCCCESS_KYC_REJECT_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "KYC reject request submmited successfully",
+		Type:       "success",
+	}
+
 	SuccessDonationCreateRequestSent = ResponseCode{
 		Code:       "SUCCESS_DONATION_CREATE_REQUEST_SENT",
 		StatusCode: StatusCreated,
@@ -2176,10 +2255,23 @@ var (
 		Type:       "error",
 	}
 
+	ErrorWalletServiceIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_SERVICE_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet service ID is required",
+		Type:       "error",
+	}
+
 	SuccessWalletEnableRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_WALLET_ENABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
 		Message:    "Wallet enable request sent successfully",
+		Type:       "success",
+	}
+	SuccessWalletServiceEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_WALLET_SERVICE_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Wallet service enable request sent successfully",
 		Type:       "success",
 	}
 
@@ -2189,10 +2281,22 @@ var (
 		Message:    "Wallet disable request sent successfully",
 		Type:       "success",
 	}
+	SuccessWalletServiceDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_WALLET_SERVICE_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Wallet service disable request sent successfully",
+		Type:       "success",
+	}
 	SuccessWalletEnabled = ResponseCode{
 		Code:       "SUCCESS_WALLET_ENABLED",
 		StatusCode: StatusOK,
 		Message:    "Wallet enabled successfully",
+		Type:       "success",
+	}
+	SuccessWalletServiceEnabled = ResponseCode{
+		Code:       "SUCCESS_WALLET_SERVICE_ENABLED",
+		StatusCode: StatusOK,
+		Message:    "Wallet service enabled successfully",
 		Type:       "success",
 	}
 
@@ -2200,6 +2304,12 @@ var (
 		Code:       "SUCCESS_WALLET_DISABLED",
 		StatusCode: StatusOK,
 		Message:    "Wallet disabled successfully",
+		Type:       "success",
+	}
+	SuccessWalletServiceDisabled = ResponseCode{
+		Code:       "SUCCESS_WALLET_SERVICE_DISABLED",
+		StatusCode: StatusOK,
+		Message:    "Wallet service disabled successfully",
 		Type:       "success",
 	}
 
@@ -2967,11 +3077,23 @@ var (
 		Message:    "Wallet not found",
 		Type:       "error",
 	}
+	ErrorWalletServiceNotFound = ResponseCode{
+		Code:       "ERROR_WALLET_SERVICE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Wallet service not found",
+		Type:       "error",
+	}
 
 	ErrorWalletAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_WALLET_ALREADY_ENABLED",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet is already enabled",
+		Type:       "error",
+	}
+	ErrorWalletServiceAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_WALLET_SERVICE_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet service is already enabled",
 		Type:       "error",
 	}
 	ErrorWalletUpdateEmptyPayload = ResponseCode{
@@ -2985,6 +3107,67 @@ var (
 		Code:       "ERROR_WALLET_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet is already disabled",
+		Type:       "error",
+	}
+	ErrorWalletServiceAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_WALLET_SERVICE_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet service is already disabled",
+		Type:       "error",
+	}
+	ErrorAgentServiceAlreadyExists = ResponseCode{
+		Code:       "ERROR_AGENT_SERVICE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Agent service already exists",
+		Type:       "error",
+	}
+	ErrorOtherServiceAlreadyExists = ResponseCode{
+		Code:       "ERROR_OTHER_SERVICE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Other service already exists",
+		Type:       "error",
+	}
+	ErrorSelfServiceAlreadyExist = ResponseCode{
+		Code:       "ERROR_SELF_SERVICE_ALREADT_EXISTS",
+		StatusCode: StatusNotFound,
+		Message:    "Self service already exists",
+		Type:       "error",
+	}
+	ErrorAgentServiceNotFound = ResponseCode{
+		Code:       "ERROR_AGENT_SERVICE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Agent service not found",
+		Type:       "error",
+	}
+	ErrorOtherServiceNotFound = ResponseCode{
+		Code:       "ERROR_OTHER_SERVICE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Other service not found",
+		Type:       "error",
+	}
+	ErrorSelfServiceNotFound = ResponseCode{
+		Code:       "ERROR_SELF_SERVICE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Self service not found",
+		Type:       "error",
+	}
+
+	ErrorInvalidAgentServiceID = ResponseCode{
+		Code:       "ERROR_INVALID_AGENT_SERVICE_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid agent service ID",
+		Type:       "error",
+	}
+	ErrorInvalidOtherServiceID = ResponseCode{
+		Code:       "ERROR_INVALID_OTHER_SERVICE_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid other service ID",
+		Type:       "error",
+	}
+	ErrorInvalidSelfServiceID = ResponseCode{
+		Code:       "ERROR_INVALID_SELF_SERVICE_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid self service ID",
 		Type:       "error",
 	}
 
@@ -3028,12 +3211,6 @@ var (
 		Message:    "Invalid wallet type, special characters are not allowed",
 		Type:       "error",
 	}
-	ErrorWalletServiceIDRequired = ResponseCode{
-		Code:       "ERROR_WALLET_SERVICE_ID_REQUIRED",
-		StatusCode: 400,
-		Message:    "Wallet service ID is required",
-		Type:       "error",
-	}
 
 	ErrorWalletCodeRequired = ResponseCode{
 		Code:       "ERROR_WALLET_CODE_REQUIRED",
@@ -3052,6 +3229,24 @@ var (
 		Code:       "ERROR_WALLET_AVATAR_REQUIRED",
 		StatusCode: 400,
 		Message:    "Wallet avatar is required",
+		Type:       "error",
+	}
+	ErrorWalletAgentServiceIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_AGENT_SERVICE_ID_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet agent service id is required",
+		Type:       "error",
+	}
+	ErrorWalletOtherServiceIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_OTHER_SERVICE_ID_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet other service id is required",
+		Type:       "error",
+	}
+	ErrorWalletSelfServiceIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_SELF_SERVICE_ID_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet self service id is required",
 		Type:       "error",
 	}
 	ErrorWalletAvatarInvalid = ResponseCode{
@@ -3227,9 +3422,16 @@ var (
 	}
 
 	SuccessDeleteRequestCreated = ResponseCode{
-		Code:       "SUCCESS_DELETE_REQUEST_CREATED",
+		Code:       "SUCCESS_DELETE_AMOUNT_BASED",
 		StatusCode: StatusCreated,
 		Message:    MsgDeleteRequestSuccessfullyCreated,
+		Type:       "success",
+	}
+
+	SuccessDeleteCreated = ResponseCode{
+		Code:       "SUCCESS_DELETE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgDeleteSuccessfullyCreated,
 		Type:       "success",
 	}
 
@@ -3318,6 +3520,44 @@ var (
 		Code:       "ECOMMERCE_MERCHANT_ENABLED",
 		StatusCode: StatusOK,
 		Message:    MsgEcommerceMerchantEnabledSuccessfylly,
+		Type:       "success",
+	}
+
+	SuccessEcommerceMerchantBranchDeleted = ResponseCode{
+		Code:       "ECOMMERCE_MERCHANT_BRANCH_DELETED",
+		StatusCode: StatusNoContent,
+		Message:    "Ecommerce merchant branch deleted successfully",
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantBranchDeletedSuccessfully = ResponseCode{
+		Code:       "ECOMMERCE_MERCHANT_BRANCH_DELETE_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Ecommerce merchant branch deleted request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessEcommerceMerchantBranchEnabled = ResponseCode{
+		Code:       "ECOMMERCE_MERCHNT_BRANCH_ENABLED",
+		StatusCode: StatusOK,
+		Message:    "Ecommerce merchant branch enabled successfully",
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantBranchEnabledSuccessfully = ResponseCode{
+		Code:       "ECOMMERCE_MERCHNT_BRANCH_ENABLED_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Ecommerce merchant branch enable request submitted successfully",
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantBranchDisabled = ResponseCode{
+		Code:       "ECOMMERCE_MERCHNT_BRANCH_DISABLED",
+		StatusCode: StatusOK,
+		Message:    "Ecommerce merchant branch disabled successfully",
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantBranchDisabledSuccessfully = ResponseCode{
+		Code:       "ECOMMERCE_MERCHNT_BRANCH_DISABLED_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Ecommerce merchant branch disable request submitted successfully",
 		Type:       "success",
 	}
 
@@ -5889,6 +6129,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorBudgetCAtagoryINuser = ResponseCode{
+		Code:       "ERROR_BUDGET_CATAGORY_IN_USER",
+		StatusCode: StatusNotFound,
+		Message:    "budget catagory is in use",
+		Type:       "error",
+	}
+
 	ErrorFileDeleteFailed = ResponseCode{
 		Code:       "ERROR_FILE_DELETE_FAILED",
 		StatusCode: StatusInternalServerError,
@@ -5935,6 +6182,20 @@ var (
 		Code:       "ERROR_SERVICE_NOT_FOUND",
 		StatusCode: StatusConflict,
 		Message:    MsgServiceNotFound,
+		Type:       "error",
+	}
+
+	ErrorDuplicateSegment = ResponseCode{
+		Code:       "ERROR_DUPLICATE_SEGMENT",
+		StatusCode: StatusConflict,
+		Message:    MsgDuplicateSegment,
+		Type:       "error",
+	}
+
+	ErrorServiceAccountNumberNotProperlyConfigured = ResponseCode{
+		Code:       "ERROR_SERVICE_ACCOUNT_NUMBER_NOT_PROPERLY_CONFIGURED",
+		StatusCode: StatusConflict,
+		Message:    MsgServiceAccountNumberNotProperlyConfigured,
 		Type:       "error",
 	}
 
@@ -6197,6 +6458,13 @@ var (
 		Code:       "ERROR_UNEXPECTED_ERROR",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgUnexpectedError,
+		Type:       "error",
+	}
+
+	ErrorDonationForServiceAlreadyExists = ResponseCode{
+		Code:       "ERROR_DONATION_FOR_SERVICE_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgDonationForServiceAlreadyExists,
 		Type:       "error",
 	}
 
@@ -6590,6 +6858,12 @@ var (
 		Message:    "Ecommerce merchant not found",
 		Type:       "error",
 	}
+	ErrorEcommerceMerchantBranchNotFound = ResponseCode{
+		Code:       "ERROR_ECOMMERCE_MERCHANT_BRANCH_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Ecommerce merchant branch not found",
+		Type:       "error",
+	}
 	ErrorEcommerceMerchantDisabled = ResponseCode{
 		Code:       "ERROR_ECOMMERCE_MERCHANT_DISABLED",
 		StatusCode: StatusBadRequest,
@@ -6939,6 +7213,124 @@ var (
 		Type:       "success",
 	}
 
+	// Customer Group response codes
+	ErrorCustomerGroupAlreadyExists = ResponseCode{
+		Code:       "ERROR_CUSTOMER_GROUP_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    "A segment with this group/segment/subsegment combination already exists",
+		Type:       "error",
+	}
+	CustomerGroupCreationSubmittedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_GROUP_CREATION_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Customer group creation request submitted successfully",
+		Type:       "success",
+	}
+	CustomerGroupUpdateSubmittedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_GROUP_UPDATE_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Customer group update request submitted successfully",
+		Type:       "success",
+	}
+	CustomerGroupFetchedSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_GROUP_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer group fetched successfully",
+		Type:       "success",
+	}
+	CustomerGroupDeletedSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_GROUP_DELETED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer group deleted successfully",
+		Type:       "success",
+	}
+	CustomerGroupDeleteRequestSubmittedSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_GROUP_DELETE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer group delete request submitted successfully",
+		Type:       "success",
+	}
+	CustomerGroupEnableSubmittedSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_GROUP_ENABLE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer group enable request submitted successfully",
+		Type:       "success",
+	}
+	CustomerGroupEnabledSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_GROUP_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer group enabled successfully",
+		Type:       "success",
+	}
+	CustomerGroupDisableSubmittedSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_GROUP_DISABLE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer group disable request submitted successfully",
+		Type:       "success",
+	}
+	CustomerGroupDisabledSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_GROUP_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer group disabled successfully",
+		Type:       "success",
+	}
+	CustomerGroupCreated = ResponseCode{
+		Code:       "CUSTOMER_GROUP_CREATED",
+		StatusCode: StatusCreated,
+		Message:    "Customer group created successfully",
+		Type:       "success",
+	}
+	CustomerGroupUpdated = ResponseCode{
+		Code:       "CUSTOMER_GROUP_UPDATED",
+		StatusCode: StatusOK,
+		Message:    "Customer group updated successfully",
+		Type:       "success",
+	}
+
+	// SuperApp Role response codes
+	SuperAppRoleFetchedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp roles fetched successfully",
+		Type:       "success",
+	}
+	SuperAppRoleEnableSubmittedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_ENABLE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role enable request submitted successfully",
+		Type:       "success",
+	}
+	SuperAppRoleEnabledSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role enabled successfully",
+		Type:       "success",
+	}
+	SuperAppRoleDisableSubmittedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_DISABLE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role disable request submitted successfully",
+		Type:       "success",
+	}
+	SuperAppRoleDisabledSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role disabled successfully",
+		Type:       "success",
+	}
+	SuperAppRoleDeleteSubmittedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_DELETE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role delete request submitted successfully",
+		Type:       "success",
+	}
+	SuperAppRoleDeletedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_DELETED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role deleted successfully",
+		Type:       "success",
+	}
+
 	// Donation related error response codes
 	ErrorDonationCategoryLookupFailed = ResponseCode{
 		Code:       "ERROR_DONATION_CATEGORY_LOOKUP_FAILED",
@@ -7046,6 +7438,14 @@ var (
 		Message:    MsgAccountCurrencyNotSupported,
 		Type:       "error",
 	}
+
+	ErrorAccountNotFound = ResponseCode{
+		Code:       "ERROR_ACCOUNT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgAccountNotFound,
+		Type:       "error",
+	}
+
 	ErrorAccountRestricted = ResponseCode{
 		Code:       "ERROR_ACCOUNT_RESTRICTED",
 		StatusCode: StatusBadRequest,
@@ -8846,6 +9246,12 @@ var (
 		Code:       "ACCESS_LIST_SEGMENTATION_IDS_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccessListSegmentationIDsRequired,
+		Type:       "error",
+	}
+	ErrorReasonRequired = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_REASONS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccessListSegmentationReasonsRequired,
 		Type:       "error",
 	}
 	ErrorAccessListKeysRequired = ResponseCode{

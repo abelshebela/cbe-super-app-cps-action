@@ -141,6 +141,8 @@ func (t *TransactionRepository) scanVaultTransaction(rowScanner interface {
 
 // FindTransactionByCifOrAccountNumberOrFT implements storage.TransactionRepository.
 func (t *TransactionRepository) FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.VaultTransaction, error) {
+	log := local_util.LoggerFromCtx(ctx, t.logger)
+
 	identifier = strings.TrimSpace(identifier)
 	if identifier == "" {
 		return transaction_dto.VaultTransaction{}, errors.New(localization.ErrorNoDataProvided.Code)
@@ -189,7 +191,7 @@ FETCH FIRST 1 ROWS ONLY`
 		if errors.Is(err, sql.ErrNoRows) {
 			return transaction_dto.VaultTransaction{}, errors.New(localization.ErrorResourceNotFound.Code)
 		}
-		t.logger.Errorf("failed to find transaction by CIF/AccountNumber/FT: %v", err)
+		log.Errorf("failed to find transaction by CIF/AccountNumber/FT: %v", err)
 		return transaction_dto.VaultTransaction{}, local_util.HandleDBError(err)
 	}
 	return transaction, nil
@@ -197,6 +199,8 @@ FETCH FIRST 1 ROWS ONLY`
 
 // FindAllWithPagination implements storage.TransactionRepository.
 func (t *TransactionRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]transaction_dto.VaultTransaction], error) {
+	log := local_util.LoggerFromCtx(ctx, t.logger)
+
 	limit := int64(maxPaginationDefault)
 	page := int64(1)
 	if filterParam.PerPage > 0 {
@@ -253,7 +257,7 @@ func (t *TransactionRepository) FindAllWithPagination(ctx context.Context, filte
 
 	var total int64
 	if err := t.db.QueryRowContext(ctx, countQ, args...).Scan(&total); err != nil {
-		t.logger.Errorf("failed to count transactions with param: %v", err)
+		log.Errorf("failed to count transactions with param: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -295,7 +299,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, vaultTransactionsTable, where)
 	listArgs := append(args, sql.Named("offset", offset), sql.Named("limit", limit))
 	rows, err := t.db.QueryContext(ctx, listQ, listArgs...)
 	if err != nil {
-		t.logger.Errorf("failed to list transactions with param: %v", err)
+		log.Errorf("failed to list transactions with param: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -304,7 +308,7 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, vaultTransactionsTable, where)
 	for rows.Next() {
 		item, err := t.scanVaultTransaction(rows)
 		if err != nil {
-			t.logger.Errorf("failed to scan transaction row: %v", err)
+			log.Errorf("failed to scan transaction row: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 		list = append(list, item)
@@ -316,6 +320,8 @@ OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`, vaultTransactionsTable, where)
 
 // FindTransactionByID implements storage.TransactionRepository.
 func (t *TransactionRepository) FindTransactionByID(ctx context.Context, id string) (transaction_dto.VaultTransaction, error) {
+	log := local_util.LoggerFromCtx(ctx, t.logger)
+
 	id = strings.TrimSpace(id)
 	if id == "" {
 		return transaction_dto.VaultTransaction{}, errors.New(localization.ErrorTransactionIDRequired.Code)
@@ -361,7 +367,7 @@ FETCH FIRST 1 ROWS ONLY`
 		if errors.Is(err, sql.ErrNoRows) {
 			return transaction_dto.VaultTransaction{}, errors.New(localization.ErrorResourceNotFound.Code)
 		}
-		t.logger.Errorf("failed to find transaction by id: %v", err)
+		log.Errorf("failed to find transaction by id: %v", err)
 		return transaction_dto.VaultTransaction{}, local_util.HandleDBError(err)
 	}
 	return transaction, nil

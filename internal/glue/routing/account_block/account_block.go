@@ -152,6 +152,14 @@ func Init(
 					authMiddleware.AuthenticateToken,
 				},
 			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/previous_reasons/{id}",
+				Handler: handler.GetPreviousReasons,
+				Middlewares: []func(http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
+				},
+			},
 		}
 
 		glue.RegisterRoutes(r, routes)

@@ -136,13 +136,15 @@ func (s *customerService) GetBlockedCustomer(ctx context.Context, filterParams *
 
 // CreateEnableCustomerSession implements service.CustomerService.
 func (c *customerService) CreateEnableCustomerSession(ctx context.Context, id string) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateEnableCustomerSession", "Customer", "CreateEnableCustomerSession")
 	defer span.End()
 
-	c.logger.Infof("[CustomerSvc][CreateEnableSession] id: %s", id)
+	log.Infof("[CustomerSvc][CreateEnableSession] id: %s", id)
 	existing_otp, err := c.redis.Get(ctx, fmt.Sprintf("cps:action:otp:%s", id))
 	if existing_otp != "" || err == nil {
-		c.logger.Errorf("[CustomerSvc][CreateEnableSession] OTP exists")
+		log.Errorf("[CustomerSvc][CreateEnableSession] OTP exists")
 		span.AddEvent("OTP already exists", trace.WithAttributes(
 			attribute.String("error", localization.ErrorOTPAlreadyExists.Code),
 			attribute.String("id", id),
@@ -152,7 +154,7 @@ func (c *customerService) CreateEnableCustomerSession(ctx context.Context, id st
 
 	customer, err := c.repo.FindByID(ctx, id)
 	if err != nil {
-		c.logger.Errorf("[CustomerSvc][CreateEnableSession] find err: %v", err)
+		log.Errorf("[CustomerSvc][CreateEnableSession] find err: %v", err)
 		span.AddEvent("Failed to find customer", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -160,7 +162,7 @@ func (c *customerService) CreateEnableCustomerSession(ctx context.Context, id st
 		return "", err
 	}
 	if customer.Enabled {
-		c.logger.Errorf("[CustomerSvc][CreateEnableSession] already enabled")
+		log.Errorf("[CustomerSvc][CreateEnableSession] already enabled")
 		span.AddEvent("Customer already enabled", trace.WithAttributes(
 			attribute.String("error", localization.ErrorCustomerAlreadyEnabled.Code),
 			attribute.String("id", id),
@@ -171,7 +173,7 @@ func (c *customerService) CreateEnableCustomerSession(ctx context.Context, id st
 	otp := local_util.OTPGenerator(6)
 	encryptedOTP, _, err := local_util.LocalEncryptPassword(otp, constants.OTP, constants.OTP, constants.OTP, c.cfg)
 	if err != nil {
-		c.logger.Errorf("[CustomerSvc][CreateEnableSession] encrypt OTP err: %v", err)
+		log.Errorf("[CustomerSvc][CreateEnableSession] encrypt OTP err: %v", err)
 		span.AddEvent("Failed to encrypt OTP", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -181,7 +183,7 @@ func (c *customerService) CreateEnableCustomerSession(ctx context.Context, id st
 
 	err = c.redis.Set(ctx, fmt.Sprintf("cps:action:otp:%s", id), encryptedOTP, constants.OtpExpirationTime)
 	if err != nil {
-		c.logger.Errorf("[CustomerSvc][CreateEnableSession] redis set err: %v", err)
+		log.Errorf("[CustomerSvc][CreateEnableSession] redis set err: %v", err)
 		span.AddEvent("Failed to store OTP in redis", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -195,22 +197,24 @@ func (c *customerService) CreateEnableCustomerSession(ctx context.Context, id st
 			Recipient:   customer.PhoneNumber,
 			MessageBody: fmt.Sprintf("Your Supper app verification OTP: %s ", otp),
 		}); err != nil {
-			c.logger.Errorf("[CustomerSvc][CreateEnableSession] SMS err: %v", err)
+			log.Errorf("[CustomerSvc][CreateEnableSession] SMS err: %v", err)
 		}
 	}()
 
-	c.logger.Infof("[CustomerSvc][CreateEnableSession] OTP generated id: %s", id)
+	log.Infof("[CustomerSvc][CreateEnableSession] OTP generated id: %s", id)
 	return otp, nil
 }
 
 func (c *customerService) ApproveFaydaCustomer(ctx context.Context, id string, req customer.FaydaApproveRequest) error {
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "ApproveFaydaCustomer", "Customer", "ApproveFaydaCustomer")
 	defer span.End()
 
-	c.logger.Infof("[CustomerSvc][ApproveFayda] id: %s", id)
+	log.Infof("[CustomerSvc][ApproveFayda] id: %s", id)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		c.logger.Errorf("[CustomerSvc][ApproveFayda] incomplete user")
+		log.Errorf("[CustomerSvc][ApproveFayda] incomplete user")
 		span.AddEvent("Incomplete user data", trace.WithAttributes(
 			attribute.String("error", constants.Incomplete),
 			attribute.String("id", id),
@@ -220,7 +224,7 @@ func (c *customerService) ApproveFaydaCustomer(ctx context.Context, id string, r
 
 	customer, err := c.repo.FindByID(ctx, id)
 	if err != nil {
-		c.logger.Errorf("[CustomerSvc][ApproveFayda] find err: %v", err)
+		log.Errorf("[CustomerSvc][ApproveFayda] find err: %v", err)
 		span.AddEvent("Failed to find customer", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -228,7 +232,7 @@ func (c *customerService) ApproveFaydaCustomer(ctx context.Context, id string, r
 		return err
 	}
 	if customer.Enabled {
-		c.logger.Errorf("[CustomerSvc][ApproveFayda] already enabled")
+		log.Errorf("[CustomerSvc][ApproveFayda] already enabled")
 		span.AddEvent("Customer already enabled", trace.WithAttributes(
 			attribute.String("error", localization.ErrorCustomerAlreadyEnabled.Code),
 			attribute.String("id", id),
@@ -237,7 +241,7 @@ func (c *customerService) ApproveFaydaCustomer(ctx context.Context, id string, r
 	}
 
 	// if customer.KYCLevel != uint8(constants.ONE) {
-	// 	c.logger.Errorf("[ApproveFaydaCustomer] user is not a Fayda registered customer")
+	// 	log.Errorf("[ApproveFaydaCustomer] user is not a Fayda registered customer")
 	// 	span.AddEvent("User is not a Fayda registered customer", trace.WithAttributes(
 	// 		attribute.String("error", localization.ErrorUserNotFaydaRegistered.Code),
 	// 		attribute.String("id", id),
@@ -252,18 +256,20 @@ func (c *customerService) ApproveFaydaCustomer(ctx context.Context, id string, r
 	action := lib.CpsModelBuilder(id, makerData, customer, updateData, string(constants.RequestApproveFaydaCustomer), constants.UPDATE)
 
 	if err := c.cpsService.CreateCPSAction(ctx, &action); err != nil {
-		c.logger.Errorf("[CustomerSvc][ApproveFayda] cps action err: %v", err)
+		log.Errorf("[CustomerSvc][ApproveFayda] cps action err: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return err
 	}
-	c.logger.Infof("[CustomerSvc][ApproveFayda] request created id: %s", id)
+	log.Infof("[CustomerSvc][ApproveFayda] request created id: %s", id)
 	return nil
 }
 
 func (c *customerService) EnableCustomerByID(ctx context.Context, id string, user_otp string) error {
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableCustomerByID", "Customer", "EnableCustomerByID")
 	defer span.End()
 
@@ -295,7 +301,7 @@ func (c *customerService) EnableCustomerByID(ctx context.Context, id string, use
 	}
 
 	if encryptedOTP != otp {
-		c.logger.Infof("[CustomerSvc][Enable] OTP mismatch")
+		log.Infof("[CustomerSvc][Enable] OTP mismatch")
 		span.AddEvent("OTP mismatch", trace.WithAttributes(
 			attribute.String("error", localization.ErrorOTPInvalid.Code),
 			attribute.String("id", id),
@@ -320,7 +326,7 @@ func (c *customerService) EnableCustomerByID(ctx context.Context, id string, use
 
 	err = c.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
-		c.logger.Errorf("[CustomerSvc][Enable] cps action err: %v", err)
+		log.Errorf("[CustomerSvc][Enable] cps action err: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -329,20 +335,22 @@ func (c *customerService) EnableCustomerByID(ctx context.Context, id string, use
 	}
 
 	if err := c.redis.Delete(ctx, fmt.Sprintf("cps:action:otp:%s", id)); err != nil {
-		c.logger.Errorf("[CustomerSvc][Enable] redis delete err: %v", err)
+		log.Errorf("[CustomerSvc][Enable] redis delete err: %v", err)
 	}
-	c.logger.Infof("[CustomerSvc][Enable] request created id: %s", id)
+	log.Infof("[CustomerSvc][Enable] request created id: %s", id)
 	return nil
 }
 
 func (c *customerService) DisableCustomerByID(ctx context.Context, id string, disable customer.CustomerDisableDTO) error {
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "DisableCustomerByID", "Customer", "DisableCustomerByID")
 	defer span.End()
 
-	c.logger.Infof("[CustomerSvc][Disable] id: %s", id)
+	log.Infof("[CustomerSvc][Disable] id: %s", id)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		c.logger.Errorf("[CustomerSvc][Disable] incomplete user")
+		log.Errorf("[CustomerSvc][Disable] incomplete user")
 		span.AddEvent("Incomplete user data", trace.WithAttributes(
 			attribute.String("error", constants.IncompleteUserInfo),
 			attribute.String("id", id),
@@ -353,14 +361,14 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string, di
 	customer, err := c.repo.FindByID(ctx, id)
 	code, _ := local_util.HandleMongoError(err)
 	if code == localization.ErrorResourceNotFound.Code {
-		c.logger.Errorf("[CustomerSvc][Disable] not found")
+		log.Errorf("[CustomerSvc][Disable] not found")
 		span.AddEvent("Customer not found", trace.WithAttributes(
 			attribute.String("error", code),
 			attribute.String("id", id),
 		))
 		return fmt.Errorf("%s", code)
 	} else if err != nil {
-		c.logger.Errorf("[CustomerSvc][Disable] find err: %v", err)
+		log.Errorf("[CustomerSvc][Disable] find err: %v", err)
 		span.AddEvent("Failed to find customer", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
@@ -369,7 +377,7 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string, di
 	}
 
 	if !customer.Enabled {
-		c.logger.Errorf("[CustomerSvc][Disable] already disabled")
+		log.Errorf("[CustomerSvc][Disable] already disabled")
 		span.AddEvent("Customer already disabled", trace.WithAttributes(
 			attribute.String("error", localization.ErrorCustomerAlreadyDisabled.Code),
 			attribute.String("id", id),
@@ -392,25 +400,27 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string, di
 
 	err = c.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
-		c.logger.Errorf("[CustomerSvc][Disable] cps action err: %v", err)
+		log.Errorf("[CustomerSvc][Disable] cps action err: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
 		return err
 	}
-	c.logger.Infof("[CustomerSvc][Disable] request created id: %s", id)
+	log.Infof("[CustomerSvc][Disable] request created id: %s", id)
 	return nil
 }
 
 func (d *customerService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Customer", "Authorize")
 	defer span.End()
 
-	d.logger.Infof("[CustomerSvc][Authorize] action: %s", cpsAction.RequestAction)
+	log.Infof("[CustomerSvc][Authorize] action: %s", cpsAction.RequestAction)
 	actionData, err := local_util.JsonUnmarshal[member.User](cpsAction.CurrentAction)
 	if err != nil {
-		d.logger.Errorf("[CustomerSvc][Authorize] unmarshal err: %v", err)
+		log.Errorf("[CustomerSvc][Authorize] unmarshal err: %v", err)
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
@@ -422,41 +432,43 @@ func (d *customerService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 	case string(constants.RequestEnableDisableCustomer):
 		err := d.repo.EnableOrDisable(ctx, cpsAction.UniqueId, actionData.Enabled)
 		if err != nil {
-			d.logger.Errorf("[CustomerSvc][Authorize] enable/disable err: %v", err)
+			log.Errorf("[CustomerSvc][Authorize] enable/disable err: %v", err)
 			span.AddEvent("Customer enable/disable action failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			return nil, err
 		}
-		d.logger.Infof("[CustomerSvc][Authorize] enable/disable done id: %s", cpsAction.UniqueId)
+		log.Infof("[CustomerSvc][Authorize] enable/disable done id: %s", cpsAction.UniqueId)
 	case string(constants.RequestApproveFaydaCustomer):
 		err := d.repo.Update(ctx, cpsAction.UniqueId, *actionData)
 		if err != nil {
-			d.logger.Errorf("[CustomerSvc][Authorize] fayda update err: %v", err)
+			log.Errorf("[CustomerSvc][Authorize] fayda update err: %v", err)
 			span.AddEvent("Failed to update Fayda customer", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			return nil, err
 		}
-		d.logger.Infof("[CustomerSvc][Authorize] fayda approved id: %s", cpsAction.UniqueId)
+		log.Infof("[CustomerSvc][Authorize] fayda approved id: %s", cpsAction.UniqueId)
 	default:
-		d.logger.Errorf("[CustomerSvc][Authorize] unsupported: %s", cpsAction.RequestAction)
+		log.Errorf("[CustomerSvc][Authorize] unsupported: %s", cpsAction.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(
 			attribute.String("error", localization.MsgInvalidAction),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
 		return nil, fmt.Errorf("%s", localization.MsgInvalidAction)
 	}
-	d.logger.Infof("[CustomerSvc][Authorize] done: %s", cpsAction.RequestAction)
+	log.Infof("[CustomerSvc][Authorize] done: %s", cpsAction.RequestAction)
 	return cpsAction, nil
 }
 
 func (d *customerService) SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "SearchCustomerByCIForAccountNumber", "Customer", "SearchCustomerByCIForAccountNumber")
 	defer span.End()
-	d.logger.Infof("[CustomerSvc][SearchByCI] value: %s", number)
+	log.Infof("[CustomerSvc][SearchByCI] value: %s", number)
 
 	number = local_util.NormalizePhoneNumberOrReturnInput(number)
 	customer, err := d.repo.SearchCustomerByCIForAccountNumber(ctx, number)
@@ -471,9 +483,11 @@ func (d *customerService) SearchCustomerByCIForAccountNumber(ctx context.Context
 }
 
 func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCustomerDetailByID", "Customer", "GetCustomerDetailByID")
 	defer span.End()
-	d.logger.Infof("[CustomerSvc][GetDetail] id: %s", id)
+	log.Infof("[CustomerSvc][GetDetail] id: %s", id)
 	res, err := d.repo.FindCustomerDetailByID(ctx, id)
 	if err != nil {
 		span.AddEvent("Failed to fetch customer detail by id", trace.WithAttributes(
@@ -482,10 +496,11 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 		))
 		return nil, err
 	}
+
 	// use external call to get missing account detail
 	coreRes, err := d.core.CifSearch(ctx, res.PersonalInfo.CustomerNumber)
 	if err != nil {
-		d.logger.Errorf("[CustomerSvc][GetCustomerDetailByID] CifSearch error: %v", err)
+		log.Errorf("[CustomerSvc][GetCustomerDetailByID] CifSearch error: %v", err)
 		span.AddEvent("Failed to search CIF", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("customer_number", res.PersonalInfo.CustomerNumber),
@@ -493,28 +508,30 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 		return nil, err
 	}
 
-	d.logger.Infof("core result data---------------------: %v", coreRes)
-	d.logger.Infof("core result data branch name---------------------: %v", coreRes[0].BranchName)
+	log.Infof("core result data---------------------: %v", coreRes)
+
 	if len(coreRes) > 0 {
 		res.PersonalInfo.DateOfBirth = coreRes[0].BirthOfDate
 		res.PersonalInfo.MaritalStatus = coreRes[0].Email
-		res.PersonalInfo.Branch = coreRes[0].Branch
-		res.PersonalInfo.BranchName = coreRes[0].Branch
 		res.PersonalInfo.Gender = coreRes[0].Gender
 		res.PersonalInfo.Email = coreRes[0].Email
+		res.PersonalInfo.PhoneNumber = coreRes[0].PhoneNo
 	}
-	// for i, linkedAccount := range res.LinkedAccount {
-	// 	coreResBranch, err := d.core.LookupAccountByAccountNumberFromBps(ctx, linkedAccount.AccountNumber)
-	// 	if err != nil {
-	// 		d.logger.Errorf("[CustomerSvc][GetCustomerDetailByID] LookupAccountByAccountNumberFromBps error: %v", err)
-	// 		span.AddEvent("Failed to lookup account by account number from BPS", trace.WithAttributes(
-	// 			attribute.String("error", err.Error()),
-	// 			attribute.String("account_number", linkedAccount.AccountNumber),
-	// 		))
-	// 		continue
-	// 	}
-	// 	res.LinkedAccount[i].AccountBranchCode = coreResBranch.Data.AccountBranchCode
-	// 	res.LinkedAccount[i].AccountBranchName = coreResBranch.Data.na
-	// }
+
+	if len(res.LinkedAccount) != 0 {
+		for i, linkedAccount := range res.LinkedAccount {
+
+			if len(coreRes) != 0 {
+				for _, coreResBranch := range coreRes {
+					if linkedAccount.AccountNumber == coreResBranch.AccountNumber {
+						res.LinkedAccount[i].AccountBranchCode = coreResBranch.BranchCode
+						res.LinkedAccount[i].AccountBranchName = coreResBranch.Branch
+						break
+					}
+				}
+			}
+			// res.LinkedAccount[i].AccountBranchName = coreResBranch.Data.na
+		}
+	}
 	return res, nil
 }

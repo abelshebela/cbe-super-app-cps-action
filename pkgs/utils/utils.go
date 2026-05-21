@@ -378,7 +378,7 @@ func RandomGenerator(length uint8) string {
 }
 
 // var allowedChars = "a-zA-Z0-9\\s._@-"
-var allowedChars = `a-zA-Z0-9\s._@\p{Ethiopic}\(\)\-`
+var allowedChars = `a-zA-Z0-9\s._@&\p{Ethiopic}\(\)\-`
 var validNameRegex = regexp.MustCompile("^[" + allowedChars + "]+$")
 
 func NoSpecialChars(value any) error {
@@ -405,6 +405,11 @@ func NoSpecialChars(value any) error {
 		return validation.NewError("validation", "contains invalid characters")
 	}
 	return nil
+}
+
+func IsOracleHexID(s string) bool {
+	re := regexp.MustCompile(`^[A-Fa-f0-9]{32}$`)
+	return re.MatchString(s)
 }
 
 func NormalizePhoneNumberOrReturnInput(input string) string {

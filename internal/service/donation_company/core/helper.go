@@ -1,12 +1,10 @@
 package core
 
 import (
-	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
-
-	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
 
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
@@ -16,9 +14,7 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
-
-	"go.mongodb.org/mongo-driver/v2/bson"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 func CompanyNameExists(ctx context.Context, companyName string, donationCompanyRepo storage.DonationCompanyRepository) (bool, error) {
@@ -36,32 +32,21 @@ func CompanyNameExists(ctx context.Context, companyName string, donationCompanyR
 	return len(companies.Data) > 0, nil
 }
 
-func CheckIfAccountExists(ctx context.Context, accountNumber string, repo storage.DonationCompanyRepository) error {
-	donCompany, err := repo.FindByAccountNumber(ctx, accountNumber)
-	if err != nil {
-		if err.Error() == "ERROR_RESOURCE_NOT_FOUND" {
-			return nil
-		}
-		return err
-	}
-	if donCompany.AccountNumber != "" {
-		return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
-	}
-	return nil
-}
-
-func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*model.AccountDetail, error) {
+func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account, logger utils.Logger) (*model.AccountDetail, error) {
 	accountRequest := model.AccountLookUpRequest{
 		AccountNumber: accountNumber,
 	}
 	accountDetail, err := accountLookupService.LookupAccountByAccountNumber(ctx, accountRequest)
 	if err != nil {
+		logger.Errorf("Error occurred while validating account number: %v", err)
 		return nil, err
 	}
-	// if accountDetail.Restriction == "YES" {
-	// 	return nil, errors.New(localization.ErrorAccountRestricted.Code)
-	// }
+	if accountDetail == nil {
+		logger.Errorf("Account not found for number: %s", accountNumber)
+		return nil, errors.New(localization.ErrorAccountNotFound.Code)
+	}
 	if accountDetail.Currency != "ETB" {
+		logger.Errorf("Account currency not supported for number: %s", accountNumber)
 		return nil, errors.New(localization.ErrorAccountCurrencyNotSupported.Code)
 	}
 
@@ -87,7 +72,6 @@ func MapToDonationCompanyResponse(donationCompany dto.DonationCompanyRequest, lo
 		CompanyCode:        donationCompany.CompanyCode,
 		CompanyDescription: donationCompany.CompanyDescription,
 		CompanyLogo:        logoURL,
-		AccountNumber:      donationCompany.AccountNumber,
 		PhoneNumber:        donationCompany.PhoneNumber,
 		Email:              donationCompany.Email,
 		Address:            donationCompany.Address,
@@ -101,19 +85,19 @@ func MapToDonationCompanyResponse(donationCompany dto.DonationCompanyRequest, lo
 // MapToDonationCompanyCPSRequest creates a CPS request DTO from request DTO and logo URL
 func MapToDonationCompanyCPSRequest(id string, donationCompany dto.DonationCompanyRequest, logoURL string) dto.DonationCompanyCPSRequest {
 	return dto.DonationCompanyCPSRequest{
-		ID:            id,
-		CompanyName:   donationCompany.CompanyName,
-		CompanyCode:   donationCompany.CompanyCode,
-		CompanyLogo:   logoURL,
-		AccountNumber: donationCompany.AccountNumber,
-		PhoneNumber:   donationCompany.PhoneNumber,
-		Email:         donationCompany.Email,
-		Address:       donationCompany.Address,
+		ID:                 id,
+		CompanyName:        donationCompany.CompanyName,
+		CompanyCode:        donationCompany.CompanyCode,
+		CompanyDescription: donationCompany.CompanyDescription,
+		CompanyLogo:        logoURL,
+		PhoneNumber:        donationCompany.PhoneNumber,
+		Email:              donationCompany.Email,
+		Address:            donationCompany.Address,
 	}
 }
 
-func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationCompanyListResponse, donationCompany dto.DonationCompanyRequest, logoURL string) *donation_model.DonationCompany {
-	result := &donation_model.DonationCompany{}
+func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationCompanyListResponse, donationCompany dto.DonationCompanyRequest, logoURL string) *imodel.DonationCompanyOracle {
+	result := &imodel.DonationCompanyOracle{}
 
 	if donationCompany.CompanyName != "" && donationCompany.CompanyName != existing.CompanyName {
 		result.CompanyName = donationCompany.CompanyName
@@ -121,21 +105,11 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 		result.CompanyName = existing.CompanyName
 	}
 
-	// if donationCompany.CompanyCode != "" && donationCompany.CompanyCode != existing.CompanyCode {
-	// 	result.CompanyCode = "DON-COMPANY-" + donationCompany.CompanyCode
-	// } else {
-	// 	result.CompanyCode = existing.CompanyCode
-	// }
 	result.CompanyCode = existing.CompanyCode
 	if donationCompany.CompanyDescription != "" {
 		result.CompanyDescription = donationCompany.CompanyDescription
 	} else {
 		result.CompanyDescription = existing.CompanyDescription
-	}
-	if donationCompany.AccountNumber != existing.AccountNumber {
-		result.AccountNumber = donationCompany.AccountNumber
-	} else {
-		result.AccountNumber = existing.AccountNumber
 	}
 
 	if donationCompany.PhoneNumber != "" && donationCompany.PhoneNumber != existing.PhoneNumber {
@@ -170,7 +144,7 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 	return result
 }
 
-func IsDataSimilar(request dto.DonationCompanyRequest, existing *donation_model.DonationCompany) bool {
+func IsDataSimilar(request dto.DonationCompanyRequest, existing *imodel.DonationCompanyOracle) bool {
 	if request.CompanyName != "" && request.CompanyName != existing.CompanyName {
 		return false
 	}
@@ -182,10 +156,6 @@ func IsDataSimilar(request dto.DonationCompanyRequest, existing *donation_model.
 	}
 
 	if request.CompanyLogo != nil {
-		return false
-	}
-
-	if request.AccountNumber != "" && request.AccountNumber != existing.AccountNumber {
 		return false
 	}
 
@@ -205,14 +175,13 @@ func IsDataSimilar(request dto.DonationCompanyRequest, existing *donation_model.
 }
 
 // CheckDataSimilarityAndValidation checks if data is similar and validates uniqueness
-func CheckDataSimilarityAndValidation(ctx context.Context, request dto.DonationCompanyRequest, existing *dto.DonationCompanyListResponse, donationCompanyRepo storage.DonationCompanyRepository, accountLookupService account_lookup.Account) error {
+func CheckDataSimilarityAndValidation(ctx context.Context, request dto.DonationCompanyRequest, existing *dto.DonationCompanyListResponse, donationCompanyRepo storage.DonationCompanyRepository) error {
 	// Convert existing DTO to model for similarity check
-	existingModel := &donation_model.DonationCompany{
+	existingModel := &imodel.DonationCompanyOracle{
 		CompanyName:        existing.CompanyName,
 		CompanyCode:        existing.CompanyCode,
 		CompanyDescription: existing.CompanyDescription,
 		CompanyLogo:        existing.CompanyLogo,
-		AccountNumber:      existing.AccountNumber,
 		PhoneNumber:        existing.PhoneNumber,
 		Email:              existing.Email,
 		Address:            existing.Address,
@@ -245,67 +214,5 @@ func CheckDataSimilarityAndValidation(ctx context.Context, request dto.DonationC
 		}
 	}
 
-	// Check if account number is being updated and if it already exists
-	if request.AccountNumber != "" && request.AccountNumber != existing.AccountNumber {
-		if err := CheckIfAccountExists(ctx, request.AccountNumber, donationCompanyRepo); err != nil {
-			return err
-		}
-	}
-
 	return nil
-}
-
-// ConvertDonationListResponseToModel converts a DonationListResponse DTO to a donation_model.Donation
-// This is used when we need to update donations and preserve all existing fields
-func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationListResponse) *donation_model.Donation {
-	companyObjID, _ := bson.ObjectIDFromHex(donationResponse.Company.ID)
-	categoryObjID, _ := bson.ObjectIDFromHex(donationResponse.Category.ID)
-
-	donationImages := make([]types.DonationImage, len(donationResponse.DonationImages))
-	for i, img := range donationResponse.DonationImages {
-		donationImages[i] = types.DonationImage{
-			ID:        img.ID,
-			PhotoURL:  img.PhotoURL,
-			CreatedAt: img.CreatedAt,
-		}
-	}
-
-	startTime, _ := time.Parse(time.RFC3339, donationResponse.StartDate)
-	endTime, _ := time.Parse(time.RFC3339, donationResponse.EndDate)
-	createdAt, _ := time.Parse(time.RFC3339, donationResponse.CreatedAt)
-	lastModifiedAt, _ := time.Parse(time.RFC3339, donationResponse.LastModifiedAt)
-
-	donationID, _ := bson.ObjectIDFromHex(donationResponse.ID)
-
-	return &donation_model.Donation{
-		ID:                  donationID,
-		DonationCode:        donationResponse.DonationCode,
-		CompanyID:           companyObjID,
-		CategoryID:          categoryObjID,
-		Title:               donationResponse.Title,
-		IsFeatured:          donationResponse.IsFeatured,
-		Target:              donationResponse.Target,
-		CurrentAmount:       donationResponse.CurrentAmount,
-		DonationDescription: donationResponse.DonationDescription,
-		DonationImages:      convertToSharedDonationImages(donationImages),
-		CoverImage:          donationResponse.CoverImage,
-		StartDate:           startTime,
-		EndDate:             endTime,
-		Enabled:             donationResponse.Enabled,
-		IsDeleted:           donationResponse.IsDeleted,
-		CreatedAt:           createdAt,
-		LastModifiedAt:      lastModifiedAt,
-	}
-}
-
-func convertToSharedDonationImages(images []types.DonationImage) []shared_types.DonationImage {
-	result := make([]shared_types.DonationImage, len(images))
-	for i, img := range images {
-		result[i] = shared_types.DonationImage{
-			ID:        img.ID,
-			PhotoURL:  img.PhotoURL,
-			CreatedAt: img.CreatedAt,
-		}
-	}
-	return result
 }

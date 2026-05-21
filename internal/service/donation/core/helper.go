@@ -3,6 +3,7 @@ package core
 import (
 	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/pkgs/utils"
@@ -12,12 +13,7 @@ import (
 
 	"encoding/json"
 
-	donation_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/donation"
-
-	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
-
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func nonEmptyBool(newVal *bool, oldVal bool) bool {
@@ -25,84 +21,6 @@ func nonEmptyBool(newVal *bool, oldVal bool) bool {
 		return *newVal
 	}
 	return oldVal
-}
-
-func MapToDonationResponse(donation *donation_model.Donation) *donation_dto.DonationResponse {
-	return &donation_dto.DonationResponse{
-		DonationCode:        donation.DonationCode,
-		CompanyID:           donation.CompanyID.Hex(),
-		CategoryID:          donation.CategoryID.Hex(),
-		Title:               donation.Title,
-		IsFeatured:          donation.IsFeatured,
-		Target:              donation.Target,
-		DonationDescription: donation.DonationDescription,
-		DonationImages:      ConvertToLocalDonationImages(donation.DonationImages),
-		CoverImage:          donation.CoverImage,
-		EndDate:             donation.EndDate.Format(time.RFC3339),
-		StartDate:           donation.StartDate.Format(time.RFC3339),
-		Enabled:             donation.Enabled,
-	}
-}
-
-func MapToDonationListResponse(donation *donation_model.Donation) *donation_dto.DonationListResponse {
-	return &donation_dto.DonationListResponse{
-		ID:                  donation.ID.Hex(),
-		DonationCode:        donation.DonationCode,
-		Title:               donation.Title,
-		IsFeatured:          donation.IsFeatured,
-		Target:              donation.Target,
-		DonationDescription: donation.DonationDescription,
-		DonationImages:      ConvertToLocalDonationImages(donation.DonationImages),
-		CoverImage:          donation.CoverImage,
-		EndDate:             donation.EndDate.Format(time.RFC3339),
-		StartDate:           donation.StartDate.Format(time.RFC3339),
-		IsDeleted:           donation.IsDeleted,
-		CreatedAt:           donation.CreatedAt.Format(time.RFC3339),
-		LastModifiedAt:      donation.LastModifiedAt.Format(time.RFC3339),
-		Enabled:             donation.Enabled,
-	}
-}
-
-func MapToDonationCPSRequest(donation *donation_model.Donation) *donation_dto.DonationCPSRequest {
-	return &donation_dto.DonationCPSRequest{
-		DonationCode:        donation.DonationCode,
-		CompanyID:           donation.CompanyID.Hex(),
-		CategoryID:          donation.CategoryID.Hex(),
-		Title:               donation.Title,
-		IsFeatured:          &donation.IsFeatured,
-		Target:              donation.Target,
-		DonationDescription: donation.DonationDescription,
-		DonationImages:      ConvertToLocalDonationImages(donation.DonationImages),
-		CoverImage:          donation.CoverImage,
-		EndDate:             donation.EndDate.Format(time.RFC3339),
-		StartDate:           donation.StartDate.Format(time.RFC3339),
-		Enabled:             &donation.Enabled,
-	}
-}
-
-func MapToDonation(donationCode, companyID, categoryID, title, donationDescription, coverImage, endDate, startDate string, isFeatured bool, target int32, enabled bool) *donation_model.Donation {
-	companyObjID, _ := bson.ObjectIDFromHex(companyID)
-	categoryObjID, _ := bson.ObjectIDFromHex(categoryID)
-
-	endTime, _ := time.Parse(time.RFC3339, endDate)
-	startTime, _ := time.Parse(time.RFC3339, startDate)
-
-	return &donation_model.Donation{
-		DonationCode:        donationCode,
-		CompanyID:           companyObjID,
-		CategoryID:          categoryObjID,
-		Title:               title,
-		IsFeatured:          isFeatured,
-		Target:              string(target),
-		DonationDescription: donationDescription,
-		CoverImage:          coverImage,
-		EndDate:             endTime,
-		StartDate:           startTime,
-		Enabled:             enabled,
-		IsDeleted:           false,
-		CreatedAt:           time.Now(),
-		LastModifiedAt:      time.Now(),
-	}
 }
 
 func ConvertToDonationImages(images []types.DonationImage) []shared_types.DonationImage {
@@ -117,38 +35,29 @@ func ConvertToDonationImages(images []types.DonationImage) []shared_types.Donati
 	return result
 }
 
-func ConvertToLocalDonationImages(images []shared_types.DonationImage) []types.DonationImage {
-	result := make([]types.DonationImage, len(images))
-	for i, img := range images {
-		result[i] = types.DonationImage{
-			ID:        img.ID,
-			PhotoURL:  img.PhotoURL,
-			CreatedAt: img.CreatedAt,
-		}
-	}
-	return result
-}
-
 func DonationTitleExists(ctx context.Context, title string, donationRepo storage.DonationRepository) (bool, error) {
 	donations, err := donationRepo.FindAllWithPagination(ctx, types.Filter{
-		Search: title,
+		Filters: map[string]any{"title": title},
 	})
-	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+	if err != nil {
 		return false, err
 	}
 
-	if donations.Data != nil {
+	if len(donations.Data) != 0 {
 		return true, nil
 	}
 
 	return false, nil
 }
 
-func IsDataSimilar(request donation_dto.DonationRequest, existing *donation_model.Donation) bool {
-	if request.CompanyID != "" && request.CompanyID != existing.CompanyID.Hex() {
+func IsDataSimilar(request donation_dto.DonationRequest, existing *imodel.DonationOracle) bool {
+	if request.ServiceID != "" && request.ServiceID != existing.ServiceID {
 		return false
 	}
-	if request.CategoryID != "" && request.CategoryID != existing.CategoryID.Hex() {
+	if request.CompanyID != "" && request.CompanyID != existing.CompanyID {
+		return false
+	}
+	if request.CategoryID != "" && request.CategoryID != existing.CategoryID {
 		return false
 	}
 	if request.Title != "" && request.Title != existing.Title {
@@ -192,7 +101,7 @@ func BindAction(source any, target any) error {
 	return json.Unmarshal(bytes, target)
 }
 
-func CheckDataSimilarityAndValidation(ctx context.Context, request donation_dto.DonationRequest, existing *donation_model.Donation, donationRepo storage.DonationRepository) error {
+func CheckDataSimilarityAndValidation(ctx context.Context, request donation_dto.DonationRequest, existing *imodel.DonationOracle, donationRepo storage.DonationRepository) error {
 	if IsDataSimilar(request, existing) {
 		return errors.New(localization.ErrorNoChangesToUpdate.Code)
 	}
@@ -209,10 +118,7 @@ func CheckDataSimilarityAndValidation(ctx context.Context, request donation_dto.
 	return nil
 }
 
-func MapToDonationModel(cpsRequest *donation_dto.DonationCPSRequest) *donation_model.Donation {
-	companyObjID, _ := bson.ObjectIDFromHex(cpsRequest.Company.ID)
-	categoryObjID, _ := bson.ObjectIDFromHex(cpsRequest.Category.ID)
-
+func MapToDonationModel(cpsRequest *donation_dto.DonationCPSRequest) *imodel.DonationOracle {
 	endTime, _ := time.Parse(time.RFC3339, cpsRequest.EndDate)
 	startTime, _ := time.Parse(time.RFC3339, cpsRequest.StartDate)
 
@@ -225,10 +131,11 @@ func MapToDonationModel(cpsRequest *donation_dto.DonationCPSRequest) *donation_m
 		}
 	}
 
-	return &donation_model.Donation{
+	return &imodel.DonationOracle{
 		DonationCode:        cpsRequest.DonationCode,
-		CompanyID:           companyObjID,
-		CategoryID:          categoryObjID,
+		ServiceID:           GetValueOrDefault(cpsRequest.Service.ID, cpsRequest.ServiceID),
+		CompanyID:           cpsRequest.Company.ID,
+		CategoryID:          cpsRequest.Category.ID,
 		Title:               cpsRequest.Title,
 		IsFeatured:          *cpsRequest.IsFeatured,
 		Target:              cpsRequest.Target,
@@ -275,10 +182,7 @@ func GetTimeValueOrDefault(value, defaultValue time.Time) time.Time {
 	return value
 }
 
-func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationListResponse) *donation_model.Donation {
-	companyObjID, _ := bson.ObjectIDFromHex(donationResponse.Company.ID)
-	categoryObjID, _ := bson.ObjectIDFromHex(donationResponse.Category.ID)
-
+func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationListResponse) *imodel.DonationOracle {
 	donationImages := make([]types.DonationImage, len(donationResponse.DonationImages))
 	for i, img := range donationResponse.DonationImages {
 		donationImages[i] = types.DonationImage{
@@ -293,13 +197,12 @@ func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationL
 	createdAt, _ := time.Parse(time.RFC3339, donationResponse.CreatedAt)
 	lastModifiedAt, _ := time.Parse(time.RFC3339, donationResponse.LastModifiedAt)
 
-	donationID, _ := bson.ObjectIDFromHex(donationResponse.ID)
-
-	return &donation_model.Donation{
-		ID:                  donationID,
+	return &imodel.DonationOracle{
+		ID:                  donationResponse.ID,
 		DonationCode:        donationResponse.DonationCode,
-		CompanyID:           companyObjID,
-		CategoryID:          categoryObjID,
+		ServiceID:           donationResponse.Service.ID,
+		CompanyID:           donationResponse.Company.ID,
+		CategoryID:          donationResponse.Category.ID,
 		Title:               donationResponse.Title,
 		IsFeatured:          donationResponse.IsFeatured,
 		Target:              donationResponse.Target,
@@ -330,10 +233,11 @@ func ConvertDonationListResponseToRequest(donationResponse *donation_dto.Donatio
 
 func MapDonationUpdate(
 	id string,
-	existing *donation_model.Donation,
+	existing *imodel.DonationOracle,
 	update donation_dto.DonationRequest,
 	coverImageURL string,
 	donationImages []types.DonationImage,
+	service donation_dto.Service,
 	company donation_dto.Company,
 	category donation_dto.Category,
 ) donation_dto.DonationCPSRequest {
@@ -343,20 +247,21 @@ func MapDonationUpdate(
 	return donation_dto.DonationCPSRequest{
 		ID:           id,
 		DonationCode: existing.DonationCode,
+		Service: donation_dto.Service{
+			ID:          GetValueOrDefault(update.ServiceID, existing.ServiceID),
+			ServiceName: service.ServiceName,
+			ServiceKey:  service.ServiceKey,
+		},
 		Company: donation_dto.Company{
-			ID:          GetValueOrDefault(update.CompanyID, existing.CompanyID.Hex()),
+			ID:          GetValueOrDefault(update.CompanyID, existing.CompanyID),
 			CompanyName: company.CompanyName,
 			CompanyLogo: company.CompanyLogo,
 		},
 		Category: donation_dto.Category{
-			ID:           GetValueOrDefault(update.CategoryID, existing.CategoryID.Hex()),
+			ID:           GetValueOrDefault(update.CategoryID, existing.CategoryID),
 			CategoryName: category.CategoryName,
 			Icon:         category.Icon,
 		},
-		// CompanyID:           GetValueOrDefault(update.CompanyID, existing.CompanyID.Hex()),
-		// CompanyName:         companyName,
-		// CategoryID:          GetValueOrDefault(update.CategoryID, existing.CategoryID.Hex()),
-		// CategoryName:        categoryName,
 		Title:               GetValueOrDefault(update.Title, existing.Title),
 		IsFeatured:          &isFeatured,
 		Target:              GetValueOrDefault(update.Target, existing.Target),

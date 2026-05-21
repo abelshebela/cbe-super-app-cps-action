@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -63,17 +64,35 @@ func (a *CoreAccountLookupAdapter) LookupAccountByPhone(ctx context.Context, pho
 	return true, nil
 }
 
-func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*model.AccountDetail, error) {
+func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (accountDetail *model.AccountDetail, err error) {
+	a.Logger.Infof("Looking up account by number: %s", account.AccountNumber)
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			a.Logger.Errorf("Panic occurred while validating account number %s: %v", account.AccountNumber, recovered)
+			accountDetail = nil
+			err = fmt.Errorf("core name lookup panic: %v", recovered)
+			err = fmt.Errorf("Unable to lookup account number %s at the moment, please update the number", account.AccountNumber)
+		}
+
+	}()
+
 	response, err := a.coreAPI.NameLookup(core.NameLookupParam{
 		AccountNumber: account.AccountNumber,
 	})
 
 	if err != nil {
+		a.Logger.Errorf("Error occurred while validating account number: %v", err)
 		return nil, err
 	}
 	if !response.Success || response.Detail == nil {
+		a.Logger.Errorf("Account not found for number: %s response : %v", account.AccountNumber, err)
 		return nil, errors.New(localization.ErrorAccountNumberNotFound.Code)
 	}
+
+	// if response.Detail == nil {
+	// 	a.Logger.Errorf("Account not found for number: %s", account.AccountNumber)
+	// 	return nil, errors.New(localization.ErrorAccountNotFound.Code)
+	// }
 
 	detail := response.Detail
 	return &model.AccountDetail{
@@ -95,6 +114,7 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumberFromBps(ctx conte
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
+		a.Logger.Errorf("Failed to lookup account by number: %s", accountNumber)
 		return accountLookup.AccountResponse{}, nil
 	}
 
@@ -104,11 +124,13 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumberFromBps(ctx conte
 func (a *CoreAccountLookupAdapter) CreateAccountWithFayda(ctx context.Context, account accountLookup.CreateAccountRequest) (types.Account, error) {
 	res, _, err := BPSBankingClient(ctx, a.Client, constants.WithFayda, account, a.BaseUrl+a.FaydaUrlPath)
 	if err != nil {
+		a.Logger.Errorf("Failed to create account with Fayda: %v", err)
 		return types.Account{}, err
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
+		a.Logger.Errorf("Failed to create account with Fayda, status code: %d", res.StatusCode)
 		return types.Account{}, nil
 	}
 

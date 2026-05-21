@@ -46,9 +46,6 @@ type Persistence struct {
 	BankPersistence                   storage.BankRepository
 	BankOraclePersistence             storage.BankOracleRepository
 	CpsUserPersistence                storage.CpsUserRepository
-	DonationPersistence               storage.DonationRepository
-	DonationCategoryPersistence       storage.DonationCategoryRepository
-	DonationCompanyPersistence        storage.DonationCompanyRepository
 	FeedbackPersistence               storage.FeedbackRepository
 	LinkedAccountPersistence          storage.LinkedAccountRepository
 	EcommerceMerchantPersistence      storage.EcommerceMerchantRepository
@@ -62,7 +59,7 @@ type Persistence struct {
 	TopupPersistence                  storage.TopupRepository
 	ProductCodePersistence            storage.ProductCodeRepository
 	DepartmentPersistence             storage.DepartmentRepository
-	JobRolePersistence                storage.JobRoleRepository
+	RolePersistence                storage.RoleRepository
 	FaydaPersistence                  storage.FaydaRepository
 	PermissionPersistence             storage.PermissionRepository
 	ArticlePersistence                storage.ArticleRepository
@@ -74,7 +71,7 @@ type Persistence struct {
 	NewsTagsServiceContainer          storage.NewsTagsRepository
 	BPSActionRolePersistence          storage.BPSActionRoleRepository
 	BPSActionApproveIndexPersistence  storage.BPSActionApproveIndexRepository
-	RolePersistence                   storage.RoleRepository
+	JobRolePersistence                   storage.JobRoleRepository
 	MiniAppCategoryPersistence        storage.MiniAppCategoryRepository
 	CPSActionRolePersistence          storage.CPSActionRoleRepository
 	CPSActionApproveIndexPersistence  storage.CPSActionApproveIndexRepository
@@ -83,6 +80,7 @@ type Persistence struct {
 	AccessListSegmentationPersistence storage.AccessListSegmentationRepository
 	MiniAppMerchant                   storage.MiniAppMerchant
 	CustomerSegmentation              storage.CustomerSegmentationRepository
+	CustomerGroup                     storage.CustomerGroupRepository
 	CPSRoles                          storage.CPSRolesRepository
 	LogisticsMerchantPersistence      storage.LogisticsMerchantRepository
 	CustomerKYCPersistence            storage.CustomerKYCRepository

@@ -29,11 +29,11 @@ import (
 type bulkService struct {
 	cpsActionRepo              service.CPSActionService
 	repo                       storage.BulkServiceRepository
-	accessListSegmentationRepo storage.AccessListSegmentationRepository
+	accessListSegmentationRepo storage.AccessListSegmentationRepositoryOracle
 	logger                     utils.Logger
 }
 
-func NewBulkService(repo storage.BulkServiceRepository, CpsActionRepo service.CPSActionService, accessListSegmentationRepo storage.AccessListSegmentationRepository, logger utils.Logger) service.BulkService {
+func NewBulkService(repo storage.BulkServiceRepository, CpsActionRepo service.CPSActionService, accessListSegmentationRepo storage.AccessListSegmentationRepositoryOracle, logger utils.Logger) service.BulkService {
 	return &bulkService{
 		cpsActionRepo:              CpsActionRepo,
 		repo:                       repo,
@@ -45,15 +45,16 @@ func NewBulkService(repo storage.BulkServiceRepository, CpsActionRepo service.CP
 func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Bulk Service", "Authorize")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 
-	s.logger.Infof("[BulkSvc][Authorize] action: %s", cpsAction.RequestAction)
+	log.Infof("[BulkSvc][Authorize] action: %s", cpsAction.RequestAction)
 	Now := time.Now()
 	cpsAction.MakerActionTime = Now
 	cpsAction.LastModifiedAt = Now
 
 	cur, err := local_util.JsonUnmarshal[[]model.APPAccessList](cpsAction.CurrentAction)
 	if err != nil {
-		s.logger.Errorf("[Authorize] failed to unmarshal current action: %v", err)
+		log.Errorf("[Authorize] failed to unmarshal current action: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -68,21 +69,21 @@ func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			span.AddEvent("[Authorize] failed to enable bulk service", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 			))
-			s.logger.Errorf("[BulkSvc][Authorize] enable err: %v", err)
+			log.Errorf("[BulkSvc][Authorize] enable err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[BulkSvc][Authorize] enabled %d", len(keys))
+		log.Infof("[BulkSvc][Authorize] enabled %d", len(keys))
 	case string(constants.RequestBulkServiceDisable):
 		if err := s.repo.Update(ctx, keys, false); err != nil {
 			span.AddEvent("[Authorize] failed to diable bulk services", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 			))
-			s.logger.Errorf("[BulkSvc][Authorize] disable err: %v", err)
+			log.Errorf("[BulkSvc][Authorize] disable err: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[BulkSvc][Authorize] disabled %d", len(keys))
+		log.Infof("[BulkSvc][Authorize] disabled %d", len(keys))
 	default:
-		s.logger.Errorf("[BulkSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
+		log.Errorf("[BulkSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 		return nil, errors.New(localization.ErrorInvalidRequiredAction.Code)
 	}
 
@@ -138,6 +139,8 @@ func validaterAccessKey(validAccessMap map[string]bool, accessList []string, fla
 }
 
 func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *types.Filter) ([]model.APPAccessList, []model.APPAccessList, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllBulkServices", "Bulk Service", "GetAllBulkServices")
 	defer span.End()
 
@@ -146,7 +149,7 @@ func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *type
 		span.AddEvent("[GetAllBulkServices] failed to fetch bulk services", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
-		s.logger.Errorf("[GetAllBulkServices] failed to fetch bulk services: %v", err)
+		log.Errorf("[GetAllBulkServices] failed to fetch bulk services: %v", err)
 		return nil, nil, err
 	}
 
@@ -155,24 +158,22 @@ func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *type
 		span.AddEvent("[GetAllBulkServices] failed to fetch access list segmentation relationships", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 		))
-		s.logger.Errorf("[GetAllBulkServices] failed to fetch access list segmentation relationships: %v", err)
+		log.Errorf("[GetAllBulkServices] failed to fetch access list segmentation relationships: %v", err)
 		return nil, nil, err
 	}
 
-	// s.logger.Infof("[GetAllBulkServices] successfully fetched %d bulk services and %d parent-child relationships", len(result.Data), len(relation))
-
 	enabled, disabled := core.SplitEnabledDisabledTree(result)
-	// s.logger.Infof("[GetAllBulkServices] split bulk services into %d enabled and %d disabled", len(enabled), len(disabled))
 
 	enabled = core.MapParentChildRelationship(relation, enabled)
-	// s.logger.Infof("[GetAllBulkServices] successfully mapped parent-child relationships for %d enabled bulk services", len(enabled))
 
 	disabled = core.MapParentChildRelationship(relation, disabled)
-	// s.logger.Infof("[GetAllBulkServices] successfully mapped parent-child relationships for %d disabled bulk services", len(disabled))
+
 	return enabled, disabled, nil
 }
 
 func (s *bulkService) CheckServiceIsEnabledOrDisabled(ctx context.Context, keys []string, isEnabled bool) ([]string, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CheckServiceIsEnabledOrDisabled", "Bulk Service", "CheckServiceIsEnabledOrDisabled")
 	defer span.End()
 
@@ -186,7 +187,7 @@ func (s *bulkService) CheckServiceIsEnabledOrDisabled(ctx context.Context, keys 
 
 	if len(invalidDatas) > 0 {
 		span.AddEvent("[CheckServiceIsEnabledOrDisabled] One or more services are not found with these keys")
-		s.logger.Errorf("[BulkSvc][CheckState] not found: %v", invalidDatas)
+		log.Errorf("[BulkSvc][CheckState] not found: %v", invalidDatas)
 		return nil, errors.New(localization.ErrorInvalidBulkServiceKey.Code)
 	}
 
@@ -195,14 +196,14 @@ func (s *bulkService) CheckServiceIsEnabledOrDisabled(ctx context.Context, keys 
 
 			if value {
 				span.AddEvent("[CheckServiceIsEnabledOrDisabled] Service already enabled")
-				s.logger.Errorf("[BulkSvc][CheckState] already enabled: %s", key)
+				log.Errorf("[BulkSvc][CheckState] already enabled: %s", key)
 				return nil, errors.New(localization.ErrorBulkServiceAlreadyEnabled.Code)
 			}
 		} else {
 
 			if !value {
 				span.AddEvent("[CheckServiceIsEnabledOrDisabled] Service already disabled")
-				s.logger.Errorf("[BulkSvc][CheckState] already disabled: %s", key)
+				log.Errorf("[BulkSvc][CheckState] already disabled: %s", key)
 				return nil, errors.New(localization.ErrorBulkServiceAlreadyDisabled.Code)
 			}
 		}
@@ -216,10 +217,11 @@ func (s *bulkService) CheckServiceIsEnabledOrDisabled(ctx context.Context, keys 
 func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableBulkService", "Bulk Service", "EnableBulkService")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	if len(keys) == 0 {
 		span.AddEvent("[EnableBulkService] No keys provided to bulk enable")
-		s.logger.Errorf("[BulkSvc][Enable] no keys")
+		log.Errorf("[BulkSvc][Enable] no keys")
 		return errors.New(localization.ErrorKeyRequiredForBulkService.Code)
 	}
 
@@ -230,7 +232,7 @@ func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) erro
 	// Initialize the map to avoid nil map panic
 	allKeys := make(map[string]model.APPAccessList)
 	for _, access := range allAccessLists {
-		s.logger.Infof("[DisableBulkService] Access List - Key: %s, Enabled: %t", access.Key, access.Enabled)
+		log.Infof("[DisableBulkService] Access List - Key: %s, Enabled: %t", access.Key, access.Enabled)
 		allKeys[access.Key] = access
 	}
 
@@ -241,7 +243,7 @@ func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) erro
 		if access, exists := allKeys[key]; exists {
 			if access.Enabled {
 				span.AddEvent("[DisableBulkService] service already enabled")
-				s.logger.Errorf("[DisableBulkService] service already enabled: %s", key)
+				log.Errorf("[DisableBulkService] service already enabled: %s", key)
 				return errors.New(localization.ErrorBulkServiceAlreadyEnabled.Code)
 			}
 			disabledKeys = append(disabledKeys, access)
@@ -256,20 +258,21 @@ func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) erro
 
 	if err := s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("[EnableBulkService] Failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[BulkSvc][Enable] cps action err: %v", err)
+		log.Errorf("[BulkSvc][Enable] cps action err: %v", err)
 		return err
 	}
-	s.logger.Infof("[EnableBulkService] CPS action created successfully for %d services", len(keys))
+	log.Infof("[EnableBulkService] CPS action created successfully for %d services", len(keys))
 	return nil
 }
 
 func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "DisableBulkService", "Bulk Service", "DisableBulkService")
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	if len(keys) == 0 {
 		span.AddEvent("[DisableBulkService] no keys provided")
-		s.logger.Errorf("[BulkSvc][Disable] no keys")
+		log.Errorf("[BulkSvc][Disable] no keys")
 		return errors.New(localization.ErrorKeyRequiredForBulkService.Code)
 	}
 
@@ -280,7 +283,7 @@ func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) err
 	// Initialize the map to avoid nil map panic
 	allKeys := make(map[string]model.APPAccessList)
 	for _, access := range allAccessLists {
-		s.logger.Infof("[DisableBulkService] Access List - Key: %s, Enabled: %t", access.Key, access.Enabled)
+		log.Infof("[DisableBulkService] Access List - Key: %s, Enabled: %t", access.Key, access.Enabled)
 		allKeys[access.Key] = access
 	}
 
@@ -291,7 +294,7 @@ func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) err
 			// accessList := access.(model.APPAccessList)
 			if !access.Enabled {
 				span.AddEvent("[DisableBulkService] service already disabled")
-				s.logger.Errorf("[DisableBulkService] service already disabled: %s", key)
+				log.Errorf("[DisableBulkService] service already disabled: %s", key)
 				return errors.New(localization.ErrorBulkServiceAlreadyDisabled.Code)
 			}
 			noneDisabledKeys = append(noneDisabledKeys, access)
@@ -307,10 +310,10 @@ func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) err
 
 	if err := s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("[DisableBulkService] failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("[BulkSvc][Disable] cps action err: %v", err)
+		log.Errorf("[BulkSvc][Disable] cps action err: %v", err)
 		return err
 	}
-	s.logger.Infof("[DisableBulkService] CPS action created successfully for %d services", len(keys))
+	log.Infof("[DisableBulkService] CPS action created successfully for %d services", len(keys))
 	return nil
 }
 

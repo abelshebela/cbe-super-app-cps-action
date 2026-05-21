@@ -27,6 +27,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 )
 
 func SecurityHeaders(next http.Handler) http.Handler {
@@ -168,19 +169,20 @@ func (a *authMiddleware) RequireFormContentType() func(http.Handler) http.Handle
 
 func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log := local_util.LoggerFromCtx(r.Context(), a.logger)
 
 		bearer := "Bearer "
 		authHeader := r.Header.Get("Authorization")
 
 		if !strings.HasPrefix(authHeader, bearer) {
-			a.logger.Warnf("[AuthMW][AuthTempToken] bearer missing")
+			log.Warnf("[AuthMW][AuthTempToken] bearer missing")
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
 
 		tokenString := strings.TrimPrefix(authHeader, bearer)
 		if tokenString == "" {
-			a.logger.Warnf("[AuthMW][AuthTempToken] empty token")
+			log.Warnf("[AuthMW][AuthTempToken] empty token")
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
@@ -198,7 +200,7 @@ func (a *authMiddleware) AuthenticateTempToken(next http.Handler) http.Handler {
 		}
 
 		if userPayload.SessionExp <= time.Now().Unix() {
-			a.logger.Warnf("[AuthMW][AuthToken] session expired")
+			log.Warnf("[AuthMW][AuthTempToken] session expired")
 			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 			return
 		}
@@ -233,10 +235,11 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 
 func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log := local_util.LoggerFromCtx(r.Context(), a.logger)
 
 		// Skip token auth if user is erp
 		if isErp, ok := r.Context().Value(constants.ContextKey("is_erp")).(bool); ok && isErp {
-			a.logger.Infof("[AuthMW][AuthToken] Skipping bearer token validation (isERP=true)")
+			log.Infof("[AuthMW][AuthToken] Skipping bearer token validation (isERP=true)")
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -247,7 +250,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		bearer := "Bearer "
 
 		if !strings.HasPrefix(authHeader, bearer) {
-			a.logger.Warnf("[AuthMW][AuthToken] bearer missing")
+			log.Warnf("[AuthMW][AuthToken] bearer missing")
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
@@ -255,7 +258,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		tokenString := authHeader[len(bearer):]
 
 		if tokenString == "" {
-			a.logger.Warnf("[AuthMW][AuthToken] empty token")
+			log.Warnf("[AuthMW][AuthToken] empty token")
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
@@ -273,6 +276,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		}
 
 		ctx := a.setUserPayload(r.Context(), userPayload)
+		log = local_util.LoggerFromCtx(ctx, a.logger)
 		localization.UpdateWriterContext(w, ctx)
 		now := time.Now().Unix()
 
@@ -288,82 +292,88 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		} else {
 			redisDeviceIDExpireTime *= 60
 		}
+
 		deviceID, err := a.redisRepository.Get(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID))
 		if err != nil {
 			if errors.Is(err, redis.Nil) {
-				a.logger.Warnf("[AuthMW][AuthToken] redis device not found: %v", err)
+				log.Warnf("[AuthMW][AuthToken] redis device not found: %v", err)
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
 			}
 			// If redis is down or cannot be read, log and continue
-			a.logger.Warnf("[AuthMW][AuthToken] redis err: %v", err)
+			log.Warnf("[AuthMW][AuthToken] redis err: %v", err)
 		}
 
 		deviceID = strings.Trim(deviceID, "\"")
-		a.logger.Infof("[AuthMW][AuthToken] redis_device: %s payload_device: %s user: %s expire_length: %d", deviceID, userPayload.DeviceID, userPayload.UserID, redisDeviceIDExpireTime)
+		ctx = context.WithValue(ctx, constants.ContextKey("session_id"), deviceID)
+		ctx = local_util.CtxWithLogger(ctx, local_util.NewSessionLogger(a.logger, deviceID))
+
+		log = local_util.LoggerFromCtx(ctx, a.logger)
+		log.Infof("[AuthMW][AuthToken] redis_device: %s payload_device: %s user: %s expire_length: %d", deviceID, userPayload.DeviceID, userPayload.UserID, redisDeviceIDExpireTime)
+
 		if userPayload.SessionExp != 0 {
-			a.logger.Infof("[AuthMW][AuthToken] session_exp: %d now: %d remain: %d", userPayload.SessionExp, now, userPayload.SessionExp-now)
+			log.Infof("[AuthMW][AuthToken] session_exp: %d now: %d remain: %d", userPayload.SessionExp, now, userPayload.SessionExp-now)
 
 			if userPayload.SessionExp <= now {
-				a.logger.Warnf("[AuthMW][AuthToken] session expired")
+				log.Warnf("[AuthMW][AuthToken] session expired")
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
 			} else if deviceID != "" && deviceID == userPayload.DeviceID {
 				if err := a.redisRepository.Set(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID), deviceID, time.Second*time.Duration(redisDeviceIDExpireTime)); err != nil {
-					a.logger.Warnf("[AuthMW][AuthToken] redis set device err user: %s: %v", userPayload.UserID, err)
+					log.Warnf("[AuthMW][AuthToken] redis set device err user: %s: %v", userPayload.UserID, err)
 				} else {
-					a.logger.Infof("[AuthMW][AuthToken] device updated user: %s", userPayload.UserID)
+					log.Infof("[AuthMW][AuthToken] device updated user: %s", userPayload.UserID)
 				}
 			} else {
-				a.logger.Warnf("[AuthMW][AuthToken] device mismatch or empty device id, redis_device: %s payload_device: %s", deviceID, userPayload.DeviceID)
+				log.Warnf("[AuthMW][AuthToken] device mismatch or empty device id, redis_device: %s payload_device: %s", deviceID, userPayload.DeviceID)
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
 			}
 		} else {
-			a.logger.Errorf("[AuthMW][AuthToken] unauth redis_device: %s payload_device: %s session: %v remain: %d", deviceID, userPayload.DeviceID, userPayload.SessionExp, remainTime)
+			log.Errorf("[AuthMW][AuthToken] unauth redis_device: %s payload_device: %s session: %v remain: %d", deviceID, userPayload.DeviceID, userPayload.SessionExp, remainTime)
 			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 			return
 		}
 
 		r = r.WithContext(ctx)
 		// Whitelist CPS Action endpoints that don't need action-based validation
-		// whitelist := []string{"cps_action", "cps_actions"}
-		// if err := CPSActionRouteGuard(r, whitelist); err != nil {
-		// 	a.logger.Warnf("[AuthMW][AuthToken] route guard blocked access to path: %s error: %v", r.URL.Path, err)
-		// 	localization.SendUnauthorizedResponse(w, localization.ErrorOperationNotAllowed.Message)
-		// 	return
-		// }
+		whitelist := []string{"access_list_segmentation", "account_block", "cps-action-list", "cps_action", "cps_actions", "actions", "bps_actions", "account_lookup", "cps_users"}
+		if err := CPSActionRouteGuard(r, whitelist); err != nil {
+			log.Warnf("[AuthMW][AuthToken] route guard blocked access to path: %s error: %v", r.URL.Path, err)
+			localization.SendUnauthorizedResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
 
 		next.ServeHTTP(w, r)
 	})
 }
 
 func (a *authMiddleware) validateToken(ctx context.Context, tokenString string) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	jwtSecret := []byte(a.JWTSecretKey)
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
-			a.logger.Errorf("[AuthMW][ValidateToken] invalid signing algorithm: %v", token.Header["alg"])
+			log.Errorf("[AuthMW][ValidateToken] invalid signing algorithm: %v", token.Header["alg"])
 			return nil, fmt.Errorf("invalid signing algorithm")
 		}
 		return jwtSecret, nil
 	})
 
 	if err != nil || !token.Valid {
-		a.logger.Errorf("[AuthMW][ValidateToken] invalid/expired token: %v", err)
+		log.Errorf("[AuthMW][ValidateToken] invalid/expired token: %v", err)
 		return "", errors.New(localization.ErrorUserUnauthorized.Code)
-
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		a.logger.Errorf("[AuthMW][ValidateToken] cast claims err")
+		log.Errorf("[AuthMW][ValidateToken] cast claims err")
 		return "", errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
 	data, ok := claims["data"].(string)
 	if !ok || data == "" {
-		a.logger.Errorf("[AuthMW][ValidateToken] no data in token")
+		log.Errorf("[AuthMW][ValidateToken] no data in token")
 		return "", errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
@@ -371,6 +381,7 @@ func (a *authMiddleware) validateToken(ctx context.Context, tokenString string) 
 }
 
 func (a *authMiddleware) extractUserPayload(ctx context.Context, data string) (UserPayload, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	decryptedUser, err := a.decryptUserData(ctx, data)
 	if err != nil {
 		return UserPayload{}, errors.New(localization.ErrorUserUnauthorized.Code)
@@ -379,7 +390,7 @@ func (a *authMiddleware) extractUserPayload(ctx context.Context, data string) (U
 	var userPayload UserPayload
 	err = json.Unmarshal([]byte(decryptedUser), &userPayload)
 	if err != nil {
-		a.logger.Errorf("[AuthMW][ExtractPayload] unmarshal err: %v", err)
+		log.Errorf("[AuthMW][ExtractPayload] unmarshal err: %v", err)
 		return UserPayload{}, errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
@@ -411,27 +422,28 @@ func (a *authMiddleware) setUserPayload(ctx context.Context, userPayload UserPay
 }
 
 func (a *authMiddleware) decryptUserData(ctx context.Context, data string) (string, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	keyByte := []byte(a.Key)
 	ivByte := []byte(a.IV)
 
 	if len(keyByte) != 32 {
-		a.logger.Warnf("[AuthMW][Decrypt] invalid key bytes")
+		log.Warnf("[AuthMW][Decrypt] invalid key bytes")
 		return "", errors.New("key must be 32 bytes for AES-256")
 	}
 	if len(ivByte) != aes.BlockSize {
-		a.logger.Warnf("[AuthMW][Decrypt] invalid IV bytes")
+		log.Warnf("[AuthMW][Decrypt] invalid IV bytes")
 		return "", errors.New("IV must be 16 bytes for AES-256-CBC")
 	}
 
 	ciphertext, err := hex.DecodeString(data)
 	if err != nil {
-		a.logger.Errorf("[AuthMW][Decrypt] hex decode err: %v", err)
+		log.Errorf("[AuthMW][Decrypt] hex decode err: %v", err)
 		return "", fmt.Errorf("hex decode failed: %w", err)
 	}
 
 	block, err := aes.NewCipher(keyByte)
 	if err != nil {
-		a.logger.Errorf("[AuthMW][Decrypt] cipher err: %v", err)
+		log.Errorf("[AuthMW][Decrypt] cipher err: %v", err)
 		return "", fmt.Errorf("NewCipher failed: %w", err)
 	}
 
@@ -450,22 +462,23 @@ func (a *authMiddleware) decryptUserData(ctx context.Context, data string) (stri
 }
 
 func (a *authMiddleware) pkcs7Unpad(ctx context.Context, data []byte, blockSize int) ([]byte, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	if len(data) == 0 {
-		a.logger.Warnf("[AuthMW][Unpad] empty input")
+		log.Warnf("[AuthMW][Unpad] empty input")
 		return nil, errors.New("input data is empty")
 	}
 	if len(data)%blockSize != 0 {
-		a.logger.Warnf("[AuthMW][Unpad] invalid length")
+		log.Warnf("[AuthMW][Unpad] invalid length")
 		return nil, errors.New("input length is not a multiple of block size")
 	}
 	padding := int(data[len(data)-1])
 	if padding == 0 || padding > blockSize {
-		a.logger.Warnf("[AuthMW][Unpad] invalid padding")
+		log.Warnf("[AuthMW][Unpad] invalid padding")
 		return nil, errors.New("invalid padding")
 	}
 	for i := len(data) - padding; i < len(data); i++ {
 		if int(data[i]) != padding {
-			a.logger.Warnf("[AuthMW][Unpad] invalid padding bytes")
+			log.Warnf("[AuthMW][Unpad] invalid padding bytes")
 			return nil, errors.New("invalid padding bytes")
 		}
 	}
@@ -474,11 +487,12 @@ func (a *authMiddleware) pkcs7Unpad(ctx context.Context, data []byte, blockSize 
 
 func (a *authMiddleware) AuthenticateServiceAPIKey(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log := local_util.LoggerFromCtx(r.Context(), a.logger)
 		got := strings.TrimSpace(r.Header.Get("x-api-key"))
 		want := strings.TrimSpace(a.cfg.CPSApiTokenForCBE)
 		if got == "" || want == "" || len(got) != len(want) ||
 			subtle.ConstantTimeCompare([]byte(got), []byte(want)) != 1 {
-			a.logger.Warnf("[AuthMW][ServiceAPIKey] unauthorized or missing x-api-key")
+			log.Warnf("[AuthMW][ServiceAPIKey] unauthorized or missing x-api-key")
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
@@ -490,10 +504,11 @@ func (a *authMiddleware) AuthenticateServiceAPIKey(next http.Handler) http.Handl
 // by checking if the role_code exists in cps_action_approver_index with any approval index
 func (a *authMiddleware) ValidateRequiredRoles(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log := local_util.LoggerFromCtx(r.Context(), a.logger)
 		// Get role_code from context (this is the actual role ID from the token)
 		roleCode, ok := r.Context().Value(constants.ContextKey("role_code")).(string)
 		if !ok || strings.TrimSpace(roleCode) == "" {
-			a.logger.Warnf("[AuthMW][ValidateRequiredRoles] role_code not found in context")
+			log.Warnf("[AuthMW][ValidateRequiredRoles] role_code not found in context")
 			WriteJSONResponse(w, http.StatusForbidden, "Unauthorized access: User role not found", nil)
 			return
 		}
@@ -502,18 +517,18 @@ func (a *authMiddleware) ValidateRequiredRoles(next http.Handler) http.Handler {
 		ctx := r.Context()
 		hasValidRole, err := a.validateRoleInApproverIndexWithRequest(ctx, roleCode, r)
 		if err != nil {
-			a.logger.Errorf("[AuthMW][ValidateRequiredRoles] error validating role in approver index: %v", err)
+			log.Errorf("[AuthMW][ValidateRequiredRoles] error validating role in approver index: %v", err)
 			WriteJSONResponse(w, http.StatusInternalServerError, "Error validating user permissions", nil)
 			return
 		}
 
 		if !hasValidRole {
-			a.logger.Warnf("[AuthMW][ValidateRequiredRoles] unauthorized access attempt for role_code: %s on %s %s", roleCode, r.Method, r.URL.Path)
+			log.Warnf("[AuthMW][ValidateRequiredRoles] unauthorized access attempt for role_code: %s on %s %s", roleCode, r.Method, r.URL.Path)
 			WriteJSONResponse(w, http.StatusForbidden, "Unauthorized access: Insufficient permissions", nil)
 			return
 		}
 
-		a.logger.Infof("[AuthMW][ValidateRequiredRoles] access granted for role_code: %s on %s %s", roleCode, r.Method, r.URL.Path)
+		log.Infof("[AuthMW][ValidateRequiredRoles] access granted for role_code: %s on %s %s", roleCode, r.Method, r.URL.Path)
 		next.ServeHTTP(w, r)
 	})
 }
@@ -522,17 +537,18 @@ func (a *authMiddleware) ValidateRequiredRoles(next http.Handler) http.Handler {
 // with any of the required indices (viewer_index, maker_index, checker_index, auditor_index)
 // based on the actual request path and method
 func (a *authMiddleware) validateRoleInApproverIndexWithRequest(ctx context.Context, roleCode string, r *http.Request) (bool, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	// Get the repository using the same approach as cps_action_handler
 	repo := GetCPSActionApproveRepo()
 	if repo == nil {
-		a.logger.Warnf("[AuthMW][ValidateRequiredRoles] CPSActionApproveRepo is nil, using fallback validation")
+		log.Warnf("[AuthMW][ValidateRequiredRoles] CPSActionApproveRepo is nil, using fallback validation")
 		return a.fallbackRoleValidation(roleCode), nil
 	}
 
 	// Get action name from the request path using the action registry
 	actionName := GetActionNameFromPath(r.Method, r.URL.Path)
 	if actionName == "" {
-		a.logger.Warnf("[AuthMW][ValidateRequiredRoles] no action name found for path %s %s, trying common actions", r.Method, r.URL.Path)
+		log.Warnf("[AuthMW][ValidateRequiredRoles] no action name found for path %s %s, trying common actions", r.Method, r.URL.Path)
 
 		// Fallback to checking common action names
 		commonActions := []string{"CPS_ACTION", "BPS_ACTION", "ACCOUNT_BLOCK", "USER_MANAGEMENT", "CUSTOMER_MANAGEMENT"}
@@ -541,7 +557,7 @@ func (a *authMiddleware) validateRoleInApproverIndexWithRequest(ctx context.Cont
 			// Use version 1 as a default (most systems use version 1)
 			result, err := repo.FindByRoleAndAction(ctx, roleCode, actionName, 1)
 			if err != nil {
-				a.logger.Warnf("[AuthMW][ValidateRequiredRoles] error checking role %s for action %s: %v", roleCode, actionName, err)
+				log.Warnf("[AuthMW][ValidateRequiredRoles] error checking role %s for action %s: %v", roleCode, actionName, err)
 				continue
 			}
 
@@ -549,21 +565,21 @@ func (a *authMiddleware) validateRoleInApproverIndexWithRequest(ctx context.Cont
 				// Check if the role has any of the required indices (viewer, maker, checker, auditor)
 				if result.ViewerIndex != nil || result.MakerIndex != nil ||
 					result.CheckerIndex != nil || result.AuditorIndex != nil {
-					a.logger.Infof("[AuthMW][ValidateRequiredRoles] role %s found with approval index for action %s", roleCode, actionName)
+					log.Infof("[AuthMW][ValidateRequiredRoles] role %s found with approval index for action %s", roleCode, actionName)
 					return true, nil
 				}
 			}
 		}
 
 		// If no indices found for common actions, try fallback validation
-		a.logger.Warnf("[AuthMW][ValidateRequiredRoles] no approval indices found for role %s, trying fallback validation", roleCode)
+		log.Warnf("[AuthMW][ValidateRequiredRoles] no approval indices found for role %s, trying fallback validation", roleCode)
 		return a.fallbackRoleValidation(roleCode), nil
 	}
 
 	// Use version 1 as a default (most systems use version 1)
 	result, err := repo.FindByRoleAndAction(ctx, roleCode, actionName, 1)
 	if err != nil {
-		a.logger.Warnf("[AuthMW][ValidateRequiredRoles] error checking role %s for action %s: %v", roleCode, actionName, err)
+		log.Warnf("[AuthMW][ValidateRequiredRoles] error checking role %s for action %s: %v", roleCode, actionName, err)
 		return a.fallbackRoleValidation(roleCode), nil
 	}
 
@@ -571,23 +587,24 @@ func (a *authMiddleware) validateRoleInApproverIndexWithRequest(ctx context.Cont
 		// Check if the role has any of the required indices (viewer, maker, checker, auditor)
 		if result.ViewerIndex != nil || result.MakerIndex != nil ||
 			result.CheckerIndex != nil || result.AuditorIndex != nil {
-			a.logger.Infof("[AuthMW][ValidateRequiredRoles] role %s found with approval index for action %s", roleCode, actionName)
+			log.Infof("[AuthMW][ValidateRequiredRoles] role %s found with approval index for action %s", roleCode, actionName)
 			return true, nil
 		}
 	}
 
 	// If no indices found for this specific action, try fallback validation
-	a.logger.Warnf("[AuthMW][ValidateRequiredRoles] no approval indices found for role %s for action %s, trying fallback validation", roleCode, actionName)
+	log.Warnf("[AuthMW][ValidateRequiredRoles] no approval indices found for role %s for action %s, trying fallback validation", roleCode, actionName)
 	return a.fallbackRoleValidation(roleCode), nil
 }
 
 // validateRoleInApproverIndex checks if the role_code exists in cps_action_approver_index
 // with any of the required indices (viewer_index, maker_index, checker_index, auditor_index)
 func (a *authMiddleware) validateRoleInApproverIndex(ctx context.Context, roleCode string) (bool, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	// Get the repository using the same approach as cps_action_handler
 	repo := GetCPSActionApproveRepo()
 	if repo == nil {
-		a.logger.Warnf("[AuthMW][ValidateRequiredRoles] CPSActionApproveRepo is nil, using fallback validation")
+		log.Warnf("[AuthMW][ValidateRequiredRoles] CPSActionApproveRepo is nil, using fallback validation")
 		return a.fallbackRoleValidation(roleCode), nil
 	}
 
@@ -599,7 +616,7 @@ func (a *authMiddleware) validateRoleInApproverIndex(ctx context.Context, roleCo
 		// Use version 1 as a default (most systems use version 1)
 		result, err := repo.FindByRoleAndAction(ctx, roleCode, actionName, 1)
 		if err != nil {
-			a.logger.Warnf("[AuthMW][ValidateRequiredRoles] error checking role %s for action %s: %v", roleCode, actionName, err)
+			log.Warnf("[AuthMW][ValidateRequiredRoles] error checking role %s for action %s: %v", roleCode, actionName, err)
 			continue
 		}
 
@@ -607,14 +624,14 @@ func (a *authMiddleware) validateRoleInApproverIndex(ctx context.Context, roleCo
 			// Check if the role has any of the required indices (viewer, maker, checker, auditor)
 			if result.ViewerIndex != nil || result.MakerIndex != nil ||
 				result.CheckerIndex != nil || result.AuditorIndex != nil {
-				a.logger.Infof("[AuthMW][ValidateRequiredRoles] role %s found with approval index for action %s", roleCode, actionName)
+				log.Infof("[AuthMW][ValidateRequiredRoles] role %s found with approval index for action %s", roleCode, actionName)
 				return true, nil
 			}
 		}
 	}
 
 	// If no indices found for common actions, try fallback validation
-	a.logger.Warnf("[AuthMW][ValidateRequiredRoles] no approval indices found for role %s, trying fallback validation", roleCode)
+	log.Warnf("[AuthMW][ValidateRequiredRoles] no approval indices found for role %s, trying fallback validation", roleCode)
 	return a.fallbackRoleValidation(roleCode), nil
 }
 

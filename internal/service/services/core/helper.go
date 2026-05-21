@@ -179,3 +179,22 @@ func MapServiceListDtoUpdateToModel(req *service_dto.UpdateServiceList) imodel.S
 		AccountType: req.AccountType,
 	}
 }
+
+// BuildServiceDeleteSnapshot preserves the full service record for CPS audit before hard delete.
+func BuildServiceDeleteSnapshot(prev service_dto.ServiceResponse) service_dto.ServiceResponse {
+	snap := prev
+	now := time.Now()
+	snap.IsDeleted = true
+	snap.DeletedAt = &now
+	snap.LastModifiedAt = now
+	return snap
+}
+
+// BuildServiceKeyDeleteSnapshot preserves the full access list record for CPS audit before hard delete.
+func BuildServiceKeyDeleteSnapshot(prev imodel.ServiceKey) imodel.ServiceKey {
+	snap := prev
+	now := time.Now()
+	snap.DeletedAt = &now
+	snap.LastModifiedAt = now
+	return snap
+}

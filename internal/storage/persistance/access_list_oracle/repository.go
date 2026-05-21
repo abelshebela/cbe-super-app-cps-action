@@ -61,12 +61,12 @@ func normalizePagination(filterParams types.Filter) (int, int) {
 }
 
 // accessListSelectCols matches ACCESS_LISTS (Oracle): NAME, SERVICE_KEY, flags, timestamps.
-const accessListSelectCols = `ID, NAME, SERVICE_KEY, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT`
+const accessListSelectCols = `RAWTOHEX(ID), NAME, SERVICE_KEY, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT`
 
 func scanRowToAPPAccessList(scanner interface {
 	Scan(dest ...any) error
 }) (model.APPAccessList, error) {
-	var idRaw []byte
+	var idRaw string
 	var name, serviceKey string
 	var isEn, isDel int
 	var createdAt, lastMod, deletedAt sql.NullTime
@@ -82,6 +82,7 @@ func scanRowToAPPAccessList(scanner interface {
 	_ = isDel
 
 	return model.APPAccessList{
+		ID:             string(idRaw),
 		Key:            serviceKey,
 		AccessListName: name,
 		Enabled:        isEn == 1,
@@ -90,6 +91,8 @@ func scanRowToAPPAccessList(scanner interface {
 }
 
 func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]model.APPAccessList], error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	page, perPage := normalizePagination(filterParams)
 	offset := (page - 1) * perPage
 
@@ -123,7 +126,7 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams typ
 
 	var total int64
 	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
-		r.logger.Errorf("[AccessListOracle][FindAllWithPagination] count failed: %v", err)
+		log.Errorf("[AccessListOracle][FindAllWithPagination] count failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -141,7 +144,7 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams typ
 
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		r.logger.Errorf("[AccessListOracle][FindAllWithPagination] query failed: %v", err)
+		log.Errorf("[AccessListOracle][FindAllWithPagination] query failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer rows.Close()
@@ -150,13 +153,13 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams typ
 	for rows.Next() {
 		item, err := scanRowToAPPAccessList(rows)
 		if err != nil {
-			r.logger.Errorf("[AccessListOracle][FindAllWithPagination] scan failed: %v", err)
+			log.Errorf("[AccessListOracle][FindAllWithPagination] scan failed: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		result = append(result, item)
 	}
 	if err := rows.Err(); err != nil {
-		r.logger.Errorf("[AccessListOracle][FindAllWithPagination] rows: %v", err)
+		log.Errorf("[AccessListOracle][FindAllWithPagination] rows: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -167,6 +170,8 @@ func (r *Repository) FindAllWithPagination(ctx context.Context, filterParams typ
 }
 
 func (r *Repository) FindAll(ctx context.Context) ([]model.APPAccessList, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	query := `SELECT ` + accessListSelectCols + `
 		FROM ACCESS_LISTS
 		WHERE IS_DELETED = 0
@@ -174,7 +179,7 @@ func (r *Repository) FindAll(ctx context.Context) ([]model.APPAccessList, error)
 
 	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
-		r.logger.Errorf("[AccessListOracle][FindAll] query failed: %v", err)
+		log.Errorf("[AccessListOracle][FindAll] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -183,7 +188,7 @@ func (r *Repository) FindAll(ctx context.Context) ([]model.APPAccessList, error)
 	for rows.Next() {
 		item, err := scanRowToAPPAccessList(rows)
 		if err != nil {
-			r.logger.Errorf("[AccessListOracle][FindAll] scan failed: %v", err)
+			log.Errorf("[AccessListOracle][FindAll] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 		result = append(result, item)
@@ -196,6 +201,8 @@ func (r *Repository) FindAll(ctx context.Context) ([]model.APPAccessList, error)
 }
 
 func (r *Repository) FindAllForSegmentation(ctx context.Context) ([]local_model.APPAccessList, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	query := `SELECT RAWTOHEX(ID), NAME, SERVICE_KEY, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT
 		FROM ACCESS_LISTS
 		WHERE IS_DELETED = 0
@@ -203,7 +210,7 @@ func (r *Repository) FindAllForSegmentation(ctx context.Context) ([]local_model.
 
 	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
-		r.logger.Errorf("[AccessListOracle][FindAllForSegmentation] query failed: %v", err)
+		log.Errorf("[AccessListOracle][FindAllForSegmentation] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -219,7 +226,7 @@ func (r *Repository) FindAllForSegmentation(ctx context.Context) ([]local_model.
 			return nil, err
 		}
 		if err != nil {
-			r.logger.Errorf("[AccessListOracle][FindAllForSegmentation] scan failed: %v", err)
+			log.Errorf("[AccessListOracle][FindAllForSegmentation] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 		result = append(result, local_model.APPAccessList{
@@ -237,6 +244,8 @@ func (r *Repository) FindAllForSegmentation(ctx context.Context) ([]local_model.
 }
 
 func (r *Repository) Update(ctx context.Context, keys []string, state bool) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	if len(keys) == 0 {
 		return nil
 	}
@@ -253,7 +262,7 @@ func (r *Repository) Update(ctx context.Context, keys []string, state bool) erro
 
 	for _, key := range keys {
 		if _, err := r.db.ExecContext(ctx, query, next, strings.TrimSpace(key)); err != nil {
-			r.logger.Errorf("[AccessListOracle][Update] update failed for key=%s err=%v", key, err)
+			log.Errorf("[AccessListOracle][Update] update failed for key=%s err=%v", key, err)
 			return errors.New(localization.ErrorFailToUpdateBulkService.Code)
 		}
 	}
@@ -263,7 +272,9 @@ func (r *Repository) Update(ctx context.Context, keys []string, state bool) erro
 }
 
 func (r *Repository) FindAllByKeys(ctx context.Context, keys []string) ([]model.APPAccessList, error) {
-	r.logger.Infof("[AccessListOracle][FindAllByKeys] checking access list for keys")
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[AccessListOracle][FindAllByKeys] checking access list for keys")
 	if len(keys) == 0 {
 		return nil, nil
 	}
@@ -279,7 +290,7 @@ func (r *Repository) FindAllByKeys(ctx context.Context, keys []string) ([]model.
 
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		r.logger.Errorf("[AccessListOracle][FindAllKeys] query failed: %v", err)
+		log.Errorf("[AccessListOracle][FindAllKeys] query failed: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -290,7 +301,7 @@ func (r *Repository) FindAllByKeys(ctx context.Context, keys []string) ([]model.
 		var idHex, name, serviceKey string
 		var isEn int
 		if err := rows.Scan(&idHex, &name, &serviceKey, &isEn); err != nil {
-			r.logger.Errorf("[AccessListOracle][FindAllKeys] scan failed: %v", err)
+			log.Errorf("[AccessListOracle][FindAllKeys] scan failed: %v", err)
 			return nil, local_util.HandleDBError(err)
 		}
 		found[strings.ToUpper(strings.TrimSpace(idHex))] = model.APPAccessList{
@@ -301,7 +312,7 @@ func (r *Repository) FindAllByKeys(ctx context.Context, keys []string) ([]model.
 		}
 	}
 	if err := rows.Err(); err != nil {
-		r.logger.Errorf("[AccessListOracle][FindAllKeys] rows: %v", err)
+		log.Errorf("[AccessListOracle][FindAllKeys] rows: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -319,7 +330,9 @@ func (r *Repository) FindAllByKeys(ctx context.Context, keys []string) ([]model.
 }
 
 func (r *Repository) FindByKeys(ctx context.Context, keys []string) (map[string]string, error) {
-	r.logger.Infof("[AccessListOracle][FindByKeys] checking access list for keys")
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[AccessListOracle][FindByKeys] checking access list for keys")
 	if len(keys) == 0 {
 		return map[string]string{}, nil
 	}
@@ -335,7 +348,7 @@ func (r *Repository) FindByKeys(ctx context.Context, keys []string) (map[string]
 
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		r.logger.Errorf("[AccessListOracle][FindByKeys] query failed: %v", err)
+		log.Errorf("[AccessListOracle][FindByKeys] query failed: %v", err)
 		return map[string]string{}, local_util.HandleDBError(err)
 	}
 	defer rows.Close()
@@ -344,13 +357,13 @@ func (r *Repository) FindByKeys(ctx context.Context, keys []string) (map[string]
 	for rows.Next() {
 		var serviceKey, name string
 		if err := rows.Scan(&serviceKey, &name); err != nil {
-			r.logger.Errorf("[AccessListOracle][FindByKeys] scan failed: %v", err)
+			log.Errorf("[AccessListOracle][FindByKeys] scan failed: %v", err)
 			return map[string]string{}, local_util.HandleDBError(err)
 		}
 		found[strings.TrimSpace(serviceKey)] = name
 	}
 	if err := rows.Err(); err != nil {
-		r.logger.Errorf("[AccessListOracle][FindByKeys] rows: %v", err)
+		log.Errorf("[AccessListOracle][FindByKeys] rows: %v", err)
 		return map[string]string{}, local_util.HandleDBError(err)
 	}
 
@@ -367,7 +380,7 @@ func (r *Repository) FindByKeys(ctx context.Context, keys []string) (map[string]
 		if len(missing) == 1 {
 			msg = "key: " + strings.Join(missing, ", ") + " not found in access list"
 		}
-		r.logger.Errorf("[AccessListOracle][FindByKeys] %s", msg)
+		log.Errorf("[AccessListOracle][FindByKeys] %s", msg)
 		return map[string]string{}, errors.New(msg)
 	}
 	return found, nil
