@@ -638,6 +638,7 @@ type ServiceLayer struct {
 	CustomerKYC                   CustomerKYCService
 	UssdMerchantService           UssdMerchantService
 	BPSActionService              BPSActionService
+	SuperAppRole                  SuperAppRoleService
 	QueueManager                  *queue.QueueManager
 }
 
@@ -707,6 +708,7 @@ type ServiceContainer struct {
 	CustomerKYCContainer               CustomerKYCService
 	UssdMerchantContainer              UssdMerchantService
 	BPSActionContainer                 BPSActionService
+	SuperAppRoleContainer              SuperAppRoleService
 	QueueManager                       *queue.QueueManager
 }
 
@@ -857,5 +859,13 @@ type CustomerKYCService interface {
 	EnableOrDisable(ctx context.Context, id, reason string, enable bool) error
 	// UpdateKYCStatus(ctx context.Context, id, status string) error
 	// Delete(ctx context.Context, id string) error
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type SuperAppRoleService interface {
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.SuperAppRoleGroup], error)
+	EnableByRole(ctx context.Context, superappRole string) error
+	DisableByRole(ctx context.Context, superappRole string) error
+	DeleteByRole(ctx context.Context, superappRole string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
