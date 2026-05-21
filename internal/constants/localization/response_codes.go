@@ -920,6 +920,11 @@ var ResponseCodesList = []ResponseCode{
 	SuperAppRoleDisabledSuccessfully,
 	SuperAppRoleDeleteSubmittedSuccessfully,
 	SuperAppRoleDeletedSuccessfully,
+	SuperAppRoleAccessListsFetchedSuccessfully,
+	SuperAppRoleAccessListsBulkDisableSubmittedSuccessfully,
+	SuperAppRoleAccessListsBulkDisabledSuccessfully,
+	SuperAppRoleAccessListsBulkEnableSubmittedSuccessfully,
+	SuperAppRoleAccessListsBulkEnabledSuccessfully,
 
 	// Customer segmentations
 	CustomerSegmentationCreationSubmittedSuccessfully,
@@ -7328,6 +7333,36 @@ var (
 		Code:       "SUPERAPP_ROLE_DELETED_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    "SuperApp role deleted successfully",
+		Type:       "success",
+	}
+	SuperAppRoleAccessListsFetchedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_ACCESS_LISTS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role access lists fetched successfully",
+		Type:       "success",
+	}
+	SuperAppRoleAccessListsBulkDisableSubmittedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_ACCESS_LISTS_BULK_DISABLE_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role access lists bulk disable request submitted successfully",
+		Type:       "success",
+	}
+	SuperAppRoleAccessListsBulkDisabledSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_ACCESS_LISTS_BULK_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role access lists bulk disabled successfully",
+		Type:       "success",
+	}
+	SuperAppRoleAccessListsBulkEnableSubmittedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_ACCESS_LISTS_BULK_ENABLE_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role access lists bulk enable request submitted successfully",
+		Type:       "success",
+	}
+	SuperAppRoleAccessListsBulkEnabledSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_ACCESS_LISTS_BULK_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role access lists bulk enabled successfully",
 		Type:       "success",
 	}
 

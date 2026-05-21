@@ -276,6 +276,164 @@ func (r *superAppRoleStorage) DeleteByRole(ctx context.Context, superappRole str
 	return nil
 }
 
+func (r *superAppRoleStorage) resolveRoleUUID(ctx context.Context, superappRole string) (string, error) {
+	const q = `SELECT RAWTOHEX(SUPERAPP_ROLE_ID) FROM SEGMENTS WHERE SUPERAPP_ROLE = :1 AND ROWNUM = 1`
+	var uuid string
+	if err := r.db.QueryRowContext(ctx, q, superappRole).Scan(&uuid); err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			return "", errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		return "", local_util.HandleDBError(err)
+	}
+	return uuid, nil
+}
+
+func (r *superAppRoleStorage) FindRoleBlockedAccessLists(ctx context.Context, superappRole string) ([]imodel.APPAccessList, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	uuid, err := r.resolveRoleUUID(ctx, superappRole)
+	if err != nil {
+		return nil, err
+	}
+
+	const q = `SELECT RAWTOHEX(g.ACCESS_LIST_ID), a.NAME, a.SERVICE_KEY, RAWTOHEX(a.ID), g.IS_ENABLED
+		FROM ACCESS_LIST_BY_SUPERAPP_ROLE g
+		JOIN ACCESS_LISTS a ON g.ACCESS_LIST_ID = a.ID
+		WHERE g.SUPERAPP_ROLE_ID = HEXTORAW(:1)
+		  AND g.IS_ENABLED = 1
+		  AND g.IS_DELETED = 0`
+
+	rows, err := r.db.QueryContext(ctx, q, uuid)
+	if err != nil {
+		log.Errorf("[SuperAppRoleRepo][FindRoleBlocked] query err: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	defer rows.Close()
+	return scanAccessLists(rows)
+}
+
+func (r *superAppRoleStorage) FindGloballyEnabledAccessLists(ctx context.Context) ([]imodel.APPAccessList, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	const q = `SELECT RAWTOHEX(ID), NAME, SERVICE_KEY, IS_ENABLED
+		FROM ACCESS_LISTS
+		WHERE IS_ENABLED = 1 AND IS_DELETED = 0
+		ORDER BY NAME`
+
+	rows, err := r.db.QueryContext(ctx, q)
+	if err != nil {
+		log.Errorf("[SuperAppRoleRepo][FindGloballyEnabled] query err: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	defer rows.Close()
+	return scanAccessLists(rows)
+}
+
+func (r *superAppRoleStorage) FindAccessListsByIDs(ctx context.Context, ids []string) ([]imodel.APPAccessList, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	placeholders := make([]string, len(ids))
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		placeholders[i] = fmt.Sprintf("HEXTORAW(:%d)", i+1)
+		args[i] = id
+	}
+
+	q := fmt.Sprintf(`SELECT RAWTOHEX(ID), NAME, SERVICE_KEY, IS_ENABLED
+		FROM ACCESS_LISTS
+		WHERE ID IN (%s) AND IS_DELETED = 0`, strings.Join(placeholders, ", "))
+
+	rows, err := r.db.QueryContext(ctx, q, args...)
+	if err != nil {
+		log.Errorf("[SuperAppRoleRepo][FindAccessListsByIDs] query err: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	defer rows.Close()
+	return scanAccessLists(rows)
+}
+
+func scanAccessLists(rows *sql.Rows) ([]imodel.APPAccessList, error) {
+	var result []imodel.APPAccessList
+	for rows.Next() {
+		var id, name, serviceKey string
+		var isEnabled int
+		if err := rows.Scan(&id, &name, &serviceKey, &isEnabled); err != nil {
+			return nil, local_util.HandleDBError(err)
+		}
+		result = append(result, imodel.APPAccessList{
+			ID:             id,
+			Key:            serviceKey,
+			AccessListName: name,
+			Enabled:        isEnabled == 1,
+		})
+	}
+	return result, nil
+}
+
+func (r *superAppRoleStorage) BulkDisableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	if len(accessListIDs) == 0 {
+		return nil
+	}
+
+	uuid, err := r.resolveRoleUUID(ctx, superappRole)
+	if err != nil {
+		return err
+	}
+
+	for _, alID := range accessListIDs {
+		const q = `MERGE INTO ACCESS_LIST_BY_SUPERAPP_ROLE dst
+			USING (SELECT HEXTORAW(:1) AS AL_ID FROM DUAL) src
+			ON (dst.ACCESS_LIST_ID = src.AL_ID AND dst.SUPERAPP_ROLE_ID = HEXTORAW(:2))
+			WHEN MATCHED THEN
+				UPDATE SET IS_ENABLED = 1, LAST_MODIFIED_AT = SYSDATE
+			WHEN NOT MATCHED THEN
+				INSERT (ID, SUPERAPP_ROLE_ID, ACCESS_LIST_ID, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT)
+				VALUES (SYS_GUID(), HEXTORAW(:2), src.AL_ID, 1, 0, SYSDATE, SYSDATE, NULL)`
+		if _, err := r.db.ExecContext(ctx, q, alID, uuid); err != nil {
+			log.Errorf("[SuperAppRoleRepo][BulkDisable] merge err for alID=%s: %v", alID, err)
+			return local_util.HandleDBError(err)
+		}
+	}
+	return nil
+}
+
+func (r *superAppRoleStorage) BulkEnableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	if len(accessListIDs) == 0 {
+		return nil
+	}
+
+	uuid, err := r.resolveRoleUUID(ctx, superappRole)
+	if err != nil {
+		return err
+	}
+
+	placeholders := make([]string, len(accessListIDs))
+	args := make([]interface{}, len(accessListIDs)+1)
+	args[0] = uuid
+	for i, id := range accessListIDs {
+		placeholders[i] = fmt.Sprintf("HEXTORAW(:%d)", i+2)
+		args[i+1] = id
+	}
+
+	q := fmt.Sprintf(`DELETE FROM ACCESS_LIST_BY_SUPERAPP_ROLE
+		WHERE SUPERAPP_ROLE_ID = HEXTORAW(:1)
+		  AND ACCESS_LIST_ID IN (%s)`, strings.Join(placeholders, ", "))
+
+	if _, err := r.db.ExecContext(ctx, q, args...); err != nil {
+		log.Errorf("[SuperAppRoleRepo][BulkEnable] delete err: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	return nil
+}
+
 func parseBoolFilter(v interface{}) (bool, bool) {
 	switch t := v.(type) {
 	case bool:

@@ -51,6 +51,30 @@ func Init(router chi.Router, handler sar_iface.SuperAppRole, authMiddleware midd
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/superapp-roles/{role}/access-lists",
+			Handler: handler.GetAccessListsByRole,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/superapp-roles/{role}/access-lists/disable",
+			Handler: handler.BulkDisableAccessLists,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/superapp-roles/{role}/access-lists/enable",
+			Handler: handler.BulkEnableAccessLists,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)
