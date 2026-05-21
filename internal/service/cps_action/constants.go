@@ -1223,7 +1223,8 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestDisableCustomerGroup,
 		RequestDeleteCustomerGroup,
 	},
-	"SUPERAPPROLE": {
+	// this is made as alternative to "SUPPERROLE"
+	"CPSROLE": {
 		RequestEnableSuperAppRole,
 		RequestDisableSuperAppRole,
 		RequestDeleteSuperAppRole,
@@ -1254,13 +1255,13 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestEnableEcommerceMerchantBranch,
 		RequestDisableEcommerceMerchantBranch,
 	},
-	"CPSROLE": {
-		RequestCreateCpsRole,
-		RequestUpdateCpsRole,
-		RequestDeleteCpsRole,
-		RequestEnableCpsRole,
-		RequestDisableCpsRole,
-	},
+	// "CPSROLE": {
+	// 	RequestCreateCpsRole,
+	// 	RequestUpdateCpsRole,
+	// 	RequestDeleteCpsRole,
+	// 	RequestEnableCpsRole,
+	// 	RequestDisableCpsRole,
+	// },
 	"CUSTOMERKYC": {
 		RequestApproveCustomerKYC,
 		RequestRejectCustomerKYC,

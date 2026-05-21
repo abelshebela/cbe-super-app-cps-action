@@ -3,8 +3,10 @@ package superapprole
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"cbe-super-app-cps-action/internal/constants"
+	cps_roles_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -14,6 +16,8 @@ import (
 
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
+	"github.com/hugokessem/coreio/core"
+	climit "github.com/hugokessem/coreio/lib/core/customer/customer_limit_fetch_by_service"
 	shared_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -21,19 +25,127 @@ import (
 type superAppRoleService struct {
 	repo       storage.SuperAppRoleRepository
 	cpsService service.CPSActionService
+	core       core.CBECoreAPIInterface
 	logger     utils.Logger
 }
 
-func NewSuperAppRoleService(repo storage.SuperAppRoleRepository, cpsService service.CPSActionService, logger utils.Logger) *superAppRoleService {
+func NewSuperAppRoleService(repo storage.SuperAppRoleRepository, cpsService service.CPSActionService, coreInterface core.CBECoreAPIInterface, logger utils.Logger) *superAppRoleService {
 	return &superAppRoleService{
 		repo:       repo,
 		cpsService: cpsService,
+		core:       coreInterface,
 		logger:     logger,
 	}
 }
 
 func (s *superAppRoleService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.SuperAppRoleGroup], error) {
 	return s.repo.FindAllWithPagination(ctx, filterParam)
+}
+
+func (s *superAppRoleService) GetTransferLimitByRole(ctx context.Context, superappRole string, filterParam types.Filter) (*types.PaginatedResponse[[]cps_roles_dto.ServiceLevelLimitResponse], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
+	serviceCode := "GLOBAL-" + strings.ToUpper(superappRole)
+	response, err := s.core.CustomerLimitFetchByService(core.CustomerLimitFetchByServiceParam{
+		ServiceCode: serviceCode,
+	})
+	if err != nil {
+		log.Errorf("[SuperAppRole][GetTransferLimitByRole] core call err: %v", err)
+		return nil, err
+	}
+
+	if !response.Success {
+		log.Warnf("[SuperAppRole][GetTransferLimitByRole] core returned failure for role: %s", superappRole)
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
+	}
+
+	results := buildLimitResults(response)
+	return paginate(results, filterParam), nil
+}
+
+func buildLimitResults(response *core.CustomerLimitFetchByServiceResult) []cps_roles_dto.ServiceLevelLimitResponse {
+	serviceMap := make(map[string]*cps_roles_dto.ServiceLevelLimitResponse)
+
+	if response.Detail != nil && response.Detail.GChannelType != nil {
+		for _, ch := range response.Detail.GChannelType.MChannelType {
+			applyChannelToMap(serviceMap, ch)
+		}
+	}
+
+	results := make([]cps_roles_dto.ServiceLevelLimitResponse, 0, len(serviceMap))
+	for _, v := range serviceMap {
+		results = append(results, *v)
+	}
+	return results
+}
+
+func applyChannelToMap(serviceMap map[string]*cps_roles_dto.ServiceLevelLimitResponse, ch climit.MChannelType) {
+	if ch.SGServiceTypes == nil {
+		return
+	}
+	for _, svc := range ch.SGServiceTypes.GServiceType {
+		if _, exists := serviceMap[svc.Name]; !exists {
+			serviceMap[svc.Name] = &cps_roles_dto.ServiceLevelLimitResponse{Name: svc.Name}
+		}
+		entry := serviceMap[svc.Name]
+		switch ch.ChannelType {
+		case "APP":
+			entry.SuperAppMaxLimit = svc.CHANNELMAXLIMIT
+			entry.SuperAppTranFreq = svc.CHANNELCOUNT
+		case "USSD":
+			entry.USSDMaxLimit = svc.CHANNELMAXLIMIT
+			entry.USSDTranFreq = svc.CHANNELCOUNT
+		}
+	}
+}
+
+func paginate(results []cps_roles_dto.ServiceLevelLimitResponse, filterParam types.Filter) *types.PaginatedResponse[[]cps_roles_dto.ServiceLevelLimitResponse] {
+	total := int64(len(results))
+	page := filterParam.Page
+	if page < 1 {
+		page = 1
+	}
+	limit := filterParam.PerPage
+	if limit < 1 {
+		limit = 10
+	}
+
+	totalPages := int(total) / limit
+	if int(total)%limit > 0 {
+		totalPages++
+	}
+
+	start := (page - 1) * limit
+	if start > int(total) {
+		start = int(total)
+	}
+	end := start + limit
+	if end > int(total) {
+		end = int(total)
+	}
+
+	meta := types.PaginationMeta{
+		TotalDocs:     total,
+		Limit:         limit,
+		TotalPages:    totalPages,
+		Page:          page,
+		PagingCounter: start + 1,
+		HasPrevPage:   page > 1,
+		HasNextPage:   page < totalPages,
+	}
+	if meta.HasPrevPage {
+		prev := page - 1
+		meta.PrevPage = &prev
+	}
+	if meta.HasNextPage {
+		next := page + 1
+		meta.NextPage = &next
+	}
+
+	return &types.PaginatedResponse[[]cps_roles_dto.ServiceLevelLimitResponse]{
+		Data: results[start:end],
+		Meta: meta,
+	}
 }
 
 func (s *superAppRoleService) EnableByRole(ctx context.Context, superappRole string) error {
