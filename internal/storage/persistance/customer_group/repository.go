@@ -17,6 +17,7 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/superapp_mapper/checksum"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -72,7 +73,8 @@ func (r *customerGroupStorage) Create(ctx context.Context, seg *imodel.Segment) 
 		return errors.New(localization.ErrorNoDataProvided.Code)
 	}
 
-	checkSum := computeCheckSum(seg.CustomerGroup, seg.CustomerSegment, seg.CustomerSubsegment)
+	data := fmt.Sprintf("%s:%s:%s", seg.CustomerGroup, seg.CustomerSegment, seg.CustomerSubsegment)
+	checkSum := checksum.Checksum(data)
 
 	var count int
 	const dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1`
@@ -144,7 +146,8 @@ func (r *customerGroupStorage) Update(ctx context.Context, id string, seg *imode
 		return errors.New(localization.ErrorNoDataProvided.Code)
 	}
 
-	checkSum := computeCheckSum(seg.CustomerGroup, seg.CustomerSegment, seg.CustomerSubsegment)
+	data := fmt.Sprintf("%s:%s:%s", seg.CustomerGroup, seg.CustomerSegment, seg.CustomerSubsegment)
+	checkSum := checksum.Checksum(data)
 
 	var count int
 	const dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1 AND ID != HEXTORAW(:2)`
@@ -410,8 +413,8 @@ type rowScanner interface {
 func scanSegment(row rowScanner) (*imodel.Segment, error) {
 	var (
 		id, cg, cgl, cs, csl, csu, csul, sar, sarl string
-		enabledN                                     int
-		createdAt, lastModifiedAt                    sql.NullTime
+		enabledN                                   int
+		createdAt, lastModifiedAt                  sql.NullTime
 	)
 	if err := row.Scan(&id, &cg, &cgl, &cs, &csl, &csu, &csul, &sar, &sarl, &enabledN, &createdAt, &lastModifiedAt); err != nil {
 		return nil, err
@@ -440,8 +443,8 @@ func scanSegment(row rowScanner) (*imodel.Segment, error) {
 func scanSegmentRow(rows *sql.Rows) (*imodel.Segment, error) {
 	var (
 		id, cg, cgl, cs, csl, csu, csul, sar, sarl string
-		enabledN                                     int
-		createdAt, lastModifiedAt                    sql.NullTime
+		enabledN                                   int
+		createdAt, lastModifiedAt                  sql.NullTime
 	)
 	if err := rows.Scan(&id, &cg, &cgl, &cs, &csl, &csu, &csul, &sar, &sarl, &enabledN, &createdAt, &lastModifiedAt); err != nil {
 		return nil, err
