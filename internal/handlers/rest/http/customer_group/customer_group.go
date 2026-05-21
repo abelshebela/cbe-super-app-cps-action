@@ -52,6 +52,7 @@ func (h *CustomerGroupAdapter) CreateCustomerGroup(w http.ResponseWriter, r *htt
 		localization.SendErrorByCodeResponse(w, "invalid request format")
 		return
 	}
+
 	if err := req.Validate(); err != nil {
 		log.Errorf("[CreateCustomerGroup] validation err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
