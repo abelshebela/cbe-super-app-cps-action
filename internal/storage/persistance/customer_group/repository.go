@@ -65,6 +65,48 @@ func boolToNumber(v bool) int {
 	return 0
 }
 
+func (r *customerGroupStorage) DuplicateCheck(ctx context.Context, action, id, group, segment, subsegment string) (bool, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+	var dupQ string
+	var segments, subsegments string
+	if segment == "" {
+		segments = "*"
+	} else {
+		segment = strings.TrimSpace(segment)
+	}
+	if subsegment == "" {
+		subsegments = "*"
+	} else {
+		subsegment = strings.TrimSpace(subsegment)
+	}
+	data := fmt.Sprintf("%s:%s:%s", strings.TrimSpace(group), segments, subsegments)
+	checkSum := checksum.Checksum(data)
+
+	var count int
+
+	dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1`
+
+	if action == "update" {
+		dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1 AND ID != HEXTORAW(:2)`
+		idHex, ok := normalizeSegmentHex(id)
+		if !ok {
+			return false, errors.New(localization.ErrorInvalidID.Code)
+		}
+		if err := r.db.QueryRowContext(ctx, dupQ, checkSum, idHex).Scan(&count); err != nil {
+			log.Errorf("[CustomerGroup][DuplicateCheck] duplicate check failed: %v", err)
+			return false, local_util.HandleDBError(err)
+		}
+	} else {
+		dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1`
+		if err := r.db.QueryRowContext(ctx, dupQ, checkSum).Scan(&count); err != nil {
+			log.Errorf("[CustomerGroup][DuplicateCheck] duplicate check failed: %v", err)
+			return false, local_util.HandleDBError(err)
+		}
+	}
+
+	return count > 0, nil
+}
+
 func (r *customerGroupStorage) Create(ctx context.Context, seg *imodel.Segment) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 	log.Infof("[CustomerGroup][Create] creating segment: %+v", seg)
@@ -76,15 +118,14 @@ func (r *customerGroupStorage) Create(ctx context.Context, seg *imodel.Segment) 
 	if seg.CustomerSegment == "" {
 		segment = "*"
 	} else {
-		segment = seg.CustomerSegment
+		segment = strings.TrimSpace(seg.CustomerSegment)
 	}
 	if seg.CustomerSubsegment == "" {
 		subsegment = "*"
 	} else {
-		subsegment = seg.CustomerSubsegment
+		subsegment = strings.TrimSpace(seg.CustomerSubsegment)
 	}
-	
-	data := fmt.Sprintf("%s:%s:%s", seg.CustomerGroup, segment, subsegment)
+	data := fmt.Sprintf("%s:%s:%s", strings.TrimSpace(seg.CustomerGroup), segment, subsegment)
 	checkSum := checksum.Checksum(data)
 
 	var count int

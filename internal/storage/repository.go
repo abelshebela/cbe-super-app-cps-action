@@ -977,4 +977,5 @@ type CustomerGroupRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*imodel.Segment, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Segment], error)
+	DuplicateCheck(ctx context.Context, action, id, group, segment, subsegment string) (bool, error)
 }
