@@ -45,6 +45,7 @@ import (
 	cps_role_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
+	customer_group_dto "cbe-super-app-cps-action/internal/constants/dto/customer_group"
 
 	"context"
 	"mime/multipart"
@@ -551,6 +552,16 @@ type CustomerSegmentationService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type CustomerGroupService interface {
+	Create(ctx context.Context, req customer_group_dto.CreateSegmentRequest) error
+	Update(ctx context.Context, id string, req customer_group_dto.UpdateSegmentRequest) error
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]imodel.Segment], error)
+	FindByID(ctx context.Context, id string) (*imodel.Segment, error)
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
 type CPSRolesService interface {
 	Create(ctx context.Context, req cps_role_dto.CreateCPSRoleRequest) error
 	Update(ctx context.Context, id string, req cps_role_dto.UpdateCPSRoleRequest) error
@@ -622,6 +633,7 @@ type ServiceLayer struct {
 	JobRoleService                JobRoleService
 	AccessListSegmentationService AccessListSegmentationService
 	CustomerSegmentation          CustomerSegmentationService
+	CustomerGroup                 CustomerGroupService
 	CPSRoles                      CPSRolesService
 	CustomerKYC                   CustomerKYCService
 	UssdMerchantService           UssdMerchantService
@@ -690,6 +702,7 @@ type ServiceContainer struct {
 	MiniAppProductCodeContainer        MiniappProductCodeService
 	AccessListSegmentationContainer    AccessListSegmentationService
 	CustomerSegmentationContainer      CustomerSegmentationService
+	CustomerGroupContainer             CustomerGroupService
 	CPSRolesContainer                  CPSRolesService
 	CustomerKYCContainer               CustomerKYCService
 	UssdMerchantContainer              UssdMerchantService

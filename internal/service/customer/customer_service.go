@@ -496,6 +496,7 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 		))
 		return nil, err
 	}
+
 	// use external call to get missing account detail
 	coreRes, err := d.core.CifSearch(ctx, res.PersonalInfo.CustomerNumber)
 	if err != nil {
@@ -508,27 +509,29 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 	}
 
 	log.Infof("core result data---------------------: %v", coreRes)
-	log.Infof("core result data branch name---------------------: %v", coreRes[0].BranchName)
+
 	if len(coreRes) > 0 {
 		res.PersonalInfo.DateOfBirth = coreRes[0].BirthOfDate
 		res.PersonalInfo.MaritalStatus = coreRes[0].Email
-		res.PersonalInfo.Branch = coreRes[0].Branch
-		res.PersonalInfo.BranchName = coreRes[0].Branch
 		res.PersonalInfo.Gender = coreRes[0].Gender
 		res.PersonalInfo.Email = coreRes[0].Email
+		res.PersonalInfo.PhoneNumber = coreRes[0].PhoneNo
 	}
-	// for i, linkedAccount := range res.LinkedAccount {
-	// 	coreResBranch, err := d.core.LookupAccountByAccountNumberFromBps(ctx, linkedAccount.AccountNumber)
-	// 	if err != nil {
-	// 		log.Errorf("[CustomerSvc][GetCustomerDetailByID] LookupAccountByAccountNumberFromBps error: %v", err)
-	// 		span.AddEvent("Failed to lookup account by account number from BPS", trace.WithAttributes(
-	// 			attribute.String("error", err.Error()),
-	// 			attribute.String("account_number", linkedAccount.AccountNumber),
-	// 		))
-	// 		continue
-	// 	}
-	// 	res.LinkedAccount[i].AccountBranchCode = coreResBranch.Data.AccountBranchCode
-	// 	res.LinkedAccount[i].AccountBranchName = coreResBranch.Data.na
-	// }
+
+	if len(res.LinkedAccount) != 0 {
+		for i, linkedAccount := range res.LinkedAccount {
+
+			if len(coreRes) != 0 {
+				for _, coreResBranch := range coreRes {
+					if linkedAccount.AccountNumber == coreResBranch.AccountNumber {
+						res.LinkedAccount[i].AccountBranchCode = coreResBranch.BranchCode
+						res.LinkedAccount[i].AccountBranchName = coreResBranch.Branch
+						break
+					}
+				}
+			}
+			// res.LinkedAccount[i].AccountBranchName = coreResBranch.Data.na
+		}
+	}
 	return res, nil
 }

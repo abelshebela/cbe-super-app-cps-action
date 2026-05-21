@@ -898,6 +898,20 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAccessListSegmentationCreated,
 	AccessListSegmentationCreatedSuccessfully,
 
+	// Customer Group
+	ErrorCustomerGroupAlreadyExists,
+	CustomerGroupCreationSubmittedSuccessfully,
+	CustomerGroupUpdateSubmittedSuccessfully,
+	CustomerGroupFetchedSuccessfully,
+	CustomerGroupDeletedSuccessfully,
+	CustomerGroupDeleteRequestSubmittedSuccessfully,
+	CustomerGroupEnableSubmittedSuccessfully,
+	CustomerGroupEnabledSuccessfully,
+	CustomerGroupDisableSubmittedSuccessfully,
+	CustomerGroupDisabledSuccessfully,
+	CustomerGroupCreated,
+	CustomerGroupUpdated,
+
 	// Customer segmentations
 	CustomerSegmentationCreationSubmittedSuccessfully,
 	CustomerSegmentationUpdateSubmittedSuccessfully,
@@ -7180,6 +7194,80 @@ var (
 		Code:       "CUSTOMER_SEGMENTATION_DISABLED",
 		StatusCode: StatusOK,
 		Message:    "Customer segmentation disabled successfully",
+		Type:       "success",
+	}
+
+	// Customer Group response codes
+	ErrorCustomerGroupAlreadyExists = ResponseCode{
+		Code:       "ERROR_CUSTOMER_GROUP_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    "A segment with this group/segment/subsegment combination already exists",
+		Type:       "error",
+	}
+	CustomerGroupCreationSubmittedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_GROUP_CREATION_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Customer group creation request submitted successfully",
+		Type:       "success",
+	}
+	CustomerGroupUpdateSubmittedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_GROUP_UPDATE_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Customer group update request submitted successfully",
+		Type:       "success",
+	}
+	CustomerGroupFetchedSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_GROUP_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer group fetched successfully",
+		Type:       "success",
+	}
+	CustomerGroupDeletedSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_GROUP_DELETED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer group deleted successfully",
+		Type:       "success",
+	}
+	CustomerGroupDeleteRequestSubmittedSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_GROUP_DELETE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer group delete request submitted successfully",
+		Type:       "success",
+	}
+	CustomerGroupEnableSubmittedSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_GROUP_ENABLE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer group enable request submitted successfully",
+		Type:       "success",
+	}
+	CustomerGroupEnabledSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_GROUP_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer group enabled successfully",
+		Type:       "success",
+	}
+	CustomerGroupDisableSubmittedSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_GROUP_DISABLE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer group disable request submitted successfully",
+		Type:       "success",
+	}
+	CustomerGroupDisabledSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_GROUP_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer group disabled successfully",
+		Type:       "success",
+	}
+	CustomerGroupCreated = ResponseCode{
+		Code:       "CUSTOMER_GROUP_CREATED",
+		StatusCode: StatusCreated,
+		Message:    "Customer group created successfully",
+		Type:       "success",
+	}
+	CustomerGroupUpdated = ResponseCode{
+		Code:       "CUSTOMER_GROUP_UPDATED",
+		StatusCode: StatusOK,
+		Message:    "Customer group updated successfully",
 		Type:       "success",
 	}
 

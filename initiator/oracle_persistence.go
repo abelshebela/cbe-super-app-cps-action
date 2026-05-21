@@ -14,6 +14,7 @@ import (
 	cpsroles "cbe-super-app-cps-action/internal/storage/persistance/cps_roles"
 	customer_oracle "cbe-super-app-cps-action/internal/storage/persistance/customer/oracle"
 	customer_kyc "cbe-super-app-cps-action/internal/storage/persistance/customer_kyc"
+	customergroup "cbe-super-app-cps-action/internal/storage/persistance/customer_group"
 	customersegmentaion "cbe-super-app-cps-action/internal/storage/persistance/customer_segmentaion"
 	donation_oracle "cbe-super-app-cps-action/internal/storage/persistance/donation/oracle"
 	donation_category_oracle "cbe-super-app-cps-action/internal/storage/persistance/donation_category/oracle"
@@ -53,6 +54,7 @@ type OraclePersistence struct {
 	DonationCompany       storage.DonationCompanyRepository
 	Donation              storage.DonationRepository
 	CustomerKYC           storage.CustomerKYCRepository
+	CustomerGroup         storage.CustomerGroupRepository
 }
 
 func InitOraclePersistence(client *mongo.Client, db *sql.DB, cfg *config.VaultConfig, clientOrchestrationProducer kafka.ClientOrchestrationProducer, accessListSegmentationProducer *kafka.AccessListSegmentationProducer, redisRepository storage.RedisRepository, log utils.Logger) OraclePersistence {
@@ -86,6 +88,7 @@ func InitOraclePersistence(client *mongo.Client, db *sql.DB, cfg *config.VaultCo
 			donation_oracle.NewRepository(db, log),
 			clientOrchestrationProducer,
 		),
-		CustomerKYC: customer_kyc.NewCustomerKYCRepository(client, db, cfg, cfg.MongoDBDatabase, CustomersKYCCollection, log),
+		CustomerKYC:   customer_kyc.NewCustomerKYCRepository(client, db, cfg, cfg.MongoDBDatabase, CustomersKYCCollection, log),
+		CustomerGroup: customergroup.NewCustomerGroupRepository(cfg, db, log),
 	}
 }

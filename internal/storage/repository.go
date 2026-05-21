@@ -963,3 +963,12 @@ type UserActionLogRepository interface {
 	GetActionCodesByUserAndAuditorStatus(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility, status string) ([]string, error)
 	GetLogsByActionCode(ctx context.Context, actionCode string) ([]imodel.UserActionLog, error)
 }
+
+type CustomerGroupRepository interface {
+	Create(ctx context.Context, seg *imodel.Segment) error
+	Update(ctx context.Context, id string, seg *imodel.Segment) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*imodel.Segment, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Segment], error)
+}

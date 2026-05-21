@@ -183,21 +183,21 @@ func CheckServices(self, other, agent *bool, selfServiceID, otherServiceID, agen
 
 	return services, nil
 }
-func CheckServiceIDInWalletService(ctx context.Context, selfServiceID, otherServiceID, agentServiceID string, repo storage.WalletOracleRepository, logger utils.Logger) error {
+func CheckServiceIDInWalletService(ctx context.Context, selfServiceID, otherServiceID, agentServiceID string, repo storage.WalletOracleRepository, prev *local_model.WalletOracle, logger utils.Logger) error {
 	ids, err := repo.CheckServiceIDInWalletService(ctx, selfServiceID, otherServiceID, agentServiceID)
 	if err != nil {
 		logger.Errorf("[WalletCore][CheckServiceIDInWalletService] Error checking service IDs: %v", err)
 		return err
 	}
-	if selfServiceID != "" && slices.Contains(ids, selfServiceID) {
+	if selfServiceID != "" && slices.Contains(ids, selfServiceID) && (prev == nil || selfServiceID != prev.SelfServiceID) {
 		logger.Errorf("[WalletCore][CheckServiceIDInWalletService] Self service ID already exists: %s", selfServiceID)
 		return errors.New(localization.ErrorSelfServiceAlreadyExist.Code)
 	}
-	if otherServiceID != "" && slices.Contains(ids, otherServiceID) {
+	if otherServiceID != "" && slices.Contains(ids, otherServiceID) && (prev == nil || otherServiceID != prev.OtherServiceID) {
 		logger.Errorf("[WalletCore][CheckServiceIDInWalletService] Other service ID already exists: %s", otherServiceID)
 		return errors.New(localization.ErrorOtherServiceAlreadyExists.Code)
 	}
-	if agentServiceID != "" && slices.Contains(ids, agentServiceID) {
+	if agentServiceID != "" && slices.Contains(ids, agentServiceID) && (prev == nil || agentServiceID != prev.AgentServiceID) {
 		logger.Errorf("[WalletCore][CheckServiceIDInWalletService] Agent service ID already exists: %s", agentServiceID)
 		return errors.New(localization.ErrorAgentServiceAlreadyExists.Code)
 	}
