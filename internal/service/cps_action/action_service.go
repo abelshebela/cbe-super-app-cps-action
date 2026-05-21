@@ -131,6 +131,10 @@ func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	}
 
 	ca.logUserAction(ctx, act, imodel.AUDITOR, "", imodel.AuditorMark(auditor.AuditorMark), "", fmt.Sprintf("%d", activeGroup))
+	if ca.actionLogRepo.AuditorMarkLogsByActionCode(ctx, actionCode, string(auditor.AuditorMark)) != nil {
+		span.AddEvent("failed to log auditor mark actions by action code", trace.WithAttributes(attribute.String("error", "failed to log auditor mark actions by action code")))
+		log.Errorf("[CpsActionSvc][AuditorMark] failed to log auditor mark actions by action code: %s", actionCode)
+	}
 	return nil
 }
 
@@ -167,6 +171,7 @@ func (ca *cpsActionService) logUserAction(ctx context.Context, action *model.CPS
 		UserID:                     userOID,
 		Username:                   userData.UserName,
 		UserPhone:                  userData.PhoneNumber,
+		ActionType:                 imodel.CPSActions,
 		UserActionResponsibilities: responsibility,
 		CreatedAt:                  time.Now(),
 	}
@@ -560,11 +565,18 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 		return err
 	}
 
+	if ca.actionLogRepo.ApproveUserActionsByActionCode(ctx, action.ActionCode) != nil {
+		span.AddEvent("failed to approve user actions by action code", trace.WithAttributes(attribute.String("error", "failed to approve user actions by action code")))
+		log.Errorf("[CpsActionSvc][Approve] failed to approve user actions by action code: %s", action.ActionCode)
+		// Note: The main operation has succeeded at this point, so we don't return an error to avoid rolling back the main operation. Instead, we log the error for further investigation.
+	}
+
 	return nil
 
 }
 func (ca *cpsActionService) RejectCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "RejectCPSAction", "CPSAction", "RejectCPSAction")
+	log := local_util.LoggerFromCtx(ctx, ca.logger)
 	defer span.End()
 	_, err := ca.repo.Update(ctx, action_code, *action, "", nil)
 	if err != nil {
@@ -576,15 +588,29 @@ func (ca *cpsActionService) RejectCPSAction(ctx context.Context, action_code str
 		checkerLevel = fmt.Sprintf("%d", idx)
 	}
 	ca.logUserAction(ctx, action, imodel.CHECKER, constants.Rejected, "", checkerLevel, "")
+
+	if ca.actionLogRepo.RejectUserActionsByActionCode(ctx, action.ActionCode) != nil {
+		span.AddEvent("failed to reject user actions by action code", trace.WithAttributes(attribute.String("error", "failed to reject user actions by action code")))
+		log.Errorf("[CpsActionSvc][Reject] failed to reject user actions by action code: %s", action.ActionCode)
+		// Note: The main operation has succeeded at this point, so we don't return an error to avoid rolling back the main operation. Instead, we log the error for further investigation.
+	}
 	return nil
 }
 func (ca *cpsActionService) CancelCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "CancelCPSAction", "CPSAction", "CancelCPSAction")
+	log := local_util.LoggerFromCtx(ctx, ca.logger)
 	defer span.End()
 	_, err := ca.repo.Update(ctx, action_code, *action, "", nil)
 	if err != nil {
 		span.AddEvent("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
+		log.Errorf("[CpsActionSvc][Cancel] failed to update cps action: %v", err)
 		return err
+	}
+	ca.logUserAction(ctx, action, imodel.MAKER, "CANCELED", "", "", "")
+	if ca.actionLogRepo.CancelUserActionsByActionCode(ctx, action.ActionCode) != nil {
+		span.AddEvent("failed to cancel user actions by action code", trace.WithAttributes(attribute.String("error", "failed to cancel user actions by action code")))
+		log.Errorf("[CpsActionSvc][Cancel] failed to cancel user actions by action code: %s", action.ActionCode)
+		// Note: The main operation has succeeded at this point, so we don't return an error to avoid rolling back the main operation. Instead, we log the error for further investigation.
 	}
 	return nil
 }

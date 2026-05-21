@@ -2,6 +2,7 @@ package bps_action
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"time"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 
@@ -39,6 +40,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -55,25 +57,20 @@ type bpsActionPublishPayload struct {
 }
 
 type bpsActionService struct {
-	repo storage.BPSActionRepository
-
-	roles storage.BPSActionRoleRepository
-
-	customerRepo storage.CustomerRepository
-
+	repo                      storage.BPSActionRepository
+	roles                     storage.BPSActionRoleRepository
+	customerRepo              storage.CustomerRepository
+	actionLogRepo             storage.UserActionLogRepository
 	archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository
-
-	bpsUserRepo storage.BPSUserRepository
-
-	cpsUserRepo storage.CpsUserRepository
-
-	logger utils.Logger
+	bpsUserRepo               storage.BPSUserRepository
+	cpsUserRepo               storage.CpsUserRepository
+	logger                    utils.Logger
 
 	dispatcher Dispatcher
 	cfg        config.VaultConfig
 }
 
-func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, bpsUserRepo storage.BPSUserRepository, cpsUserRepo storage.CpsUserRepository, logger utils.Logger, dispatcher Dispatcher, cfg config.VaultConfig) service.BPSActionService {
+func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, bpsUserRepo storage.BPSUserRepository, cpsUserRepo storage.CpsUserRepository, actionLogRepo storage.UserActionLogRepository, logger utils.Logger, dispatcher Dispatcher, cfg config.VaultConfig) service.BPSActionService {
 
 	return &bpsActionService{
 
@@ -90,6 +87,8 @@ func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPS
 		bpsUserRepo: bpsUserRepo,
 
 		cpsUserRepo: cpsUserRepo,
+
+		actionLogRepo: actionLogRepo,
 
 		dispatcher: dispatcher,
 		cfg:        cfg,
@@ -796,4 +795,47 @@ func (ba *bpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 
 	return result, nil
 
+}
+
+func (ca *bpsActionService) logUserAction(ctx context.Context, action *model.CPSAction, responsibility imodel.UserActionResponsibility, givenStatus string, auditorMark imodel.AuditorMark, checkerLevel, auditorLevel string) {
+	reqLog := local_util.LoggerFromCtx(ctx, ca.logger)
+	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
+
+	userData := local_util.ExtractUserFromContext(ctx)
+	if ca.actionLogRepo == nil {
+		return
+	}
+
+	// userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
+
+	userOID, _ := bson.ObjectIDFromHex(userData.UserID)
+	actionOID := action.ID
+
+	serviceName := ""
+	if mod, ok := ResolveModuleForRA(RequestAction(action.RequestAction)); ok {
+		serviceName = mod
+	}
+
+	actionLog := &imodel.UserActionLog{
+		ID:                         bson.NewObjectID(),
+		ActionID:                   actionOID,
+		ActionCode:                 action.ActionCode,
+		GivenActionStatus:          givenStatus,
+		GivenAuditorStatus:         auditorMark,
+		RequestAction:              constants.RequestAction(action.RequestAction),
+		ActionTakenServiceName:     serviceName,
+		CheckerLevel:               checkerLevel,
+		AuditorLevel:               auditorLevel,
+		UserRoleCode:               roleCode,
+		UserID:                     userOID,
+		Username:                   userData.UserName,
+		UserPhone:                  userData.PhoneNumber,
+		ActionType:                 imodel.BPSActions,
+		UserActionResponsibilities: responsibility,
+		CreatedAt:                  time.Now(),
+	}
+
+	if err := ca.actionLogRepo.Save(ctx, actionLog); err != nil {
+		reqLog.Errorf("[CpsActionSvc][logUserAction] failed to log action: %v", err)
+	}
 }
