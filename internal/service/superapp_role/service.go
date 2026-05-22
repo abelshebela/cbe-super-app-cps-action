@@ -18,8 +18,8 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"github.com/hugokessem/coreio/core"
-	climit "github.com/hugokessem/coreio/lib/core/customer/customer_limit_fetch_by_service"
 	cifLimit "github.com/hugokessem/coreio/lib/core/customer/customer_limit_fetch_by_cif"
+	climit "github.com/hugokessem/coreio/lib/core/customer/customer_limit_fetch_by_service"
 	shared_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -327,9 +327,16 @@ func (s *superAppRoleService) BulkDisableAccessLists(ctx context.Context, supera
 		return err
 	}
 	if len(objects) != len(req.AccessListIDs) {
-		return errors.New(localization.ErrorResourceNotFound.Code)
+		log.Errorf("[SuperAppRole][BulkDisableAccessLists] requested %d IDs but found %d", len(req.AccessListIDs), len(objects))
+		return errors.New(localization.ErrorSomeAccesslistNotFound.Code)
 	}
 
+	for _, obj := range objects {
+		if !obj.Enabled {
+			log.Errorf("[SuperAppRole][BulkDisableAccessLists] access list %s is already disabled", obj.ID)
+			return errors.New(localization.ErrorSomeAccesslistAlreadyDisabled.Code)
+		}
+	}
 	prev := setEnabled(objects, true)
 	curr := setEnabled(objects, false)
 
@@ -366,10 +373,18 @@ func (s *superAppRoleService) BulkEnableAccessLists(ctx context.Context, superap
 		log.Errorf("[SuperAppRole][BulkEnableAccessLists] fetch ids err: %v", err)
 		return err
 	}
+
 	if len(objects) != len(req.AccessListIDs) {
-		return errors.New(localization.ErrorResourceNotFound.Code)
+		log.Errorf("[SuperAppRole][BulkEnableAccessLists] requested %d IDs but found %d", len(req.AccessListIDs), len(objects))
+		return errors.New(localization.ErrorSomeAccesslistNotFound.Code)
 	}
 
+	for _, obj := range objects {
+		if obj.Enabled {
+			log.Errorf("[SuperAppRole][BulkEnableAccessLists] access list %s is already enabled", obj.ID)
+			return errors.New(localization.ErrorSomeAccesslistAlreadyEnabled.Code)
+		}
+	}
 	prev := setEnabled(objects, false)
 	curr := setEnabled(objects, true)
 
