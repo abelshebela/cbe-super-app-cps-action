@@ -340,6 +340,7 @@ func (s *superAppRoleService) BulkDisableAccessLists(ctx context.Context, supera
 	prev := setEnabled(objects, true)
 	curr := setEnabled(objects, false)
 
+	log.Infof("[SuperAppRole][BulkDisableAccessLists] prepared prev data: %v and curr data: %v states for role %s: prev enabled IDs: %v, curr disabled IDs: %v", prev, curr, superappRole, extractIDs(prev), extractIDs(curr))
 	cpsActionData := lib.CpsModelBuilder(
 		superappRole,
 		makerUser,
@@ -387,6 +388,8 @@ func (s *superAppRoleService) BulkEnableAccessLists(ctx context.Context, superap
 	}
 	prev := setEnabled(objects, false)
 	curr := setEnabled(objects, true)
+
+	log.Infof("[SuperAppRole][BulkEnableAccessLists] prepared prev data: %v and curr data: %v states for role %s: prev enabled IDs: %v, curr disabled IDs: %v", prev, curr, superappRole, extractIDs(prev), extractIDs(curr))
 
 	cpsActionData := lib.CpsModelBuilder(
 		superappRole,
