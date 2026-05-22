@@ -338,6 +338,37 @@ func (r *superAppRoleStorage) FindGloballyDisabledAccessLists(ctx context.Contex
 	return scanAccessLists(rows)
 }
 
+func (r *superAppRoleStorage) FindBlockedAccessListsByIDs(ctx context.Context, superappRole string, accessListIDs []string) ([]imodel.APPAccessList, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	if len(accessListIDs) == 0 {
+		return nil, nil
+	}
+
+	placeholders := make([]string, len(accessListIDs))
+	args := make([]interface{}, len(accessListIDs)+1)
+	args[0] = superappRole
+	for i, id := range accessListIDs {
+		placeholders[i] = fmt.Sprintf("HEXTORAW(:%d)", i+2)
+		args[i+1] = id
+	}
+
+	q := fmt.Sprintf(`SELECT RAWTOHEX(g.ACCESS_LIST_ID) AS ID, a.NAME , a.SERVICE_KEY, g.IS_ENABLED
+		FROM ACCESS_LIST_BY_SUPERAPP_ROLE g
+		JOIN ACCESS_LISTS a ON g.ACCESS_LIST_ID = a.ID
+		WHERE g.SUPERAPP_ROLE_ID = :1
+		  AND g.ACCESS_LIST_ID IN (%s)
+		  AND g.IS_ENABLED = 1
+		  AND g.IS_DELETED = 0`, strings.Join(placeholders, ", "))
+
+	rows, err := r.db.QueryContext(ctx, q, args...)
+	if err != nil {
+		log.Errorf("[SuperAppRoleRepo][FindBlockedByIDs] query err: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	defer rows.Close()
+	return scanAccessLists(rows)
+}
 func (r *superAppRoleStorage) FindAccessListsByIDs(ctx context.Context, ids []string) ([]imodel.APPAccessList, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
