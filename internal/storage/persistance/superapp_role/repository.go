@@ -396,16 +396,27 @@ func (r *superAppRoleStorage) BulkDisableAccessLists(ctx context.Context, supera
 	}
 
 	for _, alID := range accessListIDs {
-		const q = `MERGE INTO ACCESS_LIST_BY_SUPERAPP_ROLE dst
-			USING (SELECT HEXTORAW(:1) AS AL_ID FROM ACCESS_LISTS) src
-			ON (dst.ACCESS_LIST_ID = src.AL_ID AND dst.SUPERAPP_ROLE_ID = :2)
-			WHEN MATCHED THEN
-				UPDATE SET IS_ENABLED = 1, LAST_MODIFIED_AT = SYSDATE
-			WHEN NOT MATCHED THEN
-				INSERT (ID, SUPERAPP_ROLE_ID, ACCESS_LIST_ID, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT)
-				VALUES (SYS_GUID(), :2, src.AL_ID, 1, 0, SYSDATE, SYSDATE, NULL)`
-		if _, err := r.db.ExecContext(ctx, q, alID, superappRole); err != nil {
-			log.Errorf("[SuperAppRoleRepo][BulkDisable] merge err for alID=%s: %v", alID, err)
+		const q = `
+		INSERT INTO ACCESS_LIST_BY_SUPERAPP_ROLE (
+			ID,
+			SUPERAPP_ROLE_ID,
+			ACCESS_LIST_ID,
+			IS_ENABLED,
+			IS_DELETED,
+			CREATED_AT,
+			LAST_MODIFIED_AT,
+			DELETED_AT
+		) Values (
+			SYS_GUID(), :1, HEXTORAW(:2), 1, 0, SYSDATE, SYSDATE, NULL
+		)
+	`
+
+		if _, err := r.db.ExecContext(ctx, q, superappRole, alID); err != nil {
+			log.Errorf(
+				"[SuperAppRoleRepo][Insert] insert err for alID=%s: %v",
+				alID,
+				err,
+			)
 			return local_util.HandleDBError(err)
 		}
 	}
