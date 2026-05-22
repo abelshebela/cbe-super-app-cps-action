@@ -109,12 +109,12 @@ func (h *CustomerGroupAdapter) UpdateCustomerGroup(w http.ResponseWriter, r *htt
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	if err := req.Validate(); err != nil {
-		log.Errorf("[UpdateCustomerGroup] validation err: %v", err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
-	req.Normalize()
+	// if err := req.Validate(); err != nil {
+	// 	log.Errorf("[UpdateCustomerGroup] validation err: %v", err)
+	// 	localization.SendErrorByCodeResponse(w, err.Error())
+	// 	return
+	// }
+	// req.Normalize()
 
 	if err := h.svc.Update(ctx, id, req); err != nil {
 		span.RecordError(err)
