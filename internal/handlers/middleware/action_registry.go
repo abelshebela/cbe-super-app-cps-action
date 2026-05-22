@@ -140,8 +140,8 @@ var cpsActionRegistry = map[string]string{
 
 	// ActionRole (BPS)
 
-	"POST bps-action-roles":  "BPSACTIONEROLE",
-	"PATCH bps-action-roles": "BPSACTIONEROLE",
+	"POST bps-action-roles":  "BPSACTIONROLE",
+	"PATCH bps-action-roles": "BPSACTIONROLE",
 
 	// BPSUser
 	"POST bps_users":       "BPSUSER",
