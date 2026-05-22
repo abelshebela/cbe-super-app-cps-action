@@ -347,14 +347,18 @@ func (r *superAppRoleStorage) FindAccessListsByIDs(ctx context.Context, ids []st
 
 	placeholders := make([]string, len(ids))
 	args := make([]interface{}, len(ids))
+
 	for i, id := range ids {
-		placeholders[i] = fmt.Sprintf("HEXTORAW(:%d)", i+1)
-		args[i] = id
+		placeholders[i] = fmt.Sprintf(":%d", i+1)
+		args[i] = strings.ToUpper(id)
 	}
 
-	q := fmt.Sprintf(`SELECT RAWTOHEX(ID), NAME, SERVICE_KEY, IS_ENABLED
-		FROM ACCESS_LISTS
-		WHERE ID IN (%s) AND IS_DELETED = 0`, strings.Join(placeholders, ", "))
+	q := fmt.Sprintf(`
+	SELECT RAWTOHEX(ID), NAME, SERVICE_KEY, IS_ENABLED
+	FROM ACCESS_LISTS
+	WHERE RAWTOHEX(ID) IN (%s)
+	AND IS_DELETED = 0
+`, strings.Join(placeholders, ", "))
 
 	rows, err := r.db.QueryContext(ctx, q, args...)
 	if err != nil {

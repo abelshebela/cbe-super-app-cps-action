@@ -320,7 +320,8 @@ func (s *superAppRoleService) BulkDisableAccessLists(ctx context.Context, supera
 	if !exists {
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
-
+	log.Infof("[SuperAppRole][BulkDisableAccessLists] starting bulk disable for role %s with access list IDs: %v", superappRole, req.AccessListIDs)
+	//==================
 	objects, err := s.repo.FindAccessListsByIDs(ctx, req.AccessListIDs)
 	if err != nil {
 		log.Errorf("[SuperAppRole][BulkDisableAccessLists] fetch ids err: %v", err)
@@ -340,6 +341,7 @@ func (s *superAppRoleService) BulkDisableAccessLists(ctx context.Context, supera
 	prev := setEnabled(objects, true)
 	curr := setEnabled(objects, false)
 
+	log.Infof("[SuperAppRole][BulkDisableAccessLists] prepared prev data: %v and curr data: %v states for role %s: prev enabled IDs: %v, curr disabled IDs: %v", prev, curr, superappRole, extractIDs(prev), extractIDs(curr))
 	cpsActionData := lib.CpsModelBuilder(
 		superappRole,
 		makerUser,
@@ -368,6 +370,8 @@ func (s *superAppRoleService) BulkEnableAccessLists(ctx context.Context, superap
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
+	log.Infof("[SuperAppRole][BulkEnableAccessLists] starting bulk enable for role %s with access list IDs: %v", superappRole, req.AccessListIDs)
+	//==================
 	objects, err := s.repo.FindAccessListsByIDs(ctx, req.AccessListIDs)
 	if err != nil {
 		log.Errorf("[SuperAppRole][BulkEnableAccessLists] fetch ids err: %v", err)
@@ -387,6 +391,8 @@ func (s *superAppRoleService) BulkEnableAccessLists(ctx context.Context, superap
 	}
 	prev := setEnabled(objects, false)
 	curr := setEnabled(objects, true)
+
+	log.Infof("[SuperAppRole][BulkEnableAccessLists] prepared prev data: %v and curr data: %v states for role %s: prev enabled IDs: %v, curr disabled IDs: %v", prev, curr, superappRole, extractIDs(prev), extractIDs(curr))
 
 	cpsActionData := lib.CpsModelBuilder(
 		superappRole,
