@@ -356,7 +356,7 @@ func (r *superAppRoleStorage) FindAccessListsByIDs(ctx context.Context, ids []st
 		FROM ACCESS_LISTS
 		WHERE ID IN (%s) AND IS_DELETED = 0`, strings.Join(placeholders, ", "))
 
-	fmt.Printf("query-------------********************: %s, args: %v", q, args)
+	log.Infof("query-------------********************: %s, args: %v", q, args)
 
 	rows, err := r.db.QueryContext(ctx, q, args...)
 	if err != nil {

@@ -369,6 +369,7 @@ func (s *superAppRoleService) BulkEnableAccessLists(ctx context.Context, superap
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
+	log.Infof("[SuperAppRole][BulkEnableAccessLists] starting bulk enable for role %s with access list IDs: %v", superappRole, req.AccessListIDs)
 	objects, err := s.repo.FindAccessListsByIDs(ctx, req.AccessListIDs)
 	if err != nil {
 		log.Errorf("[SuperAppRole][BulkEnableAccessLists] fetch ids err: %v", err)
