@@ -77,6 +77,8 @@ func (r *userActionLogRepository) GetActionCodesByActionLogFilter(ctx context.Co
 	return actionCodes, nil
 }
 
+const fieldResponsibility = "$user_action_responsibilities"
+
 func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) (mongo.Pipeline, error) {
 	groupStage := bson.D{{Key: "_id", Value: "$action_code"}}
 	matchStage := bson.D{}
@@ -136,7 +138,7 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 		groupStage = append(groupStage, bson.E{
 			Key: "checker_match_count",
 			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
-				bson.D{{Key: "$eq", Value: bson.A{"$user_action_responsibilities", string(imodel.CHECKER)}}},
+				bson.D{{Key: "$eq", Value: bson.A{fieldResponsibility, string(imodel.CHECKER)}}},
 				bson.D{{Key: "$in", Value: bson.A{"$user_id", checkerUserIDs}}},
 			}}}),
 		})
@@ -151,7 +153,7 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 		groupStage = append(groupStage, bson.E{
 			Key: "auditor_match_count",
 			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
-				bson.D{{Key: "$eq", Value: bson.A{"$user_action_responsibilities", string(imodel.AUDITOR)}}},
+				bson.D{{Key: "$eq", Value: bson.A{fieldResponsibility, string(imodel.AUDITOR)}}},
 				bson.D{{Key: "$in", Value: bson.A{"$user_id", auditorUserIDs}}},
 			}}}),
 		})
@@ -166,11 +168,19 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 		groupStage = append(groupStage, bson.E{
 			Key: "maker_match_count",
 			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
-				bson.D{{Key: "$eq", Value: bson.A{"$user_action_responsibilities", string(imodel.MAKER)}}},
+				bson.D{{Key: "$eq", Value: bson.A{fieldResponsibility, string(imodel.MAKER)}}},
 				bson.D{{Key: "$in", Value: bson.A{"$user_id", makerUserIDs}}},
 			}}}),
 		})
 		matchStage = append(matchStage, bson.E{Key: "maker_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	if len(filter.Responsibilities) > 0 {
+		groupStage = append(groupStage, bson.E{
+			Key:   "responsibility_match_count",
+			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{fieldResponsibility, filter.Responsibilities}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "responsibility_match_count", Value: bson.M{"$gt": 0}})
 	}
 
 	pipeline := mongo.Pipeline{

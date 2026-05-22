@@ -47,12 +47,13 @@ type UserActionLog struct {
 // UserActionLogActionCodeFilter describes the action-log predicates used to
 // resolve a list of action codes from user_action_logs.
 type UserActionLogActionCodeFilter struct {
-	ActionStatuses  []string `json:"action_statuses"`
-	AuditorStatuses []string `json:"auditor_statuses"`
-	PrivateUserIDs  []string `json:"private_user_ids"`
-	Levels          []string `json:"levels"`
-	Services        []string `json:"services"`
-	CheckerUserIDs  []string `json:"checker_user_ids"`
-	AuditorUserIDs  []string `json:"auditor_user_ids"`
-	MakerUserIDs    []string `json:"maker_user_ids"`
+	ActionStatuses   []string `json:"action_statuses"`
+	AuditorStatuses  []string `json:"auditor_statuses"`
+	PrivateUserIDs   []string `json:"private_user_ids"`
+	Levels           []string `json:"levels"`
+	Services         []string `json:"services"`
+	CheckerUserIDs   []string `json:"checker_user_ids"`
+	AuditorUserIDs   []string `json:"auditor_user_ids"`
+	MakerUserIDs     []string `json:"maker_user_ids"`
+	Responsibilities []string `json:"responsibilities"`
 }
