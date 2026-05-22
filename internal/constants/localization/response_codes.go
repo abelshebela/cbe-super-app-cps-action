@@ -432,6 +432,9 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorFileParseFailed,
 	ErrorResourceNotFound,
+	ErrorSomeAccesslistNotFound,
+	ErrorSomeAccesslistAlreadyDisabled,
+	ErrorSomeAccesslistAlreadyEnabled,
 	ErrorActionListNameNotFound,
 	ErrorActionNameAlreadyExists,
 	ErrorOnDisablingExistingDeviceControl,
@@ -6588,6 +6591,27 @@ var (
 		Code:       "ERROR_RESOURCE_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgResourceNotFound,
+		Type:       "error",
+	}
+
+	ErrorSomeAccesslistNotFound = ResponseCode{
+		Code:       "ERROR_SOME_ACCESSLIST_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgAccessListNotFound,
+		Type:       "error",
+	}
+
+	ErrorSomeAccesslistAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_SOME_ACCESSLIST_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAccessListAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorSomeAccesslistAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_SOME_ACCESSLIST_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAccessListAlreadyEnabled,
 		Type:       "error",
 	}
 

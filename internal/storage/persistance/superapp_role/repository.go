@@ -393,7 +393,7 @@ func (r *superAppRoleStorage) BulkDisableAccessLists(ctx context.Context, supera
 
 	for _, alID := range accessListIDs {
 		const q = `MERGE INTO ACCESS_LIST_BY_SUPERAPP_ROLE dst
-			USING (SELECT HEXTORAW(:1) AS AL_ID FROM DUAL) src
+			USING (SELECT HEXTORAW(:1) AS AL_ID FROM ACCESS_LISTS) src
 			ON (dst.ACCESS_LIST_ID = src.AL_ID AND dst.SUPERAPP_ROLE_ID = :2)
 			WHEN MATCHED THEN
 				UPDATE SET IS_ENABLED = 1, LAST_MODIFIED_AT = SYSDATE
