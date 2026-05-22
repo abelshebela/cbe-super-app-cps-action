@@ -6615,6 +6615,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorSomeAccesslistAlreadyDisabledGlobaly = ResponseCode{
+		Code:       "ERROR_SOME_ACCESSLIST_ALREADY_DISABLED_GLOBALY",
+		StatusCode: StatusConflict,
+		Message:    MsgAccessListAlreadyDisabledGlobaly,
+		Type:       "error",
+	}
+
 	ErrorDonationCompanyNotEnabled = ResponseCode{
 		Code:       "ERROR_DONATION_COMPANY_NOT_ENABLED",
 		StatusCode: StatusForbidden,

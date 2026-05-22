@@ -990,6 +990,7 @@ type SuperAppRoleRepository interface {
 	FindGloballyEnabledAccessLists(ctx context.Context) ([]imodel.APPAccessList, error)
 	FindGloballyDisabledAccessLists(ctx context.Context) ([]imodel.APPAccessList, error)
 	FindAccessListsByIDs(ctx context.Context, ids []string) ([]imodel.APPAccessList, error)
+	FindBlockedAccessListsByIDs(ctx context.Context, superappRole string, accessListIDs []string) ([]imodel.APPAccessList, error)
 	BulkDisableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error
 	BulkEnableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error
 }

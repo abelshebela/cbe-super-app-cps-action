@@ -331,13 +331,31 @@ func (s *superAppRoleService) BulkDisableAccessLists(ctx context.Context, supera
 		log.Errorf("[SuperAppRole][BulkDisableAccessLists] requested %d IDs but found %d", len(req.AccessListIDs), len(objects))
 		return errors.New(localization.ErrorSomeAccesslistNotFound.Code)
 	}
+	log.Infof("[SuperAppRole][BulkDisableAccessLists] found access lists: %v", extractIDs(objects))
 
 	for _, obj := range objects {
 		if !obj.Enabled {
-			log.Errorf("[SuperAppRole][BulkDisableAccessLists] access list %s is already disabled", obj.ID)
+			log.Errorf("[SuperAppRole][BulkDisableAccessLists] access list %s is globally disabled", obj.ID)
 			return errors.New(localization.ErrorSomeAccesslistAlreadyDisabled.Code)
 		}
 	}
+
+	roleBlocked, err := s.repo.FindRoleBlockedAccessLists(ctx, superappRole)
+	if err != nil {
+		log.Errorf("[SuperAppRole][BulkDisableAccessLists] role blocked fetch err: %v", err)
+		return err
+	}
+	blockedSet := make(map[string]struct{}, len(roleBlocked))
+	for _, al := range roleBlocked {
+		blockedSet[al.ID] = struct{}{}
+	}
+	for _, obj := range objects {
+		if _, alreadyBlocked := blockedSet[obj.ID]; alreadyBlocked {
+			log.Errorf("[SuperAppRole][BulkDisableAccessLists] access list %s is already role-disabled for role %s", obj.ID, superappRole)
+			return errors.New(localization.ErrorSomeAccesslistAlreadyDisabled.Code)
+		}
+	}
+
 	prev := setEnabled(objects, true)
 	curr := setEnabled(objects, false)
 
@@ -383,12 +401,51 @@ func (s *superAppRoleService) BulkEnableAccessLists(ctx context.Context, superap
 		return errors.New(localization.ErrorSomeAccesslistNotFound.Code)
 	}
 
-	for _, obj := range objects {
-		if obj.Enabled {
-			log.Errorf("[SuperAppRole][BulkEnableAccessLists] access list %s is already enabled", obj.ID)
-			return errors.New(localization.ErrorSomeAccesslistAlreadyEnabled.Code)
+	// roleBlocked, err := s.repo.FindRoleBlockedAccessLists(ctx, superappRole)
+	// if err != nil {
+	// 	log.Errorf("[SuperAppRole][BulkEnableAccessLists] role blocked fetch err: %v", err)
+	// 	return err
+	// }
+	// blockedSet := make(map[string]struct{}, len(roleBlocked))
+	// for _, al := range roleBlocked {
+	// 	blockedSet[al.ID] = struct{}{}
+	// }
+
+	accessListSegData, err := s.repo.FindBlockedAccessListsByIDs(ctx, superappRole, req.AccessListIDs)
+	if err != nil {
+		log.Errorf("[SuperAppRole][BulkEnableAccessLists] fetch ids err: %v", err)
+		return err
+	}
+
+	if len(accessListSegData) < len(req.AccessListIDs) {
+		log.Errorf("[SuperAppRole][BulkEnableAccessLists] some access lists are not role-blocked for role %s (requested %d, role-blocked %d)", superappRole, len(req.AccessListIDs), len(accessListSegData))
+		return errors.New(localization.ErrorSomeAccesslistAlreadyEnabled.Code)
+	}
+
+	globallyDisabledServices, err := s.repo.FindGloballyDisabledAccessLists(ctx)
+	if err != nil {
+		log.Errorf("[SuperAppRole][BulkEnableAccessLists] fetch globally disabled ids err: %v", err)
+		return err
+	}
+
+	globallyDisabledSet := make(map[string]struct{}, len(globallyDisabledServices))
+	for _, al := range globallyDisabledServices {
+		globallyDisabledSet[al.ID] = struct{}{}
+	}
+	for _, obj := range accessListSegData {
+		if _, isGloballyDisabled := globallyDisabledSet[obj.ID]; isGloballyDisabled {
+			log.Errorf("[SuperAppRole][BulkEnableAccessLists] access list %s is globally disabled, cannot enable for role %s", obj.ID, superappRole)
+			return errors.New(localization.ErrorSomeAccesslistAlreadyDisabledGlobaly.Code)
 		}
 	}
+
+	// for _, obj := range objects {
+	// 	if _, inBlockList := blockedSet[obj.ID]; !inBlockList {
+	// 		log.Errorf("[SuperAppRole][BulkEnableAccessLists] access list %s is not role-blocked for role %s, already enabled", obj.ID, superappRole)
+	// 		return errors.New(localization.ErrorSomeAccesslistAlreadyEnabled.Code)
+	// 	}
+	// }
+
 	prev := setEnabled(objects, false)
 	curr := setEnabled(objects, true)
 
