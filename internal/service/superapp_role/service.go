@@ -320,7 +320,8 @@ func (s *superAppRoleService) BulkDisableAccessLists(ctx context.Context, supera
 	if !exists {
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
-
+	log.Infof("[SuperAppRole][BulkDisableAccessLists] starting bulk disable for role %s with access list IDs: %v", superappRole, req.AccessListIDs)
+	//==================
 	objects, err := s.repo.FindAccessListsByIDs(ctx, req.AccessListIDs)
 	if err != nil {
 		log.Errorf("[SuperAppRole][BulkDisableAccessLists] fetch ids err: %v", err)
