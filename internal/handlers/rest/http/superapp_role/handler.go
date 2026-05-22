@@ -315,6 +315,8 @@ func (h *SuperAppRoleAdapter) BulkDisableAccessLists(w http.ResponseWriter, r *h
 		return
 	}
 
+	log.Infof("[BulkDisableAccessLists] received request to bulk disable access lists for role %s with access list IDs: %v", role, req.AccessListIDs)
+
 	if err := h.svc.BulkDisableAccessLists(ctx, role, req); err != nil {
 		span.RecordError(err)
 		log.Errorf("[BulkDisableAccessLists] service err: %v", err)
