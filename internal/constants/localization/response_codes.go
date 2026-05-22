@@ -925,6 +925,7 @@ var ResponseCodesList = []ResponseCode{
 	SuperAppRoleAccessListsBulkDisabledSuccessfully,
 	SuperAppRoleAccessListsBulkEnableSubmittedSuccessfully,
 	SuperAppRoleAccessListsBulkEnabledSuccessfully,
+	SuperAppRoleGlobalLimitFetchedSuccessfully,
 
 	// Customer segmentations
 	CustomerSegmentationCreationSubmittedSuccessfully,
@@ -7363,6 +7364,12 @@ var (
 		Code:       "SUPERAPP_ROLE_ACCESS_LISTS_BULK_ENABLED_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    "SuperApp role access lists bulk enabled successfully",
+		Type:       "success",
+	}
+	SuperAppRoleGlobalLimitFetchedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_GLOBAL_LIMIT_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role global limit fetched successfully",
 		Type:       "success",
 	}
 
