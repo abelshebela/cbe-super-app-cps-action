@@ -315,6 +315,12 @@ func (h *SuperAppRoleAdapter) BulkDisableAccessLists(w http.ResponseWriter, r *h
 		return
 	}
 
+	if req.AccessListIDs == nil || len(req.AccessListIDs) == 0 {
+		log.Errorf("[BulkDisableAccessLists] empty access list IDs in request body")
+		localization.SendErrorByCodeResponse(w, errors.New(localization.ErrorInvalidRequestBody.Code).Error())
+		return
+	}
+
 	log.Infof("[BulkDisableAccessLists] received request to bulk disable access lists for role %s with access list IDs: %v", role, req.AccessListIDs)
 
 	if err := h.svc.BulkDisableAccessLists(ctx, role, req); err != nil {
@@ -362,6 +368,12 @@ func (h *SuperAppRoleAdapter) BulkEnableAccessLists(w http.ResponseWriter, r *ht
 
 	var req superapproledto.BulkAccessListByRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		localization.SendErrorByCodeResponse(w, errors.New(localization.ErrorInvalidRequestBody.Code).Error())
+		return
+	}
+
+	if req.AccessListIDs == nil || len(req.AccessListIDs) == 0 {
+		log.Errorf("[BulkDisableAccessLists] empty access list IDs in request body")
 		localization.SendErrorByCodeResponse(w, errors.New(localization.ErrorInvalidRequestBody.Code).Error())
 		return
 	}

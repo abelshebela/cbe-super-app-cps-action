@@ -972,6 +972,7 @@ const (
 	MsgAccessListNotFound               = "One or more access list not found"
 	MsgAccessListAlreadyDisabled        = "One or more access list already disabled"
 	MsgAccessListAlreadyEnabled         = "One or more access list already enabled"
+	MsgAccessListAlreadyDisabledGlobaly = "One or more access list already globally disabled can not enabled from here"
 	MsgActionNameNotFound               = "Action list name not found"
 	MsgActionNameAlreadyExists          = "Action name already exists"
 	MsgOnDisablingExistingDeviceControl = "Failed to disable existing device control"
