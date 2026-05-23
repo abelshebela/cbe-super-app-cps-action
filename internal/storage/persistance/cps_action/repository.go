@@ -407,8 +407,18 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 		},
 	}
 
+	isPendingOnly := func() bool {
+		switch v := filterParam.Filters["action_status"].(type) {
+		case string:
+			return v == "PENDING"
+		case []string:
+			return len(v) == 1 && v[0] == "PENDING"
+		}
+		return false
+	}()
+
 	var finalMatch bson.M
-	if filterParam.Filters["action_status"] == "PENDING" {
+	if isPendingOnly {
 		finalMatch = filter
 	} else {
 		finalMatch = bson.M{
