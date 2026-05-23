@@ -351,8 +351,14 @@ func parseValue(value string) interface{} {
 		}
 	}
 
-	if strings.Contains(value, ",") {
-		parts := strings.Split(value, ",")
+	// Handle bracket notation: [VAL1,VAL2] — strip outer brackets before splitting
+	stripped := value
+	if strings.HasPrefix(stripped, "[") && strings.HasSuffix(stripped, "]") {
+		stripped = stripped[1 : len(stripped)-1]
+	}
+
+	if strings.Contains(stripped, ",") {
+		parts := strings.Split(stripped, ",")
 		var result []interface{}
 		for _, part := range parts {
 			part = strings.TrimSpace(part)

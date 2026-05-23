@@ -639,6 +639,21 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationBPSActions(ctx conte
 	}
 	delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
+
+	// Translate auditor_status string to boolean field (BPS tracks audit state via auditors.audited).
+	// "INPROGRESS" has no BPS equivalent — use a never-match so the query returns 0.
+	if _, hasAuditorStatus := filter["auditor_status"]; hasAuditorStatus {
+		switch filter["auditor_status"] {
+		case "NOTCHECKED":
+			filter["auditors.audited"] = bson.M{"$ne": true}
+		case "CHECKED":
+			filter["auditors.audited"] = true
+		default:
+			filter["_id"] = bson.M{"$exists": false}
+		}
+		delete(filter, "auditor_status")
+	}
+
 	if role != "maker" {
 		if len(RAList) > 0 {
 			filter["request_action"] = bson.M{"$in": RAList}

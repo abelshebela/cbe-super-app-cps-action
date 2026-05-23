@@ -97,7 +97,7 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 	filter["department"] = department
 
 	applyActionStatusFilter(filterParam.Filters, filter)
-
+	applyActionCodeFilter(filterParam.Filters, filter)
 	Filter := dal.FilterOp{
 		Filter:     filter,
 		Limit:      limit,
@@ -299,6 +299,9 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	}
 	delete(filter, "action_code_in")
 
+	applyActionStatusFilter(filterParam.Filters, filter)
+	applyActionCodeFilter(filterParam.Filters, filter)
+
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
@@ -415,6 +418,9 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context
 			},
 		}
 	}
+
+	applyActionStatusFilter(filterParam.Filters, finalMatch)
+	applyActionCodeFilter(filterParam.Filters, finalMatch)
 
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: finalMatch}},
@@ -569,6 +575,9 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 	if filter["action_status"] == "" || filter["action_status"] == constants.Pending {
 		filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
 	}
+
+	applyActionStatusFilter(filterParam.Filters, filter)
+	applyActionCodeFilter(filterParam.Filters, filter)
 	// filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
@@ -1057,6 +1066,33 @@ func applyActionStatusFilter(filters map[string]interface{}, filter bson.M) {
 		}
 		if len(statuses) > 0 {
 			filter["action_status"] = bson.M{"$in": statuses}
+		}
+	}
+}
+
+func applyActionCodeFilter(filters map[string]interface{}, filter bson.M) {
+	raw, ok := filters["action_code"]
+	if !ok {
+		return
+	}
+	switch v := raw.(type) {
+	case string:
+		if v != "" {
+			filter["action_code"] = bson.M{"$in": []string{v}}
+		}
+	case []string:
+		if len(v) > 0 {
+			filter["action_code"] = bson.M{"$in": v}
+		}
+	case []interface{}:
+		statuses := make([]string, 0, len(v))
+		for _, item := range v {
+			if s, ok := item.(string); ok && s != "" {
+				statuses = append(statuses, s)
+			}
+		}
+		if len(statuses) > 0 {
+			filter["action_code"] = bson.M{"$in": statuses}
 		}
 	}
 }
