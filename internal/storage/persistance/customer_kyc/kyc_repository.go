@@ -61,7 +61,7 @@ func (r *customerKYCRepository) FindAllWithPagination(ctx context.Context, filte
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["$or"] = []bson.M{{"service_name": q}, {"service_code": q}, {"service_type": q},{"kyc_status": q}}
+		filter["$or"] = []bson.M{{"service_name": q}, {"service_code": q}, {"service_type": q}}
 	}
 
 	results, err := r.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
