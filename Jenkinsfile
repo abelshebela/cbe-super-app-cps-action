@@ -24,6 +24,7 @@ pipeline {
         SONAR_SCANNER_HOME = tool 'SonarQube-Scanner'
         SHARED_GITHLAB_USER = credentials("SHARED_GITLAB_USER")
         SHARED_GITLAB_PAT = credentials("SHARED_GITLAB_PAT")
+        GITHUB_EMAIL = credentials("GITHUB_EMAIL")
 
     }
 
