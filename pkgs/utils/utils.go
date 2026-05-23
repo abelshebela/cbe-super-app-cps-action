@@ -279,6 +279,14 @@ func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string
 			if len(v) > 0 {
 				filter[key] = bson.M{"$in": v}
 			}
+		case []string:
+			if len(v) > 0 {
+				arr := make([]interface{}, len(v))
+				for i, s := range v {
+					arr[i] = s
+				}
+				filter[key] = bson.M{"$in": arr}
+			}
 		case map[string]interface{}:
 			// Preserve Mongo operator documents (e.g. request_action: {$in: [...]}) instead of
 			// recursing with allowedKeys, which would drop "$in".
