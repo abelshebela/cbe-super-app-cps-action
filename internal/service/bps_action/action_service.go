@@ -154,6 +154,12 @@ func (ba *bpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	if ba.actionLogRepo != nil {
+		if logErr := ba.actionLogRepo.UpdateAuditorActionStatusByActionCode(ctx, actionCode, string(constants.AUDITORINPROGRESS)); logErr != nil {
+			span.AddEvent("failed to update auditor action status on claim", trace.WithAttributes(attribute.String("error", logErr.Error())))
+		}
+	}
+
 	return nil
 
 }
@@ -201,8 +207,16 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	// }
 	err = MarkActionAsAudited(ctx, ba.repo, actionCode, auditorApproval, auditor.AuditorReason, ba.logger)
 	if err != nil {
-		log.Errorf("[BPSAction][AuditorMark] failed to updat eh mark")
+		log.Errorf("[BPSAction][AuditorMark] failed to update mark")
 		return err
+	}
+
+	// BPS has a single auditor — once marked, the audit is complete (CHECKED).
+	ba.logUserAction(ctx, action, imodel.AUDITOR, action.Status, imodel.AuditorMark(auditor.AuditorMark), "", "")
+	if ba.actionLogRepo != nil {
+		if logErr := ba.actionLogRepo.AuditorMarkLogsByActionCode(ctx, actionCode, string(auditor.AuditorMark), string(constants.AUDITORCHECKED)); logErr != nil {
+			span.AddEvent("failed to propagate auditor mark to logs", trace.WithAttributes(attribute.String("error", logErr.Error())))
+		}
 	}
 
 	return nil
@@ -248,6 +262,11 @@ func (ba *bpsActionService) ApproveBPSAction(ctx context.Context, action *bps_mo
 	}
 
 	ba.logUserAction(ctx, action, imodel.CHECKER, action.Status, "", checkerLevel, "")
+	if ba.actionLogRepo != nil {
+		if logErr := ba.actionLogRepo.ApproveUserActionsByActionCode(ctx, action.ActionCode); logErr != nil {
+			span.AddEvent("failed to bulk-update action log on approve", trace.WithAttributes(attribute.String("error", logErr.Error())))
+		}
+	}
 
 	return nil
 
@@ -295,6 +314,11 @@ func (ba *bpsActionService) RejectBPSAction(ctx context.Context, action_code str
 	}
 
 	ba.logUserAction(ctx, action, imodel.CHECKER, action.Status, "", "", "")
+	if ba.actionLogRepo != nil {
+		if logErr := ba.actionLogRepo.RejectUserActionsByActionCode(ctx, action.ActionCode); logErr != nil {
+			span.AddEvent("failed to bulk-update action log on reject", trace.WithAttributes(attribute.String("error", logErr.Error())))
+		}
+	}
 	return nil
 
 }
@@ -839,7 +863,7 @@ func (ba *bpsActionService) logUserAction(ctx context.Context, action *bps_model
 		CreatedAt:                  time.Now(),
 	}
 
-	if err := ba.actionLogRepo.Save(ctx, actionLog); err != nil {
+	if err := ba.actionLogRepo.Upsert(ctx, actionLog); err != nil {
 		reqLog.Errorf("[BpsActionSvc][logUserAction] failed to log action: %v", err)
 	}
 }
