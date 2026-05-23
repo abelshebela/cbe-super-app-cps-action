@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -15,6 +16,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type userActionLogRepository struct {
@@ -38,6 +40,56 @@ func (r *userActionLogRepository) Save(ctx context.Context, entry *imodel.UserAc
 	_, err := r.dal.InsertOne(ctx, *entry)
 	if err != nil {
 		reqLog.Errorf("[UserActionLog][Save] failed to save action log: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
+}
+
+// Upsert inserts a new log entry for (action_code, username) if one does not yet exist,
+// or updates the status fields on the existing entry. Immutable fields (IDs, responsibility,
+// level, created_at) are written only on first insert via $setOnInsert.
+func (r *userActionLogRepository) Upsert(ctx context.Context, entry *imodel.UserActionLog) error {
+	reqLog := local_util.LoggerFromCtx(ctx, r.logger)
+
+	reqLog.Infof("[UserActionLog][Upsert] action_code=%s user=%s responsibility=%s", entry.ActionCode, entry.Username, entry.UserActionResponsibilities)
+
+	filter := bson.M{
+		"action_code": entry.ActionCode,
+		"username":    entry.Username,
+		"is_deleted":  false,
+	}
+	update := bson.D{
+		{Key: "$setOnInsert", Value: bson.M{
+			"_id":                             entry.ID,
+			"action_id":                       entry.ActionID,
+			"action_code":                     entry.ActionCode,
+			"request_action":                  entry.RequestAction,
+			"action_taken_service_name":       entry.ActionTakenServiceName,
+			"action_taken_service_unique_id":  entry.ActionTakenServiceUniqueID,
+			"user_id":                         entry.UserID,
+			"username":                        entry.Username,
+			"user_phone":                      entry.UserPhone,
+			"user_role_code":                  entry.UserRoleCode,
+			"user_action_responsibilities":    entry.UserActionResponsibilities,
+			"action_type":                     entry.ActionType,
+			"checker_level":                   entry.CheckerLevel,
+			"auditor_level":                   entry.AuditorLevel,
+			"is_deleted":                      false,
+			"created_at":                      entry.CreatedAt,
+			// action_auditor_status starts empty; bulk methods advance it as the auditor workflow progresses.
+			"action_auditor_status": "",
+		}},
+		{Key: "$set", Value: bson.M{
+			"given_action_status":  entry.GivenActionStatus,
+			"given_auditor_status": entry.GivenAuditorStatus,
+			"last_modified_at":     time.Now(),
+		}},
+	}
+
+	opts := options.UpdateOne().SetUpsert(true)
+	_, err := r.collection.UpdateOne(ctx, filter, update, opts)
+	if err != nil {
+		reqLog.Errorf("[UserActionLog][Upsert] failed for action_code=%s user=%s: %v", entry.ActionCode, entry.Username, err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
@@ -97,6 +149,14 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{"$given_auditor_status", filter.AuditorStatuses}}}),
 		})
 		matchStage = append(matchStage, bson.E{Key: "auditor_status_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	if len(filter.ActionAuditorStatuses) > 0 {
+		groupStage = append(groupStage, bson.E{
+			Key:   "action_auditor_status_match_count",
+			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{"$action_auditor_status", filter.ActionAuditorStatuses}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "action_auditor_status_match_count", Value: bson.M{"$gt": 0}})
 	}
 
 	privateUserIDs, err := toObjectIDs(filter.PrivateUserIDs)
@@ -271,12 +331,111 @@ func (r *userActionLogRepository) GetActionCodesBySearch(ctx context.Context, se
 	return actionCodes, nil
 }
 
+// applyGivenActionStatusFilter normalises "action_status" or "given_action_status"
+// into a $in query on given_action_status, accepting string, []string or []interface{}.
+func applyGivenActionStatusFilter(filter map[string]interface{}) {
+	for _, key := range []string{"action_status", "given_action_status"} {
+		raw, ok := filter[key]
+		if !ok {
+			continue
+		}
+		delete(filter, key)
+		switch v := raw.(type) {
+		case string:
+			if v != "" {
+				filter["given_action_status"] = bson.M{"$in": []string{v}}
+			}
+		case []string:
+			if len(v) > 0 {
+				filter["given_action_status"] = bson.M{"$in": v}
+			}
+		case []interface{}:
+			statuses := make([]string, 0, len(v))
+			for _, item := range v {
+				if s, ok := item.(string); ok && s != "" {
+					statuses = append(statuses, s)
+				}
+			}
+			if len(statuses) > 0 {
+				filter["given_action_status"] = bson.M{"$in": statuses}
+			}
+		}
+		break
+	}
+}
+
+// applyGivenAuditorStatusFilter normalises "auditor_status" or "given_auditor_status"
+// into a $in query on given_auditor_status, accepting string, []string or []interface{}.
+func applyGivenAuditorStatusFilter(filter map[string]interface{}) {
+	for _, key := range []string{"auditor_status", "given_auditor_status"} {
+		raw, ok := filter[key]
+		if !ok {
+			continue
+		}
+		delete(filter, key)
+		switch v := raw.(type) {
+		case string:
+			if v != "" {
+				filter["given_auditor_status"] = bson.M{"$in": []string{v}}
+			}
+		case []string:
+			if len(v) > 0 {
+				filter["given_auditor_status"] = bson.M{"$in": v}
+			}
+		case []interface{}:
+			statuses := make([]string, 0, len(v))
+			for _, item := range v {
+				if s, ok := item.(string); ok && s != "" {
+					statuses = append(statuses, s)
+				}
+			}
+			if len(statuses) > 0 {
+				filter["given_auditor_status"] = bson.M{"$in": statuses}
+			}
+		}
+		break
+	}
+}
+
+// applyActionAuditorStatusFilter normalises "action_auditor_status" into a $in query,
+// accepting string, []string or []interface{}. Values: NOTCHECKED, INPROGRESS, CHECKED.
+func applyActionAuditorStatusFilter(filter map[string]interface{}) {
+	raw, ok := filter["action_auditor_status"]
+	if !ok {
+		return
+	}
+	delete(filter, "action_auditor_status")
+	switch v := raw.(type) {
+	case string:
+		if v != "" {
+			filter["action_auditor_status"] = bson.M{"$in": []string{v}}
+		}
+	case []string:
+		if len(v) > 0 {
+			filter["action_auditor_status"] = bson.M{"$in": v}
+		}
+	case []interface{}:
+		statuses := make([]string, 0, len(v))
+		for _, item := range v {
+			if s, ok := item.(string); ok && s != "" {
+				statuses = append(statuses, s)
+			}
+		}
+		if len(statuses) > 0 {
+			filter["action_auditor_status"] = bson.M{"$in": statuses}
+		}
+	}
+}
+
 func (r *userActionLogRepository) GetActionCodesByFilter(ctx context.Context, filter map[string]interface{}) ([]string, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	log.Infof("[UserActionLog][GetActionCodesByFilter] filter=%v", filter)
 
 	filter["is_deleted"] = false
+	applyGivenActionStatusFilter(filter)
+	applyGivenAuditorStatusFilter(filter)
+	applyActionAuditorStatusFilter(filter)
 
 	pipeline := []bson.M{
 		{"$match": filter},
@@ -432,7 +591,11 @@ func (r *userActionLogRepository) ApproveUserActionsByActionCode(ctx context.Con
 	log.Infof("[UserActionLog][ApproveUserActionsByActionCode] action_code=%s", actionCode)
 
 	filter := bson.M{"action_code": actionCode}
-	update := bson.M{"$set": bson.M{"given_auditor_status": "APPROVED"}}
+	update := bson.M{"$set": bson.M{
+		"given_action_status":   "APPROVED",
+		"action_auditor_status": "NOTCHECKED",
+		"last_modified_at":      time.Now(),
+	}}
 
 	_, err := r.collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -449,7 +612,10 @@ func (r *userActionLogRepository) RejectUserActionsByActionCode(ctx context.Cont
 	log.Infof("[UserActionLog][RejectUserActionsByActionCode] action_code=%s", actionCode)
 
 	filter := bson.M{"action_code": actionCode}
-	update := bson.M{"$set": bson.M{"given_auditor_status": "REJECTED"}}
+	update := bson.M{"$set": bson.M{
+		"given_action_status": "REJECTED",
+		"last_modified_at":    time.Now(),
+	}}
 
 	_, err := r.collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -492,7 +658,10 @@ func (r *userActionLogRepository) CancelUserActionsByActionCode(ctx context.Cont
 	log.Infof("[UserActionLog][CancelUserActionsByActionCode] action_code=%s", actionCode)
 
 	filter := bson.M{"action_code": actionCode}
-	update := bson.M{"$set": bson.M{"given_auditor_status": "CANCELLED"}}
+	update := bson.M{"$set": bson.M{
+		"given_action_status": "CANCELED",
+		"last_modified_at":    time.Now(),
+	}}
 
 	_, err := r.collection.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -570,17 +739,45 @@ func (r *userActionLogRepository) GetLogsByUserIDAndResponsibility(ctx context.C
 	return actionCodeList, nil
 }
 
-func (r *userActionLogRepository) AuditorMarkLogsByActionCode(ctx context.Context, actionCode string, auditorStatus string) error {
+// AuditorMarkLogsByActionCode propagates the auditor's mark verdict (givenAuditorStatus: e.g. MARKASRIGHT/MARKASWRONG)
+// and the auditor process state (actionAuditorStatus: INPROGRESS/CHECKED) to all logs for that action_code.
+func (r *userActionLogRepository) AuditorMarkLogsByActionCode(ctx context.Context, actionCode string, givenAuditorStatus string, actionAuditorStatus string) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	log.Infof("[UserActionLog][AuditorMarkLogsByActionCode] action_code=%s auditor_status=%s", actionCode, auditorStatus)
+	log.Infof("[UserActionLog][AuditorMarkLogsByActionCode] action_code=%s given_auditor_status=%s action_auditor_status=%s", actionCode, givenAuditorStatus, actionAuditorStatus)
 
 	filter := bson.M{"action_code": actionCode}
-	update := bson.M{"$set": bson.M{"given_auditor_status": auditorStatus}}
+	update := bson.M{"$set": bson.M{
+		"given_auditor_status":  givenAuditorStatus,
+		"action_auditor_status": actionAuditorStatus,
+		"last_modified_at":      time.Now(),
+	}}
 
 	_, err := r.collection.UpdateMany(ctx, filter, update)
 	if err != nil {
 		log.Errorf("[UserActionLog][AuditorMarkLogsByActionCode] update failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
+}
+
+// UpdateAuditorActionStatusByActionCode bulk-updates action_auditor_status for all logs with the given action_code.
+// Called by AuditorClaim (INPROGRESS) and can be used for any auditor process state transition.
+func (r *userActionLogRepository) UpdateAuditorActionStatusByActionCode(ctx context.Context, actionCode string, actionAuditorStatus string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][UpdateAuditorActionStatusByActionCode] action_code=%s action_auditor_status=%s", actionCode, actionAuditorStatus)
+
+	filter := bson.M{"action_code": actionCode}
+	update := bson.M{"$set": bson.M{
+		"action_auditor_status": actionAuditorStatus,
+		"last_modified_at":      time.Now(),
+	}}
+
+	_, err := r.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[UserActionLog][UpdateAuditorActionStatusByActionCode] update failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
