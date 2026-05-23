@@ -57,7 +57,7 @@ func (r *customerKYCRepository) FindAllWithPagination(ctx context.Context, filte
 
 	log.Infof("[CustomerKYC][FindAllWithPagination] fetching kyc requests")
 
-	allowed := []string{"search"}
+	allowed := []string{"kyc_status"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
