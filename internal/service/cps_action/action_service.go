@@ -650,27 +650,47 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 
 	levels := extractStringSlice(filterParams.Filters, "levels")
 	services := extractStringSlice(filterParams.Filters, "services")
+	statuses := extractStringSlice(filterParams.Filters, "action_status")
 
-	// levels and services only exist in user_action_logs — must use log filter.
-	// For all other filters (action_status, search, dates) the repo applies them
-	// directly on cps_actions, which covers pre-log data too.
-	if len(levels) > 0 || len(services) > 0 {
+	// Always resolve via user_action_log when the role has allocated request_actions.
+	// The log's request_action field is the authoritative source for which actions
+	// this checker role can see — cps_actions.request_action may differ or be absent.
+	if len(RAList) > 0 {
+		logFilter := map[string]interface{}{
+			"request_action": bson.M{"$in": RAList},
+		}
+		if len(statuses) == 1 {
+			logFilter["action_status"] = statuses[0]
+		} else if len(statuses) > 1 {
+			logFilter["action_status"] = statuses
+		}
+		if len(levels) > 0 {
+			logFilter["levels"] = levels
+		}
+		if len(services) > 0 {
+			logFilter["services"] = services
+		}
+		actionCodes, err := ca.actionLogRepo.GetActionCodesByFilter(ctx, logFilter)
+		if err != nil {
+			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
+			return nil, "", err
+		}
+		filterParams.Filters["action_code"] = actionCodes
+	} else if len(levels) > 0 || len(services) > 0 {
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
 			Responsibilities: []string{string(imodel.CHECKER)},
 			Levels:           levels,
 			Services:         services,
-			ActionStatuses:   extractStringSlice(filterParams.Filters, "action_status"),
+			ActionStatuses:   statuses,
 		})
 		if err != nil {
 			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
 			return nil, "", err
 		}
-		filterParams.Filters["action_codes"] = actionCodes
+		filterParams.Filters["action_code_in"] = actionCodes
 	}
-	// else: no log-only filters — skip log query; repo applies role-scoping + direct field filters.
 
-	// action_statuses → action_status (direct cps_actions field, covers all data)
-	if statuses := extractStringSlice(filterParams.Filters, "action_status"); len(statuses) > 0 {
+	if len(statuses) > 0 {
 		filterParams.Filters["action_status"] = statuses
 	}
 

@@ -293,9 +293,14 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
 
-	// Handle action_code_in from user_action_logs index
-	if codes, ok := filterParam.Filters["action_code_in"].([]string); ok && len(codes) > 0 {
-		filter["action_code"] = bson.M{"$in": codes}
+	// Filter by action codes resolved from user_action_log (set by service).
+	// Empty slice means no matching log entries — use never-match to return 0 results.
+	if codes, ok := filterParam.Filters["action_code_in"].([]string); ok {
+		if len(codes) > 0 {
+			filter["action_code"] = bson.M{"$in": codes}
+		} else {
+			filter["_id"] = bson.M{"$exists": false}
+		}
 	}
 	delete(filter, "action_code_in")
 
