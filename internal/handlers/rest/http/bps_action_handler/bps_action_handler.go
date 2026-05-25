@@ -782,6 +782,9 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	// 	return f
 	// }
 
+	// action_status query param — used by auditor counts to filter by APPROVED/REJECTED
+	queryActionStatus := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("action_status")))
+
 	buildFilter := func(status, auditorStatus string) *types.Filter {
 		f := &types.Filter{
 			Page:    constants.DefaultPage,
@@ -799,7 +802,62 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return f
 	}
 
-	var pendingCount, approvedCount, rejectedCount, inprogressAuditCount, completedAuditCount int
+	if requestedRole == "auditor" {
+		var allAuditCount, unAuditedCount, inprogressAuditCount, auditedCount int
+
+		if auditorActions != nil {
+			// All — no auditor_status restriction; status from query param
+			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, "")); err != nil {
+				span.RecordError(err)
+				localization.SendErrorByCodeResponse(w, err.Error())
+				a.logger.Errorf("[BpsActionH][Auditor] failed to get all count: %v", err)
+				return
+			} else if res != nil && res.Meta.TotalDocs > 0 {
+				allAuditCount = int(res.Meta.TotalDocs)
+			}
+
+			// UnAudited — NOTCHECKED (BPS repo restricts to APPROVED automatically)
+			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORNOTCHECKED))); err != nil {
+				span.RecordError(err)
+				localization.SendErrorByCodeResponse(w, err.Error())
+				a.logger.Errorf("[BpsActionH][Auditor] failed to get un-audited count: %v", err)
+				return
+			} else if res != nil && res.Meta.TotalDocs > 0 {
+				unAuditedCount = int(res.Meta.TotalDocs)
+			}
+
+			// Inprogress — INPROGRESS
+			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORINPROGRESS))); err != nil {
+				span.RecordError(err)
+				localization.SendErrorByCodeResponse(w, err.Error())
+				a.logger.Errorf("[BpsActionH][Auditor] failed to get inprogress count: %v", err)
+				return
+			} else if res != nil && res.Meta.TotalDocs > 0 {
+				inprogressAuditCount = int(res.Meta.TotalDocs)
+			}
+
+			// Audited — fully checked
+			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORCHECKED))); err != nil {
+				span.RecordError(err)
+				localization.SendErrorByCodeResponse(w, err.Error())
+				a.logger.Errorf("[BpsActionH][Auditor] failed to get audited count: %v", err)
+				return
+			} else if res != nil && res.Meta.TotalDocs > 0 {
+				auditedCount = int(res.Meta.TotalDocs)
+			}
+		}
+
+		auditorResp := &bpsactionDto.BPSAuditorActionCountResponse{
+			AllAction:  allAuditCount,
+			UnAudited:  unAuditedCount,
+			Inprogress: inprogressAuditCount,
+			Audited:    auditedCount,
+		}
+		localization.SendSuccessResponse(w, localization.SuccessBPSActionCount, auditorResp)
+		return
+	}
+
+	var pendingCount, approvedCount, rejectedCount int
 
 	// Pending
 	if checkerActions != nil && requestedRole == "checker" {
@@ -813,71 +871,27 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Approved
-	if auditorActions != nil && requestedRole == "auditor" {
-		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionApproved), string(model.AUDITORNOTCHECKED))); err != nil {
-			span.RecordError(err)
-			localization.SendErrorByCodeResponse(w, err.Error())
-			return
-		} else if res != nil && res.Meta.TotalDocs > 0 {
-			approvedCount = int(res.Meta.TotalDocs)
-		}
-	} else {
-		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionApproved), "")); err != nil {
-			span.RecordError(err)
-			localization.SendErrorByCodeResponse(w, err.Error())
-			return
-		} else if res != nil && res.Meta.TotalDocs > 0 {
-			approvedCount = int(res.Meta.TotalDocs)
-		}
+	if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionApproved), "")); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	} else if res != nil && res.Meta.TotalDocs > 0 {
+		approvedCount = int(res.Meta.TotalDocs)
 	}
 
 	// Rejected
-	if auditorActions != nil && requestedRole == "auditor" {
-		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionRejected), string(model.AUDITORNOTCHECKED))); err != nil {
-			span.RecordError(err)
-			localization.SendErrorByCodeResponse(w, err.Error())
-			return
-		} else if res != nil && res.Meta.TotalDocs > 0 {
-			rejectedCount = int(res.Meta.TotalDocs)
-		}
-	} else {
-		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionRejected), "")); err != nil {
-			span.RecordError(err)
-			localization.SendErrorByCodeResponse(w, err.Error())
-			return
-		} else if res != nil && res.Meta.TotalDocs > 0 {
-			rejectedCount = int(res.Meta.TotalDocs)
-		}
-	}
-
-	// Auditor's Inprogress Count
-	if auditorActions != nil && requestedRole == "auditor" {
-		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter("", string(model.AUDITORINPROGRESS))); err != nil {
-			span.RecordError(err)
-			localization.SendErrorByCodeResponse(w, err.Error())
-			return
-		} else if res != nil && res.Meta.TotalDocs > 0 {
-			inprogressAuditCount = int(res.Meta.TotalDocs)
-		}
-	}
-
-	// Auditor's Completed Count
-	if auditorActions != nil && requestedRole == "auditor" {
-		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter("", string(model.AUDITORCHECKED))); err != nil {
-			span.RecordError(err)
-			localization.SendErrorByCodeResponse(w, err.Error())
-			return
-		} else if res != nil && res.Meta.TotalDocs > 0 {
-			completedAuditCount = int(res.Meta.TotalDocs)
-		}
+	if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionRejected), "")); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	} else if res != nil && res.Meta.TotalDocs > 0 {
+		rejectedCount = int(res.Meta.TotalDocs)
 	}
 
 	resp := &bpsactionDto.BPSActionCountResponse{
-		Pending:    pendingCount,
-		Approved:   approvedCount,
-		Rejected:   rejectedCount,
-		Inprogress: inprogressAuditCount,
-		Completed:  completedAuditCount,
+		Pending:  pendingCount,
+		Approved: approvedCount,
+		Rejected: rejectedCount,
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessBPSActionCount, resp)

@@ -15,6 +15,13 @@ type BPSActionCountResponse struct {
 	Completed  int `json:"total_completed_audit" bson:"completed"`
 }
 
+type BPSAuditorActionCountResponse struct {
+	AllAction  int `json:"all_action"`
+	UnAudited  int `json:"un_audited"`
+	Inprogress int `json:"inprogress"`
+	Audited    int `json:"audited"`
+}
+
 // BPSActionUserInfo is the trimmed, unified shape used to surface checker /
 // auditor / maker user records on a BPSAction detail response. The same shape
 // is used regardless of whether the underlying record was resolved against the
