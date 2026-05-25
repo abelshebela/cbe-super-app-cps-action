@@ -796,7 +796,7 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 		filterParams.Filters["action_code"] = actionCodes
 	} else if len(levels) > 0 || len(services) > 0 {
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
-			Responsibilities: []string{string(imodel.CHECKER)},
+			Responsibilities: []string{string(imodel.AUDITOR)},
 			Levels:           levels,
 			Services:         services,
 			AuditorStatuses:  extractStringSlice(filterParams.Filters, "auditor_statuses"),
