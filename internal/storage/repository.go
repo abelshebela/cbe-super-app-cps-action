@@ -964,6 +964,7 @@ type UserActionLogRepository interface {
 	GetActionCodesByUser(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error)
 	GetActionCodesByUserAndAuditorStatus(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility, status string) ([]string, error)
 	GetActionCodesByActionLogFilter(ctx context.Context, filter imodel.UserActionLogActionCodeFilter) ([]string, error)
+	GetActionCodesByFilter(ctx context.Context, filter map[string]interface{}) ([]string, error)
 	// AuditorMarkLogsByActionCode propagates the auditor's mark verdict (givenAuditorStatus: MARKASRIGHT/MARKASWRONG)
 	// and the auditor process state (actionAuditorStatus: INPROGRESS/CHECKED) to all logs for that action_code.
 	AuditorMarkLogsByActionCode(ctx context.Context, actionCode string, givenAuditorStatus string, actionAuditorStatus string) error
