@@ -1281,9 +1281,11 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	// If no mapped request actions and not maker, return zero counts
-	// Maker counts don't rely on RAList — they filter by maker_id instead
-	if len(reqs) == 0 && requestedRole != "maker" {
+	// If no mapped request actions, return zero counts for checker only.
+	// Maker filters by maker_id (no RAList needed).
+	// Auditor with empty RAList is valid — SanitizedFindAllWithPaginationForAuditor
+	// skips the request_action filter when RAList is empty, returning all actions.
+	if len(reqs) == 0 && requestedRole == "checker" {
 		resp := &cpsactionDto.CPSActionCountResponse{
 			Pending:    0,
 			Approved:   0,

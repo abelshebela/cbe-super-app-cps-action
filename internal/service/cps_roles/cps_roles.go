@@ -235,7 +235,10 @@ func (r *cpsRoleService) Delete(ctx context.Context, id string) error {
 	}
 
 	updated := *existing
-	updated.DeletedAt = time.Now()
+	now := time.Now()
+	updated.IsDeleted = true
+	updated.DeletedAt = now
+	updated.UpdatedAt = now
 
 	requestType := string(constants.RequestDeleteCpsRole)
 
@@ -255,6 +258,18 @@ func (r *cpsRoleService) Authorize(ctx context.Context, action *model.CPSAction)
 	log.Infof("[CpsRoleSvc][Authorize] action: %s", action.RequestAction)
 
 	var err error
+
+	switch action.RequestAction {
+	case string(constants.RequestDeleteCpsRole):
+		err = r.repo.Delete(ctx, action.UniqueId)
+		if err != nil {
+			log.Errorf("[CpsRoleSvc][Authorize] operation err: %v", err)
+			return nil, err
+		}
+		log.Infof("[CpsRoleSvc][Authorize] completed: %s", action.RequestAction)
+		return action, nil
+	}
+
 	role, marshal_err := local_util.JsonUnmarshal[imodel.CPSRoles](action.CurrentAction)
 	if marshal_err != nil || role == nil {
 		log.Errorf("[CpsRoleSvc][Authorize] unmarshal err: %v", marshal_err)
@@ -270,8 +285,6 @@ func (r *cpsRoleService) Authorize(ctx context.Context, action *model.CPSAction)
 		err = r.repo.EnableOrDisable(ctx, action.UniqueId, true)
 	case string(constants.RequestDisableCpsRole):
 		err = r.repo.EnableOrDisable(ctx, action.UniqueId, false)
-	case string(constants.RequestDeleteCpsRole):
-		err = r.repo.Delete(ctx, action.UniqueId)
 	default:
 		log.Errorf("[CpsRoleSvc][Authorize] unsupported action: %s", action.RequestAction)
 		return nil, errors.New("unsupported action")
