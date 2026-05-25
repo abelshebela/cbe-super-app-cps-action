@@ -1327,6 +1327,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			if res, _, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, userID, reqs, buildFilter(string(constants.Approved), string(model.AUDITORNOTCHECKED))); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
+				a.logger.Errorf("[CpsActionH][Auditor] failed to get approved count: %v", err)
 				return
 			} else if res != nil && res.Meta.TotalDocs > 0 {
 				approvedCount = int(res.Meta.TotalDocs)
@@ -1336,6 +1337,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			if res, _, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, userID, reqs, buildFilter(string(constants.Rejected), string(model.AUDITORNOTCHECKED))); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
+				a.logger.Errorf("[CpsActionH][Auditor] failed to get rejected count: %v", err)
 				return
 			} else if res != nil && res.Meta.TotalDocs > 0 {
 				rejectedCount = int(res.Meta.TotalDocs)
@@ -1345,6 +1347,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			if res, _, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, userID, reqs, buildFilter("", string(model.AUDITORINPROGRESS))); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
+				a.logger.Errorf("[CpsActionH][Auditor] failed to get inprogress count: %v", err)
 				return
 			} else if res != nil && res.Meta.TotalDocs > 0 {
 				inprogressAuditCount = int(res.Meta.TotalDocs)
