@@ -63,7 +63,7 @@ func (e *LogisticsMerchantHandler) CreateLogisticMerchant(w http.ResponseWriter,
 	}
 
 	if userContext.IsErp || md.IsMakerOnly {
-		localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantCreated, md.Id)
+		localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantCreated, md.Merchant)
 		return
 	}
 
