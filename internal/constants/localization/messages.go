@@ -969,6 +969,7 @@ const (
 	MsgInvalidInput                     = "Invalid input provided"
 	MsgMissingRequiredFields            = "Missing required fields"
 	MsgResourceNotFound                 = "Resource not found"
+	MsgAccessListNotFound               = "Access List Service Not Found"
 	MsgAccessListNotFound               = "One or more access list not found"
 	MsgAccessListAlreadyDisabled        = "One or more access list already disabled"
 	MsgAccessListAlreadyEnabled         = "One or more access list already enabled"
