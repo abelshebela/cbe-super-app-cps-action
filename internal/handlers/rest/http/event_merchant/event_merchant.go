@@ -99,11 +99,11 @@ func (e *EventMerchantHandler) CreateEventMerchant(w http.ResponseWriter, r *htt
 
 	if userContext.IsErp {
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreated, md.Id)
+		localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreated, md.Merchant)
 		return
 	} else if md.IsMakerOnly {
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreated, md.Id)
+		localization.SendSuccessResponse(w, localization.SuccessEventMerchantCreated, md.Merchant)
 	} else {
 		e.logger.Infof("[CreateEventMerchant] request sent successfully for create event merchant")
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)

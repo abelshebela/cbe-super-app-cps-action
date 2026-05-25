@@ -5,12 +5,22 @@ import (
 	"context"
 )
 
+type B struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type Merchant struct {
+	ID       string `json:"id"`
+	Branches []B    `json:"branches"`
+}
+
 // ContextMetadata is a pointer-based metadata object that can be passed through context
 // to allow the service layer to communicate information back to the handler.
 type ContextMetadata struct {
 	IsMakerOnly   bool
 	CPSActionCode string
-	Id            string
+	Merchant      *Merchant
 }
 
 // GetMetadata retrieves the ContextMetadata from the context.
@@ -34,8 +44,8 @@ func SetCPSActionCode(ctx context.Context, value string) {
 	}
 }
 
-func SetId(ctx context.Context, id string) {
+func SetMerchant(ctx context.Context, merchant *Merchant) {
 	if md := GetMetadata(ctx); md != nil {
-		md.Id = id
+		md.Merchant = merchant
 	}
 }

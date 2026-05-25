@@ -57,7 +57,7 @@ func (m *LogisticsMerchantRepository) Create(ctx context.Context, merchant local
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	merchant.ID = res.InsertedID.(bson.ObjectID)
-	types.SetId(ctx, merchant.ID.Hex())
+	// types.SetId(ctx, merchant.ID.Hex())
 
 	return nil
 }
