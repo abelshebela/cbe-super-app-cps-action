@@ -360,7 +360,7 @@ RETURNING RAWTOHEX(ID) INTO :9`
 	}
 	branches := make([]types.B, 0, len(createdM.Branches))
 	for _, b := range createdM.Branches {
-		branches = append(branches, types.B{ID: b.ID, Name: b.BranchName})
+		branches = append(branches, types.B{ID: b.ID, Code: b.BranchCode})
 	}
 
 	types.SetMerchant(ctx, &types.Merchant{ID: createdM.ID, Branches: branches})
