@@ -959,9 +959,24 @@ type WalletOracleRepository interface {
 
 type UserActionLogRepository interface {
 	Save(ctx context.Context, log *imodel.UserActionLog) error
+	// Upsert inserts a new log for (action_code, username) or updates status fields if one already exists.
+	Upsert(ctx context.Context, log *imodel.UserActionLog) error
 	GetActionCodesByUser(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error)
 	GetActionCodesByUserAndAuditorStatus(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility, status string) ([]string, error)
-	GetLogsByActionCode(ctx context.Context, actionCode string) ([]imodel.UserActionLog, error)
+	GetActionCodesByActionLogFilter(ctx context.Context, filter imodel.UserActionLogActionCodeFilter) ([]string, error)
+	// AuditorMarkLogsByActionCode propagates the auditor's mark verdict (givenAuditorStatus: MARKASRIGHT/MARKASWRONG)
+	// and the auditor process state (actionAuditorStatus: INPROGRESS/CHECKED) to all logs for that action_code.
+	AuditorMarkLogsByActionCode(ctx context.Context, actionCode string, givenAuditorStatus string, actionAuditorStatus string) error
+	// UpdateAuditorActionStatusByActionCode bulk-updates action_auditor_status for all logs with the given action_code.
+	// Used by AuditorClaim to mark the process as INPROGRESS and by ApproveUserActionsByActionCode to set NOTCHECKED.
+	UpdateAuditorActionStatusByActionCode(ctx context.Context, actionCode string, actionAuditorStatus string) error
+	GetLogsByUserIDAndResponsibility(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error)
+	GetLogsByResponsibility(ctx context.Context, responsibility imodel.UserActionResponsibility) ([]string, error)
+	GetLogsByUserID(ctx context.Context, userID string) ([]string, error)
+	CancelUserActionsByActionCode(ctx context.Context, actionCode string) error
+	RejectUserActionsByActionCode(ctx context.Context, actionCode string) error
+	ApproveUserActionsByActionCode(ctx context.Context, actionCode string) error
+	GetLogsByActionCode(ctx context.Context, actionCode string) ([]string, error)
 }
 
 type CustomerGroupRepository interface {
@@ -971,4 +986,20 @@ type CustomerGroupRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*imodel.Segment, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Segment], error)
+	DuplicateCheck(ctx context.Context, action, id, group, segment, subsegment string) (bool, error)
+}
+
+type SuperAppRoleRepository interface {
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.SuperAppRoleGroup], error)
+	RoleExists(ctx context.Context, superappRole string) (bool, error)
+	EnableByRole(ctx context.Context, superappRole string) error
+	DisableByRole(ctx context.Context, superappRole string) error
+	DeleteByRole(ctx context.Context, superappRole string) error
+	FindRoleBlockedAccessLists(ctx context.Context, superappRole string) ([]imodel.APPAccessList, error)
+	FindGloballyEnabledAccessLists(ctx context.Context) ([]imodel.APPAccessList, error)
+	FindGloballyDisabledAccessLists(ctx context.Context) ([]imodel.APPAccessList, error)
+	FindAccessListsByIDs(ctx context.Context, ids []string) ([]imodel.APPAccessList, error)
+	FindBlockedAccessListsByIDs(ctx context.Context, superappRole string, accessListIDs []string) ([]imodel.APPAccessList, error)
+	BulkDisableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error
+	BulkEnableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error
 }

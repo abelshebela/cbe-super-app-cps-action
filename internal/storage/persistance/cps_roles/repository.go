@@ -777,9 +777,9 @@ func (m *cpsRoleStorage) FindByCustomerSegmentationByID(ctx context.Context, cus
 	const q = `
 SELECT
   RAWTOHEX(ID),
-  NAME,
+  CUSTOMER_SEGMENT,
   IS_ENABLED
-FROM SUPERAPP_ROLES 
+FROM SEGMENTS 
 WHERE  ID = HEXTORAW(:1)`
 
 	var (

@@ -14,6 +14,7 @@ const (
 	MsgAvatarEnabledSuccessfullySP = "Avatar enabled successfully"
 
 	MsgServiceNotFound                           = "Service not found"
+	MsgDuplicateSegment                          = "Duplicate segment found with the same group, segment and subsegment"
 	MsgServiceAccountNumberNotProperlyConfigured = "Service account number is not properly configured"
 	MsgAvatarDisabledSuccessfully                = "Avatar diabled request sent successfully"
 	MsgAvatarDisabledSuccessfullySP              = "Avatar disabled successfully"
@@ -968,6 +969,10 @@ const (
 	MsgInvalidInput                     = "Invalid input provided"
 	MsgMissingRequiredFields            = "Missing required fields"
 	MsgResourceNotFound                 = "Resource not found"
+	MsgAccessListNotFound               = "One or more access list not found"
+	MsgAccessListAlreadyDisabled        = "One or more access list already disabled"
+	MsgAccessListAlreadyEnabled         = "One or more access list already enabled"
+	MsgAccessListAlreadyDisabledGlobaly = "One or more access list already globally disabled can not enabled from here"
 	MsgActionNameNotFound               = "Action list name not found"
 	MsgActionNameAlreadyExists          = "Action name already exists"
 	MsgOnDisablingExistingDeviceControl = "Failed to disable existing device control"

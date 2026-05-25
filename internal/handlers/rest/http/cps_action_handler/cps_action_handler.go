@@ -132,8 +132,8 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 
 	Current_role_level := *idxDoc.AuditorIndex
 	expected := int32(*idxDoc.AuditorIndex)
-	ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.AuditorIndex)
-	ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
+	ctx = context.WithValue(ctx, constants.ContextKey("role_auditor_index"), *idxDoc.AuditorIndex)
+	ctx = context.WithValue(ctx, constants.ContextKey("role_auditor_group"), expected)
 	r = r.WithContext(ctx)
 	if currentIndex == int64(Current_role_level) {
 		localization.SendBadRequestResponse(w, localization.MsgCPSActionApprovedByThisRole)

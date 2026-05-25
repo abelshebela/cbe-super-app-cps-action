@@ -39,6 +39,16 @@ func (s *customerGroupService) Create(ctx context.Context, req customer_group_dt
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
+	isDup, err := s.repo.DuplicateCheck(ctx, "create", "", req.CustomerGroup, req.CustomerSegment, req.CustomerSubsegment)
+	if err != nil {
+		log.Errorf("[CustomerGroup][Create] duplicate check err: %v", err)
+		return err
+	}
+	if isDup {
+		log.Errorf("[CustomerGroup][Create] duplicate segment found")
+		return errors.New(localization.ErrorDuplicateSegment.Code)
+	}
+
 	newSeg := imodel.Segment{
 		CustomerGroup:           req.CustomerGroup,
 		CustomerGroupLabel:      req.CustomerGroupLabel,
@@ -71,6 +81,16 @@ func (s *customerGroupService) Update(ctx context.Context, id string, req custom
 	if err != nil {
 		log.Errorf("[CustomerGroup][Update] find err: %v", err)
 		return err
+	}
+
+	isDup, err := s.repo.DuplicateCheck(ctx, "update", id, req.CustomerGroup, req.CustomerSegment, req.CustomerSubsegment)
+	if err != nil {
+		log.Errorf("[CustomerGroup][Update] duplicate check err: %v", err)
+		return err
+	}
+	if isDup {
+		log.Errorf("[CustomerGroup][Update] duplicate segment found")
+		return errors.New(localization.ErrorDuplicateSegment.Code)
 	}
 
 	updated := *existing

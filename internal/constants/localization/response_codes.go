@@ -432,6 +432,9 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorFileParseFailed,
 	ErrorResourceNotFound,
+	ErrorSomeAccesslistNotFound,
+	ErrorSomeAccesslistAlreadyDisabled,
+	ErrorSomeAccesslistAlreadyEnabled,
 	ErrorActionListNameNotFound,
 	ErrorActionNameAlreadyExists,
 	ErrorOnDisablingExistingDeviceControl,
@@ -911,6 +914,21 @@ var ResponseCodesList = []ResponseCode{
 	CustomerGroupDisabledSuccessfully,
 	CustomerGroupCreated,
 	CustomerGroupUpdated,
+
+	// SuperApp Role
+	SuperAppRoleFetchedSuccessfully,
+	SuperAppRoleEnableSubmittedSuccessfully,
+	SuperAppRoleEnabledSuccessfully,
+	SuperAppRoleDisableSubmittedSuccessfully,
+	SuperAppRoleDisabledSuccessfully,
+	SuperAppRoleDeleteSubmittedSuccessfully,
+	SuperAppRoleDeletedSuccessfully,
+	SuperAppRoleAccessListsFetchedSuccessfully,
+	SuperAppRoleAccessListsBulkDisableSubmittedSuccessfully,
+	SuperAppRoleAccessListsBulkDisabledSuccessfully,
+	SuperAppRoleAccessListsBulkEnableSubmittedSuccessfully,
+	SuperAppRoleAccessListsBulkEnabledSuccessfully,
+	SuperAppRoleGlobalLimitFetchedSuccessfully,
 
 	// Customer segmentations
 	CustomerSegmentationCreationSubmittedSuccessfully,
@@ -6176,6 +6194,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorDuplicateSegment = ResponseCode{
+		Code:       "ERROR_DUPLICATE_SEGMENT",
+		StatusCode: StatusConflict,
+		Message:    MsgDuplicateSegment,
+		Type:       "error",
+	}
+
 	ErrorServiceAccountNumberNotProperlyConfigured = ResponseCode{
 		Code:       "ERROR_SERVICE_ACCOUNT_NUMBER_NOT_PROPERLY_CONFIGURED",
 		StatusCode: StatusConflict,
@@ -6566,6 +6591,34 @@ var (
 		Code:       "ERROR_RESOURCE_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgResourceNotFound,
+		Type:       "error",
+	}
+
+	ErrorSomeAccesslistNotFound = ResponseCode{
+		Code:       "ERROR_SOME_ACCESSLIST_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgAccessListNotFound,
+		Type:       "error",
+	}
+
+	ErrorSomeAccesslistAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_SOME_ACCESSLIST_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAccessListAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorSomeAccesslistAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_SOME_ACCESSLIST_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAccessListAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorSomeAccesslistAlreadyDisabledGlobaly = ResponseCode{
+		Code:       "ERROR_SOME_ACCESSLIST_ALREADY_DISABLED_GLOBALY",
+		StatusCode: StatusConflict,
+		Message:    MsgAccessListAlreadyDisabledGlobaly,
 		Type:       "error",
 	}
 
@@ -7268,6 +7321,86 @@ var (
 		Code:       "CUSTOMER_GROUP_UPDATED",
 		StatusCode: StatusOK,
 		Message:    "Customer group updated successfully",
+		Type:       "success",
+	}
+
+	// SuperApp Role response codes
+	SuperAppRoleFetchedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp roles fetched successfully",
+		Type:       "success",
+	}
+	SuperAppRoleEnableSubmittedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_ENABLE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role enable request submitted successfully",
+		Type:       "success",
+	}
+	SuperAppRoleEnabledSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role enabled successfully",
+		Type:       "success",
+	}
+	SuperAppRoleDisableSubmittedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_DISABLE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role disable request submitted successfully",
+		Type:       "success",
+	}
+	SuperAppRoleDisabledSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role disabled successfully",
+		Type:       "success",
+	}
+	SuperAppRoleDeleteSubmittedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_DELETE_REQUEST_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role delete request submitted successfully",
+		Type:       "success",
+	}
+	SuperAppRoleDeletedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_DELETED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role deleted successfully",
+		Type:       "success",
+	}
+	SuperAppRoleAccessListsFetchedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_ACCESS_LISTS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role access lists fetched successfully",
+		Type:       "success",
+	}
+	SuperAppRoleAccessListsBulkDisableSubmittedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_ACCESS_LISTS_BULK_DISABLE_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role access lists bulk disable request submitted successfully",
+		Type:       "success",
+	}
+	SuperAppRoleAccessListsBulkDisabledSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_ACCESS_LISTS_BULK_DISABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role access lists bulk disabled successfully",
+		Type:       "success",
+	}
+	SuperAppRoleAccessListsBulkEnableSubmittedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_ACCESS_LISTS_BULK_ENABLE_SUBMITTED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role access lists bulk enable request submitted successfully",
+		Type:       "success",
+	}
+	SuperAppRoleAccessListsBulkEnabledSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_ACCESS_LISTS_BULK_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role access lists bulk enabled successfully",
+		Type:       "success",
+	}
+	SuperAppRoleGlobalLimitFetchedSuccessfully = ResponseCode{
+		Code:       "SUPERAPP_ROLE_GLOBAL_LIMIT_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "SuperApp role global limit fetched successfully",
 		Type:       "success",
 	}
 

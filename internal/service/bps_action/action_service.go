@@ -2,6 +2,7 @@ package bps_action
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"time"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 
@@ -39,6 +40,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -55,25 +57,20 @@ type bpsActionPublishPayload struct {
 }
 
 type bpsActionService struct {
-	repo storage.BPSActionRepository
-
-	roles storage.BPSActionRoleRepository
-
-	customerRepo storage.CustomerRepository
-
+	repo                      storage.BPSActionRepository
+	roles                     storage.BPSActionRoleRepository
+	customerRepo              storage.CustomerRepository
+	actionLogRepo             storage.UserActionLogRepository
 	archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository
-
-	bpsUserRepo storage.BPSUserRepository
-
-	cpsUserRepo storage.CpsUserRepository
-
-	logger utils.Logger
+	bpsUserRepo               storage.BPSUserRepository
+	cpsUserRepo               storage.CpsUserRepository
+	logger                    utils.Logger
 
 	dispatcher Dispatcher
 	cfg        config.VaultConfig
 }
 
-func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, bpsUserRepo storage.BPSUserRepository, cpsUserRepo storage.CpsUserRepository, logger utils.Logger, dispatcher Dispatcher, cfg config.VaultConfig) service.BPSActionService {
+func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPSActionRepository, customerRepo storage.CustomerRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, bpsUserRepo storage.BPSUserRepository, cpsUserRepo storage.CpsUserRepository, actionLogRepo storage.UserActionLogRepository, logger utils.Logger, dispatcher Dispatcher, cfg config.VaultConfig) service.BPSActionService {
 
 	return &bpsActionService{
 
@@ -90,6 +87,8 @@ func NewBPSActionService(roles storage.BPSActionRoleRepository, repo storage.BPS
 		bpsUserRepo: bpsUserRepo,
 
 		cpsUserRepo: cpsUserRepo,
+
+		actionLogRepo: actionLogRepo,
 
 		dispatcher: dispatcher,
 		cfg:        cfg,
@@ -155,6 +154,12 @@ func (ba *bpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	if ba.actionLogRepo != nil {
+		if logErr := ba.actionLogRepo.UpdateAuditorActionStatusByActionCode(ctx, actionCode, string(constants.AUDITORINPROGRESS)); logErr != nil {
+			span.AddEvent("failed to update auditor action status on claim", trace.WithAttributes(attribute.String("error", logErr.Error())))
+		}
+	}
+
 	return nil
 
 }
@@ -202,8 +207,16 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	// }
 	err = MarkActionAsAudited(ctx, ba.repo, actionCode, auditorApproval, auditor.AuditorReason, ba.logger)
 	if err != nil {
-		log.Errorf("[BPSAction][AuditorMark] failed to updat eh mark")
+		log.Errorf("[BPSAction][AuditorMark] failed to update mark")
 		return err
+	}
+
+	// BPS has a single auditor — once marked, the audit is complete (CHECKED).
+	ba.logUserAction(ctx, action, imodel.AUDITOR, action.Status, imodel.AuditorMark(auditor.AuditorMark), "", "")
+	if ba.actionLogRepo != nil {
+		if logErr := ba.actionLogRepo.AuditorMarkLogsByActionCode(ctx, actionCode, string(auditor.AuditorMark), string(constants.AUDITORCHECKED)); logErr != nil {
+			span.AddEvent("failed to propagate auditor mark to logs", trace.WithAttributes(attribute.String("error", logErr.Error())))
+		}
 	}
 
 	return nil
@@ -226,6 +239,7 @@ func (ba *bpsActionService) ApproveBPSAction(ctx context.Context, action *bps_mo
 	}
 
 	rawRoleID, _ := ctx.Value(constants.ContextKey("role_code")).(string)
+	checkerLevel, _ := ctx.Value(constants.ContextKey("role_checker_group")).(string)
 
 	if strings.TrimSpace(rawRoleID) == "" {
 
@@ -247,6 +261,13 @@ func (ba *bpsActionService) ApproveBPSAction(ctx context.Context, action *bps_mo
 
 	}
 
+	ba.logUserAction(ctx, action, imodel.CHECKER, action.Status, "", checkerLevel, "")
+	if ba.actionLogRepo != nil {
+		if logErr := ba.actionLogRepo.ApproveUserActionsByActionCode(ctx, action.ActionCode); logErr != nil {
+			span.AddEvent("failed to bulk-update action log on approve", trace.WithAttributes(attribute.String("error", logErr.Error())))
+		}
+	}
+
 	return nil
 
 }
@@ -254,7 +275,7 @@ func (ba *bpsActionService) ApproveBPSAction(ctx context.Context, action *bps_mo
 func (ba *bpsActionService) RejectBPSAction(ctx context.Context, action_code string, action *bps_model.BPSAction) error {
 	log := local_util.LoggerFromCtx(ctx, ba.logger)
 
-	ctx, span := lobal_util.TraceLogger(ctx, "service", "RejectCPSAction", "CPSAction", "RejectCPSAction")
+	ctx, span := lobal_util.TraceLogger(ctx, "service", "RejectBPSAction", "BPSAction", "RejectBPSAction")
 
 	defer span.End()
 
@@ -292,6 +313,12 @@ func (ba *bpsActionService) RejectBPSAction(ctx context.Context, action_code str
 
 	}
 
+	ba.logUserAction(ctx, action, imodel.CHECKER, action.Status, "", "", "")
+	if ba.actionLogRepo != nil {
+		if logErr := ba.actionLogRepo.RejectUserActionsByActionCode(ctx, action.ActionCode); logErr != nil {
+			span.AddEvent("failed to bulk-update action log on reject", trace.WithAttributes(attribute.String("error", logErr.Error())))
+		}
+	}
 	return nil
 
 }
@@ -796,4 +823,47 @@ func (ba *bpsActionService) GetUserCheckedActions(ctx context.Context, userID st
 
 	return result, nil
 
+}
+
+func (ba *bpsActionService) logUserAction(ctx context.Context, action *bps_model.BPSAction, responsibility imodel.UserActionResponsibility, givenStatus string, auditorMark imodel.AuditorMark, checkerLevel, auditorLevel string) {
+	reqLog := local_util.LoggerFromCtx(ctx, ba.logger)
+	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
+
+	userData := local_util.ExtractUserFromContext(ctx)
+	if ba.actionLogRepo == nil {
+		return
+	}
+
+	// userData, _ := ctx.Value(constants.ContextKey("user_data")).(types.UserContext)
+
+	userOID, _ := bson.ObjectIDFromHex(userData.UserID)
+	actionOID := action.ID
+
+	serviceName := ""
+	if mod, ok := ResolveModuleForRA(RequestAction(action.RequestAction)); ok {
+		serviceName = mod
+	}
+
+	actionLog := &imodel.UserActionLog{
+		ID:                         bson.NewObjectID(),
+		ActionID:                   actionOID,
+		ActionCode:                 action.ActionCode,
+		GivenActionStatus:          givenStatus,
+		GivenAuditorStatus:         auditorMark,
+		RequestAction:              constants.RequestAction(action.RequestAction),
+		ActionTakenServiceName:     serviceName,
+		CheckerLevel:               checkerLevel,
+		AuditorLevel:               auditorLevel,
+		UserRoleCode:               roleCode,
+		UserID:                     userOID,
+		Username:                   userData.UserName,
+		UserPhone:                  userData.PhoneNumber,
+		ActionType:                 imodel.BPSActions,
+		UserActionResponsibilities: responsibility,
+		CreatedAt:                  time.Now(),
+	}
+
+	if err := ba.actionLogRepo.Upsert(ctx, actionLog); err != nil {
+		reqLog.Errorf("[BpsActionSvc][logUserAction] failed to log action: %v", err)
+	}
 }
