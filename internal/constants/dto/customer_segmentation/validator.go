@@ -33,73 +33,6 @@ func capitalizeCustomerEntries(entries []imodel.CustomerEntry) {
 	}
 }
 
-func validateUniqueCustomerEntries(value interface{}) error {
-	entries, ok := value.([]imodel.CustomerEntry)
-	if !ok {
-		return errors.New("invalid customer entries")
-	}
-	return validateUniqueCustomerEntriesList(entries, false)
-}
-
-func validateUniqueCustomerEntriesForUpdate(value interface{}) error {
-	entries, ok := value.([]imodel.CustomerEntry)
-	if !ok {
-		return errors.New("invalid customer entries")
-	}
-	return validateUniqueCustomerEntriesList(entries, true)
-}
-
-func validateUniqueCustomerEntriesList(entries []imodel.CustomerEntry, skipDeleted bool) error {
-	nameMap := make(map[string]int)
-	segmentMap := make(map[string]int)
-
-	var duplicateNames []string
-	var duplicateSegments []string
-
-	for _, e := range entries {
-		if skipDeleted {
-			if imodel.NormalizeCustomerSegmentChangeStatus(e.SubSegment.Status) == imodel.CustomerSegmentStatusDeleted {
-				continue
-			}
-			if imodel.NormalizeCustomerSegmentChangeStatus(e.Segment.Status) == imodel.CustomerSegmentStatusDeleted {
-				continue
-			}
-		}
-		nameMap[strings.TrimSpace(strings.ToUpper(e.SubSegment.CustSubSegmentName))]++
-		segmentMap[strings.TrimSpace(strings.ToUpper(e.Segment.CustSegmentName))]++
-	}
-
-	for k, v := range nameMap {
-		if v > 1 {
-			duplicateNames = append(duplicateNames, k)
-		}
-	}
-
-	for k, v := range segmentMap {
-		if v > 1 {
-			duplicateSegments = append(duplicateSegments, k)
-		}
-	}
-
-	var errMessages []string
-
-	if len(duplicateNames) > 0 {
-		errMessages = append(errMessages,
-			fmt.Sprintf("duplicate name(s): %s", strings.Join(duplicateNames, ", ")))
-	}
-
-	if len(duplicateSegments) > 0 {
-		errMessages = append(errMessages,
-			fmt.Sprintf("duplicate customer segment(s): %s", strings.Join(duplicateSegments, ", ")))
-	}
-
-	if len(errMessages) > 0 {
-		return errors.New(strings.Join(errMessages, " | "))
-	}
-
-	return nil
-}
-
 func validateChangeStatus(value interface{}) error {
 	status, ok := value.(imodel.CustomerSegmentChangeStatus)
 	if !ok {
@@ -289,7 +222,6 @@ func (r CreateCustomerSegmentationRequest) Validate() error {
 		),
 		validation.Field(&r.Customer,
 			validation.Required,
-			validation.By(validateUniqueCustomerEntries),
 			validation.Each(validation.By(func(value interface{}) error {
 				c, ok := value.(imodel.CustomerEntry)
 				if !ok {
@@ -305,7 +237,6 @@ func (r UpdateCustomerSegmentationRequest) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Customer,
 			validation.Required,
-			validation.By(validateUniqueCustomerEntriesForUpdate),
 			validation.Each(validation.By(func(value interface{}) error {
 				c, ok := value.(imodel.CustomerEntry)
 				if !ok {

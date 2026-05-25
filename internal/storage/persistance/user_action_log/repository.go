@@ -613,8 +613,9 @@ func (r *userActionLogRepository) RejectUserActionsByActionCode(ctx context.Cont
 
 	filter := bson.M{"action_code": actionCode}
 	update := bson.M{"$set": bson.M{
-		"given_action_status": "REJECTED",
-		"last_modified_at":    time.Now(),
+		"given_action_status":   "REJECTED",
+		"action_auditor_status": "NOTCHECKED",
+		"last_modified_at":      time.Now(),
 	}}
 
 	_, err := r.collection.UpdateMany(ctx, filter, update)
