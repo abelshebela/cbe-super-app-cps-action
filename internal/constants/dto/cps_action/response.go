@@ -16,6 +16,14 @@ type CPSAuditorActionCountResponse struct {
 	Audited    int `json:"audited"`
 }
 
+type CPSCheckerActionCountResponse struct {
+	AllAction int `json:"all_action"`
+	Pending   int `json:"pending"`
+	Approved  int `json:"approved"`
+	Rejected  int `json:"rejected"`
+	Canceled  int `json:"canceled"`
+}
+
 type AutorizersLevelResponse struct {
 	CheckerIndex int64 `json:"checker_index"`
 	AuditorIndex int64 `json:"auditor_index"`

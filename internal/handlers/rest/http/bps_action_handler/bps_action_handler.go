@@ -857,43 +857,47 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var pendingCount, approvedCount, rejectedCount int
+	if requestedRole == "checker" {
+		var pendingCount, approvedCount, rejectedCount int
 
-	// Pending
-	if checkerActions != nil && requestedRole == "checker" {
-		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionPending), "")); err != nil {
+		if checkerActions != nil {
+			if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionPending), "")); err != nil {
+				span.RecordError(err)
+				localization.SendErrorByCodeResponse(w, err.Error())
+				return
+			} else if res != nil && res.Meta.TotalDocs > 0 {
+				pendingCount = int(res.Meta.TotalDocs)
+			}
+		}
+
+		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionApproved), "")); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
 		} else if res != nil && res.Meta.TotalDocs > 0 {
-			pendingCount = int(res.Meta.TotalDocs)
+			approvedCount = int(res.Meta.TotalDocs)
 		}
-	}
 
-	// Approved
-	if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionApproved), "")); err != nil {
-		span.RecordError(err)
-		localization.SendErrorByCodeResponse(w, err.Error())
+		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionRejected), "")); err != nil {
+			span.RecordError(err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		} else if res != nil && res.Meta.TotalDocs > 0 {
+			rejectedCount = int(res.Meta.TotalDocs)
+		}
+
+		checkerResp := &bpsactionDto.BPSCheckerActionCountResponse{
+			AllAction: pendingCount + approvedCount + rejectedCount,
+			Pending:   pendingCount,
+			Approved:  approvedCount,
+			Rejected:  rejectedCount,
+		}
+		localization.SendSuccessResponse(w, localization.SuccessBPSActionCount, checkerResp)
 		return
-	} else if res != nil && res.Meta.TotalDocs > 0 {
-		approvedCount = int(res.Meta.TotalDocs)
 	}
 
-	// Rejected
-	if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionRejected), "")); err != nil {
-		span.RecordError(err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	} else if res != nil && res.Meta.TotalDocs > 0 {
-		rejectedCount = int(res.Meta.TotalDocs)
-	}
-
-	resp := &bpsactionDto.BPSActionCountResponse{
-		Pending:  pendingCount,
-		Approved: approvedCount,
-		Rejected: rejectedCount,
-	}
-
+	// Maker
+	resp := &bpsactionDto.BPSActionCountResponse{}
 	localization.SendSuccessResponse(w, localization.SuccessBPSActionCount, resp)
 }
 
