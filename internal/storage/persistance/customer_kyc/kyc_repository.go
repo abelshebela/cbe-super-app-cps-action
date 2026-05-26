@@ -12,6 +12,7 @@ import (
 	"database/sql"
 	"errors"
 	"strings"
+	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -36,36 +37,20 @@ func NewCustomerKYCRepository(client *mongo.Client, oracleDB *sql.DB, cfg *confi
 	}
 }
 
-// func (r *customerKYCRepository) Create(ctx context.Context, kyc *imodel.CustomerKYC) error {
-
-// 	log.Infof("[CustomerKYC][Create] creating kyc for customer: %s", kyc.CustomerCode)
-// 	kyc.CreatedAt = time.Now()
-// 	kyc.UpdatedAt = time.Now()
-// 	kyc.KYCStatus = "PENDING"
-// 	kyc.CustomerStatus = constants.CustomerPending
-
-// 	if _, err := r.dal.InsertOne(ctx, *kyc); err != nil {
-// 		log.Errorf("[CustomerKYC][Create] failed to create kyc: %v", err)
-// 		return errors.New(localization.ErrorUnexpectedError.Code)
-// 	}
-
-// 	return nil
-// }
-
 func (r *customerKYCRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	log.Infof("[CustomerKYC][FindAllWithPagination] fetching kyc requests")
 
-	allowed := []string{"kyc_status"}
+	allowed := []string{"kyc_status", "enabled", "created_at"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{
-			{"service_name": q},
-			{"service_code": q},
-			{"service_type": q},
+			{"kyc_data.full_name": q},
+			{"kyc_data.phone_number": q},
 			{"kyc_status": q},
+			{"user_id": q},
 		}
 	}
 
@@ -80,11 +65,6 @@ func (r *customerKYCRepository) FindAllWithPagination(ctx context.Context, filte
 		log.Errorf("[CustomerKYC][FindAllWithPagination] failed to get total count: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
-	// resultData := make([]*imodel.CustomerKYC, len(results))
-	// for i := range data {
-	// 	resultData[i] = &data[i]
-	// }
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
@@ -163,11 +143,11 @@ INSERT INTO USERS (
 	if len(nameParts) > 0 {
 		firstName = nameParts[0]
 	}
-	if len(nameParts) > 1 {
+	if len(nameParts) >= 3 {
+		middleName = strings.Join(nameParts[1:len(nameParts)-1], " ")
+		lastName = nameParts[len(nameParts)-1]
+	} else if len(nameParts) == 2 {
 		lastName = nameParts[1]
-	}
-	if len(nameParts) > 2 {
-		middleName = nameParts[2]
 	}
 
 	userCode := "SA" + userAccount.CustomerNumber
@@ -223,12 +203,16 @@ func (r *customerKYCRepository) UpdateKYCStatus(ctx context.Context, id, status,
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
-	var update bson.M
-	if rejectionReason != "" {
-		update = bson.M{"kyc_status": status, "kyc_approved": approved, "kyc_reject_reason": rejectionReason}
-	} else {
-		update = bson.M{"kyc_status": status, "kyc_approved": approved}
+	update := bson.M{
+		"kyc_status":       status,
+		"kyc_approved":     approved,
+		"enabled":          approved,
+		"last_modified_at": time.Now(),
 	}
+	if rejectionReason != "" {
+		update["kyc_reject_reason"] = rejectionReason
+	}
+
 	filter := bson.M{"_id": objID}
 
 	if _, err := r.dal.UpdateOne(ctx, filter, update); err != nil {
@@ -238,21 +222,3 @@ func (r *customerKYCRepository) UpdateKYCStatus(ctx context.Context, id, status,
 
 	return nil
 }
-
-// func (r *customerKYCRepository) Delete(ctx context.Context, id string) error {
-
-// 	log.Infof("[CustomerKYC][Delete] hard deleting kyc for id: %s", id)
-// 	objID, err := bson.ObjectIDFromHex(id)
-// 	if err != nil {
-// 		log.Errorf("[CustomerKYC][Delete] invalid object id: %v", err)
-// 		return errors.New(localization.ErrorInvalidID.Code)
-// 	}
-
-// 	filter := bson.M{"_id": objID}
-// 	if err := r.dal.DeleteOneH(ctx, filter); err != nil {
-// 		log.Errorf("[CustomerKYC][Delete] failed to delete kyc: %v", err)
-// 		return errors.New(localization.ErrorUnexpectedError.Code)
-// 	}
-
-// 	return nil
-// }

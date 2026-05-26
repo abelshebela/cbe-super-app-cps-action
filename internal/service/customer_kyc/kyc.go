@@ -15,6 +15,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -24,7 +25,6 @@ import (
 
 type customerKYCService struct {
 	repo           storage.CustomerKYCRepository
-	userRepo       storage.CustomerKYCRepository
 	cpsService     service.CPSActionService
 	accountService account_lookup.Account
 	logger         utils.Logger
@@ -54,111 +54,6 @@ func NewCustomerKYCService(repo storage.CustomerKYCRepository,
 		minioEndPoint:  minioEndPoint,
 	}
 }
-
-// func (s *customerKYCService) Create(ctx context.Context, req dto.CreateCustomerKYCRequest) error {
-
-// 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateCustomerKYC", "CustomerKYC", "Create")
-// 	defer span.End()
-
-// 	makerData := local_util.ExtractUserFromContext(ctx)
-// 	if local_util.IsIncomplete(makerData) {
-// 		log.Errorf("[CustKycSvc][Create] incomplete user")
-// 		return errors.New(constants.IncompleteUserInfo)
-// 	}
-
-// 	var (
-// 		idCardFront string
-// 		idCardBack  string
-// 		video       string
-// 		err         error
-// 	)
-
-// 	if req.LivenessCheck.IDCardFront != nil {
-// 		idCardFront, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.LivenessCheck.IDCardFront, string(constants.CustomerKYCFolderName), *s.cfg, "", s.logger)
-// 		if err != nil {
-// 			span.AddEvent("Failed to files", trace.WithAttributes(
-// 				attribute.String("error", err.Error()),
-// 			))
-// 			return err
-// 		}
-// 	}
-
-// 	if req.LivenessCheck.IDCardBack != nil {
-// 		idCardBack, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.LivenessCheck.IDCardBack, string(constants.CustomerKYCFolderName), *s.cfg, "", s.logger)
-// 		if err != nil {
-// 			span.AddEvent("Failed to files", trace.WithAttributes(
-// 				attribute.String("error", err.Error()),
-// 			))
-// 			return err
-// 		}
-// 	}
-
-// 	if req.LivenessCheck.LivenessCheckVideo != nil {
-// 		video, err = lib.UploadVideoToMinio(ctx, s.minio, s.bucketName, req.LivenessCheck.LivenessCheckVideo, string(constants.CustomerKYCFolderName), *s.cfg, "", s.logger)
-// 		if err != nil {
-// 			span.AddEvent("Failed to files", trace.WithAttributes(
-// 				attribute.String("error", err.Error()),
-// 			))
-// 			return err
-// 		}
-// 	}
-
-// 	kyc := &imodel.CustomerKYC{
-// 		CustomerCode: local_util.GenerateCustomerCode(),
-// 		AccountType:  constants.AccountType(req.AccountType),
-// 		CustomerName: imodel.CustomerInfo{
-// 			FirstName:   req.CustomerName.FirstName,
-// 			MiddleName:  req.CustomerName.MiddleName,
-// 			LastName:    req.CustomerName.LastName,
-// 			PhoneNumber: req.CustomerName.PhoneNumber,
-// 			Email:       req.CustomerName.Email,
-// 			DateOfBirth: req.CustomerName.DateOfBirth,
-// 			Gender:      req.CustomerName.Gender,
-// 			MotherName:  req.CustomerName.MotherName,
-// 		},
-// 		Address: imodel.Address{
-// 			Country:     req.Address.Country,
-// 			Region:      req.Address.Region,
-// 			City:        req.Address.City,
-// 			SubCity:     req.Address.SubCity,
-// 			Wereda:      req.Address.Wereda,
-// 			Kebele:      req.Address.Kebele,
-// 			HouseNumber: req.Address.HouseNumber,
-// 		},
-// 		Nationality:          req.Nationality,
-// 		MaritalStatus:        constants.MaritalStatus(req.MaritalStatus),
-// 		CustomerStatus:       constants.CustomerPending,
-// 		EmploymentStatus:     constants.EmploymentStatus(req.EmploymentStatus),
-// 		Occupation:           req.Occupation,
-// 		AverageMonthlyIncome: req.AverageMonthlyIncome,
-// 		EducationStatus:      req.EducationStatus,
-// 		SourceOfFund:         req.SourceOfFund,
-// 		KYCStatus:            "PENDING",
-// 		MoneyLaunderingFree:  true,
-// 		TermsAndConditions:   req.TermsAndConditions,
-// 		LivenessCheck: imodel.LivenessCheck{
-// 			IDCardFront:        idCardFront,
-// 			IDCardBack:         idCardBack,
-// 			LivenessCheckVideo: video,
-// 		},
-// 		VerificationResult: imodel.VerificationResult{
-// 			FaceMatchScore:             req.VerificationResult.FaceMatchScore,
-// 			LivenessResult:             req.VerificationResult.LivenessResult,
-// 			DocumentAuthenticityResult: req.VerificationResult.DocumentAuthenticityResult,
-// 		},
-// 		CreatedAt: time.Now(),
-// 		UpdatedAt: time.Now(),
-// 	}
-
-// 	action := lib.CpsModelBuilder("", makerData, nil, kyc, string(constants.RequestCreateCustomerKYC), constants.CREATE)
-
-// 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
-// 		log.Errorf("[CustKycSvc][Create] cps action err: %v", err)
-// 		return err
-// 	}
-
-// 	return nil
-// }
 
 func (s *customerKYCService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]dto.CustomerKYCResponse], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "CustomerKYC", "FindAllWithPagination")
@@ -191,19 +86,24 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason str
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
+	if local_util.IsIncomplete(makerUser) {
+		log.Errorf("[CustKycSvc][EnableDisable] incomplete maker user")
+		return errors.New(constants.IncompleteUserInfo)
+	}
+
 	userReq, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		log.Errorf("[CustKycSvc][EnableDisable] find err: %v", err)
 		return err
 	}
 
-	if userReq.Enabled && enable && userReq.KYCStatus == imodel.KYCStatusApproved {
-		log.Warnf("[CustKycSvc][EnableDisable] already in state id: %s, enabled: %v", id, enable)
+	if enable && userReq.KYCStatus == imodel.KYCStatusApproved {
+		log.Warnf("[CustKycSvc][EnableDisable] already approved id: %s", id)
 		return errors.New("Customer KYC is already approved")
 	}
 
-	if !userReq.Enabled && !enable && userReq.KYCStatus == imodel.KYCStatusRejected {
-		log.Warnf("[CustKycSvc][EnableDisable] already in state id: %s, disabled: %v", id, enable)
+	if !enable && userReq.KYCStatus == imodel.KYCStatusRejected {
+		log.Warnf("[CustKycSvc][EnableDisable] already rejected id: %s", id)
 		return errors.New("Customer KYC is already rejected")
 	}
 
@@ -216,7 +116,10 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason str
 
 	newReq := *userReq
 	newReq.Enabled = enable
-	if !enable {
+	if enable {
+		newReq.KYCStatus = imodel.KYCStatusApproved
+	} else {
+		newReq.KYCStatus = imodel.KYCStatusRejected
 		newReq.KYCRejectReason = reason
 	}
 
@@ -230,63 +133,6 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason str
 	return nil
 }
 
-// func (s *customerKYCService) Delete(ctx context.Context, id string) error {
-
-// 	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteKYC", "CustomerKYC", "Delete")
-// 	defer span.End()
-
-// 	log.Infof("[CustKycSvc][Delete] id: %s", id)
-// 	makerData := local_util.ExtractUserFromContext(ctx)
-// 	if local_util.IsIncomplete(makerData) {
-// 		log.Errorf("[CustKycSvc][Delete] incomplete user")
-// 		return errors.New(constants.IncompleteUserInfo)
-// 	}
-
-// 	kyc, err := s.repo.FindByID(ctx, id)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	action := lib.CpsModelBuilder(id, makerData, kyc, nil, string(constants.RequestDeleteCustomerKYC), constants.DELETE)
-
-// 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
-// 		log.Errorf("[CustKycSvc][Delete] cps action err: %v", err)
-// 		return err
-// 	}
-
-// 	return nil
-// }
-
-// func (s *customerKYCService) UpdateKYCStatus(ctx context.Context, id string, status string) error {
-
-// 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateKYCStatus", "CustomerKYC", "UpdateKYCStatus")
-// 	defer span.End()
-
-// 	log.Infof("[CustKycSvc][UpdateStatus] id: %s status: %s", id, status)
-// 	makerData := local_util.ExtractUserFromContext(ctx)
-// 	if local_util.IsIncomplete(makerData) {
-// 		log.Errorf("[CustKycSvc][UpdateStatus] incomplete user")
-// 		return errors.New(constants.IncompleteUserInfo)
-// 	}
-
-// 	kyc, err := s.repo.FindByID(ctx, id)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	currentAction := *kyc
-// 	// currentAction.KYCStatus = status
-
-// 	action := lib.CpsModelBuilder(id, makerData, kyc, currentAction, string(constants.RequestUpdateCustomerKYC), constants.UPDATE)
-
-// 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
-// 		log.Errorf("[CustKycSvc][UpdateStatus] cps action err: %v", err)
-// 		return err
-// 	}
-
-// 	return nil
-// }
-
 func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "CustomerKYC", "Authorize")
 	defer span.End()
@@ -299,63 +145,44 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 		if err != nil {
 			return nil, err
 		}
-		// Create the account in core
+
 		data := accountLookupDto.CreateAccountRequest{
 			CustomerName:      userData.KYCData.FullName,
 			Gender:            constants.Gender(userData.KYCData.Gender),
 			PhoneNumber:       userData.KYCData.PhoneNumber,
-			AccountType:       "",
+			AccountType:       userData.KYCData.AccountType,
 			AccountBranchType: "",
 			Picture:           userData.KYCData.SelfiePhoto,
 		}
 		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.logger)
 		if err != nil {
-			log.Errorf("Core account creation failed: %v", err)
+			log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)
 			return nil, err
 		}
 
-		// Create the account in user table
-		err = s.repo.CreateUser(ctx, userAccount, *userData)
-		if err != nil {
+		if err = s.repo.CreateUser(ctx, userAccount, *userData); err != nil {
 			return nil, err
 		}
-		// Update customer status
-		err = s.repo.UpdateKYCStatus(ctx, cpsAction.UniqueId, string(constants.KYCStatusApproved), "", true)
-		if err != nil {
+
+		if err = s.repo.UpdateKYCStatus(ctx, cpsAction.UniqueId, string(constants.KYCStatusApproved), "", true); err != nil {
 			return nil, err
 		}
+
 	case string(constants.RequestRejectCustomerKYC):
 		userData, err := local_util.JsonUnmarshal[imodel.CustomerKYC](cpsAction.CurrentAction)
 		if err != nil {
 			return nil, err
 		}
 
-		rejectionReason := userData.KYCRejectReason
-		err = s.repo.UpdateKYCStatus(ctx, cpsAction.UniqueId, string(constants.KYCStatusRejected), rejectionReason, false)
-		if err != nil {
+		rejectionReason := strings.TrimSpace(userData.KYCRejectReason)
+		if rejectionReason == "" {
+			return nil, errors.New("rejection reason is required")
+		}
+
+		if err = s.repo.UpdateKYCStatus(ctx, cpsAction.UniqueId, string(constants.KYCStatusRejected), rejectionReason, false); err != nil {
 			return nil, err
 		}
 
-	// case string(constants.RequestCreateCustomerKYC):
-	// 	data, err := local_util.JsonUnmarshal[imodel.CustomerKYC](cpsAction.CurrentAction)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if err := s.repo.Create(ctx, data); err != nil {
-	// 		return nil, err
-	// 	}
-	// case string(constants.RequestDeleteCustomerKYC):
-	// 	if err := s.repo.Delete(ctx, cpsAction.UniqueId); err != nil {
-	// 		return nil, err
-	// 	}
-	// case string(constants.RequestUpdateCustomerKYC):
-	// 	data, err := local_util.JsonUnmarshal[dto.UpdateKYCStatusRequest](cpsAction.CurrentAction)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if err := s.repo.UpdateKYCStatus(ctx, cpsAction.UniqueId, data.KYCStatus); err != nil {
-	// 		return nil, err
-	// 	}
 	default:
 		return nil, fmt.Errorf("unsupported action: %s", cpsAction.RequestAction)
 	}
