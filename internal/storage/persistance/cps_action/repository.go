@@ -587,7 +587,8 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 		filter = bson.M{"$and": and}
 	}
 
-	if filter["action_status"] == "" || filter["action_status"] == constants.Pending {
+	as := filter["action_status"]
+	if as == nil || as == "" || as == constants.Pending {
 		filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
 	}
 

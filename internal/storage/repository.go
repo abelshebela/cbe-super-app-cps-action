@@ -826,6 +826,16 @@ type LogisticsMerchantRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchant], error)
 }
 
+type LogisticsMerchantOracleRepository interface {
+	FindOne(ctx context.Context, filter bson.M) (*local_model.LogisticsMerchant, error)
+	Update(ctx context.Context, id string, logisticsMerchant local_model.LogisticsMerchant) error
+	Create(ctx context.Context, logisticsMerchant local_model.LogisticsMerchant) error
+	Delete(ctx context.Context, id string) error
+	FindByID(ctx context.Context, id string) (*local_model.LogisticsMerchant, error)
+	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchant], error)
+}
+
 type UssdMerchantRepository interface {
 	Create(ctx context.Context, data imodel.UssdMerchant) error
 	Update(ctx context.Context, id string, update bson.M) error
@@ -962,17 +972,12 @@ type WalletOracleRepository interface {
 
 type UserActionLogRepository interface {
 	Save(ctx context.Context, log *imodel.UserActionLog) error
-	// Upsert inserts a new log for (action_code, username) or updates status fields if one already exists.
 	Upsert(ctx context.Context, log *imodel.UserActionLog) error
 	GetActionCodesByUser(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error)
 	GetActionCodesByUserAndAuditorStatus(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility, status string) ([]string, error)
 	GetActionCodesByActionLogFilter(ctx context.Context, filter imodel.UserActionLogActionCodeFilter) ([]string, error)
 	GetActionCodesByFilter(ctx context.Context, filter map[string]interface{}) ([]string, error)
-	// AuditorMarkLogsByActionCode propagates the auditor's mark verdict (givenAuditorStatus: MARKASRIGHT/MARKASWRONG)
-	// and the auditor process state (actionAuditorStatus: INPROGRESS/CHECKED) to all logs for that action_code.
 	AuditorMarkLogsByActionCode(ctx context.Context, actionCode string, givenAuditorStatus string, actionAuditorStatus string) error
-	// UpdateAuditorActionStatusByActionCode bulk-updates action_auditor_status for all logs with the given action_code.
-	// Used by AuditorClaim to mark the process as INPROGRESS and by ApproveUserActionsByActionCode to set NOTCHECKED.
 	UpdateAuditorActionStatusByActionCode(ctx context.Context, actionCode string, actionAuditorStatus string) error
 	GetLogsByUserIDAndResponsibility(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error)
 	GetLogsByResponsibility(ctx context.Context, responsibility imodel.UserActionResponsibility) ([]string, error)

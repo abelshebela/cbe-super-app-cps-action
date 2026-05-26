@@ -478,6 +478,8 @@ func (h *ecommerceMerchantAdapter) DeleteBranch(w http.ResponseWriter, r *http.R
 	defer span.End()
 
 	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	id := chi.URLParam(r, "id")
@@ -512,6 +514,8 @@ func (h *ecommerceMerchantAdapter) EnableBranch(w http.ResponseWriter, r *http.R
 	defer span.End()
 
 	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	id := chi.URLParam(r, "id")
@@ -546,6 +550,8 @@ func (h *ecommerceMerchantAdapter) DisableBranch(w http.ResponseWriter, r *http.
 	defer span.End()
 
 	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	id := chi.URLParam(r, "id")

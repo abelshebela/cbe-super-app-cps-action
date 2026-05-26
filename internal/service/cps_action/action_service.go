@@ -655,7 +655,11 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 	// Always resolve via user_action_log when the role has allocated request_actions.
 	// The log's request_action field is the authoritative source for which actions
 	// this checker role can see — cps_actions.request_action may differ or be absent.
-	if len(RAList) > 0 {
+	// For PENDING we skip the lookup: user_action_log has no given_action_status="PENDING"
+	// records (that field is only set on approve/reject), so the lookup always returns nil.
+	// The repo's request_action+isPendingOnly path handles PENDING scoping correctly.
+	isPendingOnly := len(statuses) == 1 && statuses[0] == string(constants.Pending)
+	if len(RAList) > 0 && !isPendingOnly {
 		logFilter := map[string]interface{}{
 			"request_action": bson.M{"$in": RAList},
 		}
@@ -675,8 +679,10 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
 			return nil, "", err
 		}
-		filterParams.Filters["action_code"] = actionCodes
-	} else if len(levels) > 0 || len(services) > 0 {
+		if len(actionCodes) > 0 {
+			filterParams.Filters["action_code"] = actionCodes
+		}
+	} else if !isPendingOnly && (len(levels) > 0 || len(services) > 0) {
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
 			Responsibilities: []string{string(imodel.CHECKER)},
 			Levels:           levels,
@@ -687,7 +693,7 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
 			return nil, "", err
 		}
-		filterParams.Filters["action_code_in"] = actionCodes
+		filterParams.Filters["action_code"] = actionCodes
 	}
 
 	if len(statuses) > 0 {
@@ -773,14 +779,49 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	services := extractStringSlice(filterParams.Filters, "services")
 	auditorStatuses := extractStringSlice(filterParams.Filters, "auditor_statuses")
 
+	if len(RAList) > 0 {
+		logFilter := map[string]interface{}{
+			"request_action": bson.M{"$in": RAList},
+		}
+		if len(auditorStatuses) == 1 {
+			logFilter["action_status"] = auditorStatuses[0]
+		} else if len(auditorStatuses) > 1 {
+			logFilter["action_status"] = auditorStatuses
+		}
+		if len(levels) > 0 {
+			logFilter["levels"] = levels
+		}
+		if len(services) > 0 {
+			logFilter["services"] = services
+		}
+		actionCodes, err := ca.actionLogRepo.GetActionCodesByFilter(ctx, logFilter)
+		if err != nil {
+			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
+			return nil, "", err
+		}
+		filterParams.Filters["action_code"] = actionCodes
+	} else if len(levels) > 0 || len(services) > 0 {
+		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
+			Responsibilities: []string{string(imodel.AUDITOR)},
+			Levels:           levels,
+			Services:         services,
+			AuditorStatuses:  extractStringSlice(filterParams.Filters, "auditor_statuses"),
+		})
+		if err != nil {
+			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
+			return nil, "", err
+		}
+		filterParams.Filters["action_code"] = actionCodes
+	}
+
+	//****************************************
 	// levels, services, auditor_statuses only exist in user_action_logs.
 	if len(levels) > 0 || len(services) > 0 || len(auditorStatuses) > 0 {
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
 			Responsibilities: []string{string(imodel.AUDITOR)},
-			AuditorStatuses:  auditorStatuses,
 			Levels:           levels,
 			Services:         services,
-			ActionStatuses:   extractStringSlice(filterParams.Filters, "action_status"),
+			AuditorStatuses:  extractStringSlice(filterParams.Filters, "auditor_statuses"),
 		})
 		if err != nil {
 			log.Errorf("[CpsActionSvc][GetCPSActionsForAuditor] log filter err: %v", err)
@@ -788,6 +829,8 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 		}
 		filterParams.Filters["action_codes"] = actionCodes
 	}
+
+	//************************************
 
 	if statuses := extractStringSlice(filterParams.Filters, "action_status"); len(statuses) > 0 {
 		filterParams.Filters["action_status"] = statuses

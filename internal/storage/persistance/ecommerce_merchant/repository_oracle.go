@@ -821,9 +821,14 @@ func (m *EcommerceMerchantStorage) FindOne(ctx context.Context, filter bson.M) (
 	if idRaw, ok := filter["_id"]; ok {
 		if idCond, ok2 := idRaw.(bson.M); ok2 {
 			if neRaw, ok3 := idCond["$ne"]; ok3 {
-				if oid, ok4 := neRaw.(bson.ObjectID); ok4 {
+				switch v := neRaw.(type) {
+				case bson.ObjectID:
 					clauses = append(clauses, fmt.Sprintf("RAWTOHEX(ID) != UPPER(:%d)", paramIdx))
-					args = append(args, oid.Hex())
+					args = append(args, v.Hex())
+					paramIdx++
+				case string:
+					clauses = append(clauses, fmt.Sprintf("RAWTOHEX(ID) != UPPER(:%d)", paramIdx))
+					args = append(args, v)
 					paramIdx++
 				}
 			}

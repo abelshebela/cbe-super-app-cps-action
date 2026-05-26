@@ -174,16 +174,15 @@ func (c *customerKYCAdapter) ApproveKycRequest(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		log.Infof("[ApproveKycRequest] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
-		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.CustomerKycRequestApprovedSuccessfully, nil)
+		log.Infof("[ApproveKycRequest] request submitted for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.CustomerKycApprovalRequestSubmittedSuccessfully, nil)
 		return
 	}
 
-	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-	localization.SendSuccessResponse(w, localization.CustomerKycApprovalRequestSubmittedSuccessfully, nil)
+	localization.SendSuccessResponse(w, localization.CustomerKycRequestApprovedSuccessfully, nil)
 }
 
 func (c *customerKYCAdapter) RejectKycRequest(w http.ResponseWriter, r *http.Request) {
@@ -202,6 +201,12 @@ func (c *customerKYCAdapter) RejectKycRequest(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	if err := req.Validate(); err != nil {
+		log.Errorf("[RejectKycRequest] validation failed: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
 	id, err := util.ExtractID(w, r)
 	if err != nil {
 		log.Errorf("[RejectKycRequest] extractID: %v", err)
@@ -215,16 +220,15 @@ func (c *customerKYCAdapter) RejectKycRequest(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
-		log.Infof("[RejectKycRequest] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
-		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-		localization.SendSuccessResponse(w, localization.CustomerKycRequestRejectedSuccessfully, nil)
+		log.Infof("[RejectKycRequest] request submitted for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.CustomerKycRejectRequestSubmittedSuccessfully, nil)
 		return
 	}
 
-	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
-	localization.SendSuccessResponse(w, localization.CustomerKycRejectRequestSubmittedSuccessfully, nil)
+	localization.SendSuccessResponse(w, localization.CustomerKycRequestRejectedSuccessfully, nil)
 }
 
 // DeleteKYCRequest deletes a specific KYC request by ID

@@ -89,48 +89,32 @@ func MergeBranches(oldBranches, newBranches []model.BranchInformation) []model.B
 }
 
 func MapToEcommerceUpdate(old, data *model.EcommerceMerchant) *model.EcommerceMerchant {
-	_ = old
-	update := &model.EcommerceMerchant{}
-
-	// updatedBranches := MergeBranches(old.Branches, data.Branches)
-
-	// return &model.EcommerceMerchant{
-	// 	ID:                old.ID,
-	// 	Code:              old.Code,
-	// 	MerchantName:      local_util.NonEmptyString(data.MerchantName, old.MerchantName),
-	// 	PhoneNumber:       local_util.NonEmptyString(data.PhoneNumber, old.PhoneNumber),
-	// 	Email:             local_util.NonEmptyString(data.Email, old.Email),
-	// 	BankAccountNumber: local_util.NonEmptyString(data.BankAccountNumber, old.BankAccountNumber),
-	// 	Enabled:           old.Enabled,
-	// 	IsDeleted:         old.IsDeleted,
-	// 	CreatedAt:         old.CreatedAt,
-	// 	UpdatedAt:         now,
-	// 	Branches:          updatedBranches,
-	// }
+	updated := *old
+	updated.UpdatedAt = time.Now()
 
 	if data.Code != "" {
-		update.Code = data.Code
+		updated.Code = data.Code
 	}
 	if data.MerchantName != "" {
-		update.MerchantName = data.MerchantName
+		updated.MerchantName = data.MerchantName
 	}
 	if data.SettlementMethod != "" {
-		update.SettlementMethod = data.SettlementMethod
+		updated.SettlementMethod = data.SettlementMethod
 	}
 	if data.Email != "" {
-		update.Email = data.Email
+		updated.Email = data.Email
 	}
 	if data.PhoneNumber != "" {
-		update.PhoneNumber = data.PhoneNumber
+		updated.PhoneNumber = data.PhoneNumber
 	}
 	if data.BankAccountNumber != "" {
-		update.BankAccountNumber = data.BankAccountNumber
+		updated.BankAccountNumber = data.BankAccountNumber
 	}
 	if len(data.Branches) > 0 {
-		update.Branches = data.Branches
+		updated.Branches = data.Branches
 	}
 
-	return update
+	return &updated
 }
 
 func HandleCPSActionForMiniAppMerchant(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
@@ -191,11 +175,7 @@ func CheckMerchantExists(
 	}
 
 	if opts != nil && opts.ExcludeID != "" {
-		objID, err := bson.ObjectIDFromHex(opts.ExcludeID)
-		if err != nil {
-			return false, err
-		}
-		filter["_id"] = bson.M{"$ne": objID}
+		filter["_id"] = bson.M{"$ne": opts.ExcludeID}
 	}
 
 	res, err := merchantRepo.FindOne(ctx, filter)
@@ -298,10 +278,5 @@ func ToEcommerceMerchantDomainFromUpdateDTO(d *merchantDto.UpdateEcommerceMercha
 	if d.Branches != nil {
 		updatedEcommerceMerchant.Branches = convertDtoBranches(d.Branches)
 	}
-	updatedEcommerceMerchant.Enabled = true
-	updatedEcommerceMerchant.IsDeleted = false
-	updatedEcommerceMerchant.CreatedAt = time.Now()
-	updatedEcommerceMerchant.UpdatedAt = time.Now()
-
 	return updatedEcommerceMerchant
 }
