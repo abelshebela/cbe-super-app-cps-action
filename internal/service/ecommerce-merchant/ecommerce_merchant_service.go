@@ -78,12 +78,12 @@ func (m *ecommerceMerchantService) ValidateAccountNumberWithExternalAPI(ctx cont
 
 		log.Warnf("(core) failed to get account details: %s", message)
 
-		return nil, err
+		return nil, errors.New(localization.ErrorAccountNumberValidationFailed.Code)
 	}
 
 	if response.Detail == nil {
 		log.Errorf("account lookup successful but no account details found for account number %s", accountNumber)
-		return nil, err
+		return nil, errors.New(localization.ErrorAccountNumberNotFound.Code)
 	}
 
 	detail := response.Detail
