@@ -655,7 +655,11 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 	// Always resolve via user_action_log when the role has allocated request_actions.
 	// The log's request_action field is the authoritative source for which actions
 	// this checker role can see — cps_actions.request_action may differ or be absent.
-	if len(RAList) > 0 {
+	// For PENDING we skip the lookup: user_action_log has no given_action_status="PENDING"
+	// records (that field is only set on approve/reject), so the lookup always returns nil.
+	// The repo's request_action+isPendingOnly path handles PENDING scoping correctly.
+	isPendingOnly := len(statuses) == 1 && statuses[0] == string(constants.Pending)
+	if len(RAList) > 0 && !isPendingOnly {
 		logFilter := map[string]interface{}{
 			"request_action": bson.M{"$in": RAList},
 		}
@@ -675,8 +679,10 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
 			return nil, "", err
 		}
-		filterParams.Filters["action_code"] = actionCodes
-	} else if len(levels) > 0 || len(services) > 0 {
+		if len(actionCodes) > 0 {
+			filterParams.Filters["action_code"] = actionCodes
+		}
+	} else if !isPendingOnly && (len(levels) > 0 || len(services) > 0) {
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
 			Responsibilities: []string{string(imodel.CHECKER)},
 			Levels:           levels,
