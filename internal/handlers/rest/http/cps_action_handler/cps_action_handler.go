@@ -1378,9 +1378,12 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	if requestedRole == "checker" {
+		// Use GetCPSActionsForApprover — same method as the list endpoint — so
+		// counts go through user_action_log lookup and SanitizedFindAllWithPaginationForApprover,
+		// matching exactly what the checker sees in the list.
 		var pendingCount, approvedCount, rejectedCount, canceledCount int
 
-		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(constants.Pending), "")); err != nil {
+		if res, _, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, userID, reqs, buildFilter(string(constants.Pending), "")); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
@@ -1388,7 +1391,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			pendingCount = int(res.Meta.TotalDocs)
 		}
 
-		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(constants.Approved), "")); err != nil {
+		if res, _, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, userID, reqs, buildFilter(string(constants.Approved), "")); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
@@ -1396,7 +1399,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			approvedCount = int(res.Meta.TotalDocs)
 		}
 
-		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(constants.Rejected), "")); err != nil {
+		if res, _, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, userID, reqs, buildFilter(string(constants.Rejected), "")); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
@@ -1404,7 +1407,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			rejectedCount = int(res.Meta.TotalDocs)
 		}
 
-		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(constants.Canceled), "")); err != nil {
+		if res, _, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, userID, reqs, buildFilter(string(constants.Canceled), "")); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
