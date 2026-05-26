@@ -26,14 +26,14 @@ import (
 )
 
 type LogisticsMerchantService struct {
-	repo                 storage.LogisticsMerchantRepository
+	repo                 storage.LogisticsMerchantOracleRepository
 	cpsService           service.CPSActionService
 	accountLookupService account_lookup.Account
 	cfg                  *config.VaultConfig
 	logger               utils.Logger
 }
 
-func NewLogisticsMerchantService(repo storage.LogisticsMerchantRepository, cpsService service.CPSActionService, accountLookupService account_lookup.Account, cfg *config.VaultConfig, logger utils.Logger) service.LogisticsMerchantService {
+func NewLogisticsMerchantService(repo storage.LogisticsMerchantOracleRepository, cpsService service.CPSActionService, accountLookupService account_lookup.Account, cfg *config.VaultConfig, logger utils.Logger) service.LogisticsMerchantService {
 	return &LogisticsMerchantService{
 		repo:                 repo,
 		cpsService:           cpsService,
