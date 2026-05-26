@@ -117,39 +117,47 @@ func (m *EventMerchantOracleRepository) Delete(ctx context.Context, id string) e
 
 func (m *EventMerchantOracleRepository) EnableOrDisable(ctx context.Context, ids []string, enable bool) error {
 	if len(ids) == 0 {
-		return nil // nothing to do
+		return nil
 	}
 
-	// Build placeholders for the IN clause
-	placeholders := make([]string, len(ids))
-	args := []interface{}{}
+	idArgs := make([]interface{}, len(ids))
+	for i, id := range ids {
+		idArgs[i] = id
+	}
+
+	// Check query: placeholders :1, :2, ... bound directly to idArgs
+	checkPH := make([]string, len(ids))
 	for i := range ids {
-		placeholders[i] = fmt.Sprintf("HEXTORAW(:%d)", i+2) // +2 because :1 is for IS_ENABLED
-		args = append(args, ids[i])
+		checkPH[i] = fmt.Sprintf("HEXTORAW(:%d)", i+1)
 	}
-	inClause := strings.Join(placeholders, ",")
-
-	// 1. Check all IDs exist and are not deleted
-	checkQuery := fmt.Sprintf("SELECT COUNT(1) FROM MERCHANTS WHERE ID IN (%s) AND IS_DELETED = 0 AND MERCHANT_TYPE = 'EVENT'", inClause)
+	checkQuery := fmt.Sprintf(
+		"SELECT COUNT(1) FROM MERCHANTS WHERE ID IN (%s) AND IS_DELETED = 0 AND MERCHANT_TYPE = 'EVENT'",
+		strings.Join(checkPH, ","),
+	)
 	var count int
-	err := m.OracleCliant.QueryRowContext(ctx, checkQuery, args...).Scan(&count)
-	if err != nil {
+	if err := m.OracleCliant.QueryRowContext(ctx, checkQuery, idArgs...).Scan(&count); err != nil {
 		m.logger.Errorf("[EVENT MERCHANT EnableOrDisable] error checking IDs: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	if count != len(ids) {
-		m.logger.Warnf("[EVENT MERCHANT EnableOrDisable] not all IDs exist or are not deleted, requested: %d, found: %d", len(ids), count)
+		m.logger.Warnf("[EVENT MERCHANT EnableOrDisable] not all IDs exist, requested: %d, found: %d", len(ids), count)
 		return errors.New("one or more IDs do not exist or are deleted")
 	}
 
-	// 2. Update IS_ENABLED for all valid IDs
+	// Update query: :1 = IS_ENABLED, :2, :3, ... = IDs
+	updatePH := make([]string, len(ids))
+	for i := range ids {
+		updatePH[i] = fmt.Sprintf("HEXTORAW(:%d)", i+2)
+	}
 	isEnabled := 0
 	if enable {
 		isEnabled = 1
 	}
-	updateArgs := []interface{}{isEnabled}
-	updateArgs = append(updateArgs, args...)
-	updateQuery := fmt.Sprintf("UPDATE MERCHANTS SET IS_ENABLED = :1 WHERE ID IN (%s) AND IS_DELETED = 0 AND MERCHANT_TYPE = 'EVENT'", inClause)
+	updateArgs := append([]interface{}{isEnabled}, idArgs...)
+	updateQuery := fmt.Sprintf(
+		"UPDATE MERCHANTS SET IS_ENABLED = :1 WHERE ID IN (%s) AND IS_DELETED = 0 AND MERCHANT_TYPE = 'EVENT'",
+		strings.Join(updatePH, ","),
+	)
 	result, err := m.OracleCliant.ExecContext(ctx, updateQuery, updateArgs...)
 	if err != nil {
 		m.logger.Errorf("[EVENT MERCHANT EnableOrDisable] error updating: %v", err)
@@ -211,21 +219,21 @@ func (m *EventMerchantOracleRepository) EnableOrDisable(ctx context.Context, ids
 // }
 
 func (m *EventMerchantOracleRepository) FindByID(ctx context.Context, id string) (*model.EventMerchant, error) {
-	query := `SELECT 
-        ID, 
-        MERCHANT_ACCOUNT_NUMBER, 
-        MERCHANT_CODE, 
-        MERCHANT_NAME, 
-        SETTLEMENT_METHOD, 
-        MERCHANT_TYPE, 
-        CONTACT_EMAIL, 
-        CONTACT_PHONE, 
-        IS_ENABLED, 
-        IS_DELETED, 
-        CREATED_AT, 
-        LAST_MODIFIED_AT, 
-        DELETED_AT 
-    FROM MERCHANTS 
+	query := `SELECT
+        ID,
+        MERCHANT_ACCOUNT_NUMBER,
+        MERCHANT_CODE,
+        MERCHANT_NAME,
+        SETTLEMENT_METHOD,
+        MERCHANT_TYPE,
+        CONTACT_EMAIL,
+        CONTACT_PHONE,
+        IS_ENABLED,
+        IS_DELETED,
+        CREATED_AT,
+        LAST_MODIFIED_AT,
+        DELETED_AT
+    FROM MERCHANTS
     WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND MERCHANT_TYPE = 'EVENT'`
 
 	row := m.OracleCliant.QueryRowContext(ctx, query, id)
@@ -252,6 +260,13 @@ func (m *EventMerchantOracleRepository) FindByID(ctx context.Context, id string)
 		&updatedAt,
 		&deletedAt,
 	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			m.logger.Warnf("[event merchant persistance findbyID] No row find with given ID")
+			return nil, errors.New(localization.UserNotFoundWithGivenID.Code)
+		}
+		return nil, err
+	}
 
 	MerchantData.Enabled = isEnabled == 1
 	MerchantData.IsDeleted = isDeleted == 1
@@ -265,13 +280,6 @@ func (m *EventMerchantOracleRepository) FindByID(ctx context.Context, id string)
 		MerchantData.DeletedAt = deletedAt.Time
 	}
 	MerchantData.ID = hex.EncodeToString(byteData)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			m.logger.Warnf("[event merchant persistance findbyID] No row find with given ID")
-			return nil, errors.New(localization.UserNotFoundWithGivenID.Code)
-		}
-		return nil, err
-	}
 	return &MerchantData, nil
 }
 
@@ -467,31 +475,121 @@ func contains(arr []string, key string) bool {
 	return false
 }
 
-func (m *EventMerchantOracleRepository) FindOne(ctx context.Context, query bson.M) (*model.EventMerchant, error) {
+// buildFindOneFilter translates a bson.M filter into Oracle WHERE clauses and args.
+// Supports: $or (merchant_code, bank_account_number), _id.$ne (string).
+func buildFindOneFilter(filter bson.M) (clauses []string, args []interface{}) {
+	clauses = []string{"IS_DELETED = 0", "MERCHANT_TYPE = 'EVENT'"}
+	paramIdx := 1
 
-	// ExistedMerchant := model.EventMerchant{}
-	// err := m.OracleCliant.QueryRowContext(ctx, query).Scan(
-	// 	&ExistedMerchant.ID,
-	// 	&ExistedMerchant.MerchantID,
-	// 	&ExistedMerchant.MerchantType,
-	// 	&ExistedMerchant.SettlementMethod,
-	// 	&ExistedMerchant.MerchantName,
-	// 	&ExistedMerchant.BankAccountNumber,
-	// 	&ExistedMerchant.Email,
-	// 	&ExistedMerchant.PhoneNumber,
-	// 	&ExistedMerchant.Enabled,
-	// 	&ExistedMerchant.IsDeleted,
-	// 	&ExistedMerchant.CreatedAt,
-	// 	&ExistedMerchant.UpdatedAt,
-	// 	&ExistedMerchant.DeletedAt,
-	// )
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// return &ExistedMerchant, nil
+	if orPart := buildOrPart(filter, &paramIdx, &args); orPart != "" {
+		clauses = append(clauses, orPart)
+	}
+	buildIDExclude(filter, &clauses, &args, &paramIdx)
+	return clauses, args
+}
 
-	//unimplimented
-	return nil, nil
+func buildOrPart(filter bson.M, paramIdx *int, args *[]interface{}) string {
+	orRaw, ok := filter["$or"]
+	if !ok {
+		return ""
+	}
+	orConditions, ok := orRaw.([]bson.M)
+	if !ok || len(orConditions) == 0 {
+		return ""
+	}
+	var parts []string
+	for _, cond := range orConditions {
+		if v, ok := cond["merchant_code"]; ok {
+			parts = append(parts, fmt.Sprintf("LOWER(MERCHANT_CODE) = LOWER(:%d)", *paramIdx))
+			*args = append(*args, fmt.Sprint(v))
+			*paramIdx++
+		}
+		if v, ok := cond["bank_account_number"]; ok {
+			parts = append(parts, fmt.Sprintf("LOWER(MERCHANT_ACCOUNT_NUMBER) = LOWER(:%d)", *paramIdx))
+			*args = append(*args, fmt.Sprint(v))
+			*paramIdx++
+		}
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return "(" + strings.Join(parts, " OR ") + ")"
+}
+
+func buildIDExclude(filter bson.M, clauses *[]string, args *[]interface{}, paramIdx *int) {
+	idRaw, ok := filter["_id"]
+	if !ok {
+		return
+	}
+	idCond, ok := idRaw.(bson.M)
+	if !ok {
+		return
+	}
+	neRaw, ok := idCond["$ne"]
+	if !ok {
+		return
+	}
+	if v, ok := neRaw.(string); ok {
+		*clauses = append(*clauses, fmt.Sprintf("RAWTOHEX(ID) != UPPER(:%d)", *paramIdx))
+		*args = append(*args, v)
+		*paramIdx++
+	}
+}
+
+func scanEventMerchantRow(row *sql.Row) (*model.EventMerchant, error) {
+	var (
+		merchant                        model.EventMerchant
+		isEnabled, isDeleted            int
+		createdAt, updatedAt, deletedAt sql.NullTime
+	)
+	err := row.Scan(
+		&merchant.ID,
+		&merchant.BankAccountNumber,
+		&merchant.MerchantID,
+		&merchant.MerchantName,
+		&merchant.SettlementMethod,
+		&merchant.MerchantType,
+		&merchant.Email,
+		&merchant.PhoneNumber,
+		&isEnabled,
+		&isDeleted,
+		&createdAt,
+		&updatedAt,
+		&deletedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	merchant.Enabled = isEnabled == 1
+	merchant.IsDeleted = isDeleted == 1
+	if createdAt.Valid {
+		merchant.CreatedAt = createdAt.Time
+	}
+	if updatedAt.Valid {
+		merchant.UpdatedAt = updatedAt.Time
+	}
+	if deletedAt.Valid {
+		merchant.DeletedAt = deletedAt.Time
+	}
+	return &merchant, nil
+}
+
+func (m *EventMerchantOracleRepository) FindOne(ctx context.Context, filter bson.M) (*model.EventMerchant, error) {
+	clauses, args := buildFindOneFilter(filter)
+
+	q := `SELECT RAWTOHEX(ID), MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME,
+		SETTLEMENT_METHOD, MERCHANT_TYPE, CONTACT_EMAIL, CONTACT_PHONE,
+		IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT
+	FROM MERCHANTS WHERE ` + strings.Join(clauses, " AND ") + " FETCH FIRST 1 ROWS ONLY"
+
+	merchant, err := scanEventMerchantRow(m.OracleCliant.QueryRowContext(ctx, q, args...))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New(localization.ErrorEcommerceMerchantNotFound.Code)
+		}
+		return nil, local_util.HandleDBError(err)
+	}
+	return merchant, nil
 }
 
 func (m *EventMerchantOracleRepository) FindOneO(ctx context.Context, data *types.CheckMerchant) (*model.EventMerchant, error) {
@@ -627,7 +725,7 @@ func buildUpdateQuery(id string, merchant model.EventMerchant) (string, []interf
 	// }
 
 	query += strings.Join(setParts, ", ")
-	query += fmt.Sprintf(" WHERE MERCHANT_TYPE = 'EVENT' AND ID = :%d", index)
+	query += fmt.Sprintf(" WHERE MERCHANT_TYPE = 'EVENT' AND ID = HEXTORAW(:%d)", index)
 	args = append(args, id)
 
 	return query, args
