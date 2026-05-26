@@ -51,7 +51,7 @@ func (l *LogisticsMerchantOracle) Create(ctx context.Context, logisticsMerchant 
 
 // Delete implements [storage.LogisticsMerchantOracleRepository].
 func (l *LogisticsMerchantOracle) Delete(ctx context.Context, id string) error {
-	stmt := `UPDATE MERCHANTS SET IS_DELETED = 1, DELETED_AT = SYSTIMESTAMP, LAST_MODIFIED_AT = SYSTIMESTAMP WHERE ID = HEXTORAW(:1)`
+	stmt := `DELETE FROM MERCHANTS WHERE ID = HEXTORAW(:1)`
 	_, err := l.db.ExecContext(ctx, stmt, id)
 	if err != nil {
 		l.logger.Errorf("Failed to delete logistics merchant: %v", err)
@@ -75,7 +75,7 @@ func (l *LogisticsMerchantOracle) EnableOrDisable(ctx context.Context, ids []str
 
 // FindAllWithPagination implements [storage.LogisticsMerchantOracleRepository].
 func (l *LogisticsMerchantOracle) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.LogisticsMerchant], error) {
-	where := "WHERE IS_DELETED = 0"
+	where := "WHERE IS_DELETED = 0 AND MERCHANT_TYPE = 'LOGISTICS'"
 	args := []interface{}{}
 	if filterParam.Search != "" {
 		where += " AND (LOWER(MERCHANT_NAME) LIKE :1 OR LOWER(MERCHANT_CODE) LIKE :2)"
@@ -137,7 +137,7 @@ func (l *LogisticsMerchantOracle) FindAllWithPagination(ctx context.Context, fil
 
 // FindByID implements [storage.LogisticsMerchantOracleRepository].
 func (l *LogisticsMerchantOracle) FindByID(ctx context.Context, id string) (*model.LogisticsMerchant, error) {
-	stmt := `SELECT RAWTOHEX(ID), MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME, SETTLEMENT_METHOD, MERCHANT_TYPE, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT FROM MERCHANTS WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
+	stmt := `SELECT RAWTOHEX(ID), MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME, SETTLEMENT_METHOD, MERCHANT_TYPE, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT FROM MERCHANTS WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0 AND MERCHANT_TYPE = 'LOGISTICS'`
 	var m model.LogisticsMerchant
 	var enabled, isDeleted int
 	var createdAt, updatedAt, deletedAt sql.NullTime
@@ -172,10 +172,10 @@ func (l *LogisticsMerchantOracle) FindOne(ctx context.Context, filter bson.M) (*
 	var stmt string
 	var arg string
 	if v, ok := filter["merchant_code"]; ok {
-		stmt = `SELECT RAWTOHEX(ID), MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME, SETTLEMENT_METHOD, MERCHANT_TYPE, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT FROM MERCHANTS WHERE MERCHANT_CODE = :1 AND IS_DELETED = 0`
+		stmt = `SELECT RAWTOHEX(ID), MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME, SETTLEMENT_METHOD, MERCHANT_TYPE, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT FROM MERCHANTS WHERE MERCHANT_CODE = :1 AND IS_DELETED = 0 AND MERCHANT_TYPE = 'LOGISTICS'`
 		arg = v.(string)
 	} else if v, ok := filter["merchant_id"]; ok {
-		stmt = `SELECT RAWTOHEX(ID), MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME, SETTLEMENT_METHOD, MERCHANT_TYPE, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT FROM MERCHANTS WHERE MERCHANT_CODE = :1 AND IS_DELETED = 0`
+		stmt = `SELECT RAWTOHEX(ID), MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME, SETTLEMENT_METHOD, MERCHANT_TYPE, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT FROM MERCHANTS WHERE MERCHANT_CODE = :1 AND IS_DELETED = 0 AND MERCHANT_TYPE = 'LOGISTICS'`
 		arg = v.(string)
 	} else {
 		return nil, sql.ErrNoRows
