@@ -352,7 +352,18 @@ RETURNING RAWTOHEX(ID) INTO :9`
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	types.SetId(ctx, merchantID)
+	// Get created merchant with branches to return in response and set in context metadata for potential use in handlers.
+	createdM, err := m.FindByID(ctx, merchantID)
+	if err != nil {
+		log.Errorf("[EcommerceMerchantRepo][Create] find created merchant failed: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	branches := make([]types.B, 0, len(createdM.Branches))
+	for _, b := range createdM.Branches {
+		branches = append(branches, types.B{ID: b.ID, Code: b.BranchCode})
+	}
+
+	types.SetMerchant(ctx, &types.Merchant{ID: createdM.ID, Branches: branches})
 
 	return &created, nil
 }

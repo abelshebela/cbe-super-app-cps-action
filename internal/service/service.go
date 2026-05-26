@@ -43,6 +43,7 @@ import (
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 
 	cps_role_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
+	superapproledto "cbe-super-app-cps-action/internal/constants/dto/superapp_role"
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
 	customer_group_dto "cbe-super-app-cps-action/internal/constants/dto/customer_group"
@@ -638,6 +639,7 @@ type ServiceLayer struct {
 	CustomerKYC                   CustomerKYCService
 	UssdMerchantService           UssdMerchantService
 	BPSActionService              BPSActionService
+	SuperAppRole                  SuperAppRoleService
 	QueueManager                  *queue.QueueManager
 }
 
@@ -707,6 +709,7 @@ type ServiceContainer struct {
 	CustomerKYCContainer               CustomerKYCService
 	UssdMerchantContainer              UssdMerchantService
 	BPSActionContainer                 BPSActionService
+	SuperAppRoleContainer              SuperAppRoleService
 	QueueManager                       *queue.QueueManager
 }
 
@@ -857,5 +860,18 @@ type CustomerKYCService interface {
 	EnableOrDisable(ctx context.Context, id, reason string, enable bool) error
 	// UpdateKYCStatus(ctx context.Context, id, status string) error
 	// Delete(ctx context.Context, id string) error
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type SuperAppRoleService interface {
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.SuperAppRoleGroup], error)
+	GetTransferLimitByRole(ctx context.Context, superappRole string, filterParam types.Filter) (*types.PaginatedResponse[[]cps_role_dto.ServiceLevelLimitResponse], error)
+	GetGlobalLimitByRole(ctx context.Context, superappRole string) (*cps_role_dto.GlobalLimitResponse, error)
+	EnableByRole(ctx context.Context, superappRole string) error
+	DisableByRole(ctx context.Context, superappRole string) error
+	DeleteByRole(ctx context.Context, superappRole string) error
+	GetAccessListsByRole(ctx context.Context, superappRole string) ([]imodel.APPAccessList, []imodel.APPAccessList, error)
+	BulkDisableAccessLists(ctx context.Context, superappRole string, req superapproledto.BulkAccessListByRoleRequest) error
+	BulkEnableAccessLists(ctx context.Context, superappRole string, req superapproledto.BulkAccessListByRoleRequest) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

@@ -14,13 +14,13 @@ import (
 
 var cpsActionRegistry = map[string]string{
 	// Notification
-	"POST notifications":               "NOTIFICATIONS",
-	"PATCH notifications":              "NOTIFICATIONS",
-	"DELETE notifications":             "NOTIFICATIONS",
-	"GET notifications":                "NOTIFICATIONS",
-	"GET notifications/{id}":           "NOTIFICATIONS",
-	"PATCH notifications/enable/{id}":  "NOTIFICATIONS",
-	"PATCH notifications/disable/{id}": "NOTIFICATIONS",
+	"POST notifications":               "NOTIFICATION",
+	"PATCH notifications":              "NOTIFICATION",
+	"DELETE notifications":             "NOTIFICATION",
+	"GET notifications":                "NOTIFICATION",
+	"GET notifications/{id}":           "NOTIFICATION",
+	"PATCH notifications/enable/{id}":  "NOTIFICATION",
+	"PATCH notifications/disable/{id}": "NOTIFICATION",
 
 	// MiniAppMerchant
 	"POST mini-app-merchants":   "MINIAPPMERCHANT",
@@ -140,8 +140,8 @@ var cpsActionRegistry = map[string]string{
 
 	// ActionRole (BPS)
 
-	"POST bps-action-roles":  "BPSACTIONEROLE",
-	"PATCH bps-action-roles": "BPSACTIONEROLE",
+	"POST bps-action-roles":  "BPSACTIONROLE",
+	"PATCH bps-action-roles": "BPSACTIONROLE",
 
 	// BPSUser
 	"POST bps_users":       "BPSUSER",
@@ -283,9 +283,14 @@ var cpsActionRegistry = map[string]string{
 	"PATCH customer-groups":  "CUSTOMERSEGMENTATIONS",
 	"DELETE customer-groups": "CUSTOMERSEGMENTATIONS",
 
+	// SuperApp Role
+	"GET superapp-roles":    "CPSROLE",
+	"PATCH superapp-roles":  "CPSROLE",
+	"DELETE superapp-roles": "CPSROLE",
+
 	// CPS Roles
-	"POST cps-roles":  "CPSROLE",
-	"PATCH cps-roles": "CPSROLE",
+	"POST cps-roles": "CPSROLE",
+	// "PATCH cps-roles": "CPSROLE",
 
 	// CPS Action
 	"PATCH actions": "CPSACTION",

@@ -980,6 +980,13 @@ const (
 	RequestDisableCustomerGroup RequestAction = "DISABLE_CUSTOMER_GROUP"
 	RequestDeleteCustomerGroup  RequestAction = "DELETE_CUSTOMER_GROUP"
 
+	// SuperApp Role
+	RequestEnableSuperAppRole          RequestAction = "ENABLE_SUPERAPP_ROLE"
+	RequestDisableSuperAppRole         RequestAction = "DISABLE_SUPERAPP_ROLE"
+	RequestDeleteSuperAppRole          RequestAction = "DELETE_SUPERAPP_ROLE"
+	RequestBulkDisableAccessListByRole RequestAction = "BULK_DISABLE_ACCESS_LIST_BY_SUPERAPP_ROLE"
+	RequestBulkEnableAccessListByRole  RequestAction = "BULK_ENABLE_ACCESS_LIST_BY_SUPERAPP_ROLE"
+
 	// Access List Customer Segmentation
 	RequestAccessListCreateCustomerSegmentation  RequestAction = "CREATE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
 	RequestAccessListUpdateCustomerSegmentation  RequestAction = "UPDATE_ACCESS_LIST_CUSTOMER_SEGMENTATION"

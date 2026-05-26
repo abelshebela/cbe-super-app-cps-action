@@ -67,6 +67,12 @@ const (
 	RequestDisableCustomerGroup constants.RequestAction = "DISABLE_CUSTOMER_GROUP"
 	RequestDeleteCustomerGroup  constants.RequestAction = "DELETE_CUSTOMER_GROUP"
 
+	RequestEnableSuperAppRole          constants.RequestAction = "ENABLE_SUPERAPP_ROLE"
+	RequestDisableSuperAppRole         constants.RequestAction = "DISABLE_SUPERAPP_ROLE"
+	RequestDeleteSuperAppRole          constants.RequestAction = "DELETE_SUPERAPP_ROLE"
+	RequestBulkDisableAccessListByRole constants.RequestAction = "BULK_DISABLE_ACCESS_LIST_BY_SUPERAPP_ROLE"
+	RequestBulkEnableAccessListByRole  constants.RequestAction = "BULK_ENABLE_ACCESS_LIST_BY_SUPERAPP_ROLE"
+
 	RequestCreateCustomerSegmentation  constants.RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
 	RequestUpdateCustomerSegmentation  constants.RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
 	RequestEnableCustomerSegmentation  constants.RequestAction = "ENABLE_CUSTOMER_SEGMENTATION"
@@ -579,6 +585,12 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestEnableCustomerGroup:  {},
 	RequestDisableCustomerGroup: {},
 	RequestDeleteCustomerGroup:  {},
+
+	RequestEnableSuperAppRole:          {},
+	RequestDisableSuperAppRole:         {},
+	RequestDeleteSuperAppRole:          {},
+	RequestBulkDisableAccessListByRole: {},
+	RequestBulkEnableAccessListByRole:  {},
 
 	RequestCreateCustomerSegmentation:    {},
 	RequestUpdateCustomerSegmentation:    {},
@@ -1207,12 +1219,21 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestEnableAccessListSegmentation,
 		RequestDisableAccessListSegmentation,
 	},
+	// this is made as alternative to "CUSTOMERGROUP"
 	"CUSTOMERSEGMENTATIONS": {
 		RequestCreateCustomerGroup,
 		RequestUpdateCustomerGroup,
 		RequestEnableCustomerGroup,
 		RequestDisableCustomerGroup,
 		RequestDeleteCustomerGroup,
+	},
+	// this is made as alternative to "SUPERAPPROLE"
+	"CPSROLE": {
+		RequestEnableSuperAppRole,
+		RequestDisableSuperAppRole,
+		RequestDeleteSuperAppRole,
+		RequestBulkDisableAccessListByRole,
+		RequestBulkEnableAccessListByRole,
 	},
 	"BULKSERVICECUSTOMERSEGMENT": {
 		// "CUSTOMERSEGMENTATIONS": {
@@ -1240,13 +1261,13 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestEnableEcommerceMerchantBranch,
 		RequestDisableEcommerceMerchantBranch,
 	},
-	"CPSROLE": {
-		RequestCreateCpsRole,
-		RequestUpdateCpsRole,
-		RequestDeleteCpsRole,
-		RequestEnableCpsRole,
-		RequestDisableCpsRole,
-	},
+	// "CPSROLE": {
+	// 	RequestCreateCpsRole,
+	// 	RequestUpdateCpsRole,
+	// 	RequestDeleteCpsRole,
+	// 	RequestEnableCpsRole,
+	// 	RequestDisableCpsRole,
+	// },
 	"CUSTOMERKYC": {
 		RequestApproveCustomerKYC,
 		RequestRejectCustomerKYC,

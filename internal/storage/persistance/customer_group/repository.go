@@ -17,6 +17,7 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/superapp_mapper/checksum"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -64,6 +65,48 @@ func boolToNumber(v bool) int {
 	return 0
 }
 
+func (r *customerGroupStorage) DuplicateCheck(ctx context.Context, action, id, group, segment, subsegment string) (bool, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+	var dupQ string
+	var segments, subsegments string
+	if segment == "" {
+		segments = "*"
+	} else {
+		segment = strings.TrimSpace(segment)
+	}
+	if subsegment == "" {
+		subsegments = "*"
+	} else {
+		subsegment = strings.TrimSpace(subsegment)
+	}
+	data := fmt.Sprintf("%s:%s:%s", strings.TrimSpace(group), segments, subsegments)
+	checkSum := checksum.Checksum(data)
+
+	var count int
+
+	// dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1`
+
+	if action == "update" {
+		dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1 AND ID != HEXTORAW(:2)`
+		idHex, ok := normalizeSegmentHex(id)
+		if !ok {
+			return false, errors.New(localization.ErrorInvalidID.Code)
+		}
+		if err := r.db.QueryRowContext(ctx, dupQ, checkSum, idHex).Scan(&count); err != nil {
+			log.Errorf("[CustomerGroup][DuplicateCheck] duplicate check failed: %v", err)
+			return false, local_util.HandleDBError(err)
+		}
+	} else {
+		dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1`
+		if err := r.db.QueryRowContext(ctx, dupQ, checkSum).Scan(&count); err != nil {
+			log.Errorf("[CustomerGroup][DuplicateCheck] duplicate check failed: %v", err)
+			return false, local_util.HandleDBError(err)
+		}
+	}
+
+	return count > 0, nil
+}
+
 func (r *customerGroupStorage) Create(ctx context.Context, seg *imodel.Segment) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 	log.Infof("[CustomerGroup][Create] creating segment: %+v", seg)
@@ -71,8 +114,19 @@ func (r *customerGroupStorage) Create(ctx context.Context, seg *imodel.Segment) 
 	if seg == nil {
 		return errors.New(localization.ErrorNoDataProvided.Code)
 	}
-
-	checkSum := computeCheckSum(seg.CustomerGroup, seg.CustomerSegment, seg.CustomerSubsegment)
+	var segment, subsegment string
+	if seg.CustomerSegment == "" {
+		segment = "*"
+	} else {
+		segment = strings.TrimSpace(seg.CustomerSegment)
+	}
+	if seg.CustomerSubsegment == "" {
+		subsegment = "*"
+	} else {
+		subsegment = strings.TrimSpace(seg.CustomerSubsegment)
+	}
+	data := fmt.Sprintf("%s:%s:%s", strings.TrimSpace(seg.CustomerGroup), segment, subsegment)
+	checkSum := checksum.Checksum(data)
 
 	var count int
 	const dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1`
@@ -80,6 +134,7 @@ func (r *customerGroupStorage) Create(ctx context.Context, seg *imodel.Segment) 
 		log.Errorf("[CustomerGroup][Create] duplicate check failed: %v", err)
 		return local_util.HandleDBError(err)
 	}
+
 	if count > 0 {
 		log.Warnf("[CustomerGroup][Create] duplicate combination detected checksum=%s", checkSum)
 		return errors.New(localization.ErrorCustomerGroupAlreadyExists.Code)
@@ -144,7 +199,19 @@ func (r *customerGroupStorage) Update(ctx context.Context, id string, seg *imode
 		return errors.New(localization.ErrorNoDataProvided.Code)
 	}
 
-	checkSum := computeCheckSum(seg.CustomerGroup, seg.CustomerSegment, seg.CustomerSubsegment)
+	var segment, subsegment string
+	if seg.CustomerSegment != "" {
+		segment = seg.CustomerSegment
+	} else {
+		segment = "*"
+	}
+	if seg.CustomerSubsegment != "" {
+		subsegment = seg.CustomerSubsegment
+	} else {
+		subsegment = "*"
+	}
+	data := fmt.Sprintf("%s:%s:%s", seg.CustomerGroup, segment, subsegment)
+	checkSum := checksum.Checksum(data)
 
 	var count int
 	const dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1 AND ID != HEXTORAW(:2)`
@@ -410,8 +477,8 @@ type rowScanner interface {
 func scanSegment(row rowScanner) (*imodel.Segment, error) {
 	var (
 		id, cg, cgl, cs, csl, csu, csul, sar, sarl string
-		enabledN                                     int
-		createdAt, lastModifiedAt                    sql.NullTime
+		enabledN                                   int
+		createdAt, lastModifiedAt                  sql.NullTime
 	)
 	if err := row.Scan(&id, &cg, &cgl, &cs, &csl, &csu, &csul, &sar, &sarl, &enabledN, &createdAt, &lastModifiedAt); err != nil {
 		return nil, err
@@ -440,8 +507,8 @@ func scanSegment(row rowScanner) (*imodel.Segment, error) {
 func scanSegmentRow(rows *sql.Rows) (*imodel.Segment, error) {
 	var (
 		id, cg, cgl, cs, csl, csu, csul, sar, sarl string
-		enabledN                                     int
-		createdAt, lastModifiedAt                    sql.NullTime
+		enabledN                                   int
+		createdAt, lastModifiedAt                  sql.NullTime
 	)
 	if err := rows.Scan(&id, &cg, &cgl, &cs, &csl, &csu, &csul, &sar, &sarl, &enabledN, &createdAt, &lastModifiedAt); err != nil {
 		return nil, err

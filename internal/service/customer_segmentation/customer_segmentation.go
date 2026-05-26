@@ -188,6 +188,7 @@ func (s *customerSegmentationService) Delete(ctx context.Context, id string) err
 
 	updated := *existing
 	updated.IsDeleted = true
+	updated.UpdatedAt = time.Now()
 	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing), core.MapCustomerSegmentationToMap(updated), string(constants.RequestDeleteCustomerSegmentation), constants.DELETE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
@@ -206,6 +207,17 @@ func (s *customerSegmentationService) Authorize(ctx context.Context, action *mod
 		err error
 		seg *imodel.CustomerSegmentation
 	)
+
+	switch action.RequestAction {
+	case string(constants.RequestDeleteCustomerSegmentation):
+		err = s.repo.Delete(ctx, action.UniqueId)
+		if err != nil {
+			log.Errorf("[CustSegSvc][Authorize] delete err: %v", err)
+			return nil, err
+		}
+		log.Infof("[CustSegSvc][Authorize] deleted")
+		return action, nil
+	}
 
 	seg, marshal_err := local_util.JsonUnmarshal[imodel.CustomerSegmentation](action.CurrentAction)
 	if marshal_err != nil || seg == nil {
@@ -227,13 +239,6 @@ func (s *customerSegmentationService) Authorize(ctx context.Context, action *mod
 			return nil, err
 		}
 		log.Infof("[CustSegSvc][Authorize] updated")
-	case string(constants.RequestDeleteCustomerSegmentation):
-		err = s.repo.Delete(ctx, action.UniqueId)
-		if err != nil {
-			log.Errorf("[CustSegSvc][Authorize] delete err: %v", err)
-			return nil, err
-		}
-		log.Infof("[CustSegSvc][Authorize] deleted")
 	case string(constants.RequestEnableCustomerSegmentation):
 		err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
 		if err != nil {
