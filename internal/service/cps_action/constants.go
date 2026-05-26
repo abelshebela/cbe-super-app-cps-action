@@ -45,6 +45,8 @@ const (
 	// RequestCreateCustomerKYC  constants.RequestAction = "CREATE_CUSTOMER_KYC"
 	RequestApproveCustomerKYC constants.RequestAction = "APPROVE_CUSTOMER_KYC"
 	RequestRejectCustomerKYC  constants.RequestAction = "REJECT_CUSTOMER_KYC"
+	RequestStartKycReview     constants.RequestAction = "START_KYC_REVIEW"
+	RequestPickKycReview      constants.RequestAction = "PICK_KYC_REVIEW"
 	// RequestUpdateCustomerKYC  constants.RequestAction = "UPDATE_CUSTOMER_KYC"
 	// RequestDeleteCustomerKYC  constants.RequestAction = "DELETE_CUSTOMER_KYC"
 
@@ -754,6 +756,8 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 
 	RequestApproveCustomerKYC: {},
 	RequestRejectCustomerKYC:  {},
+	RequestStartKycReview:     {},
+	RequestPickKycReview:      {},
 	// RequestCreateCustomerKYC: {},
 	// RequestUpdateCustomerKYC: {},
 	// RequestDeleteCustomerKYC: {},
@@ -1271,6 +1275,8 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 	"CUSTOMERKYC": {
 		RequestApproveCustomerKYC,
 		RequestRejectCustomerKYC,
+		RequestStartKycReview,
+		RequestPickKycReview,
 		// RequestCreateCustomerKYC,
 		// RequestUpdateCustomerKYC,
 		// RequestDeleteCustomerKYC,

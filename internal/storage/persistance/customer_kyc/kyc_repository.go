@@ -23,6 +23,7 @@ import (
 type customerKYCRepository struct {
 	oracleDB *sql.DB
 	dal      dal.MongoDal[imodel.CustomerKYC, imodel.CustomerKYC]
+	kycDal   dal.MongoDal[imodel.StartedKycReview, imodel.StartedKycReview]
 	logger   utils.Logger
 	coll     *mongo.Collection
 }
@@ -31,6 +32,7 @@ func NewCustomerKYCRepository(client *mongo.Client, oracleDB *sql.DB, cfg *confi
 	return &customerKYCRepository{
 		oracleDB: oracleDB,
 		dal:      dal.NewMongoDal[imodel.CustomerKYC, imodel.CustomerKYC](client, cfg, dbName, custKycCollection),
+		kycDal:   dal.NewMongoDal[imodel.StartedKycReview, imodel.StartedKycReview](client, cfg, dbName, "started_kyc_reviews"),
 		logger:   logger,
 		coll:     client.Database(dbName).Collection(custKycCollection),
 	}
@@ -256,3 +258,69 @@ func (r *customerKYCRepository) UpdateKYCStatus(ctx context.Context, id, status,
 
 // 	return nil
 // }
+
+func (r *customerKYCRepository) FindKycInReview(ctx context.Context, kycID string) (*imodel.StartedKycReview, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[CustomerKYC][FindKycInReview] fetching started kyc by id: %s", kycID)
+	objID, err := bson.ObjectIDFromHex(kycID)
+	if err != nil {
+		log.Errorf("[CustomerKYC][FindKycInReview] invalid object id: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"kyc_id": objID}
+	result, err := r.kycDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		log.Errorf("[CustomerKYC][FindKycInReview] failed to find kyc: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return result, nil
+}
+
+func (r *customerKYCRepository) StartKycReview(ctx context.Context, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Debugf("[CustomerKYC][StartKycReview] inserting started review: %+v", reviewData)
+
+	result, err := r.kycDal.InsertOne(ctx, *reviewData)
+	if err != nil {
+		log.Errorf("[CustomerKYC][StartKycReview] failed to insert started kyc review: %v", err)
+		log.Debugf("[CustomerKYC][StartKycReview] payload: %+v", reviewData)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return &result, nil
+}
+
+func (r *customerKYCRepository) UpdateKycReview(ctx context.Context, kycID string, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UpdateKycReview] updating kyc review for id: %s", kycID)
+	objID, err := bson.ObjectIDFromHex(kycID)
+	if err != nil {
+		log.Errorf("[UpdateKycReview] invalid object id: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"kyc_id": objID}
+	update := bson.M{
+		"review_status": reviewData.ReviewStatus,
+		"picked_at":     reviewData.PickedAt,
+		"started_at":    reviewData.StartedAt,
+		"expires_at":    reviewData.ExpiresAt,
+		"reviewer":      reviewData.Reviewer,
+		"picked_by":     reviewData.PickedBy,
+		"pick_reason":   reviewData.PickReason,
+		"pick_count":    reviewData.PickCount,
+	}
+
+	result, err := r.kycDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[UpdateKycReview] failed to update kyc review: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return &result, nil
+}

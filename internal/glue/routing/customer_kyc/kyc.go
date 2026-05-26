@@ -52,9 +52,17 @@ func Init(router chi.Router, handler customer_kyc.CustomerKYC, authMiddleware mi
 			},
 		},
 		{
+			Method:  http.MethodPost,
+			Path:    "/customers/kyc/start-review/{kycID}",
+			Handler: handler.StartKycReview,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
 			Method:  http.MethodPatch,
-			Path:    "/customers/kyc/",
-			Handler: handler.RejectKycRequest,
+			Path:    "/customers/kyc/pick-review/{kycID}",
+			Handler: handler.PickKycReview,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},

@@ -1080,6 +1080,8 @@ const (
 	// RequestCreateCustomerKYC  RequestAction = "CREATE_CUSTOMER_KYC"
 	RequestApproveCustomerKYC RequestAction = "APPROVE_CUSTOMER_KYC"
 	RequestRejectCustomerKYC  RequestAction = "REJECT_CUSTOMER_KYC"
+	// RequestStartKycReview     RequestAction = "START_KYC_REVIEW"
+	RequestPickKycReview RequestAction = "PICK_KYC_REVIEW"
 	// RequestUpdateCustomerKYC RequestAction = "UPDATE_CUSTOMER_KYC"
 	// RequestDeleteCustomerKYC RequestAction = "DELETE_CUSTOMER_KYC"
 )
