@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"database/sql"
+	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -103,12 +104,28 @@ func (l *LogisticsMerchantOracle) FindAllWithPagination(ctx context.Context, fil
 	for rows.Next() {
 		var m model.LogisticsMerchant
 		var enabled, isDeleted int
-		if err := rows.Scan(&m.ID, &m.BankAccountNumber, &m.MerchantID, &m.MerchantName, &m.SettlementMethod, &m.MerchantType, &enabled, &isDeleted, &m.CreatedAt, &m.UpdatedAt, &m.DeletedAt); err != nil {
+		var createdAt, updatedAt, deletedAt sql.NullTime
+		if err := rows.Scan(&m.ID, &m.BankAccountNumber, &m.MerchantID, &m.MerchantName, &m.SettlementMethod, &m.MerchantType, &enabled, &isDeleted, &createdAt, &updatedAt, &deletedAt); err != nil {
 			l.logger.Errorf("Failed to scan logistics merchant: %v", err)
 			return nil, err
 		}
 		m.Enabled = enabled == 1
 		m.IsDeleted = isDeleted == 1
+		if createdAt.Valid {
+			m.CreatedAt = createdAt.Time
+		} else {
+			m.CreatedAt = time.Time{}
+		}
+		if updatedAt.Valid {
+			m.UpdatedAt = updatedAt.Time
+		} else {
+			m.UpdatedAt = time.Time{}
+		}
+		if deletedAt.Valid {
+			m.DeletedAt = deletedAt.Time
+		} else {
+			m.DeletedAt = time.Time{}
+		}
 		data = append(data, m)
 	}
 	meta := local_util.BuildPaginationMeta(total, page, perPage)
@@ -123,13 +140,29 @@ func (l *LogisticsMerchantOracle) FindByID(ctx context.Context, id string) (*mod
 	stmt := `SELECT RAWTOHEX(ID), MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME, SETTLEMENT_METHOD, MERCHANT_TYPE, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT FROM MERCHANTS WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
 	var m model.LogisticsMerchant
 	var enabled, isDeleted int
-	err := l.db.QueryRowContext(ctx, stmt, id).Scan(&m.ID, &m.BankAccountNumber, &m.MerchantID, &m.MerchantName, &m.SettlementMethod, &m.MerchantType, &enabled, &isDeleted, &m.CreatedAt, &m.UpdatedAt, &m.DeletedAt)
+	var createdAt, updatedAt, deletedAt sql.NullTime
+	err := l.db.QueryRowContext(ctx, stmt, id).Scan(&m.ID, &m.BankAccountNumber, &m.MerchantID, &m.MerchantName, &m.SettlementMethod, &m.MerchantType, &enabled, &isDeleted, &createdAt, &updatedAt, &deletedAt)
 	if err != nil {
 		l.logger.Errorf("Failed to find logistics merchant by id: %v", err)
 		return nil, err
 	}
 	m.Enabled = enabled == 1
 	m.IsDeleted = isDeleted == 1
+	if createdAt.Valid {
+		m.CreatedAt = createdAt.Time
+	} else {
+		m.CreatedAt = time.Time{}
+	}
+	if updatedAt.Valid {
+		m.UpdatedAt = updatedAt.Time
+	} else {
+		m.UpdatedAt = time.Time{}
+	}
+	if deletedAt.Valid {
+		m.DeletedAt = deletedAt.Time
+	} else {
+		m.DeletedAt = time.Time{}
+	}
 	return &m, nil
 }
 
@@ -149,13 +182,29 @@ func (l *LogisticsMerchantOracle) FindOne(ctx context.Context, filter bson.M) (*
 	}
 	var m model.LogisticsMerchant
 	var enabled, isDeleted int
-	err := l.db.QueryRowContext(ctx, stmt, arg).Scan(&m.ID, &m.BankAccountNumber, &m.MerchantID, &m.MerchantName, &m.SettlementMethod, &m.MerchantType, &enabled, &isDeleted, &m.CreatedAt, &m.UpdatedAt, &m.DeletedAt)
+	var createdAt, updatedAt, deletedAt sql.NullTime
+	err := l.db.QueryRowContext(ctx, stmt, arg).Scan(&m.ID, &m.BankAccountNumber, &m.MerchantID, &m.MerchantName, &m.SettlementMethod, &m.MerchantType, &enabled, &isDeleted, &createdAt, &updatedAt, &deletedAt)
 	if err != nil {
 		l.logger.Errorf("Failed to find logistics merchant: %v", err)
 		return nil, err
 	}
 	m.Enabled = enabled == 1
 	m.IsDeleted = isDeleted == 1
+	if createdAt.Valid {
+		m.CreatedAt = createdAt.Time
+	} else {
+		m.CreatedAt = time.Time{}
+	}
+	if updatedAt.Valid {
+		m.UpdatedAt = updatedAt.Time
+	} else {
+		m.UpdatedAt = time.Time{}
+	}
+	if deletedAt.Valid {
+		m.DeletedAt = deletedAt.Time
+	} else {
+		m.DeletedAt = time.Time{}
+	}
 	return &m, nil
 }
 
