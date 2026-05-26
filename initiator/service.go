@@ -49,7 +49,6 @@ import (
 	cps_action_role_service "cbe-super-app-cps-action/internal/service/cps_action_role"
 	cps_role "cbe-super-app-cps-action/internal/service/cps_roles"
 	customer_group "cbe-super-app-cps-action/internal/service/customer_group"
-	superapp_role "cbe-super-app-cps-action/internal/service/superapp_role"
 	kyc_service "cbe-super-app-cps-action/internal/service/customer_kyc"
 	customer_segmentation "cbe-super-app-cps-action/internal/service/customer_segmentation"
 	donation "cbe-super-app-cps-action/internal/service/donation"
@@ -62,6 +61,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/roles"
 	services_svc "cbe-super-app-cps-action/internal/service/services"
 	sitota_service "cbe-super-app-cps-action/internal/service/sitota"
+	superapp_role "cbe-super-app-cps-action/internal/service/superapp_role"
 	"cbe-super-app-cps-action/internal/service/topup"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	ussd_merchant "cbe-super-app-cps-action/internal/service/ussd_merchant"
@@ -143,7 +143,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	miniAppCategory := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
 	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, nil, logger)
 	eventMerchantService := event_merchant_service.NewEventMerchantService(oracle.EventMerchant, nil, accountLookupAdapter, persistence.MerchantLookup, cfg, logger)
-	logisticsMerchantService := logistics_merchant_service.NewLogisticsMerchantService(persistence.LogisticsMerchantPersistence, nil, accountLookupAdapter, cfg, logger)
+	logisticsMerchantService := logistics_merchant_service.NewLogisticsMerchantService(oracle.LogisticsMerchantOracle, nil, accountLookupAdapter, cfg, logger)
 	servicesService := services_svc.NewServicesService(oracle.ServicesPersistence, persistence.UssdMerchantPersistence, nil, coreInterface, logger)
 	miniAppProductCodeContainer := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
 	accessListSegmentationService := access_list_segmentation_service.NewAccessListSegmentationService(oracle.AccessListSegmentaion, nil, oracle.AccessListOracle, persistence.AccountBlockPersistence, persistence.CustomerService, persistence.CPSRoles, logger)
@@ -301,7 +301,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	vault = vault_category.NewVaultCategoryService(oracle.Vault, cpsActionService, logger, minioClient, minioPubUrl, cfg.S3BucketName, cfg)
 	eventMerchantService = event_merchant_service.NewEventMerchantService(oracle.EventMerchant, cpsActionService, accountLookupAdapter, persistence.MerchantLookup, cfg, logger)
 
-	logisticsMerchantService = logistics_merchant_service.NewLogisticsMerchantService(persistence.LogisticsMerchantPersistence, cpsActionService, accountLookupAdapter, cfg, logger)
+	logisticsMerchantService = logistics_merchant_service.NewLogisticsMerchantService(oracle.LogisticsMerchantOracle, cpsActionService, accountLookupAdapter, cfg, logger)
 
 	serviceContainer.EventMerchantServiceContainer = eventMerchantService
 	serviceContainer.LogisticsMerchantServiceContainer = logisticsMerchantService

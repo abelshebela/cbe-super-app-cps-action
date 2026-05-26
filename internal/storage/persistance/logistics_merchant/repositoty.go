@@ -43,8 +43,8 @@ func NewLogisticsMerchantRepository(client *mongo.Client, cfg *config.VaultConfi
 func (m *LogisticsMerchantRepository) Create(ctx context.Context, merchant local_model.LogisticsMerchant) error {
 	log := local_util.LoggerFromCtx(ctx, m.logger)
 
-	if merchant.ID.IsZero() {
-		merchant.ID = bson.ObjectID(primitive.NewObjectID())
+	if merchant.ID == "" {
+		merchant.ID = bson.ObjectID(primitive.NewObjectID()).Hex()
 	}
 	merchant.CreatedAt = time.Now()
 	merchant.UpdatedAt = time.Time{}
@@ -56,7 +56,7 @@ func (m *LogisticsMerchantRepository) Create(ctx context.Context, merchant local
 		log.Errorf("Failed to create logistics merchant: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	merchant.ID = res.InsertedID.(bson.ObjectID)
+	merchant.ID = res.InsertedID.(string)
 	// types.SetId(ctx, merchant.ID.Hex())
 
 	return nil
