@@ -317,3 +317,52 @@ func (c *customerKYCAdapter) RejectKycRequest(w http.ResponseWriter, r *http.Req
 
 // 	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, nil)
 // }
+
+func (c *customerKYCAdapter) StartKycReview(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "handler", "StartKycReview", "handler", "StartKycReview")
+	defer span.End()
+	log := util.LoggerFromCtx(ctx, c.logger)
+
+	id := chi.URLParam(r, "kycID")
+	if id == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+		return
+	}
+
+	newReview, err := c.svc.StartKycReview(ctx, id)
+	if err != nil {
+		log.Errorf("[StartKycReview] failed to start KYC review: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, newReview)
+}
+
+func (c *customerKYCAdapter) PickKycReview(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "handler", "PickKycReview", "handler", "PickKycReview")
+	defer span.End()
+	log := util.LoggerFromCtx(ctx, c.logger)
+
+	id := chi.URLParam(r, "kycID")
+	if id == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+		return
+	}
+
+	var req kyc_dto.ReasonRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Errorf("[PickKycReview] failed to decode request body: %v", err)
+		localization.SendErrorByCodeResponse(w, "invalid request format")
+		return
+	}
+
+	err := c.svc.PickKycReview(ctx, id, req.Reason)
+	if err != nil {
+		log.Errorf("[PickKycReview] failed to pick KYC review: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, nil)
+}
