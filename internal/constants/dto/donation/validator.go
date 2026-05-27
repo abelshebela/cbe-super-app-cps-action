@@ -45,8 +45,7 @@ func (d DonationRequest) Validate() error {
 			validation.When(!d.StartDate.IsZero(), validation.By(validateStartDate)),
 		),
 		validation.Field(&d.EndDate,
-			validation.Required.Error("end date is required"),
-			validation.By(validateEndDate(d.StartDate)),
+			validation.When(!d.EndDate.IsZero(), validation.By(validateEndDate(d.StartDate))),
 		),
 	)
 }

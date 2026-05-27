@@ -43,10 +43,10 @@ import (
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 
 	cps_role_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
-	superapproledto "cbe-super-app-cps-action/internal/constants/dto/superapp_role"
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
-	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
 	customer_group_dto "cbe-super-app-cps-action/internal/constants/dto/customer_group"
+	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
+	superapproledto "cbe-super-app-cps-action/internal/constants/dto/superapp_role"
 
 	"context"
 	"mime/multipart"
@@ -858,6 +858,8 @@ type CustomerKYCService interface {
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]cust_kyc_dto.CustomerKYCResponse], error)
 	FindByID(ctx context.Context, id string) (*cust_kyc_dto.CustomerKYCResponse, error)
 	EnableOrDisable(ctx context.Context, id, reason string, enable bool) error
+	StartKycReview(ctx context.Context, id string) (*imodel.StartedKycReview, error)
+	PickKycReview(ctx context.Context, id string, reason string) error
 	// UpdateKYCStatus(ctx context.Context, id, status string) error
 	// Delete(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)

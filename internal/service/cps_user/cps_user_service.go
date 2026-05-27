@@ -25,7 +25,7 @@ import (
 
 type cpsUserService struct {
 	repo              storage.CpsUserRepository
-	jobRoleRepo          storage.JobRoleRepository
+	jobRoleRepo       storage.JobRoleRepository
 	approverRepo      storage.CPSActionApproveIndexRepository
 	bpsApproverRepo   storage.BPSActionApproveIndexRepository
 	permissionService service.PermissionService
@@ -39,7 +39,7 @@ func NewCPSUserService(repo storage.CpsUserRepository, JobRoleRepo storage.JobRo
 	return &cpsUserService{
 		repo:              repo,
 		bpsRepo:           bps,
-		jobRoleRepo:          JobRoleRepo,
+		jobRoleRepo:       JobRoleRepo,
 		approverRepo:      approverRepo,
 		bpsApproverRepo:   bpsApproverRepo,
 		permissionService: permission,

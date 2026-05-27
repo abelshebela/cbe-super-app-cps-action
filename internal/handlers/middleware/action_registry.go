@@ -153,7 +153,7 @@ var cpsActionRegistry = map[string]string{
 	"DELETE budget-category": "BUDGETCATEGORY",
 
 	// BulkService
-	"POST bulk_services": "BULKSERVICE",
+	// "POST bulk_services": "BULKSERVICE",
 
 	// CpsActionRole
 	"POST cps-action-roles":  "CPSACTIONROLE",
@@ -351,7 +351,8 @@ var cpsActionRegistry = map[string]string{
 	"GET budget-category": "BUDGETCATEGORY",
 
 	// Bulk Service
-	"GET bulk_services": "BULKSERVICEALLUSER",
+	"GET bulk_services":  "BULKSERVICEALLUSER",
+	"POST bulk_services": "BULKSERVICEALLUSER",
 
 	// CPS Action Role
 	"GET cps-action-roles":    "CPSACTIONROLE",

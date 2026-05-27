@@ -95,7 +95,7 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 	if userContext.IsErp {
 		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 		log.Infof("[Create] request sent successfully for  ISERP: %v", userContext.IsErp)
-		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreated, md.Id)
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreated, md.Merchant)
 		return
 	} else if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
@@ -165,6 +165,14 @@ func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if userContext.IsErp {
+		data, err := h.srv.FindByID(ctx, id)
+		if err != nil {
+			log.Errorf("[EccomerceMerchant][Update] failed to get merchant id: %v err: %v", id, err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+		}
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantUpdated, data)
+	}
 	if userContext.IsErp || md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Update] request sent successfully for user_code: %s is_maker_only: %v", userCode, userContext.IsErp || md.IsMakerOnly)
@@ -478,6 +486,8 @@ func (h *ecommerceMerchantAdapter) DeleteBranch(w http.ResponseWriter, r *http.R
 	defer span.End()
 
 	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	id := chi.URLParam(r, "id")
@@ -512,6 +522,8 @@ func (h *ecommerceMerchantAdapter) EnableBranch(w http.ResponseWriter, r *http.R
 	defer span.End()
 
 	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	id := chi.URLParam(r, "id")
@@ -546,6 +558,8 @@ func (h *ecommerceMerchantAdapter) DisableBranch(w http.ResponseWriter, r *http.
 	defer span.End()
 
 	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	id := chi.URLParam(r, "id")

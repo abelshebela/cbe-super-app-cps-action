@@ -1,7 +1,7 @@
 pipeline {
     agent {
         node {
-            label 'aa-jenkins-slave-1'
+            label 'kr-jenkins-slave-1'
         }
 
     }
@@ -24,6 +24,7 @@ pipeline {
         SONAR_SCANNER_HOME = tool 'SonarQube-Scanner'
         SHARED_GITHLAB_USER = credentials("SHARED_GITLAB_USER")
         SHARED_GITLAB_PAT = credentials("SHARED_GITLAB_PAT")
+        GITHUB_EMAIL = credentials("GITHUB_EMAIL")
 
     }
 
@@ -171,7 +172,75 @@ pipeline {
                     """
                 }
             }
-        }        
+        }   
+        // Stage to update ArgoCD repository with new image tag
+        stage('Update ArgoCD Repository') {
+            steps {
+                script {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'GITHUB_CRED',
+                            usernameVariable: 'GITHUB_USERNAME',
+                            passwordVariable: 'GITHUB_PASSWORD'
+                        )
+                    ]) {
+                        sh '''#!/usr/bin/env bash
+                        set -euo pipefail
+
+                        REPO_DIR="cbe-superapp-deployment"
+                        CLONE_URL="https://${GITHUB_USERNAME}:${GITHUB_PASSWORD}@github.com/natnael-ta/cbe-superapp-deployment.git"
+
+                        # Clone or update the deployment repo
+                        if [ -d "$REPO_DIR/.git" ]; then
+                            echo "Repository exists, resetting to latest master"
+                            cd "$REPO_DIR"
+                            git fetch origin --prune
+                            git reset --hard HEAD
+                            git clean -fd
+                            git checkout master
+                            git reset --hard origin/master
+                        else
+                            echo "Cloning deployment repository"
+                            git clone "$CLONE_URL" "$REPO_DIR"
+                            cd "$REPO_DIR"
+                        fi
+
+                        # Derive overlay path from the source branch name
+                        TARGET_PATH="k8s-manifests/overlays/${BRANCH_NAME}/superapp/cps"
+                        if [ ! -d "$TARGET_PATH" ]; then
+                            echo "ERROR: path '$TARGET_PATH' does not exist in the deployment repo."
+                            echo "Available overlays:"
+                            ls k8s-manifests/overlays/ || true
+                            exit 1
+                        fi
+
+                        KUSTOMIZATION_FILE="$TARGET_PATH/kustomization.yml"
+                        echo "Updating cps-action image tag to ${IMAGE_TAG} in $KUSTOMIZATION_FILE"
+
+                        # Update newTag for cps-action-* image by matching the image name line and replacing the following newTag line
+                        IMAGE_NAME_PATTERN="cps-action-${BRANCH_NAME}"
+                        sed -i "/name: .*${IMAGE_NAME_PATTERN}/{n;s/newTag:.*/newTag: ${IMAGE_TAG}/}" "$KUSTOMIZATION_FILE"
+
+                        echo "--- Updated kustomization.yml ---"
+                        cat "$KUSTOMIZATION_FILE"
+
+                        git config user.email "${GITHUB_EMAIL}"
+                        git config user.name "${GITHUB_USERNAME}"
+
+                        if git diff --quiet --exit-code; then
+                            echo "No changes to commit — image tag was already ${IMAGE_TAG}"
+                        else
+                            git add "$KUSTOMIZATION_FILE"
+                            git commit -m "ci: update ${SERVICE_NAME} image tag to ${IMAGE_TAG} [${BRANCH_NAME}]"
+                            git push "$CLONE_URL" master
+                            echo "Deployment repo updated successfully"
+                        fi
+                                                '''
+                    }
+                }
+            }
+        }  
+
     }
     post {
         success {

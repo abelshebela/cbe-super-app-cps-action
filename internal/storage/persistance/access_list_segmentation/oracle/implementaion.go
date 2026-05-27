@@ -139,6 +139,65 @@ func (q *accessListSegmentationOracle) CreateAccountSegment(ctx context.Context,
 	return nil
 }
 
+// func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error {
+// 	log := local_util.LoggerFromCtx(ctx, q.logger)
+
+// 	if len(accessListSegmentation.SegmentationID) == 0 {
+// 		return fmt.Errorf("SegmentationID is required")
+// 	}
+
+// 	n := len(accessListSegmentation.AccessListKeys)
+// 	if n == 0 {
+// 		return nil
+// 	}
+
+// 	now := time.Now()
+// 	valueStrings := make([]string, 0, n)
+// 	valueArgs := make([]interface{}, 0, n*8)
+
+// 	docs := make([]local_model.AccessListSegmentation, 0, n)
+
+// 	// Use positional parameters for each value
+// 	paramIdx := 1
+// 	for _, key := range accessListSegmentation.AccessListKeys {
+// 		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), HEXTORAW(:%d), :%d, :%d, :%d, :%d, :%d, :%d, :%d)", paramIdx, paramIdx+1, paramIdx+2, paramIdx+3, paramIdx+4, paramIdx+5, paramIdx+6, paramIdx+7))
+// 		valueArgs = append(valueArgs,
+// 			key,                                   // ACCESS_LIST_ID
+// 			accessListSegmentation.SegmentationID, // LOCATION_ID
+// 			accessListSegmentation.Type,           // ACCOUNT_TYPE
+// 			1,                                     // is_enabled
+// 			now,                                   // created_at
+// 			now,                                   // LAST_MODIFIED_AT
+// 			nil,                                   // deleted_at
+// 		)
+// 		docs = append(docs, local_model.AccessListSegmentation{
+// 			AccessListKey: key,
+// 			SegmentedID:   accessListSegmentation.SegmentationID,
+// 			Enabled:       true,
+// 		})
+// 		paramIdx += 8
+// 	}
+
+// 	stmt := `
+// 		   INSERT INTO ACCESS_LIST_BY_GEOGRAPHICAL_LOCATIONS (
+// 		   id, ACCESS_LIST_ID, LOCATION_ID, ACCOUNT_TYPE, is_enabled, created_at, LAST_MODIFIED_AT, deleted_at
+// 		   ) VALUES ` + strings.Join(valueStrings, ",")
+
+// 	_, err := q.db.ExecContext(ctx, stmt, valueArgs...)
+// 	if err != nil {
+// 		log.Errorf("[AccessListSegmentation][CreateBlockSegment] failed to insert rows: %v", err)
+// 		return localization.ErrorUnexpectedError
+// 	}
+
+// 	res := map[string]any{
+// 		"docs": docs,
+// 		"type": "block-segment",
+// 	}
+// 	q.kafkaProducer.PublishMessage(ctx, res, "create", q.cfg.KafkaCustomerSegmentaionTopic, "create block-segment")
+
+// 	return nil
+// }
+
 func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error {
 	log := local_util.LoggerFromCtx(ctx, q.logger)
 
@@ -160,11 +219,11 @@ func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, a
 	// Use positional parameters for each value
 	paramIdx := 1
 	for _, key := range accessListSegmentation.AccessListKeys {
-		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), HEXTORAW(:%d), :%d, :%d, :%d, :%d, :%d, :%d, :%d)", paramIdx, paramIdx+1, paramIdx+2, paramIdx+3, paramIdx+4, paramIdx+5, paramIdx+6, paramIdx+7))
+		valueStrings = append(valueStrings, fmt.Sprintf("(SYS_GUID(), HEXTORAW(:%d), :%d, :%d, :%d, :%d, :%d, :%d)", paramIdx, paramIdx+1, paramIdx+2, paramIdx+3, paramIdx+4, paramIdx+5, paramIdx+6))
 		valueArgs = append(valueArgs,
 			key,                                   // ACCESS_LIST_ID
-			accessListSegmentation.SegmentationID, // SUPERAPP_ROLE_ID
-			accessListSegmentation.Type,           // type
+			accessListSegmentation.SegmentationID, // LOCATION_ID
+			accessListSegmentation.Type,           // ACCOUNT_TYPE
 			1,                                     // is_enabled
 			now,                                   // created_at
 			now,                                   // LAST_MODIFIED_AT
@@ -175,7 +234,7 @@ func (q *accessListSegmentationOracle) CreateBlockSegment(ctx context.Context, a
 			SegmentedID:   accessListSegmentation.SegmentationID,
 			Enabled:       true,
 		})
-		paramIdx += 8
+		paramIdx += 7
 	}
 
 	stmt := `

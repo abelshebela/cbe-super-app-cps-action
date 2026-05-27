@@ -826,6 +826,16 @@ type LogisticsMerchantRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchant], error)
 }
 
+type LogisticsMerchantOracleRepository interface {
+	FindOne(ctx context.Context, filter bson.M) (*local_model.LogisticsMerchant, error)
+	Update(ctx context.Context, id string, logisticsMerchant local_model.LogisticsMerchant) error
+	Create(ctx context.Context, logisticsMerchant local_model.LogisticsMerchant) error
+	Delete(ctx context.Context, id string) error
+	FindByID(ctx context.Context, id string) (*local_model.LogisticsMerchant, error)
+	EnableOrDisable(ctx context.Context, ids []string, enable bool) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchant], error)
+}
+
 type UssdMerchantRepository interface {
 	Create(ctx context.Context, data imodel.UssdMerchant) error
 	Update(ctx context.Context, id string, update bson.M) error
@@ -905,6 +915,9 @@ type CustomerKYCRepository interface {
 	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
 	CreateUser(ctx context.Context, userAccount types.Account, userData imodel.CustomerKYC) error
 	UpdateKYCStatus(ctx context.Context, id, status, rejectionReason string, approved bool) error
+	FindKycInReview(ctx context.Context, kycID string) (*imodel.StartedKycReview, error)
+	StartKycReview(ctx context.Context, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)
+	UpdateKycReview(ctx context.Context, kycID string, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)
 	// Delete(ctx context.Context, id string) error
 }
 
@@ -959,10 +972,15 @@ type WalletOracleRepository interface {
 
 type UserActionLogRepository interface {
 	Save(ctx context.Context, log *imodel.UserActionLog) error
+	Upsert(ctx context.Context, log *imodel.UserActionLog) error
 	GetActionCodesByUser(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error)
 	GetActionCodesByUserAndAuditorStatus(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility, status string) ([]string, error)
-	AuditorMarkLogsByActionCode(ctx context.Context, actionCode string, auditorStatus string) error
+	GetActionCodesByActionLogFilter(ctx context.Context, filter imodel.UserActionLogActionCodeFilter) ([]string, error)
+	GetActionCodesByFilter(ctx context.Context, filter map[string]interface{}) ([]string, error)
+	AuditorMarkLogsByActionCode(ctx context.Context, actionCode string, givenAuditorStatus string, actionAuditorStatus string) error
+	UpdateAuditorActionStatusByActionCode(ctx context.Context, actionCode string, actionAuditorStatus string) error
 	GetLogsByUserIDAndResponsibility(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error)
+	GetLogsByResponsibility(ctx context.Context, responsibility imodel.UserActionResponsibility) ([]string, error)
 	GetLogsByUserID(ctx context.Context, userID string) ([]string, error)
 	CancelUserActionsByActionCode(ctx context.Context, actionCode string) error
 	RejectUserActionsByActionCode(ctx context.Context, actionCode string) error
