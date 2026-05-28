@@ -115,6 +115,7 @@ func ConvertToResponseDTO(portalCard []string, user *cpsuser.CpsUserPopulatedRes
 		LastLogin:             user.LastLogin,
 		Country:               user.Country,
 		Region:                user.Region,
+		IsFirstTimeLogin:      user.IsFirstTimeLogin,
 	}
 }
 
