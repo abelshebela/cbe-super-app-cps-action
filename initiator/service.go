@@ -151,7 +151,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	jobRoleService := job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, nil, persistence.CpsUserPersistence, *cfg, logger)
 	RoleService := roles.NewRoleService(persistence.RolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, persistence.BPSActionApproveIndexPersistence, nil, *cfg, logger)
 	CPSRolesService := cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, nil, coreInterface, logger)
-	customerKYCService := kyc_service.NewCustomerKYCService(oracle.CustomerKYC, nil, accountLookupAdapter, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
+	customerKYCService := kyc_service.NewCustomerKYCService(oracle.CustomerKYC, nil, persistence.CpsUserPersistence, accountLookupAdapter, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	customerGroupService := customer_group.NewCustomerGroupService(oracle.CustomerGroup, nil, logger)
 	superAppRoleService := superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, nil, coreInterface, logger)
 
@@ -314,7 +314,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	jobRoleService = job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, cpsActionService, persistence.CpsUserPersistence, *cfg, logger)
 	RoleService = roles.NewRoleService(persistence.RolePersistence, persistence.PortalCardPersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, persistence.BPSActionApproveIndexPersistence, cpsActionService, *cfg, logger)
 	CPSRolesService = cps_role.NewCPSRoleService(oracle.NewCPSRolesStorage, cpsActionService, coreInterface, logger)
-	customerKYCService = kyc_service.NewCustomerKYCService(oracle.CustomerKYC, cpsActionService, accountLookupAdapter, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
+	customerKYCService = kyc_service.NewCustomerKYCService(oracle.CustomerKYC, cpsActionService, persistence.CpsUserPersistence, accountLookupAdapter, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	customerGroupService = customer_group.NewCustomerGroupService(oracle.CustomerGroup, cpsActionService, logger)
 	serviceContainer.CustomerGroupContainer = customerGroupService
 	superAppRoleService = superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, cpsActionService, coreInterface, logger)
