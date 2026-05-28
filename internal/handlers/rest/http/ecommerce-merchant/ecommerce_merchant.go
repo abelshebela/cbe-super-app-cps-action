@@ -165,6 +165,14 @@ func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if userContext.IsErp {
+		data, err := h.srv.FindByID(ctx, id)
+		if err != nil {
+			log.Errorf("[EccomerceMerchant][Update] failed to get merchant id: %v err: %v", id, err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+		}
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantUpdated, data)
+	}
 	if userContext.IsErp || md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		log.Infof("[Update] request sent successfully for user_code: %s is_maker_only: %v", userCode, userContext.IsErp || md.IsMakerOnly)

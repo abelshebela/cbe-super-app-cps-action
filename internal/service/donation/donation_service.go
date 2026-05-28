@@ -261,8 +261,13 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		DonationDescription: donation.DonationDescription,
 		DonationImages:      donationImages,
 		CoverImage:          coverImageURL,
-		EndDate:             donation.EndDate.Format(time.RFC3339),
-		StartDate:           donation.StartDate.Format(time.RFC3339),
+		EndDate: func() string {
+			if donation.EndDate.IsZero() {
+				return ""
+			}
+			return donation.EndDate.Format(time.RFC3339)
+		}(),
+		StartDate: donation.StartDate.Format(time.RFC3339),
 		Enabled:             &tempval,
 	}
 	log.Infof("[DonationSvc][Create] cps request target: %d, images: %d", result.Target, len(result.DonationImages))
@@ -1452,7 +1457,12 @@ func buildDonationRow(donation *imodel.DonationOracle) []string {
 		fmt.Sprintf("%v", donation.IsFeatured),
 		fmt.Sprintf("%v", donation.Enabled),
 		donation.StartDate.Format(time.RFC3339),
-		donation.EndDate.Format(time.RFC3339),
+		func() string {
+			if donation.EndDate.IsZero() {
+				return ""
+			}
+			return donation.EndDate.Format(time.RFC3339)
+		}(),
 	}
 }
 
