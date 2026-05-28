@@ -9,6 +9,8 @@ func ResponseMapper(data imodel.UssdMerchant) ussd_merchant_dto.UssdMerchantResp
 	return ussd_merchant_dto.UssdMerchantResponse{
 		ID:               data.ID,
 		Name:             data.Name,
+		MerchantCode:     data.MerchantCode,
+		Credential:       data.Credential,
 		PhoneNumber:      data.PhoneNumber,
 		Email:            data.Email,
 		Service:          data.Service,
