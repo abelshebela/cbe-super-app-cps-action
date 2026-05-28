@@ -14,7 +14,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func CreateAccountToCore(ctx context.Context, data accountLookupDto.CreateAccountRequest, accountLookupService accountLookup.Account, logger utils.Logger) (types.Account, error) {
+func CreateAccountToCore(ctx context.Context, data accountLookupDto.AccountCreateParams, accountLookupService accountLookup.Account, logger utils.Logger) (types.Account, error) {
 
 	accountResponse, err := accountLookupService.CreateAccountWithFayda(ctx, data)
 	if err != nil {

@@ -26,7 +26,7 @@ func (d DonationRequest) Validate() error {
 			validation.By(utils.NoSpecialChars),
 		),
 		validation.Field(&d.Target,
-			validation.Required.Error("target is required"),
+			// validation.Required.Error("target is required"),
 			validation.By(validateDonationTarget),
 		),
 		validation.Field(&d.DonationDescription,
