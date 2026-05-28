@@ -40,6 +40,7 @@ type (
 	KYCStatus                string
 	BPSStatus                string
 	MaritalStatus            string
+	CustomerGroup            string
 	DeviceStatus             string
 	OnboardingMethod         string
 	EnabledChannels          string
@@ -555,6 +556,15 @@ const (
 	CustomerActive  CustomerStatus = "ACTIVE"
 	CustomerPending CustomerStatus = "PENDING"
 	CustomerExpired CustomerStatus = "EXPIRED"
+)
+
+const (
+	MASS         CustomerGroup = "MASS"
+	RETAIL       CustomerGroup = "RETAIL"
+	WHOLESALE    CustomerGroup = "WHOLESALE"
+	IFBMASS      CustomerGroup = "IFB.MASS"
+	IFBRETAIL    CustomerGroup = "IFB.RETAIL"
+	IFBWHOLESALE CustomerGroup = "IFB.WHOLESALE"
 )
 
 const (

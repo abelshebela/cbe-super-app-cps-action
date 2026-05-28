@@ -343,14 +343,43 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			return nil, err
 		}
 
-		data := accountLookupDto.CreateAccountRequest{
-			CustomerName:      userData.KYCData.FullName,
-			Gender:            constants.Gender(userData.KYCData.Gender),
-			PhoneNumber:       userData.KYCData.PhoneNumber,
-			AccountType:       userData.KYCData.AccountType,
-			AccountBranchType: "",
-			Picture:           userData.KYCData.SelfiePhoto,
+		var fistName, middleName, lastName string
+
+		if len(userData.KYCData.FullName) > 3 {
+			fistName = strings.Split(userData.KYCData.FullName, " ")[0]
+			middleName = strings.Split(userData.KYCData.FullName, " ")[1]
+			lastName = strings.Split(userData.KYCData.FullName, " ")[2]
+		} else if len(userData.KYCData.FullName) == 2 {
+			fistName = strings.Split(userData.KYCData.FullName, " ")[0]
+			lastName = strings.Split(userData.KYCData.FullName, " ")[1]
+		} else {
+			fistName = userData.KYCData.FullName
 		}
+
+		data := accountLookupDto.AccountCreateParams{
+			Username:         strings.TrimSpace(userData.KYCData.FullName),
+			Password:         constants.Empty,
+			FirstName:        fistName,
+			MiddleName:       middleName,
+			LastName:         lastName,
+			PhoneNumber:      userData.KYCData.PhoneNumber,
+			Address:          strings.Join([]string{"Region: " + userData.KYCData.Address.Region, "Zone: " + userData.KYCData.Address.Zone, "Kebele: " + userData.KYCData.Address.Kebele, "Woreda: " + userData.KYCData.Address.Woreda}, " "),
+			Gender:           userData.KYCData.Gender,
+			MotherName:       userData.KYCData.MothersName,
+			DateOfBirth:      userData.KYCData.BirthDate.String(),
+			Salary:           userData.KYCData.MonthlyIncome,
+			EmploymentStatus: userData.KYCData.EmployementStatus,
+			CustomerGroup:    string(constants.MASS),
+		}
+
+		// data := accountLookupDto.CreateAccountRequest{
+		// 	CustomerName:      userData.KYCData.FullName,
+		// 	Gender:            constants.Gender(userData.KYCData.Gender),
+		// 	PhoneNumber:       userData.KYCData.PhoneNumber,
+		// 	AccountType:       userData.KYCData.AccountType,
+		// 	AccountBranchType: "",
+		// 	Picture:           userData.KYCData.SelfiePhoto,
+		// }
 		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.logger)
 		if err != nil {
 			log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)
