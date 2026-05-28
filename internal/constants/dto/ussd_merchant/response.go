@@ -8,6 +8,7 @@ import (
 
 type UssdMerchantResponse struct {
 	ID               bson.ObjectID `bson:"_id" json:"id"`
+	MerchantCode     string        `bson:"merchant_code" json:"merchant_code"`
 	Name             string        `bson:"name" json:"name"`
 	PhoneNumber      string        `bson:"phone_number" json:"phone_number"`
 	Email            string        `bson:"email" json:"email"`
@@ -16,6 +17,7 @@ type UssdMerchantResponse struct {
 	AccountNumber    string        `bson:"account_number" json:"account_number"`
 	Logo             string        `bson:"logo" json:"logo"`
 	SettlementMethod string        `bson:"settlement_method" json:"settlement_method"`
+	Credential       string        `bson:"credential" json:"credential"`
 	Enabled          bool          `bson:"enabled" json:"enabled"`
 	IsDeleted        bool          `bson:"is_deleted" json:"is_deleted"`
 	CreatedAt        time.Time     `bson:"created_at" json:"created_at"`
