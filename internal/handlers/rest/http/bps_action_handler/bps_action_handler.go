@@ -431,7 +431,7 @@ func (a *bpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	userID := local_util.ExtractUserContext(r).UserID
+	userID := local_util.ExtractUserContext(r).UserName
 
 	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -655,7 +655,7 @@ func (a *bpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 	}
 	// do not force action_status; let API-provided filters decide
 
-	userID := local_util.ExtractUserContext(r).UserID
+	userID := local_util.ExtractUserContext(r).UserName
 	res, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
@@ -677,7 +677,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	userContext := local_util.ExtractUserContext(r)
-	userID := userContext.UserID
+	userID := userContext.UserName
 
 	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 	if strings.TrimSpace(rawRoleID) == "" {
@@ -697,7 +697,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	_, _, checkerActions, auditorActions, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	_, makerActions, checkerActions, auditorActions, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -897,8 +897,41 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Maker
-	resp := &bpsactionDto.BPSActionCountResponse{}
-	localization.SendSuccessResponse(w, localization.SuccessBPSActionCount, resp)
+	var pendingCount, approvedCount, rejectedCount int
+
+	if makerActions != nil {
+		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionPending), "")); err != nil {
+			span.RecordError(err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		} else if res != nil && res.Meta.TotalDocs > 0 {
+			pendingCount = int(res.Meta.TotalDocs)
+		}
+	}
+
+	if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionApproved), "")); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	} else if res != nil && res.Meta.TotalDocs > 0 {
+		approvedCount = int(res.Meta.TotalDocs)
+	}
+
+	if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionRejected), "")); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	} else if res != nil && res.Meta.TotalDocs > 0 {
+		rejectedCount = int(res.Meta.TotalDocs)
+	}
+
+	makerResp := &bpsactionDto.BPSCheckerActionCountResponse{
+		AllAction: pendingCount + approvedCount + rejectedCount,
+		Pending:   pendingCount,
+		Approved:  approvedCount,
+		Rejected:  rejectedCount,
+	}
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionCount, makerResp)
 }
 
 func (a *bpsActionAdapter) GetAuthorizerIndex(w http.ResponseWriter, r *http.Request) {

@@ -1188,7 +1188,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	userContext := local_util.ExtractUserContext(r)
-	userID := userContext.UserID
+	userID := userContext.UserName
 
 	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 	if strings.TrimSpace(rawRoleID) == "" {
@@ -1461,11 +1461,12 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		canceledCount = int(res.Meta.TotalDocs)
 	}
 
-	resp := &cpsactionDto.CPSActionCountResponse{
-		Pending:  pendingCount,
-		Approved: approvedCount,
-		Rejected: rejectedCount,
-		Canceled: canceledCount,
+	resp := &cpsactionDto.CPSCheckerActionCountResponse{
+		AllAction: pendingCount + approvedCount + rejectedCount + canceledCount,
+		Pending:   pendingCount,
+		Approved:  approvedCount,
+		Rejected:  rejectedCount,
+		Canceled:  canceledCount,
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionCount, resp)

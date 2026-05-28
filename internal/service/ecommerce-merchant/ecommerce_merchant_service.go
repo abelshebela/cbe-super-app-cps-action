@@ -354,6 +354,7 @@ func (m *ecommerceMerchantService) DeleteBranch(ctx context.Context, id string) 
 func (m *ecommerceMerchantService) EnableOrDisable(ctx context.Context, ids []string, enable bool) error {
 	log := local_util.LoggerFromCtx(ctx, m.logger)
 
+	log.Infof("[EcomMerchSvc][EnableDisable] id list **********%v", ids)
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisable", "MiniAppMerchant", "EnableOrDisable")
 	defer span.End()
 
