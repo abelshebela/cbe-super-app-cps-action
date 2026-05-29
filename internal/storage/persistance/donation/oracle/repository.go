@@ -306,7 +306,7 @@ func (r *repository) FindAllWithPagination(
 				conds = append(conds, fmt.Sprintf("d.ENABLED = :%d", idx))
 				args = append(args, boolToInt(b))
 				idx++
-				conds = append(conds, fmt.Sprintf("(d.END_DATE < :%d)", idx))
+				conds = append(conds, fmt.Sprintf("(d.END_DATE < :%d AND d.END_DATE IS NULL)", idx))
 				args = append(args, time.Now())
 				idx++
 			}
@@ -314,7 +314,7 @@ func (r *repository) FindAllWithPagination(
 		if v, ok := filterParam.Filters["is_expired"]; ok {
 			if b, applied := lib.BoolFromInterface(v); applied && b {
 				// records with no end_date are excluded; only past valid dates are expired.
-				conds = append(conds, fmt.Sprintf("(d.END_DATE < :%d)", idx))
+				conds = append(conds, fmt.Sprintf("(d.END_DATE < :%d AND d.END_DATE IS NOT NULL)", idx))
 				args = append(args, time.Now())
 				idx++
 			}
