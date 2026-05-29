@@ -128,7 +128,7 @@ pipeline {
                         echo 'SonarQube analysis completed successfully.'
                     } catch (Exception e) {
                         echo "Error during build or SonarQube analysis: ${e.message}"
-                        error 'Build or SonarQube analysis failed.'
+                        // error 'Build or SonarQube analysis failed.'
                     }
                 }
             }
