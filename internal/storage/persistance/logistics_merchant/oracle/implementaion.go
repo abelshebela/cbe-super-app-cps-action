@@ -186,7 +186,7 @@ func (l *LogisticsMerchantOracle) FindOne(ctx context.Context, filter bson.M) (*
 	err := l.db.QueryRowContext(ctx, stmt, arg).Scan(&m.ID, &m.BankAccountNumber, &m.MerchantID, &m.MerchantName, &m.SettlementMethod, &m.MerchantType, &enabled, &isDeleted, &createdAt, &updatedAt, &deletedAt)
 	if err != nil {
 		l.logger.Errorf("Failed to find logistics merchant: %v", err)
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	m.Enabled = enabled == 1
 	m.IsDeleted = isDeleted == 1

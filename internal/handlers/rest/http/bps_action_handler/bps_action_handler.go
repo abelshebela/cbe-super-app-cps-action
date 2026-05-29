@@ -869,7 +869,8 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 
 		log.Infof("[BPSAction][GetActionCounts] ************************** CHECKER")
 		if checkerActions != nil {
-			if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionPending), "")); err != nil {
+			// Pending: query BPS collection directly (consistent with GetBPSActionsForApprover)
+			if res, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, buildFilter(string(bpsactionsvc.ActionPending), "")); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
 				return
@@ -877,24 +878,26 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 				log.Infof("[BpsActionH][GetActionCounts] Checker pending count: %v", res.Meta.TotalDocs)
 				pendingCount = int(res.Meta.TotalDocs)
 			}
-		}
 
-		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionApproved), "")); err != nil {
-			span.RecordError(err)
-			localization.SendErrorByCodeResponse(w, err.Error())
-			return
-		} else if res != nil && res.Meta.TotalDocs > 0 {
-			log.Infof("[BpsActionH][GetActionCounts] Checker approved count: %v", res.Meta.TotalDocs)
-			approvedCount = int(res.Meta.TotalDocs)
-		}
+			// Approved: query user log with action_type=BPS_ACTION (consistent with GetBPSActionsForApprover)
+			if res, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, buildFilter(string(bpsactionsvc.ActionApproved), "")); err != nil {
+				span.RecordError(err)
+				localization.SendErrorByCodeResponse(w, err.Error())
+				return
+			} else if res != nil && res.Meta.TotalDocs > 0 {
+				log.Infof("[BpsActionH][GetActionCounts] Checker approved count: %v", res.Meta.TotalDocs)
+				approvedCount = int(res.Meta.TotalDocs)
+			}
 
-		if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionRejected), "")); err != nil {
-			span.RecordError(err)
-			localization.SendErrorByCodeResponse(w, err.Error())
-			return
-		} else if res != nil && res.Meta.TotalDocs > 0 {
-			log.Infof("[BpsActionH][GetActionCounts] Checker rejected count: %v", res.Meta.TotalDocs)
-			rejectedCount = int(res.Meta.TotalDocs)
+			// Rejected: query user log with action_type=BPS_ACTION (consistent with GetBPSActionsForApprover)
+			if res, err := a.bpsActionApplication.GetBPSActionsForApprover(ctx, userID, reqs, buildFilter(string(bpsactionsvc.ActionRejected), "")); err != nil {
+				span.RecordError(err)
+				localization.SendErrorByCodeResponse(w, err.Error())
+				return
+			} else if res != nil && res.Meta.TotalDocs > 0 {
+				log.Infof("[BpsActionH][GetActionCounts] Checker rejected count: %v", res.Meta.TotalDocs)
+				rejectedCount = int(res.Meta.TotalDocs)
+			}
 		}
 
 		log.Infof("[BpsActionH][GetActionCounts] Checker counts **************** - Pending: %v Approved: %v Rejected: %v", pendingCount, approvedCount, rejectedCount)

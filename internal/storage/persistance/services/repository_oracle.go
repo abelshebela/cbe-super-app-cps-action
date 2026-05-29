@@ -833,11 +833,11 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 		}
 
 		if v, ok := filterParam.Filters["for"]; ok {
-			if from, ok2 := v.(string); ok2 && from == "financial" {
+			if forf, ok2 := v.(string); ok2 && forf == "financial" {
 				clauses = append(clauses, "s.product_gl_account_number IS NOT NULL")
 			}
 		} else if v, ok := filterParam.Filters["for"]; ok {
-			if from, ok2 := v.(string); ok2 && from == "non_financial" {
+			if fornf, ok2 := v.(string); ok2 && fornf == "non_financial" {
 				clauses = append(clauses, "s.product_gl_account_number IS NULL")
 			}
 		}
