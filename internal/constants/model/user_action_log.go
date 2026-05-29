@@ -49,12 +49,20 @@ type UserActionLog struct {
 	LastModifiedAt             time.Time                `bson:"last_modified_at" json:"last_modified_at"`
 }
 
+// LevelClaimPair requires that a single action has an auditor log entry where
+// auditor_level == Level AND given_auditor_status == Claim. All pairs in a
+// LevelClaimPairs slice are ANDed together within the same action_code.
+type LevelClaimPair struct {
+	Level string // "1", "2", "3" …
+	Claim string // "MARKEDASRIGHT" or "MARKEDASWRONG"
+}
+
 // UserActionLogActionCodeFilter describes the action-log predicates used to
 // resolve a list of action codes from user_action_logs.
 //
 // Filter mapping:
 //  1. ActionStatuses        → given_action_status        (PENDING, APPROVED, REJECTED, CANCELED)
-//  2. AuditorStatuses       → given_auditor_status       (MARKASRIGHT, MARKASWRONG)
+//  2. AuditorStatuses       → given_auditor_status       (MARKEDASRIGHT, MARKEDASWRONG)
 //  3. PrivateUserIDs        → user_id                   (any responsibility)
 //  4. Levels                → checker_level / auditor_level
 //  5. Services              → action_taken_service_name
@@ -62,15 +70,17 @@ type UserActionLog struct {
 //  7. AuditorUserIDs        → user_id WHERE responsibility=AUDITOR
 //  8. MakerUserIDs          → user_id WHERE responsibility=MAKER
 //  9. ActionAuditorStatuses → action_auditor_status      (NOTCHECKED, INPROGRESS, CHECKED)
+// 10. LevelClaimPairs       → per-level given_auditor_status (all pairs must match same action_code)
 type UserActionLogActionCodeFilter struct {
-	ActionStatuses        []string `json:"action_statuses"`
-	AuditorStatuses       []string `json:"auditor_statuses"`
-	ActionAuditorStatuses []string `json:"action_auditor_statuses"`
-	PrivateUserIDs        []string `json:"private_user_ids"`
-	Levels                []string `json:"levels"`
-	Services              []string `json:"services"`
-	CheckerUserIDs        []string `json:"checker_user_ids"`
-	AuditorUserIDs        []string `json:"auditor_user_ids"`
-	MakerUserIDs          []string `json:"maker_user_ids"`
-	Responsibilities      []string `json:"responsibilities"`
+	ActionStatuses        []string         `json:"action_statuses"`
+	AuditorStatuses       []string         `json:"auditor_statuses"`
+	ActionAuditorStatuses []string         `json:"action_auditor_statuses"`
+	PrivateUserIDs        []string         `json:"private_user_ids"`
+	Levels                []string         `json:"levels"`
+	Services              []string         `json:"services"`
+	CheckerUserIDs        []string         `json:"checker_user_ids"`
+	AuditorUserIDs        []string         `json:"auditor_user_ids"`
+	MakerUserIDs          []string         `json:"maker_user_ids"`
+	Responsibilities      []string         `json:"responsibilities"`
+	LevelClaimPairs       []LevelClaimPair `json:"level_claim_pairs"`
 }
