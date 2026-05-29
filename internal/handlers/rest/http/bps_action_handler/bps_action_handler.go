@@ -874,6 +874,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 				localization.SendErrorByCodeResponse(w, err.Error())
 				return
 			} else if res != nil && res.Meta.TotalDocs > 0 {
+				log.Infof("[BpsActionH][GetActionCounts] Checker pending count: %v", res.Meta.TotalDocs)
 				pendingCount = int(res.Meta.TotalDocs)
 			}
 		}
@@ -883,6 +884,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
 		} else if res != nil && res.Meta.TotalDocs > 0 {
+			log.Infof("[BpsActionH][GetActionCounts] Checker approved count: %v", res.Meta.TotalDocs)
 			approvedCount = int(res.Meta.TotalDocs)
 		}
 
@@ -891,6 +893,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
 		} else if res != nil && res.Meta.TotalDocs > 0 {
+			log.Infof("[BpsActionH][GetActionCounts] Checker rejected count: %v", res.Meta.TotalDocs)
 			rejectedCount = int(res.Meta.TotalDocs)
 		}
 
