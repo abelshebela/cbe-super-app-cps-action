@@ -7,6 +7,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
+	"log"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -224,6 +225,8 @@ func MapForActionWithDepartment(user imodel.CPSUser, department *model.Departmen
 			Name: department.Department,
 		}
 	}
+
+	log.Println(user, "/////////////////////////////////////")
 
 	return cpsuser.CpsUserPopulatedResponse{
 		ID:               user.ID,

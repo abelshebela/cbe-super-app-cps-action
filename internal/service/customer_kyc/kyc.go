@@ -85,6 +85,18 @@ func (s *customerKYCService) FindByID(ctx context.Context, id string) (*dto.Cust
 	}
 	mappedResponse := core.MapCustomerKYCToResponse(result)
 
+	// If the kyc is in review status, get the start, and expiry time
+	if result.KYCStatus == imodel.KYCStatusInReview {
+		review, err := s.repo.FindKycInReview(ctx, id)
+		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		if review != nil {
+			mappedResponse.KYCReviewStartedAt = review.StartedAt
+			mappedResponse.KYCReviewExpiresAt = review.ExpiresAt
+		}
+	}
+
 	return mappedResponse, nil
 }
 
@@ -230,6 +242,17 @@ func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*im
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	kyc, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		log.Errorf("[CustKycSvc][StartKycReview] find err: %v", err)
+		return nil, err
+	}
+
+	if kyc.KYCStatus != imodel.KYCStatusPending {
+		log.Warnf("[CustKycSvc][StartKycReview] kyc status is not pending id: %s, status: %s", id, kyc.KYCStatus)
+		return nil, errors.New("KYC review can only be started for KYC requests with pending status")
+	}
+
 	existingReview, err := s.repo.FindKycInReview(ctx, id)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		log.Errorf("[CustKycSvc][StartKycReview] failed to check existing review: %v", err)
@@ -301,6 +324,11 @@ func (s *customerKYCService) PickKycReview(ctx context.Context, id string, reaso
 	if err != nil {
 		log.Errorf("[CustKycSvc][StartKycReview] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if kycInReview.Reviewer.ID != userID {
+		log.Warnf("[CustKycSvc][PickKycReview] user %s is not the current reviewer for kyc id: %s", makerUser.UserCode, id)
+		return errors.New("This KYC review is currently assigned to another reviewer")
 	}
 
 	cpsUser, err := s.cpsUserRepo.FindByID(ctx, makerUser.UserCode)

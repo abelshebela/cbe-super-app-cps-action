@@ -97,15 +97,6 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		return err
 	}
 
-	department, err := s.departmentRepo.FindByID(ctx, req.Department)
-	if err != nil {
-		span.AddEvent("failed to find department", trace.WithAttributes(attribute.String("error", err.Error())))
-		return err
-	}
-	if department == nil {
-		span.AddEvent("department not found", trace.WithAttributes(attribute.String("department", req.Department)))
-		return errors.New(localization.ErrorDepartmentNotFound.Code)
-	}
 	if emailCheckBPS != nil {
 		if emailCheckBPS.Email == req.Email {
 			span.AddEvent("email already exists in BPS", trace.WithAttributes(attribute.String("email", req.Email)))
@@ -122,7 +113,30 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 
 	}
 
+	department, err := s.departmentRepo.FindByID(ctx, req.Department)
+	if err != nil {
+		span.AddEvent("failed to find department", trace.WithAttributes(attribute.String("error", err.Error())))
+		return err
+	}
+	if department == nil {
+		span.AddEvent("department not found", trace.WithAttributes(attribute.String("department", req.Department)))
+		return errors.New(localization.ErrorDepartmentNotFound.Code)
+	}
+
+	jobTitle, err := s.jobRoleRepo.FindByName(ctx, req.JobTitle)
+	if err != nil {
+		s.logger.Errorf("failed to find jobTitle err:%v", err)
+		return err
+	}
+	if jobTitle == nil {
+		s.logger.Errorf("unexpected error while fetching jobTitle err:%v", err)
+		return localization.ErrorUnexpectedError
+	}
+
 	cpsUser := core.CPSUModel(req)
+	cpsUser.JobTitle = jobTitle.JobTitle
+	cpsUser.Role = jobTitle.Role
+
 	userForAction := core.MapForActionWithDepartment(cpsUser, department)
 	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, userForAction, string(constants.RequestCpsUserCreate), constants.CREATE)
 
