@@ -349,6 +349,46 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 
 	defer span.End()
 
+	if filterParams == nil {
+		filterParams = &types.Filter{}
+	}
+	if filterParams.Filters == nil {
+		filterParams.Filters = map[string]interface{}{}
+	}
+
+	// Detect status filter to route approved/rejected through the user action log.
+	statusFilter := ""
+	if v, ok := filterParams.Filters["status"]; ok {
+		if s, ok := v.(string); ok {
+			statusFilter = strings.ToUpper(strings.TrimSpace(s))
+		}
+	}
+
+	if (statusFilter == "APPROVED" || statusFilter == "REJECTED") && ba.actionLogRepo != nil {
+		logFilter := map[string]interface{}{
+			"action_type":                  string(bps_model.BPSActions),
+			"given_action_status":          statusFilter,
+			"user_action_responsibilities": string(bps_model.CHECKER),
+			"username":                     userID,
+		}
+
+		actionCodes, err := ba.actionLogRepo.GetActionCodesByFilter(ctx, logFilter)
+		if err != nil {
+			span.AddEvent("failed to get action codes from log", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+
+		delete(filterParams.Filters, "status")
+
+		if len(actionCodes) == 0 {
+			return &types.PaginatedResponse[[]*bps_model.BPSAction]{
+				Data: []*bps_model.BPSAction{},
+				Meta: lobal_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
+			}, nil
+		}
+		filterParams.Filters["action_code"] = bson.M{"$in": actionCodes}
+	}
+
 	result, err := ba.repo.SanitizedFindAllWithPaginationForApprover(ctx, userID, *filterParams, RAList)
 
 	if err != nil {
