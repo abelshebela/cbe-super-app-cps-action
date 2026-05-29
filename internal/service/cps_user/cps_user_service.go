@@ -135,7 +135,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 
 	cpsUser := core.CPSUModel(req)
 	cpsUser.JobTitle = jobTitle.JobTitle
-	cpsUser.Role = jobTitle.RoleCode
+	cpsUser.Role = jobTitle.Role
 
 	userForAction := core.MapForActionWithDepartment(cpsUser, department)
 	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, userForAction, string(constants.RequestCpsUserCreate), constants.CREATE)
