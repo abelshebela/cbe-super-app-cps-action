@@ -669,6 +669,8 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionCounts", "handler", "cpsAction")
 	defer span.End()
 	md := &types.ContextMetadata{}
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 	if _, err := local_util.ParseUserContext(r); err != nil {
@@ -684,6 +686,8 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
 	}
+
+	log.Infof("[BpsActionH][GetActionCounts] User: %v RoleID: %v", userID, rawRoleID)
 
 	requestedRole := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("role")))
 	if err := local_util.NoSpecialChars(requestedRole); err != nil {
@@ -716,6 +720,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	// 	return
 	// }
 
+	log.Infof("[BpsActionH][GetActionCounts] Allocations - Maker: %v Checker: %v Auditor: %v", makerActions, checkerActions, auditorActions)
 	// resolve action_names -> request_actions (same as GetUserApproverActions)
 	var reqs []string
 	seen := map[string]struct{}{}
@@ -735,6 +740,8 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			}
 		}
 	}
+
+	log.Infof("[BpsActionH][GetActionCounts] Request actions---------1: %v", reqs)
 
 	if auditorActions != nil && requestedRole == "auditor" {
 		for _, mod := range auditorActions {
@@ -860,12 +867,14 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	if requestedRole == "checker" {
 		var pendingCount, approvedCount, rejectedCount int
 
+		log.Infof("[BPSAction][GetActionCounts] ************************** CHECKER")
 		if checkerActions != nil {
 			if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionPending), "")); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
 				return
 			} else if res != nil && res.Meta.TotalDocs > 0 {
+				log.Infof("[BpsActionH][GetActionCounts] Checker pending count: %v", res.Meta.TotalDocs)
 				pendingCount = int(res.Meta.TotalDocs)
 			}
 		}
@@ -875,6 +884,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
 		} else if res != nil && res.Meta.TotalDocs > 0 {
+			log.Infof("[BpsActionH][GetActionCounts] Checker approved count: %v", res.Meta.TotalDocs)
 			approvedCount = int(res.Meta.TotalDocs)
 		}
 
@@ -883,9 +893,11 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
 		} else if res != nil && res.Meta.TotalDocs > 0 {
+			log.Infof("[BpsActionH][GetActionCounts] Checker rejected count: %v", res.Meta.TotalDocs)
 			rejectedCount = int(res.Meta.TotalDocs)
 		}
 
+		log.Infof("[BpsActionH][GetActionCounts] Checker counts **************** - Pending: %v Approved: %v Rejected: %v", pendingCount, approvedCount, rejectedCount)
 		checkerResp := &bpsactionDto.BPSCheckerActionCountResponse{
 			AllAction: pendingCount + approvedCount + rejectedCount,
 			Pending:   pendingCount,
@@ -908,6 +920,8 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			pendingCount = int(res.Meta.TotalDocs)
 		}
 	}
+
+	log.Infof("[BpsActionH][GetActionCounts] Request actions---------1: %v", reqs)
 
 	if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionApproved), "")); err != nil {
 		span.RecordError(err)
