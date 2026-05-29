@@ -153,6 +153,7 @@ func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update
 	if strings.Contains(update.RequestAction, constants.DELETE) || strings.Contains(update.RequestAction, constants.DISABLE) {
 		RAUpdateList := local_utils.GetRAListForUpdateAction(constants.RequestAction(update.RequestAction), Group, RequestActionGroups)
 
+		log.Infof("[CPSActionRepo][Update] list of request action get RAUpdateList: %v", RAUpdateList)
 		modelData = append(modelData, mongo.NewUpdateOneModel().
 			SetFilter(bson.M{"unique_id": update.UniqueId, "is_deleted": false, "request_action": bson.M{"$in": RAUpdateList}}).
 			SetUpdate(bson.M{
