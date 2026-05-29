@@ -741,7 +741,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	log.Infof("[BpsActionH][GetActionCounts] Request actions: %v", reqs)
+	log.Infof("[BpsActionH][GetActionCounts] Request actions---------1: %v", reqs)
 
 	if auditorActions != nil && requestedRole == "auditor" {
 		for _, mod := range auditorActions {
@@ -915,6 +915,8 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			pendingCount = int(res.Meta.TotalDocs)
 		}
 	}
+
+	log.Infof("[BpsActionH][GetActionCounts] Request actions---------1: %v", reqs)
 
 	if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionApproved), "")); err != nil {
 		span.RecordError(err)
