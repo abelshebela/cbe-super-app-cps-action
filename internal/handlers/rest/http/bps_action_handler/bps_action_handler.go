@@ -687,6 +687,8 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	log.Infof("[BpsActionH][GetActionCounts] User: %v RoleID: %v", userID, rawRoleID)
+
 	requestedRole := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("role")))
 	if err := local_util.NoSpecialChars(requestedRole); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -718,6 +720,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	// 	return
 	// }
 
+	log.Infof("[BpsActionH][GetActionCounts] Allocations - Maker: %v Checker: %v Auditor: %v", makerActions, checkerActions, auditorActions)
 	// resolve action_names -> request_actions (same as GetUserApproverActions)
 	var reqs []string
 	seen := map[string]struct{}{}
