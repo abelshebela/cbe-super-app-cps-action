@@ -449,6 +449,11 @@ func (b *bpsActionRepository) SanitizedFindAllWithPaginationForApprover(
 		}, nil
 	}
 
+	// action_code is injected by the service for approved/rejected paths (bypasses allowedKeys).
+	if v, ok := filterParam.Filters["action_code"]; ok {
+		filter["action_code"] = v
+	}
+
 	exclude := []string{
 		"password",
 		"first_password_set",
