@@ -1,0 +1,478 @@
+package access_list_segmentation_repository
+
+import (
+	access_list_segmentation_dto "cbe-super-app-cps-action/internal/constants/dto/access_list_segmentation"
+	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/localization"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
+	"cbe-super-app-cps-action/internal/storage/persistance/access_list_segmentation/core"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
+	"errors"
+	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+)
+
+type AccessListSegmentation struct {
+	repo           dal.MongoDal[local_model.AccessListSegmentation, local_model.AccessListSegmentation]
+	fromSharedRepo dal.MongoDal[model.APPAccessList, model.APPAccessList]
+	client         *mongo.Client
+	accBlock       storage.AccountBlockRepository
+	dbName         string
+	collectionName string
+	kafkaProducer  kafka.AccessListSegmentationProducer
+	logger         utils.Logger
+	cfg            *config.VaultConfig
+}
+
+// FindParentChildRelationship implements [storage.AccessListSegmentationRepository].
+func (a *AccessListSegmentation) FindParentChildRelationship(ctx context.Context) ([]local_model.AccessItemRelation, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	collection := a.client.Database(a.dbName).Collection("access_items_relation")
+	cursor, err := collection.Aggregate(ctx, mongo.Pipeline{})
+
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][FindParentChildRelationship] failed to aggregate: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer cursor.Close(ctx)
+
+	var relations []local_model.AccessItemRelation
+	if err := cursor.All(ctx, &relations); err != nil {
+		log.Errorf("[AccessListSegmentation][FindParentChildRelationship] failed to decode: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return relations, nil
+}
+
+// FindBySegmentIDAndAccessListKeys implements [storage.AccessListSegmentationRepository].
+func (a *AccessListSegmentation) FindBySegmentIDAndAccessListKeys(ctx context.Context, id string, keys []string) (*local_model.AccessListSegmentation, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][FindBySegmentIDAndAccessListKeys] invalid ObjectID: %s", id)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+	filter := bson.M{"segmented_id": objID, "access_list_key": bson.M{"$in": keys}, "enabled": true}
+	response, err := a.repo.FindOne(ctx, filter, nil)
+	if err != nil {
+		if temp := local_util.HandleDBError(err); temp.Error() == localization.ErrorResourceNotFound.Code {
+			return nil, errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
+		}
+		log.Errorf("[AccessListSegmentation][FindBySegmentIDAndAccessListKeys] find error: %v", err)
+		return nil, err
+	}
+
+	return response, nil
+}
+
+// FindByAccountSegmentationAndServiceID implements storage.AccessListSegmentationRepository.
+func (a *AccessListSegmentation) FindByAccountSegmentationAndAccessListKeys(ctx context.Context, customerSegments string, segmentKeys []string) (*local_model.AccessListSegmentation, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	seg, err := a.repo.FindOne(ctx, bson.M{"segmentation_code": customerSegments, "service_id": bson.M{"$in": segmentKeys}, "enabled": true}, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+		log.Errorf("[AccessListSegmentation][FindByAccountSegmentationAndAccessListKeys] failed to find access list segmentation by segmentation id and service id: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	return seg, nil
+}
+
+// FindBySegmentationAndServiceID implements storage.AccessListSegmentationRepository.
+func (a *AccessListSegmentation) FindBySegmentationAndServiceID(ctx context.Context, segmentationID string, serviceID string) (*local_model.AccessListSegmentation, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	seg, err := a.repo.FindOne(ctx, bson.M{"segmented_id": segmentationID, "service_id": serviceID, "enabled": true}, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+		log.Errorf("[AccessListSegmentation][FindBySegmentationAndServiceID] failed to find access list segmentation by segmentation id and service id: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	return seg, nil
+}
+
+// FindByIDS implements storage.AccessListSegmentationRepository.
+func (a *AccessListSegmentation) FindByIDS(ctx context.Context, ids []string, t string) (*local_model.AccessListSegmentation, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	var filter bson.M
+	var objIDs []bson.ObjectID
+	for _, idStr := range ids {
+		objID, err := bson.ObjectIDFromHex(idStr)
+		if err != nil {
+			log.Errorf("[AccessListSegmentation][FindByIDS] invalid ObjectID: %s", idStr)
+			return nil, errors.New(localization.ErrorInvalidID.Code)
+		}
+		objIDs = append(objIDs, objID)
+	}
+	filter = bson.M{"segmented_id": bson.M{"$in": objIDs}, "type": t, "enabled": true}
+
+	als, err := a.repo.FindOne(ctx, filter, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+		log.Errorf("[AccessListSegmentation][FindByIDS] failed to find access list segmentation by ids: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	return als, nil
+}
+
+func (a *AccessListSegmentation) CreateAccountSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	docs := []local_model.AccessListSegmentation{}
+	for _, idStr := range accessListSegmentation.AccessListKeys {
+		doc := local_model.AccessListSegmentation{
+			ID:               "bson.NewObjectID()",
+			Type:             accessListSegmentation.Type,
+			AccessListKey:    idStr,
+			SegmentationType: accessListSegmentation.SegmentType,
+			Enabled:          true,
+			CreatedAt:        time.Now(),
+			UpdatedAt:        time.Now(),
+		}
+		docs = append(docs, doc)
+	}
+
+	collection := a.client.Database(a.dbName).Collection(a.collectionName)
+	_, err := collection.InsertMany(ctx, docs)
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][CreateAccountSegment] failed to insert documents: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	res := map[string]any{
+		"docs": docs,
+		"type": "account-segment",
+	}
+	a.kafkaProducer.PublishMessage(ctx, res, "create", a.cfg.KafkaCustomerSegmentaionTopic, "create account-segment")
+	return nil
+}
+
+func (a *AccessListSegmentation) CreateBlockSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	if len(accessListSegmentation.SegmentationID) == 0 {
+		return errors.New(localization.ErrorAccessListSegmentationIDSRequired.Code)
+	}
+	// objID, err := bson.ObjectIDFromHex(accessListSegmentation.SegmentationID)
+	// if err != nil {
+	// 	a.logger.Errorf("[AccessListSegmentation][CreateBlockSegment] invalid ObjectID: %s", accessListSegmentation.SegmentationID)
+	// 	return errors.New(localization.ErrorUnhandledServer.Code)
+	// }
+
+	var docs []interface{}
+	for _, idStr := range accessListSegmentation.AccessListKeys {
+
+		doc := local_model.AccessListSegmentation{
+			ID:               "bson.NewObjectID()",
+			Type:             accessListSegmentation.Type,
+			AccessListKey:    idStr,
+			SegmentationType: accessListSegmentation.SegmentType,
+			SegmentedID:      accessListSegmentation.SegmentationID,
+			CreatedAt:        time.Now(),
+			UpdatedAt:        time.Now(),
+			Enabled:          true,
+		}
+		docs = append(docs, doc)
+	}
+
+	collection := a.client.Database(a.dbName).Collection(a.collectionName)
+	_, err := collection.InsertMany(ctx, docs)
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][CreateBlockSegment] failed to insert documents: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	branches := core.GetAllBranches(ctx, accessListSegmentation.SegmentationID, a.accBlock)
+	res := map[string]any{
+		"branches": branches,
+		"docs":     docs,
+		"type":     "block-segment",
+	}
+	a.kafkaProducer.PublishMessage(ctx, res, "create", a.cfg.KafkaCustomerSegmentaionTopic, "create block-segment")
+	return nil
+}
+
+// EnableOrDisable implements storage.AccessListSegmentationRepository.
+func (a *AccessListSegmentation) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][EnableOrDisable] invalid ObjectID: %s", id)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+	update := bson.M{"enabled": enable}
+	filter := bson.M{"_id": objID, "enabled": true}
+
+	_, err = a.repo.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][EnableOrDisable] failed to enable/disable access list segmentation: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	return nil
+}
+
+func (a *AccessListSegmentation) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.AccessListSegmentation], error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AccessListSegmentation][FindAllWithPagination] filter params: %+v", filterParam)
+
+	searchKeys := bson.M{}
+	allowedKeys := []string{"type", "segmented_id", "created_at", "updated_at", "enabled"}
+
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		searchKeys["$or"] = []bson.M{
+			{"type": searchRegex},
+			{"enabled": searchRegex},
+		}
+	}
+
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+	data, err := a.repo.FindAllWithPagination(ctx, filter, nil, skip, limit)
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][FindAllWithPagination] find error: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	total, err := a.repo.TotalCount(ctx, filter)
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][FindAllWithPagination] count error: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	log.Infof("[AccessListSegmentation][FindAllWithPagination] retrieved %d segmentations", len(data))
+
+	return &types.PaginatedResponse[[]local_model.AccessListSegmentation]{
+		Data: data,
+		Meta: meta,
+	}, nil
+}
+
+// FindByID implements storage.AccessListSegmentationRepository.
+func (a *AccessListSegmentation) FindByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][FindByID] invalid ObjectID: %s", id)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+	filter := bson.M{"_id": objID, "enabled": true}
+	response, err := a.repo.FindOne(ctx, filter, nil)
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][FindByID] find error: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return response, nil
+
+}
+
+// FindByIDAndType implements storage.AccessListSegmentationRepository.
+func (a *AccessListSegmentation) FindByIDAndType(ctx context.Context, id string, t string) (*local_model.AccessListSegmentation, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][FindByIDAndType] invalid ObjectID: %s", id)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+	filter := bson.M{"segmented_id": objID, "type": t, "enabled": true}
+	response, err := a.repo.FindOne(ctx, filter, nil)
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][FindByIDAndType] find error: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return response, nil
+
+}
+
+// Update implements storage.AccessListSegmentationRepository.
+func (a *AccessListSegmentation) Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][Update] invalid ObjectID: %s", id)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filer := bson.M{"_id": objID}
+	update := bson.M{}
+	if accessListSegmentation.Type != "" {
+		update["type"] = accessListSegmentation.Type
+	}
+	if accessListSegmentation.SegmentationType != "" {
+		update["segmentation_type"] = accessListSegmentation.SegmentationType
+	}
+	if accessListSegmentation.SegmentedID != "" {
+		update["segmented_id"] = accessListSegmentation.SegmentedID
+	}
+	if accessListSegmentation.AccessListKey != "" {
+		update["access_list_key"] = accessListSegmentation.AccessListKey
+	}
+	if accessListSegmentation.SegmentationCode != "" {
+		update["segmentation_code"] = accessListSegmentation.SegmentationCode
+	}
+	if accessListSegmentation.AccessListName != "" {
+		update["access_list_name"] = accessListSegmentation.AccessListName
+	}
+	update["updated_at"] = time.Now()
+
+	_, err = a.repo.UpdateOne(ctx, filer, update)
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][Update] update error: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	return nil
+}
+func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]model.APPAccessList, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	var filter bson.M
+	var objID bson.ObjectID
+	objID, err := bson.ObjectIDFromHex(segmentIDorCode)
+	if err != nil {
+		log.Infof("[AccessListSegmentation][FindAllBySegmentIDorSegmentCode] segmentIDorCode is not a valid ObjectID, treating as segmentation code")
+		filter = bson.M{
+			"segmentation_code": segmentIDorCode,
+		}
+	} else {
+		log.Infof("[AccessListSegmentation][FindAllBySegmentIDorSegmentCode] segmentIDorCode is a valid ObjectID, treating as segmented ID")
+		filter = bson.M{
+			"segmented_id": objID,
+		}
+	}
+	filter["enabled"] = true
+	als, err := a.repo.FindAll(ctx, filter, nil)
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][FindAllBySegmentIDorSegmentCode] failed to find access list segmentation by segmentation id or segment code: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	var result []model.APPAccessList
+	for _, al := range als {
+		log.Infof("[AccessListSegmentation][FindAllBySegmentIDorSegmentCode] found access list segmentation: %+v", al)
+		result = append(result, model.APPAccessList{
+			Key:            al.AccessListKey,
+			AccessListName: al.AccessListName,
+			Enabled:        al.Enabled,
+		})
+	}
+	return result, nil
+}
+func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCodeAndKeys(ctx context.Context, segmentIDorCode string, ac []string) ([]local_model.AccessListSegmentation, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	var filter bson.M
+	var objID bson.ObjectID
+	objID, err := bson.ObjectIDFromHex(segmentIDorCode)
+	if err != nil {
+		log.Infof("[AccessListSegmentation][FindAllBySegmentIDorSegmentCodeAndKeys] segmentIDorCode is not a valid ObjectID, treating as segmentation code")
+		filter = bson.M{
+			"segmentation_code": segmentIDorCode,
+		}
+	} else {
+		log.Infof("[AccessListSegmentation][FindAllBySegmentIDorSegmentCodeAndKeys] segmentIDorCode is a valid ObjectID, treating as segmented ID")
+		filter = bson.M{
+			"segmented_id": objID,
+		}
+	}
+	filter["access_list_key"] = bson.M{"$in": ac}
+	filter["enabled"] = true
+	als, err := a.repo.FindAll(ctx, filter, nil)
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][FindAllBySegmentIDorSegmentCodeAndKeys] failed to find access list segmentation: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	return als, nil
+}
+
+// BulkDisable implements [storage.AccessListSegmentationRepository].
+func (a *AccessListSegmentation) BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AccessListSegmentation][BulkDisable] bulk disable request: %+v", req)
+	var filter bson.M
+	var objID bson.ObjectID
+	objID, err := bson.ObjectIDFromHex(req.ID)
+	if err != nil {
+		log.Infof("[AccessListSegmentation][BulkDisable] segmentIDorCode is not a valid ObjectID, treating as segmentation code")
+		filter = bson.M{
+			"segmentation_code": req.ID,
+		}
+	} else {
+		log.Infof("[AccessListSegmentation][BulkDisable] segmentIDorCode is a valid ObjectID, treating as segmented ID")
+		filter = bson.M{
+			"segmented_id": objID,
+		}
+	}
+	filter["access_list_key"] = bson.M{"$in": req.Keys}
+	update := bson.M{
+		"$set": bson.M{
+			"enabled": false,
+		},
+	}
+	collection := a.client.Database(a.dbName).Collection(a.collectionName)
+	_, err = collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[AccessListSegmentation][BulkDisable] failed to bulk disable access list segmentation: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	branches := core.GetAllBranches(ctx, req.ID, a.accBlock)
+	res := map[string]any{}
+	res["branches"] = branches
+
+	als := make([]local_model.AccessListSegmentation, len(req.Keys))
+	if _, ok := filter["segmentation_code"]; ok {
+		log.Infof("[AccessListSegmentation][BulkDisable] bulk disable by segmentation code, preparing kafka message")
+		for i, key := range req.Keys {
+			als[i] = local_model.AccessListSegmentation{
+				SegmentationCode: req.ID,
+				AccessListKey:    key,
+				Enabled:          req.Enabled,
+			}
+		}
+		res["type"] = "account-segment"
+	} else if _, ok := filter["segmented_id"]; ok {
+		log.Infof("[AccessListSegmentation][BulkDisable] bulk disable by segmented id, preparing kafka message")
+		for i, key := range req.Keys {
+			als[i] = local_model.AccessListSegmentation{
+				SegmentedID:   req.ID,
+				AccessListKey: key,
+				Enabled:       req.Enabled,
+			}
+		}
+		res["type"] = "block-segment"
+	}
+	res["docs"] = als
+	a.kafkaProducer.PublishMessage(ctx, res, "delete", a.cfg.KafkaCustomerSegmentaionTopic, "bulk disable access-list-segmentation")
+	return nil
+}
+
+// SetAccountBlockRepository injects the AccountBlock dependency after construction.
+// This is needed because Oracle persistence (which owns AccountBlock) is initialised
+// after the Mongo persistence layer.
+func (a *AccessListSegmentation) SetAccountBlockRepository(repo storage.AccountBlockRepository) {
+	a.accBlock = repo
+}
+
+func NewAccessListSegmentationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collectionName string, customerSegmentationProducer kafka.AccessListSegmentationProducer, accountBlock storage.AccountBlockRepository, logger utils.Logger) storage.AccessListSegmentationRepository {
+	return &AccessListSegmentation{
+		repo:           dal.NewMongoDal[local_model.AccessListSegmentation, local_model.AccessListSegmentation](client, cfg, dbName, collectionName),
+		fromSharedRepo: dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, cfg, dbName, "app_access_list"),
+		client:         client,
+		accBlock:       accountBlock,
+		kafkaProducer:  customerSegmentationProducer,
+		dbName:         dbName,
+		collectionName: collectionName,
+		logger:         logger,
+		cfg:            cfg,
+	}
+}

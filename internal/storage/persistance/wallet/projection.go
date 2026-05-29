@@ -1,13 +1,13 @@
 package wallet
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func ToWalletDocument(wallet model.Wallet) (*model.Wallet, error) {
+func ToWalletDocument(wallet local_model.Wallet) (*local_model.Wallet, error) {
 	if wallet.ID == bson.NilObjectID {
 		wallet.ID = bson.NewObjectID()
 	}
@@ -23,14 +23,17 @@ func ToWalletDocument(wallet model.Wallet) (*model.Wallet, error) {
 	return &wallet, nil
 }
 
-func UpdateMapper(wallet model.Wallet) bson.M {
+func UpdateMapper(wallet local_model.Wallet) bson.M {
 
 	update := bson.M{"last_modified_at": time.Now()}
 	if wallet.Name != "" {
 		update["name"] = wallet.Name
 	}
-	if wallet.Code != "" {
-		update["code"] = wallet.Code
+	if wallet.UniqueCode != "" {
+		update["unique_code"] = wallet.UniqueCode
+	}
+	if wallet.ServiceID != "" {
+		update["service_id"] = wallet.ServiceID
 	}
 	if wallet.Avatar != "" {
 		update["avatar"] = wallet.Avatar
@@ -40,4 +43,17 @@ func UpdateMapper(wallet model.Wallet) bson.M {
 	update["services.other"] = wallet.Services.Other
 	update["services.agent"] = wallet.Services.Agent
 	return update
+}
+
+func ToGRPCWallet(wallet local_model.Wallet) local_model.GRPCWallet {
+	return local_model.GRPCWallet{
+		ID:         wallet.ID,
+		Name:       wallet.Name,
+		UniqueCode: wallet.UniqueCode,
+		ServiceID:  wallet.ServiceID,
+		Avatar:     wallet.Avatar,
+		Enabled:    wallet.Enabled,
+		Services:   wallet.Services,
+		IsDeleted:  wallet.IsDeleted,
+	}
 }

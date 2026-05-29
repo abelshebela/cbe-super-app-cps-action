@@ -13,13 +13,13 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"mime/multipart"
 
 	// "math/rand"
 	mathrand "math/rand"
-	"mime/multipart"
 	"net/http"
-
 	"os"
+	"path/filepath"
 
 	"regexp"
 	"strconv"
@@ -34,43 +34,50 @@ import (
 	"github.com/go-chi/chi/v5"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 const alphanumberic string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-func IsWeakPin(pin string) bool {
-	// Check for repeated digits
-	if strings.Count(pin, string(pin[0])) == len(pin) {
-		return true
+var cbeAccountRegex = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+
+func IsValidCBEAccountNumber(acc string) bool {
+	if acc == "" {
+		return false
 	}
-	// Check for sequential patterns
-	isAscending := true
-	isDescending := true
-	for i := 1; i < len(pin); i++ {
-		if pin[i] != pin[i-1]+1 {
-			isAscending = false
-		}
-		if pin[i] != pin[i-1]-1 {
-			isDescending = false
-		}
+
+	if !cbeAccountRegex.MatchString(acc) {
+		return false
 	}
-	return isAscending || isDescending
+
+	l := len(acc)
+	return l >= 8 && l <= 20
 }
 
-func ValidateFullName(value interface{}) error {
-	fullName := fmt.Sprintf("%s", value)
-	name := strings.Split(fullName, " ")
+func ParseObjectID(id interface{}) (bson.ObjectID, error) {
+	switch v := id.(type) {
 
-	if len(name) != 2 {
-		return fmt.Errorf("invalid full name")
+	case string:
+		// validate + convert
+		objID, err := bson.ObjectIDFromHex(v)
+		if err != nil {
+			return bson.NilObjectID, err
+		}
+		return objID, nil
+
+	case bson.ObjectID:
+		// already ObjectID
+		return v, nil
+
+	default:
+		return bson.NilObjectID, fmt.Errorf("invalid id type")
 	}
-	if len(name[0]) < 3 || len(name[1]) < 3 {
-		return fmt.Errorf("invalid full name")
-	}
-	return nil
 }
 
 func IsValidImage(fileHeader *multipart.FileHeader) bool {
@@ -82,7 +89,57 @@ func IsValidImage(fileHeader *multipart.FileHeader) bool {
 		"image/webp": true,
 	}
 
-	if fileHeader.Size > 10*1024*1024 { // optional size limit
+	if fileHeader == nil {
+		return false
+	}
+
+	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
+	switch ext {
+	case ".jpg", ".jpeg", ".png", ".gif", ".webp":
+		// extension ok; continue to name and content checks
+	default:
+		return false
+	}
+
+	// optional: reject names with additional dots (foo.jpg.exe, foo..jpg, etc.)
+	name := strings.TrimSuffix(fileHeader.Filename, ext)
+	if strings.Contains(name, ".") {
+		return false
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+
+	buffer := make([]byte, 512)
+	_, err = file.Read(buffer)
+	if err != nil {
+		return false
+	}
+
+	contentType := http.DetectContentType(buffer)
+	if allowedMIMETypes[contentType] {
+		return true
+	}
+	// Many clients (mobile, WebView, some browsers) send images as octet-stream; extension already vetted above.
+	if contentType == "application/octet-stream" || contentType == "binary/octet-stream" {
+		return true
+	}
+	return false
+}
+
+func IsValidVideo(fileHeader *multipart.FileHeader) bool {
+	var allowedMIMETypes = map[string]bool{
+		"video/mp4":        true,
+		"video/x-msvideo":  true, // avi
+		"video/quicktime":  true, // mov
+		"video/x-matroska": true, // mkv
+		"video/webm":       true,
+	}
+
+	if fileHeader.Size > 50*1024*1024 { // 50MB limit for video
 		return false
 	}
 
@@ -114,70 +171,6 @@ func OTPGenerator(length uint8) string {
 	return string(result)
 }
 
-func GenerateUsername(fullName string) string {
-	fullName = strings.TrimSpace(fullName)
-	parts := strings.Fields(fullName)
-	if len(parts) < 2 {
-		return strings.ToLower(strings.ReplaceAll(fullName, " ", ""))
-	}
-	first := strings.ToLower(parts[0])
-	last := strings.ToLower(parts[len(parts)-1])
-	clean := func(s string) string {
-		var b strings.Builder
-		for _, r := range s {
-			if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
-				b.WriteRune(r)
-			}
-		}
-		return b.String()
-	}
-	first = clean(first)
-	last = clean(last)
-	r := mathrand.New(mathrand.NewSource(time.Now().UnixNano()))
-	num := r.Intn(900) + 100 // 100-999
-	return fmt.Sprintf("%s.%s%d", first, last, num)
-}
-
-func GenerateUserCode() string {
-	const prefix = "CBEUSR-"
-
-	// Generate a random number between 0 and 999999999999
-	r := mathrand.New(mathrand.NewSource(time.Now().UnixNano()))
-	number := r.Int63n(1000000000000) // 12 digits
-
-	// Format with leading zeros to ensure 12 digits
-	return fmt.Sprintf("%s%012d", prefix, number)
-}
-
-func GenerateRandom(digit int) string {
-	if digit <= 0 {
-		return ""
-	}
-
-	min := intPow(10, digit-1)
-	max := intPow(10, digit) - 1
-	if digit == 1 {
-		min = 0
-	}
-
-	// Ensure the range is valid and non-negative formathrand.Intn
-	rangeSize := max - min + 1
-	if rangeSize <= 0 {
-		return ""
-	}
-
-	generatedNumber := min + mathrand.Intn(rangeSize)
-	result := strconv.Itoa(generatedNumber)
-	return result
-}
-
-func intPow(a, b int) int {
-	result := 1
-	for i := 0; i < b; i++ {
-		result *= a
-	}
-	return result
-}
 func GenerateSalt(length int) (string, error) {
 	bytes := make([]byte, length)
 	_, err := mathrand.Read(bytes)
@@ -197,30 +190,6 @@ func SignWithHS256(data string, saltHex string) (string, error) {
 	h := hmac.New(sha256.New, key)
 	h.Write([]byte(data))
 	return hex.EncodeToString(h.Sum(nil)), nil
-}
-
-func CheckLoginThrottle(attempts uint8, lastAttempt time.Time) error {
-	elapsed := time.Since(lastAttempt)
-	var waitDuration time.Duration
-
-	switch {
-	case attempts >= 5:
-		waitDuration = 10 * time.Minute
-	case attempts == 4:
-		waitDuration = 5 * time.Minute
-	case attempts == 3:
-		waitDuration = 2 * time.Minute
-	default:
-		return nil
-	}
-
-	if elapsed < waitDuration {
-		// remaining := waitDuration - elapsed
-		// minutes := int(remaining.Minutes())
-		return errors.New(localization.ErrorUserTooManyLoginAttempts.Code)
-	}
-
-	return nil
 }
 
 func FilterIdFor(id string) (bson.M, error) {
@@ -269,13 +238,15 @@ func ExtractUserInfo(ctx context.Context, log utils.Logger) (*types.UserInfo, er
 	}, nil
 }
 
-func ExtractNextStep(ctx context.Context, log utils.Logger) (string, error) {
-	step, ok := ctx.Value(constants.ContextKey("next_step")).(string)
-	if !ok {
-		log.Errorf("faile to get next step from context")
-		return "", errors.New(localization.ErrorInvalidRequest.Code)
+// mongoOperatorMap is true when m should be used as a Mongo operator document (e.g. $in, $nin)
+// rather than recursed through BuildMongoFilterWithKeys with allowedKeys.
+func mongoOperatorMap(m map[string]interface{}) bool {
+	for k := range m {
+		if strings.HasPrefix(k, "$") {
+			return true
+		}
 	}
-	return step, nil
+	return false
 }
 
 func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string, handler map[string]func(interface{}) interface{}) bson.M {
@@ -302,13 +273,27 @@ func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string
 		switch v := value.(type) {
 		case string:
 			if v != "" {
-				filter[key] = bson.M{"$regex": v, "$options": "i"}
+				filter[key] = v
 			}
 		case []interface{}:
 			if len(v) > 0 {
 				filter[key] = bson.M{"$in": v}
 			}
+		case []string:
+			if len(v) > 0 {
+				arr := make([]interface{}, len(v))
+				for i, s := range v {
+					arr[i] = s
+				}
+				filter[key] = bson.M{"$in": arr}
+			}
 		case map[string]interface{}:
+			// Preserve Mongo operator documents (e.g. request_action: {$in: [...]}) instead of
+			// recursing with allowedKeys, which would drop "$in".
+			if mongoOperatorMap(v) {
+				filter[key] = v
+				continue
+			}
 			nested := BuildMongoFilterWithKeys(v, allowedKeys, handler)
 			for nestedKey, nestedVal := range nested {
 				filter[key+"."+nestedKey] = nestedVal
@@ -336,12 +321,6 @@ func NonEmptyString(s, fallback string) string {
 	}
 	return fallback
 }
-func NonEmptyNotificationFor(newFor string, oldFor constants.NotificationFor) constants.NotificationFor {
-	if newFor != "" {
-		return constants.NotificationFor(newFor)
-	}
-	return oldFor
-}
 
 func ExtractID(w http.ResponseWriter, r *http.Request) (string, error) {
 
@@ -354,82 +333,18 @@ func ExtractID(w http.ResponseWriter, r *http.Request) (string, error) {
 }
 
 func NonEmptyBool(newVal, oldVal bool) bool {
-	// Handles updates correctly (req can explicitly override old value)
 	if newVal != oldVal {
 		return newVal
 	}
 	return oldVal
 }
 
-// MergeProductCodes merges by ProductCode value (not index)
-func MergeProductCodes(newPCs []types.ProductCode, oldPCs []types.ProductCode) []types.ProductCode {
-	if len(newPCs) == 0 {
-		return oldPCs
-	}
-
-	// Map old codes by ProductCode for quick lookup
-	oldMap := make(map[string]types.ProductCode)
-	for _, pc := range oldPCs {
-		oldMap[pc.ProductCode] = pc
-	}
-
-	updated := make([]types.ProductCode, 0, len(newPCs))
-	for _, pc := range newPCs {
-		if existing, found := oldMap[pc.ProductCode]; found {
-			updated = append(updated, types.ProductCode{
-				ID:             existing.ID,
-				BranchType:     constants.BranchType(pc.BranchType),
-				ProductCode:    NonEmptyString(pc.ProductCode, existing.ProductCode),
-				VATCode:        NonEmptyString(pc.VATCode, existing.VATCode),
-				ServiceFeeCode: NonEmptyString(pc.ServiceFeeCode, existing.ServiceFeeCode),
-			})
-		} else {
-			// New ProductCode → assign new ID
-			updated = append(updated, types.ProductCode{
-				ID:             utils.RandomGenerator(20),
-				BranchType:     constants.BranchType(pc.BranchType),
-				ProductCode:    pc.ProductCode,
-				VATCode:        pc.VATCode,
-				ServiceFeeCode: pc.ServiceFeeCode,
-			})
-		}
-	}
-
-	return updated
-}
-
-func NonZeroTime(t, fallback time.Time) time.Time {
-	if !t.IsZero() {
-		return t
-	}
-	return fallback
-}
-
-func NonZeroUint64(n, fallback uint64) uint64 {
-	if n != 0 {
-		return n
-	}
-	return fallback
-}
-
 // nonEmptyAdvertFor returns the new value if non-empty, otherwise the old value
-func NonEmptyAdvertFor(new, old constants.AdvertFor) constants.AdvertFor {
+func NonEmptyAdvertFor(new, old shared_constant.AdvertFor) shared_constant.AdvertFor {
 	if new != "" {
 		return new
 	}
 	return old
-}
-
-// nonEmptyAdvertDate returns the new date if non-zero, otherwise the old date
-func NonEmptyAdvertDate(new, old types.AdvertDate) types.AdvertDate {
-	result := old
-	if !new.StartedAt.IsZero() {
-		result.StartedAt = new.StartedAt
-	}
-	if !new.ExpiredAt.IsZero() {
-		result.ExpiredAt = new.ExpiredAt
-	}
-	return result
 }
 
 func BindAction(source any, target any) error {
@@ -440,6 +355,18 @@ func BindAction(source any, target any) error {
 	return json.Unmarshal(bytes, target)
 }
 
+// Check existence in DB
+func Distinct(allIDs []string) []string {
+	var uniqueList string
+	var seen []string
+	for _, id := range allIDs {
+		if !strings.Contains(uniqueList, id) {
+			uniqueList += id + ","
+			seen = append(seen, id)
+		}
+	}
+	return seen
+}
 func RandomGenerator(length uint8) string {
 	if length <= 0 {
 		panic("length must be greater than 0")
@@ -458,112 +385,152 @@ func RandomGenerator(length uint8) string {
 	return string(result)
 }
 
-var allowedChars = "a-zA-Z0-9\\s._-"
+// var allowedChars = "a-zA-Z0-9\\s._@-"
+var allowedChars = `a-zA-Z0-9\s._@&\p{Ethiopic}\(\)\-`
+var validNameRegex = regexp.MustCompile("^[" + allowedChars + "]+$")
 
 func NoSpecialChars(value any) error {
-	str, ok := value.(string)
-	if !ok {
+	var str string
+	switch v := value.(type) {
+	case string:
+		str = v
+	case *string:
+		if v == nil {
+			return nil
+		}
+		str = *v
+	default:
 		return validation.NewError("validation", "invalid type")
 	}
 	str = strings.TrimSpace(str)
+
 	if str == "" {
 		return nil
 	}
 
-	re := regexp.MustCompile("^[" + allowedChars + "]+$")
-	if !re.MatchString(str) {
+	// re := regexp.MustCompile("^[" + allowedChars + "]+$")
+	if !validNameRegex.MatchString(str) {
 		return validation.NewError("validation", "contains invalid characters")
 	}
 	return nil
 }
-func FormatPhoneNumber(phoneNumber string) string {
-	phoneNumber = strings.TrimSpace(phoneNumber)
 
-	// Remove all non-digit and non-plus characters
-	re := regexp.MustCompile(`[^\d\+]`)
-	phoneNumber = re.ReplaceAllString(phoneNumber, "")
+func IsOracleHexID(s string) bool {
+	re := regexp.MustCompile(`^[A-Fa-f0-9]{32}$`)
+	return re.MatchString(s)
+}
 
-	if strings.HasPrefix(phoneNumber, "+2510") {
-		phoneNumber = "+251" + phoneNumber[5:]
-	} else if strings.HasPrefix(phoneNumber, "2510") {
-		phoneNumber = "+251" + phoneNumber[4:]
-	} else if strings.HasPrefix(phoneNumber, "0") && len(phoneNumber) == 10 {
-		phoneNumber = "+251" + phoneNumber[1:]
-	} else if strings.HasPrefix(phoneNumber, "9") && len(phoneNumber) == 9 {
-		phoneNumber = "+251" + phoneNumber
-	} else if strings.HasPrefix(phoneNumber, "7") && len(phoneNumber) == 9 {
-		phoneNumber = "+251" + phoneNumber
-	} else if strings.HasPrefix(phoneNumber, "251") {
-		phoneNumber = "+" + phoneNumber
+func NormalizePhoneNumberOrReturnInput(input string) string {
+	phone := strings.TrimSpace(input)
+
+	re := regexp.MustCompile(`\D`)
+	phone = re.ReplaceAllString(phone, "")
+
+	switch {
+	case len(phone) == 10 && phone[0] == '0':
+		phone = "251" + phone[1:]
+	case len(phone) == 9 && (phone[0] == '9' || phone[0] == '7'):
+		phone = "251" + phone
+	case len(phone) == 12 && strings.HasPrefix(phone, "251"):
+	case len(phone) == 13 && strings.HasPrefix(phone, "2510"):
+		phone = "251" + phone[4:]
+	default:
+		return input
 	}
 
-	if strings.HasPrefix(phoneNumber, "+251") && len(phoneNumber) == 13 {
-		return phoneNumber
+	if len(phone) != 12 || !strings.HasPrefix(phone, "251") {
+		return input
 	}
 
-	return ""
+	return phone
+}
+
+func FormatPhoneNumber(phone string) string {
+	phone = strings.TrimSpace(phone)
+
+	re := regexp.MustCompile(`\D`)
+	phone = re.ReplaceAllString(phone, "")
+
+	switch {
+	case len(phone) == 10 && phone[0] == '0':
+		phone = "251" + phone[1:]
+	case len(phone) == 9 && (phone[0] == '9' || phone[0] == '7'):
+		phone = "251" + phone
+	case len(phone) == 12 && strings.HasPrefix(phone, "251"):
+	case len(phone) == 13 && strings.HasPrefix(phone, "2510"):
+		phone = "251" + phone[4:]
+	default:
+		return ""
+	}
+
+	if len(phone) != 12 || !strings.HasPrefix(phone, "251") {
+		return ""
+	}
+
+	return phone
+}
+
+func ThreeNamesMinLength(value interface{}) error {
+	var name string
+	switch v := value.(type) {
+	case string:
+		name = v
+	case *string:
+		if v == nil {
+			return nil
+		}
+		name = *v
+	default:
+		return errors.New("invalid full_name")
+	}
+
+	parts := strings.Fields(name)
+	if len(parts) != 3 {
+		return errors.New("full_name must contain first, middle, and last name")
+	}
+
+	for _, p := range parts {
+		if len(p) < 3 {
+			return errors.New("each of first, middle, and last name must be longer than 3 characters")
+		}
+	}
+
+	return nil
 }
 
 func TrimWhiteSpace(value interface{}) error {
-	if s, ok := value.(string); ok {
-		if strings.TrimSpace(s) == "" {
-			return errors.New("value cannot be empty or whitespace")
+	var s string
+	switch v := value.(type) {
+	case string:
+		s = v
+	case *string:
+		if v == nil {
+			return nil
 		}
+		s = *v
+	default:
+		return nil
+	}
+	if strings.TrimSpace(s) == "" {
+		return errors.New("value cannot be empty or whitespace")
 	}
 	return nil
-
 }
 
 func JsonUnmarshal[T any](data any) (*T, error) {
-
-	var jsonData *T
-	byte, err := json.Marshal(data)
+	b, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
-
-	if err = json.Unmarshal(byte, &jsonData); err != nil {
+	var out T
+	if err := json.Unmarshal(b, &out); err != nil {
 		return nil, err
 	}
-
-	return jsonData, nil
+	return &out, nil
 }
 
 func ExtraSpaceRemover(s string) string {
 	return strings.TrimSpace(strings.Join(strings.Split(s, " "), " "))
-}
-
-// --- FUNCTION 1: PARSING ---
-
-// ParseLockPeriod converts a string (e.g., "30d", "6m", "1y") into a time.Duration.
-// It uses consistent, simple approximations for 'm' (30 days) and 'y' (365 days)
-// to generate the base time duration.
-func ParseLockPeriod(s string) (time.Duration, error) {
-	if len(s) < 2 {
-		return 0, fmt.Errorf("invalid lock period format")
-	}
-
-	unit := s[len(s)-1]      // last character: 'd', 'm', 'y'
-	valueStr := s[:len(s)-1] // number part
-	value, err := strconv.Atoi(valueStr)
-	if err != nil {
-		return 0, fmt.Errorf("invalid number in lock period: %v", err)
-	}
-
-	// Constants for days
-	const daysInMonth = 30
-	const daysInYear = 365
-
-	switch strings.ToLower(string(unit)) {
-	case "d":
-		return time.Duration(value) * 24 * time.Hour, nil
-	case "m":
-		return time.Duration(value*daysInMonth) * 24 * time.Hour, nil
-	case "y":
-		return time.Duration(value*daysInYear) * 24 * time.Hour, nil
-	default:
-		return 0, fmt.Errorf("invalid unit in lock period: %s", string(unit))
-	}
 }
 
 // --- FUNCTION 2: CONVERSION ---
@@ -597,6 +564,34 @@ func DurationToMonths(d any) int {
 	return months
 }
 
+func ParseToYears(s string) (float64, error) {
+	if len(strings.TrimSpace(s)) < 2 {
+		return 0, fmt.Errorf("invalid lock period format")
+	}
+
+	s = strings.TrimSpace(s)
+	unit := strings.ToLower(s[len(s)-1:])       // last character
+	valueStr := strings.TrimSpace(s[:len(s)-1]) // everything except unit
+
+	value, err := strconv.ParseFloat(valueStr, 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid number in lock period: %v", err)
+	}
+
+	const daysPerYear = 365.0
+
+	switch unit {
+	case "d":
+		return value / daysPerYear, nil
+	case "m":
+		return value / 12.0, nil
+	case "y":
+		return value, nil
+	default:
+		return 0, fmt.Errorf("invalid unit in lock period: %s", unit)
+	}
+}
+
 func NullStringToPtrLike(ns sql.NullString) *string {
 	if !ns.Valid {
 		return (*string)(nil)
@@ -620,6 +615,13 @@ func NullStringToPtr(v any) *string {
 	default:
 		return nil
 	}
+}
+
+func NullTimeToPtr(nt sql.NullTime) *time.Time {
+	if nt.Valid {
+		return &nt.Time
+	}
+	return nil
 }
 
 func NullInt64ToPtr(ni sql.NullInt64) *int64 {
@@ -654,42 +656,14 @@ func NullBoolToBool(nb sql.NullBool) bool {
 	return nb.Valid && nb.Bool
 }
 
-type PaginatedResponse[T any] struct {
-	Items       []T   `json:"items"`
-	Page        int64 `json:"page"`
-	Limit       int64 `json:"limit"`
-	Total       int64 `json:"total"`
-	TotalPages  int64 `json:"total_pages"`
-	HasNextPage bool  `json:"has_next_page"`
-	HasPrevPage bool  `json:"has_prev_page"`
-}
-
-func NewPaginatedResponse[T any](data []T, page, limit, total int64) PaginatedResponse[T] {
-	if limit <= 0 {
-		limit = 50
-	}
-	if page <= 0 {
-		page = 1
-	}
-	totalPages := (total + limit - 1) / limit
-
-	return PaginatedResponse[T]{
-		Items:       data,
-		Page:        page,
-		Limit:       limit,
-		Total:       total,
-		TotalPages:  totalPages,
-		HasNextPage: page < totalPages,
-		HasPrevPage: page > 1,
-	}
-}
-
 func LocalEncryptPassword(password string, dataType string, userSalt string, action string, cfg *config.VaultConfig) (string, string, error) {
 
 	var signedPass, salt string
 	if dataType == constants.Password {
 		salt, _ = GenerateSalt(20)
 		signedPass, _ = SignWithHS256(password, salt)
+	} else if dataType == constants.Cred {
+		signedPass, _ = SignWithHS256(password, cfg.JwtSecretKey)
 	} else {
 		signedPass = password
 	}
@@ -720,40 +694,17 @@ func LocalEncryptPassword(password string, dataType string, userSalt string, act
 	return hex.EncodeToString(encrypted), salt, nil
 }
 
-func LocalDecryptPassword(encryptedHex string, cfg *config.VaultConfig) (string, error) {
-	key := []byte(cfg.Key)
-	iv := []byte(cfg.IV)
-
-	if len(key) != 32 || len(iv) != aes.BlockSize {
-		return "", localization.ErrorInvalidKey
-	}
-
-	encrypted, err := hex.DecodeString(encryptedHex)
-	if err != nil {
-		return "", err
-	}
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return "", err
-	}
-	if len(encrypted)%aes.BlockSize != 0 {
-		return "", localization.ErrorInvalidEncData
-	}
-
-	mode := cipher.NewCBCDecrypter(block, iv)
-	decrypted := make([]byte, len(encrypted))
-	mode.CryptBlocks(decrypted, encrypted)
-	// Remove PKCS#7 padding
-	padLen := int(decrypted[len(decrypted)-1])
-	if padLen > aes.BlockSize || padLen == 0 {
-		return "", localization.ErrorInvalidPadding
-	}
-	return string(decrypted[:len(decrypted)-padLen]), nil
-}
-
 func NumbersOnly(value any) error {
-	str, ok := value.(string)
-	if !ok {
+	var str string
+	switch v := value.(type) {
+	case string:
+		str = v
+	case *string:
+		if v == nil {
+			return nil
+		}
+		str = *v
+	default:
 		return validation.NewError("validation", "unsupported type")
 	}
 	re := regexp.MustCompile(`^\d+$`)
@@ -761,4 +712,52 @@ func NumbersOnly(value any) error {
 		return validation.NewError("validation", "contains invalid characters")
 	}
 	return nil
+}
+
+func TraceLogger(ctx context.Context, key, spanName, serviceType, serviceName string) (context.Context, trace.Span) {
+	tracer := otel.Tracer(key)
+	ctx, span := tracer.Start(ctx, spanName)
+	span.SetAttributes(attribute.String(serviceType, serviceName))
+
+	return ctx, span
+
+}
+
+func ValidateTimeAndParse(dateTime string) (time.Time, error) {
+	// Fix space before timezone offset
+	if len(dateTime) >= 6 && dateTime[len(dateTime)-6] == ' ' {
+		dateTime = dateTime[:len(dateTime)-6] + "+" + dateTime[len(dateTime)-5:]
+	}
+
+	return time.Parse(time.RFC3339Nano, dateTime)
+}
+
+func ValidateTimeRangeOrder(time1, time2 time.Time) (bool, error) {
+	if time1.After(time2) {
+		return false, errors.New("'end date'  cannot be before 'start' date")
+	}
+	return true, nil
+}
+
+func FormatDateRangeToUTCStrings(fromStr, toStr string) (time.Time, time.Time, error) {
+	from, err := ParseDateInput(fromStr)
+	if err != nil {
+		return time.Time{}, time.Time{}, err
+	}
+
+	to, err := ParseDateInput(toStr)
+	if err != nil {
+		return time.Time{}, time.Time{}, err
+	}
+
+	// Date-only inputs should cover the full UTC day so exports do not
+	// exclude records created later on the `To` date.
+	if len(fromStr) == len("2006-01-02") {
+		from = time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, time.UTC)
+	}
+	if len(toStr) == len("2006-01-02") {
+		to = time.Date(to.Year(), to.Month(), to.Day(), 23, 59, 59, int(time.Second-time.Nanosecond), time.UTC)
+	}
+
+	return from, to, nil
 }

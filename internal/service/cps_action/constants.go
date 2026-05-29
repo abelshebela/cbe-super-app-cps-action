@@ -1,5 +1,9 @@
 package cpsaction
 
+import (
+	"cbe-super-app-cps-action/internal/constants"
+)
+
 type ActionStatus string
 
 const (
@@ -36,262 +40,435 @@ func IsValidActionType(actionType string) bool {
 	}
 }
 
-type RequestAction string
-
 const (
-	RequestDeleteAmountBasedAuth RequestAction = "DELETE_AMOUNT_BASED_AUTH"
-	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"
-	RequestUpdateAmountBasedAuth RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
-	RequestUser                  RequestAction = "USER"
-	RequestCpsUserCreate         RequestAction = "CREATE_CPS_USER"
-	RequestCpsUserUpdate         RequestAction = "UPDATE_CPS_USER"
-	RequestCpsUserDelete         RequestAction = "DELETE_CPS_USER"
-	RequestCpsUserEnable         RequestAction = "ENABLE_CPS_USER"
-	RequestCpsUserDisable        RequestAction = "DISABLE_CPS_USER"
-	RequestPermissionGroup       RequestAction = "PERMISSION_GROUP"
-	RequestBulkServiceEnable     RequestAction = "ENABLE_BULK_SERVICE"
-	RequestBulkServiceDisable    RequestAction = "DISABLE_BULK_SERVICE"
-	// RequestDepartment               RequestAction = "DEPARMTENT"
-	RequestCreateDepartment           RequestAction = "CREATE_DEPARTMENT"
-	RequestUpdateDepartment           RequestAction = "UPDATE_DEPARTMENT"
-	RequestEnableDisableDepartment    RequestAction = "ENABLE_DISABLE_DEPARTMENT"
-	RequestEnableUser                 RequestAction = "ENABLE_USER"
-	RequestDisableUser                RequestAction = "DISABLE_USER"
-	RequestBPSUser                    RequestAction = "BPS_USER"
-	RequestDisableBPSUser             RequestAction = "DISABLE_BPS_USER"
-	RequestEnableBPSUser              RequestAction = "ENABLE_BPS_USER"
-	RequestUpdateUser                 RequestAction = "UPDATE_USER"
-	RequestTotalDailyLimit            RequestAction = "TOTAL_DAILY_LIMIT"
-	RequestUpdateVAT                  RequestAction = "UPDATE_VAT"
-	RequestAuthTier                   RequestAction = "AUTHTIER"
-	RequestCreateDeviceVersion        RequestAction = "CREATE_DEVICE_VERSION"
-	RequestUpdateDeviceVersion        RequestAction = "UPDATE_DEVICE_VERSION"
-	RequestEnableDeviceVersion        RequestAction = "ENABLE_DEVICE_VERSION"
-	RequestDisableDeviceVersion       RequestAction = "DISABLE_DEVICE_VERSION"
-	RequestDeleteDeviceVersion        RequestAction = "DELETE_DEVICE_VERSION"
-	RequestEnableDisableDeviceVersion RequestAction = "ENABLE_DISABLE_DEVICE_VERSION"
-	RequestCreateAdvert               RequestAction = "CREATE_ADVERT"
-	RequestUpdateAdvert               RequestAction = "UPDATE_ADVERT"
-	RequestEnableAdvert               RequestAction = "ENABLE_ADVERT"
-	RequestDisableAdvert              RequestAction = "DISABLE_ADVERT"
-	RequestDeleteAdvert               RequestAction = "DELETE_ADVERT"
-	RequestCreateBank                 RequestAction = "CREATE_BANK"
-	RequestUpdateBank                 RequestAction = "UPDATE_BANK"
-	RequestDeleteBank                 RequestAction = "DELETE_BANK"
-	RequestUpdateBankLogo             RequestAction = "UPDATE_BANK_LOGO"
-	RequestEnableDisableBank          RequestAction = "ENABLE_DISABLE_BANK"
-	RequestEnableBank                 RequestAction = "ENABLE_BANK"
-	RequestDisableBank                RequestAction = "DISABLE_BANK"
-	RequestCreateWallet               RequestAction = "CREATE_WALLET"
-	RequestUpdateWallet               RequestAction = "UPDATE_WALLET"
-	RequestDeleteWallet               RequestAction = "DELETE_WALLET"
-	RequestEnableWallet               RequestAction = "ENABLE_WALLET"
-	RequestDisableWallet              RequestAction = "DISABLE_WALLET"
+	// Customer KYC
+	// RequestCreateCustomerKYC  constants.RequestAction = "CREATE_CUSTOMER_KYC"
+	RequestApproveCustomerKYC constants.RequestAction = "APPROVE_CUSTOMER_KYC"
+	RequestRejectCustomerKYC  constants.RequestAction = "REJECT_CUSTOMER_KYC"
+	RequestStartKycReview     constants.RequestAction = "START_KYC_REVIEW"
+	RequestPickKycReview      constants.RequestAction = "PICK_KYC_REVIEW"
+	// RequestUpdateCustomerKYC  constants.RequestAction = "UPDATE_CUSTOMER_KYC"
+	// RequestDeleteCustomerKYC  constants.RequestAction = "DELETE_CUSTOMER_KYC"
 
-	RequestCreateTopup  RequestAction = "CREATE_TOPUP"
-	RequestUpdateTopup  RequestAction = "UPDATE_TOPUP"
-	RequestDeleteTopup  RequestAction = "DELETE_TOPUP"
-	RequestEnableTopup  RequestAction = "ENABLE_TOPUP"
-	RequestDisableTopup RequestAction = "DISABLE_TOPUP"
+	RequestCreateCpsRole     constants.RequestAction = "CREATE_CPS_ROLE"
+	RequestUpdateCpsRole     constants.RequestAction = "UPDATE_CPS_ROLE"
+	RequestDeleteCpsRole     constants.RequestAction = "DELETE_CPS_ROLE"
+	RequestEnableCpsRole     constants.RequestAction = "ENABLE_CPS_ROLE"
+	RequestDisableCpsRole    constants.RequestAction = "DISABLE_CPS_ROLE"
+	RequestDeleteServiceList constants.RequestAction = "DELETE_SERVICE_LIST"
 
-	RequestUpdatePasswordExpiry RequestAction = "UPDATE_PASSWORD_EXPIRY"
-	RequestCreateValidation     RequestAction = "CREATE_VALIDATION"
-	RequestUpdateValidation     RequestAction = "UPDATE_VALIDATION"
-	RequestDeleteValidation     RequestAction = "DELETE_VALIDATION"
-	RequestUpdateArchiveExpiry  RequestAction = "UPDATE_ARCHIVE_EXPIRY"
-	RequestUpdateServiceSingle  RequestAction = "UPDATE_SERVICE_SINGLE_CAP"
-	RequestUpdateServiceTotal   RequestAction = "UPDATE_SERVICE_TOTAL_CAP"
-	RequestUpdateServiceMinCap  RequestAction = "UPDATE_SERVICE_MIN_CAP"
-	RequestBudgetColor          RequestAction = "BUDGET_COLOR"
-	RequestBudgetIcon           RequestAction = "BUDGET_ICON"
-	RequestUpdateProduct        RequestAction = "UPDATE_PRODUCT"
+	RequestCreateUssdMerchant  constants.RequestAction = "CREATE_USSD_MERCHANT"
+	RequestUpdateUssdMerchant  constants.RequestAction = "UPDATE_USSD_MERCHANT"
+	RequestDeleteUssdMerchant  constants.RequestAction = "DELETE_USSD_MERCHANT"
+	RequestEnableUssdMerchant  constants.RequestAction = "ENABLE_USSD_MERCHANT"
+	RequestDisableUssdMerchant constants.RequestAction = "DISABLE_USSD_MERCHANT"
+
+	RequestCreateCustomerGroup  constants.RequestAction = "CREATE_CUSTOMER_GROUP"
+	RequestUpdateCustomerGroup  constants.RequestAction = "UPDATE_CUSTOMER_GROUP"
+	RequestEnableCustomerGroup  constants.RequestAction = "ENABLE_CUSTOMER_GROUP"
+	RequestDisableCustomerGroup constants.RequestAction = "DISABLE_CUSTOMER_GROUP"
+	RequestDeleteCustomerGroup  constants.RequestAction = "DELETE_CUSTOMER_GROUP"
+
+	RequestEnableSuperAppRole          constants.RequestAction = "ENABLE_SUPERAPP_ROLE"
+	RequestDisableSuperAppRole         constants.RequestAction = "DISABLE_SUPERAPP_ROLE"
+	RequestDeleteSuperAppRole          constants.RequestAction = "DELETE_SUPERAPP_ROLE"
+	RequestBulkDisableAccessListByRole constants.RequestAction = "BULK_DISABLE_ACCESS_LIST_BY_SUPERAPP_ROLE"
+	RequestBulkEnableAccessListByRole  constants.RequestAction = "BULK_ENABLE_ACCESS_LIST_BY_SUPERAPP_ROLE"
+
+	RequestCreateCustomerSegmentation  constants.RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
+	RequestUpdateCustomerSegmentation  constants.RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
+	RequestEnableCustomerSegmentation  constants.RequestAction = "ENABLE_CUSTOMER_SEGMENTATION"
+	RequestDisableCustomerSegmentation constants.RequestAction = "DISABLE_CUSTOMER_SEGMENTATION"
+	RequestDeleteCustomerSegmentation  constants.RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
+
+	RequestAccessListCreateCustomerSegmentation  constants.RequestAction = "CREATE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
+	RequestAccessListUpdateCustomerSegmentation  constants.RequestAction = "UPDATE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
+	RequestAccessListEnableCustomerSegmentation  constants.RequestAction = "ENABLE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
+	RequestAccessListDisableCustomerSegmentation constants.RequestAction = "DISABLE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
+	RequestAccessListDeleteCustomerSegmentation  constants.RequestAction = "DELETE_ACCESS_LIST_CUSTOMER_SEGMENTATION"
+
+	RequestCreateMiniappProductCode  constants.RequestAction = "CREATE_MINI_APP_PRODUCT_CODE"
+	RequestUpdateMiniappProductCode  constants.RequestAction = "UPDATE_MINI_APP_PRODUCT_CODE"
+	RequestDeleteMiniappProductCode  constants.RequestAction = "DELETE_MINI_APP_PRODUCT_CODE"
+	RequestEnableMiniappProductCode  constants.RequestAction = "ENABLE_MINI_APP_PRODUCT_CODE"
+	RequestDisableMiniappProductCode constants.RequestAction = "DISABLE_MINI_APP_PRODUCT_CODE"
+
+	RequestCreateJobRole  constants.RequestAction = "CREATE_JOB_ROLE"
+	RequestUpdateJobRole  constants.RequestAction = "UPDATE_JOB_ROLE"
+	RequestDeleteJobRole  constants.RequestAction = "DELETE_JOB_ROLE"
+	RequestEnableJobRole  constants.RequestAction = "ENABLE_JOB_ROLE"
+	RequestDisableJobRole constants.RequestAction = "DISABLE_JOB_ROLE"
+
+	RequestCreateRole  constants.RequestAction = "CREATE_ROLE"
+	RequestUpdateRole  constants.RequestAction = "UPDATE_ROLE"
+	RequestDeleteRole  constants.RequestAction = "DELETE_ROLE"
+	RequestEnableRole  constants.RequestAction = "ENABLE_ROLE"
+	RequestDisableRole constants.RequestAction = "DISABLE_ROLE"
+
+	RequestDeleteAmountBasedAuth constants.RequestAction = "DELETE_AMOUNT_BASED_AUTH"
+	RequestCreateAmountBasedAuth constants.RequestAction = "CREATE_AMOUNT_BASED_AUTH"
+	RequestUpdateAmountBasedAuth constants.RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
+	RequestResetAmountBasedAuth  constants.RequestAction = "RESET_AMOUNT_BASED_AUTH"
+	RequestUser                  constants.RequestAction = "USER"
+	RequestCpsUserCreate         constants.RequestAction = "CREATE_CPS_USER"
+	RequestCpsUserUpdate         constants.RequestAction = "UPDATE_CPS_USER"
+	RequestCpsUserDelete         constants.RequestAction = "DELETE_CPS_USER"
+	RequestCpsUserEnable         constants.RequestAction = "ENABLE_CPS_USER"
+	RequestCpsUserDisable        constants.RequestAction = "DISABLE_CPS_USER"
+
+	RequestBpsUserCreate  constants.RequestAction = "CREATE_BPS_USER"
+	RequestBpsUserUpdate  constants.RequestAction = "UPDATE_BPS_USER"
+	RequestBpsUserDelete  constants.RequestAction = "DELETE_BPS_USER"
+	RequestBpsUserEnable  constants.RequestAction = "ENABLE_BPS_USER"
+	RequestBpsUserDisable constants.RequestAction = "DISABLE_BPS_USER"
+
+	RequestPermissionGroup    constants.RequestAction = "PERMISSION_GROUP"
+	RequestBulkServiceEnable  constants.RequestAction = "ENABLE_BULK_SERVICE"
+	RequestBulkServiceDisable constants.RequestAction = "DISABLE_BULK_SERVICE"
+
+	// RequestDepartment               constants.RequestAction = "DEPARMTENT"
+	RequestCreateDepartment           constants.RequestAction = "CREATE_DEPARTMENT"
+	RequestUpdateDepartment           constants.RequestAction = "UPDATE_DEPARTMENT"
+	RequestDeleteDepartment           constants.RequestAction = "DELETE_DEPARTMENT"
+	RequestEnableDisableDepartment    constants.RequestAction = "ENABLE_DISABLE_DEPARTMENT"
+	RequestEnableUser                 constants.RequestAction = "ENABLE_USER"
+	RequestDisableUser                constants.RequestAction = "DISABLE_USER"
+	RequestBPSUser                    constants.RequestAction = "BPS_USER"
+	RequestDisableBPSUser             constants.RequestAction = "DISABLE_BPS_USER"
+	RequestEnableBPSUser              constants.RequestAction = "ENABLE_BPS_USER"
+	RequestUpdateUser                 constants.RequestAction = "UPDATE_USER"
+	RequestTotalDailyLimit            constants.RequestAction = "TOTAL_DAILY_LIMIT"
+	RequestUpdateVAT                  constants.RequestAction = "UPDATE_VAT"
+	RequestAuthTier                   constants.RequestAction = "AUTHTIER"
+	RequestCreateDeviceVersion        constants.RequestAction = "CREATE_DEVICE_VERSION"
+	RequestUpdateDeviceVersion        constants.RequestAction = "UPDATE_DEVICE_VERSION"
+	RequestEnableDeviceVersion        constants.RequestAction = "ENABLE_DEVICE_VERSION"
+	RequestDisableDeviceVersion       constants.RequestAction = "DISABLE_DEVICE_VERSION"
+	RequestDeleteDeviceVersion        constants.RequestAction = "DELETE_DEVICE_VERSION"
+	RequestEnableDisableDeviceVersion constants.RequestAction = "ENABLE_DISABLE_DEVICE_VERSION"
+	RequestCreateAdvert               constants.RequestAction = "CREATE_ADVERT"
+	RequestUpdateAdvert               constants.RequestAction = "UPDATE_ADVERT"
+	RequestEnableAdvert               constants.RequestAction = "ENABLE_ADVERT"
+	RequestDisableAdvert              constants.RequestAction = "DISABLE_ADVERT"
+	RequestDeleteAdvert               constants.RequestAction = "DELETE_ADVERT"
+	RequestCreateBank                 constants.RequestAction = "CREATE_BANK"
+	RequestUpdateBank                 constants.RequestAction = "UPDATE_BANK"
+	RequestDeleteBank                 constants.RequestAction = "DELETE_BANK"
+	RequestUpdateBankLogo             constants.RequestAction = "UPDATE_BANK_LOGO"
+	RequestEnableDisableBank          constants.RequestAction = "ENABLE_DISABLE_BANK"
+	RequestEnableBank                 constants.RequestAction = "ENABLE_BANK"
+	RequestDisableBank                constants.RequestAction = "DISABLE_BANK"
+	RequestCreateWallet               constants.RequestAction = "CREATE_WALLET"
+	RequestUpdateWallet               constants.RequestAction = "UPDATE_WALLET"
+	RequestDeleteWallet               constants.RequestAction = "DELETE_WALLET"
+	RequestEnableWallet               constants.RequestAction = "ENABLE_WALLET"
+	RequestDisableWallet              constants.RequestAction = "DISABLE_WALLET"
+	RequestEnableWalletService        constants.RequestAction = "ENABLE_WALLET_SERVICE"
+	RequestDisableWalletService       constants.RequestAction = "DISABLE_WALLET_SERVICE"
+
+	RequestCreateEcommerceMerchant        constants.RequestAction = "CREATE_ECOMMERCE_MERCHANT"
+	RequestUpdateEcommerceMerchant        constants.RequestAction = "UPDATE_ECOMMERCE_MERCHANT"
+	RequestEnableEcommerceMerchant        constants.RequestAction = "ENABLE_ECOMMERCE_MERCHANT"
+	RequestDisableEcommerceMerchant       constants.RequestAction = "DISABLE_ECOMMERCE_MERCHANT"
+	RequestDeleteEcommerceMerchant        constants.RequestAction = "DELETE_ECOMMERCE_MERCHANT"
+	RequestDeleteEcommerceMerchantBranch  constants.RequestAction = "DELETE_ECOMMERCE_MERCHANT_BRANCH"
+	RequestEnableEcommerceMerchantBranch  constants.RequestAction = "ENABLE_ECOMMERCE_MERCHANT_BRANCH"
+	RequestDisableEcommerceMerchantBranch constants.RequestAction = "DISABLE_ECOMMERCE_MERCHANT_BRANCH"
+
+	// Services catalog (model.Services)
+	RequestCreateService      constants.RequestAction = "CREATE_SERVICE"
+	RequestUpdateService      constants.RequestAction = "UPDATE_SERVICE"
+	RequestEnableService      constants.RequestAction = "ENABLE_SERVICE"
+	RequestDisableService     constants.RequestAction = "DISABLE_SERVICE"
+	RequestDeleteService      constants.RequestAction = "DELETE_SERVICE"
+	RequestCreateServiceList  constants.RequestAction = "CREATE_SERVICE_LIST"
+	RequestUpdateServiceList  constants.RequestAction = "UPDATE_SERVICE_LIST"
+	RequestEnableServiceList  constants.RequestAction = "ENABLE_SERVICE_LIST"
+	RequestDisableServiceList constants.RequestAction = "DISABLE_SERVICE_LIST"
+
+	RequestCreateTopup  constants.RequestAction = "CREATE_TOPUP"
+	RequestUpdateTopup  constants.RequestAction = "UPDATE_TOPUP"
+	RequestDeleteTopup  constants.RequestAction = "DELETE_TOPUP"
+	RequestEnableTopup  constants.RequestAction = "ENABLE_TOPUP"
+	RequestDisableTopup constants.RequestAction = "DISABLE_TOPUP"
+
+	RequestUpdatePasswordExpiry constants.RequestAction = "UPDATE_PASSWORD_EXPIRY"
+	RequestCreateValidation     constants.RequestAction = "CREATE_VALIDATION"
+	RequestUpdateValidation     constants.RequestAction = "UPDATE_VALIDATION"
+	RequestDeleteValidation     constants.RequestAction = "DELETE_VALIDATION"
+	RequestUpdateArchiveExpiry  constants.RequestAction = "UPDATE_ARCHIVE_EXPIRY"
+	RequestUpdateServiceSingle  constants.RequestAction = "UPDATE_SERVICE_SINGLE_CAP"
+	RequestUpdateServiceTotal   constants.RequestAction = "UPDATE_SERVICE_TOTAL_CAP"
+	RequestUpdateServiceMinCap  constants.RequestAction = "UPDATE_SERVICE_MIN_CAP"
+	RequestBudgetColor          constants.RequestAction = "BUDGET_COLOR"
+	RequestBudgetIcon           constants.RequestAction = "BUDGET_ICON"
+	RequestUpdateProduct        constants.RequestAction = "UPDATE_PRODUCT"
 
 	// Notification
-	RequestCreatePublicNotification RequestAction = "CREATE_PUBLIC_NOTIFICATION"
-	RequestUpdatePublicNotification RequestAction = "UPDATE_PUBLIC_NOTIFICATION"
-	RequestDeleteNotification       RequestAction = "DELETE_NOTIFICATION"
-	RequestEnableNotification       RequestAction = "ENABLE_NOTIFICATION"
-	RequestDisableNotification      RequestAction = "DISABLE_NOTIFICATION"
-	RequestMarkNotificationAsSeen   RequestAction = "MARK_NOTIFICATION_AS_SEEN"
+	RequestCreatePublicNotification constants.RequestAction = "CREATE_PUBLIC_NOTIFICATION"
+	RequestUpdatePublicNotification constants.RequestAction = "UPDATE_PUBLIC_NOTIFICATION"
+	RequestDeleteNotification       constants.RequestAction = "DELETE_NOTIFICATION"
+	RequestEnableNotification       constants.RequestAction = "ENABLE_NOTIFICATION"
+	RequestDisableNotification      constants.RequestAction = "DISABLE_NOTIFICATION"
+	RequestMarkNotificationAsSeen   constants.RequestAction = "MARK_NOTIFICATION_AS_SEEN"
 
-	RequestArchiveUser             RequestAction = "ARCHIVE_USER"
-	RequestUpdatePasswordRule      RequestAction = "UPDATE_PASSWORD_RULE"
-	RequestUpdateMinimumService    RequestAction = "UPDATE_MINIMUM_SERVICE"
-	RequestUpdateServiceRule       RequestAction = "UPDATE_SERVICE_RULE"
-	RequestUpdateTotal             RequestAction = "UPDATE_TOTAL"
-	RequestUpdateAccessConfig      RequestAction = "UPDATE_ACCESS_CONFIG"
-	RequestEnableSingleBranch      RequestAction = "ENABLE_SINGLE_BRANCH"
-	RequestDisableSingleBranch     RequestAction = "DISABLE_SINGLE_BRANCH"
-	RequestUpdateAccountValidation RequestAction = "UPDATE_ACCOUNT_VALIDATION"
-	RequestEnableMultiUsers        RequestAction = "ENABLE_MULTI_USERS"
-	RequestDisableMultiUsers       RequestAction = "DISABLE_MULTI_USERS"
-	RequestCreateBusiness          RequestAction = "CREATE_BUSINESS"
-	RequestUpdateBusiness          RequestAction = "UPDATE_BUSINESS"
-	RequestCreateEvent             RequestAction = "CREATE_EVENT"
-	RequestUpdateEvent             RequestAction = "UPDATE_EVENT"
-	RequestDeleteEvent             RequestAction = "DELETE_EVENT"
-	RequestEnableEvent             RequestAction = "ENABLE_EVENT"
-	RequestDisableEvent            RequestAction = "DISABLE_EVENT"
+	RequestArchiveUser             constants.RequestAction = "ARCHIVE_USER"
+	RequestUpdatePasswordRule      constants.RequestAction = "UPDATE_PASSWORD_RULE"
+	RequestUpdateMinimumService    constants.RequestAction = "UPDATE_MINIMUM_SERVICE"
+	RequestUpdateServiceRule       constants.RequestAction = "UPDATE_SERVICE_RULE"
+	RequestUpdateTotal             constants.RequestAction = "UPDATE_TOTAL"
+	RequestUpdateAccessConfig      constants.RequestAction = "UPDATE_ACCESS_CONFIG"
+	RequestEnableSingleBranch      constants.RequestAction = "ENABLE_SINGLE_BRANCH"
+	RequestDisableSingleBranch     constants.RequestAction = "DISABLE_SINGLE_BRANCH"
+	RequestUpdateAccountValidation constants.RequestAction = "UPDATE_ACCOUNT_VALIDATION"
+	RequestEnableMultiUsers        constants.RequestAction = "ENABLE_MULTI_USERS"
+	RequestDisableMultiUsers       constants.RequestAction = "DISABLE_MULTI_USERS"
+	RequestCreateBusiness          constants.RequestAction = "CREATE_BUSINESS"
+	RequestUpdateBusiness          constants.RequestAction = "UPDATE_BUSINESS"
+	RequestCreateEvent             constants.RequestAction = "CREATE_EVENT"
+	RequestUpdateEvent             constants.RequestAction = "UPDATE_EVENT"
+	RequestDeleteEvent             constants.RequestAction = "DELETE_EVENT"
+	RequestEnableEvent             constants.RequestAction = "ENABLE_EVENT"
+	RequestDisableEvent            constants.RequestAction = "DISABLE_EVENT"
 
-	RequestUpdateBlockTime RequestAction = "UPDATE_BLOCK_TIME"
-	RequestCreateAvatar    RequestAction = "CREATE_AVATAR"
-	RequestDeleteAvatar    RequestAction = "DELETE_AVATAR"
-	RequestEnableAvatar    RequestAction = "ENABLE_AVATAR"
-	RequestDisableAvatar   RequestAction = "DISABLE_AVATAR"
-	RequestUpdateAvatar    RequestAction = "UPDATE_AVATAR"
-	RequestBlockRegion     RequestAction = "BLOCK_REGION"
-	// RequestEnableRegion          RequestAction = "ENABLE_REGION"
-	RequestBlockDistrict RequestAction = "BLOCK_DISTRICT"
-	// RequestEnableDistrict        RequestAction = "ENABLE_DISTRICT"
-	// RequestEnableCity            RequestAction = "ENABLE_CITY"
-	RequestBlockCity RequestAction = "BLOCK_CITY"
+	RequestUpdateBlockTime constants.RequestAction = "UPDATE_BLOCK_TIME"
+	RequestCreateAvatar    constants.RequestAction = "CREATE_AVATAR"
+	RequestDeleteAvatar    constants.RequestAction = "DELETE_AVATAR"
+	RequestEnableAvatar    constants.RequestAction = "ENABLE_AVATAR"
+	RequestDisableAvatar   constants.RequestAction = "DISABLE_AVATAR"
+	RequestUpdateAvatar    constants.RequestAction = "UPDATE_AVATAR"
+	RequestBlockRegion     constants.RequestAction = "BLOCK_REGION"
+	// RequestEnableRegion          constants.RequestAction = "ENABLE_REGION"
+	RequestBlockDistrict constants.RequestAction = "BLOCK_DISTRICT"
+	// RequestEnableDistrict        constants.RequestAction = "ENABLE_DISTRICT"
+	// RequestEnableCity            constants.RequestAction = "ENABLE_CITY"
+	RequestBlockCity constants.RequestAction = "BLOCK_CITY"
 
 	// Branch
-	RequestEnableBranches  RequestAction = "REQUEST_ENABLE_BRANCHES"
-	RequestDisableBranches RequestAction = "REQUEST_DISABLE_BRANCHES"
+	RequestEnableBranches  constants.RequestAction = "REQUEST_ENABLE_BRANCHES"
+	RequestDisableBranches constants.RequestAction = "REQUEST_DISABLE_BRANCHES"
 
 	// Region
-	RequestEnableRegions  RequestAction = "REQUEST_ENABLE_REGIONS"
-	RequestDisableRegions RequestAction = "REQUEST_DISABLE_REGIONS"
+	RequestEnableRegions  constants.RequestAction = "REQUEST_ENABLE_REGIONS"
+	RequestDisableRegions constants.RequestAction = "REQUEST_DISABLE_REGIONS"
 
 	// District
-	RequestEnableDistricts  RequestAction = "REQUEST_ENABLE_DISTRICTS"
-	RequestDisableDistricts RequestAction = "REQUEST_DISABLE_DISTRICTS"
+	RequestEnableDistricts  constants.RequestAction = "REQUEST_ENABLE_DISTRICTS"
+	RequestDisableDistricts constants.RequestAction = "REQUEST_DISABLE_DISTRICTS"
 
 	// City
-	RequestEnableCities  RequestAction = "REQUEST_ENABLE_CITIES"
-	RequestDisableCities RequestAction = "REQUEST_DISABLE_CITIES"
+	RequestEnableCities  constants.RequestAction = "REQUEST_ENABLE_CITIES"
+	RequestDisableCities constants.RequestAction = "REQUEST_DISABLE_CITIES"
 
-	RequestCreateEventCategory   RequestAction = "CREATE_EVENT_CATEGORY"
-	RequestUpdateEventCategory   RequestAction = "UPDATE_EVENT_CATEGORY"
-	RequestBlockUser             RequestAction = "BLOCK_USER"
-	RequestEnableSingleBranches  RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
-	RequestDisableSingleBranches RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
-	RequestEnableMultiBranches   RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
-	RequestDisableMultiBranches  RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
-	RequestDisableFaydaAccount   RequestAction = "DISABLE_FAYDA_ACCOUNT"
-	RequestEnableFaydaAccount    RequestAction = "ENABLE_FAYDA_ACCOUNT"
+	RequestCreateEventCategory   constants.RequestAction = "CREATE_EVENT_CATEGORY"
+	RequestUpdateEventCategory   constants.RequestAction = "UPDATE_EVENT_CATEGORY"
+	RequestBlockUser             constants.RequestAction = "BLOCK_USER"
+	RequestEnableSingleBranches  constants.RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
+	RequestDisableSingleBranches constants.RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
+	RequestEnableMultiBranches   constants.RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
+	RequestDisableMultiBranches  constants.RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
+	RequestDisableFaydaAccount   constants.RequestAction = "DISABLE_FAYDA_ACCOUNT"
+	RequestEnableFaydaAccount    constants.RequestAction = "ENABLE_FAYDA_ACCOUNT"
 
-	RequestAccountUpdate          RequestAction = "REQUEST_ACCOUNT_UPDATE"
-	RequestCreatePermissionGroup  RequestAction = "CREATE_PERMISSION_GROUP"
-	RequestUpdatePermissionGroup  RequestAction = "UPDATE_PERMISSION_GROUP"
-	RequestDeletePermissionGroup  RequestAction = "DELETE_PERMISSION_GROUP"
-	RequestCreateBudgetCategory   RequestAction = "CREATE_BUDGET_CATEGORY"
-	RequestDeleteBudgetCategory   RequestAction = "DELETE_BUDGET_CATEGORY"
-	RequestUpdateBudgetCategory   RequestAction = "UPDATE_BUDGET_CATEGORY"
-	RequestUnlinkDevice           RequestAction = "UNLINK_DEVICE"
-	RequestUnlinkUser             RequestAction = "UNLINK_USER"
-	RequestUpdateHQBlockTime      RequestAction = "UPDATE_HQ_BLOCK_TIME"
-	RequestUpdateHQArchiveTime    RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
-	RequestCreateMiniAppMerchant  RequestAction = "CREATE_MINI_APP_MERCHANT"
-	RequestUpdateMiniAppMerchant  RequestAction = "UPDATE_MINI_APP_MERCHANT"
-	RequestDeleteMiniAppMerchant  RequestAction = "DELETE_MINI_APP_MERCHANT"
-	RequestEnableMiniAppMerchant  RequestAction = "ENABLE_MINI_APP_MERCHANT"
-	RequestDisableMiniAppMerchant RequestAction = "DISABLE_MINI_APP_MERCHANT"
+	RequestAccountUpdate         constants.RequestAction = "REQUEST_ACCOUNT_UPDATE"
+	RequestCreatePermissionGroup constants.RequestAction = "CREATE_PERMISSION_GROUP"
+	RequestUpdatePermissionGroup constants.RequestAction = "UPDATE_PERMISSION_GROUP"
+	RequestDeletePermissionGroup constants.RequestAction = "DELETE_PERMISSION_GROUP"
 
-	RequestCreateMiniApp  RequestAction = "CREATE_MINI_APP"
-	RequestUpdateMiniApp  RequestAction = "UPDATE_MINI_APP"
-	RequestDeleteMiniApp  RequestAction = "DELETE_MINI_APP"
-	RequestEnableMiniApp  RequestAction = "ENABLE_MINI_APP"
-	RequestDisableMiniApp RequestAction = "DISABLE_MINI_APP"
+	RequestCreateBudgetCategory  constants.RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestDeleteBudgetCategory  constants.RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestUpdateBudgetCategory  constants.RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestDisableBudgetCategory constants.RequestAction = "DISABLE_BUDGET_CATEGORY"
+	RequestEnableBudgetCategory  constants.RequestAction = "ENABLE_BUDGET_CATEGORY"
 
-	RequestCreateBudgetColor RequestAction = "BUDGET_CREATE_COLOR"
-	RequestUpdateBudgetColor RequestAction = "BUDGET_UPDATE_COLOR"
-	RequestDeleteBudgetColor RequestAction = "BUDGET_DELETE_COLOR"
-	RequestCreateBudgetIcon  RequestAction = "BUDGET_CREATE_ICON"
-	RequestUpdateBudgetIcon  RequestAction = "BUDGET_UPDATE_ICON"
-	RequestDeleteBudgetIcon  RequestAction = "BUDGET_DELETE_ICON"
+	RequestUnlinkDevice           constants.RequestAction = "UNLINK_DEVICE"
+	RequestUnlinkUser             constants.RequestAction = "UNLINK_USER"
+	RequestUpdateHQBlockTime      constants.RequestAction = "UPDATE_HQ_BLOCK_TIME"
+	RequestUpdateHQArchiveTime    constants.RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
+	RequestCreateMiniAppMerchant  constants.RequestAction = "CREATE_MINI_APP_MERCHANT"
+	RequestUpdateMiniAppMerchant  constants.RequestAction = "UPDATE_MINI_APP_MERCHANT"
+	RequestDeleteMiniAppMerchant  constants.RequestAction = "DELETE_MINI_APP_MERCHANT"
+	RequestEnableMiniAppMerchant  constants.RequestAction = "ENABLE_MINI_APP_MERCHANT"
+	RequestDisableMiniAppMerchant constants.RequestAction = "DISABLE_MINI_APP_MERCHANT"
 
-	RequestCreateServiceFee RequestAction = "CREATE_SERVICE_FEE"
-	RequestUpdateServiceFee RequestAction = "UPDATE_SERVICE_FEE"
-	RequestDeleteServiceFee RequestAction = "DELETE_SERVICE_FEE"
-	RequestCreateDailyLimit RequestAction = "CREATE DAILY LIMIT"
-	RequestUpdateDailyLimit RequestAction = "UPDATE DAILY LIMIT"
-	RequestDeleteDailyLimit RequestAction = "DELETE DAILY LIMIT"
+	RequestCreateMiniApp  constants.RequestAction = "CREATE_MINI_APP"
+	RequestUpdateMiniApp  constants.RequestAction = "UPDATE_MINI_APP"
+	RequestDeleteMiniApp  constants.RequestAction = "DELETE_MINI_APP"
+	RequestEnableMiniApp  constants.RequestAction = "ENABLE_MINI_APP"
+	RequestDisableMiniApp constants.RequestAction = "DISABLE_MINI_APP"
 
-	// RequestCreateNotification     RequestAction = "CREATE_NOTIFICATION"
-	// RequestUpdateNotification     RequestAction = "UPDATE_NOTIFICATION"
-	// RequestDeleteNotification     RequestAction = "DELETE_NOTIFICATION"
-	// RequestEnableNotification     RequestAction = "ENABLE_NOTIFICATION"
-	// RequestDisableNotification    RequestAction = "DISABLE_NOTIFICATION"
-	// RequestMarkNotificationAsSeen RequestAction = "MARK_NOTIFICATION_AS_SEEN"
-	RequestUpdateProductCode       RequestAction = "UPDATE_PRODUCT_CODE"
-	RequestCreateDonationCategory  RequestAction = "CREATE_DONATION_CATEGORY"
-	RequestUpdateDonationCategory  RequestAction = "UPDATE_DONATION_CATEGORY"
-	RequestEnableDonationCategory  RequestAction = "ENABLE_DONATION_CATEGORY"
-	RequestDisableDonationCategory RequestAction = "DISABLE_DONATION_CATEGORY"
-	RequestEnableDonationCompany   RequestAction = "ENABLE_DONATION_COMPANY"
-	RequestDisableDonationCompany  RequestAction = "DISABLE_DONATION_COMPANY"
-	RequestCreateDonationCompany   RequestAction = "CREATE_DONATION_COMPANY"
-	RequestUpdateDonationCompany   RequestAction = "UPDATE_DONATION_COMPANY"
-	RequestCreateDonation          RequestAction = "CREATE_DONATION"
-	RequestUpdateDonation          RequestAction = "UPDATE_DONATION"
-	RequestUpdateDonationImage     RequestAction = "UPDATE_DONATION_IMAGE"
-	RequestDeleteDonationImage     RequestAction = "DELETE_DONATION_IMAGE"
-	RequestAddDonationImage        RequestAction = "ADD_DONATION_IMAGE"
-	RequestEnableDonation          RequestAction = "ENABLE_DONATION"
-	RequestDisableDonation         RequestAction = "DISABLE_DONATION"
+	RequestCreateBudgetColor constants.RequestAction = "BUDGET_CREATE_COLOR"
+	RequestUpdateBudgetColor constants.RequestAction = "BUDGET_UPDATE_COLOR"
+	RequestDeleteBudgetColor constants.RequestAction = "BUDGET_DELETE_COLOR"
+	RequestCreateBudgetIcon  constants.RequestAction = "BUDGET_CREATE_ICON"
+	RequestUpdateBudgetIcon  constants.RequestAction = "BUDGET_UPDATE_ICON"
+	RequestDeleteBudgetIcon  constants.RequestAction = "BUDGET_DELETE_ICON"
+
+	RequestCreateServiceFee constants.RequestAction = "CREATE_SERVICE_FEE"
+	RequestUpdateServiceFee constants.RequestAction = "UPDATE_SERVICE_FEE"
+	RequestDeleteServiceFee constants.RequestAction = "DELETE_SERVICE_FEE"
+	RequestCreateDailyLimit constants.RequestAction = "CREATE DAILY LIMIT"
+	RequestUpdateDailyLimit constants.RequestAction = "UPDATE DAILY LIMIT"
+	RequestDeleteDailyLimit constants.RequestAction = "DELETE DAILY LIMIT"
+
+	// RequestCreateNotification     constants.RequestAction = "CREATE_NOTIFICATION"
+	// RequestUpdateNotification     constants.RequestAction = "UPDATE_NOTIFICATION"
+	// RequestDeleteNotification     constants.RequestAction = "DELETE_NOTIFICATION"
+	// RequestEnableNotification     constants.RequestAction = "ENABLE_NOTIFICATION"
+	// RequestDisableNotification    constants.RequestAction = "DISABLE_NOTIFICATION"
+	// RequestMarkNotificationAsSeen constants.RequestAction = "MARK_NOTIFICATION_AS_SEEN"
+	RequestUpdateProductCode       constants.RequestAction = "UPDATE_PRODUCT_CODE"
+	RequestCreateDonationCategory  constants.RequestAction = "CREATE_DONATION_CATEGORY"
+	RequestUpdateDonationCategory  constants.RequestAction = "UPDATE_DONATION_CATEGORY"
+	RequestEnableDonationCategory  constants.RequestAction = "ENABLE_DONATION_CATEGORY"
+	RequestDeleteDonationCategory  constants.RequestAction = "DELETE_DONATION_CATEGORY"
+	RequestDisableDonationCategory constants.RequestAction = "DISABLE_DONATION_CATEGORY"
+	RequestEnableDonationCompany   constants.RequestAction = "ENABLE_DONATION_COMPANY"
+	RequestDeleteDonationCompany   constants.RequestAction = "DELETE_DONATION_COMPANY"
+	RequestDisableDonationCompany  constants.RequestAction = "DISABLE_DONATION_COMPANY"
+	RequestCreateDonationCompany   constants.RequestAction = "CREATE_DONATION_COMPANY"
+	RequestUpdateDonationCompany   constants.RequestAction = "UPDATE_DONATION_COMPANY"
+	RequestCreateDonation          constants.RequestAction = "CREATE_DONATION"
+	RequestUpdateDonation          constants.RequestAction = "UPDATE_DONATION"
+	RequestUpdateDonationImage     constants.RequestAction = "UPDATE_DONATION_IMAGE"
+	RequestDeleteDonationImage     constants.RequestAction = "DELETE_DONATION_IMAGE"
+	RequestAddDonationImage        constants.RequestAction = "ADD_DONATION_IMAGE"
+	RequestEnableDonation          constants.RequestAction = "ENABLE_DONATION"
+	RequestDisableDonation         constants.RequestAction = "DISABLE_DONATION"
+	RequestDeleteDonation          constants.RequestAction = "DELETE_DONATION"
 	// for bankvault
-	RequestCreateBankVault  RequestAction = "CREATE_VAULT_BANK"
-	RequestUpdateBankVault  RequestAction = "UPDATE_VAULT_BANK"
-	RequestDeleteBankVault  RequestAction = "DELETE_VAULT_BANK"
-	RequestEnableBankVault  RequestAction = "ENABLE_VAULT_BANK"
-	RequestDisAbleBankVault RequestAction = "DISABLE_VAULT_BANK"
+	RequestCreateBankVault  constants.RequestAction = "CREATE_VAULT_BANK"
+	RequestUpdateBankVault  constants.RequestAction = "UPDATE_VAULT_BANK"
+	RequestDeleteBankVault  constants.RequestAction = "DELETE_VAULT_BANK"
+	RequestEnableBankVault  constants.RequestAction = "ENABLE_VAULT_BANK"
+	RequestDisAbleBankVault constants.RequestAction = "DISABLE_VAULT_BANK"
 
 	// for vault group category
-	RequestCreateVaultGroupCategory  RequestAction = "CREATE_VAULT_GROUP_CATEGORY"
-	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE_VAULT_GROUP_CATEGORY"
-	RequestDeleteVaultGroupCategory  RequestAction = "DELETE_VAULT_GROUP_CATEGORY"
-	RequestEnableVaultGroupCategory  RequestAction = "ENABLE_VAULT_GROUP_CATEGORY"
-	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE_VAULT_GROUP_CATEGORY"
+	RequestCreateVaultCategory  constants.RequestAction = "CREATE_VAULT_CATEGORY"
+	RequestUpdateVaultCategory  constants.RequestAction = "UPDATE_VAULT_CATEGORY"
+	RequestDeleteVaultCategory  constants.RequestAction = "DELETE_VAULT_CATEGORY"
+	RequestEnableVaultCategory  constants.RequestAction = "ENABLE_VAULT_CATEGORY"
+	RequestDisAbleVaultCategory constants.RequestAction = "DISABLE_VAULT_CATEGORY"
+	RequestUnlockDeadlock       constants.RequestAction = "UNLOCK_DEADLOCK_REQUEST"
 
-	RequestUpdateKYCVerifier RequestAction = "UPDATE_KYC"
-	RequestApproveKYC        RequestAction = "APPROVE_KYC"
+	RequestCreateVaultAmountTier  constants.RequestAction = "CREATE_VAULT_AMOUNT_TIER"
+	RequestUpdateVaultAmountTier  constants.RequestAction = "UPDATE_VAULT_AMOUNT_TIER"
+	RequestDeleteVaultAmountTier  constants.RequestAction = "DELETE_VAULT_AMOUNT_TIER"
+	RequestEnableVaultAmountTier  constants.RequestAction = "ENABLE_VAULT_AMOUNT_TIER"
+	RequestDisAbleVaultAmountTier constants.RequestAction = "DISABLE_VAULT_AMOUNT_TIER"
+
+	RequestUpdateKYCVerifier constants.RequestAction = "UPDATE_KYC"
+	RequestApproveKYC        constants.RequestAction = "APPROVE_KYC"
 	// for article
-	RequestCreateArticle  RequestAction = "CREATE_ARTICLE"
-	RequestUpdateArticle  RequestAction = "UPDATE_ARTICLE"
-	RequestEnableArticle  RequestAction = "ENABLE_ARTICLE"
-	RequestDisableArticle RequestAction = "DISABLE_ARTICLE"
-	RequestDeleteArticle  RequestAction = "DELETE_ARTICLE"
+	RequestCreateArticle  constants.RequestAction = "CREATE_ARTICLE"
+	RequestUpdateArticle  constants.RequestAction = "UPDATE_ARTICLE"
+	RequestEnableArticle  constants.RequestAction = "ENABLE_ARTICLE"
+	RequestDisableArticle constants.RequestAction = "DISABLE_ARTICLE"
+	RequestDeleteArticle  constants.RequestAction = "DELETE_ARTICLE"
 
 	// for article category
-	RequestCreateArticleCategory  RequestAction = "CREATE_ARTICLE_CATEGORY"
-	RequestUpdateArticleCategory  RequestAction = "UPDATE_ARTICLE_CATEGORY"
-	RequestDeleteArticleCategory  RequestAction = "DELETE_ARTICLE_CATEGORY"
-	RequestEnableArticleCategory  RequestAction = "ENABLE_ARTICLE_CATEGORY"
-	RequestDisableArticleCategory RequestAction = "DISABLE_ARTICLE_CATEGORY"
+	RequestCreateArticleCategory  constants.RequestAction = "CREATE_ARTICLE_CATEGORY"
+	RequestUpdateArticleCategory  constants.RequestAction = "UPDATE_ARTICLE_CATEGORY"
+	RequestDeleteArticleCategory  constants.RequestAction = "DELETE_ARTICLE_CATEGORY"
+	RequestEnableArticleCategory  constants.RequestAction = "ENABLE_ARTICLE_CATEGORY"
+	RequestDisableArticleCategory constants.RequestAction = "DISABLE_ARTICLE_CATEGORY"
 
 	// for tags
-	RequestCreateNewsTag  RequestAction = "CREATE_NEWS_TAG"
-	RequestUpdateNewsTag  RequestAction = "UPDATE_NEWS_TAG"
-	RequestEnableNewsTag  RequestAction = "ENABLE_NEWS_TAG"
-	RequestDisableNewsTag RequestAction = "DISABLE_NEWS_TAG"
-	RequestDeleteNewsTag  RequestAction = "DELETE_NEWS_TAG"
+	RequestCreateNewsTag  constants.RequestAction = "CREATE_NEWS_TAG"
+	RequestUpdateNewsTag  constants.RequestAction = "UPDATE_NEWS_TAG"
+	RequestEnableNewsTag  constants.RequestAction = "ENABLE_NEWS_TAG"
+	RequestDisableNewsTag constants.RequestAction = "DISABLE_NEWS_TAG"
+	RequestDeleteNewsTag  constants.RequestAction = "DELETE_NEWS_TAG"
 
-	RequestCreateShortVideo  RequestAction = "CREATE_SHORT_VIDEO"
-	RequestUpdateShortVideo  RequestAction = "UPDATE_SHORT_VIDEO"
-	RequestEnableShortVideo  RequestAction = "ENABLE_SHORT_VIDEO"
-	RequestDisableShortVideo RequestAction = "DISABLE_SHORT_VIDEO"
-	RequestDeleteShortVideo  RequestAction = "DELETE_SHORT_VIDEO"
+	// Action Role Mapper
+	RequestCreateActionRole  constants.RequestAction = "CREATE_ACTION_ROLE"
+	RequestUpdateActionRole  constants.RequestAction = "UPDATE_ACTION_ROLE"
+	RequestEnableActionRole  constants.RequestAction = "ENABLE_ACTION_ROLE"
+	RequestDisableActionRole constants.RequestAction = "DISABLE_ACTION_ROLE"
+	RequestDeleteActionRole  constants.RequestAction = "DELETE_ACTION_ROLE"
 
-	RequestApproveFaydaCustomer RequestAction = "APPROVE_FAYDA_CUSTOMER"
+	RequestCreateCpsActionRole  constants.RequestAction = "CREATE_CPS_ACTION_ROLE"
+	RequestUpdateCpsActionRole  constants.RequestAction = "UPDATE_CPS_ACTION_ROLE"
+	RequestEnableCpsActionRole  constants.RequestAction = "ENABLE_CPS_ACTION_ROLE"
+	RequestDisableCpsActionRole constants.RequestAction = "DISABLE_CPS_ACTION_ROLE"
+	RequestDeleteCpsActionRole  constants.RequestAction = "DELETE_CPS_ACTION_ROLE"
 
-	RequestEnableDisableCustomer RequestAction = "ENABLE_DISABLE_CUSTOMER"
+	RequestCreateShortVideo  constants.RequestAction = "CREATE_SHORT_VIDEO"
+	RequestUpdateShortVideo  constants.RequestAction = "UPDATE_SHORT_VIDEO"
+	RequestEnableShortVideo  constants.RequestAction = "ENABLE_SHORT_VIDEO"
+	RequestDisableShortVideo constants.RequestAction = "DISABLE_SHORT_VIDEO"
+	RequestDeleteShortVideo  constants.RequestAction = "DELETE_SHORT_VIDEO"
+
+	RequestApproveFaydaCustomer constants.RequestAction = "APPROVE_FAYDA_CUSTOMER"
+
+	RequestEnableDisableCustomer constants.RequestAction = "ENABLE_DISABLE_CUSTOMER"
+
+	RequestCreateMiniAppCategory  constants.RequestAction = "CREATE_MINI_APP_CATEGORY"
+	RequestUpdateMiniAppCategory  constants.RequestAction = "UPDATE_MINI_APP_CATEGORY"
+	RequestDeleteMiniAppCategory  constants.RequestAction = "DELETE_MINI_APP_CATEGORY"
+	RequestEnableMiniAppCategory  constants.RequestAction = "ENABLE_MINI_APP_CATEGORY"
+	RequestDisableMiniAppCategory constants.RequestAction = "DISABLE_MINI_APP_CATEGORY"
+
+	RequestCreateEventMerchant  constants.RequestAction = "CREATE_EVENT_MERCHANT"
+	RequestUpdateEventMerchant  constants.RequestAction = "UPDATE_EVENT_MERCHANT"
+	RequestDeleteEventMerchant  constants.RequestAction = "DELETE_EVENT_MERCHANT"
+	RequestEnableEventMerchant  constants.RequestAction = "ENABLE_EVENT_MERCHANT"
+	RequestDisableEventMerchant constants.RequestAction = "DISABLE_EVENT_MERCHANT"
+
+	RequestCreateLogisticsMerchant  constants.RequestAction = "CREATE_LOGISTICS_MERCHANT"
+	RequestUpdateLogisticsMerchant  constants.RequestAction = "UPDATE_LOGISTICS_MERCHANT"
+	RequestDeleteLogisticsMerchant  constants.RequestAction = "DELETE_LOGISTICS_MERCHANT"
+	RequestEnableLogisticsMerchant  constants.RequestAction = "ENABLE_LOGISTICS_MERCHANT"
+	RequestDisableLogisticsMerchant constants.RequestAction = "DISABLE_LOGISTICS_MERCHANT"
+
+	RequestCreateAccessListSegmentation        constants.RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
+	RequestUpdateAccessListSegmentation        constants.RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
+	RequestEnableDisableAccessListSegmentation constants.RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
+	RequestEnableAccessListSegmentation        constants.RequestAction = "ENABLE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
+	RequestDisableAccessListSegmentation       constants.RequestAction = "DISABLE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
+	RequestDeleteServiceKey                    constants.RequestAction = "DELETE_SERVICE_KEY"
 )
 
-var validRequestActions = map[RequestAction]struct{}{
-	RequestCreateBankVault:  {},
-	RequestUpdateBankVault:  {},
-	RequestDeleteBankVault:  {},
-	RequestEnableBankVault:  {},
-	RequestDisAbleBankVault: {},
+var validRequestActions = map[constants.RequestAction]struct{}{
+	RequestCreateMiniappProductCode:  {},
+	RequestUpdateMiniappProductCode:  {},
+	RequestDeleteMiniappProductCode:  {},
+	RequestEnableMiniappProductCode:  {},
+	RequestDisableMiniappProductCode: {},
+	RequestCreateBankVault:           {},
+	RequestUpdateBankVault:           {},
+	RequestDeleteBankVault:           {},
+	RequestEnableBankVault:           {},
+	RequestDisAbleBankVault:          {},
+
+	RequestCreateCpsRole:  {},
+	RequestUpdateCpsRole:  {},
+	RequestDeleteCpsRole:  {},
+	RequestEnableCpsRole:  {},
+	RequestDisableCpsRole: {},
 
 	// for vault group category
-	RequestCreateVaultGroupCategory:  {},
-	RequestUpdateVaultGroupCategory:  {},
-	RequestDeleteVaultGroupCategory:  {},
-	RequestEnableVaultGroupCategory:  {},
-	RequestDisAbleVaultGroupCategory: {},
+	RequestCreateVaultCategory:  {},
+	RequestUpdateVaultCategory:  {},
+	RequestDeleteVaultCategory:  {},
+	RequestEnableVaultCategory:  {},
+	RequestDisAbleVaultCategory: {},
+	RequestUnlockDeadlock:       {},
+
+	RequestBpsUserCreate:  {},
+	RequestBpsUserUpdate:  {},
+	RequestBpsUserDelete:  {},
+	RequestBpsUserEnable:  {},
+	RequestBpsUserDisable: {},
+
+	RequestCreateEcommerceMerchant:        {},
+	RequestUpdateEcommerceMerchant:        {},
+	RequestEnableEcommerceMerchant:        {},
+	RequestDisableEcommerceMerchant:       {},
+	RequestDeleteEcommerceMerchant:        {},
+	RequestDeleteEcommerceMerchantBranch:  {},
+	RequestEnableEcommerceMerchantBranch:  {},
+	RequestDisableEcommerceMerchantBranch: {},
 
 	RequestCreateDonationCategory: {},
 	RequestUpdateDonationCategory: {},
@@ -301,6 +478,8 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableDonationCompany:   {},
 	RequestDisableDonationCompany:  {},
 	RequestEnableDonationCategory:  {},
+	RequestDeleteDonationCategory:  {},
+	RequestDeleteDonationCompany:   {},
 
 	RequestUpdateDonationCompany: {},
 	RequestCreateDonation:        {},
@@ -309,11 +488,13 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteDonationImage:   {},
 	RequestAddDonationImage:      {},
 	RequestEnableDonation:        {},
+	RequestDeleteDonation:        {},
 	RequestDisableDonation:       {},
 	RequestAccountUpdate:         {},
 	RequestDeleteAmountBasedAuth: {},
 	RequestCreateAmountBasedAuth: {},
 	RequestUpdateAmountBasedAuth: {},
+	RequestResetAmountBasedAuth:  {},
 	RequestUser:                  {},
 
 	RequestUpdateAccountValidation: {},
@@ -324,31 +505,47 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateBudgetIcon:        {},
 	RequestDeleteBudgetIcon:        {},
 
-	RequestCpsUserCreate:            {},
-	RequestCpsUserUpdate:            {},
-	RequestCpsUserDelete:            {},
-	RequestPermissionGroup:          {},
-	RequestCreateDepartment:         {},
-	RequestUpdateDepartment:         {},
-	RequestEnableUser:               {},
-	RequestDisableUser:              {},
-	RequestBPSUser:                  {},
-	RequestDisableBPSUser:           {},
-	RequestEnableBPSUser:            {},
-	RequestUpdateUser:               {},
-	RequestTotalDailyLimit:          {},
-	RequestUpdateVAT:                {},
-	RequestAuthTier:                 {},
-	RequestCreateAdvert:             {},
-	RequestUpdateAdvert:             {},
-	RequestEnableAdvert:             {},
-	RequestDisableAdvert:            {},
-	RequestDeleteAdvert:             {},
-	RequestCreateBank:               {},
-	RequestUpdateBank:               {},
-	RequestUpdateBankLogo:           {},
-	RequestEnableWallet:             {},
-	RequestDisableWallet:            {},
+	RequestCpsUserCreate:    {},
+	RequestCpsUserUpdate:    {},
+	RequestCpsUserDelete:    {},
+	RequestPermissionGroup:  {},
+	RequestCreateDepartment: {},
+	RequestUpdateDepartment: {},
+	RequestEnableUser:       {},
+	RequestDisableUser:      {},
+	RequestBPSUser:          {},
+	// RequestDisableBPSUser:   {},
+	// RequestEnableBPSUser:    {},
+	RequestUpdateUser:           {},
+	RequestTotalDailyLimit:      {},
+	RequestUpdateVAT:            {},
+	RequestAuthTier:             {},
+	RequestCreateAdvert:         {},
+	RequestUpdateAdvert:         {},
+	RequestEnableAdvert:         {},
+	RequestDisableAdvert:        {},
+	RequestDeleteAdvert:         {},
+	RequestCreateBank:           {},
+	RequestUpdateBank:           {},
+	RequestUpdateBankLogo:       {},
+	RequestEnableWallet:         {},
+	RequestDisableWallet:        {},
+	RequestEnableWalletService:  {},
+	RequestDisableWalletService: {},
+
+	// Services catalog
+	RequestCreateService:      {},
+	RequestUpdateService:      {},
+	RequestEnableService:      {},
+	RequestDisableService:     {},
+	RequestDeleteService:      {},
+	RequestCreateServiceList:  {},
+	RequestUpdateServiceList:  {},
+	RequestEnableServiceList:  {},
+	RequestDisableServiceList: {},
+	RequestDeleteServiceList:  {},
+	RequestDeleteServiceKey:   {},
+
 	RequestUpdatePasswordExpiry:     {},
 	RequestCreateValidation:         {},
 	RequestUpdateValidation:         {},
@@ -375,6 +572,52 @@ var validRequestActions = map[RequestAction]struct{}{
 
 	RequestEnableMultiUsers:  {},
 	RequestDisableMultiUsers: {},
+
+	RequestBlockUser: {},
+
+	RequestDisableMultiBranches: {},
+	RequestEnableMultiBranches:  {},
+
+	// Branch
+	RequestEnableBranches:  {},
+	RequestDisableBranches: {},
+
+	RequestCreateCustomerGroup:  {},
+	RequestUpdateCustomerGroup:  {},
+	RequestEnableCustomerGroup:  {},
+	RequestDisableCustomerGroup: {},
+	RequestDeleteCustomerGroup:  {},
+
+	RequestEnableSuperAppRole:          {},
+	RequestDisableSuperAppRole:         {},
+	RequestDeleteSuperAppRole:          {},
+	RequestBulkDisableAccessListByRole: {},
+	RequestBulkEnableAccessListByRole:  {},
+
+	RequestCreateCustomerSegmentation:    {},
+	RequestUpdateCustomerSegmentation:    {},
+	RequestDisableAccessListSegmentation: {},
+	RequestEnableCustomerSegmentation:    {},
+	RequestDisableCustomerSegmentation:   {},
+	RequestDeleteCustomerSegmentation:    {},
+
+	RequestAccessListCreateCustomerSegmentation:  {},
+	RequestAccessListUpdateCustomerSegmentation:  {},
+	RequestAccessListEnableCustomerSegmentation:  {},
+	RequestAccessListDisableCustomerSegmentation: {},
+	RequestAccessListDeleteCustomerSegmentation:  {},
+
+	// Region
+	RequestEnableRegions:  {},
+	RequestDisableRegions: {},
+
+	// District
+	RequestEnableDistricts:  {},
+	RequestDisableDistricts: {},
+
+	// City
+	RequestEnableCities:  {},
+	RequestDisableCities: {},
 
 	RequestCreateBusiness:         {},
 	RequestUpdateBusiness:         {},
@@ -423,6 +666,18 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableTopup:  {},
 	RequestDisableTopup: {},
 
+	RequestCreateJobRole:  {},
+	RequestUpdateJobRole:  {},
+	RequestDeleteJobRole:  {},
+	RequestEnableJobRole:  {},
+	RequestDisableJobRole: {},
+
+	RequestCreateRole:  {},
+	RequestUpdateRole:  {},
+	RequestDeleteRole:  {},
+	RequestEnableRole:  {},
+	RequestDisableRole: {},
+
 	// RequestCreateNotification:      {},
 	// RequestUpdateNotification:      {},
 	// RequestDeleteNotification:      {},
@@ -431,9 +686,9 @@ var validRequestActions = map[RequestAction]struct{}{
 	// RequestMarkNotificationAsSeen:  {},
 	RequestUpdateProductCode:       {},
 	RequestEnableDisableDepartment: {},
-	RequestEnableBranches:          {},
-	RequestCpsUserEnable:           {},
-	RequestCpsUserDisable:          {},
+	// RequestEnableBranches:          {},
+	RequestCpsUserEnable:  {},
+	RequestCpsUserDisable: {},
 	// RequestCpsUserDelete:{},
 	// RequestCpsUserCreate:{},
 
@@ -458,32 +713,108 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDisableNewsTag: {},
 	RequestDeleteNewsTag:  {},
 
+	// Action Role Mapper
+	RequestCreateActionRole:     {},
+	RequestUpdateActionRole:     {},
+	RequestEnableActionRole:     {},
+	RequestDisableActionRole:    {},
+	RequestDeleteActionRole:     {},
+	RequestCreateCpsActionRole:  {},
+	RequestUpdateCpsActionRole:  {},
+	RequestEnableCpsActionRole:  {},
+	RequestDisableCpsActionRole: {},
+	RequestDeleteCpsActionRole:  {},
+
 	RequestCreateDeviceVersion:        {},
 	RequestUpdateDeviceVersion:        {},
 	RequestEnableDeviceVersion:        {},
 	RequestDisableDeviceVersion:       {},
 	RequestDeleteDeviceVersion:        {},
 	RequestEnableDisableDeviceVersion: {},
+
+	RequestCreateMiniAppCategory:  {},
+	RequestUpdateMiniAppCategory:  {},
+	RequestDeleteMiniAppCategory:  {},
+	RequestEnableMiniAppCategory:  {},
+	RequestDisableMiniAppCategory: {},
+
+	RequestCreateEventMerchant:  {},
+	RequestUpdateEventMerchant:  {},
+	RequestDeleteEventMerchant:  {},
+	RequestEnableEventMerchant:  {},
+	RequestDisableEventMerchant: {},
+
+	RequestCreateLogisticsMerchant:  {},
+	RequestUpdateLogisticsMerchant:  {},
+	RequestDeleteLogisticsMerchant:  {},
+	RequestEnableLogisticsMerchant:  {},
+	RequestDisableLogisticsMerchant: {},
+
+	RequestCreateAccessListSegmentation:        {},
+	RequestUpdateAccessListSegmentation:        {},
+	RequestEnableDisableAccessListSegmentation: {},
+
+	RequestApproveCustomerKYC: {},
+	RequestRejectCustomerKYC:  {},
+	RequestStartKycReview:     {},
+	RequestPickKycReview:      {},
+	// RequestCreateCustomerKYC: {},
+	// RequestUpdateCustomerKYC: {},
+	// RequestDeleteCustomerKYC: {},
+
+	RequestEnableDisableBank: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
-	_, ok := validRequestActions[RequestAction(requestAction)]
+	_, ok := validRequestActions[constants.RequestAction(requestAction)]
 	return ok
 }
 
-var RequestActionGroups = map[string][]RequestAction{
-	"Service": {
-		RequestUpdateServiceSingle,
-		RequestUpdateServiceTotal,
-		RequestUpdateServiceMinCap,
-		RequestCreateServiceFee,
-		RequestUpdateServiceFee,
-		RequestDeleteServiceFee,
-		RequestCreateDailyLimit,
-		RequestUpdateDailyLimit,
-		RequestDeleteDailyLimit,
+var RequestActionGroups = map[string][]constants.RequestAction{
+	// Canonical
+	"NOTIFICATION": {
+		RequestCreatePublicNotification,
+		RequestUpdatePublicNotification,
+		RequestDeleteNotification,
+		RequestEnableNotification,
+		RequestDisableNotification,
+		RequestMarkNotificationAsSeen,
 	},
-	"Account": {
+	"ACCOUNTBLOCK": {
+		RequestBlockUser,
+		// RequestDisableSingleBranch,
+		// RequestEnableSingleBranch,
+		// RequestDisableMultiBranches,
+		// RequestEnableMultiBranches,
+		// RequestEnableBranches,
+		// RequestDisableBranches,
+		// RequestEnableRegions,
+		// RequestDisableRegions,
+		// RequestEnableDistricts,
+		// RequestDisableDistricts,
+		// RequestEnableCities,
+		// RequestDisableCities,
+	},
+	"SINGLEBRANCHENABLEACCOUNTBLOCK": {
+		RequestEnableSingleBranch,
+		RequestEnableBranches,
+	},
+	"SINGLEBRANCHDISABLEACCOUNTBLOCK": {
+		RequestDisableSingleBranch,
+		RequestDisableBranches,
+	},
+	"MULTIBRANCHENABLEACCOUNTBLOCK": {
+		RequestEnableRegions,
+		RequestEnableDistricts,
+		RequestEnableCities,
+	},
+	"MULTIBRANCHDISABLEACCOUNTBLOCK": {
+		RequestDisableMultiBranches,
+		RequestDisableRegions,
+		RequestDisableDistricts,
+		RequestDisableCities,
+	},
+	"ACCOUNTVALIDATION": {
 		RequestUser,
 		RequestUpdateAccountValidation,
 		RequestEnableUser,
@@ -491,114 +822,150 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateUser,
 		RequestArchiveUser,
 	},
-	"Event": {
+	"BPSACTIONROLE": {
+		RequestCreateActionRole,
+		RequestUpdateActionRole,
+		RequestEnableActionRole,
+		RequestDisableActionRole,
+		RequestDeleteActionRole,
+	},
+	"JOBROLE": {
+		RequestCreateJobRole,
+		RequestUpdateJobRole,
+		RequestDeleteJobRole,
+		RequestEnableJobRole,
+		RequestDisableJobRole,
+	},
+	"PASSWORDRULE": {
+		RequestUpdatePasswordRule,
+	},
+	"VAULTCATEGORIES": {
+		RequestCreateVaultCategory,
+		RequestUpdateVaultCategory,
+		RequestDeleteVaultCategory,
+		RequestEnableVaultCategory,
+		RequestDisAbleVaultCategory,
+	},
+	"VAULTEMERGENCYDEADLOCKREQUEST": {
+		RequestUnlockDeadlock,
+	},
+
+	// Legacy/operational modules (kept as requested)
+	"SERVICE": {
+		RequestCreateService,
+		RequestUpdateService,
+		RequestEnableService,
+		RequestDisableService,
+		RequestDeleteService,
+		RequestCreateServiceList,
+		RequestUpdateServiceList,
+		RequestEnableServiceList,
+		RequestDisableServiceList,
+		RequestDeleteServiceList,
+		RequestDeleteServiceKey,
+	},
+	"USSDMERCHANT": {
+		RequestCreateUssdMerchant,
+		RequestUpdateUssdMerchant,
+		RequestDeleteUssdMerchant,
+		RequestEnableUssdMerchant,
+		RequestDisableUssdMerchant,
+	},
+	"EVENT": {
 		RequestCreateEvent,
 		RequestDeleteEvent,
 		RequestDisableEvent,
 		RequestEnableEvent,
 		RequestUpdateEvent,
 	},
-	"AmountBasedAuth": {
+	"AMOUNTBASEDAUTH": {
 		RequestCreateAmountBasedAuth,
 		RequestUpdateAmountBasedAuth,
 		RequestDeleteAmountBasedAuth,
+		RequestResetAmountBasedAuth,
 		RequestAuthTier,
 	},
-	"User": {
+	"USER": {
 		RequestUser,
 		RequestEnableUser,
 		RequestDisableUser,
 		RequestUpdateUser,
 		RequestArchiveUser,
 	},
-	"BPSUser": {
+	"BPSUSER": {
 		RequestBPSUser,
 		RequestEnableBPSUser,
 		RequestDisableBPSUser,
+		RequestBpsUserCreate,
+		RequestBpsUserUpdate,
+		RequestBpsUserDelete,
+		RequestBpsUserEnable,
+		RequestBpsUserDisable,
 	},
-	"PermissionGroup": {
+	"PERMISSIONGROUP": {
 		RequestPermissionGroup,
 	},
-	"Department": {
+	"DEPARTMENT": {
 		RequestCreateDepartment,
 		RequestUpdateDepartment,
 		RequestEnableDisableDepartment,
-		// RequestDeleteDepartment,
+		RequestDeleteDepartment,
 	},
-	"ServiceFee": {
+	"SERVICEFEE": {
 		RequestCreateServiceFee,
 		RequestUpdateServiceFee,
 		RequestDeleteServiceFee,
 	},
-	"DailyLimit": {
+	"DAILYLIMIT": {
 		RequestCreateDailyLimit,
 		RequestUpdateDailyLimit,
 		RequestDeleteDailyLimit,
 		RequestTotalDailyLimit,
 	},
-	"VAT": {
-		RequestUpdateVAT,
-	},
-	"AuthTier": {
-		RequestAuthTier,
-	},
-	"Archive": {
-		RequestUpdateArchiveExpiry,
-	},
-	"MinimumService": {
-		RequestUpdateMinimumService,
-	},
-	"ServiceRule": {
-		RequestUpdateServiceRule,
-	},
-	"Total": {
-		RequestUpdateTotal,
-	},
-	"AccessConfig": {
-		RequestUpdateAccessConfig,
-	},
-	"Branch": {
+	"VAT": {RequestUpdateVAT},
+	// "AUTHTIER":       {RequestAuthTier},
+	"ARCHIVE":        {RequestUpdateArchiveExpiry},
+	"MINIMUMSERVICE": {RequestUpdateMinimumService},
+	"SERVICERULE":    {RequestUpdateServiceRule},
+	"TOTAL":          {RequestUpdateTotal},
+	"ACCESSCONFIG":   {RequestUpdateAccessConfig},
+	"BRANCH": {
 		RequestEnableSingleBranch,
 		RequestEnableMultiUsers,
 		RequestDisableMultiUsers,
 		RequestEnableSingleBranches,
 		RequestEnableMultiBranches,
 	},
-	"Business": {
+	"BUSINESS": {
 		RequestCreateBusiness,
 		RequestUpdateBusiness,
 	},
-	"EventCategory": {
+	"EVENTCATEGORY": {
 		RequestCreateEventCategory,
 		RequestUpdateEventCategory,
 	},
-	"MiniAppMerchant": {
+	"MINIAPPMERCHANT": {
 		RequestCreateMiniAppMerchant,
 		RequestUpdateMiniAppMerchant,
 		RequestDeleteMiniAppMerchant,
 		RequestEnableMiniAppMerchant,
 		RequestDisableMiniAppMerchant,
 	},
-	"BlockTime": {
-		RequestUpdateBlockTime,
-	},
-	"Password": {
-
-		RequestUpdatePasswordRule,
-	},
-	"Permission": {
+	"BLOCKTIME": {RequestUpdateBlockTime},
+	// "PASSWORDRULE": {RequestUpdatePasswordRule},
+	"PERMISSION": {
 		RequestCreatePermissionGroup,
 		RequestDeletePermissionGroup,
 		RequestUpdatePermissionGroup,
 	},
-	"Avatar": {
+	"AVATAR": {
 		RequestCreateAvatar,
 		RequestUpdateAvatar,
 		RequestEnableAvatar,
 		RequestDisableAvatar,
 		RequestDeleteAvatar,
 	},
-	"Budget": {
+	"BUDGET": {
 		RequestCreateBudgetColor,
 		RequestUpdateBudgetColor,
 		RequestDeleteBudgetColor,
@@ -606,15 +973,14 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateBudgetIcon,
 		RequestDeleteBudgetIcon,
 	},
-
-	"Advert": {
+	"ADVERT": {
 		RequestCreateAdvert,
 		RequestUpdateAdvert,
 		RequestEnableAdvert,
 		RequestDisableAdvert,
 		RequestDeleteAdvert,
 	},
-	"Bank": {
+	"BANK": {
 		RequestCreateBank,
 		RequestUpdateBank,
 		RequestDeleteBank,
@@ -623,55 +989,64 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableBank,
 		RequestDisableBank,
 	},
-	"Wallet": {
+	"WALLET": {
 		RequestCreateWallet,
 		RequestUpdateWallet,
 		RequestDeleteWallet,
 		RequestEnableWallet,
 		RequestDisableWallet,
+		RequestEnableWalletService,
+		RequestDisableWalletService,
 	},
-	"Topup": {
+	"TOPUP": {
 		RequestCreateTopup,
 		RequestUpdateTopup,
 		RequestDeleteTopup,
 		RequestEnableTopup,
 		RequestDisableTopup,
 	},
-	"Validation": {
+	"VALIDATION": {
 		RequestCreateValidation,
 		RequestUpdateValidation,
 		RequestDeleteValidation,
 	},
-	"Block": {
-		RequestBlockUser,
-		RequestDisableSingleBranch,
-		RequestEnableSingleBranch,
-
-		RequestDisableMultiBranches,
-		RequestEnableMultiBranches,
-
-		// Branch
-		RequestEnableBranches,
-		RequestDisableBranches,
-
-		// Region
-		RequestEnableRegions,
-		RequestDisableRegions,
-
-		// District
-		RequestEnableDistricts,
-		RequestDisableDistricts,
-
-		// City
-		RequestEnableCities,
-		RequestDisableCities,
+	// "JOBROLE": {
+	// 	RequestCreateJobRole,
+	// 	RequestUpdateJobRole,
+	// 	RequestDeleteJobRole,
+	// 	RequestEnableJobRole,
+	// 	RequestDisableJobRole,
+	// },
+	"ROLE": {
+		RequestCreateRole,
+		RequestUpdateRole,
+		RequestDeleteRole,
+		RequestEnableRole,
+		RequestDisableRole,
 	},
-	"BudgetCategory": {
-		RequestAction("CREATE_BUDGET_CATEGORY"),
-		RequestAction("UPDATE_BUDGET_CATEGORY"),
-		RequestAction("DELETE_BUDGET_CATEGORY"),
+	// "BLOCK": {
+	// 	RequestBlockUser,
+	// 	RequestDisableSingleBranch,
+	// 	RequestEnableSingleBranch,
+	// 	RequestDisableMultiBranches,
+	// 	RequestEnableMultiBranches,
+	// 	RequestEnableBranches,
+	// 	RequestDisableBranches,
+	// 	RequestEnableRegions,
+	// 	RequestDisableRegions,
+	// 	RequestEnableDistricts,
+	// 	RequestDisableDistricts,
+	// 	RequestEnableCities,
+	// 	RequestDisableCities,
+	// },
+	"BUDGETCATEGORY": {
+		RequestCreateBudgetCategory,
+		RequestUpdateBudgetCategory,
+		RequestDeleteBudgetCategory,
+		RequestDisableBudgetCategory,
+		RequestEnableBudgetCategory,
 	},
-	"UnlinkDevice": {
+	"UNLINKDEVICE": {
 		RequestUnlinkDevice,
 		RequestUnlinkUser,
 	},
@@ -680,49 +1055,47 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateHQArchiveTime,
 		RequestUpdatePasswordExpiry,
 	},
-	"Fayda": {
+	"FAYDA": {
 		RequestDisableFaydaAccount,
 		RequestEnableFaydaAccount,
 	},
-	"CPSUser": {
+	"CPSUSER": {
 		RequestCpsUserCreate,
 		RequestCpsUserUpdate,
 		RequestCpsUserDelete,
 		RequestCpsUserEnable,
 		RequestCpsUserDisable,
 	},
-	"BulkService": {
+	"BULKSERVICEALLUSER": {
 		RequestBulkServiceEnable,
 		RequestBulkServiceDisable,
 	},
-	"MiniApp": {
+	"MINIAPP": {
 		RequestCreateMiniApp,
 		RequestUpdateMiniApp,
 		RequestDeleteMiniApp,
 		RequestEnableMiniApp,
 		RequestDisableMiniApp,
 	},
-	"Notification": {
-		// RequestCreateNotification,
-		// RequestUpdateNotification,
-		RequestCreatePublicNotification,
-		RequestUpdatePublicNotification,
-		RequestDeleteNotification,
-		RequestEnableNotification,
-		RequestDisableNotification,
-		RequestMarkNotificationAsSeen,
-	},
-	"BankVault": {
+	// "NOTIFICATION": {
+	// 	RequestCreatePublicNotification,
+	// 	RequestUpdatePublicNotification,
+	// 	RequestDeleteNotification,
+	// 	RequestEnableNotification,
+	// 	RequestDisableNotification,
+	// 	RequestMarkNotificationAsSeen,
+	// },
+	"BANKVAULT": {
 		RequestCreateBankVault,
 		RequestUpdateBankVault,
 		RequestDeleteBankVault,
 		RequestEnableBankVault,
 		RequestDisAbleBankVault,
 	},
-	"ProductCode": {
+	"PRODUCTCODE": {
 		RequestUpdateProductCode,
 	},
-	"Donation": {
+	"DONATION": {
 		RequestCreateDonation,
 		RequestUpdateDonation,
 		RequestDisableDonation,
@@ -730,69 +1103,77 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateDonationImage,
 		RequestDeleteDonationImage,
 		RequestEnableDonation,
+		RequestDeleteDonation,
 	},
-	"donationCategory": {
+	"DONATIONCATEGORY": {
 		RequestCreateDonationCategory,
 		RequestUpdateDonationCategory,
 		RequestDisableDonationCategory,
 		RequestEnableDonationCategory,
+		RequestDeleteDonationCategory,
 	},
-	"donationCompany": {
+	"DONATIONCOMPANY": {
 		RequestCreateDonationCompany,
 		RequestUpdateDonationCompany,
 		RequestEnableDonationCompany,
 		RequestDisableDonationCompany,
+		RequestDeleteDonationCompany,
 	},
-	"VaultGroupCategory": {
-		RequestCreateVaultGroupCategory,
-		RequestUpdateVaultGroupCategory,
-		RequestDeleteVaultGroupCategory,
-		RequestEnableVaultGroupCategory,
-		RequestDisAbleVaultGroupCategory,
-	},
-	"KYCVerifier": {
+	"KYCVERIFIER": {
 		RequestUpdateKYCVerifier,
 		RequestApproveKYC,
 	},
-	"article": {
+	"ARTICLE": {
 		RequestCreateArticle,
 		RequestUpdateArticle,
 		RequestDeleteArticle,
 		RequestEnableArticle,
 		RequestDisableArticle,
 	},
-	"articleCategory": {
+	"ARTICLECATEGORY": {
 		RequestCreateArticleCategory,
 		RequestUpdateArticleCategory,
 		RequestDeleteArticleCategory,
 		RequestEnableArticleCategory,
 		RequestDisableArticleCategory,
 	},
-	"short_video": {
+	"SHORTVIDEO": {
 		RequestCreateShortVideo,
 		RequestUpdateShortVideo,
 		RequestDeleteShortVideo,
 		RequestEnableShortVideo,
 		RequestDisableShortVideo,
 	},
-	"customer": {
+	"CUSTOMER": {
 		RequestEnableDisableCustomer,
 		RequestApproveFaydaCustomer,
 	},
-
-	"news_category": {
-		RequestAction("CREATE_NEWS_CATEGORY"),
-		RequestAction("UPDATE_NEWS_CATEGORY"),
-		RequestAction("DELETE_NEWS_CATEGORY"),
+	"NEWSCATEGORY": {
+		constants.RequestAction("CREATE_NEWS_CATEGORY"),
+		constants.RequestAction("UPDATE_NEWS_CATEGORY"),
+		constants.RequestAction("DELETE_NEWS_CATEGORY"),
 	},
-	"news_tag": {
+	"NEWSTAG": {
 		RequestCreateNewsTag,
 		RequestUpdateNewsTag,
 		RequestEnableNewsTag,
 		RequestDisableNewsTag,
 		RequestDeleteNewsTag,
 	},
-	"DeviceVersion": {
+	// "ACTIONROLE": {
+	// 	RequestCreateActionRole,
+	// 	RequestUpdateActionRole,
+	// 	RequestEnableActionRole,
+	// 	RequestDisableActionRole,
+	// },
+	"CPSACTIONROLE": {
+		RequestCreateCpsActionRole,
+		RequestUpdateCpsActionRole,
+		RequestEnableCpsActionRole,
+		RequestDisableCpsActionRole,
+		RequestDeleteCpsActionRole,
+	},
+	"DEVICEVERSION": {
 		RequestCreateDeviceVersion,
 		RequestUpdateDeviceVersion,
 		RequestEnableDeviceVersion,
@@ -800,9 +1181,109 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteDeviceVersion,
 		RequestEnableDisableDeviceVersion,
 	},
+	"MINIAPPCATEGORY": {
+		RequestCreateMiniAppCategory,
+		RequestUpdateMiniAppCategory,
+		RequestDeleteMiniAppCategory,
+		RequestEnableMiniAppCategory,
+		RequestDisableMiniAppCategory,
+	},
+	"EVENTMERCHANT": {
+		RequestCreateEventMerchant,
+		RequestUpdateEventMerchant,
+		RequestDeleteEventMerchant,
+		RequestEnableEventMerchant,
+		RequestDisableEventMerchant,
+	},
+	"LOGISTICSMERCHANT": {
+		RequestCreateLogisticsMerchant,
+		RequestUpdateLogisticsMerchant,
+		RequestDeleteLogisticsMerchant,
+		RequestEnableLogisticsMerchant,
+		RequestDisableLogisticsMerchant,
+	},
+	"VAULTAMOUNTTIER": {
+		RequestCreateVaultAmountTier,
+		RequestUpdateVaultAmountTier,
+		RequestDeleteVaultAmountTier,
+		RequestEnableVaultAmountTier,
+		RequestDisAbleVaultAmountTier,
+	},
+	"MINIAPPPRODUCTCODE": {
+		RequestCreateMiniappProductCode,
+		RequestUpdateMiniappProductCode,
+		RequestDeleteMiniappProductCode,
+		RequestEnableMiniappProductCode,
+		RequestDisableMiniappProductCode,
+	},
+	"ACCESSLISTSEGMENTATION": {
+		RequestCreateAccessListSegmentation,
+		RequestUpdateAccessListSegmentation,
+		RequestEnableDisableAccessListSegmentation,
+		RequestEnableAccessListSegmentation,
+		RequestDisableAccessListSegmentation,
+	},
+	// this is made as alternative to "CUSTOMERGROUP"
+	"CUSTOMERSEGMENTATIONS": {
+		RequestCreateCustomerGroup,
+		RequestUpdateCustomerGroup,
+		RequestEnableCustomerGroup,
+		RequestDisableCustomerGroup,
+		RequestDeleteCustomerGroup,
+	},
+	// this is made as alternative to "SUPERAPPROLE"
+	"CPSROLE": {
+		RequestEnableSuperAppRole,
+		RequestDisableSuperAppRole,
+		RequestDeleteSuperAppRole,
+		RequestBulkDisableAccessListByRole,
+		RequestBulkEnableAccessListByRole,
+	},
+	"BULKSERVICECUSTOMERSEGMENT": {
+		// "CUSTOMERSEGMENTATIONS": {
+		RequestCreateCustomerSegmentation,
+		RequestUpdateCustomerSegmentation,
+		RequestEnableCustomerSegmentation,
+		RequestDisableCustomerSegmentation,
+		RequestDeleteCustomerSegmentation,
+	},
+	"ACCESSLISTCUSTOMERSEGMENT": {
+		// "CUSTOMERSEGMENTATIONS": {RequestEnableAccessListSegmentation
+		// RequestAccessListCreateCustomerSegmentation,
+		RequestAccessListUpdateCustomerSegmentation,
+		RequestAccessListEnableCustomerSegmentation,
+		RequestAccessListDisableCustomerSegmentation,
+		RequestAccessListDeleteCustomerSegmentation,
+	},
+	"ECOMMERCEMERCHANT": {
+		RequestCreateEcommerceMerchant,
+		RequestUpdateEcommerceMerchant,
+		RequestEnableEcommerceMerchant,
+		RequestDisableEcommerceMerchant,
+		RequestDeleteEcommerceMerchant,
+		RequestDeleteEcommerceMerchantBranch,
+		RequestEnableEcommerceMerchantBranch,
+		RequestDisableEcommerceMerchantBranch,
+	},
+	// "CPSROLE": {
+	// 	RequestCreateCpsRole,
+	// 	RequestUpdateCpsRole,
+	// 	RequestDeleteCpsRole,
+	// 	RequestEnableCpsRole,
+	// 	RequestDisableCpsRole,
+	// },
+	"CUSTOMERKYC": {
+		RequestApproveCustomerKYC,
+		RequestRejectCustomerKYC,
+		RequestStartKycReview,
+		RequestPickKycReview,
+		// RequestCreateCustomerKYC,
+		// RequestUpdateCustomerKYC,
+		// RequestDeleteCustomerKYC,
+	},
 }
 
-func IsActionInGroup(action RequestAction, group string) bool {
+func IsActionInGroup(action constants.RequestAction, group string) bool {
 	actions, exists := RequestActionGroups[group]
 	if !exists {
 		return false

@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	bps_user_core "cbe-super-app-cps-action/internal/service/bps_user/core"
@@ -14,86 +13,211 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
+
+	// local_model "cbe-super-app-cps-action/internal/constants/model"
+
+	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type bpsUserService struct {
-	cpsService service.CPSActionService
-	repo       storage.BPSUserRepository
-	logger     utils.Logger
+	cpsService     service.CPSActionService
+	repo           storage.BPSUserRepository
+	CPSUserRepo    storage.CpsUserRepository
+	Job_roles_repo storage.JobRoleRepository
+	Branch_blocks  storage.AccountBlockRepository
+	logger         utils.Logger
 }
 
-func NewBPSUserService(repo storage.BPSUserRepository, cpsService service.CPSActionService, logger utils.Logger) service.BPSUserService {
+func NewBPSUserService(repo storage.BPSUserRepository, JobRolesRepo storage.JobRoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository, branch_blocks storage.AccountBlockRepository, logger utils.Logger) service.BPSUserService {
 	return &bpsUserService{
-		cpsService: cpsService,
-		repo:       repo,
-		logger:     logger,
+		cpsService:     cpsService,
+		repo:           repo,
+		CPSUserRepo:    cpsUserRepo,
+		Job_roles_repo: JobRolesRepo,
+		Branch_blocks:  branch_blocks,
+		logger:         logger,
 	}
 }
 
 // Authorize implements service.BPSUserService.
 func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "BPS User", "Authorize")
+	defer span.End()
+
 	var actionMap interface{}
 	marshaled, err := json.Marshal(cpsAction.CurrentAction)
 	if err != nil {
+		span.AddEvent("failed to marshal CurrentAction", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", cpsAction.UniqueId),
+		))
 		fmt.Printf("failed to marshal CurrentAction: %v\n", err)
-		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	fmt.Printf("JSON bytes: %s\n", string(marshaled))
 	err = json.Unmarshal(marshaled, &actionMap)
 	if err != nil {
+		span.AddEvent("failed to unmarshal CurrentAction", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", cpsAction.UniqueId),
+		))
 		fmt.Printf("failed to unmarshal CurrentAction: %v\n", err)
-		return nil, fmt.Errorf("failed to unmarshal to interface{}: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	actionData := bps_user_core.BPSUser_mapper(actionMap.(map[string]interface{}))
 	if cpsAction.UniqueId != "" {
 		objID, err := bson.ObjectIDFromHex(cpsAction.UniqueId)
 		if err != nil {
+			span.AddEvent("[Authorize] failed to parse unique id", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			b.logger.Errorf("[BpsUserSvc][Authorize] parse unique id err: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		actionData.ID = objID
 	}
 
 	actionData.LastModifiedAt = time.Now()
+	// local_actionData := bps_user_core.MapBPSUserToWithJobTitle(actionData)
 
 	switch cpsAction.RequestAction {
+	case string(constants.RequestCreateBPSUser):
+		if err := b.repo.Create(ctx, actionData); err != nil {
+			span.AddEvent("[Authorize] failed to create BPS user", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			b.logger.Errorf("[BpsUserSvc][Authorize] create err: %v", err)
+			return nil, err
+		}
+		b.logger.Infof("[BpsUserSvc][Authorize] created")
+		return nil, nil
+	case string(constants.RequestBpsUserUpdate):
+		if err := b.repo.Update(ctx, &actionData); err != nil {
+			span.AddEvent("[Authorize] failed to update BPS user", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			b.logger.Errorf("[BpsUserSvc][Authorize] update err: %v", err)
+			return nil, err
+		}
+		b.logger.Infof("[BpsUserSvc][Authorize] updated id: %s", cpsAction.UniqueId)
+		return nil, nil
+	case string(constants.RequestBpsUserDelete):
+		actionData.IsDeleted = true
+		if err := b.repo.Update(ctx, &actionData); err != nil {
+			span.AddEvent("[Authorize] failed to soft-delete BPS user", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			b.logger.Errorf("[BpsUserSvc][Authorize] delete err: %v", err)
+			return nil, err
+		}
+		b.logger.Infof("[BpsUserSvc][Authorize] soft-deleted id: %s", cpsAction.UniqueId)
+		return nil, nil
 	case string(constants.RequestEnableBPSUser):
 		actionData.Enabled = true
+		b.logger.Infof("[BpsUserSvc][Authorize] enabling id: %s", cpsAction.UniqueId)
 	case string(constants.RequestDisableBPSUser):
 		actionData.Enabled = false
+		b.logger.Infof("[BpsUserSvc][Authorize] disabling id: %s", cpsAction.UniqueId)
+
 	default:
+		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", cpsAction.RequestAction)))
+		b.logger.Errorf("[BpsUserSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 		return nil, errors.New(localization.ErrorActionNotFound.Code)
 	}
-	return nil, b.repo.Update(ctx, &actionData)
+	if err := b.repo.Update(ctx, &actionData); err != nil {
+		span.AddEvent("[Authorize] failed to update BPS user", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", cpsAction.UniqueId),
+		))
+		b.logger.Errorf("[BpsUserSvc][Authorize] update err: %v", err)
+		return nil, err
+	}
+	b.logger.Infof("[BpsUserSvc][Authorize] authorized id: %s", cpsAction.UniqueId)
+	return nil, nil
 }
 
 // FetchUserByUserCode implements service.BPSUserService.
-func (b *bpsUserService) FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error) {
-	return b.repo.GetByUserCode(ctx, userCode)
+func (b *bpsUserService) FetchUserByUserCode(ctx context.Context, userCode string) (*bpsUserDto.BPSUserResposenDTO, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "FetchUserByUserCode", "BPS User", "FetchUserByUserCode")
+	defer span.End()
+
+	user, err := b.repo.GetByUserCode(ctx, userCode)
+	if err != nil {
+		span.AddEvent("[FetchUserByUserCode] failed to fetch BPS user", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_code", userCode),
+		))
+		b.logger.Errorf("[BpsUserSvc][FetchByCode] fetch err: %v", err)
+		return nil, err
+	}
+	b.logger.Infof("[BpsUserSvc][FetchByCode] retrieved code: %s", userCode)
+	return user, nil
 }
 
 // GetAllBPSUsers implements service.BPSUserService.
-func (b *bpsUserService) GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error) {
-	return b.repo.FindAllWithPagination(ctx, *filterParams)
+func (b *bpsUserService) GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]bpsUserDto.BPSUserResposenDTO], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllBPSUsers", "BPS User", "GetAllBPSUsers")
+	defer span.End()
+
+	result, err := b.repo.FindAllWithPagination(ctx, *filterParams)
+	if err != nil {
+		span.AddEvent("[GetAllBPSUsers] failed to fetch BPS users", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
+		b.logger.Errorf("[BpsUserSvc][GetAll] fetch err: %v", err)
+		return nil, err
+	}
+	b.logger.Infof("[BpsUserSvc][GetAll] retrieved %d", len(result.Data))
+	return result, nil
 }
 
 // UpdateBpsUser implements service.BPSUserService.
-func (b *bpsUserService) UpdateBpsUser(ctx context.Context, userCode string, status bool) error {
+func (b *bpsUserService) UpdateStatusBpsUser(ctx context.Context, userCode string, status bool) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateBpsUser", "BPS User", "UpdateBpsUser")
+	defer span.End()
+
+	b.logger.Infof("[BpsUserSvc][UpdateStatus] enabled: %v", status)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	user, err := b.repo.GetByUserCode(ctx, userCode)
 	if err != nil {
+		span.AddEvent("[UpdateBpsUser] failed to find BPS user", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_code", userCode),
+		))
+		b.logger.Errorf("[BpsUserSvc][UpdateStatus] find err: %v", err)
 		return err
 	}
 
+	if user == nil {
+		span.AddEvent("[UpdateBpsUser] BPS user not found", trace.WithAttributes(attribute.String("user_code", userCode)))
+		b.logger.Errorf("[BpsUserSvc][UpdateStatus] not found: %s", userCode)
+		return errors.New(localization.ErrorUserNotFound.Code)
+	}
+
 	if user.Enabled && status {
+		span.AddEvent("[UpdateBpsUser] BPS user already enabled", trace.WithAttributes(attribute.String("user_code", userCode)))
+		b.logger.Errorf("[BpsUserSvc][UpdateStatus] already enabled: %s", userCode)
 		return errors.New(localization.ErrorUserAlreadyEnabled.Code)
 	}
 
 	if !user.Enabled && !status {
+		span.AddEvent("[UpdateBpsUser] BPS user already disabled", trace.WithAttributes(attribute.String("user_code", userCode)))
+		b.logger.Errorf("[BpsUserSvc][UpdateStatus] already disabled: %s", userCode)
 		return errors.New(localization.ErrorUserAlreadyDisabled.Code)
 	}
 
@@ -105,14 +229,278 @@ func (b *bpsUserService) UpdateBpsUser(ctx context.Context, userCode string, sta
 		requestAction = string(constants.RequestEnableBPSUser)
 	} else {
 		requestAction = string(constants.RequestDisableBPSUser)
-
 	}
-	fmt.Println(requestAction)
 
 	cpsActionData := lib.CpsModelBuilder(user.ID.Hex(), makerData, user, updatedUser, requestAction, constants.UPDATE)
 
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+		span.AddEvent("[UpdateBpsUser] failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_code", userCode),
+		))
+		b.logger.Errorf("[BpsUserSvc][UpdateStatus] cps action err: %v", err)
 		return err
 	}
+	b.logger.Infof("[BpsUserSvc][UpdateStatus] request created code: %s", userCode)
+	return nil
+}
+func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUser) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "CreateBPSUser", "BPS User", "CreateBPSUser")
+	defer span.End()
+	makerData := local_util.ExtractUserFromContext(ctx)
+
+	existing, err := b.repo.FindByOr(ctx, req.PhoneNumber, req.Email, req.Username)
+	if err != nil {
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			b.logger.Errorf("[BpsUserSvc][Create] check existing err: %v", err)
+			return err
+		}
+	}
+
+	if err := bps_user_core.ExistingIdentifier(existing, req); err != nil {
+		b.logger.Infof("[BpsUserSvc][Create] duplicate data: %v", err)
+		return err
+	}
+
+	roles, err := b.Job_roles_repo.FindByFilterKey(ctx, "job_title", req.JobTitle)
+	if err != nil {
+		b.logger.Errorf("[BpsUserSvc][Create] role lookup err for job_title: %s, err: %v", req.JobTitle, err)
+		return errors.New(localization.ErrorRoleNotFound.Code)
+	}
+	if roles == nil || roles.Role == "" {
+		b.logger.Errorf("[BpsUserSvc][Create] role not found for job_title: %s", req.JobTitle)
+		return errors.New(localization.ErrorRoleNotFound.Code)
+	}
+
+	is_exist_on_CPS, err := b.CPSUserRepo.FindByEmailOrPhoneNumberOrUserName(ctx, req.Email, req.PhoneNumber, req.Username)
+	if err != nil {
+		b.logger.Errorf("[CreateBPSUser] got error while checking user data exist on cps user error: %v", err.Error())
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			return errors.New(localization.ErrorInternalServerError.Code)
+		}
+	}
+
+	b.logger.Infof("[CreateBPSUser] existing user on CPS: %v", is_exist_on_CPS)
+	if is_exist_on_CPS != nil {
+		b.logger.Infof("[CreateBPSUser] found existing user on CPS----------------: %v", is_exist_on_CPS)
+		if is_exist_on_CPS.UserName != "" && is_exist_on_CPS.UserName == req.Username {
+			b.logger.Errorf("[CreateBPSUser] user name already exist")
+			return errors.New(localization.ErrorExistUserName.Code)
+		}
+
+		if is_exist_on_CPS.Email != "" && is_exist_on_CPS.Email == req.Email {
+			b.logger.Errorf("[CreateBPSUser] email already exist")
+			return errors.New(localization.ErrorExistEmail.Code)
+
+		}
+
+		if is_exist_on_CPS.PhoneNumber != "" && is_exist_on_CPS.PhoneNumber == req.PhoneNumber {
+			b.logger.Errorf("[CreateBPSUser] phone number already exist")
+			return errors.New(localization.ErrorExistPhoneNumber.Code)
+		}
+	}
+
+	if b.Branch_blocks == nil {
+		b.logger.Errorf("[CreateBPSUser] account block repository is not configured")
+		return errors.New(localization.ErrorInternalServerError.Code)
+	}
+	if len(req.BranchCode) == 0 {
+		return errors.New(localization.ErrorBranchCodeRequired.Code)
+	}
+	branchCode := strings.TrimSpace(req.BranchCode[0])
+	if branchCode == "" {
+		return errors.New(localization.ErrorBranchCodeRequired.Code)
+	}
+
+	branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "code", branchCode)
+	if err != nil {
+		b.logger.Errorf("[CreateBPSUser] Get error while locking branch name by branch code")
+		if err.Error() == localization.ErrorResourceNotFound.Code {
+			return errors.New(localization.ErrorBranchNotExistWithGivenBranchCode.Code)
+		}
+		return err
+	}
+
+	if branch_detail == nil {
+		b.logger.Warnf("[CreateBPSUser] branch not found with given branch code")
+		return errors.New(localization.ErrorBranchNotExistWithGivenBranchCode.Code)
+	}
+
+	req.BranchName = branch_detail.Name
+	req.UserCode = local_util.UniqueIdGenerator()
+
+	// Build CPS action model for create
+	cpsActionModel := lib.CpsModelBuilder(
+		"",                                     // unique id
+		makerData,                              // maker data
+		nil,                                    // old data (nil for create)
+		req,                                    // new data
+		string(constants.RequestCreateBPSUser), // request action
+		constants.CREATE,                       // action type
+	)
+
+	// Create CPS action
+	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
+		span.AddEvent("[CreateBPSUser] failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_code", req.UserCode),
+		))
+		b.logger.Errorf("[BpsUserSvc][Create] cps action err: %v", err)
+		return err
+	}
+
+	b.logger.Infof("[BpsUserSvc][Create] request created code: %s", req.UserCode)
+	return nil
+}
+
+func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updatedUser bps_model.BPSUser) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateBPSUser", "BPS User", "UpdateBPSUser")
+	defer span.End()
+	makerData := local_util.ExtractUserFromContext(ctx)
+
+	curUser, err := b.repo.GetByUserID(ctx, userID)
+	if err != nil {
+		span.AddEvent("[UpdateBPSUser] failed to find BPS user", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_id", userID),
+		))
+		return err
+	}
+
+	existing, err := b.repo.FindByOr(ctx, updatedUser.PhoneNumber, updatedUser.Email, updatedUser.Username)
+	if err != nil {
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			b.logger.Errorf("[BpsUserSvc][Update] check existing err: %v, existing: %v, userID: %s, updatedUser: %v", err, existing, userID, updatedUser)
+			return err
+		}
+	}
+
+	if existing != nil {
+		b.logger.Infof("[BpsUserSvc][Update] found existing user: %v for update with userID: %s, updatedUser: %v", existing, userID, updatedUser)
+		if err := bps_user_core.ExistingIdentifierForUpdate(*existing, userID, updatedUser); err != nil {
+			b.logger.Infof("[BpsUserSvc][Update] duplicate data: %v", err)
+			if !errors.Is(err, localization.ErrorUserNotFound) {
+				return err
+			}
+		}
+	}
+	updatedUser.Enabled = curUser.Enabled
+	is_exist_on_CPS, err := b.CPSUserRepo.FindByEmailOrPhoneNumberOrUserName(ctx, updatedUser.Email, updatedUser.PhoneNumber, updatedUser.Username)
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+		b.logger.Errorf("[UpdateBPSUser] got error while checking user data exist on cps user ")
+		return localization.ErrorInternalServerError
+	}
+	if is_exist_on_CPS != nil {
+		if is_exist_on_CPS.UserName != "" && is_exist_on_CPS.UserName == updatedUser.Username {
+			b.logger.Errorf("[UpdateBPSUser] user name already exist")
+			return errors.New(localization.ErrorExistUserName.Code)
+		}
+
+		if is_exist_on_CPS.Email != "" && is_exist_on_CPS.Email == updatedUser.Email {
+			b.logger.Errorf("[UpdateBPSUser] email already exist")
+			return errors.New(localization.ErrorExistEmail.Code)
+
+		}
+
+		if is_exist_on_CPS.PhoneNumber != "" && is_exist_on_CPS.PhoneNumber == updatedUser.PhoneNumber {
+			b.logger.Errorf("[UpdateBPSUser] phone number already exist")
+			return errors.New(localization.ErrorExistPhoneNumber.Code)
+		}
+	}
+
+	if len(updatedUser.BranchCode) > 0 {
+		branch_detail, err := b.Branch_blocks.FindByFilterKey(ctx, "code", strings.TrimSpace(updatedUser.BranchCode[0]))
+		if err != nil {
+			if err.Error() != localization.ErrorResourceNotFound.Code {
+				b.logger.Errorf("[UpdateBPSUser] branch not found")
+				return errors.New(localization.ErrorBranchNotFoundRequired.Code)
+			} else {
+				b.logger.Errorf("[UpdateBPSUser] Get error while locking branch name by branch code")
+				return errors.New(localization.ErrorInternalServerError.Code)
+			}
+		}
+		if branch_detail == nil {
+			b.logger.Warnf("[UpdateBPSUser] branch not found with given branch code")
+			return errors.New(localization.ErrorBranchNotExistWithGivenBranchCode.Code)
+		}
+		updatedUser.BranchName = branch_detail.Name
+	}
+	updatedUser = bps_user_core.BuildUpdatedBPSUser(*curUser, updatedUser)
+	// updatedUser.Role = roles.Role
+	cpsActionModel := lib.CpsModelBuilder(
+		curUser.ID.Hex(),                       // unique id
+		makerData,                              // maker data
+		curUser,                                // old data
+		updatedUser,                            // new data
+		string(constants.RequestBpsUserUpdate), // request action
+		constants.UPDATE,                       // action type
+	)
+
+	// Create CPS action
+	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
+		span.AddEvent("[UpdateBPSUser] failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_code", userID),
+		))
+		b.logger.Errorf("[BpsUserSvc][Update] cps action err: %v", err)
+		return err
+	}
+
+	b.logger.Infof("[BpsUserSvc][Update] request created id: %s", userID)
+	return nil
+}
+
+func (b *bpsUserService) DeleteBPSUser(ctx context.Context, userID string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteBPSUser", "BPS User", "DeleteBPSUser")
+	defer span.End()
+
+	makerData := local_util.ExtractUserFromContext(ctx)
+	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", localization.ErrorIncompleteUserInfo.Code),
+			attribute.String("user_id", userID),
+		))
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+
+	existingUser, err := b.repo.GetByUserID(ctx, userID)
+	if err != nil {
+		span.AddEvent("[DeleteBPSUser] failed to find BPS user", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_id", userID),
+		))
+		b.logger.Errorf("[BpsUserSvc][Delete] find err: %v", err)
+		return err
+	}
+	if existingUser == nil {
+		span.AddEvent("BPS user not found", trace.WithAttributes(
+			attribute.String("error", localization.ErrorUserNotFound.Code),
+			attribute.String("user_id", userID),
+		))
+		return errors.New(localization.ErrorUserNotFound.Code)
+	}
+	if existingUser.IsDeleted {
+		span.AddEvent("BPS user already deleted", trace.WithAttributes(
+			attribute.String("error", localization.ErrorAlreadyDeleted.Code),
+			attribute.String("user_id", userID),
+		))
+		return errors.New(localization.ErrorAlreadyDeleted.Code)
+	}
+
+	updatedUser := *existingUser
+	updatedUser.IsDeleted = true
+	updatedUser.LastModifiedAt = time.Now()
+	// fmt.Println("LOLOLOLO IN FUNCTION DELETE")
+	cpsActionData := lib.CpsModelBuilder(existingUser.ID.Hex(), makerData, existingUser, updatedUser, string(constants.RequestBpsUserDelete), constants.DELETE)
+	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+		span.AddEvent("[DeleteBPSUser] failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_id", userID),
+		))
+		b.logger.Errorf("[BpsUserSvc][Delete] cps action err: %v", err)
+		return err
+	}
+
+	b.logger.Infof("[BpsUserSvc][Delete] request created id: %s", userID)
 	return nil
 }

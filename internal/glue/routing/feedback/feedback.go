@@ -14,7 +14,7 @@ func Init(router chi.Router, feedbackHandler feedback.FeedbackAdapter, authMiddl
 	routes := []glue.Route{
 		{
 			Method:      http.MethodPost,
-			Path:        "/feedback/create",
+			Path:        "/feedback-surveys/create",
 			Handler:     feedbackHandler.CreateFeedback,
 			Middlewares: []func(next http.Handler) http.Handler{},
 		},
@@ -30,6 +30,38 @@ func Init(router chi.Router, feedbackHandler feedback.FeedbackAdapter, authMiddl
 			Method:  http.MethodGet,
 			Path:    "/feedback/{id}",
 			Handler: feedbackHandler.GetFeedbackByID,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/customer-feedbacks",
+			Handler: feedbackHandler.GetAllCustomerFeedbacks,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/customer-feedbacks/{id}",
+			Handler: feedbackHandler.GetCustomerFeedback,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/survey-feedbacks",
+			Handler: feedbackHandler.GetAllSurveyFeedbacks,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/survey-feedbacks/{id}",
+			Handler: feedbackHandler.GetSurveyFeedbacksByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},

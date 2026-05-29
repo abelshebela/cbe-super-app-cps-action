@@ -2,12 +2,14 @@ package reset_session
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -19,43 +21,41 @@ type ResetSessionRepository struct {
 	logger          utils.Logger
 }
 
-func NewResetSessionRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.ResetSessionRepository {
+func NewResetSessionRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.ResetSessionRepository {
 	return &ResetSessionRepository{
-		resetSessionDal: dal.NewMongoDal[model.PinResetSession, model.PinResetSession](client, dbName, collection),
+		resetSessionDal: dal.NewMongoDal[model.PinResetSession, model.PinResetSession](client, cfg, dbName, collection),
 		logger:          logger,
 	}
 }
 
 func (r *ResetSessionRepository) Save(ctx context.Context, session *model.PinResetSession) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	_, err := r.resetSessionDal.InsertOne(ctx, *session)
 	if err != nil {
-		r.logger.Errorf("Unexpected error while saving reset session. error=%v, session=%+v", err, session)
+		log.Errorf("Unexpected error while saving reset session. error=%v, session=%+v", err, session)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	r.logger.Infof("Reset session saved successfully. session=%+v", session)
+	log.Infof("Reset session saved successfully. session=%+v", session)
 	return nil
 }
 
 func (r *ResetSessionRepository) FindById(ctx context.Context, id string) (*model.PinResetSession, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	projection := ResetSessionProjection()
 	filter := ResetSessionIdFilterAttachment(id)
 
 	session, err := r.resetSessionDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("No reset session found for the provided id")
-			return nil, errors.New(localization.ErrorSessionNotFound.Code)
-		}
-		r.logger.Errorf("Unexpected error while finding reset session by id. error=%v, id=%s", err, id)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
-	r.logger.Infof("Reset session found by id successfully. id=%s", id)
+	log.Infof("Reset session found by id successfully. id=%s", id)
 	return session, nil
 }
 
 func (r *ResetSessionRepository) FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.PinResetSession, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	projection := ResetSessionProjection()
 	filter := ResetSessionPhoneFilterAttachment(phoneNumber)
@@ -63,18 +63,14 @@ func (r *ResetSessionRepository) FindByPhoneNumber(ctx context.Context, phoneNum
 	session, err := r.resetSessionDal.FindOne(ctx, filter, projection)
 	if err != nil {
 
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("No reset session found for the provided phone number")
-			return nil, errors.New(localization.ErrorSessionNotFound.Code)
-		}
-		r.logger.Errorf("Unexpected error while finding reset session by phone number. error=%v, phoneNumber=%s", err, phoneNumber)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
-	r.logger.Infof("Reset session found by phone number successfully. phoneNumber=%s", phoneNumber)
+	log.Infof("Reset session found by phone number successfully. phoneNumber=%s", phoneNumber)
 	return session, nil
 }
 
 func (r *ResetSessionRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string) (*model.PinResetSession, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	projection := ResetSessionProjection()
 	filter := bson.M{}
@@ -82,20 +78,17 @@ func (r *ResetSessionRepository) FindByDeviceUUID(ctx context.Context, deviceUUI
 
 	session, err := r.resetSessionDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("No reset session found for the provided deviceUUID")
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		r.logger.Errorf("Unexpected error while finding reset session by deviceUUID. error=%v, deviceUUID=%s", err, deviceUUID)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
-	r.logger.Infof("Reset session found by deviceUUID successfully. deviceUUID=%s", deviceUUID)
+	log.Infof("Reset session found by deviceUUID successfully. deviceUUID=%s", deviceUUID)
 	return session, nil
 }
 
 func (r *ResetSessionRepository) Update(ctx context.Context, id string, update *model.PinResetSession) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
 	if update == nil {
-		r.logger.Errorf("Update reset session failed: update is nil")
+		log.Errorf("Update reset session failed: update is nil")
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -121,25 +114,26 @@ func (r *ResetSessionRepository) Update(ctx context.Context, id string, update *
 
 	_, err := r.resetSessionDal.UpdateOne(ctx, filter, updateDoc)
 	if err != nil {
-		r.logger.Errorf("Unexpected error while updating reset session. error=%v, id=%s", err, id)
+		log.Errorf("Unexpected error while updating reset session. error=%v, id=%s", err, id)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	r.logger.Infof("Reset session updated successfully. id=%s", id)
+	log.Infof("Reset session updated successfully. id=%s", id)
 	return nil
 }
 
 func (r *ResetSessionRepository) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	filter, err := local_util.FilterIdFor(id)
 
 	if err != nil {
-		r.logger.Errorf("Delete OTP failed: error creating filter. error=%v, id=%s", err, id)
-		return err
+		log.Errorf("Delete OTP failed: error creating filter. error=%v, id=%s", err, id)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	if err := r.resetSessionDal.DeleteOne(ctx, filter); err != nil {
-		r.logger.Errorf("Delete OTP failed: error deleting OTP. error=%v, id=%s", err, id)
-		return err
+		log.Errorf("Delete OTP failed: error deleting OTP. error=%v, id=%s", err, id)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	r.logger.Infof("OTP deleted successfully. id=%s", id)
+	log.Infof("OTP deleted successfully. id=%s", id)
 	return nil
 }

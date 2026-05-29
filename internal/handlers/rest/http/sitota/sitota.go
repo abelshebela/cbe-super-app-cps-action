@@ -3,8 +3,13 @@ package sitota
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
+	"errors"
 	"net/http"
 	"strings"
+
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -32,12 +37,33 @@ func InitSitotaHandler(svc service.SitotaService, logger utils.Logger) *handler 
 //	@Security		BearerAuth
 //	@Router			/sitotas [get]
 func (h *handler) GetAllSitotas(w http.ResponseWriter, r *http.Request) {
-	sitotas, err := h.svc.GetAllSitotas(r.Context())
-	if err != nil {
-		h.logger.Errorf("[GetAllSitotas] service: %v", err)
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllSitotas", "handler", "sitota")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	params := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	sitotas, err := h.svc.GetAllSitotas(ctx, params)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[GetAllSitotas] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	span.SetAttributes(attribute.Int("sitota.count", len(sitotas.Data)))
+	log.Infof("[GetAllSitotas] retrieved %d sitota transactions", len(sitotas.Data))
 	localization.SendSuccessResponse(w, localization.SuccessAllSitotasRetrieved, sitotas)
 }
 
@@ -56,17 +82,24 @@ func (h *handler) GetAllSitotas(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/sitotas/{id} [get]
 func (h *handler) GetSitota(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getSitota", "handler", "sitota")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
+		span.RecordError(errors.New("sitota ID is required"))
 		localization.SendErrorByCodeResponse(w, localization.ErrorSitotaRequired.Code)
 		return
 	}
 
-	sitota, err := h.svc.GetSitotaByID(r.Context(), id)
+	span.SetAttributes(attribute.String("sitota.id", id))
+	sitota, err := h.svc.GetSitotaByID(ctx, id)
 	if err != nil {
-		h.logger.Errorf("[GetSitota] service: %v", err)
+		span.RecordError(err)
+		log.Errorf("[GetSitota] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	log.Infof("[GetSitota] sitota transaction retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessSitotaRetrieved, sitota)
 }

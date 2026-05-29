@@ -1,7 +1,6 @@
 package notification
 
 import (
-	role "cbe-super-app-cps-action/internal/constants"
 	notification "cbe-super-app-cps-action/internal/constants/interfaces/notification"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -18,7 +17,6 @@ func Init(router chi.Router, handler notification.NotificationHandler, authMiddl
 			Handler: handler.CreateNotification,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -27,7 +25,6 @@ func Init(router chi.Router, handler notification.NotificationHandler, authMiddl
 			Handler: handler.FetchNotificationByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker, role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -36,7 +33,6 @@ func Init(router chi.Router, handler notification.NotificationHandler, authMiddl
 			Handler: handler.FetchNotifications,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Checker, role.IFBChecker, role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -45,7 +41,6 @@ func Init(router chi.Router, handler notification.NotificationHandler, authMiddl
 			Handler: handler.UpdateNotification,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -54,7 +49,6 @@ func Init(router chi.Router, handler notification.NotificationHandler, authMiddl
 			Handler: handler.EnableNotification,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -63,7 +57,6 @@ func Init(router chi.Router, handler notification.NotificationHandler, authMiddl
 			Handler: handler.DisableNotification,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -72,7 +65,6 @@ func Init(router chi.Router, handler notification.NotificationHandler, authMiddl
 			Handler: handler.DeleteNotification,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 	}

@@ -1,14 +1,20 @@
 package newstag_repo
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"errors"
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -16,31 +22,37 @@ import (
 )
 
 type NewsTagRepository struct {
-	client   *mongo.Client
-	mongoDal dal.MongoDal[model.NewsTag, model.NewsTag]
-	logger   utils.Logger
+	client        *mongo.Client
+	mongoDal      dal.MongoDal[model.NewsTag, model.NewsTag]
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
-func NewNewsTagRepository(client *mongo.Client, database string, collection string, logger utils.Logger) storage.NewsTagRepository {
-	mongoDal := dal.NewMongoDal[model.NewsTag, model.NewsTag](client, database, collection)
+func NewNewsTagRepository(client *mongo.Client, cfg *config.VaultConfig, database string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.NewsTagRepository {
+	mongoDal := dal.NewMongoDal[model.NewsTag, model.NewsTag](client, cfg, database, collection)
 	return &NewsTagRepository{
-		client:   client,
-		mongoDal: mongoDal,
-		logger:   logger,
+		client:        client,
+		mongoDal:      mongoDal,
+		kafkaProducer: kafkaProducer,
+		logger:        logger,
 	}
 }
 
 // Create implements storage.NewsTagRepository.
 func (n *NewsTagRepository) Create(ctx context.Context, tagName []string) error {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	session, err := n.client.StartSession()
 	if err != nil {
-		return err
+		log.Errorf("[NewsTagRepository][Create] failed to start session: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer session.EndSession(ctx)
 
 	err = mongo.WithSession(ctx, session, func(sc context.Context) error {
 		if err := session.StartTransaction(); err != nil {
-			return err
+			log.Errorf("[NewsTagRepository][Create] failed to start transaction: %v", err)
+			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
 		for _, name := range tagName {
@@ -51,21 +63,30 @@ func (n *NewsTagRepository) Create(ctx context.Context, tagName []string) error 
 				LastModifiedAt: time.Now(),
 			}
 			if _, err := n.mongoDal.InsertOne(sc, cat); err != nil {
+				log.Errorf("[NewsTagRepository][Create] failed to insert tag: %v", err)
 				_ = session.AbortTransaction(sc)
-				return err
+				return errors.New(localization.ErrorUnexpectedError.Code)
 			}
 		}
 
 		if err := session.CommitTransaction(sc); err != nil {
-			return err
+			log.Errorf("[NewsTagRepository][Create] failed to commit transaction: %v", err)
+			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
+		n.kafkaProducer.PublishMessage(ctx, tagName, string(constants.ClientOrchestrationNewsTagTopic), string(constants.ClientOrchestrationNewsTagTopic), "new news tags created")
 		return nil
 	})
-	return err
+	if err != nil {
+		log.Errorf("[NewsTagRepository][Create] transaction failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
 }
 
 // Delete implements storage.NewsTagRepository.
 func (n *NewsTagRepository) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return localization.ErrorNewsTagInvalidID
@@ -73,13 +94,15 @@ func (n *NewsTagRepository) Delete(ctx context.Context, id string) error {
 
 	err = n.mongoDal.DeleteOne(ctx, bson.M{"_id": objID})
 	if err != nil {
-		return err
+		log.Errorf("[NewsTagRepository][Delete] failed to delete news tag: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 
 // FindAllWithPagination implements storage.NewsTagRepository.
-func (n *NewsTagRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.NewsTag], error) {
+func (n *NewsTagRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.NewsTag], error) {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
 
 	searchKeys := bson.M{}
 
@@ -101,7 +124,8 @@ func (n *NewsTagRepository) FindAllWithPagination(ctx context.Context, filterPar
 	filter["is_deleted"] = false
 	categories, err := n.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, err
+		log.Errorf("[NewsTagRepository][FindAllWithPagination] failed to fetch news tags: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	totalDocs, err := n.mongoDal.TotalCount(ctx, filter)
@@ -143,7 +167,7 @@ func (n *NewsTagRepository) FindAllWithPagination(ctx context.Context, filterPar
 		nextPage = &nxt
 	}
 
-	return &types.PaginatedResponse[[]*model.NewsTag]{
+	return &types.PaginatedResponse[[]model.NewsTag]{
 		Data: categories,
 		Meta: types.PaginationMeta{
 			TotalDocs:     totalDocs,
@@ -174,7 +198,7 @@ func (n *NewsTagRepository) FindByNames(ctx context.Context, names []string) (*m
 	filter := bson.M{"$or": orQueries}
 	news_category, err := n.mongoDal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return news_category, nil
@@ -189,21 +213,25 @@ func (n *NewsTagRepository) Get(ctx context.Context, id string) (*model.NewsTag,
 
 	tag, err := n.mongoDal.FindOne(ctx, bson.M{"_id": objID, "is_deleted": false}, bson.M{})
 	if err != nil {
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	return tag, nil
 }
 
 // Update implements storage.NewsTagRepository.
 func (n *NewsTagRepository) Update(ctx context.Context, id string, tagName string) error {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return localization.ErrorNewsCategoryInvalidID
 	}
 
-	_, err = n.mongoDal.UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"tag_name": tagName})
+	updatedNewsCategory, err := n.mongoDal.UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"tag_name": tagName})
 	if err != nil {
-		return err
+		log.Errorf("[NewsTagRepository][Update] failed to update news tag: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	n.kafkaProducer.PublishMessage(ctx, updatedNewsCategory, string(constants.ClientOrchestrationNewsTagTopic), string(constants.ClientOrchestrationNewsTagTopic), "news tag updated")
 	return nil
 }

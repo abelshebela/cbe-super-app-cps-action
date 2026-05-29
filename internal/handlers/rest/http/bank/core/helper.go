@@ -4,34 +4,31 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"errors"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"fmt"
 	"mime/multipart"
 	"net/http"
 	"strings"
 
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64, action string, logger utils.Logger) (multipart.File, *multipart.FileHeader, error) {
-	if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
-		return nil, nil, fmt.Errorf("%s", localization.MsgFileNotFound)
-	}
-	if err := r.ParseMultipartForm(maxMemory); err != nil {
-		return nil, nil, fmt.Errorf("failed to parse multipart form: %w", err)
-	}
 
-	file, fileHeader, err := r.FormFile(key)
+	file, fileHeader, err := local_util.ParseMultipartFormFile(r, "logo", int64(constants.MaxMemoryForUpload))
 	if err != nil {
-		if errors.Is(err, http.ErrMissingFile) {
+		logger.Errorf("[BankHelper][ParseFile] error parsing multipart form file: %v", err)
+		if err == http.ErrMissingFile {
 
 			if action == constants.CREATE {
 				if err == http.ErrMissingFile {
-					logger.Errorf("Error logo file is missing error: %v", err)
+					logger.Errorf("[BankHelper][ParseFile] logo missing: %v", err)
 					return nil, nil, fmt.Errorf("%s", localization.MsgFileNotFound)
 				}
 			}
-			logger.Infof("Logo not provided for update - skipping file update")
+			logger.Infof("[BankHelper][ParseFile] no logo, skipping")
 			return nil, nil, nil
 		}
 
@@ -42,19 +39,17 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64, action
 }
 
 func ValidateBankRequest(r *http.Request, data interface{}) localization.ResponseCode {
-	var name, code, bic *string
+	var bic *string
 
 	switch v := data.(type) {
 	case *bank_dto.UpdateBankRequest:
 		if v == nil {
 			return localization.ErrorNoDataProvidedForBankUpdate
 		}
-		if v.Logo != nil {
-			if err := v.Validate(); err != nil {
-				return localization.ErrorToResponseCode(err.Error(), 400, err.Error())
-			}
+		if err := v.Validate(); err != nil {
+			return localization.ErrorToResponseCode(err.Error(), 400, err.Error())
 		}
-		name, code, bic = &v.Name, &v.Code, &v.BIC
+		bic = &v.BICCode
 	case *bank_dto.CreateBankRequest:
 		if v == nil {
 			return localization.ErrorNoDataProvidedForBankUpdate
@@ -62,20 +57,27 @@ func ValidateBankRequest(r *http.Request, data interface{}) localization.Respons
 		if err := v.Validate(); err != nil {
 			return localization.ErrorToResponseCode(err.Error(), 400, err.Error())
 		}
-		name, code, bic = &v.Name, &v.Code, &v.BIC
+		bic = &v.BICCode
 	default:
 		return localization.ErrorInvalidBankRequest
 	}
 
-	if *name != "" && isInvalidFormat(name) {
-		return localization.ErrorInvalidFormatForName
-	}
-	if *code != "" && isInvalidFormat(code) {
-		return localization.ErrorInvalidFormatForCode
-	}
+	// if *name != "" && isInvalidFormat(name) {
+	// 	return localization.ErrorInvalidFormatForName
+	// }
+
 	if *bic != "" && isInvalidFormat(bic) {
 		return localization.ErrorInvalidFormatForBIC
 	}
+
+	// if bankType != nil && *bankType != "" {
+	// 	switch *bankType {
+	// 	case constants.Bank, constants.Wallet, constants.MFI:
+	// 		// valid type
+	// 	default:
+	// 		return localization.ErrorInvalidBankRequest
+	// 	}
+	// }
 
 	return localization.ResponseCode{}
 }
@@ -95,4 +97,45 @@ func isInvalidFormat(s *string) bool {
 		}
 	}
 	return false
+}
+
+func MapBankToAddBool(oracleBank []imodel.BankOracle) []bank_dto.BankOracleResponse {
+	var banks []bank_dto.BankOracleResponse
+	for _, bank := range oracleBank {
+
+		banks = append(banks, bank_dto.BankOracleResponse{
+			ID:              bank.ID,
+			BankName:        bank.BankName,
+			Logo:            bank.Logo,
+			BICCode:         bank.BICCode,
+			IsEnabled:       bank.IsEnabled == 1,
+			AccountLength:   bank.AccountLength,
+			HasAlphaNumeric: bank.HasAlphaNumeric == 1,
+			CreateAt:        bank.CreateAt,
+			UpdateAt:        bank.UpdateAt,
+			IsCBE:           bank.IS_CBE == 1,
+		})
+
+	}
+	return banks
+
+}
+func MapSingleBankToAddBool(oracleBank imodel.BankOracle) bank_dto.BankOracleResponse {
+	var banks bank_dto.BankOracleResponse
+
+	banks = bank_dto.BankOracleResponse{
+		ID:              oracleBank.ID,
+		BankName:        oracleBank.BankName,
+		Logo:            oracleBank.Logo,
+		BICCode:         oracleBank.BICCode,
+		IsEnabled:       oracleBank.IsEnabled == 1,
+		AccountLength:   oracleBank.AccountLength,
+		HasAlphaNumeric: oracleBank.HasAlphaNumeric == 1,
+		CreateAt:        oracleBank.CreateAt,
+		UpdateAt:        oracleBank.UpdateAt,
+		IsCBE:           oracleBank.IS_CBE == 1,
+	}
+
+	return banks
+
 }

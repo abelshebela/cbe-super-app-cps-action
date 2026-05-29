@@ -2,12 +2,15 @@ package media
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -24,10 +27,10 @@ type newsTags struct {
 	client      *mongo.Client
 }
 
-func NewNewsTagsRepository(logger shared_utils.Logger, client *mongo.Client, dbName, collectionName string) storage.NewsTagsRepository {
+func NewNewsTagsRepository(logger shared_utils.Logger, client *mongo.Client, cfg *config.VaultConfig, dbName, collectionName string) storage.NewsTagsRepository {
 	return &newsTags{
 		logger:      logger,
-		newsTagsDal: dal.NewMongoDal[model.NewsTags, model.NewsTags](client, dbName, collectionName),
+		newsTagsDal: dal.NewMongoDal[model.NewsTags, model.NewsTags](client, cfg, dbName, collectionName),
 		client:      client,
 	}
 }
@@ -41,50 +44,48 @@ func (n *newsTags) Create(ctx context.Context, newsTag *model.NewsTags) error {
 }
 
 func (n *newsTags) Update(ctx context.Context, newsTag *model.NewsTags, id string) error {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	objId, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
-		n.logger.Errorf(invalidTagID, err)
+		log.Errorf(invalidTagID, err)
 		return errors.New(invalidTagID)
 	}
 	filter := bson.M{"_id": objId, "is_deleted": false}
 	update := buildNewsTagUpdate(*newsTag)
 	_, err = n.newsTagsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		n.logger.Errorf("Error updating news tag in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 	return nil
 }
 
 func (n *newsTags) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	objId, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
-		n.logger.Errorf(invalidTagID, err)
+		log.Errorf(invalidTagID, err)
 		return errors.New(localization.ErrorInvalidRequest.Code)
 	}
 	filter := bson.M{"_id": objId, "is_deleted": false}
 
 	err = n.newsTagsDal.DeleteOne(ctx, filter)
 	if err != nil {
-		n.logger.Errorf("Error deleting news tag in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 	return nil
 }
 
 func (n *newsTags) EnableDisable(ctx context.Context, id string, isEnable bool) error {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
 	objId, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
-		n.logger.Errorf(invalidTagID, err)
+		log.Errorf(invalidTagID, err)
 		return errors.New(localization.ErrorInvalidRequest.Code)
 	}
 	filter := bson.M{"_id": objId, "is_deleted": false}
@@ -94,11 +95,7 @@ func (n *newsTags) EnableDisable(ctx context.Context, id string, isEnable bool) 
 	}
 	_, err = n.newsTagsDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		n.logger.Errorf("Error enabling/disabling news tag in database:", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 	return nil
 }

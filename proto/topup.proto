@@ -7,19 +7,13 @@ import "google/protobuf/timestamp.proto";
 
 message TopupRequest {
 }
-message Services {
-	bool Self  = 1;
-	bool Other = 2;
-	bool Agent = 3;
 
-}
 message Topup {
     string id = 1;
     string name = 2;
     string code = 3;
     string avatar = 4;
     bool enabled = 5;
-    Services services = 6;
     bool is_deleted = 7;
     google.protobuf.Timestamp created_at = 8;
     google.protobuf.Timestamp last_modified_at = 9;

@@ -1,14 +1,18 @@
 package linked_account
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -16,16 +20,18 @@ import (
 )
 
 type LinkedAccountStorage struct {
-	dal    dal.MongoDal[model.LinkedAccount, model.LinkedAccount]
-	client *mongo.Client
-	logger utils.Logger
+	dal           dal.MongoDal[model.LinkedAccount, model.LinkedAccount]
+	client        *mongo.Client
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
-func NewLinkedAccountRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.LinkedAccountRepository {
+func NewLinkedAccountRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.LinkedAccountRepository {
 	return &LinkedAccountStorage{
-		dal:    dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, dbName, collection),
-		client: client,
-		logger: logger,
+		dal:           dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, cfg, dbName, collection),
+		client:        client,
+		kafkaProducer: kafkaProducer,
+		logger:        logger,
 	}
 }
 
@@ -36,19 +42,19 @@ func (l *LinkedAccountStorage) FindByCustomerNumber(ctx context.Context, custome
 
 	result, err := l.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
 
 func (l *LinkedAccountStorage) Create(ctx context.Context, account *model.LinkedAccount) error {
-	_, err := l.dal.InsertOne(ctx, *account)
+	newLinkedAccount, err := l.dal.InsertOne(ctx, *account)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	l.kafkaProducer.PublishMessage(ctx, newLinkedAccount, string(constants.ClientOrchestrationLinkedAccountTopic), string(constants.ClientOrchestrationLinkedAccountTopic), "new linked account created")
+
 	return nil
 }
 
@@ -60,13 +66,13 @@ func (l *LinkedAccountStorage) Update(ctx context.Context, id string, account *m
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	updateData := LinkedAccountMapper(*account)
 
-	_, err = l.dal.UpdateOne(ctx, filter, updateData)
+	updatedLinkedAccount, err := l.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return local_util.HandleDBError(err)
 	}
+
+	l.kafkaProducer.PublishMessage(ctx, updatedLinkedAccount, string(constants.ClientOrchestrationLinkedAccountTopic), string(constants.ClientOrchestrationLinkedAccountTopic), "linked account updated")
+
 	return nil
 }
 
@@ -89,7 +95,7 @@ func (l *LinkedAccountStorage) FindByID(ctx context.Context, id string) (*model.
 	result, err := l.dal.FindOne(ctx, filter, nil)
 
 	if err != nil {
-		return nil, err
+		return nil, local_util.HandleDBError(err)
 	}
 	return result, nil
 }
@@ -100,16 +106,13 @@ func (l *LinkedAccountStorage) FindByAccountNumber(ctx context.Context, accountN
 	}
 	result, err := l.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	return result, nil
 }
 
-func (l *LinkedAccountStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.LinkedAccount], error) {
+func (l *LinkedAccountStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.LinkedAccount], error) {
 	filter := bson.M{
 		"is_deleted": false,
 	}
@@ -125,19 +128,19 @@ func (l *LinkedAccountStorage) FindAllWithPagination(ctx context.Context, filter
 	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
 	limit := int64(filterParam.PerPage)
 
-	data, err := l.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := l.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := l.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*model.LinkedAccount]{
+	return &types.PaginatedResponse[[]model.LinkedAccount]{
 		Data: data,
 		Meta: meta,
 	}, nil

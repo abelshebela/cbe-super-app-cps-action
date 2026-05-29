@@ -8,7 +8,7 @@ import (
 
 func (e *EncryptionRequest) Validate() error {
 	return validation.ValidateStruct(e,
-		validation.Field(&e.Username, validation.Required, validation.By(utils.NoSpecialChars)),
-		validation.Field(&e.Password, validation.Required),
+		validation.Field(&e.Username, validation.Required, validation.By(utils.TrimWhiteSpace), validation.By(utils.NoSpecialChars)),
+		validation.Field(&e.Password, validation.Required, validation.By(utils.TrimWhiteSpace)),
 	)
 }

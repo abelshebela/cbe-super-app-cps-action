@@ -5,13 +5,15 @@ import (
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	eventcore "cbe-super-app-cps-action/internal/handlers/rest/http/event/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type eventAdapter struct {
@@ -63,26 +65,37 @@ func InitEventAdapter(eventApp service.EventService, logger utils.Logger) eventI
 //	@Security		BearerAuth
 //	@Router			/events [post]
 func (a *eventAdapter) CreateEvent(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createEvent", "handler", "event")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	req, err := eventcore.ParseEventRequestFromMultipartForm(r, true)
 	if err != nil {
-		a.logger.Errorf("failed to parse event request from multipart form: %v", err)
+		span.RecordError(err)
+		log.Errorf("[EventH][Create] parse form err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(true); err != nil {
-		a.logger.Errorf("event request validation failed: %v", err)
+		span.RecordError(err)
+		log.Errorf("[EventH][Create] validate err: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
-	if err := a.eventApp.CreateEvent(r.Context(), req); err != nil {
-		a.logger.Errorf("failed to create event: %v", err)
+	span.SetAttributes(
+		attribute.String("event.merchant_id", req.MerchantID),
+		attribute.String("event.event_name", req.EventName),
+	)
+
+	if err := a.eventApp.CreateEvent(ctx, req); err != nil {
+		span.RecordError(err)
+		log.Errorf("[EventH][Create] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	a.logger.Infof("event creation request submitted successfully")
+	log.Infof("[EventH][Create] request submitted")
 	localization.SendSuccessResponse(w, localization.SuccessEventCreationRequestSubmitted, nil)
 }
 
@@ -125,33 +138,44 @@ func (a *eventAdapter) CreateEvent(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/events/{id} [patch]
 func (a *eventAdapter) UpdateEvent(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateEvent", "handler", "event")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		a.logger.Errorf("event ID is required for update")
+		log.Errorf("[EventH][Update] id required")
 		localization.SendBadRequestResponse(w, localization.ErrorEventIDRequired.Message)
 		return
 	}
 
 	req, err := eventcore.ParseEventRequestFromMultipartForm(r, false)
 	if err != nil {
-		a.logger.Errorf("failed to parse event update request: %v", err)
+		span.RecordError(err)
+		log.Errorf("[EventH][Update] parse form err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if req.IsEmpty() {
-		a.logger.Warnf("no data provided for event update, event ID: %s", id)
+		log.Warnf("[EventH][Update] empty payload id: %s", id)
 		localization.SendBadRequestResponse(w, localization.ErrorUpdateEventEmptyPayload.Message)
 		return
 	}
 
-	if err := a.eventApp.UpdateEvent(r.Context(), id, req); err != nil {
-		a.logger.Errorf("failed to update event (ID: %s): %v", id, err)
+	span.SetAttributes(
+		attribute.String("event.id", id),
+		attribute.String("event.merchant_id", req.MerchantID),
+	)
+
+	if err := a.eventApp.UpdateEvent(ctx, id, req); err != nil {
+		span.RecordError(err)
+		log.Errorf("[EventH][Update] svc err id: %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	a.logger.Infof("event update request submitted successfully, event ID: %s", id)
+	log.Infof("[EventH][Update] request submitted id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessEventUpdateRequestSubmitted, nil)
 }
 
@@ -170,17 +194,23 @@ func (a *eventAdapter) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/events/{id} [delete]
 func (a *eventAdapter) DeleteEvent(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteEvent", "handler", "event")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorEventIDRequired, nil, nil)
 		return
 	}
 
-	if err := a.eventApp.DeleteEvent(r.Context(), id); err != nil {
+	span.SetAttributes(attribute.String("event.id", id))
+
+	if err := a.eventApp.DeleteEvent(ctx, id); err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessEventDeleteRequestSubmitted, nil)
 }
 
@@ -199,17 +229,22 @@ func (a *eventAdapter) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/events/enable/{id} [patch]
 func (a *eventAdapter) EnableEvent(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableEvent", "handler", "event")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorEventIDRequired, nil, nil)
 		return
 	}
 
-	if err := a.eventApp.EnableDisableEvent(r.Context(), id, true); err != nil {
+	span.SetAttributes(attribute.String("event.id", id))
+	if err := a.eventApp.EnableDisableEvent(ctx, id, true); err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessEventEnableRequestSubmitted, nil)
 }
 
@@ -228,17 +263,22 @@ func (a *eventAdapter) EnableEvent(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/events/disable/{id} [patch]
 func (a *eventAdapter) DisableEvent(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableEvent", "handler", "event")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorEventIDRequired, nil, nil)
 		return
 	}
 
-	if err := a.eventApp.EnableDisableEvent(r.Context(), id, false); err != nil {
+	span.SetAttributes(attribute.String("event.id", id))
+	if err := a.eventApp.EnableDisableEvent(ctx, id, false); err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessEventDisableRequestSubmitted, nil)
 }
 
@@ -257,6 +297,8 @@ func (a *eventAdapter) DisableEvent(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/events/{id} [get]
 func (a *eventAdapter) FetchEventByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchEventById", "handler", "event")
+	defer span.End()
 	var _ model.Event
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -264,8 +306,10 @@ func (a *eventAdapter) FetchEventByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	event, err := a.eventApp.FetchEventByID(r.Context(), id)
+	span.SetAttributes(attribute.String("event.id", id))
+	event, err := a.eventApp.FetchEventByID(ctx, id)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -280,24 +324,43 @@ func (a *eventAdapter) FetchEventByID(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Event
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query		int																	false	"Page number"		default(1)
-//	@Param			per_page	query		int																	false	"Items per page"	default(10)
-//	@Param			search		query		string																false	"Search term"
-//	@Success		200			{object}	localization.StandardResponse{data=[]model.PaginatedEventResponse}	"Events retrieved successfully"
-//	@Failure		500			{object}	localization.StandardResponse{data=nil}								"Internal server error"
+//	@Param			page		query		int													false	"Page number"		default(1)
+//	@Param			per_page	query		int													false	"Items per page"	default(10)
+//	@Param			search		query		string												false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=[]model.Event}	"Events retrieved successfully"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}				"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/events [get]
 func (a *eventAdapter) FetchEvents(w http.ResponseWriter, r *http.Request) {
-	filter := local_util.ExtractFilterParams(r)
-	a.logger.Infof("fetching events with filter: %+v", filter)
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchEvents", "handler", "event")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	filterParams := local_util.ExtractFilterParams(r)
 
-	list, err := a.eventApp.FetchEvent(r.Context(), *filter)
-	if err != nil {
-		a.logger.Errorf("failed to fetch events: %v", err)
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	a.logger.Infof("events fetched successfully")
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	log.Infof("[EventH][GetAll] filter: %+v", filterParams)
+
+	list, err := a.eventApp.FetchEvent(ctx, *filterParams)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[EventH][GetAll] svc err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	span.SetAttributes(attribute.Int("event.count", len(list.Data)))
+	log.Infof("[EventH][GetAll] ok")
 	localization.SendSuccessResponse(w, localization.SuccessEventsRetrieved, list)
 }

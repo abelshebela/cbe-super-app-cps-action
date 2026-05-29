@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
@@ -13,7 +12,11 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type newsTagService struct {
@@ -32,89 +35,158 @@ func NewNewsTagService(newsTagRepository storage.NewsTagRepository, cpsService s
 
 // Authorize implements service.NewsTagService.
 func (n *newsTagService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	n.logger.Infof("Authorize called for action: %s", cpsAction.RequestAction)
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
+	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "NewsTag", "Authorize")
+	defer span.End()
+
+	log.Infof("[NewsTagSvc][Authorize] action: %s", cpsAction.RequestAction)
 
 	actionData, err := local_util.JsonUnmarshal[model.NewsTagCPSAction](cpsAction.CurrentAction)
 	if err != nil {
-		n.logger.Errorf("failed to unmarshal CurrentAction: %v", err)
+		log.Errorf("[NewsTagSvc][Authorize] unmarshal err: %v", err)
+		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", cpsAction.UniqueId),
+		))
 		return nil, fmt.Errorf("failed to unmarshal CurrentAction to NewsTagCPSAction: %v", err)
 	}
 
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestCreateNewsTag):
-		n.logger.Infof("Authorize: creating news tag: %v", actionData.TagName)
+		log.Infof("[NewsTagSvc][Authorize] creating: %v", actionData.TagName)
 		err := n.repo.Create(ctx, actionData.TagNameList)
 		if err != nil {
-			n.logger.Errorf("Create news tag action failed: %v", err)
+			log.Errorf("[NewsTagSvc][Authorize] create err: %v", err)
+			span.AddEvent("Failed to create news tag", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
 			return nil, err
 		}
+		log.Infof("[NewsTagSvc][Authorize] created")
 	case string(constants.RequestUpdateNewsTag):
-		n.logger.Infof("Authorize: updating news tag id=%s to name=%s", actionData.ID.Hex(), actionData.TagName)
+		log.Infof("[NewsTagSvc][Authorize] updating id: %s", actionData.ID.Hex())
 		err := n.repo.Update(ctx, actionData.ID.Hex(), actionData.TagName)
 		if err != nil {
-			n.logger.Errorf("Update news tag action failed: %v", err)
+			log.Errorf("[NewsTagSvc][Authorize] update err: %v", err)
+			span.AddEvent("Failed to update news tag", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
 		}
-		return nil, err
+		log.Infof("[NewsTagSvc][Authorize] updated id: %s", actionData.ID.Hex())
+		return cpsAction, nil
 
 	case string(constants.RequestDeleteNewsTag):
-		n.logger.Infof("Authorize: deleting news tag id=%s", actionData.ID.Hex())
+		log.Infof("[NewsTagSvc][Authorize] deleting id: %s", actionData.ID.Hex())
 		err := n.repo.Delete(ctx, actionData.ID.Hex())
 		if err != nil {
-			n.logger.Errorf("Delete news tag action failed: %v", err)
+			log.Errorf("[NewsTagSvc][Authorize] delete err: %v", err)
+			span.AddEvent("Failed to delete news tag", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
 		}
-		return nil, err
+		log.Infof("[NewsTagSvc][Authorize] deleted id: %s", actionData.ID.Hex())
+		return cpsAction, nil
 
 	default:
-		n.logger.Errorf("Authorize: invalid action %s", cpsAction.RequestAction)
+		log.Errorf("[NewsTagSvc][Authorize] invalid: %s", cpsAction.RequestAction)
+		span.AddEvent("Invalid action", trace.WithAttributes(
+			attribute.String("error", localization.MsgInvalidAction),
+			attribute.String("request_action", string(cpsAction.RequestAction)),
+		))
 		return nil, fmt.Errorf("%s", localization.MsgInvalidAction)
 	}
+	log.Infof("[NewsTagSvc][Authorize] done: %s", cpsAction.RequestAction)
 	return cpsAction, nil
 }
 
 // CreateNewsTags implements service.NewsTagService.
 func (n *newsTagService) CreateNewsTags(ctx context.Context, tagName []string) error {
-	n.logger.Infof("CreateNewsTags called with names: %v", tagName)
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
+	ctx, span := local_util.TraceLogger(ctx, "service", "CreateNewsTags", "NewsTag", "CreateNewsTags")
+	defer span.End()
+
+	log.Infof("[NewsTagSvc][Create] count: %d", len(tagName))
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		n.logger.Errorf("CreateNewsTags failed: incomplete user data")
+		log.Errorf("[NewsTagSvc][Create] incomplete user")
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", constants.IncompleteUserInfo),
+		))
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 	news_tag, err := n.repo.FindByNames(ctx, tagName)
 	code, _ := local_util.HandleMongoError(err)
 	if code != localization.ErrorResourceNotFound.Code {
-		n.logger.Errorf("CreateNewsTags: error checking existing tags: %v", err)
+		log.Errorf("[NewsTagSvc][Create] find names err: %v", err)
+		span.AddEvent("Failed to find news tags", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
 		return err
 	}
 
 	if news_tag != nil {
-		n.logger.Errorf("CreateNewsTags: tag already exists: %v", tagName)
+		log.Errorf("[NewsTagSvc][Create] name exists")
+		span.AddEvent("News tag already exists", trace.WithAttributes(
+			attribute.String("error", localization.ErrorNewsTagWithNameAlreadyExists.Code),
+		))
 		return fmt.Errorf("%s", localization.ErrorNewsTagWithNameAlreadyExists.Code)
 	}
 	cpsAction := lib.CpsModelBuilder("", makerData, nil, model.NewsTagCPSAction{TagNameList: tagName}, string(constants.RequestCreateNewsTag), constants.CREATE)
 
 	if err := n.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-		n.logger.Errorf("CreateNewsTags: failed to create CPS action: %v", err)
+		log.Errorf("[NewsTagSvc][Create] cps action err: %v", err)
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
 		return err
 	}
 
-	n.logger.Infof("CreateNewsTags: CPS action created for names: %v", tagName)
+	log.Infof("[NewsTagSvc][Create] request created count: %d", len(tagName))
 	return nil
 }
 
 // DeleteNewsTag implements service.NewsTagService.
 func (n *newsTagService) DeleteNewsTag(ctx context.Context, id string) error {
-	n.logger.Infof("DeleteNewsTag called for id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
+	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteNewsTag", "NewsTag", "DeleteNewsTag")
+	defer span.End()
+
+	log.Infof("[NewsTagSvc][Delete] id: %s", id)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		n.logger.Errorf("DeleteNewsTag failed: incomplete user data")
+		log.Errorf("[NewsTagSvc][Delete] incomplete user")
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", constants.IncompleteUserInfo),
+			attribute.String("id", id),
+		))
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
 	news_tag, err := n.repo.Get(ctx, id)
 	code, _ := local_util.HandleMongoError(err)
 	if code == localization.ErrorResourceNotFound.Code {
-		n.logger.Errorf("DeleteNewsTag: resource not found id=%s", id)
+		log.Errorf("[NewsTagSvc][Delete] not found: %s", id)
+		span.AddEvent("Resource not found", trace.WithAttributes(
+			attribute.String("error", localization.ErrorResourceNotFound.Code),
+			attribute.String("id", id),
+		))
 		return fmt.Errorf("%s", localization.ErrorResourceNotFound.Code)
+	}
+	if err != nil {
+		log.Errorf("[NewsTagSvc][Delete] get err: %v", err)
+		span.AddEvent("Failed to get news tag", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
 	}
 
 	updated_news_tag := *news_tag
@@ -125,52 +197,89 @@ func (n *newsTagService) DeleteNewsTag(ctx context.Context, id string) error {
 	cpsAction := lib.CpsModelBuilder(id, makerData, news_tag, updated_news_tag, string(constants.RequestDeleteNewsTag), constants.DELETE)
 
 	if err := n.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-		n.logger.Errorf("DeleteNewsTag: failed to create CPS action for id=%s: %v", id, err)
+		log.Errorf("[NewsTagSvc][Delete] cps action err: %v", err)
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		return err
 	}
 
-	n.logger.Infof("DeleteNewsTag: CPS action created for id: %s", id)
+	log.Infof("[NewsTagSvc][Delete] request created id: %s", id)
 	return nil
 }
 
 // FindAllWithPagination implements service.NewsTagService.
-func (n *newsTagService) FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsTag], error) {
-	n.logger.Infof("FindAllWithPagination called with filter: %+v", filter)
+func (n *newsTagService) FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.NewsTag], error) {
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
+	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "NewsTag", "FindAllWithPagination")
+	defer span.End()
+
 	tag, err := n.repo.FindAllWithPagination(ctx, filter)
 	if err != nil {
-		n.logger.Errorf("FindAllWithPagination failed: %v", err)
+		log.Errorf("[NewsTagSvc][FindAll] fetch err: %v", err)
+		span.AddEvent("Failed to fetch news tags", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
 		return nil, err
 	}
+	log.Infof("[NewsTagSvc][FindAll] count: %d", len(tag.Data))
 	return tag, nil
 }
 
 // GetNewsTagByID implements service.NewsTagService.
 func (n *newsTagService) GetNewsTagByID(ctx context.Context, id string) (*model.NewsTag, error) {
-	n.logger.Infof("GetNewsTagByID called for id: %s", id)
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetNewsTagByID", "NewsTag", "GetNewsTagByID")
+	defer span.End()
+
 	news_tag, err := n.repo.Get(ctx, id)
 	code, _ := local_util.HandleMongoError(err)
 	if code == localization.ErrorResourceNotFound.Code {
-		n.logger.Errorf("GetNewsTagByID: resource not found id=%s", id)
+		log.Errorf("[NewsTagSvc][GetByID] not found: %s", id)
+		span.AddEvent("Resource not found", trace.WithAttributes(
+			attribute.String("error", code),
+			attribute.String("id", id),
+		))
 		return nil, fmt.Errorf("%s", code)
 	} else if err != nil {
-		n.logger.Errorf("GetNewsTagByID failed: %v", err)
+		log.Errorf("[NewsTagSvc][GetByID] get err: %v", err)
+		span.AddEvent("Failed to get news tag", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		return nil, err
 	}
-	n.logger.Infof("GetNewsTagByID: found tag id=%s", id)
+	log.Infof("[NewsTagSvc][GetByID] found id: %s", id)
 	return news_tag, nil
 }
 
 // UpdateNewsTag implements service.NewsTagService.
 func (n *newsTagService) UpdateNewsTag(ctx context.Context, id string, tagName string) error {
-	n.logger.Infof("UpdateNewsTag called for id=%s newName=%s", id, tagName)
+	log := local_util.LoggerFromCtx(ctx, n.logger)
+
+	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateNewsTag", "NewsTag", "UpdateNewsTag")
+	defer span.End()
+
+	log.Infof("[NewsTagSvc][Update] id: %s", id)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	news_tag, err := n.repo.Get(ctx, id)
 	code, _ := local_util.HandleMongoError(err)
 	if code == localization.ErrorResourceNotFound.Code {
-		n.logger.Errorf("UpdateNewsTag: resource not found id=%s", id)
+		log.Errorf("[NewsTagSvc][Update] not found: %s", id)
+		span.AddEvent("Resource not found", trace.WithAttributes(
+			attribute.String("error", code),
+			attribute.String("id", id),
+		))
 		return fmt.Errorf("%s", code)
 	} else if err != nil {
-		n.logger.Errorf("UpdateNewsTag failed fetching tag id=%s: %v", id, err)
+		log.Errorf("[NewsTagSvc][Update] get err: %v", err)
+		span.AddEvent("Failed to get news tag", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		return err
 	}
 
@@ -178,13 +287,21 @@ func (n *newsTagService) UpdateNewsTag(ctx context.Context, id string, tagName s
 	code, _ = local_util.HandleMongoError(err)
 	if code != localization.ErrorResourceNotFound.Code {
 		if err != nil {
-			n.logger.Errorf("UpdateNewsCategory: FindByNames repository error: %v", err)
+			log.Errorf("[NewsTagSvc][Update] find names err: %v", err)
+			span.AddEvent("Failed to find news tags", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("id", id),
+			))
 			return err
 		}
 	}
 
 	if news_cat != nil {
-		n.logger.Errorf("CreateNewsCategory: news category with name already exists: %v", tagName)
+		log.Errorf("[NewsTagSvc][Update] name exists")
+		span.AddEvent("News tag already exists", trace.WithAttributes(
+			attribute.String("error", localization.ErrorNewsCategoryWithNameAlreadyExists.Code),
+			attribute.String("id", id),
+		))
 		return fmt.Errorf("%s", localization.ErrorNewsCategoryWithNameAlreadyExists.Code)
 	}
 
@@ -195,10 +312,14 @@ func (n *newsTagService) UpdateNewsTag(ctx context.Context, id string, tagName s
 	cpsAction := lib.CpsModelBuilder(id, makerData, news_tag, updated_news_tag, string(constants.RequestUpdateNewsTag), constants.UPDATE)
 
 	if err := n.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-		n.logger.Errorf("UpdateNewsTag: failed to create CPS action for id=%s: %v", id, err)
+		log.Errorf("[NewsTagSvc][Update] cps action err: %v", err)
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		return err
 	}
 
-	n.logger.Infof("UpdateNewsTag: CPS action created for id=%s", id)
+	log.Infof("[NewsTagSvc][Update] request created id: %s", id)
 	return nil
 }

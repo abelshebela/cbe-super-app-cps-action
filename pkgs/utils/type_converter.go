@@ -227,24 +227,6 @@ func (nc *NumericConverter) ValidateUint64Range(value interface{}, fieldName str
 	return result, nil
 }
 
-// ValidateUintRange validates uint value within a range
-func (nc *NumericConverter) ValidateUintRange(value interface{}, fieldName string, min, max uint) (uint, error) {
-	result, err := nc.ToUint(value, fieldName)
-	if err != nil {
-		return 0, err
-	}
-
-	if result < min {
-		return 0, fmt.Errorf("%s must be at least %d", fieldName, min)
-	}
-
-	if result > max {
-		return 0, fmt.Errorf("%s cannot exceed %d", fieldName, max)
-	}
-
-	return result, nil
-}
-
 // ValidateIntRange validates int value within a range
 func (nc *NumericConverter) ValidateIntRange(value interface{}, fieldName string, min, max int) (int, error) {
 	result, err := nc.ToInt(value, fieldName)

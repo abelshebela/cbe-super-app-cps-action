@@ -1,17 +1,22 @@
 package unlink
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"context"
 	"net/http"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type PaginatedArchieveUserResponse types.PaginatedResponse[[]*model.ArchivedUser]
@@ -30,13 +35,17 @@ func InitUnlinkAdapter(unlinkApp service.UnlinkService, logger utils.Logger) inb
 // GetArchivedUser godoc
 //
 //	@Summary		Get archived user
-//	@Description	Get archived user
+//	@Description	Get archived users with pagination, filtering, and search. Filterable fields: enabled, kyc_level, is_blocked, is_verified. Searchable fields: full_name, username, user_code, phone_number.
 //	@Tags			Unlink
 //	@Accept			json
 //	@Produce		json
 //	@Param			page		query		int																	false	"Page number"
 //	@Param			per_page	query		int																	false	"Items per page"
-//	@Param			search		query		string																false	"Search term"
+//	@Param			enabled		query		bool																false	"Filter by enabled status"
+//	@Param			kyc_level	query		string																false	"Filter by KYC level"
+//	@Param			is_blocked	query		bool																false	"Filter by blocked status"
+//	@Param			is_verified	query		bool																false	"Filter by verified status"
+//	@Param			search		query		string																false	"Search term (searches full_name, username, user_code, phone_number)"
 //	@Success		200			{object}	localization.StandardResponse{data=PaginatedArchieveUserResponse}	"User retrieved successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}								"Bad request"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}								"Internal server error"
@@ -44,17 +53,39 @@ func InitUnlinkAdapter(unlinkApp service.UnlinkService, logger utils.Logger) inb
 //	@Router			/unlink/archived_user [get]
 func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) {
 	// filter parameter
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "unlink", "unlinkAdapter", "GetArchivedUser")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
+		span.AddEvent("Invalid pagination params", trace.WithAttributes(attribute.Int("page", filterParams.Page), attribute.Int("per_page", filterParams.PerPage)))
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
 	}
 
-	archivedUser, err := a.unlinkApp.GetAllArchivedUser(r.Context(), filterParams)
+	archivedUser, err := a.unlinkApp.GetAllArchivedUser(ctx, filterParams)
 	if err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
+		log.Errorf("[GetArchivedUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	span.AddEvent("Archived users retrieved", trace.WithAttributes(attribute.Int("count", len(archivedUser.Data))))
+	log.Infof("[GetArchivedUser] retrieved %d archived users", len(archivedUser.Data))
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, archivedUser)
 }
 
@@ -73,17 +104,25 @@ func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) 
 //	@Security		BearerAuth
 //	@Router			/unlink/user-by-account/{account_number} [get]
 func (a *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "unlink", "unlinkAdapter", "GetUserByAccount")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	accNumber := chi.URLParam(r, "account_number")
 	if accNumber == "" {
+		span.AddEvent("Missing account_number param")
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
 	}
-	user, err := a.unlinkApp.GetUserByAccount(r.Context(), accNumber)
+	user, err := a.unlinkApp.GetUserByAccount(ctx, accNumber)
 	if err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("account_number", accNumber)))
+		log.Errorf("[GetUserByAccount] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.AddEvent("User retrieved", trace.WithAttributes(attribute.String("account_number", accNumber)))
+	log.Infof("[GetUserByAccount] user retrieved successfully")
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, user)
 }
 
@@ -102,16 +141,34 @@ func (a *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Router			/unlink/user_cif/{user_code} [patch]
 func (a *unlinkAdapter) UnlinkUserCif(w http.ResponseWriter, r *http.Request) {
-
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "unlink", "unlinkAdapter", "UnlinkUserCif")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
+		span.AddEvent("Missing user_code param")
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
 	}
-	err := a.unlinkApp.UnlinkUserCif(r.Context(), userCode)
+	err := a.unlinkApp.UnlinkUserCif(ctx, userCode)
 	if err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("user_code", userCode)))
+		log.Errorf("[UnlinkUserCif] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		log.Infof("[UnlinkUserCif] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessUnlinkCif, nil)
+		return
+	}
+
+	span.AddEvent("UnlinkUserCif request sent", trace.WithAttributes(attribute.String("user_code", userCode)))
+	log.Infof("[UnlinkUserCif] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessUnlinkCifRequestSent, nil)
 }

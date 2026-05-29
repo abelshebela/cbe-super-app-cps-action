@@ -2,6 +2,7 @@ package donation
 
 import (
 	"mime/multipart"
+	"strconv"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -20,15 +21,16 @@ func (d DonationRequest) Validate() error {
 		),
 		validation.Field(&d.Title,
 			validation.Required.Error("title is required"),
+			validation.By(utils.TrimWhiteSpace),
 			validation.Length(5, 200).Error("title must be between 5 and 200 characters"),
 			validation.By(utils.NoSpecialChars),
 		),
-		validation.Field(&d.Target,
-			validation.Required.Error("target is required"),
-			validation.Min(1).Error("donation amount must be greater than 0"),
-			validation.By(validateDonationAmount),
-		),
+		// validation.Field(&d.Target,
+		// 	// validation.Required.Error("target is required"),
+		// 	validation.By(validateDonationTarget),
+		// ),
 		validation.Field(&d.DonationDescription,
+			validation.By(utils.TrimWhiteSpace),
 			validation.Required.Error("donation description is required"),
 		),
 		validation.Field(&d.DonationImages,
@@ -43,12 +45,31 @@ func (d DonationRequest) Validate() error {
 			validation.When(!d.StartDate.IsZero(), validation.By(validateStartDate)),
 		),
 		validation.Field(&d.EndDate,
-			validation.Required.Error("end date is required"),
-			validation.By(validateEndDate(d.StartDate)),
+			validation.When(!d.EndDate.IsZero(), validation.By(validateEndDate(d.StartDate))),
 		),
 	)
 }
 
+func validateDonationTarget(value interface{}) error {
+	targetStr, ok := value.(string)
+	if !ok {
+		return validation.NewError("validation_target_invalid", "invalid target value")
+	}
+	if targetStr == "" {
+		return validation.NewError("validation_target_required", "target is required")
+	}
+	targetInt, err := strconv.Atoi(targetStr)
+	if err != nil {
+		return validation.NewError("validation_target_invalid", "target must be a valid number")
+	}
+	if targetInt <= 0 {
+		return validation.NewError("validation_target_zero", "donation amount must be greater than 0")
+	}
+	if targetInt > 100000000 {
+		return validation.NewError("validation_target_too_large", "donation amount must not exceed 100,000,000")
+	}
+	return nil
+}
 func validateDonationAmount(value interface{}) error {
 	amount, ok := value.(int32)
 	if !ok {
@@ -101,8 +122,8 @@ func validateImage(value interface{}) error {
 		return localization.ErrorMissingOrInvalidImage
 	}
 
-	if file.Size > (2 << 20) {
-		return validation.NewError("logo", localization.MsgFileTooLarge)
+	if file.Size > (10 << 20) {
+		return validation.NewError("logo", "file size exceeds 10MB limit")
 	}
 
 	return nil

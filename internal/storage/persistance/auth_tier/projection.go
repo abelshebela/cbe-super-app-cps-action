@@ -1,7 +1,7 @@
 package auth_tier
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -15,9 +15,6 @@ func AuthTierMapper(data model.AuthTier) bson.M {
 	}
 	if data.MaxAmount != 0 {
 		result["max_amount"] = data.MaxAmount
-	}
-	if data.Enabled {
-		result["enabled"] = data.Enabled
 	}
 	return result
 }

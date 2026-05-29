@@ -7,40 +7,100 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-// type KYCInformation struct {
-// 	Name  string `json:"name" bson:"name"`
-// 	Email string `json:"email" bson:"email"`
-// 	Phone string `json:"phone" bson:"phone"`
-// }
+type BPSActionDocument struct {
+	ID                bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	ActionCode        string        `json:"action_code" bson:"action_code"`
+	IsAuditorApproved bool          `json:"is_auditor_approved" bson:"is_auditor_approved"`
+	UserInformation   struct {
+		// UserID may be stored as bson.ObjectID (legacy) or string (Oracle RAW(16) hex).
+		// Using interface{} to handle both; convert via UserIDString() helper.
+		UserID         interface{} `json:"user_id" bson:"user_id"`
+		UserCode       string      `json:"user_code" bson:"user_code"`
+		FullName       string      `json:"full_name" bson:"full_name"`
+		AccountNumbers []string    `json:"account_numbers" bson:"account_numbers"`
+		PhoneNumbers   string      `json:"phone_numbers" bson:"phone_numbers"`
+		BranchCode     string      `json:"branch_code" bson:"branch_code"`
+	} `json:"user_information" bson:"user_information"`
+	BusinessInformation struct {
+		// BusinessID may be stored as bson.ObjectID (legacy) or string (Oracle RAW(16) hex).
+		BusinessID   interface{} `json:"business_id" bson:"business_id"`
+		TILLNumber   string      `json:"till_number" bson:"till_number"`
+		BusinessName string      `json:"business_name" bson:"business_name"`
+	} `json:"business" bson:"business"`
+	CheckersNeeded     int      `json:"checkers_needed" bson:"checkers_needed"`
+	CheckersApproved   int      `json:"checkers_approved" bson:"checkers_approved"`
+	CheckerID          []string `json:"checker_id" bson:"checker_id"`
+	MakerID            string   `json:"maker_user" bson:"maker_user"`
+	MakerName          string   `json:"maker_name" bson:"maker_name"`
+	MakerReason        string   `json:"maker_reason" bson:"maker_reason"`
+	MakerPhoneNumber   string   `json:"maker_phone_number" bson:"maker_phone_number"`
+	CheckerName        string   `json:"checker_name" bson:"checker_name"`
+	CheckerPhoneNumber string   `json:"checker_phone_number" bson:"checker_phone_number"`
+	ActionReason       struct {
+		ActionType string `json:"action_type" bson:"action_type"`
+		ActionNote string `json:"action_note" bson:"action_note"`
+		Identifier string `json:"identifier" bson:"identifier"`
+	} `json:"action_reason" bson:"action_reason"`
+	MakerMID        string   `json:"maker_mid" bson:"maker_mid"`
+	CheckerMID      []string `json:"checker_mid" bson:"checker_mid"`
+	AuditorMID      []string `json:"auditor_mid" bson:"auditor_mid"`
+	CheckerNameList []string `json:"checker_name_list" bson:"checker_name_list"`
+	AuditorNameList []string `json:"auditor_name_list" bson:"auditor_name_list"`
+	Auditors        struct {
+		AuditorName        string   `json:"auditor_name" bson:"auditor_name"`
+		AuditorPhoneNumber string   `json:"auditor_phone_number" bson:"auditor_phone_number"`
+		AuditorsRequired   int      `json:"auditors_required" bson:"auditors_required"`
+		AuditorID          []string `json:"auditor_id" bson:"auditor_id"`
+		Audited            bool     `json:"audited" bson:"audited"`
+		AuditorApproval    bool     `json:"auditor_approval" bson:"auditor_approval"`
+		Reason             string   `json:"reason" bson:"reason"`
+	} `json:"auditors" bson:"auditors"`
+	CheckerTime        []time.Time `json:"checker_time" bson:"checker_time"`
+	AuditorTime        []time.Time `json:"auditor_time" bson:"auditor_time"`
+	RequestAction      string      `json:"request_action" bson:"request_action"`
+	EntityIdentifyer   string      `json:"value" bson:"value"`
+	HomeBranch         string      `json:"home_branch" bson:"home_branch"`
+	AccountBranchCode  string      `json:"account_branch_code" bson:"account_branch_code"`
+	DistrictCode       string      `json:"district_code" bson:"district_code"`
+	BranchCode         string      `json:"branch_code" bson:"branch_code"`
+	LinkedDistrictCode string      `json:"linked_district_code" bson:"linked_district_code"`
+	AccountNumber      string      `json:"account_number" bson:"account_number"`
+	AccountHolderName  string      `json:"account_holder_name" bson:"account_holder_name"`
+	ServiceName        string      `json:"service_name" bson:"service_name"`
+	CurrentAction      interface{} `json:"current_action" bson:"current_action"`
+	PreviousAction     interface{} `json:"previous_action" bson:"previous_action"`
+	VerifiedAt         *time.Time  `json:"time,omitempty" bson:"time,omitempty"`
+	Status             string      `json:"status" bson:"status"`
+	CreatedAt          time.Time   `json:"created_at" bson:"created_at"`
+	LastModifiedAt     time.Time   `json:"last_modified_at" bson:"last_modified_at"`
+}
 
-// type KYC struct {
-// 	Status         KYCStatus      `json:"status" bson:"status"`
-// 	Representative KYCInformation `json:"representative" bson:"representative"`
-// }
+type OracleQuery struct {
+	WhereClause string
+	Args        map[string]interface{}
+	Offset      int64
+	Limit       int64
+}
 
-// type BranchInformation struct {
-// 	BranchCode          string `json:"branch_code"`
-// 	BranchName          string `json:"branch_name"`
-// 	BranchAddress       string `json:"branch_address"`
-// 	BranchOwner         string `json:"branch_owner"`
-// 	BranchAccountNumber string `json:"branch_account_number"`
-// }
-
-// type MiniApps struct {
-// 	ID        string `json:"id" bson:"id"`
-// 	Enabled   bool   `json:"enabled" bson:"enabled"`
-// 	IsDeleted bool   `json:"is_deleted" bson:"is_deleted"`
-// }
-
-type CheckMiniAppMerchant struct {
+type CheckMerchant struct {
 	BankAccountNumber string `json:"bank_account_number"`
 	Email             string `json:"email"`
 	PhoneNumber       string `json:"phone_number"`
+	MerchantCode      string `json:"merchant_code"`
 }
 type MiniAppMerchantExistOptions struct {
 	ExcludeID string
 }
-
+type Auditor struct {
+	AuditorID          string                `bson:"auditor_id" json:"auditor_id,omitempty"`
+	RoleID             string                `bson:"role_id" json:"role_id,omitempty"`
+	AuditorIndex       int32                 `bson:"auditor_index" json:"auditor_index,omitempty"`
+	AuditorName        string                `bson:"auditor_name" json:"auditor_name,omitempty"`
+	AuditorPhoneNumber string                `bson:"auditor_phone_number" json:"auditor_phone_number,omitempty"`
+	AuditorReason      string                `bson:"auditor_reason" json:"auditor_reason"`
+	AuditorMark        constants.AuditorMark `bson:"auditor_mark" json:"auditor_mark,omitempty"`
+	ApprovedAt         time.Time             `bson:"approved_at" json:"approved_at,omitempty"`
+}
 type BakerOptions struct {
 	Sequential bool
 	UseMutex   bool
@@ -154,13 +214,16 @@ type LoginPIN struct {
 }
 
 type UserContext struct {
-	UserCode    string
-	UserID      string
-	FullName    string
-	PhoneNumber string
-	Department  string
-	BranchCode  []string
-	UserRole    string
+	IsErp        bool     `json:"is_erp"`
+	UserCode     string   `json:"user_code"`
+	UserID       string   `json:"user_id"`
+	FullName     string   `json:"full_name"`
+	PhoneNumber  string   `json:"phone_number"`
+	UserName     string   `json:"username"`
+	Department   string   `json:"department"`
+	BranchCode   []string `json:"branch_code"`
+	UserRole     string   `json:"user_role"`
+	CheckerIndex string   `json:"checker_index"`
 }
 
 type RegistrationRecord struct {
@@ -214,6 +277,15 @@ type Password struct {
 	CurrentPassword  string    `json:"current_password" bson:"current_password"`
 	OldPassword      [4]string `json:"old_password" bson:"old_password,omitempty"`
 	PasswordChangeAt time.Time `json:"password_changed_at" bson:"password_changed_at"`
+}
+
+type Checker struct {
+	CheckerID          string    `bson:"checker_id" json:"checker_id,omitempty"`
+	RoleID             string    `bson:"role_id" json:"role_id,omitempty"`
+	CheckerIndex       int32     `bson:"checker_index" json:"checker_index,omitempty"`
+	CheckerName        string    `bson:"checker_name" json:"checker_name,omitempty"`
+	CheckerPhoneNumber string    `bson:"checker_phone_number" json:"checker_phone_number,omitempty"`
+	ApprovedAt         time.Time `bson:"approved_at" json:"approved_at,omitempty"`
 }
 
 // ==================================
@@ -322,6 +394,16 @@ type TicketInformation struct {
 	TotalNumberOFUnsoldTicket    uint64 `json:"total_number_of_unsold_ticket" bson:"total_number_of_unsold_ticket"`
 }
 
+// InAppBroadcastMessage is the payload for in-app broadcast notifications
+// that will be wrapped by shared/notification/dto.NewNotificationMessage
+// and sent to Kafka with type "in_app_broadcast".
+type InAppBroadcastMessage struct {
+	Title     string    `json:"title"`
+	Message   string    `json:"message"`
+	Type      string    `json:"type"`       // should be "inapp"
+	ExpiresAt time.Time `json:"expires_at"` // RFC3339 when marshaled
+}
+
 type EventInformation struct {
 	StartDate   time.Time `json:"start_date" bson:"start_date"`
 	DueDate     time.Time `json:"due_date" bson:"due_date"`
@@ -336,7 +418,7 @@ type Restriction struct {
 }
 
 type ProductCode struct {
-	ID             string               `json:"id" bson:"id"`
+	ID             string               `json:"_id" bson:"_id"`
 	BranchType     constants.BranchType `json:"branch_type" bson:"branch_type"`
 	ProductCode    string               `json:"product_code" bson:"product_code"`
 	VATCode        string               `json:"vat_code" bson:"vat_code"`
@@ -344,21 +426,16 @@ type ProductCode struct {
 }
 
 type CredentialInformation struct {
-	ID            bson.ObjectID             `bson:"_id" json:"id"`
-	Environment   constants.EnvironmentType `bson:"environment" json:"environment"`
-	MerchantAppID string                    `bson:"merchant_app_id" json:"merchant_app_id"`
-	FabricAppID   string                    `bson:"fabric_app_id" json:"fabric_app_id"`
-	ShortCode     string                    `bson:"short_code" json:"short_code"`
-	AppSecret     string                    `bson:"app_secret" json:"app_secret"`
-	PrivateKey    string                    `bson:"private_key" json:"private_key"`
-	PublicKey     string                    `bson:"public_key" json:"public_key"`
-	Timestamp     time.Time                 `bson:"timestamp" json:"timestamp"`
-	Signature     string                    `bson:"signature" json:"-"`
-	MiniAppCode   string                    `bson:"mini_app_code" json:"mini_app_code"`
+	MerchantAppID string `json:"merchant_app_id" bson:"merchant_app_id"`
+	FabricAppID   string `bson:"fabric_app_id" json:"fabric_app_id"`
+	ShortCode     string `bson:"short_code" json:"short_code"`
+	AppSecret     string `bson:"app_secret" json:"app_secret"`
+	PrivateKey    string `bson:"private_key" json:"private_key"`
+	PublicKey     string `bson:"public_key" json:"public_key"`
 }
 
 type MiniApps struct {
-	ID        bson.ObjectID `json:"id" bson:"id"`
+	ID        bson.ObjectID `json:"_id" bson:"_id"`
 	Enabled   bool          `json:"enabled" bson:"enabled"`
 	IsDeleted bool          `json:"is_deleted" bson:"is_deleted"`
 }
@@ -476,4 +553,17 @@ type EmailKafkaMessage struct {
 	TransactionDetails map[string]interface{} `json:"transaction_details,omitempty"`
 	Priority           int                    `json:"priority,omitempty"`
 	Metadata           map[string]interface{} `json:"metadata,omitempty"`
+}
+
+type Reason struct {
+	Reason    string    `bson:"reason" json:"reason"`
+	CreatedAt time.Time `bson:"created_at" json:"created_at"`
+	CreatedBy string    `bson:"created_by" json:"created_by"`
+}
+
+type EnableDisableAction struct {
+	ID      string `json:"id" bson:"id"`
+	Name    string `json:"name" bson:"name"`
+	Enabled bool   `json:"enabled" bson:"enabled"`
+	Reason  Reason `json:"reason" bson:"reason"`
 }

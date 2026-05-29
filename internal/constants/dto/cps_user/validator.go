@@ -3,6 +3,7 @@ package cpsuser
 import (
 	"cbe-super-app-cps-action/pkgs/utils"
 	"fmt"
+	"regexp"
 	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -56,35 +57,34 @@ func IsObjectIDRequired(value interface{}) error {
 	}
 }
 
-func IsObjectIDSliceRequired(value interface{}) error {
-	if value == nil {
-		return validation.NewError("validation_is_objectid_slice_required", "must be a non-empty list of ObjectIDs")
+func IsStringSliceRequired(value interface{}) error {
+	slice, ok := value.([]string)
+	if !ok {
+		return validation.NewError("validation_string_slice_required", "must be a non-empty list of strings")
 	}
-	switch v := value.(type) {
-	case []bson.ObjectID:
-		if len(v) == 0 {
-			return validation.NewError("validation_is_objectid_slice_required", "list cannot be empty")
-		}
-		return nil
-	case []*bson.ObjectID:
-		if len(v) == 0 {
-			return validation.NewError("validation_is_objectid_slice_required", "list cannot be empty")
-		}
-		for _, id := range v {
-			if id == nil || id.Hex() == "" {
-				return validation.NewError("validation_is_objectid_slice_required", "all elements must be valid ObjectID")
+	if len(slice) > 0 {
+		for i, s := range slice {
+			trimmed := strings.TrimSpace(s)
+			if trimmed == "" {
+				return validation.NewError("validation_string_slice_required",
+					fmt.Sprintf("item at index %d cannot be empty", i))
+			}
+
+			if err := utils.NoSpecialChars(trimmed); err != nil {
+				return validation.NewError("validation_string_slice_required",
+					fmt.Sprintf("item at index %d is invalid: %s", i, err.Error()))
 			}
 		}
-		return nil
-	default:
-		return validation.NewError("validation_is_objectid_slice_required", "must be a non-empty list of ObjectIDs")
 	}
+
+	return nil
 }
 
 func (r CreateUserRequest) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.UserName,
 			validation.Required.Error("username is required"),
+			validation.Length(4, 0).Error("username length must be greater that 3 character"),
 			validation.By(utils.NoSpecialChars),
 			validation.By(func(value interface{}) error {
 				if s, ok := value.(string); ok {
@@ -95,7 +95,11 @@ func (r CreateUserRequest) Validate() error {
 				return nil
 			}),
 		),
-		validation.Field(&r.FullName, validation.Required.Error("full_name is required"), validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.FullName,
+			validation.Required.Error("full_name is required"),
+			validation.By(utils.NoSpecialChars),
+			validation.By(utils.ThreeNamesMinLength),
+		),
 		validation.Field(&r.PhoneNumber,
 			validation.Required.Error("phone_number is required"),
 			validation.By(func(value interface{}) error {
@@ -108,28 +112,26 @@ func (r CreateUserRequest) Validate() error {
 				return nil
 			}),
 		),
-		validation.Field(&r.Role,
-			validation.Required.Error("user role is required"),
-			validation.In("maker", "checker").Error("role must be maker or checker"),
-		),
-		validation.Field(&r.Department, validation.By(IsObjectIDRequired)),
-		validation.Field(&r.PermissionCategory, validation.By(IsObjectIDSliceRequired)),
-		validation.Field(&r.PermissionGroups, validation.By(IsObjectIDSliceRequired)),
 		validation.Field(&r.Gender, validation.Required.Error("gender is required")),
-		validation.Field(&r.Email, validation.Required.Error("email is required")),
+		validation.Field(&r.JobTitle, validation.Required.Error("job_title is required")),
+		validation.Field(
+			&r.Email,
+			validation.Required.Error("email is required"),
+			validation.Match(
+				regexp.MustCompile(`^[A-Za-z0-9._%+-]+@cbe\.com\.et$`),
+			).Error("email must be a valid cbe.com.et email"),
+		),
 	)
 }
 
 func (r UpdateUserRequest) Validate() error {
-	if r.UserName == "" && r.FullName == "" && r.PhoneNumber == "" &&
-		r.Role == "" && r.Department.IsZero() &&
-		r.PermissionCategory == nil && r.PermissionGroups == nil {
+	if r.UserName == "" && r.FullName == "" && r.PhoneNumber == "" {
 		return fmt.Errorf("at least one field must be provided for update")
 	}
 
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.UserName, validation.When(r.UserName != "",
-			validation.Length(1, 100).Error("user_name cannot be empty"),
+			validation.Length(4, 0).Error("username length must be greater that 3 character"),
 			validation.By(utils.NoSpecialChars),
 			validation.By(func(value interface{}) error {
 				if s, ok := value.(string); ok {
@@ -156,13 +158,20 @@ func (r UpdateUserRequest) Validate() error {
 				return nil
 			}),
 		)),
-		validation.Field(&r.Role, validation.When(r.Role != "",
-			validation.Length(1, 50).Error("user_role cannot be empty"),
-			validation.In("maker", "checker").Error("role must be maker or checker"),
+		validation.Field(&r.Gender, validation.When(r.Gender != "",
+			validation.By(utils.NoSpecialChars),
 		)),
-		validation.Field(&r.Department, validation.When(!r.Department.IsZero(), validation.By(IsObjectIDRequired))),
-		validation.Field(&r.PermissionCategory),
-		validation.Field(&r.PermissionGroups),
+		validation.Field(&r.JobTitle, validation.When(r.JobTitle != "",
+			validation.By(utils.NoSpecialChars),
+		)),
+		validation.Field(
+			&r.Email,
+			validation.When(r.Email != "",
+				validation.Match(
+					regexp.MustCompile(`^[A-Za-z0-9._%+-]+@cbe\.com\.et$`),
+				).Error("email must be a valid cbe.com.et email"),
+			),
+		),
 	)
 }
 

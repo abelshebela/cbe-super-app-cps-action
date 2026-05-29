@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package CpsAuthService;
+
+option go_package = "./cps_auth";
+
+message RefreshTokenRequest {}
+
+message RefreshTokenResponse {
+    string access_token = 1;
+}
+
+service CpsAuthService {
+    rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+}

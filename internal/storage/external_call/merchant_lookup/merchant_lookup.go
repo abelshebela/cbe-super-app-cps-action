@@ -1,45 +1,66 @@
 package merchant_lookup
 
 import (
-	"cbe-super-app-cps-action/internal/constants/dto/merchant_lookup"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"context"
+	"errors"
 	"net/http"
 	"time"
 
+	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
+
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type MerchantLookupAdapter struct {
-	Url    string
 	cfg    config.VaultConfig
 	logger utils.Logger
 	client *http.Client
 }
 
-func NewMerchantLookupAdapter(url string, cfg config.VaultConfig, logger utils.Logger) *MerchantLookupAdapter {
+func NewMerchantLookupAdapter(cfg config.VaultConfig, logger utils.Logger) *MerchantLookupAdapter {
 	return &MerchantLookupAdapter{
-		Url:    url,
 		cfg:    cfg,
 		logger: logger,
 		client: &http.Client{
-			Timeout: time.Duration(cfg.ServerTimeout),
+			Timeout: 2 * time.Second,
 		},
 	}
 }
 
-func (m *MerchantLookupAdapter) LookupMerchant(ctx context.Context, merchantID string) (merchant_lookup.MerchantLookUpResponse, error) {
+func (m *MerchantLookupAdapter) LookupMerchant(ctx context.Context, merchantID, xAPIKey, url string) (merchantDto.MerchantLookUpResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
 
-	res, merchantInfo, err := ThreeClickMerchantLookup(ctx, m.client, m.Url, merchantID)
+	res, merchantInfo, err := ThreeClickMerchantLookup(ctx, m.client, xAPIKey, url, merchantID, m.logger)
 	if err != nil {
-		return merchant_lookup.MerchantLookUpResponse{}, err
+		log.Errorf("failed to lookup merchant data from third party API: %v", err)
+		return merchantDto.MerchantLookUpResponse{}, err
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return merchant_lookup.MerchantLookUpResponse{}, localization.ErrorUnexpectedError
+		return merchantDto.MerchantLookUpResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return merchantInfo, nil
+}
+
+func (m *MerchantLookupAdapter) UpdateMerchant(ctx context.Context, merchantID string, payload merchantDto.ERPUpdateMerchantRequest, xAPIKey, url string) error {
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
+	res, err := ThreeClickMerchantUpdate(ctx, m.client, xAPIKey, url, merchantID, payload, m.logger)
+	if err != nil {
+		log.Errorf("failed to update merchant data to third party API: %v", err)
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		log.Errorf("unexpected status code from third party API: %d", res.StatusCode)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
 }

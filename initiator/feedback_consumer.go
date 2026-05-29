@@ -8,7 +8,7 @@ import (
 
 	feedbackConfig "cbe-super-app-cps-action/config"
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
-	"cbe-super-app-cps-action/internal/constants/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 
@@ -21,10 +21,12 @@ type feedbackServiceAdapter struct {
 	svc service.FeedbackService
 }
 
-func (a *feedbackServiceAdapter) CreateFeedback(ctx context.Context, req feedback.FeedbackRequest, userID string) (*model.Feedback, error) {
+func (a *feedbackServiceAdapter) CreateFeedback(ctx context.Context, req feedback.FeedbackRequest, userID string) (*imodel.Feedback, error) {
 	return a.svc.CreateFeedback(ctx, req, userID)
 }
-
+func (a *feedbackServiceAdapter) CreateSurveyFeedback(ctx context.Context, surveyFeedback feedback.SurveyFeedbackReq) (*imodel.SurveyFeedback, error) {
+	return a.svc.CreateSurveyFeedback(ctx, surveyFeedback)
+}
 func InitFeedbackConsumer(feedbackSvc service.FeedbackService, cfg *config.VaultConfig, logger utils.Logger) error {
 	kafkaConfig := feedbackConfig.LoadKafkaConfig(cfg, logger)
 	if kafkaConfig.Brokers == "" {
@@ -37,7 +39,7 @@ func InitFeedbackConsumer(feedbackSvc service.FeedbackService, cfg *config.Vault
 	// Create dead letter queue
 	deadLetterQueue := kafka.NewSimpleDeadLetterQueue(logger)
 
-	consumer, err := kafka.NewFeedbackConsumer(*kafkaConfig, logger, adapter, deadLetterQueue)
+	consumer, err := kafka.NewFeedbackConsumer(*kafkaConfig, cfg, logger, adapter, deadLetterQueue)
 	if err != nil {
 		logger.Errorf("Failed to create Kafka consumer: %v", err)
 		return err

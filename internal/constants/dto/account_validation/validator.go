@@ -1,8 +1,9 @@
 package accountvalidation
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -16,12 +17,12 @@ func (v ValidationRuleDTO) Validate() error {
 func (r UpdateAccountValidationRequest) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.ID, validation.Required.Error("id is required")),
-		validation.Field(&r, validation.By(func(value interface{}) error {
-			if v, ok := value.(ValidationRuleDTO); ok {
-				return v.Validate()
-			}
-			return nil
-		})),
+		// validation.Field(&r, validation.By(func(value interface{}) error {
+		// 	if v, ok := value.(ValidationRuleDTO); ok {
+		// 		return v.Validate()
+		// 	}
+		// 	return nil
+		// })),
 	)
 }
 
@@ -89,9 +90,27 @@ func ToModel(dto ValidationRuleDTO) *model.ValidationRule {
 		Identifier:     dto.Identifier,
 		MinLength:      int(dto.MinLength),
 		MaxLength:      int(dto.MaxLength),
-		Enabled:        dto.Enabled,
-		IsDeleted:      dto.IsDeleted,
+		Enabled:        *dto.Enabled,
+		IsDeleted:      *dto.IsDeleted,
 		ServiceID:      dto.ServiceID,
 		LastModifiedAt: time.Now(),
 	}
+}
+func UpdateToModel(dto UpdateAccountValidationRequest) *model.ValidationRule {
+	rule := &model.ValidationRule{
+		EntityType:     dto.EntityType,
+		ValidationFor:  dto.ValidationFor,
+		Identifier:     dto.Identifier,
+		MinLength:      int(dto.MinLength),
+		MaxLength:      int(dto.MaxLength),
+		ServiceID:      dto.ServiceID,
+		LastModifiedAt: time.Now(),
+	}
+	if dto.Enabled != nil {
+		rule.Enabled = *dto.Enabled
+	}
+	if dto.IsDeleted != nil {
+		rule.IsDeleted = *dto.IsDeleted
+	}
+	return rule
 }

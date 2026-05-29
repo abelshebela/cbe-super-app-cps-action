@@ -3,7 +3,6 @@ package faydaaccount
 import (
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/constants"
 	fayda_account "cbe-super-app-cps-action/internal/constants/interfaces/fayda"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -20,7 +19,6 @@ func Init(router chi.Router, handler fayda_account.FaydaAccount, authMiddleware 
 			Handler: handler.InitiateDisableFaydaAccount,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -29,7 +27,6 @@ func Init(router chi.Router, handler fayda_account.FaydaAccount, authMiddleware 
 			Handler: handler.InitiateEnableFaydaAccount,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 	}

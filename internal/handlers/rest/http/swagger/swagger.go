@@ -82,7 +82,25 @@ func RegisterSwaggerRoutes(r chi.Router) {
 // serveAPISpec serves the OpenAPI specification files
 func serveAPISpec(w http.ResponseWriter, r *http.Request, filePath string) {
 	// Read the YAML file
-	data, err := os.ReadFile(filepath.Join(".", filePath))
+	p := strings.TrimSpace(filePath)
+	if p == "" {
+		http.Error(w, "Specification not found", http.StatusNotFound)
+		return
+	}
+	p = strings.TrimLeft(p, "/\\")
+	p = filepath.Clean(p)
+	if filepath.IsAbs(p) {
+		http.Error(w, "Specification not found", http.StatusNotFound)
+		return
+	}
+	baseDir := filepath.Clean(filepath.Join(".", "docs"))
+	full := filepath.Join(".", p)
+	rel, err := filepath.Rel(baseDir, full)
+	if err != nil || strings.HasPrefix(rel, "..") || rel == "." {
+		http.Error(w, "Specification not found", http.StatusNotFound)
+		return
+	}
+	data, err := os.ReadFile(full)
 	if err != nil {
 		http.Error(w, "Specification not found", http.StatusNotFound)
 		return
@@ -90,7 +108,7 @@ func serveAPISpec(w http.ResponseWriter, r *http.Request, filePath string) {
 
 	// Set the appropriate content type
 	contentType := "application/x-yaml"
-	if strings.HasSuffix(filePath, ".json") {
+	if strings.HasSuffix(strings.ToLower(p), ".json") {
 		contentType = "application/json"
 	}
 

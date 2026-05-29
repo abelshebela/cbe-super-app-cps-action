@@ -5,7 +5,6 @@ import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	core "cbe-super-app-cps-action/internal/service/donation_company/core"
@@ -14,27 +13,33 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
-	"fmt"
 	"path"
+	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type DonationCompany struct {
 	DonationCompanyRepo  storage.DonationCompanyRepository
+	DonationRepo         storage.DonationRepository
 	cpsService           service.CPSActionService
 	logger               utils.Logger
-	minio                aws.Config
+	minio                *s3.Client
 	bucketName           string
 	cfg                  *config.VaultConfig
 	minioEndPoint        string
 	accountLookupService account_lookup.Account
 }
 
-func NewDonationCompanyService(client *mongo.Client, DonationCompanyRepo storage.DonationCompanyRepository, cpsAction service.CPSActionService, logger utils.Logger, minio aws.Config,
+func NewDonationCompanyService(client *mongo.Client, DonationCompanyRepo storage.DonationCompanyRepository, DonationRepo storage.DonationRepository, cpsAction service.CPSActionService, logger utils.Logger, minio *s3.Client,
 	bucketName string,
 	cfg *config.VaultConfig,
 	minioEndPoint string,
@@ -43,6 +48,7 @@ func NewDonationCompanyService(client *mongo.Client, DonationCompanyRepo storage
 
 	return &DonationCompany{
 		DonationCompanyRepo:  DonationCompanyRepo,
+		DonationRepo:         DonationRepo,
 		cpsService:           cpsAction,
 		logger:               logger,
 		minio:                minio,
@@ -54,75 +60,123 @@ func NewDonationCompanyService(client *mongo.Client, DonationCompanyRepo storage
 }
 
 func (d *DonationCompany) FetchDonationCompany(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]dto.DonationCompanyListResponse], error) {
-	return d.DonationCompanyRepo.FindAllWithPagination(ctx, *filterParams)
+	ctx, span := local_util.TraceLogger(ctx, "service", "FetchDonationCompany", "DonationCompany", "FetchDonationCompany")
+	defer span.End()
+
+	result, err := d.DonationCompanyRepo.FindAllWithPagination(ctx, *filterParams)
+	if err != nil {
+		span.AddEvent("Failed to fetch donation companies", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
+		return nil, err
+	}
+	return result, nil
 }
 
 func (d *DonationCompany) FetchDonationCompanyByID(ctx context.Context, id string) (*dto.DonationCompanyListResponse, error) {
-	return d.DonationCompanyRepo.FindByID(ctx, id)
+	ctx, span := local_util.TraceLogger(ctx, "service", "FetchDonationCompanyByID", "DonationCompany", "FetchDonationCompanyByID")
+	defer span.End()
+
+	result, err := d.DonationCompanyRepo.FindByID(ctx, id)
+	if err != nil {
+		span.AddEvent("Failed to fetch donation company", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return nil, err
+	}
+	return result, nil
 }
 
 func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCompany dto.DonationCompanyRequest) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "CreateDonationCompany", "DonationCompany", "CreateDonationCompany")
+	defer span.End()
+
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
-		return errors.New(localization.ErrorAccountNumberRequired.Code)
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", localization.ErrorIncompleteUserInfo.Code),
+		))
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	ok, err := core.CompanyNameExists(ctx, donationCompany.CompanyName, d.DonationCompanyRepo)
 	if err != nil {
+		span.AddEvent("Failed to check company name existence", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("company_name", donationCompany.CompanyName),
+		))
 		return err
 	}
 	if ok {
+		span.AddEvent("Company name already exists", trace.WithAttributes(
+			attribute.String("error", localization.ErrorCompanyNameAlreadyExists.Code),
+			attribute.String("company_name", donationCompany.CompanyName),
+		))
 		return errors.New(localization.ErrorCompanyNameAlreadyExists.Code)
 	}
 
-	ok, err = core.AccountNumberExists(ctx, donationCompany.AccountNumber, d.DonationCompanyRepo)
-	if err != nil {
-		return err
-	}
-	if ok {
-		return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
-	}
-
-	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService)
-	if err != nil {
-		d.logger.Errorf("Account number validation failed: %v", err)
-		return err
-	}
-
 	if donationCompany.CompanyLogo == nil {
+		span.AddEvent("Logo is required", trace.WithAttributes(
+			attribute.String("error", localization.ErrorLogoIsRequired.Code),
+		))
 		return errors.New(localization.ErrorLogoIsRequired.Code)
 	}
 
-	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint, d.minio,"", d.logger)
+	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.DonationCompanyFolderName), *d.cfg, "", d.logger)
 	if err != nil {
+		span.AddEvent("Failed to upload logo", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
 		return err
 	}
 
+	donationCompany.CompanyCode = "DON-COMPANY-" + local_util.UniqueIdGenerator()
 	result := core.MapToDonationCompanyResponse(donationCompany, url)
-	result.AccountHolderName = accountDetail.CustomerName
 	cpsAction := lib.CpsModelBuilder("", makerData, "", result, string(constants.RequestCreateDonationCompany), constants.CREATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
 		return err
 	}
 	return nil
 }
 
-func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, donationCompany dto.DonationCompanyRequest) (dto.DonationCompanyRequest, error) {
+func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, donationCompany dto.DonationCompanyRequest) (*imodel.DonationCompanyOracle, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateDonationCompany", "DonationCompany", "UpdateDonationCompany")
+	defer span.End()
+
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
-		return donationCompany, errors.New(localization.ErrorAccountNumberRequired.Code)
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", localization.ErrorIncompleteUserInfo.Code),
+			attribute.String("id", id),
+		))
+		return nil, errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	// Check if donation company exists
 	existingCompany, err := d.DonationCompanyRepo.FindByID(ctx, id)
 	if err != nil {
-		return donationCompany, err
+		span.AddEvent("Failed to find donation company", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return nil, err
 	}
 	if existingCompany == nil {
-		return donationCompany, errors.New(localization.ErrorFileNotFound.Code)
+		span.AddEvent("Donation company not found", trace.WithAttributes(
+			attribute.String("error", localization.ErrorFileNotFound.Code),
+			attribute.String("id", id),
+		))
+		return nil, errors.New(localization.ErrorFileNotFound.Code)
 	}
 
-	if err := core.CheckDataSimilarityAndValidation(ctx, donationCompany, existingCompany, d.DonationCompanyRepo, d.accountLookupService); err != nil {
-		return donationCompany, err
+	if err := core.CheckDataSimilarityAndValidation(ctx, donationCompany, existingCompany, d.DonationCompanyRepo); err != nil {
+		span.AddEvent("Data similarity validation failed", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return nil, err
 	}
 
 	logoURL := existingCompany.CompanyLogo
@@ -132,48 +186,57 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 			objectkey = path.Base(existingCompany.CompanyLogo)
 		}
 
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint,d.minio, objectkey, d.logger)
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.DonationCompanyFolderName), *d.cfg, objectkey, d.logger)
 		if err != nil {
-			return donationCompany, err
+			span.AddEvent("Failed to upload logo", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("id", id),
+			))
+			return nil, err
 		}
 		logoURL = url
 	}
 
-	updateData := core.MapToDonationCompanyCPSRequest(id, donationCompany, logoURL)
+	updateData := core.MapToDonationCompanyonUpdateCPSRequest(id, *existingCompany, donationCompany, logoURL)
 
 	// Use existing values if not provided in update
 	if donationCompany.CompanyName == "" {
 		updateData.CompanyName = existingCompany.CompanyName
 	}
-	if donationCompany.AccountNumber != "" {
-		accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService)
-		if err != nil {
-			return donationCompany, err
-		}
-		updateData.AccountHolderName = accountDetail.CustomerName
-	} else {
-		updateData.AccountNumber = existingCompany.AccountNumber
-		updateData.AccountHolderName = existingCompany.AccountHolderName
-	}
 
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingCompany, updateData, string(constants.RequestUpdateDonationCompany), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-		return donationCompany, err
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return nil, err
 	}
 
 	// Use core mapper to create return request
-	return core.MapToDonationCompanyRequest(updateData), nil
+	return updateData, nil
 }
 
 func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	fmt.Println("Donation Company Authorize called")
+	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "DonationCompany", "Authorize")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
 	if action.ActionStatus != constants.Approved {
-		d.logger.Errorf("Tried to authorize service action without cps action approval")
+		log.Errorf("[DonCompSvc][Authorize] invalid status")
+		span.AddEvent("CPS action status invalid", trace.WithAttributes(
+			attribute.String("error", localization.ErrorCPSActionStatusInvalid.Code),
+			attribute.String("unique_id", action.UniqueId),
+		))
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
 
-	donationCompoany, err := local_util.JsonUnmarshal[model.DonationCompany](action.CurrentAction)
+	donationCompoany, err := local_util.JsonUnmarshal[imodel.DonationCompanyOracle](action.CurrentAction)
 	if err != nil {
+		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", action.UniqueId),
+		))
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -181,45 +244,94 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 	case string(constants.RequestCreateDonationCompany):
 		err := d.DonationCompanyRepo.Create(ctx, donationCompoany)
 		if err != nil {
-			d.logger.Errorf("Failed to create donation company: %v", err)
+			log.Errorf("[DonCompSvc][Authorize] create err: %v", err)
+			span.AddEvent("Failed to create donation company", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
 			return nil, err
 		}
 	case string(constants.RequestUpdateDonationCompany):
-
 		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
 		if err != nil {
-			d.logger.Errorf("Failed to update donation company: %v", err)
+			log.Errorf("[DonCompSvc][Authorize] update err: %v", err)
+			span.AddEvent("Failed to update donation company", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
 			return nil, err
 		}
 	case string(constants.RequestEnableDonationCompany):
 
 		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
 		if err != nil {
-			d.logger.Errorf("Failed to update donation company: %v", err)
+			log.Errorf("[DonCompSvc][Authorize] enable err: %v", err)
+			span.AddEvent("Failed to enable donation company", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
 			return nil, err
 		}
 	case string(constants.RequestDisableDonationCompany):
-
+		// 1. Persist the company disable via CPS.
 		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
 		if err != nil {
-			d.logger.Errorf("Failed to update donation company: %v", err)
+			log.Errorf("[DonCompSvc][Authorize] disable err: %v", err)
+			span.AddEvent("Failed to disable donation company", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
 			return nil, err
 		}
+
+		// 2. Atomically disable all enabled donations that belong to this company.
+		if err := d.DonationRepo.DisableAllByCompany(ctx, action.UniqueId); err != nil {
+			log.Errorf("[DonCompSvc][Authorize] failed to disable company donations: %v", err)
+			span.AddEvent("Failed to bulk-disable donations for company", trace.WithAttributes(
+				attribute.String("error", localization.ErrorDonationUpdateFailed.Code),
+				attribute.String("unique_id", action.UniqueId),
+			))
+			return nil, errors.New(localization.ErrorDonationUpdateFailed.Code)
+		}
+
+	case string(constants.RequestDeleteDonationCompany):
+		err := d.DonationCompanyRepo.Delete(ctx, action.UniqueId)
+		if err != nil {
+			log.Errorf("[DonCompSvc][Authorize] delete err: %v", err)
+			span.AddEvent("Failed to delete donation company", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
+			return nil, err
+		}
+
 	default:
-		d.logger.Errorf("Unsupported action requested: %s", action.RequestAction)
+		log.Errorf("[DonCompSvc][Authorize] unsupported action: %s", action.RequestAction)
+		span.AddEvent("Unsupported action", trace.WithAttributes(
+			attribute.String("error", localization.ErrorUnsupportedAction.Code),
+			attribute.String("request_action", string(action.RequestAction)),
+		))
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
-	d.logger.Infof("Service action authorization completed: %s", action.RequestAction)
+	log.Infof("[DonCompSvc][Authorize] completed: %s", action.RequestAction)
 	return action, nil
 }
 
 // Account lookup end point
 
 func (d *DonationCompany) AccountLookup(ctx context.Context, accountNumber string) (*model.AccountDetail, error) {
-	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, accountNumber, d.accountLookupService)
+	ctx, span := local_util.TraceLogger(ctx, "service", "AccountLookup", "DonationCompany", "AccountLookup")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+
+	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, accountNumber, d.accountLookupService, d.logger)
 	if err != nil {
-		d.logger.Errorf("Account number validation failed: %v", err)
+		log.Errorf("[DonCompSvc][AccountLookup] validation err: %v", err)
+		span.AddEvent("Account number validation failed", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("account_number", accountNumber),
+		))
 		return nil, err
 	}
 	return accountDetail, nil
@@ -228,23 +340,102 @@ func (d *DonationCompany) AccountLookup(ctx context.Context, accountNumber strin
 //MapToDonationCompany
 
 func (d *DonationCompany) EnableDonationCompany(ctx context.Context, id string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "EnableDonationCompany", "DonationCompany", "EnableDonationCompany")
+	defer span.End()
+
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", localization.ErrorIncompleteUserInfo.Code),
+			attribute.String("id", id),
+		))
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	existingDonationCompany, err := d.DonationCompanyRepo.FindByID(ctx, id)
 	if err != nil {
+		span.AddEvent("Failed to find donation company", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		return err
 	}
 	if existingDonationCompany == nil {
+		span.AddEvent("Donation company not found", trace.WithAttributes(
+			attribute.String("error", localization.ErrorFileNotFound.Code),
+			attribute.String("id", id),
+		))
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
 	if existingDonationCompany.Enabled {
+		span.AddEvent("Donation company already enabled", trace.WithAttributes(
+			attribute.String("error", localization.ErrorAlreadyEnabled.Code),
+			attribute.String("id", id),
+		))
 		return errors.New(localization.ErrorAlreadyEnabled.Code)
 	}
-	DonationCompany := core.MapToDonationCompany(existingDonationCompany, true)
-	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCompany, DonationCompany, string(constants.RequestEnableDonationCompany), constants.UPDATE)
+	// DonationCompany := core.MapToDonationCompany(existingDonationCompany, true)
+
+	currentData := *existingDonationCompany
+	currentData.Enabled = true
+	currentData.LastModifiedAt = time.Now().Format(time.RFC3339)
+
+	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCompany, currentData, string(constants.RequestEnableDonationCompany), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+
+	return nil
+}
+
+func (d *DonationCompany) DisableDonationCompany(ctx context.Context, id string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "DisableDonationCompany", "DonationCompany", "DisableDonationCompany")
+	defer span.End()
+
+	makerData := local_util.ExtractUserFromContext(ctx)
+	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", localization.ErrorIncompleteUserInfo.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+	existingDonationCompany, err := d.DonationCompanyRepo.FindByID(ctx, id)
+	if err != nil {
+		span.AddEvent("Failed to find donation company", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+	if existingDonationCompany == nil {
+		span.AddEvent("Donation company not found", trace.WithAttributes(
+			attribute.String("error", localization.ErrorFileNotFound.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorFileNotFound.Code)
+	}
+	if !existingDonationCompany.Enabled {
+		span.AddEvent("Donation company already disabled", trace.WithAttributes(
+			attribute.String("error", localization.ErrorAlreadyDisabled.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorAlreadyDisabled.Code)
+	}
+
+	currentData := *existingDonationCompany
+	currentData.Enabled = false
+	currentData.LastModifiedAt = time.Now().Format(time.RFC3339)
+
+	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCompany, currentData, string(constants.RequestDisableDonationCompany), constants.UPDATE)
+	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		return err
 	}
 
@@ -252,27 +443,70 @@ func (d *DonationCompany) EnableDonationCompany(ctx context.Context, id string) 
 
 }
 
-func (d *DonationCompany) DisableDonationCompany(ctx context.Context, id string) error {
+func (d *DonationCompany) DeleteDonationCompany(ctx context.Context, id string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteDonationCompany", "DonationCompany", "DeleteDonationCompany")
+	defer span.End()
+
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+		span.AddEvent("Incomplete user data", trace.WithAttributes(
+			attribute.String("error", localization.ErrorIncompleteUserInfo.Code),
+			attribute.String("id", id),
+		))
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	existingDonationCompany, err := d.DonationCompanyRepo.FindByID(ctx, id)
 	if err != nil {
+		span.AddEvent("Failed to find donation company", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		return err
 	}
 	if existingDonationCompany == nil {
+		span.AddEvent("Donation company not found", trace.WithAttributes(
+			attribute.String("error", localization.ErrorFileNotFound.Code),
+			attribute.String("id", id),
+		))
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
-	if !existingDonationCompany.Enabled {
-		return errors.New(localization.ErrorAlreadyDisabled.Code)
+	if existingDonationCompany.IsDeleted {
+		span.AddEvent("Donation company already deleted", trace.WithAttributes(
+			attribute.String("error", localization.ErrorAlreadyDeleted.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorAlreadyDeleted.Code)
 	}
-	DonationCompany := core.MapToDonationCompany(existingDonationCompany, false)
-	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCompany, DonationCompany, string(constants.RequestDisableDonationCompany), constants.UPDATE)
+
+	// Guard: block the delete if there are still enabled donations using this company.
+	hasActive, err := d.DonationRepo.HasActiveDonationsByCompany(ctx, id)
+	if err != nil {
+		span.AddEvent("Failed to check active donations for company", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return err
+	}
+	if hasActive {
+		span.AddEvent("Company has active donations — delete blocked", trace.WithAttributes(
+			attribute.String("error", localization.ErrorActiveDonationExistsInCompany.Code),
+			attribute.String("id", id),
+		))
+		return errors.New(localization.ErrorActiveDonationExistsInCompany.Code)
+	}
+
+	currentData := *existingDonationCompany
+	currentData.IsDeleted = true
+	currentData.LastModifiedAt = time.Now().Format(time.RFC3339)
+
+	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCompany, currentData, string(constants.RequestDeleteDonationCompany), constants.DELETE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		return err
 	}
 
 	return nil
-
 }

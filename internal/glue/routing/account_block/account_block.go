@@ -1,7 +1,6 @@
 package accountblock
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	account_block "cbe-super-app-cps-action/internal/constants/interfaces/account_block"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -23,16 +22,14 @@ func Init(
 				Handler: handler.GetAllBranches,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 				},
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/branches/{branch_code}",
-				Handler: handler.GetBranchByCode,
+				Path:    "/branches/{branch_id}",
+				Handler: handler.GetBranchById,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 				},
 			},
 			{
@@ -41,16 +38,14 @@ func Init(
 				Handler: handler.GetAllRegions,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 				},
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/regions/{region_code}",
-				Handler: handler.GetRegionByCode,
+				Path:    "/regions/{region_id}",
+				Handler: handler.GetRegionById,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 				},
 			},
 			{
@@ -59,43 +54,38 @@ func Init(
 				Handler: handler.GetAllDistricts,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 				},
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/districts/{district_code}",
-				Handler: handler.GetDistrictByCode,
+				Path:    "/districts/{district_id}",
+				Handler: handler.GetDistrictById,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 				},
 			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/cities",
-				Handler: handler.GetAllCities,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
-				},
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/cities/{city_code}",
-				Handler: handler.GetCityByCode,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
-				},
-			},
+			// {
+			// 	Method:  http.MethodGet,
+			// 	Path:    "/cities",
+			// 	Handler: handler.GetAllCities,
+			// 	Middlewares: []func(http.Handler) http.Handler{
+			// 		authMiddleware.AuthenticateToken,
+			// 	},
+			// },
+			// {
+			// 	Method:  http.MethodGet,
+			// 	Path:    "/cities/{city_id}",
+			// 	Handler: handler.GetCityById,
+			// 	Middlewares: []func(http.Handler) http.Handler{
+			// 		authMiddleware.AuthenticateToken,
+			// 	},
+			// },
 			{
 				Method:  http.MethodPost,
 				Path:    "/branches/enable",
 				Handler: handler.EnableBranches,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 				},
 			},
 			{
@@ -104,7 +94,6 @@ func Init(
 				Handler: handler.DisableBranches,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 				},
 			},
 			{
@@ -113,7 +102,6 @@ func Init(
 				Handler: handler.EnableRegions,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 				},
 			},
 			{
@@ -122,7 +110,6 @@ func Init(
 				Handler: handler.DisableRegions,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 				},
 			},
 			{
@@ -131,7 +118,6 @@ func Init(
 				Handler: handler.EnableDistricts,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 				},
 			},
 			{
@@ -140,25 +126,38 @@ func Init(
 				Handler: handler.DisableDistricts,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+				},
+			},
+			// {
+			// 	Method:  http.MethodPost,
+			// 	Path:    "/cities/enable",
+			// 	Handler: handler.EnableCities,
+			// 	Middlewares: []func(http.Handler) http.Handler{
+			// 		authMiddleware.AuthenticateToken,
+			// 	},
+			// },
+			// {
+			// 	Method:  http.MethodPost,
+			// 	Path:    "/cities/disable",
+			// 	Handler: handler.DisableCities,
+			// 	Middlewares: []func(http.Handler) http.Handler{
+			// 		authMiddleware.AuthenticateToken,
+			// 	},
+			// },
+			{
+				Method:  http.MethodGet,
+				Path:    "/details/{id}",
+				Handler: handler.GetAccountBlockDetails,
+				Middlewares: []func(http.Handler) http.Handler{
+					authMiddleware.AuthenticateToken,
 				},
 			},
 			{
-				Method:  http.MethodPost,
-				Path:    "/cities/enable",
-				Handler: handler.EnableCities,
+				Method:  http.MethodGet,
+				Path:    "/previous_reasons/{id}",
+				Handler: handler.GetPreviousReasons,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-				},
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/cities/disable",
-				Handler: handler.DisableCities,
-				Middlewares: []func(http.Handler) http.Handler{
-					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 				},
 			},
 		}

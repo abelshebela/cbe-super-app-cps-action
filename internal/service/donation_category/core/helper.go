@@ -3,8 +3,7 @@ package core
 import (
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"encoding/json"
@@ -12,20 +11,24 @@ import (
 	"time"
 )
 
-func DonationNameExists(ctx context.Context, categoryName string, donationCategoryRepo storage.DonationCategoryRepository) (bool, error) {
-	// Use the repository method to find donation categories
-	categories, err := donationCategoryRepo.FindAllWithPagination(ctx, types.Filter{
-		Search:  categoryName,
-		Page:    1,
-		PerPage: 1,
-	})
+func DonationNameExists(
+	ctx context.Context,
+	categoryName string,
+	donationCategoryRepo storage.DonationCategoryRepository,
+) (bool, error) {
+
+	category, err := donationCategoryRepo.FindByName(ctx, categoryName)
 	if err != nil {
+		// Check if the error message is the "not found" error code
+		if err.Error() == localization.ErrorResourceNotFound.Code {
+			return false, nil
+		}
 		return false, errors.New(localization.ErrorDonationCategoryLookupFailed.Code)
 	}
 
-	// Check if any categories were found
-	return len(categories.Data) > 0, nil
+	return category != nil && category.ID != "", nil
 }
+
 func BindAction(source any, target any) error {
 	bytes, err := json.Marshal(source)
 	if err != nil {
@@ -34,17 +37,17 @@ func BindAction(source any, target any) error {
 	return json.Unmarshal(bytes, target)
 }
 
-func MapToDonationCategory(categoryName, iconURL string, enabled bool) *model.DonationCategory {
-	return &model.DonationCategory{
+func MapToDonationCategory(categoryName, iconURL string, enabled bool, is_deleted bool) *imodel.DonationCategoryOracle {
+	return &imodel.DonationCategoryOracle{
 		CategoryName:   categoryName,
 		Icon:           iconURL,
-		IsDeleted:      false,
+		IsDeleted:      is_deleted,
 		Enabled:        enabled,
 		LastModifiedAt: time.Now(),
 	}
 }
 
-func IsDataSimilar(request donation_category.DonationCategoryRequest, existing *model.DonationCategory) bool {
+func IsDataSimilar(request donation_category.DonationCategoryRequest, existing *imodel.DonationCategoryOracle) bool {
 	// Check if category name is the same (if provided in request)
 	if request.CategoryName != "" && request.CategoryName != existing.CategoryName {
 		return false

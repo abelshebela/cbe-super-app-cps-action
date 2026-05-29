@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        node {
+            label 'ELST_SLAVE_01'
+        }
+
+    }
 
     environment {
         SERVICE_NAME = "cps-action"
@@ -18,7 +23,7 @@ pipeline {
     }
 
     stages {
-        // Initializing Env Variales
+        // Initializing Env Varialed
         stage('Initialize Environment') {
             steps {
                 script {
@@ -50,6 +55,11 @@ pipeline {
                         env.ENV_TYPE = 'DEV'
                         env.IMAGE_NAME = 'cbe-supperapp-cps-action-dev'
                         env.SSH_KEY = 'DEV_SSH_KEY'
+                    }
+                    else if (env.BRANCH_NAME == 'uat') {
+                        env.ENV_TYPE = 'UAT'
+                        env.IMAGE_NAME = 'cbe-supperapp-cps-action-uat'
+                        env.SSH_KEY = 'UAT_SSH_KEY'
                     }
                     else {
                         error "Unsupported branch: ${env.BRANCH_NAME}"
@@ -158,7 +168,7 @@ pipeline {
                     // Login to Docker registry
                     sh """
                         echo "Logging in to Docker registry at ${env.REGISTRY_ADDRESS}"
-                        docker login ${env.REGISTRY_ADDRESS} -u ${env.REGISTRY_USER} -p ${env.REGISTRY_PASSWORD}
+                        echo '${env.REGISTRY_PASSWORD}' | docker login ${env.REGISTRY_ADDRESS} -u "${env.REGISTRY_USER}" --password-stdin
                         docker image tag ${env.IMAGE_NAME}:${env.IMAGE_TAG} ${env.REGISTRY_ADDRESS}/${env.HARBOR_PRODJECT}/${env.IMAGE_NAME}:${env.IMAGE_TAG}
                         docker image tag ${env.IMAGE_NAME}:${env.IMAGE_TAG} ${env.REGISTRY_ADDRESS}/${env.HARBOR_PRODJECT}/${env.IMAGE_NAME}:latest
                         docker push ${env.REGISTRY_ADDRESS}/${env.HARBOR_PRODJECT}/${env.IMAGE_NAME}:${env.IMAGE_TAG}
@@ -211,4 +221,6 @@ pipeline {
         }
         
     }
+
 }
+

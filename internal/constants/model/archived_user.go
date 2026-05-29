@@ -25,16 +25,10 @@ type ArchivedUser struct {
 	Gender            constants.Gender `json:"gender" bson:"gender,omitempty"`
 	ProfileThemeType  string           `json:"profile_theme_type" bson:"profile_theme_type,omitempty"`
 
-	Fayda struct {
-		FaydaID          string `json:"id_number" bson:"id_number,omitempty"`
-		FaydaAccessToken string `json:"fayda_access_token" bson:"fayda_access_token,omitempty"`
-		EmploymentStatus string `json:"employment_status" bson:"employement_status,omitempty"`
-		EmployerName     string `json:"employer_name" bson:"employer_name,omitempty"`
-		IssuedBy         string `json:"issued_by" bson:"issued_by,omitempty"`
-		MonthlyIncome    uint64 `json:"monthly_incode" bson:"monthly_incode,omitempty"`
-	} `json:"fayda" bson:"fayda,omitempty"`
-
-	Address           types.Address           `json:"address" bson:"address,omitempty"`
+	FaydaRiskLevel constants.RiskLevel   `json:"fayda_risk_level" bson:"fayda_risk_level,omitempty"`
+	Address        types.Address         `json:"address" bson:"address,omitempty"`
+	AccountType    constants.AccountType `json:"account_type" bson:"account_type,omitempty"`
+	// AccountBranchType constants.AccountType   `json:"account_branch_type" bson:"account_branch_type,omitempty"`
 	DocumentFront     string                  `json:"document_front" bson:"document_front,omitempty"`
 	DocumentBack      string                  `json:"document_back" bson:"document_back,omitempty"`
 	Photo             string                  `json:"photo" bson:"photo,omitempty"`
@@ -52,20 +46,13 @@ type ArchivedUser struct {
 	MemberType        constants.MemberType    `json:"account_branch_type" bson:"account_branch_type,omitempty"`
 	AccountStatus     constants.AccountStatus `json:"account_status" bson:"account_status,omitempty"`
 
-	KYC struct {
-		KYCRejectReasonField map[string]struct{} `json:"kyc_reject_reason_failed" bson:"kyc_reject_reason_failed,omitempty"`
-		KYCStatus            constants.KYCStatus `json:"kyc_status" bson:"kyc_status,omitempty"`
-		KYCRejectReason      string              `json:"kyc_reject_reason" bson:"kyc_reject_reason,omitempty"`
-		KYCApproved          bool                `json:"kyc_approved" bson:"kyc_approved,omitempty"`
-		KYCActivityBy        any                 `json:"kyc_activity_by" bson:"kyc_activity_by,omitempty"`
-	} `json:"kyc" bson:"kyc,omitempty"`
-
 	KYCLevel uint8 `json:"kyc_level" bson:"kyc_level,omitempty"`
 
 	BranchApproved    bool      `json:"branch_approved" bson:"branch_approved,omitempty"`
 	IsVerified        bool      `json:"is_verified" bson:"is_verified,omitempty"`
+	IsActivated       bool      `json:"is_activated" bson:"is_activated,omitempty"`
 	IsSelfRegister    bool      `json:"is_self_register" bson:"is_self_register,omitempty"`
-	BlockedOnCPS      bool      `json:"blocked_on_cps" bson:"blocked_on_cps,omitempty"`
+	BlockedOnCPS      bool      `json:"blocked_on_cps" bson:"blocked_on_cps,omitempty"` // will remove
 	IsBlocked         bool      `json:"is_blocked" bson:"is_blocked,omitempty"`
 	RegisterBy        struct{}  `json:"register_by" bson:"register_By,omitempty"`
 	LoginAttemptCount uint8     `json:"login_attempt_count" bson:"login_attempt_count,omitempty"`
@@ -75,6 +62,8 @@ type ArchivedUser struct {
 	LastLogin         time.Time `json:"last_login" bson:"last_login,omitempty"`
 
 	BPSStatus           constants.BPSStatus    `json:"bps_reject_status" bson:"bps_reject_status,omitempty"`
+	BlockedOn           constants.BlockedOn    `json:"blocked_on" bson:"blocked_on,omitempty"`
+	BlockedReason       string                 `json:"blocked_reason" bson:"blocked_reason,omitempty"`
 	BPSRejectionReason  string                 `json:"bps_reject_reason" bson:"bps_reject_reason,omitempty"`
 	BPSRejectionField   []string               `json:"bps_reject_failed" bson:"bps_reject_failed,omitempty"`
 	LoginPIN            types.LoginPIN         `json:"login_pin" bson:"login_pin,omitempty"`
@@ -86,7 +75,7 @@ type ArchivedUser struct {
 	InitialLinkedDate   time.Time              `json:"initial_linked_date" bson:"initiali_linked_date,omitempty"`
 	LoanScore           uint16                 `json:"loan_score" bson:"loan_score,omitempty"`
 	DeviceStatus        constants.DeviceStatus `json:"device_status" bson:"device_status,omitempty"`
-	Enabled             bool                   `json:"enabled" bson:"enabled,omitempty"`
+	Enabled             bool                   `json:"enabled" bson:"enabled"`
 	FirstPinSet         bool                   `json:"first_pin_set" bson:"first_pin_set,omitempty"`
 	PINChangedAt        time.Time              `json:"pin_changed_at" bson:"pin_changed_at,omitempty"`
 	OTPVerifyCount      uint8                  `json:"otp_verify_count" bson:"otp_verify_count,omitempty"`

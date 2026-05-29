@@ -1,8 +1,9 @@
 package notification
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -11,6 +12,7 @@ import (
 func NotificationMapper(notification model.Notification) bson.M {
 	return bson.M{
 		"title":              notification.Title,
+		"notification_code":  notification.NotificationCode,
 		"notification_type":  notification.NotificationType,
 		"notification_body":  notification.NotificationBody,
 		"is_public":          notification.IsPublic,
@@ -35,6 +37,7 @@ func ToNotificationDocument(domain *model.Notification) (*model.NotificationDocu
 
 	return &model.NotificationDocument{
 		ID:                ID,
+		NotificationCode:  domain.NotificationCode,
 		NotificationType:  domain.NotificationType,
 		NotificationBody:  domain.NotificationBody,
 		IsPublic:          domain.IsPublic,

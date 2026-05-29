@@ -3,15 +3,17 @@ package bank
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
+	"regexp"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -24,26 +26,48 @@ type BankStorage struct {
 	logger utils.Logger
 }
 
-func NewBankRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.BankRepository {
+func NewBankRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.BankRepository {
 	return &BankStorage{
-		dal:    dal.NewMongoDal[model.Bank, model.Bank](client, dbName, collection),
+		dal:    dal.NewMongoDal[model.Bank, model.Bank](client, cfg, dbName, collection),
 		client: client,
 		logger: logger,
 	}
 }
 
+// FindBIC implements [storage.BankRepository].
+func (b *BankStorage) FindByBIC(ctx context.Context, bic string) (*model.Bank, error) {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BankStorage][FindByBIC] fetching bank by BIC: %s", bic)
+	bank, err := b.dal.FindOne(ctx, bson.M{"bic_code": bic, "enabled": true, "is_deleted": false}, nil)
+	if err != nil {
+		log.Errorf("[BankStorage][FindByBIC] failed to fetch bank: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	return bank, nil
+}
+
 func (b *BankStorage) Create(ctx context.Context, bank *model.Bank) error {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BankStorage][Create] creating bank")
 	bank.ID = bson.NewObjectID()
 	_, err := b.dal.InsertOne(ctx, *bank)
 	if err != nil {
+		log.Errorf("[BankStorage][Create] failed to create bank: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	log.Infof("[BankStorage][Create] bank created successfully")
 	return nil
 }
 
 func (b *BankStorage) Update(ctx context.Context, id string, bank *model.Bank) error {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BankStorage][Update] updating bank for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		log.Errorf("[BankStorage][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -51,77 +75,116 @@ func (b *BankStorage) Update(ctx context.Context, id string, bank *model.Bank) e
 
 	_, err = b.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		b.logger.Errorf("failed to update bank error: %v", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		log.Errorf("[BankStorage][Update] failed to update bank: %v", err)
+		return local_util.HandleDBError(err)
 	}
+	log.Infof("[BankStorage][Update] bank updated successfully")
 	return nil
 }
 
 func (b *BankStorage) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BankStorage][Delete] deleting bank for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		log.Errorf("[BankStorage][Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	return b.dal.DeleteOne(ctx, filter)
+	err = b.dal.DeleteOne(ctx, filter)
+	if err != nil {
+		log.Errorf("[BankStorage][Delete] failed to delete bank: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	log.Infof("[BankStorage][Delete] bank deleted successfully")
+	return nil
 }
 
 func (b *BankStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BankStorage][EnableOrDisable] processing bank enable/disable for id: %s, enabled: %v", id, enable)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		log.Errorf("[BankStorage][EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"enabled": enable}
 	_, err = b.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
+		log.Errorf("[BankStorage][EnableOrDisable] failed to enable/disable bank: %v", err)
+		return local_util.HandleDBError(err)
 	}
+	log.Infof("[BankStorage][EnableOrDisable] bank enable/disable completed successfully")
 	return nil
 }
 
 func (b *BankStorage) FindByID(ctx context.Context, id string) (*model.Bank, error) {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BankStorage][FindByID] fetching bank by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		log.Errorf("[BankStorage][FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
 
 	result, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		return nil, err
+		log.Errorf("[BankStorage][FindByID] failed to find bank: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 	if result.IsDeleted {
-		return nil, mongo.ErrNoDocuments
+		log.Errorf("[BankStorage][FindByID] bank is deleted")
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
+	log.Infof("[BankStorage][FindByID] bank retrieved successfully")
 	return result, nil
 }
 
-func (s *BankStorage) FindByNameOrBICOrCode(ctx context.Context, bic, code, name string) (*model.Bank, error) {
-	filter := bson.M{}
-	filter["$or"] = []bson.M{
-		{"name": bson.M{"$regex": name, "$options": "i"}},
-		{"bic": bson.M{"$regex": bic, "$options": "i"}},
-		{"code": bson.M{"$regex": code, "$options": "i"}},
+func (s *BankStorage) FindByNameOrBIC(
+	ctx context.Context, bic, name string) (*model.Bank, error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
+	// Build conditions dynamically, only for non-empty parameters
+	conditions := []bson.M{}
+
+	if name != "" {
+		conditions = append(conditions, bson.M{
+			"name": bson.M{"$regex": "^" + regexp.QuoteMeta(name) + "$", "$options": "i"},
+		})
 	}
 
-	return s.dal.FindOne(ctx, filter, nil)
+	if bic != "" {
+		conditions = append(conditions, bson.M{
+			"bic_code": bson.M{"$regex": "^" + regexp.QuoteMeta(bic) + "$", "$options": "i"},
+		})
+	}
+
+	filter := bson.M{"$or": conditions}
+	bank, err := s.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Infof("[BankStorage][FindByNameOrBIC] no bank found matching the criteria")
+			return nil, nil
+		}
+		log.Errorf("[BankStorage][FindByNameOrBIC] failed to find bank: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	return bank, nil
 }
 
-func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error) {
-	// 1. Base filter (only active records)
+func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Bank], error) {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
+
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
-	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{"branch_code", "branch_name", "enabled", "enabled", "is_deleted"}
+	allowedKeys := []string{"search", "branch_code", "branch_name", "enabled", "enabled", "is_deleted"}
 
-	// 3. Add search (if provided)
-	if filterParam.Search != "" {
+	if filterParam.Search != "" && filterParam.Search != "enabled" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
 			{"name": searchRegex},
@@ -132,27 +195,26 @@ func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 		}
 
 	}
-	// 4. Build filter, skip, limit
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-
-	// 5. Fetch data
-	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	if filterParam.Search == "enabled" {
+		filter["enabled"] = true
+	}
+	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		fmt.Println(err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		log.Errorf("[BankStorage][FindAllWithPagination] failed to fetch banks: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 
-	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		log.Errorf("[BankStorage][FindAllWithPagination] failed to count banks: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	log.Infof("[BankStorage][FindAllWithPagination] retrieved %d banks", len(data))
 
-	// 8. Return standard paginated response
-	return &types.PaginatedResponse[[]*model.Bank]{
+	return &types.PaginatedResponse[[]model.Bank]{
 		Data: data,
 		Meta: meta,
 	}, nil

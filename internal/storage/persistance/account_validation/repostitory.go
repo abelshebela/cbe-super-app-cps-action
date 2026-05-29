@@ -1,15 +1,19 @@
 package accountvalidation
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -17,59 +21,70 @@ import (
 )
 
 type AccountValidationStore struct {
-	dal    dal.MongoDal[model.ValidationRule, model.ValidationRule]
-	client *mongo.Client
-	logger utils.Logger
+	dal           dal.MongoDal[model.ValidationRule, model.ValidationRule]
+	client        *mongo.Client
+	collection    *mongo.Collection
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
 // NewAccountValidationStore returns a ValidationRuleRepository
-func NewAccountValidationStore(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.ValidationRuleRepository {
+func NewAccountValidationStore(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.ValidationRuleRepository {
 	return &AccountValidationStore{
-		dal:    dal.NewMongoDal[model.ValidationRule, model.ValidationRule](client, dbName, collection),
-		client: client,
-		logger: logger,
+		dal:           dal.NewMongoDal[model.ValidationRule, model.ValidationRule](client, cfg, dbName, collection),
+		client:        client,
+		logger:        logger,
+		kafkaProducer: kafkaProducer,
+		collection:    client.Database(dbName).Collection(collection),
 	}
 }
 
 // GetAccountValidationByID implements ValidationRuleRepository
 func (l *AccountValidationStore) FindByID(ctx context.Context, id string) (*model.ValidationRule, error) {
+	log := local_util.LoggerFromCtx(ctx, l.logger)
+	log.Infof("[AccountValidationStore][FindByID] fetching account validation rule by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, err
+		log.Errorf("[AccountValidationStore][FindByID] invalid object id: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
 
 	result, err := l.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		log.Errorf("[AccountValidationStore][FindByID] failed to find account validation rule: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
+	log.Infof("[AccountValidationStore][FindByID] account validation rule retrieved successfully")
 	return result, nil
 }
 
 // UpdateAccountValidation implements ValidationRuleRepository
 func (a *AccountValidationStore) Update(ctx context.Context, id string, rule *model.ValidationRule) error {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AccountValidationStore][Update] updating account validation rule for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		log.Errorf("[AccountValidationStore][Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	updateData := AccountValidationMapper(*rule)
 
-	_, err = a.dal.UpdateOne(ctx, filter, updateData)
+	updateAccountValidation, err := a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorFileNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		log.Errorf("[AccountValidationStore][Update] failed to update account validation rule: %v", err)
+		return local_util.HandleDBError(err)
 	}
+
+	a.kafkaProducer.PublishMessage(ctx, updateAccountValidation, string(constants.ClientOrchestrationAccountValidationTopic), string(constants.ClientOrchestrationAccountValidationTopic), "update account validation rule")
+
+	log.Infof("[AccountValidationStore][Update] account validation rule updated successfully")
 	return nil
 }
 
 // GetAllAccountValidation implements ValidationRuleRepository
-func (l *AccountValidationStore) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error) {
+func (l *AccountValidationStore) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ValidationRule], error) {
 	filter := bson.M{"is_deleted": false}
 
 	searchKeys := bson.M{}
@@ -91,21 +106,25 @@ func (l *AccountValidationStore) FindAllWithPagination(ctx context.Context, filt
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
 	// 5. Fetch data
+	log := local_util.LoggerFromCtx(ctx, l.logger)
 	data, err := l.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		log.Errorf("[AccountValidationStore][FindAllWithPagination] failed to fetch account validation rules: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
 	total, err := l.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		log.Errorf("[AccountValidationStore][FindAllWithPagination] failed to count account validation rules: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	log.Infof("[AccountValidationStore][FindAllWithPagination] retrieved %d account validation rules", len(data))
 
-	return &types.PaginatedResponse[[]*model.ValidationRule]{
+	return &types.PaginatedResponse[[]model.ValidationRule]{
 		Data: data,
 		Meta: meta,
 	}, nil

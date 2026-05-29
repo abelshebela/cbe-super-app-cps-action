@@ -65,6 +65,25 @@ func Init(router chi.Router, departmentHandler department.DepartmentHandler, aut
 				authMiddleware.AuthenticateToken,
 				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
-		}}
+		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/departments/delete/{id}",
+			Handler: departmentHandler.DeleteDepartment,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+			},
+		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/departments/{id}",
+			Handler: departmentHandler.DeleteDepartment,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+			},
+		},
+	}
 	glue.RegisterRoutes(router, routes)
 }

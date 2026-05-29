@@ -4,23 +4,38 @@ package wallet;
 
 
 
-option go_package = "github.com/cbesuperapp/cbe-super-app-cps-action/grpc/wallet;wallet";
+option go_package = "github.com/cbesuperapp/cbe-super-app-cps-action/grpc/wallet;grpcwallet";
 
 message Wallet {
   string id = 1;
   string name = 2;
-  string code = 3;
+  string unique_code = 3;
   string avatar = 4;
   bool enabled = 5;
   bool is_deleted = 6;
   Services services = 7;
+  string service_code = 8;
+  string service_key = 9;
+  string service_id = 10;
+  repeated ChildServiceKey child_service_keys = 11;
+  repeated Cap cap = 12;
 }
 
+message ChildServiceKey{
+  string service_key = 1;
+  string service_name = 2;
+}
 message Services {
   bool self = 1;
   bool other = 2;
   bool agent = 3;
 }
+message Cap {
+  string single_cap = 1;
+  string minimum_transfer_cap = 2;
+  string currency = 3;
+}
+
 message docs {
     repeated Wallet wallets = 1;
 }
@@ -47,7 +62,7 @@ message Meta {
   int32 page = 4;
   bool has_next_page = 5;
   bool has_prev_page = 6;
-  // int32 next_page = 7;
+  int32 next_page = 7;
 }
 
 message GetAllWalletResponse {

@@ -1,26 +1,122 @@
 package amount_based_auth
 
-import "cbe-super-app-cps-action/internal/constants"
+import (
+	"cbe-super-app-cps-action/internal/constants"
+	"time"
+)
+
+// ----------- Valid methods set -----------
+
+var ValidMethods = map[constants.Method]bool{
+	constants.OPEN:      true,
+	constants.PIN:       true,
+	constants.OTPANDPIN: true,
+}
+
+// ----------- TierInput -----------
+
+type TierInput struct {
+	Method    constants.Method `json:"method"`
+	MinAmount int64            `json:"min_amount"`
+	MaxAmount int64            `json:"max_amount"`
+}
+
+// ----------- AddCurrencyRequest -----------
+
+type AddCurrencyRequest struct {
+	Currency constants.CurrencyType `json:"currency"`
+	Methods  []constants.Method     `json:"methods"`
+	Tiers    []TierInput            `json:"tiers"`
+}
+
+func (r AddCurrencyRequest) Validate() bool {
+	// if r.Currency != constants.ETB && r.Currency != constants.USD {
+	// 	return false
+	// }
+	if len(r.Methods) == 0 {
+		return false
+	}
+
+	if len(r.Tiers) != len(r.Methods) {
+		return false
+	}
+
+	// check each method is valid and no duplicates
+	seen := map[constants.Method]bool{}
+	for _, m := range r.Methods {
+		if !ValidMethods[m] {
+			return false
+		}
+		if seen[m] {
+			return false
+		}
+		seen[m] = true
+	}
+
+	// validate tier amounts
+	for i, t := range r.Tiers {
+		// Allow MinAmount = 0 for OPEN (free) method or when it's the only method
+		// isOnlyMethod := len(r.Tiers) == 1
+		// if t.MinAmount == 0 && t.Method != constants.OPEN && !isOnlyMethod {
+		// 	return false
+		// }
+		isLast := i == len(r.Tiers)-1
+		if !isLast && t.MaxAmount == 0 {
+			return false
+		}
+		if !isLast && t.MinAmount >= t.MaxAmount {
+			return false
+		}
+	}
+
+	// if err := validation.Validate(
+	// 	&r.Methods,
+	// 	validation.Required,
+	// 	validation.Each(
+	// 		validation.In(constants.OPEN, constants.PIN, constants.OTPANDPIN),
+	// 	),
+	// ); err != nil {
+	// 	return false
+	// }
+	return true
+}
+
+// ----------- ResetConfigRequest -----------
+
+type ResetConfigRequest struct {
+	Methods []constants.Method `json:"methods"`
+	Tiers   []TierInput        `json:"tiers"`
+}
+
+func (r ResetConfigRequest) Validate(currency constants.CurrencyType) bool {
+	return AddCurrencyRequest{
+		Currency: currency,
+		Methods:  r.Methods,
+		Tiers:    r.Tiers,
+	}.Validate()
+}
+
+// ----------- CurrencyGroup (grouped response) -----------
+
+type CurrencyGroup struct {
+	Currency constants.CurrencyType `json:"currency"`
+	Tiers    []TierResponse         `json:"tiers"`
+}
+
+type TierResponse struct {
+	ID           string           `json:"id"`
+	Method       constants.Method `json:"method"`
+	MinAmount    uint64           `json:"min_amount"`
+	MaxAmount    uint64           `json:"max_amount"`
+	Enabled      bool             `json:"enabled"`
+	CreatedAt    time.Time        `json:"created_at"`
+	LastModified time.Time        `json:"last_modified"`
+}
+
+// ----------- UpdateAmountBasedAuthRequest (existing) -----------
 
 // UpdateAmountBasedAuthRequest carries fields for updating any tier type
 type UpdateAmountBasedAuthRequest struct {
 	MinAmount uint64 `json:"min_amount,omitempty"`
 	MaxAmount uint64 `json:"max_amount,omitempty"`
-}
-
-// Validate ensures the request has valid data based on the method
-func (r UpdateAmountBasedAuthRequest) Validate(method constants.Method) bool {
-	switch method {
-	case constants.OPEN:
-		// OPEN tier only needs MaxAmount
-		return r.MaxAmount > 0
-	case constants.PIN:
-		// PIN tier needs both MinAmount and MaxAmount
-		return r.MinAmount > 0 && r.MaxAmount > 0
-	case constants.OTPANDPIN:
-		// OTP_PIN tier only needs MinAmount
-		return r.MinAmount > 0
-	default:
-		return false
-	}
 }

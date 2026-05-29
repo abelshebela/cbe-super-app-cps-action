@@ -3,7 +3,6 @@ package media
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -11,25 +10,36 @@ import (
 	"errors"
 	"fmt"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type shortVideoService struct {
-	repo   storage.ShortVideoRepository
-	cache  storage.RedisRepository
-	logger utils.Logger
+	repo     storage.ShortVideoRepository
+	cache    storage.RedisRepository
+	producer KafkaProducerService
+	logger   utils.Logger
 }
 
-func NewShortVideoService(repo storage.ShortVideoRepository, cache storage.RedisRepository, logger utils.Logger) service.ShortVideoService {
+func NewShortVideoService(repo storage.ShortVideoRepository, cache storage.RedisRepository, producer KafkaProducerService, logger utils.Logger) service.ShortVideoService {
 	return &shortVideoService{
-		repo:   repo,
-		cache:  cache,
-		logger: logger,
+		repo:     repo,
+		cache:    cache,
+		producer: producer,
+		logger:   logger,
 	}
 }
 
 func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	m.logger.Infof("Media short video service authorizing action: %s", cpsAction.ActionCode)
+	log := local_util.LoggerFromCtx(ctx, m.logger)
+
+	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Media", "Authorize")
+	defer span.End()
+
+	log.Infof("[ShortVideoSvc][Authorize] action: %s", cpsAction.ActionCode)
 
 	const (
 		NewsShortVideoCacheKeyPattern   = "news:shortVideo:%s"
@@ -38,52 +48,119 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 
 	shortVideo, err := local_util.JsonUnmarshal[model.ShortVideoDetail](cpsAction.CurrentAction)
 	if err != nil {
+		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", cpsAction.UniqueId),
+		))
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateShortVideo):
-		err = m.repo.Create(ctx, shortVideo.ToShortVideo())
+		createdVideo, err := m.repo.Create(ctx, shortVideo.ToShortVideo())
+		if err != nil {
+			span.AddEvent("Failed to create short video", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
+
+		shortVideoID := createdVideo.ID.Hex()
+		if err := m.producer.PublishShortVideoEvent(shortVideo.VideoURL, shortVideoID); err != nil {
+			log.Errorf("[ShortVideoSvc][Authorize] publish err: %v", err)
+		} else {
+			log.Infof("[ShortVideoSvc][Authorize] published id: %s", shortVideoID)
+		}
+		shortVideo.ID = createdVideo.ID
 	case string(constants.RequestUpdateShortVideo):
 		err = m.repo.Update(ctx, shortVideo.ToShortVideo(), cpsAction.UniqueId)
+		if err != nil {
+			span.AddEvent("Failed to update short video", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
+
+		prevVideo, err := local_util.JsonUnmarshal[model.ShortVideoDetail](cpsAction.PreviousAction)
+		if err != nil {
+			span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		}
+
+		if shortVideo.VideoURL != prevVideo.VideoURL {
+			shortVideoID := shortVideo.ID.Hex()
+			if shortVideo.ID.IsZero() && cpsAction.UniqueId != "" {
+				shortVideoID = cpsAction.UniqueId
+			}
+			if err := m.producer.PublishShortVideoEvent(shortVideo.VideoURL, shortVideoID); err != nil {
+				log.Errorf("[ShortVideoSvc][Authorize] publish err: %v", err)
+			} else {
+				log.Infof("[ShortVideoSvc][Authorize] published id: %s", shortVideoID)
+			}
+		}
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
-			m.logger.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
+			log.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
 		}
 	case string(constants.RequestDeleteShortVideo):
 		err = m.repo.Delete(ctx, cpsAction.UniqueId)
+		if err != nil {
+			span.AddEvent("Failed to delete short video", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
-			m.logger.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
+			log.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
 		}
 	case string(constants.RequestEnableShortVideo):
 		err = m.repo.PublishUnpublish(ctx, cpsAction.UniqueId, true)
+		if err != nil {
+			span.AddEvent("Failed to enable short video", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
-			m.logger.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
+			log.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
 		}
 	case string(constants.RequestDisableShortVideo):
 		err = m.repo.PublishUnpublish(ctx, cpsAction.UniqueId, false)
+		if err != nil {
+			span.AddEvent("Failed to disable short video", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
-			m.logger.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
+			log.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
 		}
 	default:
-		m.logger.Errorf("Unsupported request action: %s", cpsAction.RequestAction)
+		log.Errorf("[ShortVideoSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
+		span.AddEvent("Unsupported request action", trace.WithAttributes(
+			attribute.String("error", localization.ErrorInvalidRequest.Code),
+			attribute.String("request_action", string(cpsAction.RequestAction)),
+		))
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
-	if err != nil {
-		m.logger.Errorf("Failed to process action %s: %v", cpsAction.RequestAction, err)
-		return nil, err
-	}
-
 	cpsAction.CurrentAction = shortVideo
-	m.logger.Infof("Action %s approved for shortVideo shortVideo %s", cpsAction.RequestAction, shortVideo.ID)
+	log.Infof("[ShortVideoSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, shortVideo.ID)
 	return cpsAction, nil
 
 }

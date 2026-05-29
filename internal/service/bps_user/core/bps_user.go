@@ -1,15 +1,78 @@
 package bps_user_core
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
+	"fmt"
+	"strings"
 	"time"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
+	"cbe-super-app-cps-action/internal/constants/localization"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
+
+	// shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
+	// "go.mongodb.org/mongo-driver/v2/bson"
+	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
+	// local_model "cbe-super-app-cps-action/internal/constants/model"
 )
 
-func BPSUser_mapper(action map[string]interface{}) model.BPSUser {
-	var user model.BPSUser
+func ExistingIdentifier(existing *bps_model.BPSUser, req bps_model.BPSUser) error {
+	if existing == nil {
+		return nil
+	}
+
+	normalizedEmail := strings.TrimSpace(strings.ToLower(req.Email))
+	normalizedPhone := local_util.FormatPhoneNumber(req.PhoneNumber)
+	normalizedUsername := strings.TrimSpace(req.Username)
+
+	if normalizedEmail != "" && strings.EqualFold(strings.TrimSpace(existing.Email), normalizedEmail) {
+		return localization.ErrorEmailAlreadyExist
+	}
+
+	if normalizedPhone != "" {
+		storedPhone := local_util.FormatPhoneNumber(existing.PhoneNumber)
+		if storedPhone == normalizedPhone {
+			return localization.ErrorPhonenumberAlreadyExist
+		}
+	}
+	if strings.EqualFold(strings.TrimSpace(existing.Username), normalizedUsername) {
+		return localization.ErrorUsernameAlreadyExist
+	}
+	return nil
+}
+
+func ExistingIdentifierForUpdate(existing bps_model.BPSUser, id string, req bps_model.BPSUser) error {
+	if existing.ID.IsZero() {
+		fmt.Println("Existing user ID is zero, treating as non-existent user", existing)
+		return nil
+	}
+
+	normalizedEmail := strings.TrimSpace(strings.ToLower(req.Email))
+	normalizedPhone := local_util.FormatPhoneNumber(req.PhoneNumber)
+	normalizedUsername := strings.TrimSpace(req.Username)
+
+	existingID := existing.ID.Hex()
+	if normalizedEmail != "" && strings.EqualFold(existing.Email, normalizedEmail) && existingID != id {
+		return localization.ErrorEmailAlreadyExist
+	}
+
+	if normalizedPhone != "" && existingID != id {
+		storedPhone := local_util.FormatPhoneNumber(existing.PhoneNumber)
+		if storedPhone == normalizedPhone {
+			return localization.ErrorPhonenumberAlreadyExist
+		}
+	}
+
+	if normalizedUsername != "" && strings.EqualFold(strings.TrimSpace(existing.Username), normalizedUsername) && existingID != id {
+		return localization.ErrorUsernameAlreadyExist
+	}
+	fmt.Printf("No existing identifier conflicts found for user ID %s existing: %v, normalizedEmail: %s, normalizedPhone: %s, normalizedUsername: %s\n", id, existing, normalizedEmail, normalizedPhone, normalizedUsername)
+	return localization.ErrorUserNotFound
+}
+func BPSUser_mapper(action map[string]interface{}) bps_model.BPSUser {
+	var user bps_model.BPSUser
 
 	if v, ok := action["user_code"]; ok {
 		if s, ok := v.(string); ok {
@@ -23,17 +86,40 @@ func BPSUser_mapper(action map[string]interface{}) model.BPSUser {
 	}
 	if v, ok := action["username"]; ok {
 		if s, ok := v.(string); ok {
-			user.UserName = s
+			user.Username = s
 		}
 	}
+
+	if v, ok := action["job_title"]; ok {
+		if s, ok := v.(string); ok {
+			user.JobTitle = s
+		}
+	}
+
 	if v, ok := action["phone_number"]; ok {
 		if s, ok := v.(string); ok {
 			user.PhoneNumber = s
 		}
 	}
+	if v, ok := action["email"]; ok {
+		if s, ok := v.(string); ok {
+			user.Email = s
+		}
+	}
 	if v, ok := action["branch_code"]; ok {
-		if arr, ok := v.([]string); ok {
-			user.BranchCode = arr
+		switch val := v.(type) {
+		case []string:
+			user.BranchCode = val
+		case []interface{}:
+			var branchCodes []string
+			for _, v := range val {
+				if str, ok := v.(string); ok {
+					branchCodes = append(branchCodes, str)
+				}
+			}
+			user.BranchCode = branchCodes
+		case string:
+			user.BranchCode = []string{val}
 		}
 	}
 	if v, ok := action["branch_name"]; ok {
@@ -57,7 +143,7 @@ func BPSUser_mapper(action map[string]interface{}) model.BPSUser {
 		}
 	}
 	if v, ok := action["password"]; ok {
-		if p, ok := v.(types.Password); ok {
+		if p, ok := v.(bps_model.Password); ok {
 			user.Password = p
 		}
 	}
@@ -91,16 +177,16 @@ func BPSUser_mapper(action map[string]interface{}) model.BPSUser {
 			user.OTPLastVerifiedAt = t
 		}
 	}
-	if v, ok := action["permission_group"]; ok {
-		if arr, ok := v.([]bson.ObjectID); ok {
-			user.PermissionGroup = arr
-		}
-	}
-	if v, ok := action["permissions"]; ok {
-		if arr, ok := v.([]bson.ObjectID); ok {
-			user.Permissions = arr
-		}
-	}
+	// if v, ok := action["permission_group"]; ok {
+	// 	if arr, ok := v.([]bson.ObjectID); ok {
+	// 		user.PermissionGroup = arr
+	// 	}
+	// }
+	// if v, ok := action["permissions"]; ok {
+	// 	if arr, ok := v.([]bson.ObjectID); ok {
+	// 		user.Permissions = arr
+	// 	}
+	// }
 	if v, ok := action["last_login_attempt"]; ok {
 		if t, ok := v.(time.Time); ok {
 			user.LastLoginAttempt = t
@@ -111,11 +197,11 @@ func BPSUser_mapper(action map[string]interface{}) model.BPSUser {
 			user.NextLoginAttempt = t
 		}
 	}
-	if v, ok := action["is_first_time_login"]; ok {
-		if b, ok := v.(bool); ok {
-			user.IsFirstTimeLogin = b
-		}
-	}
+	// if v, ok := action["is_first_time_login"]; ok {
+	// 	if b, ok := v.(bool); ok {
+	// 		user.IsFirstTimeLogin = b
+	// 	}
+	// }
 	if v, ok := action["last_login"]; ok {
 		if t, ok := v.(time.Time); ok {
 			user.LastLogin = t
@@ -123,4 +209,108 @@ func BPSUser_mapper(action map[string]interface{}) model.BPSUser {
 	}
 
 	return user
+}
+
+// Helper to map Password struct field-by-field
+func mapPassword(src types.Password) local_model.Password {
+	return local_model.Password{
+		Salt:             src.Salt,
+		CurrentPassword:  src.CurrentPassword,
+		OldPassword:      src.OldPassword,
+		PasswordChangeAt: src.PasswordChangeAt,
+	}
+}
+func mapPasswordToShared(src local_model.Password) types.Password {
+	return types.Password{
+		Salt:             src.Salt,
+		CurrentPassword:  src.CurrentPassword,
+		OldPassword:      src.OldPassword,
+		PasswordChangeAt: src.PasswordChangeAt,
+	}
+}
+
+// MapBPSUserToWithJobTitle maps model.BPSUser to BPSUserWithJobTitle
+func MapBPSUserToWithJobTitle(u model.BPSUser, jobTitle string) local_model.BPSUser {
+	return local_model.BPSUser{
+		ID:                u.ID,
+		UserCode:          u.UserCode,
+		FullName:          u.FullName,
+		UserName:          u.UserName,
+		PhoneNumber:       u.PhoneNumber,
+		BranchCode:        u.BranchCode,
+		BranchName:        u.BranchName,
+		HomeBranch:        u.HomeBranch,
+		JobTitle:          jobTitle,
+		Role:              u.Role,
+		LoginAttemptCount: u.LoginAttemptCount,
+		Password:          mapPassword(u.Password),
+		FirstPasswordSet:  u.FirstPasswordSet,
+		Enabled:           u.Enabled,
+		IsDeleted:         u.IsDeleted,
+		OTPVerifyCount:    u.OTPVerifyCount,
+		OTPLastTriedAt:    u.OTPLastTriedAt,
+		OTPLastVerifiedAt: u.OTPLastVerifiedAt,
+		PermissionGroup:   u.PermissionGroup,
+		Permissions:       u.Permissions,
+		LastLoginAttempt:  u.LastLoginAttempt,
+		NextLoginAttempt:  u.NextLoginAttempt,
+		IsFirstTimeLogin:  u.IsFirstTimeLogin,
+		LastLogin:         u.LastLogin,
+		CreatedAt:         u.CreatedAt,
+		LastModifiedAt:    u.LastModifiedAt,
+	}
+}
+
+// MapWithJobTitleToBPSUser maps BPSUserWithJobTitle to model.BPSUser (drops JobTitle)
+func MapWithJobTitleToBPSUser(u local_model.BPSUser) model.BPSUser {
+	return model.BPSUser{
+		ID:                u.ID,
+		UserCode:          u.UserCode,
+		FullName:          u.FullName,
+		UserName:          u.UserName,
+		PhoneNumber:       u.PhoneNumber,
+		BranchCode:        u.BranchCode,
+		BranchName:        u.BranchName,
+		HomeBranch:        u.HomeBranch,
+		Role:              u.Role,
+		LoginAttemptCount: u.LoginAttemptCount,
+		Password:          mapPasswordToShared(u.Password),
+		FirstPasswordSet:  u.FirstPasswordSet,
+		Enabled:           u.Enabled,
+		IsDeleted:         u.IsDeleted,
+		OTPVerifyCount:    u.OTPVerifyCount,
+		OTPLastTriedAt:    u.OTPLastTriedAt,
+		OTPLastVerifiedAt: u.OTPLastVerifiedAt,
+		PermissionGroup:   u.PermissionGroup,
+		Permissions:       u.Permissions,
+		LastLoginAttempt:  u.LastLoginAttempt,
+		NextLoginAttempt:  u.NextLoginAttempt,
+		IsFirstTimeLogin:  u.IsFirstTimeLogin,
+		LastLogin:         u.LastLogin,
+		CreatedAt:         u.CreatedAt,
+		LastModifiedAt:    u.LastModifiedAt,
+	}
+}
+
+func BuildUpdatedBPSUser(existing bps_model.BPSUser, req bps_model.BPSUser) bps_model.BPSUser {
+	if req.FullName == "" {
+		req.FullName = existing.FullName
+	}
+	if req.Username == "" {
+		req.Username = existing.Username
+	}
+	if req.Email == "" {
+		req.Email = existing.Email
+	}
+	if req.PhoneNumber == "" {
+		req.PhoneNumber = existing.PhoneNumber
+	}
+	if len(req.BranchCode) == 0 {
+		req.BranchCode = existing.BranchCode
+		req.BranchName = existing.BranchName
+	}
+	if req.JobTitle == "" {
+		req.JobTitle = existing.JobTitle
+	}
+	return req
 }

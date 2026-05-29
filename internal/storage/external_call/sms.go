@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -33,6 +34,7 @@ func NewSMSPersistence(baseUrl string, logger utils.Logger) *SMSPersistence {
 
 // SendSMS sends an SMS using the external API
 func (s *SMSPersistence) SendSMS(ctx context.Context, recipient, messageBody string) error {
+	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	payload := smsDto.SMSRequest{
 		Recipient:   recipient,
@@ -41,14 +43,14 @@ func (s *SMSPersistence) SendSMS(ctx context.Context, recipient, messageBody str
 
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		s.logger.Errorf("Failed to marshal SMS payload: %v", err)
+		log.Errorf("Failed to marshal SMS payload: %v", err)
 		return errors.New(localization.ErrorOTPSendFailed.Code)
 	}
 
 	// Create HTTP request
 	req, err := http.NewRequestWithContext(ctx, "POST", s.baseURL, strings.NewReader(string(payloadBytes)))
 	if err != nil {
-		s.logger.Errorf("Failed to create HTTP request: %v", err)
+		log.Errorf("Failed to create HTTP request: %v", err)
 		return errors.New(localization.ErrorExternalServiceError.Code)
 	}
 
@@ -60,7 +62,7 @@ func (s *SMSPersistence) SendSMS(ctx context.Context, recipient, messageBody str
 	duration := time.Since(startTime)
 
 	if err != nil {
-		s.logger.Errorf("SMS API call failed: %v, duration: %v", err, duration)
+		log.Errorf("SMS API call failed: %v, duration: %v", err, duration)
 		return errors.New(localization.ErrorExternalServiceError.Code)
 	}
 	defer resp.Body.Close()

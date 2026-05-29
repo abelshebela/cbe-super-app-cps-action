@@ -9,10 +9,15 @@ import (
 	bank_core "cbe-super-app-cps-action/internal/handlers/rest/http/bank/core"
 	"cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	"context"
+	"strconv"
+
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type paginatedBankResp types.PaginatedResponse[[]*bank_dto.BankResponse]
@@ -37,6 +42,7 @@ func InitBankAdapter(bankApplication service.BankService, logger utils.Logger) b
 //	@Produce		json
 //	@Param			name	formData	string									true	"Bank name"	example("Commercial Bank")
 //	@Param			code	formData	string									true	"Bank code"	example("CBE")
+//	@Param			type	formData	string									true	"Bank type"	example("Commercial")
 //	@Param			bic		formData	string									true	"Bank BIC"	example("CBETETAA")
 //	@Param			logo	formData	file									true	"Bank logo (<=2MB; jpeg/png/gif/webp)"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Bank create request sent"
@@ -46,33 +52,98 @@ func InitBankAdapter(bankApplication service.BankService, logger utils.Logger) b
 //	@Security		BearerAuth
 //	@Router			/banks [post]
 func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createOneBank", "handler", "bank")
+	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, b.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
 	var bankRequest bank_dto.CreateBankRequest
 
 	file, fileHeader, err := bank_core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), b.logger)
 	if err != nil {
-		b.logger.Errorf("error parsing file: %v", err)
+		span.RecordError(err)
+		log.Errorf("[BankH] parse file err: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
 		return
 	}
 	defer file.Close()
 
-	bankRequest.Name = r.FormValue("name")
-	bankRequest.Code = r.FormValue("code")
-	bankRequest.BIC = r.FormValue("bic")
+	Name := r.FormValue("name")
+	bankRequest.Name = strings.ToUpper(Name)
+	BICCode := r.FormValue("bic_code")
+	bankRequest.BICCode = strings.ToUpper(BICCode)
+	isCBE := r.FormValue("is_cbe")
+
+	if accountLength := r.FormValue("account_length"); accountLength != "" {
+		length, err := strconv.Atoi(accountLength)
+		if err == nil {
+			bankRequest.AccountLength = length
+
+		} else {
+			localization.SendErrorResponse(w, localization.ErrorInvalidBankAccountLength, nil, nil)
+			return
+		}
+	} else {
+		localization.SendErrorResponse(w, localization.ErrorBankAccountLengthRequired, nil, nil)
+		return
+	}
+
+	hasAlphaNumeric := r.FormValue("has_alpha_numeric")
+	if hasAlphaNumeric == "" {
+		localization.SendErrorResponse(w, localization.ErrorBankHasAlphaNumericRequired, nil, nil)
+		return
+	}
+
+	var boolValue bool = true
+	if strings.ToLower(hasAlphaNumeric) == "true" {
+		bankRequest.HasAlphaNumeric = &boolValue
+	} else if strings.ToLower(hasAlphaNumeric) == "false" {
+		boolValue = false
+		bankRequest.HasAlphaNumeric = &boolValue
+	} else {
+		localization.SendErrorResponse(w, localization.ErrorBankHasAlphaNumericInvalid, nil, nil)
+		return
+	}
+
+	temp := false
+	if strings.ToLower(isCBE) == "true" {
+		temp = true
+		bankRequest.IsCBE = &temp
+	}
+
 	bankRequest.Logo = fileHeader
 
 	if response_code := bank_core.ValidateBankRequest(r, &bankRequest); response_code.Code != "" {
-		b.logger.Errorf("invalid input", response_code)
+		log.Errorf("[BankH] invalid input: %v", response_code)
+		span.SetAttributes(attribute.String("invalid input", response_code.Code))
 		localization.SendErrorResponse(w, response_code, nil, nil)
 		return
 	}
 
-	err = b.bankService.CreateOneBank(r.Context(), bankRequest)
+	span.SetAttributes(
+		attribute.String("bank.bic_code", bankRequest.BICCode),
+		attribute.String("bank.name", bankRequest.Name),
+	)
+
+	err = b.bankService.CreateOneBank(ctx, bankRequest)
 	if err != nil {
-		b.logger.Errorf("bank create request failed", err)
+		span.RecordError(err)
+		log.Errorf("[CreateOneBank] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	if md.IsMakerOnly {
+		log.Infof("[CreateOneBank] bank created successfully for bic_code: %s", bankRequest.BICCode)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessBankCreatedSuccessfully, nil)
+		return
+	}
+	log.Infof("[CreateOneBank] request sent successfully for bank bic_code: %s", bankRequest.BICCode)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankCreatedRequestSent, nil)
 }
 
@@ -91,21 +162,29 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id} [delete]
 func (b *bankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteOneBank", "handler", "bank")
+	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, b.logger)
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		b.logger.Errorf("missing or invalid parameter 'id'")
+		log.Errorf("[BankH] missing id param")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
 
-	err := b.bankService.DeleteOneBank(r.Context(), id)
+	span.SetAttributes(attribute.String("bank.id", id))
+
+	err := b.bankService.DeleteOneBank(ctx, id)
 
 	if err != nil {
-		b.logger.Errorf("bank delete request failed", err)
+		span.RecordError(err)
+		log.Errorf("[DeleteOneBank] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorBankDeleteRequestFailed.Code)
 		return
 	}
 
+	log.Infof("[DeleteOneBank] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessDeleteRequestCreated, nil)
 }
 
@@ -124,20 +203,39 @@ func (b *bankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id}/disable [patch]
 func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableBank", "handler", "bank")
+	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, b.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
 	id := chi.URLParam(r, "id")
+	span.SetAttributes(attribute.String("bank.id", id))
 	if id == "" {
-		b.logger.Errorf("missing or invalid parameter 'id'")
+		log.Errorf("[BankDisable] missing id param")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
 
-	err := b.bankService.EnableOrDisableBank(r.Context(), id, false)
+	err := b.bankService.EnableOrDisableBank(ctx, id, false)
 	if err != nil {
-		b.logger.Errorf("disable request failed", err)
+		span.RecordError(err)
+		log.Errorf("[BankDisable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	if md.IsMakerOnly {
+		log.Infof("[BankDisable] bank disabled successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessBankDisabledSuccessfully, nil)
+		return
+	}
+	log.Infof("[BankDisable] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankDisableRequestCreated, nil)
+
 }
 
 // Enable godoc
@@ -155,19 +253,37 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id}/enable [patch]
 func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableBank", "handler", "bank")
+	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, b.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
 	id := chi.URLParam(r, "id")
+	span.SetAttributes(attribute.String("bank.id", id))
 	if id == "" {
-		b.logger.Errorf("missing or invalid parameter 'id'")
+		log.Errorf("[BankH] missing id param")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
 
-	err := b.bankService.EnableOrDisableBank(r.Context(), id, true)
+	err := b.bankService.EnableOrDisableBank(ctx, id, true)
 	if err != nil {
-		b.logger.Errorf("enable request failed", err)
+		span.RecordError(err)
+		log.Errorf("[BankEnable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	if md.IsMakerOnly {
+		log.Infof("[BankEnable] bank enabled successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessBankEnabledSuccessfully, nil)
+		return
+	}
+	log.Infof("[BankEnable] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankEnableRequestCreated, nil)
 }
 
@@ -186,16 +302,39 @@ func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks [get]
 func (b *bankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllBanks", "handler", "bank")
+	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, b.logger)
 	filterParams := common_utils.ExtractFilterParams(r)
 
-	banks, err := b.bankService.GetAllBank(r.Context(), filterParams)
-	if err != nil {
-		b.logger.Errorf("get all banks failed", err)
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := common_utils.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessGetAllBanks, banks)
+	if err := common_utils.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	banks, err := b.bankService.GetAllBank(ctx, filterParams)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[GetAllBank] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	bankRes := bank_core.MapBankToAddBool(banks.Data)
+	res := types.PaginatedResponse[[]bank_dto.BankOracleResponse]{
+		Data: bankRes,
+		Meta: banks.Meta,
+	}
+	span.SetAttributes(attribute.Int("bank.count", len(banks.Data)))
+	log.Infof("[GetAllBank] retrieved %d banks", len(banks.Data))
+	localization.SendSuccessResponse(w, localization.SuccessGetAllBanks, res)
 }
 
 // GetOneBank godoc
@@ -213,22 +352,30 @@ func (b *bankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id} [get]
 func (b *bankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getOneBank", "handler", "bank")
+	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, b.logger)
 	id := chi.URLParam(r, "id")
+	span.SetAttributes(attribute.String("bank.id", id))
+
 	if id == "" {
-		b.logger.Errorf("missing or invalid parameter 'id'")
+		log.Errorf("[BankH] missing id param")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
 
-	bank, err := b.bankService.GetOneBank(r.Context(), id)
-
+	bank, err := b.bankService.GetOneBank(ctx, id)
 	if err != nil {
-		b.logger.Errorf("get bank by id failed", err)
+		span.RecordError(err)
+		log.Errorf("[GetOneBank] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessGetOneBank, bank)
+	bankRes := bank_core.MapSingleBankToAddBool(*bank)
+
+	log.Infof("[GetOneBank] bank retrieved successfully for id: %s", id)
+	localization.SendSuccessResponse(w, localization.SuccessGetOneBank, bankRes)
 }
 
 // UpdateLogo godoc
@@ -247,17 +394,21 @@ func (b *bankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id}/logo [patch]
 func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateBankLogo", "handler", "bank")
+	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, b.logger)
 	var uploadLogo bank_dto.UpdateLogo
 	id := chi.URLParam(r, "id")
+	span.SetAttributes(attribute.String("bank.id", id))
 	if id == "" {
-		b.logger.Errorf("missing or invalid parameter 'id'")
+		log.Errorf("[BankH] missing id param")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
 
 	file, fileHeader, err := bank_core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), b.logger)
 	if err != nil {
-		b.logger.Errorf("error parsing file: %v", err)
+		log.Errorf("[BankH] parse file err: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
 		return
 	}
@@ -265,14 +416,16 @@ func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 	uploadLogo.Logo = fileHeader
 	uploadLogo.ID = id
 
-	err = b.bankService.UpdateLogo(r.Context(), id, uploadLogo)
+	err = b.bankService.UpdateLogo(ctx, id, uploadLogo)
 
 	if err != nil {
-		b.logger.Errorf("Error uploading bank logo", err)
+		span.RecordError(err)
+		log.Errorf("[UpdateLogo] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	log.Infof("[UpdateLogo] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessFileUploadedToMinIO, nil)
 }
 
@@ -292,43 +445,99 @@ func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id} [patch]
 func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
+
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateOneBank", "handler", "bank")
+	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, b.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
 	id := chi.URLParam(r, "id")
+	span.SetAttributes(attribute.String("bank.id", id))
 	if id == "" {
-		b.logger.Errorf("missing or invalid parameter 'id'")
+		log.Errorf("[BankH] missing id param")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
-
 	var updateRequest bank_dto.UpdateBankRequest
-
 	file, fileHeader, err := bank_core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.Update), b.logger)
 	if err != nil {
-		b.logger.Errorf("error parsing file: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
-		return
+		span.RecordError(err)
+		if strings.Contains(err.Error(), "file not found") {
+			log.Infof("[BankH][Update] no logo, skipping")
+		} else {
+			log.Errorf("[BankH] parse file err: %v", err)
+			localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
+			return
+		}
 	}
-	if file == nil || fileHeader == nil {
-		b.logger.Infof("No logo uploaded; skipping logo update")
-	} else {
+	if file != nil && fileHeader != nil {
 		defer file.Close()
 		updateRequest.Logo = fileHeader
+	} else {
+		log.Infof("[BankH][Update] no logo, skipping")
 	}
 
-	updateRequest.Name = r.FormValue("name")
-	updateRequest.Code = r.FormValue("code")
-	updateRequest.BIC = r.FormValue("bic")
+	Name := r.FormValue("name")
+	updateRequest.Name = strings.ToUpper(Name)
+	updateRequest.BICCode = r.FormValue("bic_code")
+	BICCode := r.FormValue("bic_code")
+	updateRequest.BICCode = strings.ToUpper(BICCode)
+
+	isCBE := r.FormValue("is_cbe")
+	trueVal := true
+	if strings.ToLower(isCBE) == "true" {
+		updateRequest.IsCBE = &trueVal
+	} else if strings.ToLower(isCBE) == "false" {
+		falseVal := false
+		updateRequest.IsCBE = &falseVal
+	}
+
+	if accountLength := r.FormValue("account_length"); accountLength != "" {
+		length, err := strconv.Atoi(accountLength)
+		if err == nil {
+			updateRequest.AccountLength = length
+
+		} else {
+			localization.SendErrorResponse(w, localization.ErrorInvalidBankAccountLength, nil, nil)
+			return
+		}
+	}
+
+	hasAlphaNumeric := r.FormValue("has_alpha_numeric")
+	var boolValue bool = true
+	if strings.ToLower(hasAlphaNumeric) == "true" {
+		updateRequest.HasAlphaNumeric = &boolValue
+	} else if strings.ToLower(hasAlphaNumeric) == "false" {
+		boolValue = false
+		updateRequest.HasAlphaNumeric = &boolValue
+	}
 
 	if response_code := bank_core.ValidateBankRequest(r, &updateRequest); response_code.Code != "" {
-		b.logger.Errorf("invalid input", response_code)
+		span.SetAttributes(attribute.String("invalid input", response_code.Code))
+		log.Errorf("[BankH] invalid input: %v", response_code)
 		localization.SendErrorResponse(w, response_code, nil, nil)
 		return
 	}
 
-	if err = b.bankService.UpdateOneBank(r.Context(), id, updateRequest); err != nil {
-		b.logger.Errorf("bank update request failed", err)
+	span.SetAttributes(attribute.String("bank.id", id))
+
+	if err = b.bankService.UpdateOneBank(ctx, id, updateRequest); err != nil {
+		span.RecordError(err)
+		log.Errorf("[UpdateOneBank] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	if md.IsMakerOnly {
+		log.Infof("[UpdateOneBank] bank updated successfully for id: %s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessBankUpdated, nil)
+		return
+	}
+	log.Infof("[UpdateOneBank] request sent successfully for id: %s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessBankUpdatedRequestSent, nil)
+
 }

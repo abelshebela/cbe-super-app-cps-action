@@ -1,22 +1,30 @@
 package password_rule
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // PasswordRuleMapper maps a PasswordRule model to a bson.M for updates
-func PasswordRuleMapper(rule model.PasswordRule) bson.M {
-	return bson.M{
-		"name":            rule.Name,
-		"min_length":      rule.MinLength,
-		"max_length":      rule.MaxLength,
-		"numbers":         rule.Numbers,
-		"capital_letters": rule.CapitalLetters,
-		"small_letters":   rule.SmallLetters,
-		"characters":      rule.Characters,
-		"updated_at":      time.Now(),
+func PasswordRuleMapper(rule local_model.PasswordRule) bson.M {
+	result := bson.M{}
+	if rule.Name != "" {
+		result["name"] = rule.Name
 	}
+	if rule.MinLength != 0 {
+		result["min_length"] = rule.MinLength
+	}
+	if rule.MaxLength != 0 {
+		result["max_length"] = rule.MaxLength
+	}
+	result["numbers"] = rule.Numbers
+	result["capital_letters"] = rule.CapitalLetters
+	result["small_letters"] = rule.SmallLetters
+	result["characters"] = rule.Characters
+	result["allow_sequential_numbers"] = rule.AllowSequentialNumbers
+	result["is_spaced_allowed"] = rule.IsSpacedAllowed
+	result["updated_at"] = time.Now()
+	return result
 }

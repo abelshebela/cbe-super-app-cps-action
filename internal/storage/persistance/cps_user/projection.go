@@ -1,41 +1,37 @@
 package cps_user
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
 	"time"
 
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func CPSUserUpdateMapper(u *model.CPSUser) bson.M {
+func CPSUserUpdateMapper(u *imodel.CPSUser) bson.M {
 	set := bson.M{}
+	if u.UserName != "" {
+		set["username"] = u.UserName
+	}
 	if u.FullName != "" {
 		set["full_name"] = u.FullName
-	}
-	if u.Role != "" {
-		set["role"] = u.Role
-	}
-	if !u.Department.IsZero() {
-		set["department"] = u.Department
-	}
-	if u.Gender != "" {
-		set["gender"] = u.Gender
 	}
 	if u.PhoneNumber != "" {
 		set["phone_number"] = u.PhoneNumber
 	}
+	if u.Gender != "" {
+		set["gender"] = u.Gender
+	}
 	if u.Email != "" {
 		set["email"] = u.Email
 	}
-	if u.UserName != "" {
-		set["username"] = u.UserName
+	if u.JobTitle != "" {
+		set["job_title"] = u.JobTitle
 	}
-	if u.PermissionCategory != nil {
-		set["permission_category"] = u.PermissionCategory
-	}
-	if u.PermissionGroup != nil {
-		set["permission_group"] = u.PermissionGroup
+	if !u.Department.IsZero() {
+		set["department"] = u.Department
 	}
 
 	set["last_modified"] = time.Now()
@@ -87,106 +83,249 @@ func PermissionCategoryProjection(permissionColl, permissionCategoryColl string)
 		},
 		"as": "permission_category_docs",
 	}}}
-
 }
 
-func PipelineBuilder(userCode string, departmentColl, permissionGroupColl, permissionColl, permissionCategoryColl string) mongo.Pipeline {
+func PipelineBuilder(userCode string) mongo.Pipeline {
 	return mongo.Pipeline{
-		// Match the user by user_code and ensure it's not deleted
-		bson.D{{Key: "$match", Value: bson.M{"user_code": userCode, "is_deleted": false}}},
 
-		// Lookup department information
+		// 1️⃣ Match CPS user by user_code
+		bson.D{{Key: "$match", Value: bson.M{
+			"user_code": userCode,
+		}}},
+
+		// 2️⃣ Lookup role by job_title
 		bson.D{{Key: "$lookup", Value: bson.M{
-			"from":         departmentColl,
+			"from": "roles",
+			"let": bson.M{
+				"jobTitle": "$job_title",
+			},
+			"pipeline": mongo.Pipeline{
+
+				// match roles.job_title == user.job_title
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{
+						"$eq": []interface{}{"$job_title", "$$jobTitle"},
+					},
+				}}},
+
+				// lookup job_roles using role code
+				bson.D{{Key: "$lookup", Value: bson.M{
+					"from": "job_roles",
+					"let": bson.M{
+						"roleCode": "$role",
+					},
+					"pipeline": mongo.Pipeline{
+						bson.D{{Key: "$match", Value: bson.M{
+							"$expr": bson.M{
+								"$eq": []interface{}{"$code", "$$roleCode"},
+							},
+						}}},
+					},
+					"as": "job_role",
+				}}},
+
+				// unwind job_role
+				bson.D{{Key: "$unwind", Value: bson.M{
+					"path":                       "$job_role",
+					"preserveNullAndEmptyArrays": false,
+				}}},
+
+				// project role_id from job_roles._id
+				bson.D{{Key: "$project", Value: bson.M{
+					"_id":     0,
+					"role_id": "$job_role._id",
+				}}},
+			},
+			"as": "role_doc",
+		}}},
+
+		// 3️⃣ Unwind role_doc
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$role_doc",
+			"preserveNullAndEmptyArrays": false,
+		}}},
+
+		// 4️⃣ Final projection
+		bson.D{{Key: "$project", Value: bson.M{
+			"_id":          0,
+			"user_code":    1,
+			"role":         1,
+			"full_name":    1,
+			"username":     1,
+			"email":        1,
+			"phone_number": 1,
+			"gender":       1,
+			"realm":        1,
+			"enabled":      1,
+			"job_title":    1,
+			"role_id":      "$role_doc.role_id",
+			"last_login":   1,
+		}}},
+	}
+}
+
+func CPSUserMapper(u imodel.CPSUser) *model.CPSUser {
+	return &model.CPSUser{
+		UserCode:           u.UserCode,
+		FullName:           u.FullName,
+		Gender:             u.Gender,
+		PhoneNumber:        u.PhoneNumber,
+		Email:              u.Email,
+		UserName:           u.UserName,
+		Realm:              u.Realm,
+		PermissionCategory: u.PermissionCategory,
+		PermissionGroup:    u.PermissionGroup,
+		JobTitle:           u.JobTitle,
+		PasswordDisable:    u.PasswordDisable,
+		SyncDisabled:       u.SyncDisabled,
+		IsFirstTimeLogin:   u.IsFirstTimeLogin,
+		Enabled:            true,
+		IsDeleted:          u.IsDeleted,
+		DateJoined:         u.DateJoined,
+		LastModified:       u.LastModified,
+	}
+}
+
+func PipelineBuilderWithRole(userCode, departmentColl, rolesColl, jobRolesColl string) mongo.Pipeline {
+	return mongo.Pipeline{
+
+		// 1️⃣ Match CPS user by user_code
+		bson.D{{Key: "$match", Value: bson.M{
+			"user_code": userCode,
+		}}},
+
+		// 🔥 Convert department string → ObjectId
+		bson.D{{Key: "$addFields", Value: bson.M{
+			"department_obj_id": bson.M{
+				"$convert": bson.M{
+					"input":   "$department",
+					"to":      "objectId",
+					"onError": nil,
+					"onNull":  nil,
+				},
+			},
+		}}},
+
+		// 2️⃣ Lookup role by job_title
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": rolesColl,
+			"let": bson.M{
+				"jobTitle": "$job_title",
+			},
+			"pipeline": mongo.Pipeline{
+
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{
+						"$eq": []interface{}{"$job_title", "$$jobTitle"},
+					},
+				}}},
+
+				bson.D{{Key: "$lookup", Value: bson.M{
+					"from": jobRolesColl,
+					"let": bson.M{
+						"roleCode": "$role",
+					},
+					"pipeline": mongo.Pipeline{
+						bson.D{{Key: "$match", Value: bson.M{
+							"$expr": bson.M{
+								"$eq": []interface{}{"$code", "$$roleCode"},
+							},
+						}}},
+					},
+					"as": "job_role",
+				}}},
+
+				bson.D{{Key: "$unwind", Value: bson.M{
+					"path":                       "$job_role",
+					"preserveNullAndEmptyArrays": false,
+				}}},
+
+				bson.D{{Key: "$project", Value: bson.M{
+					"_id":     0,
+					"role_id": "$job_role._id",
+					"code":    "$job_role.code",
+					"name":    "$job_role.name",
+				}}},
+			},
+			"as": "role_doc",
+		}}},
+
+		// 3️⃣ Lookup Department (NEW ✅)
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "department",
 			"localField":   "department",
 			"foreignField": "_id",
-			"as":           "department_doc",
+			"as":           "department_info",
 			"pipeline": mongo.Pipeline{
-				bson.D{{Key: "$match", Value: bson.M{"is_deleted": bson.M{"$ne": true}}}},
 				bson.D{{Key: "$project", Value: bson.M{
-					"_id":          1,
-					"department":   1,
-					"portal_cards": 1,
+					"_id":        1,
+					"department": 1,
 				}}},
 			},
 		}}},
 
-		// Unwind department (preserve null for users without department)
-		bson.D{{Key: "$unwind", Value: bson.M{"path": "$department_doc", "preserveNullAndEmptyArrays": true}}},
-
-		bson.D{{Key: "$lookup", Value: bson.M{
-			"from":         permissionGroupColl,
-			"localField":   "permission_group",
-			"foreignField": "_id",
-			"as":           "permission_groups_raw",
-			"pipeline": mongo.Pipeline{
-				bson.D{{Key: "$match", Value: bson.M{"is_deleted": bson.M{"$ne": true}}}},
-				bson.D{{Key: "$project", Value: bson.M{
-					"group_name":          1,
-					"permission_category": 1,
-				}}},
-				PermissionCategoryProjection(permissionColl, permissionCategoryColl),
-			},
+		// 4️⃣ Unwind role_doc
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$role_doc",
+			"preserveNullAndEmptyArrays": true,
 		}}},
 
+		// 5️⃣ Unwind department
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$department_info",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+
+		// 6️⃣ Final projection
 		bson.D{{Key: "$project", Value: bson.M{
-			"_id":           1,
-			"user_code":     1,
-			"full_name":     1,
-			"role":          1,
-			"gender":        1,
-			"phone_number":  1,
-			"email":         1,
-			"username":      1,
-			"realm":         1,
-			"enabled":       1,
-			"date_joined":   1,
-			"last_modified": 1,
-			"country":       1,
-			"region":        1,
+			"_id":       1,
+			"user_code": 1,
+
+			"role": bson.M{
+				"code": "$role_doc.code",
+				"name": "$role_doc.name",
+			},
+			"role_code": "$role_doc.code",
+			"role_id":   "$role_doc.role_id",
+
+			// ✅ Department structured
 			"department": bson.M{
-				"$cond": bson.M{
-					"if": bson.M{"$ne": []interface{}{"$department_doc", nil}},
-					"then": bson.M{
-						"id":           "$department_doc._id",
-						"name":         "$department_doc.department",
-						"portal_cards": "$department_doc.portal_cards",
-					},
-					"else": nil,
-				},
+				"id":   "$department_info._id",
+				"name": "$department_info.department",
 			},
-			// Permission groups with nested structure
-			"permission_groups": bson.M{
-				"$map": bson.M{
-					"input": "$permission_groups_raw",
-					"as":    "pg",
-					"in": bson.M{
-						"id":         "$$pg._id",
-						"group_name": "$$pg.group_name",
-						"permission_category": bson.M{
-							"$map": bson.M{
-								"input": "$$pg.permission_category_docs",
-								"as":    "cat",
-								"in": bson.M{
-									"id":            "$$cat._id",
-									"category_name": "$$cat.category_name",
-									"access":        "$$cat.access",
-									"permissions": bson.M{
-										"$map": bson.M{
-											"input": "$$cat.permissions_docs",
-											"as":    "perm",
-											"in": bson.M{
-												"id":              "$$perm._id",
-												"permission_name": "$$perm.permission_name",
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
+
+			"full_name":           1,
+			"username":            1,
+			"email":               1,
+			"phone_number":        1,
+			"last_login":          1,
+			"gender":              1,
+			"realm":               1,
+			"enabled":             1,
+			"job_title":           1,
+			"is_first_time_login": 1,
 		}}},
+	}
+}
+
+func CPSUserPopulated(u imodel.CPSUser) *model.CPSUser {
+	return &model.CPSUser{
+		UserCode:           u.UserCode,
+		FullName:           u.FullName,
+		Gender:             u.Gender,
+		PhoneNumber:        u.PhoneNumber,
+		Email:              u.Email,
+		UserName:           u.UserName,
+		Realm:              u.Realm,
+		PermissionCategory: u.PermissionCategory,
+		PermissionGroup:    u.PermissionGroup,
+		JobTitle:           u.JobTitle,
+		PasswordDisable:    u.PasswordDisable,
+		SyncDisabled:       u.SyncDisabled,
+		IsFirstTimeLogin:   u.IsFirstTimeLogin,
+		Enabled:            true,
+		IsDeleted:          u.IsDeleted,
+		DateJoined:         u.DateJoined,
+		LastModified:       u.LastModified,
 	}
 }

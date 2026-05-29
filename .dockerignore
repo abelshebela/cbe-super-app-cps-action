@@ -1,0 +1,17 @@
+# ignore local build and editor files
+bin/
+dist/
+*.log
+.git/
+*.tmp
+.DS_Store
+vendor/
+
+# Go build
+*.exe
+*.exe~
+*.test
+
+# IDE
+.vscode/
+/.idea/

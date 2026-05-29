@@ -5,11 +5,14 @@ import (
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 
-	"gitlab.com/yohannesteshome/coreio/core"
+	account_lookup "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
+
+	"github.com/hugokessem/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type Persistence struct {
+	Account_lookup_external         account_lookup.Account
 	DeviceVersionControlPersistence storage.DeviceVersionControlRepository
 	AccountLookup                   core.CBECoreAPIInterface
 	MerchantLookup                  merchant_lookup.MerchantLookupAdapter
@@ -27,48 +30,61 @@ type Persistence struct {
 	AccountBlockPersistence         storage.AccountBlockRepository
 	PortalCardPersistence           storage.PortalCardRepository
 	MiniAppPersistence              storage.MiniAppRepository
-	CityPersistence                 storage.CityRepository
-	RegionPersistence               storage.RegionRepository
-	DistrictPersistence             storage.DistrictRepository
-	BranchPersistence               storage.BranchRepository
 	EventPersistence                storage.EventRepository
 	CustomerService                 storage.CustomerRepository
 	BulkService                     storage.BulkServiceRepository
-	BudgetCategoryPersistence       storage.BudgetCategoryRepository
 	RedisService                    storage.RedisRepository
 	IconPersistence                 storage.IconRepository
 	// Additional repositories
-	AccessListPersistence            storage.AppAccessListRepository
-	AvatarPersistence                storage.AvatarRepository
-	BPSUserPersistence               storage.BPSUserRepository
-	AdvertRepositoryPersistence      storage.AdvertRepository
-	ArchivedUserPersistence          storage.ArchivedUserRepository
-	ArchivedLinkedAccountPersistence storage.ArchivedLinkedAccountRepository
-	AuthTierPersistence              storage.AuthTierRepository
-	BankPersistence                  storage.BankRepository
-	CpsUserPersistence               storage.CpsUserRepository
-	DonationPersistence              storage.DonationRepository
-	DonationCategoryPersistence      storage.DonationCategoryRepository
-	DonationCompanyPersistence       storage.DonationCompanyRepository
-	FeedbackPersistence              storage.FeedbackRepository
-	LinkedAccountPersistence         storage.LinkedAccountRepository
-	MiniAppMerchantPersistence       storage.MiniAppMerchantRepository
-	NotificationPersistence          storage.NotificationRepository
-	PasswordRulePersistence          storage.PasswordRuleRepository
-	ServiceDetailsPersistence        storage.ServiceDetailsRepository
-	ValidationRulePersistence        storage.ValidationRuleRepository
-	PasswordRulePersistent           storage.PasswordRuleRepository
-	WalletPersistence                storage.WalletRepository
-	TopupPersistence                 storage.TopupRepository
-	ProductCodePersistence           storage.ProductCodeRepository
-	DepartmentPersistence            storage.DepartmentRepository
-	FaydaPersistence                 storage.FaydaRepository
-	PermissionPersistence            storage.PermissionRepository
-	ArticlePersistence               storage.ArticleRepository
-	ArticleCategoryPersistence       storage.ArticleCategoryRepository
-	ShortVideoPersistence            storage.ShortVideoRepository
-	NewsTagPersistence               storage.NewsTagRepository
-	KYCVerifierPersistence           storage.KYCVerifierRepository
-	NewsCategoryPersistence          storage.NewsCategoryRepository
-	NewsTagsServiceContainer         storage.NewsTagsRepository
+	AccessListPersistence             storage.AppAccessListRepository
+	AvatarPersistence                 storage.AvatarRepository
+	BPSUserPersistence                storage.BPSUserRepository
+	AdvertRepositoryPersistence       storage.AdvertRepository
+	ArchivedUserPersistence           storage.ArchivedUserRepository
+	ArchivedLinkedAccountPersistence  storage.ArchivedLinkedAccountRepository
+	AuthTierPersistence               storage.AuthTierRepository
+	BankPersistence                   storage.BankRepository
+	BankOraclePersistence             storage.BankOracleRepository
+	CpsUserPersistence                storage.CpsUserRepository
+	FeedbackPersistence               storage.FeedbackRepository
+	LinkedAccountPersistence          storage.LinkedAccountRepository
+	EcommerceMerchantPersistence      storage.EcommerceMerchantRepository
+	NotificationPersistence           storage.NotificationRepository
+	PasswordRulePersistence           storage.PasswordRuleRepository
+	ServiceDetailsPersistence         storage.ServiceDetailsRepository
+	ServicesPersistence               storage.ServicesRepository
+	ValidationRulePersistence         storage.ValidationRuleRepository
+	PasswordRulePersistent            storage.PasswordRuleRepository
+	WalletPersistence                 storage.WalletRepository
+	TopupPersistence                  storage.TopupRepository
+	ProductCodePersistence            storage.ProductCodeRepository
+	DepartmentPersistence             storage.DepartmentRepository
+	RolePersistence                   storage.RoleRepository
+	FaydaPersistence                  storage.FaydaRepository
+	PermissionPersistence             storage.PermissionRepository
+	ArticlePersistence                storage.ArticleRepository
+	ArticleCategoryPersistence        storage.ArticleCategoryRepository
+	ShortVideoPersistence             storage.ShortVideoRepository
+	NewsTagPersistence                storage.NewsTagRepository
+	KYCVerifierPersistence            storage.KYCVerifierRepository
+	NewsCategoryPersistence           storage.NewsCategoryRepository
+	NewsTagsServiceContainer          storage.NewsTagsRepository
+	BPSActionRolePersistence          storage.BPSActionRoleRepository
+	BPSActionApproveIndexPersistence  storage.BPSActionApproveIndexRepository
+	JobRolePersistence                storage.JobRoleRepository
+	MiniAppCategoryPersistence        storage.MiniAppCategoryRepository
+	CPSActionRolePersistence          storage.CPSActionRoleRepository
+	CPSActionApproveIndexPersistence  storage.CPSActionApproveIndexRepository
+	EventMerchantPersistence          storage.EventMerchantRepository
+	MiniAppProductCodePersistence     storage.MiniAppProductCodeRepository
+	AccessListSegmentationPersistence storage.AccessListSegmentationRepository
+	MiniAppMerchant                   storage.MiniAppMerchant
+	CustomerSegmentation              storage.CustomerSegmentationRepository
+	CustomerGroup                     storage.CustomerGroupRepository
+	CPSRoles                          storage.CPSRolesRepository
+	LogisticsMerchantPersistence      storage.LogisticsMerchantRepository
+	CustomerKYCPersistence            storage.CustomerKYCRepository
+	UssdMerchantPersistence           storage.UssdMerchantRepository
+	BpsActionPersistence              storage.BPSActionRepository
+	UserActionLogPersistence          storage.UserActionLogRepository
 }

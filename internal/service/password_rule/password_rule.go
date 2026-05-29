@@ -2,8 +2,9 @@ package passwordrule
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	passwordrule "cbe-super-app-cps-action/internal/constants/dto/password_rule"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/password_rule/core"
@@ -12,9 +13,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"unicode"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type passwordService struct {
@@ -31,30 +37,67 @@ func NewPasswordRuleService(repo storage.PasswordRuleRepository, cpsService serv
 	}
 }
 
-func (p *passwordService) GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error) {
-	return p.repo.FindAllWithPagination(ctx, filterParams)
+func (p *passwordService) GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.PasswordRule], error) {
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllPasswordRules", "PasswordRule", "GetAllPasswordRules")
+	defer span.End()
+
+	result, err := p.repo.FindAllWithPagination(ctx, filterParams)
+	if err != nil {
+		log.Errorf("[PwdRuleSvc][GetAll] fetch err: %v", err)
+		span.AddEvent("Failed to fetch password rules", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
+		return nil, err
+	}
+	log.Infof("[PwdRuleSvc][GetAll] retrieved %d", len(result.Data))
+	return result, nil
 }
 
-func (p *passwordService) RequestPasswordRuleUpdate(ctx context.Context, id string, body model.PasswordRule) error {
+func (p *passwordService) RequestPasswordRuleUpdate(ctx context.Context, id string, body passwordrule.PasswordRuleUpdate) error {
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
+	ctx, span := local_util.TraceLogger(ctx, "service", "RequestPasswordRuleUpdate", "PasswordRule", "RequestPasswordRuleUpdate")
+	defer span.End()
+
 	existingRule, err := p.repo.FindCurrentRule(ctx)
 	if err != nil {
-		p.logger.Errorf("Failed to fetch current password rule", err)
+		log.Errorf("[PwdRuleSvc][ReqUpdate] fetch current err: %v", err)
+		span.AddEvent("Failed to fetch current password rule", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		return errors.New(localization.ErrorNoPasswordRule.Code)
 	}
+	updated := core.PasswordRuleDtoToModel(*existingRule, body)
 
-	err = core.HandleCPSAction(ctx, p.cpsService, existingRule.ID.Hex(), constants.RequestUpdatePasswordRule, body, existingRule, constants.ActionUpdate)
+	err = core.HandleCPSAction(ctx, p.cpsService, existingRule.ID.Hex(), constants.RequestUpdatePasswordRule, updated, existingRule, constants.ActionUpdate)
 	if err != nil {
+		log.Errorf("[PwdRuleSvc][ReqUpdate] cps action err: %v", err)
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		return err
 	}
 
-	p.logger.Infof("Password rule sumitted successfully | id: %s", id)
+	log.Infof("[PwdRuleSvc][ReqUpdate] request created")
 	return nil
 }
 
 func (p *passwordService) CheckPasswordRule(ctx context.Context, password string) (bool, string) {
+	log := local_util.LoggerFromCtx(ctx, p.logger)
+
+	ctx, span := local_util.TraceLogger(ctx, "service", "CheckPasswordRule", "PasswordRule", "CheckPasswordRule")
+	defer span.End()
+
 	rule, err := p.repo.FindCurrentRule(ctx)
-	p.logger.Infof("Retrieved password rule: %+v", rule)
 	if err != nil || rule == nil {
+		log.Errorf("[PwdRuleSvc][Check] retrieve err: %v", err)
+		span.AddEvent("Failed to retrieve password rule", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
 		return false, "could not retrieve password rule"
 	}
 
@@ -66,7 +109,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		return false, fmt.Sprintf("password must be at most %d characters", rule.MaxLength)
 	}
 
-	if rule.Numbers {
+	if rule.Numbers != nil {
 		hasNumber := false
 		for _, c := range password {
 			if c >= '0' && c <= '9' {
@@ -79,7 +122,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		}
 	}
 
-	if rule.CapitalLetters {
+	if rule.CapitalLetters != nil {
 		hasUpper := false
 		for _, c := range password {
 			if c >= 'A' && c <= 'Z' {
@@ -92,7 +135,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		}
 	}
 
-	if rule.SmallLetters {
+	if rule.SmallLetters != nil {
 		hasLower := false
 		for _, c := range password {
 			if unicode.IsLower(c) {
@@ -105,7 +148,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		}
 	}
 
-	if rule.Characters {
+	if rule.Characters != nil {
 		hasSpecial := false
 		for _, c := range password {
 			if (c >= 33 && c <= 47) || (c >= 58 && c <= 64) || (c >= 91 && c <= 96) || (c >= 123 && c <= 126) {
@@ -117,25 +160,55 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 			return false, "password must contain at least one special character"
 		}
 	}
+	if rule.AllowSequentialNumbers != nil && *rule.AllowSequentialNumbers == false {
+		for i := 1; i < len(password); i++ {
+			if unicode.IsDigit(rune(password[i])) && unicode.IsDigit(rune(password[i-1])) {
+				x := int(password[i] - '0')
+				y := int(password[i-1] - '0')
+				if x == y+1 {
+					return false, "password must not contain sequential numbers"
+				}
+			}
+		}
+	}
+
+	if rule.IsSpacedAllowed != nil && *rule.IsSpacedAllowed == false {
+		if strings.Contains(password, " ") {
+			return false, "password must not contain spaces"
+		}
+	}
 	return true, "Password is valid"
 }
 
 func (p *passwordService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	p.logger.Infof("Authorizing password rule action: %s", cpsAction.ActionCode)
+	log := local_util.LoggerFromCtx(ctx, p.logger)
 
-	passwordRule, err := local_util.JsonUnmarshal[model.PasswordRule](cpsAction.CurrentAction)
+	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "PasswordRule", "Authorize")
+	defer span.End()
+
+	log.Infof("[PwdRuleSvc][Authorize] action: %s", cpsAction.RequestAction)
+
+	passwordRule, err := local_util.JsonUnmarshal[local_model.PasswordRule](cpsAction.CurrentAction)
 	if err != nil {
-		p.logger.Errorf("Failed to unmarshal password rule from action: %v", err)
+		log.Errorf("[PwdRuleSvc][Authorize] unmarshal err: %v", err)
+		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", cpsAction.UniqueId),
+		))
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	err = p.repo.Update(ctx, cpsAction.UniqueId, passwordRule)
 	if err != nil {
-		p.logger.Errorf("Failed to process password rule authorization with request action: %s and error: %v", cpsAction.RequestAction, err)
+		log.Errorf("[PwdRuleSvc][Authorize] update err: %v", err)
+		span.AddEvent("Failed to update password rule", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", cpsAction.UniqueId),
+		))
 		return nil, err
 	}
 
 	cpsAction.CurrentAction = passwordRule
-	p.logger.Infof("Password Rule authorization completed for request action: %s and user: %v", cpsAction.RequestAction, passwordRule.ID)
+	log.Infof("[PwdRuleSvc][Authorize] authorized id: %s", cpsAction.UniqueId)
 	return cpsAction, nil
 }

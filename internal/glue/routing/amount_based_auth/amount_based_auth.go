@@ -1,7 +1,6 @@
 package amount_based_auth
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	amount_based "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -14,12 +13,19 @@ func Init(router chi.Router, handler amount_based.AmountBasedAuthAdapter, authMi
 
 	routes := []glue.Route{
 		{
+			Method:  http.MethodDelete,
+			Path:    "/amount_based_auth/{currency}",
+			Handler: handler.DeleteAmountBasedAuth,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
 			Method:  http.MethodPatch,
 			Path:    "/amount_based_auth/update/{method}/{id}",
 			Handler: handler.UpdateAmountBasedAuth,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker}),
 			},
 		},
 		{
@@ -28,7 +34,6 @@ func Init(router chi.Router, handler amount_based.AmountBasedAuthAdapter, authMi
 			Handler: handler.GetAllAmountBasedAuth,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker}),
 			},
 		},
 		{
@@ -37,7 +42,22 @@ func Init(router chi.Router, handler amount_based.AmountBasedAuthAdapter, authMi
 			Handler: handler.RejectAmountBasedAuth,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Checker}),
+			},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/amount_based_auth/currency",
+			Handler: handler.AddCurrency,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/amount_based_auth/reset/{currency}",
+			Handler: handler.ResetConfig,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
 			},
 		},
 	}

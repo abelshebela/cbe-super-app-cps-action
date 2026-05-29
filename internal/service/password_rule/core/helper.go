@@ -2,8 +2,10 @@ package core
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	passwordrule "cbe-super-app-cps-action/internal/constants/dto/password_rule"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
@@ -26,4 +28,37 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 		return err
 	}
 	return nil
+}
+
+func PasswordRuleDtoToModel(existing local_model.PasswordRule, dto passwordrule.PasswordRuleUpdate) local_model.PasswordRule {
+	if dto.Rule.Name != "" {
+		existing.Name = dto.Rule.Name
+	}
+	if dto.Rule.MinLength != 0 {
+		existing.MinLength = dto.Rule.MinLength
+	}
+	if dto.Rule.MaxLength != 0 {
+		existing.MaxLength = dto.Rule.MaxLength
+	}
+
+	if dto.Rule.Numbers != nil {
+		existing.Numbers = dto.Rule.Numbers
+	}
+	if dto.Rule.CapitalLetters != nil {
+		existing.CapitalLetters = dto.Rule.CapitalLetters
+	}
+	if dto.Rule.SmallLetters != nil {
+		existing.SmallLetters = dto.Rule.SmallLetters
+	}
+	if dto.Rule.Characters != nil {
+		existing.Characters = dto.Rule.Characters
+	}
+	if dto.Rule.AllowSequentialNumbers != nil {
+		existing.AllowSequentialNumbers = dto.Rule.AllowSequentialNumbers
+	}
+	if dto.Rule.IsSpacedAllowed != nil {
+		existing.IsSpacedAllowed = dto.Rule.IsSpacedAllowed
+	}
+
+	return existing
 }

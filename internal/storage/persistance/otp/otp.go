@@ -4,12 +4,14 @@ import (
 	"context"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
 	"errors"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -21,51 +23,49 @@ type OTPRepository struct {
 	logger utils.Logger
 }
 
-func NewOtpRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.OTPRepository {
+func NewOtpRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.OTPRepository {
 	return &OTPRepository{
-		otpDal: dal.NewMongoDal[model.OTP, model.OTP](client, dbName, collection),
+		otpDal: dal.NewMongoDal[model.OTP, model.OTP](client, cfg, dbName, collection),
 		logger: logger,
 	}
 }
 
 func (o *OTPRepository) Find(ctx context.Context, filter bson.M) (*model.OTP, error) {
+	log := local_util.LoggerFromCtx(ctx, o.logger)
 
 	projection := OtpProjection()
 	otp, err := o.otpDal.FindOne(ctx, filter, projection)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			o.logger.Errorf("OTP not found. filter=%+v", filter)
-			return nil, errors.New(localization.ErrorOTPNotFound.Code)
-		}
-		o.logger.Errorf("Unexpected error while finding OTP. error=%v, filter=%+v", err, filter)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, local_util.HandleDBError(err)
 	}
-	o.logger.Infof("OTP found successfully. otp=%+v", otp)
+	log.Infof("OTP found successfully. otp=%+v", otp)
 	return otp, nil
 }
 
 func (o *OTPRepository) Save(ctx context.Context, otp *model.OTP) error {
+	log := local_util.LoggerFromCtx(ctx, o.logger)
 
 	_, err := o.otpDal.InsertOne(ctx, *otp)
 	if err != nil {
-		o.logger.Errorf("Unexpected error while saving OTP. error=%v, otp=%+v", err, otp)
+		log.Errorf("Unexpected error while saving OTP. error=%v, otp=%+v", err, otp)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	o.logger.Infof("OTP saved successfully. otp=%+v", otp)
+	log.Infof("OTP saved successfully. otp=%+v", otp)
 	return nil
 }
 
 func (o *OTPRepository) Delete(ctx context.Context, id string) error {
+	log := local_util.LoggerFromCtx(ctx, o.logger)
 
 	filter, err := local_util.FilterIdFor(id)
 	if err != nil {
-		o.logger.Errorf("Delete OTP failed: error creating filter. error=%v, id=%s", err, id)
-		return err
+		log.Errorf("Delete OTP failed: error creating filter. error=%v, id=%s", err, id)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	if err := o.otpDal.DeleteOne(ctx, filter); err != nil {
-		o.logger.Errorf("Delete OTP failed: error deleting OTP. error=%v, id=%s", err, id)
-		return err
+		log.Errorf("Delete OTP failed: error deleting OTP. error=%v, id=%s", err, id)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	o.logger.Infof("OTP deleted successfully. id=%s", id)
+	log.Infof("OTP deleted successfully. id=%s", id)
 	return nil
 }
