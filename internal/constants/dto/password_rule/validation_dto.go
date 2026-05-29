@@ -1,6 +1,7 @@
 package passwordrule
 
 import (
+	"errors"
 	"regexp"
 	"strings"
 
@@ -27,22 +28,26 @@ func noSpecialChars(value any) error {
 }
 
 func (r PasswordRuleUpdate) Validate() error {
-	return validation.ValidateStruct(&r.Rule,
-		validation.Field(&r.Rule.Name,
-			validation.By(noSpecialChars),
-		),
-		validation.Field(&r.Rule.MinLength,
-			validation.Min(1),
-		),
-		validation.Field(&r.Rule.MaxLength,
-			validation.Min(1),
-			validation.Max(20),
-			validation.By(func(value interface{}) error {
-				if r.Rule.MinLength > r.Rule.MaxLength {
-					return validation.NewError("validation_max_length", "max_length must be greater than or equal to min_length")
-				}
-				return nil
-			}),
-		),
-	)
+	// Validate Name
+	if err := noSpecialChars(r.Rule.Name); err != nil {
+		return errors.New("NO special character allowed for name")
+	}
+
+	// Validate MinLength
+	if r.Rule.MinLength < 1 {
+		return errors.New("minimum length must be at least 1")
+	}
+
+	// Validate MaxLength
+	if r.Rule.MaxLength < 1 {
+		return errors.New("maximum length must be at least 1")
+	}
+	if r.Rule.MaxLength > 20 {
+		return errors.New("maximum length must be at most 20")
+	}
+	if r.Rule.MinLength >= r.Rule.MaxLength {
+		return errors.New("maximum length must be greater than minimum length")
+	}
+
+	return nil
 }
