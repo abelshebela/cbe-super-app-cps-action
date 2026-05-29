@@ -1067,6 +1067,29 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	// 	return
 	// }
 
+	// Parse level+claim filter: level=1,2,3&level_1_claim=MARKEDASRIGHT&level_2_claim=MARKEDASWRONG
+	// All specified pairs must be satisfied by the same action_code.
+	if rawLevel := strings.TrimSpace(r.URL.Query().Get("level")); rawLevel != "" {
+		var levelClaimPairs []imodel.LevelClaimPair
+		for _, lv := range strings.Split(rawLevel, ",") {
+			lv = strings.TrimSpace(lv)
+			if lv == "" {
+				continue
+			}
+			claim := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("level_" + lv + "_claim")))
+			if claim == "" {
+				continue
+			}
+			levelClaimPairs = append(levelClaimPairs, imodel.LevelClaimPair{Level: lv, Claim: claim})
+		}
+		if len(levelClaimPairs) > 0 {
+			if filterParams.Filters == nil {
+				filterParams.Filters = map[string]interface{}{}
+			}
+			filterParams.Filters["level_claim_pairs"] = levelClaimPairs
+		}
+	}
+
 	// do not force action_status; let API-provided filters decide
 	userID := local_util.ExtractUserContext(r).UserID
 	res, url, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, userID, reqs, filterParams)

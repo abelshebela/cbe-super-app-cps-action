@@ -243,6 +243,21 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 		matchStage = append(matchStage, bson.E{Key: "responsibility_match_count", Value: bson.M{"$gt": 0}})
 	}
 
+	// Each LevelClaimPair requires that the same action_code has at least one log
+	// entry where auditor_level == Level AND given_auditor_status == Claim.
+	// All pairs are ANDed: every pair must be satisfied within the same action_code.
+	for i, pair := range filter.LevelClaimPairs {
+		fieldName := fmt.Sprintf("level_claim_%d_count", i)
+		groupStage = append(groupStage, bson.E{
+			Key: fieldName,
+			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
+				bson.D{{Key: "$eq", Value: bson.A{"$auditor_level", pair.Level}}},
+				bson.D{{Key: "$eq", Value: bson.A{"$given_auditor_status", pair.Claim}}},
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: fieldName, Value: bson.M{"$gt": 0}})
+	}
+
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: bson.M{"is_deleted": false}}},
 		{{Key: "$group", Value: groupStage}},
