@@ -669,6 +669,8 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionCounts", "handler", "cpsAction")
 	defer span.End()
 	md := &types.ContextMetadata{}
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 	if _, err := local_util.ParseUserContext(r); err != nil {
@@ -735,6 +737,8 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			}
 		}
 	}
+
+	log.Infof("[BpsActionH][GetActionCounts] Request actions: %v", reqs)
 
 	if auditorActions != nil && requestedRole == "auditor" {
 		for _, mod := range auditorActions {
