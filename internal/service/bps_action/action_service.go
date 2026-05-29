@@ -346,9 +346,10 @@ func (ba *bpsActionService) GetBPSActionsByDepartment(ctx context.Context, depar
 func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetCPSActionsForApprover", "CPSAction", "GetCPSActionsForApprover")
-
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, ba.logger)
 
+	log.Infof("[BpsActionSvc][GetBPSActionsForApprover] Retrieving BPS actions for user %s with filter %+v", userID, filterParams.Filters)
 	if filterParams == nil {
 		filterParams = &types.Filter{}
 	}
@@ -399,6 +400,7 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 
 	}
 
+	log.Infof("[BpsActionSvc][GetBPSActionsForApprover] ----------------found %d actions for user %s with filter %+v", len(result.Data), userID, filterParams.Filters)
 	return result, nil
 
 }
