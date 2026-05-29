@@ -867,6 +867,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	if requestedRole == "checker" {
 		var pendingCount, approvedCount, rejectedCount int
 
+		log.Infof("[BPSAction][GetActionCounts] ************************** CHECKER")
 		if checkerActions != nil {
 			if res, err := a.bpsActionApplication.GetBPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(bpsactionsvc.ActionPending), "")); err != nil {
 				span.RecordError(err)
@@ -893,6 +894,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			rejectedCount = int(res.Meta.TotalDocs)
 		}
 
+		log.Infof("[BpsActionH][GetActionCounts] Checker counts **************** - Pending: %v Approved: %v Rejected: %v", pendingCount, approvedCount, rejectedCount)
 		checkerResp := &bpsactionDto.BPSCheckerActionCountResponse{
 			AllAction: pendingCount + approvedCount + rejectedCount,
 			Pending:   pendingCount,
