@@ -1,6 +1,9 @@
 package customerkyc
 
-import "time"
+import (
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+	"time"
+)
 
 type CustomerKYCResponse struct {
 	ID                   string               `json:"id"`
@@ -14,6 +17,7 @@ type CustomerKYCResponse struct {
 	TermsAndConditions   string               `json:"terms_and_conditions,omitempty"`
 	KYCReviewStartedAt   *time.Time           `json:"started_at,omitempty"`
 	KYCReviewExpiresAt   *time.Time           `json:"expires_at,omitempty"`
+	Reviewer             *imodel.UserInfo     `json:"reviewer,omitempty"`
 	CreatedAt            string               `json:"created_at"`
 	UpdatedAt            string               `json:"updated_at"`
 }
