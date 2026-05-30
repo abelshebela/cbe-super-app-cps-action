@@ -136,6 +136,13 @@ func (s *ussdMerchantService) GetUssdMerchantByID(ctx context.Context, id string
 		return ussd_merchant_dto.UssdMerchantResponse{}, err
 	}
 
+	service, err := s.serviceRepo.FindByID(ctx, data.Service)
+	if err != nil {
+		s.logger.Errorf("[GetUssdMerchantByID][service] error while getting service for uud merchant err :%v", err)
+		return ussd_merchant_dto.UssdMerchantResponse{}, localization.ErrorUnexpectedError
+	}
+
+	data.ServiceName = service.ServiceName
 	return data, nil
 }
 
