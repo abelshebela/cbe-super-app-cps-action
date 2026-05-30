@@ -94,6 +94,7 @@ func (s *customerKYCService) FindByID(ctx context.Context, id string) (*dto.Cust
 		if review != nil {
 			mappedResponse.KYCReviewStartedAt = &review.StartedAt
 			mappedResponse.KYCReviewExpiresAt = &review.ExpiresAt
+			mappedResponse.ReviewerID = &review.Reviewer.ID
 		}
 	}
 
@@ -326,7 +327,8 @@ func (s *customerKYCService) PickKycReview(ctx context.Context, id string, reaso
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	if kycInReview.ExpiresAt.After(time.Now()) && kycInReview.Reviewer.ID != userID {
+	now := time.Now()
+	if kycInReview.ExpiresAt.After(now) && kycInReview.Reviewer.ID != userID {
 		log.Warnf("[CustKycSvc][PickKycReview] user %s is not the current reviewer for kyc id: %s", makerUser.UserCode, id)
 		return errors.New("This KYC review is currently assigned to another reviewer")
 	}
