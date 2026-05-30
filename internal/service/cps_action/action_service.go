@@ -1442,17 +1442,47 @@ func extractStringSlice(filters map[string]interface{}, key string) []string {
 	return nil
 }
 
-// computeActionChecksum produces a SHA-256 hex digest over the three fields that
-// uniquely identify the business intent of an action, independent of who made it
-// or when. encoding/json sorts map keys, so field order in CurrentAction doesn't matter.
+// volatileChecksumKeys are JSON fields excluded from the checksum because their
+// values are generated server-side and vary across submissions of the same
+// business intent:
+//   - timestamps set during save/authorize (create_at, update_at, …)
+//   - auto-assigned IDs that don't exist yet at create time
+//   - file/image URLs (Minio keys differ per upload even for the same file)
+var volatileChecksumKeys = map[string]bool{
+	"id":               true,
+	"create_at":        true,
+	"update_at":        true,
+	"created_at":       true,
+	"last_modified_at": true,
+	"logo":             true, // Minio URL varies per upload
+	"cover_image":      true,
+	"image":            true,
+	"image_url":        true,
+}
+
+// computeActionChecksum produces a SHA-256 hex digest that captures the stable
+// business intent of an action (request_action + unique_id + pruned payload).
+// Volatile server-generated fields are stripped before hashing so that two
+// submissions of the same business data produce the same checksum.
+// encoding/json sorts map keys, so field order in CurrentAction is irrelevant.
 func computeActionChecksum(requestAction, uniqueID string, currentAction interface{}) string {
-	payload, _ := json.Marshal(currentAction)
+	raw, _ := json.Marshal(currentAction)
+
+	// Strip volatile fields before hashing.
+	var m map[string]interface{}
+	if json.Unmarshal(raw, &m) == nil {
+		for k := range volatileChecksumKeys {
+			delete(m, k)
+		}
+		raw, _ = json.Marshal(m)
+	}
+
 	h := sha256.New()
 	h.Write([]byte(requestAction))
 	h.Write([]byte("|"))
 	h.Write([]byte(uniqueID))
 	h.Write([]byte("|"))
-	h.Write(payload)
+	h.Write(raw)
 	return hex.EncodeToString(h.Sum(nil))
 }
 
