@@ -23,7 +23,6 @@ import (
 
 	"errors"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func HandleCPSActionForLogisticsMerchant(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
@@ -62,58 +61,31 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 
 func CheckMerchantExists(
 	ctx context.Context,
-	merchantRepo storage.LogisticsMerchantRepository,
+	merchantRepo storage.LogisticsMerchantOracleRepository,
 	data *types.CheckMerchant,
 	opts *types.MiniAppMerchantExistOptions,
 ) (bool, error) {
-	if data == nil {
+	if data == nil || (data.BankAccountNumber == "" && data.MerchantCode == "") {
 		return false, nil
 	}
 
-	var conditions []bson.M
-
-	if data.BankAccountNumber != "" {
-		conditions = append(conditions, bson.M{"bank_account_number": data.BankAccountNumber, "merchant_id": data.MerchantCode})
+	excludeID := ""
+	if opts != nil {
+		excludeID = opts.ExcludeID
 	}
 
-	if data.MerchantCode != "" {
-		conditions = append(conditions, bson.M{"merchant_id": data.MerchantCode})
-	}
-
-	if len(conditions) == 0 {
-		return false, nil
-	}
-
-	filter := bson.M{
-		"is_deleted": false,
-		"$or":        conditions,
-	}
-
-	if opts != nil && opts.ExcludeID != "" {
-		objID, err := bson.ObjectIDFromHex(opts.ExcludeID)
-		if err != nil {
-			return false, err
-		}
-		filter["_id"] = bson.M{"$ne": objID}
-	}
-
-	res, err := merchantRepo.FindOne(ctx, filter)
+	res, err := merchantRepo.FindByAccountOrMerchantCode(ctx, data.BankAccountNumber, data.MerchantCode, excludeID)
 	if err != nil {
-		if err.Error() == localization.ErrorResourceNotFound.Code {
-			return false, nil
-		}
 		return false, err
 	}
-
 	if res == nil {
 		return false, nil
 	}
 
-	if res.BankAccountNumber == data.BankAccountNumber {
+	if data.BankAccountNumber != "" && res.BankAccountNumber == data.BankAccountNumber {
 		return false, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
-
-	if res.MerchantID == data.MerchantCode {
+	if data.MerchantCode != "" && res.MerchantID == data.MerchantCode {
 		return false, errors.New(localization.ErrorMerchantCodeAlreadyExists.Code)
 	}
 

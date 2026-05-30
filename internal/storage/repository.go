@@ -828,6 +828,9 @@ type LogisticsMerchantRepository interface {
 
 type LogisticsMerchantOracleRepository interface {
 	FindOne(ctx context.Context, filter bson.M) (*local_model.LogisticsMerchant, error)
+	// FindByAccountOrMerchantCode checks for an existing merchant matching either
+	// accountNumber or merchantCode. excludeID (may be empty) skips that row.
+	FindByAccountOrMerchantCode(ctx context.Context, accountNumber, merchantCode, excludeID string) (*local_model.LogisticsMerchant, error)
 	Update(ctx context.Context, id string, logisticsMerchant local_model.LogisticsMerchant) error
 	Create(ctx context.Context, logisticsMerchant local_model.LogisticsMerchant) error
 	Delete(ctx context.Context, id string) error

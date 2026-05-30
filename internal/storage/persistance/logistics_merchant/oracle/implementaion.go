@@ -177,9 +177,8 @@ func (l *LogisticsMerchantOracle) FindOne(ctx context.Context, filter bson.M) (*
 	} else if v, ok := filter["merchant_id"]; ok {
 		stmt = `SELECT RAWTOHEX(ID), MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME, SETTLEMENT_METHOD, MERCHANT_TYPE, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT FROM MERCHANTS WHERE MERCHANT_CODE = :1 AND IS_DELETED = 0 AND MERCHANT_TYPE = 'LOGISTICS'`
 		arg = v.(string)
-	} else {
-		return nil, sql.ErrNoRows
 	}
+
 	var m model.LogisticsMerchant
 	var enabled, isDeleted int
 	var createdAt, updatedAt, deletedAt sql.NullTime
@@ -204,6 +203,55 @@ func (l *LogisticsMerchantOracle) FindOne(ctx context.Context, filter bson.M) (*
 		m.DeletedAt = deletedAt.Time
 	} else {
 		m.DeletedAt = time.Time{}
+	}
+	return &m, nil
+}
+
+// FindByAccountOrMerchantCode implements [storage.LogisticsMerchantOracleRepository].
+// Returns the first active logistics merchant that matches either accountNumber or
+// merchantCode. If excludeID is non-empty, that row is skipped (used during updates).
+func (l *LogisticsMerchantOracle) FindByAccountOrMerchantCode(ctx context.Context, accountNumber, merchantCode, excludeID string) (*model.LogisticsMerchant, error) {
+	baseQ := `SELECT RAWTOHEX(ID), MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME,
+	           SETTLEMENT_METHOD, MERCHANT_TYPE, IS_ENABLED, IS_DELETED,
+	           CREATED_AT, LAST_MODIFIED_AT, DELETED_AT
+	          FROM MERCHANTS
+	          WHERE IS_DELETED = 0 AND MERCHANT_TYPE = 'LOGISTICS'
+	            AND (MERCHANT_ACCOUNT_NUMBER = :1 OR MERCHANT_CODE = :2)`
+
+	args := []interface{}{accountNumber, merchantCode}
+	if excludeID != "" {
+		baseQ += ` AND ID != HEXTORAW(:3)`
+		args = append(args, excludeID)
+	}
+	baseQ += ` FETCH FIRST 1 ROWS ONLY`
+
+	var m model.LogisticsMerchant
+	var enabled, isDeleted int
+	var createdAt, updatedAt, deletedAt sql.NullTime
+
+	err := l.db.QueryRowContext(ctx, baseQ, args...).Scan(
+		&m.ID, &m.BankAccountNumber, &m.MerchantID, &m.MerchantName,
+		&m.SettlementMethod, &m.MerchantType, &enabled, &isDeleted,
+		&createdAt, &updatedAt, &deletedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		l.logger.Errorf("[LogisticsMerchantOracle][FindByAccountOrMerchantCode] err: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	m.Enabled = enabled == 1
+	m.IsDeleted = isDeleted == 1
+	if createdAt.Valid {
+		m.CreatedAt = createdAt.Time
+	}
+	if updatedAt.Valid {
+		m.UpdatedAt = updatedAt.Time
+	}
+	if deletedAt.Valid {
+		m.DeletedAt = deletedAt.Time
 	}
 	return &m, nil
 }
