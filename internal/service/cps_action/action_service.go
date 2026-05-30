@@ -1442,64 +1442,51 @@ func extractStringSlice(filters map[string]interface{}, key string) []string {
 	return nil
 }
 
-// volatileChecksumKeys are JSON field names excluded from the checksum because
-// their values are generated or mutated server-side and therefore vary between
-// two submissions of the same business intent. Sourced from all models under
-// internal/constants/model.
-//
-// Categories:
-//   - Timestamps / dates set by the server at create/save time
-//   - File/image/media URLs (Minio key contains a timestamp prefix per upload)
-//   - Auto-generated IDs and codes assigned after approval
-//   - Server-managed counters and default status flags
 var volatileChecksumKeys = map[string]bool{
-	// --- auto-generated identifiers / codes ---
 	"id":          true,
 	"action_code": true,
 	"version":     true,
 
-	// --- server-set status defaults (always 0/false at create time) ---
 	"is_deleted": true,
 	"is_enabled": true,
 
-	// --- timestamps: creation / modification ---
-	"created_at":                  true,
-	"create_at":                   true,
-	"updated_at":                  true,
-	"update_at":                   true,
-	"last_modified_at":            true,
-	"last_modified":               true,
-	"maker_action_time":           true,
-	"approved_at":                 true,
-	"reversed_at":                 true,
-	"deleted_at":                  true,
-	"date_joined":                 true,
-	"issued_date":                 true,
-	"sent_at":                     true,
-	"published_at":                true,
-	"verified_at":                 true,
-	"completed_at":                true,
-	"claimed_at":                  true,
-	"linked_at":                   true,
-	"initial_linked_at":           true,
-	"initiated_linked_at":         true,
-	"pin_changed_at":              true,
-	"password_changed_at":         true,
+	"created_at":                    true,
+	"create_at":                     true,
+	"updated_at":                    true,
+	"update_at":                     true,
+	"last_modified_at":              true,
+	"last_modified":                 true,
+	"maker_action_time":             true,
+	"approved_at":                   true,
+	"reversed_at":                   true,
+	"deleted_at":                    true,
+	"date_joined":                   true,
+	"issued_date":                   true,
+	"sent_at":                       true,
+	"published_at":                  true,
+	"verified_at":                   true,
+	"completed_at":                  true,
+	"claimed_at":                    true,
+	"linked_at":                     true,
+	"initial_linked_at":             true,
+	"initiated_linked_at":           true,
+	"pin_changed_at":                true,
+	"password_changed_at":           true,
 	"application_installation_date": true,
-	"last_login":                  true,
-	"last_login_attempt":          true,
-	"last_online_date":            true,
-	"otp_last_tried_at":           true,
-	"otp_last_verified_at":        true,
-	"created_at_password_expiry":  true,
-	"updated_at_password_expiry":  true,
-	"created_at_block":            true,
-	"updated_at_block":            true,
-	"created_at_archive":          true,
-	"updated_at_archive":          true,
-	"created_at_total_cap":        true,
-	"updated_at_total_cap":        true,
-	"next_attempt_count":          true,
+	"last_login":                    true,
+	"last_login_attempt":            true,
+	"last_online_date":              true,
+	"otp_last_tried_at":             true,
+	"otp_last_verified_at":          true,
+	"created_at_password_expiry":    true,
+	"updated_at_password_expiry":    true,
+	"created_at_block":              true,
+	"updated_at_block":              true,
+	"created_at_archive":            true,
+	"updated_at_archive":            true,
+	"created_at_total_cap":          true,
+	"updated_at_total_cap":          true,
+	"next_attempt_count":            true,
 
 	// --- file / image / media URLs (Minio key varies per upload) ---
 	"logo":            true,
@@ -1525,15 +1512,9 @@ var volatileChecksumKeys = map[string]bool{
 	"url":             true,
 }
 
-// computeActionChecksum produces a SHA-256 hex digest that captures the stable
-// business intent of an action (request_action + unique_id + pruned payload).
-// Volatile server-generated fields are stripped before hashing so that two
-// submissions of the same business data produce the same checksum.
-// encoding/json sorts map keys, so field order in CurrentAction is irrelevant.
 func computeActionChecksum(requestAction, uniqueID string, currentAction interface{}) string {
 	raw, _ := json.Marshal(currentAction)
 
-	// Strip volatile fields before hashing.
 	var m map[string]interface{}
 	if json.Unmarshal(raw, &m) == nil {
 		for k := range volatileChecksumKeys {
@@ -1551,9 +1532,6 @@ func computeActionChecksum(requestAction, uniqueID string, currentAction interfa
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-// extractLevelClaimPairs pulls []imodel.LevelClaimPair stored under
-// "level_claim_pairs" in the filters map (set by the handler after parsing
-// level=1,2,3&level_1_claim=MARKEDASRIGHT query params).
 func extractLevelClaimPairs(filters map[string]interface{}) []imodel.LevelClaimPair {
 	v, ok := filters["level_claim_pairs"]
 	if !ok {
