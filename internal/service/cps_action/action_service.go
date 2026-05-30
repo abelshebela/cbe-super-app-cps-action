@@ -815,13 +815,15 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	}
 
 	//****************************************
-	// levels, services, auditor_statuses only exist in user_action_logs.
-	if len(levels) > 0 || len(services) > 0 || len(auditorStatuses) > 0 {
+	// levels, services, auditor_statuses, level_claim_pairs only exist in user_action_logs.
+	levelClaimPairs := extractLevelClaimPairs(filterParams.Filters)
+	if len(levels) > 0 || len(services) > 0 || len(auditorStatuses) > 0 || len(levelClaimPairs) > 0 {
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
 			Responsibilities: []string{string(imodel.AUDITOR)},
 			Levels:           levels,
 			Services:         services,
 			AuditorStatuses:  extractStringSlice(filterParams.Filters, "auditor_statuses"),
+			LevelClaimPairs:  levelClaimPairs,
 		})
 		if err != nil {
 			log.Errorf("[CpsActionSvc][GetCPSActionsForAuditor] log filter err: %v", err)
@@ -1414,6 +1416,20 @@ func extractStringSlice(filters map[string]interface{}, key string) []string {
 			}
 		}
 		return result
+	}
+	return nil
+}
+
+// extractLevelClaimPairs pulls []imodel.LevelClaimPair stored under
+// "level_claim_pairs" in the filters map (set by the handler after parsing
+// level=1,2,3&level_1_claim=MARKEDASRIGHT query params).
+func extractLevelClaimPairs(filters map[string]interface{}) []imodel.LevelClaimPair {
+	v, ok := filters["level_claim_pairs"]
+	if !ok {
+		return nil
+	}
+	if pairs, ok := v.([]imodel.LevelClaimPair); ok {
+		return pairs
 	}
 	return nil
 }
