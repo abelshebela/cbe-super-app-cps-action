@@ -53,13 +53,13 @@ type CreateServiceRequest struct {
 type UpdateServiceRequest struct {
 	// ServiceName      *string      `json:"service_name" example:"Transfer To Other bank"`
 	// ServiceKey       *string      `json:"service_key" example:"Transfer To Other bank"`
-	ServiceKeyId             *string `json:"service_key_id"`
-	ServiceKey               string  `json:"service_key,omitempty"` // alias for service_key_id
-	ServiceCode              *string `json:"service_code" example:"JKSJBDJB"`
-	ProductGlAccount         *string `json:"cbe_gl_product_account" example:"234353354"`
-	ProductGlAccountCurrency *string `json:"product_gl_account_currency"`
-
-	Cap []CapRequest `bson:"cap" json:"cap"`
+	ServiceKeyId             *string      `json:"service_key_id"`
+	ServiceKey               string       `json:"service_key,omitempty"` // alias for service_key_id
+	ServiceCode              *string      `json:"service_code" example:"JKSJBDJB"`
+	ProductGlAccount         *string      `json:"cbe_gl_product_account" example:"234353354"`
+	ProductGlAccountCurrency *string      `json:"product_gl_account_currency"`
+	IsPlAccount              *bool        `json:"is_pl_account" example:"false"`
+	Cap                      []CapRequest `bson:"cap" json:"cap"`
 	// ServiceList      []ServiceList `bson:"service_list" json:"service_list"`
 	MinimumFraudAmount *float64 `bson:"minimum_fraud_amount" json:"minimum_fraud_amount"`
 	// Tiers            []TierRequest `json:"tiers"`
