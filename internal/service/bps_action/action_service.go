@@ -411,6 +411,32 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 
 	defer span.End()
 
+	if filterParams == nil {
+		filterParams = &types.Filter{}
+	}
+	if filterParams.Filters == nil {
+		filterParams.Filters = map[string]interface{}{}
+	}
+
+	// level+claim filtering: all pairs must be satisfied within the same action_code.
+	if levelClaimPairs := bpsExtractLevelClaimPairs(filterParams.Filters); len(levelClaimPairs) > 0 && ba.actionLogRepo != nil {
+		actionCodes, err := ba.actionLogRepo.GetActionCodesByActionLogFilter(ctx, bps_model.UserActionLogActionCodeFilter{
+			Responsibilities: []string{string(bps_model.AUDITOR)},
+			LevelClaimPairs:  levelClaimPairs,
+		})
+		if err != nil {
+			span.AddEvent("failed to get action codes by level claim", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+		if len(actionCodes) == 0 {
+			return &types.PaginatedResponse[[]*bps_model.BPSAction]{
+				Data: []*bps_model.BPSAction{},
+				Meta: lobal_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
+			}, nil
+		}
+		filterParams.Filters["action_code"] = bson.M{"$in": actionCodes}
+	}
+
 	result, err := ba.repo.SanitizedFindAllWithPaginationForAuditor(ctx, userID, *filterParams, RAList)
 
 	if err != nil {
@@ -423,6 +449,17 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 
 	return result, nil
 
+}
+
+func bpsExtractLevelClaimPairs(filters map[string]interface{}) []bps_model.LevelClaimPair {
+	v, ok := filters["level_claim_pairs"]
+	if !ok {
+		return nil
+	}
+	if pairs, ok := v.([]bps_model.LevelClaimPair); ok {
+		return pairs
+	}
+	return nil
 }
 
 func (ba *bpsActionService) GetBPSActions(ctx context.Context, userID, role string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {

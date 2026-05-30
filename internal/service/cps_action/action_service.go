@@ -7,7 +7,10 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"crypto/sha256"
 	"encoding/csv"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -208,8 +211,27 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 	actionName, _ := ctx.Value(constants.ContextKey("action_name")).(string)
 
-	// CREATE actions: No blockers - allow direct creation
+	// Compute checksum from business payload (excludes maker identity and timestamps).
+	// Stored on every saved action; used to block duplicate PENDING CREATE actions.
+	checksum := computeActionChecksum(cpsAction.RequestAction, cpsAction.UniqueId, cpsAction.CurrentAction)
+	cpsAction.Checksum = checksum
+
+	// CREATE actions: guard by checksum — same payload already waiting for approval is blocked.
 	if strings.Contains(cpsAction.RequestAction, string(constants.CREATE)) {
+		dup, err := ca.repo.SanitizedFindOne(ctx, bson.M{
+			"checksum":      checksum,
+			"action_status": "PENDING",
+			"is_deleted":    bson.M{"$ne": true},
+		})
+		if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
+			span.AddEvent("checksum lookup failed", trace.WithAttributes(attribute.String("error", err.Error())))
+			return err
+		}
+		if dup != nil {
+			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), dup.ActionCode)
+			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), dup.ActionStatus)
+			return errors.New(localization.ErrorPendingCpsActionExists.Code)
+		}
 		cpsAction.RoleCode = roleCode
 		cpsActionResult, err := ca.repo.Save(ctx, cpsAction)
 		if err != nil {
@@ -1418,6 +1440,20 @@ func extractStringSlice(filters map[string]interface{}, key string) []string {
 		return result
 	}
 	return nil
+}
+
+// computeActionChecksum produces a SHA-256 hex digest over the three fields that
+// uniquely identify the business intent of an action, independent of who made it
+// or when. encoding/json sorts map keys, so field order in CurrentAction doesn't matter.
+func computeActionChecksum(requestAction, uniqueID string, currentAction interface{}) string {
+	payload, _ := json.Marshal(currentAction)
+	h := sha256.New()
+	h.Write([]byte(requestAction))
+	h.Write([]byte("|"))
+	h.Write([]byte(uniqueID))
+	h.Write([]byte("|"))
+	h.Write(payload)
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 // extractLevelClaimPairs pulls []imodel.LevelClaimPair stored under

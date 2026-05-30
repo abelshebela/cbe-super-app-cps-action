@@ -6,6 +6,7 @@ import (
 	bps_actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/bps_action_role"
 	bpsaction "cbe-super-app-cps-action/internal/constants/interfaces/bps_action"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	mid "cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/service"
@@ -578,6 +579,29 @@ func (a *bpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	}
 
 	a.logger.Infof("[BPSAction][GetUserAuditorActions] Length: %v request actiokn list*******: %v", len(reqs), reqs)
+
+	// Parse level+claim filter: level=1,2,3&level_1_claim=MARKEDASRIGHT&level_2_claim=MARKEDASWRONG
+	if rawLevel := strings.TrimSpace(r.URL.Query().Get("level")); rawLevel != "" {
+		var levelClaimPairs []imodel.LevelClaimPair
+		for _, lv := range strings.Split(rawLevel, ",") {
+			lv = strings.TrimSpace(lv)
+			if lv == "" {
+				continue
+			}
+			claim := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("level_" + lv + "_claim")))
+			if claim == "" {
+				continue
+			}
+			levelClaimPairs = append(levelClaimPairs, imodel.LevelClaimPair{Level: lv, Claim: claim})
+		}
+		if len(levelClaimPairs) > 0 {
+			if filterParams.Filters == nil {
+				filterParams.Filters = map[string]interface{}{}
+			}
+			filterParams.Filters["level_claim_pairs"] = levelClaimPairs
+		}
+	}
+
 	// do not force action_status; let API-provided filters decide
 	userID := local_util.ExtractUserContext(r).UserID
 	res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, filterParams)
