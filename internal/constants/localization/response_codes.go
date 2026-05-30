@@ -5786,6 +5786,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorDuplicatePendingCreateAction = ResponseCode{
+		Code:       "ERROR_DUPLICATE_PENDING_CREATE_ACTION",
+		StatusCode: StatusConflict,
+		Message:    MsgDuplicatePendingCreateAction,
+		Type:       "error",
+	}
+
 	ErrorUserAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_USER_ALREADY_ENABLED",
 		StatusCode: StatusConflict,
