@@ -38,6 +38,7 @@ type CreateServiceRequest struct {
 	ServiceKey               string `json:"service_key,omitempty"` // alias for service_key_id when clients omit service_key_id
 	ServiceCode              string `json:"service_code" example:"JKSJBDJB"`
 	ProductGlAccount         string `json:"cbe_gl_product_account" example:"234353354"`
+	IsPlAccount              *bool  `json:"is_pl_account" example:"false"`
 	ProductGlAccountCurrency string `json:"product_gl_account_currency"`
 	// ServiceList      []ServiceList `bson:"service_list" json:"service_list"`
 	Cap                []CapRequest `bson:"cap" json:"cap"`

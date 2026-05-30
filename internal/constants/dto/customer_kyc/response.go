@@ -12,8 +12,8 @@ type CustomerKYCResponse struct {
 	KYCStatus            string               `json:"kyc_status"`
 	MoneyLaunderingFree  *bool                `json:"money_laundering_free"`
 	TermsAndConditions   string               `json:"terms_and_conditions,omitempty"`
-	KYCReviewStartedAt   time.Time            `json:"started_at,omitempty"`
-	KYCReviewExpiresAt   time.Time            `json:"expires_at,omitempty"`
+	KYCReviewStartedAt   *time.Time           `json:"started_at,omitempty"`
+	KYCReviewExpiresAt   *time.Time           `json:"expires_at,omitempty"`
 	CreatedAt            string               `json:"created_at"`
 	UpdatedAt            string               `json:"updated_at"`
 }

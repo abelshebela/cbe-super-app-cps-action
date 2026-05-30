@@ -336,7 +336,7 @@ func (c *customerKYCAdapter) StartKycReview(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, newReview)
+	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, newReview)
 }
 
 func (c *customerKYCAdapter) PickKycReview(w http.ResponseWriter, r *http.Request) {
@@ -364,5 +364,5 @@ func (c *customerKYCAdapter) PickKycReview(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, nil)
+	localization.SendSuccessResponse(w, localization.SuccessOperationCompleted, nil)
 }
