@@ -300,13 +300,13 @@ func (r *repository) FindAllWithPagination(
 		}
 		if v, ok := filterParam.Filters["enabled"]; ok {
 			if b, applied := lib.BoolFromInterface(v); applied {
-				// Both enabled=true and enabled=false exclude expired campaigns:
-				// strict END_DATE > now. NULL end_dates are excluded by Oracle's
-				// 3-valued logic. Use is_expired=true to see expired records.
+				// Enabled filter: Only include enabled records.
 				conds = append(conds, fmt.Sprintf("d.ENABLED = :%d", idx))
 				args = append(args, boolToInt(b))
 				idx++
-				conds = append(conds, fmt.Sprintf("(d.END_DATE < :%d AND d.END_DATE IS NULL)", idx))
+				// Only exclude expired records if END_DATE is set (not NULL).
+				// Accept records where END_DATE is NULL (no expiry), or END_DATE > now.
+				conds = append(conds, fmt.Sprintf("(d.END_DATE IS NULL OR d.END_DATE > :%d)", idx))
 				args = append(args, time.Now())
 				idx++
 			}
@@ -314,7 +314,7 @@ func (r *repository) FindAllWithPagination(
 		if v, ok := filterParam.Filters["is_expired"]; ok {
 			if b, applied := lib.BoolFromInterface(v); applied && b {
 				// records with no end_date are excluded; only past valid dates are expired.
-				conds = append(conds, fmt.Sprintf("(d.END_DATE < :%d AND d.END_DATE IS NOT NULL)", idx))
+				conds = append(conds, fmt.Sprintf("(d.END_DATE IS NOT NULL AND d.END_DATE < :%d)", idx))
 				args = append(args, time.Now())
 				idx++
 			}
