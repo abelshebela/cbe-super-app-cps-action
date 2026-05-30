@@ -225,7 +225,7 @@ func (e *LogisticsMerchantService) Create(ctx context.Context, LogisticsMerchant
 		BankAccountNumber: LogisticsMerchant.BankAccountNumber,
 		MerchantCode:      LogisticsMerchant.MerchantID,
 	}, nil)
-	if err != nil && err.Error() != localization.ErrorLogisticMerchantNotFound.Code {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		log.Errorf("[LogisMerchSvc][Create] exist check err: %v", err)
 		span.AddEvent("Failed to check merchant existence", trace.WithAttributes(
 			attribute.String("error", err.Error()),
