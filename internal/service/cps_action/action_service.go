@@ -7,7 +7,10 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"crypto/sha256"
 	"encoding/csv"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -208,8 +211,27 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 	actionName, _ := ctx.Value(constants.ContextKey("action_name")).(string)
 
-	// CREATE actions: No blockers - allow direct creation
+	// Compute checksum from business payload (excludes maker identity and timestamps).
+	// Stored on every saved action; used to block duplicate PENDING CREATE actions.
+	checksum := computeActionChecksum(cpsAction.RequestAction, cpsAction.UniqueId, cpsAction.CurrentAction)
+	cpsAction.Checksum = checksum
+
+	// CREATE actions: guard by checksum — same payload already waiting for approval is blocked.
 	if strings.Contains(cpsAction.RequestAction, string(constants.CREATE)) {
+		dup, err := ca.repo.SanitizedFindOne(ctx, bson.M{
+			"checksum":      checksum,
+			"action_status": "PENDING",
+			"is_deleted":    bson.M{"$ne": true},
+		})
+		if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
+			span.AddEvent("checksum lookup failed", trace.WithAttributes(attribute.String("error", err.Error())))
+			return err
+		}
+		if dup != nil {
+			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), dup.ActionCode)
+			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), dup.ActionStatus)
+			return errors.New(localization.ErrorPendingCpsActionExists.Code)
+		}
 		cpsAction.RoleCode = roleCode
 		cpsActionResult, err := ca.repo.Save(ctx, cpsAction)
 		if err != nil {
@@ -1418,6 +1440,50 @@ func extractStringSlice(filters map[string]interface{}, key string) []string {
 		return result
 	}
 	return nil
+}
+
+// volatileChecksumKeys are JSON fields excluded from the checksum because their
+// values are generated server-side and vary across submissions of the same
+// business intent:
+//   - timestamps set during save/authorize (create_at, update_at, …)
+//   - auto-assigned IDs that don't exist yet at create time
+//   - file/image URLs (Minio keys differ per upload even for the same file)
+var volatileChecksumKeys = map[string]bool{
+	"id":               true,
+	"create_at":        true,
+	"update_at":        true,
+	"created_at":       true,
+	"last_modified_at": true,
+	"logo":             true, // Minio URL varies per upload
+	"cover_image":      true,
+	"image":            true,
+	"image_url":        true,
+}
+
+// computeActionChecksum produces a SHA-256 hex digest that captures the stable
+// business intent of an action (request_action + unique_id + pruned payload).
+// Volatile server-generated fields are stripped before hashing so that two
+// submissions of the same business data produce the same checksum.
+// encoding/json sorts map keys, so field order in CurrentAction is irrelevant.
+func computeActionChecksum(requestAction, uniqueID string, currentAction interface{}) string {
+	raw, _ := json.Marshal(currentAction)
+
+	// Strip volatile fields before hashing.
+	var m map[string]interface{}
+	if json.Unmarshal(raw, &m) == nil {
+		for k := range volatileChecksumKeys {
+			delete(m, k)
+		}
+		raw, _ = json.Marshal(m)
+	}
+
+	h := sha256.New()
+	h.Write([]byte(requestAction))
+	h.Write([]byte("|"))
+	h.Write([]byte(uniqueID))
+	h.Write([]byte("|"))
+	h.Write(raw)
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 // extractLevelClaimPairs pulls []imodel.LevelClaimPair stored under
