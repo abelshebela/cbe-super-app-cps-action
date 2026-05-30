@@ -91,7 +91,7 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 	serviceKeyId := service_dto.StringPointer(req.ServiceKeyId, prev.ServiceKeyId)
 	log.Infof("[servicesService][Update] resolved serviceKeyId: %s", serviceKeyId)
 
-	if req.ProductGlAccount != nil {
+	if req.ProductGlAccount != nil && (req.IsPlAccount == nil || !*req.IsPlAccount) {
 		accountDetail, err := s.ValidateAccountNumberWithExternalAPI(ctx, *req.ProductGlAccount)
 		if err != nil {
 			log.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", *req.ProductGlAccount, err)
