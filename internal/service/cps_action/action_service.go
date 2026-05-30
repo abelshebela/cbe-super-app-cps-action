@@ -230,7 +230,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		if dup != nil {
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), dup.ActionCode)
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), dup.ActionStatus)
-			return errors.New(localization.ErrorPendingCpsActionExists.Code)
+			return errors.New(localization.ErrorDuplicatePendingCreateAction.Code)
 		}
 		cpsAction.RoleCode = roleCode
 		cpsActionResult, err := ca.repo.Save(ctx, cpsAction)

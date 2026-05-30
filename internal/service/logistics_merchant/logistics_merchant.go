@@ -254,6 +254,9 @@ func (e *LogisticsMerchantService) Create(ctx context.Context, LogisticsMerchant
 		}
 	}
 
+	LogisticsMerchant.CreatedAt = time.Now()
+	LogisticsMerchant.UpdatedAt = time.Now()
+
 	err = core.HandleCPSActionForLogisticsMerchant(ctx, e.cpsService, "", constants.RequestCreateLogisticsMerchant, LogisticsMerchant, nil, constants.ActionCreate)
 	if err != nil {
 		log.Errorf("[LogisMerchSvc][Create] cps action err: %v", err)
@@ -450,9 +453,8 @@ func (e *LogisticsMerchantService) Update(ctx context.Context, id string, Logist
 			))
 			return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 		}
-	}
-	if check.BankAccountNumber != "" {
-		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, LogisticsMerchant.BankAccountNumber, e.accountLookupService)
+
+		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, updated.BankAccountNumber, e.accountLookupService)
 		if err != nil {
 			log.Errorf("[LogisMerchSvc][Update] acct validation err: %v", err)
 			span.AddEvent("Account number validation failed", trace.WithAttributes(
