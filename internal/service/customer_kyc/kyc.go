@@ -94,7 +94,7 @@ func (s *customerKYCService) FindByID(ctx context.Context, id string) (*dto.Cust
 		if review != nil {
 			mappedResponse.KYCReviewStartedAt = &review.StartedAt
 			mappedResponse.KYCReviewExpiresAt = &review.ExpiresAt
-			mappedResponse.ReviewerID = &review.Reviewer.ID
+			mappedResponse.Reviewer = &review.Reviewer
 		}
 	}
 
