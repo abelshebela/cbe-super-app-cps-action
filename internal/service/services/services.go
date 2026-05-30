@@ -52,7 +52,7 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 		return err
 	}
 
-	if req.ProductGlAccount != "" {
+	if req.ProductGlAccount != "" && (req.IsPlAccount == nil || !*req.IsPlAccount) {
 		accountDetail, err := s.ValidateAccountNumberWithExternalAPI(ctx, req.ProductGlAccount)
 		if err != nil {
 			log.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", req.ProductGlAccount, err)
