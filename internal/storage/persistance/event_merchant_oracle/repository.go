@@ -101,7 +101,7 @@ func (m *EventMerchantOracleRepository) Update(ctx context.Context, id string, m
 	return nil
 }
 func (m *EventMerchantOracleRepository) Delete(ctx context.Context, id string) error {
-	query := `UPDATE  MERCHANTS SET IS_DELETED = 1,DELETED_AT = SYSDATE WHERE ID = HEXTORAW(:1) AND MERCHANT_TYPE = 'EVENT'`
+	query := `DELETE FROM MERCHANTS WHERE ID = HEXTORAW(:1) AND MERCHANT_TYPE = 'EVENT'`
 
 	rows, err := m.OracleCliant.ExecContext(ctx, query, id)
 	if err != nil {
