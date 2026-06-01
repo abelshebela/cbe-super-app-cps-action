@@ -77,6 +77,8 @@ func (m *EventMerchantOracleRepository) Create(ctx context.Context, merchant mod
 		m.logger.Errorf("[persistance oracle create] got error while creating event merchant: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	types.SetMerchant(ctx, &types.Merchant{ID: insertedID})
+
 	// types.SetId(ctx, insertedID)
 	return nil
 
