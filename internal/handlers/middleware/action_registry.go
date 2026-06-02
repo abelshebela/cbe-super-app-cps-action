@@ -190,9 +190,9 @@ var cpsActionRegistry = map[string]string{
 	"POST encryption": "ENCRYPTION",
 
 	// Event merchant
-	"POST event_merchants":  "EVENTMERCHANT",
-	"PATCH event_merchants": "EVENTMERCHANT",
-	"DELETE event_merchant": "EVENTMERCHANT",
+	"POST event_merchants":   "EVENTMERCHANT",
+	"PATCH event_merchants":  "EVENTMERCHANT",
+	"DELETE event_merchants": "EVENTMERCHANT",
 
 	// Logistics merchant
 	"POST logistics_merchants":  "LOGISTICSMERCHANT",

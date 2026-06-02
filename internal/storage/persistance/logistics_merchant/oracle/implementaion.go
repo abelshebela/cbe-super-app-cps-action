@@ -45,7 +45,8 @@ func (l *LogisticsMerchantOracle) Create(ctx context.Context, logisticsMerchant 
 		ID, MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME, SETTLEMENT_METHOD, MERCHANT_TYPE, CONTACT_EMAIL, CONTACT_PHONE, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT
 	) VALUES (
 		SYS_GUID(), :1, :2, :3, :4, :5, :6, :7, :8, :9, SYSTIMESTAMP, SYSTIMESTAMP, NULL
-	)`
+	) RETURNING RAWTOHEX(ID) INTO :10`
+	var insertedID string
 
 	_, err := l.db.ExecContext(ctx, stmt,
 		logisticsMerchant.BankAccountNumber,    // :1 MERCHANT_ACCOUNT_NUMBER
@@ -57,11 +58,16 @@ func (l *LogisticsMerchantOracle) Create(ctx context.Context, logisticsMerchant 
 		"",                                     // :7 CONTACT_PHONE (not in model)
 		boolToInt(logisticsMerchant.Enabled),   // :8 IS_ENABLED NUMBER
 		boolToInt(logisticsMerchant.IsDeleted), // :9 IS_DELETED NUMBER
+		sql.Out{Dest: &insertedID},             // :10 (output parameter for inserted ID)
+
 	)
 	if err != nil {
 		l.logger.Errorf("Failed to create logistics merchant: %v", err)
 		return err
 	}
+	types.SetMerchant(ctx, &types.Merchant{
+		ID: insertedID,
+	})
 	return nil
 }
 
