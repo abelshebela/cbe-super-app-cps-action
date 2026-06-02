@@ -1446,6 +1446,7 @@ var volatileChecksumKeys = map[string]bool{
 	"id":          true,
 	"action_code": true,
 	"version":     true,
+	"user_code":   true,
 
 	"is_deleted": true,
 	"is_enabled": true,
