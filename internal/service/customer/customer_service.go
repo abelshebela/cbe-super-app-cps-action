@@ -511,11 +511,20 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 	log.Infof("core result data---------------------: %v", coreRes)
 
 	if len(coreRes) > 0 {
-		res.PersonalInfo.DateOfBirth = coreRes[0].BirthOfDate
-		res.PersonalInfo.MaritalStatus = coreRes[0].Email
-		res.PersonalInfo.Gender = coreRes[0].Gender
-		res.PersonalInfo.Email = coreRes[0].Email
-		res.PersonalInfo.PhoneNumber = coreRes[0].PhoneNo
+		cr := coreRes[0]
+		if cr.BirthOfDate != "" {
+			res.PersonalInfo.DateOfBirth = cr.BirthOfDate
+		}
+		if cr.Email != "" {
+			res.PersonalInfo.MaritalStatus = cr.Email
+			res.PersonalInfo.Email = cr.Email
+		}
+		if cr.Gender != "" {
+			res.PersonalInfo.Gender = cr.Gender
+		}
+		if cr.PhoneNo != "" {
+			res.PersonalInfo.PhoneNumber = cr.PhoneNo
+		}
 	}
 
 	if len(res.LinkedAccount) != 0 {
