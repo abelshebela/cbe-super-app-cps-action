@@ -211,14 +211,10 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 	actionName, _ := ctx.Value(constants.ContextKey("action_name")).(string)
 
-	// Compute checksum from business payload (excludes maker identity and timestamps).
-	// Stored on every saved action; used to block duplicate PENDING CREATE actions.
 	checksum := computeActionChecksum(cpsAction.RequestAction, cpsAction.UniqueId, cpsAction.CurrentAction)
 	cpsAction.Checksum = checksum
 
-	// CREATE actions: guard by checksum (exact duplicate) then by unique field tokens (partial conflict).
 	if strings.Contains(cpsAction.RequestAction, string(constants.CREATE)) {
-		// 1. Exact-payload duplicate check via checksum.
 		dup, err := ca.repo.SanitizedFindOne(ctx, bson.M{
 			"checksum":      checksum,
 			"action_status": "PENDING",
@@ -234,8 +230,6 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 			return errors.New(localization.ErrorDuplicatePendingCreateAction.Code)
 		}
 
-		// 2. Per-field conflict check: block if any unique field (phone, email, username, code…)
-		//    already appears in a different PENDING CREATE action for the same resource.
 		tokens := extractUniqueTokens(cpsAction.RequestAction, cpsAction.CurrentAction)
 		if len(tokens) > 0 {
 			fieldDup, err := ca.repo.SanitizedFindOne(ctx, bson.M{
@@ -261,8 +255,6 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 			span.AddEvent("failed to save cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
 		}
-		// Write unique_tokens onto the saved document so future conflict checks can query it.
-		// Done via UpdateCustome because the shared model.CPSAction struct has no UniqueTokens field.
 		if len(tokens) > 0 {
 			if updErr := ca.repo.UpdateCustome(ctx,
 				bson.M{"action_code": cpsActionResult.ActionCode},
@@ -275,9 +267,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		return nil
 	}
 
-	// UPDATE actions: Block by other UPDATE actions in pending state
 	if strings.Contains(cpsAction.RequestAction, string(constants.UPDATE)) {
-		// Get only UPDATE actions for blocking
 		reqs := ca.pendingUpdateLockRequestActions(actionName, cpsAction.RequestAction)
 		if len(reqs) > 0 {
 			existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
@@ -295,9 +285,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		}
 	}
 
-	// DELETE actions: Only block other DELETE actions with same unique_id, don't block UPDATE actions
 	if strings.Contains(cpsAction.RequestAction, string(constants.DELETE)) {
-		// Get only DELETE actions for blocking
 		reqs := ca.pendingDeleteLockRequestActions(actionName, cpsAction.RequestAction)
 		if len(reqs) > 0 {
 			existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
@@ -315,7 +303,6 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		}
 	}
 
-	// ENABLE actions: blocked by pending UPDATE and ENABLE actions on the same resource
 	if strings.Contains(cpsAction.RequestAction, constants.ENABLE) {
 		reqs := ca.pendingEnableLockRequestActions(actionName, cpsAction.RequestAction)
 		if len(reqs) > 0 {
@@ -334,7 +321,6 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		}
 	}
 
-	// DISABLE actions: blocked only by other pending DISABLE actions on the same resource
 	if strings.Contains(cpsAction.RequestAction, constants.DISABLE) {
 		reqs := ca.pendingDisableLockRequestActions(actionName, cpsAction.RequestAction)
 		if len(reqs) > 0 {
@@ -1551,8 +1537,10 @@ var uniqueFieldsRegistry = map[string][]string{
 	string(constants.RequestCreateBPSUser): {"phone_number", "email", "username"},
 
 	string(constants.RequestCreateEcommerceMerchant): {"merchant_code", "bank_account_number"},
-	string(constants.RequestCreateMiniAppMerchant):   {"merchant_code", "bank_account_number"},
-	string(constants.RequestCreateEventMerchant):     {"merchant_id", "bank_account_number"},
+	// mini_app.MiniAppMerchant — code + account are the primary uniqueness keys;
+	// phone/email added as extra guards per product requirement.
+	string(constants.RequestCreateMiniAppMerchant): {"merchant_code", "bank_account_number", "phone_number", "email", "account_number"},
+	string(constants.RequestCreateEventMerchant):   {"merchant_id", "bank_account_number"},
 	string(constants.RequestCreateLogisticsMerchant): {"merchant_id", "bank_account_number"},
 	string(constants.RequestCreateUssdMerchant):      {"phone_number", "email", "account_number"},
 
@@ -1582,9 +1570,32 @@ var uniqueFieldsRegistry = map[string][]string{
 	string(constants.RequestCreateBudgetCategory): {"name"},
 	string(constants.RequestCreateVaultCategory):  {"name"},
 
-	// string(constants.RequestCreateEvent): {"EventName"},
+	// shared model.Event has no json tags — Go field name used by json.Marshal
+	string(constants.RequestCreateEvent): {"EventName"},
 
+	// ── MiniApp ──────────────────────────────────────────────────────────────
+	// mini_app.MiniApp : AppName→"app_name"
+	string(constants.RequestCreateMiniApp): {"app_name"},
+	// model.MiniAppCategory : Name→"name"
+	string(constants.RequestCreateMiniAppCategory): {"name"},
+
+	// ── Segmentation ─────────────────────────────────────────────────────────
+	// CreateAccessListSegmentationRequest : SegmentationID→"segmentation_id" (the block/account id)
+	string(constants.RequestCreateAccessListSegmentation): {"segmentation_id"},
+	// MapCustomerSegmentationToMap : "customer_role"→nested; access_list_id used as product key
+	string(constants.RequestCreateCustomerSegmentation): {"access_list_id"},
+
+	// ── Customer segments ────────────────────────────────────────────────────
+	// payload is MapSegmentToMap — keys are explicit strings
 	string(constants.RequestCreateCustomerGroup): {"customer_group", "customer_segment", "customer_subsegment"},
+
+	// ── News / Media ─────────────────────────────────────────────────────────
+	// NewsTagCPSAction : TagName→"tag_name" (single-name field; tag_name_list slice is not supported)
+	string(constants.RequestCreateNewsTag): {"tag_name"},
+	// NewsCategoryCPSAction : CategoryName→"category_name"
+	string(constants.RequestCreateNewsCategory): {"category_name"},
+	// shared NewsArticle : Title→"title"
+	string(constants.RequestCreateArticle): {"title"},
 }
 
 func extractUniqueTokens(requestAction string, currentAction interface{}) []string {
