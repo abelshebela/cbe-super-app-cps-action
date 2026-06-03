@@ -250,6 +250,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		}
 
 		cpsAction.RoleCode = roleCode
+		cpsAction.UniqueTokens = tokens
 		cpsActionResult, err := ca.repo.Save(ctx, cpsAction)
 		if err != nil {
 			span.AddEvent("failed to save cps action", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -1539,8 +1540,8 @@ var uniqueFieldsRegistry = map[string][]string{
 	string(constants.RequestCreateEcommerceMerchant): {"merchant_code", "bank_account_number"},
 	// mini_app.MiniAppMerchant — code + account are the primary uniqueness keys;
 	// phone/email added as extra guards per product requirement.
-	string(constants.RequestCreateMiniAppMerchant): {"merchant_code", "bank_account_number", "phone_number", "email", "account_number"},
-	string(constants.RequestCreateEventMerchant):   {"merchant_id", "bank_account_number"},
+	string(constants.RequestCreateMiniAppMerchant):   {"merchant_code", "bank_account_number", "phone_number", "email", "account_number"},
+	string(constants.RequestCreateEventMerchant):     {"merchant_id", "bank_account_number"},
 	string(constants.RequestCreateLogisticsMerchant): {"merchant_id", "bank_account_number"},
 	string(constants.RequestCreateUssdMerchant):      {"phone_number", "email", "account_number"},
 
