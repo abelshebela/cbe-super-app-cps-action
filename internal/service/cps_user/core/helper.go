@@ -7,6 +7,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -126,7 +127,7 @@ func CPSUModel(req cpsuser.CreateUserRequest) imodel.CPSUser {
 	}
 	return imodel.CPSUser{
 		UserCode:         local_util.GenerateCPSUserCode(),
-		UserName:         req.UserName,
+		UserName:         strings.ToUpper(req.UserName),
 		FullName:         req.FullName,
 		PhoneNumber:      req.PhoneNumber,
 		Department:       depID,

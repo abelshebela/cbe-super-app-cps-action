@@ -3,6 +3,7 @@ package cpsuser
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
@@ -171,6 +172,8 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 	if req.UserName != "" {
 		if currentUser.UserName == req.UserName {
 			req.UserName = ""
+		} else {
+			req.UserName = strings.ToUpper(req.UserName)
 		}
 	}
 	if req.Email != "" {
