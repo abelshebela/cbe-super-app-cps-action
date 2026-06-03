@@ -1067,25 +1067,30 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	// 	return
 	// }
 
-	// Parse level+claim filter: level=1,2,3&level_1_claim=MARKEDASRIGHT&level_2_claim=MARKEDASWRONG
-	// All specified pairs must be satisfied by the same action_code.
-	if rawLevel := strings.TrimSpace(r.URL.Query().Get("level")); rawLevel != "" {
+	// Parse level+claim filter: levels=1,2,3&level_1_claim=MARKEDASRIGHT&level_2_claim=MARKEDASWRONG
+	// Levels without a claim filter by level only; levels WITH a claim also require
+	// the auditor to have given that specific claim at that level (all pairs are ANDed).
+	if rawLevel := strings.TrimSpace(r.URL.Query().Get("levels")); rawLevel != "" {
 		var levelClaimPairs []imodel.LevelClaimPair
+		var rawLevels []string
 		for _, lv := range strings.Split(rawLevel, ",") {
 			lv = strings.TrimSpace(lv)
 			if lv == "" {
 				continue
 			}
+			rawLevels = append(rawLevels, lv)
 			claim := strings.ToUpper(strings.TrimSpace(r.URL.Query().Get("level_" + lv + "_claim")))
-			if claim == "" {
-				continue
+			if claim != "" {
+				levelClaimPairs = append(levelClaimPairs, imodel.LevelClaimPair{Level: lv, Claim: claim})
 			}
-			levelClaimPairs = append(levelClaimPairs, imodel.LevelClaimPair{Level: lv, Claim: claim})
+		}
+		if filterParams.Filters == nil {
+			filterParams.Filters = map[string]interface{}{}
+		}
+		if len(rawLevels) > 0 {
+			filterParams.Filters["levels"] = rawLevels
 		}
 		if len(levelClaimPairs) > 0 {
-			if filterParams.Filters == nil {
-				filterParams.Filters = map[string]interface{}{}
-			}
 			filterParams.Filters["level_claim_pairs"] = levelClaimPairs
 		}
 	}

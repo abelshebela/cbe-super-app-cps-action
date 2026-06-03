@@ -821,60 +821,26 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	services := extractStringSlice(filterParams.Filters, "services")
 	auditorStatuses := extractStringSlice(filterParams.Filters, "auditor_statuses")
 
-	if len(RAList) > 0 {
-		logFilter := map[string]interface{}{
-			"request_action": bson.M{"$in": RAList},
-		}
-		if len(auditorStatuses) == 1 {
-			logFilter["action_status"] = auditorStatuses[0]
-		} else if len(auditorStatuses) > 1 {
-			logFilter["action_status"] = auditorStatuses
-		}
-		if len(levels) > 0 {
-			logFilter["levels"] = levels
-		}
-		if len(services) > 0 {
-			logFilter["services"] = services
-		}
-		actionCodes, err := ca.actionLogRepo.GetActionCodesByFilter(ctx, logFilter)
-		if err != nil {
-			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
-			return nil, "", err
-		}
-		filterParams.Filters["action_code"] = actionCodes
-	} else if len(levels) > 0 || len(services) > 0 {
-		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
-			Responsibilities: []string{string(imodel.AUDITOR)},
-			Levels:           levels,
-			Services:         services,
-			AuditorStatuses:  extractStringSlice(filterParams.Filters, "auditor_statuses"),
-		})
-		if err != nil {
-			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
-			return nil, "", err
-		}
-		filterParams.Filters["action_code"] = actionCodes
-	}
-
-	//****************************************
-	// levels, services, auditor_statuses, level_claim_pairs only exist in user_action_logs.
+	// Single unified log-filter pass: levels, services, auditor_statuses, and
+	// level_claim_pairs all live in user_action_logs. Query them together so
+	// every condition is ANDed within the same action_code. The repo already
+	// applies request_action:{$in:RAList} on the CPS action collection, so no
+	// separate RAList pre-filter is needed here — the intersection is automatic.
 	levelClaimPairs := extractLevelClaimPairs(filterParams.Filters)
 	if len(levels) > 0 || len(services) > 0 || len(auditorStatuses) > 0 || len(levelClaimPairs) > 0 {
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
 			Responsibilities: []string{string(imodel.AUDITOR)},
 			Levels:           levels,
 			Services:         services,
-			AuditorStatuses:  extractStringSlice(filterParams.Filters, "auditor_statuses"),
+			AuditorStatuses:  auditorStatuses,
 			LevelClaimPairs:  levelClaimPairs,
 		})
 		if err != nil {
 			log.Errorf("[CpsActionSvc][GetCPSActionsForAuditor] log filter err: %v", err)
 			return nil, "", err
 		}
-		filterParams.Filters["action_codes"] = actionCodes
+		filterParams.Filters["action_code"] = actionCodes
 	}
-
-	//************************************
 
 	if statuses := extractStringSlice(filterParams.Filters, "action_status"); len(statuses) > 0 {
 		filterParams.Filters["action_status"] = statuses
