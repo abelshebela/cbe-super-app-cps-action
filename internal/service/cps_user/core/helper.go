@@ -275,7 +275,7 @@ func MapFromPopulatedResponse(resp *cpsuser.CpsUserPopulatedResponse) *imodel.CP
 		Gender:           resp.Gender,
 		PhoneNumber:      resp.PhoneNumber,
 		Email:            resp.Email,
-		UserName:         resp.UserName,
+		UserName:         strings.ToUpper(resp.UserName),
 		Realm:            resp.Realm,
 		Enabled:          resp.Enabled,
 		DateJoined:       &resp.DateJoined,

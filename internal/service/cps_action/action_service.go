@@ -821,6 +821,17 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	services := extractStringSlice(filterParams.Filters, "services")
 	auditorStatuses := extractStringSlice(filterParams.Filters, "auditor_statuses")
 
+	// Also absorb the singular "auditor_status" key written by FilterBuilder from
+	// the ?auditor_status=MARKEDASRIGHT query param. The auditor's personal mark
+	// (MARKEDASRIGHT/MARKEDASWRONG) lives in user_action_log.given_auditor_status,
+	// NOT on the CPS action document's auditor_status field (which holds NOTCHECKED/
+	// INPROGRESS/CHECKED). Routing it through the log query gives the correct result;
+	// leaving it in filterParams.Filters would produce zero results.
+	if v := extractStringSlice(filterParams.Filters, "auditor_status"); len(v) > 0 {
+		auditorStatuses = append(auditorStatuses, v...)
+		delete(filterParams.Filters, "auditor_status")
+	}
+
 	// Single unified log-filter pass: levels, services, auditor_statuses, and
 	// level_claim_pairs all live in user_action_logs. Query them together so
 	// every condition is ANDed within the same action_code. The repo already
