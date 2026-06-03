@@ -362,6 +362,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorActionNotFound,
 	ErrorActionDataNotFound,
 	ErrorPendingCpsActionExists,
+	ErrorDuplicatePendingCreateAction,
 	ErrorUserAlreadyEnabled,
 	ErrorUserAlreadyDisabled,
 	ErrorBankImageMissingOrInvalid,
