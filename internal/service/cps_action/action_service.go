@@ -216,8 +216,9 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	checksum := computeActionChecksum(cpsAction.RequestAction, cpsAction.UniqueId, cpsAction.CurrentAction)
 	cpsAction.Checksum = checksum
 
-	// CREATE actions: guard by checksum — same payload already waiting for approval is blocked.
+	// CREATE actions: guard by checksum (exact duplicate) then by unique field tokens (partial conflict).
 	if strings.Contains(cpsAction.RequestAction, string(constants.CREATE)) {
+		// 1. Exact-payload duplicate check via checksum.
 		dup, err := ca.repo.SanitizedFindOne(ctx, bson.M{
 			"checksum":      checksum,
 			"action_status": "PENDING",
@@ -232,11 +233,43 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), dup.ActionStatus)
 			return errors.New(localization.ErrorDuplicatePendingCreateAction.Code)
 		}
+
+		// 2. Per-field conflict check: block if any unique field (phone, email, username, code…)
+		//    already appears in a different PENDING CREATE action for the same resource.
+		tokens := extractUniqueTokens(cpsAction.RequestAction, cpsAction.CurrentAction)
+		if len(tokens) > 0 {
+			fieldDup, err := ca.repo.SanitizedFindOne(ctx, bson.M{
+				"request_action": cpsAction.RequestAction,
+				"action_status":  "PENDING",
+				"is_deleted":     bson.M{"$ne": true},
+				"unique_tokens":  bson.M{"$elemMatch": bson.M{"$in": tokens}},
+			})
+			if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
+				span.AddEvent("unique token lookup failed", trace.WithAttributes(attribute.String("error", err.Error())))
+				return err
+			}
+			if fieldDup != nil {
+				ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), fieldDup.ActionCode)
+				ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), fieldDup.ActionStatus)
+				return errors.New(localization.ErrorDuplicatePendingCreateAction.Code)
+			}
+		}
+
 		cpsAction.RoleCode = roleCode
 		cpsActionResult, err := ca.repo.Save(ctx, cpsAction)
 		if err != nil {
 			span.AddEvent("failed to save cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
+		}
+		// Write unique_tokens onto the saved document so future conflict checks can query it.
+		// Done via UpdateCustome because the shared model.CPSAction struct has no UniqueTokens field.
+		if len(tokens) > 0 {
+			if updErr := ca.repo.UpdateCustome(ctx,
+				bson.M{"action_code": cpsActionResult.ActionCode},
+				bson.M{"$set": bson.M{"unique_tokens": tokens}},
+			); updErr != nil {
+				log.Warnf("[CpsActionSvc][Create] failed to write unique_tokens: %v", updErr)
+			}
 		}
 		ca.logUserAction(ctx, &cpsActionResult, imodel.MAKER, "PENDING", "", "", "")
 		return nil
@@ -1511,6 +1544,74 @@ var volatileChecksumKeys = map[string]bool{
 	"video_url":       true,
 	"receipt_link":    true,
 	"url":             true,
+}
+
+var uniqueFieldsRegistry = map[string][]string{
+	string(constants.RequestCpsUserCreate): {"phone_number", "email", "username"},
+	string(constants.RequestCreateBPSUser): {"phone_number", "email", "username"},
+
+	string(constants.RequestCreateEcommerceMerchant): {"merchant_code", "bank_account_number"},
+	string(constants.RequestCreateMiniAppMerchant):   {"merchant_code", "bank_account_number"},
+	string(constants.RequestCreateEventMerchant):     {"merchant_id", "bank_account_number"},
+	string(constants.RequestCreateLogisticsMerchant): {"merchant_id", "bank_account_number"},
+	string(constants.RequestCreateUssdMerchant):      {"phone_number", "email", "account_number"},
+
+	string(constants.RequestCreateDonation):         {"title"},
+	string(constants.RequestCreateDonationCategory): {"category_name"},
+	string(constants.RequestCreateDonationCompany):  {"company_name", "company_code"},
+
+	string(constants.RequestCreateDepartment):      {"department", "department_code"},
+	string(constants.RequestCreateCpsRole):         {"role_code", "name"},
+	string(constants.RequestCreateJobRole):         {"code", "name"},
+	string(constants.RequestCreateCpsActionRole):   {"action_name", "portal_card_name"},
+	string(constants.RequestCreateActionRole):      {"action_name"},
+	string(constants.RequestCreatePermissionGroup): {"group_name"},
+
+	string(constants.RequestCreateBank):            {"bank_name", "bic_code"},
+	string(constants.RequestCreateBankVault):       {"name"},
+	string(constants.RequestCreateAmountBasedAuth): {"currency"},
+
+	string(constants.RequestCreateWallet): {"name", "unique_code"},
+	string(constants.RequestCreateTopup):  {"name", "code"},
+
+	string(constants.RequestCreateAdvert): {"title"},
+	string(constants.RequestCreateAvatar): {"label"},
+
+	string(constants.RequestCreateServiceList): {"service_name", "service_key"},
+
+	string(constants.RequestCreateBudgetCategory): {"name"},
+	string(constants.RequestCreateVaultCategory):  {"name"},
+
+	// string(constants.RequestCreateEvent): {"EventName"},
+
+	string(constants.RequestCreateCustomerGroup): {"customer_group", "customer_segment", "customer_subsegment"},
+}
+
+func extractUniqueTokens(requestAction string, currentAction interface{}) []string {
+	fields, ok := uniqueFieldsRegistry[requestAction]
+	if !ok || len(fields) == 0 {
+		return nil
+	}
+
+	raw, _ := json.Marshal(currentAction)
+	var m map[string]interface{}
+	if err := json.Unmarshal(raw, &m); err != nil {
+		return nil
+	}
+
+	tokens := make([]string, 0, len(fields))
+	for _, field := range fields {
+		val, ok := m[field]
+		if !ok || val == nil {
+			continue
+		}
+		str, ok := val.(string)
+		if !ok || strings.TrimSpace(str) == "" {
+			continue
+		}
+		tokens = append(tokens, field+":"+strings.ToLower(strings.TrimSpace(str)))
+	}
+	return tokens
 }
 
 func computeActionChecksum(requestAction, uniqueID string, currentAction interface{}) string {
