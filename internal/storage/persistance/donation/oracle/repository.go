@@ -183,8 +183,7 @@ func (r *repository) Delete(ctx context.Context, id string) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	log.Infof("[DonationOracle][Delete] id=%s", id)
-	q := `UPDATE DONATIONS SET IS_DELETED = 1
-	      WHERE ID = HEXTORAW(:1) AND IS_DELETED = 0`
+	q := `DELETE FROM DONATIONS WHERE ID = HEXTORAW(:1)`
 	if _, err := r.db.ExecContext(ctx, q, id); err != nil {
 		log.Errorf("[DonationOracle][Delete] failed: %v", err)
 		return local_util.HandleDBError(err)
