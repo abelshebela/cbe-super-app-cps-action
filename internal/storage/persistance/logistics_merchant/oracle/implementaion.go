@@ -1,11 +1,13 @@
 package logistics_merchant_oracle
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -22,30 +24,50 @@ type LogisticsMerchantOracle struct {
 	logger utils.Logger
 }
 
+// validateMerchant checks field lengths against Oracle column constraints.
+// Column sizes sourced from the MERCHANTS DDL (STARPAY_USER schema).
+func (l *LogisticsMerchantOracle) validateMerchant(m model.LogisticsMerchant) error {
+	if len(m.SettlementMethod) > 8 {
+		l.logger.Errorf("[LogisticsMerchantOracle] settlement_method exceeds 8 characters (got %d): %q", len(m.SettlementMethod), m.SettlementMethod)
+		return errors.New(localization.ErrorInvalidInputParameters.Code)
+	}
+	return nil
+}
+
 // Create implements [storage.LogisticsMerchantOracleRepository].
 func (l *LogisticsMerchantOracle) Create(ctx context.Context, logisticsMerchant model.LogisticsMerchant) error {
+	// if err := l.validateMerchant(logisticsMerchant); err != nil {
+	// 	l.logger.Errorf("[LogisticsMerchantOracle][Create] validation err: %v", err)
+	// 	return err
+	// }
 
 	stmt := `INSERT INTO MERCHANTS (
 		ID, MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME, SETTLEMENT_METHOD, MERCHANT_TYPE, CONTACT_EMAIL, CONTACT_PHONE, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT
 	) VALUES (
 		SYS_GUID(), :1, :2, :3, :4, :5, :6, :7, :8, :9, SYSTIMESTAMP, SYSTIMESTAMP, NULL
-	)`
+	) RETURNING RAWTOHEX(ID) INTO :10`
+	var insertedID string
 
 	_, err := l.db.ExecContext(ctx, stmt,
-		logisticsMerchant.BankAccountNumber,
-		logisticsMerchant.MerchantID,
-		logisticsMerchant.MerchantName,
-		logisticsMerchant.SettlementMethod,
-		logisticsMerchant.MerchantType,
-		logisticsMerchant.Enabled,
-		logisticsMerchant.IsDeleted,
-		logisticsMerchant.CreatedAt,
-		logisticsMerchant.UpdatedAt,
+		logisticsMerchant.BankAccountNumber,    // :1 MERCHANT_ACCOUNT_NUMBER
+		logisticsMerchant.MerchantID,           // :2 MERCHANT_CODE
+		logisticsMerchant.MerchantName,         // :3 MERCHANT_NAME
+		logisticsMerchant.SettlementMethod,     // :4 SETTLEMENT_METHOD
+		logisticsMerchant.MerchantType,         // :5 MERCHANT_TYPE
+		"",                                     // :6 CONTACT_EMAIL (not in model)
+		"",                                     // :7 CONTACT_PHONE (not in model)
+		boolToInt(logisticsMerchant.Enabled),   // :8 IS_ENABLED NUMBER
+		boolToInt(logisticsMerchant.IsDeleted), // :9 IS_DELETED NUMBER
+		sql.Out{Dest: &insertedID},             // :10 (output parameter for inserted ID)
+
 	)
 	if err != nil {
 		l.logger.Errorf("Failed to create logistics merchant: %v", err)
 		return err
 	}
+	types.SetMerchant(ctx, &types.Merchant{
+		ID: insertedID,
+	})
 	return nil
 }
 
@@ -76,7 +98,7 @@ func (l *LogisticsMerchantOracle) EnableOrDisable(ctx context.Context, ids []str
 // FindAllWithPagination implements [storage.LogisticsMerchantOracleRepository].
 func (l *LogisticsMerchantOracle) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.LogisticsMerchant], error) {
 	where := "WHERE IS_DELETED = 0 AND MERCHANT_TYPE = 'LOGISTICS'"
-	args := []interface{}{}
+	args := []any{}
 	if filterParam.Search != "" {
 		where += " AND (LOWER(MERCHANT_NAME) LIKE :1 OR LOWER(MERCHANT_CODE) LIKE :2)"
 		args = append(args, "%"+filterParam.Search+"%", "%"+filterParam.Search+"%")
@@ -168,18 +190,15 @@ func (l *LogisticsMerchantOracle) FindByID(ctx context.Context, id string) (*mod
 
 // FindOne implements [storage.LogisticsMerchantOracleRepository].
 func (l *LogisticsMerchantOracle) FindOne(ctx context.Context, filter bson.M) (*model.LogisticsMerchant, error) {
-	// For Oracle, only support lookup by merchant_code or merchant_id for now
-	var stmt string
+	// Both "merchant_code" and "merchant_id" map to the MERCHANT_CODE column.
+	const stmt = `SELECT RAWTOHEX(ID), MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME, SETTLEMENT_METHOD, MERCHANT_TYPE, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT FROM MERCHANTS WHERE MERCHANT_CODE = :1 AND IS_DELETED = 0 AND MERCHANT_TYPE = 'LOGISTICS'`
 	var arg string
 	if v, ok := filter["merchant_code"]; ok {
-		stmt = `SELECT RAWTOHEX(ID), MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME, SETTLEMENT_METHOD, MERCHANT_TYPE, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT FROM MERCHANTS WHERE MERCHANT_CODE = :1 AND IS_DELETED = 0 AND MERCHANT_TYPE = 'LOGISTICS'`
 		arg = v.(string)
 	} else if v, ok := filter["merchant_id"]; ok {
-		stmt = `SELECT RAWTOHEX(ID), MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME, SETTLEMENT_METHOD, MERCHANT_TYPE, IS_ENABLED, IS_DELETED, CREATED_AT, LAST_MODIFIED_AT, DELETED_AT FROM MERCHANTS WHERE MERCHANT_CODE = :1 AND IS_DELETED = 0 AND MERCHANT_TYPE = 'LOGISTICS'`
 		arg = v.(string)
-	} else {
-		return nil, sql.ErrNoRows
 	}
+
 	var m model.LogisticsMerchant
 	var enabled, isDeleted int
 	var createdAt, updatedAt, deletedAt sql.NullTime
@@ -204,6 +223,55 @@ func (l *LogisticsMerchantOracle) FindOne(ctx context.Context, filter bson.M) (*
 		m.DeletedAt = deletedAt.Time
 	} else {
 		m.DeletedAt = time.Time{}
+	}
+	return &m, nil
+}
+
+// FindByAccountOrMerchantCode implements [storage.LogisticsMerchantOracleRepository].
+// Returns the first active logistics merchant that matches either accountNumber or
+// merchantCode. If excludeID is non-empty, that row is skipped (used during updates).
+func (l *LogisticsMerchantOracle) FindByAccountOrMerchantCode(ctx context.Context, accountNumber, merchantCode, excludeID string) (*model.LogisticsMerchant, error) {
+	baseQ := `SELECT RAWTOHEX(ID), MERCHANT_ACCOUNT_NUMBER, MERCHANT_CODE, MERCHANT_NAME,
+	           SETTLEMENT_METHOD, MERCHANT_TYPE, IS_ENABLED, IS_DELETED,
+	           CREATED_AT, LAST_MODIFIED_AT, DELETED_AT
+	          FROM MERCHANTS
+	          WHERE IS_DELETED = 0 AND MERCHANT_TYPE = 'LOGISTICS'
+	            AND (MERCHANT_ACCOUNT_NUMBER = :1 OR MERCHANT_CODE = :2)`
+
+	args := []any{accountNumber, merchantCode}
+	if excludeID != "" {
+		baseQ += ` AND ID != HEXTORAW(:3)`
+		args = append(args, excludeID)
+	}
+	baseQ += ` FETCH FIRST 1 ROWS ONLY`
+
+	var m model.LogisticsMerchant
+	var enabled, isDeleted int
+	var createdAt, updatedAt, deletedAt sql.NullTime
+
+	err := l.db.QueryRowContext(ctx, baseQ, args...).Scan(
+		&m.ID, &m.BankAccountNumber, &m.MerchantID, &m.MerchantName,
+		&m.SettlementMethod, &m.MerchantType, &enabled, &isDeleted,
+		&createdAt, &updatedAt, &deletedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		l.logger.Errorf("[LogisticsMerchantOracle][FindByAccountOrMerchantCode] err: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	m.Enabled = enabled == 1
+	m.IsDeleted = isDeleted == 1
+	if createdAt.Valid {
+		m.CreatedAt = createdAt.Time
+	}
+	if updatedAt.Valid {
+		m.UpdatedAt = updatedAt.Time
+	}
+	if deletedAt.Valid {
+		m.DeletedAt = deletedAt.Time
 	}
 	return &m, nil
 }

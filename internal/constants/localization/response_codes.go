@@ -362,6 +362,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorActionNotFound,
 	ErrorActionDataNotFound,
 	ErrorPendingCpsActionExists,
+	ErrorDuplicatePendingCreateAction,
 	ErrorUserAlreadyEnabled,
 	ErrorUserAlreadyDisabled,
 	ErrorBankImageMissingOrInvalid,
@@ -5783,6 +5784,13 @@ var (
 		Code:       "ERROR_PENDING_CPS_ACTION_EXISTS",
 		StatusCode: StatusConflict,
 		Message:    MsgPendingCPSActionExists,
+		Type:       "error",
+	}
+
+	ErrorDuplicatePendingCreateAction = ResponseCode{
+		Code:       "ERROR_DUPLICATE_PENDING_CREATE_ACTION",
+		StatusCode: StatusConflict,
+		Message:    MsgDuplicatePendingCreateAction,
 		Type:       "error",
 	}
 

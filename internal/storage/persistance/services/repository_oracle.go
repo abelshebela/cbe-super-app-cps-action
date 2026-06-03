@@ -755,7 +755,7 @@ func (s *ServicesStorage) FindWalletByServiceId(ctx context.Context, serviceID s
 func (s *ServicesStorage) FindDonationByServiceId(ctx context.Context, serviceID string) (bool, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
-	const q = `SELECT ID FROM DONATIONS WHERE SERVICE_ID = HEXTORAW(:1) AND IS_DELETED = 0`
+	const q = `SELECT ID FROM DONATIONS WHERE SERVICE_ID = HEXTORAW(:1)`
 
 	var id string
 	err := s.db.QueryRowContext(ctx, q, serviceID).Scan(&id)

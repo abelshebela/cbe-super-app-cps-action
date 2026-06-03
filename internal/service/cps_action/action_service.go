@@ -211,12 +211,9 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 	actionName, _ := ctx.Value(constants.ContextKey("action_name")).(string)
 
-	// Compute checksum from business payload (excludes maker identity and timestamps).
-	// Stored on every saved action; used to block duplicate PENDING CREATE actions.
 	checksum := computeActionChecksum(cpsAction.RequestAction, cpsAction.UniqueId, cpsAction.CurrentAction)
 	cpsAction.Checksum = checksum
 
-	// CREATE actions: guard by checksum — same payload already waiting for approval is blocked.
 	if strings.Contains(cpsAction.RequestAction, string(constants.CREATE)) {
 		dup, err := ca.repo.SanitizedFindOne(ctx, bson.M{
 			"checksum":      checksum,
@@ -230,21 +227,48 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		if dup != nil {
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), dup.ActionCode)
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), dup.ActionStatus)
-			return errors.New(localization.ErrorPendingCpsActionExists.Code)
+			return errors.New(localization.ErrorDuplicatePendingCreateAction.Code)
 		}
+
+		tokens := extractUniqueTokens(cpsAction.RequestAction, cpsAction.CurrentAction)
+		if len(tokens) > 0 {
+			fieldDup, err := ca.repo.SanitizedFindOne(ctx, bson.M{
+				"request_action": cpsAction.RequestAction,
+				"action_status":  "PENDING",
+				"is_deleted":     bson.M{"$ne": true},
+				"unique_tokens":  bson.M{"$elemMatch": bson.M{"$in": tokens}},
+			})
+			if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
+				span.AddEvent("unique token lookup failed", trace.WithAttributes(attribute.String("error", err.Error())))
+				return err
+			}
+			if fieldDup != nil {
+				ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), fieldDup.ActionCode)
+				ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), fieldDup.ActionStatus)
+				return errors.New(localization.ErrorDuplicatePendingCreateAction.Code)
+			}
+		}
+
 		cpsAction.RoleCode = roleCode
+		cpsAction.UniqueTokens = tokens
 		cpsActionResult, err := ca.repo.Save(ctx, cpsAction)
 		if err != nil {
 			span.AddEvent("failed to save cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
 		}
+		if len(tokens) > 0 {
+			if updErr := ca.repo.UpdateCustome(ctx,
+				bson.M{"action_code": cpsActionResult.ActionCode},
+				bson.M{"$set": bson.M{"unique_tokens": tokens}},
+			); updErr != nil {
+				log.Warnf("[CpsActionSvc][Create] failed to write unique_tokens: %v", updErr)
+			}
+		}
 		ca.logUserAction(ctx, &cpsActionResult, imodel.MAKER, "PENDING", "", "", "")
 		return nil
 	}
 
-	// UPDATE actions: Block by other UPDATE actions in pending state
 	if strings.Contains(cpsAction.RequestAction, string(constants.UPDATE)) {
-		// Get only UPDATE actions for blocking
 		reqs := ca.pendingUpdateLockRequestActions(actionName, cpsAction.RequestAction)
 		if len(reqs) > 0 {
 			existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
@@ -262,9 +286,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		}
 	}
 
-	// DELETE actions: Only block other DELETE actions with same unique_id, don't block UPDATE actions
 	if strings.Contains(cpsAction.RequestAction, string(constants.DELETE)) {
-		// Get only DELETE actions for blocking
 		reqs := ca.pendingDeleteLockRequestActions(actionName, cpsAction.RequestAction)
 		if len(reqs) > 0 {
 			existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
@@ -282,7 +304,6 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		}
 	}
 
-	// ENABLE actions: blocked by pending UPDATE and ENABLE actions on the same resource
 	if strings.Contains(cpsAction.RequestAction, constants.ENABLE) {
 		reqs := ca.pendingEnableLockRequestActions(actionName, cpsAction.RequestAction)
 		if len(reqs) > 0 {
@@ -301,7 +322,6 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		}
 	}
 
-	// DISABLE actions: blocked only by other pending DISABLE actions on the same resource
 	if strings.Contains(cpsAction.RequestAction, constants.DISABLE) {
 		reqs := ca.pendingDisableLockRequestActions(actionName, cpsAction.RequestAction)
 		if len(reqs) > 0 {
@@ -1442,33 +1462,173 @@ func extractStringSlice(filters map[string]interface{}, key string) []string {
 	return nil
 }
 
-// volatileChecksumKeys are JSON fields excluded from the checksum because their
-// values are generated server-side and vary across submissions of the same
-// business intent:
-//   - timestamps set during save/authorize (create_at, update_at, …)
-//   - auto-assigned IDs that don't exist yet at create time
-//   - file/image URLs (Minio keys differ per upload even for the same file)
 var volatileChecksumKeys = map[string]bool{
-	"id":               true,
-	"create_at":        true,
-	"update_at":        true,
-	"created_at":       true,
-	"last_modified_at": true,
-	"logo":             true, // Minio URL varies per upload
-	"cover_image":      true,
-	"image":            true,
-	"image_url":        true,
+	"id":          true,
+	"action_code": true,
+	"version":     true,
+	"user_code":   true,
+
+	"is_deleted": true,
+	"is_enabled": true,
+
+	"created_at":                    true,
+	"create_at":                     true,
+	"updated_at":                    true,
+	"update_at":                     true,
+	"last_modified_at":              true,
+	"last_modified":                 true,
+	"maker_action_time":             true,
+	"approved_at":                   true,
+	"reversed_at":                   true,
+	"deleted_at":                    true,
+	"date_joined":                   true,
+	"issued_date":                   true,
+	"sent_at":                       true,
+	"published_at":                  true,
+	"verified_at":                   true,
+	"completed_at":                  true,
+	"claimed_at":                    true,
+	"linked_at":                     true,
+	"initial_linked_at":             true,
+	"initiated_linked_at":           true,
+	"pin_changed_at":                true,
+	"password_changed_at":           true,
+	"application_installation_date": true,
+	"last_login":                    true,
+	"last_login_attempt":            true,
+	"last_online_date":              true,
+	"otp_last_tried_at":             true,
+	"otp_last_verified_at":          true,
+	"created_at_password_expiry":    true,
+	"updated_at_password_expiry":    true,
+	"created_at_block":              true,
+	"updated_at_block":              true,
+	"created_at_archive":            true,
+	"updated_at_archive":            true,
+	"created_at_total_cap":          true,
+	"updated_at_total_cap":          true,
+	"next_attempt_count":            true,
+
+	// --- file / image / media URLs (Minio key varies per upload) ---
+	"logo":            true,
+	"icon":            true,
+	"app_icon":        true,
+	"company_logo":    true,
+	"donation_icon":   true,
+	"image":           true,
+	"image_url":       true,
+	"cover_image":     true,
+	"cover_image_url": true,
+	"banner_image":    true,
+	"photo":           true,
+	"selfie_photo":    true,
+	"picture":         true,
+	"thumbnail":       true,
+	"avatar":          true,
+	"document_front":  true,
+	"document_back":   true,
+	"signature":       true,
+	"video_url":       true,
+	"receipt_link":    true,
+	"url":             true,
 }
 
-// computeActionChecksum produces a SHA-256 hex digest that captures the stable
-// business intent of an action (request_action + unique_id + pruned payload).
-// Volatile server-generated fields are stripped before hashing so that two
-// submissions of the same business data produce the same checksum.
-// encoding/json sorts map keys, so field order in CurrentAction is irrelevant.
+var uniqueFieldsRegistry = map[string][]string{
+	string(constants.RequestCpsUserCreate): {"phone_number", "email", "username"},
+	string(constants.RequestCreateBPSUser): {"phone_number", "email", "username"},
+
+	string(constants.RequestCreateEcommerceMerchant): {"merchant_code", "bank_account_number"},
+	// mini_app.MiniAppMerchant — code + account are the primary uniqueness keys;
+	// phone/email added as extra guards per product requirement.
+	string(constants.RequestCreateMiniAppMerchant):   {"merchant_code", "bank_account_number", "phone_number", "email", "account_number"},
+	string(constants.RequestCreateEventMerchant):     {"merchant_id", "bank_account_number"},
+	string(constants.RequestCreateLogisticsMerchant): {"merchant_id", "bank_account_number"},
+	string(constants.RequestCreateUssdMerchant):      {"phone_number", "email", "account_number"},
+
+	string(constants.RequestCreateDonation):         {"title"},
+	string(constants.RequestCreateDonationCategory): {"category_name"},
+	string(constants.RequestCreateDonationCompany):  {"company_name", "company_code"},
+
+	string(constants.RequestCreateDepartment):      {"department", "department_code"},
+	string(constants.RequestCreateCpsRole):         {"role_code", "name"},
+	string(constants.RequestCreateJobRole):         {"code", "name"},
+	string(constants.RequestCreateCpsActionRole):   {"action_name", "portal_card_name"},
+	string(constants.RequestCreateActionRole):      {"action_name"},
+	string(constants.RequestCreatePermissionGroup): {"group_name"},
+
+	string(constants.RequestCreateBank):            {"bank_name", "bic_code"},
+	string(constants.RequestCreateBankVault):       {"name"},
+	string(constants.RequestCreateAmountBasedAuth): {"currency"},
+
+	string(constants.RequestCreateWallet): {"name", "unique_code"},
+	string(constants.RequestCreateTopup):  {"name", "code"},
+
+	string(constants.RequestCreateAdvert): {"title"},
+	string(constants.RequestCreateAvatar): {"label"},
+
+	string(constants.RequestCreateServiceList): {"service_name", "service_key"},
+
+	string(constants.RequestCreateBudgetCategory): {"name"},
+	string(constants.RequestCreateVaultCategory):  {"name"},
+
+	// shared model.Event has no json tags — Go field name used by json.Marshal
+	string(constants.RequestCreateEvent): {"EventName"},
+
+	// ── MiniApp ──────────────────────────────────────────────────────────────
+	// mini_app.MiniApp : AppName→"app_name"
+	string(constants.RequestCreateMiniApp): {"app_name"},
+	// model.MiniAppCategory : Name→"name"
+	string(constants.RequestCreateMiniAppCategory): {"name"},
+
+	// ── Segmentation ─────────────────────────────────────────────────────────
+	// CreateAccessListSegmentationRequest : SegmentationID→"segmentation_id" (the block/account id)
+	string(constants.RequestCreateAccessListSegmentation): {"segmentation_id"},
+	// MapCustomerSegmentationToMap : "customer_role"→nested; access_list_id used as product key
+	string(constants.RequestCreateCustomerSegmentation): {"access_list_id"},
+
+	// ── Customer segments ────────────────────────────────────────────────────
+	// payload is MapSegmentToMap — keys are explicit strings
+	string(constants.RequestCreateCustomerGroup): {"customer_group", "customer_segment", "customer_subsegment"},
+
+	// ── News / Media ─────────────────────────────────────────────────────────
+	// NewsTagCPSAction : TagName→"tag_name" (single-name field; tag_name_list slice is not supported)
+	string(constants.RequestCreateNewsTag): {"tag_name"},
+	// NewsCategoryCPSAction : CategoryName→"category_name"
+	string(constants.RequestCreateNewsCategory): {"category_name"},
+	// shared NewsArticle : Title→"title"
+	string(constants.RequestCreateArticle): {"title"},
+}
+
+func extractUniqueTokens(requestAction string, currentAction interface{}) []string {
+	fields, ok := uniqueFieldsRegistry[requestAction]
+	if !ok || len(fields) == 0 {
+		return nil
+	}
+
+	raw, _ := json.Marshal(currentAction)
+	var m map[string]interface{}
+	if err := json.Unmarshal(raw, &m); err != nil {
+		return nil
+	}
+
+	tokens := make([]string, 0, len(fields))
+	for _, field := range fields {
+		val, ok := m[field]
+		if !ok || val == nil {
+			continue
+		}
+		str, ok := val.(string)
+		if !ok || strings.TrimSpace(str) == "" {
+			continue
+		}
+		tokens = append(tokens, field+":"+strings.ToLower(strings.TrimSpace(str)))
+	}
+	return tokens
+}
+
 func computeActionChecksum(requestAction, uniqueID string, currentAction interface{}) string {
 	raw, _ := json.Marshal(currentAction)
 
-	// Strip volatile fields before hashing.
 	var m map[string]interface{}
 	if json.Unmarshal(raw, &m) == nil {
 		for k := range volatileChecksumKeys {
@@ -1486,9 +1646,6 @@ func computeActionChecksum(requestAction, uniqueID string, currentAction interfa
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-// extractLevelClaimPairs pulls []imodel.LevelClaimPair stored under
-// "level_claim_pairs" in the filters map (set by the handler after parsing
-// level=1,2,3&level_1_claim=MARKEDASRIGHT query params).
 func extractLevelClaimPairs(filters map[string]interface{}) []imodel.LevelClaimPair {
 	v, ok := filters["level_claim_pairs"]
 	if !ok {
