@@ -839,8 +839,14 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	// separate RAList pre-filter is needed here — the intersection is automatic.
 	levelClaimPairs := extractLevelClaimPairs(filterParams.Filters)
 	if len(levels) > 0 || len(services) > 0 || len(auditorStatuses) > 0 || len(levelClaimPairs) > 0 {
+		var responsibilities []string
+		if filterParams.Filters["auditor_statuses"] != string(constants.AUDITORNOTCHECKED) {
+			// Auditor status filtering only makes sense if we're also filtering by action_status (e.g. CHECKED), since given_auditor_status is only set on non-PENDING actions. Enforce that here by returning zero results if no action_status filter is present.
+			responsibilities = []string{string(imodel.AUDITOR)}
+		}
+
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
-			Responsibilities: []string{string(imodel.AUDITOR)},
+			Responsibilities: responsibilities,
 			Levels:           levels,
 			Services:         services,
 			AuditorStatuses:  auditorStatuses,
@@ -858,6 +864,7 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 			AuditorStatuses:  auditorStatuses,
 			LevelClaimPairs:  levelClaimPairs,
 		})
+
 		log.Infof("[CpsActionSvc][GetCPSActionsForAuditor] log filter found %d matching action codes: %v", len(actionCodes), actionCodes)
 		filterParams.Filters["action_code"] = actionCodes
 	}
