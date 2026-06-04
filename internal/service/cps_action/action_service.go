@@ -850,6 +850,8 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 			log.Errorf("[CpsActionSvc][GetCPSActionsForAuditor] log filter err: %v", err)
 			return nil, "", err
 		}
+
+		log.Infof("[CpsActionSvc][GetCPSActionsForAuditor] log filter found %d matching action codes: %v", len(actionCodes), actionCodes)
 		filterParams.Filters["action_code"] = actionCodes
 	}
 
