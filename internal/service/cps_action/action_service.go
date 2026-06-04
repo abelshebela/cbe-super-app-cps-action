@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -853,6 +854,9 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 		var responsibilities []string
 		if filterParams.Filters["action_status"] != string(constants.AUDITORNOTCHECKED) {
 			responsibilities = []string{string(imodel.AUDITOR)}
+		}
+		if slices.Contains(auditorStateStatuses, string(constants.AUDITORNOTCHECKED)) {
+			auditorStateStatuses = append(auditorStateStatuses, "")
 		}
 
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
