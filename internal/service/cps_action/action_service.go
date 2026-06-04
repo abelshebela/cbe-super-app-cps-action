@@ -867,8 +867,8 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 			log.Errorf("[CpsActionSvc][GetCPSActionsForAuditor] log filter err: %v", err)
 			return nil, "", err
 		}
-		log.Infof("[CpsActionSvc][GetCPSActionsForAuditor] log filter found %d action codes (markStatuses=%v stateStatuses=%v levels=%v)",
-			len(actionCodes), auditorMarkStatuses, auditorStateStatuses, levels)
+		log.Infof("[CpsActionSvc][GetCPSActionsForAuditor] log filter found %d action codes (markStatuses=%v stateStatuses=%v levels=%v, action_codes=%v)",
+			len(actionCodes), auditorMarkStatuses, auditorStateStatuses, levels, actionCodes)
 		filterParams.Filters["action_code"] = actionCodes
 	}
 
