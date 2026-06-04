@@ -13,6 +13,7 @@ type ServiceResponse struct {
 	ServiceCode              string       `bson:"service_code" json:"service_code"`
 	Cap                      []imodel.Cap `bson:"cap" json:"cap"`
 	MinimumFraudAmount       string       `bson:"minimum_fraud_amount" json:"minimum_fraud_amount"`
+	IsPlAccount              bool         `json:"is_pl_account" bson:"is_pl_account"`
 	ProductGlAccount         string       `bson:"product_gl_account" json:"product_gl_account"`
 	ProductGlAccountCurrency string       `bson:"product_gl_account_currency" json:"product_gl_account_currency"`
 	Enabled                  bool         `bson:"is_enabled" json:"is_enabled"`
