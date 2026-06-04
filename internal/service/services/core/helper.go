@@ -54,6 +54,7 @@ func MapToServiceModel(req service_dto.CreateServiceRequest, accessList imodel.S
 		ServiceKey:               accessList.ServiceKey,
 		ServiceCode:              req.ServiceCode,
 		ServiceKeyId:             req.ServiceKeyId,
+		IsPlAccount:              *req.IsPlAccount,
 		ProductGlAccount:         glAccount,
 		ProductGlAccountCurrency: glCurrency,
 		Cap: func() []imodel.Cap {
@@ -81,6 +82,7 @@ func MapToServiceModel(req service_dto.CreateServiceRequest, accessList imodel.S
 func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing service_dto.ServiceResponse) service_dto.ServiceResponse {
 	existing.ServiceCode = service_dto.StringPointer(req.ServiceCode, existing.ServiceCode)
 	existing.ServiceKeyId = service_dto.StringPointer(req.ServiceKeyId, existing.ServiceKeyId)
+	existing.IsPlAccount = service_dto.BoolPointer(req.IsPlAccount, existing.IsPlAccount)
 	existing.ProductGlAccountCurrency = service_dto.StringPointer(req.ProductGlAccountCurrency, existing.ProductGlAccountCurrency)
 	// existing.ServiceKey = service_dto.StringPointer(req.ServiceKey, existing.ServiceKey)
 	// existing.ServiceName = service_dto.StringPointer(req.ServiceName, existing.ServiceName)
