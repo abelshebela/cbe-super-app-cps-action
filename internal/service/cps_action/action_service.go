@@ -827,8 +827,8 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	// Leaving CHECKED etc. in filterParams.Filters would pass them through FilterBuilder
 	// to the CPS action document's auditor_status field — that works for state values
 	// but MARKEDASRIGHT would produce zero results there.
-	var auditorMarkStatuses []string    // MARKEDASRIGHT / MARKEDASWRONG
-	var auditorStateStatuses []string   // NOTCHECKED / INPROGRESS / CHECKED
+	var auditorMarkStatuses []string  // MARKEDASRIGHT / MARKEDASWRONG
+	var auditorStateStatuses []string // NOTCHECKED / INPROGRESS / CHECKED
 
 	auditStateSet := map[string]bool{
 		string(constants.AUDITORNOTCHECKED): true,
@@ -850,13 +850,18 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	// on the CPS action collection so no separate RAList pre-filter is needed here.
 	levelClaimPairs := extractLevelClaimPairs(filterParams.Filters)
 	if len(levels) > 0 || len(services) > 0 || len(auditorMarkStatuses) > 0 || len(auditorStateStatuses) > 0 || len(levelClaimPairs) > 0 {
+		var responsibilities []string
+		if filterParams.Filters["action_status"] != string(constants.AUDITORNOTCHECKED) {
+			responsibilities = []string{string(imodel.AUDITOR)}
+		}
+
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
-			Responsibilities:     []string{string(imodel.AUDITOR)},
-			Levels:               levels,
-			Services:             services,
-			AuditorStatuses:      auditorMarkStatuses,
+			Responsibilities:      responsibilities,
+			Levels:                levels,
+			Services:              services,
+			AuditorStatuses:       auditorMarkStatuses,
 			ActionAuditorStatuses: auditorStateStatuses,
-			LevelClaimPairs:      levelClaimPairs,
+			LevelClaimPairs:       levelClaimPairs,
 		})
 		if err != nil {
 			log.Errorf("[CpsActionSvc][GetCPSActionsForAuditor] log filter err: %v", err)
