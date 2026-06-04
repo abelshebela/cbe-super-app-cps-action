@@ -97,7 +97,6 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 	if req.ProductGlAccount != nil {
 		var accountDetail *model.AccountDetail
 		if req.IsPlAccount == nil || !*req.IsPlAccount {
-			fmt.Println("============================================== External API call")
 			accountDetail, err = s.ValidateAccountNumberWithExternalAPI(ctx, *req.ProductGlAccount)
 			if err != nil {
 				log.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", *req.ProductGlAccount, err)
@@ -105,7 +104,6 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 			}
 		}
 
-		fmt.Println("============================================== Inserting to DB")
 		accountID, err := s.repo.CheckAccountNumberExistence(ctx, *req.ProductGlAccount)
 		if err != nil {
 			log.Errorf("failed while checking account number existence: %v", err)
