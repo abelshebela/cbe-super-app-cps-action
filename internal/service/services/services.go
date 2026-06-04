@@ -52,11 +52,14 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 		return err
 	}
 
-	if req.ProductGlAccount != "" && (req.IsPlAccount == nil || !*req.IsPlAccount) {
-		accountDetail, err := s.ValidateAccountNumberWithExternalAPI(ctx, req.ProductGlAccount)
-		if err != nil {
-			log.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", req.ProductGlAccount, err)
-			return errors.New(localization.ErrorAccountNumberValidationFailed.Code)
+	if req.ProductGlAccount != "" {
+		var accountDetail *model.AccountDetail
+		if req.IsPlAccount == nil || !*req.IsPlAccount {
+			accountDetail, err = s.ValidateAccountNumberWithExternalAPI(ctx, req.ProductGlAccount)
+			if err != nil {
+				log.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", req.ProductGlAccount, err)
+				return errors.New(localization.ErrorAccountNumberValidationFailed.Code)
+			}
 		}
 
 		accountID, err := s.repo.CheckAccountNumberExistence(ctx, req.ProductGlAccount)
@@ -91,13 +94,18 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 	serviceKeyId := service_dto.StringPointer(req.ServiceKeyId, prev.ServiceKeyId)
 	log.Infof("[servicesService][Update] resolved serviceKeyId: %s", serviceKeyId)
 
-	if req.ProductGlAccount != nil && (req.IsPlAccount == nil || !*req.IsPlAccount) {
-		accountDetail, err := s.ValidateAccountNumberWithExternalAPI(ctx, *req.ProductGlAccount)
-		if err != nil {
-			log.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", *req.ProductGlAccount, err)
-			return errors.New(localization.ErrorAccountNumberValidationFailed.Code)
+	if req.ProductGlAccount != nil {
+		var accountDetail *model.AccountDetail
+		if req.IsPlAccount == nil || !*req.IsPlAccount {
+			fmt.Println("============================================== External API call")
+			accountDetail, err = s.ValidateAccountNumberWithExternalAPI(ctx, *req.ProductGlAccount)
+			if err != nil {
+				log.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", *req.ProductGlAccount, err)
+				return errors.New(localization.ErrorAccountNumberValidationFailed.Code)
+			}
 		}
 
+		fmt.Println("============================================== Inserting to DB")
 		accountID, err := s.repo.CheckAccountNumberExistence(ctx, *req.ProductGlAccount)
 		if err != nil {
 			log.Errorf("failed while checking account number existence: %v", err)
