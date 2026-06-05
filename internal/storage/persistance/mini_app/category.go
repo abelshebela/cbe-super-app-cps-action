@@ -3,6 +3,8 @@ package mini_app
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	// "cbe-super-app-cps-action/internal/constants/model"
+		local_model "cbe-super-app-cps-action/internal/constants/model"
+
 	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -26,19 +28,19 @@ var (
 
 type miniAppCategory struct {
 	logger             shared_utils.Logger
-	miniAppCategoryDal dal.MongoDal[model.MiniAppCategory, model.MiniAppCategory]
+	miniAppCategoryDal dal.MongoDal[local_model.MiniAppCategory, local_model.MiniAppCategory]
 	client             *mongo.Client
 }
 
 func NewMiniAppCategoryRepository(logger shared_utils.Logger, client *mongo.Client, cfg *config.VaultConfig, dbName, collectionName string) storage.MiniAppCategoryRepository {
 	return &miniAppCategory{
 		logger:             logger,
-		miniAppCategoryDal: dal.NewMongoDal[model.MiniAppCategory, model.MiniAppCategory](client, cfg, dbName, collectionName),
+		miniAppCategoryDal: dal.NewMongoDal[local_model.MiniAppCategory, local_model.MiniAppCategory](client, cfg, dbName, collectionName),
 		client:             client,
 	}
 }
 
-func (a *miniAppCategory) Create(ctx context.Context, category *model.MiniAppCategory) error {
+func (a *miniAppCategory) Create(ctx context.Context, category *local_model.MiniAppCategory) error {
 	category.IsEnabled = true
 	_, err := a.miniAppCategoryDal.InsertOne(ctx, *category)
 	if err != nil {
@@ -47,21 +49,23 @@ func (a *miniAppCategory) Create(ctx context.Context, category *model.MiniAppCat
 	return nil
 }
 
-func (a *miniAppCategory) Update(ctx context.Context, category *model.MiniAppCategory, id string) error {
-	log := local_util.LoggerFromCtx(ctx, a.logger)
+func (a *miniAppCategory) Update(ctx context.Context, category *local_model.MiniAppCategory, id string) error {
+	// func (a *miniAppCategory) Update(ctx context.Context, category *model.MiniAppCategory, id string) error {
+// 
+	// log := local_util.LoggerFromCtx(ctx, a.logger)
 
-	objId, err := bson.ObjectIDFromHex(id)
+	// objId, err := bson.ObjectIDFromHex(id)
 
-	if err != nil {
-		log.Errorf(invalidCategoryID, err)
-		return middleware.NewBadRequestError(invalidCategoryID, err)
-	}
-	filter := bson.M{"_id": objId, "is_deleted": false}
-	update := buildCategoryUpdate(*category)
-	_, err = a.miniAppCategoryDal.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return local_util.HandleDBError(err)
-	}
+	// if err != nil {
+	// 	log.Errorf(invalidCategoryID, err)
+	// 	return middleware.NewBadRequestError(invalidCategoryID, err)
+	// }
+	// filter := bson.M{"_id": objId, "is_deleted": false}
+	// update := buildCategoryUpdate(*category)
+	// _, err = a.miniAppCategoryDal.UpdateOne(ctx, filter, update)
+	// if err != nil {
+	// 	return local_util.HandleDBError(err)
+	// }
 	return nil
 }
 
