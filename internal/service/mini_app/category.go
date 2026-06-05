@@ -47,6 +47,8 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
+
+
 	
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniAppCategory):
