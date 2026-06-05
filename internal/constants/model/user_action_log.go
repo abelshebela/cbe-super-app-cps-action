@@ -26,7 +26,12 @@ type UserActionLog struct {
 	ActionID                   bson.ObjectID            `bson:"action_id" json:"action_id"`
 	ActionCode                 string                   `bson:"action_code" json:"action_code"`
 	GivenActionStatus          string                   `bson:"given_action_status" json:"given_action_status"`
+	// GivenAuditorStatus holds the auditor's mark verdict: MARKASRIGHT, MARKASWRONG.
+	// Empty for MAKER and CHECKER logs unless propagated by AuditorMarkLogsByActionCode.
 	GivenAuditorStatus         AuditorMark              `bson:"given_auditor_status" json:"given_auditor_status"`
+	// ActionAuditorStatus holds the overall auditor process state: NOTCHECKED, INPROGRESS, CHECKED.
+	// Updated in bulk across all logs for the same action_code as the auditor workflow progresses.
+	ActionAuditorStatus        string                   `bson:"action_auditor_status" json:"action_auditor_status"`
 	RequestAction              constants.RequestAction  `bson:"request_action" json:"request_action"`
 	ActionTakenServiceName     string                   `bson:"action_taken_service_name" json:"action_taken_service_name"`
 	ActionTakenServiceUniqueID string                   `bson:"action_taken_service_unique_id" json:"action_taken_service_unique_id"`
@@ -42,4 +47,40 @@ type UserActionLog struct {
 	CreatedAt                  time.Time                `bson:"created_at" json:"created_at"`
 	DeletedAt                  time.Time                `bson:"deleted_at" json:"deleted_at"`
 	LastModifiedAt             time.Time                `bson:"last_modified_at" json:"last_modified_at"`
+}
+
+// LevelClaimPair requires that a single action has an auditor log entry where
+// auditor_level == Level AND given_auditor_status == Claim. All pairs in a
+// LevelClaimPairs slice are ANDed together within the same action_code.
+type LevelClaimPair struct {
+	Level string // "1", "2", "3" …
+	Claim string // "MARKEDASRIGHT" or "MARKEDASWRONG"
+}
+
+// UserActionLogActionCodeFilter describes the action-log predicates used to
+// resolve a list of action codes from user_action_logs.
+//
+// Filter mapping:
+//  1. ActionStatuses        → given_action_status        (PENDING, APPROVED, REJECTED, CANCELED)
+//  2. AuditorStatuses       → given_auditor_status       (MARKEDASRIGHT, MARKEDASWRONG)
+//  3. PrivateUserIDs        → user_id                   (any responsibility)
+//  4. Levels                → checker_level / auditor_level
+//  5. Services              → action_taken_service_name
+//  6. CheckerUserIDs        → user_id WHERE responsibility=CHECKER
+//  7. AuditorUserIDs        → user_id WHERE responsibility=AUDITOR
+//  8. MakerUserIDs          → user_id WHERE responsibility=MAKER
+//  9. ActionAuditorStatuses → action_auditor_status      (NOTCHECKED, INPROGRESS, CHECKED)
+// 10. LevelClaimPairs       → per-level given_auditor_status (all pairs must match same action_code)
+type UserActionLogActionCodeFilter struct {
+	ActionStatuses        []string         `json:"action_statuses"`
+	AuditorStatuses       []string         `json:"auditor_statuses"`
+	ActionAuditorStatuses []string         `json:"action_auditor_statuses"`
+	PrivateUserIDs        []string         `json:"private_user_ids"`
+	Levels                []string         `json:"levels"`
+	Services              []string         `json:"services"`
+	CheckerUserIDs        []string         `json:"checker_user_ids"`
+	AuditorUserIDs        []string         `json:"auditor_user_ids"`
+	MakerUserIDs          []string         `json:"maker_user_ids"`
+	Responsibilities      []string         `json:"responsibilities"`
+	LevelClaimPairs       []LevelClaimPair `json:"level_claim_pairs"`
 }

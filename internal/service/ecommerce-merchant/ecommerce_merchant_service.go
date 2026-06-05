@@ -78,12 +78,12 @@ func (m *ecommerceMerchantService) ValidateAccountNumberWithExternalAPI(ctx cont
 
 		log.Warnf("(core) failed to get account details: %s", message)
 
-		return nil, err
+		return nil, errors.New(localization.ErrorAccountNumberValidationFailed.Code)
 	}
 
 	if response.Detail == nil {
 		log.Errorf("account lookup successful but no account details found for account number %s", accountNumber)
-		return nil, err
+		return nil, errors.New(localization.ErrorAccountNumberNotFound.Code)
 	}
 
 	detail := response.Detail
@@ -354,6 +354,7 @@ func (m *ecommerceMerchantService) DeleteBranch(ctx context.Context, id string) 
 func (m *ecommerceMerchantService) EnableOrDisable(ctx context.Context, ids []string, enable bool) error {
 	log := local_util.LoggerFromCtx(ctx, m.logger)
 
+	log.Infof("[EcomMerchSvc][EnableDisable] id list **********%v", ids)
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisable", "MiniAppMerchant", "EnableOrDisable")
 	defer span.End()
 

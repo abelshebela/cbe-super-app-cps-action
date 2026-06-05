@@ -97,7 +97,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
 		if !isErp {
-			prevMerchant, err := local_util.JsonUnmarshal[model.EventMerchant](cpsAction.PreviousAction)
+			prevMerchant, err := local_util.JsonUnmarshal[event_merchant_model.EventMerchant](cpsAction.PreviousAction)
 			if err != nil {
 				log.Errorf("[EventMerchSvc][Authorize] unmarshal prev err: %v", err)
 				span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
@@ -433,7 +433,12 @@ func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerch
 		return err
 	}
 
-	if old.BankAccountNumber == eventMerchant.BankAccountNumber && old.MerchantName == eventMerchant.MerchantName {
+	if old.BankAccountNumber == eventMerchant.BankAccountNumber &&
+		old.MerchantName == eventMerchant.MerchantName &&
+		old.Email == eventMerchant.Email &&
+		old.PhoneNumber == eventMerchant.PhoneNumber &&
+		old.MerchantType == eventMerchant.MerchantType &&
+		old.SettlementMethod == eventMerchant.SettlementMethod {
 		log.Infof("[EventMerchSvc][Update] no changes id: %s", id)
 		return errors.New(localization.ErrorNoChangesDetected.Code)
 	}
@@ -460,7 +465,7 @@ func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerch
 				attribute.String("error", err.Error()),
 				attribute.String("id", id),
 			))
-			return errors.New(localization.ErrorMerchantNotFound.Code)
+			return err
 		}
 		if exist {
 			log.Warnf("[EventMerchSvc][Update] already exists id: %s", id)

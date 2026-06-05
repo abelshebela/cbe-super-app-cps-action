@@ -153,7 +153,7 @@ var cpsActionRegistry = map[string]string{
 	"DELETE budget-category": "BUDGETCATEGORY",
 
 	// BulkService
-	"POST bulk_services": "BULKSERVICE",
+	// "POST bulk_services": "BULKSERVICE",
 
 	// CpsActionRole
 	"POST cps-action-roles":  "CPSACTIONROLE",
@@ -190,9 +190,9 @@ var cpsActionRegistry = map[string]string{
 	"POST encryption": "ENCRYPTION",
 
 	// Event merchant
-	"POST event_merchants":  "EVENTMERCHANT",
-	"PATCH event_merchants": "EVENTMERCHANT",
-	"DELETE event_merchant": "EVENTMERCHANT",
+	"POST event_merchants":   "EVENTMERCHANT",
+	"PATCH event_merchants":  "EVENTMERCHANT",
+	"DELETE event_merchants": "EVENTMERCHANT",
 
 	// Logistics merchant
 	"POST logistics_merchants":  "LOGISTICSMERCHANT",
@@ -351,7 +351,8 @@ var cpsActionRegistry = map[string]string{
 	"GET budget-category": "BUDGETCATEGORY",
 
 	// Bulk Service
-	"GET bulk_services": "BULKSERVICEALLUSER",
+	"GET bulk_services":  "BULKSERVICEALLUSER",
+	"POST bulk_services": "BULKSERVICEALLUSER",
 
 	// CPS Action Role
 	"GET cps-action-roles":    "CPSACTIONROLE",

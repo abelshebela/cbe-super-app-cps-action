@@ -7,6 +7,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -115,6 +116,7 @@ func ConvertToResponseDTO(portalCard []string, user *cpsuser.CpsUserPopulatedRes
 		LastLogin:             user.LastLogin,
 		Country:               user.Country,
 		Region:                user.Region,
+		IsFirstTimeLogin:      user.IsFirstTimeLogin,
 	}
 }
 
@@ -125,7 +127,7 @@ func CPSUModel(req cpsuser.CreateUserRequest) imodel.CPSUser {
 	}
 	return imodel.CPSUser{
 		UserCode:         local_util.GenerateCPSUserCode(),
-		UserName:         req.UserName,
+		UserName:         strings.ToUpper(req.UserName),
 		FullName:         req.FullName,
 		PhoneNumber:      req.PhoneNumber,
 		Department:       depID,
@@ -273,7 +275,7 @@ func MapFromPopulatedResponse(resp *cpsuser.CpsUserPopulatedResponse) *imodel.CP
 		Gender:           resp.Gender,
 		PhoneNumber:      resp.PhoneNumber,
 		Email:            resp.Email,
-		UserName:         resp.UserName,
+		UserName:         strings.ToUpper(resp.UserName),
 		Realm:            resp.Realm,
 		Enabled:          resp.Enabled,
 		DateJoined:       &resp.DateJoined,

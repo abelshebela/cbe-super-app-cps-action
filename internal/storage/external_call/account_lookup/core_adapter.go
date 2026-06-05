@@ -24,7 +24,7 @@ type Account interface {
 	LookupAccountByPhone(ctx context.Context, phone string) (bool, error)
 	LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*model.AccountDetail, error)
 	LookupAccountByAccountNumberFromBps(ctx context.Context, accountNumber string) (accountLookup.AccountResponse, error)
-	CreateAccountWithFayda(ctx context.Context, account accountLookup.CreateAccountRequest) (types.Account, error)
+	CreateAccountWithFayda(ctx context.Context, account accountLookup.AccountCreateParams) (types.Account, error)
 	CifSearch(ctx context.Context, cif string) ([]imodel.AccountData, error)
 }
 
@@ -121,13 +121,15 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumberFromBps(ctx conte
 	return accountInfo, nil
 }
 
-func (a *CoreAccountLookupAdapter) CreateAccountWithFayda(ctx context.Context, account accountLookup.CreateAccountRequest) (types.Account, error) {
+func (a *CoreAccountLookupAdapter) CreateAccountWithFayda(ctx context.Context, account accountLookup.AccountCreateParams) (types.Account, error) {
 	res, _, err := BPSBankingClient(ctx, a.Client, constants.WithFayda, account, a.BaseUrl+a.FaydaUrlPath)
 	if err != nil {
 		a.Logger.Errorf("Failed to create account with Fayda: %v", err)
 		return types.Account{}, err
 	}
 	defer res.Body.Close()
+
+	// to avoid import error for customer_creation package, can be removed when the response is used
 
 	if res.StatusCode != http.StatusOK {
 		a.Logger.Errorf("Failed to create account with Fayda, status code: %d", res.StatusCode)
@@ -138,6 +140,7 @@ func (a *CoreAccountLookupAdapter) CreateAccountWithFayda(ctx context.Context, a
 }
 
 func (s *CoreAccountLookupAdapter) CifSearch(ctx context.Context, cif string) ([]imodel.AccountData, error) {
+
 	search, err := s.coreAPI.AccountList(core.AccountListParam{
 		ColumnName:    "CUS.ID",
 		CriteriaValue: cif,

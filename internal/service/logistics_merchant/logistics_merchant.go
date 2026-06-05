@@ -26,14 +26,14 @@ import (
 )
 
 type LogisticsMerchantService struct {
-	repo                 storage.LogisticsMerchantRepository
+	repo                 storage.LogisticsMerchantOracleRepository
 	cpsService           service.CPSActionService
 	accountLookupService account_lookup.Account
 	cfg                  *config.VaultConfig
 	logger               utils.Logger
 }
 
-func NewLogisticsMerchantService(repo storage.LogisticsMerchantRepository, cpsService service.CPSActionService, accountLookupService account_lookup.Account, cfg *config.VaultConfig, logger utils.Logger) service.LogisticsMerchantService {
+func NewLogisticsMerchantService(repo storage.LogisticsMerchantOracleRepository, cpsService service.CPSActionService, accountLookupService account_lookup.Account, cfg *config.VaultConfig, logger utils.Logger) service.LogisticsMerchantService {
 	return &LogisticsMerchantService{
 		repo:                 repo,
 		cpsService:           cpsService,
@@ -225,7 +225,7 @@ func (e *LogisticsMerchantService) Create(ctx context.Context, LogisticsMerchant
 		BankAccountNumber: LogisticsMerchant.BankAccountNumber,
 		MerchantCode:      LogisticsMerchant.MerchantID,
 	}, nil)
-	if err != nil && err.Error() != localization.ErrorLogisticMerchantNotFound.Code {
+	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		log.Errorf("[LogisMerchSvc][Create] exist check err: %v", err)
 		span.AddEvent("Failed to check merchant existence", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -253,6 +253,9 @@ func (e *LogisticsMerchantService) Create(ctx context.Context, LogisticsMerchant
 			return err
 		}
 	}
+
+	LogisticsMerchant.CreatedAt = time.Now()
+	LogisticsMerchant.UpdatedAt = time.Now()
 
 	err = core.HandleCPSActionForLogisticsMerchant(ctx, e.cpsService, "", constants.RequestCreateLogisticsMerchant, LogisticsMerchant, nil, constants.ActionCreate)
 	if err != nil {
@@ -450,9 +453,8 @@ func (e *LogisticsMerchantService) Update(ctx context.Context, id string, Logist
 			))
 			return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 		}
-	}
-	if check.BankAccountNumber != "" {
-		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, LogisticsMerchant.BankAccountNumber, e.accountLookupService)
+
+		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, updated.BankAccountNumber, e.accountLookupService)
 		if err != nil {
 			log.Errorf("[LogisMerchSvc][Update] acct validation err: %v", err)
 			span.AddEvent("Account number validation failed", trace.WithAttributes(

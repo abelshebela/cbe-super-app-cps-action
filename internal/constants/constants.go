@@ -40,6 +40,7 @@ type (
 	KYCStatus                string
 	BPSStatus                string
 	MaritalStatus            string
+	CustomerGroup            string
 	DeviceStatus             string
 	OnboardingMethod         string
 	EnabledChannels          string
@@ -555,6 +556,15 @@ const (
 	CustomerActive  CustomerStatus = "ACTIVE"
 	CustomerPending CustomerStatus = "PENDING"
 	CustomerExpired CustomerStatus = "EXPIRED"
+)
+
+const (
+	MASS         CustomerGroup = "MASS"
+	RETAIL       CustomerGroup = "RETAIL"
+	WHOLESALE    CustomerGroup = "WHOLESALE"
+	IFBMASS      CustomerGroup = "IFB.MASS"
+	IFBRETAIL    CustomerGroup = "IFB.RETAIL"
+	IFBWHOLESALE CustomerGroup = "IFB.WHOLESALE"
 )
 
 const (
@@ -1080,6 +1090,8 @@ const (
 	// RequestCreateCustomerKYC  RequestAction = "CREATE_CUSTOMER_KYC"
 	RequestApproveCustomerKYC RequestAction = "APPROVE_CUSTOMER_KYC"
 	RequestRejectCustomerKYC  RequestAction = "REJECT_CUSTOMER_KYC"
+	// RequestStartKycReview     RequestAction = "START_KYC_REVIEW"
+	RequestPickKycReview RequestAction = "PICK_KYC_REVIEW"
 	// RequestUpdateCustomerKYC RequestAction = "UPDATE_CUSTOMER_KYC"
 	// RequestDeleteCustomerKYC RequestAction = "DELETE_CUSTOMER_KYC"
 )

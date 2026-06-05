@@ -782,6 +782,7 @@ const (
 
 	// CPS Action related error messages
 	MsgPendingCPSActionExists        = "Pending CPS action already exists"
+	MsgDuplicatePendingCreateAction = "A request with the same data is already pending approval. Please wait for it to be processed before submitting again."
 	MsgCPSActionNotFound             = "action name not found"
 	MsgCPSActionDataNotFound         = "action data not found"
 	MsgBpsUserAlreadyEnabled         = "User already enabled"

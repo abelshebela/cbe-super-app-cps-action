@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	accountLookup "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"context"
+	"strings"
 	"time"
 
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
@@ -19,13 +20,36 @@ import (
 
 func AccountCreateAndLink(ctx context.Context, actionData model.CPSAction, id string, userData member.User, accountLookupService accountLookup.Account, userRepo storage.UserRepository, linkedAccountRepo storage.LinkedAccountRepository, logger utils.Logger) error {
 
-	data := accountLookupDto.CreateAccountRequest{
-		CustomerName:      userData.FullName,
-		Gender:            constants.Gender(userData.Gender),
-		PhoneNumber:       userData.PhoneNumber,
-		AccountType:       string(userData.MemberType),
-		AccountBranchType: constants.AccountType(userData.MemberType),
-		Picture:           userData.Avatar,
+	// data := accountLookupDto.CreateAccountRequest{
+	// 	CustomerName:      userData.FullName,
+	// 	Gender:            constants.Gender(userData.Gender),
+	// 	PhoneNumber:       userData.PhoneNumber,
+	// 	AccountType:       string(userData.MemberType),
+	// 	AccountBranchType: constants.AccountType(userData.MemberType),
+	// 	Picture:           userData.Avatar,
+	// }
+
+	var fistName, middleName, lastName string
+
+	if len(userData.FullName) > 3 {
+		fistName = strings.Split(userData.FullName, " ")[0]
+		middleName = strings.Split(userData.FullName, " ")[1]
+		lastName = strings.Split(userData.FullName, " ")[2]
+	} else if len(userData.FullName) == 2 {
+		fistName = strings.Split(userData.FullName, " ")[0]
+		lastName = strings.Split(userData.FullName, " ")[1]
+	} else {
+		fistName = userData.FullName
+	}
+
+	data := accountLookupDto.AccountCreateParams{
+		Username:      strings.TrimSpace(userData.FullName),
+		Password:      constants.Empty,
+		FirstName:     fistName,
+		MiddleName:    middleName,
+		LastName:      lastName,
+		PhoneNumber:   userData.PhoneNumber,
+		CustomerGroup: string(constants.MASS),
 	}
 
 	accountResponse, err := accountLookupService.CreateAccountWithFayda(ctx, data)

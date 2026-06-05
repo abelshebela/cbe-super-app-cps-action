@@ -264,12 +264,17 @@ func MapDonationUpdate(
 		},
 		Title:               GetValueOrDefault(update.Title, existing.Title),
 		IsFeatured:          &isFeatured,
-		Target:              GetValueOrDefault(update.Target, existing.Target),
+		Target:              update.Target,
 		DonationDescription: GetValueOrDefault(update.DonationDescription, existing.DonationDescription),
 		DonationImages:      donationImages,
 		CoverImage:          coverImageURL,
 		StartDate:           GetTimeValueOrDefault(update.StartDate, existing.StartDate).Format(time.RFC3339),
-		EndDate:             GetTimeValueOrDefault(update.EndDate, existing.EndDate).Format(time.RFC3339),
-		Enabled:             &isEnabled,
+		EndDate: func() string {
+			if t := update.EndDate; !t.IsZero() {
+				return t.Format(time.RFC3339)
+			}
+			return ""
+		}(),
+		Enabled: &isEnabled,
 	}
 }

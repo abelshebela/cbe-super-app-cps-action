@@ -270,21 +270,23 @@ func (s *ServicesStorage) insertService(ctx context.Context, tx *sql.Tx, account
 			access_list_id,
 			service_code,
 			minimum_fraud_amount,
+			is_pl_account,
 			product_gl_account_number,
 			product_gl_account_currency,
 			created_at,
 			last_modified_at
 		)
 		VALUES (
-			HEXTORAW(:1),:2,:3,:4,:5,:6,:7
+			HEXTORAW(:1),:2,:3,:4,:5,:6,:7,:8
 		)
-		RETURNING RAWTOHEX(id) INTO :8
+		RETURNING RAWTOHEX(id) INTO :9
 	`
 
 	if _, err := tx.ExecContext(ctx, insertServiceQ,
 		service.ServiceKeyId,
 		service.ServiceCode,
 		service.MinimumFraudAmount,
+		boolToOracleNumber(service.IsPlAccount),
 		service.ProductGlAccount,
 		service.ProductGlAccountCurrency,
 		service.CreatedAt,
@@ -437,15 +439,17 @@ SET
   access_list_id = HEXTORAW(:1),
   service_code = :2,
   minimum_fraud_amount = :3,
-  product_gl_account_number = :4,
-  product_gl_account_currency = :5,
+  is_pl_account = :4,
+  product_gl_account_number = :5,
+  product_gl_account_currency = :6,
   last_modified_at = SYSTIMESTAMP
-WHERE id = HEXTORAW(:6)`
+WHERE id = HEXTORAW(:7)`
 
 	res, err := tx.ExecContext(ctx, q,
 		serviceKeyID,
 		service.ServiceCode,
 		service.MinimumFraudAmount,
+		boolToOracleNumber(service.IsPlAccount),
 		service.ProductGlAccount,
 		service.ProductGlAccountCurrency,
 		id,
@@ -580,6 +584,7 @@ SELECT
   sk.service_key,
   s.service_code,
   s.minimum_fraud_amount,
+  s.is_pl_account,
   s.product_gl_account_number,
   s.product_gl_account_currency,
   sk.is_enabled,
@@ -602,6 +607,7 @@ WHERE s.id = HEXTORAW(:1) AND sk.is_deleted = 0`
 		&svc.ServiceKey,
 		&svc.ServiceCode,
 		&svc.MinimumFraudAmount,
+		&svc.ProductGlAccount,
 		&svc.ProductGlAccount,
 		&svc.ProductGlAccountCurrency,
 		&svc.Enabled,
@@ -755,7 +761,7 @@ func (s *ServicesStorage) FindWalletByServiceId(ctx context.Context, serviceID s
 func (s *ServicesStorage) FindDonationByServiceId(ctx context.Context, serviceID string) (bool, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
-	const q = `SELECT ID FROM DONATIONS WHERE SERVICE_ID = HEXTORAW(:1) AND IS_DELETED = 0`
+	const q = `SELECT ID FROM DONATIONS WHERE SERVICE_ID = HEXTORAW(:1)`
 
 	var id string
 	err := s.db.QueryRowContext(ctx, q, serviceID).Scan(&id)
@@ -831,6 +837,16 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 				clauses = append(clauses, "s.product_gl_account_number IS NOT NULL")
 			}
 		}
+
+		if v, ok := filterParam.Filters["for"]; ok {
+			if forType, ok2 := v.(string); ok2 {
+				if forType == "financial" {
+					clauses = append(clauses, "s.product_gl_account_number IS NOT NULL")
+				} else if forType == "non_financial" {
+					clauses = append(clauses, "s.product_gl_account_number IS NULL")
+				}
+			}
+		}
 	}
 
 	where := strings.Join(clauses, " AND ")
@@ -853,6 +869,7 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 		sk.service_key,
 		s.service_code,
 		s.minimum_fraud_amount,
+		s.is_pl_account,
 		s.product_gl_account_number,
 		s.product_gl_account_currency,
 		sk.is_enabled,
@@ -874,6 +891,7 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 		sk.service_key,
 		s.service_code,
 		s.minimum_fraud_amount,
+		s.is_pl_account,
 		s.product_gl_account_number,
 		s.product_gl_account_currency,
 		sk.is_enabled,
@@ -909,6 +927,7 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 			&svc.ServiceKey,
 			&svc.ServiceCode,
 			&svc.MinimumFraudAmount,
+			&svc.IsPlAccount,
 			&svc.ProductGlAccount,
 			&svc.ProductGlAccountCurrency,
 			&svc.Enabled,

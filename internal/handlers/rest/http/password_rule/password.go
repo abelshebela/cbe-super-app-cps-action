@@ -117,7 +117,7 @@ func (p *passwordRuleHandler) RequestPasswordRuleUpdate(w http.ResponseWriter, r
 	if err := req.Validate(); err != nil {
 		span.AddEvent("Validation failed", trace.WithAttributes(attribute.String("error", err.Error())))
 		log.Errorf("[PwdRuleH][Create] validate err: %v", err)
-		localization.SendErrorByCodeResponse(w, err.Error())
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
