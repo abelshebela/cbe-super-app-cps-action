@@ -85,6 +85,19 @@ func (s *customerKYCService) FindByID(ctx context.Context, id string) (*dto.Cust
 	}
 	mappedResponse := core.MapCustomerKYCToResponse(result)
 
+	// If the kyc is in review status, get the start, and expiry time
+	if result.KYCStatus == imodel.KYCStatusInReview {
+		review, err := s.repo.FindKycInReview(ctx, id)
+		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		if review != nil {
+			mappedResponse.KYCReviewStartedAt = &review.StartedAt
+			mappedResponse.KYCReviewExpiresAt = &review.ExpiresAt
+			mappedResponse.Reviewer = &review.Reviewer
+		}
+	}
+
 	return mappedResponse, nil
 }
 
@@ -218,17 +231,6 @@ func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*im
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
-	kycRequest, err := s.repo.FindByID(ctx, id)
-	if err != nil {
-		log.Errorf("[CustKycSvc][StartKycReview] find err: %v", err)
-		return nil, err
-	}
-
-	if kycRequest.KYCStatus != imodel.KYCStatusPending {
-		log.Warnf("[CustKycSvc][StartKycReview] kyc status is not pending id: %s, status: %s", id, kycRequest.KYCStatus)
-		return nil, errors.New("This KYC request is under review or has already been reviewed.")
-	}
-
 	kycID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		log.Errorf("[CustKycSvc][StartKycReview] invalid object id: %v", err)
@@ -241,18 +243,32 @@ func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*im
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	// prevent duplicate kyc action from being created if the review is already started
+	kyc, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		log.Errorf("[CustKycSvc][StartKycReview] find err: %v", err)
+		return nil, err
+	}
+
+	if kyc.KYCStatus != imodel.KYCStatusPending {
+		log.Warnf("[CustKycSvc][StartKycReview] kyc status is not pending id: %s, status: %s", id, kyc.KYCStatus)
+		return nil, errors.New("KYC review can only be started for KYC requests with pending status")
+	}
+
 	existingReview, err := s.repo.FindKycInReview(ctx, id)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		log.Errorf("[CustKycSvc][StartKycReview] failed to check existing review: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	if existingReview != nil {
-		log.Warnf("[CustKycSvc][StartKycReview] review already started for kyc id: %s", id)
-		return nil, errors.New("A review has already been started for this KYC request")
+	if existingReview != nil && existingReview.IsActive && existingReview.ExpiresAt.After(time.Now()) {
+		log.Warnf("[CustKycSvc][StartKycReview] active review already exists for kyc id: %s", id)
+		return nil, errors.New("An active review already exists for this KYC request")
 	}
 
-	// Find the user who is starting the review and include their info in the review document
+	if existingReview != nil && existingReview.ExpiresAt.Before(time.Now()) {
+		log.Warnf("[CustKycSvc][StartKycReview] review already exists but expired for kyc id: %s", id)
+		return nil, errors.New("An expired review already exists. Please pick the review to restart the review process.")
+	}
+
 	cpsUser, err := s.cpsUserRepo.FindByID(ctx, makerUser.UserCode)
 	if err != nil {
 		log.Errorf("[CustKycSvc][StartKycReview] failed to fetch user info: %v", err)
@@ -311,6 +327,12 @@ func (s *customerKYCService) PickKycReview(ctx context.Context, id string, reaso
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	now := time.Now()
+	if kycInReview.ExpiresAt.After(now) && kycInReview.Reviewer.ID != userID {
+		log.Warnf("[CustKycSvc][PickKycReview] user %s is not the current reviewer for kyc id: %s", makerUser.UserCode, id)
+		return errors.New("This KYC review is currently assigned to another reviewer")
+	}
+
 	cpsUser, err := s.cpsUserRepo.FindByID(ctx, makerUser.UserCode)
 	if err != nil {
 		log.Errorf("[CustKycSvc][StartKycReview] failed to fetch user info: %v", err)
@@ -351,14 +373,43 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 			return nil, err
 		}
 
-		data := accountLookupDto.CreateAccountRequest{
-			CustomerName:      userData.KYCData.FullName,
-			Gender:            constants.Gender(userData.KYCData.Gender),
-			PhoneNumber:       userData.KYCData.PhoneNumber,
-			AccountType:       userData.KYCData.AccountType,
-			AccountBranchType: "",
-			Picture:           userData.KYCData.SelfiePhoto,
+		var fistName, middleName, lastName string
+
+		if len(userData.KYCData.FullName) > 3 {
+			fistName = strings.Split(userData.KYCData.FullName, " ")[0]
+			middleName = strings.Split(userData.KYCData.FullName, " ")[1]
+			lastName = strings.Split(userData.KYCData.FullName, " ")[2]
+		} else if len(userData.KYCData.FullName) == 2 {
+			fistName = strings.Split(userData.KYCData.FullName, " ")[0]
+			lastName = strings.Split(userData.KYCData.FullName, " ")[1]
+		} else {
+			fistName = userData.KYCData.FullName
 		}
+
+		data := accountLookupDto.AccountCreateParams{
+			Username:         strings.TrimSpace(userData.KYCData.FullName),
+			Password:         constants.Empty,
+			FirstName:        fistName,
+			MiddleName:       middleName,
+			LastName:         lastName,
+			PhoneNumber:      userData.KYCData.PhoneNumber,
+			Address:          strings.Join([]string{"Region: " + userData.KYCData.Address.Region, "Zone: " + userData.KYCData.Address.Zone, "Kebele: " + userData.KYCData.Address.Kebele, "Woreda: " + userData.KYCData.Address.Woreda}, " "),
+			Gender:           userData.KYCData.Gender,
+			MotherName:       userData.KYCData.MothersName,
+			DateOfBirth:      userData.KYCData.BirthDate.String(),
+			Salary:           userData.KYCData.MonthlyIncome,
+			EmploymentStatus: userData.KYCData.EmployementStatus,
+			CustomerGroup:    string(constants.MASS),
+		}
+
+		// data := accountLookupDto.CreateAccountRequest{
+		// 	CustomerName:      userData.KYCData.FullName,
+		// 	Gender:            constants.Gender(userData.KYCData.Gender),
+		// 	PhoneNumber:       userData.KYCData.PhoneNumber,
+		// 	AccountType:       userData.KYCData.AccountType,
+		// 	AccountBranchType: "",
+		// 	Picture:           userData.KYCData.SelfiePhoto,
+		// }
 		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.logger)
 		if err != nil {
 			log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)

@@ -346,8 +346,49 @@ func (ba *bpsActionService) GetBPSActionsByDepartment(ctx context.Context, depar
 func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetCPSActionsForApprover", "CPSAction", "GetCPSActionsForApprover")
-
 	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, ba.logger)
+
+	log.Infof("[BpsActionSvc][GetBPSActionsForApprover] Retrieving BPS actions for user %s with filter %+v", userID, filterParams.Filters)
+	if filterParams == nil {
+		filterParams = &types.Filter{}
+	}
+	if filterParams.Filters == nil {
+		filterParams.Filters = map[string]interface{}{}
+	}
+
+	// Detect status filter to route approved/rejected through the user action log.
+	statusFilter := ""
+	if v, ok := filterParams.Filters["status"]; ok {
+		if s, ok := v.(string); ok {
+			statusFilter = strings.ToUpper(strings.TrimSpace(s))
+		}
+	}
+
+	if (statusFilter == "APPROVED" || statusFilter == "REJECTED") && ba.actionLogRepo != nil {
+		logFilter := map[string]interface{}{
+			"action_type":                  string(bps_model.BPSActions),
+			"given_action_status":          statusFilter,
+			"user_action_responsibilities": string(bps_model.CHECKER),
+			"username":                     userID,
+		}
+
+		actionCodes, err := ba.actionLogRepo.GetActionCodesByFilter(ctx, logFilter)
+		if err != nil {
+			span.AddEvent("failed to get action codes from log", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+
+		delete(filterParams.Filters, "status")
+
+		if len(actionCodes) == 0 {
+			return &types.PaginatedResponse[[]*bps_model.BPSAction]{
+				Data: []*bps_model.BPSAction{},
+				Meta: lobal_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
+			}, nil
+		}
+		filterParams.Filters["action_code"] = bson.M{"$in": actionCodes}
+	}
 
 	result, err := ba.repo.SanitizedFindAllWithPaginationForApprover(ctx, userID, *filterParams, RAList)
 
@@ -359,6 +400,7 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 
 	}
 
+	log.Infof("[BpsActionSvc][GetBPSActionsForApprover] ----------------found %d actions for user %s with filter %+v", len(result.Data), userID, filterParams.Filters)
 	return result, nil
 
 }
@@ -368,6 +410,32 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetCPSActionsForAuditor", "CPSAction", "GetCPSActionsForAuditor")
 
 	defer span.End()
+
+	if filterParams == nil {
+		filterParams = &types.Filter{}
+	}
+	if filterParams.Filters == nil {
+		filterParams.Filters = map[string]interface{}{}
+	}
+
+	// level+claim filtering: all pairs must be satisfied within the same action_code.
+	if levelClaimPairs := bpsExtractLevelClaimPairs(filterParams.Filters); len(levelClaimPairs) > 0 && ba.actionLogRepo != nil {
+		actionCodes, err := ba.actionLogRepo.GetActionCodesByActionLogFilter(ctx, bps_model.UserActionLogActionCodeFilter{
+			Responsibilities: []string{string(bps_model.AUDITOR)},
+			LevelClaimPairs:  levelClaimPairs,
+		})
+		if err != nil {
+			span.AddEvent("failed to get action codes by level claim", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+		if len(actionCodes) == 0 {
+			return &types.PaginatedResponse[[]*bps_model.BPSAction]{
+				Data: []*bps_model.BPSAction{},
+				Meta: lobal_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
+			}, nil
+		}
+		filterParams.Filters["action_code"] = bson.M{"$in": actionCodes}
+	}
 
 	result, err := ba.repo.SanitizedFindAllWithPaginationForAuditor(ctx, userID, *filterParams, RAList)
 
@@ -381,6 +449,17 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 
 	return result, nil
 
+}
+
+func bpsExtractLevelClaimPairs(filters map[string]interface{}) []bps_model.LevelClaimPair {
+	v, ok := filters["level_claim_pairs"]
+	if !ok {
+		return nil
+	}
+	if pairs, ok := v.([]bps_model.LevelClaimPair); ok {
+		return pairs
+	}
+	return nil
 }
 
 func (ba *bpsActionService) GetBPSActions(ctx context.Context, userID, role string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
@@ -562,12 +641,23 @@ func (ba *bpsActionService) GetBPSActionDetailByActionCode(ctx context.Context, 
 		return nil, err
 	}
 
+	maker := ba.resolveOneActionUser(ctx, action.MakerID)
+
+	rejectionReason := ""
+	if ActionStatus(action.Status) == ActionRejected {
+		rejectionReason = action.ActionReason.ActionNote
+	}
+
 	resp := &bpsActionDto.BPSActionDetailResponse{
-		Action:           action,
-		LinkedAccounts:   []customer_dto.LinkedAccount{},
-		UnlinkedAccounts: []model.ArchivedLinkedAccount{},
-		Checkers:         ba.resolveActionUsers(ctx, action.CheckerID),
-		Auditors:         ba.resolveActionUsers(ctx, action.Auditors.AuditorID),
+		Action:                 action,
+		LinkedAccounts:         []customer_dto.LinkedAccount{},
+		UnlinkedAccounts:       []model.ArchivedLinkedAccount{},
+		Maker:                  &maker,
+		Checkers:               ba.resolveActionUsers(ctx, action.CheckerID),
+		Auditors:               ba.resolveActionUsers(ctx, action.Auditors.AuditorID),
+		CheckerLevels:          buildCheckerLevels(action),
+		RejectionReason:        rejectionReason,
+		AuditorRejectionReason: action.Auditors.Reason,
 	}
 
 	// The customer module looks customers up by user_code via the Oracle repo
@@ -670,6 +760,7 @@ func (ba *bpsActionService) resolveOneActionUser(ctx context.Context, id string)
 			info.PhoneNumber = u.PhoneNumber
 			info.JobTitle = u.JobTitle
 			info.Role = u.Role
+			info.Department = u.Department.Hex()
 			info.Source = "cps_user"
 			return info
 		} else if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
@@ -678,6 +769,58 @@ func (ba *bpsActionService) resolveOneActionUser(ctx context.Context, id string)
 	}
 
 	return info
+}
+
+// buildCheckerLevels derives per-slot approval status from the flat CheckerID
+// and CheckerTime slices stored on the action.
+//
+//   - Slots below CheckersApproved are APPROVED (with their timestamp).
+//   - When the overall status is REJECTED the last populated slot is REJECTED.
+//   - All remaining slots beyond the populated ones are PENDING.
+func buildCheckerLevels(action *bps_model.BPSAction) []bpsActionDto.CheckerLevelInfo {
+	needed := action.CheckersNeeded
+	if needed <= 0 {
+		needed = len(action.CheckerID)
+	}
+	if needed == 0 {
+		return []bpsActionDto.CheckerLevelInfo{}
+	}
+
+	levels := make([]bpsActionDto.CheckerLevelInfo, needed)
+	for i := 0; i < needed; i++ {
+		level := bpsActionDto.CheckerLevelInfo{
+			Level:  i + 1,
+			Status: "PENDING",
+		}
+		if i < len(action.CheckerID) {
+			level.CheckerID = action.CheckerID[i]
+		}
+		if i < action.CheckersApproved {
+			level.Status = "APPROVED"
+			if i < len(action.CheckerTime) {
+				t := action.CheckerTime[i]
+				level.ApprovedAt = &t
+			}
+		}
+		levels[i] = level
+	}
+
+	// If overall status is REJECTED, the last populated checker slot is the one
+	// that triggered rejection — mark it REJECTED instead of PENDING.
+	if string(action.Status) == string(ActionRejected) && len(action.CheckerID) > 0 {
+		lastIdx := len(action.CheckerID) - 1
+		if lastIdx >= action.CheckersApproved && lastIdx < needed {
+			var ts *time.Time
+			if lastIdx < len(action.CheckerTime) {
+				t := action.CheckerTime[lastIdx]
+				ts = &t
+			}
+			levels[lastIdx].Status = "REJECTED"
+			levels[lastIdx].ApprovedAt = ts
+		}
+	}
+
+	return levels
 }
 
 func (ba *bpsActionService) RollBack(ctx context.Context, action *bps_model.BPSAction) error {

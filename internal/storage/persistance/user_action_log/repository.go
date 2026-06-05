@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -60,22 +61,22 @@ func (r *userActionLogRepository) Upsert(ctx context.Context, entry *imodel.User
 	}
 	update := bson.D{
 		{Key: "$setOnInsert", Value: bson.M{
-			"_id":                             entry.ID,
-			"action_id":                       entry.ActionID,
-			"action_code":                     entry.ActionCode,
-			"request_action":                  entry.RequestAction,
-			"action_taken_service_name":       entry.ActionTakenServiceName,
-			"action_taken_service_unique_id":  entry.ActionTakenServiceUniqueID,
-			"user_id":                         entry.UserID,
-			"username":                        entry.Username,
-			"user_phone":                      entry.UserPhone,
-			"user_role_code":                  entry.UserRoleCode,
-			"user_action_responsibilities":    entry.UserActionResponsibilities,
-			"action_type":                     entry.ActionType,
-			"checker_level":                   entry.CheckerLevel,
-			"auditor_level":                   entry.AuditorLevel,
-			"is_deleted":                      false,
-			"created_at":                      entry.CreatedAt,
+			"_id":                            entry.ID,
+			"action_id":                      entry.ActionID,
+			"action_code":                    entry.ActionCode,
+			"request_action":                 entry.RequestAction,
+			"action_taken_service_name":      entry.ActionTakenServiceName,
+			"action_taken_service_unique_id": entry.ActionTakenServiceUniqueID,
+			"user_id":                        entry.UserID,
+			"username":                       entry.Username,
+			"user_phone":                     entry.UserPhone,
+			"user_role_code":                 entry.UserRoleCode,
+			"user_action_responsibilities":   entry.UserActionResponsibilities,
+			"action_type":                    entry.ActionType,
+			"checker_level":                  entry.CheckerLevel,
+			"auditor_level":                  entry.AuditorLevel,
+			"is_deleted":                     false,
+			"created_at":                     entry.CreatedAt,
 			// action_auditor_status starts empty; bulk methods advance it as the auditor workflow progresses.
 			"action_auditor_status": "",
 		}},
@@ -144,6 +145,10 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 	}
 
 	if len(filter.AuditorStatuses) > 0 {
+		if slices.Contains(filter.AuditorStatuses, "NOTCHECKED") {
+			// NOTCHECKED is represented as empty string in the DB, so we need to account for that in the count.
+			filter.AuditorStatuses = append(filter.AuditorStatuses, "")
+		}
 		groupStage = append(groupStage, bson.E{
 			Key:   "auditor_status_match_count",
 			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{"$given_auditor_status", filter.AuditorStatuses}}}),
@@ -236,11 +241,27 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 	}
 
 	if len(filter.Responsibilities) > 0 {
+
 		groupStage = append(groupStage, bson.E{
 			Key:   "responsibility_match_count",
 			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{fieldResponsibility, filter.Responsibilities}}}),
 		})
 		matchStage = append(matchStage, bson.E{Key: "responsibility_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	// Each LevelClaimPair requires that the same action_code has at least one log
+	// entry where auditor_level == Level AND given_auditor_status == Claim.
+	// All pairs are ANDed: every pair must be satisfied within the same action_code.
+	for i, pair := range filter.LevelClaimPairs {
+		fieldName := fmt.Sprintf("level_claim_%d_count", i)
+		groupStage = append(groupStage, bson.E{
+			Key: fieldName,
+			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
+				bson.D{{Key: "$eq", Value: bson.A{"$auditor_level", pair.Level}}},
+				bson.D{{Key: "$eq", Value: bson.A{"$given_auditor_status", pair.Claim}}},
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: fieldName, Value: bson.M{"$gt": 0}})
 	}
 
 	pipeline := mongo.Pipeline{

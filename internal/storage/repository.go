@@ -210,25 +210,24 @@ type DeviceVersionControlRepository interface {
 }
 
 type CPSActionRepository interface {
-	Save(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (types.PaginatedResponse[[]model.CPSAction], error)
-	FindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
 	SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error)
-	// SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, RAList []string) ([]*model.CPSAction, error)
 	SanitizedFindAllWithPaginationForApprover(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	SanitizedFindAllWithPaginationForAuditor(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	SanitizedFindAllWithPaginationCPSActions(ctx context.Context, userID, role string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	SanitizedFindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
+
 	ActionByDateRange(ctx context.Context, filterParam types.Filter, RAList []string) ([]*model.CPSAction, error)
-	Update(ctx context.Context, actionCode string, update model.CPSAction, Group string, RequestActionGroups map[string][]constants.RequestAction) (*model.CPSAction, error)
 	FindByDateRange(ctx context.Context, filterParam *types.Filter) ([]*model.CPSAction, error)
 	UpdateByActionCode(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
 	UpdateCustome(ctx context.Context, filter, update bson.M) error
-	Delete(ctx context.Context, id string) error
 	GetCountByDepartment(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error)
-	// FindByDateRange(ctx context.Context, start_date, end_date time.Time)([]*model.CPSAction,error)
-
 	StreamByDateRange(ctx context.Context, filterParam *types.Filter, handler func(*model.CPSAction) error) error
+
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (types.PaginatedResponse[[]model.CPSAction], error)
+	FindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
+	Save(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error)
+	Update(ctx context.Context, actionCode string, update model.CPSAction, Group string, RequestActionGroups map[string][]constants.RequestAction) (*model.CPSAction, error)
+	Delete(ctx context.Context, id string) error
 }
 
 // Avatar persistence
@@ -829,6 +828,9 @@ type LogisticsMerchantRepository interface {
 
 type LogisticsMerchantOracleRepository interface {
 	FindOne(ctx context.Context, filter bson.M) (*local_model.LogisticsMerchant, error)
+	// FindByAccountOrMerchantCode checks for an existing merchant matching either
+	// accountNumber or merchantCode. excludeID (may be empty) skips that row.
+	FindByAccountOrMerchantCode(ctx context.Context, accountNumber, merchantCode, excludeID string) (*local_model.LogisticsMerchant, error)
 	Update(ctx context.Context, id string, logisticsMerchant local_model.LogisticsMerchant) error
 	Create(ctx context.Context, logisticsMerchant local_model.LogisticsMerchant) error
 	Delete(ctx context.Context, id string) error
