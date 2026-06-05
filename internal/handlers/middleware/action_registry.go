@@ -115,18 +115,13 @@ var cpsActionRegistry = map[string]string{
 	"DELETE events":   "EVENT",
 
 	// CPS Users
-	"GET cps_users":                       "CPSUSER",
-	"GET cps_users/{user_code}":           "CPSUSER",
-	"GET cps_users/code/{code}":           "CPSUSER",
-	"POST cps_users/create":               "CPSUSER",
-	"PATCH cps_users/update/{user_code}":  "CPSUSER",
-	"DELETE cps_users/delete/{user_code}": "CPSUSER",
-	"POST cps_users/disable/{user_code}":  "CPSUSER",
-	"POST cps_users/enable/{user_code}":   "CPSUSER",
+	"GET cps_users":    "CPSUSER",
+	"POST cps_users":   "CPSUSER",
+	"PATCH cps_users":  "CPSUSER",
+	"DELETE cps_users": "CPSUSER",
 
 	// BPS Users (GET operations)
-	"GET bps_users":      "BPSUSER",
-	"GET bps_users/{id}": "BPSUSER",
+	"GET bps_users": "BPSUSER",
 
 	// Avatar
 	"POST avatar":   "AVATAR",
@@ -160,9 +155,9 @@ var cpsActionRegistry = map[string]string{
 	"PATCH cps-action-roles": "CPSACTIONROLE",
 
 	// CpsUser
-	"POST cps_users":   "CPSUSER",
-	"PATCH cps_users":  "CPSUSER",
-	"DELETE cps_users": "CPSUSER",
+	// "POST cps_users":   "CPSUSER",
+	// "PATCH cps_users":  "CPSUSER",
+	// "DELETE cps_users": "CPSUSER",
 
 	// DeviceVersion
 	"POST device_versions":  "DEVICEVERSION",
