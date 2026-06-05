@@ -28,7 +28,7 @@ func (r UpdateArchiveTimeRequest) Validate() error {
 }
 
 func (r UpdatePasswordExpiryRequest) Validate() error {
-	if r.PasswordExpiry < 1 {
+	if r.PasswordExpiry < 90 {
 		return errors.New(localization.ErrorInvalidPasswordExpiry.Code)
 	}
 	return nil

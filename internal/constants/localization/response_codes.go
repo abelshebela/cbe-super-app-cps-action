@@ -4779,7 +4779,7 @@ var (
 
 	ErrorInvalidBlockTime      = ResponseCode{Code: "ERROR_INVALID_BLOCK_TIME", StatusCode: 400, Message: "BlockTime must be greater than 0", Type: "error"}
 	ErrorInvalidArchiveTime    = ResponseCode{Code: "ERROR_INVALID_ARCHIVE_TIME", StatusCode: 400, Message: "ArchiveTime must be greater than 0", Type: "error"}
-	ErrorInvalidPasswordExpiry = ResponseCode{Code: "ERROR_INVALID_PASSWORD_EXPIRY", StatusCode: 400, Message: "PasswordExpiry must be greater than 0", Type: "error"}
+	ErrorInvalidPasswordExpiry = ResponseCode{Code: "ERROR_INVALID_PASSWORD_EXPIRY", StatusCode: 400, Message: "PasswordExpiry must be greater than 90", Type: "error"}
 
 	// Wallet related success response codes
 	SuccessWalletActionRequestSent = ResponseCode{
