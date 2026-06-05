@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -819,37 +820,59 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 
 	levels := extractStringSlice(filterParams.Filters, "levels")
 	services := extractStringSlice(filterParams.Filters, "services")
-	auditorStatuses := extractStringSlice(filterParams.Filters, "auditor_statuses")
+	// "auditor_statuses" (plural) may be set explicitly by callers; "auditor_status"
+	// (singular) is written by FilterBuilder from the ?auditor_status=X query param.
+	// Both carry two distinct domains that must be routed to different log fields:
+	//   MARKEDASRIGHT / MARKEDASWRONG  → log.given_auditor_status  (AuditorStatuses)
+	//   NOTCHECKED / INPROGRESS / CHECKED → log.action_auditor_status (ActionAuditorStatuses)
+	// Leaving CHECKED etc. in filterParams.Filters would pass them through FilterBuilder
+	// to the CPS action document's auditor_status field — that works for state values
+	// but MARKEDASRIGHT would produce zero results there.
+	var auditorMarkStatuses []string  // MARKEDASRIGHT / MARKEDASWRONG
+	var auditorStateStatuses []string // NOTCHECKED / INPROGRESS / CHECKED
 
-	// Also absorb the singular "auditor_status" key written by FilterBuilder from
-	// the ?auditor_status=MARKEDASRIGHT query param. The auditor's personal mark
-	// (MARKEDASRIGHT/MARKEDASWRONG) lives in user_action_log.given_auditor_status,
-	// NOT on the CPS action document's auditor_status field (which holds NOTCHECKED/
-	// INPROGRESS/CHECKED). Routing it through the log query gives the correct result;
-	// leaving it in filterParams.Filters would produce zero results.
-	if v := extractStringSlice(filterParams.Filters, "auditor_status"); len(v) > 0 {
-		auditorStatuses = append(auditorStatuses, v...)
-		delete(filterParams.Filters, "auditor_status")
+	auditStateSet := map[string]bool{
+		string(constants.AUDITORNOTCHECKED): true,
+		string(constants.AUDITORINPROGRESS): true,
+		string(constants.AUDITORCHECKED):    true,
+	}
+	for _, src := range []string{"auditor_status", "auditor_statuses"} {
+		for _, v := range extractStringSlice(filterParams.Filters, src) {
+			if auditStateSet[strings.ToUpper(v)] {
+				auditorStateStatuses = append(auditorStateStatuses, strings.ToUpper(v))
+			} else {
+				auditorMarkStatuses = append(auditorMarkStatuses, strings.ToUpper(v))
+			}
+		}
+		delete(filterParams.Filters, src)
 	}
 
-	// Single unified log-filter pass: levels, services, auditor_statuses, and
-	// level_claim_pairs all live in user_action_logs. Query them together so
-	// every condition is ANDed within the same action_code. The repo already
-	// applies request_action:{$in:RAList} on the CPS action collection, so no
-	// separate RAList pre-filter is needed here — the intersection is automatic.
+	// Single unified log-filter pass. The repo already applies request_action:{$in:RAList}
+	// on the CPS action collection so no separate RAList pre-filter is needed here.
 	levelClaimPairs := extractLevelClaimPairs(filterParams.Filters)
-	if len(levels) > 0 || len(services) > 0 || len(auditorStatuses) > 0 || len(levelClaimPairs) > 0 {
+	if len(levels) > 0 || len(services) > 0 || len(auditorMarkStatuses) > 0 || len(auditorStateStatuses) > 0 || len(levelClaimPairs) > 0 {
+		var responsibilities []string
+		if filterParams.Filters["action_status"] != string(constants.AUDITORNOTCHECKED) {
+			responsibilities = []string{string(imodel.AUDITOR)}
+		}
+		if slices.Contains(auditorStateStatuses, string(constants.AUDITORNOTCHECKED)) {
+			auditorStateStatuses = append(auditorStateStatuses, "")
+		}
+
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
-			Responsibilities: []string{string(imodel.AUDITOR)},
-			Levels:           levels,
-			Services:         services,
-			AuditorStatuses:  auditorStatuses,
-			LevelClaimPairs:  levelClaimPairs,
+			Responsibilities:      responsibilities,
+			Levels:                levels,
+			Services:              services,
+			AuditorStatuses:       auditorMarkStatuses,
+			ActionAuditorStatuses: auditorStateStatuses,
+			LevelClaimPairs:       levelClaimPairs,
 		})
 		if err != nil {
 			log.Errorf("[CpsActionSvc][GetCPSActionsForAuditor] log filter err: %v", err)
 			return nil, "", err
 		}
+		log.Infof("[CpsActionSvc][GetCPSActionsForAuditor] log filter found %d action codes (markStatuses=%v stateStatuses=%v levels=%v, action_codes=%v)",
+			len(actionCodes), auditorMarkStatuses, auditorStateStatuses, levels, actionCodes)
 		filterParams.Filters["action_code"] = actionCodes
 	}
 
