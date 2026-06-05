@@ -299,7 +299,7 @@ func (e *eventService) FetchEvent(ctx context.Context, filterParam types.Filter)
 	}
 	return result, nil
 }
-func (e *eventService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (e *eventService) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Event", "Authorize")
 	defer span.End()
 
@@ -311,7 +311,7 @@ func (e *eventService) Authorize(ctx context.Context, action *model.CPSAction) (
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", action.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	switch requestedAction {
@@ -322,7 +322,7 @@ func (e *eventService) Authorize(ctx context.Context, action *model.CPSAction) (
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestUpdateEvent):
@@ -332,7 +332,7 @@ func (e *eventService) Authorize(ctx context.Context, action *model.CPSAction) (
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestDeleteEvent):
@@ -342,7 +342,7 @@ func (e *eventService) Authorize(ctx context.Context, action *model.CPSAction) (
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestEnableEvent):
@@ -352,7 +352,7 @@ func (e *eventService) Authorize(ctx context.Context, action *model.CPSAction) (
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestDisableEvent):
@@ -362,7 +362,7 @@ func (e *eventService) Authorize(ctx context.Context, action *model.CPSAction) (
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	default:
@@ -370,9 +370,9 @@ func (e *eventService) Authorize(ctx context.Context, action *model.CPSAction) (
 			attribute.String("error", localization.ErrorInvalidRequest.Code),
 			attribute.String("request_action", string(requestedAction)),
 		))
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	action.CurrentAction = event
-	return action, nil
+	return *action, nil
 }

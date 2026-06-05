@@ -28,7 +28,7 @@ func NewMiniAppCategoryService(repo storage.MiniAppCategoryRepository, logger ut
 	}
 }
 
-func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, m.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "MiniApp", "Authorize")
@@ -42,7 +42,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	switch cpsAction.RequestAction {
@@ -53,7 +53,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestUpdateMiniAppCategory):
 		err = m.repo.Update(ctx, category, cpsAction.UniqueId)
@@ -62,7 +62,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestDeleteMiniAppCategory):
 		err = m.repo.Delete(ctx, cpsAction.UniqueId)
@@ -71,7 +71,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestEnableMiniAppCategory):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
@@ -80,7 +80,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestDisableMiniAppCategory):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
@@ -89,7 +89,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	default:
 		log.Errorf("[MiniCatSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
@@ -97,11 +97,10 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 			attribute.String("error", localization.ErrorInvalidRequest.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	cpsAction.CurrentAction = category
 	log.Infof("[MiniCatSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, category.ID)
-	return cpsAction, nil
-
+	return *cpsAction, nil
 }

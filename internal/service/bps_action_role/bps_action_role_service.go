@@ -436,7 +436,7 @@ func (s *bpsActionRoleService) Delete(ctx context.Context, actionCode string) er
 }
 
 // Authorize applies approved CPS actions
-func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "BPSActionRole", "Authorize")
@@ -449,13 +449,13 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		if err != nil {
 			span.AddEvent("failed to unmarshal action", trace.WithAttributes(attribute.String("error", err.Error())))
 			log.Errorf("[BpsActRoleSvc][Authorize] unmarshal err: %v", err)
-			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
 
 		if err := s.UpdateActionList(ctx, cur.ActionName, true); err != nil {
 			span.AddEvent("failed to update action list", trace.WithAttributes(attribute.String("error", err.Error())))
 			log.Errorf("[BpsActRoleSvc][Authorize] update action list err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		ar := *cur
@@ -469,86 +469,86 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 				span.AddEvent("failed to update action list", trace.WithAttributes(attribute.String("error", err.Error())))
 				log.Errorf("[BpsActRoleSvc][Authorize] rollback action list err: %v", err)
 				if mongo.IsTimeout(err) {
-					return nil, errors.New(localization.ErrorInternalServerTimeout.Code)
+					return model.CPSAction{}, errors.New(localization.ErrorInternalServerTimeout.Code)
 				}
-				return nil, errors.New(localization.ErrorInternalServerError.Code)
+				return model.CPSAction{}, errors.New(localization.ErrorInternalServerError.Code)
 			}
 		}
 
 		log.Infof("[BpsActRoleSvc][Authorize] sync create makers: %d, checkers: %d, auditors: %d", len(ar.AssignedMakersRoles), len(ar.AssignedCheckerRoles), len(ar.AssignedAuditorRoles))
 		if err := s.syncIndices(ctx, "", &ar); err != nil {
 			span.AddEvent("failed to sync indices for create", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		// Update action.CurrentAction with the new ID and timestamps
 		updatedPayload, err := json.Marshal(ar)
 		if err != nil {
 			span.AddEvent("failed to marshal updated payload", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		action.CurrentAction = updatedPayload
-		return action, nil
+		return *action, nil
 
 	case string(constants.UPDATE):
 		// Handle enable/disable separately to avoid corrupting data with partial payload
 		if action.RequestAction == string(constants.RequestEnableCpsActionRole) {
 			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, true); err != nil {
 				span.AddEvent("failed to enable action role", trace.WithAttributes(attribute.String("error", err.Error())))
-				return nil, err
+				return model.CPSAction{}, err
 			}
-			return action, nil
+			return *action, nil
 		}
 		if action.RequestAction == string(constants.RequestDisableActionRole) {
 			if err := s.repo.EnableOrDisableByActionCode(ctx, action.UniqueId, false); err != nil {
 				span.AddEvent("failed to disable action role", trace.WithAttributes(attribute.String("error", err.Error())))
-				return nil, err
+				return model.CPSAction{}, err
 			}
-			return action, nil
+			return *action, nil
 		}
 
 		prev, err := local_util.JsonUnmarshal[imodel.BPSActionRoleResposne](action.PreviousAction)
 		if err != nil {
 			span.AddEvent("failed to unmarshal action", trace.WithAttributes(attribute.String("error", err.Error())))
 			log.Errorf("[BpsActRoleSvc][Authorize] unmarshal prev err: %v", err)
-			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
 
 		new, err := local_util.JsonUnmarshal[imodel.BPSActionRole](action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to unmarshal new action", trace.WithAttributes(attribute.String("error", err.Error())))
 			log.Errorf("[BpsActRoleSvc][Authorize] unmarshal new err: %v", err)
-			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
 
 		if err := s.repo.UpdateByActionCode(ctx, prev.ActionCode, new); err != nil {
 			span.AddEvent("failed to update action role", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		log.Infof("[BpsActRoleSvc][Authorize] sync update makers: %d, checkers: %d, auditors: %d", len(new.AssignedMakersRoles), len(new.AssignedCheckerRoles), len(new.AssignedAuditorRoles))
 		if err := s.syncIndices(ctx, new.ActionCode, new); err != nil {
 			span.AddEvent("failed to sync indices for create", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return model.CPSAction{}, err
 		}
-		return action, nil
+		return *action, nil
 	case string(constants.DELETE):
 		prev, err := local_util.JsonUnmarshal[imodel.BPSActionRoleResposne](action.PreviousAction)
 		if err != nil {
 			span.AddEvent("failed to unmarshal previous action for delete", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
 		if err := s.repo.DeleteByActionCode(ctx, action.UniqueId); err != nil {
 			span.AddEvent("failed to delete action role", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		if err := s.UpdateActionList(ctx, prev.ActionCode, false); err != nil {
 			span.AddEvent("failed to update action list on delete", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return model.CPSAction{}, err
 		}
-		return action, nil
+		return *action, nil
 	default:
 		span.AddEvent("unsupported action type", trace.WithAttributes(attribute.String("action_type", action.ActionType)))
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 }
 

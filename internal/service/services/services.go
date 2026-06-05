@@ -389,7 +389,7 @@ func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Conte
 	}, nil
 }
 
-func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	log.Infof("[servicesService][Authorize] Authorize called for action: %+v", action)
 
@@ -403,7 +403,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	case string(constants.RequestCreateService):
 		serviceDoc, unmarshalErr := local_util.JsonUnmarshal[imodel.Service](action.CurrentAction)
 		if unmarshalErr != nil {
-			return nil, localization.ErrorInvalidActionData
+			return model.CPSAction{}, localization.ErrorInvalidActionData
 		}
 		s.logger.Infof("[servicesService][Authorize] Authorizing create service with data: %+v", serviceDoc)
 		err = s.repo.Create(ctx, serviceDoc.ProductGlAccount, serviceDoc)
@@ -413,7 +413,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	case string(constants.RequestUpdateService):
 		serviceDoc, unmarshalErr := local_util.JsonUnmarshal[imodel.Service](action.CurrentAction)
 		if unmarshalErr != nil {
-			return nil, localization.ErrorInvalidActionData
+			return model.CPSAction{}, localization.ErrorInvalidActionData
 		}
 		s.logger.Infof("[servicesService][Authorize] Authorizing update service with data: %+v", serviceDoc)
 		err = s.repo.Update(ctx, action.UniqueId, serviceDoc, serviceDoc.ProductGlAccount)
@@ -427,7 +427,7 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	case string(constants.RequestCreateServiceList):
 		listDoc, unmarshalErr := local_util.JsonUnmarshal[imodel.ServiceKey](action.CurrentAction)
 		if unmarshalErr != nil {
-			return nil, localization.ErrorInvalidActionData
+			return model.CPSAction{}, localization.ErrorInvalidActionData
 		}
 		err = s.repo.CreateServiceKey(ctx, listDoc)
 		if err == nil {
@@ -436,11 +436,11 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	case string(constants.RequestUpdateServiceList):
 		listDoc, unmarshalErr := local_util.JsonUnmarshal[imodel.ServiceKey](action.CurrentAction)
 		if unmarshalErr != nil {
-			return nil, localization.ErrorInvalidActionData
+			return model.CPSAction{}, localization.ErrorInvalidActionData
 		}
 		prevListDoc, prevErr := local_util.JsonUnmarshal[imodel.ServiceKey](action.PreviousAction)
 		if prevErr != nil {
-			return nil, localization.ErrorInvalidActionData
+			return model.CPSAction{}, localization.ErrorInvalidActionData
 		}
 		err = s.repo.UpdateServiceKey(ctx, action.UniqueId, prevListDoc.ServiceKey, listDoc)
 		if err == nil {
@@ -451,13 +451,13 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	case string(constants.RequestDisableServiceList):
 		err = s.repo.EnableOrDisableServiceList(ctx, action.UniqueId, false)
 	default:
-		return nil, localization.ErrorInvalidRequest
+		return model.CPSAction{}, localization.ErrorInvalidRequest
 	}
 
 	if err != nil {
 		log.Errorf("[servicesService][Authorize] error occurred: %v", err)
-		return nil, err
+		return model.CPSAction{}, err
 	}
 
-	return action, nil
+	return *action, nil
 }

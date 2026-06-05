@@ -192,25 +192,25 @@ func (j *jobRoleService) FindAllWithPagination(ctx context.Context, filterParam 
 	return j.JobRoleRepository.FindAllWithPagination(ctx, filterParam)
 }
 
-func (j *jobRoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.CPSAction) (*sharedmodel.CPSAction, error) {
+func (j *jobRoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.CPSAction) (sharedmodel.CPSAction, error) {
 	// Turn CurrentAction into Role, attach ID from UniqueId (if present), apply action
 	var asAny any
 	log := local_util.LoggerFromCtx(ctx, j.logger)
 	raw, err := json.Marshal(cpsAction.CurrentAction)
 	if err != nil {
 		log.Errorf("[JobRole Service][Authorize] marshal CurrentAction failed: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return sharedmodel.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	if err := json.Unmarshal(raw, &asAny); err != nil {
 		log.Errorf("[JobRole Service][Authorize] unmarshal CurrentAction failed: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return sharedmodel.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	raw2, _ := json.Marshal(asAny)
 	var role imodel.JobRole
 	if err := json.Unmarshal(raw2, &role); err != nil {
 		log.Errorf("[JobRole Service][Authorize] map to Role failed: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return sharedmodel.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	if cpsAction.UniqueId != "" {
 		if oid, err := bson.ObjectIDFromHex(cpsAction.UniqueId); err == nil {
@@ -223,34 +223,34 @@ func (j *jobRoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.C
 		role.CreatedAt = time.Now()
 		if err := j.JobRoleRepository.Create(ctx, &role); err != nil {
 			log.Errorf("[JobRole Service][Authorize] failed to create job role: %v", err)
-			return nil, err
+			return sharedmodel.CPSAction{}, err
 		}
 	case string(constants.RequestUpdateJobRole):
 		role.UpdateAt = time.Now()
 		if err := j.JobRoleRepository.Update(ctx, role.ID.Hex(), &role); err != nil {
 			log.Errorf("[JobRole Service][Authorize] failed to update job role: %v", err)
-			return nil, err
+			return sharedmodel.CPSAction{}, err
 		}
 	case constants.RequestEnableJobRole:
 		if err := j.JobRoleRepository.EnableOrDisable(ctx, cpsAction.UniqueId, true); err != nil {
 			log.Errorf("[JobRole Service][Authorize] failed to enable job role: %v", err)
-			return nil, err
+			return sharedmodel.CPSAction{}, err
 		}
 	case constants.RequestDisableJobRole:
 		if err := j.JobRoleRepository.EnableOrDisable(ctx, cpsAction.UniqueId, false); err != nil {
 			log.Errorf("[JobRole Service][Authorize] failed to disable job role: %v", err)
-			return nil, err
+			return sharedmodel.CPSAction{}, err
 		}
 	case constants.RequestDeleteJobRole:
 		if err := j.JobRoleRepository.SoftDelete(ctx, cpsAction.UniqueId); err != nil {
 			log.Errorf("[JobRole Service][Authorize] failed to delete job role: %v", err)
-			return nil, err
+			return sharedmodel.CPSAction{}, err
 		}
 	default:
 		log.Errorf("[JobRole Service][Authorize] unsupported action: %s", cpsAction.RequestAction)
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return sharedmodel.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
 	cpsAction.CurrentAction = role
-	return cpsAction, nil
+	return *cpsAction, nil
 }

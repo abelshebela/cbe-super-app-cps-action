@@ -123,7 +123,7 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 	return nil
 }
 
-func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, u.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "AuthorizeUnlink", "unlinkService", "unlinkService")
@@ -135,14 +135,14 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 	if cpsAction.ActionStatus != constants.Approved {
 		span.AddEvent("CPS action status not approved", trace.WithAttributes(attribute.String("status", string(cpsAction.ActionStatus)), attribute.String("userCode", cpsAction.UniqueId)))
 		log.Errorf("[UnlinkSvc][Authorize] invalid status: %s", cpsAction.ActionStatus)
-		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
 
 	userOldData, err := u.userRepo.FindByUserCode(ctx, cpsAction.UniqueId)
 	if err != nil {
 		span.AddEvent("FindByUserCode error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("userCode", cpsAction.UniqueId)))
 		log.Errorf("[UnlinkSvc][Authorize] find user err: %v", err)
-		return nil, err
+		return model.CPSAction{}, err
 	}
 
 	if strings.EqualFold(userOldData.CustomerNumber, "") {
@@ -157,7 +157,7 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 		if err != nil {
 			span.AddEvent("FindByCustomerNumber error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("customerNumber", userOldData.CustomerNumber)))
 			log.Errorf("[UnlinkSvc][Authorize] find linked acc err: %v", err)
-			return nil, errors.New(localization.ErrorUnlinkFaild.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorUnlinkFaild.Code)
 		}
 	}
 
@@ -171,7 +171,7 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 	if archUserErr != nil || archLinkedAccErr != nil {
 		span.AddEvent("Archiving error", trace.WithAttributes(attribute.String("archUserErr", errorString(archUserErr)), attribute.String("archLinkedAccErr", errorString(archLinkedAccErr))))
 		log.Errorf("[UnlinkSvc][Authorize] archive err: %v / %v", archUserErr, archLinkedAccErr)
-		return nil, archUserErr
+		return model.CPSAction{}, archUserErr
 	}
 
 	var userErr, linkedAccErr error
@@ -190,12 +190,12 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 	if userErr != nil || linkedAccErr != nil {
 		span.AddEvent("Delete error", trace.WithAttributes(attribute.String("userErr", errorString(userErr)), attribute.String("linkedAccErr", errorString(linkedAccErr))))
 		log.Errorf("[UnlinkSvc][Authorize] delete err: %v / %v", userErr, linkedAccErr)
-		return nil, errors.New(localization.ErrorUnlinkFaild.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnlinkFaild.Code)
 	}
 
 	span.AddEvent("User unlink authorized", trace.WithAttributes(attribute.String("userCode", cpsAction.UniqueId)))
 	log.Infof("[UnlinkSvc][Authorize] authorized code: %s", cpsAction.UniqueId)
-	return nil, nil
+	return model.CPSAction{}, nil
 }
 
 // errorString safely returns the error string or empty if nil

@@ -180,7 +180,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 	return true, "Password is valid"
 }
 
-func (p *passwordService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (p *passwordService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, p.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "PasswordRule", "Authorize")
@@ -195,7 +195,7 @@ func (p *passwordService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	err = p.repo.Update(ctx, cpsAction.UniqueId, passwordRule)
@@ -205,10 +205,10 @@ func (p *passwordService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, err
+		return model.CPSAction{}, err
 	}
 
 	cpsAction.CurrentAction = passwordRule
 	log.Infof("[PwdRuleSvc][Authorize] authorized id: %s", cpsAction.UniqueId)
-	return cpsAction, nil
+	return *cpsAction, nil
 }

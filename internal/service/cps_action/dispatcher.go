@@ -30,7 +30,7 @@ func NewDispatcher(app service.ServiceContainer) *Dispatcher {
 	}
 }
 
-func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Dispatcher", "Authorize")
 	defer span.End()
 
@@ -190,6 +190,6 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	default:
 		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))
 		fmt.Printf("Unsupported action---------------------: %s\n", action)
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 }

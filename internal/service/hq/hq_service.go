@@ -219,7 +219,7 @@ func (a *hqService) UpdatePasswordExpiry(ctx context.Context, request hqDto.Upda
 	return nil
 }
 
-func (s *hqService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (s *hqService) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "HQ", "Authorize")
@@ -233,7 +233,7 @@ func (s *hqService) Authorize(ctx context.Context, action *model.CPSAction) (*mo
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", action.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	switch requestedAction {
@@ -244,7 +244,7 @@ func (s *hqService) Authorize(ctx context.Context, action *model.CPSAction) (*mo
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestUpdateHQArchiveTime):
@@ -254,7 +254,7 @@ func (s *hqService) Authorize(ctx context.Context, action *model.CPSAction) (*mo
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestUpdatePasswordExpiry):
@@ -264,7 +264,7 @@ func (s *hqService) Authorize(ctx context.Context, action *model.CPSAction) (*mo
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	default:
@@ -272,11 +272,11 @@ func (s *hqService) Authorize(ctx context.Context, action *model.CPSAction) (*mo
 			attribute.String("error", localization.ErrorInvalidRequest.Code),
 			attribute.String("request_action", string(requestedAction)),
 		))
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	action.CurrentAction = hq
 	action.ActionStatus = constants.Approved
 	log.Infof("[HqSvc][Authorize] approved action: %s code: %s", requestedAction, action.ActionCode)
-	return action, nil
+	return *action, nil
 }

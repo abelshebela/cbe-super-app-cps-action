@@ -174,7 +174,7 @@ func (s *KYCVerifier) ApproveKYC(ctx context.Context, id string, req dto.Approve
 	return nil
 }
 
-func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "KYCVerifier", "Authorize")
@@ -186,7 +186,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 			attribute.String("error", localization.ErrorCPSActionStatusInvalid.Code),
 			attribute.String("unique_id", action.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
 
 	switch action.RequestAction {
@@ -197,7 +197,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 
 		lib.GoRoutinBaker(types.BakerOptions{}, func() {
@@ -239,14 +239,14 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 		if err := s.repo.Update(ctx, action.UniqueId, updated); err != nil {
 			span.AddEvent("Failed to update KYC", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		// update user
@@ -263,7 +263,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(action.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
-	return action, nil
+	return *action, nil
 }

@@ -53,7 +53,7 @@ func NewBankService(logger utils.Logger, repo storage.BankRepository, oracleRepo
 	}
 }
 
-func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, b.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Bank", "Authorize")
@@ -67,7 +67,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
 		log.Errorf("[BankSvc][Authorize] marshal err: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	err = json.Unmarshal(marshaled, &actionMap)
@@ -77,7 +77,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
 		log.Errorf("[BankSvc][Authorize] unmarshal err: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// actionData := bank_core.Bank_mapper(actionMap.(map[string]interface{}))
@@ -100,7 +100,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			log.Errorf("[BankSvc][Authorize] create err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[BankSvc][Authorize] created")
 	case string(constants.RequestDeleteBank):
@@ -111,7 +111,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			log.Errorf("[BankSvc][Authorize] delete err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[BankSvc][Authorize] deleted id: %s", cpsAction.UniqueId)
 
@@ -130,7 +130,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			log.Errorf("[BankSvc][Authorize] enable/disable err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[BankSvc][Authorize] enable/disable done id: %s", cpsAction.UniqueId)
 	case string(constants.RequestUpdateBankLogo):
@@ -141,7 +141,7 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			log.Errorf("[BankSvc][Authorize] update logo err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[BankSvc][Authorize] logo updated id: %s", cpsAction.UniqueId)
 	case string(constants.RequestUpdateBank):
@@ -153,16 +153,16 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			log.Errorf("[BankSvc][Authorize] update err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[BankSvc][Authorize] updated id: %s", cpsAction.UniqueId)
 	default:
 		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", cpsAction.RequestAction)))
 		log.Errorf("[BankSvc][Authorize] unsupported: %s", cpsAction.RequestAction)
-		return nil, fmt.Errorf("%s", localization.MsgBankInvalidRequestAction)
+		return model.CPSAction{}, fmt.Errorf("%s", localization.MsgBankInvalidRequestAction)
 	}
 	log.Infof("[BankSvc][Authorize] done: %s", cpsAction.RequestAction)
-	return cpsAction, nil
+	return *cpsAction, nil
 }
 
 func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.CreateBankRequest) error {

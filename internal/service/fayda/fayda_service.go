@@ -94,7 +94,7 @@ func (f *faydaService) EnableOrDisableFayda(ctx context.Context, user_code strin
 	return nil
 }
 
-func (f *faydaService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (f *faydaService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, f.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Fayda", "Authorize")
@@ -109,7 +109,7 @@ func (f *faydaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	switch cpsAction.RequestAction {
@@ -121,7 +121,7 @@ func (f *faydaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[FaydaSvc][Authorize] enabled")
 	case string(cps_const.RequestDisableFaydaAccount):
@@ -132,7 +132,7 @@ func (f *faydaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[FaydaSvc][Authorize] disabled")
 	default:
@@ -141,10 +141,10 @@ func (f *faydaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
 	cpsAction.CurrentAction = faydaUser
 	log.Infof("[FaydaSvc][Authorize] completed: %s", cpsAction.RequestAction)
-	return cpsAction, nil
+	return *cpsAction, nil
 }

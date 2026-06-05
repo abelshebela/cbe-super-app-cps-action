@@ -44,7 +44,7 @@ func NewLogisticsMerchantService(repo storage.LogisticsMerchantOracleRepository,
 }
 
 // Authorize implements service.LogisticsMerchantService.
-func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, e.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "LogisticsMerchant", "Authorize")
@@ -57,7 +57,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorServiceUnhandledServerError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorServiceUnhandledServerError.Code)
 	}
 
 	switch cpsAction.RequestAction {
@@ -68,7 +68,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
@@ -90,7 +90,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
@@ -102,7 +102,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 					attribute.String("error", err.Error()),
 					attribute.String("unique_id", cpsAction.UniqueId),
 				))
-				return nil, errors.New(localization.ErrorServiceUnhandledServerError.Code)
+				return model.CPSAction{}, errors.New(localization.ErrorServiceUnhandledServerError.Code)
 			}
 			if prevMerchant.BankAccountNumber != merchant.BankAccountNumber {
 				dto := erp_merchant_update_dto.ERPUpdateRequest{
@@ -126,7 +126,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
@@ -152,7 +152,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
@@ -178,7 +178,7 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
@@ -203,13 +203,13 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 
 	}
 
 	cpsAction.CurrentAction = merchant
 	log.Infof("[LogisMerchSvc][Authorize] done action=%s id=%s", cpsAction.RequestAction, merchant.ID)
-	return cpsAction, nil
+	return *cpsAction, nil
 }
 
 // Create implements service.LogisticsMerchantService.

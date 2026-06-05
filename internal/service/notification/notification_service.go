@@ -286,7 +286,7 @@ func (s *notificationService) FetchNotifications(ctx context.Context, filterPara
 	return entities, nil
 }
 
-func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Notification", "Authorize")
@@ -305,7 +305,7 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 		if notif.ID.IsZero() {
 			notif.ID = bson.NewObjectID()
@@ -316,7 +316,7 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 				attribute.String("error", localization.ErrorInvalidRequest.Code),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 
 		if err := s.repo.Create(ctx, &notif); err != nil {
@@ -325,7 +325,7 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[NotifSvc][Authorize] created")
 
@@ -345,7 +345,7 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 				log.Infof("[NotifSvc][Authorize] broadcast published")
 			}
 		}
-		return action, nil
+		return *action, nil
 
 	case string(constants.RequestUpdatePublicNotification):
 		notif, err := helper.BindNotificationFromAction(action.CurrentAction)
@@ -355,7 +355,7 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 		id := action.UniqueId
 		if !notif.ID.IsZero() {
@@ -367,10 +367,10 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[NotifSvc][Authorize] updated id: %s", id)
-		return action, nil
+		return *action, nil
 
 	case string(constants.RequestDeleteNotification):
 		_, err := helper.BindNotificationFromAction(action.CurrentAction)
@@ -380,7 +380,7 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 		if err := s.repo.Delete(ctx, action.UniqueId); err != nil {
 			log.Errorf("[NotifSvc][Authorize] delete err: %v", err)
@@ -388,10 +388,10 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[NotifSvc][Authorize] deleted id: %s", action.UniqueId)
-		return action, nil
+		return *action, nil
 
 	case string(constants.RequestEnableNotification):
 		_, err := helper.BindNotificationFromAction(action.CurrentAction)
@@ -401,7 +401,7 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 		if _, err := s.repo.EnableDisableNotification(ctx, action.UniqueId, true); err != nil {
 			log.Errorf("[NotifSvc][Authorize] enable err: %v", err)
@@ -409,10 +409,10 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[NotifSvc][Authorize] enabled id: %s", action.UniqueId)
-		return action, nil
+		return *action, nil
 
 	case string(constants.RequestDisableNotification):
 		_, err := helper.BindNotificationFromAction(action.CurrentAction)
@@ -422,7 +422,7 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 		if _, err := s.repo.EnableDisableNotification(ctx, action.UniqueId, false); err != nil {
 			log.Errorf("[NotifSvc][Authorize] disable err: %v", err)
@@ -430,16 +430,16 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[NotifSvc][Authorize] disabled id: %s", action.UniqueId)
-		return action, nil
+		return *action, nil
 	default:
 		log.Errorf("[NotifSvc][Authorize] unsupported: %s", action.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(action.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 }

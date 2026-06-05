@@ -19,6 +19,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	imodel "cbe-super-app-cps-action/internal/constants/model"
+
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -217,7 +218,7 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 	return updateData, nil
 }
 
-func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "DonationCompany", "Authorize")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, d.logger)
@@ -228,7 +229,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 			attribute.String("error", localization.ErrorCPSActionStatusInvalid.Code),
 			attribute.String("unique_id", action.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
 
 	donationCompoany, err := local_util.JsonUnmarshal[imodel.DonationCompanyOracle](action.CurrentAction)
@@ -237,7 +238,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", action.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	switch action.RequestAction {
@@ -249,7 +250,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestUpdateDonationCompany):
 		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
@@ -259,7 +260,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestEnableDonationCompany):
 
@@ -270,7 +271,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestDisableDonationCompany):
 		// 1. Persist the company disable via CPS.
@@ -281,7 +282,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		// 2. Atomically disable all enabled donations that belong to this company.
@@ -291,7 +292,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 				attribute.String("error", localization.ErrorDonationUpdateFailed.Code),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorDonationUpdateFailed.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorDonationUpdateFailed.Code)
 		}
 
 	case string(constants.RequestDeleteDonationCompany):
@@ -302,7 +303,7 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	default:
@@ -311,11 +312,11 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(action.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
 	log.Infof("[DonCompSvc][Authorize] completed: %s", action.RequestAction)
-	return action, nil
+	return *action, nil
 }
 
 // Account lookup end point

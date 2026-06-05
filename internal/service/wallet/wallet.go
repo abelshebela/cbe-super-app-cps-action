@@ -345,20 +345,20 @@ func (s *walletService) GetWalletForGRPC(ctx context.Context, id string) (*local
 	return w, nil
 }
 
-func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "walletService", "walletService")
 	defer span.End()
 
 	b, err := json.Marshal(action.CurrentAction)
 	if err != nil {
-		return nil, err
+		return model.CPSAction{}, err
 	}
 
 	var w map[string]interface{}
 	err = json.Unmarshal(b, &w)
 	if err != nil {
 		span.AddEvent("JsonUnmarshal error", trace.WithAttributes(attribute.String("error", err.Error())))
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 	wallet := core.MapToModel(w, s.logger)
 
@@ -367,16 +367,16 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 		span.AddEvent("Creating wallet", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
 		if strings.TrimSpace(wallet.Name) != "" {
 			if exist, e := s.repo.Find(ctx, "", wallet.Name, ""); e != nil {
-				return nil, e
+				return model.CPSAction{}, e
 			} else if exist != nil {
-				return nil, errors.New(localization.ErrorWalletNameAlreadyExists.Code)
+				return model.CPSAction{}, errors.New(localization.ErrorWalletNameAlreadyExists.Code)
 			}
 		}
 		if strings.TrimSpace(wallet.UniqueCode) != "" {
 			if exist, e := s.repo.Find(ctx, wallet.UniqueCode, "", ""); e != nil {
-				return nil, e
+				return model.CPSAction{}, e
 			} else if exist != nil {
-				return nil, errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
+				return model.CPSAction{}, errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
 			}
 		}
 		err = s.repo.Create(ctx, wallet)
@@ -400,13 +400,13 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 		err = s.repo.EnableOrDisableService(ctx, action.UniqueId, false)
 	default:
 		span.AddEvent("Unsupported action", trace.WithAttributes(attribute.String("action", action.RequestAction)))
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	if err != nil {
-		return nil, err
+		return model.CPSAction{}, err
 	}
 
 	action.CurrentAction = wallet
-	return action, nil
+	return *action, nil
 }

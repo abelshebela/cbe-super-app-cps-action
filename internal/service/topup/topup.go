@@ -125,8 +125,7 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 	}
 
 	if req.Name != "" && prevtopup.Name != req.Name {
-		existingName, err := s.repo.FindByOr(ctx, bson.M{"name":req.Name,
-		})
+		existingName, err := s.repo.FindByOr(ctx, bson.M{"name": req.Name})
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
 				log.Errorf("[TopupSvc][Update] check name err: %v", err)
@@ -139,8 +138,7 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 		}
 	}
 	if req.Code != "" && prevtopup.Code != req.Code {
-		existingCode, err := s.repo.FindByOr(ctx, bson.M{"code":  req.Code,
-		})
+		existingCode, err := s.repo.FindByOr(ctx, bson.M{"code": req.Code})
 		if err != nil {
 			if err.Error() != localization.ErrorResourceNotFound.Code {
 				log.Errorf("[TopupSvc][Update] check code err: %v", err)
@@ -287,7 +285,7 @@ func (s *topupService) GetAllTopup(ctx context.Context, filterParams types.Filte
 	return s.repo.FindAllWithPagination(ctx, filterParams)
 }
 
-func (s *topupService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (s *topupService) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorizetopup", "topupService", "topupService")
@@ -297,7 +295,7 @@ func (s *topupService) Authorize(ctx context.Context, action *model.CPSAction) (
 	topup, err := local_util.JsonUnmarshal[model.Topup](action.CurrentAction)
 	if err != nil {
 		span.AddEvent("JsonUnmarshal error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("action_code", action.ActionCode)))
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	switch action.RequestAction {
@@ -313,14 +311,14 @@ func (s *topupService) Authorize(ctx context.Context, action *model.CPSAction) (
 		err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
 	default:
 
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	if err != nil {
 		span.AddEvent("Topup action error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("action_code", action.ActionCode)))
-		return nil, err
+		return model.CPSAction{}, err
 	}
 
 	action.CurrentAction = topup
-	return action, nil
+	return *action, nil
 }

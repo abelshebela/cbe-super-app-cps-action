@@ -28,7 +28,7 @@ func NewMediaTagsService(repo storage.NewsTagsRepository, logger utils.Logger) s
 	}
 }
 
-func (m *mediaTagsService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (m *mediaTagsService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, m.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Media", "Authorize")
@@ -42,7 +42,7 @@ func (m *mediaTagsService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	switch cpsAction.RequestAction {
@@ -53,7 +53,7 @@ func (m *mediaTagsService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestUpdateNewsTag):
 		err = m.repo.Update(ctx, tags, cpsAction.UniqueId)
@@ -62,7 +62,7 @@ func (m *mediaTagsService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestDeleteNewsTag):
 		err = m.repo.Delete(ctx, cpsAction.UniqueId)
@@ -71,7 +71,7 @@ func (m *mediaTagsService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestEnableNewsTag):
 		err = m.repo.EnableDisable(ctx, cpsAction.UniqueId, true)
@@ -80,7 +80,7 @@ func (m *mediaTagsService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestDisableNewsTag):
 		err = m.repo.EnableDisable(ctx, cpsAction.UniqueId, false)
@@ -89,7 +89,7 @@ func (m *mediaTagsService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	default:
 		log.Errorf("[MediaTagsSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
@@ -97,11 +97,11 @@ func (m *mediaTagsService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 			attribute.String("error", localization.ErrorInvalidRequest.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	cpsAction.CurrentAction = tags
 	log.Infof("[MediaTagsSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, tags.ID)
-	return cpsAction, nil
+	return *cpsAction, nil
 
 }

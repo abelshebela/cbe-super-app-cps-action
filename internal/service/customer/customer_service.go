@@ -411,7 +411,7 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string, di
 	return nil
 }
 
-func (d *customerService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (d *customerService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Customer", "Authorize")
@@ -425,7 +425,7 @@ func (d *customerService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, fmt.Errorf("failed to unmarshal CurrentAction to User: %v", err)
+		return model.CPSAction{}, fmt.Errorf("failed to unmarshal CurrentAction to User: %v", err)
 	}
 
 	switch string(cpsAction.RequestAction) {
@@ -437,7 +437,7 @@ func (d *customerService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[CustomerSvc][Authorize] enable/disable done id: %s", cpsAction.UniqueId)
 	case string(constants.RequestApproveFaydaCustomer):
@@ -448,7 +448,7 @@ func (d *customerService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[CustomerSvc][Authorize] fayda approved id: %s", cpsAction.UniqueId)
 	default:
@@ -457,10 +457,10 @@ func (d *customerService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 			attribute.String("error", localization.MsgInvalidAction),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
-		return nil, fmt.Errorf("%s", localization.MsgInvalidAction)
+		return model.CPSAction{}, fmt.Errorf("%s", localization.MsgInvalidAction)
 	}
 	log.Infof("[CustomerSvc][Authorize] done: %s", cpsAction.RequestAction)
-	return cpsAction, nil
+	return *cpsAction, nil
 }
 
 func (d *customerService) SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error) {

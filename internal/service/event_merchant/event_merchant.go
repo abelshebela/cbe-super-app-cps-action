@@ -41,7 +41,7 @@ type EventMerchantService struct {
 }
 
 // Authorize implements service.EventMerchantService.
-func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "EventMerchant", "Authorize")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, e.logger)
@@ -53,7 +53,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorServiceUnhandledServerError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorServiceUnhandledServerError.Code)
 	}
 
 	switch cpsAction.RequestAction {
@@ -64,7 +64,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
@@ -92,7 +92,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
@@ -104,7 +104,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 					attribute.String("error", err.Error()),
 					attribute.String("unique_id", cpsAction.UniqueId),
 				))
-				return nil, errors.New(localization.ErrorServiceUnhandledServerError.Code)
+				return model.CPSAction{}, errors.New(localization.ErrorServiceUnhandledServerError.Code)
 			}
 			if prevMerchant.BankAccountNumber != merchant.BankAccountNumber {
 				dto := erp_merchant_update_dto.ERPUpdateRequest{
@@ -128,7 +128,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
@@ -154,7 +154,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
@@ -180,7 +180,7 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
@@ -205,13 +205,13 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 
 	}
 
 	cpsAction.CurrentAction = merchant
 	log.Infof("[EventMerchSvc][Authorize] done action=%s id=%s", cpsAction.RequestAction, merchant.ID)
-	return cpsAction, nil
+	return *cpsAction, nil
 }
 
 // Create implements service.EventMerchantService.

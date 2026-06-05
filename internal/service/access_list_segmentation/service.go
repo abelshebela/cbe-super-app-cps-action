@@ -31,7 +31,7 @@ type AccessListSegmentationService struct {
 }
 
 // Authorize implements service.AccessListSegmentationService.
-func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 
 	log.Infof("[AccessListSegSvc][Authorize] id: %s", cpsAction.ID.Hex())
@@ -41,19 +41,19 @@ func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction
 		action, err := local_util.JsonUnmarshal[access_list_segmentation_dto.CreateAccessListSegmentationRequest](cpsAction.CurrentAction)
 		if err != nil {
 			log.Errorf("[AccessListSegSvc][Authorize] unmarshal err: %v", err)
-			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 
 		if action.SegmentType == "block" {
 			if err := a.repo.CreateBlockSegment(ctx, *action); err != nil {
 				log.Errorf("[AccessListSegSvc][Authorize] create block err: %v", err)
-				return nil, err
+				return model.CPSAction{}, err
 			}
 		} else {
 			err := a.repo.CreateAccountSegment(ctx, *action)
 			if err != nil {
 				log.Errorf("[AccessListSegSvc][Authorize] create acct err: %v", err)
-				return nil, err
+				return model.CPSAction{}, err
 			}
 			// publish to kafka
 
@@ -62,33 +62,33 @@ func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction
 		action, err := local_util.JsonUnmarshal[local_model.AccessListSegmentation](cpsAction.CurrentAction)
 		if err != nil {
 			log.Errorf("[AccessListSegSvc][Authorize] unmarshal update err: %v", err)
-			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 		if action.ID == "" {
 			log.Errorf("[AccessListSegSvc][Authorize] missing ID")
-			return nil, errors.New(localization.ErrorAccessListSegmentationInvalidID.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorAccessListSegmentationInvalidID.Code)
 		}
 		if err := a.repo.Update(ctx, action.ID, *action); err != nil {
 			log.Errorf("[AccessListSegSvc][Authorize] update err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestEnableDisableAccessListSegmentation), string(constants.RequestEnableAccessListSegmentation), string(constants.RequestAccessListEnableCustomerSegmentation):
 		bulkDisable, err := local_util.JsonUnmarshal[access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest](cpsAction.CurrentAction)
 		if err != nil {
 			log.Errorf("[AccessListSegSvc][Authorize] unmarshal enable/disable err: %v", err)
-			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 
 		if err := a.repo.BulkDisable(ctx, *bulkDisable); err != nil {
 			log.Errorf("[AccessListSegSvc][Authorize] bulk disable err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		// publish to kafka
 	default:
 		log.Errorf("[AccessListSegSvc][Authorize] unknown: %s", cpsAction.RequestAction)
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
-	return cpsAction, nil
+	return *cpsAction, nil
 }
 
 // CreateAccessListSegmentation implements service.AccessListSegmentationService.

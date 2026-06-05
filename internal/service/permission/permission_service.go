@@ -394,7 +394,7 @@ func (s *permissionService) GetPermissionGroupsByDepartment(ctx context.Context,
 	return department, nil
 }
 
-func (s *permissionService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (s *permissionService) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Permission", "Authorize")
 	defer span.End()
 
@@ -406,7 +406,7 @@ func (s *permissionService) Authorize(ctx context.Context, action *model.CPSActi
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 
 		if err := s.repo.Create(ctx, &cur); err != nil {
@@ -414,9 +414,9 @@ func (s *permissionService) Authorize(ctx context.Context, action *model.CPSActi
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
-		return action, nil
+		return *action, nil
 
 	case string(constants.UPDATE):
 		upd, err := core.BindPermissionGroupFromAction(action.CurrentAction)
@@ -425,7 +425,7 @@ func (s *permissionService) Authorize(ctx context.Context, action *model.CPSActi
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 		existingGroup, err := s.repo.GetPermissionGroupById(ctx, action.UniqueId)
 		if err != nil {
@@ -433,7 +433,7 @@ func (s *permissionService) Authorize(ctx context.Context, action *model.CPSActi
 				attribute.String("error", localization.ErrorResourceNotFound.Code),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorResourceNotFound.Code)
 		}
 
 		// Update using the existing group's ObjectID
@@ -443,16 +443,16 @@ func (s *permissionService) Authorize(ctx context.Context, action *model.CPSActi
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
-		return action, nil
+		return *action, nil
 
 	default:
 		span.AddEvent("Unhandled action type", trace.WithAttributes(
 			attribute.String("error", "UNHANDLED_ACTION_TYPE"),
 			attribute.String("action_type", string(action.ActionType)),
 		))
-		return nil, errors.New("UNHANDLED_ACTION_TYPE")
+		return model.CPSAction{}, errors.New("UNHANDLED_ACTION_TYPE")
 	}
 }
 

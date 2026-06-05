@@ -548,14 +548,14 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 // 	return nil
 // }
 
-func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	log.Infof("[AccBlockSvc][Authorize] action: %s", action.RequestAction)
 
 	actions, err := local_util.JsonUnmarshal[[]types.EnableDisableAction](action.CurrentAction)
 	if err != nil {
 		log.Errorf("[AccBlockSvc][Authorize] unmarshal err: %v", err)
-		return nil, err
+		return model.CPSAction{}, err
 	}
 
 	switch constants.RequestAction(action.RequestAction) {
@@ -566,7 +566,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 		if err := s.repo.EnableOrDisableBranches(ctx, ids, &(*actions)[0].Reason, true); err != nil {
 			log.Errorf("[AccBlockSvc][Authorize] enable branches err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[AccBlockSvc][Authorize] enabled %d branches", len(*actions))
 
@@ -577,7 +577,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 		if err := s.repo.EnableOrDisableBranches(ctx, ids, &(*actions)[0].Reason, false); err != nil {
 			log.Errorf("[AccBlockSvc][Authorize] disable branches err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[AccBlockSvc][Authorize] disabled %d branches", len(*actions))
 
@@ -610,7 +610,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 		if err := s.repo.EnableOrDisableDistricts(ctx, ids, &(*actions)[0].Reason, true); err != nil {
 			log.Errorf("[AccBlockSvc][Authorize] enable districts err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[AccBlockSvc][Authorize] enabled %d districts", len(*actions))
 
@@ -621,7 +621,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 		if err := s.repo.EnableOrDisableDistricts(ctx, ids, &(*actions)[0].Reason, false); err != nil {
 			log.Errorf("[AccBlockSvc][Authorize] disable districts err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[AccBlockSvc][Authorize] disabled %d districts", len(*actions))
 
@@ -632,7 +632,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 		if err := s.repo.EnableOrDisableRegions(ctx, ids, &(*actions)[0].Reason, true); err != nil {
 			log.Errorf("[AccBlockSvc][Authorize] enable regions err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[AccBlockSvc][Authorize] enabled %d regions", len(*actions))
 
@@ -643,19 +643,19 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 		if err := s.repo.EnableOrDisableRegions(ctx, ids, &(*actions)[0].Reason, false); err != nil {
 			log.Errorf("[AccBlockSvc][Authorize] disable regions err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[AccBlockSvc][Authorize] disabled %d regions", len(*actions))
 
 	default:
 		log.Errorf("[AccBlockSvc][Authorize] unsupported: %s", action.RequestAction)
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
 	action.ActionStatus = string(constants.ActionApproved)
 	log.Infof("[AccBlockSvc][Authorize] done: %s", action.RequestAction)
 
-	return action, nil
+	return *action, nil
 }
 
 func (s *accountBlockService) GetAccountBlockDetails(ctx context.Context, id string, filter *types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error) {

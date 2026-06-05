@@ -60,7 +60,7 @@ func (m *miniAppMerchantService) FindByID(ctx context.Context, id string) (*mini
 	return result, nil
 }
 
-func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, m.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "MiniAppMerchant", "Authorize")
@@ -73,7 +73,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	switch cpsAction.RequestAction {
@@ -84,7 +84,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestUpdateMiniAppMerchant):
 		err = m.repo.Update(ctx, cpsAction.UniqueId, merchant)
@@ -93,7 +93,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestDeleteMiniAppMerchant):
 		err = m.repo.Delete(ctx, cpsAction.UniqueId)
@@ -102,13 +102,13 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		if err == nil {
 			err := m.miniRepo.DeleteManyByMerchantIDs(ctx, cpsAction.UniqueId)
 			if err != nil {
 				log.Errorf("[MiniMerchSvc][Authorize] cascade delete err id: %s: %v", cpsAction.UniqueId, err)
-				return nil, errors.New(localization.ErrorUnexpectedError.Code)
+				return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 			}
 		}
 	case string(constants.RequestEnableMiniAppMerchant):
@@ -118,7 +118,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestDisableMiniAppMerchant):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
@@ -127,13 +127,13 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		if err == nil {
 			err := m.miniRepo.DisableManyByMerchantIDs(ctx, cpsAction.UniqueId)
 			if err != nil {
 				log.Errorf("[MiniMerchSvc][Authorize] cascade disable err id: %s: %v", cpsAction.UniqueId, err)
-				return nil, errors.New(localization.ErrorUnexpectedError.Code)
+				return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 			}
 		}
 	default:
@@ -142,15 +142,15 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
 	if err != nil {
 		log.Errorf("[MiniMerchSvc][Authorize] process err: %v", err)
-		return nil, err
+		return model.CPSAction{}, err
 	}
 
 	cpsAction.CurrentAction = merchant
 	log.Infof("[MiniMerchSvc][Authorize] completed action: %s id: %s", cpsAction.RequestAction, merchant.ID)
-	return cpsAction, nil
+	return *cpsAction, nil
 }

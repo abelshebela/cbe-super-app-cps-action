@@ -565,7 +565,7 @@ func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filte
 	return users, nil
 }
 
-func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "CPSUser", "Authorize")
 	defer span.End()
 
@@ -581,13 +581,13 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 		// cur, err := core.BindCPSUserFromAction(action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to bind cps user from action", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 		if err := s.repo.Create(ctx, cur); err != nil {
 			span.AddEvent("failed to create user", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return model.CPSAction{}, err
 		}
-		return action, nil
+		return *action, nil
 
 	case string(constants.RequestCpsUserUpdate):
 		userFromAction, err := local_util.JsonUnmarshal[cpsuser.CpsUserPopulatedResponse](action.CurrentAction)
@@ -596,26 +596,26 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 		// cur, err := core.BindCPSUserUpdateFromAction(action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to bind cps user update from action", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 
 		if err := s.repo.Update(ctx, action.UniqueId, cur); err != nil {
 			span.AddEvent("failed to update user", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return model.CPSAction{}, err
 		}
-		return action, nil
+		return *action, nil
 
 	case string(constants.RequestCpsUserDelete):
 		_, err := core.BindCPSUserFromAction(action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to bind cps user from action", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 		if err := s.repo.Delete(ctx, action.UniqueId); err != nil {
 			span.AddEvent("failed to delete user", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return model.CPSAction{}, err
 		}
-		return action, nil
+		return *action, nil
 
 	case string(constants.RequestCpsUserEnable):
 		_, err := local_util.JsonUnmarshal[cpsuser.CpsUserPopulatedResponse](action.CurrentAction)
@@ -623,13 +623,13 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 		// cur := core.MapFromPopulatedResponse(userFromAction)
 		if err != nil {
 			span.AddEvent("failed to bind cps user from action", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 		if err := s.repo.EnableOrDisable(ctx, action.UniqueId, true); err != nil {
 			span.AddEvent("failed to enable user", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return model.CPSAction{}, err
 		}
-		return action, nil
+		return *action, nil
 
 	case string(constants.RequestCpsUserDisable):
 		// _, err := core.BindCPSUserFromAction(action.CurrentAction)
@@ -637,15 +637,15 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 
 		if err != nil {
 			span.AddEvent("failed to bind cps user from action", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 		if err := s.repo.EnableOrDisable(ctx, action.UniqueId, false); err != nil {
 			span.AddEvent("failed to disable user", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
+			return model.CPSAction{}, err
 		}
-		return action, nil
+		return *action, nil
 	}
 
 	span.AddEvent("unhandled server error", trace.WithAttributes(attribute.String("error", "unhandled server error")))
-	return nil, errors.New("UNHANDLED_SERVER_ERROR")
+	return model.CPSAction{}, errors.New("UNHANDLED_SERVER_ERROR")
 }

@@ -178,46 +178,46 @@ func (s *customerGroupService) FindByID(ctx context.Context, id string) (*imodel
 	return s.repo.FindByID(ctx, id)
 }
 
-func (s *customerGroupService) Authorize(ctx context.Context, action *shared_model.CPSAction) (*shared_model.CPSAction, error) {
+func (s *customerGroupService) Authorize(ctx context.Context, action *shared_model.CPSAction) (shared_model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	log.Infof("[CustomerGroup][Authorize] action: %s", action.RequestAction)
 
 	seg, err := local_util.JsonUnmarshal[imodel.Segment](action.CurrentAction)
 	if err != nil || seg == nil {
 		log.Errorf("[CustomerGroup][Authorize] unmarshal err: %v", err)
-		return nil, err
+		return shared_model.CPSAction{}, err
 	}
 
 	switch action.RequestAction {
 	case string(constants.RequestCreateCustomerGroup):
 		if err := s.repo.Create(ctx, seg); err != nil {
 			log.Errorf("[CustomerGroup][Authorize] create err: %v", err)
-			return nil, err
+			return shared_model.CPSAction{}, err
 		}
 	case string(constants.RequestUpdateCustomerGroup):
 		if err := s.repo.Update(ctx, action.UniqueId, seg); err != nil {
 			log.Errorf("[CustomerGroup][Authorize] update err: %v", err)
-			return nil, err
+			return shared_model.CPSAction{}, err
 		}
 	case string(constants.RequestDeleteCustomerGroup):
 		if err := s.repo.Delete(ctx, action.UniqueId); err != nil {
 			log.Errorf("[CustomerGroup][Authorize] delete err: %v", err)
-			return nil, err
+			return shared_model.CPSAction{}, err
 		}
 	case string(constants.RequestEnableCustomerGroup):
 		if err := s.repo.EnableOrDisable(ctx, action.UniqueId, true); err != nil {
 			log.Errorf("[CustomerGroup][Authorize] enable err: %v", err)
-			return nil, err
+			return shared_model.CPSAction{}, err
 		}
 	case string(constants.RequestDisableCustomerGroup):
 		if err := s.repo.EnableOrDisable(ctx, action.UniqueId, false); err != nil {
 			log.Errorf("[CustomerGroup][Authorize] disable err: %v", err)
-			return nil, err
+			return shared_model.CPSAction{}, err
 		}
 	default:
 		log.Errorf("[CustomerGroup][Authorize] unsupported action: %s", action.RequestAction)
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return shared_model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
-	return action, nil
+	return *action, nil
 }

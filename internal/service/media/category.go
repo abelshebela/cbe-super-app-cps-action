@@ -28,7 +28,7 @@ func NewMediaCategoryService(repo storage.ArticleCategoryRepository, logger util
 	}
 }
 
-func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, m.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Media", "Authorize")
@@ -42,7 +42,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	switch cpsAction.RequestAction {
@@ -53,7 +53,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestUpdateArticleCategory):
 		err = m.repo.UpdateArticleCategory(ctx, category, cpsAction.UniqueId)
@@ -62,7 +62,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestDeleteArticleCategory):
 		err = m.repo.DeleteArticleCategory(ctx, cpsAction.UniqueId)
@@ -71,7 +71,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestEnableArticleCategory):
 		err = m.repo.EnableOrDisableArticleCategory(ctx, cpsAction.UniqueId, true)
@@ -80,7 +80,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestDisableArticleCategory):
 		err = m.repo.EnableOrDisableArticleCategory(ctx, cpsAction.UniqueId, false)
@@ -89,7 +89,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	default:
 		log.Errorf("[MediaCatSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
@@ -97,11 +97,11 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 			attribute.String("error", localization.ErrorInvalidRequest.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	cpsAction.CurrentAction = category
 	log.Infof("[MediaCatSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, category.ID)
-	return cpsAction, nil
+	return *cpsAction, nil
 
 }

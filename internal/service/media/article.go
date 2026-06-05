@@ -31,7 +31,7 @@ func NewMediaService(repo storage.ArticleRepository, cache storage.RedisReposito
 	}
 }
 
-func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, m.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Media", "Authorize")
@@ -49,7 +49,7 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	switch cpsAction.RequestAction {
@@ -60,7 +60,7 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestUpdateArticle):
 		err = m.repo.UpdateArticle(ctx, article.ToNewsArticle(), cpsAction.UniqueId)
@@ -69,7 +69,7 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		cacheKey := fmt.Sprintf(NewsArticleCacheKeyPattern, cpsAction.UniqueId)
@@ -83,7 +83,7 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		cacheKey := fmt.Sprintf(NewsArticleCacheKeyPattern, cpsAction.UniqueId)
@@ -97,7 +97,7 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		cacheKey := fmt.Sprintf(NewsArticleCacheKeyPattern, cpsAction.UniqueId)
@@ -111,7 +111,7 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		cacheKey := fmt.Sprintf(NewsArticleCacheKeyPattern, cpsAction.UniqueId)
@@ -124,11 +124,11 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 			attribute.String("error", localization.ErrorInvalidRequest.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	cpsAction.CurrentAction = article
 	log.Infof("[ArticleSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, article.ID)
 
-	return cpsAction, nil
+	return *cpsAction, nil
 }

@@ -50,7 +50,7 @@ func NewBPSUserService(repo storage.BPSUserRepository, JobRolesRepo storage.JobR
 }
 
 // Authorize implements service.BPSUserService.
-func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "BPS User", "Authorize")
 	defer span.End()
 
@@ -62,7 +62,7 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
 		fmt.Printf("failed to marshal CurrentAction: %v\n", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	fmt.Printf("JSON bytes: %s\n", string(marshaled))
 	err = json.Unmarshal(marshaled, &actionMap)
@@ -72,7 +72,7 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
 		fmt.Printf("failed to unmarshal CurrentAction: %v\n", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	actionData := bps_user_core.BPSUser_mapper(actionMap.(map[string]interface{}))
@@ -84,7 +84,7 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			b.logger.Errorf("[BpsUserSvc][Authorize] parse unique id err: %v", err)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		actionData.ID = objID
 	}
@@ -100,10 +100,10 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			b.logger.Errorf("[BpsUserSvc][Authorize] create err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		b.logger.Infof("[BpsUserSvc][Authorize] created")
-		return nil, nil
+		return model.CPSAction{}, nil
 	case string(constants.RequestBpsUserUpdate):
 		if err := b.repo.Update(ctx, &actionData); err != nil {
 			span.AddEvent("[Authorize] failed to update BPS user", trace.WithAttributes(
@@ -111,10 +111,10 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			b.logger.Errorf("[BpsUserSvc][Authorize] update err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		b.logger.Infof("[BpsUserSvc][Authorize] updated id: %s", cpsAction.UniqueId)
-		return nil, nil
+		return model.CPSAction{}, nil
 	case string(constants.RequestBpsUserDelete):
 		actionData.IsDeleted = true
 		if err := b.repo.Update(ctx, &actionData); err != nil {
@@ -123,10 +123,10 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			b.logger.Errorf("[BpsUserSvc][Authorize] delete err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		b.logger.Infof("[BpsUserSvc][Authorize] soft-deleted id: %s", cpsAction.UniqueId)
-		return nil, nil
+		return model.CPSAction{}, nil
 	case string(constants.RequestEnableBPSUser):
 		actionData.Enabled = true
 		b.logger.Infof("[BpsUserSvc][Authorize] enabling id: %s", cpsAction.UniqueId)
@@ -137,7 +137,7 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	default:
 		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", cpsAction.RequestAction)))
 		b.logger.Errorf("[BpsUserSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
-		return nil, errors.New(localization.ErrorActionNotFound.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorActionNotFound.Code)
 	}
 	if err := b.repo.Update(ctx, &actionData); err != nil {
 		span.AddEvent("[Authorize] failed to update BPS user", trace.WithAttributes(
@@ -145,10 +145,10 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
 		b.logger.Errorf("[BpsUserSvc][Authorize] update err: %v", err)
-		return nil, err
+		return model.CPSAction{}, err
 	}
 	b.logger.Infof("[BpsUserSvc][Authorize] authorized id: %s", cpsAction.UniqueId)
-	return nil, nil
+	return model.CPSAction{}, nil
 }
 
 // FetchUserByUserCode implements service.BPSUserService.

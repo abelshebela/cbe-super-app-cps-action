@@ -360,7 +360,7 @@ func (s *customerKYCService) PickKycReview(ctx context.Context, id string, reaso
 	return nil
 }
 
-func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "CustomerKYC", "Authorize")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, s.logger)
@@ -370,7 +370,7 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 	case string(constants.RequestApproveCustomerKYC):
 		userData, err := local_util.JsonUnmarshal[imodel.CustomerKYC](cpsAction.CurrentAction)
 		if err != nil {
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		var fistName, middleName, lastName string
@@ -413,62 +413,62 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.logger)
 		if err != nil {
 			log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		if err = s.repo.CreateUser(ctx, userAccount, *userData); err != nil {
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		if err = s.repo.UpdateKYCStatus(ctx, cpsAction.UniqueId, string(constants.KYCStatusApproved), "", true); err != nil {
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		existingReview, err := s.repo.FindKycInReview(ctx, cpsAction.UniqueId)
 		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		existingReview.ReviewStatus = string(constants.KYCStatusApproved)
 		_, err = s.repo.UpdateKycReview(ctx, cpsAction.UniqueId, existingReview)
 		if err != nil {
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 	case string(constants.RequestRejectCustomerKYC):
 		userData, err := local_util.JsonUnmarshal[imodel.CustomerKYC](cpsAction.CurrentAction)
 		if err != nil {
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		rejectionReason := strings.TrimSpace(userData.KYCRejectReason)
 		if rejectionReason == "" {
-			return nil, errors.New("rejection reason is required")
+			return model.CPSAction{}, errors.New("rejection reason is required")
 		}
 
 		if err = s.repo.UpdateKYCStatus(ctx, cpsAction.UniqueId, string(constants.KYCStatusRejected), rejectionReason, false); err != nil {
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		existingReview, err := s.repo.FindKycInReview(ctx, cpsAction.UniqueId)
 		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 			log.Errorf("[CustKycSvc][Authorize] failed to check existing review: %v", err)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		existingReview.ReviewStatus = string(constants.KYCStatusRejected)
 		_, err = s.repo.UpdateKycReview(ctx, cpsAction.UniqueId, existingReview)
 		if err != nil {
 			log.Errorf("[CustKycSvc][Authorize] failed to update review status: %v", err)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 	case string(constants.RequestPickKycReview):
 		reviewData, err := local_util.JsonUnmarshal[imodel.StartedKycReview](cpsAction.CurrentAction)
 		if err != nil {
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		// Set a new expiration time for the review to be picked by another reviewer if the current reviewer fails to complete the review in time
 		existingReview, err := s.repo.FindKycInReview(ctx, cpsAction.UniqueId)
 		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 			log.Errorf("[CustKycSvc][Authorize] failed to check existing review: %v", err)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		now := time.Now()
 		existingReview.PickedAt = &now
@@ -482,9 +482,9 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 		_, err = s.repo.UpdateKycReview(ctx, cpsAction.UniqueId, existingReview)
 		if err != nil {
 			log.Errorf("[CustKycSvc][Authorize] failed to update review expiration: %v", err)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 		}
-		return cpsAction, nil
+		return *cpsAction, nil
 
 	// case string(constants.RequestCreateCustomerKYC):
 	// 	data, err := local_util.JsonUnmarshal[imodel.CustomerKYC](cpsAction.CurrentAction)
@@ -507,8 +507,8 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 	// 		return nil, err
 	// 	}
 	default:
-		return nil, fmt.Errorf("unsupported action: %s", cpsAction.RequestAction)
+		return model.CPSAction{}, fmt.Errorf("unsupported action: %s", cpsAction.RequestAction)
 	}
 
-	return cpsAction, nil
+	return *cpsAction, nil
 }

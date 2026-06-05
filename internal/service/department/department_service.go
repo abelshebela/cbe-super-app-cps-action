@@ -46,7 +46,7 @@ func NewDepartmentService(repo storage.DepartmentRepository, cpsService service.
 }
 
 // Authorize implements service.DepartmentService.
-func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Department", "Authorize")
@@ -61,7 +61,7 @@ func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSA
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
+		return model.CPSAction{}, fmt.Errorf("failed to marshal CurrentAction: %v", err)
 	}
 	err = json.Unmarshal(b, &actionMap)
 	if err != nil {
@@ -70,7 +70,7 @@ func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSA
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, fmt.Errorf("failed to unmarshal to interface{}: %v", err)
+		return model.CPSAction{}, fmt.Errorf("failed to unmarshal to interface{}: %v", err)
 	}
 
 	actionData := department_core.Department_mapper(actionMap)
@@ -81,7 +81,7 @@ func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSA
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		actionData.ID = objID
 	}
@@ -96,7 +96,7 @@ func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSA
 				attribute.String("error", err.Error()),
 				attribute.String("id", actionData.ID.Hex()),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[DeptSvc][Authorize] created id: %s", actionData.ID.Hex())
 	case string(constants.RequestDeleteDepartment):
@@ -107,7 +107,7 @@ func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSA
 				attribute.String("error", err.Error()),
 				attribute.String("id", actionData.ID.Hex()),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[DeptSvc][Authorize] deleted id: %s", actionData.ID.Hex())
 	case string(constants.RequestEnableDisableDepartment):
@@ -118,7 +118,7 @@ func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSA
 				attribute.String("error", err.Error()),
 				attribute.String("id", actionData.ID.Hex()),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[DeptSvc][Authorize] toggled id: %s, enabled: %v", actionData.ID.Hex(), actionData.Enabled)
 	case string(constants.RequestUpdateDepartment):
@@ -129,7 +129,7 @@ func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSA
 				attribute.String("error", err.Error()),
 				attribute.String("id", actionData.ID.Hex()),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[DeptSvc][Authorize] updated id: %s", actionData.ID.Hex())
 	default:
@@ -138,10 +138,10 @@ func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSA
 			attribute.String("error", localization.MsgDepartmentInvalidRequestAction),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
-		return nil, fmt.Errorf("%s", localization.MsgDepartmentInvalidRequestAction)
+		return model.CPSAction{}, fmt.Errorf("%s", localization.MsgDepartmentInvalidRequestAction)
 	}
 	log.Infof("[DeptSvc][Authorize] authorized: %s", cpsAction.RequestAction)
-	return cpsAction, nil
+	return *cpsAction, nil
 }
 
 // CreateDepartment implements service.DepartmentService.

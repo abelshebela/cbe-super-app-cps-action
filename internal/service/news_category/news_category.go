@@ -35,7 +35,7 @@ func NewNewsCategoryService(repo storage.NewsCategoryRepository, cpsService serv
 }
 
 // Authorize implements service.NewsCategoryService.
-func (n *NewsCategoryService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (n *NewsCategoryService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, n.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "NewsCategory", "Authorize")
@@ -50,7 +50,7 @@ func (n *NewsCategoryService) Authorize(ctx context.Context, cpsAction *model.CP
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, fmt.Errorf("failed to unmarshal CurrentAction to NewsCategoryCPSAction: %v", err)
+		return model.CPSAction{}, fmt.Errorf("failed to unmarshal CurrentAction to NewsCategoryCPSAction: %v", err)
 	}
 
 	switch string(cpsAction.RequestAction) {
@@ -63,7 +63,7 @@ func (n *NewsCategoryService) Authorize(ctx context.Context, cpsAction *model.CP
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[NewsCatSvc][Authorize] created")
 	case string(constants.RequestUpdateNewsCategory):
@@ -75,10 +75,10 @@ func (n *NewsCategoryService) Authorize(ctx context.Context, cpsAction *model.CP
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[NewsCatSvc][Authorize] updated id: %s", actionData.ID.Hex())
-		return cpsAction, nil
+		return *cpsAction, nil
 
 	case string(constants.RequestDeleteNewsCategory):
 		log.Infof("[NewsCatSvc][Authorize] deleting id: %s", actionData.ID.Hex())
@@ -89,10 +89,10 @@ func (n *NewsCategoryService) Authorize(ctx context.Context, cpsAction *model.CP
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[NewsCatSvc][Authorize] deleted id: %s", actionData.ID.Hex())
-		return cpsAction, nil
+		return *cpsAction, nil
 
 	default:
 		log.Errorf("[NewsCatSvc][Authorize] invalid: %s", cpsAction.RequestAction)
@@ -100,10 +100,10 @@ func (n *NewsCategoryService) Authorize(ctx context.Context, cpsAction *model.CP
 			attribute.String("error", localization.MsgInvalidAction),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
-		return nil, fmt.Errorf("%s", localization.MsgInvalidAction)
+		return model.CPSAction{}, fmt.Errorf("%s", localization.MsgInvalidAction)
 	}
 	log.Infof("[NewsCatSvc][Authorize] done: %s", cpsAction.RequestAction)
-	return cpsAction, nil
+	return *cpsAction, nil
 }
 
 // CreateNewsCategory implements service.NewsCategoryService.

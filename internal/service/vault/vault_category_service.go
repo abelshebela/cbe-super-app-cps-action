@@ -397,7 +397,7 @@ func (s *vaultCategoryService) DisableVaultCategory(ctx context.Context, id stri
 	return s.cpsService.CreateCPSAction(ctx, &cpsActionModel)
 }
 
-func (s *vaultCategoryService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (s *vaultCategoryService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "AuthorizeVaultCategory", "vaultCategoryService", "vaultCategoryService")
@@ -407,7 +407,7 @@ func (s *vaultCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 	if err != nil {
 		span.AddEvent("Failed to marshal CurrentAction", trace.WithAttributes(attribute.String("error", err.Error())))
 		log.Errorf("[VaultCatSvc][Authorize] marshal err: %v", err)
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	switch cpsAction.RequestAction {
@@ -418,7 +418,7 @@ func (s *vaultCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 		if err != nil {
 			span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(attribute.String("error", err.Error())))
 			log.Errorf("[VaultCatSvc][Authorize] unmarshal create err: %v", err)
-			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 
 		actionData := helperr.CategoryMapper(actionMap.(map[string]interface{}))
@@ -427,7 +427,7 @@ func (s *vaultCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 		if err != nil {
 			span.AddEvent("Failed to create vault category", trace.WithAttributes(attribute.String("error", err.Error())))
 			log.Errorf("[VaultCatSvc][Authorize] create err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestUpdateVaultCategory):
 		span.AddEvent("RequestUpdateVaultCategory", trace.WithAttributes(attribute.String("id", cpsAction.UniqueId)))
@@ -436,7 +436,7 @@ func (s *vaultCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 		if err != nil {
 			span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(attribute.String("error", err.Error())))
 			log.Errorf("[VaultCatSvc][Authorize] unmarshal update err: %v", err)
-			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 
 		actionData := helperr.CategoryMapper(actionMap.(map[string]interface{}))
@@ -444,34 +444,34 @@ func (s *vaultCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 		if err := s.repo.Update(ctx, cpsAction.UniqueId, &actionData); err != nil {
 			span.AddEvent("Failed to update vault category", trace.WithAttributes(attribute.String("error", err.Error())))
 			if err.Error() == localization.ErrorDuplicateVaultCategory.Code {
-				return nil, err
+				return model.CPSAction{}, err
 			}
 			log.Errorf("[VaultCatSvc][Authorize] update err: %v", err)
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 	case string(constants.RequestDeleteVaultCategory):
 		span.AddEvent("RequestDeleteVaultCategory", trace.WithAttributes(attribute.String("id", cpsAction.UniqueId)))
 		if _, err := s.repo.Delete(ctx, cpsAction.UniqueId); err != nil {
 			span.AddEvent("Failed to delete vault category", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 		}
-		return cpsAction, nil
+		return *cpsAction, nil
 
 	case string(constants.RequestEnableVaultCategory):
 		span.AddEvent("RequestEnableVaultCategory", trace.WithAttributes(attribute.String("id", cpsAction.UniqueId)))
 		if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true); err != nil {
 			span.AddEvent("Failed to enable vault category", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 		}
-		return cpsAction, nil
+		return *cpsAction, nil
 
 	case string(constants.RequestDisAbleVaultCategory):
 		span.AddEvent("RequestDisAbleVaultCategory", trace.WithAttributes(attribute.String("id", cpsAction.UniqueId)))
 		if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false); err != nil {
 			span.AddEvent("Failed to disable vault category", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 		}
-		return cpsAction, nil
+		return *cpsAction, nil
 
 	// case string(constants.RequestCreateWithdrawal):
 	// 	span.AddEvent("RequestCreateWithdrawal", trace.WithAttributes(attribute.String("id", cpsAction.UniqueId)))
@@ -510,9 +510,9 @@ func (s *vaultCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 		if err := s.AuthorizeDeadlockStatusUpdate(ctx, cpsAction.UniqueId, "DISABLED"); err != nil {
 			span.AddEvent("Failed to update deadlock request", trace.WithAttributes(attribute.String("error", err.Error())))
 			log.Errorf("[VaultCatSvc][Authorize] deadlock update err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
-		return cpsAction, nil
+		return *cpsAction, nil
 	}
-	return cpsAction, nil
+	return *cpsAction, nil
 }

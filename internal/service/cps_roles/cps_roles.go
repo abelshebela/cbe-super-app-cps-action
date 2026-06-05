@@ -252,7 +252,7 @@ func (r *cpsRoleService) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *cpsRoleService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (r *cpsRoleService) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	log.Infof("[CpsRoleSvc][Authorize] action: %s", action.RequestAction)
@@ -264,16 +264,16 @@ func (r *cpsRoleService) Authorize(ctx context.Context, action *model.CPSAction)
 		err = r.repo.Delete(ctx, action.UniqueId)
 		if err != nil {
 			log.Errorf("[CpsRoleSvc][Authorize] operation err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[CpsRoleSvc][Authorize] completed: %s", action.RequestAction)
-		return action, nil
+		return *action, nil
 	}
 
 	role, marshal_err := local_util.JsonUnmarshal[imodel.CPSRoles](action.CurrentAction)
 	if marshal_err != nil || role == nil {
 		log.Errorf("[CpsRoleSvc][Authorize] unmarshal err: %v", marshal_err)
-		return nil, marshal_err
+		return model.CPSAction{}, marshal_err
 	}
 
 	switch action.RequestAction {
@@ -287,14 +287,14 @@ func (r *cpsRoleService) Authorize(ctx context.Context, action *model.CPSAction)
 		err = r.repo.EnableOrDisable(ctx, action.UniqueId, false)
 	default:
 		log.Errorf("[CpsRoleSvc][Authorize] unsupported action: %s", action.RequestAction)
-		return nil, errors.New("unsupported action")
+		return model.CPSAction{}, errors.New("unsupported action")
 	}
 
 	if err != nil {
 		log.Errorf("[CpsRoleSvc][Authorize] operation err: %v", err)
-		return nil, err
+		return model.CPSAction{}, err
 	}
 
 	log.Infof("[CpsRoleSvc][Authorize] completed: %s", action.RequestAction)
-	return action, nil
+	return *action, nil
 }

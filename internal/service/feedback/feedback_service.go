@@ -33,7 +33,7 @@ func NewFeedbackService(repo storage.FeedbackRepository, memberRepo storage.Cust
 	}
 }
 
-func (f *feedbackService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (f *feedbackService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, f.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Feedback", "Authorize")
@@ -44,7 +44,7 @@ func (f *feedbackService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 	// For now, return the action as approved
 	cpsAction.ActionStatus = "APPROVED"
 	log.Infof("[FeedbackSvc][Authorize] authorized")
-	return cpsAction, nil
+	return *cpsAction, nil
 }
 
 func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.FeedbackRequest, userCode string) (*local_model.Feedback, error) {

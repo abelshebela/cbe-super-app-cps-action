@@ -247,7 +247,7 @@ func (d *DonationCategory) UpdateDonationCategory(ctx context.Context, id string
 	}, nil
 }
 
-func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "DonationCategory", "Authorize")
@@ -260,7 +260,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 			attribute.String("error", localization.ErrorCPSActionStatusInvalid.Code),
 			attribute.String("unique_id", action.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
 	var donationCPS *imodel.DonationCategoryOracle
 	bindErr := core.BindAction(action.CurrentAction, &donationCPS)
@@ -270,7 +270,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 			attribute.String("error", bindErr.Error()),
 			attribute.String("unique_id", action.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorCPSActionFailed.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorCPSActionFailed.Code)
 	}
 
 	switch action.RequestAction {
@@ -283,7 +283,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestUpdateDonationCategory):
@@ -294,7 +294,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestEnableDonationCategory):
@@ -305,7 +305,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestDisableDonationCategory):
 		err := d.DonationCategoryRepo.EnableDisable(ctx, action.UniqueId, false)
@@ -315,7 +315,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestDeleteDonationCategory):
 		err := d.DonationCategoryRepo.Delete(ctx, action.UniqueId)
@@ -325,7 +325,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	default:
@@ -334,11 +334,11 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(action.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
 	log.Infof("[DonCatSvc][Authorize] completed: %s", action.RequestAction)
-	return action, nil
+	return *action, nil
 
 }
 

@@ -199,7 +199,7 @@ func (s *customerSegmentationService) Delete(ctx context.Context, id string) err
 	return nil
 }
 
-func (s *customerSegmentationService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (s *customerSegmentationService) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	log.Infof("[CustSegSvc][Authorize] action: %s", action.RequestAction)
 
@@ -213,49 +213,49 @@ func (s *customerSegmentationService) Authorize(ctx context.Context, action *mod
 		err = s.repo.Delete(ctx, action.UniqueId)
 		if err != nil {
 			log.Errorf("[CustSegSvc][Authorize] delete err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[CustSegSvc][Authorize] deleted")
-		return action, nil
+		return *action, nil
 	}
 
 	seg, marshal_err := local_util.JsonUnmarshal[imodel.CustomerSegmentation](action.CurrentAction)
 	if marshal_err != nil || seg == nil {
 		log.Errorf("[CustSegSvc][Authorize] unmarshal err: %v", marshal_err)
-		return nil, marshal_err
+		return model.CPSAction{}, marshal_err
 	}
 	switch action.RequestAction {
 	case string(constants.RequestCreateCustomerSegmentation):
 		err = s.repo.Create(ctx, seg)
 		if err != nil {
 			log.Errorf("[CustSegSvc][Authorize] create err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[CustSegSvc][Authorize] created")
 	case string(constants.RequestUpdateCustomerSegmentation):
 		err = s.repo.Update(ctx, action.UniqueId, seg)
 		if err != nil {
 			log.Errorf("[CustSegSvc][Authorize] update err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[CustSegSvc][Authorize] updated")
 	case string(constants.RequestEnableCustomerSegmentation):
 		err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
 		if err != nil {
 			log.Errorf("[CustSegSvc][Authorize] enable err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[CustSegSvc][Authorize] enabled")
 	case string(constants.RequestDisableCustomerSegmentation):
 		err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
 		if err != nil {
 			log.Errorf("[CustSegSvc][Authorize] disable err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[CustSegSvc][Authorize] disabled")
 	default:
 		log.Errorf("[CustSegSvc][Authorize] unsupported action: %s", action.RequestAction)
-		return nil, errors.New("unsupported action")
+		return model.CPSAction{}, errors.New("unsupported action")
 	}
-	return action, nil
+	return *action, nil
 }

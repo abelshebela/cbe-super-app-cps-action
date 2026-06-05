@@ -32,7 +32,7 @@ func NewMiniAppService(repo storage.MiniAppRepository, merchantService service.M
 	}
 }
 
-func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "MiniApp", "Authorize")
@@ -46,7 +46,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	switch cpsAction.RequestAction {
@@ -68,7 +68,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestUpdateMiniApp):
@@ -88,7 +88,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestDeleteMiniApp):
@@ -98,7 +98,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestEnableMiniApp):
@@ -118,7 +118,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestDisableMiniApp):
@@ -128,7 +128,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	default:
@@ -137,19 +137,19 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 			attribute.String("error", localization.ErrorInvalidRequest.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	if err != nil {
 		log.Errorf("[MiniAppSvc][Authorize] process err: %v", err)
-		return nil, err
+		return model.CPSAction{}, err
 	}
 
 	cpsAction.ActionStatus = "APPROVED"
 	cpsAction.CurrentAction = miniApp
 	log.Infof("[MiniAppSvc][Authorize] approved action: %s app: %s", cpsAction.RequestAction, miniApp.AppName)
 
-	return cpsAction, nil
+	return *cpsAction, nil
 }
 
 func (s *miniAppService) ValidMerchant(MerchantID string, ctx context.Context, merchantService service.MiniAppMerchant) error {

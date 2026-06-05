@@ -55,7 +55,7 @@ func NewBudgetCategoryService(
 	}
 }
 
-func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, b.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Budget Category", "Authorize")
@@ -75,7 +75,7 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 			attribute.String("unique_id", action.UniqueId),
 		))
 		log.Errorf("[BudgetCatSvc][Authorize] unmarshal err: %v", marshalErr)
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	switch action.RequestAction {
@@ -87,7 +87,7 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 				attribute.String("unique_id", action.UniqueId),
 			))
 			log.Errorf("[BudgetCatSvc][Authorize] create err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[BudgetCatSvc][Authorize] created")
 	case string(constants.RequestUpdateBudgetCategory):
@@ -98,7 +98,7 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 				attribute.String("unique_id", action.UniqueId),
 			))
 			log.Errorf("[BudgetCatSvc][Authorize] update err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[BudgetCatSvc][Authorize] updated id: %s", action.UniqueId)
 	case string(constants.RequestDisableBudgetCategory):
@@ -111,7 +111,7 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 				attribute.String("unique_id", action.UniqueId),
 			))
 			log.Errorf("[BudgetCatSvc][Authorize] disable err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[BudgetCatSvc][Authorize] disabled id: %s", action.UniqueId)
 	case string(constants.RequestEnableBudgetCategory):
@@ -122,7 +122,7 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 				attribute.String("unique_id", action.UniqueId),
 			))
 			log.Errorf("[BudgetCatSvc][Authorize] enable err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[BudgetCatSvc][Authorize] enabled id: %s", action.UniqueId)
 	case string(constants.RequestDeleteBudgetCategory):
@@ -133,18 +133,18 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 				attribute.String("unique_id", action.UniqueId),
 			))
 			log.Errorf("[BudgetCatSvc][Authorize] delete err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[BudgetCatSvc][Authorize] deleted id: %s", action.UniqueId)
 	default:
 		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", action.RequestAction)))
 		log.Errorf("[BudgetCatSvc][Authorize] unsupported: %s", action.RequestAction)
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	action.ActionStatus = (string)(constants.Approved)
 	log.Infof("[BudgetCatSvc][Authorize] done: %s", action.RequestAction)
-	return action, nil
+	return *action, nil
 }
 
 func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req budget_category_dto.CreateBudgetRequest) error {

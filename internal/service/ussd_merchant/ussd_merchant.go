@@ -323,7 +323,7 @@ func (s *ussdMerchantService) UpdateUssdMerchant(ctx context.Context, id string,
 	return nil
 }
 
-func (s *ussdMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (s *ussdMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "AuthorizeUssdMerchant", "UssdMerchant", "Authorize")
@@ -335,42 +335,42 @@ func (s *ussdMerchantService) Authorize(ctx context.Context, cpsAction *model.CP
 	curMerchant, err = local_util.JsonUnmarshal[imodel.UssdMerchant](cpsAction.CurrentAction)
 	if err != nil {
 		log.Errorf("[UssdMerchSvc][Authorize] unmarshal err: %v", err)
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	switch action {
 	case string(constants.RequestCreateUssdMerchant):
 		if err := s.repo.Create(ctx, *curMerchant); err != nil {
 			log.Errorf("[UssdMerchSvc][Authorize] create err: %v", err)
-			return nil, errors.New(localization.ErrorUnhandledServer.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorUnhandledServer.Code)
 		}
 	case string(constants.RequestUpdateUssdMerchant):
 		update := core.ModelToBson(curMerchant)
 		if err := s.repo.Update(ctx, cpsAction.UniqueId, update); err != nil {
 			log.Errorf("[UssdMerchSvc][Authorize] update err: %v", err)
-			return nil, errors.New(localization.ErrorUnhandledServer.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorUnhandledServer.Code)
 		}
 	case string(constants.RequestEnableUssdMerchant):
 		if err := s.repo.Update(ctx, cpsAction.UniqueId, bson.M{"enabled": true}); err != nil {
 			log.Errorf("[UssdMerchSvc][Authorize] enable err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestDisableUssdMerchant):
 		if err := s.repo.Update(ctx, cpsAction.UniqueId, bson.M{"enabled": false}); err != nil {
 			log.Errorf("[UssdMerchSvc][Authorize] disable err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case constants.RequestDeleteUssdMerchant:
 		if err := s.repo.Delete(ctx, cpsAction.UniqueId); err != nil {
 			log.Errorf("[UssdMerchSvc][Authorize] delete err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	default:
 		log.Errorf("[UssdMerchSvc][Authorize] invalid: %s", action)
-		return nil, errors.New(localization.ErrorInvalidAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidAction.Code)
 	}
 
-	return cpsAction, nil
+	return *cpsAction, nil
 }
 
 func (s *ussdMerchantService) DeleteUssdMerchant(ctx context.Context, id string) error {

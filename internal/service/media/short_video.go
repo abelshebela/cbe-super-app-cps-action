@@ -33,7 +33,7 @@ func NewShortVideoService(repo storage.ShortVideoRepository, cache storage.Redis
 	}
 }
 
-func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, m.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Media", "Authorize")
@@ -52,7 +52,7 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	switch cpsAction.RequestAction {
@@ -63,7 +63,7 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		shortVideoID := createdVideo.ID.Hex()
@@ -80,7 +80,7 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		prevVideo, err := local_util.JsonUnmarshal[model.ShortVideoDetail](cpsAction.PreviousAction)
@@ -89,7 +89,7 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 
 		if shortVideo.VideoURL != prevVideo.VideoURL {
@@ -115,7 +115,7 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
@@ -129,7 +129,7 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
@@ -143,7 +143,7 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
@@ -156,11 +156,11 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 			attribute.String("error", localization.ErrorInvalidRequest.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	cpsAction.CurrentAction = shortVideo
 	log.Infof("[ShortVideoSvc][Authorize] approved action: %s id: %s", cpsAction.RequestAction, shortVideo.ID)
-	return cpsAction, nil
+	return *cpsAction, nil
 
 }

@@ -42,7 +42,7 @@ func NewDeviceVersionService(deviceVersionRepo storage.DeviceVersionControlRepos
 }
 
 // Authorize applies the approved CPS action for Device Version operations.
-func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "DeviceVersion", "Authorize")
@@ -56,7 +56,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, fmt.Errorf("%s", localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, fmt.Errorf("%s", localization.ErrorUnexpectedError.Code)
 	}
 
 	switch string(cpsAction.RequestAction) {
@@ -70,7 +70,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 					attribute.String("error", err.Error()),
 					attribute.String("platform", actionData.Platform),
 				))
-				return nil, err
+				return model.CPSAction{}, err
 			}
 		}
 
@@ -80,7 +80,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("platform", actionData.Platform),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		createdDeviceVersion, err := d.deviceVersionRepo.FindOne(ctx, actionData.Platform, actionData.LatestVersion)
@@ -113,7 +113,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 					attribute.String("error", err.Error()),
 					attribute.String("platform", actionData.Platform),
 				))
-				return nil, err
+				return model.CPSAction{}, err
 			}
 		}
 		updateData, err := core.UpdateDeviceVersionBsonForDb(*actionData, cpsAction.MakerName)
@@ -123,7 +123,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		if err := d.deviceVersionRepo.Update(ctx, cpsAction.UniqueId, updateData); err != nil {
@@ -132,7 +132,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		updatedDeviceVersion, err := d.deviceVersionRepo.FindByID(ctx, cpsAction.UniqueId)
@@ -162,7 +162,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[DevVerSvc][Authorize] deleted id: %s", cpsAction.UniqueId)
 	default:
@@ -171,11 +171,11 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
 	log.Infof("[DevVerSvc][Authorize] done: %s", cpsAction.RequestAction)
-	return cpsAction, nil
+	return *cpsAction, nil
 }
 
 // CreateDeviceVersion implements service.DeviceVersionService.

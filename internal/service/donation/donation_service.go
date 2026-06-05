@@ -268,7 +268,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 			return donation.EndDate.Format(time.RFC3339)
 		}(),
 		StartDate: donation.StartDate.Format(time.RFC3339),
-		Enabled:             &tempval,
+		Enabled:   &tempval,
 	}
 	log.Infof("[DonationSvc][Create] cps request target: %d, images: %d", result.Target, len(result.DonationImages))
 
@@ -883,7 +883,7 @@ func (d *Donation) DisableDonation(ctx context.Context, id string) error {
 	return nil
 }
 
-func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, d.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Donation", "Authorize")
@@ -895,7 +895,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			attribute.String("error", localization.ErrorCPSActionStatusInvalid.Code),
 			attribute.String("unique_id", action.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
 	var donationCPS *dto.DonationCPSRequest
 	bindErr := core.BindAction(action.CurrentAction, &donationCPS)
@@ -905,7 +905,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			attribute.String("error", bindErr.Error()),
 			attribute.String("unique_id", action.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorCPSActionFailed.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorCPSActionFailed.Code)
 	}
 
 	switch action.RequestAction {
@@ -914,17 +914,17 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		err := d.DonationRepo.Create(ctx, donationModel)
 		if err != nil {
 			log.Errorf("[DonationSvc][Authorize] create err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestUpdateDonation):
 		existingDonation, err := d.DonationRepo.FindByID(ctx, action.UniqueId)
 		if err != nil {
 			log.Errorf("[DonationSvc][Authorize] find for update err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		if existingDonation == nil {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorFileNotFound.Code)
 		}
 
 		existingModel := core.ConvertDonationListResponseToModel(existingDonation)
@@ -971,7 +971,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestUpdateDonationImage):
@@ -982,14 +982,14 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		if existingDonation == nil {
 			span.AddEvent("Donation not found", trace.WithAttributes(
 				attribute.String("error", localization.ErrorFileNotFound.Code),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorFileNotFound.Code)
 		}
 
 		// Bind the current action to get the image update data
@@ -1001,7 +1001,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				attribute.String("error", bindErr.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorCPSActionFailed.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorCPSActionFailed.Code)
 		}
 
 		// Update the specific image in the donation images array
@@ -1033,7 +1033,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				attribute.String("unique_id", action.UniqueId),
 				attribute.String("image_id", imageUpdateData.ImageID),
 			))
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorFileNotFound.Code)
 		}
 		existingModel := core.ConvertDonationListResponseToModel(existingDonation)
 		updateRequest := core.ConvertDonationListResponseToRequest(existingDonation)
@@ -1067,7 +1067,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestDeleteDonationImage):
@@ -1078,14 +1078,14 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		if existingDonation == nil {
 			span.AddEvent("Donation not found", trace.WithAttributes(
 				attribute.String("error", localization.ErrorFileNotFound.Code),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorFileNotFound.Code)
 		}
 
 		existingModel := core.ConvertDonationListResponseToModel(existingDonation)
@@ -1131,7 +1131,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestAddDonationImage):
@@ -1142,14 +1142,14 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		if existingDonation == nil {
 			span.AddEvent("Donation not found", trace.WithAttributes(
 				attribute.String("error", localization.ErrorFileNotFound.Code),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorFileNotFound.Code)
 		}
 
 		existingModel := core.ConvertDonationListResponseToModel(existingDonation)
@@ -1201,7 +1201,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestEnableDonation):
@@ -1212,14 +1212,14 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		if existingDonation == nil {
 			span.AddEvent("Donation not found", trace.WithAttributes(
 				attribute.String("error", localization.ErrorFileNotFound.Code),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorFileNotFound.Code)
 		}
 		tempval := true
 		existingModel := core.ConvertDonationListResponseToModel(existingDonation)
@@ -1246,7 +1246,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestDisableDonation):
@@ -1257,14 +1257,14 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		if existingDonation == nil {
 			span.AddEvent("Donation not found", trace.WithAttributes(
 				attribute.String("error", localization.ErrorFileNotFound.Code),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
+			return model.CPSAction{}, errors.New(localization.ErrorFileNotFound.Code)
 		}
 		existingModel := core.ConvertDonationListResponseToModel(existingDonation)
 		tempval := false
@@ -1291,7 +1291,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	case string(constants.RequestDeleteDonation):
@@ -1302,7 +1302,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	default:
@@ -1311,11 +1311,11 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(action.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
 	log.Infof("[DonationSvc][Authorize] completed: %s", action.RequestAction)
-	return action, nil
+	return *action, nil
 }
 
 func (d *Donation) ExportDonationData(ctx context.Context, startDate, endDate time.Time, fileType string) (string, error) {

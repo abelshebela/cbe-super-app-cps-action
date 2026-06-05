@@ -42,7 +42,7 @@ func NewBulkService(repo storage.BulkServiceRepository, CpsActionRepo service.CP
 	}
 }
 
-func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Bulk Service", "Authorize")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, s.logger)
@@ -55,7 +55,7 @@ func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 	cur, err := local_util.JsonUnmarshal[[]model.APPAccessList](cpsAction.CurrentAction)
 	if err != nil {
 		log.Errorf("[Authorize] failed to unmarshal current action: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	var keys []string
@@ -70,7 +70,7 @@ func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 				attribute.String("error", err.Error()),
 			))
 			log.Errorf("[BulkSvc][Authorize] enable err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[BulkSvc][Authorize] enabled %d", len(keys))
 	case string(constants.RequestBulkServiceDisable):
@@ -79,15 +79,15 @@ func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 				attribute.String("error", err.Error()),
 			))
 			log.Errorf("[BulkSvc][Authorize] disable err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[BulkSvc][Authorize] disabled %d", len(keys))
 	default:
 		log.Errorf("[BulkSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
-		return nil, errors.New(localization.ErrorInvalidRequiredAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequiredAction.Code)
 	}
 
-	return cpsAction, nil
+	return *cpsAction, nil
 }
 
 func GetAllKeysFromMaps(maps map[string]bool) []string {

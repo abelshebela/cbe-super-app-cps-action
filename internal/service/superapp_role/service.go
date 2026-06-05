@@ -497,39 +497,39 @@ func (s *superAppRoleService) authorizeBulkAccessList(ctx context.Context, role 
 	return repoFn(ctx, role, extractIDs(*lists))
 }
 
-func (s *superAppRoleService) Authorize(ctx context.Context, action *shared_model.CPSAction) (*shared_model.CPSAction, error) {
+func (s *superAppRoleService) Authorize(ctx context.Context, action *shared_model.CPSAction) (shared_model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	log.Infof("[SuperAppRole][Authorize] action: %s, role: %s", action.RequestAction, action.UniqueId)
 
 	role := action.UniqueId
 	if role == "" {
-		return nil, errors.New(localization.ErrorNoDataProvided.Code)
+		return shared_model.CPSAction{}, errors.New(localization.ErrorNoDataProvided.Code)
 	}
 
 	switch action.RequestAction {
 	case string(constants.RequestEnableSuperAppRole):
 		if err := s.repo.EnableByRole(ctx, role); err != nil {
 			log.Errorf("[SuperAppRole][Authorize] enable err: %v", err)
-			return nil, err
+			return shared_model.CPSAction{}, err
 		}
 	case string(constants.RequestDisableSuperAppRole):
 		if err := s.repo.DisableByRole(ctx, role); err != nil {
 			log.Errorf("[SuperAppRole][Authorize] disable err: %v", err)
-			return nil, err
+			return shared_model.CPSAction{}, err
 		}
 	case string(constants.RequestDeleteSuperAppRole):
 		if err := s.repo.DeleteByRole(ctx, role); err != nil {
 			log.Errorf("[SuperAppRole][Authorize] delete err: %v", err)
-			return nil, err
+			return shared_model.CPSAction{}, err
 		}
 	case string(constants.RequestBulkDisableAccessListByRole):
-		return action, s.authorizeBulkAccessList(ctx, role, action.CurrentAction, s.repo.BulkDisableAccessLists)
+		return *action, s.authorizeBulkAccessList(ctx, role, action.CurrentAction, s.repo.BulkDisableAccessLists)
 	case string(constants.RequestBulkEnableAccessListByRole):
-		return action, s.authorizeBulkAccessList(ctx, role, action.CurrentAction, s.repo.BulkEnableAccessLists)
+		return *action, s.authorizeBulkAccessList(ctx, role, action.CurrentAction, s.repo.BulkEnableAccessLists)
 	default:
 		log.Errorf("[SuperAppRole][Authorize] unsupported action: %s", action.RequestAction)
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return shared_model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
-	return action, nil
+	return *action, nil
 }

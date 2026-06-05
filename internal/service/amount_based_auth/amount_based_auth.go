@@ -44,7 +44,7 @@ func NewAmountBasedAuthService(repository storage.AmountBasedAuthOracleRepositor
 }
 
 // Authorize handles persistence for amount-based auth actions
-func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Amount Based Auth", "Authorize")
@@ -63,24 +63,24 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 		return s.authorizeDelete(ctx, action, span)
 	default:
 		log.Errorf("[AmountAuthSvc][Authorize] unsupported request action: %s", action.RequestAction)
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 }
-func (s *amountBasedAuthService) authorizeDelete(ctx context.Context, action *model.CPSAction, span trace.Span) (*model.CPSAction, error) {
+func (s *amountBasedAuthService) authorizeDelete(ctx context.Context, action *model.CPSAction, span trace.Span) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	log.Infof("[AmountAuthSvc][authorizeDelete] processing DELETE")
 	currency := action.UniqueId
 	if err := s.Repository.DeleteByCurrency(ctx, currency); err != nil {
 		log.Errorf("[AmountAuthSvc][authorizeDelete] delete by currency err: %v", err)
-		return nil, err
+		return model.CPSAction{}, err
 	}
 	log.Infof("[AmountAuthSvc][authorizeDelete] DELETE done")
-	return action, nil
+	return *action, nil
 }
 
 // authorizeCreate persists new currency tiers when a CREATE action is approved
-func (s *amountBasedAuthService) authorizeCreate(ctx context.Context, action *model.CPSAction, span trace.Span) (*model.CPSAction, error) {
+func (s *amountBasedAuthService) authorizeCreate(ctx context.Context, action *model.CPSAction, span trace.Span) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	log.Infof("[AmountAuthSvc][authorizeCreate] processing CREATE")
@@ -89,32 +89,32 @@ func (s *amountBasedAuthService) authorizeCreate(ctx context.Context, action *mo
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[AmountAuthSvc][authorizeCreate] unmarshal currentAction err: %v", err)
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	tiersRaw, ok := (*currentAction)["tiers"]
 	if !ok {
 		log.Errorf("[AmountAuthSvc][authorizeCreate] missing tiers in action data")
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	tiers, err := local_util.JsonUnmarshal[[]local_model.AuthTierOracle](tiersRaw)
 	if err != nil {
 		log.Errorf("[AmountAuthSvc][authorizeCreate] unmarshal tiers err: %v", err)
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	if err := s.Repository.CreateMany(ctx, *tiers); err != nil {
 		log.Errorf("[AmountAuthSvc][authorizeCreate] create tiers err: %v", err)
-		return nil, err
+		return model.CPSAction{}, err
 	}
 
 	log.Infof("[AmountAuthSvc][authorizeCreate] CREATE done")
-	return action, nil
+	return *action, nil
 }
 
 // authorizeReset deletes old currency tiers and creates new ones when a RESET action is approved
-func (s *amountBasedAuthService) authorizeReset(ctx context.Context, action *model.CPSAction, span trace.Span) (*model.CPSAction, error) {
+func (s *amountBasedAuthService) authorizeReset(ctx context.Context, action *model.CPSAction, span trace.Span) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	log.Infof("[AmountAuthSvc][authorizeReset] processing RESET")
@@ -123,49 +123,49 @@ func (s *amountBasedAuthService) authorizeReset(ctx context.Context, action *mod
 	if err != nil {
 		span.RecordError(err)
 		log.Errorf("[AmountAuthSvc][authorizeReset] unmarshal currentAction err: %v", err)
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	currencyRaw, ok := (*currentAction)["currency"]
 	if !ok {
 		log.Errorf("[AmountAuthSvc][authorizeReset] missing currency in action data")
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 	currency, ok := currencyRaw.(string)
 	if !ok {
 		log.Errorf("[AmountAuthSvc][authorizeReset] invalid currency type")
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	// Delete existing tiers for this currency
 	if err := s.Repository.DeleteByCurrency(ctx, currency); err != nil {
 		log.Errorf("[AmountAuthSvc][authorizeReset] delete tiers err: %v", err)
-		return nil, err
+		return model.CPSAction{}, err
 	}
 
 	tiersRaw, ok := (*currentAction)["tiers"]
 	if !ok {
 		log.Errorf("[AmountAuthSvc][authorizeReset] missing tiers in action data")
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	tiers, err := local_util.JsonUnmarshal[[]local_model.AuthTierOracle](tiersRaw)
 	if err != nil {
 		log.Errorf("[AmountAuthSvc][authorizeReset] unmarshal tiers err: %v", err)
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	if err := s.Repository.CreateMany(ctx, *tiers); err != nil {
 		log.Errorf("[AmountAuthSvc][authorizeReset] create tiers err: %v", err)
-		return nil, err
+		return model.CPSAction{}, err
 	}
 
 	log.Infof("[AmountAuthSvc][authorizeReset] RESET done")
-	return action, nil
+	return *action, nil
 }
 
 // authorizeUpdate handles the legacy per-method update flow
-func (s *amountBasedAuthService) authorizeUpdate(ctx context.Context, action *model.CPSAction, span trace.Span) (*model.CPSAction, error) {
+func (s *amountBasedAuthService) authorizeUpdate(ctx context.Context, action *model.CPSAction, span trace.Span) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	log.Infof("[AmountAuthSvc][authorizeUpdate] processing UPDATE")
@@ -177,7 +177,7 @@ func (s *amountBasedAuthService) authorizeUpdate(ctx context.Context, action *mo
 			attribute.String("unique_id", action.UniqueId),
 		))
 		log.Errorf("[AmountAuthSvc][authorizeUpdate] extract currentAction err: %v", err)
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	result := *currentAction
@@ -191,135 +191,135 @@ func (s *amountBasedAuthService) authorizeUpdate(ctx context.Context, action *mo
 		return s.authorizeUpdateOtpPin(ctx, action, result, span)
 	default:
 		log.Errorf("[AmountAuthSvc][authorizeUpdate] unsupported method: %v", result["method"])
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 }
 
-func (s *amountBasedAuthService) authorizeUpdateOpen(ctx context.Context, action *model.CPSAction, result map[string]interface{}, span trace.Span) (*model.CPSAction, error) {
+func (s *amountBasedAuthService) authorizeUpdateOpen(ctx context.Context, action *model.CPSAction, result map[string]interface{}, span trace.Span) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	log.Infof("[AmountAuthSvc][Authorize] processing OPEN tier")
 	data, err := local_util.JsonUnmarshal[map[string]interface{}](result["data"])
 	if err != nil {
 		log.Errorf("[AmountAuthSvc][Authorize] extract data tier err: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	openTierMap, ok := (*data)["open"].(map[string]interface{})
 	if !ok {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	openTier, err := local_util.JsonUnmarshal[local_model.AuthTierOracle](openTierMap)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	pinTierMap, ok := (*data)["pin"].(map[string]interface{})
 	if !ok {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	pinTier, err := local_util.JsonUnmarshal[local_model.AuthTierOracle](pinTierMap)
 	if err != nil {
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	if err := s.Repository.Update(ctx, (*data)["open_id"].(string), openTier); err != nil {
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 	if err := s.Repository.Update(ctx, (*data)["pin_id"].(string), pinTier); err != nil {
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	log.Infof("[AmountAuthSvc][Authorize] OPEN tier update done")
-	return action, nil
+	return *action, nil
 }
 
-func (s *amountBasedAuthService) authorizeUpdatePin(ctx context.Context, action *model.CPSAction, result map[string]interface{}, span trace.Span) (*model.CPSAction, error) {
+func (s *amountBasedAuthService) authorizeUpdatePin(ctx context.Context, action *model.CPSAction, result map[string]interface{}, span trace.Span) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	log.Infof("[AmountAuthSvc][Authorize] processing PIN tier")
 	data, err := local_util.JsonUnmarshal[map[string]interface{}](result["data"])
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	openTierMap, ok := (*data)["open"].(map[string]interface{})
 	if !ok {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	openTier, err := local_util.JsonUnmarshal[local_model.AuthTierOracle](openTierMap)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	pinTierMap, ok := (*data)["pin"].(map[string]interface{})
 	if !ok {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	pinTier, err := local_util.JsonUnmarshal[local_model.AuthTierOracle](pinTierMap)
 	if err != nil {
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	otpPinTierMap, ok := (*data)["otp_pin"].(map[string]interface{})
 	if !ok {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	otpPinTier, err := local_util.JsonUnmarshal[local_model.AuthTierOracle](otpPinTierMap)
 	if err != nil {
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	if err := s.Repository.Update(ctx, (*data)["open_id"].(string), openTier); err != nil {
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 	if err := s.Repository.Update(ctx, (*data)["pin_id"].(string), pinTier); err != nil {
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 	if err := s.Repository.Update(ctx, (*data)["otp_pin_id"].(string), otpPinTier); err != nil {
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	log.Infof("[AmountAuthSvc][Authorize] PIN tier update done")
-	return action, nil
+	return *action, nil
 }
 
-func (s *amountBasedAuthService) authorizeUpdateOtpPin(ctx context.Context, action *model.CPSAction, result map[string]interface{}, span trace.Span) (*model.CPSAction, error) {
+func (s *amountBasedAuthService) authorizeUpdateOtpPin(ctx context.Context, action *model.CPSAction, result map[string]interface{}, span trace.Span) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	log.Infof("[AmountAuthSvc][Authorize] processing OTP_PIN tier")
 	data, err := local_util.JsonUnmarshal[map[string]interface{}](result["data"])
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	pinTierMap, ok := (*data)["pin"].(map[string]interface{})
 	if !ok {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	pinTier, err := local_util.JsonUnmarshal[local_model.AuthTierOracle](pinTierMap)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	otpPinTierMap, ok := (*data)["otp_pin"].(map[string]interface{})
 	if !ok {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	otpPinTier, err := local_util.JsonUnmarshal[local_model.AuthTierOracle](otpPinTierMap)
 	if err != nil {
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	if err := s.Repository.Update(ctx, (*data)["pin_id"].(string), pinTier); err != nil {
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 	if err := s.Repository.Update(ctx, (*data)["otp_pin_id"].(string), otpPinTier); err != nil {
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	log.Infof("[AmountAuthSvc][Authorize] OTP_PIN tier update done")
-	return action, nil
+	return *action, nil
 }
 
 // FindAllWithPagination retrieves all amount-based auth tiers grouped by currency

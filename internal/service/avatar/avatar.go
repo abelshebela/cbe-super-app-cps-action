@@ -288,7 +288,7 @@ func (a *avatarService) FetchAvatarById(ctx context.Context, id string) (*model.
 	log.Infof("[AvatarSvc][FetchByID] found id: %s", id)
 	return data, nil
 }
-func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, a.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Avatar", "Authorize")
@@ -303,7 +303,7 @@ func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
 		log.Errorf("[AvatarSvc][Authorize] unmarshal err: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	switch cpsAction.RequestAction {
@@ -315,7 +315,7 @@ func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			log.Errorf("[AvatarSvc][Authorize] create err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[AvatarSvc][Authorize] created")
 	case string(constants.RequestUpdateAvatar):
@@ -326,7 +326,7 @@ func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			log.Errorf("[AvatarSvc][Authorize] update err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[AvatarSvc][Authorize] updated id: %s", cpsAction.UniqueId)
 	case string(constants.RequestDeleteAvatar):
@@ -337,7 +337,7 @@ func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			log.Errorf("[AvatarSvc][Authorize] delete err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[AvatarSvc][Authorize] deleted id: %s", cpsAction.UniqueId)
 	case string(constants.RequestEnableAvatar):
@@ -348,7 +348,7 @@ func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			log.Errorf("[AvatarSvc][Authorize] enable err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[AvatarSvc][Authorize] enabled id: %s", cpsAction.UniqueId)
 	case string(constants.RequestDisableAvatar):
@@ -359,14 +359,14 @@ func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			log.Errorf("[AvatarSvc][Authorize] disable err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[AvatarSvc][Authorize] disabled id: %s", cpsAction.UniqueId)
 	default:
 		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", cpsAction.RequestAction)))
 		log.Errorf("[AvatarSvc][Authorize] unsupported: %s", cpsAction.RequestAction)
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 	log.Infof("[AvatarSvc][Authorize] done: %s", cpsAction.RequestAction)
-	return cpsAction, nil
+	return *cpsAction, nil
 }

@@ -465,7 +465,7 @@ func (m *ecommerceMerchantService) EnableOrDisableBranch(ctx context.Context, id
 	return nil
 }
 
-func (m *ecommerceMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (m *ecommerceMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, m.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "MiniAppMerchant", "Authorize")
@@ -478,7 +478,7 @@ func (m *ecommerceMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	erpBranches := make([]erp_merchant_update_dto.ERPBranch, len(merchant.Branches))
@@ -510,7 +510,7 @@ func (m *ecommerceMerchantService) Authorize(ctx context.Context, cpsAction *mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
@@ -530,7 +530,7 @@ func (m *ecommerceMerchantService) Authorize(ctx context.Context, cpsAction *mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
 		if !isErp {
@@ -549,7 +549,7 @@ func (m *ecommerceMerchantService) Authorize(ctx context.Context, cpsAction *mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestEnableEcommerceMerchant):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
@@ -558,7 +558,7 @@ func (m *ecommerceMerchantService) Authorize(ctx context.Context, cpsAction *mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
 		if !isErp {
@@ -577,7 +577,7 @@ func (m *ecommerceMerchantService) Authorize(ctx context.Context, cpsAction *mod
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		isErp, _ := ctx.Value(constants.ContextKey("is_erp")).(bool)
 		if !isErp {
@@ -596,7 +596,7 @@ func (m *ecommerceMerchantService) Authorize(ctx context.Context, cpsAction *mod
 				attribute.String("error", err.Error()),
 				attribute.String("id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestEnableEcommerceMerchantBranch):
 		if err := m.repo.EnableOrDisableBranch(ctx, cpsAction.UniqueId, true); err != nil {
@@ -605,7 +605,7 @@ func (m *ecommerceMerchantService) Authorize(ctx context.Context, cpsAction *mod
 				attribute.String("error", err.Error()),
 				attribute.String("id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 	case string(constants.RequestDisableEcommerceMerchantBranch):
 		if err := m.repo.EnableOrDisableBranch(ctx, cpsAction.UniqueId, false); err != nil {
@@ -614,7 +614,7 @@ func (m *ecommerceMerchantService) Authorize(ctx context.Context, cpsAction *mod
 				attribute.String("error", err.Error()),
 				attribute.String("id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 
 	default:
@@ -623,12 +623,12 @@ func (m *ecommerceMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			attribute.String("error", localization.ErrorUnsupportedAction.Code),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
 	cpsAction.CurrentAction = merchant
 	log.Infof("[EcomMerchSvc][Authorize] done action=%s id=%s", cpsAction.RequestAction, merchant.ID)
-	return cpsAction, nil
+	return *cpsAction, nil
 }
 
 func (m *ecommerceMerchantService) updateERP(ctx context.Context, merchant *model.EcommerceMerchant) error {

@@ -34,7 +34,7 @@ func NewNewsTagService(newsTagRepository storage.NewsTagRepository, cpsService s
 }
 
 // Authorize implements service.NewsTagService.
-func (n *newsTagService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (n *newsTagService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, n.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "NewsTag", "Authorize")
@@ -49,7 +49,7 @@ func (n *newsTagService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 			attribute.String("error", err.Error()),
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
-		return nil, fmt.Errorf("failed to unmarshal CurrentAction to NewsTagCPSAction: %v", err)
+		return model.CPSAction{}, fmt.Errorf("failed to unmarshal CurrentAction to NewsTagCPSAction: %v", err)
 	}
 
 	switch string(cpsAction.RequestAction) {
@@ -62,7 +62,7 @@ func (n *newsTagService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[NewsTagSvc][Authorize] created")
 	case string(constants.RequestUpdateNewsTag):
@@ -74,10 +74,10 @@ func (n *newsTagService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[NewsTagSvc][Authorize] updated id: %s", actionData.ID.Hex())
-		return cpsAction, nil
+		return *cpsAction, nil
 
 	case string(constants.RequestDeleteNewsTag):
 		log.Infof("[NewsTagSvc][Authorize] deleting id: %s", actionData.ID.Hex())
@@ -88,10 +88,10 @@ func (n *newsTagService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[NewsTagSvc][Authorize] deleted id: %s", actionData.ID.Hex())
-		return cpsAction, nil
+		return *cpsAction, nil
 
 	default:
 		log.Errorf("[NewsTagSvc][Authorize] invalid: %s", cpsAction.RequestAction)
@@ -99,10 +99,10 @@ func (n *newsTagService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 			attribute.String("error", localization.MsgInvalidAction),
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
-		return nil, fmt.Errorf("%s", localization.MsgInvalidAction)
+		return model.CPSAction{}, fmt.Errorf("%s", localization.MsgInvalidAction)
 	}
 	log.Infof("[NewsTagSvc][Authorize] done: %s", cpsAction.RequestAction)
-	return cpsAction, nil
+	return *cpsAction, nil
 }
 
 // CreateNewsTags implements service.NewsTagService.

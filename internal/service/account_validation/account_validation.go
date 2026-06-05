@@ -104,7 +104,7 @@ func (s *accountValidationService) FindAllWithPagination(ctx context.Context, fi
 	return result, nil
 }
 
-func (f *accountValidationService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+func (f *accountValidationService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, f.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Account Validation", "Authorize")
@@ -119,7 +119,7 @@ func (f *accountValidationService) Authorize(ctx context.Context, cpsAction *mod
 			attribute.String("action_code", cpsAction.ActionCode),
 		))
 		log.Errorf("[AccValSvc][Authorize] invalid status: %s", cpsAction.ActionStatus)
-		return nil, errors.New(localization.ErrorCPSActionFailed.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorCPSActionFailed.Code)
 	}
 
 	validationRule, err := local_util.JsonUnmarshal[model.ValidationRule](cpsAction.CurrentAction)
@@ -129,7 +129,7 @@ func (f *accountValidationService) Authorize(ctx context.Context, cpsAction *mod
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
 		log.Errorf("[AccValSvc][Authorize] unmarshal err: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if err := f.validationRule.Update(ctx, cpsAction.UniqueId, validationRule); err != nil {
@@ -138,8 +138,8 @@ func (f *accountValidationService) Authorize(ctx context.Context, cpsAction *mod
 			attribute.String("unique_id", cpsAction.UniqueId),
 		))
 		log.Errorf("[AccValSvc][Authorize] update err: %v", err)
-		return nil, err
+		return model.CPSAction{}, err
 	}
 	log.Infof("[AccValSvc][Authorize] authorized id: %s", cpsAction.UniqueId)
-	return cpsAction, nil
+	return *cpsAction, nil
 }

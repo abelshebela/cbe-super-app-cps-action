@@ -325,7 +325,7 @@ func (s *advertService) EnableDisableAdvert(ctx context.Context, id string, enab
 }
 
 // Authorize handles persistence for advert actions
-func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) (model.CPSAction, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Ad", "Authorize")
@@ -340,7 +340,7 @@ func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) 
 			attribute.String("unique_id", action.UniqueId),
 		))
 		log.Errorf("[AdSvc][Authorize] unmarshal err: %v", err)
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	switch action.RequestAction {
@@ -352,7 +352,7 @@ func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) 
 				attribute.String("unique_id", action.UniqueId),
 			))
 			log.Errorf("[AdSvc][Authorize] create err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[AdSvc][Authorize] created")
 	case string(cpsaction.RequestUpdateAdvert):
@@ -363,7 +363,7 @@ func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) 
 				attribute.String("unique_id", action.UniqueId),
 			))
 			log.Errorf("[AdSvc][Authorize] update err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[AdSvc][Authorize] updated id: %s", action.UniqueId)
 	case string(cpsaction.RequestDeleteAdvert):
@@ -374,7 +374,7 @@ func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) 
 				attribute.String("unique_id", action.UniqueId),
 			))
 			log.Errorf("[AdSvc][Authorize] delete err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[AdSvc][Authorize] deleted id: %s", action.UniqueId)
 	case string(cpsaction.RequestEnableAdvert):
@@ -385,7 +385,7 @@ func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) 
 				attribute.String("unique_id", action.UniqueId),
 			))
 			log.Errorf("[AdSvc][Authorize] enable err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[AdSvc][Authorize] enabled id: %s", action.UniqueId)
 	case string(cpsaction.RequestDisableAdvert):
@@ -396,18 +396,18 @@ func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) 
 				attribute.String("unique_id", action.UniqueId),
 			))
 			log.Errorf("[AdSvc][Authorize] disable err: %v", err)
-			return nil, err
+			return model.CPSAction{}, err
 		}
 		log.Infof("[AdSvc][Authorize] disabled id: %s", action.UniqueId)
 	default:
 		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", action.RequestAction)))
 		log.Errorf("[AdSvc][Authorize] unsupported: %s", action.RequestAction)
-		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+		return model.CPSAction{}, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
 	log.Infof("[AdSvc][Authorize] done: %s", action.RequestAction)
 
 	action.CurrentAction = advert
 	log.Infof("[AdSvc][Authorize] completed action=%s id=%s", action.RequestAction, advert.ID)
-	return action, nil
+	return *action, nil
 }
