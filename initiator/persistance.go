@@ -87,7 +87,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		AmountBasedAuthPersistence:       amount_based_auth.NewAmountBasedAuthRepository(client, cfg, dbName, AuthTierCollection, logger),
 		AccountBlockPersistence:          nil, // Set from OraclePersistence in service.go
 		PortalCardPersistence:            portal_card.NewPortalCardRepository(client, cfg, dbName, CardsCollection, logger),
-		MiniAppPersistence:               mini_app.NewMiniAppRepository(client, cfg, dbName, MiniAppsCollection, logger),
+		// MiniAppPersistence:               mini_app.NewMiniAppRepository(client, cfg, dbName, MiniAppsCollection, logger),
 		MerchantLookup:                   *merchant_lookup.NewMerchantLookupAdapter(*cfg, logger),
 		SMSSenderApi:                     notificationProducer,
 		AccessListPersistence:            access_list.NewAccessListRepository(client, cfg, dbName, AccessListCollection, clientOrchestrationProducer, logger),

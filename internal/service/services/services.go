@@ -176,6 +176,7 @@ func (s *servicesService) Enable(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
+
 	if prev.Enabled {
 		return localization.ErrorAlreadyEnabled
 	}
@@ -253,6 +254,7 @@ func (s *servicesService) CreateServiceList(ctx context.Context, req *service_dt
 	if err != nil && err.Error() != localization.ErrorAccessListNotFound.Code {
 		return err
 	}
+
 	if list != nil {
 		return errors.New(localization.ErrorServiceListAlreadyExists.Code)
 	}
