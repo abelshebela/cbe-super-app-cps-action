@@ -27,6 +27,7 @@ import (
 	superapprole "cbe-super-app-cps-action/internal/storage/persistance/superapp_role"
 	vaultCategory "cbe-super-app-cps-action/internal/storage/persistance/vault"
 	wallet_oracle "cbe-super-app-cps-action/internal/storage/persistance/wallet/oracle"
+	mini_app_repo "cbe-super-app-cps-action/internal/storage/persistance/mini_app/oracle"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -58,6 +59,9 @@ type OraclePersistence struct {
 	CustomerKYC             storage.CustomerKYCRepository
 	CustomerGroup           storage.CustomerGroupRepository
 	SuperAppRole            storage.SuperAppRoleRepository
+	MiniApp                 storage.MiniAppRepository
+	MiniAppMerchant         storage.MiniAppMerchant
+	MiniAppCategory         storage.MiniAppCategoryRepository
 }
 
 func InitOraclePersistence(client *mongo.Client, db *sql.DB, cfg *config.VaultConfig, clientOrchestrationProducer kafka.ClientOrchestrationProducer, accessListSegmentationProducer *kafka.AccessListSegmentationProducer, redisRepository storage.RedisRepository, log utils.Logger) OraclePersistence {
@@ -95,5 +99,8 @@ func InitOraclePersistence(client *mongo.Client, db *sql.DB, cfg *config.VaultCo
 		CustomerGroup:           customergroup.NewCustomerGroupRepository(cfg, db, log),
 		SuperAppRole:            superapprole.NewSuperAppRoleRepository(db, log),
 		LogisticsMerchantOracle: logistics_merchant_oracle.NewLogisticsMerchantOracle(db, cfg, log),
+		MiniApp: mini_app_repo.NewMiniAppOracleRepository(log,db),
+		MiniAppMerchant: mini_app_repo.NewMiniAppMerchantOracleRepository(log,db),
+		MiniAppCategory: mini_app_repo.NewCategoryOracleRepository(log,db),
 	}
 }

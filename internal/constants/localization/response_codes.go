@@ -614,6 +614,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidAppViewType,
 	ErrorExclusiveAppFlags,
 	ErrorUpdateMiniAppEmptyPayload,
+	ErrInvalidID,
+	ErrDatabaseError,
+	ErrCategoryNotFound,
+	ErrMiniAppMerchantNotFound,
+	ErrMiniAppNotFound,
 	//customer  and bulk relatedcode
 	UserNotFoundWithGivenID,
 	ErrorFailedToGetCustomerDetail,
@@ -3299,6 +3304,40 @@ var (
 		Message:    "Avatar label not exist",
 		Type:       "error",
 	}
+	ErrMiniAppMerchantNotFound = ResponseCode{
+		Code: "ERR_MINI_APP_MERCHANT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message: "Mini app merchant not found.",
+		Type: "error",
+	}
+	ErrMiniAppNotFound = ResponseCode{
+		Code: "ERR_MINI_APP_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message: "Mini app  not found.",
+		Type: "error",
+	}
+
+
+	ErrInvalidID = ResponseCode{
+    Code:       "ERR_INVALID_ID",
+    StatusCode: StatusBadRequest,
+    Message:    "Invalid ID",
+    Type:       "error",
+}
+
+ErrDatabaseError = ResponseCode{
+    Code:       "ERR_DATABASE",
+    StatusCode: StatusInternalServerError,
+    Message:    "A database error occurred. Please try again later.",
+    Type:       "error",
+}
+
+ErrCategoryNotFound = ResponseCode{
+    Code:       "ERR_CATEGORY_NOT_FOUND",
+    StatusCode: StatusNotFound,
+    Message:    "Category not found.",
+    Type:       "error",
+}
 
 	// Portal Card related success response codes
 	SuccessPortalCardsFetched = ResponseCode{

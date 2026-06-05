@@ -2,7 +2,6 @@ package storage
 
 import (
 	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
-	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"context"
 	"time"
 
@@ -40,8 +39,10 @@ import (
 	event_model "cbe-super-app-cps-action/internal/constants/model"
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
-	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
+	// mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
@@ -499,12 +500,12 @@ type DonationCompanyRepository interface {
 }
 
 type MiniAppRepository interface {
-	Create(ctx context.Context, miniApp *mini_model.MiniApp) error
-	Update(ctx context.Context, id string, miniApp *mini_model.MiniApp) error
+	Create(ctx context.Context, miniApp *local_model.MiniApp) error
+	Update(ctx context.Context, id string, miniApp *local_model.MiniApp) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	DisableManyByMerchantIDs(ctx context.Context, merchantID string) error
-	DeleteManyByMerchantIDs(ctx context.Context, merchantID string) error
+	// DisableManyByMerchantIDs(ctx context.Context, merchantID string) error
+	// DeleteManyByMerchantIDs(ctx context.Context, merchantID string) error
 }
 
 type EventRepository interface {
@@ -788,8 +789,8 @@ type SitotaRepository interface {
 }
 
 type MiniAppCategoryRepository interface {
-	Create(ctx context.Context, category *model.MiniAppCategory) error
-	Update(ctx context.Context, category *model.MiniAppCategory, id string) error
+	Create(ctx context.Context, category *local_model.MiniAppCategory) error
+	Update(ctx context.Context, category *local_model.MiniAppCategory, id string) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
@@ -872,13 +873,13 @@ type AccessListSegmentationRepository interface {
 }
 
 type MiniAppMerchant interface {
-	Create(ctx context.Context, merchant *mini_model.MiniAppMerchant) (*mini_model.MiniAppMerchant, error)
-	Update(ctx context.Context, id string, merchant *mini_model.MiniAppMerchant) error
+	Create(ctx context.Context, merchant *local_model.MiniAppMerchant) (*local_model.MiniAppMerchant, error)
+	Update(ctx context.Context, id string, merchant *local_model.MiniAppMerchant) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*mini_model.MiniAppMerchant, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]mini_model.MiniAppMerchant], error)
-	FindOne(ctx context.Context, filter bson.M) (*mini_model.MiniAppMerchant, error)
+	FindByID(ctx context.Context, id string) (*local_model.MiniAppMerchant, error)
+	// FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]mini_model.MiniAppMerchant], error)
+	// FindOne(ctx context.Context, filter bson.M) (*mini_model.MiniAppMerchant, error)
 }
 
 type CustomerSegmentationRepository interface {
