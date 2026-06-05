@@ -28,10 +28,7 @@ func (r UpdateArchiveTimeRequest) Validate() error {
 }
 
 func (r UpdatePasswordExpiryRequest) Validate() error {
-	err := validation.ValidateStruct(&r,
-		validation.Field(&r.PasswordExpiry, validation.Required, validation.Min(uint32(1))),
-	)
-	if err != nil {
+	if r.PasswordExpiry < 1 {
 		return errors.New(localization.ErrorInvalidPasswordExpiry.Code)
 	}
 	return nil
