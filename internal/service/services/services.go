@@ -54,7 +54,8 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 
 	if req.ProductGlAccount != "" {
 		var accountDetail *model.AccountDetail
-		if req.IsPlAccount == nil || !*req.IsPlAccount {
+		var accountDetailForPl model.AccountDetail
+		if !*req.IsPlAccount && req.ProductGlAccount != "" {
 			accountDetail, err = s.ValidateAccountNumberWithExternalAPI(ctx, req.ProductGlAccount)
 			if err != nil {
 				log.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", req.ProductGlAccount, err)
@@ -62,12 +63,28 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 			}
 		}
 
-		accountID, err := s.repo.CheckAccountNumberExistence(ctx, req.ProductGlAccount)
-		if err != nil {
-			log.Errorf("failed while checking account number existence: %v", err)
-			return err
+		var accountID string
+		if req.ProductGlAccount != "" {
+			accountID, err = s.repo.CheckAccountNumberExistence(ctx, req.ProductGlAccount)
+			if err != nil {
+				log.Errorf("failed while checking account number existence: %v", err)
+				return err
+			}
 		}
-		if accountDetail != nil && accountID == "" {
+
+		if *req.IsPlAccount && accountDetail == nil {
+			accountDetailForPl = model.AccountDetail{
+				CustomerName:  accessList.ServiceName,
+				AccountNumber: req.ProductGlAccount,
+				AccountType:   "PL Account",
+				Currency:      "ETB",
+				CustomerID:    req.ProductGlAccount,
+			}
+
+			accountDetail = &accountDetailForPl
+		}
+
+		if req.ProductGlAccount != "" && accountDetail != nil && accountID == "" {
 			log.Errorf("failed while inserting account number to ACCOUNTS: %v", err)
 			accountID, err = s.repo.InsertAccountNumberToAccounts(ctx, *accountDetail)
 			if err != nil {
@@ -90,13 +107,18 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 		return err
 	}
 
-	log.Infof("[servicesService][Update] previous service: %+v", prev)
 	serviceKeyId := service_dto.StringPointer(req.ServiceKeyId, prev.ServiceKeyId)
-	log.Infof("[servicesService][Update] resolved serviceKeyId: %s", serviceKeyId)
+
+	accessList, err := s.repo.FindServiceListByID(ctx, serviceKeyId)
+	if err != nil && err.Error() != sql.ErrNoRows.Error() {
+		log.Errorf("[servicesService][Update] error checking existing service for serviceKeyId=%s: %v", req.ServiceKeyId, err)
+		return err
+	}
 
 	if req.ProductGlAccount != nil {
 		var accountDetail *model.AccountDetail
-		if req.IsPlAccount == nil || !*req.IsPlAccount {
+		var accountDetailForPl model.AccountDetail
+		if !*req.IsPlAccount && *req.ProductGlAccount != "" {
 			accountDetail, err = s.ValidateAccountNumberWithExternalAPI(ctx, *req.ProductGlAccount)
 			if err != nil {
 				log.Errorf("[servicesService][Authorize] account number validation failed for account number %s: %v", *req.ProductGlAccount, err)
@@ -104,12 +126,28 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 			}
 		}
 
-		accountID, err := s.repo.CheckAccountNumberExistence(ctx, *req.ProductGlAccount)
-		if err != nil {
-			log.Errorf("failed while checking account number existence: %v", err)
-			return errors.New(localization.ErrorUnexpectedError.Code)
+		var accountID string
+		if *req.ProductGlAccount != "" {
+			accountID, err = s.repo.CheckAccountNumberExistence(ctx, *req.ProductGlAccount)
+			if err != nil {
+				log.Errorf("failed while checking account number existence: %v", err)
+				return errors.New(localization.ErrorUnexpectedError.Code)
+			}
 		}
-		if accountDetail != nil && accountID == "" {
+
+		if *req.IsPlAccount && accountDetail == nil {
+			accountDetailForPl = model.AccountDetail{
+				CustomerName:  accessList.ServiceName,
+				AccountNumber: *req.ProductGlAccount,
+				AccountType:   "PL Account",
+				Currency:      "ETB",
+				CustomerID:    *req.ProductGlAccount,
+			}
+
+			accountDetail = &accountDetailForPl
+		}
+
+		if *req.ProductGlAccount != "" && accountDetail != nil && accountID == "" {
 			log.Errorf("failed while inserting account number to ACCOUNTS: %v", err)
 			accountID, err = s.repo.InsertAccountNumberToAccounts(ctx, *accountDetail)
 			if err != nil {

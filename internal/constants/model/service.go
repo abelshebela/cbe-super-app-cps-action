@@ -48,6 +48,7 @@ type Service struct {
 	ServiceCode              string    `json:"service_code" bson:"service_code"`
 	Cap                      []Cap     `json:"cap" bson:"cap"`
 	MinimumFraudAmount       string    `json:"minimum_fraud_amount" bson:"minimum_fraud_amount"`
+	IsPlAccount              bool      `json:"is_pl_account" bson:"is_pl_account"`
 	ProductGlAccount         string    `json:"product_gl_account" bson:"product_gl_account"`
 	ProductGlAccountCurrency string    `json:"product_gl_account_currency" bson:"product_gl_account_currency"`
 	CreatedAt                time.Time `json:"created_at" bson:"created_at"`
