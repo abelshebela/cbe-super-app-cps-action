@@ -17,6 +17,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/media"
 	newscategory_service "cbe-super-app-cps-action/internal/service/news_category"
 	newstag_service "cbe-super-app-cps-action/internal/service/news_tag"
+	role_delegation_service "cbe-super-app-cps-action/internal/service/role_delegation"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	queue "cbe-super-app-cps-action/internal/storage/queue_system"
@@ -154,6 +155,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	customerKYCService := kyc_service.NewCustomerKYCService(oracle.CustomerKYC, nil, persistence.CpsUserPersistence, accountLookupAdapter, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	customerGroupService := customer_group.NewCustomerGroupService(oracle.CustomerGroup, nil, logger)
 	superAppRoleService := superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, nil, coreInterface, logger)
+	roleDelegationService := role_delegation_service.NewRoleDelegationService(persistence.RoleDelegationPersistence, persistence.JobRolePersistence, persistence.CpsUserPersistence, nil, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -217,6 +219,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		UssdMerchantContainer:             ussdMerchant,
 		CustomerGroupContainer:            customerGroupService,
 		SuperAppRoleContainer:             superAppRoleService,
+		RoleDelegationContainer:           roleDelegationService,
 	}
 
 	// CPSActionService Appended
@@ -319,6 +322,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.CustomerGroupContainer = customerGroupService
 	superAppRoleService = superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, cpsActionService, coreInterface, logger)
 	serviceContainer.SuperAppRoleContainer = superAppRoleService
+	roleDelegationService = role_delegation_service.NewRoleDelegationService(persistence.RoleDelegationPersistence, persistence.JobRolePersistence, persistence.CpsUserPersistence, cpsActionService, logger)
+	serviceContainer.RoleDelegationContainer = roleDelegationService
 
 	return service.ServiceLayer{
 		RoleService:       RoleService,
@@ -382,5 +387,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		UssdMerchantService:           ussdMerchant,
 		BPSActionService:              bpsActionService,
 		QueueManager:                  queueManager,
+		RoleDelegationService:         roleDelegationService,
 	}
 }

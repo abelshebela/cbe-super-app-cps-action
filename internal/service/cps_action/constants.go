@@ -387,6 +387,13 @@ const (
 	RequestDisableActionRole constants.RequestAction = "DISABLE_ACTION_ROLE"
 	RequestDeleteActionRole  constants.RequestAction = "DELETE_ACTION_ROLE"
 
+	// Action Role Delegation Mapper
+	RequestCreateRoleDelegation  constants.RequestAction = "CREATE_ROLE_DELEGATION"
+	RequestUpdateRoleDelegation  constants.RequestAction = "UPDATE_ROLE_DELEGATION"
+	RequestEnableRoleDelegation  constants.RequestAction = "ENABLE_ROLE_DELEGATION"
+	RequestDisableRoleDelegation constants.RequestAction = "DISABLE_ROLE_DELEGATION"
+	RequestDeleteRoleDelegation  constants.RequestAction = "DELETE_ROLE_DELEGATION"
+
 	RequestCreateCpsActionRole  constants.RequestAction = "CREATE_CPS_ACTION_ROLE"
 	RequestUpdateCpsActionRole  constants.RequestAction = "UPDATE_CPS_ACTION_ROLE"
 	RequestEnableCpsActionRole  constants.RequestAction = "ENABLE_CPS_ACTION_ROLE"
@@ -724,6 +731,13 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestEnableCpsActionRole:  {},
 	RequestDisableCpsActionRole: {},
 	RequestDeleteCpsActionRole:  {},
+
+	// Action Role Delegation Mapper
+	RequestCreateRoleDelegation:  {},
+	RequestUpdateRoleDelegation:  {},
+	RequestEnableRoleDelegation:  {},
+	RequestDisableRoleDelegation: {},
+	RequestDeleteRoleDelegation:  {},
 
 	RequestCreateDeviceVersion:        {},
 	RequestUpdateDeviceVersion:        {},
@@ -1166,6 +1180,14 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 	// 	RequestEnableActionRole,
 	// 	RequestDisableActionRole,
 	// },
+
+	"ROLEDELEGATION": {
+		RequestCreateRoleDelegation,
+		RequestUpdateRoleDelegation,
+		RequestEnableRoleDelegation,
+		RequestDisableRoleDelegation,
+	},
+
 	"CPSACTIONROLE": {
 		RequestCreateCpsActionRole,
 		RequestUpdateCpsActionRole,
@@ -1173,6 +1195,7 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestDisableCpsActionRole,
 		RequestDeleteCpsActionRole,
 	},
+
 	"DEVICEVERSION": {
 		RequestCreateDeviceVersion,
 		RequestUpdateDeviceVersion,

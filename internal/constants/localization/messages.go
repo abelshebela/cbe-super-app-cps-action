@@ -782,7 +782,7 @@ const (
 
 	// CPS Action related error messages
 	MsgPendingCPSActionExists        = "Pending CPS action already exists"
-	MsgDuplicatePendingCreateAction = "A request with the same data is already pending approval. Please wait for it to be processed before submitting again."
+	MsgDuplicatePendingCreateAction  = "A request with the same data is already pending approval. Please wait for it to be processed before submitting again."
 	MsgCPSActionNotFound             = "action name not found"
 	MsgCPSActionDataNotFound         = "action data not found"
 	MsgBpsUserAlreadyEnabled         = "User already enabled"
@@ -1456,4 +1456,6 @@ const (
 	MsgAccessListKeysRequired                      = "Access List Keys are required"
 	MsgSegmentationTypeRequired                    = "Segmentation type is required"
 	MsgAccessListSegmentationKeyNotFound           = "Access List Segmentation Key not found"
+
+	MsgUserNotFoundOrDisabled = "User not found or disabled"
 )

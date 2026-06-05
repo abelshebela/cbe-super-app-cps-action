@@ -669,6 +669,13 @@ const (
 	RequestEnableRole  string = "ENABLE_ROLE"
 	RequestDisableRole string = "DISABLE_ROLE"
 
+	// Role Delegation
+	RequestCreateRoleDelegation  string = "CREATE_ROLE_DELEGATION"
+	RequestUpdateRoleDelegation  string = "UPDATE_ROLE_DELEGATION"
+	RequestDeleteRoleDelegation  string = "DELETE_ROLE_DELEGATION"
+	RequestEnableRoleDelegation  string = "ENABLE_ROLE_DELEGATION"
+	RequestDisableRoleDelegation string = "DISABLE_ROLE_DELEGATION"
+
 	// USSD Merchant
 	RequestCreateUssdMerchant  string = "CREATE_USSD_MERCHANT"
 	RequestUpdateUssdMerchant  string = "UPDATE_USSD_MERCHANT"

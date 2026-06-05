@@ -542,6 +542,16 @@ type RoleService interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Role], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
+type RoleDelegationService interface {
+	Create(ctx context.Context, jobs imodel.RoleDelegation) error
+	Update(ctx context.Context, id string, update imodel.RoleDelegation) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	Delete(ctx context.Context, id string) error
+	FindById(ctx context.Context, id string) (*imodel.RoleDelegation, error)
+	FindAll(ctx context.Context) (*[]imodel.RoleDelegation, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
 
 type CustomerSegmentationService interface {
 	Create(ctx context.Context, req cust_seg.CreateCustomerSegmentationRequest) error
@@ -641,6 +651,7 @@ type ServiceLayer struct {
 	BPSActionService              BPSActionService
 	SuperAppRole                  SuperAppRoleService
 	QueueManager                  *queue.QueueManager
+	RoleDelegationService         RoleDelegationService
 }
 
 type ServiceContainer struct {
@@ -711,6 +722,7 @@ type ServiceContainer struct {
 	BPSActionContainer                 BPSActionService
 	SuperAppRoleContainer              SuperAppRoleService
 	QueueManager                       *queue.QueueManager
+	RoleDelegationContainer            RoleDelegationService
 }
 
 type BPSActionRoleService interface {

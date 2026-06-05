@@ -63,6 +63,19 @@ var ResponseCodesList = []ResponseCode{
 	SuccessServiceDisableRequestSubmitted,
 	SuccessServiceDisabled,
 
+	// role delegation related success responses
+	SuccessRoleDelegationCreated,
+	SuccessRoleDelegationUpdated,
+	SuccessRoleDelegationEnabled,
+	SuccessRoleDelegationDisabled,
+	SuccessRoleDelegationDelete,
+
+	SuccessRoleDelegationCreateRequestSubmitted,
+	SuccessRoleDelegationUpdateRequestSubmitted,
+	SuccessRoleDelegationEnableRequestSubmitted,
+	SuccessRoleDelegationDisableRequestSubmitted,
+	SuccessRoleDelegationDeleteRequestSubmitted,
+
 	SuccessUserCreated,
 	SuccessUserUpdated,
 	SuccessUserDeleted,
@@ -561,6 +574,10 @@ var ResponseCodesList = []ResponseCode{
 	ErrorFailToUpdateChild,
 	ErrorFailToUpdateBulkService,
 
+	// role delegation related errors
+	ErrorInvalidJobTitleID,
+	ErrorInvalidCPSUserID,
+
 	ErrorServiceListAlreadyExists,
 	ErrorAccessListNotFound,
 	ErrorServiceListInUse,
@@ -1026,6 +1043,9 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDepartmentDisabled,
 	SuccessDeleteCreated,
 	ErrorBudgetCAtagoryINuser,
+
+	// role delegation errors
+	ErrorUserNotFoundOrDisabled,
 }
 
 // Success Response Codes
@@ -4356,6 +4376,77 @@ var (
 		Code:       "SERVICE_DISABLED",
 		StatusCode: StatusOK,
 		Message:    "Service disabled successfully",
+		Type:       "success",
+	}
+
+	// Role delegation success responses
+	SuccessRoleDelegationCreated = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_CREATED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation created successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationCreateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_CREATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation create request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationUpdated = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_UPDATED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation updated successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation update request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationEnabled = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_ENABLED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation enabled successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation enable request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationDisabled = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_DISABLED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation disabled successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation disable request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationDelete = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_DELETED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation deleted successfully",
+		Type:       "success",
+	}
+
+	SuccessRoleDelegationDeleteRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_ROLE_DELEGATION_DELETE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Role delegation delete request submitted successfully",
 		Type:       "success",
 	}
 
@@ -8409,7 +8500,18 @@ var (
 		Message:    MsgDepartmentHasAssociatedUsers,
 		Type:       "error",
 	}
-
+	ErrorInvalidCPSUserID = ResponseCode{
+		Code:       "ERROR_INVALID_CPS_USER_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid CPS user ID",
+		Type:       "error",
+	}
+	ErrorInvalidJobTitleID = ResponseCode{
+		Code:       "ERROR_INVALID_JOBTITLE_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid job title ID",
+		Type:       "error",
+	}
 	ErrorOneOrMoreInvalidCodes = ResponseCode{
 		Code:       "ERROR_ONE_OR_MORE_INVALID_CODES",
 		StatusCode: StatusBadRequest,
@@ -9350,6 +9452,12 @@ var (
 		Code:       "ACCESS_LIST_SEGMENTATION_KEY_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgAccessListSegmentationKeyNotFound,
+		Type:       "error",
+	}
+	ErrorUserNotFoundOrDisabled = ResponseCode{
+		Code:       "ERROR_USER_NOT_FOUND_OR_DISABLED",
+		StatusCode: StatusNotFound,
+		Message:    MsgUserNotFoundOrDisabled,
 		Type:       "error",
 	}
 )

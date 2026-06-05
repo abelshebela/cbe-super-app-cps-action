@@ -428,6 +428,12 @@ var cpsActionRegistry = map[string]string{
 
 	// Unlink
 	"GET unlink": "UNLINKDEVICE",
+
+	// role delegation
+	"GET role_delegation":    "ROLEDELEGATION",
+	"POST role_delegation":   "ROLEDELEGATION",
+	"DELETE role_delegation": "ROLEDELEGATION",
+	"PATCH role_delegation":  "ROLEDELEGATION",
 }
 
 func extractResource(path string) string {

@@ -1,0 +1,226 @@
+package role_delegation_repo
+
+import (
+	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/storage"
+	"context"
+	"errors"
+	"time"
+
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+)
+
+type roleDelegationRepository struct {
+	repo              dal.MongoDal[imodel.RoleDelegation, imodel.RoleDelegation]
+	cpsRepo           dal.MongoDal[imodel.CPSUser, imodel.CPSUser]
+	logger            utils.Logger
+	collection        *mongo.Collection
+	cpsUserCollection *mongo.Collection
+}
+
+// Create implements [storage.RoleDelegationRepository].
+func (r *roleDelegationRepository) Create(ctx context.Context, role *imodel.RoleDelegation) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[RoleDelegationRepository][Create] creating role delegation for user=%s job_title=%s", role.UserID, role.JobTitle)
+	session, err := r.collection.Database().Client().StartSession()
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][Create] failed to start session: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer session.EndSession(ctx)
+
+	_, err = session.WithTransaction(ctx, func(sc context.Context) (any, error) {
+		role.ID = bson.NewObjectID()
+		role.Enable = true
+		result, err := r.collection.InsertOne(sc, role)
+		if err != nil {
+			log.Errorf("[RoleDelegationRepository][Create] failed to create role delegation: %v", err)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		insertedID, ok := result.InsertedID.(bson.ObjectID)
+		if !ok {
+			log.Errorf("[RoleDelegationRepository][Create] inserted id has unexpected type: %T", result.InsertedID)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		userObjectID, err := bson.ObjectIDFromHex(role.UserID)
+		if err != nil {
+			log.Errorf("[RoleDelegationRepository][Create] invalid user id: %v", err)
+			return nil, errors.New(localization.ErrorInvalidID.Code)
+		}
+
+		updatePipeline := mongo.Pipeline{
+			bson.D{{Key: "$set", Value: bson.M{"is_delegation_active": true, "delegation_id": insertedID}}},
+		}
+
+		_, err = r.cpsUserCollection.UpdateOne(sc, bson.M{"_id": userObjectID, "is_deleted": false}, updatePipeline)
+		if err != nil {
+			log.Errorf("[RoleDelegationRepository][Create] failed to update cps user delegate: %v", err)
+			return nil, local_util.HandleDBError(err)
+		}
+
+		return nil, nil
+	})
+	if err != nil {
+		return err
+	}
+
+	log.Infof("[RoleDelegationRepository][Create] role delegation created successfully")
+	return nil
+}
+
+// EnableOrDisable implements [storage.RoleDelegationRepository].
+func (r *roleDelegationRepository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[RoleDelegationRepository][EnableOrDisable] updating role delegation id=%s enabled=%v", id, enable)
+	objID, err := local_util.ParseObjectID(id)
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][EnableOrDisable] invalid object id: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"_id": objID}
+	update := bson.M{"enabled": enable, "updated_at": time.Now()}
+
+	_, err = r.repo.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][EnableOrDisable] failed to update role delegation: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
+	log.Infof("[RoleDelegationRepository][EnableOrDisable] role delegation updated successfully")
+	return nil
+}
+
+// Find implements [storage.RoleDelegationRepository].
+func (r *roleDelegationRepository) Find(ctx context.Context, filter bson.M) (*imodel.RoleDelegation, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	result, err := r.repo.FindOne(ctx, filter, nil)
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][Find] failed to find role delegation: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	return result, nil
+}
+
+// FindAll implements [storage.RoleDelegationRepository].
+func (r *roleDelegationRepository) FindAll(ctx context.Context) (*[]imodel.RoleDelegation, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	filter := dal.FilterOp{
+		Filter: bson.M{"enabled": true},
+	}
+	data, err := r.repo.FindAllWithCursorBasedPagination(ctx, filter)
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][FindAll] failed to fetch role delegations: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return &data, nil
+}
+
+// FindAllWithPagination implements [storage.RoleDelegationRepository].
+func (r *roleDelegationRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	searchKeys := bson.M{}
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		searchKeys["$or"] = []bson.M{
+			{"job_title": searchRegex},
+			{"user_id": searchRegex},
+		}
+	}
+
+	allowedKeys := []string{"enabled", "job_title", "user_id", "start_at", "end_at"}
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	filter["enabled"] = true
+
+	data, err := r.repo.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][FindAllWithPagination] failed to fetch role delegations: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	total, err := r.repo.TotalCount(ctx, filter)
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][FindAllWithPagination] failed to count role delegations: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	return &types.PaginatedResponse[[]imodel.RoleDelegation]{
+		Data: data,
+		Meta: meta,
+	}, nil
+}
+
+// FindByID implements [storage.RoleDelegationRepository].
+func (r *roleDelegationRepository) FindByID(ctx context.Context, id string) (*imodel.RoleDelegation, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	objID, err := local_util.ParseObjectID(id)
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][FindByID] invalid object id: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	result, err := r.repo.FindOne(ctx, bson.M{"_id": objID}, nil)
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][FindByID] failed to find role delegation: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	return result, nil
+}
+
+// Update implements [storage.RoleDelegationRepository].
+func (r *roleDelegationRepository) Update(ctx context.Context, id string, role *imodel.RoleDelegation) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[RoleDelegationRepository][Update] updating role delegation id=%s", id)
+	objID, err := local_util.ParseObjectID(id)
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][Update] invalid object id: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	update := bson.M{
+		"user_id":    role.UserID,
+		"enabled":    role.Enable,
+		"start_at":   role.StartAt,
+		"end_at":     role.EndAt,
+		"job_title":  role.JobTitle,
+		"updated_at": time.Now(),
+	}
+
+	_, err = r.repo.UpdateOne(ctx, bson.M{"_id": objID}, update)
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][Update] failed to update role delegation: %v", err)
+		return local_util.HandleDBError(err)
+	}
+
+	return nil
+}
+
+func NewRoleDelegationRepository(client *mongo.Client, cfg *config.VaultConfig, database string, collection []string, logger utils.Logger) storage.RoleDelegationRepository {
+	return &roleDelegationRepository{
+		repo:              dal.NewMongoDal[imodel.RoleDelegation, imodel.RoleDelegation](client, cfg, database, collection[0]),
+		cpsRepo:           dal.NewMongoDal[imodel.CPSUser, imodel.CPSUser](client, cfg, database, collection[1]),
+		logger:            logger,
+		collection:        client.Database(database).Collection(collection[0]),
+		cpsUserCollection: client.Database(database).Collection(collection[1]),
+	}
+}
