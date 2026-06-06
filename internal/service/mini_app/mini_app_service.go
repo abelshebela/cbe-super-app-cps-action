@@ -10,7 +10,9 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
-	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
+	// mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -40,7 +42,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 
 	const financialAPPtype = "FINANCIAL"
 
-	miniApp, err := local_util.JsonUnmarshal[mini_model.MiniApp](cpsAction.CurrentAction)
+	miniApp, err := local_util.JsonUnmarshal[local_model.MiniApp](cpsAction.CurrentAction)
 	if err != nil {
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -52,7 +54,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniApp):
 		if miniApp.AppType == financialAPPtype {
-			err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
+			err = s.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
 			if err != nil {
 				span.AddEvent("Merchant validation failed", trace.WithAttributes(
 					attribute.String("error", err.Error()),
@@ -73,7 +75,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 
 	case string(constants.RequestUpdateMiniApp):
 		if miniApp.AppType == financialAPPtype {
-			err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
+			err = s.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
 			if err != nil {
 				span.AddEvent("Merchant validation failed", trace.WithAttributes(
 					attribute.String("error", err.Error()),
@@ -103,7 +105,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 
 	case string(constants.RequestEnableMiniApp):
 		if miniApp.AppType == financialAPPtype {
-			err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
+			err = s.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
 			if err != nil {
 				span.AddEvent("Merchant validation failed", trace.WithAttributes(
 					attribute.String("error", err.Error()),

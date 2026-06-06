@@ -10,8 +10,10 @@ import (
 	"errors"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 
-	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
+
+	// mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
@@ -42,7 +44,7 @@ func NewMiniAppMerchantService(
 	}
 }
 
-func (m *miniAppMerchantService) FindByID(ctx context.Context, id string) (*mini_model.MiniAppMerchant, error) {
+func (m *miniAppMerchantService) FindByID(ctx context.Context, id string) (*local_model.MiniAppMerchant, error) {
 	log := local_util.LoggerFromCtx(ctx, m.logger)
 
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindByID", "MiniAppMerchant", "FindByID")
@@ -66,7 +68,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "MiniAppMerchant", "Authorize")
 	defer span.End()
 
-	merchant, err := local_util.JsonUnmarshal[mini_model.MiniAppMerchant](cpsAction.CurrentAction)
+	merchant, err := local_util.JsonUnmarshal[local_model.MiniAppMerchant](cpsAction.CurrentAction)
 	if err != nil {
 		log.Errorf("[MiniMerchSvc][Authorize] unmarshal err: %v", err)
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
@@ -104,13 +106,13 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return model.CPSAction{}, err
 		}
-		if err == nil {
-			err := m.miniRepo.DeleteManyByMerchantIDs(ctx, cpsAction.UniqueId)
-			if err != nil {
-				log.Errorf("[MiniMerchSvc][Authorize] cascade delete err id: %s: %v", cpsAction.UniqueId, err)
-				return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
-			}
-		}
+		// if err == nil {
+		// 	err := m.miniRepo.DeleteManyByMerchantIDs(ctx, cpsAction.UniqueId)
+		// 	if err != nil {
+		// 		log.Errorf("[MiniMerchSvc][Authorize] cascade delete err id: %s: %v", cpsAction.UniqueId, err)
+		// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		// 	}
+		// }
 	case string(constants.RequestEnableMiniAppMerchant):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
 		if err != nil {
@@ -129,13 +131,13 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return model.CPSAction{}, err
 		}
-		if err == nil {
-			err := m.miniRepo.DisableManyByMerchantIDs(ctx, cpsAction.UniqueId)
-			if err != nil {
-				log.Errorf("[MiniMerchSvc][Authorize] cascade disable err id: %s: %v", cpsAction.UniqueId, err)
-				return model.CPSAction{}, errors.New(localization.ErrorUnexpectedError.Code)
-			}
-		}
+		// if err == nil {
+		// 	err := m.miniRepo.DisableManyByMerchantIDs(ctx, cpsAction.UniqueId)
+		// 	if err != nil {
+		// 		log.Errorf("[MiniMerchSvc][Authorize] cascade disable err id: %s: %v", cpsAction.UniqueId, err)
+		// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		// 	}
+		// }
 	default:
 		log.Errorf("[MiniMerchSvc][Authorize] unsupported action: %s", cpsAction.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(

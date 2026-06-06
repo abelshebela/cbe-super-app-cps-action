@@ -57,7 +57,7 @@ import (
 	event_model "cbe-super-app-cps-action/internal/constants/model"
 
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
-	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
+	// mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
