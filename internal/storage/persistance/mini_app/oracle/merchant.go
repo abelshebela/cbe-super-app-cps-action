@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"database/sql"
+	"fmt"
 	"strings"
 	"time"
 
@@ -13,11 +14,10 @@ import (
 
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 
-	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	constants "cbe-super-app-cps-action/internal/constants/localization"
+
+	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	// mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
-
-
 )
 type miniAppMerchantOraclePersistence struct {
 	logger shared_utils.Logger
@@ -31,7 +31,7 @@ func NewMiniAppMerchantOracleRepository(logger shared_utils.Logger, db *sql.DB) 
 
 func (m *miniAppMerchantOraclePersistence) Create(ctx context.Context, merchant *local_model.MiniAppMerchant) (*local_model.MiniAppMerchant, error) {
 	q := querypkg.MiniAppMerchantInsert
-	_, err := m.db.ExecContext(ctx, q, merchant.MerchantName, merchant.MerchantCode, merchant.SettlementMethod, merchant.BankAccountNumber, boolToInt64(merchant.Enabled), boolToInt64(merchant.IsDeleted), merchant.CreatedAt, merchant.UpdatedAt, merchant.PhoneNumber, merchant.Email)
+	_, err := m.db.ExecContext(ctx, q, merchant.MerchantName, merchant.MerchantCode, fmt.Sprintf("%s", merchant.SettlementMethod), merchant.BankAccountNumber, boolToInt64(merchant.Enabled), boolToInt64(merchant.IsDeleted), merchant.CreatedAt, merchant.UpdatedAt, merchant.PhoneNumber, merchant.Email)
 	if err != nil {
 		m.logger.Errorf("[miniapp_merchant CREATE] got error while creating merchant %w", err)
 		return nil, constants.ErrDatabaseError
