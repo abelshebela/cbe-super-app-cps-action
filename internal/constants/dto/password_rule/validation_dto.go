@@ -34,14 +34,10 @@ func (r PasswordRuleUpdate) Validate() error {
 	}
 
 	// Validate MinLength
-	if r.Rule.MinLength < 1 {
-		return errors.New("minimum length must be at least 1")
+	if r.Rule.MinLength < 6 {
+		return errors.New("minimum length must be at least 6")
 	}
 
-	// Validate MaxLength
-	if r.Rule.MaxLength < 6 {
-		return errors.New("maximum length must be at least 6")
-	}
 	if r.Rule.MaxLength > 20 {
 		return errors.New("maximum length must be at most 20")
 	}
