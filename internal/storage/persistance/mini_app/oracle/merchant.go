@@ -31,6 +31,8 @@ func NewMiniAppMerchantOracleRepository(logger shared_utils.Logger, db *sql.DB) 
 
 func (m *miniAppMerchantOraclePersistence) Create(ctx context.Context, merchant *local_model.MiniAppMerchant) (*local_model.MiniAppMerchant, error) {
 	q := querypkg.MiniAppMerchantInsert
+	fmt.Printf("%T\n", fmt.Sprintf("%s", merchant.SettlementMethod))
+	fmt.Printf("%#v\n", fmt.Sprintf("%s", merchant.SettlementMethod))
 	_, err := m.db.ExecContext(ctx, q, merchant.MerchantName, merchant.MerchantCode, fmt.Sprintf("%s", merchant.SettlementMethod), merchant.BankAccountNumber, boolToInt64(merchant.Enabled), boolToInt64(merchant.IsDeleted), merchant.CreatedAt, merchant.UpdatedAt, merchant.PhoneNumber, merchant.Email)
 	if err != nil {
 		m.logger.Errorf("[miniapp_merchant CREATE] got error while creating merchant %w", err)
