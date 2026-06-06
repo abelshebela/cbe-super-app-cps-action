@@ -28,13 +28,10 @@ var cpsActionRegistry = map[string]string{
 	"DELETE mini-app-merchants": "MINIAPPMERCHANT",
 
 	// USSD Merchant
-	"GET ussd_merchant":                "USSDMERCHANT",
-	"GET ussd_merchant/{id}":           "USSDMERCHANT",
-	"POST ussd_merchant":               "USSDMERCHANT",
-	"PATCH ussd_merchant/{id}":         "USSDMERCHANT",
-	"DELETE ussd_merchant/{id}":        "USSDMERCHANT",
-	"PATCH ussd_merchant/disable/{id}": "USSDMERCHANT",
-	"PATCH ussd_merchant/enable/{id}":  "USSDMERCHANT",
+	"GET ussd_merchant":    "USSDMERCHANT",
+	"POST ussd_merchant":   "USSDMERCHANT",
+	"PATCH ussd_merchant":  "USSDMERCHANT",
+	"DELETE ussd_merchant": "USSDMERCHANT",
 
 	// Advert
 	"POST adverts":  "ADVERT",
