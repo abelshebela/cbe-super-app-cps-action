@@ -1458,4 +1458,7 @@ const (
 	MsgAccessListSegmentationKeyNotFound           = "Access List Segmentation Key not found"
 
 	MsgUserNotFoundOrDisabled = "User not found or disabled"
+
+	MsgRoleDelegationAlreadyDisabled = "Role delegation already disabled"
+	MsgRoleDelegationAlreadyEnabled  = "Role delegation already enabled"
 )

@@ -1046,6 +1046,8 @@ var ResponseCodesList = []ResponseCode{
 
 	// role delegation errors
 	ErrorUserNotFoundOrDisabled,
+	ErrorRoleDelegationAlreadyEnabled,
+	ErrorRoleDelegationAlreadyDisabled,
 }
 
 // Success Response Codes
@@ -9458,6 +9460,19 @@ var (
 		Code:       "ERROR_USER_NOT_FOUND_OR_DISABLED",
 		StatusCode: StatusNotFound,
 		Message:    MsgUserNotFoundOrDisabled,
+		Type:       "error",
+	}
+
+	ErrorRoleDelegationAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_ROLE_DELEGATION_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgRoleDelegationAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorRoleDelegationAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_ROLE_DELEGATION_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgRoleDelegationAlreadyEnabled,
 		Type:       "error",
 	}
 )

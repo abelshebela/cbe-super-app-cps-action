@@ -120,10 +120,7 @@ func (r *roleDelegationRepository) Find(ctx context.Context, filter bson.M) (*im
 func (r *roleDelegationRepository) FindAll(ctx context.Context) (*[]imodel.RoleDelegation, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	filter := dal.FilterOp{
-		Filter: bson.M{"enabled": true},
-	}
-	data, err := r.repo.FindAllWithCursorBasedPagination(ctx, filter)
+	data, err := r.repo.FindAllWithCursorBasedPagination(ctx, dal.FilterOp{})
 	if err != nil {
 		log.Errorf("[RoleDelegationRepository][FindAll] failed to fetch role delegations: %v", err)
 		return nil, local_util.HandleDBError(err)
@@ -147,7 +144,6 @@ func (r *roleDelegationRepository) FindAllWithPagination(ctx context.Context, fi
 
 	allowedKeys := []string{"enabled", "job_title", "user_id", "start_at", "end_at"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-	filter["enabled"] = true
 
 	data, err := r.repo.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {

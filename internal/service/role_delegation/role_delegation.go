@@ -163,6 +163,16 @@ func (r *roleDelegation) EnableOrDisable(ctx context.Context, id string, enable 
 		return err
 	}
 
+	if enable && existing.Enable {
+		log.Warnf("[RoleDelegation/EnableOrDisable] role delegation %s is already enabled", id)
+		return errors.New(localization.ErrorRoleDelegationAlreadyEnabled.Code)
+	}
+
+	if !enable && !existing.Enable {
+		log.Warnf("[RoleDelegation/EnableOrDisable] role delegation %s is already disabled", id)
+		return errors.New(localization.ErrorRoleDelegationAlreadyDisabled.Code)
+	}
+
 	updated := *existing
 	updated.UpdatedAt = time.Now()
 

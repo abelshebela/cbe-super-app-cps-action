@@ -12,18 +12,18 @@ import (
 
 // BuildRoleDelegationRequest validates and converts the request payload into a service model.
 func BuildRoleDelegationRequest(body role_delegation_dto.RoleDelegationRequest) (imodel.RoleDelegation, error) {
-	userID := strings.TrimSpace(body.UserID)
+	// userID := strings.TrimSpace(body.UserID)
 	jobTitleID := strings.TrimSpace(body.JobTitleID)
 	startDate := strings.TrimSpace(body.StartDate)
 	endDate := strings.TrimSpace(body.EndDate)
 
-	if userID == "" || jobTitleID == "" || startDate == "" || endDate == "" {
-		return imodel.RoleDelegation{}, localization.ErrorRequiredFieldMissing
-	}
+	// if userID == "" || jobTitleID == "" || startDate == "" || endDate == "" {
+	// 	return imodel.RoleDelegation{}, localization.ErrorRequiredFieldMissing
+	// }
 
-	if err := local_util.NoSpecialChars(userID); err != nil {
-		return imodel.RoleDelegation{}, localization.ErrorInvalidCPSUserID
-	}
+	// if err := local_util.NoSpecialChars(userID); err != nil {
+	// 	return imodel.RoleDelegation{}, localization.ErrorInvalidCPSUserID
+	// }
 
 	if err := local_util.NoSpecialChars(jobTitleID); err != nil {
 		return imodel.RoleDelegation{}, localization.ErrorInvalidJobTitleID
@@ -49,7 +49,7 @@ func BuildRoleDelegationRequest(body role_delegation_dto.RoleDelegationRequest) 
 	}
 
 	return imodel.RoleDelegation{
-		UserID:   userID,
+		// UserID:   userID,
 		StartAt:  parsedStart,
 		EndAt:    parsedEnd,
 		JobTitle: jobTitleID,
