@@ -18,7 +18,6 @@ import (
 	cpsUserInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_user"
 	customerInbound "cbe-super-app-cps-action/internal/constants/interfaces/customer"
 	cg_iface "cbe-super-app-cps-action/internal/constants/interfaces/customer_group"
-	sar_iface "cbe-super-app-cps-action/internal/constants/interfaces/superapp_role"
 	customer_seg "cbe-super-app-cps-action/internal/constants/interfaces/customer_segmentation"
 	dviface "cbe-super-app-cps-action/internal/constants/interfaces/device_version"
 	ecommerce_merchant "cbe-super-app-cps-action/internal/constants/interfaces/ecommerce_merchant"
@@ -27,8 +26,11 @@ import (
 	FaydaInbound "cbe-super-app-cps-action/internal/constants/interfaces/fayda"
 	job_role_interface "cbe-super-app-cps-action/internal/constants/interfaces/job_role"
 	logistics_merchant_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/logistics_merchant"
+	role_delegation_outbound "cbe-super-app-cps-action/internal/constants/interfaces/role_delegation"
+	sar_iface "cbe-super-app-cps-action/internal/constants/interfaces/superapp_role"
 	"cbe-super-app-cps-action/internal/constants/interfaces/transaction"
 	ussd_merchant_interface "cbe-super-app-cps-action/internal/constants/interfaces/ussd_merchant"
+	role_delegation_handler "cbe-super-app-cps-action/internal/handlers/rest/http/role_delegation"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/ussd_merchant"
 
 	cpsRoleInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_roles"
@@ -56,11 +58,11 @@ import (
 	accesslistsegmentaion "cbe-super-app-cps-action/internal/handlers/rest/http/access_list_segmentaion"
 	cps_actionrole_handler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_role"
 	customer_group_handler "cbe-super-app-cps-action/internal/handlers/rest/http/customer_group"
-	superapp_role_handler "cbe-super-app-cps-action/internal/handlers/rest/http/superapp_role"
 	customer_hand "cbe-super-app-cps-action/internal/handlers/rest/http/customer_segmentation"
 	event_merchant_handler "cbe-super-app-cps-action/internal/handlers/rest/http/event_merchant"
 	logistics_merchant_handler "cbe-super-app-cps-action/internal/handlers/rest/http/logistics_merchant"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/roles"
+	superapp_role_handler "cbe-super-app-cps-action/internal/handlers/rest/http/superapp_role"
 
 	customerKycInbound "cbe-super-app-cps-action/internal/constants/interfaces/customer_kyc"
 	donation "cbe-super-app-cps-action/internal/constants/interfaces/donation"
@@ -170,6 +172,7 @@ type Handler struct {
 	CustomerKYCHandler            customerKycInbound.CustomerKYC
 	UssdMerchantHandler           ussd_merchant_interface.UssdMerchantInbound
 	SuperAppRoleHandler           sar_iface.SuperAppRole
+	RoleDelegationHandler         role_delegation_outbound.RoleDelegation
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger, queueManager *queue.QueueManager) Handler {
@@ -227,5 +230,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger, queueMa
 		CustomerKYCHandler:            CustomerKYCHandler.NewCustomerKYCAdapter(serviceLayer.CustomerKYC, logger),
 		UssdMerchantHandler:           ussd_merchant.NewUssdMerchantHandler(serviceLayer.UssdMerchantService, logger),
 		SuperAppRoleHandler:           superapp_role_handler.NewSuperAppRoleHandler(serviceLayer.SuperAppRole, logger),
+		RoleDelegationHandler:         role_delegation_handler.NewRoleDelegationHandler(serviceLayer.RoleDelegationService, logger),
 	}
 }

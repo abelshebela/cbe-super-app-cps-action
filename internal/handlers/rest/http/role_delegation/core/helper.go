@@ -1,0 +1,159 @@
+package core
+
+import (
+	"net/mail"
+	"strings"
+	"time"
+
+	role_delegation_dto "cbe-super-app-cps-action/internal/constants/dto/role_delegation"
+	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+)
+
+// BuildRoleDelegationRequest validates and converts the request payload into a service model.
+func BuildRoleDelegationRequestWithExistingUser(body role_delegation_dto.RoleDelegationRequest) (imodel.RoleDelegation, error) {
+	delegatedUserID := strings.TrimSpace(body.DelegatedUserID)
+	delegatedUserUserType := strings.TrimSpace(body.DelegatedUserUserType)
+	delegationType := strings.TrimSpace(body.DelegationType)
+
+	delegatorUserID := strings.TrimSpace(body.DelegatorUserID)
+	delegatorUserFullName := strings.TrimSpace(body.DelegatorUserFullName)
+	delegatorUserJobTitle := strings.TrimSpace(body.DelegatorUserJobTitle)
+	delegatorUserRole := strings.TrimSpace(body.DelegatorUserRole)
+
+	newRoleID := strings.TrimSpace(body.NewRoleID)
+	newDepartmentOrBranch := strings.TrimSpace(body.NewDepartmentOrBranch)
+
+	reason := strings.TrimSpace(body.Reason)
+
+	if delegatedUserID == "" || delegatedUserUserType == "" || delegationType == "" ||
+		delegatorUserID == "" || delegatorUserFullName == "" || delegatorUserJobTitle == "" || delegatorUserRole == "" ||
+		newRoleID == "" || newDepartmentOrBranch == "" || reason == "" {
+		return imodel.RoleDelegation{}, localization.ErrorRequiredFieldMissing
+	}
+
+	body.DelegatedUserUserType = strings.Clone(body.DelegatedUserUserType)
+	if body.DelegatedUserUserType != "CPS" && body.DelegatedUserUserType != "BPS" {
+		return imodel.RoleDelegation{}, localization.ErrorInvalidDelegationUserType
+	}
+
+	if err := local_util.NoSpecialChars(newRoleID); err != nil {
+		return imodel.RoleDelegation{}, localization.ErrorInvalidInputParameter
+	}
+
+	if body.StartAt.IsZero() || body.EndAt.IsZero() {
+		return imodel.RoleDelegation{}, localization.ErrorInvalidDate
+	}
+
+	now := time.Now().UTC()
+	parsedStart := body.StartAt.UTC()
+	parsedEnd := body.EndAt.UTC()
+
+	if parsedStart.Before(now) || parsedEnd.Before(now) {
+		return imodel.RoleDelegation{}, localization.ErrorInvalidDate
+	}
+
+	if !parsedStart.Before(parsedEnd) {
+		return imodel.RoleDelegation{}, localization.ErrorInvalidDate
+	}
+
+	return imodel.RoleDelegation{
+		DelegatedUserID:       delegatedUserID,
+		DelegatedUserUserType: delegatedUserUserType,
+		DelegationType:        delegationType,
+		DelegatorUserID:       delegatorUserID,
+		DelegatorUserFullName: delegatorUserFullName,
+		DelegatorUserJobTitle: delegatorUserJobTitle,
+		DelegatorUserRole:     delegatorUserRole,
+		NewRoleID:             newRoleID,
+		NewDepartmentOrBranch: newDepartmentOrBranch,
+		StartAt:               parsedStart,
+		EndAt:                 parsedEnd,
+		Reason:                reason,
+	}, nil
+}
+func BuildRoleDelegationRequestWithNewUser(body role_delegation_dto.RoleDelegationRequest) (imodel.RoleDelegation, error) {
+	delegatedUserID := strings.TrimSpace(body.DelegatedUserID)
+	delegatedUserFullName := strings.TrimSpace(body.DelegatedUserFullName)
+	delegatedUserUserType := strings.TrimSpace(body.DelegatedUserUserType)
+	delegatedUserDepartmentOrBranch := strings.TrimSpace(body.DelegatedUserDepartmentOrBranch)
+	delegatedUserJobTitle := strings.TrimSpace(body.DelegatedUserJobTitle)
+	delegationType := strings.TrimSpace(body.DelegationType)
+	delegatedUserPhoneNumber := strings.TrimSpace(body.DelegatedUserPhoneNumber)
+	delegatedUserEmail := strings.ToLower(strings.TrimSpace(body.DelegatedUserEmail))
+
+	delegatorUserID := strings.TrimSpace(body.DelegatorUserID)
+	delegatorUserFullName := strings.TrimSpace(body.DelegatorUserFullName)
+	delegatorUserJobTitle := strings.TrimSpace(body.DelegatorUserJobTitle)
+	delegatorUserRole := strings.TrimSpace(body.DelegatorUserRole)
+
+	newRoleID := strings.TrimSpace(body.NewRoleID)
+	newDepartmentOrBranch := strings.TrimSpace(body.NewDepartmentOrBranch)
+	reason := strings.TrimSpace(body.Reason)
+
+	if delegatedUserID == "" || delegatedUserFullName == "" || delegatedUserUserType == "" ||
+		delegatedUserDepartmentOrBranch == "" || delegatedUserJobTitle == "" || delegationType == "" || delegatedUserPhoneNumber == "" || delegatedUserEmail == "" ||
+		delegatorUserID == "" || delegatorUserFullName == "" || delegatorUserJobTitle == "" || delegatorUserRole == "" ||
+		newRoleID == "" || newDepartmentOrBranch == "" || reason == "" {
+		return imodel.RoleDelegation{}, localization.ErrorRequiredFieldMissing
+	}
+
+	body.DelegatedUserUserType = strings.Clone(body.DelegatedUserUserType)
+	if body.DelegatedUserUserType != "CPS" && body.DelegatedUserUserType != "BPS" {
+		return imodel.RoleDelegation{}, localization.ErrorInvalidDelegationUserType
+	}
+
+	if err := local_util.NoSpecialChars(delegatedUserJobTitle); err != nil {
+		return imodel.RoleDelegation{}, localization.ErrorInvalidJobTitleID
+	}
+
+	if err := local_util.NoSpecialChars(newRoleID); err != nil {
+		return imodel.RoleDelegation{}, localization.ErrorInvalidInputParameter
+	}
+
+	if _, err := mail.ParseAddress(delegatedUserEmail); err != nil {
+		return imodel.RoleDelegation{}, localization.ErrorInvalidEmail
+	}
+
+	formattedPhone := local_util.FormatPhoneNumber(delegatedUserPhoneNumber)
+	if formattedPhone == "" {
+		return imodel.RoleDelegation{}, localization.ErrorInvalidPhoneNumber
+	}
+
+	if body.StartAt.IsZero() || body.EndAt.IsZero() {
+		return imodel.RoleDelegation{}, localization.ErrorInvalidDate
+	}
+
+	now := time.Now().UTC()
+	parsedStart := body.StartAt.UTC()
+	parsedEnd := body.EndAt.UTC()
+
+	if parsedStart.Before(now) || parsedEnd.Before(now) {
+		return imodel.RoleDelegation{}, localization.ErrorInvalidDate
+	}
+
+	if !parsedStart.Before(parsedEnd) {
+		return imodel.RoleDelegation{}, localization.ErrorInvalidDate
+	}
+
+	return imodel.RoleDelegation{
+		DelegatedUserID:                 delegatedUserID,
+		DelegatedUserFullName:           delegatedUserFullName,
+		DelegatedUserUserType:           delegatedUserUserType,
+		DelegatedUserDepartmentOrBranch: delegatedUserDepartmentOrBranch,
+		DelegatedUserJobTitle:           delegatedUserJobTitle,
+		DelegationType:                  delegationType,
+		DelegatedUserPhoneNumber:        formattedPhone,
+		DelegatedUserEmail:              delegatedUserEmail,
+		DelegatorUserID:                 delegatorUserID,
+		DelegatorUserFullName:           delegatorUserFullName,
+		DelegatorUserJobTitle:           delegatorUserJobTitle,
+		DelegatorUserRole:               delegatorUserRole,
+		NewRoleID:                       newRoleID,
+		NewDepartmentOrBranch:           newDepartmentOrBranch,
+		StartAt:                         parsedStart,
+		EndAt:                           parsedEnd,
+		Reason:                          reason,
+	}, nil
+}

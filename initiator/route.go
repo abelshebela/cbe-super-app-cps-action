@@ -27,6 +27,7 @@ import (
 	logistic_merchant_router "cbe-super-app-cps-action/internal/glue/routing/logistic_merchant"
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
 	newstag_routing "cbe-super-app-cps-action/internal/glue/routing/news_tag"
+	"cbe-super-app-cps-action/internal/glue/routing/role_delegation"
 
 	"cbe-super-app-cps-action/internal/glue/routing/services"
 	"cbe-super-app-cps-action/internal/glue/routing/transaction"
@@ -49,7 +50,6 @@ import (
 	cps_roles "cbe-super-app-cps-action/internal/glue/routing/cps_roles"
 	cps_user_det "cbe-super-app-cps-action/internal/glue/routing/cps_user"
 	customer_group_routing "cbe-super-app-cps-action/internal/glue/routing/customer_group"
-	superapp_role_routing "cbe-super-app-cps-action/internal/glue/routing/superapp_role"
 	customer_seg "cbe-super-app-cps-action/internal/glue/routing/customer_segmentation"
 	donation "cbe-super-app-cps-action/internal/glue/routing/donation"
 	donation_category "cbe-super-app-cps-action/internal/glue/routing/donation_category"
@@ -59,6 +59,7 @@ import (
 	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
 	jobRole "cbe-super-app-cps-action/internal/glue/routing/job_roles"
 	password "cbe-super-app-cps-action/internal/glue/routing/password_rule"
+	superapp_role_routing "cbe-super-app-cps-action/internal/glue/routing/superapp_role"
 
 	// permission_details "cbe-super-app-cps-action/internal/glue/routing/permission"
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
@@ -195,6 +196,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	customerkyc.Init(r, handlerLayer.CustomerKYCHandler, authMiddleware)
 
 	roles.Init(r, handlerLayer.RoleHandler, authMiddleware)
+	role_delegation.Init(r, handlerLayer.RoleDelegationHandler, authMiddleware)
 
 	secured := chi.NewRouter()
 
