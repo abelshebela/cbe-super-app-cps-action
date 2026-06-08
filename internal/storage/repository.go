@@ -80,12 +80,15 @@ type RoleRepository interface {
 }
 
 type RoleDelegationRepository interface {
-	Create(ctx context.Context, role *imodel.RoleDelegation) error
+	CreateWithExistingUser(ctx context.Context, role *imodel.RoleDelegation) error
+	CreateWithNewUser(ctx context.Context, role *imodel.RoleDelegation) error
 	Update(ctx context.Context, id string, role *imodel.RoleDelegation) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*imodel.RoleDelegation, error)
+	Delete(ctx context.Context, id string) error
 	FindAll(ctx context.Context) (*[]imodel.RoleDelegation, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error)
+	// CheckIfDelegationAlreadyExists(ctx context.Context, userID string, start, end time.Time) (bool, error)
 }
 
 type UnlinkAccount interface {

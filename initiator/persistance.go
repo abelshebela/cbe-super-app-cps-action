@@ -143,8 +143,8 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		// CustomerKYCPersistence:       persistence_kyc.NewCustomerKYCRepository(client, cfg, dbName, CustomersKYCCollection, logger),
 		UssdMerchantPersistence:   ussd_merchant_repo.NewUssdMerchant(client, dbName, UssdMerchantCollection, cfg, logger),
 		UserActionLogPersistence:  user_action_log_repo.NewUserActionLogRepository(client, cfg, dbName, UserActionLogsCollection, logger),
-		ServicesPersistence:       nil,                                                                                                                                   // Services repository is commented out - using Oracle instead
-		RoleDelegationPersistence: role_delegation_repo.NewRoleDelegationRepository(client, cfg, dbName, []string{RoleDelegationCollection, CPSUsersCollection}, logger), // Initialized in service.go to avoid circular dependency
+		ServicesPersistence:       nil,                                                                                                                                                         // Services repository is commented out - using Oracle instead
+		RoleDelegationPersistence: role_delegation_repo.NewRoleDelegationRepository(client, cfg, dbName, []string{RoleDelegationCollection, CPSUsersCollection, BranchUserCollection}, logger), // Initialized in service.go to avoid circular dependency
 	}
 
 	return data

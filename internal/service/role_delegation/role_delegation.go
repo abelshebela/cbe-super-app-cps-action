@@ -23,7 +23,10 @@ type roleDelegation struct {
 	repo         storage.RoleDelegationRepository
 	jobTitleRepo storage.JobRoleRepository
 	cpsUserRepo  storage.CpsUserRepository
+	bpsUserRepo  storage.BPSUserRepository
+	department   storage.DepartmentRepository
 	cpsService   service.CPSActionService
+	branchRepo   storage.AccountBlockRepository
 	logger       utils.Logger
 }
 
@@ -58,9 +61,14 @@ func (r *roleDelegation) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	}
 
 	switch string(cpsAction.RequestAction) {
-	case string(constants.RequestCreateRoleDelegation):
+	case string(constants.RequestCreateRoleDelegationForExistingUser):
 		roleDelegation.CreatedAt = time.Now()
-		if err := r.repo.Create(ctx, &roleDelegation); err != nil {
+		if err := r.repo.CreateWithExistingUser(ctx, &roleDelegation); err != nil {
+			return nil, err
+		}
+	case string(constants.RequestCreateRoleDelegationForNewUser):
+		roleDelegation.CreatedAt = time.Now()
+		if err := r.repo.CreateWithNewUser(ctx, &roleDelegation); err != nil {
 			return nil, err
 		}
 	case string(constants.RequestUpdateRoleDelegation):
@@ -77,7 +85,7 @@ func (r *roleDelegation) Authorize(ctx context.Context, cpsAction *model.CPSActi
 			return nil, err
 		}
 	case string(constants.RequestDeleteRoleDelegation):
-		if err := r.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false); err != nil {
+		if err := r.repo.Delete(ctx, cpsAction.UniqueId); err != nil {
 			return nil, err
 		}
 	default:
@@ -90,39 +98,164 @@ func (r *roleDelegation) Authorize(ctx context.Context, cpsAction *model.CPSActi
 }
 
 // Create implements [service.RoleDelegationService].
-func (r *roleDelegation) Create(ctx context.Context, roleDelegation imodel.RoleDelegation) error {
+func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegation imodel.RoleDelegation) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	log.Infof("[RoleDelegation/Create] Creating role delegation for user %s with job title %s", roleDelegation.UserID, roleDelegation.JobTitle)
+	log.Infof("[RoleDelegation/Create] Creating role delegation for user %s with job title %s", roleDelegation.DelegatedUserID, roleDelegation.DelegatedUserJobTitle)
 
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		log.Errorf("[Role Service][Create] maker data is incomplete")
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
+	if roleDelegation.DelegatedUserUserType == "BPS" {
 
-	// Validate user existence
-	user, err := r.cpsUserRepo.FindByUserID(ctx, roleDelegation.UserID)
-	if err != nil {
-		r.logger.Errorf("[RoleDelegation/Create] Failed to find user: %v", err)
-		return err
-	}
-	if user == nil || !user.Enabled {
-		r.logger.Warnf("[RoleDelegation/Create] User not found: %s", roleDelegation.UserID)
-		return errors.New(localization.ErrorUserNotFoundOrDisabled.Code)
+		user, err := r.bpsUserRepo.GetByUserCode(ctx, roleDelegation.DelegatedUserID)
+		if err != nil {
+			r.logger.Errorf("[RoleDelegation/Create] Failed to find BPS user: %v", err)
+			return err
+		}
+		if user == nil || !user.Enabled {
+			r.logger.Warnf("[RoleDelegation/Create] BPS User not found: %s", roleDelegation.DelegatedUserID)
+			return errors.New(localization.ErrorUserNotFoundOrDisabled.Code)
+		}
+		roleDelegation.DelegatedUserFullName = user.FullName
+		roleDelegation.DelegatedUserDepartmentOrBranch = user.BranchName
+		roleDelegation.DelegatedUserJobTitle = user.JobTitle
+		roleDelegation.DelegatedUserExistingRole = user.Role
+		roleDelegation.DelegatedUserPhoneNumber = user.PhoneNumber
+		roleDelegation.DelegatedUserEmail = user.Email
+	} else {
+		// Validate user existence
+		user, err := r.cpsUserRepo.FindByID(ctx, roleDelegation.DelegatedUserID)
+		if err != nil {
+			r.logger.Errorf("[RoleDelegation/Create] Failed to find user: %v", err)
+			return err
+		}
+
+		if user == nil || !user.Enabled {
+			r.logger.Warnf("[RoleDelegation/Create] User not found: %s", roleDelegation.DelegatedUserID)
+			return errors.New(localization.ErrorUserNotFoundOrDisabled.Code)
+		}
+
+		roleDelegation.DelegatedUserFullName = user.FullName
+		roleDelegation.DelegatedUserDepartmentOrBranch = user.DelegationID.Hex()
+		roleDelegation.DelegatedUserJobTitle = user.JobTitle
+		roleDelegation.DelegatedUserExistingRole = user.Role
+		roleDelegation.DelegatedUserPhoneNumber = user.PhoneNumber
+		roleDelegation.DelegatedUserEmail = user.Email
 	}
 
-	jobRole, err := r.jobTitleRepo.FindByName(ctx, roleDelegation.JobTitle)
+	jobRole, err := r.jobTitleRepo.FindByRole(ctx, roleDelegation.NewRoleID)
 	if err != nil {
 		r.logger.Errorf("[RoleDelegation/Create] Failed to find job role: %v", err)
 		return err
 	}
 	if jobRole == nil || !jobRole.Enabled {
-		r.logger.Warnf("[RoleDelegation/Create] Job role not found: %s", roleDelegation.JobTitle)
+		r.logger.Errorf("[RoleDelegation/Create] Job role not found: %s", roleDelegation.NewRoleID)
 		return errors.New(localization.ErrorRoleNotFound.Code)
 	}
 
-	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, roleDelegation, constants.RequestCreateRoleDelegation, constants.CREATE)
+	roleDelegation.DelegatedUserExistingRole = jobRole.Role
+	if roleDelegation.DelegatorUserUserType == "BPS" {
+		if branches, err := r.branchRepo.GetBranchesByIds(ctx, []string{roleDelegation.NewDepartmentOrBranch}); err != nil || branches == nil || len(branches) == 0 {
+			r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.NewDepartmentOrBranch)
+			return localization.ErrorInvalidDelegationDepartment
+		}
+	} else {
+		department, err := r.department.FindByID(ctx, roleDelegation.NewDepartmentOrBranch)
+		if department == nil || !department.Enabled {
+			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err.Error())
+			return localization.ErrorInvalidDelegationDepartment
+		}
+	}
+	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, roleDelegation, constants.RequestCreateRoleDelegationForExistingUser, constants.CREATE)
+	return r.cpsService.CreateCPSAction(ctx, &cpsModel)
+
+}
+
+// Create implements [service.RoleDelegationService].
+func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation imodel.RoleDelegation) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[RoleDelegation/Create] Creating role delegation for user %s with job title %s", roleDelegation.DelegatedUserID, roleDelegation.DelegatedUserJobTitle)
+
+	maker := local_util.ExtractUserFromContext(ctx)
+	if local_util.IsIncomplete(maker) {
+		log.Errorf("[Role Service][Create] maker data is incomplete")
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+	if roleDelegation.DelegatedUserUserType == "BPS" {
+		user, err := r.bpsUserRepo.FindByOr(ctx, roleDelegation.DelegatedUserPhoneNumber, roleDelegation.DelegatedUserEmail, roleDelegation.DelegatedUserID)
+		if err != nil {
+			r.logger.Errorf("[RoleDelegation/Create] Failed to find BPS user: %v", err)
+			return localization.ErrorUnexpectedError
+		}
+		if user != nil {
+			r.logger.Warnf("[RoleDelegation/Create] BPS User not found: %s", roleDelegation.DelegatedUserID)
+			return errors.New(localization.ErrorBpsUserAlreadyExists.Code)
+		}
+	} else {
+		// Validate user existence
+		user, err := r.cpsUserRepo.FindByUsername(ctx, roleDelegation.DelegatedUserID)
+		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+			r.logger.Errorf("[RoleDelegation/Create] Failed to find user: %v", err)
+			return localization.ErrorUnexpectedError
+		}
+
+		if user != nil {
+			r.logger.Warnf("[RoleDelegation/Create] User not found: %s", roleDelegation.DelegatedUserID)
+			return errors.New(localization.ErrorCpsUserAlreadyExists.Code)
+		}
+		// Validate user existence
+		user, err = r.cpsUserRepo.FindByPhoneNumber(ctx, roleDelegation.DelegatedUserPhoneNumber)
+		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+			r.logger.Errorf("[RoleDelegation/Create] Failed to find user: %v", err)
+			return localization.ErrorUnexpectedError
+		}
+
+		if user != nil {
+			r.logger.Warnf("[RoleDelegation/Create] User not found: %s", roleDelegation.DelegatedUserID)
+			return errors.New(localization.ErrorCpsUserAlreadyExists.Code)
+		}
+		// Validate user existence
+		user, err = r.cpsUserRepo.FindByEmail(ctx, roleDelegation.DelegatedUserEmail)
+		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+			r.logger.Errorf("[RoleDelegation/Create] Failed to find user: %v", err)
+			return localization.ErrorUnexpectedError
+		}
+
+		if user != nil {
+			r.logger.Warnf("[RoleDelegation/Create] User not found: %s", roleDelegation.DelegatedUserID)
+			return errors.New(localization.ErrorCpsUserAlreadyExists.Code)
+		}
+	}
+
+	jobRole, err := r.jobTitleRepo.FindByRole(ctx, roleDelegation.NewRoleID)
+	if err != nil {
+		r.logger.Errorf("[RoleDelegation/Create] Failed to find job role: %v", err)
+		return err
+	}
+
+	if jobRole == nil || !jobRole.Enabled {
+		r.logger.Errorf("[RoleDelegation/Create] Job role not found: %s", roleDelegation.NewRoleID)
+		return errors.New(localization.ErrorRoleNotFound.Code)
+	}
+	if roleDelegation.DelegatorUserUserType == "BPS" {
+		if branches, err := r.branchRepo.GetBranchesByIds(ctx, []string{roleDelegation.NewDepartmentOrBranch}); err != nil || branches == nil || len(branches) == 0 {
+			r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.NewDepartmentOrBranch)
+			return localization.ErrorInvalidDelegationDepartment
+		}
+	} else {
+		department, err := r.department.FindByID(ctx, roleDelegation.NewDepartmentOrBranch)
+		if department == nil || !department.Enabled {
+			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err.Error())
+			return localization.ErrorInvalidDelegationDepartment
+		}
+		roleDelegation.DelegatedUserDepartmentOrBranch = department.ID.Hex()
+	}
+
+	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, roleDelegation, constants.RequestCreateRoleDelegationForNewUser, constants.CREATE)
 	return r.cpsService.CreateCPSAction(ctx, &cpsModel)
 
 }
@@ -223,9 +356,7 @@ func (r *roleDelegation) Update(ctx context.Context, id string, update imodel.Ro
 	}
 
 	newRole := *prev
-	if update.JobTitle != "" {
-		newRole.JobTitle = update.JobTitle
-	}
+
 	if !update.StartAt.IsZero() {
 		newRole.StartAt = update.StartAt
 	}
@@ -239,12 +370,15 @@ func (r *roleDelegation) Update(ctx context.Context, id string, update imodel.Ro
 	return r.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 
-func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, cpsService service.CPSActionService, logger utils.Logger) service.RoleDelegationService {
+func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, bpsUserRepo storage.BPSUserRepository, department storage.DepartmentRepository, branchRepo storage.AccountBlockRepository, cpsService service.CPSActionService, logger utils.Logger) service.RoleDelegationService {
 	return &roleDelegation{
 		cpsService:   cpsService,
 		repo:         repo,
 		jobTitleRepo: jobTitleRepo,
 		cpsUserRepo:  cpsUserRepo,
+		bpsUserRepo:  bpsUserRepo,
+		branchRepo:   branchRepo,
+		department:   department,
 		logger:       logger,
 	}
 }

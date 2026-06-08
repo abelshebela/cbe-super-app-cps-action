@@ -3,6 +3,7 @@ package role_delegation_repo
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/model"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
@@ -25,13 +26,14 @@ type roleDelegationRepository struct {
 	logger            utils.Logger
 	collection        *mongo.Collection
 	cpsUserCollection *mongo.Collection
+	bpsUserCollection *mongo.Collection
 }
 
 // Create implements [storage.RoleDelegationRepository].
-func (r *roleDelegationRepository) Create(ctx context.Context, role *imodel.RoleDelegation) error {
+func (r *roleDelegationRepository) CreateWithExistingUser(ctx context.Context, role *imodel.RoleDelegation) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	log.Infof("[RoleDelegationRepository][Create] creating role delegation for user=%s job_title=%s", role.UserID, role.JobTitle)
+	log.Infof("[RoleDelegationRepository][Create] creating role delegation for user=%s job_title=%s", role.DelegatedUserID, role.DelegatedUserJobTitle)
 	session, err := r.collection.Database().Client().StartSession()
 	if err != nil {
 		log.Errorf("[RoleDelegationRepository][Create] failed to start session: %v", err)
@@ -54,20 +56,105 @@ func (r *roleDelegationRepository) Create(ctx context.Context, role *imodel.Role
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
-		userObjectID, err := bson.ObjectIDFromHex(role.UserID)
-		if err != nil {
-			log.Errorf("[RoleDelegationRepository][Create] invalid user id: %v", err)
-			return nil, errors.New(localization.ErrorInvalidID.Code)
-		}
-
 		updatePipeline := mongo.Pipeline{
 			bson.D{{Key: "$set", Value: bson.M{"is_delegation_active": true, "delegation_id": insertedID}}},
 		}
 
-		_, err = r.cpsUserCollection.UpdateOne(sc, bson.M{"_id": userObjectID, "is_deleted": false}, updatePipeline)
+		if role.DelegatedUserUserType == "CPS" {
+			_, err = r.cpsUserCollection.UpdateOne(sc, bson.M{"username": role.DelegatedUserID, "is_deleted": false}, updatePipeline)
+			if err != nil {
+				log.Errorf("[RoleDelegationRepository][Create] failed to update cps user delegate: %v", err)
+				return nil, local_util.HandleDBError(err)
+			}
+		} else {
+			_, err = r.bpsUserCollection.UpdateOne(sc, bson.M{"username": role.DelegatedUserID, "is_deleted": false}, updatePipeline)
+			if err != nil {
+				log.Errorf("[RoleDelegationRepository][Create] failed to update cps user delegate: %v", err)
+				return nil, local_util.HandleDBError(err)
+			}
+		}
+
+		return nil, nil
+	})
+	if err != nil {
+		r.logger.Errorf("[RoleDelegationRepository][Create] transaction failed: %v", err)
+		return localization.ErrorUnexpectedError
+	}
+
+	log.Infof("[RoleDelegationRepository][Create] role delegation created successfully")
+	return nil
+}
+
+// Create implements [storage.RoleDelegationRepository].
+func (r *roleDelegationRepository) CreateWithNewUser(ctx context.Context, role *imodel.RoleDelegation) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[RoleDelegationRepository][Create] creating role delegation for user=%s job_title=%s", role.DelegatedUserID, role.DelegatedUserJobTitle)
+	session, err := r.collection.Database().Client().StartSession()
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][Create] failed to start session: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer session.EndSession(ctx)
+
+	_, err = session.WithTransaction(ctx, func(sc context.Context) (any, error) {
+		role.ID = bson.NewObjectID()
+		role.Enable = true
+		result, err := r.collection.InsertOne(sc, role)
 		if err != nil {
-			log.Errorf("[RoleDelegationRepository][Create] failed to update cps user delegate: %v", err)
-			return nil, local_util.HandleDBError(err)
+			log.Errorf("[RoleDelegationRepository][Create] failed to create role delegation: %v", err)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		insertedID, ok := result.InsertedID.(bson.ObjectID)
+		if !ok {
+			log.Errorf("[RoleDelegationRepository][Create] inserted id has unexpected type: %T", result.InsertedID)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		now := time.Now()
+		if role.DelegatedUserUserType == "CPS" {
+			assignedDepartment, err := bson.ObjectIDFromHex(role.DelegatedUserDepartmentOrBranch)
+			if err != nil {
+				log.Errorf("[RoleDelegationRepository][Create] invalid department id: %v", err)
+				return nil, localization.ErrorUnexpectedError
+			}
+			_, err = r.cpsUserCollection.InsertOne(sc, model.CPSUser{
+				UserCode:           local_util.GenerateCPSUserCode(),
+				FullName:           role.DelegatedUserFullName,
+				Role:               role.DelegatedUserExistingRole,
+				PhoneNumber:        role.DelegatedUserPhoneNumber,
+				Email:              role.DelegatedUserEmail,
+				UserName:           role.DelegatedUserID,
+				JobTitle:           role.DelegatedUserJobTitle,
+				Department:         assignedDepartment,
+				Enabled:            true,
+				DateJoined:         &now,
+				CreatedAt:          now,
+				IsDelegationActive: true,
+				DelegationID:       insertedID,
+			})
+			if err != nil {
+				log.Errorf("[RoleDelegationRepository][Create] failed to update cps user delegate: %v", err)
+				return nil, local_util.HandleDBError(err)
+			}
+		} else {
+			_, err = r.bpsUserCollection.InsertOne(sc, model.BPSUser{
+				UserCode:    local_util.GenerateBPSUserCode(),
+				FullName:    role.DelegatedUserFullName,
+				Role:        role.DelegatedUserExistingRole,
+				PhoneNumber: role.DelegatedUserPhoneNumber,
+				Email:       role.DelegatedUserEmail,
+				UserName:    role.DelegatedUserID,
+				JobTitle:    role.DelegatedUserJobTitle,
+				BranchCode:  []string{role.DelegatedUserDepartmentOrBranch},
+				Enabled:     true,
+				CreatedAt:   now,
+			})
+			if err != nil {
+				log.Errorf("[RoleDelegationRepository][Create] failed to update bps user delegate: %v", err)
+				return nil, local_util.HandleDBError(err)
+			}
 		}
 
 		return nil, nil
@@ -92,7 +179,7 @@ func (r *roleDelegationRepository) EnableOrDisable(ctx context.Context, id strin
 	}
 
 	filter := bson.M{"_id": objID}
-	update := bson.M{"enabled": enable, "updated_at": time.Now()}
+	update := bson.M{"enable": enable, "updated_at": time.Now()}
 
 	_, err = r.repo.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -142,7 +229,7 @@ func (r *roleDelegationRepository) FindAllWithPagination(ctx context.Context, fi
 		}
 	}
 
-	allowedKeys := []string{"enabled", "job_title", "user_id", "start_at", "end_at"}
+	allowedKeys := []string{"enable", "job_title", "user_id", "start_at", "end_at"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
 	data, err := r.repo.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
@@ -194,11 +281,8 @@ func (r *roleDelegationRepository) Update(ctx context.Context, id string, role *
 	}
 
 	update := bson.M{
-		"user_id":    role.UserID,
-		"enabled":    role.Enable,
 		"start_at":   role.StartAt,
 		"end_at":     role.EndAt,
-		"job_title":  role.JobTitle,
 		"updated_at": time.Now(),
 	}
 
@@ -211,6 +295,46 @@ func (r *roleDelegationRepository) Update(ctx context.Context, id string, role *
 	return nil
 }
 
+func (r *roleDelegationRepository) CheckIfDelegationAlreadyExists(ctx context.Context, userID string, start, end time.Time) (bool, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+	filter := bson.M{
+		"delegated_user_id": userID,
+		"enabled":           true,
+		"$and": []bson.M{
+			{
+				"start_at": bson.M{"$lte": start},
+				"end_at":   bson.M{"$gte": start},
+			},
+		},
+	}
+	count, err := r.repo.TotalCount(ctx, filter)
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][CheckIfDelegationAlreadyExists] failed to check existing delegation: %v", err)
+		return false, local_util.HandleDBError(err)
+	}
+	return count > 0, nil
+}
+
+func (r *roleDelegationRepository) Delete(ctx context.Context, userID string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+	objID, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][Delete] invalid object id: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{
+		"_id": objID,
+	}
+
+	err = r.repo.DeleteOneH(ctx, filter)
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][Delete] failed to delete delegations: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	return nil
+}
+
 func NewRoleDelegationRepository(client *mongo.Client, cfg *config.VaultConfig, database string, collection []string, logger utils.Logger) storage.RoleDelegationRepository {
 	return &roleDelegationRepository{
 		repo:              dal.NewMongoDal[imodel.RoleDelegation, imodel.RoleDelegation](client, cfg, database, collection[0]),
@@ -218,5 +342,6 @@ func NewRoleDelegationRepository(client *mongo.Client, cfg *config.VaultConfig, 
 		logger:            logger,
 		collection:        client.Database(database).Collection(collection[0]),
 		cpsUserCollection: client.Database(database).Collection(collection[1]),
+		bpsUserCollection: client.Database(database).Collection(collection[2]),
 	}
 }

@@ -26,7 +26,7 @@ type RoleDelegationHandler struct {
 }
 
 // Create implements [role_delegation_outbound.RoleDelegation].
-func (j *RoleDelegationHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (j *RoleDelegationHandler) CreateWithExistingUser(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "CreateRoleDelegation", "handler", "role_delegation")
 	defer span.End()
 	log := common_utils.LoggerFromCtx(ctx, j.logger)
@@ -42,14 +42,54 @@ func (j *RoleDelegationHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	delegation, err := role_delegation_core.BuildRoleDelegationRequest(body)
+	delegation, err := role_delegation_core.BuildRoleDelegationRequestWithExistingUser(body)
 	if err != nil {
 		log.Errorf("[RoleDelegationHandler][Create] validation error: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
-	if err := j.service.Create(ctx, delegation); err != nil {
+	if err := j.service.CreateWithExistingUser(ctx, delegation); err != nil {
+		log.Errorf("[RoleDelegationHandler][Create] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessRoleDelegationCreated, nil)
+		return
+	}
+
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	localization.SendSuccessResponse(w, localization.SuccessRoleDelegationCreateRequestSubmitted, nil)
+}
+
+// Create implements [role_delegation_outbound.RoleDelegation].
+func (j *RoleDelegationHandler) CreateWithNewUser(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "CreateRoleDelegation", "handler", "role_delegation")
+	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, j.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	var body role_delegation_dto.RoleDelegationRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		log.Errorf("[RoleDelegationHandler][Create] invalid request body: %v", err)
+		localization.SendBadRequestResponse(w, "invalid request body")
+		return
+	}
+
+	delegation, err := role_delegation_core.BuildRoleDelegationRequestWithNewUser(body)
+	if err != nil {
+		log.Errorf("[RoleDelegationHandler][Create] validation error: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
+	if err := j.service.CreateWithNewUser(ctx, delegation); err != nil {
 		log.Errorf("[RoleDelegationHandler][Create] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -89,7 +129,7 @@ func (j *RoleDelegationHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	delegation, err := role_delegation_core.BuildRoleDelegationRequest(body)
+	delegation, err := role_delegation_core.BuildRoleDelegationRequestWithExistingUser(body)
 	if err != nil {
 		log.Errorf("[RoleDelegationHandler][Update] validation error: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())

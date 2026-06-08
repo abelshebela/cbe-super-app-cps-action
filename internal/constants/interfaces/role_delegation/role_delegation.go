@@ -3,7 +3,8 @@ package role_delegation_outbound
 import "net/http"
 
 type RoleDelegation interface {
-	Create(w http.ResponseWriter, r *http.Request)
+	CreateWithNewUser(w http.ResponseWriter, r *http.Request)
+	CreateWithExistingUser(w http.ResponseWriter, r *http.Request)
 	Update(w http.ResponseWriter, r *http.Request)
 	FindAll(w http.ResponseWriter, r *http.Request)
 	FindAllWithPagination(w http.ResponseWriter, r *http.Request)

@@ -38,8 +38,16 @@ func Init(router chi.Router, handler handlers.RoleDelegation, auth middleware.Au
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/role_delegation",
-			Handler: handler.Create,
+			Path:    "/role_delegation/new",
+			Handler: handler.CreateWithNewUser,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/role_delegation/existing",
+			Handler: handler.CreateWithExistingUser,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
 			},

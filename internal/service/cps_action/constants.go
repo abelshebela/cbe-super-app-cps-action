@@ -388,11 +388,12 @@ const (
 	RequestDeleteActionRole  constants.RequestAction = "DELETE_ACTION_ROLE"
 
 	// Action Role Delegation Mapper
-	RequestCreateRoleDelegation  constants.RequestAction = "CREATE_ROLE_DELEGATION"
-	RequestUpdateRoleDelegation  constants.RequestAction = "UPDATE_ROLE_DELEGATION"
-	RequestEnableRoleDelegation  constants.RequestAction = "ENABLE_ROLE_DELEGATION"
-	RequestDisableRoleDelegation constants.RequestAction = "DISABLE_ROLE_DELEGATION"
-	RequestDeleteRoleDelegation  constants.RequestAction = "DELETE_ROLE_DELEGATION"
+	RequestCreateRoleDelegationWithNewUser      constants.RequestAction = "CREATE_ROLE_DELEGATION_WITH_NEW_USER"
+	RequestCreateRoleDelegationWithExistingUser constants.RequestAction = "CREATE_ROLE_DELEGATION_WITH_EXISTING_USER"
+	RequestUpdateRoleDelegation                 constants.RequestAction = "UPDATE_ROLE_DELEGATION"
+	RequestEnableRoleDelegation                 constants.RequestAction = "ENABLE_ROLE_DELEGATION"
+	RequestDisableRoleDelegation                constants.RequestAction = "DISABLE_ROLE_DELEGATION"
+	RequestDeleteRoleDelegation                 constants.RequestAction = "DELETE_ROLE_DELEGATION"
 
 	RequestCreateCpsActionRole  constants.RequestAction = "CREATE_CPS_ACTION_ROLE"
 	RequestUpdateCpsActionRole  constants.RequestAction = "UPDATE_CPS_ACTION_ROLE"
@@ -733,11 +734,12 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestDeleteCpsActionRole:  {},
 
 	// Action Role Delegation Mapper
-	RequestCreateRoleDelegation:  {},
-	RequestUpdateRoleDelegation:  {},
-	RequestEnableRoleDelegation:  {},
-	RequestDisableRoleDelegation: {},
-	RequestDeleteRoleDelegation:  {},
+	RequestCreateRoleDelegationWithExistingUser: {},
+	RequestCreateRoleDelegationWithNewUser:      {},
+	RequestUpdateRoleDelegation:                 {},
+	RequestEnableRoleDelegation:                 {},
+	RequestDisableRoleDelegation:                {},
+	RequestDeleteRoleDelegation:                 {},
 
 	RequestCreateDeviceVersion:        {},
 	RequestUpdateDeviceVersion:        {},
@@ -1182,10 +1184,12 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 	// },
 
 	"ROLEDELEGATION": {
-		RequestCreateRoleDelegation,
+		RequestCreateRoleDelegationWithNewUser,
+		RequestCreateRoleDelegationWithExistingUser,
 		RequestUpdateRoleDelegation,
 		RequestEnableRoleDelegation,
 		RequestDisableRoleDelegation,
+		RequestDeleteRoleDelegation,
 	},
 
 	"CPSACTIONROLE": {

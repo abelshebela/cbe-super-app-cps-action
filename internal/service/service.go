@@ -543,7 +543,8 @@ type RoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 type RoleDelegationService interface {
-	Create(ctx context.Context, jobs imodel.RoleDelegation) error
+	CreateWithExistingUser(ctx context.Context, jobs imodel.RoleDelegation) error
+	CreateWithNewUser(ctx context.Context, jobs imodel.RoleDelegation) error
 	Update(ctx context.Context, id string, update imodel.RoleDelegation) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	Delete(ctx context.Context, id string) error

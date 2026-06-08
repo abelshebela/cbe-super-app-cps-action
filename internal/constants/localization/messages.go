@@ -1461,4 +1461,9 @@ const (
 
 	MsgRoleDelegationAlreadyDisabled = "Role delegation already disabled"
 	MsgRoleDelegationAlreadyEnabled  = "Role delegation already enabled"
+	MsgInvalidDelegationUserType     = "User type must be either CPS or BPS"
+	MsgInvalidDelegationDepartment   = "Invalid new department passed for role delegation"
+	MsgInvalidDelegationBranch       = "Invalid new branch passed for role delegation"
+	MsgBpsUserAlreadyExists          = "A BPS user with the provided details already exists"
+	MsgCpsUserAlreadyExists          = "A CPS user with the provided details already exists"
 )

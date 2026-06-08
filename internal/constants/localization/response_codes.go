@@ -1048,6 +1048,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorUserNotFoundOrDisabled,
 	ErrorRoleDelegationAlreadyEnabled,
 	ErrorRoleDelegationAlreadyDisabled,
+	ErrorInvalidDelegationUserType,
+	ErrorInvalidDelegationDepartment,
+	ErrorInvalidDelegationBranch,
+	ErrorBpsUserAlreadyExists,
+	ErrorCpsUserAlreadyExists,
 }
 
 // Success Response Codes
@@ -9473,6 +9478,36 @@ var (
 		Code:       "ERROR_ROLE_DELEGATION_ALREADY_ENABLED",
 		StatusCode: StatusConflict,
 		Message:    MsgRoleDelegationAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorInvalidDelegationUserType = ResponseCode{
+		Code:       "ERROR_INVALID_USER_TYPE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDelegationUserType,
+		Type:       "error",
+	}
+	ErrorInvalidDelegationDepartment = ResponseCode{
+		Code:       "ERROR_INVALID_DELEGATION_DEPARTMENT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDelegationDepartment,
+		Type:       "error",
+	}
+	ErrorInvalidDelegationBranch = ResponseCode{
+		Code:       "ERROR_INVALID_DELEGATION_BRANCH",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidDelegationBranch,
+		Type:       "error",
+	}
+	ErrorBpsUserAlreadyExists = ResponseCode{
+		Code:       "ERROR_BPS_USER_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgBpsUserAlreadyExists,
+		Type:       "error",
+	}
+	ErrorCpsUserAlreadyExists = ResponseCode{
+		Code:       "ERROR_CPS_USER_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgCpsUserAlreadyExists,
 		Type:       "error",
 	}
 )
