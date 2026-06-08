@@ -856,7 +856,7 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 			responsibilities = []string{string(imodel.AUDITOR)}
 		}
 		if slices.Contains(auditorStateStatuses, string(constants.AUDITORNOTCHECKED)) {
-			auditorStateStatuses = append(auditorStateStatuses, "")
+			auditorStateStatuses = []string{} // user_action_log records with empty action_auditor_status are considered NOTCHECKED
 		}
 
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
