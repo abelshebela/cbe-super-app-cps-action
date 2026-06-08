@@ -147,10 +147,7 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 
 	if len(filter.AuditorStatuses) > 0 {
 		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying auditor status filter: %v", filter.AuditorStatuses)
-		// if slices.Contains(filter.AuditorStatuses, "NOTCHECKED") {
-		// 	// NOTCHECKED is represented as empty string in the DB, so we need to account for that in the count.
-		// 	filter.AuditorStatuses = append(filter.AuditorStatuses, "")
-		// }
+
 		groupStage = append(groupStage, bson.E{
 			Key:   "auditor_status_match_count",
 			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{"$given_auditor_status", filter.AuditorStatuses}}}),
