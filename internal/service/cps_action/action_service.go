@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -837,7 +838,7 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	levelClaimPairs := extractLevelClaimPairs(filterParams.Filters)
 	if len(levels) > 0 || len(services) > 0 || len(auditorMarkStatuses) > 0 || len(auditorStateStatuses) > 0 || len(levelClaimPairs) > 0 {
 		var responsibilities []string
-		if filterParams.Filters["auditor_status"] != string(constants.AUDITORNOTCHECKED) {
+		if slices.Contains(auditorStateStatuses, string(constants.AUDITORNOTCHECKED)) {
 			responsibilities = []string{string(imodel.AUDITOR)}
 		}
 		// if slices.Contains(auditorStateStatuses, string(constants.AUDITORNOTCHECKED)) {
