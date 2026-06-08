@@ -71,7 +71,9 @@ type LevelClaimPair struct {
 //  8. MakerUserIDs          → user_id WHERE responsibility=MAKER
 //  9. ActionAuditorStatuses → action_auditor_status      (NOTCHECKED, INPROGRESS, CHECKED)
 // 10. LevelClaimPairs       → per-level given_auditor_status (all pairs must match same action_code)
+// 11. RequestActions        → request_action             (pre-group scope, e.g. a role's allocated request actions)
 type UserActionLogActionCodeFilter struct {
+	RequestActions        []string         `json:"request_actions"`
 	ActionStatuses        []string         `json:"action_statuses"`
 	AuditorStatuses       []string         `json:"auditor_statuses"`
 	ActionAuditorStatuses []string         `json:"action_auditor_statuses"`

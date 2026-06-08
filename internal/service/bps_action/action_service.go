@@ -641,12 +641,23 @@ func (ba *bpsActionService) GetBPSActionDetailByActionCode(ctx context.Context, 
 		return nil, err
 	}
 
+	maker := ba.resolveOneActionUser(ctx, action.MakerID)
+
+	rejectionReason := ""
+	if ActionStatus(action.Status) == ActionRejected {
+		rejectionReason = action.ActionReason.ActionNote
+	}
+
 	resp := &bpsActionDto.BPSActionDetailResponse{
-		Action:           action,
-		LinkedAccounts:   []customer_dto.LinkedAccount{},
-		UnlinkedAccounts: []model.ArchivedLinkedAccount{},
-		Checkers:         ba.resolveActionUsers(ctx, action.CheckerID),
-		Auditors:         ba.resolveActionUsers(ctx, action.Auditors.AuditorID),
+		Action:                 action,
+		LinkedAccounts:         []customer_dto.LinkedAccount{},
+		UnlinkedAccounts:       []model.ArchivedLinkedAccount{},
+		Maker:                  &maker,
+		Checkers:               ba.resolveActionUsers(ctx, action.CheckerID),
+		Auditors:               ba.resolveActionUsers(ctx, action.Auditors.AuditorID),
+		CheckerLevels:          buildCheckerLevels(action),
+		RejectionReason:        rejectionReason,
+		AuditorRejectionReason: action.Auditors.Reason,
 	}
 
 	// The customer module looks customers up by user_code via the Oracle repo
@@ -749,6 +760,7 @@ func (ba *bpsActionService) resolveOneActionUser(ctx context.Context, id string)
 			info.PhoneNumber = u.PhoneNumber
 			info.JobTitle = u.JobTitle
 			info.Role = u.Role
+			info.Department = u.Department.Hex()
 			info.Source = "cps_user"
 			return info
 		} else if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
@@ -757,6 +769,58 @@ func (ba *bpsActionService) resolveOneActionUser(ctx context.Context, id string)
 	}
 
 	return info
+}
+
+// buildCheckerLevels derives per-slot approval status from the flat CheckerID
+// and CheckerTime slices stored on the action.
+//
+//   - Slots below CheckersApproved are APPROVED (with their timestamp).
+//   - When the overall status is REJECTED the last populated slot is REJECTED.
+//   - All remaining slots beyond the populated ones are PENDING.
+func buildCheckerLevels(action *bps_model.BPSAction) []bpsActionDto.CheckerLevelInfo {
+	needed := action.CheckersNeeded
+	if needed <= 0 {
+		needed = len(action.CheckerID)
+	}
+	if needed == 0 {
+		return []bpsActionDto.CheckerLevelInfo{}
+	}
+
+	levels := make([]bpsActionDto.CheckerLevelInfo, needed)
+	for i := 0; i < needed; i++ {
+		level := bpsActionDto.CheckerLevelInfo{
+			Level:  i + 1,
+			Status: "PENDING",
+		}
+		if i < len(action.CheckerID) {
+			level.CheckerID = action.CheckerID[i]
+		}
+		if i < action.CheckersApproved {
+			level.Status = "APPROVED"
+			if i < len(action.CheckerTime) {
+				t := action.CheckerTime[i]
+				level.ApprovedAt = &t
+			}
+		}
+		levels[i] = level
+	}
+
+	// If overall status is REJECTED, the last populated checker slot is the one
+	// that triggered rejection — mark it REJECTED instead of PENDING.
+	if string(action.Status) == string(ActionRejected) && len(action.CheckerID) > 0 {
+		lastIdx := len(action.CheckerID) - 1
+		if lastIdx >= action.CheckersApproved && lastIdx < needed {
+			var ts *time.Time
+			if lastIdx < len(action.CheckerTime) {
+				t := action.CheckerTime[lastIdx]
+				ts = &t
+			}
+			levels[lastIdx].Status = "REJECTED"
+			levels[lastIdx].ApprovedAt = ts
+		}
+	}
+
+	return levels
 }
 
 func (ba *bpsActionService) RollBack(ctx context.Context, action *bps_model.BPSAction) error {

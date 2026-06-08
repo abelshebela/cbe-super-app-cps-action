@@ -516,14 +516,13 @@ func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) 
 			res.PersonalInfo.DateOfBirth = cr.BirthOfDate
 		}
 		if cr.Email != "" {
-			res.PersonalInfo.MaritalStatus = cr.Email
 			res.PersonalInfo.Email = cr.Email
 		}
 		if cr.Gender != "" {
 			res.PersonalInfo.Gender = cr.Gender
 		}
-		if cr.PhoneNo != "" {
-			res.PersonalInfo.PhoneNumber = cr.PhoneNo
+		if cr.PhoneNumber != "" {
+			res.PersonalInfo.PhoneNumber = cr.PhoneNumber
 		}
 	}
 

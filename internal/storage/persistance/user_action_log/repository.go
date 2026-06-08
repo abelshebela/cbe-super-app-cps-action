@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -60,22 +61,22 @@ func (r *userActionLogRepository) Upsert(ctx context.Context, entry *imodel.User
 	}
 	update := bson.D{
 		{Key: "$setOnInsert", Value: bson.M{
-			"_id":                             entry.ID,
-			"action_id":                       entry.ActionID,
-			"action_code":                     entry.ActionCode,
-			"request_action":                  entry.RequestAction,
-			"action_taken_service_name":       entry.ActionTakenServiceName,
-			"action_taken_service_unique_id":  entry.ActionTakenServiceUniqueID,
-			"user_id":                         entry.UserID,
-			"username":                        entry.Username,
-			"user_phone":                      entry.UserPhone,
-			"user_role_code":                  entry.UserRoleCode,
-			"user_action_responsibilities":    entry.UserActionResponsibilities,
-			"action_type":                     entry.ActionType,
-			"checker_level":                   entry.CheckerLevel,
-			"auditor_level":                   entry.AuditorLevel,
-			"is_deleted":                      false,
-			"created_at":                      entry.CreatedAt,
+			"_id":                            entry.ID,
+			"action_id":                      entry.ActionID,
+			"action_code":                    entry.ActionCode,
+			"request_action":                 entry.RequestAction,
+			"action_taken_service_name":      entry.ActionTakenServiceName,
+			"action_taken_service_unique_id": entry.ActionTakenServiceUniqueID,
+			"user_id":                        entry.UserID,
+			"username":                       entry.Username,
+			"user_phone":                     entry.UserPhone,
+			"user_role_code":                 entry.UserRoleCode,
+			"user_action_responsibilities":   entry.UserActionResponsibilities,
+			"action_type":                    entry.ActionType,
+			"checker_level":                  entry.CheckerLevel,
+			"auditor_level":                  entry.AuditorLevel,
+			"is_deleted":                     false,
+			"created_at":                     entry.CreatedAt,
 			// action_auditor_status starts empty; bulk methods advance it as the auditor workflow progresses.
 			"action_auditor_status": "",
 		}},
@@ -100,7 +101,7 @@ func (r *userActionLogRepository) GetActionCodesByActionLogFilter(ctx context.Co
 
 	log.Infof("[UserActionLog][GetActionCodesByActionLogFilter] filter=%+v", filter)
 
-	pipeline, err := buildActionCodeFilterPipeline(filter)
+	pipeline, err := r.buildActionCodeFilterPipeline(filter)
 	if err != nil {
 		log.Errorf("[UserActionLog][GetActionCodesByActionLogFilter] invalid filter: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -131,11 +132,13 @@ func (r *userActionLogRepository) GetActionCodesByActionLogFilter(ctx context.Co
 
 const fieldResponsibility = "$user_action_responsibilities"
 
-func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) (mongo.Pipeline, error) {
+func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) (mongo.Pipeline, error) {
 	groupStage := bson.D{{Key: "_id", Value: "$action_code"}}
 	matchStage := bson.D{}
+	log := local_util.LoggerFromCtx(context.Background(), r.logger) // no need to pass real ctx since we won't log after this point
 
 	if len(filter.ActionStatuses) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying action status filter: %v", filter.ActionStatuses)
 		groupStage = append(groupStage, bson.E{
 			Key:   "action_status_match_count",
 			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{"$given_action_status", filter.ActionStatuses}}}),
@@ -144,6 +147,11 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 	}
 
 	if len(filter.AuditorStatuses) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying auditor status filter: %v", filter.AuditorStatuses)
+		if slices.Contains(filter.AuditorStatuses, "NOTCHECKED") {
+			// NOTCHECKED is represented as empty string in the DB, so we need to account for that in the count.
+			filter.AuditorStatuses = append(filter.AuditorStatuses, "")
+		}
 		groupStage = append(groupStage, bson.E{
 			Key:   "auditor_status_match_count",
 			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{"$given_auditor_status", filter.AuditorStatuses}}}),
@@ -152,6 +160,7 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 	}
 
 	if len(filter.ActionAuditorStatuses) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying action_auditor_status filter: %v", filter.ActionAuditorStatuses)
 		groupStage = append(groupStage, bson.E{
 			Key:   "action_auditor_status_match_count",
 			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{"$action_auditor_status", filter.ActionAuditorStatuses}}}),
@@ -164,6 +173,7 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 		return nil, fmt.Errorf("private users: %w", err)
 	}
 	if len(privateUserIDs) > 0 {
+
 		groupStage = append(groupStage, bson.E{
 			Key:   "private_user_match_count",
 			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{"$user_id", privateUserIDs}}}),
@@ -172,6 +182,7 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 	}
 
 	if len(filter.Levels) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying level filter: %v", filter.Levels)
 		groupStage = append(groupStage, bson.E{
 			Key: "level_match_count",
 			Value: sumWhen(bson.D{{Key: "$or", Value: bson.A{
@@ -183,6 +194,7 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 	}
 
 	if len(filter.Services) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying service filter: %v", filter.Services)
 		groupStage = append(groupStage, bson.E{
 			Key:   "service_match_count",
 			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{"$action_taken_service_name", filter.Services}}}),
@@ -195,6 +207,7 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 		return nil, fmt.Errorf("checker users: %w", err)
 	}
 	if len(checkerUserIDs) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying checker user filter: %v", filter.CheckerUserIDs)
 		groupStage = append(groupStage, bson.E{
 			Key: "checker_match_count",
 			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
@@ -210,6 +223,8 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 		return nil, fmt.Errorf("auditor users: %w", err)
 	}
 	if len(auditorUserIDs) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying auditor user filter: %v", filter.AuditorUserIDs)
+
 		groupStage = append(groupStage, bson.E{
 			Key: "auditor_match_count",
 			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
@@ -225,6 +240,8 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 		return nil, fmt.Errorf("maker users: %w", err)
 	}
 	if len(makerUserIDs) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying maker user filter: %v", filter.MakerUserIDs)
+
 		groupStage = append(groupStage, bson.E{
 			Key: "maker_match_count",
 			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
@@ -236,6 +253,8 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 	}
 
 	if len(filter.Responsibilities) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying responsibility filter: %v", filter.Responsibilities)
+
 		groupStage = append(groupStage, bson.E{
 			Key:   "responsibility_match_count",
 			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{fieldResponsibility, filter.Responsibilities}}}),
@@ -258,8 +277,14 @@ func buildActionCodeFilterPipeline(filter imodel.UserActionLogActionCodeFilter) 
 		matchStage = append(matchStage, bson.E{Key: fieldName, Value: bson.M{"$gt": 0}})
 	}
 
+	preMatch := bson.M{"is_deleted": false}
+	if len(filter.RequestActions) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying request_action filter: %v", filter.RequestActions)
+		preMatch["request_action"] = bson.M{"$in": filter.RequestActions}
+	}
+
 	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: bson.M{"is_deleted": false}}},
+		{{Key: "$match", Value: preMatch}},
 		{{Key: "$group", Value: groupStage}},
 	}
 

@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -211,12 +212,9 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 	actionName, _ := ctx.Value(constants.ContextKey("action_name")).(string)
 
-	// Compute checksum from business payload (excludes maker identity and timestamps).
-	// Stored on every saved action; used to block duplicate PENDING CREATE actions.
 	checksum := computeActionChecksum(cpsAction.RequestAction, cpsAction.UniqueId, cpsAction.CurrentAction)
 	cpsAction.Checksum = checksum
 
-	// CREATE actions: guard by checksum — same payload already waiting for approval is blocked.
 	if strings.Contains(cpsAction.RequestAction, string(constants.CREATE)) {
 		dup, err := ca.repo.SanitizedFindOne(ctx, bson.M{
 			"checksum":      checksum,
@@ -232,19 +230,46 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), dup.ActionStatus)
 			return errors.New(localization.ErrorDuplicatePendingCreateAction.Code)
 		}
+
+		tokens := extractUniqueTokens(cpsAction.RequestAction, cpsAction.CurrentAction)
+		if len(tokens) > 0 {
+			fieldDup, err := ca.repo.SanitizedFindOne(ctx, bson.M{
+				"request_action": cpsAction.RequestAction,
+				"action_status":  "PENDING",
+				"is_deleted":     bson.M{"$ne": true},
+				"unique_tokens":  bson.M{"$elemMatch": bson.M{"$in": tokens}},
+			})
+			if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
+				span.AddEvent("unique token lookup failed", trace.WithAttributes(attribute.String("error", err.Error())))
+				return err
+			}
+			if fieldDup != nil {
+				ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), fieldDup.ActionCode)
+				ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), fieldDup.ActionStatus)
+				return errors.New(localization.ErrorDuplicatePendingCreateAction.Code)
+			}
+		}
+
 		cpsAction.RoleCode = roleCode
+		cpsAction.UniqueTokens = tokens
 		cpsActionResult, err := ca.repo.Save(ctx, cpsAction)
 		if err != nil {
 			span.AddEvent("failed to save cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
 		}
+		if len(tokens) > 0 {
+			if updErr := ca.repo.UpdateCustome(ctx,
+				bson.M{"action_code": cpsActionResult.ActionCode},
+				bson.M{"$set": bson.M{"unique_tokens": tokens}},
+			); updErr != nil {
+				log.Warnf("[CpsActionSvc][Create] failed to write unique_tokens: %v", updErr)
+			}
+		}
 		ca.logUserAction(ctx, &cpsActionResult, imodel.MAKER, "PENDING", "", "", "")
 		return nil
 	}
 
-	// UPDATE actions: Block by other UPDATE actions in pending state
 	if strings.Contains(cpsAction.RequestAction, string(constants.UPDATE)) {
-		// Get only UPDATE actions for blocking
 		reqs := ca.pendingUpdateLockRequestActions(actionName, cpsAction.RequestAction)
 		if len(reqs) > 0 {
 			existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
@@ -262,9 +287,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		}
 	}
 
-	// DELETE actions: Only block other DELETE actions with same unique_id, don't block UPDATE actions
 	if strings.Contains(cpsAction.RequestAction, string(constants.DELETE)) {
-		// Get only DELETE actions for blocking
 		reqs := ca.pendingDeleteLockRequestActions(actionName, cpsAction.RequestAction)
 		if len(reqs) > 0 {
 			existing, err = ca.GetPendingCPSActionByRoleAndRequestActions(ctx, cpsAction.UniqueId, reqs)
@@ -282,7 +305,6 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		}
 	}
 
-	// ENABLE actions: blocked by pending UPDATE and ENABLE actions on the same resource
 	if strings.Contains(cpsAction.RequestAction, constants.ENABLE) {
 		reqs := ca.pendingEnableLockRequestActions(actionName, cpsAction.RequestAction)
 		if len(reqs) > 0 {
@@ -301,7 +323,6 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		}
 	}
 
-	// DISABLE actions: blocked only by other pending DISABLE actions on the same resource
 	if strings.Contains(cpsAction.RequestAction, constants.DISABLE) {
 		reqs := ca.pendingDisableLockRequestActions(actionName, cpsAction.RequestAction)
 		if len(reqs) > 0 {
@@ -674,49 +695,42 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 	services := extractStringSlice(filterParams.Filters, "services")
 	statuses := extractStringSlice(filterParams.Filters, "action_status")
 
-	// Always resolve via user_action_log when the role has allocated request_actions.
-	// The log's request_action field is the authoritative source for which actions
-	// this checker role can see — cps_actions.request_action may differ or be absent.
-	// For PENDING we skip the lookup: user_action_log has no given_action_status="PENDING"
-	// records (that field is only set on approve/reject), so the lookup always returns nil.
-	// The repo's request_action+isPendingOnly path handles PENDING scoping correctly.
-	isPendingOnly := len(statuses) == 1 && statuses[0] == string(constants.Pending)
-	if len(RAList) > 0 && !isPendingOnly {
-		logFilter := map[string]interface{}{
-			"request_action": bson.M{"$in": RAList},
-		}
-		if len(statuses) == 1 {
-			logFilter["action_status"] = statuses[0]
-		} else if len(statuses) > 1 {
-			logFilter["action_status"] = statuses
-		}
-		if len(levels) > 0 {
-			logFilter["levels"] = levels
-		}
-		if len(services) > 0 {
-			logFilter["services"] = services
-		}
-		actionCodes, err := ca.actionLogRepo.GetActionCodesByFilter(ctx, logFilter)
-		if err != nil {
-			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
-			return nil, "", err
-		}
-		if len(actionCodes) > 0 {
-			filterParams.Filters["action_code"] = actionCodes
-		}
-	} else if !isPendingOnly && (len(levels) > 0 || len(services) > 0) {
-		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
-			Responsibilities: []string{string(imodel.CHECKER)},
-			Levels:           levels,
-			Services:         services,
-			ActionStatuses:   statuses,
-		})
-		if err != nil {
-			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
-			return nil, "", err
-		}
-		filterParams.Filters["action_code"] = actionCodes
+	// The approver inbox is resolved entirely through user_action_log: we first
+	// fetch the matching action_code list from the log, then fetch exactly those
+	// action_codes from cps_actions. The log is the authoritative source and is
+	// scoped to the role's allocated request_actions (RAList) plus any
+	// level/service/status filters. An empty log result yields an empty page —
+	// we never fall back to the full inbox.
+	logFilter := imodel.UserActionLogActionCodeFilter{
+		RequestActions: RAList,
+		Levels:         levels,
+		Services:       services,
+		ActionStatuses: statuses,
 	}
+
+	// CHECKER log rows only exist after a checker has acted, so scoping by the
+	// CHECKER responsibility would hide freshly-created PENDING actions (which
+	// only carry a MAKER log row). Apply the CHECKER scope only for non-pending
+	// queries.
+	isPendingOnly := len(statuses) == 1 && statuses[0] == string(constants.Pending)
+	if !isPendingOnly {
+		logFilter.Responsibilities = []string{string(imodel.CHECKER)}
+	}
+
+	actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, logFilter)
+	if err != nil {
+		log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
+		return nil, "", err
+	}
+
+	// No matching action codes in the log => empty inbox page.
+	if len(actionCodes) == 0 {
+		return &types.PaginatedResponse[[]*model.CPSAction]{
+			Data: []*model.CPSAction{},
+			Meta: local_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
+		}, "", nil
+	}
+	filterParams.Filters["action_code"] = actionCodes
 
 	if len(statuses) > 0 {
 		filterParams.Filters["action_status"] = statuses
@@ -799,62 +813,61 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 
 	levels := extractStringSlice(filterParams.Filters, "levels")
 	services := extractStringSlice(filterParams.Filters, "services")
-	auditorStatuses := extractStringSlice(filterParams.Filters, "auditor_statuses")
 
-	if len(RAList) > 0 {
-		logFilter := map[string]interface{}{
-			"request_action": bson.M{"$in": RAList},
+	var auditorMarkStatuses []string  // MARKEDASRIGHT / MARKEDASWRONG
+	var auditorStateStatuses []string // NOTCHECKED / INPROGRESS / CHECKED
+
+	auditStateSet := map[string]bool{
+		string(constants.AUDITORNOTCHECKED): true,
+		string(constants.AUDITORINPROGRESS): true,
+		string(constants.AUDITORCHECKED):    true,
+	}
+	for _, src := range []string{"auditor_status", "auditor_statuses"} {
+		for _, v := range extractStringSlice(filterParams.Filters, src) {
+			if auditStateSet[strings.ToUpper(v)] {
+				auditorStateStatuses = append(auditorStateStatuses, strings.ToUpper(v))
+			} else {
+				auditorMarkStatuses = append(auditorMarkStatuses, strings.ToUpper(v))
+			}
 		}
-		if len(auditorStatuses) == 1 {
-			logFilter["action_status"] = auditorStatuses[0]
-		} else if len(auditorStatuses) > 1 {
-			logFilter["action_status"] = auditorStatuses
-		}
-		if len(levels) > 0 {
-			logFilter["levels"] = levels
-		}
-		if len(services) > 0 {
-			logFilter["services"] = services
-		}
-		actionCodes, err := ca.actionLogRepo.GetActionCodesByFilter(ctx, logFilter)
-		if err != nil {
-			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
-			return nil, "", err
-		}
-		filterParams.Filters["action_code"] = actionCodes
-	} else if len(levels) > 0 || len(services) > 0 {
-		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
-			Responsibilities: []string{string(imodel.AUDITOR)},
-			Levels:           levels,
-			Services:         services,
-			AuditorStatuses:  extractStringSlice(filterParams.Filters, "auditor_statuses"),
-		})
-		if err != nil {
-			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
-			return nil, "", err
-		}
-		filterParams.Filters["action_code"] = actionCodes
+		delete(filterParams.Filters, src)
 	}
 
-	//****************************************
-	// levels, services, auditor_statuses, level_claim_pairs only exist in user_action_logs.
+	// Single unified log-filter pass. The repo already applies request_action:{$in:RAList}
+	// on the CPS action collection so no separate RAList pre-filter is needed here.
 	levelClaimPairs := extractLevelClaimPairs(filterParams.Filters)
-	if len(levels) > 0 || len(services) > 0 || len(auditorStatuses) > 0 || len(levelClaimPairs) > 0 {
+	if len(levels) > 0 || len(services) > 0 || len(auditorMarkStatuses) > 0 || len(auditorStateStatuses) > 0 || len(levelClaimPairs) > 0 {
+		var responsibilities []string
+		if slices.Contains(auditorStateStatuses, string(constants.AUDITORNOTCHECKED)) {
+			responsibilities = []string{string(imodel.AUDITOR)}
+		}
+		// if slices.Contains(auditorStateStatuses, string(constants.AUDITORNOTCHECKED)) {
+		// 	auditorStateStatuses = []string{""} // user_action_log records with empty action_auditor_status are considered NOTCHECKED
+		// }
+
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
-			Responsibilities: []string{string(imodel.AUDITOR)},
-			Levels:           levels,
-			Services:         services,
-			AuditorStatuses:  extractStringSlice(filterParams.Filters, "auditor_statuses"),
-			LevelClaimPairs:  levelClaimPairs,
+			Responsibilities:      responsibilities,
+			Levels:                levels,
+			Services:              services,
+			AuditorStatuses:       auditorMarkStatuses,
+			ActionAuditorStatuses: auditorStateStatuses,
+			LevelClaimPairs:       levelClaimPairs,
 		})
 		if err != nil {
 			log.Errorf("[CpsActionSvc][GetCPSActionsForAuditor] log filter err: %v", err)
 			return nil, "", err
 		}
-		filterParams.Filters["action_codes"] = actionCodes
-	}
+		log.Infof("[CpsActionSvc][GetCPSActionsForAuditor] log filter found %d action codes (markStatuses=%v stateStatuses=%v levels=%v, action_codes=%v)",
+			len(actionCodes), auditorMarkStatuses, auditorStateStatuses, levels, actionCodes)
 
-	//************************************
+		if len(actionCodes) == 0 {
+			return &types.PaginatedResponse[[]*model.CPSAction]{
+				Data: []*model.CPSAction{},
+				Meta: local_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
+			}, "", nil
+		}
+		filterParams.Filters["action_code"] = actionCodes
+	}
 
 	if statuses := extractStringSlice(filterParams.Filters, "action_status"); len(statuses) > 0 {
 		filterParams.Filters["action_status"] = statuses
@@ -1446,6 +1459,7 @@ var volatileChecksumKeys = map[string]bool{
 	"id":          true,
 	"action_code": true,
 	"version":     true,
+	"user_code":   true,
 
 	"is_deleted": true,
 	"is_enabled": true,
@@ -1510,6 +1524,99 @@ var volatileChecksumKeys = map[string]bool{
 	"video_url":       true,
 	"receipt_link":    true,
 	"url":             true,
+}
+
+var uniqueFieldsRegistry = map[string][]string{
+	string(constants.RequestCpsUserCreate): {"phone_number", "email", "username"},
+	string(constants.RequestCreateBPSUser): {"phone_number", "email", "username"},
+
+	string(constants.RequestCreateEcommerceMerchant): {"merchant_code", "bank_account_number"},
+	// mini_app.MiniAppMerchant — code + account are the primary uniqueness keys;
+	// phone/email added as extra guards per product requirement.
+	string(constants.RequestCreateMiniAppMerchant):   {"merchant_code", "bank_account_number", "phone_number", "email", "account_number"},
+	string(constants.RequestCreateEventMerchant):     {"merchant_id", "bank_account_number"},
+	string(constants.RequestCreateLogisticsMerchant): {"merchant_id", "bank_account_number"},
+	string(constants.RequestCreateUssdMerchant):      {"phone_number", "email", "account_number"},
+
+	string(constants.RequestCreateDonation):         {"title"},
+	string(constants.RequestCreateDonationCategory): {"category_name"},
+	string(constants.RequestCreateDonationCompany):  {"company_name", "company_code"},
+
+	string(constants.RequestCreateDepartment):      {"department", "department_code"},
+	string(constants.RequestCreateCpsRole):         {"role_code", "name"},
+	string(constants.RequestCreateJobRole):         {"code", "name"},
+	string(constants.RequestCreateCpsActionRole):   {"action_name", "portal_card_name"},
+	string(constants.RequestCreateActionRole):      {"action_name"},
+	string(constants.RequestCreatePermissionGroup): {"group_name"},
+
+	string(constants.RequestCreateBank):            {"bank_name", "bic_code"},
+	string(constants.RequestCreateBankVault):       {"name"},
+	string(constants.RequestCreateAmountBasedAuth): {"currency"},
+
+	string(constants.RequestCreateWallet): {"name", "unique_code"},
+	string(constants.RequestCreateTopup):  {"name", "code"},
+
+	string(constants.RequestCreateAdvert): {"title"},
+	string(constants.RequestCreateAvatar): {"label"},
+
+	string(constants.RequestCreateServiceList): {"service_name", "service_key"},
+
+	string(constants.RequestCreateBudgetCategory): {"name"},
+	string(constants.RequestCreateVaultCategory):  {"name"},
+
+	// shared model.Event has no json tags — Go field name used by json.Marshal
+	string(constants.RequestCreateEvent): {"EventName"},
+
+	// ── MiniApp ──────────────────────────────────────────────────────────────
+	// mini_app.MiniApp : AppName→"app_name"
+	string(constants.RequestCreateMiniApp): {"app_name"},
+	// model.MiniAppCategory : Name→"name"
+	string(constants.RequestCreateMiniAppCategory): {"name"},
+
+	// ── Segmentation ─────────────────────────────────────────────────────────
+	// CreateAccessListSegmentationRequest : SegmentationID→"segmentation_id" (the block/account id)
+	string(constants.RequestCreateAccessListSegmentation): {"segmentation_id"},
+	// MapCustomerSegmentationToMap : "customer_role"→nested; access_list_id used as product key
+	string(constants.RequestCreateCustomerSegmentation): {"access_list_id"},
+
+	// ── Customer segments ────────────────────────────────────────────────────
+	// payload is MapSegmentToMap — keys are explicit strings
+	string(constants.RequestCreateCustomerGroup): {"customer_group", "customer_segment", "customer_subsegment"},
+
+	// ── News / Media ─────────────────────────────────────────────────────────
+	// NewsTagCPSAction : TagName→"tag_name" (single-name field; tag_name_list slice is not supported)
+	string(constants.RequestCreateNewsTag): {"tag_name"},
+	// NewsCategoryCPSAction : CategoryName→"category_name"
+	string(constants.RequestCreateNewsCategory): {"category_name"},
+	// shared NewsArticle : Title→"title"
+	string(constants.RequestCreateArticle): {"title"},
+}
+
+func extractUniqueTokens(requestAction string, currentAction interface{}) []string {
+	fields, ok := uniqueFieldsRegistry[requestAction]
+	if !ok || len(fields) == 0 {
+		return nil
+	}
+
+	raw, _ := json.Marshal(currentAction)
+	var m map[string]interface{}
+	if err := json.Unmarshal(raw, &m); err != nil {
+		return nil
+	}
+
+	tokens := make([]string, 0, len(fields))
+	for _, field := range fields {
+		val, ok := m[field]
+		if !ok || val == nil {
+			continue
+		}
+		str, ok := val.(string)
+		if !ok || strings.TrimSpace(str) == "" {
+			continue
+		}
+		tokens = append(tokens, field+":"+strings.ToLower(strings.TrimSpace(str)))
+	}
+	return tokens
 }
 
 func computeActionChecksum(requestAction, uniqueID string, currentAction interface{}) string {

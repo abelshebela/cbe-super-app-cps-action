@@ -375,6 +375,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorActionNotFound,
 	ErrorActionDataNotFound,
 	ErrorPendingCpsActionExists,
+	ErrorDuplicatePendingCreateAction,
 	ErrorUserAlreadyEnabled,
 	ErrorUserAlreadyDisabled,
 	ErrorBankImageMissingOrInvalid,
@@ -384,6 +385,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorServiceExists,
 	ErrorServiceNotFound,
 	ErrorChildServiceExists,
+	ErrorSuperAppRoleAlreadyExists,
 	ErrorBankDeleteRequestFailed,
 	ErrorBankAccountLengthRequired,
 	ErrorBankHasAlphaNumericRequired,
@@ -631,6 +633,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidAppViewType,
 	ErrorExclusiveAppFlags,
 	ErrorUpdateMiniAppEmptyPayload,
+	ErrInvalidID,
+	ErrDatabaseError,
+	ErrCategoryNotFound,
+	ErrMiniAppMerchantNotFound,
+	ErrMiniAppNotFound,
 	//customer  and bulk relatedcode
 	UserNotFoundWithGivenID,
 	ErrorFailedToGetCustomerDetail,
@@ -3326,6 +3333,39 @@ var (
 		Message:    "Avatar label not exist",
 		Type:       "error",
 	}
+	ErrMiniAppMerchantNotFound = ResponseCode{
+		Code:       "ERR_MINI_APP_MERCHANT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Mini app merchant not found.",
+		Type:       "error",
+	}
+	ErrMiniAppNotFound = ResponseCode{
+		Code:       "ERR_MINI_APP_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Mini app  not found.",
+		Type:       "error",
+	}
+
+	ErrInvalidID = ResponseCode{
+		Code:       "ERR_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid ID",
+		Type:       "error",
+	}
+
+	ErrDatabaseError = ResponseCode{
+		Code:       "ERR_DATABASE",
+		StatusCode: StatusInternalServerError,
+		Message:    "A database error occurred. Please try again later.",
+		Type:       "error",
+	}
+
+	ErrCategoryNotFound = ResponseCode{
+		Code:       "ERR_CATEGORY_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Category not found.",
+		Type:       "error",
+	}
 
 	// Portal Card related success response codes
 	SuccessPortalCardsFetched = ResponseCode{
@@ -4876,7 +4916,7 @@ var (
 
 	ErrorInvalidBlockTime      = ResponseCode{Code: "ERROR_INVALID_BLOCK_TIME", StatusCode: 400, Message: "BlockTime must be greater than 0", Type: "error"}
 	ErrorInvalidArchiveTime    = ResponseCode{Code: "ERROR_INVALID_ARCHIVE_TIME", StatusCode: 400, Message: "ArchiveTime must be greater than 0", Type: "error"}
-	ErrorInvalidPasswordExpiry = ResponseCode{Code: "ERROR_INVALID_PASSWORD_EXPIRY", StatusCode: 400, Message: "PasswordExpiry must be greater than 0", Type: "error"}
+	ErrorInvalidPasswordExpiry = ResponseCode{Code: "ERROR_INVALID_PASSWORD_EXPIRY", StatusCode: 400, Message: "PasswordExpiry must be greater than 90", Type: "error"}
 
 	// Wallet related success response codes
 	SuccessWalletActionRequestSent = ResponseCode{
@@ -6306,6 +6346,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorSuperAppRoleAlreadyExists = ResponseCode{
+		Code:       "ERROR_SUPER_APP_ROLE_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    "Super app role already exists. Duplicate action",
+		Type:       "error",
+	}
+
 	ErrorServiceAccountNumberNotProperlyConfigured = ResponseCode{
 		Code:       "ERROR_SERVICE_ACCOUNT_NUMBER_NOT_PROPERLY_CONFIGURED",
 		StatusCode: StatusConflict,
@@ -7359,7 +7406,7 @@ var (
 	ErrorCustomerGroupAlreadyExists = ResponseCode{
 		Code:       "ERROR_CUSTOMER_GROUP_ALREADY_EXISTS",
 		StatusCode: StatusConflict,
-		Message:    "A segment with this group/segment/subsegment combination already exists",
+		Message:    "A segment with this group, segment, and subsegment combination already exists",
 		Type:       "error",
 	}
 	CustomerGroupCreationSubmittedSuccessfully = ResponseCode{

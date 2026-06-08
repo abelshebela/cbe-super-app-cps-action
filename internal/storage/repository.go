@@ -2,7 +2,6 @@ package storage
 
 import (
 	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
-	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"context"
 	"time"
 
@@ -40,7 +39,9 @@ import (
 	event_model "cbe-super-app-cps-action/internal/constants/model"
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
-	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
+	// mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -221,25 +222,24 @@ type DeviceVersionControlRepository interface {
 }
 
 type CPSActionRepository interface {
-	Save(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (types.PaginatedResponse[[]model.CPSAction], error)
-	FindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
 	SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error)
-	// SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, RAList []string) ([]*model.CPSAction, error)
 	SanitizedFindAllWithPaginationForApprover(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	SanitizedFindAllWithPaginationForAuditor(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	SanitizedFindAllWithPaginationCPSActions(ctx context.Context, userID, role string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	SanitizedFindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
+
 	ActionByDateRange(ctx context.Context, filterParam types.Filter, RAList []string) ([]*model.CPSAction, error)
-	Update(ctx context.Context, actionCode string, update model.CPSAction, Group string, RequestActionGroups map[string][]constants.RequestAction) (*model.CPSAction, error)
 	FindByDateRange(ctx context.Context, filterParam *types.Filter) ([]*model.CPSAction, error)
 	UpdateByActionCode(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
 	UpdateCustome(ctx context.Context, filter, update bson.M) error
-	Delete(ctx context.Context, id string) error
 	GetCountByDepartment(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error)
-	// FindByDateRange(ctx context.Context, start_date, end_date time.Time)([]*model.CPSAction,error)
-
 	StreamByDateRange(ctx context.Context, filterParam *types.Filter, handler func(*model.CPSAction) error) error
+
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (types.PaginatedResponse[[]model.CPSAction], error)
+	FindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
+	Save(ctx context.Context, cpsAction *model.CPSAction) (model.CPSAction, error)
+	Update(ctx context.Context, actionCode string, update model.CPSAction, Group string, RequestActionGroups map[string][]constants.RequestAction) (*model.CPSAction, error)
+	Delete(ctx context.Context, id string) error
 }
 
 // Avatar persistence
@@ -512,12 +512,12 @@ type DonationCompanyRepository interface {
 }
 
 type MiniAppRepository interface {
-	Create(ctx context.Context, miniApp *mini_model.MiniApp) error
-	Update(ctx context.Context, id string, miniApp *mini_model.MiniApp) error
+	Create(ctx context.Context, miniApp *local_model.MiniApp) error
+	Update(ctx context.Context, id string, miniApp *local_model.MiniApp) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	DisableManyByMerchantIDs(ctx context.Context, merchantID string) error
-	DeleteManyByMerchantIDs(ctx context.Context, merchantID string) error
+	// DisableManyByMerchantIDs(ctx context.Context, merchantID string) error
+	// DeleteManyByMerchantIDs(ctx context.Context, merchantID string) error
 }
 
 type EventRepository interface {
@@ -801,8 +801,8 @@ type SitotaRepository interface {
 }
 
 type MiniAppCategoryRepository interface {
-	Create(ctx context.Context, category *model.MiniAppCategory) error
-	Update(ctx context.Context, category *model.MiniAppCategory, id string) error
+	Create(ctx context.Context, category *local_model.MiniAppCategory) error
+	Update(ctx context.Context, category *local_model.MiniAppCategory, id string) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
@@ -888,13 +888,13 @@ type AccessListSegmentationRepository interface {
 }
 
 type MiniAppMerchant interface {
-	Create(ctx context.Context, merchant *mini_model.MiniAppMerchant) (*mini_model.MiniAppMerchant, error)
-	Update(ctx context.Context, id string, merchant *mini_model.MiniAppMerchant) error
+	Create(ctx context.Context, merchant *local_model.MiniAppMerchant) (*local_model.MiniAppMerchant, error)
+	Update(ctx context.Context, id string, merchant *local_model.MiniAppMerchant) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*mini_model.MiniAppMerchant, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]mini_model.MiniAppMerchant], error)
-	FindOne(ctx context.Context, filter bson.M) (*mini_model.MiniAppMerchant, error)
+	FindByID(ctx context.Context, id string) (*local_model.MiniAppMerchant, error)
+	// FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]mini_model.MiniAppMerchant], error)
+	// FindOne(ctx context.Context, filter bson.M) (*mini_model.MiniAppMerchant, error)
 }
 
 type CustomerSegmentationRepository interface {
@@ -1011,7 +1011,7 @@ type CustomerGroupRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*imodel.Segment, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Segment], error)
-	DuplicateCheck(ctx context.Context, action, id, group, segment, subsegment string) (bool, error)
+	DuplicateCheck(ctx context.Context, action, id, superAppRole, group, segment, subsegment string) error
 }
 
 type SuperAppRoleRepository interface {

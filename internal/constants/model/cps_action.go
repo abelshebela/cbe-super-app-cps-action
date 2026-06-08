@@ -37,7 +37,7 @@ type CPSAction struct {
 	CreatedAt           time.Time     `bson:"created_at" json:"created_at,omitempty"`
 	LastModifiedAt      time.Time     `bson:"last_modified_at" json:"last_modified_at,omitempty"`
 	MakerActionTime     time.Time     `bson:"maker_action_time" json:"maker_action_time,omitempty"`
-	Checksum            string        `bson:"checksum,omitempty" json:"checksum,omitempty"`
+	Checksum string `bson:"checksum,omitempty" json:"checksum,omitempty"`
 }
 
 type AuditorStatus string

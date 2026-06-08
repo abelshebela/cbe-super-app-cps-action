@@ -93,6 +93,7 @@ func GetRAListForUpdateAction(action constants.RequestAction, group string, Requ
 			return RAUpdateList
 		}
 	}
+
 	return RAUpdateList
 }
 
