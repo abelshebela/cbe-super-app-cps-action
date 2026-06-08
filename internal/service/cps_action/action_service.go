@@ -695,49 +695,42 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 	services := extractStringSlice(filterParams.Filters, "services")
 	statuses := extractStringSlice(filterParams.Filters, "action_status")
 
-	// Always resolve via user_action_log when the role has allocated request_actions.
-	// The log's request_action field is the authoritative source for which actions
-	// this checker role can see — cps_actions.request_action may differ or be absent.
-	// For PENDING we skip the lookup: user_action_log has no given_action_status="PENDING"
-	// records (that field is only set on approve/reject), so the lookup always returns nil.
-	// The repo's request_action+isPendingOnly path handles PENDING scoping correctly.
-	isPendingOnly := len(statuses) == 1 && statuses[0] == string(constants.Pending)
-	if len(RAList) > 0 && !isPendingOnly {
-		logFilter := map[string]interface{}{
-			"request_action": bson.M{"$in": RAList},
-		}
-		if len(statuses) == 1 {
-			logFilter["action_status"] = statuses[0]
-		} else if len(statuses) > 1 {
-			logFilter["action_status"] = statuses
-		}
-		if len(levels) > 0 {
-			logFilter["levels"] = levels
-		}
-		if len(services) > 0 {
-			logFilter["services"] = services
-		}
-		actionCodes, err := ca.actionLogRepo.GetActionCodesByFilter(ctx, logFilter)
-		if err != nil {
-			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
-			return nil, "", err
-		}
-		if len(actionCodes) > 0 {
-			filterParams.Filters["action_code"] = actionCodes
-		}
-	} else if !isPendingOnly && (len(levels) > 0 || len(services) > 0) {
-		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
-			Responsibilities: []string{string(imodel.CHECKER)},
-			Levels:           levels,
-			Services:         services,
-			ActionStatuses:   statuses,
-		})
-		if err != nil {
-			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
-			return nil, "", err
-		}
-		filterParams.Filters["action_code"] = actionCodes
+	// The approver inbox is resolved entirely through user_action_log: we first
+	// fetch the matching action_code list from the log, then fetch exactly those
+	// action_codes from cps_actions. The log is the authoritative source and is
+	// scoped to the role's allocated request_actions (RAList) plus any
+	// level/service/status filters. An empty log result yields an empty page —
+	// we never fall back to the full inbox.
+	logFilter := imodel.UserActionLogActionCodeFilter{
+		RequestActions: RAList,
+		Levels:         levels,
+		Services:       services,
+		ActionStatuses: statuses,
 	}
+
+	// CHECKER log rows only exist after a checker has acted, so scoping by the
+	// CHECKER responsibility would hide freshly-created PENDING actions (which
+	// only carry a MAKER log row). Apply the CHECKER scope only for non-pending
+	// queries.
+	isPendingOnly := len(statuses) == 1 && statuses[0] == string(constants.Pending)
+	if !isPendingOnly {
+		logFilter.Responsibilities = []string{string(imodel.CHECKER)}
+	}
+
+	actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, logFilter)
+	if err != nil {
+		log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
+		return nil, "", err
+	}
+
+	// No matching action codes in the log => empty inbox page.
+	if len(actionCodes) == 0 {
+		return &types.PaginatedResponse[[]*model.CPSAction]{
+			Data: []*model.CPSAction{},
+			Meta: local_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
+		}, "", nil
+	}
+	filterParams.Filters["action_code"] = actionCodes
 
 	if len(statuses) > 0 {
 		filterParams.Filters["action_status"] = statuses

@@ -276,8 +276,14 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 		matchStage = append(matchStage, bson.E{Key: fieldName, Value: bson.M{"$gt": 0}})
 	}
 
+	preMatch := bson.M{"is_deleted": false}
+	if len(filter.RequestActions) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying request_action filter: %v", filter.RequestActions)
+		preMatch["request_action"] = bson.M{"$in": filter.RequestActions}
+	}
+
 	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: bson.M{"is_deleted": false}}},
+		{{Key: "$match", Value: preMatch}},
 		{{Key: "$group", Value: groupStage}},
 	}
 
