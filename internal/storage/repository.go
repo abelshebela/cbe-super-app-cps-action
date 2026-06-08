@@ -80,6 +80,18 @@ type RoleRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Role], error)
 }
 
+type RoleDelegationRepository interface {
+	CreateWithExistingUser(ctx context.Context, role *imodel.RoleDelegation) error
+	CreateWithNewUser(ctx context.Context, role *imodel.RoleDelegation) error
+	Update(ctx context.Context, id string, role *imodel.RoleDelegation) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*imodel.RoleDelegation, error)
+	Delete(ctx context.Context, id string) error
+	FindAll(ctx context.Context) (*[]imodel.RoleDelegation, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error)
+	// CheckIfDelegationAlreadyExists(ctx context.Context, userID string, start, end time.Time) (bool, error)
+}
+
 type UnlinkAccount interface {
 	GetUserByAccount(ctx context.Context, accNumber string) (*model.ArchivedUser, error)
 	GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[*model.ArchivedUser], error)
@@ -414,6 +426,7 @@ type CpsUserRepository interface {
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*imodel.CPSUser, error)
+	FindByUserID(ctx context.Context, id string) (*imodel.CPSUser, error)
 	FindByUsername(ctx context.Context, username string) (*imodel.CPSUser, error)
 	GetPopulatedByID(ctx context.Context, id string) (*cps_user_dto.CpsUserResponse, error)
 	GetPopulatedWithRole(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error)

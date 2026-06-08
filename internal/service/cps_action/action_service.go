@@ -841,9 +841,9 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 		if slices.Contains(auditorStateStatuses, string(constants.AUDITORNOTCHECKED)) {
 			responsibilities = []string{string(imodel.AUDITOR)}
 		}
-		// if slices.Contains(auditorStateStatuses, string(constants.AUDITORNOTCHECKED)) {
-		// 	auditorStateStatuses = []string{""} // user_action_log records with empty action_auditor_status are considered NOTCHECKED
-		// }
+		if slices.Contains(auditorStateStatuses, string(constants.AUDITORNOTCHECKED)) {
+			log.Infof("[CpsActionSvc][GetCPSActionsForAuditor] including responsibility %s for auditor state status %s", string(imodel.AUDITOR), string(constants.AUDITORNOTCHECKED))
+		}
 
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
 			Responsibilities:      responsibilities,

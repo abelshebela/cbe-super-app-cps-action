@@ -187,6 +187,27 @@ func (r *CPSUserStorage) FindByID(ctx context.Context, id string) (*imodel.CPSUs
 	return result, nil
 }
 
+// FindByID supports both ObjectID and user_code lookups
+func (r *CPSUserStorage) FindByUserID(ctx context.Context, id string) (*imodel.CPSUser, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+	log.Infof("[CPSUserStorage][FindByID] fetching CPS user by id")
+	log.Infof("[CPSUserStorage][FindByID] fetching CPS user by id")
+	obj, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		log.Errorf("[CPSUserStorage][FindByID] failed to convert user id to object id")
+		return nil, localization.ErrorUnexpectedError
+	}
+	filter := bson.M{"_id": obj, "is_deleted": false}
+
+	result, err := r.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		log.Errorf("[CPSUserStorage][FindByID] failed to find CPS user: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	log.Infof("[CPSUserStorage][FindByID] CPS user retrieved successfully")
+	return result, nil
+}
+
 func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 

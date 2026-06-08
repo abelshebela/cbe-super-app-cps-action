@@ -187,6 +187,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.VaultCategoryContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(constants.RequestAction(action), "VAULTEMERGENCYDEADLOCKREQUEST"):
 		return d.app.VaultCategoryContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(constants.RequestAction(action), "ROLEDELEGATION"):
+		return d.app.RoleDelegationContainer.Authorize(ctx, cpsAction)
 	default:
 		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))
 		fmt.Printf("Unsupported action---------------------: %s\n", action)
