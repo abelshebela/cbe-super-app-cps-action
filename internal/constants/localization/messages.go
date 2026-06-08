@@ -782,7 +782,7 @@ const (
 
 	// CPS Action related error messages
 	MsgPendingCPSActionExists        = "Pending CPS action already exists"
-	MsgDuplicatePendingCreateAction = "A request with the same data is already pending approval. Please wait for it to be processed before submitting again."
+	MsgDuplicatePendingCreateAction  = "A request with the same data is already pending approval. Please wait for it to be processed before submitting again."
 	MsgCPSActionNotFound             = "action name not found"
 	MsgCPSActionDataNotFound         = "action data not found"
 	MsgBpsUserAlreadyEnabled         = "User already enabled"
@@ -1456,4 +1456,14 @@ const (
 	MsgAccessListKeysRequired                      = "Access List Keys are required"
 	MsgSegmentationTypeRequired                    = "Segmentation type is required"
 	MsgAccessListSegmentationKeyNotFound           = "Access List Segmentation Key not found"
+
+	MsgUserNotFoundOrDisabled = "User not found or disabled"
+
+	MsgRoleDelegationAlreadyDisabled = "Role delegation already disabled"
+	MsgRoleDelegationAlreadyEnabled  = "Role delegation already enabled"
+	MsgInvalidDelegationUserType     = "User type must be either CPS or BPS"
+	MsgInvalidDelegationDepartment   = "Invalid new department passed for role delegation"
+	MsgInvalidDelegationBranch       = "Invalid new branch passed for role delegation"
+	MsgBpsUserAlreadyExists          = "A BPS user with the provided details already exists"
+	MsgCpsUserAlreadyExists          = "A CPS user with the provided details already exists"
 )

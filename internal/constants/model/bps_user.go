@@ -14,6 +14,7 @@ type BPSUser struct {
 	UserName          string          `json:"username" bson:"username"`
 	PhoneNumber       string          `json:"phone_number" bson:"phone_number"`
 	BranchCode        []string        `json:"branch_code" bson:"branch_code"`
+	Email             string          `json:"email" bson:"email"`
 	BranchName        string          `json:"branch_name" bson:"branch_name"`
 	HomeBranch        string          `json:"home_branch" bson:"home_branch"`
 	JobTitle          string          `json:"job_title" bson:"job_title"`

@@ -87,4 +87,5 @@ type Persistence struct {
 	UssdMerchantPersistence           storage.UssdMerchantRepository
 	BpsActionPersistence              storage.BPSActionRepository
 	UserActionLogPersistence          storage.UserActionLogRepository
+	RoleDelegationPersistence         storage.RoleDelegationRepository
 }
