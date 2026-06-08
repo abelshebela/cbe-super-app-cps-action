@@ -13,7 +13,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"slices"
 	"strings"
 	"time"
 
@@ -813,14 +812,7 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 
 	levels := extractStringSlice(filterParams.Filters, "levels")
 	services := extractStringSlice(filterParams.Filters, "services")
-	// "auditor_statuses" (plural) may be set explicitly by callers; "auditor_status"
-	// (singular) is written by FilterBuilder from the ?auditor_status=X query param.
-	// Both carry two distinct domains that must be routed to different log fields:
-	//   MARKEDASRIGHT / MARKEDASWRONG  → log.given_auditor_status  (AuditorStatuses)
-	//   NOTCHECKED / INPROGRESS / CHECKED → log.action_auditor_status (ActionAuditorStatuses)
-	// Leaving CHECKED etc. in filterParams.Filters would pass them through FilterBuilder
-	// to the CPS action document's auditor_status field — that works for state values
-	// but MARKEDASRIGHT would produce zero results there.
+
 	var auditorMarkStatuses []string  // MARKEDASRIGHT / MARKEDASWRONG
 	var auditorStateStatuses []string // NOTCHECKED / INPROGRESS / CHECKED
 
@@ -845,12 +837,12 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	levelClaimPairs := extractLevelClaimPairs(filterParams.Filters)
 	if len(levels) > 0 || len(services) > 0 || len(auditorMarkStatuses) > 0 || len(auditorStateStatuses) > 0 || len(levelClaimPairs) > 0 {
 		var responsibilities []string
-		if filterParams.Filters["action_status"] != string(constants.AUDITORNOTCHECKED) {
+		if slice.Contains(auditorStateStatuses, string(constants.AUDITORNOTCHECKED)) {
 			responsibilities = []string{string(imodel.AUDITOR)}
 		}
-		if slices.Contains(auditorStateStatuses, string(constants.AUDITORNOTCHECKED)) {
-			auditorStateStatuses = []string{""} // user_action_log records with empty action_auditor_status are considered NOTCHECKED
-		}
+		// if slices.Contains(auditorStateStatuses, string(constants.AUDITORNOTCHECKED)) {
+		// 	auditorStateStatuses = []string{""} // user_action_log records with empty action_auditor_status are considered NOTCHECKED
+		// }
 
 		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
 			Responsibilities:      responsibilities,

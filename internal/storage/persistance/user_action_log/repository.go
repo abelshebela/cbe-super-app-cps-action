@@ -136,6 +136,7 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 	groupStage := bson.D{{Key: "_id", Value: "$action_code"}}
 	matchStage := bson.D{}
 	log := local_util.LoggerFromCtx(context.Background(), r.logger) // no need to pass real ctx since we won't log after this point
+
 	if len(filter.ActionStatuses) > 0 {
 		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying action status filter: %v", filter.ActionStatuses)
 		groupStage = append(groupStage, bson.E{
