@@ -866,6 +866,13 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 		}
 		log.Infof("[CpsActionSvc][GetCPSActionsForAuditor] log filter found %d action codes (markStatuses=%v stateStatuses=%v levels=%v, action_codes=%v)",
 			len(actionCodes), auditorMarkStatuses, auditorStateStatuses, levels, actionCodes)
+
+		if len(actionCodes) == 0 {
+			return &types.PaginatedResponse[[]*model.CPSAction]{
+				Data: []*model.CPSAction{},
+				Meta: local_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
+			}, "", nil
+		}
 		filterParams.Filters["action_code"] = actionCodes
 	}
 
