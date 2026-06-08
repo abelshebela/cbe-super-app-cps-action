@@ -40,9 +40,9 @@ import (
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	// mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
@@ -998,7 +998,7 @@ type CustomerGroupRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*imodel.Segment, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Segment], error)
-	DuplicateCheck(ctx context.Context, action, id, group, segment, subsegment string) (bool, error)
+	DuplicateCheck(ctx context.Context, action, id, superAppRole, group, segment, subsegment string) error
 }
 
 type SuperAppRoleRepository interface {
