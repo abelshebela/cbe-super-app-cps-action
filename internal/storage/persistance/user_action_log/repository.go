@@ -1,12 +1,14 @@
 package user_action_log
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -246,6 +248,10 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 			}}}),
 		})
 		matchStage = append(matchStage, bson.E{Key: "maker_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	if slices.Contains(filter.ActionAuditorStatuses, string(constants.AUDITORNOTCHECKED)) {
+		filter.Responsibilities = []string{}
 	}
 
 	if len(filter.Responsibilities) > 0 {
