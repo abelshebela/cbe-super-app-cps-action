@@ -26,7 +26,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/device_history"
 	deviceversioncontrol "cbe-super-app-cps-action/internal/storage/persistance/device_version_control"
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
-	"cbe-super-app-cps-action/internal/storage/persistance/mini_app"
 	role_delegation_repo "cbe-super-app-cps-action/internal/storage/persistance/role_delegation"
 
 	// event_merchant_repository "cbe-super-app-cps-action/internal/storage/persistance/event_merchant"
@@ -132,28 +131,6 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreInterface cor
 		BPSActionApproveIndexPersistence: actionrole_repo.NewBPSActionApproveIndexRepository(client, dbName, BPSActionApproveIndexCollection, logger),
 		JobRolePersistence:               job_roles.NewJobRoleRepository(client, cfg, dbName, []string{RolesCollection, JobRolesCollection, CPSUsersCollection}, logger),
 		// MiniAppCategoryPersistence:        mini_app.NewMiniAppCategoryRepository(logger, client, cfg, dbName, MiniAppCategoryCollection),
-		CPSActionRolePersistence:         cps_actionrole_repo.NewCPSActionRoleRepository(client, cfg, dbName, []string{CPSActionRolesCollection, CPSActionListCollection, CPSActionApproveIndexCollection}, logger),
-		CPSActionApproveIndexPersistence: cps_actionrole_repo.NewCPSActionApproveIndexRepository(client, dbName, CPSActionApproveIndexCollection, logger),
-		NotificationPersistence:          notification.NewNotificationRepository(client, cfg, dbName, NotificationsCollection, notificationProducer, logger),
-		PasswordRulePersistence:          password.NewPasswordRuleRepository(client, cfg, dbName, PasswordRulesCollection, logger),
-		ValidationRulePersistence:        accountvalidation.NewAccountValidationStore(client, cfg, dbName, ValidationRulesCollection, clientOrchestrationProducer, logger),
-		WalletPersistence:                wallet.NewWalletRepository(client, cfg, dbName, WalletsCollection, ServicesCollection, logger),
-		BpsActionPersistence:             bps_action.NewBPSActionRepository(client, dbName, BPSActionsCollection, logger, cfg),
-		TopupPersistence:                 Topup.NewTopupRepository(client, cfg, dbName, TopUpsCollection, logger),
-		DepartmentPersistence:            department.NewDepartmentRepository(client, cfg, dbName, DepartmentsCollection, logger),
-		FaydaPersistence:                 fayda.InitFaydaAccountPersistence(client, cfg, dbName, MembersCollection, logger),
-		PermissionPersistence:            permission.InitPermission(client, cfg, dbName, []string{PermissionGroupsCollection, PermissionCategoryCollection, PermissionCollection, CPSActionsCollection}, 30*time.Second, logger),
-		ArticlePersistence:               media.NewsArticleRepository(logger, client, cfg, dbName, NewsArticlesCollection, clientOrchestrationProducer),
-		ArticleCategoryPersistence:       media.NewArticleCategoryRepository(logger, client, cfg, dbName, NewsCategoriesCollection),
-		ShortVideoPersistence:            media.NewShortVideoRepository(logger, client, cfg, dbName, NewsShortVideosCollection, clientOrchestrationProducer),
-		NewsTagPersistence:               newstag_repo.NewNewsTagRepository(client, cfg, dbName, NewsTagsCollection, clientOrchestrationProducer, logger),
-		NewsCategoryPersistence:          newscategory_repo.NewNewsCategoryRepository(client, cfg, dbName, NewsCategoryCollection, clientOrchestrationProducer, logger),
-		KYCVerifierPersistence:           kyc_repo.NewKYCVerifierRepository(client, cfg, dbName, CustomersKYCCollection, clientOrchestrationProducer, logger),
-		NewsTagsServiceContainer:         media.NewNewsTagsRepository(logger, client, cfg, dbName, NewsTagsCollection),
-		BPSActionRolePersistence:         actionrole_repo.NewBPSActionRoleRepository(client, cfg, dbName, []string{BPSActionRolesCollection, BPSActionListCollection, BPSActionApproveIndexCollection}, logger),
-		BPSActionApproveIndexPersistence: actionrole_repo.NewBPSActionApproveIndexRepository(client, dbName, BPSActionApproveIndexCollection, logger),
-		JobRolePersistence:               job_roles.NewJobRoleRepository(client, cfg, dbName, []string{RolesCollection, JobRolesCollection, CPSUsersCollection}, logger),
-		MiniAppCategoryPersistence:       mini_app.NewMiniAppCategoryRepository(logger, client, cfg, dbName, MiniAppCategoryCollection),
 		CPSActionRolePersistence:         cps_actionrole_repo.NewCPSActionRoleRepository(client, cfg, dbName, []string{CPSActionRolesCollection, CPSActionListCollection, CPSActionApproveIndexCollection}, logger),
 		CPSActionApproveIndexPersistence: cps_actionrole_repo.NewCPSActionApproveIndexRepository(client, dbName, CPSActionApproveIndexCollection, logger),
 		// EventMerchantPersistence:          event_merchant_repository.NewEventMerchantRepository(client, cfg, dbName, EventMerchantsCollection, logger),
