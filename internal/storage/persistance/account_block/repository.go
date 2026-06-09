@@ -1202,3 +1202,48 @@ func (a *AccountBlockStorage) GetBranchByIds(ctx context.Context, id string) (*i
 	log.Infof("[AccountBlockStorage][GetBranchByIds] branch retrieved successfully")
 	return ab, nil
 }
+
+func (a *AccountBlockStorage) GetBranchByCode(ctx context.Context, code string) (*imodel.AccountBlock, error) {
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	log.Infof("[AccountBlockStorage][GetBranchByCode] fetching branch by Code: %s", code)
+
+	query := `SELECT
+		RAWTOHEX(id), name, code, address, slug, type,
+		is_enabled, RAWTOHEX(district_id), RAWTOHEX(region_id),
+		is_deleted, created_at, updated_at
+	FROM ACCOUNT_BLOCKS
+	WHERE CODE = :code
+		AND type = 'B'
+		AND is_deleted = 0
+		AND is_enabled = 1`
+
+	row := a.db.QueryRowContext(ctx, query, sql.Named("code", code))
+
+	var branch imodel.AccountBlock
+
+	err := row.Scan(
+		&branch.ID,
+		&branch.Name,
+		&branch.Code,
+		&branch.Address,
+		&branch.Slug,
+		&branch.Type,
+		&branch.IsEnabled,
+		&branch.DistrictID,
+		&branch.RegionID,
+		&branch.IsDeleted,
+		&branch.CreatedAt,
+		&branch.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			log.Infof("[AccountBlockStorage][GetBranchByCode] branch not found: %s", code)
+			return nil, nil
+		}
+
+		log.Errorf("[AccountBlockStorage][GetBranchByCode] failed to fetch branch: %v", err)
+		return nil, err
+	}
+
+	return &branch, nil
+}
