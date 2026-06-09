@@ -544,7 +544,6 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 			delete(filterParam.Filters, "__inbox_or")
 		}
 	}
-	// 1. Base filter (only active records)
 	baseFilter := bson.M{
 		"is_deleted": false,
 	}
@@ -552,11 +551,33 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 	from, okFrom := filterParam.Filters["created_at_from"].(string)
 	to, okTo := filterParam.Filters["created_at_to"].(string)
 
-	if okFrom && okTo && from != "" && to != "" {
-		fromTime, err1 := time.Parse(time.RFC3339, from)
-		toTime, err2 := time.Parse(time.RFC3339, to)
+	parseFlexible := func(s string) (time.Time, bool) {
+		if s == "" {
+			return time.Time{}, false
+		}
+		if t, err := time.Parse(time.RFC3339, s); err == nil {
+			return t, true
+		}
+		if t, err := time.Parse("2006-01-02", s); err == nil {
+			return t, true
+		}
+		if t, err := time.Parse("2006-01-02T15:04:05", s); err == nil {
+			return t, true
+		}
+		return time.Time{}, false
+	}
 
-		if err1 == nil && err2 == nil {
+	if okFrom && okTo && from != "" && to != "" {
+		fromTime, ok1 := parseFlexible(from)
+		toTime, ok2 := parseFlexible(to)
+
+		if ok1 && ok2 {
+			if len(from) == 10 {
+				fromTime = time.Date(fromTime.Year(), fromTime.Month(), fromTime.Day(), 0, 0, 0, 0, time.UTC)
+			}
+			if len(to) == 10 {
+				toTime = time.Date(toTime.Year(), toTime.Month(), toTime.Day(), 23, 59, 59, int(time.Millisecond*999), time.UTC)
+			}
 			baseFilter["created_at"] = bson.M{
 				"$gte": fromTime,
 				"$lte": toTime,

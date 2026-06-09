@@ -86,6 +86,7 @@ type RoleDelegationRepository interface {
 	Update(ctx context.Context, id string, role *imodel.RoleDelegation) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*imodel.RoleDelegation, error)
+	FindByUsername(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error)
 	Delete(ctx context.Context, id string) error
 	FindAll(ctx context.Context) (*[]imodel.RoleDelegation, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error)
