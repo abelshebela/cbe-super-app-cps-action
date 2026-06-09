@@ -702,12 +702,7 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 	// Extract checker level status pairs (e.g., checker_level_1_status=APPROVED)
 	checkerLevelStatuses := extractCheckerLevelStatusPairs(filterParams.Filters)
 
-	// The approver inbox is resolved entirely through user_action_log: we first
-	// fetch the matching action_code list from the log, then fetch exactly those
-	// action_codes from cps_actions. The log is the authoritative source and is
-	// scoped to the role's allocated request_actions (RAList) plus any
-	// level/service/status filters. An empty log result yields an empty page —
-	// we never fall back to the full inbox.
+	
 	logFilter := imodel.UserActionLogActionCodeFilter{
 		RequestActions:       RAList,
 		Levels:               levels,
