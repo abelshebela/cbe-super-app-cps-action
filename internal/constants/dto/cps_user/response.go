@@ -143,6 +143,8 @@ type CpsUserPopulatedResponse struct {
 	PasswordDisable       bool                      `json:"password_disable" bson:"password_disable"`
 	IsFirstTimeLogin      bool                      `json:"is_first_time_login" bson:"is_first_time_login"`
 	CreatedAt             time.Time                 `json:"created_at" bson:"created_at"`
+	IsDelegationActive    bool                      `json:"is_delegation_active" bson:"is_delegation_active"`
+	DelegatedRole         string                    `json:"delegated_role,omitempty" bson:"delegated_role,omitempty"`
 }
 
 type Department struct {
