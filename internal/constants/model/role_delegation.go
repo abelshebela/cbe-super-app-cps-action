@@ -29,10 +29,11 @@ type RoleDelegation struct {
 	NewRoleID             string `json:"new_role_id" bson:"new_role_id"`
 	NewDepartmentOrBranch string `json:"new_department_or_branch" bson:"new_department_or_branch"`
 
-	Enable    bool      `json:"enable" bson:"enable"`
-	StartAt   time.Time `json:"start_at" bson:"start_at"`
-	EndAt     time.Time `json:"end_at" bson:"end_at"`
-	Reason    string    `json:"reason" bson:"reason"`
-	CreatedAt time.Time `json:"created_at" bson:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
+	Enable                   bool      `json:"enable" bson:"enable"`
+	StartAt                  time.Time `json:"start_at" bson:"start_at"`
+	EndAt                    time.Time `json:"end_at" bson:"end_at"`
+	Reason                   string    `json:"reason" bson:"reason"`
+	CreatedAt                time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt                time.Time `json:"updated_at" bson:"updated_at"`
+	RevokeExistingDelegation bool      `json:"revoke_existing_delegation" bson:"revoke_existing_delegation"`
 }
