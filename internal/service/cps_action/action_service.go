@@ -699,6 +699,7 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 	services := extractStringSlice(filterParams.Filters, "services")
 	statuses := extractStringSlice(filterParams.Filters, "action_status")
 
+	log.Infof("[CPSAction][GetCPSActionsForApprover] ********* levels: %v, checkerLevels: %v, auditorLevels: %v, services: %v, statuses: %v", levels, checkerLevels, auditorLevels, services, statuses)
 	// Extract checker level status pairs (e.g., checker_level_1_status=APPROVED)
 	checkerLevelStatuses := extractCheckerLevelStatusPairs(filterParams.Filters)
 
@@ -732,6 +733,8 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 	if !isPendingOnly {
 		logFilter.Responsibilities = []string{string(imodel.CHECKER)}
 	}
+
+	log.Infof("[CPSAction][GetCPSActionsForApprover] ********* filter: %v", logFilter)
 
 	actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, logFilter)
 	if err != nil {
