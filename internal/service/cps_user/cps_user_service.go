@@ -31,6 +31,7 @@ type cpsUserService struct {
 	bpsApproverRepo   storage.BPSActionApproveIndexRepository
 	permissionService service.PermissionService
 	departmentRepo    storage.DepartmentRepository
+	roleDelegation    storage.RoleDelegationRepository
 	logger            shared_utils.Logger
 	cpsService        service.CPSActionService
 	bpsRepo           storage.BPSUserRepository
@@ -531,7 +532,16 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 	populated, err := s.repo.GetPopulatedWithRole(ctx, userCode)
 	if err != nil {
 		span.AddEvent("failed to get populated by id", trace.WithAttributes(attribute.String("error", err.Error())))
-		return nil, err
+		if err.Error() != localization.ErrorFileNotFound.Code {
+			return nil, err
+		}
+
+		populated, err = s.roleDelegation.FindByUserCode(ctx, userCode)
+		if err != nil {
+			span.AddEvent("failed to find role delegation by user code", trace.WithAttributes(attribute.String("error", err.Error())))
+			s.logger.Errorf("failed to find role delegation by user code err:%v", err)
+			return nil, err
+		}
 	}
 
 	var makerAlloc, checkerAlloc, auditorAlloc, portalCard, bpsCheckerAlloc, bpsAuditorAlloc []string

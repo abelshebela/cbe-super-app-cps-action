@@ -1,6 +1,7 @@
 package role_delegation_repo
 
 import (
+	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -108,6 +109,11 @@ func (r *roleDelegationRepository) CreateWithNewUser(ctx context.Context, role *
 	_, err = session.WithTransaction(ctx, func(sc context.Context) (any, error) {
 		role.ID = bson.NewObjectID()
 		role.Enable = true
+		if role.DelegatedUserUserType == "CPS" {
+			role.DelegatedUserUserCode = local_util.GenerateCPSUserCode()
+		} else {
+			role.DelegatedUserUserCode = local_util.GenerateBPSUserCode()
+		}
 		result, err := r.collection.InsertOne(sc, role)
 		if err != nil {
 			log.Errorf("[RoleDelegationRepository][Create] failed to create role delegation: %v", err)
@@ -128,7 +134,7 @@ func (r *roleDelegationRepository) CreateWithNewUser(ctx context.Context, role *
 				return nil, localization.ErrorUnexpectedError
 			}
 			_, err = r.cpsUserCollection.InsertOne(sc, model.CPSUser{
-				UserCode:           local_util.GenerateCPSUserCode(),
+				UserCode:           role.DelegatedUserUserCode,
 				FullName:           role.DelegatedUserFullName,
 				Role:               role.DelegatedUserExistingRole,
 				PhoneNumber:        role.DelegatedUserPhoneNumber,
@@ -148,7 +154,7 @@ func (r *roleDelegationRepository) CreateWithNewUser(ctx context.Context, role *
 			}
 		} else {
 			_, err = r.bpsUserCollection.InsertOne(sc, model.BPSUser{
-				UserCode:    local_util.GenerateBPSUserCode(),
+				UserCode:    role.DelegatedUserUserCode,
 				FullName:    role.DelegatedUserFullName,
 				Role:        role.DelegatedUserExistingRole,
 				PhoneNumber: role.DelegatedUserPhoneNumber,
@@ -290,6 +296,35 @@ func (r *roleDelegationRepository) FindByUsername(ctx context.Context, id string
 	return &types.PaginatedResponse[[]imodel.RoleDelegation]{
 		Data: data,
 		Meta: meta,
+	}, nil
+}
+
+func (r *roleDelegationRepository) FindByUserCode(ctx context.Context, usercode string) (*cpsuser.CpsUserPopulatedResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	data, err := r.repo.FindOne(ctx, bson.M{
+		"delegated_user_user_code": usercode,
+	}, bson.M{})
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][FindByUsername] failed to fetch role delegations: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+
+	return &cpsuser.CpsUserPopulatedResponse{
+		ID:       data.ID,
+		UserCode: data.DelegatedUserUserCode,
+		FullName: data.DelegatedUserFullName,
+		Role: cpsuser.RoleResponse{
+			Code: data.NewRoleID,
+		},
+		Department: &cpsuser.DepartmentResponse{
+			Name: data.NewDepartmentOrBranch,
+		},
+		PhoneNumber:        data.DelegatedUserPhoneNumber,
+		Email:              data.DelegatedUserEmail,
+		UserName:           data.DelegatedUserID,
+		Realm:              data.DelegatedUserUserType,
+		IsDelegationActive: true,
 	}, nil
 }
 
