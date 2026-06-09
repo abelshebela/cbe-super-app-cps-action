@@ -101,6 +101,14 @@ func Init(router chi.Router, handler bpsaction.BPSActionAdapter, authMiddleware 
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/bps_actions/reinstate",
+			Handler: handler.ReinstateCustomer,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

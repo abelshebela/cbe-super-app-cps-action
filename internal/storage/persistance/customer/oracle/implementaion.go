@@ -11,6 +11,7 @@ import (
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
@@ -414,6 +415,28 @@ func (c *customerOracleRepository) BlockCustomerByUserCode(ctx context.Context, 
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 
 	query := `UPDATE users SET is_blocked = 1 WHERE user_code = :1`
+	result, err := c.db.ExecContext(ctx, query, userCode)
+	if err != nil {
+		log.Errorf("[CustomerRepository][BlockCustomerByUserCode] failed to block customer with user_code %s: %v", userCode, err)
+		return localization.ErrorUnexpectedError
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Errorf("[CustomerRepository][BlockCustomerByUserCode] failed to get rows affected: %v", err)
+		return localization.ErrorUnexpectedError
+	}
+	if rowsAffected == 0 {
+		log.Errorf("[CustomerRepository][BlockCustomerByUserCode] no user found with user_code: %s", userCode)
+		return localization.ErrorCustomerNotFound
+	}
+	log.Infof("[CustomerRepository][BlockCustomerByUserCode] successfully blocked customer with user_code: %s", userCode)
+	return nil
+}
+
+func (c *customerOracleRepository) UNBlockCustomerByUserCode(ctx context.Context, userCode string) error {
+	log := local_util.LoggerFromCtx(ctx, c.logger)
+
+	query := `UPDATE users SET is_blocked = 0 WHERE user_code = :1`
 	result, err := c.db.ExecContext(ctx, query, userCode)
 	if err != nil {
 		log.Errorf("[CustomerRepository][BlockCustomerByUserCode] failed to block customer with user_code %s: %v", userCode, err)

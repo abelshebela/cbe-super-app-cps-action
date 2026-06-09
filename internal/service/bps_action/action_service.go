@@ -201,10 +201,25 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 
 	}
 
+	// Determine auditor approval based on mark
 	auditorApproval := false
-	// if auditor.AuditorMark == "MARKEDASRIGHT" {
-	auditorApproval = true
-	// }
+	isCustomerBarred := false
+	markStr := string(auditor.AuditorMark)
+	if markStr == string(imodel.MARKEDASRIGHT) {
+		auditorApproval = true
+	} else if markStr == string(imodel.MARKEDASWRONG) && customerBar {
+		// Block customer when marked as wrong with customer_bar=true
+		userCode := action.UserInformation.UserCode
+		if userCode != "" && ba.customerRepo != nil {
+			if blockErr := ba.customerRepo.BlockCustomerByUserCode(ctx, userCode); blockErr != nil {
+				log.Errorf("[BpsActionSvc][AuditorMark] failed to block customer %s: %v", userCode, blockErr)
+				// Continue with audit even if blocking fails - don't block the audit process
+			} else {
+				log.Infof("[BpsActionSvc][AuditorMark] customer %s blocked successfully", userCode)
+				isCustomerBarred = true
+			}
+		}
+	}
 	err = MarkActionAsAudited(ctx, ba.repo, actionCode, auditorApproval, auditor.AuditorReason, ba.logger)
 	if err != nil {
 		log.Errorf("[BPSAction][AuditorMark] failed to update mark")
@@ -212,7 +227,8 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	}
 
 	// BPS has a single auditor — once marked, the audit is complete (CHECKED).
-	ba.logUserAction(ctx, action, imodel.AUDITOR, action.Status, imodel.AuditorMark(auditor.AuditorMark), "", "")
+	// Log user action with customer barred flag if applicable
+	ba.logUserActionWithCustomerBar(ctx, action, imodel.AUDITOR, action.Status, imodel.AuditorMark(auditor.AuditorMark), "", "", isCustomerBarred)
 	if ba.actionLogRepo != nil {
 		if logErr := ba.actionLogRepo.AuditorMarkLogsByActionCode(ctx, actionCode, string(auditor.AuditorMark), string(constants.AUDITORCHECKED)); logErr != nil {
 			span.AddEvent("failed to propagate auditor mark to logs", trace.WithAttributes(attribute.String("error", logErr.Error())))
@@ -407,7 +423,7 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 
 func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*bps_model.BPSAction], error) {
 
-	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetCPSActionsForAuditor", "CPSAction", "GetCPSActionsForAuditor")
+	ctx, span := lobal_util.TraceLogger(ctx, "service", "GetBPSActionsForAuditor", "BPSAction", "GetBPSActionsForAuditor")
 
 	defer span.End()
 
@@ -418,14 +434,37 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 		filterParams.Filters = map[string]interface{}{}
 	}
 
+	// Extract filters
+	levels := extractStringSlice(filterParams.Filters, "levels")
+	services := extractStringSlice(filterParams.Filters, "services")
+	
+	// Check for customer_bared filter
+	var auditorCustomerBared *bool
+	if v, ok := filterParams.Filters["customer_bared"]; ok {
+		if b, ok := v.(bool); ok {
+			auditorCustomerBared = &b
+		}
+	}
+
+	// Build log filter
+	logFilter := bps_model.UserActionLogActionCodeFilter{
+		RequestActions:       RAList,
+		Levels:               levels,
+		Services:             services,
+		Responsibilities:     []string{string(bps_model.AUDITOR)},
+		AuditorCustomerBared: auditorCustomerBared,
+	}
+
 	// level+claim filtering: all pairs must be satisfied within the same action_code.
-	if levelClaimPairs := bpsExtractLevelClaimPairs(filterParams.Filters); len(levelClaimPairs) > 0 && ba.actionLogRepo != nil {
-		actionCodes, err := ba.actionLogRepo.GetActionCodesByActionLogFilter(ctx, bps_model.UserActionLogActionCodeFilter{
-			Responsibilities: []string{string(bps_model.AUDITOR)},
-			LevelClaimPairs:  levelClaimPairs,
-		})
+	if levelClaimPairs := bpsExtractLevelClaimPairs(filterParams.Filters); len(levelClaimPairs) > 0 {
+		logFilter.LevelClaimPairs = levelClaimPairs
+	}
+
+	// Get action codes from user_action_log
+	if ba.actionLogRepo != nil {
+		actionCodes, err := ba.actionLogRepo.GetActionCodesByActionLogFilter(ctx, logFilter)
 		if err != nil {
-			span.AddEvent("failed to get action codes by level claim", trace.WithAttributes(attribute.String("error", err.Error())))
+			span.AddEvent("failed to get action codes by action log filter", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
 		if len(actionCodes) == 0 {
@@ -440,15 +479,11 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 	result, err := ba.repo.SanitizedFindAllWithPaginationForAuditor(ctx, userID, *filterParams, RAList)
 
 	if err != nil {
-
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
-
 		return nil, err
-
 	}
 
 	return result, nil
-
 }
 
 func bpsExtractLevelClaimPairs(filters map[string]interface{}) []bps_model.LevelClaimPair {
@@ -1009,4 +1044,109 @@ func (ba *bpsActionService) logUserAction(ctx context.Context, action *bps_model
 	if err := ba.actionLogRepo.Upsert(ctx, actionLog); err != nil {
 		reqLog.Errorf("[BpsActionSvc][logUserAction] failed to log action: %v", err)
 	}
+}
+
+func (ba *bpsActionService) logUserActionWithCustomerBar(ctx context.Context, action *bps_model.BPSAction, responsibility imodel.UserActionResponsibility, givenStatus string, auditorMark imodel.AuditorMark, checkerLevel, auditorLevel string, auditorCustomerBared bool) {
+	reqLog := local_util.LoggerFromCtx(ctx, ba.logger)
+	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
+
+	userData := local_util.ExtractUserFromContext(ctx)
+	if ba.actionLogRepo == nil {
+		return
+	}
+
+	userOID, _ := bson.ObjectIDFromHex(userData.UserID)
+	actionOID := action.ID
+
+	serviceName := ""
+	if mod, ok := ResolveModuleForRA(RequestAction(action.RequestAction)); ok {
+		serviceName = mod
+	}
+
+	actionLog := &imodel.UserActionLog{
+		ID:                         bson.NewObjectID(),
+		ActionID:                   actionOID,
+		ActionCode:                 action.ActionCode,
+		GivenActionStatus:          givenStatus,
+		GivenAuditorStatus:         auditorMark,
+		RequestAction:              constants.RequestAction(action.RequestAction),
+		ActionTakenServiceName:     serviceName,
+		CheckerLevel:               checkerLevel,
+		AuditorLevel:               auditorLevel,
+		UserRoleCode:               roleCode,
+		UserID:                     userOID,
+		Username:                   userData.UserName,
+		UserPhone:                  userData.PhoneNumber,
+		ActionType:                 imodel.BPSActions,
+		UserActionResponsibilities: responsibility,
+		AuditorCustomerBared:       auditorCustomerBared,
+		CreatedAt:                  time.Now(),
+	}
+
+	if err := ba.actionLogRepo.Upsert(ctx, actionLog); err != nil {
+		reqLog.Errorf("[BpsActionSvc][logUserActionWithCustomerBar] failed to log action: %v", err)
+	}
+}
+
+// extractStringSlice safely extracts a string slice from filters map.
+// Handles nil map, single string, and []interface{} (common after JSON unmarshalling).
+func extractStringSlice(filters map[string]interface{}, key string) []string {
+	if filters == nil {
+		return nil
+	}
+	v, ok := filters[key]
+	if !ok {
+		return nil
+	}
+	// Direct string slice
+	if ss, ok := v.([]string); ok {
+		return ss
+	}
+	// Single string
+	if s, ok := v.(string); ok && s != "" {
+		return []string{s}
+	}
+	// []interface{} after JSON unmarshalling
+	if arr, ok := v.([]interface{}); ok {
+		result := make([]string, 0, len(arr))
+		for _, item := range arr {
+			if s, ok := item.(string); ok {
+				result = append(result, s)
+			}
+		}
+		if len(result) > 0 {
+			return result
+		}
+	}
+	return nil
+}
+
+// ReinstateCustomer reinstates/unblocks a customer that was barred by auditor
+func (ba *bpsActionService) ReinstateCustomer(ctx context.Context, actionCode, userCode, reason string) error {
+	log := local_util.LoggerFromCtx(ctx, ba.logger)
+
+	ctx, span := lobal_util.TraceLogger(ctx, "service", "ReinstateCustomer", "BPSAction", "ReinstateCustomer")
+	defer span.End()
+
+	// 1. Unblock the customer
+	if userCode != "" && ba.customerRepo != nil {
+		if err := ba.customerRepo.UNBlockCustomerByUserCode(ctx, userCode); err != nil {
+			log.Errorf("[BpsActionSvc][ReinstateCustomer] failed to unblock customer %s: %v", userCode, err)
+			return err
+		}
+		log.Infof("[BpsActionSvc][ReinstateCustomer] customer %s unblocked successfully", userCode)
+	}
+
+	// 2. Update user_action_log entries for this action_code
+	// Set IsCustomerReinstated = true and ReinstateReason
+	if ba.actionLogRepo != nil && actionCode != "" {
+		if err := ba.actionLogRepo.UpdateReinstateStatus(ctx, actionCode, reason); err != nil {
+			log.Errorf("[BpsActionSvc][ReinstateCustomer] failed to update user_action_log for action %s: %v", actionCode, err)
+			// Don't return error - continue even if log update fails
+		} else {
+			log.Infof("[BpsActionSvc][ReinstateCustomer] updated user_action_log for action %s", actionCode)
+		}
+	}
+
+	return nil
 }
