@@ -236,7 +236,6 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log := local_util.LoggerFromCtx(r.Context(), a.logger)
-
 		// Skip token auth if user is erp
 		if isErp, ok := r.Context().Value(constants.ContextKey("is_erp")).(bool); ok && isErp {
 			log.Infof("[AuthMW][AuthToken] Skipping bearer token validation (isERP=true)")
