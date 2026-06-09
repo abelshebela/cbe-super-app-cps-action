@@ -691,9 +691,16 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 	createdAtFrom, _ := filterParams.Filters["created_at_from"].(string)
 	createdAtTo, _ := filterParams.Filters["created_at_to"].(string)
 
+	// Generic levels filter (matches both checker_level and auditor_level)
 	levels := extractStringSlice(filterParams.Filters, "levels")
+	// Separate level filters for specific fields
+	checkerLevels := extractStringSlice(filterParams.Filters, "checker_levels")
+	auditorLevels := extractStringSlice(filterParams.Filters, "auditor_levels")
 	services := extractStringSlice(filterParams.Filters, "services")
 	statuses := extractStringSlice(filterParams.Filters, "action_status")
+
+	// Extract checker level status pairs (e.g., checker_level_1_status=APPROVED)
+	checkerLevelStatuses := extractCheckerLevelStatusPairs(filterParams.Filters)
 
 	// The approver inbox is resolved entirely through user_action_log: we first
 	// fetch the matching action_code list from the log, then fetch exactly those
@@ -702,10 +709,13 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 	// level/service/status filters. An empty log result yields an empty page —
 	// we never fall back to the full inbox.
 	logFilter := imodel.UserActionLogActionCodeFilter{
-		RequestActions: RAList,
-		Levels:         levels,
-		Services:       services,
-		ActionStatuses: statuses,
+		RequestActions:       RAList,
+		Levels:               levels,
+		CheckerLevels:        checkerLevels,
+		AuditorLevels:        auditorLevels,
+		Services:             services,
+		ActionStatuses:       statuses,
+		CheckerLevelStatuses: checkerLevelStatuses,
 	}
 
 	// CHECKER log rows only exist after a checker has acted, so scoping by the
@@ -811,13 +821,18 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	createdAtFrom, _ := filterParams.Filters["created_at_from"].(string)
 	createdAtTo, _ := filterParams.Filters["created_at_to"].(string)
 
+	// Generic levels filter (matches both checker_level and auditor_level)
 	levels := extractStringSlice(filterParams.Filters, "levels")
+	// Separate level filters for specific fields
+	checkerLevels := extractStringSlice(filterParams.Filters, "checker_levels")
+	auditorLevels := extractStringSlice(filterParams.Filters, "auditor_levels")
 	services := extractStringSlice(filterParams.Filters, "services")
 
 	var auditorMarkStatuses []string  // MARKEDASRIGHT / MARKEDASWRONG (given_auditor_status)
 	var auditorStateStatuses []string // NOTCHECKED / INPROGRESS / CHECKED (action_auditor_status)
 
-	log.Infof("[CPSAction][GetCPSActionsForAuditor] check level %v service %v", levels, services)
+	log.Infof("[CPSAction][GetCPSActionsForAuditor] levels=%v checker_levels=%v auditor_levels=%v services=%v",
+		levels, checkerLevels, auditorLevels, services)
 
 	auditStateSet := map[string]bool{
 		string(constants.AUDITORNOTCHECKED): true,
@@ -838,6 +853,9 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 
 	levelClaimPairs := extractLevelClaimPairs(filterParams.Filters)
 
+	// Extract checker level status pairs (e.g., checker_level_1_status=APPROVED)
+	checkerLevelStatuses := extractCheckerLevelStatusPairs(filterParams.Filters)
+
 	// The auditor inbox is resolved entirely through user_action_log: we first
 	// fetch the matching action_code list from the log, then fetch exactly those
 	// action_codes from cps_actions. The log is the authoritative source and is
@@ -846,10 +864,13 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	logFilter := imodel.UserActionLogActionCodeFilter{
 		RequestActions:        RAList,
 		Levels:                levels,
+		CheckerLevels:         checkerLevels,
+		AuditorLevels:         auditorLevels,
 		Services:              services,
 		AuditorStatuses:       auditorMarkStatuses,
 		ActionAuditorStatuses: auditorStateStatuses,
 		LevelClaimPairs:       levelClaimPairs,
+		CheckerLevelStatuses:  checkerLevelStatuses,
 	}
 
 	// AUDITOR log rows only exist after an auditor has marked an action.
@@ -1657,6 +1678,46 @@ func extractLevelClaimPairs(filters map[string]interface{}) []imodel.LevelClaimP
 		return pairs
 	}
 	return nil
+}
+
+// extractCheckerLevelStatusPairs extracts checker level status pairs from filters.
+// Looks for filters like "checker_level_1_status", "checker_level_2_status" etc.
+// Also supports "checker_level_statuses" which should be []LevelClaimPair.
+func extractCheckerLevelStatusPairs(filters map[string]interface{}) []imodel.LevelClaimPair {
+	// First check if pre-parsed pairs exist
+	if v, ok := filters["checker_level_statuses"]; ok {
+		if pairs, ok := v.([]imodel.LevelClaimPair); ok {
+			return pairs
+		}
+	}
+
+	var pairs []imodel.LevelClaimPair
+
+	// Look for checker_level_X_status pattern in filters
+	for key, val := range filters {
+		// Match pattern: checker_level_{number}_status
+		var levelNum string
+		if n, found := strings.CutPrefix(key, "checker_level_"); found {
+			if n, found = strings.CutSuffix(n, "_status"); found {
+				levelNum = n
+			}
+		}
+		if levelNum == "" {
+			continue
+		}
+
+		status, ok := val.(string)
+		if !ok {
+			continue
+		}
+
+		pairs = append(pairs, imodel.LevelClaimPair{
+			Level: levelNum,
+			Claim: strings.ToUpper(status),
+		})
+	}
+
+	return pairs
 }
 
 func CpsActionCSVHeader(fields []string) []string {

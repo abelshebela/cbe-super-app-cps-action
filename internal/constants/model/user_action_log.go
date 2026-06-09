@@ -78,11 +78,14 @@ type UserActionLogActionCodeFilter struct {
 	AuditorStatuses       []string         `json:"auditor_statuses"`
 	ActionAuditorStatuses []string         `json:"action_auditor_statuses"`
 	PrivateUserIDs        []string         `json:"private_user_ids"`
-	Levels                []string         `json:"levels"`
+	Levels                []string         `json:"levels"`         // Generic levels - matches checker_level OR auditor_level
+	CheckerLevels         []string         `json:"checker_levels"` // Specific to checker_level field
+	AuditorLevels         []string         `json:"auditor_levels"` // Specific to auditor_level field
 	Services              []string         `json:"services"`
 	CheckerUserIDs        []string         `json:"checker_user_ids"`
 	AuditorUserIDs        []string         `json:"auditor_user_ids"`
 	MakerUserIDs          []string         `json:"maker_user_ids"`
 	Responsibilities      []string         `json:"responsibilities"`
-	LevelClaimPairs       []LevelClaimPair `json:"level_claim_pairs"`
+	LevelClaimPairs       []LevelClaimPair `json:"level_claim_pairs"`       // For auditor: level + given_auditor_status pairs
+	CheckerLevelStatuses  []LevelClaimPair `json:"checker_level_statuses"` // For checker: level + status pairs (e.g., level_1 + APPROVED)
 }
