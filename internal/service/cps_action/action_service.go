@@ -13,7 +13,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"slices"
 	"strings"
 	"time"
 
@@ -814,8 +813,8 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	levels := extractStringSlice(filterParams.Filters, "levels")
 	services := extractStringSlice(filterParams.Filters, "services")
 
-	var auditorMarkStatuses []string  // MARKEDASRIGHT / MARKEDASWRONG
-	var auditorStateStatuses []string // NOTCHECKED / INPROGRESS / CHECKED
+	var auditorMarkStatuses []string  // MARKEDASRIGHT / MARKEDASWRONG (given_auditor_status)
+	var auditorStateStatuses []string // NOTCHECKED / INPROGRESS / CHECKED (action_auditor_status)
 
 	log.Infof("[CPSAction][GetCPSActionsForAuditor] check level %v service %v", levels, services)
 
@@ -837,38 +836,46 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	}
 
 	levelClaimPairs := extractLevelClaimPairs(filterParams.Filters)
-	if len(levels) > 0 || len(services) > 0 || len(auditorMarkStatuses) > 0 || len(auditorStateStatuses) > 0 || len(levelClaimPairs) > 0 {
-		var responsibilities []string
-		if slices.Contains(auditorStateStatuses, string(constants.AUDITORNOTCHECKED)) {
-			responsibilities = []string{string(imodel.AUDITOR)}
-		}
-		if slices.Contains(auditorStateStatuses, string(constants.AUDITORNOTCHECKED)) {
-			log.Infof("[CpsActionSvc][GetCPSActionsForAuditor] including responsibility %s for auditor state status %s", string(imodel.AUDITOR), string(constants.AUDITORNOTCHECKED))
-		}
 
-		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
-			Responsibilities:      responsibilities,
-			Levels:                levels,
-			Services:              services,
-			AuditorStatuses:       auditorMarkStatuses,
-			ActionAuditorStatuses: auditorStateStatuses,
-			LevelClaimPairs:       levelClaimPairs,
-		})
-		if err != nil {
-			log.Errorf("[CpsActionSvc][GetCPSActionsForAuditor] log filter err: %v", err)
-			return nil, "", err
-		}
-		log.Infof("[CpsActionSvc][GetCPSActionsForAuditor] log filter found %d action codes (markStatuses=%v stateStatuses=%v levels=%v, action_codes=%v)",
-			len(actionCodes), auditorMarkStatuses, auditorStateStatuses, levels, actionCodes)
-
-		if len(actionCodes) == 0 {
-			return &types.PaginatedResponse[[]*model.CPSAction]{
-				Data: []*model.CPSAction{},
-				Meta: local_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
-			}, "", nil
-		}
-		filterParams.Filters["action_code"] = actionCodes
+	// The auditor inbox is resolved entirely through user_action_log: we first
+	// fetch the matching action_code list from the log, then fetch exactly those
+	// action_codes from cps_actions. The log is the authoritative source and is
+	// scoped to the role's allocated request_actions (RAList) plus any
+	// level/service/auditor-status filters. An empty log result yields an empty page.
+	logFilter := imodel.UserActionLogActionCodeFilter{
+		RequestActions:        RAList,
+		Levels:                levels,
+		Services:              services,
+		AuditorStatuses:       auditorMarkStatuses,
+		ActionAuditorStatuses: auditorStateStatuses,
+		LevelClaimPairs:       levelClaimPairs,
 	}
+
+	// AUDITOR log rows only exist after an auditor has marked an action.
+	// For INPROGRESS/CHECKED we scope by AUDITOR responsibility to show only
+	// actions the auditor has touched. For NOTCHECKED we don't apply AUDITOR
+	// responsibility filter (there are no AUDITOR rows for NOTCHECKED actions).
+	isNotCheckedOnly := len(auditorStateStatuses) == 1 && auditorStateStatuses[0] == string(constants.AUDITORNOTCHECKED)
+	if !isNotCheckedOnly {
+		logFilter.Responsibilities = []string{string(imodel.AUDITOR)}
+	}
+
+	actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, logFilter)
+	if err != nil {
+		log.Errorf("[CpsActionSvc][GetCPSActionsForAuditor] log filter err: %v", err)
+		return nil, "", err
+	}
+	log.Infof("[CpsActionSvc][GetCPSActionsForAuditor] log filter found %d action codes (markStatuses=%v stateStatuses=%v levels=%v, action_codes=%v)",
+		len(actionCodes), auditorMarkStatuses, auditorStateStatuses, levels, actionCodes)
+
+	// No matching action codes in the log => empty inbox page.
+	if len(actionCodes) == 0 {
+		return &types.PaginatedResponse[[]*model.CPSAction]{
+			Data: []*model.CPSAction{},
+			Meta: local_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
+		}, "", nil
+	}
+	filterParams.Filters["action_code"] = actionCodes
 
 	if statuses := extractStringSlice(filterParams.Filters, "action_status"); len(statuses) > 0 {
 		filterParams.Filters["action_status"] = statuses
