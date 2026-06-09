@@ -437,6 +437,36 @@ func (r *CPSUserStorage) GetPopulatedWithRole(ctx context.Context, userCode stri
 	return &resp, nil
 }
 
+func (r *CPSUserStorage) GetPopulatedWithRoleByUserName(ctx context.Context, userName string) (*cpsuser.CpsUserPopulatedResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[CPSUserStorage][GetPopulatedWithRoleByUserName] fetching populated CPS user")
+	// relatedCollection: [DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection, RolesCollection, JobRolesCollection]
+	pipeline := PipelineBuilderWithRoleByUserName(userName, r.relatedCollection[0], r.relatedCollection[4], r.relatedCollection[5])
+
+	cursor, err := r.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		log.Errorf("[CPSUserStorage][GetPopulatedWithRoleByUserName] failed to aggregate CPS user: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	defer cursor.Close(ctx)
+
+	if !cursor.Next(ctx) {
+		log.Errorf("[CPSUserStorage][GetPopulatedWithRoleByUserName] CPS user not found")
+		return nil, errors.New(localization.ErrorFileNotFound.Code)
+	}
+
+	var resp cpsuser.CpsUserPopulatedResponse
+	if err := cursor.Decode(&resp); err != nil {
+		log.Errorf("[CPSUserStorage][GetPopulatedWithRoleByUserName] failed to decode CPS user response: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	log.Infof("[CPSUserStorage][GetPopulatedWithRoleByUserName] populated CPS user retrieved successfully")
+	return &resp, nil
+}
+
 // FindByEmailOrPhoneNumberOrUserName implements [storage.CpsUserRepository].
 func (r *CPSUserStorage) FindByEmailOrPhoneNumberOrUserName(ctx context.Context, email string, phoneNumber string, username string) (*imodel.CPSUser, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)

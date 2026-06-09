@@ -6,6 +6,7 @@ type CPSUserHandler interface {
 	CreateUserRequest(w http.ResponseWriter, r *http.Request)
 	UpdateUserRequest(w http.ResponseWriter, r *http.Request)
 	FetchUserByUserCode(w http.ResponseWriter, r *http.Request)
+	FetchUserByUserName(w http.ResponseWriter, r *http.Request)
 	FetchUserByCode(w http.ResponseWriter, r *http.Request)
 	GetAllCPSUsers(w http.ResponseWriter, r *http.Request)
 	DeleteUserRequest(w http.ResponseWriter, r *http.Request)

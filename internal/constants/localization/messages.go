@@ -45,6 +45,7 @@ const (
 	MSGIncompleteUserInfo            = "Incomplte user info"
 	MsgInvalidJSONPayload            = "Invalid json payload"
 	MSGUserCodeIsRequired            = "User code is required"
+	MSGUserNameIsRequired            = "User name is required"
 	MSGUserCanNotDiasble             = "User cant disable own account"
 	MSGUserCanNotEnable              = "User cant enable own account"
 

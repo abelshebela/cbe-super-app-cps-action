@@ -110,7 +110,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 	}
 	if roleDelegation.DelegatedUserUserType == "BPS" {
 
-		user, err := r.bpsUserRepo.GetByUserCode(ctx, roleDelegation.DelegatedUserID)
+		user, err := r.bpsUserRepo.GetByUsername(ctx, roleDelegation.DelegatedUserID)
 		if err != nil {
 			r.logger.Errorf("[RoleDelegation/Create] Failed to find BPS user: %v", err)
 			return err
