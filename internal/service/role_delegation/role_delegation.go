@@ -127,6 +127,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		roleDelegation.DelegatedUserExistingRole = user.Role
 		roleDelegation.DelegatedUserPhoneNumber = user.PhoneNumber
 		roleDelegation.DelegatedUserEmail = user.Email
+		roleDelegation.DelegatedUserUserType = "BPS"
 	} else {
 		// Validate user existence
 		user, err := r.cpsUserRepo.FindByUsername(ctx, roleDelegation.DelegatedUserID)
@@ -146,6 +147,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		roleDelegation.DelegatedUserExistingRole = user.Role
 		roleDelegation.DelegatedUserPhoneNumber = user.PhoneNumber
 		roleDelegation.DelegatedUserEmail = user.Email
+		roleDelegation.DelegatedUserUserType = "CPS"
 	}
 
 	jobRole, err := r.jobTitleRepo.FindByRole(ctx, roleDelegation.NewRoleID)
@@ -339,7 +341,34 @@ func (r *roleDelegation) FindAllWithPagination(ctx context.Context, filterParam 
 
 // FindById implements [service.RoleDelegationService].
 func (r *roleDelegation) FindById(ctx context.Context, id string) (*imodel.RoleDelegation, error) {
-	return r.repo.FindByID(ctx, id)
+	roleDelegation, err := r.repo.FindByID(ctx, id)
+	if err != nil {
+		r.logger.Errorf("[RoleDelegation/FindById] failed to find role delegation by id: %v", err)
+		return nil, err
+	}
+	if roleDelegation == nil {
+		r.logger.Warnf("[RoleDelegation/FindById] role delegation not found by id: %s", id)
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
+	}
+	if roleDelegation.DelegatedUserUserType == "BPS" {
+		branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.NewDepartmentOrBranch)
+		r.logger.Infof("[RoleDelegation/FindById] found branch for code %s: %v", roleDelegation.NewDepartmentOrBranch, branch)
+		if err != nil {
+			r.logger.Errorf("[RoleDelegation/FindById] failed to find branch by code: %v", err)
+			return nil, err
+		}
+		roleDelegation.NewDepartmentOrBranch = branch.Name
+
+	} else {
+		department, err := r.department.FindByID(ctx, roleDelegation.NewDepartmentOrBranch)
+		r.logger.Infof("[RoleDelegation/FindById] found department for id %s: %v", roleDelegation.NewDepartmentOrBranch, department)
+		if err != nil {
+			r.logger.Errorf("[RoleDelegation/FindById] failed to find department by id: %v", err)
+			return nil, err
+		}
+		roleDelegation.NewDepartmentOrBranch = department.Department
+	}
+	return roleDelegation, err
 }
 
 // FindByUsername implements [service.RoleDelegationService].
