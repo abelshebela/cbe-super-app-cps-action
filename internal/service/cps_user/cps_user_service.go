@@ -554,6 +554,49 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 
 	return core.ConvertToResponseDTO(portalCard, populated, makerAlloc, checkerAlloc, auditorAlloc, bpsCheckerAlloc, bpsAuditorAlloc), nil
 }
+func (s *cpsUserService) GetCpsUserDetailByUserName(ctx context.Context, userName string) (*cpsuser.CpsUserPopulatedResponse, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetCpsUserDetailByUserName", "CPSUser", "GetCpsUserDetailByUserName")
+
+	defer span.End()
+
+	if userName == "" {
+		span.AddEvent("user name is empty", trace.WithAttributes(attribute.String("error", "user code is empty")))
+		return nil, errors.New(localization.ErrorUserNameRequired.Code)
+	}
+
+	// populated, err := s.repo.GetPopulatedByID(ctx, userName)
+	populated, err := s.repo.GetPopulatedWithRoleByUserName(ctx, userName)
+	if err != nil {
+		span.AddEvent("failed to get populated by id", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+
+	var makerAlloc, checkerAlloc, auditorAlloc, portalCard, bpsCheckerAlloc, bpsAuditorAlloc []string
+	var roles *imodel.JobRole
+	if populated.JobTitle != "" {
+		roles, err = s.jobRoleRepo.FindByName(ctx, populated.JobTitle)
+		if err != nil {
+			span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+	}
+
+	if roles != nil && roles.Enabled {
+		_, makerAlloc, checkerAlloc, auditorAlloc, portalCard, err = s.approverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
+		if err != nil {
+			span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+
+		_, _, bpsCheckerAlloc, bpsAuditorAlloc, err = s.bpsApproverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
+		if err != nil {
+			span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+	}
+
+	return core.ConvertToResponseDTO(portalCard, populated, makerAlloc, checkerAlloc, auditorAlloc, bpsCheckerAlloc, bpsAuditorAlloc), nil
+}
 
 func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllCPSUsers", "CPSUser", "GetAllCPSUsers")
