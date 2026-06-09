@@ -362,6 +362,7 @@ type AccountBlockRepository interface {
 	GetAccountBlockDetails(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]account_block_dto.AccountBlockActionResponse], error)
 	GetPreviousReasons(ctx context.Context, accountBlockID string) ([]local_model.AccountBlockReason, error)
 	GetAllBranches(ctx context.Context, id string) ([]local_model.AccountBlock, error)
+	GetBranchByCode(ctx context.Context, code string) (*imodel.AccountBlock, error)
 }
 
 type AdvertRepository interface {

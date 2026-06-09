@@ -159,7 +159,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 
 	roleDelegation.DelegatedUserExistingRole = jobRole.Role
 	if roleDelegation.DelegatedUserUserType == "BPS" {
-		if branches, err := r.branchRepo.GetBranchesByIds(ctx, []string{roleDelegation.NewDepartmentOrBranch}); err != nil || branches == nil || len(branches) == 0 {
+		if branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.NewDepartmentOrBranch); err != nil || branch == nil {
 			r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.NewDepartmentOrBranch)
 			return localization.ErrorInvalidDelegationBranch
 		}
