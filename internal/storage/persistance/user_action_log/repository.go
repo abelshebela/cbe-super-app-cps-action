@@ -8,7 +8,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"slices"
+	"strings"
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -181,11 +183,21 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 
 	if len(filter.Levels) > 0 {
 		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying level filter: %v", filter.Levels)
+		// Build regex pattern for flexible level matching.
+		// Escapes each level value and joins with | to match any of them.
+		// e.g., ["1", "2"] -> "^(?:1|2)$" which matches "1", "level 1", "1 claim", "2.0", etc.
+		escapedLevels := make([]string, len(filter.Levels))
+		for i, lvl := range filter.Levels {
+			escapedLevels[i] = regexp.QuoteMeta(lvl)
+		}
+		// Pattern matches the level value anywhere in the string (case-insensitive)
+		levelPattern := fmt.Sprintf("(?i)(?:%s)", strings.Join(escapedLevels, "|"))
+
 		groupStage = append(groupStage, bson.E{
 			Key: "level_match_count",
 			Value: sumWhen(bson.D{{Key: "$or", Value: bson.A{
-				bson.D{{Key: "$in", Value: bson.A{"$checker_level", filter.Levels}}},
-				bson.D{{Key: "$in", Value: bson.A{"$auditor_level", filter.Levels}}},
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$checker_level", "regex": levelPattern, "options": "i"}}},
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$auditor_level", "regex": levelPattern, "options": "i"}}},
 			}}}),
 		})
 		matchStage = append(matchStage, bson.E{Key: "level_match_count", Value: bson.M{"$gt": 0}})
