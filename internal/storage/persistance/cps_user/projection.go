@@ -305,6 +305,7 @@ func PipelineBuilderWithRole(userCode, departmentColl, rolesColl, jobRolesColl s
 			"job_title":            1,
 			"is_delegation_active": 1,
 			"is_first_time_login":  1,
+			"delegated_role":       1,
 		}}},
 	}
 }
