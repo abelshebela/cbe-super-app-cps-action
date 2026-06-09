@@ -544,17 +544,20 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		}
 	}
 
+	s.logger.Infof("[GetCpsUserDetail] fetched populated user: %v", populated)
+
 	var makerAlloc, checkerAlloc, auditorAlloc, portalCard, bpsCheckerAlloc, bpsAuditorAlloc []string
 	var roles *imodel.JobRole
 	if populated.IsDelegationActive {
-		s.logger.Infof("fetching role by delegated role: %s", populated.DelegatedRole)
+		s.logger.Infof("[GetCpsUserDetail]fetching role by delegated role: %s", populated.DelegatedRole)
 		roles, err = s.jobRoleRepo.FindByRole(ctx, populated.DelegatedRole)
 		if err != nil {
-			s.logger.Errorf("failed to find role by delegation err:%v", err)
+			s.logger.Errorf("[GetCpsUserDetail][FindByRole] failed to find role by delegation err:%v", err)
 			span.AddEvent("failed to find role by delegation", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
 	} else {
+		s.logger.Infof("[GetCpsUserDetail] fetching role by job title: %s", populated.JobTitle)
 		if populated.JobTitle != "" {
 			roles, err = s.jobRoleRepo.FindByName(ctx, populated.JobTitle)
 			if err != nil {
