@@ -121,6 +121,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 			return errors.New(localization.ErrorUserNotFoundOrDisabled.Code)
 		}
 		roleDelegation.DelegatedUserFullName = user.FullName
+		roleDelegation.DelegatedUserUserCode = user.UserCode
 		roleDelegation.DelegatedUserDepartmentOrBranch = user.BranchName
 		roleDelegation.DelegatedUserJobTitle = user.JobTitle
 		roleDelegation.DelegatedUserExistingRole = user.Role
@@ -138,8 +139,8 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 			r.logger.Warnf("[RoleDelegation/Create] User not found: %s", roleDelegation.DelegatedUserID)
 			return errors.New(localization.ErrorUserNotFoundOrDisabled.Code)
 		}
-
 		roleDelegation.DelegatedUserFullName = user.FullName
+		roleDelegation.DelegatedUserUserCode = user.UserCode
 		roleDelegation.DelegatedUserDepartmentOrBranch = user.DelegationID.Hex()
 		roleDelegation.DelegatedUserJobTitle = user.JobTitle
 		roleDelegation.DelegatedUserExistingRole = user.Role

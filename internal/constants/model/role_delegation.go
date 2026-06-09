@@ -10,6 +10,7 @@ type RoleDelegation struct {
 	ID bson.ObjectID `json:"id" bson:"_id,omitempty"`
 
 	DelegatedUserID                 string `json:"delegated_user_id" bson:"delegated_user_id"`
+	DelegatedUserUserCode           string `json:"delegated_user_user_code" bson:"delegated_user_user_code"`
 	DelegatedUserFullName           string `json:"delegated_user_full_name" bson:"delegated_user_full_name"`
 	DelegatedUserUserType           string `json:"delegated_user_user_type" bson:"delegated_user_user_type"`
 	DelegatedUserDepartmentOrBranch string `json:"delegated_user_department_or_branch" bson:"delegated_user_department_or_branch"`
