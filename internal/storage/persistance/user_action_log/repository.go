@@ -195,12 +195,15 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 			Value: sumWhen(bson.D{{Key: "$or", Value: bson.A{
 				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$checker_level", "regex": levelPattern, "options": "i"}}},
 				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$auditor_level", "regex": levelPattern, "options": "i"}}},
+				bson.D{{Key: "$eq", Value: bson.A{"$checker_level", ""}}}, // Include maker-only actions
+				bson.D{{Key: "$eq", Value: bson.A{"$auditor_level", ""}}}, // Include maker-only actions
 			}}}),
 		})
 		matchStage = append(matchStage, bson.E{Key: "level_match_count", Value: bson.M{"$gt": 0}})
 	}
 
 	// Separate checker level filter - matches only checker_level field
+	// Also includes maker-only actions where checker_level is empty
 	if len(filter.CheckerLevels) > 0 {
 		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying checker level filter: %v", filter.CheckerLevels)
 		escapedLevels := make([]string, len(filter.CheckerLevels))
@@ -211,12 +214,16 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 
 		groupStage = append(groupStage, bson.E{
 			Key: "checker_level_match_count",
-			Value: sumWhen(bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$checker_level", "regex": levelPattern, "options": "i"}}}),
+			Value: sumWhen(bson.D{{Key: "$or", Value: bson.A{
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$checker_level", "regex": levelPattern, "options": "i"}}},
+				bson.D{{Key: "$eq", Value: bson.A{"$checker_level", ""}}}, // Include maker-only actions
+			}}}),
 		})
 		matchStage = append(matchStage, bson.E{Key: "checker_level_match_count", Value: bson.M{"$gt": 0}})
 	}
 
 	// Separate auditor level filter - matches only auditor_level field
+	// Also includes maker-only actions where auditor_level is empty
 	if len(filter.AuditorLevels) > 0 {
 		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying auditor level filter: %v", filter.AuditorLevels)
 		escapedLevels := make([]string, len(filter.AuditorLevels))
@@ -227,7 +234,10 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 
 		groupStage = append(groupStage, bson.E{
 			Key: "auditor_level_match_count",
-			Value: sumWhen(bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$auditor_level", "regex": levelPattern, "options": "i"}}}),
+			Value: sumWhen(bson.D{{Key: "$or", Value: bson.A{
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$auditor_level", "regex": levelPattern, "options": "i"}}},
+				bson.D{{Key: "$eq", Value: bson.A{"$auditor_level", ""}}}, // Include maker-only actions
+			}}}),
 		})
 		matchStage = append(matchStage, bson.E{Key: "auditor_level_match_count", Value: bson.M{"$gt": 0}})
 	}

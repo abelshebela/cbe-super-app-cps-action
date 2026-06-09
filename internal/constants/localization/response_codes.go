@@ -396,6 +396,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBankDisableRequest,
 	ErrorBankEnableRequestFailed,
 	ErrorUserCodeRequired,
+	ErrorUserNameRequired,
 
 	ErrorEventNameRequired,
 	ErrorEventAlreadyExists,
@@ -5796,6 +5797,13 @@ var (
 		Code:       "ERROR_USER_CODE_IS_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MSGUserCodeIsRequired,
+		Type:       "error",
+	}
+
+	ErrorUserNameRequired = ResponseCode{
+		Code:       "ERROR_USER_NAME_IS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MSGUserNameIsRequired,
 		Type:       "error",
 	}
 
