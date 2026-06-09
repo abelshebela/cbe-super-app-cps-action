@@ -242,13 +242,17 @@ func (r *roleDelegationRepository) FindAllWithPagination(ctx context.Context, fi
 
 	total, err := r.repo.TotalCount(ctx, filter)
 	if err != nil {
-		log.Errorf("[RoleDelegationRepository][FindAllWithPagination] failed to count role delegations: %v", err)
+		log.Errorf("[RoleDelegationRepository][FindByUsername] failed to count role delegations: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if total <= 0 || skip >= total {
+		return &types.PaginatedResponse[[]imodel.RoleDelegation]{}, nil
 	}
 
 	data, err := r.repo.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		log.Errorf("[RoleDelegationRepository][FindAllWithPagination] failed to fetch role delegations: %v", err)
+		log.Errorf("[RoleDelegationRepository][FindByUsername] failed to fetch role delegations: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
@@ -270,6 +274,10 @@ func (r *roleDelegationRepository) FindByUsername(ctx context.Context, id string
 	if err != nil {
 		log.Errorf("[RoleDelegationRepository][FindAllWithPagination] failed to count role delegations: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if total <= 0 || skip >= total {
+		return &types.PaginatedResponse[[]imodel.RoleDelegation]{}, nil
 	}
 
 	data, err := r.repo.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
