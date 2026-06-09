@@ -301,9 +301,13 @@ func (r *roleDelegationRepository) FindByUsername(ctx context.Context, id string
 
 func (r *roleDelegationRepository) FindByUserCode(ctx context.Context, usercode string) (*cpsuser.CpsUserPopulatedResponse, error) {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
+	currentTime := time.Now()
 
 	data, err := r.repo.FindOne(ctx, bson.M{
 		"delegated_user_user_code": usercode,
+		"start_at":                 bson.M{"$lte": currentTime},
+		"end_at":                   bson.M{"$gt": currentTime},
+		"enable":                   true,
 	}, bson.M{})
 	if err != nil {
 		log.Errorf("[RoleDelegationRepository][FindByUsername] failed to fetch role delegations: %v", err)
