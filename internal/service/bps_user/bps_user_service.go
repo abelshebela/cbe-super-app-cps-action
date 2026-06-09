@@ -169,6 +169,23 @@ func (b *bpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 	return user, nil
 }
 
+func (b *bpsUserService) FetchUserByUserName(ctx context.Context, userName string) (*bps_model.BPSUser, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "FetchUserByUserName", "BPS User", "FetchUserByUserName")
+	defer span.End()
+
+	user, err := b.repo.GetByUsername(ctx, userName)
+	if err != nil {
+		span.AddEvent("[FetchUserByUserName] failed to fetch BPS user", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_code", userName),
+		))
+		b.logger.Errorf("[BpsUserSvc][FetchByUserName] fetch err: %v", err)
+		return nil, err
+	}
+	b.logger.Infof("[BpsUserSvc][FetchByUserName] retrieved username: %s", userName)
+	return user, nil
+}
+
 // GetAllBPSUsers implements service.BPSUserService.
 func (b *bpsUserService) GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]bpsUserDto.BPSUserResposenDTO], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllBPSUsers", "BPS User", "GetAllBPSUsers")

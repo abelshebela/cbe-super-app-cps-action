@@ -177,6 +177,20 @@ func (b *BPSUserStorage) GetByUserID(ctx context.Context, userID string) (*bps_m
 	return result, nil
 }
 
+func (b *BPSUserStorage) GetByUsername(ctx context.Context, userName string) (*bps_model.BPSUser, error) {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[BPSUserStorage][GetByUsername] fetching BPS user by username: %s", userName)
+	filter := bson.M{"username": userName, "is_deleted": bson.M{"$ne": true}}
+	result, err := b.dal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		log.Errorf("[BPSUserStorage][GetByUsername] failed to find BPS user: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	log.Infof("[BPSUserStorage][GetByUsername] BPS user retrieved successfully")
+	return result, nil
+}
+
 func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]bpsUserDto.BPSUserResposenDTO], error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 

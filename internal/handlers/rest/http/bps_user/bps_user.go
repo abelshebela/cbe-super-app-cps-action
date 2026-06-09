@@ -86,6 +86,30 @@ func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Reque
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, user)
 }
 
+func (h BPSUserHandler) FetchUserByUserName(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "fetchBpsUserByCode", "handler", "bpsUser")
+	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	userCode := chi.URLParam(r, "user_name")
+	if userCode == "" {
+		localization.SendErrorResponse(w, localization.ErrorUserNameRequired, nil, nil)
+		return
+	}
+
+	span.SetAttributes(attribute.String("bps_user.code", userCode))
+
+	user, err := h.Service.FetchUserByUserName(ctx, userCode)
+	if err != nil {
+		span.RecordError(err)
+		log.Errorf("[FetchUserByUserName] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	log.Infof("[FetchUserByUserName] BPS user retrieved successfully for user_code: %s", userCode)
+	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, user)
+}
+
 // GetAllBPSUsers retrieves all BPS users with pagination
 //
 //	@Summary		Get all BPS users
