@@ -340,6 +340,11 @@ func (r *roleDelegation) FindById(ctx context.Context, id string) (*imodel.RoleD
 	return r.repo.FindByID(ctx, id)
 }
 
+// FindByUsername implements [service.RoleDelegationService].
+func (r *roleDelegation) FindByUsername(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error) {
+	return r.repo.FindByUsername(ctx, id, filterParam)
+}
+
 // Update implements [service.RoleDelegationService].
 func (r *roleDelegation) Update(ctx context.Context, id string, update imodel.RoleDelegation) error {
 	maker := local_util.ExtractUserFromContext(ctx)

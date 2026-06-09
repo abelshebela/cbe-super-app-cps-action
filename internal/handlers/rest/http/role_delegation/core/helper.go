@@ -71,7 +71,7 @@ func BuildRoleDelegationRequestWithExistingUser(body role_delegation_dto.RoleDel
 	newDepartmentOrBranch := strings.TrimSpace(body.NewDepartmentOrBranch)
 
 	reason := strings.TrimSpace(body.Reason)
-
+	revoke := body.RevokeExistingDelegation
 	if delegatedUserID == "" || delegatedUserUserType == "" || delegationType == "" ||
 		delegatorUserID == "" || delegatorUserFullName == "" || delegatorUserJobTitle == "" || delegatorUserRole == "" ||
 		newRoleID == "" || newDepartmentOrBranch == "" || reason == "" {
@@ -104,18 +104,19 @@ func BuildRoleDelegationRequestWithExistingUser(body role_delegation_dto.RoleDel
 	}
 
 	return imodel.RoleDelegation{
-		DelegatedUserID:       delegatedUserID,
-		DelegatedUserUserType: delegatedUserUserType,
-		DelegationType:        delegationType,
-		DelegatorUserID:       delegatorUserID,
-		DelegatorUserFullName: delegatorUserFullName,
-		DelegatorUserJobTitle: delegatorUserJobTitle,
-		DelegatorUserRole:     delegatorUserRole,
-		NewRoleID:             newRoleID,
-		NewDepartmentOrBranch: newDepartmentOrBranch,
-		StartAt:               parsedStart,
-		EndAt:                 parsedEnd,
-		Reason:                reason,
+		DelegatedUserID:          delegatedUserID,
+		DelegatedUserUserType:    delegatedUserUserType,
+		DelegationType:           delegationType,
+		DelegatorUserID:          delegatorUserID,
+		DelegatorUserFullName:    delegatorUserFullName,
+		DelegatorUserJobTitle:    delegatorUserJobTitle,
+		DelegatorUserRole:        delegatorUserRole,
+		NewRoleID:                newRoleID,
+		NewDepartmentOrBranch:    newDepartmentOrBranch,
+		StartAt:                  parsedStart,
+		EndAt:                    parsedEnd,
+		Reason:                   reason,
+		RevokeExistingDelegation: revoke,
 	}, nil
 }
 func BuildRoleDelegationRequestWithNewUser(body role_delegation_dto.RoleDelegationRequest) (imodel.RoleDelegation, error) {

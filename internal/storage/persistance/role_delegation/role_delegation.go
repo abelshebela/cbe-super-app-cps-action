@@ -74,6 +74,14 @@ func (r *roleDelegationRepository) CreateWithExistingUser(ctx context.Context, r
 			}
 		}
 
+		if role.RevokeExistingDelegation {
+			_, err = r.collection.UpdateMany(sc, bson.M{"delegated_user_id": role.DelegatedUserID}, bson.M{"enable": false})
+			if err != nil {
+				log.Errorf("[RoleDelegationRepository][Create] failed to disable existing delegations: %v", err)
+				return nil, local_util.HandleDBError(err)
+			}
+		}
+
 		return nil, nil
 	})
 	if err != nil {
@@ -232,16 +240,42 @@ func (r *roleDelegationRepository) FindAllWithPagination(ctx context.Context, fi
 	allowedKeys := []string{"enable", "job_title", "user_id", "start_at", "end_at"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
+	total, err := r.repo.TotalCount(ctx, filter)
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][FindAllWithPagination] failed to count role delegations: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
 	data, err := r.repo.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		log.Errorf("[RoleDelegationRepository][FindAllWithPagination] failed to fetch role delegations: %v", err)
 		return nil, local_util.HandleDBError(err)
 	}
 
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	return &types.PaginatedResponse[[]imodel.RoleDelegation]{
+		Data: data,
+		Meta: meta,
+	}, nil
+}
+
+func (r *roleDelegationRepository) FindByUsername(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	allowedKeys := []string{}
+	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
+	filter["delegated_user_id"] = id
+
 	total, err := r.repo.TotalCount(ctx, filter)
 	if err != nil {
 		log.Errorf("[RoleDelegationRepository][FindAllWithPagination] failed to count role delegations: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	data, err := r.repo.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	if err != nil {
+		log.Errorf("[RoleDelegationRepository][FindAllWithPagination] failed to fetch role delegations: %v", err)
+		return nil, local_util.HandleDBError(err)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)

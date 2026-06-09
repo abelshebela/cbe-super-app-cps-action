@@ -274,6 +274,30 @@ func (j *RoleDelegationHandler) FindById(w http.ResponseWriter, r *http.Request)
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, data)
 }
 
+// FindById implements [role_delegation_outbound.RoleDelegation].
+func (j *RoleDelegationHandler) FindByUsername(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "FindByUsernameRoleDelegation", "handler", "role_delegation")
+	defer span.End()
+	log := common_utils.LoggerFromCtx(ctx, j.logger)
+
+	id := strings.TrimSpace(chi.URLParam(r, "id"))
+	if id == "" {
+		log.Errorf("[RoleDelegationHandler][FindByUsername] missing id path parameter")
+		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
+		return
+	}
+	filterParams := local_util.ExtractFilterParams(r)
+
+	data, err := j.service.FindByUsername(ctx, id, *filterParams)
+	if err != nil {
+		log.Errorf("[RoleDelegationHandler][FindByUsername] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, data)
+}
+
 // FindAll implements [role_delegation_outbound.RoleDelegation].
 func (j *RoleDelegationHandler) FindAll(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "FindAllRoleDelegation", "handler", "role_delegation")

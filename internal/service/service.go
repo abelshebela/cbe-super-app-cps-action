@@ -549,6 +549,7 @@ type RoleDelegationService interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	Delete(ctx context.Context, id string) error
 	FindById(ctx context.Context, id string) (*imodel.RoleDelegation, error)
+	FindByUsername(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error)
 	FindAll(ctx context.Context) (*[]imodel.RoleDelegation, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
