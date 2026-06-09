@@ -454,7 +454,7 @@ func (r *CPSUserStorage) GetPopulatedWithRoleByUserName(ctx context.Context, use
 
 	if !cursor.Next(ctx) {
 		log.Errorf("[CPSUserStorage][GetPopulatedWithRoleByUserName] CPS user not found")
-		return nil, errors.New(localization.ErrorFileNotFound.Code)
+		return nil, errors.New(localization.ErrorUserNotFound.Code)
 	}
 
 	var resp cpsuser.CpsUserPopulatedResponse
