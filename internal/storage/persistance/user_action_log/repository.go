@@ -232,14 +232,15 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 		matchStage = append(matchStage, bson.E{Key: "auditor_level_match_count", Value: bson.M{"$gt": 0}})
 	}
 
-	// Checker level+status pairs - each pair requires matching checker_level AND given_checker_status
+	// Checker level+status pairs - each pair requires matching checker_level AND given_action_status
+	// Note: given_action_status holds the action status (PENDING, APPROVED, REJECTED) for all user types
 	for i, pair := range filter.CheckerLevelStatuses {
 		fieldName := fmt.Sprintf("checker_level_claim_%d_count", i)
 		groupStage = append(groupStage, bson.E{
 			Key: fieldName,
 			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
 				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$checker_level", "regex": regexp.QuoteMeta(pair.Level), "options": "i"}}},
-				bson.D{{Key: "$eq", Value: bson.A{"$given_checker_status", pair.Claim}}},
+				bson.D{{Key: "$eq", Value: bson.A{"$given_action_status", pair.Claim}}},
 			}}}),
 		})
 		matchStage = append(matchStage, bson.E{Key: fieldName, Value: bson.M{"$gt": 0}})
