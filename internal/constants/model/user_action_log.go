@@ -85,7 +85,11 @@ type UserActionLogActionCodeFilter struct {
 	CheckerUserIDs        []string         `json:"checker_user_ids"`
 	AuditorUserIDs        []string         `json:"auditor_user_ids"`
 	MakerUserIDs          []string         `json:"maker_user_ids"`
+	MakerUsernames        []string         `json:"maker_usernames"`   // Filter by maker username (case-insensitive regex)
+	CheckerUsernames      []string         `json:"checker_usernames"` // Filter by checker username (case-insensitive regex)
+	AuditorUsernames      []string         `json:"auditor_usernames"` // Filter by auditor username (case-insensitive regex)
 	Responsibilities      []string         `json:"responsibilities"`
 	LevelClaimPairs       []LevelClaimPair `json:"level_claim_pairs"`       // For auditor: level + given_auditor_status pairs
 	CheckerLevelStatuses  []LevelClaimPair `json:"checker_level_statuses"` // For checker: level + status pairs (e.g., level_1 + APPROVED)
+	Search                string           `json:"search"`                // General search across level, service, username fields
 }

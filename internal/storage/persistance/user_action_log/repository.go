@@ -315,6 +315,81 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 		matchStage = append(matchStage, bson.E{Key: "maker_match_count", Value: bson.M{"$gt": 0}})
 	}
 
+	// Maker usernames filter - matches username with MAKER responsibility (case-insensitive, partial search)
+	if len(filter.MakerUsernames) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying maker username filter: %v", filter.MakerUsernames)
+		// Build partial match pattern (e.g., "kid" matches "kidusm", "akid", "skids")
+		searchPatterns := make([]string, len(filter.MakerUsernames))
+		for i, uname := range filter.MakerUsernames {
+			searchPatterns[i] = fmt.Sprintf(".*%s.*", regexp.QuoteMeta(uname))
+		}
+		usernamePattern := fmt.Sprintf("(?i)(?:%s)", strings.Join(searchPatterns, "|"))
+
+		groupStage = append(groupStage, bson.E{
+			Key: "maker_username_match_count",
+			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
+				bson.D{{Key: "$eq", Value: bson.A{fieldResponsibility, string(imodel.MAKER)}}},
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$username", "regex": usernamePattern, "options": "i"}}},
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "maker_username_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	// Checker usernames filter - matches username with CHECKER responsibility (case-insensitive, partial search)
+	if len(filter.CheckerUsernames) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying checker username filter: %v", filter.CheckerUsernames)
+		searchPatterns := make([]string, len(filter.CheckerUsernames))
+		for i, uname := range filter.CheckerUsernames {
+			searchPatterns[i] = fmt.Sprintf(".*%s.*", regexp.QuoteMeta(uname))
+		}
+		usernamePattern := fmt.Sprintf("(?i)(?:%s)", strings.Join(searchPatterns, "|"))
+
+		groupStage = append(groupStage, bson.E{
+			Key: "checker_username_match_count",
+			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
+				bson.D{{Key: "$eq", Value: bson.A{fieldResponsibility, string(imodel.CHECKER)}}},
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$username", "regex": usernamePattern, "options": "i"}}},
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "checker_username_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	// Auditor usernames filter - matches username with AUDITOR responsibility (case-insensitive, partial search)
+	if len(filter.AuditorUsernames) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying auditor username filter: %v", filter.AuditorUsernames)
+		searchPatterns := make([]string, len(filter.AuditorUsernames))
+		for i, uname := range filter.AuditorUsernames {
+			searchPatterns[i] = fmt.Sprintf(".*%s.*", regexp.QuoteMeta(uname))
+		}
+		usernamePattern := fmt.Sprintf("(?i)(?:%s)", strings.Join(searchPatterns, "|"))
+
+		groupStage = append(groupStage, bson.E{
+			Key: "auditor_username_match_count",
+			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
+				bson.D{{Key: "$eq", Value: bson.A{fieldResponsibility, string(imodel.AUDITOR)}}},
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$username", "regex": usernamePattern, "options": "i"}}},
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "auditor_username_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	// General search across level, service, and username fields
+	if filter.Search != "" {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying general search: %s", filter.Search)
+		searchPattern := fmt.Sprintf("(?i).*%s.*", regexp.QuoteMeta(filter.Search))
+
+		groupStage = append(groupStage, bson.E{
+			Key: "general_search_match_count",
+			Value: sumWhen(bson.D{{Key: "$or", Value: bson.A{
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$checker_level", "regex": searchPattern, "options": "i"}}},
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$auditor_level", "regex": searchPattern, "options": "i"}}},
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$action_taken_service_name", "regex": searchPattern, "options": "i"}}},
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$username", "regex": searchPattern, "options": "i"}}},
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "general_search_match_count", Value: bson.M{"$gt": 0}})
+	}
+
 	if slices.Contains(filter.ActionAuditorStatuses, string(constants.AUDITORNOTCHECKED)) {
 		filter.Responsibilities = []string{}
 	}
