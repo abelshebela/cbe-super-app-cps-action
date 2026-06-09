@@ -53,4 +53,5 @@ type CPSUser struct {
 
 	IsDelegationActive bool          `json:"is_delegation_active" bson:"is_delegation_active"`
 	DelegationID       bson.ObjectID `json:"delegation_id" bson:"delegation_id"`
+	DelegatedRoleCode  string        `json:"delegated_role_code" bson:"delegated_role_code"`
 }

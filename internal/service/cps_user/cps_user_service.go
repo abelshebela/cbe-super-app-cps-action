@@ -454,11 +454,19 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 		span.AddEvent("failed to find user by id", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
 	}
-
-	roles, err := s.jobRoleRepo.FindByName(ctx, user.JobTitle)
-	if err != nil {
-		span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
-		return nil, err
+	var roles *imodel.JobRole
+	if user.IsDelegationActive {
+		roles, err = s.jobRoleRepo.FindByRole(ctx, user.DelegatedRoleCode)
+		if err != nil {
+			span.AddEvent("failed to find role by role", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+	} else {
+		roles, err = s.jobRoleRepo.FindByName(ctx, user.JobTitle)
+		if err != nil {
+			span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
 	}
 
 	var makerAlloc, checkerAlloc, auditorAlloc, portalCard, bpsCheckerAlloc, bpsAuditorAlloc []string
