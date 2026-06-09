@@ -75,7 +75,7 @@ func (r *roleDelegationRepository) CreateWithExistingUser(ctx context.Context, r
 		}
 
 		if role.RevokeExistingDelegation {
-			_, err = r.collection.UpdateMany(sc, bson.M{"delegated_user_id": role.DelegatedUserID}, bson.M{"enable": false})
+			_, err = r.collection.UpdateMany(sc, bson.M{"delegated_user_id": role.DelegatedUserID}, bson.M{"$set": bson.M{"enable": false}})
 			if err != nil {
 				log.Errorf("[RoleDelegationRepository][Create] failed to disable existing delegations: %v", err)
 				return nil, local_util.HandleDBError(err)
