@@ -358,3 +358,5 @@ func (b *BPSUserStorage) FindByFilterKey(ctx context.Context, field, value strin
 	}
 	return result, nil
 }
+
+// func BPSUserMapper(user bps_model.BPSUser) bson.M {

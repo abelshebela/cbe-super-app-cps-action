@@ -147,7 +147,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 	}
 
 	jobRole, err := r.jobTitleRepo.FindByRole(ctx, roleDelegation.NewRoleID)
-	if err != nil {
+	if err != nil && err.Error() != localization.ErrorUnexpectedError.Code {
 		r.logger.Errorf("[RoleDelegation/Create] Failed to find job role: %v", err)
 		return err
 	}
@@ -160,7 +160,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 	if roleDelegation.DelegatorUserUserType == "BPS" {
 		if branches, err := r.branchRepo.GetBranchesByIds(ctx, []string{roleDelegation.NewDepartmentOrBranch}); err != nil || branches == nil || len(branches) == 0 {
 			r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.NewDepartmentOrBranch)
-			return localization.ErrorInvalidDelegationDepartment
+			return localization.ErrorInvalidDelegationBranch
 		}
 	} else {
 		department, err := r.department.FindByID(ctx, roleDelegation.NewDepartmentOrBranch)
