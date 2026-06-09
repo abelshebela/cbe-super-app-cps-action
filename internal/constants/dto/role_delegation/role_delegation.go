@@ -23,7 +23,8 @@ type RoleDelegationRequest struct {
 	NewRoleID             string `json:"new_role_id" bson:"new_role_id"`
 	NewDepartmentOrBranch string `json:"new_department_or_branch" bson:"new_department_or_branch"`
 
-	StartAt time.Time `json:"start_at" bson:"start_at"`
-	EndAt   time.Time `json:"end_at" bson:"end_at"`
-	Reason  string    `json:"reason" bson:"reason"`
+	StartAt                  time.Time `json:"start_at" bson:"start_at"`
+	EndAt                    time.Time `json:"end_at" bson:"end_at"`
+	Reason                   string    `json:"reason" bson:"reason"`
+	RevokeExistingDelegation bool      `json:"revoke_existing_delegation" bson:"revoke_existing_delegation"`
 }
