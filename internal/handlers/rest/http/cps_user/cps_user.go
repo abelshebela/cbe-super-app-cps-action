@@ -209,18 +209,18 @@ func (h *handler) FetchUserByUserName(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchCpsUserByCode", "handler", "cpsUser")
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
-	userData := local_util.ExtractUserFromContext(ctx)
+	// userData := local_util.ExtractUserFromContext(ctx)
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_name"))
 	if userCode == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorUserCodeRequired.Code)
 		return
 	}
 
-	if userCode != userData.UserCode {
-		h.logger.Errorf("[FetchUserByUserName] user code does not match maker code: %s", userCode)
-		localization.SendErrorByCodeResponse(w, localization.ErrorUserUnauthorized.Code)
-		return
-	}
+	// if userCode != userData.UserName {
+	// 	h.logger.Errorf("[FetchUserByUserName] user code does not match maker code: %s", userCode)
+	// 	localization.SendErrorByCodeResponse(w, localization.ErrorUserUnauthorized.Code)
+	// 	return
+	// }
 
 	// Build detailed response in the service layer
 	span.SetAttributes(attribute.String("cps_user.code", userCode))
