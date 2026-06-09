@@ -11,6 +11,51 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 )
 
+func BuildRoleDelegationRequestForUpdate(
+	body role_delegation_dto.RoleDelegationRequest,
+) (imodel.RoleDelegation, error) {
+
+	now := time.Now().UTC()
+
+	var startAt time.Time
+	var endAt time.Time
+
+	// At least one field must be provided
+	if body.StartAt.IsZero() && body.EndAt.IsZero() {
+		return imodel.RoleDelegation{}, localization.ErrorInvalidDate
+	}
+
+	// Validate start date if provided
+	if !body.StartAt.IsZero() {
+		startAt = body.StartAt.UTC()
+
+		if startAt.Before(now) {
+			return imodel.RoleDelegation{}, localization.ErrorInvalidDate
+		}
+	}
+
+	// Validate end date if provided
+	if !body.EndAt.IsZero() {
+		endAt = body.EndAt.UTC()
+
+		if endAt.Before(now) {
+			return imodel.RoleDelegation{}, localization.ErrorInvalidDate
+		}
+	}
+
+	// If both are provided, validate the range
+	if !body.StartAt.IsZero() && !body.EndAt.IsZero() {
+		if !startAt.Before(endAt) {
+			return imodel.RoleDelegation{}, localization.ErrorInvalidDate
+		}
+	}
+
+	return imodel.RoleDelegation{
+		StartAt: startAt,
+		EndAt:   endAt,
+	}, nil
+}
+
 // BuildRoleDelegationRequest validates and converts the request payload into a service model.
 func BuildRoleDelegationRequestWithExistingUser(body role_delegation_dto.RoleDelegationRequest) (imodel.RoleDelegation, error) {
 	delegatedUserID := strings.TrimSpace(body.DelegatedUserID)
