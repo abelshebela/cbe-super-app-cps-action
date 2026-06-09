@@ -129,7 +129,7 @@ func (j *RoleDelegationHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	delegation, err := role_delegation_core.BuildRoleDelegationRequestWithExistingUser(body)
+	delegation, err := role_delegation_core.BuildRoleDelegationRequestForUpdate(body)
 	if err != nil {
 		log.Errorf("[RoleDelegationHandler][Update] validation error: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
