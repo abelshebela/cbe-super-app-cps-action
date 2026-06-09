@@ -719,6 +719,7 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 		Services:             services,
 		ActionStatuses:       statuses,
 		CheckerLevelStatuses: checkerLevelStatuses,
+		Responsibilities:     []string{string(imodel.CHECKER)}, // To be conditionally set below
 		MakerUsernames:       makerUsernames,
 		CheckerUsernames:     checkerUsernames,
 		AuditorUsernames:     auditorUsernames,
@@ -886,6 +887,7 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 		AuditorLevels:         auditorLevels,
 		Services:              services,
 		MakerUsernames:        makerUsernames,
+		Responsibilities:      []string{string(imodel.AUDITOR)}, // AUDITOR log rows are the only ones relevant to the auditor inbox
 		CheckerUsernames:      checkerUsernames,
 		AuditorUsernames:      auditorUsernames,
 		AuditorStatuses:       auditorMarkStatuses,

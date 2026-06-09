@@ -182,7 +182,7 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 	}
 
 	if len(filter.Levels) > 0 {
-		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying level filter: %v", filter.Levels)
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying level filter: %v (responsibilities=%v)", filter.Levels, filter.Responsibilities)
 		// Build regex pattern for flexible level matching.
 		escapedLevels := make([]string, len(filter.Levels))
 		for i, lvl := range filter.Levels {
@@ -190,14 +190,36 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 		}
 		levelPattern := fmt.Sprintf("(?i)(?:%s)", strings.Join(escapedLevels, "|"))
 
-		groupStage = append(groupStage, bson.E{
-			Key: "level_match_count",
-			Value: sumWhen(bson.D{{Key: "$or", Value: bson.A{
+		// Determine which level field(s) to match based on responsibility filter
+		hasCheckerResponsibility := slices.Contains(filter.Responsibilities, string(imodel.CHECKER))
+		hasAuditorResponsibility := slices.Contains(filter.Responsibilities, string(imodel.AUDITOR))
+
+		var levelConditions bson.A
+		if hasCheckerResponsibility && !hasAuditorResponsibility {
+			// Only CHECKER responsibility - match checker_level only
+			levelConditions = bson.A{
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$checker_level", "regex": levelPattern, "options": "i"}}},
+				bson.D{{Key: "$eq", Value: bson.A{"$checker_level", ""}}}, // Include maker-only actions
+			}
+		} else if hasAuditorResponsibility && !hasCheckerResponsibility {
+			// Only AUDITOR responsibility - match auditor_level only
+			levelConditions = bson.A{
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$auditor_level", "regex": levelPattern, "options": "i"}}},
+				bson.D{{Key: "$eq", Value: bson.A{"$auditor_level", ""}}}, // Include maker-only actions
+			}
+		} else {
+			// No specific responsibility or both - match either level
+			levelConditions = bson.A{
 				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$checker_level", "regex": levelPattern, "options": "i"}}},
 				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$auditor_level", "regex": levelPattern, "options": "i"}}},
 				bson.D{{Key: "$eq", Value: bson.A{"$checker_level", ""}}}, // Include maker-only actions
 				bson.D{{Key: "$eq", Value: bson.A{"$auditor_level", ""}}}, // Include maker-only actions
-			}}}),
+			}
+		}
+
+		groupStage = append(groupStage, bson.E{
+			Key:   "level_match_count",
+			Value: sumWhen(bson.D{{Key: "$or", Value: levelConditions}}),
 		})
 		matchStage = append(matchStage, bson.E{Key: "level_match_count", Value: bson.M{"$gt": 0}})
 	}
