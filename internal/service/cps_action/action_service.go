@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -852,11 +853,11 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	}
 
 	// AUDITOR log rows only exist after an auditor has marked an action.
-	// For INPROGRESS/CHECKED we scope by AUDITOR responsibility to show only
-	// actions the auditor has touched. For NOTCHECKED we don't apply AUDITOR
-	// responsibility filter (there are no AUDITOR rows for NOTCHECKED actions).
-	isNotCheckedOnly := len(auditorStateStatuses) == 1 && auditorStateStatuses[0] == string(constants.AUDITORNOTCHECKED)
-	if !isNotCheckedOnly {
+	// Only apply AUDITOR responsibility filter when INPROGRESS or CHECKED is
+	// explicitly requested in auditor_status. NOTCHECKED has no AUDITOR rows.
+	requiresAuditorScope := slices.Contains(auditorStateStatuses, string(constants.AUDITORINPROGRESS)) ||
+		slices.Contains(auditorStateStatuses, string(constants.AUDITORCHECKED))
+	if requiresAuditorScope {
 		logFilter.Responsibilities = []string{string(imodel.AUDITOR)}
 	}
 
