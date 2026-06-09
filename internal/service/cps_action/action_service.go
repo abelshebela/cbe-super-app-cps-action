@@ -817,6 +817,7 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	var auditorMarkStatuses []string  // MARKEDASRIGHT / MARKEDASWRONG
 	var auditorStateStatuses []string // NOTCHECKED / INPROGRESS / CHECKED
 
+	log.Infof("[CPSAction][GetCPSActionsForAuditor] check level %v service %v", levels, services)
 	auditStateSet := map[string]bool{
 		string(constants.AUDITORNOTCHECKED): true,
 		string(constants.AUDITORINPROGRESS): true,
