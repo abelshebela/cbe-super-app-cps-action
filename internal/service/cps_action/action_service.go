@@ -818,11 +818,13 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	var auditorStateStatuses []string // NOTCHECKED / INPROGRESS / CHECKED
 
 	log.Infof("[CPSAction][GetCPSActionsForAuditor] check level %v service %v", levels, services)
+
 	auditStateSet := map[string]bool{
 		string(constants.AUDITORNOTCHECKED): true,
 		string(constants.AUDITORINPROGRESS): true,
 		string(constants.AUDITORCHECKED):    true,
 	}
+
 	for _, src := range []string{"auditor_status", "auditor_statuses"} {
 		for _, v := range extractStringSlice(filterParams.Filters, src) {
 			if auditStateSet[strings.ToUpper(v)] {
@@ -834,8 +836,6 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 		delete(filterParams.Filters, src)
 	}
 
-	// Single unified log-filter pass. The repo already applies request_action:{$in:RAList}
-	// on the CPS action collection so no separate RAList pre-filter is needed here.
 	levelClaimPairs := extractLevelClaimPairs(filterParams.Filters)
 	if len(levels) > 0 || len(services) > 0 || len(auditorMarkStatuses) > 0 || len(auditorStateStatuses) > 0 || len(levelClaimPairs) > 0 {
 		var responsibilities []string
