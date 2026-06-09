@@ -127,7 +127,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		roleDelegation.DelegatedUserEmail = user.Email
 	} else {
 		// Validate user existence
-		user, err := r.cpsUserRepo.FindByID(ctx, roleDelegation.DelegatedUserID)
+		user, err := r.cpsUserRepo.FindByUsername(ctx, roleDelegation.DelegatedUserID)
 		if err != nil {
 			r.logger.Errorf("[RoleDelegation/Create] Failed to find user: %v", err)
 			return err
