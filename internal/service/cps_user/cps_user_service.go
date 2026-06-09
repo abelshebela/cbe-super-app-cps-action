@@ -456,12 +456,14 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 	}
 	var roles *imodel.JobRole
 	if user.IsDelegationActive {
+		s.logger.Infof("fetching role by delegated role code: %s", user.DelegatedRoleCode)
 		roles, err = s.jobRoleRepo.FindByRole(ctx, user.DelegatedRoleCode)
 		if err != nil {
 			span.AddEvent("failed to find role by role", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
 	} else {
+		s.logger.Infof("fetching role by job title: %s", user.JobTitle)
 		roles, err = s.jobRoleRepo.FindByName(ctx, user.JobTitle)
 		if err != nil {
 			span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
