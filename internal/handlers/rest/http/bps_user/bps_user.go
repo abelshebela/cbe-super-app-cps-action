@@ -90,7 +90,7 @@ func (h BPSUserHandler) FetchUserByUserName(w http.ResponseWriter, r *http.Reque
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "fetchBpsUserByCode", "handler", "bpsUser")
 	defer span.End()
 	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	userCode := chi.URLParam(r, "user_name")
+	userCode := chi.URLParam(r, "username")
 	if userCode == "" {
 		localization.SendErrorResponse(w, localization.ErrorUserNameRequired, nil, nil)
 		return

@@ -112,10 +112,11 @@ var cpsActionRegistry = map[string]string{
 	"DELETE events":   "EVENT",
 
 	// CPS Users
-	"GET cps_users":    "CPSUSER",
-	"POST cps_users":   "CPSUSER",
-	"PATCH cps_users":  "CPSUSER",
-	"DELETE cps_users": "CPSUSER",
+	"GET cps_users":          "CPSUSER",
+	"GET cps_users/username": "CPSUSER",
+	"POST cps_users":         "CPSUSER",
+	"PATCH cps_users":        "CPSUSER",
+	"DELETE cps_users":       "CPSUSER",
 
 	// BPS Users (GET operations)
 	"GET bps_users": "BPSUSER",
