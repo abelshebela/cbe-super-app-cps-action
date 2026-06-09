@@ -108,6 +108,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		log.Errorf("[Role Service][Create] maker data is incomplete")
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
+
 	if roleDelegation.DelegatedUserUserType == "BPS" {
 
 		user, err := r.bpsUserRepo.GetByUsername(ctx, roleDelegation.DelegatedUserID)
@@ -157,7 +158,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 	}
 
 	roleDelegation.DelegatedUserExistingRole = jobRole.Role
-	if roleDelegation.DelegatorUserUserType == "BPS" {
+	if roleDelegation.DelegatedUserUserType == "BPS" {
 		if branches, err := r.branchRepo.GetBranchesByIds(ctx, []string{roleDelegation.NewDepartmentOrBranch}); err != nil || branches == nil || len(branches) == 0 {
 			r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.NewDepartmentOrBranch)
 			return localization.ErrorInvalidDelegationBranch
