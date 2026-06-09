@@ -8,17 +8,17 @@ import (
 )
 
 type BPSUser struct {
-	ID                bson.ObjectID   `json:"id" bson:"_id,omitempty"`
-	UserCode          string          `json:"user_code" bson:"user_code"`
-	FullName          string          `json:"full_name" bson:"full_name"`
-	UserName          string          `json:"username" bson:"username"`
-	PhoneNumber       string          `json:"phone_number" bson:"phone_number"`
-	BranchCode        []string        `json:"branch_code" bson:"branch_code"`
-	Email             string          `json:"email" bson:"email"`
-	BranchName        string          `json:"branch_name" bson:"branch_name"`
-	HomeBranch        string          `json:"home_branch" bson:"home_branch"`
-	JobTitle          string          `json:"job_title" bson:"job_title"`
-	Role              string          `json:"role" bson:"role"`
+	ID                bson.ObjectID   `json:"id,omitempty" bson:"_id,omitempty"`
+	UserCode          string          `json:"user_code,omitempty" bson:"user_code,omitempty"`
+	FullName          string          `json:"full_name,omitempty" bson:"full_name,omitempty"`
+	UserName          string          `json:"username,omitempty" bson:"username,omitempty"`
+	PhoneNumber       string          `json:"phone_number,omitempty" bson:"phone_number,omitempty"`
+	BranchCode        []string        `json:"branch_code,omitempty" bson:"branch_code,omitempty"`
+	Email             string          `json:"email,omitempty" bson:"email,omitempty"`
+	BranchName        string          `json:"branch_name,omitempty" bson:"branch_name,omitempty"`
+	HomeBranch        string          `json:"home_branch,omitempty" bson:"home_branch,omitempty"`
+	JobTitle          string          `json:"job_title,omitempty" bson:"job_title,omitempty"`
+	Role              string          `json:"role,omitempty" bson:"role,omitempty"`
 	LoginAttemptCount uint8           `json:"-" bson:"login_attempt_count"`
 	Password          Password        `json:"-" bson:"password"`
 	FirstPasswordSet  bool            `json:"-" bson:"first_password_set"`

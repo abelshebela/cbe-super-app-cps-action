@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	bps_user_core "cbe-super-app-cps-action/internal/service/bps_user/core"
@@ -169,7 +170,7 @@ func (b *bpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 	return user, nil
 }
 
-func (b *bpsUserService) FetchUserByUserName(ctx context.Context, userName string) (*bps_model.BPSUser, error) {
+func (b *bpsUserService) FetchUserByUserName(ctx context.Context, userName string) (*imodel.BPSUser, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchUserByUserName", "BPS User", "FetchUserByUserName")
 	defer span.End()
 
@@ -182,8 +183,23 @@ func (b *bpsUserService) FetchUserByUserName(ctx context.Context, userName strin
 		b.logger.Errorf("[BpsUserSvc][FetchByUserName] fetch err: %v", err)
 		return nil, err
 	}
+	cleanBPSUser := imodel.BPSUser{
+		ID:          user.ID,
+		UserCode:    user.UserCode,
+		FullName:    user.FullName,
+		UserName:    user.Username,
+		PhoneNumber: user.PhoneNumber,
+		BranchCode:  user.BranchCode,
+		Email:       user.Email,
+		BranchName:  user.BranchName,
+		HomeBranch:  user.HomeBranch,
+		JobTitle:    user.JobTitle,
+		Role:        user.Role,
+		Enabled:     user.Enabled,
+	}
+
 	b.logger.Infof("[BpsUserSvc][FetchByUserName] retrieved username: %s", userName)
-	return user, nil
+	return &cleanBPSUser, nil
 }
 
 // GetAllBPSUsers implements service.BPSUserService.
