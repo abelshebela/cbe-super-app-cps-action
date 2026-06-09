@@ -702,7 +702,14 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 	// Extract checker level status pairs (e.g., checker_level_1_status=APPROVED)
 	checkerLevelStatuses := extractCheckerLevelStatusPairs(filterParams.Filters)
 
-	
+	// Username filters by role
+	makerUsernames := extractStringSlice(filterParams.Filters, "maker_usernames")
+	checkerUsernames := extractStringSlice(filterParams.Filters, "checker_usernames")
+	auditorUsernames := extractStringSlice(filterParams.Filters, "auditor_usernames")
+
+	// General search parameter
+	searchTerm := filterParams.Search
+
 	logFilter := imodel.UserActionLogActionCodeFilter{
 		RequestActions:       RAList,
 		Levels:               levels,
@@ -711,6 +718,10 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 		Services:             services,
 		ActionStatuses:       statuses,
 		CheckerLevelStatuses: checkerLevelStatuses,
+		MakerUsernames:       makerUsernames,
+		CheckerUsernames:     checkerUsernames,
+		AuditorUsernames:     auditorUsernames,
+		Search:               searchTerm,
 	}
 
 	// CHECKER log rows only exist after a checker has acted, so scoping by the
@@ -851,6 +862,14 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	// Extract checker level status pairs (e.g., checker_level_1_status=APPROVED)
 	checkerLevelStatuses := extractCheckerLevelStatusPairs(filterParams.Filters)
 
+	// Username filters by role
+	makerUsernames := extractStringSlice(filterParams.Filters, "maker_usernames")
+	checkerUsernames := extractStringSlice(filterParams.Filters, "checker_usernames")
+	auditorUsernames := extractStringSlice(filterParams.Filters, "auditor_usernames")
+
+	// General search parameter
+	searchTerm := filterParams.Search
+
 	// The auditor inbox is resolved entirely through user_action_log: we first
 	// fetch the matching action_code list from the log, then fetch exactly those
 	// action_codes from cps_actions. The log is the authoritative source and is
@@ -862,10 +881,14 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 		CheckerLevels:         checkerLevels,
 		AuditorLevels:         auditorLevels,
 		Services:              services,
+		MakerUsernames:        makerUsernames,
+		CheckerUsernames:      checkerUsernames,
+		AuditorUsernames:      auditorUsernames,
 		AuditorStatuses:       auditorMarkStatuses,
 		ActionAuditorStatuses: auditorStateStatuses,
 		LevelClaimPairs:       levelClaimPairs,
 		CheckerLevelStatuses:  checkerLevelStatuses,
+		Search:                searchTerm,
 	}
 
 	// AUDITOR log rows only exist after an auditor has marked an action.
