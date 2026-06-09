@@ -47,6 +47,12 @@ type UserActionLog struct {
 	CreatedAt                  time.Time                `bson:"created_at" json:"created_at"`
 	DeletedAt                  time.Time                `bson:"deleted_at" json:"deleted_at"`
 	LastModifiedAt             time.Time                `bson:"last_modified_at" json:"last_modified_at"`
+	// AuditorCustomerBared is set to true when auditor marks MARKEDASWRONG with customer_bar=true
+	AuditorCustomerBared       bool                     `bson:"auditor_customer_bared,omitempty" json:"auditor_customer_bared,omitempty"`
+	// IsCustomerReinstated is set to true when customer is reinstated/unblocked
+	IsCustomerReinstated     bool                     `bson:"is_customer_reinstated,omitempty" json:"is_customer_reinstated,omitempty"`
+	// ReinstateReason stores the reason provided when reinstating customer
+	ReinstateReason            string                   `bson:"reinstate_reason,omitempty" json:"reinstate_reason,omitempty"`
 }
 
 // LevelClaimPair requires that a single action has an auditor log entry where
@@ -92,4 +98,5 @@ type UserActionLogActionCodeFilter struct {
 	LevelClaimPairs       []LevelClaimPair `json:"level_claim_pairs"`       // For auditor: level + given_auditor_status pairs
 	CheckerLevelStatuses  []LevelClaimPair `json:"checker_level_statuses"` // For checker: level + status pairs (e.g., level_1 + APPROVED)
 	Search                string           `json:"search"`                // General search across level, service, username fields
+	AuditorCustomerBared  *bool            `json:"auditor_customer_bared,omitempty"` // Filter by customer barred status (nil = no filter, true/false = specific value)
 }

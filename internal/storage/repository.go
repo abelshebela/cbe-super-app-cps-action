@@ -667,6 +667,7 @@ type CustomerRepository interface {
 	FindCustomerByUserCode(ctx context.Context, usercode string) (*member.User, error)
 	FindCustomerLinkedAccountByUserID(ctx context.Context, userID string) (*model.LinkedAccount, error)
 	BlockCustomerByUserCode(ctx context.Context, userCode string) error
+	UNBlockCustomerByUserCode(ctx context.Context, userCode string) error
 }
 
 type BulkServiceRepository interface {
@@ -1007,6 +1008,7 @@ type UserActionLogRepository interface {
 	RejectUserActionsByActionCode(ctx context.Context, actionCode string) error
 	ApproveUserActionsByActionCode(ctx context.Context, actionCode string) error
 	GetLogsByActionCode(ctx context.Context, actionCode string) ([]string, error)
+	UpdateReinstateStatus(ctx context.Context, actionCode string, reason string) error
 }
 
 type CustomerGroupRepository interface {

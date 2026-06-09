@@ -128,6 +128,7 @@ type BPSActionService interface {
 	GetBPSActionByUniqueID(ctx context.Context, id, department string) (*bps_action.BPSAction, error)
 	GetBPSActionByActionCode(ctx context.Context, uniqueID, department string) (*bps_action.BPSAction, error)
 	GetBPSActionDetailByActionCode(ctx context.Context, uniqueID, department string) (*bpsActionDto.BPSActionDetailResponse, error)
+	ReinstateCustomer(ctx context.Context, actionCode, userCode, reason string) error
 }
 
 type BranchService interface {
