@@ -131,13 +131,15 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 
 	var service *service_dto.ServiceResponse
 	if accessList != nil {
-		service, err = s.repo.FindServiceByAccessListID(ctx, *req.ServiceKeyId)
-		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
-			log.Errorf("[servicesService][Create] error checking existing service for serviceKey=%s: %v", req.ServiceKey, err)
-			return err
+		if req.ServiceKeyId != nil {
+			service, err = s.repo.FindServiceByAccessListID(ctx, *req.ServiceKeyId)
+			if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+				log.Errorf("[servicesService][Create] error checking existing service for serviceKey=%s: %v", req.ServiceKey, err)
+				return err
+			}
 		}
 
-		if accessList != nil && service != nil && service.ID != id && strings.EqualFold(*req.ServiceCode, service.ServiceCode) {
+		if service != nil && service.ID != id && strings.EqualFold(*req.ServiceCode, service.ServiceCode) {
 			log.Warnf("[servicesService][Create] duplicate service detected for serviceKey=%s", req.ServiceKey)
 			return errors.New(localization.ErrorServiceExists.Code)
 		}
