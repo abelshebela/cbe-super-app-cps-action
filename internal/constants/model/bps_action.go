@@ -68,6 +68,7 @@ type BPSAction struct {
 	PreviousAction     interface{}             `json:"previous_action" bson:"previous_action"` // befor the change
 	VerifiedAt         *time.Time              `json:"time,omitempty" bson:"time,omitempty"`
 	Status             string                  `json:"status" bson:"status"`
+	CustomerBarred     bool                    `json:"customer_barred" bson:"customer_barred"`
 	CreatedAt          time.Time               `json:"created_at" bson:"created_at"`
 	LastModifiedAt     time.Time               `json:"last_modified_at" bson:"last_modified_at"`
 }
