@@ -62,6 +62,11 @@ func (j *jobRoleService) Create(ctx context.Context, role imodel.JobRole) error 
 			return err
 		}
 	}
+
+	if err := core.CodeExistentChecker(ctx, constants.CREATE, "", role.Code, j.JobRoleRepository); err != nil {
+		log.Errorf("[JobRole Service] the given code already exists %v", err)
+		return err
+	}
 	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, role, constants.RequestCreateJobRole, constants.CREATE)
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
@@ -93,6 +98,13 @@ func (j *jobRoleService) Update(ctx context.Context, id string, update imodel.Jo
 	}
 
 	newRole := *prev
+	if update.Code != "" {
+		if err := core.CodeExistentChecker(ctx, constants.UPDATE, id, update.Code, j.JobRoleRepository); err != nil {
+			log.Errorf("[JobRole Service] the given code already exists %v", err)
+			return err
+		}
+		newRole.Code = update.Code
+	}
 	if update.JobTitle != "" {
 		newRole.JobTitle = update.JobTitle
 	}

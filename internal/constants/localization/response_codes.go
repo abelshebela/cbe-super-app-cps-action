@@ -756,6 +756,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCPSRoleLabelAlreadyExists,
 	ErrorCPSRoleAccountTypeAlreadyExists,
 	ErrorCPSRoleNameAlreadyExists,
+	ErrorCPSRoleJobTitleAlreadyExists,
 
 	// OTP related error codes
 	ErrorOTPExpired,
@@ -848,6 +849,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorUsedRoleExisting,
 	ErrorUsedRoleCodeExisting,
 	ErrorUsedRoleNameExisting,
+	ErrorUsedJobRoleCodeExisting,
 	ErrorRoleIDMissing,
 
 	// transaction related responses
@@ -7211,6 +7213,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorCPSRoleJobTitleAlreadyExists = ResponseCode{
+		Code:       "ERROR_CPS_ROLE_JOB_TITLE_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgCpsRoleJobTitleAlreadyExists,
+		Type:       "error",
+	}
+
 	// Notification related error response codes
 	ErrorNotificationMapFailed = ResponseCode{
 		Code:       "ERROR_NOTIFICATION_MAP_FAILED",
@@ -9188,6 +9197,13 @@ var (
 		Code:       "ERROR_USED_ROLE_NAME_EXISTING",
 		StatusCode: StatusBadRequest,
 		Message:    MsgExistingUsedRoleName,
+		Type:       "error",
+	}
+
+	ErrorUsedJobRoleCodeExisting = ResponseCode{
+		Code:       "ERROR_USED_JOB_ROLE_CODE_EXISTING",
+		StatusCode: StatusBadRequest,
+		Message:    MsgExistingUsedJobRoleCode,
 		Type:       "error",
 	}
 

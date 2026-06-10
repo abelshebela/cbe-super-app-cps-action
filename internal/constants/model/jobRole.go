@@ -8,6 +8,7 @@ import (
 
 type JobRole struct {
 	ID        bson.ObjectID `json:"_id" bson:"_id"`
+	Code      string        `json:"code" bson:"code"`
 	JobTitle  string        `json:"job_title" bson:"job_title"`
 	Role      string        `json:"role" bson:"role"` // job role code (matches job_roles.code)
 	Enabled   bool          `json:"enabled" bson:"enabled"`

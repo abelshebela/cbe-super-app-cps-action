@@ -526,6 +526,7 @@ const (
 	MsgCpsRoleLabelAlreadyExists       = "Customer role label already exists"
 	MsgCpsRoleAccountTypeAlreadyExists = "Customer role account type already exists"
 	MsgCpsRoleCodeAlreadyExists        = "Customer role code already exists"
+	MsgCpsRoleJobTitleAlreadyExists    = "Customer role job title already exists"
 
 	MsgCpsRoleCreatedSP  = "Customer role created successfully"
 	MsgCpsRoleUpdatedSP  = "Customer role updated successfully"
@@ -1356,9 +1357,11 @@ const (
 	MsgBpsActionRoleNotFound = "BPS action role not found"
 	MsgCpsActionRoleNotFound = "CPS action role not found"
 	MsgRoleNotFound          = "Role not found"
-	MsgExistingUsedRole      = "You used Existing Role data in the request"
-	MsgExistingUsedRoleCode  = "You used Existing Role code in the request"
-	MsgExistingUsedRoleName  = "You used Existing Role name in the request"
+	MsgExistingUsedRole       = "You used Existing Role data in the request"
+	MsgExistingUsedRoleCode   = "You used Existing Role code in the request"
+	MsgExistingUsedRoleName   = "You used Existing Role name in the request"
+	MsgExistingUsedJobTitle   = "You used Existing Job Title in the request"
+	MsgExistingUsedJobRoleCode = "You used Existing Job Role code in the request"
 
 	MsgRoleIDMissing = "Role ID is missing in the request"
 	// transaction related messages
