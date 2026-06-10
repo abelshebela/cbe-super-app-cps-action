@@ -383,10 +383,10 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 
 	if (statusFilter == "APPROVED" || statusFilter == "REJECTED") && ba.actionLogRepo != nil {
 		logFilter := map[string]interface{}{
-			"action_type":                  string(bps_model.BPSActions),
-			"given_action_status":          statusFilter,
+			"action_type":         string(bps_model.BPSActions),
+			"given_action_status": statusFilter,
 			// "user_action_responsibilities": string(bps_model.CHECKER),
-			"username":                     userID,
+			"username": userID,
 		}
 
 		actionCodes, err := ba.actionLogRepo.GetActionCodesByFilter(ctx, logFilter)
@@ -405,6 +405,8 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 		}
 		filterParams.Filters["action_code"] = bson.M{"$in": actionCodes}
 	}
+
+	log.Infof("[BpsActionSvc][GetBPSActionsForApprover] final filters for repo query: %+v", filterParams.Filters)
 
 	result, err := ba.repo.SanitizedFindAllWithPaginationForApprover(ctx, userID, *filterParams, RAList)
 
@@ -437,7 +439,7 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 	// Extract filters
 	levels := extractStringSlice(filterParams.Filters, "levels")
 	services := extractStringSlice(filterParams.Filters, "services")
-	
+
 	// Check for customer_bared filter
 	var auditorCustomerBared *bool
 	if v, ok := filterParams.Filters["customer_bared"]; ok {
@@ -461,9 +463,9 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 
 	// Build log filter
 	logFilter := bps_model.UserActionLogActionCodeFilter{
-		RequestActions:       RAList,
-		Levels:               levels,
-		Services:             services,
+		RequestActions: RAList,
+		Levels:         levels,
+		Services:       services,
 		// Responsibilities:     []string{string(bps_model.AUDITOR)},
 		AuditorCustomerBared: auditorCustomerBared,
 	}

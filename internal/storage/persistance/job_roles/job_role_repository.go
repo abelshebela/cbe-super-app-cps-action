@@ -96,6 +96,9 @@ func (r *JobRoleRepository) Update(ctx context.Context, id string, jobRole *imod
 	if jobRole.Role != "" {
 		update["role"] = jobRole.Role
 	}
+	if jobRole.Code != "" {
+		update["code"] = jobRole.Code
+	}
 	if !jobRole.UpdateAt.IsZero() {
 		update["updated_at"] = jobRole.UpdateAt
 	}
