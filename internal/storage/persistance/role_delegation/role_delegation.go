@@ -256,7 +256,7 @@ func (r *roleDelegationRepository) FindAllWithPagination(ctx context.Context, fi
 		return &types.PaginatedResponse[[]imodel.RoleDelegation]{}, nil
 	}
 
-	data, err := r.repo.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := r.repo.FindAllWithPaginationN(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		log.Errorf("[RoleDelegationRepository][FindByUsername] failed to fetch role delegations: %v", err)
 		return nil, local_util.HandleDBError(err)
