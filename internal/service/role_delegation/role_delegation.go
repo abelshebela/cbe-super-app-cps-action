@@ -127,7 +127,6 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		roleDelegation.DelegatedUserExistingRole = user.Role
 		roleDelegation.DelegatedUserPhoneNumber = user.PhoneNumber
 		roleDelegation.DelegatedUserEmail = user.Email
-		roleDelegation.DelegatedUserUserType = "BPS"
 	} else {
 		// Validate user existence
 		user, err := r.cpsUserRepo.FindByUsername(ctx, roleDelegation.DelegatedUserID)
@@ -147,7 +146,6 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		roleDelegation.DelegatedUserExistingRole = user.Role
 		roleDelegation.DelegatedUserPhoneNumber = user.PhoneNumber
 		roleDelegation.DelegatedUserEmail = user.Email
-		roleDelegation.DelegatedUserUserType = "CPS"
 	}
 
 	jobRole, err := r.jobTitleRepo.FindByRole(ctx, roleDelegation.NewRoleID)

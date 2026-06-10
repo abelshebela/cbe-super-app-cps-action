@@ -588,7 +588,6 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 			span.AddEvent("failed to find role by delegation", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
-		populated.JobTitle = roles.JobTitle
 		populated.Role.Code = roles.RoleCode
 		populated.Role.Name = roles.RoleName
 	} else {
