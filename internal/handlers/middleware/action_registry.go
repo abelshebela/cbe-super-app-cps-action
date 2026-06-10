@@ -427,6 +427,12 @@ var cpsActionRegistry = map[string]string{
 	"POST role_delegation":   "ROLEDELEGATION",
 	"DELETE role_delegation": "ROLEDELEGATION",
 	"PATCH role_delegation":  "ROLEDELEGATION",
+
+	// Account sub type
+	"GET account-sub-types":    "ACCOUNTSUBTYPE",
+	"PATCH account-sub-types":  "ACCOUNTSUBTYPE",
+	"POST account-sub-types":   "ACCOUNTSUBTYPE",
+	"DELETE account-sub-types": "ACCOUNTSUBTYPE",
 }
 
 func extractResource(path string) string {
