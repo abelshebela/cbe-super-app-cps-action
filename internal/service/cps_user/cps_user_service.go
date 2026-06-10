@@ -287,12 +287,44 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 		log.Infof("[CpsUserSvc][Update] no fields to update for user code: %s", usercode)
 		return errors.New("no fields to update")
 	}
+
 	makerData := local_util.ExtractUserFromContext(ctx)
 	userForAction := core.MapForActionWithDepartment(updated, department)
+
+	curDpt, err := s.departmentRepo.FindByID(ctx, currentUser.Department.Hex())
+	if err != nil {
+		span.AddEvent("failed to find department", trace.WithAttributes(attribute.String("error", err.Error())))
+		return err
+	}
+
+	prevUserData := cpsuser.CpsUserPopulatedResponse{
+		ID:                 currentUser.ID,
+		UserCode:           currentUser.UserCode,
+		FullName:           currentUser.FullName,
+		Role:               cpsuser.RoleResponse{Name: currentUser.Role},
+		Department:         &cpsuser.DepartmentResponse{ID: curDpt.ID, Name: curDpt.Department},
+		JobTitle:           currentUser.JobTitle,
+		Gender:             currentUser.Gender,
+		PhoneNumber:        currentUser.PhoneNumber,
+		Email:              currentUser.Email,
+		UserName:           currentUser.UserName,
+		Realm:              currentUser.Realm,
+		Enabled:            currentUser.Enabled,
+		DateJoined:         *currentUser.DateJoined,
+		LastModified:       *currentUser.LastModified,
+		Country:            currentUser.Country,
+		Region:             currentUser.Region,
+		PermissionCategory: currentUser.PermissionCategory,
+		LastLogin:          currentUser.LastLogin,
+		PasswordDisable:    currentUser.PasswordDisable,
+		IsFirstTimeLogin:   currentUser.IsFirstTimeLogin,
+		CreatedAt:          currentUser.CreatedAt,
+	}
+
 	cpsActionModel := lib.CpsModelBuilder(
 		usercode,
 		makerData,
-		currentUser,
+		prevUserData,
 		userForAction,
 		string(constants.RequestCpsUserUpdate),
 		constants.UPDATE,
