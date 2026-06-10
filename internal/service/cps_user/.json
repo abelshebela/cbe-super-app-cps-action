@@ -1,0 +1,38 @@
+{
+  "_id": "6a292debd1947ac5ee15f1ef",
+  "delegated_user_id": "micky",
+  "delegated_user_user_code": "056279_DQC1_ozh7fn",
+  "delegated_user_full_name": "MIKIYAS BURTON PAYNE",
+  "delegated_user_user_type": "CPS",
+  "delegated_user_department_or_branch": "6a28721b879c4a66c357d67a",
+  "delegated_user_job_title": "Supper Admin",
+  "delegated_user_existing_role": "zolla maker",
+
+  "delegation_type": "CPS",
+  "delegated_user_phone_number": "251968364582",
+  "delegated_user_email": "kexule@cbe.com.et",
+  "delegator_user_id": "kibromm",
+  "delegator_user_full_name": "Asperiores sit",
+  "delegator_user_user_type": "",
+  "delegator_user_department_or_branch": "",
+  "delegator_user_job_title": "In alias sequ",
+  "delegator_user_role": "Sit atqu",
+  
+  "new_role_id": "zolla maker",
+  "new_department_or_branch": "6a291f26c21f7dc1ca8f0552",
+  "enable": true,
+  "start_at": {
+    "$date": "2026-06-10T21:00:00.000Z"
+  },
+  "end_at": {
+    "$date": "2026-06-22T21:00:00.000Z"
+  },
+  "reason": "Qui qui perferendis laborum Consequatur quod minima nulla doloremque explicabo Laudantium ut vel voluptatum laboriosam nulla impedit et",
+  "created_at": {
+    "$date": "2026-06-10T09:27:07.756Z"
+  },
+  "updated_at": {
+    "$date": "0001-01-01T00:00:00.000Z"
+  },
+  "revoke_existing_delegation": false
+}
