@@ -1,12 +1,16 @@
 package user_action_log
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
+	"slices"
+	"strings"
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -147,10 +151,7 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 
 	if len(filter.AuditorStatuses) > 0 {
 		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying auditor status filter: %v", filter.AuditorStatuses)
-		// if slices.Contains(filter.AuditorStatuses, "NOTCHECKED") {
-		// 	// NOTCHECKED is represented as empty string in the DB, so we need to account for that in the count.
-		// 	filter.AuditorStatuses = append(filter.AuditorStatuses, "")
-		// }
+
 		groupStage = append(groupStage, bson.E{
 			Key:   "auditor_status_match_count",
 			Value: sumWhen(bson.D{{Key: "$in", Value: bson.A{"$given_auditor_status", filter.AuditorStatuses}}}),
@@ -181,15 +182,93 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 	}
 
 	if len(filter.Levels) > 0 {
-		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying level filter: %v", filter.Levels)
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying level filter: %v (responsibilities=%v)", filter.Levels, filter.Responsibilities)
+		escapedLevels := make([]string, len(filter.Levels))
+		for i, lvl := range filter.Levels {
+			escapedLevels[i] = regexp.QuoteMeta(lvl)
+		}
+		levelPattern := fmt.Sprintf("(?i)(?:%s)", strings.Join(escapedLevels, "|"))
+
+		hasCheckerResponsibility := slices.Contains(filter.Responsibilities, string(imodel.CHECKER))
+		hasAuditorResponsibility := slices.Contains(filter.Responsibilities, string(imodel.AUDITOR))
+
+		var levelConditions bson.A
+		if hasCheckerResponsibility && !hasAuditorResponsibility {
+			levelConditions = bson.A{
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$checker_level", "regex": levelPattern, "options": "i"}}},
+				bson.D{{Key: "$eq", Value: bson.A{"$checker_level", ""}}}, // Include maker-only actions
+			}
+		} else if hasAuditorResponsibility && !hasCheckerResponsibility {
+			levelConditions = bson.A{
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$auditor_level", "regex": levelPattern, "options": "i"}}},
+				bson.D{{Key: "$eq", Value: bson.A{"$auditor_level", ""}}}, // Include maker-only actions
+			}
+		} else {
+			levelConditions = bson.A{
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$checker_level", "regex": levelPattern, "options": "i"}}},
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$auditor_level", "regex": levelPattern, "options": "i"}}},
+				bson.D{{Key: "$eq", Value: bson.A{"$checker_level", ""}}}, // Include maker-only actions
+				bson.D{{Key: "$eq", Value: bson.A{"$auditor_level", ""}}}, // Include maker-only actions
+			}
+		}
+
 		groupStage = append(groupStage, bson.E{
-			Key: "level_match_count",
-			Value: sumWhen(bson.D{{Key: "$or", Value: bson.A{
-				bson.D{{Key: "$in", Value: bson.A{"$checker_level", filter.Levels}}},
-				bson.D{{Key: "$in", Value: bson.A{"$auditor_level", filter.Levels}}},
-			}}}),
+			Key:   "level_match_count",
+			Value: sumWhen(bson.D{{Key: "$or", Value: levelConditions}}),
 		})
 		matchStage = append(matchStage, bson.E{Key: "level_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	if len(filter.CheckerLevels) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying checker level filter: %v", filter.CheckerLevels)
+		escapedLevels := make([]string, len(filter.CheckerLevels))
+		for i, lvl := range filter.CheckerLevels {
+			escapedLevels[i] = regexp.QuoteMeta(lvl)
+		}
+		levelPattern := fmt.Sprintf("(?i)(?:%s)", strings.Join(escapedLevels, "|"))
+
+		groupStage = append(groupStage, bson.E{
+			Key: "checker_level_match_count",
+			Value: sumWhen(bson.D{{Key: "$or", Value: bson.A{
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$checker_level", "regex": levelPattern, "options": "i"}}},
+				bson.D{{Key: "$eq", Value: bson.A{"$checker_level", ""}}}, // Include maker-only actions
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "checker_level_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	// Separate auditor level filter - matches only auditor_level field
+	// Also includes maker-only actions where auditor_level is empty
+	if len(filter.AuditorLevels) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying auditor level filter: %v", filter.AuditorLevels)
+		escapedLevels := make([]string, len(filter.AuditorLevels))
+		for i, lvl := range filter.AuditorLevels {
+			escapedLevels[i] = regexp.QuoteMeta(lvl)
+		}
+		levelPattern := fmt.Sprintf("(?i)(?:%s)", strings.Join(escapedLevels, "|"))
+
+		groupStage = append(groupStage, bson.E{
+			Key: "auditor_level_match_count",
+			Value: sumWhen(bson.D{{Key: "$or", Value: bson.A{
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$auditor_level", "regex": levelPattern, "options": "i"}}},
+				bson.D{{Key: "$eq", Value: bson.A{"$auditor_level", ""}}}, // Include maker-only actions
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "auditor_level_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	// Checker level+status pairs - each pair requires matching checker_level AND given_action_status
+	// Note: given_action_status holds the action status (PENDING, APPROVED, REJECTED) for all user types
+	for i, pair := range filter.CheckerLevelStatuses {
+		fieldName := fmt.Sprintf("checker_level_claim_%d_count", i)
+		groupStage = append(groupStage, bson.E{
+			Key: fieldName,
+			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$checker_level", "regex": regexp.QuoteMeta(pair.Level), "options": "i"}}},
+				bson.D{{Key: "$eq", Value: bson.A{"$given_action_status", pair.Claim}}},
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: fieldName, Value: bson.M{"$gt": 0}})
 	}
 
 	if len(filter.Services) > 0 {
@@ -249,6 +328,95 @@ func (r *userActionLogRepository) buildActionCodeFilterPipeline(filter imodel.Us
 			}}}),
 		})
 		matchStage = append(matchStage, bson.E{Key: "maker_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	// Maker usernames filter - matches username with MAKER responsibility (case-insensitive, partial search)
+	if len(filter.MakerUsernames) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying maker username filter: %v", filter.MakerUsernames)
+		// Build partial match pattern (e.g., "kid" matches "kidusm", "akid", "skids")
+		searchPatterns := make([]string, len(filter.MakerUsernames))
+		for i, uname := range filter.MakerUsernames {
+			searchPatterns[i] = fmt.Sprintf(".*%s.*", regexp.QuoteMeta(uname))
+		}
+		usernamePattern := fmt.Sprintf("(?i)(?:%s)", strings.Join(searchPatterns, "|"))
+
+		groupStage = append(groupStage, bson.E{
+			Key: "maker_username_match_count",
+			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
+				bson.D{{Key: "$eq", Value: bson.A{fieldResponsibility, string(imodel.MAKER)}}},
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$username", "regex": usernamePattern, "options": "i"}}},
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "maker_username_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	// Checker usernames filter - matches username with CHECKER responsibility (case-insensitive, partial search)
+	if len(filter.CheckerUsernames) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying checker username filter: %v", filter.CheckerUsernames)
+		searchPatterns := make([]string, len(filter.CheckerUsernames))
+		for i, uname := range filter.CheckerUsernames {
+			searchPatterns[i] = fmt.Sprintf(".*%s.*", regexp.QuoteMeta(uname))
+		}
+		usernamePattern := fmt.Sprintf("(?i)(?:%s)", strings.Join(searchPatterns, "|"))
+
+		groupStage = append(groupStage, bson.E{
+			Key: "checker_username_match_count",
+			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
+				bson.D{{Key: "$eq", Value: bson.A{fieldResponsibility, string(imodel.CHECKER)}}},
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$username", "regex": usernamePattern, "options": "i"}}},
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "checker_username_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	// Auditor usernames filter - matches username with AUDITOR responsibility (case-insensitive, partial search)
+	if len(filter.AuditorUsernames) > 0 {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying auditor username filter: %v", filter.AuditorUsernames)
+		searchPatterns := make([]string, len(filter.AuditorUsernames))
+		for i, uname := range filter.AuditorUsernames {
+			searchPatterns[i] = fmt.Sprintf(".*%s.*", regexp.QuoteMeta(uname))
+		}
+		usernamePattern := fmt.Sprintf("(?i)(?:%s)", strings.Join(searchPatterns, "|"))
+
+		groupStage = append(groupStage, bson.E{
+			Key: "auditor_username_match_count",
+			Value: sumWhen(bson.D{{Key: "$and", Value: bson.A{
+				bson.D{{Key: "$eq", Value: bson.A{fieldResponsibility, string(imodel.AUDITOR)}}},
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$username", "regex": usernamePattern, "options": "i"}}},
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "auditor_username_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	// General search across level, service, and username fields
+	if filter.Search != "" {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying general search: %s", filter.Search)
+		searchPattern := fmt.Sprintf("(?i).*%s.*", regexp.QuoteMeta(filter.Search))
+
+		groupStage = append(groupStage, bson.E{
+			Key: "general_search_match_count",
+			Value: sumWhen(bson.D{{Key: "$or", Value: bson.A{
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$checker_level", "regex": searchPattern, "options": "i"}}},
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$auditor_level", "regex": searchPattern, "options": "i"}}},
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$action_taken_service_name", "regex": searchPattern, "options": "i"}}},
+				bson.D{{Key: "$regexMatch", Value: bson.M{"input": "$username", "regex": searchPattern, "options": "i"}}},
+			}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "general_search_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	// AuditorCustomerBared filter - filter actions where customer was barred by auditor
+	if filter.AuditorCustomerBared != nil {
+		log.Infof("[CPSAction][buildActionCodeFilterPipeline] applying auditor_customer_bared filter: %v", *filter.AuditorCustomerBared)
+		groupStage = append(groupStage, bson.E{
+			Key: "auditor_customer_bared_match_count",
+			Value: sumWhen(bson.D{{Key: "$eq", Value: bson.A{"$auditor_customer_bared", *filter.AuditorCustomerBared}}}),
+		})
+		matchStage = append(matchStage, bson.E{Key: "auditor_customer_bared_match_count", Value: bson.M{"$gt": 0}})
+	}
+
+	if slices.Contains(filter.ActionAuditorStatuses, string(constants.AUDITORNOTCHECKED)) {
+		filter.Responsibilities = []string{}
 	}
 
 	if len(filter.Responsibilities) > 0 {
@@ -818,6 +986,30 @@ func (r *userActionLogRepository) UpdateAuditorActionStatusByActionCode(ctx cont
 	_, err := r.collection.UpdateMany(ctx, filter, update)
 	if err != nil {
 		log.Errorf("[UserActionLog][UpdateAuditorActionStatusByActionCode] update failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
+}
+
+// UpdateReinstateStatus updates user_action_log entries for a given action_code to mark customer as reinstated.
+// This sets IsCustomerReinstated = true, ReinstateReason, and AuditorCustomerBared = false.
+func (r *userActionLogRepository) UpdateReinstateStatus(ctx context.Context, actionCode string, reason string) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[UserActionLog][UpdateReinstateStatus] action_code=%s reason=%s", actionCode, reason)
+
+	filter := bson.M{"action_code": actionCode}
+	update := bson.M{"$set": bson.M{
+		"is_customer_reinstated": true,
+		"reinstate_reason":       reason,
+		"auditor_customer_bared": false,
+		"last_modified_at":       time.Now(),
+	}}
+
+	_, err := r.collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[UserActionLog][UpdateReinstateStatus] update failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 

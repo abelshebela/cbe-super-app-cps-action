@@ -47,6 +47,12 @@ type UserActionLog struct {
 	CreatedAt                  time.Time                `bson:"created_at" json:"created_at"`
 	DeletedAt                  time.Time                `bson:"deleted_at" json:"deleted_at"`
 	LastModifiedAt             time.Time                `bson:"last_modified_at" json:"last_modified_at"`
+	// AuditorCustomerBared is set to true when auditor marks MARKEDASWRONG with customer_bar=true
+	AuditorCustomerBared       bool                     `bson:"auditor_customer_bared,omitempty" json:"auditor_customer_bared,omitempty"`
+	// IsCustomerReinstated is set to true when customer is reinstated/unblocked
+	IsCustomerReinstated     bool                     `bson:"is_customer_reinstated,omitempty" json:"is_customer_reinstated,omitempty"`
+	// ReinstateReason stores the reason provided when reinstating customer
+	ReinstateReason            string                   `bson:"reinstate_reason,omitempty" json:"reinstate_reason,omitempty"`
 }
 
 // LevelClaimPair requires that a single action has an auditor log entry where
@@ -78,11 +84,19 @@ type UserActionLogActionCodeFilter struct {
 	AuditorStatuses       []string         `json:"auditor_statuses"`
 	ActionAuditorStatuses []string         `json:"action_auditor_statuses"`
 	PrivateUserIDs        []string         `json:"private_user_ids"`
-	Levels                []string         `json:"levels"`
+	Levels                []string         `json:"levels"`         // Generic levels - matches checker_level OR auditor_level
+	CheckerLevels         []string         `json:"checker_levels"` // Specific to checker_level field
+	AuditorLevels         []string         `json:"auditor_levels"` // Specific to auditor_level field
 	Services              []string         `json:"services"`
 	CheckerUserIDs        []string         `json:"checker_user_ids"`
 	AuditorUserIDs        []string         `json:"auditor_user_ids"`
 	MakerUserIDs          []string         `json:"maker_user_ids"`
+	MakerUsernames        []string         `json:"maker_usernames"`   // Filter by maker username (case-insensitive regex)
+	CheckerUsernames      []string         `json:"checker_usernames"` // Filter by checker username (case-insensitive regex)
+	AuditorUsernames      []string         `json:"auditor_usernames"` // Filter by auditor username (case-insensitive regex)
 	Responsibilities      []string         `json:"responsibilities"`
-	LevelClaimPairs       []LevelClaimPair `json:"level_claim_pairs"`
+	LevelClaimPairs       []LevelClaimPair `json:"level_claim_pairs"`       // For auditor: level + given_auditor_status pairs
+	CheckerLevelStatuses  []LevelClaimPair `json:"checker_level_statuses"` // For checker: level + status pairs (e.g., level_1 + APPROVED)
+	Search                string           `json:"search"`                // General search across level, service, username fields
+	AuditorCustomerBared  *bool            `json:"auditor_customer_bared,omitempty"` // Filter by customer barred status (nil = no filter, true/false = specific value)
 }

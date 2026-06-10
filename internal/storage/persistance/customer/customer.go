@@ -287,6 +287,22 @@ func (b *CustomerRepository) BlockCustomerByUserCode(ctx context.Context, userCo
 	return nil
 }
 
+// UNBlockCustomerByUserCode implements storage.CustomerRepository.
+func (b *CustomerRepository) UNBlockCustomerByUserCode(ctx context.Context, userCode string) error {
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+
+	log.Infof("[CustomerRepository][UNBlockCustomerByUserCode] updating is_blocked for user_code: %s", userCode)
+	filter := bson.M{"user_code": userCode}
+	update := bson.M{"is_blocked": false}
+	_, err := b.mongoDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Errorf("[CustomerRepository][UNBlockCustomerByUserCode] failed to unblock customer: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	log.Infof("[CustomerRepository][UNBlockCustomerByUserCode] customer unblocked successfully")
+	return nil
+}
+
 func (c *CustomerRepository) FetchLinkedAccount(ctx context.Context, id string) ([]model.LinkedAccount, error) {
 	log := local_util.LoggerFromCtx(ctx, c.logger)
 
