@@ -11,6 +11,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 
 	"time"
 
@@ -127,7 +128,14 @@ func (r *CPSUserStorage) FindByUsername(ctx context.Context, username string) (*
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	log.Infof("[CPSUserStorage][FindByUsername] searching for CPS user by username")
-	filter := bson.M{"username": username}
+
+	filter := bson.M{
+		"username": bson.M{
+			"$regex":   "^" + regexp.QuoteMeta(username) + "$",
+			"$options": "i",
+		},
+	}
+
 	result, err := r.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		log.Errorf("[CPSUserStorage][FindByUsername] failed to find CPS user: %v", err)
