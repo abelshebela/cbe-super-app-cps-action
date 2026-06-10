@@ -23,37 +23,10 @@ const (
 	Verigram Vendor = "Verigram"
 )
 
-type KYC struct {
-	Sub               string    `json:"sub" bson:"sub"`
-	FullName          string    `json:"full_name" bson:"full_name"`
-	PhoneNumber       string    `json:"phone_number" bson:"phone_number"`
-	Gender            string    `json:"gender" bson:"gender"`
-	Picture           string    `json:"picture" bson:"picture"`
-	SelfiePhoto       string    `json:"selfie_photo" bson:"selfie_photo"`
-	Nationality       string    `json:"nationality" bson:"nationality"`
-	BirthDate         time.Time `json:"birth_date" bson:"birth_date"`
-	DocumentFront     string    `json:"document_front" bson:"document_front"`
-	DocumentBack      string    `json:"document_back" bson:"document_back"`
-	EmployementStatus string    `json:"employement_status" bson:"employement_status"`
-	MonthlyIncome     string    `json:"monthly_income" bson:"monthly_income"`
-	AccountType       string    `json:"account_type" bson:"account_type"`
-	Country           string    `json:"country" bson:"country"`
-	MothersName       string    `json:"mothers_name" bson:"mothers_name"`
-	Vendor            Vendor    `json:"vendor" bson:"vendor"`
-	Address           Address   `json:"address" bson:"address"`
-}
-
-type Address struct {
-	Zone   string `json:"zone" bson:"zone"`
-	Kebele string `json:"kebele" bson:"kebele"`
-	Woreda string `json:"woreda" bson:"woreda"`
-	Region string `json:"region" bson:"region"`
-}
-
 type CustomerKYC struct {
 	ID                   bson.ObjectID       `json:"id" bson:"_id,omitempty"`
 	UserID               string              `json:"user_id" bson:"user_id,omitempty"`
-	KYCData              KYC                 `json:"kyc_data" bson:"kyc_data"`
+	KYCData              KYCRequest          `json:"kyc_data" bson:"kyc_data"`
 	KYCRejectReasonField map[string]struct{} `json:"kyc_reject_reason_failed" bson:"kyc_reject_reason_failed"`
 	KYCStatus            KYCStatus           `json:"kyc_status" bson:"kyc_status"`
 	KYCRejectReason      string              `json:"kyc_reject_reason" bson:"kyc_reject_reason"`
@@ -66,6 +39,7 @@ type CustomerKYC struct {
 	DeletedAt            time.Time           `json:"deleted_at" bson:"deleted_at"`
 }
 
+// KYC Review related models
 type UserInfo struct {
 	ID          bson.ObjectID `json:"id" bson:"id"`
 	UserCode    string        `json:"user_code" bson:"user_code"`
@@ -95,4 +69,42 @@ type StartedKycReview struct {
 
 	CreatedAt      time.Time `json:"created_at" bson:"created_at"`
 	LastModifiedAt time.Time `json:"last_modified_at" bson:"last_modified_at"`
+}
+
+// KYC Request related models
+type Address struct {
+	Zone   string `json:"zone" bson:"zone"`
+	Woreda string `json:"woreda" bson:"woreda"`
+	Kebele string `json:"kebele" bson:"kebele"`
+	Region string `json:"region" bson:"region"`
+}
+
+type KYCRequest struct {
+	SuperAppUserID    string    `json:"super_app_user_id" bson:"super_app_user_id"`
+	Sub               string    `json:"sub" bson:"sub"`
+	FullName          string    `json:"full_name" bson:"full_name"`
+	Email             string    `json:"email" bson:"email"`
+	PhoneNumber       string    `json:"phone_number" bson:"phone_number"`
+	Gender            string    `json:"gender" bson:"gender"`
+	Picture           string    `json:"picture" bson:"picture"`
+	SelfiePhoto       string    `json:"selfie_photo" bson:"selfie_photo"`
+	Nationality       string    `json:"nationality" bson:"nationality"`
+	BirthDate         time.Time `json:"birth_date" bson:"birth_date"`
+	EmployementStatus string    `json:"employement_status" bson:"employement_status"`
+	DocumentFront     string    `json:"document_front" bson:"document_front"`
+	DocumentBack      string    `json:"document_back" bson:"document_back"`
+	MonthlyIncome     string    `json:"monthly_income" bson:"monthly_income"`
+	AccountType       string    `json:"account_type" bson:"account_type"`
+	SubAccountType    string    `json:"sub_account_type" bson:"sub_account_type"`
+	Currency          string    `json:"currency" bson:"currency"`
+	SourceOfIncome    string    `json:"source_of_income" bson:"source_of_income"`
+	MaritalStatus     string    `json:"marital_status" bson:"marital_status"`
+	Occupation        string    `json:"occupation" bson:"occupation"`
+	OriginID          string    `json:"origin_id" bson:"origin_id"`
+	IsCitizen         bool      `json:"is_citizen" bson:"is_citizen"`
+	USTIN             string    `json:"us_tin" bson:"us_tin"`
+	Country           string    `json:"country" bson:"country"`
+	MothersName       string    `json:"mothers_name" bson:"mothers_name"`
+	Vendor            Vendor    `json:"vendor" bson:"vendor"`
+	Address           Address   `json:"address" bson:"address"`
 }

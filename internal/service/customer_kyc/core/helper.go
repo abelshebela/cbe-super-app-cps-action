@@ -57,29 +57,29 @@ func MapCustomerKYCToResponsePaginated(c *types.PaginatedResponse[[]imodel.Custo
 			ID: item.ID.Hex(),
 
 			PersonalInformation: dto.PersonalInformation{
-				FirstName:    firstName,
-				MiddleName:   middleName,
-				LastName:     lastName,
-				MotherName:   item.KYCData.MothersName,
-				PhoneNumber:  item.KYCData.PhoneNumber,
-				Gender:       item.KYCData.Gender,
-				Nationality:  item.KYCData.Nationality,
-				DateOfBirth:  item.KYCData.BirthDate.Format(time.RFC3339),
-				MaritalStaus: "",
+				FirstName:     firstName,
+				MiddleName:    middleName,
+				LastName:      lastName,
+				MotherName:    item.KYCData.MothersName,
+				PhoneNumber:   item.KYCData.PhoneNumber,
+				Gender:        item.KYCData.Gender,
+				Nationality:   item.KYCData.Nationality,
+				DateOfBirth:   item.KYCData.BirthDate.Format(time.RFC3339),
+				MaritalStatus: item.KYCData.MaritalStatus,
 			},
 
 			ResidentialAddress: dto.ResidentialAddress{
 				Country: item.KYCData.Country,
+				Zone:    item.KYCData.Address.Zone,
 				Region:  item.KYCData.Address.Region,
-				City:    "",
-				SubCity: "",
 				Wereda:  item.KYCData.Address.Woreda,
 				Kebele:  item.KYCData.Address.Kebele,
 			},
 
 			FinancialInformation: dto.FinancialInformation{
 				EmploymentStatus:     item.KYCData.EmployementStatus,
-				Occupation:           "",
+				SourceOfIncome:       item.KYCData.SourceOfIncome,
+				Occupation:           item.KYCData.Occupation,
 				AverageMonthlyIncome: item.KYCData.MonthlyIncome,
 			},
 
@@ -144,29 +144,29 @@ func MapCustomerKYCToResponse(c *model.CustomerKYC) *dto.CustomerKYCResponse {
 		ID: c.ID.Hex(),
 
 		PersonalInformation: dto.PersonalInformation{
-			FirstName:    firstName,
-			MiddleName:   middleName,
-			LastName:     lastName,
-			MotherName:   c.KYCData.MothersName,
-			PhoneNumber:  c.KYCData.PhoneNumber,
-			Gender:       c.KYCData.Gender,
-			Nationality:  c.KYCData.Nationality,
-			DateOfBirth:  c.KYCData.BirthDate.Format(time.RFC3339),
-			MaritalStaus: "",
+			FirstName:     firstName,
+			MiddleName:    middleName,
+			LastName:      lastName,
+			MotherName:    c.KYCData.MothersName,
+			PhoneNumber:   c.KYCData.PhoneNumber,
+			Gender:        c.KYCData.Gender,
+			Nationality:   c.KYCData.Nationality,
+			DateOfBirth:   c.KYCData.BirthDate.Format(time.RFC3339),
+			MaritalStatus: c.KYCData.MaritalStatus,
 		},
 
 		ResidentialAddress: dto.ResidentialAddress{
 			Country: c.KYCData.Country,
+			Zone:    c.KYCData.Address.Zone,
 			Region:  c.KYCData.Address.Region,
-			City:    "",
-			SubCity: "",
 			Wereda:  c.KYCData.Address.Woreda,
 			Kebele:  c.KYCData.Address.Kebele,
 		},
 
 		FinancialInformation: dto.FinancialInformation{
 			EmploymentStatus:     c.KYCData.EmployementStatus,
-			Occupation:           "",
+			SourceOfIncome:       c.KYCData.SourceOfIncome,
+			Occupation:           c.KYCData.Occupation,
 			AverageMonthlyIncome: c.KYCData.MonthlyIncome,
 		},
 
