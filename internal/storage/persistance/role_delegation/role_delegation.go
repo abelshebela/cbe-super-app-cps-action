@@ -300,6 +300,7 @@ func (r *roleDelegationRepository) FindByUsername(ctx context.Context, id string
 }
 
 func (r *roleDelegationRepository) FindByUserCode(ctx context.Context, usercode string) (*cpsuser.CpsUserPopulatedResponse, error) {
+	r.logger.Infof("[RoleDelegationRepository][FindByUsername] fetching active delegation for user code: %s", usercode)
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 	currentTime := time.Now()
 

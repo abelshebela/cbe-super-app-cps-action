@@ -566,7 +566,7 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 			}
 		}
 	}
-
+	s.logger.Infof("[GetCpsUserDetail] fetched role: %v", roles)
 	if roles != nil && roles.Enabled {
 		_, makerAlloc, checkerAlloc, auditorAlloc, portalCard, err = s.approverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
 		if err != nil {
