@@ -385,7 +385,7 @@ func (ba *bpsActionService) GetBPSActionsForApprover(ctx context.Context, userID
 		logFilter := map[string]interface{}{
 			"action_type":                  string(bps_model.BPSActions),
 			"given_action_status":          statusFilter,
-			"user_action_responsibilities": string(bps_model.CHECKER),
+			// "user_action_responsibilities": string(bps_model.CHECKER),
 			"username":                     userID,
 		}
 
@@ -464,7 +464,7 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 		RequestActions:       RAList,
 		Levels:               levels,
 		Services:             services,
-		Responsibilities:     []string{string(bps_model.AUDITOR)},
+		// Responsibilities:     []string{string(bps_model.AUDITOR)},
 		AuditorCustomerBared: auditorCustomerBared,
 	}
 
