@@ -173,6 +173,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 			return localization.ErrorInvalidDelegationDepartment
 		}
 	}
+	roleDelegation.Enable = true
 	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, roleDelegation, constants.RequestCreateRoleDelegationForExistingUser, constants.CREATE)
 	return r.cpsService.CreateCPSAction(ctx, &cpsModel)
 
@@ -258,6 +259,8 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 		}
 		roleDelegation.DelegatedUserDepartmentOrBranch = department.ID.Hex()
 	}
+
+	roleDelegation.Enable = true
 
 	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, roleDelegation, constants.RequestCreateRoleDelegationForNewUser, constants.CREATE)
 	return r.cpsService.CreateCPSAction(ctx, &cpsModel)
