@@ -67,6 +67,7 @@ func (j *jobRoleService) Create(ctx context.Context, role imodel.JobRole) error 
 		log.Errorf("[JobRole Service] the given code already exists %v", err)
 		return err
 	}
+
 	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, role, constants.RequestCreateJobRole, constants.CREATE)
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
@@ -110,6 +111,10 @@ func (j *jobRoleService) Update(ctx context.Context, id string, update imodel.Jo
 	}
 	if update.Role != "" {
 		newRole.Role = update.Role
+	}
+
+	if update.Code != "" {
+		newRole.Code = update.Code
 	}
 
 	newRole.UpdateAt = time.Now()
