@@ -96,7 +96,7 @@ func (r *customerKYCRepository) FindByID(ctx context.Context, id string) (*imode
 	return result, nil
 }
 
-func (r *customerKYCRepository) CreateUser(ctx context.Context, userAccount types.Account, userData imodel.CustomerKYC) error {
+func (r *customerKYCRepository) CreateUser(ctx context.Context, userAccount types.Account, userData imodel.KYCRequest) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	const q = `
@@ -161,7 +161,7 @@ INSERT INTO USERS (
 		userCode,                      // :1  USER_CODE
 		username,                      // :2  USERNAME
 		"",                            // :3  CONTACT_EMAIL
-		userData.KYCData.PhoneNumber,  // :4  CONTACT_PHONE
+		userData.PhoneNumber,          // :4  CONTACT_PHONE
 		userAccount.CustomerNumber,    // :5  CUSTOMER_NUMBER
 		"",                            // :6  SECTOR
 		"",                            // :7  OWNERSHIP
@@ -171,7 +171,7 @@ INSERT INTO USERS (
 		middleName,                    // :11 MIDDLE_NAME
 		userAccount.CustomerName,      // :12 FULL_NAME
 		userAccount.Gender,            // :13 GENDER
-		userData.KYCData.BirthDate,    // :14 BIRTH_OF_DATE
+		userData.BirthDate,            // :14 BIRTH_OF_DATE
 		"",                            // :15 PIN
 		"",                            // :16 PIN_HISTORY
 		0,                             // :17 FAILED_LOGIN_ATTEMPT
