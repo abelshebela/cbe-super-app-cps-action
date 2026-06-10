@@ -452,7 +452,9 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 	// No user_action_log entry exists yet for these actions, so bypass the log lookup entirely
 	// and query the BPS repo directly.
 	auditorStatus, _ := filterParams.Filters["auditor_status"].(string)
-	if strings.ToUpper(auditorStatus) == string(constants.AUDITORNOTCHECKED) {
+	customerBarred, _ := filterParams.Filters["customer_bared"].(bool)
+
+	if strings.ToUpper(auditorStatus) == string(constants.AUDITORNOTCHECKED) && !customerBarred {
 		result, err := ba.repo.SanitizedFindAllWithPaginationForAuditor(ctx, userID, *filterParams, RAList)
 		if err != nil {
 			span.AddEvent("failed to find all with pagination for auditor (NOTCHECKED)", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -463,10 +465,10 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 
 	// Build log filter
 	logFilter := bps_model.UserActionLogActionCodeFilter{
-		RequestActions: RAList,
-		Levels:         levels,
-		Services:       services,
-		// Responsibilities:     []string{string(bps_model.AUDITOR)},
+		RequestActions:       RAList,
+		Levels:               levels,
+		Services:             services,
+		Responsibilities:     []string{string(bps_model.AUDITOR)},
 		AuditorCustomerBared: auditorCustomerBared,
 	}
 

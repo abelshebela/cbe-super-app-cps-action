@@ -22,13 +22,13 @@ const (
 )
 
 type UserActionLog struct {
-	ID                         bson.ObjectID            `bson:"_id,omitempty" json:"id"`
-	ActionID                   bson.ObjectID            `bson:"action_id" json:"action_id"`
-	ActionCode                 string                   `bson:"action_code" json:"action_code"`
-	GivenActionStatus          string                   `bson:"given_action_status" json:"given_action_status"`
+	ID                bson.ObjectID `bson:"_id,omitempty" json:"id"`
+	ActionID          bson.ObjectID `bson:"action_id" json:"action_id"`
+	ActionCode        string        `bson:"action_code" json:"action_code"`
+	GivenActionStatus string        `bson:"given_action_status" json:"given_action_status"`
 	// GivenAuditorStatus holds the auditor's mark verdict: MARKASRIGHT, MARKASWRONG.
 	// Empty for MAKER and CHECKER logs unless propagated by AuditorMarkLogsByActionCode.
-	GivenAuditorStatus         AuditorMark              `bson:"given_auditor_status" json:"given_auditor_status"`
+	GivenAuditorStatus AuditorMark `bson:"given_auditor_status" json:"given_auditor_status"`
 	// ActionAuditorStatus holds the overall auditor process state: NOTCHECKED, INPROGRESS, CHECKED.
 	// Updated in bulk across all logs for the same action_code as the auditor workflow progresses.
 	ActionAuditorStatus        string                   `bson:"action_auditor_status" json:"action_auditor_status"`
@@ -48,11 +48,11 @@ type UserActionLog struct {
 	DeletedAt                  time.Time                `bson:"deleted_at" json:"deleted_at"`
 	LastModifiedAt             time.Time                `bson:"last_modified_at" json:"last_modified_at"`
 	// AuditorCustomerBared is set to true when auditor marks MARKEDASWRONG with customer_bar=true
-	AuditorCustomerBared       bool                     `bson:"auditor_customer_bared,omitempty" json:"auditor_customer_bared,omitempty"`
+	AuditorCustomerBared bool `bson:"auditor_customer_bared,omitempty" json:"auditor_customer_bared,omitempty"`
 	// IsCustomerReinstated is set to true when customer is reinstated/unblocked
-	IsCustomerReinstated     bool                     `bson:"is_customer_reinstated,omitempty" json:"is_customer_reinstated,omitempty"`
+	IsCustomerReinstated bool `bson:"is_customer_reinstated,omitempty" json:"is_customer_reinstated,omitempty"`
 	// ReinstateReason stores the reason provided when reinstating customer
-	ReinstateReason            string                   `bson:"reinstate_reason,omitempty" json:"reinstate_reason,omitempty"`
+	ReinstateReason string `bson:"reinstate_reason,omitempty" json:"reinstate_reason,omitempty"`
 }
 
 // LevelClaimPair requires that a single action has an auditor log entry where
@@ -76,6 +76,7 @@ type LevelClaimPair struct {
 //  7. AuditorUserIDs        → user_id WHERE responsibility=AUDITOR
 //  8. MakerUserIDs          → user_id WHERE responsibility=MAKER
 //  9. ActionAuditorStatuses → action_auditor_status      (NOTCHECKED, INPROGRESS, CHECKED)
+//
 // 10. LevelClaimPairs       → per-level given_auditor_status (all pairs must match same action_code)
 // 11. RequestActions        → request_action             (pre-group scope, e.g. a role's allocated request actions)
 type UserActionLogActionCodeFilter struct {
@@ -84,9 +85,10 @@ type UserActionLogActionCodeFilter struct {
 	AuditorStatuses       []string         `json:"auditor_statuses"`
 	ActionAuditorStatuses []string         `json:"action_auditor_statuses"`
 	PrivateUserIDs        []string         `json:"private_user_ids"`
-	Levels                []string         `json:"levels"`         // Generic levels - matches checker_level OR auditor_level
-	CheckerLevels         []string         `json:"checker_levels"` // Specific to checker_level field
-	AuditorLevels         []string         `json:"auditor_levels"` // Specific to auditor_level field
+	CustomerBarred        []string         `json:"customer_barred"` // Filter by customer barred status: "true", "false"
+	Levels                []string         `json:"levels"`          // Generic levels - matches checker_level OR auditor_level
+	CheckerLevels         []string         `json:"checker_levels"`  // Specific to checker_level field
+	AuditorLevels         []string         `json:"auditor_levels"`  // Specific to auditor_level field
 	Services              []string         `json:"services"`
 	CheckerUserIDs        []string         `json:"checker_user_ids"`
 	AuditorUserIDs        []string         `json:"auditor_user_ids"`
@@ -95,8 +97,8 @@ type UserActionLogActionCodeFilter struct {
 	CheckerUsernames      []string         `json:"checker_usernames"` // Filter by checker username (case-insensitive regex)
 	AuditorUsernames      []string         `json:"auditor_usernames"` // Filter by auditor username (case-insensitive regex)
 	Responsibilities      []string         `json:"responsibilities"`
-	LevelClaimPairs       []LevelClaimPair `json:"level_claim_pairs"`       // For auditor: level + given_auditor_status pairs
-	CheckerLevelStatuses  []LevelClaimPair `json:"checker_level_statuses"` // For checker: level + status pairs (e.g., level_1 + APPROVED)
-	Search                string           `json:"search"`                // General search across level, service, username fields
+	LevelClaimPairs       []LevelClaimPair `json:"level_claim_pairs"`                // For auditor: level + given_auditor_status pairs
+	CheckerLevelStatuses  []LevelClaimPair `json:"checker_level_statuses"`           // For checker: level + status pairs (e.g., level_1 + APPROVED)
+	Search                string           `json:"search"`                           // General search across level, service, username fields
 	AuditorCustomerBared  *bool            `json:"auditor_customer_bared,omitempty"` // Filter by customer barred status (nil = no filter, true/false = specific value)
 }
