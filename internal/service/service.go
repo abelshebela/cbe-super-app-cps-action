@@ -63,6 +63,7 @@ import (
 	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 
 	account_block_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
+	account_sub_type_dto "cbe-super-app-cps-action/internal/constants/dto/account_sub_type"
 	cps_roles_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
 	cust_kyc_dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	queue "cbe-super-app-cps-action/internal/storage/queue_system"
@@ -465,6 +466,16 @@ type AvatarService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type AccountSubTypeService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetAllAccountSubTypes(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]imodel.AccountSubType], error)
+	GetOneAccountSubType(ctx context.Context, id string) (*imodel.AccountSubType, error)
+	CreateOneAccountSubType(ctx context.Context, req account_sub_type_dto.CreateAccountSubTypeRequest) error
+	UpdateOneAccountSubType(ctx context.Context, id string, req account_sub_type_dto.UpdateAccountSubTypeRequest) error
+	DeleteOneAccountSubType(ctx context.Context, id string) error
+	EnableOrDisableAccountSubType(ctx context.Context, id string, enable bool) error
+}
+
 type BankService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.BankOracle], error)
@@ -605,6 +616,7 @@ type ServiceLayer struct {
 	BpsUser                       BPSUserService
 	BudgetCategory                BudgetCategoryService
 	Bank                          BankService
+	AccountSubType                AccountSubTypeService
 	PortalCard                    PortalCardService
 	Advert                        AdvertService
 	ValidationService             AccountValidationService
@@ -669,6 +681,7 @@ type ServiceContainer struct {
 	AmountBasedAuthContainer           AmountBasedAuthService
 	AvatarDomian                       AvatarService
 	BankContainer                      BankService
+	AccountSubTypeContainer            AccountSubTypeService
 	BPSUserContainer                   BPSUserService
 	BudgetCategoryContainer            BudgetCategoryService
 	CPSActionContainer                 CPSActionService

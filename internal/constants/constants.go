@@ -772,6 +772,13 @@ const (
 	RequestDisableAdvert RequestAction = "DISABLE_ADVERT"
 	RequestDeleteAdvert  RequestAction = "DELETE_ADVERT"
 
+	// Account Sub Type
+	RequestCreateAccountSubType  RequestAction = "CREATE_ACCOUNT_SUB_TYPE"
+	RequestUpdateAccountSubType  RequestAction = "UPDATE_ACCOUNT_SUB_TYPE"
+	RequestDeleteAccountSubType  RequestAction = "DELETE_ACCOUNT_SUB_TYPE"
+	RequestEnableAccountSubType  RequestAction = "ENABLE_ACCOUNT_SUB_TYPE"
+	RequestDisableAccountSubType RequestAction = "DISABLE_ACCOUNT_SUB_TYPE"
+
 	// Bank
 	RequestCreateBank     RequestAction = "CREATE_BANK"
 	RequestUpdateBank     RequestAction = "UPDATE_BANK"
