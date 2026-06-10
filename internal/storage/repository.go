@@ -87,6 +87,7 @@ type RoleDelegationRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*imodel.RoleDelegation, error)
 	FindByUsername(ctx context.Context, id string, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error)
+	FindByUserCode(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error)
 	Delete(ctx context.Context, id string) error
 	FindAll(ctx context.Context) (*[]imodel.RoleDelegation, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.RoleDelegation], error)
@@ -666,6 +667,7 @@ type CustomerRepository interface {
 	FindCustomerByUserCode(ctx context.Context, usercode string) (*member.User, error)
 	FindCustomerLinkedAccountByUserID(ctx context.Context, userID string) (*model.LinkedAccount, error)
 	BlockCustomerByUserCode(ctx context.Context, userCode string) error
+	UNBlockCustomerByUserCode(ctx context.Context, userCode string) error
 }
 
 type BulkServiceRepository interface {
@@ -1006,6 +1008,7 @@ type UserActionLogRepository interface {
 	RejectUserActionsByActionCode(ctx context.Context, actionCode string) error
 	ApproveUserActionsByActionCode(ctx context.Context, actionCode string) error
 	GetLogsByActionCode(ctx context.Context, actionCode string) ([]string, error)
+	UpdateReinstateStatus(ctx context.Context, actionCode string, reason string) error
 }
 
 type CustomerGroupRepository interface {

@@ -1351,19 +1351,9 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		// as the list endpoint. This ensures counts match what the auditor sees.
 		// queryActionStatus optionally narrows to APPROVED or REJECTED.
 
-		var allAuditCount, unAuditedCount, inprogressAuditCount, auditedCount int
+		var unAuditedCount, inprogressAuditCount, auditedCount int
 
 		if auditorActions != nil {
-			// All — no auditor_status restriction; action_status from query param
-			if res, _, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, "")); err != nil {
-				span.RecordError(err)
-				localization.SendErrorByCodeResponse(w, err.Error())
-				a.logger.Errorf("[CpsActionH][Auditor] failed to get all count: %v", err)
-				return
-			} else if res != nil && res.Meta.TotalDocs > 0 {
-				allAuditCount = int(res.Meta.TotalDocs)
-			}
-
 			// UnAudited — NOTCHECKED
 			if res, _, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORNOTCHECKED))); err != nil {
 				span.RecordError(err)
@@ -1396,7 +1386,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		}
 
 		auditorResp := &cpsactionDto.CPSAuditorActionCountResponse{
-			AllAction:  allAuditCount,
+			AllAction:  unAuditedCount + inprogressAuditCount + auditedCount,
 			UnAudited:  unAuditedCount,
 			Inprogress: inprogressAuditCount,
 			Audited:    auditedCount,

@@ -128,11 +128,13 @@ func BuildRoleDelegationRequestWithNewUser(body role_delegation_dto.RoleDelegati
 	delegationType := strings.TrimSpace(body.DelegationType)
 	delegatedUserPhoneNumber := strings.TrimSpace(body.DelegatedUserPhoneNumber)
 	delegatedUserEmail := strings.ToLower(strings.TrimSpace(body.DelegatedUserEmail))
+	delegatedUserExistingRole := strings.ToLower(strings.TrimSpace(body.DelegatedUserExistingRole))
 
 	delegatorUserID := strings.TrimSpace(body.DelegatorUserID)
 	delegatorUserFullName := strings.TrimSpace(body.DelegatorUserFullName)
 	delegatorUserJobTitle := strings.TrimSpace(body.DelegatorUserJobTitle)
 	delegatorUserRole := strings.TrimSpace(body.DelegatorUserRole)
+	delegatorUserUserType := strings.TrimSpace(body.DelegatorUserUserType)
 
 	newRoleID := strings.TrimSpace(body.NewRoleID)
 	newDepartmentOrBranch := strings.TrimSpace(body.NewDepartmentOrBranch)
@@ -141,7 +143,7 @@ func BuildRoleDelegationRequestWithNewUser(body role_delegation_dto.RoleDelegati
 	if delegatedUserID == "" || delegatedUserFullName == "" || delegatedUserUserType == "" ||
 		delegatedUserDepartmentOrBranch == "" || delegatedUserJobTitle == "" || delegationType == "" || delegatedUserPhoneNumber == "" || delegatedUserEmail == "" ||
 		delegatorUserID == "" || delegatorUserFullName == "" || delegatorUserJobTitle == "" || delegatorUserRole == "" ||
-		newRoleID == "" || newDepartmentOrBranch == "" || reason == "" {
+		newRoleID == "" || newDepartmentOrBranch == "" || reason == "" || delegatorUserUserType == "" || delegatedUserExistingRole == "" {
 		return imodel.RoleDelegation{}, localization.ErrorRequiredFieldMissing
 	}
 
@@ -192,14 +194,17 @@ func BuildRoleDelegationRequestWithNewUser(body role_delegation_dto.RoleDelegati
 		DelegationType:                  delegationType,
 		DelegatedUserPhoneNumber:        formattedPhone,
 		DelegatedUserEmail:              delegatedUserEmail,
-		DelegatorUserID:                 delegatorUserID,
-		DelegatorUserFullName:           delegatorUserFullName,
-		DelegatorUserJobTitle:           delegatorUserJobTitle,
-		DelegatorUserRole:               delegatorUserRole,
-		NewRoleID:                       newRoleID,
-		NewDepartmentOrBranch:           newDepartmentOrBranch,
-		StartAt:                         parsedStart,
-		EndAt:                           parsedEnd,
-		Reason:                          reason,
+		DelegatedUserExistingRole:       delegatedUserExistingRole,
+
+		DelegatorUserID:       delegatorUserID,
+		DelegatorUserFullName: delegatorUserFullName,
+		DelegatorUserJobTitle: delegatorUserJobTitle,
+		DelegatorUserRole:     delegatorUserRole,
+		DelegatorUserUserType: delegatorUserUserType,
+		NewRoleID:             newRoleID,
+		NewDepartmentOrBranch: newDepartmentOrBranch,
+		StartAt:               parsedStart,
+		EndAt:                 parsedEnd,
+		Reason:                reason,
 	}, nil
 }

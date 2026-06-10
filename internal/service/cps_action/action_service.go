@@ -719,11 +719,11 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 		Services:             services,
 		ActionStatuses:       statuses,
 		CheckerLevelStatuses: checkerLevelStatuses,
-		Responsibilities:     []string{string(imodel.CHECKER)}, // To be conditionally set below
-		MakerUsernames:       makerUsernames,
-		CheckerUsernames:     checkerUsernames,
-		AuditorUsernames:     auditorUsernames,
-		Search:               searchTerm,
+		// Responsibilities:     []string{string(imodel.CHECKER)}, // To be conditionally set below
+		MakerUsernames:   makerUsernames,
+		CheckerUsernames: checkerUsernames,
+		AuditorUsernames: auditorUsernames,
+		Search:           searchTerm,
 	}
 
 	// CHECKER log rows only exist after a checker has acted, so scoping by the
@@ -875,19 +875,15 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	searchTerm := filterParams.Search
 
 	log.Infof("[CPSAction][GetCPSActionsForAuditor] filter params levels=%v checker_levels=%v auditor_levels=%v services=%v auditor_mark_statuses=%v auditor_state_statuses=%v maker_usernames=%v checker_usernames=%v auditor_usernames=%v search=%q", levels, checkerLevels, auditorLevels, services, auditorMarkStatuses, auditorStateStatuses, makerUsernames, checkerUsernames, auditorUsernames, searchTerm)
-	// The auditor inbox is resolved entirely through user_action_log: we first
-	// fetch the matching action_code list from the log, then fetch exactly those
-	// action_codes from cps_actions. The log is the authoritative source and is
-	// scoped to the role's allocated request_actions (RAList) plus any
-	// level/service/auditor-status filters. An empty log result yields an empty page.
+
 	logFilter := imodel.UserActionLogActionCodeFilter{
-		RequestActions:        RAList,
-		Levels:                levels,
-		CheckerLevels:         checkerLevels,
-		AuditorLevels:         auditorLevels,
-		Services:              services,
-		MakerUsernames:        makerUsernames,
-		Responsibilities:      []string{string(imodel.AUDITOR)}, // AUDITOR log rows are the only ones relevant to the auditor inbox
+		RequestActions: RAList,
+		Levels:         levels,
+		CheckerLevels:  checkerLevels,
+		AuditorLevels:  auditorLevels,
+		Services:       services,
+		MakerUsernames: makerUsernames,
+		// Responsibilities:      []string{string(imodel.AUDITOR)}, // AUDITOR log rows are the only ones relevant to the auditor inbox
 		CheckerUsernames:      checkerUsernames,
 		AuditorUsernames:      auditorUsernames,
 		AuditorStatuses:       auditorMarkStatuses,

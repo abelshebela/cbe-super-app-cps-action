@@ -95,3 +95,7 @@ func (s *bpsActionServiceWithRoles) GetBPSActionByActionCode(ctx context.Context
 func (s *bpsActionServiceWithRoles) GetBPSActionDetailByActionCode(ctx context.Context, uniqueID, department string) (*bpsActionDto.BPSActionDetailResponse, error) {
 	return s.base.GetBPSActionDetailByActionCode(ctx, uniqueID, department)
 }
+
+func (s *bpsActionServiceWithRoles) ReinstateCustomer(ctx context.Context, actionCode, userCode, reason string) error {
+	return s.base.ReinstateCustomer(ctx, actionCode, userCode, reason)
+}

@@ -166,6 +166,7 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	role := imodel.JobRole{
 		JobTitle:  strings.TrimSpace(body.JobTitle),
 		Role:      strings.TrimSpace(body.Role),
+		Code:      strings.TrimSpace(body.Code),
 		CreatedAt: time.Now(),
 	}
 
@@ -229,6 +230,10 @@ func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	if body.Role != "" {
 		updated.Role = strings.TrimSpace(body.Role)
+	}
+
+	if body.Code != "" {
+		updated.Code = strings.TrimSpace(body.Code)
 	}
 
 	if err := j.service.Update(ctx, id, updated); err != nil {

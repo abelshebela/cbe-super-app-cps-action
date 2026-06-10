@@ -58,7 +58,6 @@ func (h *CustomerGroupAdapter) CreateCustomerGroup(w http.ResponseWriter, r *htt
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	// req.Normalize()
 
 	if err := h.svc.Create(ctx, req); err != nil {
 		span.RecordError(err)
