@@ -1035,3 +1035,13 @@ type SuperAppRoleRepository interface {
 	BulkDisableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error
 	BulkEnableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error
 }
+
+type AccountSubTypeOracleRepository interface {
+	Create(ctx context.Context, ast *imodel.AccountSubType) error
+	Update(ctx context.Context, id string, ast *imodel.AccountSubType) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*imodel.AccountSubType, error)
+	FindByCodeOrName(ctx context.Context, code, name string) (*imodel.AccountSubType, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.AccountSubType], error)
+}

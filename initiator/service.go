@@ -9,6 +9,7 @@ import (
 	accountvalidation "cbe-super-app-cps-action/internal/service/account_validation"
 	advert "cbe-super-app-cps-action/internal/service/ad"
 	amount_based_auth "cbe-super-app-cps-action/internal/service/amount_based_auth"
+	account_sub_type_svc "cbe-super-app-cps-action/internal/service/account_sub_type"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
 	bps_action_service "cbe-super-app-cps-action/internal/service/bps_action"
 	bpsuser "cbe-super-app-cps-action/internal/service/bps_user"
@@ -234,6 +235,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bulkService = bulk_service.NewBulkService(oracle.AccessListOracle, cpsActionService, oracle.AccessListSegmentaion, logger)
 	// customerService = customer.NewCustomerService(persistence.CustomerService, persistence.BpsActionPersistence, cpsActionService, redis, smsService, cfg, logger)
 	bank_service = bankService.NewBankService(logger, persistence.BankPersistence, oracle.BankOracle, cpsActionService, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
+	accountSubTypeService := account_sub_type_svc.NewAccountSubTypeService(oracle.AccountSubType, cpsActionService, logger)
+	serviceContainer.AccountSubTypeContainer = accountSubTypeService
 	walletService = wallet.NewWalletService(oracle.WalletOracle, cpsActionService, oracle.ServicesPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	topupService = topup.NewTopupService(persistence.TopupPersistence, cpsActionService, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	accountBlockService = accountblock.NewAccountService(oracle.AccountBlock, cpsActionService, logger)
@@ -335,6 +338,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Advert:            adService,
 		BpsUser:           bpsUserService,
 		Bank:              bank_service,
+		AccountSubType:    accountSubTypeService,
 		Unlink:            unlinkService,
 		BudgetCategory:    budgetCategoryService,
 		PortalCard:        portalCardService,
