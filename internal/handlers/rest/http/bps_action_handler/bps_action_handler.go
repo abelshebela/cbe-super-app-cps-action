@@ -834,20 +834,10 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	if requestedRole == "auditor" {
-		var allAuditCount, unAuditedCount, inprogressAuditCount, auditedCount int
+		var unAuditedCount, inprogressAuditCount, auditedCount int
 
 		if auditorActions != nil {
-			// All — no auditor_status restriction; status from query param
-			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, "")); err != nil {
-				span.RecordError(err)
-				localization.SendErrorByCodeResponse(w, err.Error())
-				a.logger.Errorf("[BpsActionH][Auditor] failed to get all count: %v", err)
-				return
-			} else if res != nil && res.Meta.TotalDocs > 0 {
-				allAuditCount = int(res.Meta.TotalDocs)
-			}
-
-			// UnAudited — NOTCHECKED (BPS repo restricts to APPROVED automatically)
+			// UnAudited — NOTCHECKED: queries BPS repo directly (no user_action_log)
 			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORNOTCHECKED))); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
@@ -857,7 +847,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 				unAuditedCount = int(res.Meta.TotalDocs)
 			}
 
-			// Inprogress — INPROGRESS
+			// Inprogress — INPROGRESS: queries via user_action_log
 			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORINPROGRESS))); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
@@ -867,7 +857,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 				inprogressAuditCount = int(res.Meta.TotalDocs)
 			}
 
-			// Audited — fully checked
+			// Audited — CHECKED: queries via user_action_log
 			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORCHECKED))); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
@@ -879,7 +869,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		}
 
 		auditorResp := &bpsactionDto.BPSAuditorActionCountResponse{
-			AllAction:  allAuditCount,
+			AllAction:  unAuditedCount + inprogressAuditCount + auditedCount,
 			UnAudited:  unAuditedCount,
 			Inprogress: inprogressAuditCount,
 			Audited:    auditedCount,

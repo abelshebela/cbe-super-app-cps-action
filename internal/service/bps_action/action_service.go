@@ -446,6 +446,19 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 		}
 	}
 
+	// NOTCHECKED: BPS tracks un-audited state via auditors.audited on the document itself.
+	// No user_action_log entry exists yet for these actions, so bypass the log lookup entirely
+	// and query the BPS repo directly.
+	auditorStatus, _ := filterParams.Filters["auditor_status"].(string)
+	if strings.ToUpper(auditorStatus) == string(constants.AUDITORNOTCHECKED) {
+		result, err := ba.repo.SanitizedFindAllWithPaginationForAuditor(ctx, userID, *filterParams, RAList)
+		if err != nil {
+			span.AddEvent("failed to find all with pagination for auditor (NOTCHECKED)", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+		return result, nil
+	}
+
 	// Build log filter
 	logFilter := bps_model.UserActionLogActionCodeFilter{
 		RequestActions:       RAList,
