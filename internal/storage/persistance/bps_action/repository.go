@@ -87,6 +87,7 @@ var Projection = bson.M{
 	"account_holder_name":  1,
 	"service_name":         1,
 	"is_auditor_approved":  1,
+	"customer_barred":      1,
 }
 
 type bpsActionRepository struct {
