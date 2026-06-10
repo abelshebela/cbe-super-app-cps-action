@@ -607,7 +607,7 @@ WHERE s.id = HEXTORAW(:1) AND sk.is_deleted = 0`
 		&svc.ServiceKey,
 		&svc.ServiceCode,
 		&svc.MinimumFraudAmount,
-		&svc.ProductGlAccount,
+		&svc.IsPlAccount,
 		&svc.ProductGlAccount,
 		&svc.ProductGlAccountCurrency,
 		&svc.Enabled,
