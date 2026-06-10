@@ -137,7 +137,7 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 			return err
 		}
 
-		if accessList != nil && service != nil && strings.EqualFold(*req.ServiceCode, service.ServiceCode) {
+		if accessList != nil && service != nil && service.ID != id && strings.EqualFold(*req.ServiceCode, service.ServiceCode) {
 			log.Warnf("[servicesService][Create] duplicate service detected for serviceKey=%s", req.ServiceKey)
 			return errors.New(localization.ErrorServiceExists.Code)
 		}
