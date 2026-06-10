@@ -257,7 +257,14 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err.Error())
 			return localization.ErrorInvalidDelegationDepartment
 		}
-		roleDelegation.DelegatedUserDepartmentOrBranch = department.ID.Hex()
+		roleDelegation.NewDepartmentOrBranch = department.ID.Hex()
+
+		existingDep, err := r.department.FindByID(ctx, roleDelegation.DelegatedUserDepartmentOrBranch)
+		if existingDep == nil || !existingDep.Enabled {
+			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err.Error())
+			return localization.ErrorInvalidDelegationDepartment
+		}
+		roleDelegation.DelegatedUserDepartmentOrBranch = existingDep.ID.Hex()
 	}
 
 	roleDelegation.Enable = true
@@ -365,11 +372,20 @@ func (r *roleDelegation) FindById(ctx context.Context, id string) (*imodel.RoleD
 	} else {
 		department, err := r.department.FindByID(ctx, roleDelegation.NewDepartmentOrBranch)
 		r.logger.Infof("[RoleDelegation/FindById] found department for id %s: %v", roleDelegation.NewDepartmentOrBranch, department)
-		if err != nil {
-			r.logger.Errorf("[RoleDelegation/FindById] failed to find department by id: %v", err)
-			return nil, err
+		if err == nil {
+			roleDelegation.NewDepartmentOrBranch = department.Department
+			// return nil, err
+		} else {
+			r.logger.Errorf("[RoleDelegation/FindById] failed to find delegated user department by id: %v", err)
 		}
-		roleDelegation.NewDepartmentOrBranch = department.Department
+		existingDep, err := r.department.FindByID(ctx, roleDelegation.DelegatedUserDepartmentOrBranch)
+		r.logger.Infof("[RoleDelegation/FindById] found department for id %s: %v", roleDelegation.NewDepartmentOrBranch, department)
+		if err == nil {
+			roleDelegation.NewDepartmentOrBranch = existingDep.Department
+			// return nil, err
+		} else {
+			r.logger.Errorf("[RoleDelegation/FindById] failed to find delegator department by id: %v", err)
+		}
 	}
 	return roleDelegation, err
 }
