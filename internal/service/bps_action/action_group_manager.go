@@ -156,7 +156,7 @@ func contains(list []string, v string) bool {
 	return false
 }
 
-func MarkActionAsAudited(ctx context.Context, bpsActionStore storage.BPSActionRepository, actionCode string, auditorApproval bool, reason string, logger utils.Logger) error {
+func MarkActionAsAudited(ctx context.Context, bpsActionStore storage.BPSActionRepository, actionCode string, auditorApproval bool, reason string, logger utils.Logger, customerBared ...bool) error {
 
 	userData := local_util.ExtractUserFromContext(ctx)
 	action, err := bpsActionStore.SanitizedFindOne(ctx, bson.M{"action_code": actionCode})
@@ -185,8 +185,13 @@ func MarkActionAsAudited(ctx context.Context, bpsActionStore storage.BPSActionRe
 		}
 	}
 
+	isCustomerBared := false
+	if len(customerBared) > 0 {
+		isCustomerBared = customerBared[0]
+	}
+
 	// Call storage layer to mark as audited
-	err = bpsActionStore.MarkActionAsAudited(ctx, actionCode, userData.UserID, userData.FullName, userData.UserName, auditorApproval, reason)
+	err = bpsActionStore.MarkActionAsAudited(ctx, actionCode, userData.UserID, userData.FullName, userData.UserName, auditorApproval, reason, isCustomerBared)
 	if err != nil {
 		logger.Errorf("[BPSAction][MarkActionAsAudited] failed to update bps action err: %v", err)
 		return local_util.HandleDBError(err)

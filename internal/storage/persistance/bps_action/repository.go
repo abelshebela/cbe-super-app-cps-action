@@ -1031,7 +1031,7 @@ func (b *bpsActionRepository) GetCountByDepartment(ctx context.Context, departme
 	return &bpsActionDto.BPSActionCountResponse{Approved: 0, Rejected: 0, Inprogress: 0, Completed: 0}, nil
 }
 
-func (r *bpsActionRepository) MarkActionAsAudited(ctx context.Context, actionCode string, auditorID string, auditorName string, auditorMID string, auditorApproval bool, reason string) error {
+func (r *bpsActionRepository) MarkActionAsAudited(ctx context.Context, actionCode string, auditorID string, auditorName string, auditorMID string, auditorApproval bool, reason string, customerBared bool) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	filter := bson.M{"action_code": actionCode}
@@ -1087,6 +1087,7 @@ func (r *bpsActionRepository) MarkActionAsAudited(ctx context.Context, actionCod
 		"auditor_mid":               auditorMIDs,
 		"auditor_name_list":         auditorNameList,
 		"auditor_time":              updatedAuditorTime,
+		"customer_barred":           customerBared,
 		"last_modified_at":          now,
 	}}
 

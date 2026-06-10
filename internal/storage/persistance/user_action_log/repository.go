@@ -949,16 +949,17 @@ func (r *userActionLogRepository) GetLogsByUserIDAndResponsibility(ctx context.C
 
 // AuditorMarkLogsByActionCode propagates the auditor's mark verdict (givenAuditorStatus: e.g. MARKASRIGHT/MARKASWRONG)
 // and the auditor process state (actionAuditorStatus: INPROGRESS/CHECKED) to all logs for that action_code.
-func (r *userActionLogRepository) AuditorMarkLogsByActionCode(ctx context.Context, actionCode string, givenAuditorStatus string, actionAuditorStatus string) error {
+func (r *userActionLogRepository) AuditorMarkLogsByActionCode(ctx context.Context, actionCode string, givenAuditorStatus string, actionAuditorStatus string, customerBared bool) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	log.Infof("[UserActionLog][AuditorMarkLogsByActionCode] action_code=%s given_auditor_status=%s action_auditor_status=%s", actionCode, givenAuditorStatus, actionAuditorStatus)
+	log.Infof("[UserActionLog][AuditorMarkLogsByActionCode] action_code=%s given_auditor_status=%s action_auditor_status=%s customer_bared=%v", actionCode, givenAuditorStatus, actionAuditorStatus, customerBared)
 
 	filter := bson.M{"action_code": actionCode}
 	update := bson.M{"$set": bson.M{
-		"given_auditor_status":  givenAuditorStatus,
-		"action_auditor_status": actionAuditorStatus,
-		"last_modified_at":      time.Now(),
+		"given_auditor_status":   givenAuditorStatus,
+		"action_auditor_status":  actionAuditorStatus,
+		"auditor_customer_bared": customerBared,
+		"last_modified_at":       time.Now(),
 	}}
 
 	_, err := r.collection.UpdateMany(ctx, filter, update)

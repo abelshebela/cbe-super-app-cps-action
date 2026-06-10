@@ -75,6 +75,9 @@ func CodeExistentChecker(ctx context.Context, types, id, code string, jobRoleRep
 
 	res, err := jobRoleRepo.FindByCode(ctx, code)
 	if err != nil {
+		if err.Error() == localization.ErrorResourceNotFound.Code {
+			return nil
+		}
 		return err
 	}
 

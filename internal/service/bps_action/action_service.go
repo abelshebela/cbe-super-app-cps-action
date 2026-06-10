@@ -230,7 +230,7 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	// Log user action with customer barred flag if applicable
 	ba.logUserActionWithCustomerBar(ctx, action, imodel.AUDITOR, action.Status, imodel.AuditorMark(auditor.AuditorMark), "", "", isCustomerBarred)
 	if ba.actionLogRepo != nil {
-		if logErr := ba.actionLogRepo.AuditorMarkLogsByActionCode(ctx, actionCode, string(auditor.AuditorMark), string(constants.AUDITORCHECKED)); logErr != nil {
+		if logErr := ba.actionLogRepo.AuditorMarkLogsByActionCode(ctx, actionCode, string(auditor.AuditorMark), string(constants.AUDITORCHECKED), isCustomerBarred); logErr != nil {
 			span.AddEvent("failed to propagate auditor mark to logs", trace.WithAttributes(attribute.String("error", logErr.Error())))
 		}
 	}
