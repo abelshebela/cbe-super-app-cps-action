@@ -114,7 +114,8 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		user, err := r.bpsUserRepo.GetByUsername(ctx, roleDelegation.DelegatedUserID)
 		if err != nil {
 			r.logger.Errorf("[RoleDelegation/Create] Failed to find BPS user: %v", err)
-			return err
+			return errors.New(localization.ErrorUserNotFoundOrDisabled.Code)
+
 		}
 		if user == nil || !user.Enabled {
 			r.logger.Warnf("[RoleDelegation/Create] BPS User not found: %s", roleDelegation.DelegatedUserID)
