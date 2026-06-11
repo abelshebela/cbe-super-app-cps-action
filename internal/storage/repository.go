@@ -278,7 +278,7 @@ type BPSActionRepository interface {
 	SanitizedFindOne(ctx context.Context, filter bson.M) (*bps_action.BPSAction, error)
 	Update(ctx context.Context, actionCode string, update bps_action.BPSAction) (*bps_action.BPSAction, error)
 	UpdateByActionCode(ctx context.Context, actionCode string, update bps_action.BPSAction) (*bps_action.BPSAction, error)
-	MarkActionAsAudited(ctx context.Context, actionCode string, auditorID string, auditorName string, auditorMID string, auditorApproval bool, reason string) error
+	MarkActionAsAudited(ctx context.Context, actionCode string, auditorID string, auditorName string, auditorMID string, auditorApproval bool, reason string, customerBared bool) error
 	UpdateCustome(ctx context.Context, filter, update bson.M) error
 	Delete(ctx context.Context, id string) error
 	GetCountByDepartment(ctx context.Context, department string) (*bpsActionDto.BPSActionCountResponse, error)
@@ -935,7 +935,7 @@ type CustomerKYCRepository interface {
 	// Create(ctx context.Context, req *imodel.CustomerKYC) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error)
 	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
-	CreateUser(ctx context.Context, userAccount types.Account, userData imodel.CustomerKYC) error
+	CreateUser(ctx context.Context, userAccount types.Account, userData imodel.KYCRequest) error
 	UpdateKYCStatus(ctx context.Context, id, status, rejectionReason string, approved bool) error
 	FindKycInReview(ctx context.Context, kycID string) (*imodel.StartedKycReview, error)
 	StartKycReview(ctx context.Context, reviewData *imodel.StartedKycReview) (*imodel.StartedKycReview, error)
@@ -999,7 +999,7 @@ type UserActionLogRepository interface {
 	GetActionCodesByUserAndAuditorStatus(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility, status string) ([]string, error)
 	GetActionCodesByActionLogFilter(ctx context.Context, filter imodel.UserActionLogActionCodeFilter) ([]string, error)
 	GetActionCodesByFilter(ctx context.Context, filter map[string]interface{}) ([]string, error)
-	AuditorMarkLogsByActionCode(ctx context.Context, actionCode string, givenAuditorStatus string, actionAuditorStatus string) error
+	AuditorMarkLogsByActionCode(ctx context.Context, actionCode string, givenAuditorStatus string, actionAuditorStatus string, customerBared bool) error
 	UpdateAuditorActionStatusByActionCode(ctx context.Context, actionCode string, actionAuditorStatus string) error
 	GetLogsByUserIDAndResponsibility(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error)
 	GetLogsByResponsibility(ctx context.Context, responsibility imodel.UserActionResponsibility) ([]string, error)
@@ -1034,4 +1034,14 @@ type SuperAppRoleRepository interface {
 	FindBlockedAccessListsByIDs(ctx context.Context, superappRole string, accessListIDs []string) ([]imodel.APPAccessList, error)
 	BulkDisableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error
 	BulkEnableAccessLists(ctx context.Context, superappRole string, accessListIDs []string) error
+}
+
+type AccountSubTypeOracleRepository interface {
+	Create(ctx context.Context, ast *imodel.AccountSubType) error
+	Update(ctx context.Context, id string, ast *imodel.AccountSubType) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*imodel.AccountSubType, error)
+	FindByCodeOrName(ctx context.Context, code, name string) (*imodel.AccountSubType, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.AccountSubType], error)
 }

@@ -567,6 +567,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAlreadyDeleted,
 	ErrorCannotDisableOwnRole,
 	ErrorCannotDisableOwnJobTitle,
+	ErrorJobRoleAlreadyEnabled,
+	ErrorJobRoleAlreadyDisabled,
 	ErrorRoleHasActiveJobs,
 	ErrorJobTitleHasActiveUsers,
 	ErrorRoleHasActiveJobsRoles,
@@ -1063,6 +1065,30 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidDelegationBranch,
 	ErrorBpsUserAlreadyExists,
 	ErrorCpsUserAlreadyExists,
+
+	SuccessAccountSubTypeCreateRequestSent,
+	SuccessAccountSubTypeCreated,
+	SuccessAccountSubTypeUpdateRequestSent,
+	SuccessAccountSubTypeUpdated,
+	SuccessAccountSubTypeEnableRequestSent,
+	SuccessAccountSubTypeEnabled,
+	SuccessAccountSubTypeDisableRequestSent,
+	SuccessAccountSubTypeDisabled,
+	SuccessGetAllAccountSubTypes,
+	SuccessGetOneAccountSubType,
+	ErrorAccountSubTypeNotFound,
+	ErrorAccountSubTypeAlreadyEnabled,
+	ErrorAccountSubTypeAlreadyDisabled,
+	ErrorAccountSubTypeCodeAlreadyExists,
+	ErrorAccountSubTypeNameAlreadyExists,
+	ErrorAccountSubTypeNameRequired,
+	ErrorAccountSubTypeCodeRequired,
+	ErrorAccountSubTypeNameSpecialChar,
+	ErrorAccountSubTypeCodeSpecialChar,
+	ErrorAccountSubTypeAccountTypeRequired,
+	ErrorAccountSubTypeInvalidAccountType,
+	ErrorAccountSubTypeGenderRequired,
+	ErrorAccountSubTypeInvalidGender,
 }
 
 // Success Response Codes
@@ -8545,6 +8571,18 @@ var (
 		Message:    MsgCannotDisableOwnJobTitle,
 		Type:       "error",
 	}
+	ErrorJobRoleAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_JOB_TITLE_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobRoleAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorJobRoleAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_JOB_TITLE_AREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobRoleAlreadyDisenabled,
+		Type:       "error",
+	}
 
 	ErrorRoleHasActiveJobs = ResponseCode{
 		Code:       "ERROR_ROLE_HAS_ACTIVE_JOBS",
@@ -9579,6 +9617,169 @@ var (
 		Code:       "ERROR_CPS_USER_ALREADY_EXISTS",
 		StatusCode: StatusConflict,
 		Message:    MsgCpsUserAlreadyExists,
+		Type:       "error",
+	}
+
+	// Account Sub Type success codes
+	SuccessAccountSubTypeCreateRequestSent = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_SUB_TYPE_CREATE_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgAccountSubTypeCreateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAccountSubTypeCreated = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_SUB_TYPE_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgAccountSubTypeCreated,
+		Type:       "success",
+	}
+
+	SuccessAccountSubTypeUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_SUB_TYPE_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAccountSubTypeUpdateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAccountSubTypeUpdated = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_SUB_TYPE_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgAccountSubTypeUpdated,
+		Type:       "success",
+	}
+
+	SuccessAccountSubTypeEnableRequestSent = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_SUB_TYPE_ENABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAccountSubTypeEnableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAccountSubTypeEnabled = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_SUB_TYPE_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgAccountSubTypeEnabled,
+		Type:       "success",
+	}
+
+	SuccessAccountSubTypeDisableRequestSent = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_SUB_TYPE_DISABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAccountSubTypeDisableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAccountSubTypeDisabled = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_SUB_TYPE_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgAccountSubTypeDisabled,
+		Type:       "success",
+	}
+
+	SuccessGetAllAccountSubTypes = ResponseCode{
+		Code:       "SUCCESS_GET_ALL_ACCOUNT_SUB_TYPES",
+		StatusCode: StatusOK,
+		Message:    MsgAccountSubTypesRetrieved,
+		Type:       "success",
+	}
+
+	SuccessGetOneAccountSubType = ResponseCode{
+		Code:       "SUCCESS_GET_ONE_ACCOUNT_SUB_TYPE",
+		StatusCode: StatusOK,
+		Message:    MsgAccountSubTypeRetrieved,
+		Type:       "success",
+	}
+
+	// Account Sub Type error codes
+	ErrorAccountSubTypeNotFound = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgAccountSubTypeNotFound,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAccountSubTypeAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAccountSubTypeAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_CODE_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgAccountSubTypeCodeAlreadyExists,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_NAME_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgAccountSubTypeNameAlreadyExists,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeNameRequired = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_NAME_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountSubTypeNameRequired,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeCodeRequired = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_CODE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountSubTypeCodeRequired,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeNameSpecialChar = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_NAME_SPECIAL_CHAR",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountSubTypeNameSpecialChar,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeCodeSpecialChar = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_CODE_SPECIAL_CHAR",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountSubTypeCodeSpecialChar,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeAccountTypeRequired = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_ACCOUNT_TYPE_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountSubTypeAccountTypeReq,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeInvalidAccountType = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_INVALID_ACCOUNT_TYPE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountSubTypeInvalidAccountType,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeGenderRequired = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_GENDER_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountSubTypeGenderRequired,
+		Type:       "error",
+	}
+
+	ErrorAccountSubTypeInvalidGender = ResponseCode{
+		Code:       "ERROR_ACCOUNT_SUB_TYPE_INVALID_GENDER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountSubTypeInvalidGender,
 		Type:       "error",
 	}
 )

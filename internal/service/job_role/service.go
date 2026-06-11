@@ -137,6 +137,15 @@ func (j *jobRoleService) EnableOrDisable(ctx context.Context, id string, enable 
 		return err
 	}
 
+	if existing.Enabled && enable {
+		j.logger.Warnf("[JobRole Service][EnableOrDisable] job role is already enabled")
+		return localization.ErrorJobRoleAlreadyEnabled
+	}
+	if !existing.Enabled && !enable {
+		j.logger.Warnf("[JobRole Service][EnableOrDisable] job role is already disabled")
+		return localization.ErrorJobRoleAlreadyDisabled
+	}
+
 	if !enable && makerUser.UserRole == existing.Role {
 		log.Errorf("[JobRole Service][EnableOrDisable] user cannot disable their own role")
 		return errors.New(localization.ErrorCannotDisableOwnJobTitle.Code)

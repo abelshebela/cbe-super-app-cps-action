@@ -435,6 +435,12 @@ const (
 	RequestEnableAccessListSegmentation        constants.RequestAction = "ENABLE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
 	RequestDisableAccessListSegmentation       constants.RequestAction = "DISABLE_ACCESS_LIST_SEGMENTATION_BY_GEOGRAPHIC_LOCATION"
 	RequestDeleteServiceKey                    constants.RequestAction = "DELETE_SERVICE_KEY"
+
+	RequestCreateAccountSubType  constants.RequestAction = "CREATE_ACCOUNT_SUB_TYPE"
+	RequestUpdateAccountSubType  constants.RequestAction = "UPDATE_ACCOUNT_SUB_TYPE"
+	RequestDeleteAccountSubType  constants.RequestAction = "DELETE_ACCOUNT_SUB_TYPE"
+	RequestEnableAccountSubType  constants.RequestAction = "ENABLE_ACCOUNT_SUB_TYPE"
+	RequestDisableAccountSubType constants.RequestAction = "DISABLE_ACCOUNT_SUB_TYPE"
 )
 
 var validRequestActions = map[constants.RequestAction]struct{}{
@@ -779,6 +785,12 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	// RequestDeleteCustomerKYC: {},
 
 	RequestEnableDisableBank: {},
+
+	RequestCreateAccountSubType:  {},
+	RequestUpdateAccountSubType:  {},
+	RequestDeleteAccountSubType:  {},
+	RequestEnableAccountSubType:  {},
+	RequestDisableAccountSubType: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -1004,6 +1016,13 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestUpdateBankLogo,
 		RequestEnableBank,
 		RequestDisableBank,
+	},
+	"ACCOUNTSUBTYPE": {
+		RequestCreateAccountSubType,
+		RequestUpdateAccountSubType,
+		RequestDeleteAccountSubType,
+		RequestEnableAccountSubType,
+		RequestDisableAccountSubType,
 	},
 	"WALLET": {
 		RequestCreateWallet,

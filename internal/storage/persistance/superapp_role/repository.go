@@ -95,7 +95,12 @@ func (r *superAppRoleStorage) FindAllWithPagination(ctx context.Context, filterP
 }
 
 func (r *superAppRoleStorage) countDistinctRoles(ctx context.Context, where string, args []interface{}) (int, error) {
-	q := fmt.Sprintf(`SELECT COUNT(DISTINCT SUPERAPP_ROLE) FROM SEGMENTS WHERE %s`, where)
+	q := fmt.Sprintf(`SELECT COUNT(1) FROM (
+    SELECT 1
+    FROM SEGMENTS
+    WHERE %s
+    GROUP BY SUPERAPP_ROLE, SUPERAPP_ROLE_LABEL
+) grouped_roles`, where)
 	var total int
 	if err := r.db.QueryRowContext(ctx, q, args...).Scan(&total); err != nil {
 		return 0, local_util.HandleDBError(err)
@@ -112,7 +117,7 @@ SELECT SUPERAPP_ROLE, SUPERAPP_ROLE_LABEL,
 FROM SEGMENTS
 WHERE %s
 GROUP BY SUPERAPP_ROLE, SUPERAPP_ROLE_LABEL
-ORDER BY SUPERAPP_ROLE
+ORDER BY SUPERAPP_ROLE, SUPERAPP_ROLE_LABEL
 OFFSET :pg_offset ROWS FETCH NEXT :pg_limit ROWS ONLY`, where)
 
 	listArgs := append(args,
@@ -177,9 +182,11 @@ SELECT RAWTOHEX(ID), CUSTOMER_GROUP, CUSTOMER_GROUP_LABEL,
        IS_ENABLED, CREATED_AT, LAST_MODIFIED_AT
 FROM SEGMENTS
 WHERE SUPERAPP_ROLE IN (%s)
-ORDER BY SUPERAPP_ROLE, CREATED_AT`, strings.Join(placeholders, ", "))
+  AND %s
+ORDER BY SUPERAPP_ROLE, CREATED_AT`, strings.Join(placeholders, ", "), where)
 
-	rows, err := r.db.QueryContext(ctx, q, roleArgs...)
+	listArgs := append(roleArgs, args...)
+	rows, err := r.db.QueryContext(ctx, q, listArgs...)
 	if err != nil {
 		return local_util.HandleDBError(err)
 	}

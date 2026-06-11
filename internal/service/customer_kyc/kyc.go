@@ -170,63 +170,6 @@ func (s *customerKYCService) EnableOrDisable(ctx context.Context, id, reason str
 	return nil
 }
 
-// func (s *customerKYCService) Delete(ctx context.Context, id string) error {
-
-// 	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteKYC", "CustomerKYC", "Delete")
-// 	defer span.End()
-
-// 	log.Infof("[CustKycSvc][Delete] id: %s", id)
-// 	makerData := local_util.ExtractUserFromContext(ctx)
-// 	if local_util.IsIncomplete(makerData) {
-// 		log.Errorf("[CustKycSvc][Delete] incomplete user")
-// 		return errors.New(constants.IncompleteUserInfo)
-// 	}
-
-// 	kyc, err := s.repo.FindByID(ctx, id)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	action := lib.CpsModelBuilder(id, makerData, kyc, nil, string(constants.RequestDeleteCustomerKYC), constants.DELETE)
-
-// 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
-// 		log.Errorf("[CustKycSvc][Delete] cps action err: %v", err)
-// 		return err
-// 	}
-
-// 	return nil
-// }
-
-// func (s *customerKYCService) UpdateKYCStatus(ctx context.Context, id string, status string) error {
-
-// 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateKYCStatus", "CustomerKYC", "UpdateKYCStatus")
-// 	defer span.End()
-
-// 	log.Infof("[CustKycSvc][UpdateStatus] id: %s status: %s", id, status)
-// 	makerData := local_util.ExtractUserFromContext(ctx)
-// 	if local_util.IsIncomplete(makerData) {
-// 		log.Errorf("[CustKycSvc][UpdateStatus] incomplete user")
-// 		return errors.New(constants.IncompleteUserInfo)
-// 	}
-
-// 	kyc, err := s.repo.FindByID(ctx, id)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	currentAction := *kyc
-// 	// currentAction.KYCStatus = status
-
-// 	action := lib.CpsModelBuilder(id, makerData, kyc, currentAction, string(constants.RequestUpdateCustomerKYC), constants.UPDATE)
-
-// 	if err := s.cpsService.CreateCPSAction(ctx, &action); err != nil {
-// 		log.Errorf("[CustKycSvc][UpdateStatus] cps action err: %v", err)
-// 		return err
-// 	}
-
-// 	return nil
-// }
-
 func (s *customerKYCService) StartKycReview(ctx context.Context, id string) (*imodel.StartedKycReview, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 	makerUser := local_util.ExtractUserFromContext(ctx)
@@ -368,48 +311,65 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestApproveCustomerKYC):
-		userData, err := local_util.JsonUnmarshal[imodel.CustomerKYC](cpsAction.CurrentAction)
+		userData, err := local_util.JsonUnmarshal[imodel.KYCRequest](cpsAction.CurrentAction)
 		if err != nil {
 			return nil, err
 		}
 
 		var fistName, middleName, lastName string
 
-		if len(userData.KYCData.FullName) > 3 {
-			fistName = strings.Split(userData.KYCData.FullName, " ")[0]
-			middleName = strings.Split(userData.KYCData.FullName, " ")[1]
-			lastName = strings.Split(userData.KYCData.FullName, " ")[2]
-		} else if len(userData.KYCData.FullName) == 2 {
-			fistName = strings.Split(userData.KYCData.FullName, " ")[0]
-			lastName = strings.Split(userData.KYCData.FullName, " ")[1]
+		if len(userData.FullName) > 3 {
+			fistName = strings.Split(userData.FullName, " ")[0]
+			middleName = strings.Split(userData.FullName, " ")[1]
+			lastName = strings.Split(userData.FullName, " ")[2]
+		} else if len(userData.FullName) == 2 {
+			fistName = strings.Split(userData.FullName, " ")[0]
+			lastName = strings.Split(userData.FullName, " ")[1]
 		} else {
-			fistName = userData.KYCData.FullName
+			fistName = userData.FullName
 		}
 
 		data := accountLookupDto.AccountCreateParams{
-			Username:         strings.TrimSpace(userData.KYCData.FullName),
-			Password:         constants.Empty,
-			FirstName:        fistName,
-			MiddleName:       middleName,
-			LastName:         lastName,
-			PhoneNumber:      userData.KYCData.PhoneNumber,
-			Address:          strings.Join([]string{"Region: " + userData.KYCData.Address.Region, "Zone: " + userData.KYCData.Address.Zone, "Kebele: " + userData.KYCData.Address.Kebele, "Woreda: " + userData.KYCData.Address.Woreda}, " "),
-			Gender:           userData.KYCData.Gender,
-			MotherName:       userData.KYCData.MothersName,
-			DateOfBirth:      userData.KYCData.BirthDate.String(),
-			Salary:           userData.KYCData.MonthlyIncome,
-			EmploymentStatus: userData.KYCData.EmployementStatus,
-			CustomerGroup:    string(constants.MASS),
+			Username:    strings.TrimSpace(userData.FullName),
+			Password:    constants.Empty,
+			FirstName:   fistName,
+			MiddleName:  middleName,
+			LastName:    lastName,
+			PhoneNumber: userData.PhoneNumber,
+			Address: strings.Join([]string{
+				"Region: " + userData.Address.Region,
+				"Zone: " + userData.Address.Zone,
+				"Kebele: " + userData.Address.Kebele,
+				"Woreda: " + userData.Address.Woreda,
+			}, " "),
+			PostalCode:         constants.Empty,
+			ISOCountryCode:     userData.Country,
+			AccountOffice:      constants.Empty,
+			Industry:           constants.Empty,
+			ISONationalityCode: userData.Nationality,
+			ISOResidentCode:    userData.Country,
+			UniqueID:           userData.OriginID,
+			IssuesBy:           constants.Empty,
+			IssuedDate:         constants.Empty,
+			ExpiryDate:         constants.Empty,
+			Gender:             userData.Gender,
+			DateOfBirth:        userData.BirthDate.Format("2006-01-02"),
+			MaritalStatus:      userData.MaritalStatus,
+			Email:              userData.Email,
+			EmploymentStatus:   userData.EmployementStatus,
+			Occupation:         userData.Occupation,
+			EmployerName:       constants.Empty,
+			EmployerAddress:    constants.Empty,
+			EmployerBusiness:   userData.SourceOfIncome,
+			CustomerCurrency:   userData.Currency,
+			Salary:             userData.MonthlyIncome,
+			AnnualBonus:        constants.Empty,
+			NetMonthlyIncome:   userData.MonthlyIncome,
+			NetMonthlyExpence:  constants.Empty,
+			TinNumber:          userData.USTIN,
+			MotherName:         userData.MothersName,
+			CustomerGroup:      string(constants.MASS),
 		}
-
-		// data := accountLookupDto.CreateAccountRequest{
-		// 	CustomerName:      userData.KYCData.FullName,
-		// 	Gender:            constants.Gender(userData.KYCData.Gender),
-		// 	PhoneNumber:       userData.KYCData.PhoneNumber,
-		// 	AccountType:       userData.KYCData.AccountType,
-		// 	AccountBranchType: "",
-		// 	Picture:           userData.KYCData.SelfiePhoto,
-		// }
 		userAccount, err := core.CreateAccountToCore(ctx, data, s.accountService, s.logger)
 		if err != nil {
 			log.Errorf("[CustKycSvc][Authorize] core account creation failed: %v", err)
@@ -486,26 +446,6 @@ func (s *customerKYCService) Authorize(ctx context.Context, cpsAction *model.CPS
 		}
 		return cpsAction, nil
 
-	// case string(constants.RequestCreateCustomerKYC):
-	// 	data, err := local_util.JsonUnmarshal[imodel.CustomerKYC](cpsAction.CurrentAction)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if err := s.repo.Create(ctx, data); err != nil {
-	// 		return nil, err
-	// 	}
-	// case string(constants.RequestDeleteCustomerKYC):
-	// 	if err := s.repo.Delete(ctx, cpsAction.UniqueId); err != nil {
-	// 		return nil, err
-	// 	}
-	// case string(constants.RequestUpdateCustomerKYC):
-	// 	data, err := local_util.JsonUnmarshal[dto.UpdateKYCStatusRequest](cpsAction.CurrentAction)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if err := s.repo.UpdateKYCStatus(ctx, cpsAction.UniqueId, data.KYCStatus); err != nil {
-	// 		return nil, err
-	// 	}
 	default:
 		return nil, fmt.Errorf("unsupported action: %s", cpsAction.RequestAction)
 	}

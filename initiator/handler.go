@@ -4,6 +4,7 @@ import (
 	// Inbound section
 	accesslistsegmentation "cbe-super-app-cps-action/internal/constants/interfaces/access_list_segmentation"
 	accountBlockHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_block"
+	account_sub_type_interface "cbe-super-app-cps-action/internal/constants/interfaces/account_sub_type"
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
 	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
 	amountBasedInbound "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
@@ -75,6 +76,7 @@ import (
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
 	amountBasedAuthHandler "cbe-super-app-cps-action/internal/handlers/rest/http/amount_based_auth"
 	avatarHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/avatar"
+	account_sub_type_handler "cbe-super-app-cps-action/internal/handlers/rest/http/account_sub_type"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
 	bankvaulthandler "cbe-super-app-cps-action/internal/handlers/rest/http/bankvault"
 	bpsActionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_action_handler"
@@ -130,6 +132,7 @@ type Handler struct {
 	TopupHandler                  TopupInbound.TopupAdapter
 	PasswordHandler               passwordInbound.PasswordRule
 	BpsHandler                    bpsInbound.BPSUserHandler
+	AccountSubTypeHandler         account_sub_type_interface.AccountSubTypeHandler
 	BankHandler                   bank.BankHandler
 	FeedbackHandler               feedbackinterface.FeedbackAdapter
 	BudgetCategoryHandler         budgetCategory.BudgetCategoryPortHandler
@@ -182,6 +185,7 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger, queueMa
 		BudgetCategoryHandler:   budgetCategoryHandler.InitBudgetCategoryAdapter(serviceLayer.BudgetCategory, logger),
 		UnlinkHandler:           unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
 		BpsHandler:              bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
+		AccountSubTypeHandler:   account_sub_type_handler.InitAccountSubTypeAdapter(serviceLayer.AccountSubType, logger),
 		BankHandler:             bankHandler.InitBankAdapter(serviceLayer.Bank, logger),
 		CpsActionHandler:        cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
 		BpsActionHandler:        bpsActionHandler.InitBPSActionAdapter(serviceLayer.BPSActionService, logger),

@@ -230,7 +230,7 @@ func (ba *bpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	// Log user action with customer barred flag if applicable
 	ba.logUserActionWithCustomerBar(ctx, action, imodel.AUDITOR, action.Status, imodel.AuditorMark(auditor.AuditorMark), "", "", isCustomerBarred)
 	if ba.actionLogRepo != nil {
-		if logErr := ba.actionLogRepo.AuditorMarkLogsByActionCode(ctx, actionCode, string(auditor.AuditorMark), string(constants.AUDITORCHECKED)); logErr != nil {
+		if logErr := ba.actionLogRepo.AuditorMarkLogsByActionCode(ctx, actionCode, string(auditor.AuditorMark), string(constants.AUDITORCHECKED), isCustomerBarred); logErr != nil {
 			span.AddEvent("failed to propagate auditor mark to logs", trace.WithAttributes(attribute.String("error", logErr.Error())))
 		}
 	}
@@ -452,7 +452,9 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 	// No user_action_log entry exists yet for these actions, so bypass the log lookup entirely
 	// and query the BPS repo directly.
 	auditorStatus, _ := filterParams.Filters["auditor_status"].(string)
-	if strings.ToUpper(auditorStatus) == string(constants.AUDITORNOTCHECKED) {
+	customerBarred, _ := filterParams.Filters["customer_bared"].(bool)
+
+	if strings.ToUpper(auditorStatus) == string(constants.AUDITORNOTCHECKED) && !customerBarred {
 		result, err := ba.repo.SanitizedFindAllWithPaginationForAuditor(ctx, userID, *filterParams, RAList)
 		if err != nil {
 			span.AddEvent("failed to find all with pagination for auditor (NOTCHECKED)", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -463,10 +465,10 @@ func (ba *bpsActionService) GetBPSActionsForAuditor(ctx context.Context, userID 
 
 	// Build log filter
 	logFilter := bps_model.UserActionLogActionCodeFilter{
-		RequestActions: RAList,
-		Levels:         levels,
-		Services:       services,
-		// Responsibilities:     []string{string(bps_model.AUDITOR)},
+		RequestActions:       RAList,
+		Levels:               levels,
+		Services:             services,
+		Responsibilities:     []string{string(bps_model.AUDITOR)},
 		AuditorCustomerBared: auditorCustomerBared,
 	}
 

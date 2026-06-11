@@ -6,37 +6,49 @@ import (
 )
 
 type CustomerKYCResponse struct {
-	ID                   string               `json:"id"`
+	ID             string `json:"id"`
+	SuperAppUserID string `json:"super_app_user_id,omitempty"`
+	Sub            string `json:"sub,omitempty"`
+	AccountType    string `json:"account_type,omitempty"`
+	SubAccountType string `json:"sub_account_type,omitempty"`
+	Currency       string `json:"currency,omitempty"`
+	Vendor         string `json:"vendor,omitempty"`
+
 	PersonalInformation  PersonalInformation  `json:"personal_information"`
 	ResidentialAddress   ResidentialAddress   `json:"residential_address"`
 	FinancialInformation FinancialInformation `json:"financial_information"`
 	CapturedDocuments    CapturedDocuments    `json:"captured_documents"`
-	CustomerStatus       string               `json:"customer_status"`
-	KYCStatus            string               `json:"kyc_status"`
-	MoneyLaunderingFree  *bool                `json:"money_laundering_free"`
-	TermsAndConditions   string               `json:"terms_and_conditions,omitempty"`
-	KYCReviewStartedAt   *time.Time           `json:"started_at,omitempty"`
-	KYCReviewExpiresAt   *time.Time           `json:"expires_at,omitempty"`
-	Reviewer             *imodel.UserInfo     `json:"reviewer,omitempty"`
-	CreatedAt            string               `json:"created_at"`
-	UpdatedAt            string               `json:"updated_at"`
+
+	CustomerStatus      string           `json:"customer_status"`
+	KYCStatus           string           `json:"kyc_status"`
+	MoneyLaunderingFree *bool            `json:"money_laundering_free"`
+	TermsAndConditions  string           `json:"terms_and_conditions,omitempty"`
+	KYCReviewStartedAt  *time.Time       `json:"started_at,omitempty"`
+	KYCReviewExpiresAt  *time.Time       `json:"expires_at,omitempty"`
+	Reviewer            *imodel.UserInfo `json:"reviewer,omitempty"`
+	CreatedAt           string           `json:"created_at"`
+	UpdatedAt           string           `json:"updated_at"`
 }
 
 type PersonalInformation struct {
-	FirstName    string `json:"first_name" validate:"required"`
-	MiddleName   string `json:"middle_name,omitempty"`
-	LastName     string `json:"last_name" validate:"required"`
-	MotherName   string `json:"mother_name" validate:"required"`
-	PhoneNumber  string `json:"phone_number" validate:"required"`
-	Gender       string `json:"gender" validate:"required,oneof=MALE FEMALE"`
-	MaritalStaus string `json:"marital_status"`
-	Nationality  string `json:"nationality"`
-	DateOfBirth  string `json:"date_of_birth" validate:"required"`
+	FirstName     string `json:"first_name" validate:"required"`
+	MiddleName    string `json:"middle_name,omitempty"`
+	LastName      string `json:"last_name" validate:"required"`
+	MotherName    string `json:"mother_name" validate:"required"`
+	PhoneNumber   string `json:"phone_number" validate:"required"`
+	Email         string `json:"email,omitempty"`
+	Gender        string `json:"gender" validate:"required,oneof=MALE FEMALE"`
+	MaritalStatus string `json:"marital_status,omitempty"`
+	Nationality   string `json:"nationality,omitempty"`
+	DateOfBirth   string `json:"date_of_birth" validate:"required"`
+	IsCitizen     bool   `json:"is_citizen"`
+	OriginID      string `json:"origin_id,omitempty"`
+	USTIN         string `json:"us_tin,omitempty"`
 }
 
 type CapturedDocuments struct {
 	Photo         string `json:"photo"`
-	LivenessVideo string `json:"liveness_video"`
+	LivenessVideo string `json:"liveness_video,omitempty"`
 	IDCardFront   string `json:"id_card_front"`
 	IDCardBack    string `json:"id_card_back"`
 }
@@ -44,13 +56,15 @@ type CapturedDocuments struct {
 type FinancialInformation struct {
 	EmploymentStatus     string `json:"employment_status"`
 	Occupation           string `json:"occupation"`
+	SourceOfIncome       string `json:"source_of_income,omitempty"`
 	AverageMonthlyIncome string `json:"average_monthly_income"`
 }
 
 type ResidentialAddress struct {
 	Country     string `json:"country" validate:"required"`
 	Region      string `json:"region" validate:"required"`
-	City        string `json:"city" validate:"required"`
+	Zone        string `json:"zone,omitempty"`
+	City        string `json:"city,omitempty"`
 	SubCity     string `json:"sub_city,omitempty"`
 	Wereda      string `json:"wereda,omitempty"`
 	Kebele      string `json:"kebele,omitempty"`

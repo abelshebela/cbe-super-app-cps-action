@@ -114,7 +114,8 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		user, err := r.bpsUserRepo.GetByUsername(ctx, roleDelegation.DelegatedUserID)
 		if err != nil {
 			r.logger.Errorf("[RoleDelegation/Create] Failed to find BPS user: %v", err)
-			return err
+			return errors.New(localization.ErrorUserNotFoundOrDisabled.Code)
+
 		}
 		if user == nil || !user.Enabled {
 			r.logger.Warnf("[RoleDelegation/Create] BPS User not found: %s", roleDelegation.DelegatedUserID)
@@ -127,7 +128,6 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		roleDelegation.DelegatedUserExistingRole = user.Role
 		roleDelegation.DelegatedUserPhoneNumber = user.PhoneNumber
 		roleDelegation.DelegatedUserEmail = user.Email
-		roleDelegation.DelegatedUserUserType = "BPS"
 	} else {
 		// Validate user existence
 		user, err := r.cpsUserRepo.FindByUsername(ctx, roleDelegation.DelegatedUserID)
@@ -147,7 +147,6 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		roleDelegation.DelegatedUserExistingRole = user.Role
 		roleDelegation.DelegatedUserPhoneNumber = user.PhoneNumber
 		roleDelegation.DelegatedUserEmail = user.Email
-		roleDelegation.DelegatedUserUserType = "CPS"
 	}
 
 	jobRole, err := r.jobTitleRepo.FindByRole(ctx, roleDelegation.NewRoleID)
@@ -161,7 +160,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 	}
 
 	roleDelegation.DelegatedUserExistingRole = jobRole.Role
-	if roleDelegation.DelegatedUserUserType == "BPS" {
+	if roleDelegation.DelegationType == "BPS" {
 		if branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.NewDepartmentOrBranch); err != nil || branch == nil {
 			r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.NewDepartmentOrBranch)
 			return localization.ErrorInvalidDelegationBranch
@@ -246,7 +245,7 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 		r.logger.Errorf("[RoleDelegation/Create] Job role not found: %s", roleDelegation.NewRoleID)
 		return errors.New(localization.ErrorRoleNotFound.Code)
 	}
-	if roleDelegation.DelegatorUserUserType == "BPS" {
+	if roleDelegation.DelegationType == "BPS" {
 		if branches, err := r.branchRepo.GetBranchesByIds(ctx, []string{roleDelegation.NewDepartmentOrBranch}); err != nil || branches == nil || len(branches) == 0 {
 			r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.NewDepartmentOrBranch)
 			return localization.ErrorInvalidDelegationDepartment
@@ -360,7 +359,7 @@ func (r *roleDelegation) FindById(ctx context.Context, id string) (*imodel.RoleD
 		r.logger.Warnf("[RoleDelegation/FindById] role delegation not found by id: %s", id)
 		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
-	if roleDelegation.DelegatedUserUserType == "BPS" {
+	if roleDelegation.DelegationType == "BPS" {
 		branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.NewDepartmentOrBranch)
 		r.logger.Infof("[RoleDelegation/FindById] found branch for code %s: %v", roleDelegation.NewDepartmentOrBranch, branch)
 		if err != nil {
