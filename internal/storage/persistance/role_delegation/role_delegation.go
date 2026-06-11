@@ -350,7 +350,10 @@ func (r *roleDelegationRepository) FindByUserCode(ctx context.Context, usercode 
 	}, bson.M{})
 	if err != nil {
 		log.Errorf("[RoleDelegationRepository][FindByUsername] failed to fetch role delegations: %v", err)
-		return nil, local_util.HandleDBError(err)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, localization.ErrorUserNotFound
+		}
+		return nil, localization.ErrorUnexpectedError
 	}
 
 	return &cpsuser.CpsUserPopulatedResponse{
