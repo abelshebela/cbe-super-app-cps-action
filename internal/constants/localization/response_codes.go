@@ -1397,7 +1397,7 @@ var (
 
 	SuccessJobRolesFetchedSuccessfully = ResponseCode{
 		Code:       "SUCCESS_JOB_ROLRS_FETCHED_SUCCEESSFULLY",
-		StatusCode: StatusCreated,
+		StatusCode: StatusOK,
 		Message:    MsgJobRolesFetchedSuccess,
 		Type:       "success",
 	}

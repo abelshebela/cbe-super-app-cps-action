@@ -536,7 +536,7 @@ const (
 	MsgCannotDisableOwnRole         = "You cannot disable your own role"
 	MsgCannotDisableOwnJobTitle     = "You cannot disable your own job title"
 	MsgJobRoleAlreadyEnabled        = "Job role already enabled"
-	MsgJobRoleAlreadyDisenabled     = "Job role already disenabled"
+	MsgJobRoleAlreadyDisenabled     = "Job role already disabled"
 	MsgRoleHasActiveJobs            = "There are active job titles for this role, you can't delete it"
 	MsgJobTitleHasActiveUsers       = "There are active users for this job title, you can't disable it"
 	MsgRoleHasActiveJobsRoles       = "There are active jobs for this role, you can't delete it"
