@@ -181,7 +181,7 @@ func (b *bpsUserService) FetchUserByUserName(ctx context.Context, userName strin
 			attribute.String("user_code", userName),
 		))
 		b.logger.Errorf("[BpsUserSvc][FetchByUserName] fetch err: %v", err)
-		return nil, err
+		return nil, localization.ErrorBpsUserNotFound
 	}
 	if user == nil {
 		span.AddEvent("[FetchUserByUserName] BPS user not found", trace.WithAttributes(attribute.String("user_code", userName)))

@@ -1066,6 +1066,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBpsUserAlreadyExists,
 	ErrorCpsUserAlreadyExists,
 	ErrRoleDelegationForUserNotFound,
+	ErrorBpsUserNotFound,
 
 	SuccessAccountSubTypeCreateRequestSent,
 	SuccessAccountSubTypeCreated,
@@ -9790,4 +9791,10 @@ var (
 		Message:    MsgRoleDelegationForUserNotFound,
 		Type:       "error",
 	}
+
+	ErrorBpsUserNotFound = ResponseCode{
+		Code:       "ERROR_BPS_USER_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgBPSUserNotFound,
+		Type:       "error"}
 )
