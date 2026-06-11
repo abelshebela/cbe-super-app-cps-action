@@ -17,6 +17,9 @@ import (
 	avatar "cbe-super-app-cps-action/internal/glue/routing/avatar"
 	"cbe-super-app-cps-action/internal/glue/routing/bank"
 	account_sub_type_routing "cbe-super-app-cps-action/internal/glue/routing/account_sub_type"
+	apc_routing "cbe-super-app-cps-action/internal/glue/routing/account_product_category"
+	ap_routing "cbe-super-app-cps-action/internal/glue/routing/account_product"
+	tac_routing "cbe-super-app-cps-action/internal/glue/routing/term_and_condition"
 	bps_action "cbe-super-app-cps-action/internal/glue/routing/bps_action"
 	bps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/bps_action_role"
 	cps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/cps_action_role"
@@ -148,6 +151,9 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	bpsUser.Init(r, handlerLayer.BpsHandler, authMiddleware)
 	bank.Init(r, handlerLayer.BankHandler, authMiddleware)
 	account_sub_type_routing.Init(r, handlerLayer.AccountSubTypeHandler, authMiddleware)
+	apc_routing.Init(r, handlerLayer.AccountProductCategoryHandler, authMiddleware)
+	ap_routing.Init(r, handlerLayer.AccountProductHandler, authMiddleware)
+	tac_routing.Init(r, handlerLayer.TermAndConditionHandler, authMiddleware)
 	eventhandler.Init(r, handlerLayer.EventHandler, authMiddleware)
 	wallet.Init(r, handlerLayer.WalletHandler, authMiddleware)
 	topup.Init(r, handlerLayer.TopupHandler, authMiddleware)

@@ -70,6 +70,10 @@ import (
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"go.mongodb.org/mongo-driver/v2/bson"
+
+	apc_dto "cbe-super-app-cps-action/internal/constants/dto/account_product_category"
+	ap_dto "cbe-super-app-cps-action/internal/constants/dto/account_product"
+	tac_dto "cbe-super-app-cps-action/internal/constants/dto/term_and_condition"
 )
 
 type ServicesService interface {
@@ -605,6 +609,34 @@ type CPSRolesService interface {
 	GetServiceLevelLimits(ctx context.Context, roleCode string, filterParam *types.Filter) (*types.PaginatedResponse[[]cps_roles_dto.ServiceLevelLimitResponse], error)
 }
 
+type AccountProductCategoryService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.AccountProductCategory], error)
+	GetByID(ctx context.Context, id string) (*imodel.AccountProductCategory, error)
+	Create(ctx context.Context, req apc_dto.CreateAPCRequest) error
+	Update(ctx context.Context, id string, req apc_dto.UpdateAPCRequest) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+}
+
+type AccountProductService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.AccountProduct], error)
+	GetByID(ctx context.Context, id string) (*imodel.AccountProduct, error)
+	Create(ctx context.Context, req ap_dto.CreateAPRequest) error
+	Update(ctx context.Context, id string, req ap_dto.UpdateAPRequest) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+}
+
+type AccountOpeningTermsService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	GetAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.AccountOpeningTerms], error)
+	GetByID(ctx context.Context, id string) (*imodel.AccountOpeningTerms, error)
+	Upload(ctx context.Context, req tac_dto.CreateTACRequest) error
+	Delete(ctx context.Context, id string) error
+}
+
 type ServiceLayer struct {
 	RoleService                   RoleService
 	EventService                  EventService
@@ -669,6 +701,9 @@ type ServiceLayer struct {
 	SuperAppRole                  SuperAppRoleService
 	QueueManager                  *queue.QueueManager
 	RoleDelegationService         RoleDelegationService
+	AccountProductCategory        AccountProductCategoryService
+	AccountProduct                AccountProductService
+	AccountOpeningTerms           AccountOpeningTermsService
 }
 
 type ServiceContainer struct {
@@ -741,6 +776,9 @@ type ServiceContainer struct {
 	SuperAppRoleContainer              SuperAppRoleService
 	QueueManager                       *queue.QueueManager
 	RoleDelegationContainer            RoleDelegationService
+	AccountProductCategoryContainer    AccountProductCategoryService
+	AccountProductContainer            AccountProductService
+	AccountOpeningTermsContainer       AccountOpeningTermsService
 }
 
 type BPSActionRoleService interface {

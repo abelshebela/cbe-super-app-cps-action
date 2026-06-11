@@ -5,6 +5,9 @@ import (
 	accesslistsegmentation "cbe-super-app-cps-action/internal/constants/interfaces/access_list_segmentation"
 	accountBlockHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_block"
 	account_sub_type_interface "cbe-super-app-cps-action/internal/constants/interfaces/account_sub_type"
+	apc_interface "cbe-super-app-cps-action/internal/constants/interfaces/account_product_category"
+	ap_interface "cbe-super-app-cps-action/internal/constants/interfaces/account_product"
+	tac_interface "cbe-super-app-cps-action/internal/constants/interfaces/term_and_condition"
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
 	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
 	amountBasedInbound "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
@@ -77,6 +80,9 @@ import (
 	amountBasedAuthHandler "cbe-super-app-cps-action/internal/handlers/rest/http/amount_based_auth"
 	avatarHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/avatar"
 	account_sub_type_handler "cbe-super-app-cps-action/internal/handlers/rest/http/account_sub_type"
+	apc_handler "cbe-super-app-cps-action/internal/handlers/rest/http/account_product_category"
+	ap_handler "cbe-super-app-cps-action/internal/handlers/rest/http/account_product"
+	tac_handler "cbe-super-app-cps-action/internal/handlers/rest/http/term_and_condition"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
 	bankvaulthandler "cbe-super-app-cps-action/internal/handlers/rest/http/bankvault"
 	bpsActionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_action_handler"
@@ -176,6 +182,9 @@ type Handler struct {
 	UssdMerchantHandler           ussd_merchant_interface.UssdMerchantInbound
 	SuperAppRoleHandler           sar_iface.SuperAppRole
 	RoleDelegationHandler         role_delegation_outbound.RoleDelegation
+	AccountProductCategoryHandler apc_interface.AccountProductCategoryHandler
+	AccountProductHandler         ap_interface.AccountProductHandler
+	TermAndConditionHandler       tac_interface.TermAndConditionHandler
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger, queueManager *queue.QueueManager) Handler {
@@ -235,5 +244,8 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger, queueMa
 		UssdMerchantHandler:           ussd_merchant.NewUssdMerchantHandler(serviceLayer.UssdMerchantService, logger),
 		SuperAppRoleHandler:           superapp_role_handler.NewSuperAppRoleHandler(serviceLayer.SuperAppRole, logger),
 		RoleDelegationHandler:         role_delegation_handler.NewRoleDelegationHandler(serviceLayer.RoleDelegationService, logger),
+		AccountProductCategoryHandler: apc_handler.InitAccountProductCategoryAdapter(serviceLayer.AccountProductCategory, logger),
+		AccountProductHandler:         ap_handler.InitAccountProductAdapter(serviceLayer.AccountProduct, logger),
+		TermAndConditionHandler:       tac_handler.InitTermAndConditionAdapter(serviceLayer.AccountOpeningTerms, logger),
 	}
 }
