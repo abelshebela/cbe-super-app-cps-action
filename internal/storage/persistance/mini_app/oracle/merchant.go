@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -108,6 +109,56 @@ func (m *miniAppMerchantOraclePersistence) EnableOrDisable(ctx context.Context, 
 }
 
 //for test 
-func (m *miniAppMerchantOraclePersistence) FindByID(ctx context.Context, id string) (*local_model.MiniAppMerchant, error){
-	return &local_model.MiniAppMerchant{},nil
+
+func (m *miniAppMerchantOraclePersistence) FindByID(ctx context.Context, id string) (*local_model.MiniAppMerchant, error) {
+	if !isHexID(id) {
+		return nil, constants.ErrInvalidID
+	}
+	q := querypkg.MiniAppMerchantByID
+	var (
+		ID                                         string
+		name, code, settlement, bank, phone, email sql.NullString
+		enabled, deleted                           sql.NullInt64
+		createdAt, updatedAt, deletedAt            sql.NullTime
+	)
+	err := m.db.QueryRowContext(ctx, q, id).Scan(&ID, &name, &code, &settlement, &bank, &enabled, &deleted, &createdAt, &updatedAt, &deletedAt, &phone, &email)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, constants.ErrMiniAppMerchantNotFound
+		}
+		return nil, constants.ErrDatabaseError
+	}
+	var deletedPtr *time.Time
+	if deletedAt.Valid {
+		t := deletedAt.Time
+		deletedPtr = &t
+	}
+	return &local_model.MiniAppMerchant{
+		ID:                ID,
+		MerchantName:      nullString(name),
+		MerchantCode:      nullString(code),
+		PhoneNumber:       nullString(phone),
+		Email:             nullString(email),
+		SettlementMethod:  local_model.SettlementMethod(nullString(settlement)),
+		BankAccountNumber: nullString(bank),
+		Enabled:           enabled.Valid && enabled.Int64 == 1,
+		IsDeleted:         deleted.Valid && deleted.Int64 == 1,
+		CreatedAt:         nullTime(createdAt),
+		UpdatedAt:         nullTime(updatedAt),
+		DeletedAt:         deletedPtr,
+	}, nil
+}
+func nullString(ns sql.NullString) string {
+	if ns.Valid {
+		return ns.String
+	}
+	return ""
+}
+
+
+func nullTime(nt sql.NullTime) time.Time {
+	if nt.Valid {
+		return nt.Time
+	}
+	return time.Time{}
 }
