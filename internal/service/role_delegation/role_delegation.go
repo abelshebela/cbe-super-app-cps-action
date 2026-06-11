@@ -386,8 +386,15 @@ func (r *roleDelegation) FindById(ctx context.Context, id string) (*imodel.RoleD
 		} else {
 			r.logger.Errorf("[RoleDelegation/FindById] failed to find delegator department by id: %v", err)
 		}
-		if role, err := r.roleRepo.FindByCode(ctx, roleDelegation.NewRoleID); err == nil && role != nil {
+
+		if role, err := r.roleRepo.FindByCode(ctx, roleDelegation.DelegatedUserExistingRole); err == nil && role != nil {
 			roleDelegation.DelegatedUserExistingRole = role.Name
+		} else {
+			r.logger.Errorf("[RoleDelegation/FindById] failed to find job role by id: %v", err)
+		}
+
+		if role, err := r.roleRepo.FindByCode(ctx, roleDelegation.NewRoleID); err == nil && role != nil {
+			roleDelegation.NewRoleID = role.Name
 		} else {
 			r.logger.Errorf("[RoleDelegation/FindById] failed to find job role by id: %v", err)
 		}

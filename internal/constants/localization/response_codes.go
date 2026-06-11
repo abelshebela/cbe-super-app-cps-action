@@ -1065,6 +1065,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidDelegationBranch,
 	ErrorBpsUserAlreadyExists,
 	ErrorCpsUserAlreadyExists,
+	ErrRoleDelegationForUserNotFound,
 
 	SuccessAccountSubTypeCreateRequestSent,
 	SuccessAccountSubTypeCreated,
@@ -4501,14 +4502,14 @@ var (
 	SuccessRoleDelegationDisabled = ResponseCode{
 		Code:       "SUCCESS_ROLE_DELEGATION_DISABLED",
 		StatusCode: StatusOK,
-		Message:    "Role delegation disabled successfully",
+		Message:    "Role delegation revoked successfully",
 		Type:       "success",
 	}
 
 	SuccessRoleDelegationDisableRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_ROLE_DELEGATION_DISABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    "Role delegation disable request submitted successfully",
+		Message:    "Role delegation revoke request submitted successfully",
 		Type:       "success",
 	}
 
@@ -9780,6 +9781,13 @@ var (
 		Code:       "ERROR_ACCOUNT_SUB_TYPE_INVALID_GENDER",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccountSubTypeInvalidGender,
+		Type:       "error",
+	}
+
+	ErrRoleDelegationForUserNotFound = ResponseCode{
+		Code:       "ERROR_ROLE_DELEGATION_FOR_USER_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgRoleDelegationForUserNotFound,
 		Type:       "error",
 	}
 )
