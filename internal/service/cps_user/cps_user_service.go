@@ -578,7 +578,7 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		}
 	}
 
-	s.logger.Infof("[GetCpsUserDetail] fetched populated user: %v", populated)
+	s.logger.Infof("[GetCpsUserDetail] fetched populated user: %+v", populated)
 
 	var makerAlloc, checkerAlloc, auditorAlloc, portalCard, bpsCheckerAlloc, bpsAuditorAlloc []string
 	var roles *imodel.JobRole
