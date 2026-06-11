@@ -192,7 +192,7 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 	}
 	if roleDelegation.DelegatedUserUserType == "BPS" {
 		user, err := r.bpsUserRepo.FindByOr(ctx, roleDelegation.DelegatedUserPhoneNumber, roleDelegation.DelegatedUserEmail, roleDelegation.DelegatedUserID)
-		if err != nil {
+		if err.Error() != localization.ErrorResourceNotFound.Code {
 			r.logger.Errorf("[RoleDelegation/Create] Failed to find BPS user: %v", err)
 			return localization.ErrorUnexpectedError
 		}
