@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"net/mail"
 	"strings"
 	"time"
@@ -128,7 +129,7 @@ func BuildRoleDelegationRequestWithNewUser(body role_delegation_dto.RoleDelegati
 	delegationType := strings.TrimSpace(body.DelegationType)
 	delegatedUserPhoneNumber := strings.TrimSpace(body.DelegatedUserPhoneNumber)
 	delegatedUserEmail := strings.ToLower(strings.TrimSpace(body.DelegatedUserEmail))
-	delegatedUserExistingRole := strings.ToLower(strings.TrimSpace(body.DelegatedUserExistingRole))
+	// delegatedUserExistingRole := strings.ToLower(strings.TrimSpace(body.DelegatedUserExistingRole))
 
 	delegatorUserID := strings.TrimSpace(body.DelegatorUserID)
 	delegatorUserFullName := strings.TrimSpace(body.DelegatorUserFullName)
@@ -140,11 +141,53 @@ func BuildRoleDelegationRequestWithNewUser(body role_delegation_dto.RoleDelegati
 	newDepartmentOrBranch := strings.TrimSpace(body.NewDepartmentOrBranch)
 	reason := strings.TrimSpace(body.Reason)
 
-	if delegatedUserID == "" || delegatedUserFullName == "" || delegatedUserUserType == "" ||
-		delegatedUserDepartmentOrBranch == "" || delegatedUserJobTitle == "" || delegationType == "" || delegatedUserPhoneNumber == "" || delegatedUserEmail == "" ||
-		delegatorUserID == "" || delegatorUserFullName == "" || delegatorUserJobTitle == "" || delegatorUserRole == "" ||
-		newRoleID == "" || newDepartmentOrBranch == "" || reason == "" || delegatorUserUserType == "" || delegatedUserExistingRole == "" {
-		return imodel.RoleDelegation{}, localization.ErrorRequiredFieldMissing
+	if delegatedUserID == "" {
+		return imodel.RoleDelegation{}, errors.New("Delegated user ID is required")
+	}
+	if delegatedUserFullName == "" {
+		return imodel.RoleDelegation{}, errors.New("Delegated user full name is required")
+	}
+	if delegatedUserUserType == "" {
+		return imodel.RoleDelegation{}, errors.New("Delegated user type is required")
+	}
+	if delegatedUserDepartmentOrBranch == "" {
+		return imodel.RoleDelegation{}, errors.New("Delegated user department or branch is required")
+	}
+	if delegatedUserJobTitle == "" {
+		return imodel.RoleDelegation{}, errors.New("Delegated user job title is required")
+	}
+	if delegationType == "" {
+		return imodel.RoleDelegation{}, errors.New("Delegation type is required")
+	}
+	if delegatedUserPhoneNumber == "" {
+		return imodel.RoleDelegation{}, errors.New("Delegated user phone number is required")
+	}
+	if delegatedUserEmail == "" {
+		return imodel.RoleDelegation{}, errors.New("Delegated user email is required")
+	}
+	if delegatorUserID == "" {
+		return imodel.RoleDelegation{}, errors.New("Delegator user ID is required")
+	}
+	if delegatorUserFullName == "" {
+		return imodel.RoleDelegation{}, errors.New("Delegator user full name is required")
+	}
+	if delegatorUserJobTitle == "" {
+		return imodel.RoleDelegation{}, errors.New("Delegator user job title is required")
+	}
+	if delegatorUserRole == "" {
+		return imodel.RoleDelegation{}, errors.New("Delegator user role is required")
+	}
+	if newRoleID == "" {
+		return imodel.RoleDelegation{}, errors.New("New role ID is required")
+	}
+	if newDepartmentOrBranch == "" {
+		return imodel.RoleDelegation{}, errors.New("New department or branch is required")
+	}
+	if reason == "" {
+		return imodel.RoleDelegation{}, errors.New("Reason is required")
+	}
+	if delegatorUserUserType == "" {
+		return imodel.RoleDelegation{}, errors.New("Delegator user type is required")
 	}
 
 	body.DelegatedUserUserType = strings.Clone(body.DelegatedUserUserType)
@@ -194,7 +237,7 @@ func BuildRoleDelegationRequestWithNewUser(body role_delegation_dto.RoleDelegati
 		DelegationType:                  delegationType,
 		DelegatedUserPhoneNumber:        formattedPhone,
 		DelegatedUserEmail:              delegatedUserEmail,
-		DelegatedUserExistingRole:       delegatedUserExistingRole,
+		// DelegatedUserExistingRole:       delegatedUserExistingRole,
 
 		DelegatorUserID:       delegatorUserID,
 		DelegatorUserFullName: delegatorUserFullName,
