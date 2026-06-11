@@ -168,8 +168,8 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		}
 	} else {
 		department, err := r.department.FindByID(ctx, roleDelegation.NewDepartmentOrBranch)
-		if err != nil || !department.Enabled {
-			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err.Error())
+		if err != nil || department == nil || !department.Enabled {
+			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err)
 			return localization.ErrorInvalidDelegationDepartment
 		}
 	}
@@ -253,15 +253,15 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 		}
 	} else {
 		department, err := r.department.FindByID(ctx, roleDelegation.NewDepartmentOrBranch)
-		if err != nil || !department.Enabled {
-			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err.Error())
+		if err != nil || department == nil || !department.Enabled {
+			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.NewDepartmentOrBranch, err)
 			return localization.ErrorInvalidDelegationDepartment
 		}
 		roleDelegation.NewDepartmentOrBranch = department.ID.Hex()
 
 		existingDep, err := r.department.FindByID(ctx, roleDelegation.DelegatedUserDepartmentOrBranch)
-		if err != nil || !existingDep.Enabled {
-			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err.Error())
+		if err != nil || existingDep == nil || !existingDep.Enabled {
+			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err)
 			return localization.ErrorInvalidDelegationDepartment
 		}
 		roleDelegation.DelegatedUserDepartmentOrBranch = existingDep.ID.Hex()
