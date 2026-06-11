@@ -441,6 +441,21 @@ const (
 	RequestDeleteAccountSubType  constants.RequestAction = "DELETE_ACCOUNT_SUB_TYPE"
 	RequestEnableAccountSubType  constants.RequestAction = "ENABLE_ACCOUNT_SUB_TYPE"
 	RequestDisableAccountSubType constants.RequestAction = "DISABLE_ACCOUNT_SUB_TYPE"
+
+	RequestCreateAccountProductCategory  constants.RequestAction = "CREATE_ACCOUNT_PRODUCT_CATEGORY"
+	RequestUpdateAccountProductCategory  constants.RequestAction = "UPDATE_ACCOUNT_PRODUCT_CATEGORY"
+	RequestDeleteAccountProductCategory  constants.RequestAction = "DELETE_ACCOUNT_PRODUCT_CATEGORY"
+	RequestEnableAccountProductCategory  constants.RequestAction = "ENABLE_ACCOUNT_PRODUCT_CATEGORY"
+	RequestDisableAccountProductCategory constants.RequestAction = "DISABLE_ACCOUNT_PRODUCT_CATEGORY"
+
+	RequestCreateAccountProduct  constants.RequestAction = "CREATE_ACCOUNT_PRODUCT"
+	RequestUpdateAccountProduct  constants.RequestAction = "UPDATE_ACCOUNT_PRODUCT"
+	RequestDeleteAccountProduct  constants.RequestAction = "DELETE_ACCOUNT_PRODUCT"
+	RequestEnableAccountProduct  constants.RequestAction = "ENABLE_ACCOUNT_PRODUCT"
+	RequestDisableAccountProduct constants.RequestAction = "DISABLE_ACCOUNT_PRODUCT"
+
+	RequestCreateTermAndCondition constants.RequestAction = "CREATE_TERM_AND_CONDITION"
+	RequestDeleteTermAndCondition constants.RequestAction = "DELETE_TERM_AND_CONDITION"
 )
 
 var validRequestActions = map[constants.RequestAction]struct{}{
@@ -791,6 +806,21 @@ var validRequestActions = map[constants.RequestAction]struct{}{
 	RequestDeleteAccountSubType:  {},
 	RequestEnableAccountSubType:  {},
 	RequestDisableAccountSubType: {},
+
+	RequestCreateAccountProductCategory:  {},
+	RequestUpdateAccountProductCategory:  {},
+	RequestDeleteAccountProductCategory:  {},
+	RequestEnableAccountProductCategory:  {},
+	RequestDisableAccountProductCategory: {},
+
+	RequestCreateAccountProduct:  {},
+	RequestUpdateAccountProduct:  {},
+	RequestDeleteAccountProduct:  {},
+	RequestEnableAccountProduct:  {},
+	RequestDisableAccountProduct: {},
+
+	RequestCreateTermAndCondition: {},
+	RequestDeleteTermAndCondition: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -1023,6 +1053,24 @@ var RequestActionGroups = map[string][]constants.RequestAction{
 		RequestDeleteAccountSubType,
 		RequestEnableAccountSubType,
 		RequestDisableAccountSubType,
+	},
+	"ACCOUNTPRODUCTCATEGORY": {
+		RequestCreateAccountProductCategory,
+		RequestUpdateAccountProductCategory,
+		RequestDeleteAccountProductCategory,
+		RequestEnableAccountProductCategory,
+		RequestDisableAccountProductCategory,
+	},
+	"ACCOUNTPRODUCT": {
+		RequestCreateAccountProduct,
+		RequestUpdateAccountProduct,
+		RequestDeleteAccountProduct,
+		RequestEnableAccountProduct,
+		RequestDisableAccountProduct,
+	},
+	"TERMANDCONDITION": {
+		RequestCreateTermAndCondition,
+		RequestDeleteTermAndCondition,
 	},
 	"WALLET": {
 		RequestCreateWallet,

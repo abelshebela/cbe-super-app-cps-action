@@ -9782,4 +9782,290 @@ var (
 		Message:    MsgAccountSubTypeInvalidGender,
 		Type:       "error",
 	}
+
+	// Account Product Category success codes
+	SuccessAPCCreateRequestSent = ResponseCode{
+		Code:       "SUCCESS_APC_CREATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPCCreateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPCCreated = ResponseCode{
+		Code:       "SUCCESS_APC_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgAPCCreated,
+		Type:       "success",
+	}
+
+	SuccessAPCUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_APC_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPCUpdateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPCUpdated = ResponseCode{
+		Code:       "SUCCESS_APC_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgAPCUpdated,
+		Type:       "success",
+	}
+
+	SuccessAPCDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_APC_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPCDeleteRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPCDeleted = ResponseCode{
+		Code:       "SUCCESS_APC_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgAPCDeleted,
+		Type:       "success",
+	}
+
+	SuccessAPCEnableRequestSent = ResponseCode{
+		Code:       "SUCCESS_APC_ENABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPCEnableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPCEnabled = ResponseCode{
+		Code:       "SUCCESS_APC_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgAPCEnabled,
+		Type:       "success",
+	}
+
+	SuccessAPCDisableRequestSent = ResponseCode{
+		Code:       "SUCCESS_APC_DISABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPCDisableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPCDisabled = ResponseCode{
+		Code:       "SUCCESS_APC_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgAPCDisabled,
+		Type:       "success",
+	}
+
+	SuccessAPCsRetrieved = ResponseCode{
+		Code:       "SUCCESS_APCS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgAPCsRetrieved,
+		Type:       "success",
+	}
+
+	SuccessAPCRetrieved = ResponseCode{
+		Code:       "SUCCESS_APC_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgAPCRetrieved,
+		Type:       "success",
+	}
+
+	// Account Product Category error codes
+	ErrorAPCNotFound = ResponseCode{
+		Code:       "ERROR_APC_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgAPCNotFound,
+		Type:       "error",
+	}
+
+	ErrorAPCAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_APC_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAPCAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorAPCAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_APC_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAPCAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorAPCAlreadyExists = ResponseCode{
+		Code:       "ERROR_APC_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgAPCAlreadyExists,
+		Type:       "error",
+	}
+
+	// Account Product success codes
+	SuccessAPCreateRequestSent = ResponseCode{
+		Code:       "SUCCESS_AP_CREATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPCreateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPCreated = ResponseCode{
+		Code:       "SUCCESS_AP_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgAPCreated,
+		Type:       "success",
+	}
+
+	SuccessAPUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_AP_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPUpdateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPUpdated = ResponseCode{
+		Code:       "SUCCESS_AP_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgAPUpdated,
+		Type:       "success",
+	}
+
+	SuccessAPDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_AP_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPDeleteRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPDeleted = ResponseCode{
+		Code:       "SUCCESS_AP_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgAPDeleted,
+		Type:       "success",
+	}
+
+	SuccessAPEnableRequestSent = ResponseCode{
+		Code:       "SUCCESS_AP_ENABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPEnableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPEnabled = ResponseCode{
+		Code:       "SUCCESS_AP_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgAPEnabled,
+		Type:       "success",
+	}
+
+	SuccessAPDisableRequestSent = ResponseCode{
+		Code:       "SUCCESS_AP_DISABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAPDisableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessAPDisabled = ResponseCode{
+		Code:       "SUCCESS_AP_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgAPDisabled,
+		Type:       "success",
+	}
+
+	SuccessAPsRetrieved = ResponseCode{
+		Code:       "SUCCESS_APS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgAPsRetrieved,
+		Type:       "success",
+	}
+
+	SuccessAPRetrieved = ResponseCode{
+		Code:       "SUCCESS_AP_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgAPRetrieved,
+		Type:       "success",
+	}
+
+	// Account Product error codes
+	ErrorAPNotFound = ResponseCode{
+		Code:       "ERROR_AP_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgAPNotFound,
+		Type:       "error",
+	}
+
+	ErrorAPAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_AP_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAPAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorAPAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_AP_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAPAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorAPAlreadyExists = ResponseCode{
+		Code:       "ERROR_AP_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgAPAlreadyExists,
+		Type:       "error",
+	}
+
+	// Term and Condition success codes
+	SuccessTACUploadRequestSent = ResponseCode{
+		Code:       "SUCCESS_TAC_UPLOAD_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgTACUploadRequestSent,
+		Type:       "success",
+	}
+
+	SuccessTACUploaded = ResponseCode{
+		Code:       "SUCCESS_TAC_UPLOADED",
+		StatusCode: StatusOK,
+		Message:    MsgTACUploaded,
+		Type:       "success",
+	}
+
+	SuccessTACDeleteRequestSent = ResponseCode{
+		Code:       "SUCCESS_TAC_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgTACDeleteRequestSent,
+		Type:       "success",
+	}
+
+	SuccessTACDeleted = ResponseCode{
+		Code:       "SUCCESS_TAC_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgTACDeleted,
+		Type:       "success",
+	}
+
+	SuccessTACsRetrieved = ResponseCode{
+		Code:       "SUCCESS_TACS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgTACsRetrieved,
+		Type:       "success",
+	}
+
+	SuccessTACRetrieved = ResponseCode{
+		Code:       "SUCCESS_TAC_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgTACRetrieved,
+		Type:       "success",
+	}
+
+	// Term and Condition error codes
+	ErrorTACNotFound = ResponseCode{
+		Code:       "ERROR_TAC_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgTACNotFound,
+		Type:       "error",
+	}
+
+	ErrorTACAlreadyExists = ResponseCode{
+		Code:       "ERROR_TAC_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgTACAlreadyExists,
+		Type:       "error",
+	}
 )

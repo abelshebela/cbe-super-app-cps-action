@@ -46,6 +46,15 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(constants.RequestAction(action), "ACCOUNTSUBTYPE"):
 		return d.app.AccountSubTypeContainer.Authorize(ctx, cpsAction)
 
+	case IsActionInGroup(constants.RequestAction(action), "ACCOUNTPRODUCTCATEGORY"):
+		return d.app.AccountProductCategoryContainer.Authorize(ctx, cpsAction)
+
+	case IsActionInGroup(constants.RequestAction(action), "ACCOUNTPRODUCT"):
+		return d.app.AccountProductContainer.Authorize(ctx, cpsAction)
+
+	case IsActionInGroup(constants.RequestAction(action), "TERMANDCONDITION"):
+		return d.app.AccountOpeningTermsContainer.Authorize(ctx, cpsAction)
+
 	case IsActionInGroup(constants.RequestAction(action), "KYCVERIFIER"):
 		return d.app.KYCVerifierContainer.Authorize(ctx, cpsAction)
 
