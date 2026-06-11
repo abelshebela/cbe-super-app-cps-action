@@ -293,6 +293,15 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsActionService = cpsaction.WithActionRolePolicy(cpsActionService, persistence.CPSActionRolePersistence, logger)
 	serviceContainer.CPSActionContainer = cpsActionService
 
+	// Third pass: rewire new services to the final cpsActionService (which uses the
+	// rebuilt dispatcher that has all containers populated, preventing nil-dispatch panics).
+	accountProductCategoryService = apc_svc.NewAccountProductCategoryService(oracle.AccountProductCategory, cpsActionService, logger)
+	serviceContainer.AccountProductCategoryContainer = accountProductCategoryService
+	accountProductService = ap_svc.NewAccountProductService(oracle.AccountProduct, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg)
+	serviceContainer.AccountProductContainer = accountProductService
+	accountOpeningTermsService = tac_svc.NewAccountOpeningTermsService(oracle.AccountOpeningTerms, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg)
+	serviceContainer.AccountOpeningTermsContainer = accountOpeningTermsService
+
 	// Services catalog service (uses CPSAction for maker-checker)
 	// servicesService = services_svc.NewServicesService(persistence.ServicesPersistence, cpsActionService, logger)
 	servicesService = services_svc.NewServicesService(oracle.ServicesPersistence, persistence.UssdMerchantPersistence, cpsActionService, coreInterface, logger)
