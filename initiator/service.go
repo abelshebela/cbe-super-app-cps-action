@@ -6,10 +6,10 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	access_list_segmentation_service "cbe-super-app-cps-action/internal/service/access_list_segmentation"
 	accountblock "cbe-super-app-cps-action/internal/service/account_block"
+	account_sub_type_svc "cbe-super-app-cps-action/internal/service/account_sub_type"
 	accountvalidation "cbe-super-app-cps-action/internal/service/account_validation"
 	advert "cbe-super-app-cps-action/internal/service/ad"
 	amount_based_auth "cbe-super-app-cps-action/internal/service/amount_based_auth"
-	account_sub_type_svc "cbe-super-app-cps-action/internal/service/account_sub_type"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
 	bps_action_service "cbe-super-app-cps-action/internal/service/bps_action"
 	bpsuser "cbe-super-app-cps-action/internal/service/bps_user"
@@ -157,7 +157,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	customerKYCService := kyc_service.NewCustomerKYCService(oracle.CustomerKYC, nil, persistence.CpsUserPersistence, accountLookupAdapter, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	customerGroupService := customer_group.NewCustomerGroupService(oracle.CustomerGroup, nil, logger)
 	superAppRoleService := superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, nil, coreInterface, logger)
-	roleDelegationService := role_delegation_service.NewRoleDelegationService(persistence.RoleDelegationPersistence, persistence.JobRolePersistence, persistence.CpsUserPersistence, persistence.BPSUserPersistence, persistence.DepartmentPersistence, oracle.AccountBlock, nil, logger)
+	roleDelegationService := role_delegation_service.NewRoleDelegationService(persistence.RoleDelegationPersistence, persistence.JobRolePersistence, persistence.CpsUserPersistence, persistence.BPSUserPersistence, persistence.DepartmentPersistence, persistence.RolePersistence, oracle.AccountBlock, nil, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -327,7 +327,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.CustomerGroupContainer = customerGroupService
 	superAppRoleService = superapp_role.NewSuperAppRoleService(oracle.SuperAppRole, cpsActionService, coreInterface, logger)
 	serviceContainer.SuperAppRoleContainer = superAppRoleService
-	roleDelegationService = role_delegation_service.NewRoleDelegationService(persistence.RoleDelegationPersistence, persistence.JobRolePersistence, persistence.CpsUserPersistence, persistence.BPSUserPersistence, persistence.DepartmentPersistence, oracle.AccountBlock, cpsActionService, logger)
+	roleDelegationService = role_delegation_service.NewRoleDelegationService(persistence.RoleDelegationPersistence, persistence.JobRolePersistence, persistence.CpsUserPersistence, persistence.BPSUserPersistence, persistence.DepartmentPersistence, persistence.RolePersistence, oracle.AccountBlock, cpsActionService, logger)
 	serviceContainer.RoleDelegationContainer = roleDelegationService
 
 	return service.ServiceLayer{

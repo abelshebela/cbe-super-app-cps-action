@@ -430,11 +430,12 @@ func (r *roleDelegation) Update(ctx context.Context, id string, update imodel.Ro
 	return r.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 
-func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, bpsUserRepo storage.BPSUserRepository, department storage.DepartmentRepository, branchRepo storage.AccountBlockRepository, cpsService service.CPSActionService, logger utils.Logger) service.RoleDelegationService {
+func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, bpsUserRepo storage.BPSUserRepository, department storage.DepartmentRepository, roleRepo storage.RoleRepository, branchRepo storage.AccountBlockRepository, cpsService service.CPSActionService, logger utils.Logger) service.RoleDelegationService {
 	return &roleDelegation{
 		cpsService:   cpsService,
 		repo:         repo,
 		jobTitleRepo: jobTitleRepo,
+		roleRepo:     roleRepo,
 		cpsUserRepo:  cpsUserRepo,
 		bpsUserRepo:  bpsUserRepo,
 		branchRepo:   branchRepo,
