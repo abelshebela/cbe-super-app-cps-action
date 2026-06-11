@@ -249,7 +249,7 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 	if roleDelegation.DelegationType == "BPS" {
 		if branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.NewDepartmentOrBranch); err != nil || branch == nil {
 			r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.NewDepartmentOrBranch)
-			return localization.ErrorInvalidDelegationDepartment
+			return localization.ErrorInvalidDelegationBranch
 		}
 	} else {
 		department, err := r.department.FindByID(ctx, roleDelegation.NewDepartmentOrBranch)
@@ -267,9 +267,9 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 			}
 			roleDelegation.DelegatedUserDepartmentOrBranch = existingDep.ID.Hex()
 		} else {
-			if branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.NewDepartmentOrBranch); err != nil || branch == nil {
+			if branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.DelegatedUserDepartmentOrBranch); err != nil || branch == nil {
 				r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.NewDepartmentOrBranch)
-				return localization.ErrorInvalidDelegationDepartment
+				return localization.ErrorInvalidDelegationBranch
 			}
 		}
 	}
