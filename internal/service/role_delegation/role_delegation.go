@@ -143,7 +143,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		}
 		roleDelegation.DelegatedUserFullName = user.FullName
 		roleDelegation.DelegatedUserUserCode = user.UserCode
-		roleDelegation.DelegatedUserDepartmentOrBranch = user.DelegationID.Hex()
+		// roleDelegation.DelegatedUserDepartmentOrBranch = user.DelegationID.Hex()
 		roleDelegation.DelegatedUserJobTitle = user.JobTitle
 		roleDelegation.DelegatedUserExistingRole = user.Role
 		roleDelegation.DelegatedUserPhoneNumber = user.PhoneNumber
@@ -168,7 +168,7 @@ func (r *roleDelegation) CreateWithExistingUser(ctx context.Context, roleDelegat
 		}
 	} else {
 		department, err := r.department.FindByID(ctx, roleDelegation.NewDepartmentOrBranch)
-		if department == nil || !department.Enabled {
+		if err != nil || !department.Enabled {
 			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err.Error())
 			return localization.ErrorInvalidDelegationDepartment
 		}
@@ -192,7 +192,7 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 	}
 	if roleDelegation.DelegatedUserUserType == "BPS" {
 		user, err := r.bpsUserRepo.FindByOr(ctx, roleDelegation.DelegatedUserPhoneNumber, roleDelegation.DelegatedUserEmail, roleDelegation.DelegatedUserID)
-		if err.Error() != localization.ErrorResourceNotFound.Code {
+		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 			r.logger.Errorf("[RoleDelegation/Create] Failed to find BPS user: %v", err)
 			return localization.ErrorUnexpectedError
 		}
