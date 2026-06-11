@@ -260,7 +260,7 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 		roleDelegation.NewDepartmentOrBranch = department.ID.Hex()
 
 		existingDep, err := r.department.FindByID(ctx, roleDelegation.DelegatedUserDepartmentOrBranch)
-		if existingDep == nil || !existingDep.Enabled {
+		if err != nil || !existingDep.Enabled {
 			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err.Error())
 			return localization.ErrorInvalidDelegationDepartment
 		}
