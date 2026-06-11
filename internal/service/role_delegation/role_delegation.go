@@ -22,6 +22,7 @@ import (
 type roleDelegation struct {
 	repo         storage.RoleDelegationRepository
 	jobTitleRepo storage.JobRoleRepository
+	roleRepo     storage.RoleRepository
 	cpsUserRepo  storage.CpsUserRepository
 	bpsUserRepo  storage.BPSUserRepository
 	department   storage.DepartmentRepository
@@ -385,8 +386,15 @@ func (r *roleDelegation) FindById(ctx context.Context, id string) (*imodel.RoleD
 		} else {
 			r.logger.Errorf("[RoleDelegation/FindById] failed to find delegator department by id: %v", err)
 		}
-		if role, err := r.jobTitleRepo.FindByRole(ctx, roleDelegation.NewRoleID); err == nil && role != nil {
-			roleDelegation.DelegatedUserExistingRole = role.Role
+
+		if role, err := r.roleRepo.FindByCode(ctx, roleDelegation.DelegatedUserExistingRole); err == nil && role != nil {
+			roleDelegation.DelegatedUserExistingRole = role.Name
+		} else {
+			r.logger.Errorf("[RoleDelegation/FindById] failed to find job role by id: %v", err)
+		}
+
+		if role, err := r.roleRepo.FindByCode(ctx, roleDelegation.NewRoleID); err == nil && role != nil {
+			roleDelegation.NewRoleID = role.Name
 		} else {
 			r.logger.Errorf("[RoleDelegation/FindById] failed to find job role by id: %v", err)
 		}
@@ -429,11 +437,12 @@ func (r *roleDelegation) Update(ctx context.Context, id string, update imodel.Ro
 	return r.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 
-func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, bpsUserRepo storage.BPSUserRepository, department storage.DepartmentRepository, branchRepo storage.AccountBlockRepository, cpsService service.CPSActionService, logger utils.Logger) service.RoleDelegationService {
+func NewRoleDelegationService(repo storage.RoleDelegationRepository, jobTitleRepo storage.JobRoleRepository, cpsUserRepo storage.CpsUserRepository, bpsUserRepo storage.BPSUserRepository, department storage.DepartmentRepository, roleRepo storage.RoleRepository, branchRepo storage.AccountBlockRepository, cpsService service.CPSActionService, logger utils.Logger) service.RoleDelegationService {
 	return &roleDelegation{
 		cpsService:   cpsService,
 		repo:         repo,
 		jobTitleRepo: jobTitleRepo,
+		roleRepo:     roleRepo,
 		cpsUserRepo:  cpsUserRepo,
 		bpsUserRepo:  bpsUserRepo,
 		branchRepo:   branchRepo,

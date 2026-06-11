@@ -1065,6 +1065,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidDelegationBranch,
 	ErrorBpsUserAlreadyExists,
 	ErrorCpsUserAlreadyExists,
+	ErrRoleDelegationForUserNotFound,
+	ErrorBpsUserNotFound,
 
 	SuccessAccountSubTypeCreateRequestSent,
 	SuccessAccountSubTypeCreated,
@@ -4501,14 +4503,14 @@ var (
 	SuccessRoleDelegationDisabled = ResponseCode{
 		Code:       "SUCCESS_ROLE_DELEGATION_DISABLED",
 		StatusCode: StatusOK,
-		Message:    "Role delegation disabled successfully",
+		Message:    "Role delegation revoked successfully",
 		Type:       "success",
 	}
 
 	SuccessRoleDelegationDisableRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_ROLE_DELEGATION_DISABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    "Role delegation disable request submitted successfully",
+		Message:    "Role delegation revoke request submitted successfully",
 		Type:       "success",
 	}
 
@@ -9783,6 +9785,18 @@ var (
 		Type:       "error",
 	}
 
+	ErrRoleDelegationForUserNotFound = ResponseCode{
+		Code:       "ERROR_ROLE_DELEGATION_FOR_USER_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgRoleDelegationForUserNotFound,
+		Type:       "error",
+	}
+
+	ErrorBpsUserNotFound = ResponseCode{
+		Code:       "ERROR_BPS_USER_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgBPSUserNotFound,
+		Type:       "error"}
 	// Account Product Category success codes
 	SuccessAPCCreateRequestSent = ResponseCode{
 		Code:       "SUCCESS_APC_CREATE_REQUEST_SENT",
