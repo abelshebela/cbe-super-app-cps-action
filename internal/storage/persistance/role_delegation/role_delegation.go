@@ -371,6 +371,7 @@ func (r *roleDelegationRepository) FindByUserCode(ctx context.Context, usercode 
 		UserName:           data.DelegatedUserID,
 		Realm:              data.DelegatedUserUserType,
 		IsDelegationActive: true,
+		DelegatedRole:      data.NewRoleID,
 	}, nil
 }
 
