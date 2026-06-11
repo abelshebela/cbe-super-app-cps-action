@@ -564,7 +564,7 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 	populated, err := s.repo.GetPopulatedWithRole(ctx, userCode)
 	if err != nil {
 		span.AddEvent("failed to get populated by id", trace.WithAttributes(attribute.String("error", err.Error())))
-		if errors.Is(err, localization.ErrorUserNotFound) {
+		if !errors.Is(err, localization.ErrorUserNotFound) {
 			s.logger.Errorf("[GetCpsUserDetail] cps user not found for user code: %s in GetPopulatedWithRole", userCode)
 			return nil, err
 		}
