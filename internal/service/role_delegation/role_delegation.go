@@ -259,12 +259,19 @@ func (r *roleDelegation) CreateWithNewUser(ctx context.Context, roleDelegation i
 		}
 		roleDelegation.NewDepartmentOrBranch = department.ID.Hex()
 
-		existingDep, err := r.department.FindByID(ctx, roleDelegation.DelegatedUserDepartmentOrBranch)
-		if err != nil || existingDep == nil || !existingDep.Enabled {
-			r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err)
-			return localization.ErrorInvalidDelegationDepartment
+		if roleDelegation.DelegatedUserExistingRole == "CPS" {
+			existingDep, err := r.department.FindByID(ctx, roleDelegation.DelegatedUserDepartmentOrBranch)
+			if err != nil || existingDep == nil || !existingDep.Enabled {
+				r.logger.Errorf("[RoleDelegation/Create] Department not found: %s err: %v", roleDelegation.DelegatedUserDepartmentOrBranch, err)
+				return localization.ErrorInvalidDelegationDepartment
+			}
+			roleDelegation.DelegatedUserDepartmentOrBranch = existingDep.ID.Hex()
+		} else {
+			if branch, err := r.branchRepo.GetBranchByCode(ctx, roleDelegation.NewDepartmentOrBranch); err != nil || branch == nil {
+				r.logger.Errorf("[RoleDelegation/Create] Branch not found: %s", roleDelegation.NewDepartmentOrBranch)
+				return localization.ErrorInvalidDelegationDepartment
+			}
 		}
-		roleDelegation.DelegatedUserDepartmentOrBranch = existingDep.ID.Hex()
 	}
 
 	roleDelegation.Enable = true
