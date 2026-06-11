@@ -853,6 +853,7 @@ func (b *bpsActionRepository) Update(ctx context.Context, actionCode string, upd
 		Status:             update.Status,
 		CreatedAt:          update.CreatedAt,
 		LastModifiedAt:     update.LastModifiedAt,
+		CustomerBarred:     update.CustomerBarred,
 	}
 
 	updateMap := bson.M{"$set": dbUpdate}
@@ -958,6 +959,7 @@ func (b *bpsActionRepository) UpdateByActionCode(ctx context.Context, actionCode
 		Status:             update.Status,
 		CreatedAt:          update.CreatedAt,
 		LastModifiedAt:     update.LastModifiedAt,
+		CustomerBarred:     update.CustomerBarred,
 	}
 
 	updateMap := bson.M{"$set": dbUpdate}
