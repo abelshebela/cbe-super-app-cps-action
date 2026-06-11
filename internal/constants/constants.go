@@ -951,6 +951,24 @@ const (
 	RequestEnableBankVault  RequestAction = "ENABLE_VAULT_BANK"
 	RequestDisAbleBankVault RequestAction = "DISABLE_VAULT_BANK"
 
+	// Account Product Category
+	RequestCreateAccountProductCategory  RequestAction = "CREATE_ACCOUNT_PRODUCT_CATEGORY"
+	RequestUpdateAccountProductCategory  RequestAction = "UPDATE_ACCOUNT_PRODUCT_CATEGORY"
+	RequestDeleteAccountProductCategory  RequestAction = "DELETE_ACCOUNT_PRODUCT_CATEGORY"
+	RequestEnableAccountProductCategory  RequestAction = "ENABLE_ACCOUNT_PRODUCT_CATEGORY"
+	RequestDisableAccountProductCategory RequestAction = "DISABLE_ACCOUNT_PRODUCT_CATEGORY"
+
+	// Account Product
+	RequestCreateAccountProduct  RequestAction = "CREATE_ACCOUNT_PRODUCT"
+	RequestUpdateAccountProduct  RequestAction = "UPDATE_ACCOUNT_PRODUCT"
+	RequestDeleteAccountProduct  RequestAction = "DELETE_ACCOUNT_PRODUCT"
+	RequestEnableAccountProduct  RequestAction = "ENABLE_ACCOUNT_PRODUCT"
+	RequestDisableAccountProduct RequestAction = "DISABLE_ACCOUNT_PRODUCT"
+
+	// Term and Condition
+	RequestCreateTermAndCondition RequestAction = "CREATE_TERM_AND_CONDITION"
+	RequestDeleteTermAndCondition RequestAction = "DELETE_TERM_AND_CONDITION"
+
 	// Vault Amount Tier
 	RequestCreateVaultAmountTier  RequestAction = "CREATE_VAULT_AMOUNT_TIER"
 	RequestUpdateVaultAmountTier  RequestAction = "UPDATE_VAULT_AMOUNT_TIER"
@@ -1262,7 +1280,9 @@ const (
 	EventFolderName            ImageFolderName = "events"
 	TopupFolderName            ImageFolderName = "topups"
 	VaultCategoryFolderName    ImageFolderName = "vault_categories"
-	CustomerKYCFolderName      ImageFolderName = "customer_kyc"
+	CustomerKYCFolderName       ImageFolderName = "customer_kyc"
+	AccountProductFolderName    ImageFolderName = "account_products"
+	TermAndConditionFolderName  ImageFolderName = "term_and_conditions"
 )
 
 // ---------------------------------------------------------------------------

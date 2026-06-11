@@ -10,6 +10,9 @@ import (
 	advert "cbe-super-app-cps-action/internal/service/ad"
 	amount_based_auth "cbe-super-app-cps-action/internal/service/amount_based_auth"
 	account_sub_type_svc "cbe-super-app-cps-action/internal/service/account_sub_type"
+	apc_svc "cbe-super-app-cps-action/internal/service/account_product_category"
+	ap_svc "cbe-super-app-cps-action/internal/service/account_product"
+	tac_svc "cbe-super-app-cps-action/internal/service/term_and_condition"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
 	bps_action_service "cbe-super-app-cps-action/internal/service/bps_action"
 	bpsuser "cbe-super-app-cps-action/internal/service/bps_user"
@@ -105,6 +108,9 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	customerService := customer.NewCustomerService(oracle.Customer, persistence.BpsActionPersistence, nil, nil, nil, accountLookupAdapter, nil, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, oracle.BankOracle, nil, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
 	accountSubTypeService := account_sub_type_svc.NewAccountSubTypeService(oracle.AccountSubType, nil, logger)
+	accountProductCategoryService := apc_svc.NewAccountProductCategoryService(oracle.AccountProductCategory, nil, logger)
+	accountProductService := ap_svc.NewAccountProductService(oracle.AccountProduct, nil, logger, minioClient, cfg.S3BucketName, cfg)
+	accountOpeningTermsService := tac_svc.NewAccountOpeningTermsService(oracle.AccountOpeningTerms, nil, logger, minioClient, cfg.S3BucketName, cfg)
 	walletService := wallet.NewWalletService(oracle.WalletOracle, nil, oracle.ServicesPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	bpsActionService := bps_action_service.NewBPSActionService(persistence.BPSActionRolePersistence, persistence.BpsActionPersistence, oracle.Customer, persistence.ArchivedLinkedAccountPersistence, persistence.BPSUserPersistence, persistence.CpsUserPersistence, persistence.UserActionLogPersistence, logger, bps_action_service.Dispatcher{}, *cfg)
 	topupService := topup.NewTopupService(persistence.TopupPersistence, nil, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
@@ -239,6 +245,12 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bank_service = bankService.NewBankService(logger, persistence.BankPersistence, oracle.BankOracle, cpsActionService, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
 	accountSubTypeService = account_sub_type_svc.NewAccountSubTypeService(oracle.AccountSubType, cpsActionService, logger)
 	serviceContainer.AccountSubTypeContainer = accountSubTypeService
+	accountProductCategoryService = apc_svc.NewAccountProductCategoryService(oracle.AccountProductCategory, cpsActionService, logger)
+	serviceContainer.AccountProductCategoryContainer = accountProductCategoryService
+	accountProductService = ap_svc.NewAccountProductService(oracle.AccountProduct, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg)
+	serviceContainer.AccountProductContainer = accountProductService
+	accountOpeningTermsService = tac_svc.NewAccountOpeningTermsService(oracle.AccountOpeningTerms, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg)
+	serviceContainer.AccountOpeningTermsContainer = accountOpeningTermsService
 	walletService = wallet.NewWalletService(oracle.WalletOracle, cpsActionService, oracle.ServicesPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	topupService = topup.NewTopupService(persistence.TopupPersistence, cpsActionService, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	accountBlockService = accountblock.NewAccountService(oracle.AccountBlock, cpsActionService, logger)
@@ -394,5 +406,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		BPSActionService:              bpsActionService,
 		QueueManager:                  queueManager,
 		RoleDelegationService:         roleDelegationService,
+		AccountProductCategory:        accountProductCategoryService,
+		AccountProduct:                accountProductService,
+		AccountOpeningTerms:           accountOpeningTermsService,
 	}
 }

@@ -1045,3 +1045,31 @@ type AccountSubTypeOracleRepository interface {
 	FindByCodeOrName(ctx context.Context, code, name string) (*imodel.AccountSubType, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.AccountSubType], error)
 }
+
+type AccountProductCategoryRepository interface {
+	Create(ctx context.Context, apc *imodel.AccountProductCategory) error
+	Update(ctx context.Context, id string, apc *imodel.AccountProductCategory) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*imodel.AccountProductCategory, error)
+	FindByCBSCode(ctx context.Context, code string) (*imodel.AccountProductCategory, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.AccountProductCategory], error)
+}
+
+type AccountProductRepository interface {
+	Create(ctx context.Context, ap *imodel.AccountProduct) error
+	Update(ctx context.Context, id string, ap *imodel.AccountProduct) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*imodel.AccountProduct, error)
+	FindByCBSCode(ctx context.Context, code string) (*imodel.AccountProduct, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.AccountProduct], error)
+}
+
+type AccountOpeningTermsRepository interface {
+	Create(ctx context.Context, t *imodel.AccountOpeningTerms) error
+	Delete(ctx context.Context, id string) error
+	FindByID(ctx context.Context, id string) (*imodel.AccountOpeningTerms, error)
+	FindByProductAndVersion(ctx context.Context, productID, versionLabel string) (*imodel.AccountOpeningTerms, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.AccountOpeningTerms], error)
+}
