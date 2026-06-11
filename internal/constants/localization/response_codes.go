@@ -567,6 +567,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAlreadyDeleted,
 	ErrorCannotDisableOwnRole,
 	ErrorCannotDisableOwnJobTitle,
+	ErrorJobRoleAlreadyEnabled,
+	ErrorJobRoleAlreadyDisabled,
 	ErrorRoleHasActiveJobs,
 	ErrorJobTitleHasActiveUsers,
 	ErrorRoleHasActiveJobsRoles,
@@ -1395,7 +1397,7 @@ var (
 
 	SuccessJobRolesFetchedSuccessfully = ResponseCode{
 		Code:       "SUCCESS_JOB_ROLRS_FETCHED_SUCCEESSFULLY",
-		StatusCode: StatusCreated,
+		StatusCode: StatusOK,
 		Message:    MsgJobRolesFetchedSuccess,
 		Type:       "success",
 	}
@@ -8569,6 +8571,18 @@ var (
 		Message:    MsgCannotDisableOwnJobTitle,
 		Type:       "error",
 	}
+	ErrorJobRoleAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_JOB_TITLE_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobRoleAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorJobRoleAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_JOB_TITLE_AREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobRoleAlreadyDisenabled,
+		Type:       "error",
+	}
 
 	ErrorRoleHasActiveJobs = ResponseCode{
 		Code:       "ERROR_ROLE_HAS_ACTIVE_JOBS",
@@ -10054,5 +10068,4 @@ var (
 		Message:    MsgTACAlreadyExists,
 		Type:       "error",
 	}
-
 )

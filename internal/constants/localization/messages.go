@@ -535,6 +535,8 @@ const (
 
 	MsgCannotDisableOwnRole         = "You cannot disable your own role"
 	MsgCannotDisableOwnJobTitle     = "You cannot disable your own job title"
+	MsgJobRoleAlreadyEnabled        = "Job role already enabled"
+	MsgJobRoleAlreadyDisenabled     = "Job role already disabled"
 	MsgRoleHasActiveJobs            = "There are active job titles for this role, you can't delete it"
 	MsgJobTitleHasActiveUsers       = "There are active users for this job title, you can't disable it"
 	MsgRoleHasActiveJobsRoles       = "There are active jobs for this role, you can't delete it"
@@ -1354,13 +1356,13 @@ const (
 	MsgEncryptionSuccessfully = "Encryption generated successfully"
 
 	// bps action role related
-	MsgBpsActionRoleNotFound = "BPS action role not found"
-	MsgCpsActionRoleNotFound = "CPS action role not found"
-	MsgRoleNotFound          = "Role not found"
-	MsgExistingUsedRole       = "You used Existing Role data in the request"
-	MsgExistingUsedRoleCode   = "You used Existing Role code in the request"
-	MsgExistingUsedRoleName   = "You used Existing Role name in the request"
-	MsgExistingUsedJobTitle   = "You used Existing Job Title in the request"
+	MsgBpsActionRoleNotFound   = "BPS action role not found"
+	MsgCpsActionRoleNotFound   = "CPS action role not found"
+	MsgRoleNotFound            = "Role not found"
+	MsgExistingUsedRole        = "You used Existing Role data in the request"
+	MsgExistingUsedRoleCode    = "You used Existing Role code in the request"
+	MsgExistingUsedRoleName    = "You used Existing Role name in the request"
+	MsgExistingUsedJobTitle    = "You used Existing Job Title in the request"
 	MsgExistingUsedJobRoleCode = "You used Existing Job Role code in the request"
 
 	MsgRoleIDMissing = "Role ID is missing in the request"
