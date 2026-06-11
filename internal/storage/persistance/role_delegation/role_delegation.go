@@ -76,7 +76,7 @@ func (r *roleDelegationRepository) CreateWithExistingUser(ctx context.Context, r
 		}
 
 		if role.RevokeExistingDelegation {
-			_, err = r.collection.UpdateMany(sc, bson.M{"delegated_user_id": role.DelegatedUserID}, bson.M{"$set": bson.M{"enable": false}})
+			_, err = r.collection.UpdateMany(sc, bson.M{"delegated_user_id": role.DelegatedUserID, "_id": bson.M{"$ne": insertedID}}, bson.M{"$set": bson.M{"enable": false}})
 			if err != nil {
 				log.Errorf("[RoleDelegationRepository][Create] failed to disable existing delegations: %v", err)
 				return nil, local_util.HandleDBError(err)
@@ -238,13 +238,41 @@ func (r *roleDelegationRepository) FindAllWithPagination(ctx context.Context, fi
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
-			{"job_title": searchRegex},
-			{"user_id": searchRegex},
+			{"delegated_user_job_title": searchRegex},
+			{"delegated_user_id": searchRegex},
+			{"delegated_user_email": searchRegex},
+			{"delegated_user_phone_number": searchRegex},
+			{"delegated_user_full_name": searchRegex},
 		}
 	}
 
-	allowedKeys := []string{"enable", "job_title", "user_id", "start_at", "end_at"}
+	allowedKeys := []string{"enable", "delegated_user_email", "delegated_user_phone_number", "delegated_user_job_title", "delegated_user_id", "delegated_user_full_name", "start_at", "end_at"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+	if val, ok := filterParam.Filters["portal"]; ok {
+		if val == "BPS" || val == "CPS" {
+			filter["delegation_type"] = val
+		}
+	}
+
+	if val, ok := filterParam.Filters["status"]; ok {
+		if val == "Expired" {
+			filter["end_at"] = bson.M{"$lte": time.Now()}
+		}
+		if val == "Revoked" {
+			filter["enable"] = false
+		}
+		if val == "Active" {
+			filter["enable"] = true
+			filter["start_at"] = bson.M{"$lte": time.Now()}
+			filter["end_at"] = bson.M{"$gt": time.Now()}
+		}
+		if val == "Suspended" {
+			filter["enable"] = true
+			filter["start_at"] = bson.M{"$gt": time.Now()}
+			filter["end_at"] = bson.M{"$gt": time.Now()}
+		}
+	}
 
 	total, err := r.repo.TotalCount(ctx, filter)
 	if err != nil {
@@ -256,7 +284,13 @@ func (r *roleDelegationRepository) FindAllWithPagination(ctx context.Context, fi
 		return &types.PaginatedResponse[[]imodel.RoleDelegation]{}, nil
 	}
 
-	data, err := r.repo.FindAllWithPaginationN(ctx, filter, bson.M{}, skip, limit)
+	data, err := r.repo.FindAllWithPaginationD(ctx, dal.FilterParam{
+		Filter:     filter,
+		Projection: bson.M{},
+		Sort:       bson.D{bson.E{Key: "created_at", Value: -1}},
+		Skip:       skip,
+		Limit:      limit,
+	})
 	if err != nil {
 		log.Errorf("[RoleDelegationRepository][FindByUsername] failed to fetch role delegations: %v", err)
 		return nil, local_util.HandleDBError(err)
