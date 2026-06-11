@@ -567,6 +567,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAlreadyDeleted,
 	ErrorCannotDisableOwnRole,
 	ErrorCannotDisableOwnJobTitle,
+	ErrorJobRoleAlreadyEnabled,
+	ErrorJobRoleAlreadyDisabled,
 	ErrorRoleHasActiveJobs,
 	ErrorJobTitleHasActiveUsers,
 	ErrorRoleHasActiveJobsRoles,
@@ -8569,6 +8571,18 @@ var (
 		Message:    MsgCannotDisableOwnJobTitle,
 		Type:       "error",
 	}
+	ErrorJobRoleAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_JOB_TITLE_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobRoleAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorJobRoleAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_JOB_TITLE_AREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobRoleAlreadyDisenabled,
+		Type:       "error",
+	}
 
 	ErrorRoleHasActiveJobs = ResponseCode{
 		Code:       "ERROR_ROLE_HAS_ACTIVE_JOBS",
@@ -9768,5 +9782,4 @@ var (
 		Message:    MsgAccountSubTypeInvalidGender,
 		Type:       "error",
 	}
-
 )
