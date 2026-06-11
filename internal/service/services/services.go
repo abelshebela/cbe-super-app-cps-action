@@ -389,7 +389,7 @@ func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error
 
 func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string) (*model.AccountDetail, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
-	response, err := s.core.NameLookup(coreio.NameLookupParam{AccountNumber: accountNumber})
+	response, err := s.core.NameLookup(ctx, coreio.NameLookupParam{AccountNumber: accountNumber})
 	if err != nil {
 		return nil, err
 	}

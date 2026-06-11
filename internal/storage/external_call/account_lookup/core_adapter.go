@@ -76,7 +76,7 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Cont
 
 	}()
 
-	response, err := a.coreAPI.NameLookup(core.NameLookupParam{
+	response, err := a.coreAPI.NameLookup(ctx, core.NameLookupParam{
 		AccountNumber: account.AccountNumber,
 	})
 
@@ -141,7 +141,7 @@ func (a *CoreAccountLookupAdapter) CreateAccountWithFayda(ctx context.Context, a
 
 func (s *CoreAccountLookupAdapter) CifSearch(ctx context.Context, cif string) ([]imodel.AccountData, error) {
 
-	search, err := s.coreAPI.AccountList(core.AccountListParam{
+	search, err := s.coreAPI.AccountList(ctx, core.AccountListParam{
 		ColumnName:    "CUS.ID",
 		CriteriaValue: cif,
 	})

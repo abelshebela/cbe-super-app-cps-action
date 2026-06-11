@@ -65,7 +65,7 @@ func NewEcommerceMerchantService(
 func (m *ecommerceMerchantService) ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string) (*model.AccountDetail, error) {
 	log := local_util.LoggerFromCtx(ctx, m.logger)
 
-	response, err := m.core.NameLookup(coreio.NameLookupParam{AccountNumber: accountNumber})
+	response, err := m.core.NameLookup(ctx, coreio.NameLookupParam{AccountNumber: accountNumber})
 	if err != nil {
 		return nil, err
 	}
