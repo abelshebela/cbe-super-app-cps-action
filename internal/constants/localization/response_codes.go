@@ -10062,6 +10062,20 @@ var (
 		Type:       "success",
 	}
 
+	SuccessTACUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_TAC_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgTACUpdateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessTACUpdated = ResponseCode{
+		Code:       "SUCCESS_TAC_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgTACUpdated,
+		Type:       "success",
+	}
+
 	SuccessTACDeleteRequestSent = ResponseCode{
 		Code:       "SUCCESS_TAC_DELETE_REQUEST_SENT",
 		StatusCode: StatusOK,

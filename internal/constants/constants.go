@@ -967,6 +967,7 @@ const (
 
 	// Term and Condition
 	RequestCreateTermAndCondition RequestAction = "CREATE_TERM_AND_CONDITION"
+	RequestUpdateTermAndCondition RequestAction = "UPDATE_TERM_AND_CONDITION"
 	RequestDeleteTermAndCondition RequestAction = "DELETE_TERM_AND_CONDITION"
 
 	// Vault Amount Tier

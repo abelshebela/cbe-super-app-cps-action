@@ -1068,6 +1068,7 @@ type AccountProductRepository interface {
 
 type AccountOpeningTermsRepository interface {
 	Create(ctx context.Context, t *imodel.AccountOpeningTerms) error
+	Update(ctx context.Context, id string, t *imodel.AccountOpeningTerms) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*imodel.AccountOpeningTerms, error)
 	FindByProductAndVersion(ctx context.Context, productID, versionLabel string) (*imodel.AccountOpeningTerms, error)

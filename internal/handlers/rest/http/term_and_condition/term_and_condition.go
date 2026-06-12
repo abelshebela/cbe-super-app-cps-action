@@ -128,6 +128,55 @@ func (h *termAndConditionAdapter) Upload(w http.ResponseWriter, r *http.Request)
 	localization.SendSuccessResponse(w, localization.SuccessTACUploadRequestSent, nil)
 }
 
+func (h *termAndConditionAdapter) Update(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "update", "handler", "term_and_condition")
+	defer span.End()
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
+		return
+	}
+	span.SetAttributes(attribute.String("tac.id", id))
+
+	req, err := tac_core.ParseUpdateRequest(r, h.logger)
+	if err != nil {
+		log.Errorf("[TACHandler][Update] parse err: %v", err)
+		localization.SendErrorResponse(w, localization.ErrorInvalidRequestBody, nil, nil)
+		return
+	}
+
+	if rc := tac_core.ValidateUpdate(&req); rc.Code != "" {
+		span.SetAttributes(attribute.String("invalid input", rc.Code))
+		log.Errorf("[TACHandler][Update] validation: %s", rc.Code)
+		localization.SendErrorResponse(w, rc, nil, nil)
+		return
+	}
+
+	if err := h.svc.Update(ctx, id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
+		span.RecordError(err)
+		log.Errorf("[TACHandler][Update] service err: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		log.Infof("[TACHandler][Update] request sent id=%s", id)
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+		localization.SendSuccessResponse(w, localization.SuccessTACUpdateRequestSent, nil)
+		return
+	}
+	log.Infof("[TACHandler][Update] updated id=%s", id)
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	localization.SendSuccessResponse(w, localization.SuccessTACUpdated, nil)
+}
+
 func (h *termAndConditionAdapter) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "delete", "handler", "term_and_condition")
 	defer span.End()
