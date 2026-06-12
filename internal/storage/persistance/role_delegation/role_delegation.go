@@ -578,6 +578,7 @@ func (r *roleDelegationRepository) FindByUserCode(ctx context.Context, usercode 
 		Role: cpsuser.RoleResponse{
 			Code: data.NewRoleID,
 		},
+		JobTitle: data.DelegatedUserJobTitle,
 		Department: &cpsuser.DepartmentResponse{
 			Name: data.NewDepartmentOrBranch,
 		},
