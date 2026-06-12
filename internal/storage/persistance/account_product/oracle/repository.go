@@ -99,18 +99,17 @@ func (r *repository) Update(ctx context.Context, id string, ap *imodel.AccountPr
 
 	q := `UPDATE ACCOUNT_PRODUCTS
 		SET CBS_PRODUCT_CODE = :1, PRODUCT_NAME = :2, PRODUCT_TAG_LINE = :3,
-		    PRODUCT_LINE = :4, ACCOUNT_CATEGORY_ID = HEXTORAW(:5), ACCOUNT_CURRENCY = :6,
-		    MINIMUM_OPENING_BALANCE = :7, MINIMUM_MAINTENANCE_FEE = :8, INTEREST_FEE = :9,
-		    FAQ_URL = :10, PRODUCT_FEATURES = :11, HAS_PHYSICAL_CARD = :12,
-		    HAS_VIRTUAL_CARD = :13, PRODUCT_ICON = :14, PRODUCT_COVER_IMAGE = :15,
-		    LAST_MODIFIED_AT = :16
+		     ACCOUNT_CATEGORY_ID = HEXTORAW(:), ACCOUNT_CURRENCY = :5,
+		    MINIMUM_OPENING_BALANCE = :6, MINIMUM_MAINTENANCE_FEE = :7, INTEREST_FEE = :8,
+		    FAQ_URL = :9, PRODUCT_FEATURES = :10, HAS_PHYSICAL_CARD = :11,
+		    HAS_VIRTUAL_CARD = :12, PRODUCT_ICON = :13, PRODUCT_COVER_IMAGE = :14,
+		    LAST_MODIFIED_AT = :15
 		WHERE ID = HEXTORAW(:17) AND IS_DELETED = 0`
 
 	res, err := r.db.ExecContext(ctx, q,
 		ap.CBSProductCode,
 		ap.ProductName,
 		ap.ProductTagLine,
-		ap.ProductLine,
 		ap.AccountCategoryID,
 		ap.AccountCurrency,
 		ap.MinimumOpeningBalance,
@@ -234,13 +233,13 @@ func (r *repository) FindAllWithPagination(ctx context.Context, filterParam type
 	}
 
 	if filterParam.Filters != nil {
-		if v, ok := filterParam.Filters["product_line"]; ok {
-			if s, _ := v.(string); strings.TrimSpace(s) != "" {
-				conds = append(conds, fmt.Sprintf("UPPER(ap.PRODUCT_LINE) = UPPER(:%d)", idx))
-				args = append(args, s)
-				idx++
-			}
-		}
+		// if v, ok := filterParam.Filters["product_line"]; ok {
+		// 	if s, _ := v.(string); strings.TrimSpace(s) != "" {
+		// 		conds = append(conds, fmt.Sprintf("UPPER(ap.PRODUCT_LINE) = UPPER(:%d)", idx))
+		// 		args = append(args, s)
+		// 		idx++
+		// 	}
+		// }
 		if v, ok := filterParam.Filters["account_category_id"]; ok {
 			if s, _ := v.(string); strings.TrimSpace(s) != "" {
 				conds = append(conds, fmt.Sprintf("ap.ACCOUNT_CATEGORY_ID = HEXTORAW(:%d)", idx))
