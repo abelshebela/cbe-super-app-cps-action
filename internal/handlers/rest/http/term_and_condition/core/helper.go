@@ -9,19 +9,22 @@ import (
 	tac_dto "cbe-super-app-cps-action/internal/constants/dto/term_and_condition"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"mime/multipart"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 func ParsePDFFile(r *http.Request, logger utils.Logger) (*multipart.FileHeader, error) {
-	_, fileHeader, err := local_util.ParseMultipartFormFile(r, "term_and_condition", int64(constants.MaxMemoryForUpload))
+	if err := r.ParseMultipartForm(int64(constants.MaxMemoryForUpload)); err != nil {
+		logger.Errorf("[TACHandler][ParsePDF] parse form err: %v", err)
+		return nil, fmt.Errorf("failed to parse multipart form: %w", err)
+	}
+	_, fileHeader, err := r.FormFile("term_and_condition")
 	if err != nil {
 		if err == http.ErrMissingFile {
 			return nil, fmt.Errorf("term_and_condition file is required")
 		}
-		logger.Errorf("[TACHandler][ParsePDF] parse err: %v", err)
+		logger.Errorf("[TACHandler][ParsePDF] form file err: %v", err)
 		return nil, fmt.Errorf("failed to parse term_and_condition file: %w", err)
 	}
 	return fileHeader, nil
