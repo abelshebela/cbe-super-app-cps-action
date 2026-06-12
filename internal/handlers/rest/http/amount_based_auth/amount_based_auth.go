@@ -10,7 +10,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	common_util "cbe-super-app-cps-action/pkgs/utils"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -49,20 +49,20 @@ func NewAmountBasedAuthHandler(service service.AmountBasedAuthService, logger ut
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth [get]
 func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "handler", "getAllAmountBasedAuth", "handler", "amountBasedAuth")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllAmountBasedAuth", "handler", "amountBasedAuth")
 	defer span.End()
-	log := common_util.LoggerFromCtx(ctx, a.logger)
-	filterParams := common_util.ExtractFilterParams(r)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
+	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	if err := common_util.NoSpecialChars(search); err != nil {
+	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if err := common_util.NoSpecialChars(filter); err != nil {
+	if err := local_util.NoSpecialChars(filter); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -96,20 +96,20 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth/update/{method}/{id} [patch]
 func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "handler", "updateAmountBasedAuth", "handler", "amountBasedAuth")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateAmountBasedAuth", "handler", "amountBasedAuth")
 	defer span.End()
-	log := common_util.LoggerFromCtx(ctx, a.logger)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
-	method, ok := common_util.GetParam(r, "method")
+	method, ok := local_util.GetParam(r, "method")
 	if !ok {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Message)
 		return
 	}
 
-	id, ok := common_util.GetParam(r, "id")
+	id, ok := local_util.GetParam(r, "id")
 	if !ok {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Message)
 		return
@@ -143,6 +143,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	)
 
 	if err := a.Service.UpdateAmountBasedAuth(ctx, id, methodEnum, request); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[UpdateAmountBasedAuth] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -171,20 +172,21 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth/{id} [delete]
 func (a *AmountBasedAuthHandler) DeleteAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "handler", "deleteAmountBasedAuth", "handler", "amountBasedAuth")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteAmountBasedAuth", "handler", "amountBasedAuth")
 	defer span.End()
-	log := common_util.LoggerFromCtx(ctx, a.logger)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
-	currency, ok := common_util.GetParam(r, "currency")
+	currency, ok := local_util.GetParam(r, "currency")
 	if !ok || currency == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Message)
 		return
 	}
 	span.SetAttributes(attribute.String("amount_based_auth.currency", currency))
 	if err := a.Service.DeleteAmountBasedAuth(ctx, currency); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DeleteAmountBasedAuth] service error for currency: %s", currency)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -215,11 +217,11 @@ func (a *AmountBasedAuthHandler) DeleteAmountBasedAuth(w http.ResponseWriter, r 
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth/reject/{id} [patch]
 func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "handler", "rejectAmountBasedAuth", "handler", "amountBasedAuth")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "rejectAmountBasedAuth", "handler", "amountBasedAuth")
 	defer span.End()
-	log := common_util.LoggerFromCtx(ctx, a.logger)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 
-	idParam, ok := common_util.GetParam(r, "id")
+	idParam, ok := local_util.GetParam(r, "id")
 	if !ok {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Message)
 		return
@@ -257,9 +259,9 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth/currency [post]
 func (a *AmountBasedAuthHandler) AddCurrency(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "handler", "addCurrency", "handler", "amountBasedAuth")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "addCurrency", "handler", "amountBasedAuth")
 	defer span.End()
-	log := common_util.LoggerFromCtx(ctx, a.logger)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
@@ -280,6 +282,7 @@ func (a *AmountBasedAuthHandler) AddCurrency(w http.ResponseWriter, r *http.Requ
 	span.SetAttributes(attribute.String("amount_based_auth.currency", string(request.Currency)))
 
 	if err := a.Service.AddCurrency(ctx, request); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[AddCurrency] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -310,14 +313,14 @@ func (a *AmountBasedAuthHandler) AddCurrency(w http.ResponseWriter, r *http.Requ
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth/reset/{currency} [post]
 func (a *AmountBasedAuthHandler) ResetConfig(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "handler", "resetConfig", "handler", "amountBasedAuth")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "resetConfig", "handler", "amountBasedAuth")
 	defer span.End()
-	log := common_util.LoggerFromCtx(ctx, a.logger)
+	log := local_util.LoggerFromCtx(ctx, a.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
-	currencyParam, ok := common_util.GetParam(r, "currency")
+	currencyParam, ok := local_util.GetParam(r, "currency")
 	if !ok {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Message)
 		return
@@ -341,6 +344,7 @@ func (a *AmountBasedAuthHandler) ResetConfig(w http.ResponseWriter, r *http.Requ
 	span.SetAttributes(attribute.String("amount_based_auth.currency", string(currency)))
 
 	if err := a.Service.ResetConfig(ctx, currency, request); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[ResetConfig] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

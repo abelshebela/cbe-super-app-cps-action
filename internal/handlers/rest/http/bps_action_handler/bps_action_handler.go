@@ -58,6 +58,7 @@ func (a *bpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	// Load action (to resolve module/request_action)
 	action, err := a.bpsActionApplication.GetBPSActionByActionCode(ctx, actionCode, "")
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		if err.Error() == localization.ErrorActionNotFound.Code {
 			localization.SendErrorByCodeResponse(w, localization.ErrorActionDataNotFound.Code)
@@ -115,6 +116,7 @@ func (a *bpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	}
 	ctx = context.WithValue(ctx, constants.ContextKey("user_data"), userData)
 	if err := a.bpsActionApplication.AuditorMark(ctx, actionCode, auditor, 0, reqBody.CustomerBar); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -163,6 +165,7 @@ func (a *bpsActionAdapter) ApproveBPSAction(w http.ResponseWriter, r *http.Reque
 	span.SetAttributes(attribute.String("cps_action.code", actionCode))
 	action, err := a.bpsActionApplication.GetBPSActionByActionCode(ctx, actionCode, "")
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -173,6 +176,7 @@ func (a *bpsActionAdapter) ApproveBPSAction(w http.ResponseWriter, r *http.Reque
 	}
 	ctx = context.WithValue(ctx, constants.ContextKey("user_data"), userData)
 	if err := a.bpsActionApplication.ApproveBPSAction(ctx, action); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
@@ -224,6 +228,7 @@ func (a *bpsActionAdapter) RejectBPSAction(w http.ResponseWriter, r *http.Reques
 	// Fetch action
 	action, err := a.bpsActionApplication.GetBPSActionByActionCode(ctx, actionCode, "")
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -235,6 +240,7 @@ func (a *bpsActionAdapter) RejectBPSAction(w http.ResponseWriter, r *http.Reques
 	ctx = context.WithValue(ctx, constants.ContextKey("user_data"), userData)
 	ctx = context.WithValue(ctx, constants.ContextKey("rejection_reason"), req.RejectionReason)
 	if err := a.bpsActionApplication.RejectBPSAction(ctx, actionCode, action); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
@@ -834,20 +840,10 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	if requestedRole == "auditor" {
-		var allAuditCount, unAuditedCount, inprogressAuditCount, auditedCount int
+		var unAuditedCount, inprogressAuditCount, auditedCount int
 
 		if auditorActions != nil {
-			// All — no auditor_status restriction; status from query param
-			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, "")); err != nil {
-				span.RecordError(err)
-				localization.SendErrorByCodeResponse(w, err.Error())
-				a.logger.Errorf("[BpsActionH][Auditor] failed to get all count: %v", err)
-				return
-			} else if res != nil && res.Meta.TotalDocs > 0 {
-				allAuditCount = int(res.Meta.TotalDocs)
-			}
-
-			// UnAudited — NOTCHECKED (BPS repo restricts to APPROVED automatically)
+			// UnAudited — NOTCHECKED: queries BPS repo directly (no user_action_log)
 			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORNOTCHECKED))); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
@@ -857,7 +853,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 				unAuditedCount = int(res.Meta.TotalDocs)
 			}
 
-			// Inprogress — INPROGRESS
+			// Inprogress — INPROGRESS: queries via user_action_log
 			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORINPROGRESS))); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
@@ -867,7 +863,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 				inprogressAuditCount = int(res.Meta.TotalDocs)
 			}
 
-			// Audited — fully checked
+			// Audited — CHECKED: queries via user_action_log
 			if res, err := a.bpsActionApplication.GetBPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORCHECKED))); err != nil {
 				span.RecordError(err)
 				localization.SendErrorByCodeResponse(w, err.Error())
@@ -879,7 +875,7 @@ func (a *bpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		}
 
 		auditorResp := &bpsactionDto.BPSAuditorActionCountResponse{
-			AllAction:  allAuditCount,
+			AllAction:  unAuditedCount + inprogressAuditCount + auditedCount,
 			UnAudited:  unAuditedCount,
 			Inprogress: inprogressAuditCount,
 			Audited:    auditedCount,
@@ -1022,6 +1018,7 @@ func (a *bpsActionAdapter) ApproverCheckerAllocations(w http.ResponseWriter, r *
 	// maker, checker, auditor, portalCards
 	_, _, checkerMods, _, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -1111,6 +1108,7 @@ func (a *bpsActionAdapter) ApproverAuditorAllocations(w http.ResponseWriter, r *
 	// maker, checker, auditor, portalCards
 	_, _, _, auditorMods, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -1175,4 +1173,47 @@ func (a *bpsActionAdapter) ApproverAuditorAllocations(w http.ResponseWriter, r *
 		"statuses":          []string{"PENDING", "APPROVED", "REJECTED"},
 	}
 	localization.SendSuccessResponse(w, localization.SuccessBPSActionsRetrieved, resp)
+}
+
+// ReinstateCustomer reinstates/unblocks a customer that was barred by auditor
+//
+//	@Summary		Reinstate customer
+//	@Description	Reinstates/unblocks a customer that was previously barred by auditor with customer_bar=true
+//	@Tags			BPS Actions
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		bps_actionrole_dto.ReinstateRequest	true	"Reinstate request with action_code, user_code, and reason"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Customer reinstated successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Invalid input"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/actions/bps/reinstate [post]
+func (a *bpsActionAdapter) ReinstateCustomer(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "ReinstateCustomer", "handler", "bpsAction")
+	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
+	// Parse request body
+	var reqBody bps_actionrole_dto.ReinstateRequest
+	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
+		return
+	}
+
+	// Validate required fields
+	if strings.TrimSpace(reqBody.ActionCode) == "" || strings.TrimSpace(reqBody.UserCode) == "" {
+		localization.SendBadRequestResponse(w, "action_code and user_code are required")
+		return
+	}
+
+	// Call service to reinstate customer
+	if err := a.bpsActionApplication.ReinstateCustomer(ctx, reqBody.ActionCode, reqBody.UserCode, reqBody.Reason); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessBPSActionChecked, nil)
 }

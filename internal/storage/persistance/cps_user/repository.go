@@ -11,6 +11,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 
 	"time"
 
@@ -127,7 +128,14 @@ func (r *CPSUserStorage) FindByUsername(ctx context.Context, username string) (*
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
 	log.Infof("[CPSUserStorage][FindByUsername] searching for CPS user by username")
-	filter := bson.M{"username": username}
+
+	filter := bson.M{
+		"username": bson.M{
+			"$regex":   "^" + regexp.QuoteMeta(username) + "$",
+			"$options": "i",
+		},
+	}
+
 	result, err := r.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		log.Errorf("[CPSUserStorage][FindByUsername] failed to find CPS user: %v", err)
@@ -177,6 +185,27 @@ func (r *CPSUserStorage) FindByID(ctx context.Context, id string) (*imodel.CPSUs
 
 	log.Infof("[CPSUserStorage][FindByID] fetching CPS user by id")
 	filter := bson.M{"user_code": id, "is_deleted": false}
+
+	result, err := r.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		log.Errorf("[CPSUserStorage][FindByID] failed to find CPS user: %v", err)
+		return nil, local_util.HandleDBError(err)
+	}
+	log.Infof("[CPSUserStorage][FindByID] CPS user retrieved successfully")
+	return result, nil
+}
+
+// FindByID supports both ObjectID and user_code lookups
+func (r *CPSUserStorage) FindByUserID(ctx context.Context, id string) (*imodel.CPSUser, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+	log.Infof("[CPSUserStorage][FindByID] fetching CPS user by id")
+	log.Infof("[CPSUserStorage][FindByID] fetching CPS user by id")
+	obj, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		log.Errorf("[CPSUserStorage][FindByID] failed to convert user id to object id")
+		return nil, localization.ErrorUnexpectedError
+	}
+	filter := bson.M{"_id": obj, "is_deleted": false}
 
 	result, err := r.dal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -403,7 +432,7 @@ func (r *CPSUserStorage) GetPopulatedWithRole(ctx context.Context, userCode stri
 
 	if !cursor.Next(ctx) {
 		log.Errorf("[CPSUserStorage][GetPopulatedWithRole] CPS user not found")
-		return nil, errors.New(localization.ErrorFileNotFound.Code)
+		return nil, localization.ErrorUserNotFound
 	}
 
 	var resp cpsuser.CpsUserPopulatedResponse
@@ -413,6 +442,36 @@ func (r *CPSUserStorage) GetPopulatedWithRole(ctx context.Context, userCode stri
 	}
 
 	log.Infof("[CPSUserStorage][GetPopulatedWithRole] populated CPS user retrieved successfully")
+	return &resp, nil
+}
+
+func (r *CPSUserStorage) GetPopulatedWithRoleByUserName(ctx context.Context, userName string) (*cpsuser.CpsUserPopulatedResponse, error) {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+
+	log.Infof("[CPSUserStorage][GetPopulatedWithRoleByUserName] fetching populated CPS user")
+	// relatedCollection: [DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection, RolesCollection, JobRolesCollection]
+	pipeline := PipelineBuilderWithRoleByUserName(userName, r.relatedCollection[0], r.relatedCollection[4], r.relatedCollection[5])
+
+	cursor, err := r.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		log.Errorf("[CPSUserStorage][GetPopulatedWithRoleByUserName] failed to aggregate CPS user: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	defer cursor.Close(ctx)
+
+	if !cursor.Next(ctx) {
+		log.Errorf("[CPSUserStorage][GetPopulatedWithRoleByUserName] CPS user not found")
+		return nil, errors.New(localization.ErrorUserNotFound.Code)
+	}
+
+	var resp cpsuser.CpsUserPopulatedResponse
+	if err := cursor.Decode(&resp); err != nil {
+		log.Errorf("[CPSUserStorage][GetPopulatedWithRoleByUserName] failed to decode CPS user response: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	log.Infof("[CPSUserStorage][GetPopulatedWithRoleByUserName] populated CPS user retrieved successfully")
 	return &resp, nil
 }
 

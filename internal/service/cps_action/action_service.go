@@ -149,7 +149,7 @@ func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	}
 
 	ca.logUserAction(ctx, act, imodel.AUDITOR, "", imodel.AuditorMark(auditor.AuditorMark), "", fmt.Sprintf("%d", activeGroup))
-	if ca.actionLogRepo.AuditorMarkLogsByActionCode(ctx, actionCode, string(auditor.AuditorMark), actionAuditorStatus) != nil {
+	if ca.actionLogRepo.AuditorMarkLogsByActionCode(ctx, actionCode, string(auditor.AuditorMark), actionAuditorStatus, false) != nil {
 		span.AddEvent("failed to log auditor mark actions by action code", trace.WithAttributes(attribute.String("error", "failed to log auditor mark actions by action code")))
 		log.Errorf("[CpsActionSvc][AuditorMark] failed to log auditor mark actions by action code: %s", actionCode)
 	}
@@ -319,6 +319,10 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 			span.AddEvent("pending enable cps action exists", trace.WithAttributes(attribute.String("error", "pending enable cps action exists")))
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), existing.ActionCode)
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), existing.ActionStatus)
+
+			if md := types.GetMetadata(ctx); md != nil {
+				md.CPSActionCode = existing.ActionCode
+			}
 			return errors.New(localization.ErrorPendingCpsActionExists.Code)
 		}
 	}
@@ -691,53 +695,66 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, userID
 	createdAtFrom, _ := filterParams.Filters["created_at_from"].(string)
 	createdAtTo, _ := filterParams.Filters["created_at_to"].(string)
 
+	// Generic levels filter (matches both checker_level and auditor_level)
 	levels := extractStringSlice(filterParams.Filters, "levels")
+	// Separate level filters for specific fields
+	checkerLevels := extractStringSlice(filterParams.Filters, "checker_levels")
+	auditorLevels := extractStringSlice(filterParams.Filters, "auditor_levels")
 	services := extractStringSlice(filterParams.Filters, "services")
 	statuses := extractStringSlice(filterParams.Filters, "action_status")
 
-	// Always resolve via user_action_log when the role has allocated request_actions.
-	// The log's request_action field is the authoritative source for which actions
-	// this checker role can see — cps_actions.request_action may differ or be absent.
-	// For PENDING we skip the lookup: user_action_log has no given_action_status="PENDING"
-	// records (that field is only set on approve/reject), so the lookup always returns nil.
-	// The repo's request_action+isPendingOnly path handles PENDING scoping correctly.
-	isPendingOnly := len(statuses) == 1 && statuses[0] == string(constants.Pending)
-	if len(RAList) > 0 && !isPendingOnly {
-		logFilter := map[string]interface{}{
-			"request_action": bson.M{"$in": RAList},
-		}
-		if len(statuses) == 1 {
-			logFilter["action_status"] = statuses[0]
-		} else if len(statuses) > 1 {
-			logFilter["action_status"] = statuses
-		}
-		if len(levels) > 0 {
-			logFilter["levels"] = levels
-		}
-		if len(services) > 0 {
-			logFilter["services"] = services
-		}
-		actionCodes, err := ca.actionLogRepo.GetActionCodesByFilter(ctx, logFilter)
-		if err != nil {
-			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
-			return nil, "", err
-		}
-		if len(actionCodes) > 0 {
-			filterParams.Filters["action_code"] = actionCodes
-		}
-	} else if !isPendingOnly && (len(levels) > 0 || len(services) > 0) {
-		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
-			Responsibilities: []string{string(imodel.CHECKER)},
-			Levels:           levels,
-			Services:         services,
-			ActionStatuses:   statuses,
-		})
-		if err != nil {
-			log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
-			return nil, "", err
-		}
-		filterParams.Filters["action_code"] = actionCodes
+	log.Infof("[CPSAction][GetCPSActionsForApprover] ********* levels: %v, checkerLevels: %v, auditorLevels: %v, services: %v, statuses: %v", levels, checkerLevels, auditorLevels, services, statuses)
+	// Extract checker level status pairs (e.g., checker_level_1_status=APPROVED)
+	checkerLevelStatuses := extractCheckerLevelStatusPairs(filterParams.Filters)
+
+	// Username filters by role
+	makerUsernames := extractStringSlice(filterParams.Filters, "maker_usernames")
+	checkerUsernames := extractStringSlice(filterParams.Filters, "checker_usernames")
+	auditorUsernames := extractStringSlice(filterParams.Filters, "auditor_usernames")
+
+	// General search parameter
+	searchTerm := filterParams.Search
+
+	logFilter := imodel.UserActionLogActionCodeFilter{
+		RequestActions:       RAList,
+		Levels:               levels,
+		CheckerLevels:        checkerLevels,
+		AuditorLevels:        auditorLevels,
+		Services:             services,
+		ActionStatuses:       statuses,
+		CheckerLevelStatuses: checkerLevelStatuses,
+		// Responsibilities:     []string{string(imodel.CHECKER)}, // To be conditionally set below
+		MakerUsernames:   makerUsernames,
+		CheckerUsernames: checkerUsernames,
+		AuditorUsernames: auditorUsernames,
+		Search:           searchTerm,
 	}
+
+	// CHECKER log rows only exist after a checker has acted, so scoping by the
+	// CHECKER responsibility would hide freshly-created PENDING actions (which
+	// only carry a MAKER log row). Apply the CHECKER scope only for non-pending
+	// queries.
+	isPendingOnly := len(statuses) == 1 && statuses[0] == string(constants.Pending)
+	if !isPendingOnly {
+		logFilter.Responsibilities = []string{string(imodel.CHECKER)}
+	}
+
+	log.Infof("[CPSAction][GetCPSActionsForApprover] ********* filter: %v", logFilter)
+
+	actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, logFilter)
+	if err != nil {
+		log.Errorf("[CpsActionSvc][GetCPSActionsForApprover] log filter err: %v", err)
+		return nil, "", err
+	}
+
+	// No matching action codes in the log => empty inbox page.
+	if len(actionCodes) == 0 {
+		return &types.PaginatedResponse[[]*model.CPSAction]{
+			Data: []*model.CPSAction{},
+			Meta: local_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
+		}, "", nil
+	}
+	filterParams.Filters["action_code"] = actionCodes
 
 	if len(statuses) > 0 {
 		filterParams.Filters["action_status"] = statuses
@@ -818,24 +835,25 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 	createdAtFrom, _ := filterParams.Filters["created_at_from"].(string)
 	createdAtTo, _ := filterParams.Filters["created_at_to"].(string)
 
+	// Generic levels filter (matches both checker_level and auditor_level)
 	levels := extractStringSlice(filterParams.Filters, "levels")
+	// Separate level filters for specific fields
+	checkerLevels := extractStringSlice(filterParams.Filters, "checker_levels")
+	auditorLevels := extractStringSlice(filterParams.Filters, "auditor_levels")
 	services := extractStringSlice(filterParams.Filters, "services")
-	// "auditor_statuses" (plural) may be set explicitly by callers; "auditor_status"
-	// (singular) is written by FilterBuilder from the ?auditor_status=X query param.
-	// Both carry two distinct domains that must be routed to different log fields:
-	//   MARKEDASRIGHT / MARKEDASWRONG  → log.given_auditor_status  (AuditorStatuses)
-	//   NOTCHECKED / INPROGRESS / CHECKED → log.action_auditor_status (ActionAuditorStatuses)
-	// Leaving CHECKED etc. in filterParams.Filters would pass them through FilterBuilder
-	// to the CPS action document's auditor_status field — that works for state values
-	// but MARKEDASRIGHT would produce zero results there.
-	var auditorMarkStatuses []string  // MARKEDASRIGHT / MARKEDASWRONG
-	var auditorStateStatuses []string // NOTCHECKED / INPROGRESS / CHECKED
+
+	var auditorMarkStatuses []string  // MARKEDASRIGHT / MARKEDASWRONG (given_auditor_status)
+	var auditorStateStatuses []string // NOTCHECKED / INPROGRESS / CHECKED (action_auditor_status)
+
+	log.Infof("[CPSAction][GetCPSActionsForAuditor] levels=%v checker_levels=%v auditor_levels=%v services=%v",
+		levels, checkerLevels, auditorLevels, services)
 
 	auditStateSet := map[string]bool{
 		string(constants.AUDITORNOTCHECKED): true,
 		string(constants.AUDITORINPROGRESS): true,
 		string(constants.AUDITORCHECKED):    true,
 	}
+
 	for _, src := range []string{"auditor_status", "auditor_statuses"} {
 		for _, v := range extractStringSlice(filterParams.Filters, src) {
 			if auditStateSet[strings.ToUpper(v)] {
@@ -847,34 +865,63 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, userID 
 		delete(filterParams.Filters, src)
 	}
 
-	// Single unified log-filter pass. The repo already applies request_action:{$in:RAList}
-	// on the CPS action collection so no separate RAList pre-filter is needed here.
 	levelClaimPairs := extractLevelClaimPairs(filterParams.Filters)
-	if len(levels) > 0 || len(services) > 0 || len(auditorMarkStatuses) > 0 || len(auditorStateStatuses) > 0 || len(levelClaimPairs) > 0 {
-		var responsibilities []string
-		if filterParams.Filters["action_status"] != string(constants.AUDITORNOTCHECKED) {
-			responsibilities = []string{string(imodel.AUDITOR)}
-		}
-		if slices.Contains(auditorStateStatuses, string(constants.AUDITORNOTCHECKED)) {
-			auditorStateStatuses = []string{} // user_action_log records with empty action_auditor_status are considered NOTCHECKED
-		}
 
-		actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, imodel.UserActionLogActionCodeFilter{
-			Responsibilities:      responsibilities,
-			Levels:                levels,
-			Services:              services,
-			AuditorStatuses:       auditorMarkStatuses,
-			ActionAuditorStatuses: auditorStateStatuses,
-			LevelClaimPairs:       levelClaimPairs,
-		})
-		if err != nil {
-			log.Errorf("[CpsActionSvc][GetCPSActionsForAuditor] log filter err: %v", err)
-			return nil, "", err
-		}
-		log.Infof("[CpsActionSvc][GetCPSActionsForAuditor] log filter found %d action codes (markStatuses=%v stateStatuses=%v levels=%v, action_codes=%v)",
-			len(actionCodes), auditorMarkStatuses, auditorStateStatuses, levels, actionCodes)
-		filterParams.Filters["action_code"] = actionCodes
+	// Extract checker level status pairs (e.g., checker_level_1_status=APPROVED)
+	checkerLevelStatuses := extractCheckerLevelStatusPairs(filterParams.Filters)
+
+	// Username filters by role
+	makerUsernames := extractStringSlice(filterParams.Filters, "maker_usernames")
+	checkerUsernames := extractStringSlice(filterParams.Filters, "checker_usernames")
+	auditorUsernames := extractStringSlice(filterParams.Filters, "auditor_usernames")
+
+	// General search parameter
+	searchTerm := filterParams.Search
+
+	log.Infof("[CPSAction][GetCPSActionsForAuditor] filter params levels=%v checker_levels=%v auditor_levels=%v services=%v auditor_mark_statuses=%v auditor_state_statuses=%v maker_usernames=%v checker_usernames=%v auditor_usernames=%v search=%q", levels, checkerLevels, auditorLevels, services, auditorMarkStatuses, auditorStateStatuses, makerUsernames, checkerUsernames, auditorUsernames, searchTerm)
+
+	logFilter := imodel.UserActionLogActionCodeFilter{
+		RequestActions: RAList,
+		Levels:         levels,
+		CheckerLevels:  checkerLevels,
+		AuditorLevels:  auditorLevels,
+		Services:       services,
+		MakerUsernames: makerUsernames,
+		// Responsibilities:      []string{string(imodel.AUDITOR)}, // AUDITOR log rows are the only ones relevant to the auditor inbox
+		CheckerUsernames:      checkerUsernames,
+		AuditorUsernames:      auditorUsernames,
+		AuditorStatuses:       auditorMarkStatuses,
+		ActionAuditorStatuses: auditorStateStatuses,
+		LevelClaimPairs:       levelClaimPairs,
+		CheckerLevelStatuses:  checkerLevelStatuses,
+		Search:                searchTerm,
 	}
+
+	// AUDITOR log rows only exist after an auditor has marked an action.
+	// Only apply AUDITOR responsibility filter when INPROGRESS or CHECKED is
+	// explicitly requested in auditor_status. NOTCHECKED has no AUDITOR rows.
+	requiresAuditorScope := slices.Contains(auditorStateStatuses, string(constants.AUDITORINPROGRESS)) ||
+		slices.Contains(auditorStateStatuses, string(constants.AUDITORCHECKED))
+	if requiresAuditorScope {
+		logFilter.Responsibilities = []string{string(imodel.AUDITOR)}
+	}
+
+	actionCodes, err := ca.actionLogRepo.GetActionCodesByActionLogFilter(ctx, logFilter)
+	if err != nil {
+		log.Errorf("[CpsActionSvc][GetCPSActionsForAuditor] log filter err: %v", err)
+		return nil, "", err
+	}
+	log.Infof("[CpsActionSvc][GetCPSActionsForAuditor] log filter found %d action codes (markStatuses=%v stateStatuses=%v levels=%v, action_codes=%v)",
+		len(actionCodes), auditorMarkStatuses, auditorStateStatuses, levels, actionCodes)
+
+	// No matching action codes in the log => empty inbox page.
+	if len(actionCodes) == 0 {
+		return &types.PaginatedResponse[[]*model.CPSAction]{
+			Data: []*model.CPSAction{},
+			Meta: local_util.BuildPaginationMeta(0, filterParams.Page, filterParams.PerPage),
+		}, "", nil
+	}
+	filterParams.Filters["action_code"] = actionCodes
 
 	if statuses := extractStringSlice(filterParams.Filters, "action_status"); len(statuses) > 0 {
 		filterParams.Filters["action_status"] = statuses
@@ -1655,6 +1702,46 @@ func extractLevelClaimPairs(filters map[string]interface{}) []imodel.LevelClaimP
 		return pairs
 	}
 	return nil
+}
+
+// extractCheckerLevelStatusPairs extracts checker level status pairs from filters.
+// Looks for filters like "checker_level_1_status", "checker_level_2_status" etc.
+// Also supports "checker_level_statuses" which should be []LevelClaimPair.
+func extractCheckerLevelStatusPairs(filters map[string]interface{}) []imodel.LevelClaimPair {
+	// First check if pre-parsed pairs exist
+	if v, ok := filters["checker_level_statuses"]; ok {
+		if pairs, ok := v.([]imodel.LevelClaimPair); ok {
+			return pairs
+		}
+	}
+
+	var pairs []imodel.LevelClaimPair
+
+	// Look for checker_level_X_status pattern in filters
+	for key, val := range filters {
+		// Match pattern: checker_level_{number}_status
+		var levelNum string
+		if n, found := strings.CutPrefix(key, "checker_level_"); found {
+			if n, found = strings.CutSuffix(n, "_status"); found {
+				levelNum = n
+			}
+		}
+		if levelNum == "" {
+			continue
+		}
+
+		status, ok := val.(string)
+		if !ok {
+			continue
+		}
+
+		pairs = append(pairs, imodel.LevelClaimPair{
+			Level: levelNum,
+			Claim: strings.ToUpper(status),
+		})
+	}
+
+	return pairs
 }
 
 func CpsActionCSVHeader(fields []string) []string {

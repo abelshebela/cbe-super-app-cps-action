@@ -52,6 +52,20 @@ func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServ
 		return err
 	}
 
+	var service *service_dto.ServiceResponse
+	if accessList != nil {
+		service, err = s.repo.FindServiceByAccessListID(ctx, req.ServiceKeyId)
+		if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+			log.Errorf("[servicesService][Create] error checking existing service for serviceKey=%s: %v", req.ServiceKey, err)
+			return err
+		}
+
+		if accessList != nil && service != nil && strings.EqualFold(req.ServiceCode, service.ServiceCode) {
+			log.Warnf("[servicesService][Create] duplicate service detected for serviceKey=%s", req.ServiceKey)
+			return errors.New(localization.ErrorServiceExists.Code)
+		}
+	}
+
 	if req.ProductGlAccount != "" {
 		var accountDetail *model.AccountDetail
 		var accountDetailForPl model.AccountDetail
@@ -113,6 +127,22 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 	if err != nil && err.Error() != sql.ErrNoRows.Error() {
 		log.Errorf("[servicesService][Update] error checking existing service for serviceKeyId=%s: %v", req.ServiceKeyId, err)
 		return err
+	}
+
+	var service *service_dto.ServiceResponse
+	if accessList != nil {
+		if req.ServiceKeyId != nil {
+			service, err = s.repo.FindServiceByAccessListID(ctx, *req.ServiceKeyId)
+			if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+				log.Errorf("[servicesService][Create] error checking existing service for serviceKey=%s: %v", req.ServiceKey, err)
+				return err
+			}
+		}
+
+		if service != nil && service.ID != id && strings.EqualFold(*req.ServiceCode, service.ServiceCode) {
+			log.Warnf("[servicesService][Create] duplicate service detected for serviceKey=%s", req.ServiceKey)
+			return errors.New(localization.ErrorServiceExists.Code)
+		}
 	}
 
 	if req.ProductGlAccount != nil {
@@ -359,7 +389,7 @@ func (s *servicesService) DeleteServiceKey(ctx context.Context, id string) error
 
 func (s *servicesService) ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string) (*model.AccountDetail, error) {
 	log := local_util.LoggerFromCtx(ctx, s.logger)
-	response, err := s.core.NameLookup(coreio.NameLookupParam{AccountNumber: accountNumber})
+	response, err := s.core.NameLookup(ctx, coreio.NameLookupParam{AccountNumber: accountNumber})
 	if err != nil {
 		return nil, err
 	}

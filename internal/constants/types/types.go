@@ -73,6 +73,7 @@ type BPSActionDocument struct {
 	Status             string      `json:"status" bson:"status"`
 	CreatedAt          time.Time   `json:"created_at" bson:"created_at"`
 	LastModifiedAt     time.Time   `json:"last_modified_at" bson:"last_modified_at"`
+	CustomerBarred     bool        `json:"customer_barred" bson:"customer_barred"`
 }
 
 type OracleQuery struct {
@@ -493,6 +494,7 @@ type User struct {
 }
 
 type SubAccessList struct {
+	ID             string `json:"id" bson:"id"`
 	Key            string `json:"key" bson:"key"`
 	Enabled        bool   `json:"enabled" bson:"enabled"`
 	AccessListName string `json:"access_list_ame" bson:"access_list_name"`

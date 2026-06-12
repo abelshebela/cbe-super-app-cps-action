@@ -1,0 +1,31 @@
+package role_delegation_dto
+
+import (
+	"time"
+)
+
+type RoleDelegationRequest struct {
+	DelegatedUserID                 string `json:"delegated_user_id" bson:"delegated_user_id"`
+	DelegatedUserFullName           string `json:"delegated_user_full_name" bson:"delegated_user_full_name"`
+	DelegatedUserUserType           string `json:"delegated_user_user_type" bson:"delegated_user_user_type"`
+	DelegatedUserDepartmentOrBranch string `json:"delegated_user_department_or_branch" bson:"delegated_user_department_or_branch"`
+	DelegatedUserJobTitle           string `json:"delegated_user_job_title" bson:"delegated_user_job_title"`
+	DelegatedUserExistingRole       string `json:"delegated_user_existing_role" bson:"delegated_user_existing_role"`
+	DelegationType                  string `json:"delegation_type" bson:"delegation_type"`
+	DelegatedUserPhoneNumber        string `json:"delegated_user_phone_number" bson:"delegated_user_phone_number"`
+	DelegatedUserEmail              string `json:"delegated_user_email" bson:"delegated_user_email"`
+
+	DelegatorUserID       string `json:"delegator_user_id" bson:"delegator_user_id"`
+	DelegatorUserFullName string `json:"delegator_user_full_name" bson:"delegator_user_full_name"`
+	DelegatorUserJobTitle string `json:"delegator_user_job_title" bson:"delegator_user_job_title"`
+	DelegatorUserRole     string `json:"delegator_user_role" bson:"delegator_user_role"`
+	DelegatorUserUserType string `json:"delegator_user_user_type" bson:"delegator_user_user_type"`
+
+	NewRoleID             string `json:"new_role_id" bson:"new_role_id"`
+	NewDepartmentOrBranch string `json:"new_department_or_branch" bson:"new_department_or_branch"`
+
+	StartAt                  time.Time `json:"start_at" bson:"start_at"`
+	EndAt                    time.Time `json:"end_at" bson:"end_at"`
+	Reason                   string    `json:"reason" bson:"reason"`
+	RevokeExistingDelegation bool      `json:"revoke_existing_delegation" bson:"revoke_existing_delegation"`
+}

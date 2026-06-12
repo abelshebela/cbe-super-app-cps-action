@@ -83,6 +83,7 @@ func (u *UssdMerchantHandler) CreateUssdMerchant(w http.ResponseWriter, r *http.
 	}
 
 	if err := u.UssdMerchantService.CreateUssdMerchant(ctx, CreateDto); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[CreateUssdMerchantHandler] failed to create ussd merchant error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -183,6 +184,7 @@ func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.
 	}
 
 	if err := u.UssdMerchantService.UpdateUssdMerchant(ctx, id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[UpdateUssdMerchantHandler] failed to update ussd merchant: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -216,6 +218,7 @@ func (u *UssdMerchantHandler) EnableUssdMerchant(w http.ResponseWriter, r *http.
 	}
 
 	if err := u.UssdMerchantService.EnableUssdMerchant(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[EnableUssdMerchantHandler] failed to enable ussd merchant: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -264,6 +267,7 @@ func (u *UssdMerchantHandler) DisableUssdMerchant(w http.ResponseWriter, r *http
 	}
 
 	if err := u.UssdMerchantService.DisableUssdMerchant(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[DisableUssdMerchantHandler] failed to enable ussd merchant: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -312,6 +316,7 @@ func (u *UssdMerchantHandler) DeleteUssdMerchant(w http.ResponseWriter, r *http.
 	}
 
 	if err := u.UssdMerchantService.DeleteUssdMerchant(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[DeleteUssdMerchantHandler] failed to delete ussd merchant: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

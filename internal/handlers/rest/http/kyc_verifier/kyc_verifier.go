@@ -148,6 +148,7 @@ func (h *kycAdapter) UpdateKYC(w http.ResponseWriter, r *http.Request) {
 	}
 	span.SetAttributes(attribute.String("kyc.id", id))
 	if err := h.app.UpdateKYC(ctx, id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -195,6 +196,7 @@ func (h *kycAdapter) ApproveKYC(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("kyc.id", id))
 	if err := h.app.ApproveKYC(ctx, id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

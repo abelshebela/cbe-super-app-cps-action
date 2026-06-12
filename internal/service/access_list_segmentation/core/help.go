@@ -93,6 +93,7 @@ func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo stor
 // Helper to convert APPAccessList to SubAccessList
 func modelToSubAccessList(al *local_model.APPAccessList) types.SubAccessList {
 	return types.SubAccessList{
+		ID:             al.ID,
 		Key:            al.Key,
 		Enabled:        al.Enabled,
 		AccessListName: al.AccessListName,
@@ -105,8 +106,10 @@ func MapParentChildRelationship(relations []local_model.AccessItemRelation, acce
 	log.Printf("[DEBUG] MapParentChildRelationship called: %d relations, %d accessList", len(relations), len(accessList))
 	nodesByID := make(map[string]model.APPAccessList, len(accessList))
 	for _, al := range accessList {
-		log.Printf("[DEBUG] Adding accessList node: id=%s", al.ID)
-		nodesByID[al.ID] = al
+		if al.Enabled {
+			log.Printf("[DEBUG] Adding accessList node: id=%s", al.ID)
+			nodesByID[al.ID] = al
+		}
 	}
 
 	// Deduplicate (PARENT_ID, CHILD_ID) pairs
@@ -152,6 +155,9 @@ func MapParentChildRelationship(relations []local_model.AccessItemRelation, acce
 	}
 
 	for _, al := range accessList {
+		if !al.Enabled {
+			continue
+		}
 		if !accountedFor[al.ID] {
 			log.Printf("[DEBUG] Appending unaccounted accessList: id=%s", al.ID)
 			result = append(result, al)

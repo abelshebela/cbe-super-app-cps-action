@@ -70,3 +70,26 @@ func JobTitleExistentChecker(ctx context.Context, types, id, jobTitle string, jo
 
 	return nil
 }
+
+func CodeExistentChecker(ctx context.Context, types, id, code string, jobRoleRepo storage.JobRoleRepository) error {
+
+	res, err := jobRoleRepo.FindByCode(ctx, code)
+	if err != nil {
+		if err.Error() == localization.ErrorResourceNotFound.Code {
+			return nil
+		}
+		return err
+	}
+
+	if types == constants.CREATE && res != nil {
+		return errors.New(localization.ErrorUsedJobRoleCodeExisting.Code)
+	} else if types == constants.UPDATE {
+		if res != nil {
+			if res.ID.Hex() != id {
+				return errors.New(localization.ErrorUsedJobRoleCodeExisting.Code)
+			}
+		}
+	}
+
+	return nil
+}

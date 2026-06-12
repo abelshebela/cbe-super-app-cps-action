@@ -31,18 +31,20 @@ type cpsUserService struct {
 	bpsApproverRepo   storage.BPSActionApproveIndexRepository
 	permissionService service.PermissionService
 	departmentRepo    storage.DepartmentRepository
+	roleDelegation    storage.RoleDelegationRepository
 	logger            shared_utils.Logger
 	cpsService        service.CPSActionService
 	bpsRepo           storage.BPSUserRepository
 }
 
-func NewCPSUserService(repo storage.CpsUserRepository, JobRoleRepo storage.JobRoleRepository, approverRepo storage.CPSActionApproveIndexRepository, bpsApproverRepo storage.BPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, bps storage.BPSUserRepository, logger shared_utils.Logger) service.CPSUserService {
+func NewCPSUserService(repo storage.CpsUserRepository, JobRoleRepo storage.JobRoleRepository, approverRepo storage.CPSActionApproveIndexRepository, bpsApproverRepo storage.BPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, bps storage.BPSUserRepository, roleDelegation storage.RoleDelegationRepository, logger shared_utils.Logger) service.CPSUserService {
 	return &cpsUserService{
 		repo:              repo,
 		bpsRepo:           bps,
 		jobRoleRepo:       JobRoleRepo,
 		approverRepo:      approverRepo,
 		bpsApproverRepo:   bpsApproverRepo,
+		roleDelegation:    roleDelegation,
 		permissionService: permission,
 		cpsService:        cps,
 		logger:            logger,
@@ -287,12 +289,44 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 		log.Infof("[CpsUserSvc][Update] no fields to update for user code: %s", usercode)
 		return errors.New("no fields to update")
 	}
+
 	makerData := local_util.ExtractUserFromContext(ctx)
 	userForAction := core.MapForActionWithDepartment(updated, department)
+
+	curDpt, err := s.departmentRepo.FindByID(ctx, currentUser.Department.Hex())
+	if err != nil {
+		span.AddEvent("failed to find department", trace.WithAttributes(attribute.String("error", err.Error())))
+		return err
+	}
+
+	prevUserData := cpsuser.CpsUserPopulatedResponse{
+		ID:                 currentUser.ID,
+		UserCode:           currentUser.UserCode,
+		FullName:           currentUser.FullName,
+		Role:               cpsuser.RoleResponse{Name: currentUser.Role},
+		Department:         &cpsuser.DepartmentResponse{ID: curDpt.ID, Name: curDpt.Department},
+		JobTitle:           currentUser.JobTitle,
+		Gender:             currentUser.Gender,
+		PhoneNumber:        currentUser.PhoneNumber,
+		Email:              currentUser.Email,
+		UserName:           currentUser.UserName,
+		Realm:              currentUser.Realm,
+		Enabled:            currentUser.Enabled,
+		DateJoined:         *currentUser.DateJoined,
+		LastModified:       *currentUser.LastModified,
+		Country:            currentUser.Country,
+		Region:             currentUser.Region,
+		PermissionCategory: currentUser.PermissionCategory,
+		LastLogin:          currentUser.LastLogin,
+		PasswordDisable:    currentUser.PasswordDisable,
+		IsFirstTimeLogin:   currentUser.IsFirstTimeLogin,
+		CreatedAt:          currentUser.CreatedAt,
+	}
+
 	cpsActionModel := lib.CpsModelBuilder(
 		usercode,
 		makerData,
-		currentUser,
+		prevUserData,
 		userForAction,
 		string(constants.RequestCpsUserUpdate),
 		constants.UPDATE,
@@ -454,11 +488,25 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 		span.AddEvent("failed to find user by id", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
 	}
-
-	roles, err := s.jobRoleRepo.FindByName(ctx, user.JobTitle)
-	if err != nil {
-		span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
-		return nil, err
+	var roles *imodel.JobRole
+	if user.IsDelegationActive {
+		s.logger.Infof("fetching role by delegated role code: %s", user.DelegatedRoleCode)
+		roles, err = s.jobRoleRepo.FindByRole(ctx, user.DelegatedRoleCode)
+		if err != nil {
+			s.logger.Errorf("failed to find role by delegation err:%v", err)
+			span.AddEvent("failed to find role by role", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+		s.logger.Infof("found role by delegation: %v", roles)
+	} else {
+		s.logger.Infof("fetching role by job title: %s", user.JobTitle)
+		roles, err = s.jobRoleRepo.FindByName(ctx, user.JobTitle)
+		if err != nil {
+			s.logger.Errorf("failed to find role by job title err:%v", err)
+			span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+		s.logger.Infof("found role by job title: %v", roles)
 	}
 
 	var makerAlloc, checkerAlloc, auditorAlloc, portalCard, bpsCheckerAlloc, bpsAuditorAlloc []string
@@ -515,6 +563,74 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 
 	// populated, err := s.repo.GetPopulatedByID(ctx, userCode)
 	populated, err := s.repo.GetPopulatedWithRole(ctx, userCode)
+	if err != nil {
+		span.AddEvent("failed to get populated by id", trace.WithAttributes(attribute.String("error", err.Error())))
+		if !errors.Is(err, localization.ErrorUserNotFound) {
+			s.logger.Errorf("[GetCpsUserDetail] cps user not found for user code: %s in GetPopulatedWithRole", userCode)
+			return nil, err
+		}
+
+		populated, err = s.roleDelegation.FindByUserCode(ctx, userCode)
+		if err != nil {
+			span.AddEvent("failed to find role delegation by user code", trace.WithAttributes(attribute.String("error", err.Error())))
+			s.logger.Errorf("failed to find role delegation by user code err:%v", err)
+			return nil, err
+		}
+	}
+
+	s.logger.Infof("[GetCpsUserDetail] fetched populated user: %+v", populated)
+
+	var makerAlloc, checkerAlloc, auditorAlloc, portalCard, bpsCheckerAlloc, bpsAuditorAlloc []string
+	var roles *imodel.JobRole
+	if populated.IsDelegationActive {
+		s.logger.Infof("[GetCpsUserDetail]fetching role by delegated role: %s", populated.DelegatedRole)
+		roles, err = s.jobRoleRepo.FindByRole(ctx, populated.DelegatedRole)
+		if err != nil {
+			s.logger.Errorf("[GetCpsUserDetail][FindByRole] failed to find role by delegation err:%v", err)
+			span.AddEvent("failed to find role by delegation", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+		populated.Role.Code = roles.RoleCode
+		populated.Role.Name = roles.RoleName
+	} else {
+		s.logger.Infof("[GetCpsUserDetail] fetching role by job title: %s", populated.JobTitle)
+		if populated.JobTitle != "" {
+			roles, err = s.jobRoleRepo.FindByName(ctx, populated.JobTitle)
+			if err != nil {
+				span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
+				return nil, err
+			}
+		}
+	}
+	s.logger.Infof("[GetCpsUserDetail] fetched role: %v", roles)
+	if roles != nil && roles.Enabled {
+		_, makerAlloc, checkerAlloc, auditorAlloc, portalCard, err = s.approverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
+		if err != nil {
+			span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+
+		_, _, bpsCheckerAlloc, bpsAuditorAlloc, err = s.bpsApproverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
+		if err != nil {
+			span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
+	}
+
+	return core.ConvertToResponseDTO(portalCard, populated, makerAlloc, checkerAlloc, auditorAlloc, bpsCheckerAlloc, bpsAuditorAlloc), nil
+}
+func (s *cpsUserService) GetCpsUserDetailByUserName(ctx context.Context, userName string) (*cpsuser.CpsUserPopulatedResponse, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetCpsUserDetailByUserName", "CPSUser", "GetCpsUserDetailByUserName")
+
+	defer span.End()
+
+	if userName == "" {
+		span.AddEvent("user name is empty", trace.WithAttributes(attribute.String("error", "user code is empty")))
+		return nil, errors.New(localization.ErrorUserNameRequired.Code)
+	}
+
+	// populated, err := s.repo.GetPopulatedByID(ctx, userName)
+	populated, err := s.repo.GetPopulatedWithRoleByUserName(ctx, userName)
 	if err != nil {
 		span.AddEvent("failed to get populated by id", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err

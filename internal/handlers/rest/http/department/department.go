@@ -6,7 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -53,20 +53,20 @@ func NewDepartmentHandler(departmentService service.DepartmentService, logger ut
 //	@Security		BearerAuth
 //	@Router			/departments [get]
 func (d *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllDepartments", "handler", "department")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllDepartments", "handler", "department")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, d.logger)
-	filterParams := common_utils.ExtractFilterParams(r)
+	log := local_util.LoggerFromCtx(ctx, d.logger)
+	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	if err := common_utils.NoSpecialChars(search); err != nil {
+	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if err := common_utils.NoSpecialChars(filter); err != nil {
+	if err := local_util.NoSpecialChars(filter); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -98,9 +98,9 @@ func (d *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/departments [post]
 func (d *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createDepartment", "handler", "department")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createDepartment", "handler", "department")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, d.logger)
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
@@ -124,6 +124,7 @@ func (d *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 
 	err := d.departmentService.CreateDepartment(ctx, departmentRequest)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CreateDepartment] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -157,9 +158,9 @@ func (d *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 //	@Security		BearerAuth
 //	@Router			/departments/{id} [patch]
 func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateDepartment", "handler", "department")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateDepartment", "handler", "department")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, d.logger)
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
@@ -190,6 +191,7 @@ func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 
 	err := d.departmentService.UpdateDepartment(ctx, id, departmentRequest)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[UpdateDepartmentRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -222,9 +224,9 @@ func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 //	@Security		BearerAuth
 //	@Router			/departments/{id} [get]
 func (d *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getDepartmentById", "handler", "department")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getDepartmentById", "handler", "department")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, d.logger)
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
 		log.Errorf("[GetDepartmentByID] missing department ID")
@@ -260,9 +262,9 @@ func (d *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/departments/enable/{id} [patch]
 func (d *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableDepartment", "handler", "department")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableDepartment", "handler", "department")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, d.logger)
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
@@ -277,6 +279,7 @@ func (d *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Requ
 
 	err := d.departmentService.EnableDisableDepartment(ctx, id, true)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EnableDepartment] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -308,9 +311,9 @@ func (d *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Requ
 //	@Security		BearerAuth
 //	@Router			/departments/disable/{id} [patch]
 func (d *DepartmentHandler) DisableDepartment(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableDepartment", "handler", "department")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDepartment", "handler", "department")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, d.logger)
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
@@ -325,6 +328,7 @@ func (d *DepartmentHandler) DisableDepartment(w http.ResponseWriter, r *http.Req
 
 	err := d.departmentService.EnableDisableDepartment(ctx, id, false)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DisableDepartment] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -341,9 +345,9 @@ func (d *DepartmentHandler) DisableDepartment(w http.ResponseWriter, r *http.Req
 }
 
 func (d *DepartmentHandler) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteDepartment", "handler", "department")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteDepartment", "handler", "department")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, d.logger)
+	log := local_util.LoggerFromCtx(ctx, d.logger)
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
@@ -359,6 +363,7 @@ func (d *DepartmentHandler) DeleteDepartment(w http.ResponseWriter, r *http.Requ
 
 	err := d.departmentService.DeleteDepartment(ctx, id)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DeleteDepartment] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

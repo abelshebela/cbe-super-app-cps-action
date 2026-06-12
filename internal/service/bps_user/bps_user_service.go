@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	bps_user_core "cbe-super-app-cps-action/internal/service/bps_user/core"
@@ -35,15 +36,18 @@ type bpsUserService struct {
 	CPSUserRepo    storage.CpsUserRepository
 	Job_roles_repo storage.JobRoleRepository
 	Branch_blocks  storage.AccountBlockRepository
+	RoleRepository storage.RoleRepository
 	logger         utils.Logger
 }
 
-func NewBPSUserService(repo storage.BPSUserRepository, JobRolesRepo storage.JobRoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository, branch_blocks storage.AccountBlockRepository, logger utils.Logger) service.BPSUserService {
+func NewBPSUserService(repo storage.BPSUserRepository, JobRolesRepo storage.JobRoleRepository,
+	roleRepository storage.RoleRepository, cpsService service.CPSActionService, cpsUserRepo storage.CpsUserRepository, branch_blocks storage.AccountBlockRepository, logger utils.Logger) service.BPSUserService {
 	return &bpsUserService{
 		cpsService:     cpsService,
 		repo:           repo,
 		CPSUserRepo:    cpsUserRepo,
 		Job_roles_repo: JobRolesRepo,
+		RoleRepository: roleRepository,
 		Branch_blocks:  branch_blocks,
 		logger:         logger,
 	}
@@ -167,6 +171,67 @@ func (b *bpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 	}
 	b.logger.Infof("[BpsUserSvc][FetchByCode] retrieved code: %s", userCode)
 	return user, nil
+}
+
+func (b *bpsUserService) FetchUserByUserName(ctx context.Context, userName string) (*imodel.BPSUser, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "FetchUserByUserName", "BPS User", "FetchUserByUserName")
+	defer span.End()
+
+	user, err := b.repo.GetByUsername(ctx, userName)
+	if err != nil {
+		span.AddEvent("[FetchUserByUserName] failed to fetch BPS user", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_code", userName),
+		))
+		b.logger.Errorf("[BpsUserSvc][FetchByUserName] fetch err: %v", err)
+		return nil, localization.ErrorBpsUserNotFound
+	}
+	if user == nil {
+		span.AddEvent("[FetchUserByUserName] BPS user not found", trace.WithAttributes(attribute.String("user_code", userName)))
+		b.logger.Errorf("[BpsUserSvc][FetchByUserName] not found: %s", userName)
+		return nil, errors.New(localization.ErrorUserNotFound.Code)
+	}
+	jobRoles, err := b.Job_roles_repo.FindByName(ctx, user.JobTitle)
+	if err != nil {
+		span.AddEvent("[FetchUserByUserName] failed to fetch role by job title", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("job_title", user.JobTitle),
+		))
+		b.logger.Errorf("[BpsUserSvc][FetchByUserName] failed to fetch role by job title: %s, err: %v", user.JobTitle, err)
+		return nil, errors.New(localization.ErrorRoleNotFound.Code)
+	}
+	if jobRoles == nil || jobRoles.Role == "" {
+		span.AddEvent("[FetchUserByUserName] role not found for job title", trace.WithAttributes(attribute.String("job_title", user.JobTitle)))
+		b.logger.Errorf("[BpsUserSvc][FetchByUserName] role not found for job title: %s", user.JobTitle)
+		return nil, errors.New(localization.ErrorRoleNotFound.Code)
+	}
+	role, err := b.RoleRepository.FindByCode(ctx, jobRoles.Role)
+	if err != nil {
+		span.AddEvent("[FetchUserByUserName] failed to fetch role by code", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("role_code", jobRoles.Role),
+		))
+		b.logger.Errorf("[BpsUserSvc][FetchByUserName] failed to fetch role by code: %s, err: %v", jobRoles.Role, err)
+		return nil, errors.New(localization.ErrorRoleNotFound.Code)
+	}
+	cleanBPSUser := imodel.BPSUser{
+		ID:          user.ID,
+		UserCode:    user.UserCode,
+		FullName:    user.FullName,
+		UserName:    user.Username,
+		PhoneNumber: user.PhoneNumber,
+		BranchCode:  user.BranchCode,
+		Email:       user.Email,
+		BranchName:  user.BranchName,
+		HomeBranch:  user.HomeBranch,
+		JobTitle:    user.JobTitle,
+		Role:        jobRoles.Role,
+		Enabled:     user.Enabled,
+		RoleName:    role.Name,
+	}
+
+	b.logger.Infof("[BpsUserSvc][FetchByUserName] retrieved username: %s", userName)
+	return &cleanBPSUser, nil
 }
 
 // GetAllBPSUsers implements service.BPSUserService.

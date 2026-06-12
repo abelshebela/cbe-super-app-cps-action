@@ -172,6 +172,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	if strings.TrimSpace(reqBody.Mark) == "" {
 		// Claim path -> move status to INPROGRESS when allowed
 		if err := a.cpsActionApplication.AuditorClaim(ctx, actionCode, activeGroup); err != nil {
+			w = local_util.HandlePendingResponseError(ctx, w, err)
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
@@ -193,6 +194,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := a.cpsActionApplication.AuditorMark(ctx, actionCode, auditor, activeGroup); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -232,6 +234,7 @@ func (a *cpsActionAdapter) CancelCPSAction(w http.ResponseWriter, r *http.Reques
 
 	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, "")
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -256,6 +259,7 @@ func (a *cpsActionAdapter) CancelCPSAction(w http.ResponseWriter, r *http.Reques
 	action.CanceledReason = string(req.CancelReason)
 
 	if err := a.cpsActionApplication.RejectCPSAction(ctx, actionCode, action); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -286,6 +290,7 @@ func (a *cpsActionAdapter) ReverseCPSAction(w http.ResponseWriter, r *http.Reque
 	// Load action and validate status
 	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, "")
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -328,6 +333,7 @@ func (a *cpsActionAdapter) ReverseCPSAction(w http.ResponseWriter, r *http.Reque
 
 	// Perform reversal via service
 	if err := a.cpsActionApplication.ReverseCPSAction(ctx, actionCode); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -363,6 +369,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	span.SetAttributes(attribute.String("cps_action.code", actionCode))
 	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, "")
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -484,6 +491,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 
 	// Then, approve the action
 	if err := a.cpsActionApplication.ApproveCPSAction(ctx, updatedData); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -522,6 +530,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 	// Fetch action and attach checker_index context for this approver
 	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, "")
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -627,6 +636,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 	// }
 
 	if err := a.cpsActionApplication.RejectCPSAction(ctx, actionCode, updatedData); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -1351,19 +1361,9 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		// as the list endpoint. This ensures counts match what the auditor sees.
 		// queryActionStatus optionally narrows to APPROVED or REJECTED.
 
-		var allAuditCount, unAuditedCount, inprogressAuditCount, auditedCount int
+		var unAuditedCount, inprogressAuditCount, auditedCount int
 
 		if auditorActions != nil {
-			// All — no auditor_status restriction; action_status from query param
-			if res, _, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, "")); err != nil {
-				span.RecordError(err)
-				localization.SendErrorByCodeResponse(w, err.Error())
-				a.logger.Errorf("[CpsActionH][Auditor] failed to get all count: %v", err)
-				return
-			} else if res != nil && res.Meta.TotalDocs > 0 {
-				allAuditCount = int(res.Meta.TotalDocs)
-			}
-
 			// UnAudited — NOTCHECKED
 			if res, _, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, userID, reqs, buildFilter(queryActionStatus, string(model.AUDITORNOTCHECKED))); err != nil {
 				span.RecordError(err)
@@ -1396,7 +1396,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		}
 
 		auditorResp := &cpsactionDto.CPSAuditorActionCountResponse{
-			AllAction:  allAuditCount,
+			AllAction:  unAuditedCount + inprogressAuditCount + auditedCount,
 			UnAudited:  unAuditedCount,
 			Inprogress: inprogressAuditCount,
 			Audited:    auditedCount,
@@ -1554,6 +1554,7 @@ func (a *cpsActionAdapter) ApproverCheckerAllocations(w http.ResponseWriter, r *
 	// viewer, maker, checker, auditor, portalCards
 	_, _, checkerMods, _, _, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -1639,6 +1640,7 @@ func (a *cpsActionAdapter) ApproverAuditorAllocations(w http.ResponseWriter, r *
 	// viewer, maker, checker, auditor, portalCards
 	_, _, _, auditorMods, _, err := repo.PopulateUserApproverAllocations(ctx, roleCode)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -1808,6 +1810,7 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 	}
 	reqs, filterParams, err := cpsactioncore.BuildCPSActionRequestMapAuditor(ctx, filterParams, actor, log)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CpsActionH][Approve] failed to fetch checker allocations: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -1877,6 +1880,7 @@ func (a *cpsActionAdapter) ExportCPSActionData(w http.ResponseWriter, r *http.Re
 
 	fileLink, err := a.cpsActionApplication.ExportCpsActionData(ctx, reqs, filterParams, fileType)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CpsActionH][Export] svc err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

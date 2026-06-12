@@ -224,6 +224,7 @@ func (a *hqAdapter) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Reques
 	}
 
 	if err := a.hqApp.UpdateBlockTime(ctx, request); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -274,6 +275,7 @@ func (a *hqAdapter) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Requ
 	}
 
 	if err := a.hqApp.UpdateArchiveTime(ctx, request); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -323,6 +325,7 @@ func (a *hqAdapter) UpdatePasswordExpiryRequest(w http.ResponseWriter, r *http.R
 	}
 
 	if err := a.hqApp.UpdatePasswordExpiry(ctx, request); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

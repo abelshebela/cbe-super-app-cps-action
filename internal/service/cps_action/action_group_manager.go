@@ -27,6 +27,7 @@ var DefaultActionGroupManager ActionGroupManager = &actionGroupManager{}
 // deterministic resolution when actions belong to multiple groups.
 var modulePriority = []string{
 	"BANK",
+	"ACCOUNTSUBTYPE",
 	"KYCVERIFIER",
 	"BLOCK",
 	"ACCOUNT",

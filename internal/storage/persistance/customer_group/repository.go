@@ -83,21 +83,21 @@ func (r *customerGroupStorage) DuplicateCheck(ctx context.Context, action, id, s
 	checkSum := checksum.Checksum(data)
 
 	var count int
-	var roleCount int
+	// var roleCount int
 
 	if action == "update" {
 		dupQ := `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1 AND ID != HEXTORAW(:2)`
-		roleQ := `SELECT COUNT(*) FROM SEGMENTS WHERE UPPER(TRIM(SUPERAPP_ROLE)) = UPPER(TRIM(:1)) AND ID != HEXTORAW(:2)`
+		// roleQ := `SELECT COUNT(*) FROM SEGMENTS WHERE UPPER(TRIM(SUPERAPP_ROLE)) = UPPER(TRIM(:1)) AND ID != HEXTORAW(:2)`
 
-		if err := r.db.QueryRowContext(ctx, roleQ, superAppRole, id).Scan(&roleCount); err != nil {
-			log.Errorf("[CustomerGroup][DuplicateCheck:superapp_role] duplicate check failed: %v", err)
-			return local_util.HandleDBError(err)
-		}
+		// if err := r.db.QueryRowContext(ctx, roleQ, superAppRole, id).Scan(&roleCount); err != nil {
+		// 	log.Errorf("[CustomerGroup][DuplicateCheck:superapp_role] duplicate check failed: %v", err)
+		// 	return local_util.HandleDBError(err)
+		// }
 
-		if roleCount > 0 {
-			log.Warnf("[CustomerGroup][DuplicateCheck:superapp_role] duplicate super app role detected: %s", superAppRole)
-			return errors.New(localization.ErrorSuperAppRoleAlreadyExists.Code)
-		}
+		// if roleCount > 0 {
+		// 	log.Warnf("[CustomerGroup][DuplicateCheck:superapp_role] duplicate super app role detected: %s", superAppRole)
+		// 	return errors.New(localization.ErrorSuperAppRoleAlreadyExists.Code)
+		// }
 
 		if err := r.db.QueryRowContext(ctx, dupQ, checkSum, id).Scan(&count); err != nil {
 			log.Errorf("[CustomerGroup][DuplicateCheck] duplicate check failed: %v", err)
@@ -111,17 +111,17 @@ func (r *customerGroupStorage) DuplicateCheck(ctx context.Context, action, id, s
 
 	} else {
 		dupQ = `SELECT COUNT(*) FROM SEGMENTS WHERE CHECK_SUM = :1`
-		roleQ := `SELECT COUNT(*) FROM SEGMENTS WHERE UPPER(TRIM(SUPERAPP_ROLE)) = UPPER(TRIM(:1))`
+		// roleQ := `SELECT COUNT(*) FROM SEGMENTS WHERE UPPER(TRIM(SUPERAPP_ROLE)) = UPPER(TRIM(:1))`
 
-		if err := r.db.QueryRowContext(ctx, roleQ, superAppRole).Scan(&roleCount); err != nil {
-			log.Errorf("[CustomerGroup][DuplicateCheck:superapp_role] duplicate check failed: %v", err)
-			return local_util.HandleDBError(err)
-		}
+		// if err := r.db.QueryRowContext(ctx, roleQ, superAppRole).Scan(&roleCount); err != nil {
+		// 	log.Errorf("[CustomerGroup][DuplicateCheck:superapp_role] duplicate check failed: %v", err)
+		// 	return local_util.HandleDBError(err)
+		// }
 
-		if roleCount > 0 {
-			log.Warnf("[CustomerGroup][DuplicateCheck:superapp_role] duplicate super app role detected: %s", superAppRole)
-			return errors.New(localization.ErrorSuperAppRoleAlreadyExists.Code)
-		}
+		// if roleCount > 0 {
+		// 	log.Warnf("[CustomerGroup][DuplicateCheck:superapp_role] duplicate super app role detected: %s", superAppRole)
+		// 	return errors.New(localization.ErrorSuperAppRoleAlreadyExists.Code)
+		// }
 
 		if err := r.db.QueryRowContext(ctx, dupQ, checkSum).Scan(&count); err != nil {
 			log.Errorf("[CustomerGroup][DuplicateCheck] duplicate check failed: %v", err)

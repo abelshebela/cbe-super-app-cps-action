@@ -35,6 +35,14 @@ type AuditorMarkRequest struct {
 	Reason      string `json:"reason"`
 	CustomerBar bool   `json:"customer_bar"`
 }
+
+// ReinstateRequest represents the request to reinstate/unblock a customer
+type ReinstateRequest struct {
+	ActionCode string `json:"action_code"`
+	UserCode   string `json:"user_code"`
+	Reason     string `json:"reason"`
+}
+
 type GetActionRoleByActionCodeRes struct {
 	ID                   bson.ObjectID     `json:"_id" bson:"_id"`
 	ActionCode           string            `json:"action_code" bson:"action_code"`

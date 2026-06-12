@@ -96,6 +96,9 @@ func (r *JobRoleRepository) Update(ctx context.Context, id string, jobRole *imod
 	if jobRole.Role != "" {
 		update["role"] = jobRole.Role
 	}
+	if jobRole.Code != "" {
+		update["code"] = jobRole.Code
+	}
 	if !jobRole.UpdateAt.IsZero() {
 		update["updated_at"] = jobRole.UpdateAt
 	}
@@ -357,6 +360,7 @@ func roleWithJobRolePipeline(match bson.M, jobRolesCollName string, skip, limit 
 		}},
 		{"$project": bson.M{
 			"_id":        1,
+			"code":       1,
 			"job_title":  1,
 			"role":       1,
 			"enabled":    1,

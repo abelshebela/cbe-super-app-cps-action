@@ -67,3 +67,4 @@ db/migrations/accounts_block_migration.sql
 .vscode
 .claude
 .gocache
+.continue

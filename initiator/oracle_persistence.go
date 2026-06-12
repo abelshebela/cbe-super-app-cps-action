@@ -10,6 +10,10 @@ import (
 	account_block_repo "cbe-super-app-cps-action/internal/storage/persistance/account_block"
 	amount_based_auth_oracle "cbe-super-app-cps-action/internal/storage/persistance/amount_based_auth_oracle"
 	"cbe-super-app-cps-action/internal/storage/persistance/bank/gen/sqlc"
+	account_sub_type_oracle "cbe-super-app-cps-action/internal/storage/persistance/account_sub_type"
+	apc_oracle "cbe-super-app-cps-action/internal/storage/persistance/account_product_category/oracle"
+	ap_oracle "cbe-super-app-cps-action/internal/storage/persistance/account_product/oracle"
+	tac_oracle "cbe-super-app-cps-action/internal/storage/persistance/term_and_condition/oracle"
 	budget_category_oracle "cbe-super-app-cps-action/internal/storage/persistance/budget_category_oracle"
 	cpsroles "cbe-super-app-cps-action/internal/storage/persistance/cps_roles"
 	customer_oracle "cbe-super-app-cps-action/internal/storage/persistance/customer/oracle"
@@ -62,6 +66,10 @@ type OraclePersistence struct {
 	MiniApp                 storage.MiniAppRepository
 	MiniAppMerchant         storage.MiniAppMerchant
 	MiniAppCategory         storage.MiniAppCategoryRepository
+	AccountSubType          storage.AccountSubTypeOracleRepository
+	AccountProductCategory  storage.AccountProductCategoryRepository
+	AccountProduct          storage.AccountProductRepository
+	AccountOpeningTerms     storage.AccountOpeningTermsRepository
 }
 
 func InitOraclePersistence(client *mongo.Client, db *sql.DB, cfg *config.VaultConfig, clientOrchestrationProducer kafka.ClientOrchestrationProducer, accessListSegmentationProducer *kafka.AccessListSegmentationProducer, redisRepository storage.RedisRepository, log utils.Logger) OraclePersistence {
@@ -99,8 +107,12 @@ func InitOraclePersistence(client *mongo.Client, db *sql.DB, cfg *config.VaultCo
 		CustomerGroup:           customergroup.NewCustomerGroupRepository(cfg, db, log),
 		SuperAppRole:            superapprole.NewSuperAppRoleRepository(db, log),
 		LogisticsMerchantOracle: logistics_merchant_oracle.NewLogisticsMerchantOracle(db, cfg, log),
-		MiniApp: mini_app_repo.NewMiniAppOracleRepository(log,db),
-		MiniAppMerchant: mini_app_repo.NewMiniAppMerchantOracleRepository(log,db),
-		MiniAppCategory: mini_app_repo.NewCategoryOracleRepository(log,db),
+		MiniApp:        mini_app_repo.NewMiniAppOracleRepository(log, db),
+		MiniAppMerchant: mini_app_repo.NewMiniAppMerchantOracleRepository(log, db),
+		MiniAppCategory: mini_app_repo.NewCategoryOracleRepository(log, db),
+		AccountSubType:         account_sub_type_oracle.NewAccountSubTypeOracleRepository(db, log),
+		AccountProductCategory: apc_oracle.NewRepository(db, log),
+		AccountProduct:         ap_oracle.NewRepository(db, log),
+		AccountOpeningTerms:    tac_oracle.NewRepository(db, log),
 	}
 }

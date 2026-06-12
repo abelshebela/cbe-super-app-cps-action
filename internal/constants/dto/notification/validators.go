@@ -52,7 +52,7 @@ func noDangerousChars(value any) error {
 	return nil
 }
 
-var allowedNotificationFor = []string{"IFB", "CB", "ALL"}
+var allowedNotificationFor = []string{"IFB", "CB", "BOTH"}
 
 func (r NotificationRequest) Validate(isCreate bool) error {
 	enumValues := toInterfaceSlice(allowedNotificationFor)

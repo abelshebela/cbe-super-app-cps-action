@@ -48,7 +48,7 @@ func (s *superAppRoleService) GetTransferLimitByRole(ctx context.Context, supera
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	serviceCode := "GLOBAL-" + strings.ToUpper(superappRole)
-	response, err := s.core.CustomerLimitFetchByService(core.CustomerLimitFetchByServiceParam{
+	response, err := s.core.CustomerLimitFetchByService(ctx, core.CustomerLimitFetchByServiceParam{
 		ServiceCode: serviceCode,
 	})
 	if err != nil {
@@ -154,7 +154,7 @@ func (s *superAppRoleService) GetGlobalLimitByRole(ctx context.Context, superapp
 	log := local_util.LoggerFromCtx(ctx, s.logger)
 
 	customerNumber := "GLOBAL-" + strings.ToUpper(superappRole)
-	response, err := s.core.CustomerLimitFetchByCustomerNumber(core.CustomerLimitFetchByCIFParam{
+	response, err := s.core.CustomerLimitFetchByCustomerNumber(ctx, core.CustomerLimitFetchByCIFParam{
 		CustomerNumber: customerNumber,
 	})
 	if err != nil {

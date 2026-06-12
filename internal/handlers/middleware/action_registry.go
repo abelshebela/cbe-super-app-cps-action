@@ -112,10 +112,11 @@ var cpsActionRegistry = map[string]string{
 	"DELETE events":   "EVENT",
 
 	// CPS Users
-	"GET cps_users":    "CPSUSER",
-	"POST cps_users":   "CPSUSER",
-	"PATCH cps_users":  "CPSUSER",
-	"DELETE cps_users": "CPSUSER",
+	"GET cps_users":          "CPSUSER",
+	"GET cps_users/username": "CPSUSER",
+	"POST cps_users":         "CPSUSER",
+	"PATCH cps_users":        "CPSUSER",
+	"DELETE cps_users":       "CPSUSER",
 
 	// BPS Users (GET operations)
 	"GET bps_users": "BPSUSER",
@@ -420,6 +421,36 @@ var cpsActionRegistry = map[string]string{
 
 	// Unlink
 	"GET unlink": "UNLINKDEVICE",
+
+	// role delegation
+	"GET role_delegation":    "ROLEDELEGATION",
+	"POST role_delegation":   "ROLEDELEGATION",
+	"DELETE role_delegation": "ROLEDELEGATION",
+	"PATCH role_delegation":  "ROLEDELEGATION",
+
+	// Account sub type
+	"GET account-sub-types":    "ACCOUNTSUBTYPE",
+	"PATCH account-sub-types":  "ACCOUNTSUBTYPE",
+	"POST account-sub-types":   "ACCOUNTSUBTYPE",
+	"DELETE account-sub-types": "ACCOUNTSUBTYPE",
+
+	// Account product
+	"GET account_product":    "ACCOUNTPRODUCT",
+	"POST account_product":   "ACCOUNTPRODUCT",
+	"PATCH account_product":  "ACCOUNTPRODUCT",
+	"DELETE account_product": "ACCOUNTPRODUCT",
+
+	// Account product category
+	"GET apc":    "ACCOUNTPRODUCTCATEGORY",
+	"POST apc":   "ACCOUNTPRODUCTCATEGORY",
+	"PATCH apc":  "ACCOUNTPRODUCTCATEGORY",
+	"DELETE apc": "ACCOUNTPRODUCTCATEGORY",
+
+	// Term and Condition
+	"GET term_and_condition":    "TERMANDCONDITION",
+	"POST term_and_condition":   "TERMANDCONDITION",
+	"PATCH term_and_condition":  "TERMANDCONDITION",
+	"DELETE term_and_condition": "TERMANDCONDITION",
 }
 
 func extractResource(path string) string {

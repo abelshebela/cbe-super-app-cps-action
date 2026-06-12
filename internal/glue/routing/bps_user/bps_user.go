@@ -29,6 +29,14 @@ func Init(router chi.Router, handler bps_user.BPSUserHandler, authMiddleware mid
 			},
 		},
 		{
+			Method:  http.MethodGet,
+			Path:    "/bps_users/username/{username}",
+			Handler: handler.FetchUserByUserName,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
 			Method:  http.MethodPost,
 			Path:    "/bps_users",
 			Handler: handler.CreateBPSUser,
