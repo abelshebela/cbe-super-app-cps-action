@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -852,10 +851,10 @@ func GetActionNameFromPath(method, path string) string {
 		relPath = "/"
 	}
 
+	relPathNewa := strings.TrimPrefix(path, "/api/v1/cbesuperapp/")
+
 	// Handle special cases for news endpoints
-	fmt.Println("path: %v", relPath)
-	if strings.Contains(relPath, "news") {
-		fmt.Println("failed to get action group: %v", relPath)
+	if strings.Contains(relPathNewa, "news") {
 		return "ARTICLE"
 	}
 	// SHORTVIDEO, ARTICLECATEGORY
