@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
@@ -46,6 +47,32 @@ func (r *repository) Create(ctx context.Context, t *imodel.AccountOpeningTerms) 
 	); err != nil {
 		log.Errorf("[TACOracle][Create] insert: %v", err)
 		return local_util.HandleDBError(err)
+	}
+	return nil
+}
+
+func (r *repository) Update(ctx context.Context, id string, t *imodel.AccountOpeningTerms) error {
+	log := local_util.LoggerFromCtx(ctx, r.logger)
+	log.Infof("[TACOracle][Update] id=%s", id)
+
+	q := `UPDATE ACCOUNT_OPENING_TERMS
+		SET ACTIVATION_TIME = TO_DATE(:1, 'YYYY-MM-DD'), VERSION_LABEL = :2,
+		    TERMS_AND_CONDITIONS_PATH = :3, LAST_MODIFIED_AT = :4
+		WHERE ID = HEXTORAW(:5)`
+
+	res, err := r.db.ExecContext(ctx, q,
+		t.ActivationTime,
+		t.VersionLabel,
+		t.TermsAndConditionsPath,
+		time.Now(),
+		id,
+	)
+	if err != nil {
+		log.Errorf("[TACOracle][Update] exec: %v", err)
+		return local_util.HandleDBError(err)
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	return nil
 }

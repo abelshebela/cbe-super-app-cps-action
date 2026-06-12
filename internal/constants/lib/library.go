@@ -983,66 +983,6 @@ func parseDateInput(s string) (time.Time, error) {
 	return time.Time{}, fmt.Errorf("unable to parse date: %s", s)
 }
 
-// func UploadFileToMinio(
-// 	ctx context.Context,
-// 	s3Client *s3.Client,
-// 	bucketName string,
-// 	fileHeader *multipart.FileHeader,
-// 	prefix string,
-// 	env config.VaultConfig,
-// 	objectkey string,
-// 	logger interface {
-// 		Errorf(format string, args ...any)
-// 	},
-// ) (string, error) {
-
-// 	// Open file and buffer its content
-// 	file, err := fileHeader.Open()
-// 	if err != nil {
-// 		logger.Errorf("failed to open file: %v", err)
-// 		return "", errors.New(err.Error())
-// 	}
-// 	defer file.Close()
-
-// 	buf := new(bytes.Buffer)
-// 	n, err := io.Copy(buf, file)
-// 	if err != nil {
-// 		logger.Errorf("failed to read uploaded file error: %v", err)
-// 		return "", errors.New(err.Error())
-// 	}
-
-// 	// Build object key under a folder (bucketName used as folder/prefix)
-// 	// and generate unique filename based on prefix and timestamp to avoid collisions
-// 	genName := fmt.Sprintf("%s-%d-%s", prefix, time.Now().UnixNano(), fileHeader.Filename)
-// 	key := genName
-// 	// key := path.Join(bucketName, genName)
-
-// 	// Determine content type
-// 	contentType := fileHeader.Header.Get("Content-Type")
-// 	if strings.TrimSpace(contentType) == "" {
-// 		contentType = "application/octet-stream"
-// 	}
-
-// 	// Upload using the buffered bytes to avoid EOF issues
-// 	cl := n
-// 	putInput := &s3.PutObjectInput{
-// 		Bucket:        aws.String(bucketName), // secrets.AWS_BUCKET_NAME
-// 		Key:           aws.String(key),
-// 		Body:          bytes.NewReader(buf.Bytes()),
-// 		ContentType:   aws.String(contentType),
-// 		ContentLength: &cl,
-// 	}
-
-// 	if _, err := s3Client.PutObject(context.TODO(), putInput); err != nil {
-// 		logger.Errorf("upload failed error: %v", err)
-// 		return "", errors.New(err.Error())
-// 	}
-
-// 	// Build streamed URL served by the uploader service
-// 	url := fmt.Sprintf("%s/%s", env.MinioPublicEndPoint, strings.TrimPrefix(key, "/"))
-// 	return url, nil
-// }
-
 func BuildCPSActionDateRangeFilter(filterMap *types.Filter, startDate, endDate time.Time) bson.M {
 	rangeFilter := bson.M{
 		"$gte": startDate,

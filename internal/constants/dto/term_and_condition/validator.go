@@ -60,6 +60,24 @@ func IsValidDocument(req *CreateTACRequest) error {
 	return nil
 }
 
+func (r UpdateTACRequest) Validate() error {
+	if r.TermAndCondition != nil {
+		if err := IsValidDocument(&CreateTACRequest{TermAndCondition: r.TermAndCondition}); err != nil {
+			return err
+		}
+	}
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.ActivationTime,
+			validation.Length(0, 10),
+			validation.By(tacValidDate),
+		),
+		validation.Field(&r.VersionLabel,
+			validation.Length(0, 128),
+			validation.By(tacNoSpecialChars),
+		),
+	)
+}
+
 func (r CreateTACRequest) Validate() error {
 	if err := IsValidDocument(&r); err != nil {
 		return err

@@ -634,6 +634,7 @@ type AccountOpeningTermsService interface {
 	GetAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.AccountOpeningTerms], error)
 	GetByID(ctx context.Context, id string) (*imodel.AccountOpeningTerms, error)
 	Upload(ctx context.Context, req tac_dto.CreateTACRequest) error
+	Update(ctx context.Context, id string, req tac_dto.UpdateTACRequest) error
 	Delete(ctx context.Context, id string) error
 }
 

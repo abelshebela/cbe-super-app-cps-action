@@ -29,6 +29,7 @@ type RoleDelegation struct {
 	DelegatorUserDepartmentOrBranch string `json:"delegator_user_department_or_branch" bson:"delegator_user_department_or_branch"`
 	DelegatorUserJobTitle           string `json:"delegator_user_job_title" bson:"delegator_user_job_title"`
 	DelegatorUserRole               string `json:"delegator_user_role" bson:"delegator_user_role"`
+	DelegatorUserRoleName           string `json:"delegator_user_role_name" bson:"delegator_user_role_name"`
 
 	NewRoleID                 string `json:"new_role_id" bson:"new_role_id"`
 	NewRoleIDName             string `json:"new_role_id_name" bson:"new_role_id_name"`

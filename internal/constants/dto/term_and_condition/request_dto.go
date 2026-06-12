@@ -9,6 +9,12 @@ type CreateTACRequest struct {
 	VersionLabel        string                `json:"version_label"`
 }
 
+type UpdateTACRequest struct {
+	ActivationTime   string                `json:"activation_time"`
+	VersionLabel     string                `json:"version_label"`
+	TermAndCondition *multipart.FileHeader `json:"term_and_condition"`
+}
+
 type CPSTACRequest struct {
 	ID                     string `json:"id"`
 	AccountProductID       string `json:"account_product_id"`

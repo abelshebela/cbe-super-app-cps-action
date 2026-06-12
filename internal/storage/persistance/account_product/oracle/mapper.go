@@ -9,7 +9,7 @@ import (
 
 const apSelectCols = `
 	RAWTOHEX(ap.ID), ap.CBS_PRODUCT_CODE, ap.PRODUCT_NAME, ap.PRODUCT_TAG_LINE,
-	RAWTOHEX(ap.ACCOUNT_CATEGORY_ID), NVL(ac.CATEGORY_NAME, ''), ap.ACCOUNT_CURRENCY,
+	RAWTOHEX(ap.ACCOUNT_CATEGORY_ID), NVL(ac.CATEGORY_NAME, ''),NVL(ac.ACCOUNT_TYPE, ''), ap.ACCOUNT_CURRENCY,
 	ap.MINIMUM_OPENING_BALANCE, ap.MINIMUM_MAINTENANCE_FEE, ap.INTEREST_FEE,
 	ap.FAQ_URL, ap.PRODUCT_FEATURES, ap.HAS_PHYSICAL_CARD, ap.HAS_VIRTUAL_CARD,
 	ap.PRODUCT_ICON, ap.PRODUCT_COVER_IMAGE, ap.IS_ENABLED, ap.IS_DELETED,
@@ -24,21 +24,21 @@ type rowScanner interface {
 
 func scanAPRow(s rowScanner) (*imodel.AccountProduct, error) {
 	var (
-		id, cbsCode, productName, tagLine     string
-		accountCategoryID, categoryName       string
-		accountCurrency                       string
-		minOpeningBalance, minMaintenanceFee  float64
-		interestFee                           float64
-		faqURL, productFeatures              sql.NullString
-		productIcon, productCoverImage       sql.NullString
-		hasPhysicalCard, hasVirtualCard      int
-		isEnabled, isDeleted                 int
-		createdAt, lastModifiedAt            time.Time
+		id, cbsCode, productName, tagLine            string
+		accountCategoryID, categoryName, accountType string
+		accountCurrency                              string
+		minOpeningBalance, minMaintenanceFee         float64
+		interestFee                                  float64
+		faqURL, productFeatures                      sql.NullString
+		productIcon, productCoverImage               sql.NullString
+		hasPhysicalCard, hasVirtualCard              int
+		isEnabled, isDeleted                         int
+		createdAt, lastModifiedAt                    time.Time
 	)
 
 	if err := s.Scan(
 		&id, &cbsCode, &productName, &tagLine,
-		&accountCategoryID, &categoryName, &accountCurrency,
+		&accountCategoryID, &categoryName, &accountType, &accountCurrency,
 		&minOpeningBalance, &minMaintenanceFee, &interestFee,
 		&faqURL, &productFeatures,
 		&hasPhysicalCard, &hasVirtualCard,
