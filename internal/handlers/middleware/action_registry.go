@@ -851,8 +851,10 @@ func GetActionNameFromPath(method, path string) string {
 		relPath = "/"
 	}
 
+	relPathNewa := strings.TrimPrefix(path, "/api/v1/cbesuperapp/")
+
 	// Handle special cases for news endpoints
-	if strings.Contains(relPath, "news/") {
+	if strings.Contains(relPathNewa, "news") {
 		return "ARTICLE"
 	}
 	// SHORTVIDEO, ARTICLECATEGORY
