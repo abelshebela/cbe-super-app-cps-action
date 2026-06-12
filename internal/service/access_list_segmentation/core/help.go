@@ -93,6 +93,7 @@ func FindNoneSegmentedAccessList(ctx context.Context, accessListServiceRepo stor
 // Helper to convert APPAccessList to SubAccessList
 func modelToSubAccessList(al *local_model.APPAccessList) types.SubAccessList {
 	return types.SubAccessList{
+		ID:             al.ID,
 		Key:            al.Key,
 		Enabled:        al.Enabled,
 		AccessListName: al.AccessListName,
