@@ -1473,6 +1473,7 @@ const (
 	MsgBpsUserAlreadyExists          = "A BPS user with the provided details already exists"
 	MsgCpsUserAlreadyExists          = "A CPS user with the provided details already exists"
 	MsgRoleDelegationForUserNotFound = "Role delegation Not Found for the user"
+	MsgNewRoleForDelegationNotFound  = "New Role For Delegation Not Found"
 
 	// Account Sub Type messages
 	MsgAccountSubTypeCreateRequestSent  = "Account sub type create request sent successfully"
