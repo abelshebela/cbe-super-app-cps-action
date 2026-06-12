@@ -999,6 +999,7 @@ type UserActionLogRepository interface {
 	GetActionCodesByUserAndAuditorStatus(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility, status string) ([]string, error)
 	GetActionCodesByActionLogFilter(ctx context.Context, filter imodel.UserActionLogActionCodeFilter) ([]string, error)
 	GetActionCodesByFilter(ctx context.Context, filter map[string]interface{}) ([]string, error)
+	GetActionCodesBySearch(ctx context.Context, search string) ([]string, error)
 	AuditorMarkLogsByActionCode(ctx context.Context, actionCode string, givenAuditorStatus string, actionAuditorStatus string, customerBared bool) error
 	UpdateAuditorActionStatusByActionCode(ctx context.Context, actionCode string, actionAuditorStatus string) error
 	GetLogsByUserIDAndResponsibility(ctx context.Context, userID string, responsibility imodel.UserActionResponsibility) ([]string, error)
