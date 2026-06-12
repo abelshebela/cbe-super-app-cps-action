@@ -9911,6 +9911,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorAPCHasActiveProducts = ResponseCode{
+		Code:       "ERROR_APC_HAS_ACTIVE_PRODUCTS",
+		StatusCode: StatusConflict,
+		Message:    MsgAPCHasActiveProducts,
+		Type:       "error",
+	}
+
 	// Account Product success codes
 	SuccessAPCreateRequestSent = ResponseCode{
 		Code:       "SUCCESS_AP_CREATE_REQUEST_SENT",

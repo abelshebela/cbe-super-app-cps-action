@@ -1517,6 +1517,7 @@ const (
 	MsgAPCAlreadyEnabled     = "Account product category is already enabled"
 	MsgAPCAlreadyDisabled    = "Account product category is already disabled"
 	MsgAPCAlreadyExists      = "Account product category CBS code already exists"
+	MsgAPCHasActiveProducts  = "Cannot delete category: there are active account products linked to it"
 
 	// Account Product messages
 	MsgAPCreateRequestSent  = "Account product create request sent successfully"

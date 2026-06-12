@@ -138,11 +138,10 @@ func (r *repository) Delete(ctx context.Context, id string) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 	log.Infof("[APOracle][Delete] id=%s", id)
 
-	q := `UPDATE ACCOUNT_PRODUCTS
-		SET IS_DELETED = 1, IS_ENABLED = 0, LAST_MODIFIED_AT = :1
-		WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
-
-	res, err := r.db.ExecContext(ctx, q, time.Now(), id)
+	res, err := r.db.ExecContext(ctx,
+		`DELETE FROM ACCOUNT_PRODUCTS WHERE ID = HEXTORAW(:1)`,
+		id,
+	)
 	if err != nil {
 		log.Errorf("[APOracle][Delete] exec: %v", err)
 		return local_util.HandleDBError(err)

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
@@ -55,11 +54,10 @@ func (r *repository) Delete(ctx context.Context, id string) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 	log.Infof("[TACOracle][Delete] id=%s", id)
 
-	q := `UPDATE ACCOUNT_OPENING_TERMS
-		SET IS_DELETED = 1, IS_ENABLED = 0, LAST_MODIFIED_AT = :1
-		WHERE ID = HEXTORAW(:2) AND IS_DELETED = 0`
-
-	res, err := r.db.ExecContext(ctx, q, time.Now(), id)
+	res, err := r.db.ExecContext(ctx,
+		`DELETE FROM ACCOUNT_OPENING_TERMS WHERE ID = HEXTORAW(:1)`,
+		id,
+	)
 	if err != nil {
 		log.Errorf("[TACOracle][Delete] exec: %v", err)
 		return local_util.HandleDBError(err)
