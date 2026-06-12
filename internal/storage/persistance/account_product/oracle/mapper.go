@@ -9,14 +9,14 @@ import (
 
 const apSelectCols = `
 	RAWTOHEX(ap.ID), ap.CBS_PRODUCT_CODE, ap.PRODUCT_NAME, ap.PRODUCT_TAG_LINE,
-	RAWTOHEX(ap.ACCOUNT_CATEGORY_ID), ap.ACCOUNT_CURRENCY,
+	RAWTOHEX(ap.ACCOUNT_CATEGORY_ID), NVL(ac.CATEGORY_NAME, ''), ap.ACCOUNT_CURRENCY,
 	ap.MINIMUM_OPENING_BALANCE, ap.MINIMUM_MAINTENANCE_FEE, ap.INTEREST_FEE,
 	ap.FAQ_URL, ap.PRODUCT_FEATURES, ap.HAS_PHYSICAL_CARD, ap.HAS_VIRTUAL_CARD,
 	ap.PRODUCT_ICON, ap.PRODUCT_COVER_IMAGE, ap.IS_ENABLED, ap.IS_DELETED,
 	ap.CREATED_AT, ap.LAST_MODIFIED_AT
 `
 
-const apFromTable = ` FROM ACCOUNT_PRODUCTS ap `
+const apFromTable = ` FROM ACCOUNT_PRODUCTS ap LEFT JOIN ACCOUNT_CATEGORIES ac ON ap.ACCOUNT_CATEGORY_ID = ac.ID `
 
 type rowScanner interface {
 	Scan(dest ...any) error
@@ -24,20 +24,21 @@ type rowScanner interface {
 
 func scanAPRow(s rowScanner) (*imodel.AccountProduct, error) {
 	var (
-		id, cbsCode, productName, tagLine string
-		accountCategoryID, accountCurrency string
-		minOpeningBalance, minMaintenanceFee float64
-		interestFee                          float64
-		faqURL, productFeatures             sql.NullString
-		productIcon, productCoverImage      sql.NullString
-		hasPhysicalCard, hasVirtualCard     int
-		isEnabled, isDeleted                int
-		createdAt, lastModifiedAt           time.Time
+		id, cbsCode, productName, tagLine     string
+		accountCategoryID, categoryName       string
+		accountCurrency                       string
+		minOpeningBalance, minMaintenanceFee  float64
+		interestFee                           float64
+		faqURL, productFeatures              sql.NullString
+		productIcon, productCoverImage       sql.NullString
+		hasPhysicalCard, hasVirtualCard      int
+		isEnabled, isDeleted                 int
+		createdAt, lastModifiedAt            time.Time
 	)
 
 	if err := s.Scan(
 		&id, &cbsCode, &productName, &tagLine,
-		&accountCategoryID, &accountCurrency,
+		&accountCategoryID, &categoryName, &accountCurrency,
 		&minOpeningBalance, &minMaintenanceFee, &interestFee,
 		&faqURL, &productFeatures,
 		&hasPhysicalCard, &hasVirtualCard,
@@ -54,6 +55,7 @@ func scanAPRow(s rowScanner) (*imodel.AccountProduct, error) {
 		ProductName:           productName,
 		ProductTagLine:        tagLine,
 		AccountCategoryID:     accountCategoryID,
+		CategoryName:          categoryName,
 		AccountCurrency:       accountCurrency,
 		MinimumOpeningBalance: minOpeningBalance,
 		MinimumMaintenanceFee: minMaintenanceFee,

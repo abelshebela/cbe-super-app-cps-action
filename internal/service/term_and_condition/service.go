@@ -3,7 +3,9 @@ package term_and_condition_service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
+	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
 	tac_dto "cbe-super-app-cps-action/internal/constants/dto/term_and_condition"
@@ -141,8 +143,21 @@ func (s *accountOpeningTermsService) Upload(ctx context.Context, req tac_dto.Cre
 		return errors.New(localization.ErrorTACAlreadyExists.Code)
 	}
 
-	pdfURL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.TermAndCondition,
-		string(constants.TermAndConditionFolderName), *s.cfg, "", s.logger)
+	pdfFile, err := req.TermAndCondition.Open()
+	if err != nil {
+		log.Errorf("[TACSvc][Upload] open pdf: %v", err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+	defer pdfFile.Close()
+
+	objectKey := fmt.Sprintf("%s/%d-%s",
+		constants.TermAndConditionFolderName,
+		time.Now().UnixNano(),
+		req.TermAndCondition.Filename,
+	)
+
+	pdfURL, err := lib.UploadPDFToMinio(ctx, s.minio, s.bucketName,
+		pdfFile, req.TermAndCondition.Size, *s.cfg, objectKey, s.logger)
 	if err != nil {
 		span.AddEvent("pdf upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
 		log.Errorf("[TACSvc][Upload] upload pdf err: %v", err)
