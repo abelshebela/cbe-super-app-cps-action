@@ -319,6 +319,10 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 			span.AddEvent("pending enable cps action exists", trace.WithAttributes(attribute.String("error", "pending enable cps action exists")))
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_code"), existing.ActionCode)
 			ctx = context.WithValue(ctx, constants.ContextKey("existing_action_status"), existing.ActionStatus)
+
+			if md := types.GetMetadata(ctx); md != nil {
+				md.CPSActionCode = existing.ActionCode
+			}
 			return errors.New(localization.ErrorPendingCpsActionExists.Code)
 		}
 	}

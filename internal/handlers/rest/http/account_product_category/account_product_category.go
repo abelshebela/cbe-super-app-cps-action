@@ -107,6 +107,7 @@ func (h *accountProductCategoryAdapter) Create(w http.ResponseWriter, r *http.Re
 	span.SetAttributes(attribute.String("apc.code", req.CBSCategoryCode))
 
 	if err := h.svc.Create(ctx, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[APCHandler][Create] service err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -155,6 +156,7 @@ func (h *accountProductCategoryAdapter) Update(w http.ResponseWriter, r *http.Re
 	}
 
 	if err := h.svc.Update(ctx, id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[APCHandler][Update] service err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -177,6 +179,10 @@ func (h *accountProductCategoryAdapter) Delete(w http.ResponseWriter, r *http.Re
 	defer span.End()
 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -185,6 +191,7 @@ func (h *accountProductCategoryAdapter) Delete(w http.ResponseWriter, r *http.Re
 	span.SetAttributes(attribute.String("apc.id", id))
 
 	if err := h.svc.Delete(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[APCHandler][Delete] service err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -192,7 +199,7 @@ func (h *accountProductCategoryAdapter) Delete(w http.ResponseWriter, r *http.Re
 	}
 
 	log.Infof("[APCHandler][Delete] request sent id=%s", id)
-	w = localization.ApplyActionCodeHeaderFromWriter(w, r.Context())
+	w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
 	localization.SendSuccessResponse(w, localization.SuccessAPCDeleteRequestSent, nil)
 }
 
@@ -213,6 +220,7 @@ func (h *accountProductCategoryAdapter) Enable(w http.ResponseWriter, r *http.Re
 	span.SetAttributes(attribute.String("apc.id", id))
 
 	if err := h.svc.EnableOrDisable(ctx, id, true); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[APCHandler][Enable] service err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -247,6 +255,7 @@ func (h *accountProductCategoryAdapter) Disable(w http.ResponseWriter, r *http.R
 	span.SetAttributes(attribute.String("apc.id", id))
 
 	if err := h.svc.EnableOrDisable(ctx, id, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[APCHandler][Disable] service err: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

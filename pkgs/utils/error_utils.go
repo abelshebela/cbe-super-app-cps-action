@@ -2,8 +2,10 @@ package utils
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"context"
 	"database/sql"
 	"errors"
+	"net/http"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -19,4 +21,11 @@ func HandleDBError(err error) error {
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	return errors.New(localization.ErrorUnexpectedError.Code)
+}
+
+func HandlePendingResponseError(ctx context.Context, w http.ResponseWriter, err error) http.ResponseWriter {
+	if err.Error() == localization.ErrorPendingActionExists.Code {
+		w = localization.ApplyActionCodeHeaderFromWriter(w, ctx)
+	}
+	return w
 }

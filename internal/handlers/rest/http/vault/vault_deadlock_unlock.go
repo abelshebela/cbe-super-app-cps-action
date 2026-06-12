@@ -4,7 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
-	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"net/http"
 
@@ -12,9 +12,9 @@ import (
 )
 
 // func (h *handler) CreateWithdrawalRequest(w http.ResponseWriter, r *http.Request) {
-// 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "CreateWithdrawalRequest", "handler", "CreateWithdrawalRequest")
+// 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "CreateWithdrawalRequest", "handler", "CreateWithdrawalRequest")
 // 	defer span.End()
-// 	log := common_utils.LoggerFromCtx(ctx, h.logger)
+// 	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 // 	md := &types.ContextMetadata{}
 // 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -56,15 +56,15 @@ import (
 // }
 
 func (h *handler) UlockDeadlockRequest(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "UnlockDeadlockRequest", "handler", "UnlockDeadlockRequest")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "UnlockDeadlockRequest", "handler", "UnlockDeadlockRequest")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	localization.UpdateWriterContext(w, ctx)
 
-	id, err := common_utils.ExtractID(w, r)
+	id, err := local_util.ExtractID(w, r)
 	if err != nil || id == "" {
 		span.RecordError(err)
 		log.Errorf("[UnlockDeadlockRequest] extract id: %v", err)
@@ -74,6 +74,7 @@ func (h *handler) UlockDeadlockRequest(w http.ResponseWriter, r *http.Request) {
 
 	err = h.service.UnlockDeadlockRequest(ctx, id)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[UnlockDeadlockRequest] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -94,21 +95,21 @@ func (h *handler) UlockDeadlockRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetAllDeadlockRequests(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "GetAllDeadlockRequests", "handler", "GetAllDeadlockRequests")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "GetAllDeadlockRequests", "handler", "GetAllDeadlockRequests")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
 
-	params := common_utils.ExtractFilterParams(r)
+	params := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	if err := common_utils.NoSpecialChars(search); err != nil {
+	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if err := common_utils.NoSpecialChars(filter); err != nil {
+	if err := local_util.NoSpecialChars(filter); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -125,10 +126,10 @@ func (h *handler) GetAllDeadlockRequests(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *handler) GetDeadlockRequestById(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "GetDeadlockRequestById", "handler", "GetDeadlockRequestById")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "GetDeadlockRequestById", "handler", "GetDeadlockRequestById")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, h.logger)
-	id, err := common_utils.ExtractID(w, r)
+	log := local_util.LoggerFromCtx(ctx, h.logger)
+	id, err := local_util.ExtractID(w, r)
 	if id == "" {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

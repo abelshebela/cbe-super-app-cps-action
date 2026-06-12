@@ -206,6 +206,7 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 
 	err := h.Service.UpdateStatusBpsUser(ctx, userCode, false)
 	if err != nil {
+		w = local_utils.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DisableUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -253,6 +254,7 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 
 	err := h.Service.UpdateStatusBpsUser(ctx, userCode, true)
 	if err != nil {
+		w = local_utils.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EnableUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -320,6 +322,7 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 
 	err := h.Service.CreateBPSUser(ctx, NewUser)
 	if err != nil {
+		w = local_utils.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[CreateUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -403,6 +406,7 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 
 	err := h.Service.UpdateBPSUser(ctx, id, updatedUser)
 	if err != nil {
+		w = local_utils.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[UpdateBPSUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -449,6 +453,7 @@ func (h BPSUserHandler) DeleteBPSUser(w http.ResponseWriter, r *http.Request) {
 
 	err := h.Service.DeleteBPSUser(ctx, id)
 	if err != nil {
+		w = local_utils.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DeleteBPSUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

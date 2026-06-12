@@ -53,6 +53,7 @@ func (f *faydaAccountHandler) InitiateEnableFaydaAccount(w http.ResponseWriter, 
 
 	err := f.faydaService.EnableOrDisableFayda(ctx, user_code, true)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[InitiateEnableFaydaAccount] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -91,6 +92,7 @@ func (f *faydaAccountHandler) InitiateDisableFaydaAccount(w http.ResponseWriter,
 
 	err := f.faydaService.EnableOrDisableFayda(ctx, user_code, false)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[InitiateDisableFaydaAccount] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

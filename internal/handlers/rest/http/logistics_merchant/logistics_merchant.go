@@ -58,6 +58,7 @@ func (e *LogisticsMerchantHandler) CreateLogisticMerchant(w http.ResponseWriter,
 	m := core.CreateLogisticsMerchantRequestToModel(req)
 
 	if err := e.service.Create(ctx, m); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -95,6 +96,7 @@ func (e *LogisticsMerchantHandler) DeleteLogisticMerchant(w http.ResponseWriter,
 		return
 	}
 	if err := e.service.Delete(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -131,6 +133,7 @@ func (e *LogisticsMerchantHandler) DisableLogisticMerchant(w http.ResponseWriter
 		return
 	}
 	if err := e.service.EnableOrDisable(ctx, req.MerchantIDs, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -153,6 +156,7 @@ func (e *LogisticsMerchantHandler) EnableLogisticMerchant(w http.ResponseWriter,
 		return
 	}
 	if err := e.service.EnableOrDisable(ctx, req.MerchantIDs, true); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -248,6 +252,7 @@ func (e *LogisticsMerchantHandler) UpdateLogisticMerchant(w http.ResponseWriter,
 	}
 	m := core.UpdateLogisticsMerchantRequestToModel(req)
 	if err := e.service.Update(ctx, id, m); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

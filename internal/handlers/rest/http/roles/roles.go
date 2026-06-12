@@ -158,6 +158,7 @@ func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := j.service.Create(ctx, role); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -227,6 +228,7 @@ func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := j.service.Update(ctx, id, updated); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[Job Role Handler] error: %v", err.Error())
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -269,6 +271,7 @@ func (j *RoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := j.service.EnableOrDisable(ctx, id, true); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[RoleHandler][Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -310,6 +313,7 @@ func (j *RoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := j.service.EnableOrDisable(ctx, id, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[RoleHandler][Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -351,6 +355,7 @@ func (j *RoleHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := j.service.Delete(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[RoleHandler][Delete] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

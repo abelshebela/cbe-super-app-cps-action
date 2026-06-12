@@ -86,6 +86,7 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 
 	err = a.advertApplication.CreateAdvert(ctx, &domainReq, req.BannerImage)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CreateAdvert] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -225,6 +226,7 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -232,6 +234,7 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 
 	req, err := core.ParseBannerImage(r, false)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[event.UpdateAdvert] failed to parse and validate advert request, id: %s, error: %v", id, err.Error())
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -260,6 +263,7 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 
 	err = a.advertApplication.UpdateAdvert(ctx, id, &domainReq, req.BannerImage)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[UpdateAdvert] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -300,6 +304,7 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -308,6 +313,7 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 
 	err = a.advertApplication.DeleteAdvert(ctx, id)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DeleteAdvert] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -347,6 +353,7 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -356,6 +363,7 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 
 	err = a.advertApplication.EnableDisableAdvert(ctx, id, true)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[EnableAdvert] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -397,6 +405,7 @@ func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
 
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -406,6 +415,7 @@ func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
 
 	err = a.advertApplication.EnableDisableAdvert(ctx, id, false)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DisableAdvert] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

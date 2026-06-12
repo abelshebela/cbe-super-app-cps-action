@@ -8,7 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	bank_core "cbe-super-app-cps-action/internal/handlers/rest/http/bank/core"
 	"cbe-super-app-cps-action/internal/service"
-	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"strconv"
 
@@ -52,9 +52,9 @@ func InitBankAdapter(bankApplication service.BankService, logger utils.Logger) b
 //	@Security		BearerAuth
 //	@Router			/banks [post]
 func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createOneBank", "handler", "bank")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createOneBank", "handler", "bank")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, b.logger)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -130,6 +130,7 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 
 	err = b.bankService.CreateOneBank(ctx, bankRequest)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[CreateOneBank] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -162,9 +163,12 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id} [delete]
 func (b *bankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteOneBank", "handler", "bank")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteOneBank", "handler", "bank")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, b.logger)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+	localization.UpdateWriterContext(w, ctx)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		log.Errorf("[BankH] missing id param")
@@ -177,6 +181,7 @@ func (b *bankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 	err := b.bankService.DeleteOneBank(ctx, id)
 
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[DeleteOneBank] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorBankDeleteRequestFailed.Code)
@@ -203,9 +208,9 @@ func (b *bankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id}/disable [patch]
 func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableBank", "handler", "bank")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableBank", "handler", "bank")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, b.logger)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -221,6 +226,7 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 
 	err := b.bankService.EnableOrDisableBank(ctx, id, false)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[BankDisable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -253,9 +259,9 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id}/enable [patch]
 func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableBank", "handler", "bank")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableBank", "handler", "bank")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, b.logger)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
@@ -271,6 +277,7 @@ func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 
 	err := b.bankService.EnableOrDisableBank(ctx, id, true)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[BankEnable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -302,20 +309,20 @@ func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks [get]
 func (b *bankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllBanks", "handler", "bank")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllBanks", "handler", "bank")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, b.logger)
-	filterParams := common_utils.ExtractFilterParams(r)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
+	filterParams := local_util.ExtractFilterParams(r)
 
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
-	if err := common_utils.NoSpecialChars(search); err != nil {
+	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if err := common_utils.NoSpecialChars(filter); err != nil {
+	if err := local_util.NoSpecialChars(filter); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -352,9 +359,9 @@ func (b *bankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id} [get]
 func (b *bankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getOneBank", "handler", "bank")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getOneBank", "handler", "bank")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, b.logger)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
 	id := chi.URLParam(r, "id")
 	span.SetAttributes(attribute.String("bank.id", id))
 
@@ -394,9 +401,9 @@ func (b *bankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id}/logo [patch]
 func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateBankLogo", "handler", "bank")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateBankLogo", "handler", "bank")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, b.logger)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
 	var uploadLogo bank_dto.UpdateLogo
 	id := chi.URLParam(r, "id")
 	span.SetAttributes(attribute.String("bank.id", id))
@@ -419,6 +426,7 @@ func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 	err = b.bankService.UpdateLogo(ctx, id, uploadLogo)
 
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		log.Errorf("[UpdateLogo] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -446,9 +454,9 @@ func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 //	@Router			/banks/{id} [patch]
 func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 
-	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateOneBank", "handler", "bank")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateOneBank", "handler", "bank")
 	defer span.End()
-	log := common_utils.LoggerFromCtx(ctx, b.logger)
+	log := local_util.LoggerFromCtx(ctx, b.logger)
 
 	md := &types.ContextMetadata{}
 	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)

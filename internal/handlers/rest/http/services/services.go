@@ -73,6 +73,7 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.app.Create(ctx, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -175,6 +176,7 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	span.SetAttributes(attribute.String("service.id", id))
 
 	if err := a.app.Update(ctx, id, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -233,6 +235,7 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("service.id", id))
 	if err := a.app.Enable(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -291,6 +294,7 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("service.id", id))
 	if err := a.app.Disable(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -378,6 +382,7 @@ func (a *servicesAdapter) CreateServiceList(w http.ResponseWriter, r *http.Reque
 	}
 
 	if err := a.app.CreateServiceList(ctx, &req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -425,6 +430,7 @@ func (a *servicesAdapter) UpdateServiceList(w http.ResponseWriter, r *http.Reque
 	// }
 
 	if err := a.app.UpdateServiceList(ctx, id, &req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -548,6 +554,7 @@ func (a *servicesAdapter) EnableServiceList(w http.ResponseWriter, r *http.Reque
 
 	span.SetAttributes(attribute.String("service.id", id))
 	if err := a.app.EnableOrDisableServiceList(ctx, id, true); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -582,6 +589,7 @@ func (a *servicesAdapter) DisableServiceList(w http.ResponseWriter, r *http.Requ
 
 	span.SetAttributes(attribute.String("service.id", id))
 	if err := a.app.EnableOrDisableServiceList(ctx, id, false); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -616,6 +624,7 @@ func (a *servicesAdapter) DeleteServiceKey(w http.ResponseWriter, r *http.Reques
 	}
 
 	if err := a.app.DeleteServiceKey(ctx, id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

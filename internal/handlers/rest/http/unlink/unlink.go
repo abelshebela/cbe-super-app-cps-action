@@ -155,6 +155,7 @@ func (a *unlinkAdapter) UnlinkUserCif(w http.ResponseWriter, r *http.Request) {
 	}
 	err := a.unlinkApp.UnlinkUserCif(ctx, userCode)
 	if err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("user_code", userCode)))
 		log.Errorf("[UnlinkUserCif] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

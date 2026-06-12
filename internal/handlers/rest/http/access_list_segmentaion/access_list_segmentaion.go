@@ -55,6 +55,7 @@ func (a *accessListSegmentation) CreateAccessListSegmentation(w http.ResponseWri
 		return
 	}
 	if err := a.service.CreateAccessListSegmentation(ctx, req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[CreateAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -109,6 +110,7 @@ func (a *accessListSegmentation) DisableAccessListSegmentation(w http.ResponseWr
 	}
 
 	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, false, req.AccessListKeys, strings.ToLower(req.SegmentationType)); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[DisableAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -131,6 +133,7 @@ func (a *accessListSegmentation) EnableAccessListSegmentation(w http.ResponseWri
 		return
 	}
 	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, true, nil, ""); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[EnableAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -267,6 +270,7 @@ func (a *accessListSegmentation) UpdateAccessListSegmentation(w http.ResponseWri
 		return
 	}
 	if err := a.service.UpdateAccessListSegmentation(r.Context(), req); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[UpdateAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

@@ -64,6 +64,7 @@ func (n NewsCategoryHandler) CreateNewsCategory(w http.ResponseWriter, r *http.R
 	}
 
 	if err := n.service.CreateNewsCategory(r.Context(), req.CategoryName); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[CreateNewsCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -98,6 +99,7 @@ func (n NewsCategoryHandler) DeleteNewsCategory(w http.ResponseWriter, r *http.R
 	}
 
 	if err := n.service.DeleteNewsCategory(r.Context(), id); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[DeleteNewsCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -234,6 +236,7 @@ func (n NewsCategoryHandler) UpdateNewsCategory(w http.ResponseWriter, r *http.R
 
 	// Note: service.UpdateNewsCategory signature accepts only the category name.
 	if err := n.service.UpdateNewsCategory(r.Context(), id, req.CategoryName); err != nil {
+		w = local_util.HandlePendingResponseError(ctx, w, err)
 		log.Errorf("[UpdateNewsCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
