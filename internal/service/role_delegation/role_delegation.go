@@ -433,6 +433,11 @@ func (r *roleDelegation) FindById(ctx context.Context, id string) (*imodel.RoleD
 	} else {
 		r.logger.Errorf("[RoleDelegation/FindById] failed to find new role by code: %v", err)
 	}
+
+	// delegator info
+	if role, err := r.roleRepo.FindByCode(ctx, roleDelegation.DelegatorUserRole); err == nil && role != nil {
+		roleDelegation.DelegatorUserRoleName = role.Name
+	}
 	return roleDelegation, err
 }
 
