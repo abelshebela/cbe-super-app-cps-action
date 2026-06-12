@@ -852,7 +852,7 @@ func GetActionNameFromPath(method, path string) string {
 	}
 
 	// Handle special cases for news endpoints
-	if strings.Contains(relPath, "news/") {
+	if strings.Contains(relPath, "news") {
 		return "ARTICLE"
 	}
 	// SHORTVIDEO, ARTICLECATEGORY
