@@ -35,7 +35,7 @@ func (r *repository) Create(ctx context.Context, t *imodel.AccountOpeningTerms) 
 
 	q := `INSERT INTO ACCOUNT_OPENING_TERMS
 		(ACCOUNT_PRODUCT_ID, ACTIVATION_TIME, VERSION_LABEL, TERMS_AND_CONDITIONS_PATH, IS_ENABLED, IS_DELETED)
-		VALUES (HEXTORAW(:1), :2, :3, :4, :5, :6)`
+		VALUES (HEXTORAW(:1), TO_DATE(:2, 'YYYY-MM-DD'), :3, :4, :5, :6)`
 
 	if _, err := r.db.ExecContext(ctx, q,
 		t.AccountProductID,
