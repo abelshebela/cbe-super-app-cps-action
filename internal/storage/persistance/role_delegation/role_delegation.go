@@ -34,7 +34,7 @@ type roleDelegationRepository struct {
 func (r *roleDelegationRepository) CreateWithExistingUser(ctx context.Context, role *imodel.RoleDelegation) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	log.Infof("[RoleDelegationRepository][Create] creating role delegation for user=%s job_title=%s", role.DelegatedUserID, role.DelegatedUserJobTitle)
+	log.Infof("[RoleDelegationRepository][CreateWithExistingUser] creating role delegation for user=%s job_title=%s rest of data: %+v", role.DelegatedUserID, role.DelegatedUserJobTitle, role)
 	session, err := r.collection.Database().Client().StartSession()
 	if err != nil {
 		log.Errorf("[RoleDelegationRepository][Create] failed to start session: %v", err)
@@ -98,7 +98,7 @@ func (r *roleDelegationRepository) CreateWithExistingUser(ctx context.Context, r
 func (r *roleDelegationRepository) CreateWithNewUser(ctx context.Context, role *imodel.RoleDelegation) error {
 	log := local_util.LoggerFromCtx(ctx, r.logger)
 
-	log.Infof("[RoleDelegationRepository][Create] creating role delegation for user=%s job_title=%s", role.DelegatedUserID, role.DelegatedUserJobTitle)
+	log.Infof("[RoleDelegationRepository][CreateNewUser] creating role delegation for user=%s job_title=%s restOfData:%+v", role.DelegatedUserID, role.DelegatedUserJobTitle, role)
 	session, err := r.collection.Database().Client().StartSession()
 	if err != nil {
 		log.Errorf("[RoleDelegationRepository][Create] failed to start session: %v", err)
