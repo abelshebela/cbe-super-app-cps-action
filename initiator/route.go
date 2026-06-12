@@ -11,15 +11,14 @@ import (
 	cps_auth "cbe-super-app-cps-action/grpc/auth/proto"
 	access_list_segmentation "cbe-super-app-cps-action/internal/glue/routing/access_list_segmentaion"
 	accountblock "cbe-super-app-cps-action/internal/glue/routing/account_block"
+	ap_routing "cbe-super-app-cps-action/internal/glue/routing/account_product"
+	apc_routing "cbe-super-app-cps-action/internal/glue/routing/account_product_category"
+	account_sub_type_routing "cbe-super-app-cps-action/internal/glue/routing/account_sub_type"
 	accountvalidation "cbe-super-app-cps-action/internal/glue/routing/account_validation"
 	advert "cbe-super-app-cps-action/internal/glue/routing/ad"
 	amountBasedAuth "cbe-super-app-cps-action/internal/glue/routing/amount_based_auth"
 	avatar "cbe-super-app-cps-action/internal/glue/routing/avatar"
 	"cbe-super-app-cps-action/internal/glue/routing/bank"
-	account_sub_type_routing "cbe-super-app-cps-action/internal/glue/routing/account_sub_type"
-	apc_routing "cbe-super-app-cps-action/internal/glue/routing/account_product_category"
-	ap_routing "cbe-super-app-cps-action/internal/glue/routing/account_product"
-	tac_routing "cbe-super-app-cps-action/internal/glue/routing/term_and_condition"
 	bps_action "cbe-super-app-cps-action/internal/glue/routing/bps_action"
 	bps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/bps_action_role"
 	cps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/cps_action_role"
@@ -32,6 +31,7 @@ import (
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
 	newstag_routing "cbe-super-app-cps-action/internal/glue/routing/news_tag"
 	"cbe-super-app-cps-action/internal/glue/routing/role_delegation"
+	tac_routing "cbe-super-app-cps-action/internal/glue/routing/term_and_condition"
 
 	"cbe-super-app-cps-action/internal/glue/routing/services"
 	"cbe-super-app-cps-action/internal/glue/routing/transaction"
@@ -83,8 +83,7 @@ import (
 	sharedMiddleware "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/middleware"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.uber.org/zap"
-
-	"github.com/go-chi/httprate"
+	// "github.com/go-chi/httprate"
 )
 
 func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware sharedMiddleware.EncMiddleware, handlerLayer Handler, client cps_auth.CpsAuthServiceClient, redisRepository storage.RedisRepository, logger utils.Logger, cfg *config.VaultConfig) {
@@ -109,7 +108,9 @@ func InitRoute(ctx context.Context, router *chi.Mux, encryptionMiddleware shared
 	router.Use(chiMiddleware.RealIP)
 	// CORS must run early so preflight OPTIONS requests are handled before auth/logging
 	// Security http rate limitter
-	router.Use(httprate.LimitByIP(100, 1*time.Minute))
+	/*
+		router.Use(httprate.LimitByIP(100, 1*time.Minute))
+	*/
 	// Security headers: HSTS, X-Content-Type-Options, X-Frame-Options, CSP, Cache-Control
 	router.Use(customeMiddleware.SecurityHeaders)
 	// Inject trace and span ids from OpenTelemetry span into context for logger extraction
