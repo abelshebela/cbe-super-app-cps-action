@@ -135,7 +135,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	notificationsvc := notification.InitNotificationService(persistence.NotificationPersistence, logger, nil, smsService)
 	amountBased := amount_based_auth.NewAmountBasedAuthService(oracle.AmountBasedAuthOracle, nil, cfg, logger)
 	unlinkService := unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, persistence.AccountBlockPersistence, nil, logger)
-	bpsUserService := bpsuser.NewBPSUserService(persistence.BPSUserPersistence, persistence.JobRolePersistence, nil, persistence.CpsUserPersistence, persistence.AccountBlockPersistence, logger)
+	bpsUserService := bpsuser.NewBPSUserService(persistence.BPSUserPersistence, persistence.JobRolePersistence, persistence.RolePersistence, nil, persistence.CpsUserPersistence, persistence.AccountBlockPersistence, logger)
 	articleService := media.NewMediaService(persistence.ArticlePersistence, redis, logger)
 	articleCategoryService := media.NewMediaCategoryService(persistence.ArticleCategoryPersistence, logger)
 	ShortVideoService := media.NewShortVideoService(persistence.ShortVideoPersistence, redis, mediaProducer, logger)
@@ -275,7 +275,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.DeviceVersionContainer = deviceVersionService
 	budgetCategoryService = budgetCategorySvc.NewBudgetCategoryService(oracle.BudgetCategoryOracle, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	serviceContainer.UnlinkContainer = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, persistence.AccountBlockPersistence, cpsActionService, logger)
-	bpsUserService = bpsuser.NewBPSUserService(persistence.BPSUserPersistence, persistence.JobRolePersistence, cpsActionService, persistence.CpsUserPersistence, persistence.AccountBlockPersistence, logger)
+	bpsUserService = bpsuser.NewBPSUserService(persistence.BPSUserPersistence, persistence.JobRolePersistence, persistence.RolePersistence, cpsActionService, persistence.CpsUserPersistence, persistence.AccountBlockPersistence, logger)
 	serviceContainer.BPSUserContainer = bpsUserService
 	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, cfg.S3BucketName, cfg, logger)
 	serviceContainer.AvatarDomian = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, cfg.S3BucketName, minioPubUrl, *cfg)

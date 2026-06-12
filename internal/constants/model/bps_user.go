@@ -19,6 +19,7 @@ type BPSUser struct {
 	HomeBranch        string          `json:"home_branch,omitempty" bson:"home_branch,omitempty"`
 	JobTitle          string          `json:"job_title,omitempty" bson:"job_title,omitempty"`
 	Role              string          `json:"role,omitempty" bson:"role,omitempty"`
+	RoleName          string          `json:"role_name,omitempty" bson:"role_name,omitempty"`
 	LoginAttemptCount uint8           `json:"-" bson:"login_attempt_count"`
 	Password          Password        `json:"-" bson:"password"`
 	FirstPasswordSet  bool            `json:"-" bson:"first_password_set"`
